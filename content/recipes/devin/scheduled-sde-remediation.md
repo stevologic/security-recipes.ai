@@ -1,5 +1,5 @@
 ---
-title: "Scheduled sensitive data element (SDE) remediation"
+title: "Devin Scheduled Sensitive Data Remediation"
 linkTitle: "Scheduled SDE remediation"
 tool: "devin"
 author: "Stephen M Abbott"

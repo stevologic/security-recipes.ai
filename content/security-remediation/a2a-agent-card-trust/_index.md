@@ -2,6 +2,8 @@
 title: A2A Agent Card Trust
 linkTitle: A2A Agent Card Trust
 weight: 13
+date: 2026-05-04
+lastmod: 2026-07-13
 sidebar:
   exclude: true
 description: >

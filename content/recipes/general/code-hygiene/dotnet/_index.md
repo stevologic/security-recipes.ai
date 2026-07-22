@@ -11,8 +11,21 @@ sidebar:
 
 Nullable, analyzer, asynchronous, disposal, LINQ, and Entity Framework hygiene.
 
-Select one bounded recipe. Start in audit mode; authorize fixes only after reviewing the candidate evidence.
+## Choose a focused .NET recipe
 
-## Recipes
+This collection contains 4 bounded .NET workflows. Choose the recipe whose objective matches the repository evidence instead of combining unrelated cleanup into one run.
+
+- **[.NET nullable and analyzer suppression debt]({{< relref "/recipes/general/code-hygiene/dotnet/dotnet-nullable-and-analyzer-suppression-debt" >}}):** Use it to resolve nullable and analyzer warnings without null-forgiving or pragma expansion.
+- **[.NET async cancellation and fire-and-forget lifecycle]({{< relref "/recipes/general/code-hygiene/dotnet/dotnet-async-cancellation-and-fire-and-forget" >}}):** Use it to propagate CancellationToken and observe every Task failure.
+- **[.NET disposable and async-disposable lifecycle]({{< relref "/recipes/general/code-hygiene/dotnet/dotnet-disposable-and-async-disposable-lifecycle" >}}):** Use it to dispose synchronous and asynchronous resources exactly once after their final use.
+- **[.NET LINQ enumeration and EF query boundaries]({{< relref "/recipes/general/code-hygiene/dotnet/dotnet-linq-enumeration-and-ef-query-boundaries" >}}):** Use it to avoid repeated enumeration, client evaluation, N+1 loading, and leaked query lifetimes.
+
+## How to use this collection
+
+Read the repository's configured runtime, compiler, framework, analyzer, and test commands before selecting a workflow. Start in audit mode, record file and symbol evidence, and authorize a fix only after the candidate scope is reviewable. Preserve supported versions, public behavior, and existing tool configuration.
+
+If the evidence is a named CVE, scanner finding, exposed secret, authorization flaw, or injection path, use the focused vulnerability-remediation playbook instead of a code-hygiene recipe. Stop when the safe result requires an owner decision about architecture, compatibility, production data, or deployment state.
+
+## Full recipe list
 
 {{< prompt-toc >}}

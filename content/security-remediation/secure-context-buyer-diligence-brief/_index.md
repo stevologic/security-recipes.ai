@@ -2,6 +2,8 @@
 title: Secure Context Reviewer Brief
 linkTitle: Reviewer Brief
 weight: 14
+date: 2026-05-05
+lastmod: 2026-07-13
 sidebar:
   exclude: true
 description: >

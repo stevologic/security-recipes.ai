@@ -44,7 +44,10 @@
 	}
 }
 
-# To also serve www, add DNS for it and uncomment:
-# www.{$SECURITY_RECIPES_DOMAIN:security-recipes.ai} {
-# 	redir https://{$SECURITY_RECIPES_DOMAIN:security-recipes.ai}{uri} permanent
-# }
+# Consolidate backlinks and accidental visits to one canonical HTTPS host.
+# The www DNS record already resolves to this deployment, so Caddy must obtain
+# a certificate before redirecting; redirecting HTTP to a broken HTTPS www
+# endpoint strands both users and crawlers at the TLS handshake.
+www.{$SECURITY_RECIPES_DOMAIN:security-recipes.ai} {
+	redir https://{$SECURITY_RECIPES_DOMAIN:security-recipes.ai}{uri} permanent
+}

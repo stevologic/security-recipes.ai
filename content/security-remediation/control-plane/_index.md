@@ -2,6 +2,8 @@
 title: Workflow Control Plane
 linkTitle: Control Plane
 weight: 4
+date: 2026-05-02
+lastmod: 2026-07-21
 sidebar:
   exclude: true
 description: >
@@ -149,5 +151,7 @@ scale.
   - how to export the manifest and policy as reviewer- and auditor-ready evidence.
 - [Agent Identity & Delegation Ledger]({{< relref "/security-remediation/agent-identity-ledger" >}})
   - how to turn workflow policy into non-human identity contracts.
+- [Agent Trust Fabric]({{< relref "/security-remediation/agent-trust-fabric" >}})
+  - how identity, delegation, connector, and runtime evidence combine into one trust decision.
 - [Compliance & Audit]({{< relref "/security-remediation/compliance" >}})
   - how to turn the generated report into audit evidence.

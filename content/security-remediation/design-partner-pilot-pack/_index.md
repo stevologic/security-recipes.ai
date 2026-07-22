@@ -2,6 +2,8 @@
 title: Design Partner Pilot Pack
 linkTitle: Design Partner Pilot
 weight: 13
+date: 2026-05-05
+lastmod: 2026-07-13
 sidebar:
   exclude: true
 description: >

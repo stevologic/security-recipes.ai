@@ -2,6 +2,8 @@
 title: Secure Context Firewall
 linkTitle: Secure Context Firewall
 weight: 10
+date: 2026-05-02
+lastmod: 2026-07-13
 sidebar:
   exclude: true
 description: >

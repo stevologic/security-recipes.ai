@@ -11,8 +11,22 @@ sidebar:
 
 Type, module, asynchronous, React, and Node.js lifecycle hygiene.
 
-Select one bounded recipe. Start in audit mode; authorize fixes only after reviewing the candidate evidence.
+## Choose a focused JavaScript & TypeScript recipe
 
-## Recipes
+This collection contains 5 bounded JavaScript & TypeScript workflows. Choose the recipe whose objective matches the repository evidence instead of combining unrelated cleanup into one run.
+
+- **[TypeScript strictness and escape-hatch debt]({{< relref "/recipes/general/code-hygiene/javascript-typescript/typescript-strictness-and-escape-hatches" >}}):** Use it to reduce unsafe any, ignore directives, assertions, and disabled strict checks incrementally.
+- **[JavaScript promise, abort, and listener lifecycle]({{< relref "/recipes/general/code-hygiene/javascript-typescript/javascript-promise-abort-and-listener-lifecycle" >}}):** Use it to close floating promises, lost failures, uncancelled work, and leaked event listeners.
+- **[JavaScript module cycles, side effects, and unused exports]({{< relref "/recipes/general/code-hygiene/javascript-typescript/javascript-module-cycles-side-effects-and-unused-exports" >}}):** Use it to make module initialization order and public exports predictable.
+- **[React hook, effect, and state lifecycle]({{< relref "/recipes/general/code-hygiene/javascript-typescript/react-hook-effect-and-state-lifecycle" >}}):** Use it to remove stale closures, redundant state, and effect cleanup defects.
+- **[Node.js stream, emitter, and handle lifecycle]({{< relref "/recipes/general/code-hygiene/javascript-typescript/node-stream-emitter-and-handle-lifecycle" >}}):** Use it to prevent stream stalls, duplicate listeners, and handles that keep processes alive.
+
+## How to use this collection
+
+Read the repository's configured runtime, compiler, framework, analyzer, and test commands before selecting a workflow. Start in audit mode, record file and symbol evidence, and authorize a fix only after the candidate scope is reviewable. Preserve supported versions, public behavior, and existing tool configuration.
+
+If the evidence is a named CVE, scanner finding, exposed secret, authorization flaw, or injection path, use the focused vulnerability-remediation playbook instead of a code-hygiene recipe. Stop when the safe result requires an owner decision about architecture, compatibility, production data, or deployment state.
+
+## Full recipe list
 
 {{< prompt-toc >}}

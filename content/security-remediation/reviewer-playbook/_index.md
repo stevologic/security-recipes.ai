@@ -2,13 +2,14 @@
 title: Reviewer Playbook
 linkTitle: Reviewer Playbook
 weight: 11
+date: 2026-04-22
+lastmod: 2026-07-21
 sidebar:
   open: true
 description: >
-  The human-in-the-loop operating manual — what a reviewer is
-  actually checking when they approve (or reject) an agent-opened
-  PR or triage ticket, and how to keep that checklist from
-  degrading into a rubber stamp.
+  Review AI-agent pull requests and triage notes for scope, evidence, tests,
+  rollback, authorization, and residual risk without turning approval into a
+  rubber stamp.
 ---
 
 {{< callout type="info" >}}

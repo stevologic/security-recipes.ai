@@ -15,9 +15,9 @@ from pathlib import Path, PurePosixPath
 from typing import Any
 
 try:
-    from scripts.cve_ai_enrichment import enrichment_errors
+    from scripts.cve_ai_enrichment import enrichment_errors, recipe_ready
 except ModuleNotFoundError:  # Direct ``python scripts/validate_cve_catalog.py`` execution.
-    from cve_ai_enrichment import enrichment_errors  # type: ignore[no-redef]
+    from cve_ai_enrichment import enrichment_errors, recipe_ready  # type: ignore[no-redef]
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -47,6 +47,10 @@ BROWSER_INDEX_FIELDS = [
 BROWSER_SEVERITY_CODES = {"medium": 0, "high": 1, "critical": 2}
 BROWSER_SEVERITY_NAMES = {str(code): severity for severity, code in BROWSER_SEVERITY_CODES.items()}
 MAX_STABLE_MARKDOWN_BYTES = 256 * 1024
+MAX_FRONTMATTER_TITLE_CHARS = 200
+MAX_FRONTMATTER_DESCRIPTION_CHARS = 500
+MAX_FRONTMATTER_AUTHOR_CHARS = 120
+MAX_FRONTMATTER_MODEL_CHARS = 120
 ARCHETYPE_LIST_FIELDS = (
     "exposure_checks",
     "remediation_steps",
@@ -225,7 +229,13 @@ def declared_catalog_output_paths(manifest: dict[str, Any]) -> set[str]:
         if relative:
             declared.add(relative)
 
-    for key in ("browser_index", "runtime_summary", "archetypes_asset", "complete_index"):
+    for key in (
+        "browser_index",
+        "search_index",
+        "runtime_summary",
+        "archetypes_asset",
+        "complete_index",
+    ):
         entry = manifest.get(key)
         if isinstance(entry, dict):
             add(entry.get("path"))
@@ -630,11 +640,49 @@ def validate_markdown_recipes(
         content_markdown = text[match.end() :].strip() if maturity == "stable" else ""
         if len(content_markdown.encode("utf-8")) > MAX_STABLE_MARKDOWN_BYTES:
             fail(failures, f"{identity} stable Markdown exceeds the {MAX_STABLE_MARKDOWN_BYTES}-byte limit")
+        title = frontmatter_line_value(frontmatter, "title")
+        description = frontmatter_line_value(frontmatter, "description")
+        author = frontmatter_line_value(frontmatter, "author")
+        published_date = frontmatter_line_value(frontmatter, "date")
+        lastmod = frontmatter_line_value(frontmatter, "lastmod")
+        model = frontmatter_line_value(frontmatter, "model")
+        for field, value, limit in (
+            ("title", title, MAX_FRONTMATTER_TITLE_CHARS),
+            ("description", description, MAX_FRONTMATTER_DESCRIPTION_CHARS),
+            ("author", author, MAX_FRONTMATTER_AUTHOR_CHARS),
+            ("model", model, MAX_FRONTMATTER_MODEL_CHARS),
+        ):
+            if len(value) > limit:
+                fail(
+                    failures,
+                    f"{identity} frontmatter {field} exceeds {limit} characters: {path}",
+                )
+        for field, value in (("date", published_date), ("lastmod", lastmod)):
+            if not value:
+                continue
+            if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", value):
+                fail(
+                    failures,
+                    f"{identity} has invalid {field} date {value!r}: {path}",
+                )
+                continue
+            try:
+                date.fromisoformat(value)
+            except ValueError:
+                fail(
+                    failures,
+                    f"{identity} has invalid {field} date {value!r}: {path}",
+                )
         inventory[relative_path] = {
             "identity": identity,
-            "title": frontmatter_line_value(frontmatter, "title"),
+            "title": title,
             "maturity": maturity,
             "content_markdown": content_markdown,
+            "description": description,
+            "author": author,
+            "date": published_date,
+            "lastmod": lastmod,
+            "model": model,
         }
 
     for identity, paths in identities.items():
@@ -932,6 +980,208 @@ def validate_browser_index(
         if row != expected:
             fail(failures, f"browser index record {position} is not equivalent to index.json")
     return len(browser_records)
+
+
+def projected_search_index_record(record: dict[str, Any]) -> dict[str, Any]:
+    product_rows: list[dict[str, str]] = []
+    product_seen: set[tuple[str, str]] = set()
+    for product in record.get("products") or []:
+        if not isinstance(product, dict):
+            continue
+        vendor = str(product.get("vendor") or "").strip()
+        name = str(product.get("product") or "").strip()
+        identity = (vendor.casefold(), name.casefold())
+        if not any(identity) or identity in product_seen:
+            continue
+        product_rows.append({"vendor": vendor, "product": name})
+        product_seen.add(identity)
+        if len(product_rows) >= 8:
+            break
+    return {
+        "cve": record["cve"],
+        "title": record["title"],
+        "severity": record["severity"],
+        "score": record["score"],
+        "published": record["published"],
+        "ecosystem": record["ecosystem"],
+        "kev": record["kev"] is True,
+        "archetypes": list(record.get("archetypes") or []),
+        "cwes": list(record.get("cwes") or [])[:12],
+        "products": product_rows,
+        "qualification": (
+            "stable_markdown"
+            if record.get("recipe_kind") == "markdown-override"
+            else "recipe_ready_ai"
+        ),
+    }
+
+
+def projected_page_lastmod(record: dict[str, Any]) -> str:
+    cve = str(record.get("cve") or "")
+    significant_dates: list[str] = []
+    markdown = record.get("markdown")
+    stable = [
+        entry
+        for entry in markdown
+        if isinstance(entry, dict)
+        and entry.get("cve") == cve
+        and str(entry.get("maturity") or "").lower() == "stable"
+    ] if isinstance(markdown, list) else []
+    if len(stable) == 1:
+        reviewed_date = str(stable[0].get("lastmod") or stable[0].get("date") or "")
+        if re.fullmatch(r"\d{4}-\d{2}-\d{2}", reviewed_date):
+            try:
+                date.fromisoformat(reviewed_date)
+            except ValueError:
+                reviewed_date = ""
+            if reviewed_date:
+                significant_dates.append(reviewed_date)
+    else:
+        enrichment = record.get("ai_enrichment")
+        if isinstance(enrichment, dict) and enrichment.get("status") == "complete":
+            generated_at = str(enrichment.get("generated_at") or "").strip()
+            match = re.match(r"^(\d{4}-\d{2}-\d{2})(?:T|$)", generated_at)
+            if match:
+                try:
+                    date.fromisoformat(match.group(1))
+                except ValueError:
+                    pass
+                else:
+                    significant_dates.append(match.group(1))
+    if not significant_dates:
+        return ""
+    source_modified = str(record.get("last_modified") or "").strip()
+    source_match = re.match(r"^(\d{4}-\d{2}-\d{2})(?:T|$)", source_modified)
+    if source_match:
+        try:
+            date.fromisoformat(source_match.group(1))
+        except ValueError:
+            pass
+        else:
+            significant_dates.append(source_match.group(1))
+    return max(significant_dates)
+
+
+def projected_stable_page_metadata(record: dict[str, Any]) -> dict[str, str]:
+    """Project reviewed search copy from one authoritative Markdown override."""
+
+    cve = str(record.get("cve") or "")
+    markdown = record.get("markdown")
+    stable = [
+        entry
+        for entry in markdown
+        if isinstance(entry, dict)
+        and entry.get("cve") == cve
+        and str(entry.get("maturity") or "").lower() == "stable"
+    ] if isinstance(markdown, list) else []
+    if len(stable) != 1:
+        return {}
+    projected: dict[str, str] = {}
+    for source_field, compact_field in (
+        ("title", "page_title"),
+        ("description", "page_description"),
+    ):
+        value = re.sub(r"\s+", " ", str(stable[0].get(source_field) or "")).strip()
+        if value:
+            projected[compact_field] = value
+    return projected
+
+
+def validate_search_index(
+    catalog_dir: Path,
+    manifest: dict[str, Any],
+    expected_records: dict[str, dict[str, Any]],
+    failures: list[str],
+) -> int:
+    """Validate the integrity-checked evidence-qualified CVE allowlist."""
+
+    entry = manifest.get("search_index")
+    if not isinstance(entry, dict):
+        fail(failures, "manifest search_index is missing")
+        return 0
+    expected_entry_keys = {
+        "path",
+        "schema_version",
+        "policy",
+        "records",
+        "sha256",
+        "bytes",
+    }
+    if set(entry) != expected_entry_keys:
+        fail(failures, "manifest search_index metadata schema is invalid")
+    relative = entry.get("path")
+    if relative != "search-indexable.json":
+        fail(failures, f"manifest search_index has unexpected path {relative!r}")
+        return 0
+    path = catalog_dir / relative
+    if not path.is_file():
+        fail(failures, f"missing search index: {relative}")
+        return 0
+    payload = path.read_bytes()
+    if len(payload) != entry.get("bytes"):
+        fail(failures, "search index size mismatch")
+    if hashlib.sha256(payload).hexdigest() != entry.get("sha256"):
+        fail(failures, "search index hash mismatch")
+    try:
+        search_index = json.loads(payload)
+    except json.JSONDecodeError as exc:
+        fail(failures, f"invalid search index JSON: {exc}")
+        return 0
+    if not isinstance(search_index, dict):
+        fail(failures, "search index must be an object")
+        return 0
+    if set(search_index) != {"schema_version", "catalog_updated_at", "policy", "records"}:
+        fail(failures, "search index payload schema is invalid")
+    policy = "stable-markdown-or-recipe-ready-v1"
+    if entry.get("schema_version") != 2 or search_index.get("schema_version") != 2:
+        fail(failures, "search index schema_version must be 2")
+    if entry.get("policy") != policy or search_index.get("policy") != policy:
+        fail(failures, "search index policy is invalid")
+    if search_index.get("catalog_updated_at") != manifest.get("catalog_updated_at"):
+        fail(failures, "search index catalog_updated_at does not match manifest")
+    raw_records = search_index.get("records")
+    if not isinstance(raw_records, list):
+        fail(failures, "search index records must be an array")
+        raw_records = []
+    ids = [
+        str(value.get("cve") or "") if isinstance(value, dict) else ""
+        for value in raw_records
+    ]
+    if any(not CVE_RE.fullmatch(value) for value in ids):
+        fail(failures, "search index contains an invalid CVE ID")
+    if ids != sorted(set(ids)):
+        fail(failures, "search index IDs must be unique and sorted")
+    expected_ids = set(expected_records)
+    if set(ids) != expected_ids:
+        missing = sorted(expected_ids - set(ids))
+        extra = sorted(set(ids) - expected_ids)
+        fail(
+            failures,
+            f"search index does not match evidence-qualified records: missing={missing[:10]}, extra={extra[:10]}",
+        )
+    expected_record_fields = {
+        "cve",
+        "title",
+        "severity",
+        "score",
+        "published",
+        "ecosystem",
+        "kev",
+        "archetypes",
+        "cwes",
+        "products",
+        "qualification",
+    }
+    for position, record in enumerate(raw_records):
+        if not isinstance(record, dict) or set(record) != expected_record_fields:
+            fail(failures, f"search index record {position} schema is invalid")
+            continue
+        expected = expected_records.get(str(record.get("cve") or ""))
+        if expected is not None and record != expected:
+            fail(failures, f"search index record does not match its source shard: {record['cve']}")
+    if entry.get("records") != len(ids):
+        fail(failures, "manifest search_index record count does not match payload")
+    return len(ids)
 
 
 def validate_runtime_summary(
@@ -1273,6 +1523,26 @@ def validate(catalog_dir: Path, content_dir: Path = DEFAULT_CONTENT) -> dict[str
                 composition_valid = False
         if not isinstance(record.get("has_markdown"), bool):
             fail(failures, f"{cve} has non-boolean has_markdown")
+        for field, limit in (
+            ("page_title", MAX_FRONTMATTER_TITLE_CHARS),
+            ("page_description", MAX_FRONTMATTER_DESCRIPTION_CHARS),
+        ):
+            if field not in record:
+                continue
+            value = record.get(field)
+            if not isinstance(value, str) or not value.strip() or len(value) > limit:
+                fail(failures, f"{cve} has invalid {field}")
+        if "page_lastmod" in record:
+            page_lastmod = record.get("page_lastmod")
+            if not isinstance(page_lastmod, str) or not re.fullmatch(
+                r"\d{4}-\d{2}-\d{2}", page_lastmod
+            ):
+                fail(failures, f"{cve} has invalid page_lastmod")
+            else:
+                try:
+                    date.fromisoformat(page_lastmod)
+                except ValueError:
+                    fail(failures, f"{cve} has invalid page_lastmod")
         if composition_valid:
             valid_composed_cves.add(cve)
 
@@ -1328,6 +1598,7 @@ def validate(catalog_dir: Path, content_dir: Path = DEFAULT_CONTENT) -> dict[str
     ai_enriched = 0
     ai_enrichment_complete = 0
     ai_enrichment_insufficient = 0
+    search_indexable_records: dict[str, dict[str, Any]] = {}
     catalog_markdown_paths: set[str] = set()
     for entry in shard_entries:
         relative = entry.get("path")
@@ -1388,6 +1659,20 @@ def validate(catalog_dir: Path, content_dir: Path = DEFAULT_CONTENT) -> dict[str
             ):
                 if record.get(field) != compact.get(field):
                     fail(failures, f"index/shard {field} mismatch for {cve}")
+            expected_page_lastmod = projected_page_lastmod(record)
+            if expected_page_lastmod:
+                if compact.get("page_lastmod") != expected_page_lastmod:
+                    fail(failures, f"index/shard page_lastmod mismatch for {cve}")
+            elif "page_lastmod" in compact:
+                fail(failures, f"{cve} has page_lastmod without editorial or synthesis evidence")
+            expected_page_metadata = projected_stable_page_metadata(record)
+            for field in ("page_title", "page_description"):
+                expected_value = expected_page_metadata.get(field)
+                if expected_value:
+                    if compact.get(field) != expected_value:
+                        fail(failures, f"index/shard {field} mismatch for {cve}")
+                elif field in compact:
+                    fail(failures, f"{cve} has {field} without a stable Markdown source")
             recipe_kind = record.get("recipe_kind")
             if recipe_kind not in {"composed", "markdown-draft", "markdown-override"}:
                 fail(failures, f"{cve} has invalid recipe_kind")
@@ -1430,6 +1715,12 @@ def validate(catalog_dir: Path, content_dir: Path = DEFAULT_CONTENT) -> dict[str
                         fail(failures, f"{cve} catalog Markdown title is stale for {override_path}")
                     if source_markdown.get("maturity") != maturity:
                         fail(failures, f"{cve} catalog Markdown maturity is stale for {override_path}")
+                    for field in ("description", "author", "date", "lastmod", "model"):
+                        if (source_markdown.get(field) or "") != (override.get(field) or ""):
+                            fail(
+                                failures,
+                                f"{cve} catalog Markdown {field} is stale for {override_path}",
+                            )
                 if maturity == "stable":
                     stable_entries += 1
                     content = override.get("content_markdown")
@@ -1478,6 +1769,68 @@ def validate(catalog_dir: Path, content_dir: Path = DEFAULT_CONTENT) -> dict[str
             elif type(product_match_count) is int and type(products_stored) is int:
                 if products_truncated is not (product_match_count > products_stored):
                     fail(failures, f"{cve} products_truncated is inconsistent with product counts")
+            affected_fields_present = any(
+                field in record
+                for field in (
+                    "affected_data",
+                    "affected_data_count",
+                    "affected_data_stored",
+                    "affected_data_truncated",
+                )
+            )
+            if affected_fields_present:
+                affected_data = record.get("affected_data")
+                if not isinstance(affected_data, list):
+                    fail(failures, f"{cve} affected_data must be an array")
+                    affected_data = []
+                affected_stored = record.get("affected_data_stored")
+                affected_count = record.get("affected_data_count")
+                affected_truncated = record.get("affected_data_truncated")
+                if type(affected_stored) is not int or affected_stored != len(affected_data):
+                    fail(failures, f"{cve} affected_data_stored does not match affected_data")
+                elif affected_stored > 12:
+                    fail(failures, f"{cve} stores more than the 12 affected-data product cap")
+                if type(affected_count) is not int or affected_count < len(affected_data):
+                    fail(failures, f"{cve} has invalid affected_data_count")
+                if not isinstance(affected_truncated, bool):
+                    fail(failures, f"{cve} has non-boolean affected_data_truncated")
+                elif type(affected_count) is int and type(affected_stored) is int:
+                    if affected_truncated is not (affected_count > affected_stored):
+                        fail(
+                            failures,
+                            f"{cve} affected_data_truncated is inconsistent with affected-data counts",
+                        )
+                for affected_entry in affected_data:
+                    if not isinstance(affected_entry, dict):
+                        fail(failures, f"{cve} has a non-object affected_data entry")
+                        continue
+                    if not affected_entry.get("vendor") and not affected_entry.get("product"):
+                        fail(failures, f"{cve} has an affected_data entry without product identity")
+                    affected_versions = affected_entry.get("versions")
+                    if not isinstance(affected_versions, list):
+                        fail(failures, f"{cve} affected_data versions must be an array")
+                        continue
+                    version_count = affected_entry.get("version_count")
+                    versions_truncated = affected_entry.get("versions_truncated")
+                    if len(affected_versions) > 24:
+                        fail(failures, f"{cve} stores more than the 24-version affected-data cap")
+                    if type(version_count) is not int or version_count < len(affected_versions):
+                        fail(failures, f"{cve} has invalid affected-data version_count")
+                    if not isinstance(versions_truncated, bool):
+                        fail(failures, f"{cve} has non-boolean affected-data versions_truncated")
+                    elif type(version_count) is int:
+                        if versions_truncated is not (version_count > len(affected_versions)):
+                            fail(
+                                failures,
+                                f"{cve} affected-data versions_truncated is inconsistent",
+                            )
+                    for affected_version in affected_versions:
+                        if not isinstance(affected_version, dict):
+                            fail(failures, f"{cve} has a non-object affected-data version")
+                            continue
+                        changes = affected_version.get("changes")
+                        if not isinstance(changes, list) or len(changes) > 8:
+                            fail(failures, f"{cve} has invalid affected-data status changes")
             metric_scores = []
             for metric in record.get("metrics") or []:
                 try:
@@ -1496,6 +1849,8 @@ def validate(catalog_dir: Path, content_dir: Path = DEFAULT_CONTENT) -> dict[str
                 if isinstance(enrichment, dict):
                     ai_enrichment_complete += int(enrichment.get("status") == "complete")
                     ai_enrichment_insufficient += int(enrichment.get("status") == "insufficient_evidence")
+            if recipe_kind == "markdown-override" or recipe_ready(enrichment, record):
+                search_indexable_records[cve] = projected_search_index_record(record)
 
     if shard_ids != set(index_by_cve):
         missing = sorted(set(index_by_cve) - shard_ids)
@@ -1519,6 +1874,12 @@ def validate(catalog_dir: Path, content_dir: Path = DEFAULT_CONTENT) -> dict[str
         catalog_dir,
         manifest,
         [record for record in records if isinstance(record, dict)],
+        failures,
+    )
+    search_indexable_records = validate_search_index(
+        catalog_dir,
+        manifest,
+        search_indexable_records,
         failures,
     )
     validate_runtime_summary(catalog_dir, manifest, failures)
@@ -1561,6 +1922,8 @@ def validate(catalog_dir: Path, content_dir: Path = DEFAULT_CONTENT) -> dict[str
         fail(failures, "manifest complete AI-enrichment count does not match shards")
     if totals.get("ai_enrichment_insufficient_evidence") != ai_enrichment_insufficient:
         fail(failures, "manifest insufficient AI-enrichment count does not match shards")
+    if totals.get("search_indexable_records") != search_indexable_records:
+        fail(failures, "manifest search-indexable count does not match the qualified allowlist")
 
     calculated_severity = Counter(record.get("severity") for record in records)
     if dict(sorted(calculated_severity.items())) != manifest.get("by_severity"):
@@ -1593,6 +1956,7 @@ def validate(catalog_dir: Path, content_dir: Path = DEFAULT_CONTENT) -> dict[str
             "complete": ai_enrichment_complete,
             "insufficient_evidence": ai_enrichment_insufficient,
         },
+        "search_indexable_records": search_indexable_records,
         "failures": failures,
         "warnings": warnings,
     }

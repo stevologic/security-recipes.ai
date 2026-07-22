@@ -30,6 +30,18 @@ class CveSyncWorkflowTests(unittest.TestCase):
         self.assertIsNotNone(cron_match, "scheduled cron trigger is missing")
         self.assertEqual(cron_match.group(1), "23 9 * * *")
 
+    def test_manual_priority_input_is_plumbed_into_the_bounded_sync(self) -> None:
+        dispatch = self.workflow.split("permissions:", 1)[0]
+        sync_step = self.step(
+            "Synchronize and optionally enrich exact rolling ten-year catalog"
+        )
+
+        self.assertRegex(dispatch, r"(?m)^\s{6}priority_cve_ids:\s*$")
+        self.assertIn("comma or space separated", dispatch)
+        self.assertIn("PRIORITY_CVE_IDS: ${{ inputs.priority_cve_ids || '' }}", sync_step)
+        self.assertIn('--priority-cve-ids "$PRIORITY_CVE_IDS"', sync_step)
+        self.assertIn("OPENAI_ENRICHMENT_LIMIT", self.workflow)
+
     def test_openai_secret_is_optional_and_never_printed(self) -> None:
         sync_step = self.step(
             "Synchronize and optionally enrich exact rolling ten-year catalog"

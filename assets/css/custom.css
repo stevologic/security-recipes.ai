@@ -3242,3 +3242,84 @@ header nav a[data-nav-dropdown][data-nav-open="1"]::after {
   overflow: visible;
   text-overflow: clip;
 }
+
+/* Crawlable CVE archive: dense enough for research, still readable without
+   JavaScript and consistent with the canonical detail-page signal theme. */
+.cve-archive__years,
+.cve-archive__records {
+  display: grid;
+  gap: 0;
+  margin: 1.25rem 0;
+  padding: 0;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 0.75rem;
+  overflow: hidden;
+  list-style: none;
+}
+
+.cve-archive__years li + li,
+.cve-archive__record + .cve-archive__record {
+  border-top: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.cve-archive__years a,
+.cve-archive__record {
+  display: grid;
+  gap: 0.3rem;
+  padding: 0.8rem 1rem;
+  background: rgba(8, 15, 25, 0.62);
+}
+
+.cve-archive__years a {
+  grid-template-columns: minmax(5rem, auto) 1fr;
+  color: #d7f9f4;
+  text-decoration: none;
+}
+
+.cve-archive__record > a {
+  display: grid;
+  grid-template-columns: minmax(9.5rem, auto) 1fr;
+  gap: 0.75rem;
+  color: #d7f9f4;
+  text-decoration: none;
+}
+
+.cve-archive__record strong {
+  font-family: var(--arr-font-mono);
+}
+
+.cve-archive__record small {
+  color: var(--arr-ink-2);
+  font-family: var(--arr-font-mono);
+  font-size: 0.7rem;
+}
+
+.cve-archive__pages {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin: 1rem 0;
+}
+
+.cve-archive__pages a,
+.cve-archive__pages strong {
+  display: inline-grid;
+  min-width: 2rem;
+  min-height: 2rem;
+  place-items: center;
+  border: 1px solid rgba(45, 212, 191, 0.24);
+  border-radius: 0.4rem;
+  text-decoration: none;
+}
+
+.cve-archive__pages strong {
+  background: rgba(45, 212, 191, 0.14);
+  color: #a7f3d0;
+}
+
+@media (max-width: 640px) {
+  .cve-archive__record > a,
+  .cve-archive__years a {
+    grid-template-columns: 1fr;
+  }
+}

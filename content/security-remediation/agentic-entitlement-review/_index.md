@@ -2,6 +2,8 @@
 title: Agentic Entitlement Review Pack
 linkTitle: Entitlement Review
 weight: 16
+date: 2026-05-04
+lastmod: 2026-07-13
 sidebar:
   exclude: true
 description: >

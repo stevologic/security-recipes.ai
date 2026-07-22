@@ -8,9 +8,10 @@
       <span>{{ site.title }}</span>
     </a>
     <div class="sr-nav__links">
-      {% set isDeepCve = page.url.startsWith("/recipes/cve/") and page.url != "/recipes/cve/" %}
+      {% set currentUrl = page.url or "" %}
+      {% set isCveSurface = currentUrl.startsWith("/cve/") or (currentUrl.startsWith("/recipes/cve/") and currentUrl != "/recipes/cve/") %}
       {% for item in site.menu %}
-      <a href="{{ item.url }}"{% if (isDeepCve and item.url == "/cve-database/") or (not isDeepCve and (page.url == item.url or (item.url != '/' and page.url.startsWith(item.url)))) %} aria-current="page"{% endif %}>{{ item.name }}</a>
+      <a href="{{ item.url }}"{% if (isCveSurface and item.url == "/cve-database/") or (not isCveSurface and (currentUrl == item.url or (item.url != '/' and currentUrl.startsWith(item.url)))) %} aria-current="page"{% endif %}>{{ item.name }}</a>
       {% endfor %}
     </div>
     <div class="sr-nav__actions">

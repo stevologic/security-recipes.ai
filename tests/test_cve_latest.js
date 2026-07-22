@@ -13,6 +13,7 @@ const {
   compareLatestCves,
   latestCves,
 } = require('../lib/cve-latest.js');
+const { loadCveSearchIndexableIds } = require('../lib/cve-indexability.js');
 
 function writePartition(root, year, records) {
   const relative = `indexes/${year}.json.gz`;
@@ -92,10 +93,53 @@ test('latest CVEs fail soft on an unverified partition and cap rendered items', 
   assert.equal(latestCves(100, { catalogRoot: root }).length, MAX_ITEMS);
 });
 
+test('latest CVEs can be restricted to evidence-qualified canonical pages', (t) => {
+  const root = fixture(t);
+  const records = [
+    { cve: 'CVE-2026-1000', title: 'Qualified', severity: 'critical', score: 9.8, published: '2026-07-14', kev: true },
+    { cve: 'CVE-2026-1001', title: 'Generic', severity: 'critical', score: 9.8, published: '2026-07-15', kev: false },
+  ];
+  const partition = writePartition(root, '2026', records);
+  fs.writeFileSync(path.join(root, 'index.json'), JSON.stringify({
+    schema_version: 2,
+    partitions: [partition],
+  }));
+
+  const result = latestCves(10, {
+    catalogRoot: root,
+    eligibleIds: new Set(['CVE-2026-1000']),
+  });
+  assert.deepEqual(result.map((entry) => entry.cve), ['CVE-2026-1000']);
+});
+
+test('latest CVEs can use compact qualified records across publication years', () => {
+  const result = latestCves(2, {
+    eligibleRecords: [
+      { cve: 'CVE-2024-1000', title: 'Older', severity: 'critical', score: 9.8, published: '2024-06-01', kev: true },
+      { cve: 'CVE-2026-1000', title: 'Newest', severity: 'high', score: 8.1, published: '2026-07-14', kev: false },
+      { cve: 'CVE-2025-1000', title: 'Middle', severity: 'critical', score: 10, published: '2025-12-31', kev: false },
+    ],
+  });
+
+  assert.deepEqual(
+    result.map((entry) => entry.cve),
+    ['CVE-2026-1000', 'CVE-2025-1000'],
+  );
+});
+
 test('homepage data exposes ten sorted records from the real generated catalog', () => {
   const data = require('../content/_index.11tydata.js');
-  assert.equal(data.latestCves.length, 10);
-  for (let index = 1; index < data.latestCves.length; index += 1) {
-    assert.ok(compareLatestCves(data.latestCves[index - 1], data.latestCves[index]) <= 0);
+  const indexable = loadCveSearchIndexableIds();
+  assert.equal(data.latestReviewedCves.length, 10);
+  for (const record of data.latestReviewedCves) {
+    assert.equal(indexable.has(record.cve), true, `${record.cve} must be indexable`);
+  }
+  for (let index = 1; index < data.latestReviewedCves.length; index += 1) {
+    assert.ok(
+      compareLatestCves(
+        data.latestReviewedCves[index - 1],
+        data.latestReviewedCves[index],
+      ) <= 0,
+    );
   }
 });

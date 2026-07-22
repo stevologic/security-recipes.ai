@@ -2,6 +2,8 @@
 title: Agentic Control Plane Blueprint
 linkTitle: Control Plane Blueprint
 weight: 17
+date: 2026-05-02
+lastmod: 2026-07-13
 toc: true
 description: >
   Generated architecture and reviewer-diligence artifact that positions

@@ -50,10 +50,18 @@ WORKDIR /src
 # lockfile change re-resolves from the local cache instead of the network.
 COPY package.json package-lock.json ./
 RUN --mount=type=cache,target=/root/.npm npm ci --no-audit --no-fund
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends python3 python3-venv \
+    && rm -rf /var/lib/apt/lists/* \
+    && python3 -m venv /opt/cve-prerender
+COPY requirements-mcp-server.txt ./
+RUN --mount=type=cache,target=/root/.cache/pip \
+    /opt/cve-prerender/bin/pip install -r requirements-mcp-server.txt
+ENV PATH="/opt/cve-prerender/bin:${PATH}"
 
-# Copy only the Eleventy build inputs, least-churn first: edits to Python
-# tooling, tests, or docker config never reach these layers, so they can't
-# invalidate the site build below.
+# Copy only the site and canonical-CVE-renderer inputs, least-churn first:
+# unrelated Python tooling, tests, and deployment config do not reach these
+# layers, so they cannot invalidate the site build below.
 COPY eleventy.config.js ./
 COPY _includes ./_includes
 COPY lib ./lib
@@ -61,7 +69,8 @@ COPY assets ./assets
 COPY static ./static
 COPY data ./data
 COPY content ./content
-COPY scripts/prepare_static_assets.js scripts/check_site_performance.js ./scripts/
+COPY mcp_server.py ./
+COPY scripts/check_build_prerequisites.js scripts/materialize_cve_pages.py scripts/prepare_static_assets.js scripts/check_site_performance.js ./scripts/
 
 # If REPO_URL points at a fork, rewrite canonical repo references in content
 # markdown (matches the CI approach for forks under a different org). The
@@ -90,6 +99,13 @@ RUN SECURITY_RECIPES_BASE_URL="${BASE_URL}" \
 FROM nginx:1.31-alpine AS runtime
 ARG REVISION="bootstrap"
 
+# The official nginx entrypoint renders templates at container start. Restrict
+# substitution to this one variable so nginx runtime variables such as $uri
+# and $host remain intact. Each blue/green site slot receives its paired MCP
+# service name from Compose.
+ENV MCP_UPSTREAM=mcp-server \
+    NGINX_ENVSUBST_FILTER=^MCP_UPSTREAM$
+
 LABEL org.opencontainers.image.title="security-recipes.ai" \
       org.opencontainers.image.description="Community-driven recipes for agentic remediation across AI coding tools." \
       org.opencontainers.image.source="https://github.com/stevologic/security-recipes.ai" \
@@ -97,8 +113,8 @@ LABEL org.opencontainers.image.title="security-recipes.ai" \
 
 # Minimal nginx config — static site, gzip on, SPA-friendly fallbacks off
 # (the build outputs real files for every route).
-RUN rm /etc/nginx/conf.d/default.conf
-COPY docker/nginx/default.conf /etc/nginx/conf.d/default.conf
+RUN rm -f /etc/nginx/conf.d/default.conf /usr/share/nginx/html/50x.html
+COPY docker/nginx/default.conf /etc/nginx/templates/default.conf.template
 COPY --from=builder /src/public /usr/share/nginx/html
 COPY scripts/configure_nginx_letsencrypt.sh /opt/security-recipes/scripts/configure_nginx_letsencrypt.sh
 COPY README.nginx-letsencrypt.md /opt/security-recipes/README.nginx-letsencrypt.md

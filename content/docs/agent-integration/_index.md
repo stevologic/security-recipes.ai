@@ -1,22 +1,30 @@
 ---
-title: Integrate an AI Agent
+title: AI Agent Security Context Integration Architecture
 linkTitle: Integrate an AI Agent
 weight: 2
+date: 2026-04-25
+lastmod: 2026-07-21
 toc: true
 sidebar:
   open: true
 description: >
-  Patterns for making AI agents consume security-recipes.ai recipes,
-  prompts, and MCP context safely.
+  Architecture patterns for delivering security recipes, repository policy,
+  finding evidence, and read-only MCP context to AI coding agents safely.
 ---
+
+This architecture guide is for teams that already have an AI coding agent and
+need a repeatable way to deliver recipes, repository rules, finding evidence,
+and review requirements into each run. If you are still selecting or setting up
+a tool, start with [AI coding agent setup]({{< relref "/agents" >}}).
 
 An agent should consume a recipe the same way a careful engineer would:
 read the relevant guidance, understand the repository rules, inspect only the
 needed evidence, make the smallest useful change, and stop when the work no
 longer fits the recipe.
 
-This page describes the integration patterns. The per-agent pages show the
-exact files and commands.
+The patterns below cover direct task links, vendored snapshots, native agent
+configuration, CI injection, and MCP-backed context. The per-agent setup pages
+show the exact files and commands for each tool.
 
 ## Consumption patterns
 

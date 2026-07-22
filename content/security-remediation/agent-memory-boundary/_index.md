@@ -2,6 +2,8 @@
 title: Agent Memory Boundary
 linkTitle: Agent Memory Boundary
 weight: 13
+date: 2026-05-02
+lastmod: 2026-07-13
 toc: true
 description: >
   A generated policy and runtime evaluator for agent memory: ephemeral

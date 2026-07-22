@@ -2,6 +2,8 @@
 title: Agentic Readiness Scorecard
 linkTitle: Readiness Scorecard
 weight: 7
+date: 2026-05-02
+lastmod: 2026-07-13
 sidebar:
   exclude: true
 description: >

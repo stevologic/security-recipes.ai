@@ -2,6 +2,8 @@
 title: Runtime Controls — Proxies & Telemetry-Driven Session Disablement
 linkTitle: Runtime Controls
 weight: 7
+date: 2026-04-25
+lastmod: 2026-07-21
 sidebar:
   open: true
 description: >
@@ -99,7 +101,7 @@ Every tool call (and every tool result) passes through one
 process whose job is to inspect, classify, and (when policy
 says so) act. The proxy is **the** enforcement point for
 mid-run gates from
-[Gatekeeping Patterns]({{< relref "/security-remediation/gatekeeping#2-mid-run-tool-call-gates--is-this-specific-call-allowed" >}}).
+[Gatekeeping Patterns]({{< relref "/security-remediation/gatekeeping#2-mid-run-tool-call-gates-is-this-specific-call-allowed" >}}).
 
 ### What it inspects
 
@@ -348,6 +350,8 @@ that make agent-specific design sensible.
 - [Reviewer Playbook]({{< relref "/security-remediation/reviewer-playbook" >}})
   — what reviewers do when telemetry hold flags an agent
   output.
+- [Agentic SOC Detection Pack]({{< relref "/security-remediation/agentic-soc-detection-pack" >}})
+  — detection rules and response evidence for agent runtime activity.
 
 ## Changelog
 

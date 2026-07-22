@@ -2,6 +2,8 @@
 title: Agentic Action Runtime Pack
 linkTitle: Action Runtime Pack
 weight: 15
+date: 2026-05-04
+lastmod: 2026-07-13
 sidebar:
   exclude: true
 description: >

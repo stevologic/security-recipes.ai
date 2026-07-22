@@ -2,6 +2,8 @@
 title: Agentic Source Freshness Watch
 linkTitle: Source Freshness Watch
 weight: 19
+date: 2026-05-05
+lastmod: 2026-07-13
 toc: true
 description: >
   Generated source-freshness and standards-drift evidence for the secure

@@ -2,6 +2,8 @@
 title: Agentic Red-Team Replay Harness
 linkTitle: Red-Team Replay Harness
 weight: 7
+date: 2026-05-05
+lastmod: 2026-07-13
 sidebar:
   exclude: true
 description: >

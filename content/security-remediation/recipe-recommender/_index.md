@@ -2,6 +2,8 @@
 title: Recipe Recommender
 linkTitle: Recipe Recommender
 weight: 5
+date: 2026-06-14
+lastmod: 2026-07-21
 sidebar:
   open: true
 description: >
@@ -232,7 +234,7 @@ by at least 2. If not, write a triage note.
 A valid recommendation has this minimum shape:
 
 ```text
-Recommended recipe: <title and URL>
+Recommended recipe: [recipe title] — https://security-recipes.ai/path/to/recipe/
 Confidence: high | medium
 Finding: <ID and source>
 Why: <2-4 bullets tied to evidence>

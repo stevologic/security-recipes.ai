@@ -2,6 +2,8 @@
 title: Secure Context Evals
 linkTitle: Secure Context Evals
 weight: 11
+date: 2026-05-02
+lastmod: 2026-07-13
 sidebar:
   exclude: true
 description: >

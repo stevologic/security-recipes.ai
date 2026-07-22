@@ -2,6 +2,8 @@
 title: Content Verification History
 linkTitle: Content Verification
 weight: 33
+date: 2026-05-02
+lastmod: 2026-07-13
 description: Current automated quality gates and dated historical verification snapshots for the site content.
 ---
 

@@ -2,6 +2,8 @@
 title: Agent Handoff Boundary
 linkTitle: Agent Handoff Boundary
 weight: 12
+date: 2026-05-04
+lastmod: 2026-07-13
 sidebar:
   exclude: true
 description: >

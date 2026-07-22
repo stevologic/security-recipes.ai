@@ -4,6 +4,8 @@ linkTitle: Devin
 weight: 5
 sidebar:
   open: false
+noindex: true
+noindex_follow: true
 description: >
   Knowledge entries, playbooks, and task prompts contributed by
   teams using Devin for agentic remediation.

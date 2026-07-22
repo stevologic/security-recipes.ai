@@ -2,6 +2,8 @@
 title: Agentic AIVSS Risk Scoring
 linkTitle: Agentic AIVSS Risk Scoring
 weight: 13
+date: 2026-05-05
+lastmod: 2026-07-13
 toc: true
 description: >
   Generated AIVSS-aligned severity, SLA, remediation-priority, and

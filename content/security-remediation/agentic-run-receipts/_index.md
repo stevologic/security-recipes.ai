@@ -2,6 +2,8 @@
 title: Agentic Run Receipts
 linkTitle: Agentic Run Receipts
 weight: 12
+date: 2026-05-02
+lastmod: 2026-07-13
 toc: true
 description: >
   A generated receipt template pack for enterprise agent runs: identity,

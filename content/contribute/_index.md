@@ -1,6 +1,7 @@
 ---
 title: Contribute
 linkTitle: Contribute
+page_kind: webpage
 weight: 4
 toc: true
 sidebar:

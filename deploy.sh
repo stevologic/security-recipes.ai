@@ -26,8 +26,8 @@ export GIT_SSH_COMMAND="${GIT_SSH_COMMAND:-ssh -o BatchMode=yes}"
 #      .env and mcp-server.toml are preserved).
 #   4. Pulls CI-built, commit-tagged site and MCP images and verifies their
 #      revision labels while the active site keeps serving every request.
-#   5. Withdraws that slot from Caddy, replaces it, and admits it again only
-#      after its exact commit marker is verified directly.
+#   5. Withdraws that slot from Caddy, replaces its paired MCP and site, and
+#      admits them again only after the exact revision and CVE contract pass.
 #   6. Gracefully switches Caddy and retains only a revision-verified previous
 #      release as the warm fallback.
 #   7. Verifies the exact commit marker through the local HTTPS proxy before
@@ -627,6 +627,56 @@ prepare_traffic_report_source() {
   TRAFFIC_CADDY_CONFIG_CHANGED="true"
 }
 
+prepare_host_caddy_www_redirect() {
+  [[ "${PROXY_KIND}" == "host" ]] || return 0
+
+  local base_url domain temp_file
+  domain="$(env_file_value SECURITY_RECIPES_DOMAIN 2>/dev/null || true)"
+  if [[ -z "${domain}" ]]; then
+    base_url="$(env_file_value SECURITY_RECIPES_BASE_URL 2>/dev/null || true)"
+    domain="${base_url#http://}"
+    domain="${domain#https://}"
+    domain="${domain%%/*}"
+    domain="${domain%%:*}"
+  fi
+  if [[ ! "${domain}" =~ ^[A-Za-z0-9][A-Za-z0-9.-]*[A-Za-z0-9]$ ]] ||
+     [[ "${domain}" != *.* ]] || [[ "${domain}" == www.* ]]; then
+    log "ERROR: Cannot derive a safe apex domain for the managed host Caddy www redirect."
+    return 1
+  fi
+  if grep -Fq "www.${domain} {" "${HOST_CADDYFILE}"; then
+    return 0
+  fi
+  grep -q "Managed by security-recipes.ai setup script" "${HOST_CADDYFILE}" || {
+    log "ERROR: Refusing to add the canonical www redirect to an unmanaged host Caddyfile."
+    return 1
+  }
+
+  temp_file="$(mktemp "${HOST_CADDYFILE}.www.XXXXXX")" || return 1
+  cp "${HOST_CADDYFILE}" "${temp_file}" || {
+    rm -f "${temp_file}"
+    return 1
+  }
+  printf '\n%s\n%s\n\t%s\n%s\n' \
+    '# Acquire a certificate for www before consolidating it to the canonical apex host.' \
+    "www.${domain} {" "redir https://${domain}{uri} permanent" '}' >> "${temp_file}" || {
+      rm -f "${temp_file}"
+      return 1
+    }
+  if ! caddy validate --config "${temp_file}" --adapter caddyfile; then
+    rm -f "${temp_file}"
+    log "ERROR: Caddy rejected the managed canonical www redirect."
+    return 1
+  fi
+  install -o root -g root -m 0644 "${temp_file}" "${HOST_CADDYFILE}" || {
+    rm -f "${temp_file}"
+    return 1
+  }
+  rm -f "${temp_file}"
+  log "Prepared host Caddy to obtain a www certificate and redirect to ${domain}."
+  TRAFFIC_CADDY_CONFIG_CHANGED="true"
+}
+
 ensure_caddy_404_ban() {
   # Host Fail2Ban remains owned by the droplet setup/installer. deploy.sh only
   # manages the explicitly opted-in Compose service, so a host without the
@@ -706,12 +756,14 @@ traffic_report_is_healthy() {
 
 ensure_traffic_report_runtime() {
   prepare_traffic_report_source || return 1
+  prepare_host_caddy_www_redirect || return 1
 
   if [[ "${TRAFFIC_CADDY_CONFIG_CHANGED}" == "true" ]]; then
-    log "Activating host Caddy traffic logging without changing the active route."
+    log "Activating the managed host Caddy configuration without changing the active route."
     switch_proxy "${ACTIVE_SERVICE}" "${FALLBACK_SERVICE}" || return 1
     if [[ "${DEPLOYED_SHA}" =~ ^[0-9a-f]{40}$ ]]; then
       wait_for_proxy_revision "${DEPLOYED_SHA}" || return 1
+      validate_public_www_redirect "${DEPLOYED_SHA}" || return 1
     else
       wait_for_proxy_root || return 1
     fi
@@ -803,6 +855,198 @@ wait_for_slot_revision() {
 
   log "ERROR: ${service} never served the expected revision ${expected_sha:0:12}."
   return 1
+}
+
+wait_for_slot_cve_landing() {
+  local service="$1"
+  local endpoint page expected_canonical
+  local deadline=$(( $(date +%s) + HEALTH_TIMEOUT ))
+  endpoint="$(slot_endpoint "${service}")" || return 1
+  expected_canonical="$(public_site_base_url)/cve/CVE-2024-3400/"
+
+  log "Verifying the canonical CVE contract through ${service} (timeout ${HEALTH_TIMEOUT}s)."
+  while (( $(date +%s) < deadline )); do
+    page="$(
+      curl --fail --silent --show-error --max-time 8 \
+        "http://${endpoint}/cve/CVE-2024-3400/" 2>/dev/null || true
+    )"
+    if grep -Fq 'data-cve-initial-id="CVE-2024-3400"' <<<"${page}" &&
+       grep -Fq '"@type":"Article"' <<<"${page}" &&
+       grep -Fq '"additionalType":"https://schema.org/TechArticle"' <<<"${page}" &&
+       grep -Fq "<link rel=\"canonical\" href=\"${expected_canonical}\">" <<<"${page}" &&
+       grep -Fq '<meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">' <<<"${page}" &&
+       ! grep -Fq '<meta name="robots" content="noindex' <<<"${page}"; then
+      log "${service} renders the indexable canonical CVE contract."
+      return 0
+    fi
+    sleep 3
+  done
+
+  log "ERROR: ${service} never rendered the indexable canonical CVE contract."
+  return 1
+}
+
+mcp_service_for_slot() {
+  local service="$1"
+  case "${service}" in
+    "${BLUE_SERVICE}") printf '%s' 'mcp-server-blue' ;;
+    "${GREEN_SERVICE}") printf '%s' 'mcp-server-green' ;;
+    *) return 1 ;;
+  esac
+}
+
+run_mcp_compose() {
+  local service="$1"
+  local image="$2"
+  local revision="$3"
+  shift 3
+
+  case "${service}" in
+    "${BLUE_SERVICE}")
+      RECIPES_MCP_BLUE_IMAGE="${image}" \
+      SECURITY_RECIPES_IMAGE_REVISION="${revision}" \
+        docker compose "$@"
+      ;;
+    "${GREEN_SERVICE}")
+      RECIPES_MCP_GREEN_IMAGE="${image}" \
+      SECURITY_RECIPES_IMAGE_REVISION="${revision}" \
+        docker compose "$@"
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+mcp_service_container_id() {
+  local service="$1"
+  docker compose ps --status running -q "${service}" 2>/dev/null | head -1
+}
+
+mcp_service_any_container_id() {
+  local service="$1"
+  docker compose ps --all -q "${service}" 2>/dev/null | head -1
+}
+
+slot_mcp_upstream() {
+  local service="$1"
+  local container_id
+  container_id="$(
+    docker compose ps --status running -q "${service}" 2>/dev/null | head -1
+  )" || return 1
+  [[ -n "${container_id}" ]] || return 1
+  docker inspect --format '{{range .Config.Env}}{{println .}}{{end}}' \
+      "${container_id}" 2>/dev/null |
+    awk -F= '$1 == "MCP_UPSTREAM" { sub(/^[^=]*=/, ""); print; exit }'
+}
+
+mcp_service_revision() {
+  local service="$1"
+  local container_id
+  container_id="$(mcp_service_container_id "${service}")" || return 1
+  [[ -n "${container_id}" ]] || return 1
+  docker inspect \
+    --format '{{ index .Config.Labels "org.opencontainers.image.revision" }}' \
+    "${container_id}" 2>/dev/null
+}
+
+mcp_service_is_healthy() {
+  local service="$1"
+  local container_id health
+  container_id="$(mcp_service_container_id "${service}")" || return 1
+  [[ -n "${container_id}" ]] || return 1
+  health="$(
+    docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{end}}' \
+      "${container_id}" 2>/dev/null || true
+  )"
+  [[ "${health}" == "healthy" ]]
+}
+
+validate_mcp_pair() {
+  local service="$1"
+  local expected_revision="$2"
+  local mcp_service actual_revision
+  mcp_service="$(mcp_service_for_slot "${service}")" || return 1
+  actual_revision="$(mcp_service_revision "${mcp_service}" || true)"
+  if [[ "${actual_revision}" != "${expected_revision}" ]]; then
+    log "ERROR: ${mcp_service} declares revision ${actual_revision:-missing}; expected ${expected_revision}."
+    return 1
+  fi
+  if ! mcp_service_is_healthy "${mcp_service}"; then
+    log "ERROR: ${mcp_service} is not healthy."
+    return 1
+  fi
+}
+
+pull_mcp_candidate() {
+  local revision="$1"
+  local image="${MCP_IMAGE_REPOSITORY}:${revision}"
+  log "Pulling CI-built MCP image ${image}; the running MCP service is unchanged."
+  docker pull "${image}" || return 1
+  verify_image_revision "${image}" "${revision}"
+}
+
+start_candidate_mcp() {
+  local service="$1"
+  local revision="$2"
+  local image="${MCP_IMAGE_REPOSITORY}:${revision}"
+  local mcp_service
+  mcp_service="$(mcp_service_for_slot "${service}")" || return 1
+
+  log "Starting inactive paired MCP ${mcp_service} at ${revision:0:12}; the active pair remains untouched."
+  SWAP_ATTEMPTED="true"
+  run_mcp_compose "${service}" "${image}" "${revision}" \
+    up -d --no-deps --force-recreate --no-build --pull never \
+      --wait --wait-timeout "${HEALTH_TIMEOUT}" "${mcp_service}" || return 1
+  validate_mcp_pair "${service}" "${revision}"
+}
+
+validate_slot_mcp_contract() {
+  local service="$1"
+  local expected_revision="$2"
+  local mcp_service upstream container_id legacy_revision
+  [[ "${expected_revision}" =~ ^[0-9a-f]{40}$ ]] || return 0
+  mcp_service="$(mcp_service_for_slot "${service}")" || return 1
+  if ! upstream="$(slot_mcp_upstream "${service}")"; then
+    log "ERROR: Could not inspect MCP_UPSTREAM for running slot ${service}."
+    return 1
+  fi
+
+  case "${upstream}" in
+    "${mcp_service}")
+      container_id="$(mcp_service_any_container_id "${mcp_service}" || true)"
+      if [[ -z "${container_id}" ]]; then
+        log "ERROR: ${service} is configured for ${mcp_service}, but that paired MCP container is missing."
+        return 1
+      fi
+      validate_mcp_pair "${service}" "${expected_revision}" || return 1
+      ;;
+    ""|mcp-server)
+      # Pre-pair site images did not declare MCP_UPSTREAM; their nginx config
+      # still targets the singleton. Allow that state only while the singleton
+      # is running, healthy, and directly renders the expected CVE contract.
+      legacy_revision="$(mcp_service_revision mcp-server || true)"
+      if [[ -n "${legacy_revision}" && "${legacy_revision}" != "${expected_revision}" ]]; then
+        log "ERROR: Transitional mcp-server declares revision ${legacy_revision}; expected ${expected_revision}."
+        return 1
+      fi
+      if ! mcp_service_is_healthy mcp-server; then
+        log "ERROR: Transitional mcp-server is not healthy."
+        return 1
+      fi
+      log "Slot ${service} still uses the transitional singleton MCP; paired migration will occur on its next candidate cutover."
+      ;;
+    *)
+      log "ERROR: ${service} declares unsupported MCP_UPSTREAM=${upstream}."
+      return 1
+      ;;
+  esac
+
+  wait_for_slot_cve_landing "${service}"
+}
+
+validate_active_mcp_pair() {
+  validate_slot_mcp_contract "$1" "$2"
 }
 
 detect_proxy() {
@@ -914,18 +1158,22 @@ switch_proxy() {
   esac
 }
 
-proxy_base_url() {
+public_site_base_url() {
   local base_url domain
-  if [[ -n "${PROXY_HEALTH_URL}" ]]; then
-    printf '%s' "${PROXY_HEALTH_URL%/}"
-    return
-  fi
   if base_url="$(env_file_value SECURITY_RECIPES_BASE_URL 2>/dev/null)"; then
     printf '%s' "${base_url%/}"
     return
   fi
   domain="$(env_file_value SECURITY_RECIPES_DOMAIN 2>/dev/null || printf 'security-recipes.ai')"
   printf 'https://%s' "${domain}"
+}
+
+proxy_base_url() {
+  if [[ -n "${PROXY_HEALTH_URL}" ]]; then
+    printf '%s' "${PROXY_HEALTH_URL%/}"
+    return
+  fi
+  public_site_base_url
 }
 
 proxy_curl() {
@@ -948,6 +1196,60 @@ proxy_curl() {
   fi
   curl --fail --silent --show-error --max-time 8 \
       --resolve "${host}:${port}:127.0.0.1" "${url}"
+}
+
+validate_public_www_redirect() {
+  local expected_revision="$1"
+  local base_url domain port port_suffix www_url expected_url
+  local deadline temp_file effective_url revision
+
+  base_url="$(public_site_base_url)"
+  if [[ "${base_url}" != https://* ]]; then
+    log "Skipping the www TLS redirect probe because the public site URL is not HTTPS."
+    return 0
+  fi
+  if [[ ! "${base_url}" =~ ^https://([A-Za-z0-9][A-Za-z0-9.-]*[A-Za-z0-9])(:([0-9]+))?/?$ ]]; then
+    log "ERROR: Cannot derive a safe HTTPS apex URL for the www redirect probe."
+    return 1
+  fi
+  domain="${BASH_REMATCH[1]}"
+  port="${BASH_REMATCH[3]:-443}"
+  if [[ "${domain}" == www.* || "${domain}" != *.* ]] ||
+     [[ ! "${port}" =~ ^[1-9][0-9]{0,4}$ ]] || (( 10#${port} > 65535 )); then
+    log "ERROR: Cannot derive a safe apex host and port for the www redirect probe."
+    return 1
+  fi
+  port_suffix=""
+  [[ "${port}" == "443" ]] || port_suffix=":${port}"
+  www_url="https://www.${domain}${port_suffix}/.well-known/deploy-revision"
+  expected_url="https://${domain}${port_suffix}/.well-known/deploy-revision"
+  deadline=$(( $(date +%s) + HEALTH_TIMEOUT ))
+
+  log "Verifying the local www HTTPS redirect and certificate (timeout ${HEALTH_TIMEOUT}s)."
+  while (( $(date +%s) < deadline )); do
+    temp_file="$(mktemp)" || return 1
+    effective_url="$(
+      curl --fail --silent --show-error \
+        --connect-timeout 3 --max-time 8 \
+        --proto '=https' --proto-redir '=https' \
+        --location --max-redirs 1 \
+        --resolve "www.${domain}:${port}:127.0.0.1" \
+        --resolve "${domain}:${port}:127.0.0.1" \
+        --output "${temp_file}" --write-out '%{url_effective}' \
+        "${www_url}" 2>/dev/null || true
+    )"
+    revision="$(tr -d '\r\n' < "${temp_file}")"
+    rm -f "${temp_file}"
+    if [[ "${effective_url}" == "${expected_url}" &&
+          "${revision}" == "${expected_revision}" ]]; then
+      log "The www HTTPS endpoint redirects to the canonical apex revision."
+      return 0
+    fi
+    sleep 3
+  done
+
+  log "ERROR: The www HTTPS endpoint did not redirect safely to ${expected_url}."
+  return 1
 }
 
 validate_catalog_freshness() {
@@ -993,6 +1295,25 @@ validate_catalog_freshness() {
   fi
 
   log "Live CVE catalog freshness passed (${updated_at})."
+}
+
+validate_proxy_cve_landing() {
+  local page expected_canonical
+  expected_canonical="$(public_site_base_url)/cve/CVE-2024-3400/"
+  page="$(proxy_curl "/cve/CVE-2024-3400/")" || {
+    log "ERROR: The canonical CVE landing route is unavailable through the active proxy."
+    return 1
+  }
+  grep -Fq 'data-cve-initial-id="CVE-2024-3400"' <<<"${page}" &&
+    grep -Fq '"@type":"Article"' <<<"${page}" &&
+    grep -Fq '"additionalType":"https://schema.org/TechArticle"' <<<"${page}" &&
+    grep -Fq "<link rel=\"canonical\" href=\"${expected_canonical}\">" <<<"${page}" &&
+    grep -Fq '<meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">' <<<"${page}" &&
+    ! grep -Fq '<meta name="robots" content="noindex' <<<"${page}" || {
+      log "ERROR: The canonical CVE landing route is missing its server-rendered SEO contract."
+      return 1
+    }
+  log "Canonical CVE landing route passed through the active proxy."
 }
 
 send_success_heartbeat() {
@@ -1072,11 +1393,13 @@ run_slot_compose() {
   case "${service}" in
     "${BLUE_SERVICE}")
       SECURITY_RECIPES_BLUE_IMAGE="${image}" \
+      SECURITY_RECIPES_BLUE_MCP_UPSTREAM="mcp-server-blue" \
       SECURITY_RECIPES_IMAGE_REVISION="${revision}" \
         docker compose "$@"
       ;;
     "${GREEN_SERVICE}")
       SECURITY_RECIPES_GREEN_IMAGE="${image}" \
+      SECURITY_RECIPES_GREEN_MCP_UPSTREAM="mcp-server-green" \
       SECURITY_RECIPES_IMAGE_REVISION="${revision}" \
         docker compose "$@"
       ;;
@@ -1120,7 +1443,7 @@ start_candidate() {
   log "Starting only withdrawn inactive slot ${service}."
   SWAP_ATTEMPTED="true"
   run_slot_compose "${service}" "${image}" "${revision}" \
-    up -d --no-deps --force-recreate --pull never \
+    up -d --no-deps --force-recreate --no-build --pull never \
       --wait --wait-timeout "${HEALTH_TIMEOUT}" "${service}" || return 1
 
   wait_for_slot_revision "${service}" "${revision}"
@@ -1128,7 +1451,6 @@ start_candidate() {
 
 refresh_non_site_images() {
   local revision="$1"
-  local mcp_image="${MCP_IMAGE_REPOSITORY}:${revision}"
 
   log "Pulling ancillary image updates without recreating the public Caddy edge."
   docker compose pull --policy always caddy traffic-report || return 1
@@ -1138,13 +1460,7 @@ refresh_non_site_images() {
     --wait --wait-timeout "${HEALTH_TIMEOUT}" traffic-report || return 1
 
   refresh_compose_fail2ban || return 1
-
-  log "Pulling and refreshing the CI-built MCP service before site cutover."
-  docker pull "${mcp_image}" || return 1
-  verify_image_revision "${mcp_image}" "${revision}" || return 1
-  RECIPES_MCP_IMAGE="${mcp_image}" \
-    docker compose up -d --no-deps --force-recreate --pull never \
-      --wait --wait-timeout "${HEALTH_TIMEOUT}" mcp-server || return 1
+  pull_mcp_candidate "${revision}"
 }
 
 cleanup_site_images() {
@@ -1336,6 +1652,12 @@ reconcile_active_slot() {
       FALLBACK_SERVICE=""
       FALLBACK_SHA=""
     fi
+    if [[ -n "${FALLBACK_SERVICE}" ]] &&
+       ! validate_slot_mcp_contract "${FALLBACK_SERVICE}" "${FALLBACK_SHA}"; then
+      log "Standby ${FALLBACK_SERVICE} failed its MCP/CVE contract and will be removed from fallback routing."
+      FALLBACK_SERVICE=""
+      FALLBACK_SHA=""
+    fi
 
     [[ "${STATE_VERSION}" == "2" ]] || needs_reload="true"
     [[ "${original_deployed_sha}" == "${DEPLOYED_SHA}" ]] || needs_reload="true"
@@ -1377,6 +1699,10 @@ reconcile_active_slot() {
     log "ERROR: The only root-healthy standby does not have a trusted revision marker."
     return 1
   fi
+  if ! validate_slot_mcp_contract "${other_service}" "${other_revision}"; then
+    log "ERROR: The only root-healthy standby failed its MCP/CVE contract; refusing failover."
+    return 1
+  fi
 
   log "Active slot ${ACTIVE_SERVICE} is unhealthy; failing over to verified ${other_service}@${other_revision:0:12}."
   switch_proxy "${other_service}" "" || return 1
@@ -1411,6 +1737,13 @@ fail_deployment() {
   fi
 
   log "ERROR: ${reason}"
+  if [[ "${SWAP_ATTEMPTED}" == "true" ]]; then
+    if ! printf '%s' "${target_sha}" > "${failed_marker}"; then
+      log "WARNING: Could not record failed revision ${target_sha:0:12}; rollback will continue."
+    fi
+  fi
+  git reset --hard "${rollback_sha}" ||
+    die "Could not restore checkout ${rollback_sha:0:12}; manual intervention required."
   if [[ "${PROXY_SWITCH_ATTEMPTED}" == "true" ]]; then
     log "Restoring Caddy routing to the previous slot ${previous_active}."
     if switch_proxy "${previous_active}" "${rollback_fallback_service}" &&
@@ -1426,12 +1759,6 @@ fail_deployment() {
       log "CRITICAL: Caddy routing rollback failed; manual inspection is required."
     fi
   fi
-
-  if [[ "${SWAP_ATTEMPTED}" == "true" ]]; then
-    printf '%s' "${target_sha}" > "${failed_marker}"
-  fi
-  git reset --hard "${rollback_sha}" ||
-    die "Could not restore checkout ${rollback_sha:0:12}; manual intervention required."
   write_deploy_state \
     "${previous_active}" "${previous_deployed_sha}" \
     "${rollback_fallback_service}" "${rollback_fallback_sha}" ||
@@ -1463,6 +1790,8 @@ main() {
   load_deploy_state
   detect_proxy || die "No zero-downtime Caddy proxy is available."
   reconcile_active_slot || die "Could not reconcile the active blue/green slot."
+  validate_active_mcp_pair "${ACTIVE_SERVICE}" "${DEPLOYED_SHA}" ||
+    die "The active paired MCP does not match the active site revision."
   if [[ ! -f "${STATE_FILE}" ]]; then
     write_deploy_state \
       "${ACTIVE_SERVICE}" "${DEPLOYED_SHA}" \
@@ -1619,8 +1948,19 @@ main() {
   FALLBACK_SERVICE=""
   FALLBACK_SHA=""
 
+  start_candidate_mcp "${CANDIDATE_SERVICE}" "${TARGET}" ||
+    fail_deployment "The inactive paired MCP did not become revision-verified and healthy." \
+      "${TARGET}" "${ROLLBACK_SHA}" "${PREVIOUS_ACTIVE}" "${PREVIOUS_DEPLOYED_SHA}" \
+      "${PREVIOUS_FALLBACK_SERVICE}" "${PREVIOUS_FALLBACK_SHA}" \
+      "${CANDIDATE_SERVICE}" "${FAILED_MARKER}"
+
   start_candidate "${CANDIDATE_SERVICE}" "${CANDIDATE_IMAGE}" "${TARGET}" ||
     fail_deployment "The withdrawn candidate did not become healthy; it remains ineligible for traffic." \
+      "${TARGET}" "${ROLLBACK_SHA}" "${PREVIOUS_ACTIVE}" "${PREVIOUS_DEPLOYED_SHA}" \
+      "${PREVIOUS_FALLBACK_SERVICE}" "${PREVIOUS_FALLBACK_SHA}" \
+      "${CANDIDATE_SERVICE}" "${FAILED_MARKER}"
+  wait_for_slot_cve_landing "${CANDIDATE_SERVICE}" ||
+    fail_deployment "The inactive candidate and target MCP did not render the canonical CVE contract." \
       "${TARGET}" "${ROLLBACK_SHA}" "${PREVIOUS_ACTIVE}" "${PREVIOUS_DEPLOYED_SHA}" \
       "${PREVIOUS_FALLBACK_SERVICE}" "${PREVIOUS_FALLBACK_SHA}" \
       "${CANDIDATE_SERVICE}" "${FAILED_MARKER}"
@@ -1628,7 +1968,8 @@ main() {
   CUTOVER_FALLBACK_SERVICE=""
   CUTOVER_FALLBACK_SHA=""
   if [[ "${PREVIOUS_DEPLOYED_SHA}" =~ ^[0-9a-f]{40}$ ]] &&
-     slot_serves_revision "${PREVIOUS_ACTIVE}" "${PREVIOUS_DEPLOYED_SHA}"; then
+     slot_serves_revision "${PREVIOUS_ACTIVE}" "${PREVIOUS_DEPLOYED_SHA}" &&
+     validate_slot_mcp_contract "${PREVIOUS_ACTIVE}" "${PREVIOUS_DEPLOYED_SHA}"; then
     CUTOVER_FALLBACK_SERVICE="${PREVIOUS_ACTIVE}"
     CUTOVER_FALLBACK_SHA="${PREVIOUS_DEPLOYED_SHA}"
   fi
@@ -1640,6 +1981,23 @@ main() {
 
   wait_for_proxy_revision "${TARGET}" ||
     fail_deployment "The local HTTPS proxy did not serve the candidate revision." \
+      "${TARGET}" "${ROLLBACK_SHA}" "${PREVIOUS_ACTIVE}" "${PREVIOUS_DEPLOYED_SHA}" \
+      "${PREVIOUS_FALLBACK_SERVICE}" "${PREVIOUS_FALLBACK_SHA}" \
+      "${CANDIDATE_SERVICE}" "${FAILED_MARKER}"
+
+  validate_public_www_redirect "${TARGET}" ||
+    fail_deployment "The www HTTPS endpoint did not consolidate safely after the Caddy reload." \
+      "${TARGET}" "${ROLLBACK_SHA}" "${PREVIOUS_ACTIVE}" "${PREVIOUS_DEPLOYED_SHA}" \
+      "${PREVIOUS_FALLBACK_SERVICE}" "${PREVIOUS_FALLBACK_SHA}" \
+      "${CANDIDATE_SERVICE}" "${FAILED_MARKER}"
+
+  validate_proxy_cve_landing ||
+    fail_deployment "The switched site failed its canonical CVE landing verification." \
+      "${TARGET}" "${ROLLBACK_SHA}" "${PREVIOUS_ACTIVE}" "${PREVIOUS_DEPLOYED_SHA}" \
+      "${PREVIOUS_FALLBACK_SERVICE}" "${PREVIOUS_FALLBACK_SHA}" \
+      "${CANDIDATE_SERVICE}" "${FAILED_MARKER}"
+  validate_catalog_freshness ||
+    fail_deployment "The switched site failed its live catalog freshness verification." \
       "${TARGET}" "${ROLLBACK_SHA}" "${PREVIOUS_ACTIVE}" "${PREVIOUS_DEPLOYED_SHA}" \
       "${PREVIOUS_FALLBACK_SERVICE}" "${PREVIOUS_FALLBACK_SHA}" \
       "${CANDIDATE_SERVICE}" "${FAILED_MARKER}"
@@ -1668,8 +2026,6 @@ main() {
   else
     log "Deploy complete: ${TARGET:0:12} is active on ${ACTIVE_SERVICE}; no unverified fallback was admitted."
   fi
-  validate_catalog_freshness ||
-    die "Deployment completed, but the live CVE catalog freshness check failed."
   send_success_heartbeat
 }
 

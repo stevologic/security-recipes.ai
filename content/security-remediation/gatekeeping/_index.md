@@ -2,6 +2,8 @@
 title: Gatekeeping Patterns
 linkTitle: Gatekeeping Patterns
 weight: 6
+date: 2026-04-25
+lastmod: 2026-07-13
 sidebar:
   open: true
 description: >

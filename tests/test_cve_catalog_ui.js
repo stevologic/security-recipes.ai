@@ -11,6 +11,18 @@ const zlib = require('node:zlib');
 const controller = require('../assets/js/cve-catalog.js');
 const worker = require('../assets/js/cve-catalog-worker.js');
 
+test('catalog display text removes upstream encoding artifacts', () => {
+  const samples = [
+    ['SAP\uFFFDBusinessObjects Business\uFFFDIntelligence', 'SAP BusinessObjects Business Intelligence'],
+    ['application\uFFFDs memory', "application's memory"],
+    ['Composer\u00e2\u20ac\u2122s backup', "Composer's backup"]
+  ];
+  for (const [source, expected] of samples) {
+    assert.equal(worker.cleanCatalogText(source), expected);
+    assert.equal(controller.cleanCatalogText(source), expected);
+  }
+});
+
 const RECIPE_FIELDS = [
   'exposure_checks',
   'remediation_steps',

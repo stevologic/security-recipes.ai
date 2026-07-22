@@ -220,7 +220,13 @@ def render_root_index(catalog: dict[str, Any]) -> str:
     )
 
 
-def render_family_index(key: str, family: dict[str, Any], weight: int) -> str:
+def render_family_index(
+    key: str,
+    family: dict[str, Any],
+    weight: int,
+    records: list[dict[str, Any]],
+) -> str:
+    family_records = [record for record in records if record["family"] == key]
     return "\n".join(
         [
             "---",
@@ -236,9 +242,22 @@ def render_family_index(key: str, family: dict[str, Any], weight: int) -> str:
             "",
             family["description"],
             "",
-            "Select one bounded recipe. Start in audit mode; authorize fixes only after reviewing the candidate evidence.",
+            f"## Choose a focused {family['title']} recipe",
             "",
-            "## Recipes",
+            f"This collection contains {len(family_records)} bounded {family['title']} workflows. Choose the recipe whose objective matches the repository evidence instead of combining unrelated cleanup into one run.",
+            "",
+            *[
+                f"- **[{record['title']}]({{{{< relref \"{recipe_url(record).rstrip('/')}\" >}}}}):** Use it to {record['goal']}."
+                for record in family_records
+            ],
+            "",
+            "## How to use this collection",
+            "",
+            "Read the repository's configured runtime, compiler, framework, analyzer, and test commands before selecting a workflow. Start in audit mode, record file and symbol evidence, and authorize a fix only after the candidate scope is reviewable. Preserve supported versions, public behavior, and existing tool configuration.",
+            "",
+            "If the evidence is a named CVE, scanner finding, exposed secret, authorization flaw, or injection path, use the focused vulnerability-remediation playbook instead of a code-hygiene recipe. Stop when the safe result requires an owner decision about architecture, compatibility, production data, or deployment state.",
+            "",
+            "## Full recipe list",
             "",
             "{{< prompt-toc >}}",
             "",
@@ -283,7 +302,12 @@ def expected_outputs(catalog: dict[str, Any], sources: dict[str, Any]) -> dict[P
     outputs: dict[Path, str] = {CONTENT_ROOT / "_index.md": render_root_index(catalog), ROUTING_PATH: routing_fixture(catalog)}
     family_order = list(catalog["families"])
     for family_weight, (key, family) in enumerate(catalog["families"].items(), start=1):
-        outputs[CONTENT_ROOT / key / "_index.md"] = render_family_index(key, family, family_weight)
+        outputs[CONTENT_ROOT / key / "_index.md"] = render_family_index(
+            key,
+            family,
+            family_weight,
+            catalog["records"],
+        )
     item_counts: dict[str, int] = {}
     for record in catalog["records"]:
         item_counts[record["family"]] = item_counts.get(record["family"], 0) + 1

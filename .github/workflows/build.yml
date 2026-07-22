@@ -128,6 +128,174 @@ jobs:
             --build-arg "REVISION=${GITHUB_SHA}" \
             --tag "${MCP_IMAGE}" .
 
+          smoke_suffix="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${RANDOM}"
+          smoke_network="security-recipes-smoke-${smoke_suffix}"
+          site_name="security-recipes-site-${smoke_suffix}"
+          mcp_name="security-recipes-mcp-${smoke_suffix}"
+          site_container=""
+          mcp_container=""
+          cleanup_smoke_resources() {
+            docker rm --force "${site_name}" "${mcp_name}" >/dev/null 2>&1 || true
+            docker network rm "${smoke_network}" >/dev/null 2>&1 || true
+          }
+          trap cleanup_smoke_resources EXIT
+
+          docker network create "${smoke_network}" >/dev/null
+
+          # The stock nginx entrypoint renders default.conf.template before it
+          # executes this command, so this validates the deployed config rather
+          # than the unexpanded source template.
+          docker run --rm \
+            --env "MCP_UPSTREAM=${mcp_name}" \
+            "${SITE_IMAGE}" nginx -t
+
+          # Prove an evidence-qualified CVE is entirely static: start nginx
+          # while its configured MCP hostname does not exist, then fetch it.
+          site_container="$(docker run --detach --name "${site_name}" \
+            --network "${smoke_network}" \
+            --publish 127.0.0.1::80 \
+            --env "MCP_UPSTREAM=${mcp_name}" \
+            "${SITE_IMAGE}")"
+          site_port="$(docker inspect --format '{{(index (index .NetworkSettings.Ports "80/tcp") 0).HostPort}}' "${site_container}")"
+          site_ready="false"
+          for _ in $(seq 1 30); do
+            if curl --fail --silent --show-error --max-time 5 \
+              "http://127.0.0.1:${site_port}/" >/dev/null; then
+              site_ready="true"
+              break
+            fi
+            if [ "$(docker inspect --format '{{.State.Running}}' "${site_container}")" != "true" ]; then
+              docker logs "${site_container}"
+              echo "Site image exited before its smoke test." >&2
+              exit 1
+            fi
+            sleep 1
+          done
+          if [ "${site_ready}" != "true" ]; then
+            docker logs "${site_container}"
+            echo "Site image did not become ready within 30 seconds." >&2
+            exit 1
+          fi
+
+          # Re-run the complete rendered-site SEO and deployment-shape gate
+          # against the no-Git Docker artifact, not only the host build.
+          image_output="${RUNNER_TEMP}/site-image-output"
+          mkdir -p "${image_output}"
+          docker cp "${site_container}:/usr/share/nginx/html/." "${image_output}/"
+          SITE_OUTPUT_DIR="${image_output}" node scripts/check_site_performance.js
+
+          expected_canonical="${SECURITY_RECIPES_BASE_URL%/}/cve/CVE-2024-3400/"
+          static_response="${RUNNER_TEMP}/site-static-cve-CVE-2024-3400.html"
+          static_headers="${RUNNER_TEMP}/site-static-cve-CVE-2024-3400.headers"
+          curl --fail --silent --show-error --max-time 10 \
+            --dump-header "${static_headers}" \
+            "http://127.0.0.1:${site_port}/cve/CVE-2024-3400/" \
+            --output "${static_response}"
+          grep -Fq "<link rel=\"canonical\" href=\"${expected_canonical}\">" "${static_response}"
+          grep -Fq '<meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">' "${static_response}"
+          grep -Fq 'data-cve-initial-id="CVE-2024-3400"' "${static_response}"
+          grep -Fq '"@type":"Article"' "${static_response}"
+          grep -Fq '"additionalType":"https://schema.org/TechArticle"' "${static_response}"
+          if grep -Eqi '^X-CVE-Cache:' "${static_headers}"; then
+            echo "Qualified CVE unexpectedly reached the runtime fallback." >&2
+            exit 1
+          fi
+
+          mcp_container="$(docker run --detach --name "${mcp_name}" \
+            --network "${smoke_network}" \
+            --publish 127.0.0.1::80 \
+            --env "RECIPES_PUBLIC_SITE_BASE_URL=${SECURITY_RECIPES_BASE_URL}" \
+            "${MCP_IMAGE}")"
+
+          mcp_health="starting"
+          for _ in $(seq 1 90); do
+            mcp_health="$(docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}missing{{end}}' "${mcp_container}")"
+            case "${mcp_health}" in
+              healthy)
+                break
+                ;;
+              unhealthy|missing)
+                docker logs "${mcp_container}"
+                echo "MCP image healthcheck entered ${mcp_health} state." >&2
+                exit 1
+                ;;
+            esac
+            sleep 2
+          done
+          if [ "${mcp_health}" != "healthy" ]; then
+            docker logs "${mcp_container}"
+            echo "MCP image did not become healthy within 180 seconds." >&2
+            exit 1
+          fi
+
+          mcp_port="$(docker inspect --format '{{(index (index .NetworkSettings.Ports "80/tcp") 0).HostPort}}' "${mcp_container}")"
+          mcp_response="${RUNNER_TEMP}/mcp-cve-CVE-2024-3400.html"
+          curl --fail --silent --show-error --max-time 20 \
+            "http://127.0.0.1:${mcp_port}/cve/CVE-2024-3400/" \
+            --output "${mcp_response}"
+          grep -Fq "<link rel=\"canonical\" href=\"${expected_canonical}\">" "${mcp_response}"
+          grep -Fq '<meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">' "${mcp_response}"
+          grep -Fq 'data-cve-initial-id="CVE-2024-3400"' "${mcp_response}"
+          grep -Fq '"@type":"Article"' "${mcp_response}"
+          grep -Fq '"additionalType":"https://schema.org/TechArticle"' "${mcp_response}"
+
+          # Select an in-catalog record that was deliberately excluded from the
+          # qualified static surface, then prove nginx reaches the healthy MCP
+          # fallback and preserves the noindex contract.
+          nonqualified_cve="$(python3 - <<'PY'
+          import gzip
+          import json
+          from pathlib import Path
+
+          catalog_root = Path("static/api/cve-catalog")
+          qualified = {
+              record["cve"]
+              for record in json.loads(
+                  (catalog_root / "search-indexable.json").read_text(encoding="utf-8")
+              )["records"]
+          }
+          for index_path in sorted(
+              (catalog_root / "indexes").glob("*.json.gz"), reverse=True
+          ):
+              payload = json.loads(gzip.decompress(index_path.read_bytes()))
+              for record in payload["records"]:
+                  cve_id = str(record.get("cve") or "")
+                  if cve_id and cve_id not in qualified:
+                      print(cve_id)
+                      raise SystemExit(0)
+          raise SystemExit("No nonqualified CVE exists for the runtime smoke test.")
+          PY
+          )"
+          if [[ ! "${nonqualified_cve}" =~ ^CVE-[0-9]{4}-[0-9]{4,}$ ]]; then
+            echo "Invalid nonqualified CVE selected: ${nonqualified_cve}" >&2
+            exit 1
+          fi
+          runtime_response="${RUNNER_TEMP}/site-runtime-cve-${nonqualified_cve}.html"
+          runtime_headers="${RUNNER_TEMP}/site-runtime-cve-${nonqualified_cve}.headers"
+          curl --fail --silent --show-error --max-time 20 \
+            --dump-header "${runtime_headers}" \
+            "http://127.0.0.1:${site_port}/cve/${nonqualified_cve}/" \
+            --output "${runtime_response}"
+          runtime_canonical="${SECURITY_RECIPES_BASE_URL%/}/cve/${nonqualified_cve}/"
+          grep -Fq "<link rel=\"canonical\" href=\"${runtime_canonical}\">" "${runtime_response}"
+          grep -Fq '<meta name="robots" content="noindex,follow">' "${runtime_response}"
+          grep -Fq "data-cve-initial-id=\"${nonqualified_cve}\"" "${runtime_response}"
+          grep -Eqi '^X-CVE-Cache:' "${runtime_headers}"
+
+          # A case variant must be canonicalized by the runtime route, never
+          # satisfied by a stale mixed/lowercase directory in the static image.
+          lowercase_headers="${RUNNER_TEMP}/site-lowercase-cve.headers"
+          lowercase_status="$(curl --silent --show-error --max-time 10 \
+            --dump-header "${lowercase_headers}" \
+            --output /dev/null \
+            --write-out '%{http_code}' \
+            "http://127.0.0.1:${site_port}/cve/cve-2024-3400/")"
+          if [ "${lowercase_status}" != "308" ]; then
+            echo "Lowercase CVE returned ${lowercase_status}; expected 308." >&2
+            exit 1
+          fi
+          grep -Fqi "location: ${expected_canonical}" "${lowercase_headers}"
+
   publish:
     if: github.event_name != 'pull_request'
     needs: build

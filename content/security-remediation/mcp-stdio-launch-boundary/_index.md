@@ -2,6 +2,8 @@
 title: MCP STDIO Launch Boundary
 linkTitle: MCP STDIO Launch Boundary
 weight: 8
+date: 2026-05-04
+lastmod: 2026-07-13
 sidebar:
   exclude: true
 description: >

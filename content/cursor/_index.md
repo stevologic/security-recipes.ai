@@ -1,47 +1,83 @@
 ﻿---
-title: Cursor
+title: Cursor AI Vulnerability Remediation
 linkTitle: Cursor
 weight: 3
-description: Enable agentic remediation with Cursor Agent and Background Agents.
+date: 2026-04-21
+lastmod: 2026-07-21
+description: Use Cursor Security Agents, Agent, and Cloud Agents to find and remediate vulnerabilities with bounded context, tests, rollback, and reviewed pull requests.
 sidebar:
   open: true
 ---
 
 {{< callout type="info" >}}
-**Outcome.** Engineers see open security findings inside Cursor and can
-dispatch a Background Agent to fix any of them with one click — or schedule
-them for autonomous overnight runs.
+**Outcome.** Cursor Security Agents identify changed-code and codebase
+risk; engineers validate one finding and hand it to an Agent or Cloud Agent
+for a reviewed remediation pull request.
 {{< /callout >}}
 
 {{< callout type="warning" >}}
 **In a hurry?** The
-[**Quick Start**]({{< relref "/quickstart#cursor-five-minute-path" >}})
+[**Quick Start**]({{< relref "/quickstart#the-loop" >}})
 is a five-minute path to your first agentic remediation PR with
 Cursor. Come back here for the full recipe once that loop is working.
 {{< /callout >}}
 
-Cursor's Agent (and Background Agents) can be steered with project-level
-rules and MCP servers to handle remediation queues without ever leaving
-the editor. Engineers get a consistent "open finding → branched PR"
-loop whether they invoke it by hand or the scheduler does it overnight.
+Cursor's Security Agents, interactive Agent, and Cloud Agents can be
+steered with project-level rules and MCP servers. Engineers get a
+consistent "validate finding → bounded patch → reviewed PR" loop while
+keeping discovery and remediation as separate decisions.
+
+Use the [bounded remediation workflow]({{< relref "/security-remediation/" >}})
+to establish scope, verification, rollback, and reviewer evidence before
+configuring Cursor.
+
+For a package advisory, pair that workflow with the
+[Cursor vulnerable-dependency recipe]({{< relref "/recipes/cursor/vulnerable-dep-remediation" >}})
+for ready-to-use project rules and task instructions.
+For a detected secret or PII leak, use the
+[Cursor sensitive-data remediation recipe]({{< relref "/recipes/cursor/sensitive-data-remediation" >}}).
+
+## Remediate a vulnerability with Cursor
+
+Use [Cursor Security Agents](https://cursor.com/docs/security-agents) to
+produce the finding, then hand an accepted finding to a Cursor Agent or
+Cloud Agent for the code change.
+
+1. Configure a **Security Reviewer** for pull-request or merge-request
+   events, or a **Vulnerability Scanner** for scheduled scans of the
+   repository at rest. Add the relevant checks, repository instructions,
+   and at least one tool or MCP.
+2. Review the reported code path, severity, and remediation guidance.
+   Confirm the issue is reachable and not blocked by an existing control.
+3. Start an agent task scoped to that finding. Require the smallest safe
+   change, a regression test, the repository's normal checks, and a pull
+   request—never a direct merge.
+4. Review the diff and run artifacts before merging. In Cursor 3.7 or
+   later, use `/review-security` to review the branch against its base
+   before pushing.
+
+Security Reviewer covers changed code; Vulnerability Scanner searches for
+risk already present in the codebase. Both run on Cloud Agents through
+Cursor Automations. Security Review is currently beta for Teams and
+Enterprise; see the [official product update](https://cursor.com/changelog/04-30-26).
 
 ## Prerequisites
 
-- Cursor **Business** or **Enterprise** plan
-- Background Agents enabled for your workspace
-- An MCP server that exposes your security findings (Snyk, Semgrep, Wiz, etc.)
+- Cursor **Teams** or **Enterprise** access for Security Review
+- Security Agents configured for the repository in the Cursor dashboard
+- At least one approved tool or MCP available to each Security Agent
 - A repo with at least one reproducible test command
-- GitHub / GitLab / Bitbucket integration connected to the Cursor workspace
+- The relevant source-host integration connected to the Cursor workspace
 
 ## General onboarding
 
 The public path to getting Cursor — what any individual engineer
 or team can do today without waiting on an enterprise rollout.
 
-1. **Pick a plan.** Cursor's Pro tier is enough to evaluate
-   rules, custom commands, and MCP. Background Agents and
-   Automations require **Business** or **Enterprise**.
-   See [Cursor plan documentation](https://cursor.com/plan documentation).
+1. **Pick a plan.** Cursor's individual plans can evaluate local
+   Agent workflows, rules, custom commands, and MCP. Security Review
+   is currently beta for **Teams** and **Enterprise**.
+   See [Cursor plan documentation](https://docs.cursor.com/account/pricing).
 2. **Install the editor.** Download Cursor from
    [cursor.com](https://cursor.com/) and sign in.
 3. **Connect your source host.** Link GitHub / GitLab /
@@ -52,23 +88,21 @@ or team can do today without waiting on an enterprise rollout.
    [Project rules](https://cursor.com/docs/rules#project-rules).
 5. **Install MCP servers.** Wire up `.cursor/mcp.json` per
    [Cursor MCP](https://docs.cursor.com/context/mcp).
-6. **Enable Background Agents + Automations** (Business /
-   Enterprise). See
-   [Background Agents](https://docs.cursor.com/en/background-agent)
-   and
-   [Automations](https://cursor.com/docs/cloud-agent/automations).
+6. **Configure Security Agents.** Use the
+   [Security Agents dashboard](https://cursor.com/docs/security-agents)
+   to add a Security Reviewer, Vulnerability Scanner, or both.
 7. **Review privacy + data-handling.** See
    [Cursor security & privacy](https://docs.cursor.com/account/privacy).
 
 **Vendor-side reference index:**
 
 - [Cursor docs home](https://docs.cursor.com)
+- [Security Agents](https://cursor.com/docs/security-agents)
+- [Cloud Agents](https://cursor.com/blog/cloud-agents)
 - [Project rules (`.cursor/rules/*.mdc`)](https://cursor.com/docs/rules#project-rules)
 - [Custom slash commands (`.cursor/commands/*.md`)](https://cursor.com/docs/cli/reference/slash-commands)
-- [Background Agents](https://docs.cursor.com/en/background-agent)
-- [Automations (scheduled + event-driven runs)](https://cursor.com/docs/cloud-agent/automations)
 - [MCP](https://docs.cursor.com/context/mcp)
-- [Plan documentation](https://cursor.com/plan documentation)
+- [Cursor plan documentation](https://docs.cursor.com/account/pricing)
 - [Security & privacy](https://docs.cursor.com/account/privacy)
 
 ## Enterprise onboarding
@@ -76,7 +110,7 @@ or team can do today without waiting on an enterprise rollout.
 {{< callout type="warning" >}}
 **Placeholder — customize for your organization.** Replace the
 steps and links below with your internal process for getting a
-Cursor Business / Enterprise seat, enabling Background Agents,
+Cursor Teams or Enterprise seat, enabling Security and Cloud Agents,
 and granting the repo scope this recipe expects. The structure
 is a starting point so every recipe on this site has a
 consistent "how does my team actually start using this at my
@@ -84,24 +118,19 @@ company?" section. Forks of this project are expected to fill
 this in for their own organizations.
 {{< /callout >}}
 
-1. **Request access.** File an IT ticket for a Cursor Business or
-   Enterprise seat on your org's workspace. Internal link:
-   [Request Cursor access](#placeholder-itsm-link).
+1. **Request access.** File an IT ticket through your organization's
+   approved service catalog for a Cursor Teams or Enterprise seat.
 2. **Join the workspace.** Accept the invite to your org's Cursor
-   workspace once Security approves. Internal link:
-   [Cursor workspace](#placeholder-workspace-link).
-3. **Bind to corporate SSO / SAML.** Cursor Business / Enterprise
-   supports SAML SSO — bind the account to your identity provider
-   per the standard IT guide. Internal link:
-   [SSO enrollment](#placeholder-sso-link).
-4. **Turn on Background Agents.** Ask your Cursor admin to enable
-   Background Agents for your workspace and pin the set of repos
-   they're allowed to operate on. Internal link:
-   [Background Agents rollout plan](#placeholder-rollout-link).
+   workspace once Security approves.
+3. **Bind to corporate SSO / SAML.** Bind the account to your
+   identity provider using the controls available on the approved plan.
+4. **Turn on Security and Cloud Agents.** Ask your Cursor admin to
+   configure the Security Reviewer or Vulnerability Scanner and pin the
+   set of repositories Cloud Agents may operate on.
 5. **Complete internal training.** Read the internal rules of
-   engagement for Cursor Agent and Background Agent usage on
-   production repos before running any recipe. Internal link:
-   [your org's AI usage policy](#placeholder-policy-link).
+   engagement for Cursor Agent and Cloud Agent usage on
+   production repos before running any recipe, including your
+   organization's AI usage policy.
 
 ## Recipe steps
 
@@ -245,106 +274,39 @@ Pick the first finding. For that finding:
 
 Invoke from chat with `/remediate`.
 
-### 4. Configure Background Agents
+### 4. Configure Security Agents
 
-Background Agents run headlessly on Cursor's infra. Configure in
-**Settings → Background Agents**:
+Open the [Security Agents dashboard](https://cursor.com/docs/security-agents)
+and choose the agent that matches the question:
 
-- **Branch naming:** `fix/${finding_id}`
-- **PR template:** paste your standard PR template; include the
-  finding ID placeholder.
-- **Required CI checks:** pin the checks that must be green.
-- **Auto-merge:** **OFF**. Never turn this on.
-- **Permissions:** give read access to the repo; write goes through
-  the PR the agent opens.
+- **Security Reviewer** runs on pull-request or merge-request events and
+  reviews changed code before merge.
+- **Vulnerability Scanner** runs on a schedule and searches the repository
+  at rest for pre-existing risk.
 
-### 5. Dispatch via Cursor Automations, GitHub, Jira, or webhooks
+For each agent, select the repository, add the relevant built-in checks and
+custom instructions, and configure at least one approved tool or MCP. Start
+with read-only context. Keep the threat and repository instructions narrow
+enough that a reviewer can explain why each finding was produced.
 
-Cursor Automations is the supported way to run a Background Agent
-on a **schedule**, on an **event** (GitHub issue opened, webhook
-received, Slack message posted), or from an **ad-hoc chat
-invocation**. Pick the trigger that matches your queue — the
-underlying Background Agent, branch naming, and PR policy stay
-identical across all of them.
+### 5. Hand an accepted finding to an Agent
 
-{{< tabs >}}
-  {{< tab name="Cursor Automations (scheduled)" >}}
-```yaml
-# Settings → Automations → New Automation
-name: Nightly remediation sweep
-trigger:
-  type: schedule
-  cron: "0 2 * * *"          # 02:00 daily (build region)
-command: /remediate
-repo: example-org/payments-service
-baseBranch: main
-timeout: 30m
-maxRuns: 5                   # cap open PRs per run
-```
-A 5-PR-per-run cap keeps the reviewer queue sane; adjust up once
-the signal-to-noise is proven.
-  {{< /tab >}}
-  {{< tab name="GitHub Issues label" >}}
-```yaml
-# Settings → Automations → New Automation
-name: Remediate on security label
-trigger:
-  type: github.issue.labeled
-  repo: example-org/payments-service
-  label: "security:remediate"
-command: |
-  The issue body contains a finding ID. Run /remediate restricted
-  to that finding only. Link the PR back to the issue on success.
-baseBranch: main
-maxRuns: 1
-```
-Engineers (or the scanner's auto-filer) label an issue
-`security:remediate` and Cursor opens a scoped PR against it.
-  {{< /tab >}}
-  {{< tab name="GitHub Actions dispatch" >}}
-```yaml
-# .github/workflows/cursor-dispatch.yml
-name: Dispatch Cursor remediation
-on:
-  workflow_dispatch:
-    inputs:
-      finding_id:
-        description: Scanner finding ID
-        required: true
+Security Agents report findings; do not assume that a report authorizes a
+code change or automatically produces a pull request.
 
-jobs:
-  dispatch:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Call Cursor Automations webhook
-        env:
-          CURSOR_WEBHOOK: ${{ secrets.CURSOR_AUTOMATION_WEBHOOK }}
-        run: |
-          curl -fsSL -X POST "$CURSOR_WEBHOOK" \
-            -H "Content-Type: application/json" \
-            -d "{\"finding_id\":\"${{ inputs.finding_id }}\"}"
-```
-Useful when your SOAR / scanner already has a "dispatch to
-GitHub Actions" adapter — you keep one integration point.
-  {{< /tab >}}
-  {{< tab name="Jira / Linear webhook" >}}
-```bash
-# Jira / Linear webhook → Cursor Automations webhook
-# Configure the webhook URL from Settings → Automations → Webhook trigger.
+1. Confirm the vulnerable path and record the finding ID, affected files,
+   and validation evidence.
+2. Start an interactive Agent or Cloud Agent task scoped to that one
+   finding. Include the accepted remediation constraints and the repository's
+   supported test commands.
+3. Require a branch and reviewed pull request, with no unrelated refactor
+   and no direct merge.
+4. Before pushing, run `/review-security` against the branch's base and
+   resolve or document every supported finding.
 
-curl -fsSL -X POST "$CURSOR_AUTOMATION_WEBHOOK" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "finding_id": "CVE-2026-1234",
-    "ticket": "SEC-4821",
-    "source": "jira"
-  }'
-```
-Jira automation rule or Linear webhook POSTs to the Cursor
-Automation URL. The Background Agent runs `/remediate` scoped to
-that finding and links back to the ticket in the PR body.
-  {{< /tab >}}
-{{< /tabs >}}
+Use the Vulnerability Scanner's dashboard schedule for recurring discovery.
+Keep issue trackers and external scanner webhooks as context sources unless
+you have separately reviewed and approved a concrete automation integration.
 
 ## Verification
 
@@ -357,22 +319,20 @@ produce:
 
 all visible in the Cursor sidebar **before** any code touches `main`.
 
-Then let the scheduled Background Agent run overnight. In the
-morning you should see up to 5 draft PRs, each linked back to the
-finding it's fixing.
+Then run the configured Vulnerability Scanner on its schedule. Its findings
+should remain separate from remediation tasks until a person accepts them.
 
 ## Orchestration: what stays constant, what changes
 
-Cursor's orchestration splits across two surfaces — the
-**interactive Agent** for engineer-driven fixes, and
-**Background Agents** for the headless batch queue. The queue,
-the dispatcher, and the review policy are shared; everything
-else is swappable.
+Cursor's orchestration spans Security Agents for discovery and review,
+then an **interactive Agent** or **Cloud Agent** for an accepted fix. The
+finding evidence, repository rules, and review policy are shared; the
+discovery trigger and remediation session remain separate.
 
 ```mermaid
 flowchart LR
-    A[Finding source<br/>Snyk / Semgrep / Wiz<br/>via MCP] --> B[Dispatcher<br/>/remediate command<br/>or scheduler]
-    B --> C[Cursor Agent<br/>Background Agents]
+    A[Security Reviewer<br/>or Vulnerability Scanner] --> B[Accepted finding<br/>human decision]
+    B --> C[Cursor Agent<br/>Cloud Agent]
     C -.reads.-> P[Prompt layer<br/>.cursor/rules/*.mdc]
     C -.calls.-> M[Model<br/>Cursor-managed LLM]
     C -.uses.-> T[Tool layer<br/>.cursor/mcp.json connectors]
@@ -384,10 +344,8 @@ flowchart LR
 
 What is **constant** (build once, leave alone):
 
-- The `/remediate` command and the Background Agent scheduler
-  cron.
-- Branch naming (`fix/<finding-id>`), PR template, and required
-  CI checks under **Settings → Background Agents**.
+- The one-finding task contract and repository rules.
+- Branch naming (`fix/<finding-id>`), PR template, and required CI checks.
 - The "open PR, never merge" policy.
 - The MCP allowlist shape — read-only by default, write tools
   gated per-flow.
@@ -413,10 +371,10 @@ rules or add a scanner without rewriting the dispatch logic.
   you from drift.
 - **MCP tool allowlist.** Restrict which MCP tools the agent can call.
   Read-only is the right default; escalate explicitly.
-- **Require a human on the PR.** Cursor Background Agents can open PRs —
+- **Require a human on the PR.** Cursor Cloud Agents can open PRs —
   do **not** give them merge permissions.
-- **Rate caps on scheduler.** A nightly cap of 5 PRs per repo prevents
-  a bad rule from flooding the reviewer queue.
+- **Bound scheduled discovery.** Start with a narrow repository and cadence;
+  expand only after reviewers confirm useful signal.
 
 ## Troubleshooting
 
@@ -426,14 +384,14 @@ rules or add a scanner without rewriting the dispatch logic.
 - **Rules aren't being applied.** Verify the glob in frontmatter
   actually matches the files Cursor is editing; test with a concrete
   path, not a wildcard you assume will match.
-- **Background Agent opens PRs against `main`.** In the scheduler
-  config, ensure `baseBranch` is set correctly — some orgs use
-  `develop` or `release/*`.
+- **Cloud Agent targets the wrong base.** State the required base branch in
+  the task and repository rules; some repositories use `develop` or
+  `release/*`.
 
 ## See also
 
-- Cursor docs: [Background Agents](https://docs.cursor.com/en/background-agent)
-- Cursor docs: [Automations (scheduled + event-driven)](https://cursor.com/docs/cloud-agent/automations)
+- Cursor docs: [Security Agents](https://cursor.com/docs/security-agents)
+- Cursor: [Cloud Agents](https://cursor.com/blog/cloud-agents)
 - Cursor docs: [Project rules](https://cursor.com/docs/rules#project-rules)
 - Cursor docs: [Custom slash commands](https://cursor.com/docs/cli/reference/slash-commands)
 - Cursor docs: [MCP](https://docs.cursor.com/context/mcp)

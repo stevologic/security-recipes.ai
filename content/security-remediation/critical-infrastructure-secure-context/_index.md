@@ -2,6 +2,8 @@
 title: Critical Infrastructure Secure Context Profile
 linkTitle: Critical Infrastructure Profile
 weight: 19
+date: 2026-05-05
+lastmod: 2026-07-13
 toc: true
 description: >
   Generated critical-infrastructure readiness profile for agentic AI and

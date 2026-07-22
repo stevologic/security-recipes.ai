@@ -24,12 +24,14 @@ from collections import OrderedDict
 from concurrent.futures import ThreadPoolExecutor
 from copy import deepcopy
 from dataclasses import dataclass, field
+from datetime import date, datetime, timezone
 from functools import partial
 from pathlib import Path, PurePosixPath
 from typing import Any
-from urllib.parse import unquote, urlparse
+from urllib.parse import parse_qsl, quote, unquote, urlencode, urlparse
 
 import httpx
+import markdown
 import tomli
 from fastmcp import FastMCP
 from starlette.requests import Request
@@ -1665,7 +1667,9 @@ class CVERecipeCatalog:
     MAX_ARCHETYPES_BYTES = 4 * 1024 * 1024
     MAX_SEARCH_INDEX_COMPRESSED_BYTES = 16 * 1024 * 1024
     MAX_SEARCH_INDEX_UNCOMPRESSED_BYTES = 64 * 1024 * 1024
+    MAX_SEARCH_ALLOWLIST_BYTES = 1024 * 1024
     MAX_SEARCH_RECORDS = 400_000
+    SEARCH_ALLOWLIST_POLICY = "stable-markdown-or-recipe-ready-v1"
     MAX_SHARD_COMPRESSED_BYTES = 2 * 1024 * 1024
     MAX_SHARD_UNCOMPRESSED_BYTES = 8 * 1024 * 1024
     MAX_STABLE_MARKDOWN_BYTES = 256 * 1024
@@ -1824,6 +1828,9 @@ class CVERecipeCatalog:
         self._search_archetypes: tuple[str, ...] = ()
         self._search_postings: dict[str, array[int]] = {}
         self._search_posting_masks: dict[str, bytearray] = {}
+        self._search_allowlist_signature: tuple[object, ...] | None = None
+        self._search_indexable_ids: frozenset[str] = frozenset()
+        self._search_indexable_records: tuple[dict[str, Any], ...] = ()
         self._query_cache: OrderedDict[tuple[object, ...], tuple[int, ...]] = OrderedDict()
         self._shard_cache: OrderedDict[str, bytes] = OrderedDict()
         self._shard_cache_bytes = 0
@@ -1973,6 +1980,9 @@ class CVERecipeCatalog:
             self._search_archetypes = ()
             self._search_postings = {}
             self._search_posting_masks = {}
+            self._search_allowlist_signature = None
+            self._search_indexable_ids = frozenset()
+            self._search_indexable_records = ()
             self._query_cache.clear()
             with self._shard_lock:
                 self._shard_cache.clear()
@@ -2407,6 +2417,247 @@ class CVERecipeCatalog:
         if root not in candidate.parents or candidate.suffix != ".gz":
             raise ValueError("catalog manifest contains an invalid compressed data path")
         return candidate
+
+    def is_search_indexable(self, cve: str) -> bool:
+        """Check the generated evidence-qualified allowlist with manifest integrity."""
+
+        canonical = str(cve or "").strip().upper()
+        if not self.CVE_RE.fullmatch(canonical):
+            return False
+        self._load_core()
+        with self._core_lock:
+            core_signature = self._core_signature
+            entry = self._manifest.get("search_index")
+            if not isinstance(entry, dict):
+                raise ValueError("CVE catalog manifest is missing its search allowlist")
+            if set(entry) != {
+                "path",
+                "schema_version",
+                "policy",
+                "records",
+                "sha256",
+                "bytes",
+            }:
+                raise ValueError("CVE search allowlist metadata schema is invalid")
+            relative = str(entry.get("path") or "")
+            digest = str(entry.get("sha256") or "")
+            declared_bytes = entry.get("bytes")
+            declared_records = entry.get("records")
+            if (
+                relative != "search-indexable.json"
+                or entry.get("schema_version") != 2
+                or entry.get("policy") != self.SEARCH_ALLOWLIST_POLICY
+                or not re.fullmatch(r"[0-9a-f]{64}", digest)
+                or type(declared_bytes) is not int
+                or not 0 < declared_bytes <= self.MAX_SEARCH_ALLOWLIST_BYTES
+                or type(declared_records) is not int
+                or not 0 <= declared_records <= self.MAX_SEARCH_RECORDS
+            ):
+                raise ValueError("CVE search allowlist integrity metadata is invalid")
+            root = self.path.resolve()
+            path = (root / relative).resolve()
+            if root not in path.parents or path.name != "search-indexable.json":
+                raise ValueError("CVE search allowlist path is invalid")
+            if not path.is_file() or path.stat().st_size != declared_bytes:
+                raise FileNotFoundError("CVE search allowlist is missing or has the wrong size")
+            file_signature = self._files_signature((path,))[0]
+            signature: tuple[object, ...] = (core_signature, file_signature, digest)
+            if self._search_allowlist_signature == signature:
+                return canonical in self._search_indexable_ids
+
+            payload = path.read_bytes()
+            if hashlib.sha256(payload).hexdigest() != digest:
+                raise ValueError("CVE search allowlist hash does not match its manifest")
+            document = json.loads(payload)
+            if not isinstance(document, dict) or set(document) != {
+                "schema_version",
+                "catalog_updated_at",
+                "policy",
+                "records",
+            }:
+                raise ValueError("CVE search allowlist payload schema is invalid")
+            raw_records = document.get("records")
+            if (
+                document.get("schema_version") != 2
+                or document.get("catalog_updated_at")
+                != self._manifest.get("catalog_updated_at")
+                or document.get("policy") != self.SEARCH_ALLOWLIST_POLICY
+                or not isinstance(raw_records, list)
+            ):
+                raise ValueError("CVE search allowlist payload is invalid")
+            required_fields = {
+                "cve",
+                "title",
+                "severity",
+                "score",
+                "published",
+                "ecosystem",
+                "kev",
+                "archetypes",
+                "cwes",
+                "products",
+                "qualification",
+            }
+            records: list[dict[str, Any]] = []
+            for raw_record in raw_records:
+                if not isinstance(raw_record, dict) or set(raw_record) != required_fields:
+                    raise ValueError("CVE search allowlist record schema is invalid")
+                record = deepcopy(raw_record)
+                record_cve = str(record.get("cve") or "")
+                archetypes = record.get("archetypes")
+                cwes = record.get("cwes")
+                products = record.get("products")
+                if (
+                    not self.CVE_RE.fullmatch(record_cve)
+                    or not str(record.get("title") or "").strip()
+                    or record.get("severity") not in {"medium", "high", "critical"}
+                    or type(record.get("score")) not in {int, float}
+                    or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", str(record.get("published") or ""))
+                    or not str(record.get("ecosystem") or "").strip()
+                    or not isinstance(record.get("kev"), bool)
+                    or record.get("qualification")
+                    not in {"stable_markdown", "recipe_ready_ai"}
+                    or not isinstance(archetypes, list)
+                    or not archetypes
+                    or any(not isinstance(value, str) or not value for value in archetypes)
+                    or len(set(archetypes)) != len(archetypes)
+                    or not isinstance(cwes, list)
+                    or any(not re.fullmatch(r"CWE-\d+", str(value)) for value in cwes)
+                    or not isinstance(products, list)
+                    or len(products) > 8
+                ):
+                    raise ValueError("CVE search allowlist record is invalid")
+                for product in products:
+                    if (
+                        not isinstance(product, dict)
+                        or set(product) != {"vendor", "product"}
+                        or not isinstance(product.get("vendor"), str)
+                        or not isinstance(product.get("product"), str)
+                        or not (product["vendor"] or product["product"])
+                    ):
+                        raise ValueError("CVE search allowlist product is invalid")
+                records.append(record)
+            ids = [record["cve"] for record in records]
+            if (
+                len(ids) != declared_records
+                or any(not self.CVE_RE.fullmatch(value) for value in ids)
+                or any(
+                    index > 0 and ids[index - 1] >= value
+                    for index, value in enumerate(ids)
+                )
+            ):
+                raise ValueError("CVE search allowlist identities are invalid")
+            self._search_indexable_ids = frozenset(ids)
+            self._search_indexable_records = tuple(records)
+            self._search_allowlist_signature = signature
+            return canonical in self._search_indexable_ids
+
+    def related_cves(
+        self,
+        source_record: dict[str, Any],
+        *,
+        limit: int = 6,
+    ) -> list[dict[str, Any]]:
+        """Rank qualified CVEs without inflating the full browser search index."""
+
+        current_cve = str(source_record.get("cve") or "").strip().upper()
+        if not self.CVE_RE.fullmatch(current_cve):
+            return []
+        self.is_search_indexable(current_cve)
+        with self._core_lock:
+            candidates = tuple(deepcopy(self._search_indexable_records))
+
+        def string_set(value: object) -> set[str]:
+            if not isinstance(value, list):
+                return set()
+            return {
+                str(item).strip().casefold()
+                for item in value
+                if str(item).strip()
+            }
+
+        source_archetype_values = source_record.get("archetypes")
+        source_archetypes = string_set(source_archetype_values)
+        if isinstance(source_archetype_values, list) and source_archetype_values:
+            source_primary = str(source_archetype_values[0]).strip().casefold()
+        else:
+            source_primary = str(source_record.get("archetype") or "").strip().casefold()
+            if source_primary:
+                source_archetypes.add(source_primary)
+        source_cwes = string_set(source_record.get("cwes"))
+        source_ecosystem = str(source_record.get("ecosystem") or "").strip().casefold()
+        source_products = {
+            (
+                str(product.get("vendor") or "").strip().casefold(),
+                str(product.get("product") or "").strip().casefold(),
+            )
+            for product in source_record.get("products") or []
+            if isinstance(product, dict)
+            and (str(product.get("vendor") or "").strip() or str(product.get("product") or "").strip())
+        }
+        severity_rank = {"medium": 1, "high": 2, "critical": 3}
+
+        def has_relationship(candidate: dict[str, Any]) -> bool:
+            candidate_products = {
+                (
+                    str(product.get("vendor") or "").strip().casefold(),
+                    str(product.get("product") or "").strip().casefold(),
+                )
+                for product in candidate.get("products") or []
+                if isinstance(product, dict)
+            }
+            candidate_archetype_values = candidate.get("archetypes")
+            candidate_archetypes = string_set(candidate_archetype_values)
+            candidate_cwes = string_set(candidate.get("cwes"))
+            return bool(
+                source_products & candidate_products
+                or source_archetypes & candidate_archetypes
+                or source_cwes & candidate_cwes
+            )
+
+        def rank(candidate: dict[str, Any]) -> tuple[object, ...]:
+            candidate_products = {
+                (
+                    str(product.get("vendor") or "").strip().casefold(),
+                    str(product.get("product") or "").strip().casefold(),
+                )
+                for product in candidate.get("products") or []
+                if isinstance(product, dict)
+            }
+            candidate_archetype_values = candidate.get("archetypes")
+            candidate_archetypes = string_set(candidate_archetype_values)
+            candidate_primary = (
+                str(candidate_archetype_values[0]).strip().casefold()
+                if isinstance(candidate_archetype_values, list)
+                and candidate_archetype_values
+                else ""
+            )
+            candidate_cwes = string_set(candidate.get("cwes"))
+            try:
+                published_rank = date.fromisoformat(str(candidate.get("published") or "")).toordinal()
+            except ValueError:
+                published_rank = 0
+            return (
+                -len(source_products & candidate_products),
+                -int(bool(source_primary) and source_primary == candidate_primary),
+                -len(source_archetypes & candidate_archetypes),
+                -len(source_cwes & candidate_cwes),
+                -int(bool(source_ecosystem) and source_ecosystem == str(candidate.get("ecosystem") or "").casefold()),
+                -int(candidate.get("kev") is True),
+                -severity_rank.get(str(candidate.get("severity") or ""), 0),
+                -float(candidate.get("score") or 0),
+                -published_rank,
+                str(candidate.get("cve") or ""),
+            )
+
+        bounded_limit = max(1, min(int(limit), 6))
+        related = [
+            candidate
+            for candidate in candidates
+            if candidate.get("cve") != current_cve and has_relationship(candidate)
+        ]
+        related.sort(key=rank)
+        return related[:bounded_limit]
 
     @classmethod
     def _shard_for_cve(cls, cve: str) -> str:
@@ -11821,7 +12072,43 @@ mcp = FastMCP(name="security-recipes-mcp")
 _CVE_LANDING_DEFAULT_SITE_BASE_URL = "https://security-recipes.ai"
 _CVE_LANDING_CACHE_CONTROL = "public, max-age=300, stale-while-revalidate=3600"
 _CVE_LANDING_LOOKUP_TIMEOUT_SECONDS = 10
+_CVE_LANDING_RETRY_AFTER_SECONDS = 5
 _CVE_LANDING_LOOKUP_CONCURRENCY = 8
+# These three reviewed pages opt out with canonical_cve_route:false. Keep the
+# explicit map small so a newly opted-out page requires a reviewed route change.
+_CVE_STATIC_CANONICAL_ROUTES = {
+    "CVE-2014-0160": "/recipes/cve/cve-2014-0160-heartbleed/",
+    "CVE-2014-6271": "/recipes/cve/cve-2014-6271-shellshock/",
+    "CVE-2017-18342": "/recipes/cve/cve-2017-18342-pyyaml/",
+}
+# A CVE weakness family cannot establish whether the user's finding is in
+# first-party source, a dependency, an appliance, or another owned surface.
+# Route every known archetype through the neutral recommender until repository
+# evidence establishes the narrow finding class.
+_CVE_ARCHETYPE_PLAYBOOK_IDS = {
+    archetype_id: "recipe-recommender"
+    for archetype_id in (
+        "generic",
+        "command_code_injection",
+        "sql_query_injection",
+        "authentication_bypass",
+        "authorization_idor",
+        "unsafe_deserialization",
+        "path_traversal_file_handling",
+        "ssrf",
+        "cross_site_scripting",
+        "xxe",
+        "http_request_smuggling",
+        "memory_corruption",
+        "use_after_free",
+        "race_lifetime",
+        "resource_exhaustion_dos",
+        "crypto_certificate_validation",
+        "information_disclosure",
+        "privilege_escalation",
+        "supply_chain_update_integrity",
+    )
+}
 _cve_landing_admission = threading.BoundedSemaphore(_CVE_LANDING_LOOKUP_CONCURRENCY)
 
 
@@ -11851,11 +12138,530 @@ def _cve_landing_url(cve_id: str, public_base_url: str | None = None) -> str:
     return f"{_cve_landing_public_base_url(public_base_url)}/cve/{cve_id}/"
 
 
+def _cve_static_canonical_url(
+    cve_id: str,
+    public_base_url: str | None = None,
+) -> str:
+    route = _CVE_STATIC_CANONICAL_ROUTES.get(str(cve_id or "").strip().upper(), "")
+    if not route:
+        return ""
+    return f"{_cve_landing_public_base_url(public_base_url)}{route}"
+
+
+def _cve_landing_related_href(cve_id: object) -> str:
+    canonical = str(cve_id or "").strip().upper()
+    if not CVERecipeCatalog.CVE_RE.fullmatch(canonical):
+        return ""
+    return _CVE_STATIC_CANONICAL_ROUTES.get(canonical, f"/cve/{canonical}/")
+
+
 def _cve_landing_text(value: object, limit: int = 600) -> str:
+    text = str(value or "")
+    text = text.replace("\u00e2\u20ac\u2122", "'")
+    text = re.sub(r"\ufffds\b", "'s", text)
+    text = re.sub(r"\ufffd", " ", text)
+    text = re.sub(r"\s+", " ", text).strip()
+    if len(text) <= limit:
+        return text
+    if limit <= 1:
+        return "\u2026"[:limit]
+    candidate = text[: limit - 1].rstrip()
+    boundary = max(candidate.rfind(" "), candidate.rfind("/"), candidate.rfind("-"))
+    if boundary >= max(12, int(limit * 0.6)):
+        candidate = candidate[:boundary].rstrip(" /-")
+    return f"{candidate}\u2026"
+
+
+def _cve_landing_plain_markdown_text(
+    value: object,
+    limit: int = 600,
+    *,
+    drop_parenthetical_citations: bool = False,
+) -> str:
+    """Flatten untrusted inline Markdown before placing prose in HTML text nodes."""
+
+    text = str(value or "")
+    if drop_parenthetical_citations:
+        text = re.sub(
+            r"\s*\(\s*\[[^\]\r\n]+\]\(https?://[^\s)]+\)\s*\)",
+            "",
+            text,
+            flags=re.IGNORECASE,
+        )
+    text = re.sub(r"!\[([^\]\r\n]*)\]\([^\r\n)]*\)", r"\1", text)
+    text = re.sub(r"\[([^\]\r\n]+)\]\([^\r\n)]*\)", r"\1", text)
+    text = re.sub(r"`{1,3}([^`\r\n]+)`{1,3}", r"\1", text)
+    text = re.sub(r"(?<!\w)(?:\*\*|__|~~)(.+?)(?:\*\*|__|~~)(?!\w)", r"\1", text)
+    # If an enrichment contains a bare URL, retain it as plain evidence text
+    # but remove model-added tracking parameters.
+    text = re.sub(r"([?&])utm_[^&\s<>()]+", "", text, flags=re.IGNORECASE)
+    text = text.replace("?&", "?").rstrip("?&")
+    return _cve_landing_text(text, limit)
+
+
+def _cve_landing_metadata_text(value: object, limit: int = 600) -> str:
+    """Return metadata-safe plain text without HTML or Markdown presentation syntax."""
+
+    text = re.sub(
+        r"<\s*(script|style)\b[^>]*>.*?<\s*/\1\s*>",
+        " ",
+        str(value or ""),
+        flags=re.IGNORECASE,
+    )
+    text = re.sub(r"<[^>]{0,240}>", " ", text)
+    return _cve_landing_plain_markdown_text(text, limit)
+
+
+def _cve_landing_abbreviate_parentheticals(value: str) -> str:
+    """Retain a product prefix while replacing a spelled-out acronym term."""
+
+    pattern = re.compile(
+        r"(?P<label>(?:[A-Za-z0-9][A-Za-z0-9.+#/-]*\s+){1,10})"
+        r"\((?P<abbr>[A-Z][A-Z0-9-]{1,7})\)"
+    )
+
+    def replace(match: re.Match[str]) -> str:
+        words = match.group("label").split()
+        abbreviation = re.sub(r"[^A-Z0-9]", "", match.group("abbr"))
+        for count in range(1, min(len(words), 8) + 1):
+            suffix = words[-count:]
+            initials = "".join(
+                next((character for character in word if character.isalnum()), "")
+                for word in suffix
+            ).upper()
+            if initials != abbreviation:
+                continue
+            prefix = " ".join(words[:-count])
+            return f"{prefix + ' ' if prefix else ''}{match.group('abbr')}"
+        return match.group(0)
+
+    compact = pattern.sub(replace, value)
+    return re.sub(r"\b([A-Z]{2,})\s+and\s+([A-Z]{2,})\b", r"\1/\2", compact)
+
+
+def _cve_landing_search_title(value: object, limit: int = 88) -> str:
+    """Return complete word-bounded search copy without an artificial ellipsis."""
+
     text = re.sub(r"\s+", " ", str(value or "")).strip()
     if len(text) <= limit:
         return text
-    return f"{text[: max(0, limit - 1)].rstrip()}…"
+    candidate = text[: limit + 1]
+    boundary = max(candidate.rfind(" "), candidate.rfind("/"), candidate.rfind("-"))
+    if boundary >= max(8, int(limit * 0.6)):
+        candidate = candidate[:boundary]
+    else:
+        candidate = candidate[:limit]
+    return candidate.rstrip(" /-,;:")
+
+
+def _cve_landing_titles(cve_id: str, source_title: object) -> tuple[str, str, str]:
+    """Return concise metadata/H1 titles while retaining the full source title."""
+    full_title = _cve_landing_text(source_title, 600) or "Vulnerability record"
+    metadata_title = _cve_landing_metadata_text(full_title, 600)
+    subject = re.sub(
+        rf"^{re.escape(cve_id)}\s*(?:[:\-\u2013\u2014]\s*)?",
+        "",
+        metadata_title,
+        flags=re.IGNORECASE,
+    ).strip() or "Vulnerability record"
+    base = f"{cve_id}: {subject}"
+    # NVD/CNA titles frequently put the useful flaw type after a long phrase
+    # such as "The PRODUCT is vulnerable to FLAW in all versions ...". Compact
+    # that common form before applying the hard search-title limit so the CVE,
+    # product, and vulnerability class all remain visible.
+    vulnerable_match = re.fullmatch(
+        r"(?:the\s+)?(?P<product>.+?)\s+is\s+vulnerable\s+to\s+"
+        r"(?P<flaw>.+?)(?:\s+in\s+(?:all\s+)?versions?\b.*)?",
+        subject,
+        flags=re.IGNORECASE,
+    )
+    if vulnerable_match:
+        product = re.sub(
+            r"\s+plugin\s+for\s+wordpress\b",
+            " WordPress plugin",
+            vulnerable_match.group("product"),
+            flags=re.IGNORECASE,
+        ).strip()
+        flaw = vulnerable_match.group("flaw").strip()
+        meta_subject = f"{product}: {flaw}"
+    else:
+        # The domain already supplies the brand in search results. Preserve
+        # more of the product/flaw phrase instead of repeating the brand.
+        meta_subject = re.sub(r"\s+vulnerability$", "", subject, flags=re.IGNORECASE)
+    meta_subject = re.sub(
+        r"\s+using an alternate path or channel$",
+        "",
+        meta_subject,
+        flags=re.IGNORECASE,
+    )
+    meta_subject = _cve_landing_abbreviate_parentheticals(meta_subject)
+    meta_title = _cve_landing_search_title(f"{cve_id}: {meta_subject}")
+    # Google may derive a title link from either the title element or the main
+    # visual heading. Keep those signals aligned; the complete source wording
+    # remains visible in the facts section below.
+    headline = meta_title
+    return meta_title, headline, full_title
+
+
+def _cve_landing_description(
+    cve_id: str,
+    meta_title: str,
+    severity: str,
+    fixed_version_claim: object = "",
+    fixed_version_action: object = "",
+    limit: int = 165,
+) -> str:
+    """Build a complete search-intent description instead of truncating source prose."""
+
+    action = _cve_landing_metadata_text(fixed_version_action, 1200).strip()
+    if action:
+        if action[-1] not in ".!?":
+            action += "."
+        prefix = f"{cve_id} AI remediation: "
+        if len(prefix) + len(action) <= limit:
+            suffix = " Verification steps and sources are included."
+            if len(prefix) + len(action) + len(suffix) <= limit:
+                return f"{prefix}{action}{suffix}"
+            return f"{prefix}{action}"
+
+    topic = re.sub(
+        rf"^{re.escape(cve_id)}\s*:\s*",
+        "",
+        _cve_landing_text(meta_title, 100),
+        flags=re.IGNORECASE,
+    ).rstrip(" .\u2026")
+    fixed_claim = _cve_landing_metadata_text(fixed_version_claim, 600).rstrip(
+        " .!?\u2026"
+    )
+    if fixed_claim:
+        prefix = f"{cve_id}: "
+        bridge = ". Fix evidence: "
+        suffix = ". Affected versions, AI remediation, verification, and sources."
+        available = limit - len(prefix) - len(bridge) - len(suffix)
+        if available >= 36:
+            # The evidence claim is more useful than repeating a long source
+            # title already present in the title link. Preserve it first,
+            # then spend the remaining characters on product/flaw context.
+            claim_budget = min(72, max(36, available - 12))
+            compact_claim = _cve_landing_search_title(
+                fixed_claim,
+                claim_budget,
+            ).rstrip(" .!?\u2026")
+            topic_budget = available - len(compact_claim)
+            compact_topic = _cve_landing_search_title(topic, topic_budget).rstrip(
+                " .!?\u2026"
+            )
+            if compact_topic and compact_claim:
+                specific = (
+                    f"{prefix}{compact_topic}{bridge}{compact_claim}{suffix}"
+                )
+                if len(specific) <= limit:
+                    return specific
+    severity_label = severity.title() if severity in {"medium", "high", "critical"} else "Vulnerability"
+    prefix = f"{cve_id}: "
+    suffix = (
+        f". {severity_label}. Affected versions, exposure, AI remediation, "
+        "verification, and sources."
+    )
+    available = limit - len(prefix) - len(suffix)
+    if topic and available >= 12:
+        topic = _cve_landing_text(topic, available).rstrip(" .\u2026")
+        if topic:
+            return f"{prefix}{topic}{suffix}"
+    fallback = (
+        f"{cve_id} {severity_label.lower()} record: affected versions, exposure, "
+        "AI remediation, verification, and sources."
+    )
+    return fallback[:limit].rstrip()
+
+
+def _cve_landing_fixed_version_claim(enrichment: dict[str, Any]) -> str:
+    """Return a source-linked fixed-version claim from qualified enrichment."""
+
+    raw_claims = enrichment.get("claim_evidence")
+    if not isinstance(raw_claims, list):
+        return ""
+    for raw_claim in raw_claims:
+        if not isinstance(raw_claim, dict):
+            continue
+        if _cve_landing_text(raw_claim.get("kind"), 80).casefold() != "fixed_version":
+            continue
+        if not _cve_landing_safe_https_url(raw_claim.get("source_url")):
+            continue
+        claim = _cve_landing_metadata_text(raw_claim.get("claim"), 600)
+        if claim:
+            return claim
+    return ""
+
+
+_CVE_LANDING_VERSION_TOKEN_RE = re.compile(
+    r"(?<![A-Za-z0-9])(?:"
+    r"v?\d+(?:\.\d+){1,5}(?:[-._][A-Za-z0-9]+)*"
+    r"|\d+(?:SU|U)\d+[A-Za-z]?"
+    r"|SP\d+(?:-CU\d+)?-\d+"
+    r")(?![A-Za-z0-9])",
+    flags=re.IGNORECASE,
+)
+_CVE_LANDING_REMEDIATION_ACTION_RE = re.compile(
+    r"\b(?:apply|hotfix|migrate|patch|update|upgrade)\b",
+    flags=re.IGNORECASE,
+)
+_CVE_LANDING_CONCRETE_FIX_RE = re.compile(
+    r"\b(?:fix(?:ed|es|ing)?|hotfix|migrate|patch|update|upgrade)\b",
+    flags=re.IGNORECASE,
+)
+
+
+def _cve_landing_version_tokens(value: object) -> set[str]:
+    return {
+        re.sub(r"[^a-z0-9]", "", match.group(0).casefold().removeprefix("v"))
+        for match in _CVE_LANDING_VERSION_TOKEN_RE.finditer(str(value or ""))
+    }
+
+
+def _cve_landing_fixed_version_action(
+    enrichment: dict[str, Any],
+    fixed_version_claim: str,
+    limit: int,
+) -> str:
+    """Choose a complete remediation action corroborated by fixed-version evidence."""
+
+    claim_tokens = _cve_landing_version_tokens(fixed_version_claim)
+    if not claim_tokens or limit < 32:
+        return ""
+    raw_steps = enrichment.get("remediation_steps")
+    if not isinstance(raw_steps, list):
+        raw_steps = []
+    versioned_actions: list[str] = []
+    generic_actions: list[str] = []
+    for raw_step in raw_steps:
+        action = _cve_landing_plain_markdown_text(
+            raw_step,
+            2400,
+            drop_parenthetical_citations=True,
+        ).strip()
+        if not action or not _CVE_LANDING_REMEDIATION_ACTION_RE.search(action):
+            continue
+        action_tokens = _cve_landing_version_tokens(action)
+        if action[-1] not in ".!?":
+            action += "."
+        if action_tokens:
+            if action_tokens & claim_tokens:
+                versioned_actions.append(action)
+            continue
+        # A branch-generic vendor fix can be accurate without repeating every
+        # release from the fixed-version evidence. Require concrete fix wording
+        # so a short containment-only step cannot displace the supported action.
+        if _CVE_LANDING_CONCRETE_FIX_RE.search(action):
+            generic_actions.append(action)
+
+    # Prefer an action that repeats a source-backed fixed version. Use a
+    # tokenless vendor-fix action only when no such step fits the enrichment.
+    actions = versioned_actions or generic_actions
+
+    for action in sorted(actions, key=len):
+        if len(action) <= limit:
+            return action
+
+    versioned_fragments: list[str] = []
+    generic_fragments: list[str] = []
+    for action in actions:
+        fragments: list[str] = []
+        if ";" in action:
+            fragments.append(action.split(";", 1)[0])
+        for marker in (
+            ", or to ",
+            ", as applicable",
+            ", or upgrade",
+            ", preferably",
+        ):
+            if marker in action.casefold():
+                marker_index = action.casefold().index(marker)
+                fragments.append(action[:marker_index])
+        trailing_upgrade = action.casefold().rfind("or upgrade to ")
+        if trailing_upgrade >= 0:
+            fragments.append(action[trailing_upgrade + len("or "):])
+        for fragment in fragments:
+            candidate = fragment.strip(" ,;:-.")
+            if not candidate:
+                continue
+            candidate = f"{candidate}."
+            candidate_tokens = _cve_landing_version_tokens(candidate)
+            if candidate_tokens and not (candidate_tokens & claim_tokens):
+                continue
+            if (
+                len(candidate) <= limit
+                and _CVE_LANDING_CONCRETE_FIX_RE.search(candidate)
+            ):
+                candidate = candidate[0].upper() + candidate[1:]
+                if candidate_tokens:
+                    versioned_fragments.append(candidate)
+                else:
+                    generic_fragments.append(candidate)
+
+    fragments = versioned_fragments or generic_fragments
+    if fragments:
+        return min(fragments, key=len)
+
+    claim = _cve_landing_metadata_text(fixed_version_claim, 1200).strip()
+    if claim:
+        if claim[-1] not in ".!?":
+            claim += "."
+        if len(claim) <= limit:
+            return claim
+    return ""
+
+
+def _cve_landing_visible_fixed_version_action(
+    enrichment: dict[str, Any],
+    fixed_version_claim: str,
+    concise_action: str,
+) -> str:
+    """Keep the visible action complete when one CVE spans release branches."""
+
+    action = _cve_landing_metadata_text(concise_action, 1200).strip()
+    if not action:
+        return ""
+    claim_tokens = _cve_landing_version_tokens(fixed_version_claim)
+    action_tokens = _cve_landing_version_tokens(action)
+    if not claim_tokens or claim_tokens <= action_tokens:
+        return action
+
+    corroborated_tokens: set[str] = set()
+    generic_fix_actions: list[str] = []
+    raw_steps = enrichment.get("remediation_steps")
+    if isinstance(raw_steps, list):
+        for raw_step in raw_steps:
+            step = _cve_landing_plain_markdown_text(
+                raw_step,
+                2400,
+                drop_parenthetical_citations=True,
+            ).strip()
+            if not step or not _CVE_LANDING_REMEDIATION_ACTION_RE.search(step):
+                continue
+            step_tokens = _cve_landing_version_tokens(step)
+            corroborated_tokens.update(step_tokens & claim_tokens)
+            if (
+                not step_tokens
+                and len(step) <= 600
+                and _CVE_LANDING_CONCRETE_FIX_RE.search(step)
+            ):
+                if step[-1] not in ".!?":
+                    step += "."
+                generic_fix_actions.append(step)
+
+    if corroborated_tokens - action_tokens:
+        if generic_fix_actions:
+            return min(generic_fix_actions, key=len)
+        return (
+            "Upgrade every deployed release branch to its corresponding "
+            "vendor-fixed release in the source-backed remediation guidance "
+            "below; verify the installed build and branch before closing the finding."
+        )
+    return action
+
+
+def _cve_landing_reviewed_description(
+    value: object,
+    fallback: str,
+    limit: int = 165,
+) -> str:
+    """Prefer reviewed copy while keeping a complete search-result sentence."""
+
+    candidate = _cve_landing_metadata_text(value, 600)
+    if not candidate:
+        return fallback
+    if len(candidate) <= limit:
+        return candidate
+
+    sentence_ends = [
+        match.end()
+        for match in re.finditer(r"[.!?](?:\s|$)", candidate[: limit + 1])
+        if match.end() >= 55
+    ]
+    if sentence_ends:
+        context_end = sentence_ends[0]
+        context = candidate[:context_end].strip()
+        remaining = candidate[context_end:].strip()
+        first_remaining_sentence = re.split(
+            r"(?<=[.!?])\s+",
+            remaining,
+            maxsplit=1,
+        )[0]
+        action_clauses = re.split(
+            r"[,;]",
+            first_remaining_sentence.rstrip(" .!?"),
+        )
+        remediation_verb = re.compile(
+            r"\b(?:apply|hotfix|install|migrate|patch|replace|roll\s+back|"
+            r"set|update|upgrade)\b",
+            flags=re.IGNORECASE,
+        )
+        for raw_clause in action_clauses:
+            if not remediation_verb.search(raw_clause):
+                continue
+            clause = re.sub(
+                r"^(?:and|or|then)\s+",
+                "",
+                raw_clause.strip(),
+                flags=re.IGNORECASE,
+            )
+            if not clause:
+                continue
+            clause = f"{clause[0].upper()}{clause[1:].rstrip(' .!?')}."
+            combined = f"{context} {clause}"
+            if len(combined) <= limit:
+                return combined
+        return candidate[: sentence_ends[-1]].strip()
+
+    shortened = candidate[: limit - 1].rstrip()
+    boundary = shortened.rfind(" ")
+    if boundary >= 55:
+        shortened = shortened[:boundary]
+    return f"{shortened.rstrip(' ,;:-.')}."
+
+
+def _cve_landing_iso_date(value: object) -> str:
+    candidate = _cve_landing_text(value, 40)
+    if re.fullmatch(r"\d{4}-\d{2}-\d{2}", candidate):
+        try:
+            date.fromisoformat(candidate)
+        except ValueError:
+            return ""
+        return candidate
+    match = re.fullmatch(
+        r"(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})(?:\.\d+)?(Z|[+-]\d{2}:\d{2})?",
+        candidate,
+    )
+    if not match:
+        return ""
+    normalized = f"{match.group(1)}{match.group(2) or 'Z'}"
+    try:
+        datetime.fromisoformat(normalized.replace("Z", "+00:00"))
+    except ValueError:
+        return ""
+    return normalized
+
+
+def _cve_landing_latest_iso_date(*values: object) -> str:
+    candidates: list[tuple[datetime, str]] = []
+    for value in values:
+        normalized = _cve_landing_iso_date(value)
+        if not normalized:
+            continue
+        if len(normalized) == 10:
+            parsed = datetime.combine(
+                date.fromisoformat(normalized),
+                datetime.min.time(),
+                timezone.utc,
+            )
+        else:
+            parsed = datetime.fromisoformat(normalized.replace("Z", "+00:00"))
+            if parsed.tzinfo is None:
+                parsed = parsed.replace(tzinfo=timezone.utc)
+            parsed = parsed.astimezone(timezone.utc)
+        candidates.append((parsed, normalized))
+    return max(candidates, default=(datetime.min.replace(tzinfo=timezone.utc), ""))[1]
 
 
 def _cve_landing_json(payload: object) -> str:
@@ -11885,7 +12691,14 @@ def _cve_landing_safe_https_url(value: object) -> str:
         or password
     ):
         return ""
-    return parsed.geturl()
+    clean_query = urlencode(
+        [
+            (key, item)
+            for key, item in parse_qsl(parsed.query, keep_blank_values=True)
+            if not key.casefold().startswith("utm_")
+        ]
+    )
+    return parsed._replace(query=clean_query).geturl()
 
 
 def _cve_landing_override_href(value: object) -> str:
@@ -11908,30 +12721,405 @@ def _cve_landing_override_href(value: object) -> str:
     return f"/{'/'.join(public_parts)}/"
 
 
-def _cve_landing_product_labels(source_record: dict[str, Any], limit: int = 6) -> list[str]:
+def _cve_landing_content_href(value: object) -> str:
+    """Allow only local, fragment, or HTTPS links in reviewed Markdown."""
+    candidate = html.unescape(str(value or "")).strip()
+    if not candidate or any(ord(character) < 32 for character in candidate):
+        return ""
+    if candidate.startswith("#"):
+        return candidate if re.fullmatch(r"#[A-Za-z0-9_.:-]+", candidate) else ""
+    if candidate.startswith("/") and not candidate.startswith("//") and "\\" not in candidate:
+        try:
+            parsed = urlparse(candidate)
+        except ValueError:
+            return ""
+        if parsed.scheme or parsed.netloc:
+            return ""
+        legacy_match = re.fullmatch(
+            r"/recipes/cve/(cve-\d{4}-\d{4,})(?:-[A-Za-z0-9._-]+)?/?",
+            parsed.path,
+            flags=re.IGNORECASE,
+        )
+        if legacy_match:
+            suffix = f"#{parsed.fragment}" if parsed.fragment else ""
+            href = _cve_landing_related_href(legacy_match.group(1))
+            return f"{href}{suffix}" if href else ""
+        return candidate
+    return _cve_landing_safe_https_url(candidate)
+
+
+def _cve_landing_relref_href(value: object) -> str:
+    """Resolve a Hugo content relref to the site's slash-canonical page route."""
+
+    href = _cve_landing_content_href(value)
+    if not href.startswith("/") or href.startswith("//"):
+        return href
+    parsed = urlparse(href)
+    path = parsed.path
+    if path in {"", "/"} or path.endswith("/") or PurePosixPath(path).suffix:
+        return href
+    suffix = f"?{parsed.query}" if parsed.query else ""
+    if parsed.fragment:
+        suffix += f"#{parsed.fragment}"
+    return f"{path}/{suffix}"
+
+
+def _cve_landing_markdown(value: object) -> str:
+    """Render repository-reviewed Markdown without trusting embedded HTML or URLs."""
+    source = str(value or "")
+    if not source.strip():
+        return ""
+
+    def replace_relref(match: re.Match[str]) -> str:
+        return _cve_landing_relref_href(match.group(1)) or "#"
+
+    source = re.sub(
+        r"\{\{<\s*relref\s+[\"']([^\"']+)[\"']\s*>\}\}",
+        replace_relref,
+        source,
+        flags=re.IGNORECASE,
+    )
+    # Raw HTML is content, never markup. Markdown-generated images are removed
+    # after rendering so untrusted source URLs cannot become browser requests.
+    escaped_source = html.escape(source, quote=False)
+    rendered = markdown.markdown(
+        escaped_source,
+        extensions=["fenced_code", "tables", "sane_lists"],
+        output_format="html5",
+    )
+    rendered = re.sub(r"<img\b[^>]*>", "", rendered, flags=re.IGNORECASE)
+
+    def sanitize_href(match: re.Match[str]) -> str:
+        safe_href = _cve_landing_content_href(match.group(1))
+        if not safe_href:
+            return ""
+        escaped_href = html.escape(safe_href, quote=True)
+        if safe_href.startswith("https://"):
+            return f' href="{escaped_href}" target="_blank" rel="noopener noreferrer"'
+        return f' href="{escaped_href}"'
+
+    rendered = re.sub(
+        r'\s+href="([^"]*)"',
+        sanitize_href,
+        rendered,
+        flags=re.IGNORECASE,
+    )
+    rendered = re.sub(r"<h1(\s|>)", r"<h2\1", rendered, flags=re.IGNORECASE)
+    rendered = re.sub(r"</h1>", "</h2>", rendered, flags=re.IGNORECASE)
+    return rendered
+
+
+def _cve_landing_complete_ai_enrichment(source_record: dict[str, Any]) -> dict[str, Any]:
+    enrichment = source_record.get("ai_enrichment")
+    if not isinstance(enrichment, dict):
+        return {}
+    if str(enrichment.get("status") or "").strip().lower() != "complete":
+        return {}
+    return enrichment
+
+
+def _cve_landing_has_stable_markdown(source_record: dict[str, Any]) -> bool:
+    """Match the build-time stable-Markdown eligibility rule."""
+    if source_record.get("has_markdown") is True:
+        return True
+    if str(source_record.get("recipe_kind") or "").strip().lower() == "markdown-override":
+        return True
+    markdown = source_record.get("markdown")
+    return isinstance(markdown, list) and any(
+        isinstance(entry, dict)
+        and str(entry.get("maturity") or "").strip().lower() == "stable"
+        for entry in markdown
+    )
+
+
+def _cve_landing_is_search_indexable(source_record: dict[str, Any]) -> bool:
+    """Allow indexing only for stable Markdown or the generated evidence allowlist."""
+
+    if _cve_landing_has_stable_markdown(source_record):
+        return True
+    cve_id = str(source_record.get("cve") or "").strip().upper()
+    try:
+        return cve_catalog.is_search_indexable(cve_id)
+    except (FileNotFoundError, OSError, ValueError, json.JSONDecodeError):
+        return False
+
+
+def _cve_landing_citation_urls(
+    source_record: dict[str, Any],
+    enrichment: dict[str, Any],
+) -> list[str]:
+    urls: list[str] = []
+    seen: set[str] = set()
+
+    def add(value: object) -> None:
+        url = _cve_landing_safe_https_url(value)
+        if url and url not in seen:
+            seen.add(url)
+            urls.append(url)
+
+    add(source_record.get("nvd_url"))
+    kev_details = source_record.get("kev_details")
+    if isinstance(kev_details, dict):
+        add(kev_details.get("source"))
+    for reference in source_record.get("references", []):
+        if isinstance(reference, dict):
+            add(reference.get("url"))
+    for value in enrichment.get("source_urls", []):
+        add(value)
+    for claim in enrichment.get("claim_evidence", []):
+        if isinstance(claim, dict):
+            add(claim.get("source_url"))
+    return urls
+
+
+def _cve_landing_kev_html(cve_id: str, source_record: dict[str, Any]) -> str:
+    """Render exact CISA KEV facts without turning them into model guidance."""
+    if source_record.get("kev") is not True:
+        return ""
+    details = source_record.get("kev_details")
+    if not isinstance(details, dict):
+        return ""
+
+    vendor = _cve_landing_text(details.get("vendor_project"), 180)
+    product = _cve_landing_text(details.get("product"), 180)
+    vulnerability_name = _cve_landing_text(details.get("vulnerability_name"), 280)
+    date_added = _cve_landing_iso_date(details.get("date_added"))
+    due_date = _cve_landing_iso_date(details.get("due_date"))
+    ransomware = _cve_landing_text(details.get("known_ransomware_campaign_use"), 80)
+    required_action = _cve_landing_text(details.get("required_action"), 1800)
+    source_url = _cve_landing_safe_https_url(details.get("source"))
+    catalog_url = (
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog"
+        f"?field_cve={quote(cve_id)}"
+    )
+
+    rows = (
+        ("CISA entry", vulnerability_name),
+        ("Vendor / project", vendor),
+        ("Product", product),
+        ("Date added", date_added),
+        ("CISA due date", due_date),
+        ("Known ransomware use", ransomware),
+    )
+    facts = "".join(
+        f'<div class="cve-catalog__fact"><dt>{html.escape(label)}</dt>'
+        f"<dd>{html.escape(value)}</dd></div>"
+        for label, value in rows
+        if value
+    )
+    source_links = (
+        f'<a href="{html.escape(catalog_url, quote=True)}" target="_blank" '
+        'rel="noopener noreferrer">Open this CVE in the CISA KEV Catalog</a>'
+        + (
+            f' · <a href="{html.escape(source_url, quote=True)}" target="_blank" '
+            'rel="noopener noreferrer">Review the source feed</a>'
+            if source_url
+            else ""
+        )
+    )
+    return (
+        '<section class="cve-catalog__detail-section cve-catalog__kev" '
+        'aria-labelledby="known-exploitation-heading">'
+        '<h2 id="known-exploitation-heading">Known exploitation and required action</h2>'
+        f'<p>CISA lists {html.escape(cve_id)} in its Known Exploited Vulnerabilities '
+        "Catalog. Treat this as direct exploitation evidence when prioritizing the change.</p>"
+        + (f'<dl class="cve-catalog__facts">{facts}</dl>' if facts else "")
+        + (
+            '<section aria-labelledby="cisa-required-action-heading">'
+            '<h3 id="cisa-required-action-heading">CISA required action</h3>'
+            f"<p>{html.escape(required_action)}</p></section>"
+            if required_action
+            else ""
+        )
+        + (
+            "<p>The recorded CISA due date is a remediation deadline for covered "
+            "U.S. federal agencies; other organizations can use it as an urgency signal.</p>"
+            if due_date
+            else ""
+        )
+        + f"<p>{source_links}</p></section>"
+    )
+
+
+def _cve_landing_cpe_version_value(value: object) -> str:
+    """Return a concrete CPE version value without treating wildcards as versions."""
+    candidate = _cve_landing_text(value, 100)
+    if candidate.casefold() in {"", "*", "-", "any", "n/a", "na"}:
+        return ""
+    return candidate
+
+
+def _cve_landing_cpe_products_html(
+    source_record: dict[str, Any],
+    limit: int = 8,
+) -> tuple[str, int]:
+    """Render deduplicated NVD CPE match criteria without overstating provenance."""
     products = source_record.get("products")
     if not isinstance(products, list):
-        return []
-    labels: list[str] = []
-    seen: set[str] = set()
-    for product in products:
-        if not isinstance(product, dict):
+        return "", 0
+    rendered: list[str] = []
+    seen: set[tuple[str, ...]] = set()
+    for raw_product in products:
+        if not isinstance(raw_product, dict):
             continue
-        identity = [
-            _cve_landing_text(product.get("vendor"), 80),
-            _cve_landing_text(product.get("product"), 100),
+        vendor = _cve_landing_text(raw_product.get("vendor"), 160)
+        product = _cve_landing_text(raw_product.get("product"), 200)
+        label = " / ".join(value for value in (vendor, product) if value)
+        if not label:
+            continue
+
+        exact = _cve_landing_cpe_version_value(raw_product.get("version"))
+        start_including = _cve_landing_cpe_version_value(
+            raw_product.get("version_start_including")
+        )
+        start_excluding = _cve_landing_cpe_version_value(
+            raw_product.get("version_start_excluding")
+        )
+        end_including = _cve_landing_cpe_version_value(
+            raw_product.get("version_end_including")
+        )
+        end_excluding = _cve_landing_cpe_version_value(
+            raw_product.get("version_end_excluding")
+        )
+        identity = tuple(
+            value.casefold()
+            for value in (
+                vendor,
+                product,
+                exact,
+                start_including,
+                start_excluding,
+                end_including,
+                end_excluding,
+            )
+        )
+        if identity in seen:
+            continue
+        seen.add(identity)
+
+        details: list[str] = []
+        if exact:
+            details.append(f"NVD CPE exact-version criterion: {exact}.")
+        bounds = [
+            f">= {start_including}" if start_including else "",
+            f"> {start_excluding}" if start_excluding else "",
+            f"<= {end_including}" if end_including else "",
+            f"< {end_excluding}" if end_excluding else "",
         ]
-        version = _cve_landing_text(product.get("version"), 60)
-        if version and version not in {"*", "-"}:
-            identity.append(version)
-        label = " / ".join(part for part in identity if part)
-        if not label or label.casefold() in seen:
-            continue
-        seen.add(label.casefold())
-        labels.append(label)
-        if len(labels) >= limit:
+        bounded = [bound for bound in bounds if bound]
+        if bounded:
+            details.append(f"NVD CPE configured version bounds: {' and '.join(bounded)}.")
+        if not details:
+            details.append(
+                "This NVD CPE match has no exact or bounded version; do not read it "
+                "as proof that every version is affected."
+            )
+
+        rendered.append(
+            f"<li><strong>{html.escape(label)}</strong><ul>"
+            + "".join(f"<li>{html.escape(detail)}</li>" for detail in details)
+            + "</ul></li>"
+        )
+        if len(rendered) >= limit:
             break
-    return labels
+    return (
+        f'<ul class="cve-catalog__affected-ranges">{"".join(rendered)}</ul>'
+        if rendered
+        else "",
+        len(rendered),
+    )
+
+
+def _cve_landing_affected_version_text(version: dict[str, Any]) -> str:
+    if _cve_landing_text(version.get("status"), 40).casefold() != "affected":
+        return ""
+    start = _cve_landing_text(version.get("version"), 100)
+    less_than = _cve_landing_text(version.get("less_than"), 100)
+    less_than_or_equal = _cve_landing_text(version.get("less_than_or_equal"), 100)
+    version_type = _cve_landing_text(version.get("version_type"), 60)
+    if start and less_than:
+        bounds = f"versions {start} up to but not including {less_than}"
+    elif start and less_than_or_equal:
+        bounds = f"versions {start} through {less_than_or_equal} inclusive"
+    elif less_than:
+        bounds = f"versions before {less_than}"
+    elif less_than_or_equal:
+        bounds = f"versions through {less_than_or_equal} inclusive"
+    elif start:
+        bounds = f"version {start}"
+    else:
+        bounds = "the source-defined version range"
+    if version_type:
+        bounds += f" ({version_type})"
+    return f"Affected: {bounds}."
+
+
+def _cve_landing_affected_data_html(
+    source_record: dict[str, Any],
+    limit: int = 8,
+) -> tuple[str, int]:
+    raw_entries = source_record.get("affected_data")
+    if not isinstance(raw_entries, list):
+        return "", 0
+    rendered: list[str] = []
+    for raw_entry in raw_entries:
+        if not isinstance(raw_entry, dict):
+            continue
+        vendor = _cve_landing_text(raw_entry.get("vendor"), 160)
+        product = _cve_landing_text(raw_entry.get("product"), 200)
+        label = " / ".join(value for value in (vendor, product) if value)
+        if not label:
+            continue
+        details: list[str] = []
+        raw_versions = raw_entry.get("versions")
+        if isinstance(raw_versions, list):
+            for raw_version in raw_versions[:24]:
+                if not isinstance(raw_version, dict):
+                    continue
+                affected_text = _cve_landing_affected_version_text(raw_version)
+                if not affected_text:
+                    continue
+                details.append(affected_text)
+                raw_changes = raw_version.get("changes")
+                if isinstance(raw_changes, list):
+                    for raw_change in raw_changes[:8]:
+                        if not isinstance(raw_change, dict):
+                            continue
+                        at = _cve_landing_text(raw_change.get("at"), 100)
+                        status = _cve_landing_text(raw_change.get("status"), 40).casefold()
+                        if at and status:
+                            details.append(f"Source status changes to {status} at {at}.")
+        default_status = _cve_landing_text(raw_entry.get("default_status"), 40).casefold()
+        if not details and default_status == "affected":
+            details.append("The source marks this product affected by default.")
+        if not details:
+            continue
+        platforms = raw_entry.get("platforms")
+        platform_text = ", ".join(
+            _cve_landing_text(platform, 160)
+            for platform in platforms[:16]
+            if _cve_landing_text(platform, 160)
+        ) if isinstance(platforms, list) else ""
+        if platform_text:
+            details.append(f"Platforms: {platform_text}.")
+        source = _cve_landing_text(raw_entry.get("source"), 160)
+        if source:
+            details.append(f"Affected-status source: {source}.")
+        if raw_entry.get("versions_truncated") is True:
+            version_count = raw_entry.get("version_count")
+            if isinstance(version_count, int) and version_count > 24:
+                details.append(
+                    f"Showing 24 of {version_count} structured version statements; "
+                    "confirm the complete source record before changing production."
+                )
+        rendered.append(
+            f"<li><strong>{html.escape(label)}</strong><ul>"
+            + "".join(f"<li>{html.escape(detail)}</li>" for detail in details)
+            + "</ul></li>"
+        )
+        if len(rendered) >= limit:
+            break
+    return (f'<ul class="cve-catalog__affected-ranges">{"".join(rendered)}</ul>' if rendered else "", len(rendered))
 
 
 def _cve_landing_references(
@@ -11967,20 +13155,156 @@ def _cve_landing_references(
     return references
 
 
-def _cve_landing_list(items: object, limit: int = 3) -> str:
+def _cve_landing_list(
+    items: object,
+    limit: int | None = 3,
+    item_limit: int = 1600,
+    *,
+    ai_prose: bool = False,
+) -> str:
     if not isinstance(items, list):
         return ""
+    selected = items if limit is None else items[:limit]
+    text_renderer = (
+        partial(_cve_landing_plain_markdown_text, drop_parenthetical_citations=True)
+        if ai_prose
+        else _cve_landing_text
+    )
     rendered = [
-        f"<li>{html.escape(_cve_landing_text(item, 500))}</li>"
-        for item in items[:limit]
-        if _cve_landing_text(item, 500)
+        f"<li>{html.escape(text_renderer(item, item_limit))}</li>"
+        for item in selected
+        if text_renderer(item, item_limit)
     ]
     return f"<ul>{''.join(rendered)}</ul>" if rendered else ""
 
 
-def _cve_landing_response_headers(indexable: bool) -> dict[str, str]:
+def _cve_landing_related_records(
+    current_cve: object,
+    related: object,
+    limit: int = 6,
+) -> list[dict[str, Any]]:
+    if not isinstance(related, list):
+        return []
+    current = str(current_cve or "").strip().upper()
+    bounded_limit = max(1, min(int(limit), 6))
+    records: list[dict[str, Any]] = []
+    seen = {current}
+    for raw_record in related:
+        if not isinstance(raw_record, dict):
+            continue
+        cve_id = str(raw_record.get("cve") or "").strip().upper()
+        href = _cve_landing_related_href(cve_id)
+        title = _cve_landing_text(raw_record.get("title"), 220)
+        if not href or not title or cve_id in seen:
+            continue
+        severity = _cve_landing_text(raw_record.get("severity"), 24).casefold()
+        if severity not in {"medium", "high", "critical"}:
+            severity = ""
+        score_value = raw_record.get("score")
+        score = (
+            f"{float(score_value):g}"
+            if isinstance(score_value, (int, float))
+            and not isinstance(score_value, bool)
+            and math.isfinite(float(score_value))
+            else ""
+        )
+        qualification = str(raw_record.get("qualification") or "").strip()
+        if qualification not in {"stable_markdown", "recipe_ready_ai"}:
+            continue
+        seen.add(cve_id)
+        records.append(
+            {
+                "cve": cve_id,
+                "href": href,
+                "title": title,
+                "severity": severity,
+                "score": score,
+                "published": _cve_landing_iso_date(raw_record.get("published")),
+                "qualification": qualification,
+            }
+        )
+        if len(records) >= bounded_limit:
+            break
+    return records
+
+
+def _cve_landing_related_html(
+    current_cve: object,
+    related: object,
+) -> str:
+    records = _cve_landing_related_records(current_cve, related)
+    if not records:
+        return ""
+    items: list[str] = []
+    for record in records:
+        qualification = (
+            "Stable reviewed recipe"
+            if record["qualification"] == "stable_markdown"
+            else "Evidence-qualified AI guidance"
+            if record["qualification"] == "recipe_ready_ai"
+            else "Qualified remediation guidance"
+        )
+        details = [
+            f"{record['severity'].title()} severity" if record["severity"] else "",
+            f"CVSS {record['score']}" if record["score"] else "",
+            f"Published {record['published']}" if record["published"] else "",
+            qualification,
+        ]
+        meta = " | ".join(value for value in details if value)
+        items.append(
+            '<li class="sr-cve-related__item">'
+            f'<a href="{html.escape(record["href"], quote=True)}">'
+            f'<strong>{html.escape(record["cve"])}</strong>'
+            f'<span> - {html.escape(record["title"])}</span></a>'
+            f'<span class="sr-cve-related__meta">{html.escape(meta)}</span></li>'
+        )
+    return (
+        '<section class="cve-catalog__detail-section sr-cve-related" '
+        'aria-labelledby="related-cves-heading">'
+        '<h2 id="related-cves-heading">Related CVEs with qualified remediation guidance</h2>'
+        '<p>Continue with canonical CVE pages that share affected products, weakness '
+        'families, or remediation patterns. Every linked page has either stable reviewed '
+        'guidance or source-qualified AI remediation evidence.</p>'
+        f'<ul class="sr-cve-related__list">{"".join(items)}</ul></section>'
+    )
+
+
+def _cve_landing_playbook_html(playbook: object) -> str:
+    if not isinstance(playbook, dict):
+        return ""
+    playbook_id = str(playbook.get("id") or "").strip()
+    if not PlaybookRegistry.ID_RE.fullmatch(playbook_id):
+        return ""
+    page = str(playbook.get("page") or "").strip()
+    if page != f"/security-remediation/{playbook_id}/":
+        return ""
+    title = _cve_landing_text(playbook.get("title"), 180)
+    summary = _cve_landing_text(playbook.get("summary"), 600)
+    if not title or not summary:
+        return ""
+    return (
+        '<section class="cve-catalog__detail-section sr-cve-playbook" '
+        'aria-labelledby="matched-playbook-heading">'
+        '<h2 id="matched-playbook-heading">Choose an AI remediation playbook</h2>'
+        '<p>A CVE weakness family alone cannot establish whether the owned finding is in '
+        'first-party source, a dependency, an appliance, or another surface. Confirm the '
+        'affected technology, exposure, ownership, and authoritative fixed version, then '
+        'use this decision aid to select the narrowest reviewed workflow.</p>'
+        f'<h3><a href="{html.escape(page, quote=True)}">{html.escape(title)}</a></h3>'
+        f'<p>{html.escape(summary)}</p>'
+        f'<p><a href="{html.escape(page, quote=True)}">Use {html.escape(title)} to choose '
+        'a vulnerability remediation playbook</a></p></section>'
+    )
+
+
+def _cve_landing_response_headers(
+    indexable: bool,
+    *,
+    found: bool = False,
+) -> dict[str, str]:
+    cacheable = indexable or found
     return {
-        "Cache-Control": _CVE_LANDING_CACHE_CONTROL if indexable else "no-store",
+        "Cache-Control": _CVE_LANDING_CACHE_CONTROL if cacheable else "no-store",
         "Content-Language": "en",
         "Content-Security-Policy": (
             "default-src 'self'; script-src 'self' 'unsafe-inline'; "
@@ -11994,9 +13318,545 @@ def _cve_landing_response_headers(indexable: bool) -> dict[str, str]:
         "X-Robots-Tag": (
             "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
             if indexable
-            else "noindex, nofollow, noarchive"
+            else "noindex, follow" if found else "noindex, nofollow, noarchive"
         ),
     }
+
+
+def _cve_landing_unavailable_headers() -> dict[str, str]:
+    return {
+        **_cve_landing_response_headers(indexable=False),
+        "Retry-After": str(_CVE_LANDING_RETRY_AFTER_SECONDS),
+    }
+
+
+def _cve_landing_workflow_html(
+    cve_id: str,
+    composed: dict[str, Any],
+    safety_boundary: object,
+) -> str:
+    workflow_title = _cve_landing_text(composed.get("title"), 180)
+    fields = (
+        ("exposure", f"How to check exposure for {cve_id}", "exposure_checks", 2),
+        ("containment", "Temporary containment", "containment_steps", 1),
+        ("remediation", f"How to remediate {cve_id}", "remediation_steps", 2),
+        ("verification", "How to verify the remediation", "verification_steps", 2),
+        ("rollback", "Rollback", "rollback_steps", 1),
+        ("stop", "Stop and triage conditions", "stop_conditions", 2),
+    )
+    rendered_fields: list[str] = []
+    for slug, label, key, limit in fields:
+        rendered_list = _cve_landing_list(
+            composed.get(key),
+            limit=limit,
+            item_limit=600,
+        )
+        if not rendered_list:
+            continue
+        rendered_fields.append(
+            f'<section aria-labelledby="workflow-{slug}-heading">'
+            f'<h3 id="workflow-{slug}-heading">{html.escape(label)}</h3>'
+            f"{rendered_list}</section>"
+        )
+    field_html = "".join(rendered_fields)
+    required_output = _cve_landing_text(composed.get("required_output"), 400)
+    safety_text = _cve_landing_text(safety_boundary, 500)
+    if not workflow_title and not field_html and not required_output and not safety_text:
+        return ""
+    return (
+        '<section class="cve-catalog__detail-section cve-catalog__composition" '
+        'aria-labelledby="matched-archetype-heading">'
+        '<h2 id="matched-archetype-heading">Bounded remediation workflow</h2>'
+        '<p>This concise checklist keeps the human review path visible. The '
+        '<a href="#complete-record">complete machine-readable contract</a> remains '
+        "available below.</p>"
+        + (
+            f'<p class="cve-catalog__composition-title">Matched pattern: '
+            f"{html.escape(workflow_title)}</p>"
+            if workflow_title
+            else ""
+        )
+        + field_html
+        + (
+            '<section aria-labelledby="required-output-heading">'
+            '<h3 id="required-output-heading">Required output</h3>'
+            f"<p>{html.escape(required_output)}</p></section>"
+            if required_output
+            else ""
+        )
+        + (
+            '<section aria-labelledby="safety-boundary-heading">'
+            '<h3 id="safety-boundary-heading">Safety boundary</h3>'
+            f"<p>{html.escape(safety_text)}</p></section>"
+            if safety_text
+            else ""
+        )
+        + "</section>"
+    )
+
+
+def _cve_landing_agentic_plan_html(plan: object) -> str:
+    """Render a concise human summary while preserving the full plan in the record."""
+    if not isinstance(plan, dict):
+        return ""
+    raw_actions = plan.get("actions")
+    actions = raw_actions if isinstance(raw_actions, list) else []
+    objective = _cve_landing_text(plan.get("objective"), 500)
+    if not objective and not actions:
+        return ""
+
+    authoritative = plan.get("authoritative_recipe")
+    authoritative = authoritative if isinstance(authoritative, dict) else {}
+    mutation_authority = _cve_landing_text(
+        authoritative.get("mutation_authority"),
+        500,
+    )
+    fixed_version_policy = plan.get("fixed_version_policy")
+    fixed_version_policy = (
+        fixed_version_policy if isinstance(fixed_version_policy, dict) else {}
+    )
+    unknown_fix = _cve_landing_text(fixed_version_policy.get("when_unknown"), 500)
+
+    def add_unique(group: dict[str, Any], field: str, value: str) -> None:
+        values = group[field]
+        if isinstance(values, list) and value and value not in values:
+            values.append(value)
+
+    phase_groups: dict[str, dict[str, Any]] = {}
+    for action_index, action in enumerate(actions, start=1):
+        if not isinstance(action, dict):
+            continue
+        phase = _cve_landing_text(action.get("phase"), 40).lower()
+        phase_key = phase or f"phase-{action_index}"
+        if phase_key not in phase_groups:
+            phase_groups[phase_key] = {
+                "label": phase.replace("_", " ").title() or f"Phase {action_index}",
+                "archetypes": [],
+                "operations": [],
+                "target_kinds": [],
+                "approval_gates": [],
+                "required_outputs": [],
+                "mutation_states": [],
+        }
+        group = phase_groups[phase_key]
+
+        operation = _cve_landing_text(action.get("operation"), 80)
+        archetype = _cve_landing_text(action.get("archetype_title"), 180)
+        add_unique(group, "operations", operation)
+        add_unique(group, "archetypes", archetype)
+        raw_targets = action.get("target_kinds")
+        if isinstance(raw_targets, list):
+            for target in raw_targets:
+                add_unique(
+                    group,
+                    "target_kinds",
+                    _cve_landing_text(target, 80).replace("_", " "),
+                )
+        approval_gate = _cve_landing_text(action.get("approval_gate"), 120)
+        required_output = _cve_landing_text(action.get("required_output"), 180)
+        add_unique(group, "approval_gates", approval_gate)
+        add_unique(group, "required_outputs", required_output)
+        mutates = action.get("mutates_files")
+        mutation_states = group["mutation_states"]
+        if isinstance(mutation_states, list) and isinstance(mutates, bool):
+            if mutates not in mutation_states:
+                mutation_states.append(mutates)
+
+    def summarize_values(
+        values: object,
+        *,
+        limit: int,
+        separator: str = ", ",
+    ) -> str:
+        if not isinstance(values, list):
+            return ""
+        selected = [str(value) for value in values[:limit] if str(value)]
+        summary = separator.join(selected)
+        remaining = len(values) - len(selected)
+        if remaining > 0:
+            summary += f"{separator}+{remaining} more in the complete plan"
+        return summary
+
+    rendered_actions: list[str] = []
+    for index, group in enumerate(list(phase_groups.values())[:10], start=1):
+        label = str(group.get("label") or f"Phase {index}")
+        archetypes = summarize_values(group.get("archetypes"), limit=4, separator="; ")
+        operation = summarize_values(group.get("operations"), limit=4)
+        target_kinds = summarize_values(group.get("target_kinds"), limit=12)
+        required_output = summarize_values(group.get("required_outputs"), limit=4)
+        approval_gates = [
+            value
+            for value in group.get("approval_gates", [])
+            if isinstance(value, str) and value.casefold() not in {"none", "not_required"}
+        ]
+        approval_gate = summarize_values(approval_gates, limit=4)
+        mutation_states = group.get("mutation_states")
+        mutation_states = mutation_states if isinstance(mutation_states, list) else []
+        if True in mutation_states:
+            change_authority = "File mutation" + (
+                f"; approval gate: {approval_gate}" if approval_gate else ""
+            )
+            if False in mutation_states:
+                change_authority = "Read-only and file-mutation actions" + (
+                    f"; approval gate: {approval_gate}" if approval_gate else ""
+                )
+        elif False in mutation_states:
+            change_authority = "Read-only"
+        else:
+            change_authority = f"Approval gate: {approval_gate}" if approval_gate else ""
+        facts = (
+            ("Operation", operation),
+            ("Target kinds", target_kinds),
+            ("Change authority", change_authority),
+            ("Required output", required_output),
+        )
+        facts_html = "".join(
+            f"<div><dt>{html.escape(name)}</dt><dd>{html.escape(value)}</dd></div>"
+            for name, value in facts
+            if value
+        )
+        if not facts_html:
+            continue
+        action_title = html.escape(label) + (
+            f" — {html.escape(archetypes)}" if archetypes else ""
+        )
+        rendered_actions.append(
+            '<li class="cve-catalog__agent-action">'
+            f"<p><strong>{index:02d}. {action_title}</strong></p>"
+            f'<dl class="cve-catalog__facts">{facts_html}</dl></li>'
+        )
+
+    return (
+        '<section class="cve-catalog__detail-section cve-catalog__agent-plan" '
+        'aria-labelledby="agent-execution-plan-heading">'
+        '<h2 id="agent-execution-plan-heading">AI agent plan summary</h2>'
+        '<p>Use this summary for human review, see '
+        '<a href="/agents/">AI agents for vulnerability remediation</a> for setup '
+        'guardrails, and open the <a href="#complete-record">complete machine-readable '
+        "plan</a> for every action field.</p>"
+        + (
+            f"<p><strong>Objective:</strong> {html.escape(objective)}</p>"
+            if objective
+            else ""
+        )
+        + (
+            '<aside class="cve-catalog__detail-message"><strong>Mutation authority:</strong> '
+            f"{html.escape(mutation_authority)}</aside>"
+            if mutation_authority
+            else ""
+        )
+        + (
+            '<aside class="cve-catalog__detail-message"><strong>When no fixed version is known:</strong> '
+            f"{html.escape(unknown_fix)}</aside>"
+            if unknown_fix
+            else ""
+        )
+        + (
+            '<div><h3>Action phases</h3><ol class="cve-catalog__agent-actions">'
+            + "".join(rendered_actions)
+            + "</ol></div>"
+            if rendered_actions
+            else ""
+        )
+        + "</section>"
+    )
+
+
+def _cve_landing_stable_override(
+    cve_id: str,
+    composed: dict[str, Any],
+) -> dict[str, Any]:
+    raw_overrides = composed.get("product_specific_override")
+    if not isinstance(raw_overrides, list):
+        return {}
+    stable_overrides = [
+        item
+        for item in raw_overrides
+        if isinstance(item, dict)
+        and str(item.get("maturity") or "").strip().lower() == "stable"
+        and str(item.get("cve") or "").strip().upper() == cve_id
+    ]
+    if len(stable_overrides) != 1:
+        return {}
+    override = stable_overrides[0]
+    if not _cve_landing_override_href(override.get("path")):
+        return {}
+    return override
+
+
+def _cve_landing_reviewed_has_version_evidence(reviewed: object) -> bool:
+    if not isinstance(reviewed, dict):
+        return False
+    text = " ".join(
+        str(reviewed.get(key) or "")
+        for key in ("title", "description", "content_markdown")
+    )
+    return bool(
+        re.search(r"\bv?\d+\.\d+(?:\.\d+){0,3}\b", text, flags=re.IGNORECASE)
+        and re.search(
+            r"\b(?:affected|vulnerable|fixed|patched|upgrade|remediat(?:e|ion))\b",
+            text,
+            flags=re.IGNORECASE,
+        )
+    )
+
+
+def _cve_landing_override_html(cve_id: str, composed: dict[str, Any]) -> str:
+    override = _cve_landing_stable_override(cve_id, composed)
+    if not override:
+        return ""
+    title = _cve_landing_text(override.get("title"), 220) or f"Stable {cve_id} recipe"
+    content = _cve_landing_markdown(override.get("content_markdown"))
+    source_path = str(override.get("path") or "").strip().replace("\\", "/")
+    source_url = (
+        "https://github.com/stevologic/security-recipes.ai/blob/main/"
+        f"{source_path}"
+    )
+    return (
+        '<section class="cve-catalog__override" aria-labelledby="reviewed-recipe-heading">'
+        '<p class="cve-catalog__eyebrow">Stable, source-backed guidance</p>'
+        f'<h2 id="reviewed-recipe-heading">{html.escape(title)}</h2>'
+        '<p>This product-specific workflow preserves source-linked remediation guidance for '
+        f"{html.escape(cve_id)}. Confirm live vendor guidance before changing production.</p>"
+        + (
+            f'<div class="cve-catalog__reviewed-markdown">{content}</div>'
+            if content
+            else ""
+        )
+        + f'<p><a href="{html.escape(source_url, quote=True)}" target="_blank" '
+        'rel="noopener noreferrer">Review the source Markdown and history</a></p>'
+        "</section>"
+    )
+
+
+def _cve_landing_ai_attribution(value: object) -> bool:
+    key = _cve_landing_text(value, 120).casefold()
+    return key in {"codex", "chatgpt", "claude", "gemini", "copilot"} or any(
+        marker in key
+        for marker in (
+            "ai-assisted",
+            "artificial intelligence",
+            "language model",
+            "openai",
+            "anthropic",
+        )
+    )
+
+
+def _cve_landing_collective_attribution(value: object) -> bool:
+    key = _cve_landing_text(value, 120).casefold()
+    return not key or key in {"security recipes", "security-recipes.ai"} or any(
+        marker in key
+        for marker in ("contributor", "maintainer", "editorial team", "editorial board")
+    )
+
+
+_CVE_LANDING_KNOWN_AUTHORS: dict[str, dict[str, Any]] = {
+    "stephen m abbott": {
+        "name": "Stephen M Abbott",
+        "path": "/about/#stephen-m-abbott",
+        "same_as": ["https://github.com/stevologic"],
+    }
+}
+
+
+def _cve_landing_known_author_profile(value: object) -> dict[str, Any]:
+    key = _cve_landing_text(value, 120).casefold()
+    profile = _CVE_LANDING_KNOWN_AUTHORS.get(key)
+    return dict(profile) if profile else {}
+
+
+def _cve_landing_provenance_html(
+    reviewed: dict[str, Any],
+    enrichment: dict[str, Any],
+    published: str,
+    modified: str,
+) -> str:
+    author = _cve_landing_text(reviewed.get("author"), 120) if reviewed else ""
+    reviewed_model = _cve_landing_text(reviewed.get("model"), 120) if reviewed else ""
+    enrichment_model = _cve_landing_text(enrichment.get("model"), 120)
+    rows: list[str] = []
+
+    if reviewed and _cve_landing_ai_attribution(author):
+        rows.extend(
+            (
+                'Editorial owner: <a href="/about/">Security Recipes contributors</a>',
+                f"AI assistance: {html.escape(author)}",
+            )
+        )
+        if reviewed_model:
+            rows.append(f"Model recorded: <code>{html.escape(reviewed_model)}</code>")
+    elif reviewed and _cve_landing_collective_attribution(author):
+        label = author or "Security Recipes contributors"
+        rows.append(f'By <a href="/about/">{html.escape(label)}</a>')
+    elif reviewed:
+        known_author = _cve_landing_known_author_profile(author)
+        author_html = html.escape(author)
+        if known_author:
+            profile_path = str(known_author["path"])
+            author_html = (
+                f'<a href="{html.escape(profile_path, quote=True)}">'
+                f"{author_html}</a>"
+            )
+        rows.extend(
+            (
+                f"By {author_html}",
+                'Editorial standard: <a href="/about/">Security Recipes contributors</a>',
+            )
+        )
+        if reviewed_model:
+            rows.append(f"Model compatibility recorded: <code>{html.escape(reviewed_model)}</code>")
+    elif enrichment:
+        rows.append('Editorial owner: <a href="/about/">Security Recipes contributors</a>')
+        rows.append("AI-assisted, source-linked evidence synthesis")
+        if enrichment_model:
+            rows.append(f"Model recorded: <code>{html.escape(enrichment_model)}</code>")
+    else:
+        rows.extend(
+            (
+                'Editorial owner: <a href="/about/">Security Recipes contributors</a>',
+                "Source-normalized catalog record; product-specific review is not recorded.",
+            )
+        )
+
+    if published:
+        rows.append(
+            f'Published <time datetime="{html.escape(published, quote=True)}">'
+            f"{html.escape(published[:10])}</time>"
+        )
+    if modified and modified != published:
+        rows.append(
+            f'Updated <time datetime="{html.escape(modified, quote=True)}">'
+            f"{html.escape(modified[:10])}</time>"
+        )
+    rows.extend(
+        (
+            '<a href="/about/#editorial-principles">Review methodology</a>',
+            '<a href="/about/#corrections">Corrections policy</a>',
+        )
+    )
+    return (
+        '<aside class="sr-page-provenance" aria-label="Authorship and review">'
+        "<strong>Authorship and review</strong>"
+        + "".join(f"<span>{row}</span>" for row in rows)
+        + "</aside>"
+    )
+
+
+def _cve_landing_ai_html(enrichment: dict[str, Any]) -> str:
+    if not enrichment:
+        return ""
+    business_risk = _cve_landing_plain_markdown_text(
+        enrichment.get("business_risk"),
+        2400,
+        drop_parenthetical_citations=True,
+    )
+    list_fields = (
+        ("ai-exposure", "Source-specific exposure conditions", "exposure_conditions"),
+        ("ai-remediation", "Source-specific remediation", "remediation_steps"),
+        ("ai-verification", "Source-specific verification", "verification_steps"),
+        ("ai-uncertainty", "Uncertainty and evidence gaps", "uncertainty"),
+    )
+    sections = "".join(
+        f'<section aria-labelledby="{section_id}-heading">'
+        f'<h3 id="{section_id}-heading">{html.escape(label)}</h3>'
+        f"{_cve_landing_list(enrichment.get(key), limit=None, ai_prose=True)}"
+        "</section>"
+        for section_id, label, key in list_fields
+        if _cve_landing_list(enrichment.get(key), limit=None, ai_prose=True)
+    )
+
+    claims: list[str] = []
+    raw_claims = enrichment.get("claim_evidence")
+    if isinstance(raw_claims, list):
+        for claim in raw_claims:
+            if not isinstance(claim, dict):
+                continue
+            claim_text = _cve_landing_plain_markdown_text(
+                claim.get("claim"),
+                1200,
+                drop_parenthetical_citations=True,
+            )
+            if not claim_text:
+                continue
+            kind = _cve_landing_text(claim.get("kind"), 80).replace("_", " ")
+            source_url = _cve_landing_safe_https_url(claim.get("source_url"))
+            source_link = (
+                f' <a href="{html.escape(source_url, quote=True)}" target="_blank" '
+                'rel="noopener noreferrer">Evidence</a>'
+                if source_url
+                else ""
+            )
+            claims.append(
+                "<li>"
+                + (f"<strong>{html.escape(kind.title())}:</strong> " if kind else "")
+                + html.escape(claim_text)
+                + source_link
+                + "</li>"
+            )
+    claims_html = (
+        '<section aria-labelledby="ai-evidence-heading"><h3 id="ai-evidence-heading">'
+        f"Claim-to-source evidence</h3><ul>{''.join(claims)}</ul></section>"
+        if claims
+        else ""
+    )
+
+    source_links: list[str] = []
+    seen_sources: set[str] = set()
+    raw_sources = enrichment.get("source_urls")
+    if isinstance(raw_sources, list):
+        for raw_source in raw_sources:
+            source_url = _cve_landing_safe_https_url(raw_source)
+            if not source_url or source_url in seen_sources:
+                continue
+            seen_sources.add(source_url)
+            label = urlparse(source_url).hostname or "Source"
+            source_links.append(
+                f'<li><a href="{html.escape(source_url, quote=True)}" target="_blank" '
+                f'rel="noopener noreferrer">{html.escape(label)}</a></li>'
+            )
+    sources_html = (
+        '<section aria-labelledby="ai-sources-heading"><h3 id="ai-sources-heading">'
+        f"Synthesis sources</h3><ul>{''.join(source_links)}</ul></section>"
+        if source_links
+        else ""
+    )
+
+    provenance_rows = (
+        ("Model", _cve_landing_text(enrichment.get("model"), 100)),
+        ("Generated", _cve_landing_iso_date(enrichment.get("generated_at"))),
+        ("Prompt version", _cve_landing_text(enrichment.get("prompt_version"), 80)),
+        ("Specificity", _cve_landing_text(enrichment.get("recipe_specificity"), 80)),
+        ("Source fingerprint", _cve_landing_text(enrichment.get("source_fingerprint"), 80)),
+    )
+    provenance_html = "".join(
+        f"<div><dt>{html.escape(label)}</dt><dd>{html.escape(value)}</dd></div>"
+        for label, value in provenance_rows
+        if value
+    )
+    gaps = enrichment.get("gaps")
+    gaps_html = _cve_landing_list(gaps, limit=None, ai_prose=True)
+    return (
+        '<section class="cve-catalog__detail-section cve-catalog__ai-enrichment" '
+        'aria-labelledby="ai-enrichment-heading">'
+        '<h2 id="ai-enrichment-heading">AI-assisted evidence synthesis</h2>'
+        '<p>This synthesis is displayed only after the catalog marks it complete. It is '
+        "AI-generated, source-linked guidance and must be verified against authoritative "
+        "advisories before use.</p>"
+        + (f"<h3>Business risk</h3><p>{html.escape(business_risk)}</p>" if business_risk else "")
+        + sections
+        + claims_html
+        + sources_html
+        + (
+            '<section aria-labelledby="ai-provenance-heading"><h3 id="ai-provenance-heading">'
+            f'Generation provenance</h3><dl class="cve-catalog__facts">{provenance_html}</dl>'
+            + (f"<h4>Recorded gaps</h4>{gaps_html}" if gaps_html else "")
+            + "</section>"
+            if provenance_html or gaps_html
+            else ""
+        )
+        + "</section>"
+    )
 
 
 def _render_cve_landing_page(
@@ -12016,8 +13876,12 @@ def _render_cve_landing_page(
     if requested_id and requested_id != cve_id:
         raise ValueError("the CVE recipe and source record identities do not match")
 
-    title = _cve_landing_text(source_record.get("title"), 240) or "Vulnerability record"
-    headline = title if cve_id in title.upper() else f"{cve_id} — {title}"
+    composed = recipe.get("composed_recipe")
+    composed = composed if isinstance(composed, dict) else {}
+    reviewed = _cve_landing_stable_override(cve_id, composed)
+    title_source = reviewed.get("title") if reviewed else source_record.get("title")
+    meta_title, headline, _ = _cve_landing_titles(cve_id, title_source)
+    source_title = _cve_landing_text(source_record.get("title"), 600) or "Vulnerability record"
     summary = _cve_landing_text(source_record.get("summary"), 1800)
     severity = _cve_landing_text(source_record.get("severity"), 24).lower() or "unscored"
     score_value = source_record.get("score")
@@ -12026,8 +13890,8 @@ def _render_cve_landing_page(
         if isinstance(score_value, (int, float)) and math.isfinite(float(score_value))
         else ""
     )
-    published = _cve_landing_text(source_record.get("published"), 32)
-    modified = _cve_landing_text(source_record.get("last_modified"), 40)
+    published = _cve_landing_iso_date(source_record.get("published"))
+    modified = _cve_landing_iso_date(source_record.get("last_modified"))
     ecosystem = _cve_landing_text(source_record.get("ecosystem"), 100)
     cwes = source_record.get("cwes")
     cwe_text = ", ".join(
@@ -12039,52 +13903,254 @@ def _render_cve_landing_page(
 
     canonical = _cve_landing_url(cve_id, public_base_url)
     site_base = _cve_landing_public_base_url(public_base_url)
-    description_seed = (
-        f"{cve_id} {severity.title()} vulnerability. {summary}"
-        if summary
-        else f"{cve_id} {severity.title()} vulnerability details and bounded remediation workflow."
+    related_records = _cve_landing_related_records(
+        cve_id,
+        recipe.get("related_cves"),
     )
-    description = _cve_landing_text(description_seed, 280)
-    image_url = f"{site_base}/images/og-card.svg"
+    enrichment = _cve_landing_complete_ai_enrichment(source_record)
+    search_indexable = _cve_landing_is_search_indexable(source_record)
+    fixed_version_claim = (
+        _cve_landing_fixed_version_claim(enrichment)
+        if search_indexable
+        else ""
+    )
+    fixed_version_action = _cve_landing_fixed_version_action(
+        enrichment,
+        fixed_version_claim,
+        165 - len(f"{cve_id} AI remediation: "),
+    )
+    visible_fixed_version_action = _cve_landing_visible_fixed_version_action(
+        enrichment,
+        fixed_version_claim,
+        fixed_version_action,
+    )
+    description = _cve_landing_reviewed_description(
+        reviewed.get("description") if reviewed else "",
+        _cve_landing_description(
+            cve_id,
+            meta_title,
+            severity,
+            fixed_version_claim,
+            fixed_version_action,
+        ),
+    )
+    article_published = (
+        _cve_landing_iso_date(reviewed.get("date"))
+        if reviewed
+        else _cve_landing_iso_date(enrichment.get("generated_at"))
+    )
+    article_modified = (
+        _cve_landing_latest_iso_date(
+            reviewed.get("lastmod") or reviewed.get("date"),
+            modified,
+        )
+        or article_published
+        if reviewed
+        else _cve_landing_latest_iso_date(article_published, modified)
+        or article_published
+    )
+    image_url = f"{site_base}/images/cve-database-social.png"
     nvd_url = _cve_landing_safe_https_url(source_record.get("nvd_url"))
-
-    json_ld: dict[str, Any] = {
-        "@context": "https://schema.org",
-        "@type": "TechArticle",
+    robots_directive = (
+        "index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1"
+        if search_indexable
+        else "noindex,follow"
+    )
+    citation_urls = _cve_landing_citation_urls(source_record, enrichment)
+    cve_org_url = f"https://www.cve.org/CVERecord?id={cve_id}"
+    defined_term_same_as = [cve_org_url]
+    if nvd_url:
+        defined_term_same_as.insert(0, nvd_url)
+    organization_id = f"{site_base}/#organization"
+    website_id = f"{site_base}/#website"
+    webpage_id = f"{canonical}#webpage"
+    article_id = f"{canonical}#article"
+    breadcrumb_id = f"{canonical}#breadcrumb"
+    cve_term_id = f"{canonical}#cve"
+    reviewed_author = _cve_landing_text(reviewed.get("author"), 120) if reviewed else ""
+    reviewed_model = _cve_landing_text(reviewed.get("model"), 120) if reviewed else ""
+    enrichment_model = _cve_landing_text(enrichment.get("model"), 120)
+    person_node: dict[str, Any] | None = None
+    article_author: dict[str, str] = {"@id": organization_id}
+    meta_author = "Security Recipes contributors"
+    credit_text = ""
+    if (
+        reviewed_author
+        and not _cve_landing_ai_attribution(reviewed_author)
+        and not _cve_landing_collective_attribution(reviewed_author)
+    ):
+        known_author = _cve_landing_known_author_profile(reviewed_author)
+        person_id = (
+            f"{site_base}{known_author['path']}"
+            if known_author
+            else f"{canonical}#author"
+        )
+        article_author = {"@id": person_id}
+        meta_author = reviewed_author
+        person_node = {
+            "@type": "Person",
+            "@id": person_id,
+            "name": reviewed_author,
+            "affiliation": {"@id": organization_id},
+        }
+        if known_author:
+            person_node["url"] = person_id
+            person_node["sameAs"] = list(known_author["same_as"])
+        if reviewed_model:
+            credit_text = f"Model compatibility recorded: {reviewed_model}"
+    elif reviewed and _cve_landing_ai_attribution(reviewed_author):
+        credit_text = f"AI assistance: {reviewed_author}"
+        if reviewed_model:
+            credit_text += f" ({reviewed_model})"
+    elif enrichment:
+        credit_text = "AI-assisted, source-linked evidence synthesis"
+        if enrichment_model:
+            credit_text += f" ({enrichment_model})"
+    image_object = {
+        "@type": "ImageObject",
+        "url": image_url,
+        "width": 1727,
+        "height": 911,
+        "caption": f"{cve_id} vulnerability record and remediation workflow",
+    }
+    article_node: dict[str, Any] = {
+        "@type": "Article",
+        "additionalType": "https://schema.org/TechArticle",
+        "@id": article_id,
+        "url": canonical,
         "headline": headline,
         "description": description,
-        "url": canonical,
         "identifier": cve_id,
-        "image": image_url,
-        "mainEntityOfPage": {"@type": "WebPage", "@id": canonical},
-        "about": {
-            "@type": "Thing",
-            "name": cve_id,
-            "identifier": cve_id,
-            "description": summary or description,
-        },
-        "author": {"@type": "Organization", "name": "Security Recipes"},
-        "publisher": {
+        "mainEntityOfPage": {"@id": webpage_id},
+        "about": {"@id": cve_term_id},
+        "image": image_object,
+        "author": article_author,
+        "publisher": {"@id": organization_id},
+        "articleSection": "CVE database",
+        "keywords": [cve_id, severity, "vulnerability remediation", "AI agent remediation"],
+    }
+    if kev:
+        article_node["keywords"].append("CISA KEV")
+    if credit_text:
+        article_node["creditText"] = credit_text
+    if article_published:
+        article_node["datePublished"] = article_published
+    if article_modified:
+        article_node["dateModified"] = article_modified
+    webpage_node: dict[str, Any] = {
+        "@type": "WebPage",
+        "@id": webpage_id,
+        "url": canonical,
+        "name": headline,
+        "description": description,
+        "isPartOf": {"@id": website_id},
+        "breadcrumb": {"@id": breadcrumb_id},
+        "mainEntity": {"@id": article_id},
+        "primaryImageOfPage": image_object,
+    }
+    if related_records:
+        webpage_node["relatedLink"] = [
+            f"{site_base}{record['href']}"
+            for record in related_records
+        ]
+    if article_published:
+        webpage_node["datePublished"] = article_published
+    if article_modified:
+        webpage_node["dateModified"] = article_modified
+    if citation_urls:
+        article_node["isBasedOn"] = citation_urls
+        article_node["citation"] = citation_urls
+    graph_nodes: list[dict[str, Any]] = [
+        {
             "@type": "Organization",
+            "@id": organization_id,
             "name": "Security Recipes",
             "url": site_base,
-            "logo": {"@type": "ImageObject", "url": f"{site_base}/images/logo.svg"},
+            "logo": {
+                "@type": "ImageObject",
+                "url": f"{site_base}/images/logo.svg",
+            },
+            "publishingPrinciples": f"{site_base}/about/#editorial-principles",
+            "correctionsPolicy": f"{site_base}/about/#corrections",
         },
+        {
+            "@type": "WebSite",
+            "@id": website_id,
+            "url": f"{site_base}/",
+            "name": "Security Recipes",
+            "publisher": {"@id": organization_id},
+            "inLanguage": "en",
+        },
+    ]
+    if person_node:
+        graph_nodes.append(person_node)
+    graph_nodes.extend(
+        [
+            webpage_node,
+            article_node,
+            {
+                "@type": "BreadcrumbList",
+                "@id": breadcrumb_id,
+                "itemListElement": [
+                    {
+                        "@type": "ListItem",
+                        "position": 1,
+                        "name": "Home",
+                        "item": f"{site_base}/",
+                    },
+                    {
+                        "@type": "ListItem",
+                        "position": 2,
+                        "name": "CVE Database",
+                        "item": f"{site_base}/cve-database/",
+                    },
+                    {
+                        "@type": "ListItem",
+                        "position": 3,
+                        "name": cve_id,
+                        "item": canonical,
+                    },
+                ],
+            },
+            {
+                "@type": "DefinedTerm",
+                "@id": cve_term_id,
+                "name": cve_id,
+                "termCode": cve_id,
+                "identifier": cve_id,
+                "url": canonical,
+                "description": summary or description,
+                "inDefinedTermSet": "https://www.cve.org/",
+                "sameAs": defined_term_same_as,
+            },
+        ]
+    )
+    json_ld: dict[str, Any] = {
+        "@context": "https://schema.org",
+        "@graph": graph_nodes,
     }
-    if re.fullmatch(r"\d{4}-\d{2}-\d{2}", published):
-        json_ld["datePublished"] = published
-    if modified:
-        json_ld["dateModified"] = modified
-    if nvd_url:
-        json_ld["isBasedOn"] = nvd_url
 
+    agentic_plan = recipe.get("agentic_change_plan")
+    agentic_plan = agentic_plan if isinstance(agentic_plan, dict) else {}
+    catalog_provenance = agentic_plan.get("catalog_provenance")
+    catalog_provenance = catalog_provenance if isinstance(catalog_provenance, dict) else {}
+    catalog_checked = _cve_landing_iso_date(catalog_provenance.get("catalog_updated_at"))
+    cvss_version = _cve_landing_text(source_record.get("cvss_version"), 20)
     fact_rows = [
+        ("CVE", cve_id),
+        ("Source title", source_title),
         ("Severity", severity.title()),
-        ("CVSS", f"{score} ({_cve_landing_text(source_record.get('cvss_version'), 20)})" if score else ""),
-        ("Published", published),
+        ("CVSS", f"{score} ({cvss_version})" if score and cvss_version else score),
+        ("CVSS vector", _cve_landing_text(source_record.get("vector"), 180)),
+        ("CVE published", published),
+        ("Source updated", modified),
+        ("Catalog checked", catalog_checked),
         ("CISA KEV", "Known exploited" if kev else "Not currently listed"),
         ("Ecosystem", ecosystem),
         ("Weaknesses", cwe_text),
+        ("CNA / source", _cve_landing_text(source_record.get("source_identifier"), 180)),
+        ("Record status", _cve_landing_text(source_record.get("status"), 80)),
+        ("Catalog quality", _cve_landing_text(source_record.get("quality"), 80)),
     ]
     facts_html = "".join(
         f'<div class="cve-catalog__fact"><dt>{html.escape(label)}</dt>'
@@ -12093,59 +14159,131 @@ def _render_cve_landing_page(
         if value
     )
 
-    products = _cve_landing_product_labels(source_record)
-    products_html = _cve_landing_list(products, limit=6)
-    product_count = source_record.get("product_match_count")
+    structured_products_html, structured_product_count = _cve_landing_affected_data_html(
+        source_record
+    )
+    cpe_products_html, cpe_product_count = _cve_landing_cpe_products_html(source_record)
+    products_html = structured_products_html or cpe_products_html
+    using_cpe_fallback = bool(cpe_products_html and not structured_products_html)
+    product_count = (
+        source_record.get("affected_data_count")
+        if structured_products_html
+        else source_record.get("product_match_count")
+    )
+    shown_product_count = (
+        structured_product_count if structured_products_html else cpe_product_count
+    )
+    products_provenance = (
+        '<p class="cve-catalog__detail-message"><strong>Source note:</strong> '
+        "These version criteria are derived from NVD CPE configuration matches, not "
+        "vendor-authored affected-version statements. Confirm the exact affected and "
+        "fixed versions in the linked vendor advisory before changing production.</p>"
+        if using_cpe_fallback
+        else ""
+    )
     products_note = ""
-    if isinstance(product_count, int) and product_count > len(products):
+    if isinstance(product_count, int) and product_count > shown_product_count:
+        statement_kind = (
+            "NVD CPE configuration matches"
+            if using_cpe_fallback
+            else "source affected-product statements"
+        )
         products_note = (
-            f'<p class="cve-catalog__detail-message">Showing {len(products)} representative '
-            f"product identities from {product_count} source matches. Confirm exact affected "
-            "versions with the linked vendor and NVD evidence.</p>"
+            f'<p class="cve-catalog__detail-message">Showing {shown_product_count} representative '
+            f"product identities from {product_count} {statement_kind}. Confirm exact affected "
+            "versions with the linked vendor advisory and NVD record.</p>"
         )
 
-    composed = recipe.get("composed_recipe")
-    composed = composed if isinstance(composed, dict) else {}
-    workflow_title = _cve_landing_text(composed.get("title"), 180)
-    workflow_html = ""
-    if workflow_title:
-        workflow_html = (
-            '<section class="cve-catalog__detail-section cve-catalog__composition" '
-            'aria-labelledby="matched-archetype-heading">'
-            '<h2 id="matched-archetype-heading">Matched remediation archetype</h2>'
-            f'<p class="cve-catalog__composition-title">{html.escape(workflow_title)}</p>'
-            "<p>This catalog composition supplies bounded fallback guidance. "
-            "Explicitly reviewed curated workflows load with the complete record below.</p>"
-            "<h3>Check exposure</h3>"
-            f"{_cve_landing_list(composed.get('exposure_checks'))}"
-            "<h3>Remediate safely</h3>"
-            f"{_cve_landing_list(composed.get('remediation_steps'))}"
-            "</section>"
+    recommended_action = (
+        _cve_landing_text(reviewed.get("description"), 600) if reviewed else ""
+    )
+    if not recommended_action:
+        recommended_action = visible_fixed_version_action
+    kev_details = source_record.get("kev_details")
+    kev_details = kev_details if isinstance(kev_details, dict) else {}
+    if not recommended_action:
+        recommended_action = _cve_landing_text(kev_details.get("required_action"), 600)
+    if not recommended_action:
+        recommended_action = (
+            "Confirm the deployed product and version against the authoritative sources "
+            "before changing production."
         )
 
-    override_html = ""
-    raw_overrides = composed.get("product_specific_override")
-    if isinstance(raw_overrides, list):
-        stable_overrides = [
-            item
-            for item in raw_overrides
-            if isinstance(item, dict)
-            and str(item.get("maturity") or "").strip().lower() == "stable"
-            and str(item.get("cve") or "").strip().upper() == cve_id
-        ]
-        if len(stable_overrides) == 1:
-            override_href = _cve_landing_override_href(stable_overrides[0].get("path"))
-            if override_href:
-                override_title = _cve_landing_text(stable_overrides[0].get("title"), 200)
-                override_html = (
-                    '<aside class="cve-catalog__override">'
-                    "<h2>Reviewed product-specific recipe</h2>"
-                    "<p>This CVE has an authoritative reviewed workflow with product-specific "
-                    "exposure, mitigation, remediation, and verification guidance.</p>"
-                    f'<a class="cve-catalog__override-link" href="{html.escape(override_href, quote=True)}">'
-                    f"{html.escape(override_title or f'Open the reviewed {cve_id} recipe')}</a>"
-                    "</aside>"
-                )
+    evidence_total = (
+        product_count
+        if isinstance(product_count, int) and product_count > 0
+        else shown_product_count
+    )
+    if structured_products_html and evidence_total:
+        evidence_kind = "statement" if evidence_total == 1 else "statements"
+        affected_evidence = f"{evidence_total} source affected-product {evidence_kind}"
+    elif cpe_products_html and evidence_total:
+        evidence_kind = "match" if evidence_total == 1 else "matches"
+        affected_evidence = f"{evidence_total} NVD CPE configuration {evidence_kind}"
+    elif _cve_landing_reviewed_has_version_evidence(reviewed):
+        affected_evidence = "Reviewed product-specific version evidence"
+    else:
+        affected_evidence = "No normalized affected-product rows"
+
+    priority_signals = []
+    if kev:
+        priority_signals.append("Known exploited (CISA KEV)")
+    priority_signals.append(f"{severity.title()} severity")
+    if score:
+        priority_signals.append(f"CVSS {score}")
+    priority_text = "; ".join(priority_signals)
+    evidence_checked = catalog_checked or modified or article_modified
+    action_summary_rows = [
+        (
+            "Recommended action",
+            html.escape(recommended_action),
+            " cve-catalog__action-summary-item--primary",
+        ),
+        ("Affected evidence", html.escape(affected_evidence), ""),
+        ("Priority", html.escape(priority_text), ""),
+    ]
+    if evidence_checked:
+        action_summary_rows.append(
+            (
+                "Evidence checked",
+                f'<time datetime="{html.escape(evidence_checked, quote=True)}">'
+                f"{html.escape(evidence_checked[:10])}</time>",
+                "",
+            )
+        )
+    action_summary_freshness = (
+        '<p class="cve-catalog__action-summary-freshness">Page last updated '
+        f'<time datetime="{html.escape(article_modified, quote=True)}">'
+        f"{html.escape(article_modified[:10])}</time>.</p>"
+        if article_modified
+        else ""
+    )
+    action_summary_html = (
+        '<section class="cve-catalog__action-summary" '
+        'aria-labelledby="remediation-summary-heading">'
+        '<h2 id="remediation-summary-heading">Remediation summary</h2>'
+        '<dl class="cve-catalog__action-summary-grid">'
+        + "".join(
+            f'<div class="cve-catalog__action-summary-item{item_class}">'
+            f"<dt>{html.escape(label)}</dt><dd>{value}</dd></div>"
+            for label, value, item_class in action_summary_rows
+        )
+        + "</dl>"
+        + action_summary_freshness
+        + "</section>"
+    )
+    kev_html = _cve_landing_kev_html(cve_id, source_record)
+
+    workflow_html = _cve_landing_workflow_html(
+        cve_id,
+        composed,
+        recipe.get("safety_boundary"),
+    )
+    playbook_html = _cve_landing_playbook_html(recipe.get("matched_playbook"))
+    agentic_plan_html = _cve_landing_agentic_plan_html(agentic_plan)
+    override_html = _cve_landing_override_html(cve_id, composed)
+    ai_html = _cve_landing_ai_html(enrichment)
+    related_html = _cve_landing_related_html(cve_id, related_records)
 
     references_html = ""
     references = _cve_landing_references(source_record)
@@ -12161,17 +14299,94 @@ def _render_cve_landing_page(
             + "</ul></section>"
         )
 
+    source_shard = catalog_provenance.get("source_shard")
+    source_shard = source_shard if isinstance(source_shard, dict) else {}
+    source_shard_path = _cve_landing_text(source_shard.get("path"), 160)
+    if not re.fullmatch(r"shards/\d{4}/\d{4,7}\.jsonl\.gz", source_shard_path):
+        source_shard_path = ""
+    source_shard_html = (
+        '<p><a class="cve-catalog__canonical-link" '
+        f'href="/api/cve-catalog/{html.escape(source_shard_path, quote=True)}">'
+        "Download the machine-readable source shard (gzip JSON Lines)</a>.</p>"
+        if source_shard_path
+        else ""
+    )
+    citation_updated_html = (
+        " Last updated "
+        f'<time datetime="{html.escape(article_modified, quote=True)}">'
+        f"{html.escape(article_modified[:10])}</time>."
+        if article_modified
+        else ""
+    )
+    citation_html = (
+        '<section class="cve-catalog__citation" aria-labelledby="cite-record-heading">'
+        '<h2 id="cite-record-heading">Cite this CVE record</h2>'
+        "<p><cite>Security Recipes. &ldquo;"
+        f"{html.escape(headline)}"
+        "&rdquo;</cite>"
+        f"{citation_updated_html} Canonical URL: "
+        f'<a href="{html.escape(canonical, quote=True)}">{html.escape(canonical)}</a>.</p>'
+        f"{source_shard_html}</section>"
+    )
+
     severity_class = re.sub(r"[^a-z0-9-]", "", severity)
     summary_html = (
         f'<p class="cve-catalog__intro">{html.escape(summary)}</p>'
         if summary
         else '<p class="cve-catalog__intro">The source record does not provide a plain-language summary.</p>'
     )
+    if products_html:
+        products_body = products_html
+    elif _cve_landing_reviewed_has_version_evidence(reviewed):
+        products_body = (
+            '<p>The stable source-backed recipe above contains product-specific version evidence '
+            'and upgrade guidance. The source catalog has no additional normalized '
+            'affected-product rows to display.</p>'
+        )
+    else:
+        products_body = "<p>No browser-safe affected-product rows are available.</p>"
     products_section = (
         '<section class="cve-catalog__detail-section" aria-labelledby="products-heading">'
-        '<h2 id="products-heading">Affected products</h2>'
-        f"{products_html or '<p>No browser-safe affected-product rows are available.</p>'}"
+        '<h2 id="products-heading">Affected products and version ranges</h2>'
+        f"{products_provenance}"
+        f"{products_body}"
         f"{products_note}</section>"
+    )
+    image_alt = f"{cve_id} vulnerability record and remediation workflow"
+    provenance_html = _cve_landing_provenance_html(
+        reviewed,
+        enrichment,
+        article_published,
+        article_modified,
+    )
+    publication_year = published[:4] if re.fullmatch(r"\d{4}-\d{2}-\d{2}", published) else ""
+    archive_context_html = (
+        '<p class="cve-catalog__archive-context">'
+        f'<a href="/cve/archive/{publication_year}/">Browse qualified CVEs published in '
+        f"{html.escape(publication_year)}</a> · "
+        '<a href="/security-remediation/">Explore AI vulnerability remediation playbooks</a>'
+        "</p>"
+        if search_indexable and publication_year
+        else ""
+    )
+    article_time_meta = ""
+    if article_published:
+        article_time_meta += (
+            f'\n<meta property="article:published_time" content="'
+            f'{html.escape(article_published, quote=True)}">'
+        )
+    if article_modified:
+        article_time_meta += (
+            f'\n<meta property="article:modified_time" content="'
+            f'{html.escape(article_modified, quote=True)}">'
+        )
+    article_meta_html = (
+        f'<meta property="article:author" content="{html.escape(f"{site_base}/about/", quote=True)}">\n'
+        + f'<meta property="article:publisher" content="{html.escape(f"{site_base}/", quote=True)}">\n'
+        + '<meta property="article:section" content="CVE database">\n'
+        + f'<meta property="article:tag" content="{html.escape(cve_id, quote=True)}">\n'
+        + f'<meta property="article:tag" content="{html.escape(severity, quote=True)} severity">'
+        + article_time_meta
     )
 
     return f"""<!doctype html>
@@ -12179,21 +14394,30 @@ def _render_cve_landing_page(
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>{html.escape(headline)} – security-recipes.ai</title>
+<title>{html.escape(meta_title)}</title>
 <meta name="description" content="{html.escape(description, quote=True)}">
-<meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
-<meta name="googlebot" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
+<meta name="author" content="{html.escape(meta_author, quote=True)}">
+<meta name="robots" content="{robots_directive}">
+<meta name="googlebot" content="{robots_directive}">
 <link rel="canonical" href="{html.escape(canonical, quote=True)}">
 <meta property="og:type" content="article">
+<meta property="og:locale" content="en_US">
 <meta property="og:site_name" content="Security Recipes">
 <meta property="og:title" content="{html.escape(headline, quote=True)}">
 <meta property="og:description" content="{html.escape(description, quote=True)}">
 <meta property="og:url" content="{html.escape(canonical, quote=True)}">
 <meta property="og:image" content="{html.escape(image_url, quote=True)}">
+<meta property="og:image:secure_url" content="{html.escape(image_url, quote=True)}">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1727">
+<meta property="og:image:height" content="911">
+<meta property="og:image:alt" content="{html.escape(image_alt, quote=True)}">
+{article_meta_html}
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="{html.escape(headline, quote=True)}">
 <meta name="twitter:description" content="{html.escape(description, quote=True)}">
 <meta name="twitter:image" content="{html.escape(image_url, quote=True)}">
+<meta name="twitter:image:alt" content="{html.escape(image_alt, quote=True)}">
 <meta name="theme-color" content="#020405">
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
@@ -12212,7 +14436,8 @@ def _render_cve_landing_page(
   <nav class="sr-nav" aria-label="Main navigation">
     <a class="sr-nav__brand" href="/"><img src="/images/logo.svg" alt="" width="24" height="24"><span>security-recipes.ai</span></a>
     <div class="sr-nav__links">
-      <a href="/recipes/" aria-current="page">Recipes</a>
+      <a href="/cve-database/" aria-current="page">CVE Database</a>
+      <a href="/recipes/">Recipes</a>
       <a href="/security-remediation/">Playbooks</a>
       <a href="/mcp-servers/">MCP Integration</a>
       <a href="/docs/">Docs</a>
@@ -12223,17 +14448,16 @@ def _render_cve_landing_page(
   <aside class="hextra-sidebar-container sr-sidebar" aria-label="CVE navigation">
     <nav class="hextra-sidebar">
       <ul class="sr-sidebar__list">
-        <li class="sr-sidebar__section"><a href="/recipes/">Recipe library</a></li>
-        <li class="sr-sidebar__section"><a href="/recipes/?view=cve">CVE catalog</a></li>
-        <li class="sr-sidebar__section"><a href="/recipes/cve/">Catalog methodology</a></li>
+        <li class="sr-sidebar__section"><a href="/cve-database/" aria-current="page">Search CVE database</a></li>
+        <li class="sr-sidebar__section"><a href="/cve/archive/">Browse CVEs by year</a></li>
+        <li class="sr-sidebar__section"><a href="/security-remediation/">AI remediation playbooks</a></li>
       </ul>
     </nav>
   </aside>
   <main id="content" class="hextra-content sr-main">
     <nav class="sr-breadcrumbs" aria-label="Breadcrumb">
       <a href="/">Home</a><span aria-hidden="true">/</span>
-      <a href="/recipes/">Recipes</a><span aria-hidden="true">/</span>
-      <a href="/recipes/?view=cve">CVE catalog</a><span aria-hidden="true">/</span>
+      <a href="/cve-database/">CVE Database</a><span aria-hidden="true">/</span>
       <span aria-current="page">{html.escape(cve_id)}</span>
     </nav>
     <article class="content cve-catalog cve-landing sr-cve-detail-content">
@@ -12244,31 +14468,52 @@ def _render_cve_landing_page(
         {f'<span class="cve-catalog__badge cve-catalog__badge--score">CVSS {html.escape(score)}</span>' if score else ''}
         {'<span class="cve-catalog__badge cve-catalog__badge--kev">CISA KEV</span>' if kev else ''}
       </div>
-      {summary_html}
+      {action_summary_html}
+      <section aria-labelledby="what-is-cve-heading">
+        <h2 id="what-is-cve-heading">What is {html.escape(cve_id)}?</h2>
+        {summary_html}
+      </section>
       <dl class="cve-catalog__facts" aria-label="{html.escape(cve_id)} facts">{facts_html}</dl>
+      {kev_html}
       {override_html}
       {products_section}
+      {ai_html}
+      {playbook_html}
       {workflow_html}
+      {agentic_plan_html}
+      {related_html}
       {references_html}
+      {citation_html}
       <section id="complete-record" aria-labelledby="complete-record-heading">
         <h2 id="complete-record-heading">Complete CVE record and remediation plan</h2>
-        <p>The detailed catalog view below loads this exact record, its source evidence, and the full seven-phase agentic change plan.</p>
+        <p>The essential facts, evidence-qualified guidance, and concise human workflow are available above. This view adds the normalized source payload and complete machine-readable action contract.</p>
         <div data-cve-catalog data-cve-catalog-base="/api/cve-catalog/" data-cve-initial-id="{html.escape(cve_id, quote=True)}"></div>
-        <noscript><p>The essential CVE facts and matched workflow remain available above. JavaScript is required only for the expanded source record and agentic plan.</p></noscript>
+        <noscript><p>JavaScript is required only for the expanded normalized source record and agentic action plan.</p></noscript>
       </section>
+      {archive_context_html}
+      {provenance_html}
     </article>
   </main>
   <nav class="hextra-toc sr-toc" aria-label="On this page">
     <p class="sr-toc__title">On this page</p>
     <ul>
+      <li><a href="#remediation-summary-heading">Remediation summary</a></li>
+      <li><a href="#what-is-cve-heading">What is {html.escape(cve_id)}?</a></li>
+      {f'<li><a href="#known-exploitation-heading">Known exploitation</a></li>' if kev_html else ''}
+      {f'<li><a href="#reviewed-recipe-heading">Reviewed recipe</a></li>' if override_html else ''}
       <li><a href="#products-heading">Affected products</a></li>
-      {f'<li><a href="#matched-archetype-heading">Remediation archetype</a></li>' if workflow_title else ''}
+      {f'<li><a href="#ai-enrichment-heading">AI evidence synthesis</a></li>' if ai_html else ''}
+      {f'<li><a href="#matched-playbook-heading">Choose a playbook</a></li>' if playbook_html else ''}
+      {f'<li><a href="#matched-archetype-heading">Remediation workflow</a></li>' if workflow_html else ''}
+      {f'<li><a href="#agent-execution-plan-heading">Agent plan summary</a></li>' if agentic_plan_html else ''}
+      {f'<li><a href="#related-cves-heading">Related CVEs</a></li>' if related_html else ''}
       {f'<li><a href="#sources-heading">Sources</a></li>' if references else ''}
+      <li><a href="#cite-record-heading">Cite this record</a></li>
       <li><a href="#complete-record">Complete record</a></li>
     </ul>
   </nav>
 </div>
-<footer class="hextra-footer"><div class="sr-footer-inner"><span>Bounded recipes for agent-assisted security remediation.</span></div></footer>
+<footer class="hextra-footer"><div class="sr-footer-inner"><span>Bounded recipes for agent-assisted security remediation.</span><a href="/about/">About &amp; editorial policy</a></div></footer>
 <script>
 (function () {{
   function hydrateExactCve() {{
@@ -12308,7 +14553,7 @@ def _render_cve_landing_error(cve_id: str, message: str) -> str:
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>CVE record unavailable – security-recipes.ai</title>
+<title>CVE record unavailable | Security Recipes</title>
 <meta name="robots" content="noindex,nofollow,noarchive">
 <link rel="stylesheet" href="/css/docs-chrome.css">
 <link rel="stylesheet" href="/css/custom.css">
@@ -12320,7 +14565,7 @@ def _render_cve_landing_error(cve_id: str, message: str) -> str:
 <article class="content">
 <h1>{html.escape(safe_id or "CVE record unavailable")}</h1>
 <p>{html.escape(safe_message)}</p>
-<p><a href="/recipes/?view=cve">Search the complete CVE catalog</a></p>
+<p><a href="/cve-database/">Search the complete CVE database</a></p>
 </article>
 </main>
 </body>
@@ -12332,9 +14577,76 @@ def _bounded_cve_landing_lookup(cve_id: str) -> dict[str, Any]:
     if not _cve_landing_admission.acquire(blocking=False):
         raise _CVELandingBusyError("the CVE landing lookup queue is full")
     try:
-        return cve_catalog.get_recipe(cve_id)
+        recipe = cve_catalog.get_recipe(cve_id)
+        if not isinstance(recipe, dict) or recipe.get("found") is not True:
+            return recipe
+        source_record = recipe.get("source_record")
+        if not isinstance(source_record, dict):
+            return recipe
+
+        try:
+            related = cve_catalog.related_cves(source_record, limit=6)
+        except (FileNotFoundError, OSError, RuntimeError, ValueError, json.JSONDecodeError):
+            related = []
+        if related:
+            recipe["related_cves"] = related
+
+        composed = recipe.get("composed_recipe")
+        composed = composed if isinstance(composed, dict) else {}
+        archetype_id = str(
+            composed.get("primary_archetype_id")
+            or composed.get("archetype_id")
+            or ""
+        ).strip()
+        playbook_id = _CVE_ARCHETYPE_PLAYBOOK_IDS.get(archetype_id)
+        if playbook_id:
+            try:
+                playbook = playbook_registry.get_playbook(playbook_id)
+            except (FileNotFoundError, OSError, RuntimeError, ValueError, json.JSONDecodeError):
+                playbook = None
+            if isinstance(playbook, dict):
+                recipe["matched_playbook"] = {
+                    key: playbook.get(key)
+                    for key in ("id", "title", "page", "category", "summary")
+                }
+        return recipe
     finally:
         _cve_landing_admission.release()
+
+
+@mcp.custom_route(
+    "/recipes/cve/{slug}/",
+    methods=["GET"],
+    name="legacy-cve-recipe-redirect",
+    include_in_schema=False,
+)
+async def legacy_cve_recipe_redirect(request: Request) -> Response:
+    slug = str(request.path_params.get("slug") or "").strip()
+    match = re.fullmatch(
+        r"(cve-\d{4}-\d{4,})(?:-[A-Za-z0-9][A-Za-z0-9._-]*)?",
+        slug,
+        flags=re.IGNORECASE,
+    )
+    if not match:
+        return HTMLResponse(
+            _render_cve_landing_error(
+                "CVE record unavailable",
+                "This legacy recipe URL does not contain a valid CVE identifier.",
+            ),
+            status_code=404,
+            headers=_cve_landing_response_headers(indexable=False),
+        )
+    canonical_id = match.group(1).upper()
+    redirect_url = _cve_static_canonical_url(canonical_id) or _cve_landing_url(canonical_id)
+    return RedirectResponse(
+        redirect_url,
+        status_code=308,
+        headers={
+            "Cache-Control": "public, max-age=86400",
+            "X-Content-Type-Options": "nosniff",
+            "X-Robots-Tag": "noindex, follow",
+        },
+    )
 
 
 @mcp.custom_route(
@@ -12354,6 +14666,17 @@ async def cve_landing_page(request: Request) -> Response:
             ),
             status_code=404,
             headers=_cve_landing_response_headers(indexable=False),
+        )
+    static_canonical_url = _cve_static_canonical_url(canonical_id)
+    if static_canonical_url:
+        return RedirectResponse(
+            static_canonical_url,
+            status_code=308,
+            headers={
+                "Cache-Control": "public, max-age=86400",
+                "X-Content-Type-Options": "nosniff",
+                "X-Robots-Tag": "noindex, follow",
+            },
         )
     if requested_id != canonical_id:
         return RedirectResponse(
@@ -12377,10 +14700,7 @@ async def cve_landing_page(request: Request) -> Response:
                 "The CVE catalog is temporarily busy. Please retry shortly.",
             ),
             status_code=503,
-            headers={
-                **_cve_landing_response_headers(indexable=False),
-                "Retry-After": "5",
-            },
+            headers=_cve_landing_unavailable_headers(),
         )
     except (OSError, ValueError, json.JSONDecodeError):
         return HTMLResponse(
@@ -12389,7 +14709,7 @@ async def cve_landing_page(request: Request) -> Response:
                 "The CVE record could not be loaded safely.",
             ),
             status_code=503,
-            headers=_cve_landing_response_headers(indexable=False),
+            headers=_cve_landing_unavailable_headers(),
         )
 
     if not isinstance(recipe, dict) or recipe.get("found") is not True:
@@ -12401,6 +14721,10 @@ async def cve_landing_page(request: Request) -> Response:
             status_code=404,
             headers=_cve_landing_response_headers(indexable=False),
         )
+    source_record = recipe.get("source_record")
+    search_indexable = isinstance(source_record, dict) and _cve_landing_is_search_indexable(
+        source_record
+    )
     try:
         body = _render_cve_landing_page(recipe)
     except ValueError:
@@ -12410,12 +14734,15 @@ async def cve_landing_page(request: Request) -> Response:
                 "The CVE record failed its landing-page identity checks.",
             ),
             status_code=503,
-            headers=_cve_landing_response_headers(indexable=False),
+            headers=_cve_landing_unavailable_headers(),
         )
     return HTMLResponse(
         body,
         status_code=200,
-        headers=_cve_landing_response_headers(indexable=True),
+        headers=_cve_landing_response_headers(
+            indexable=search_indexable,
+            found=True,
+        ),
     )
 
 

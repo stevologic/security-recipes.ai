@@ -77,6 +77,8 @@ copy_path "/etc/fail2ban/filter.d/security-recipes-caddy-404.conf" \
   "etc/fail2ban/filter.d/security-recipes-caddy-404.conf"
 copy_path "/etc/fail2ban/jail.d/security-recipes-caddy-404.local" \
   "etc/fail2ban/jail.d/security-recipes-caddy-404.local"
+copy_path "/usr/local/bin/security-recipes-verify-googlebot.py" \
+  "usr/local/bin/security-recipes-verify-googlebot.py"
 
 for unit in \
   security-recipes-deploy.service \

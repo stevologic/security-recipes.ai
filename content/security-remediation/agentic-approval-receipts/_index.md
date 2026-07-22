@@ -2,6 +2,8 @@
 title: Agentic Approval Receipt Pack
 linkTitle: Approval Receipts
 weight: 16
+date: 2026-05-04
+lastmod: 2026-07-13
 toc: true
 description: >
   Scope-bound approval receipts for agentic AI control planes, MCP tools,

@@ -4,6 +4,8 @@ linkTitle: GitHub Copilot
 weight: 2
 sidebar:
   open: false
+noindex: true
+noindex_follow: true
 description: >
   copilot-instructions.md files, issue templates, and Copilot Coding
   Agent setups contributed by teams running Copilot for agentic

@@ -4,6 +4,8 @@ linkTitle: Claude
 weight: 1
 sidebar:
   open: false
+noindex: true
+noindex_follow: true
 description: >
   CLAUDE.md files, `.claude/skills/*/SKILL.md` entries, hooks, and
   slash-commands contributed by teams using Claude for agentic

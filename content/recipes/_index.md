@@ -1,5 +1,5 @@
 ---
-title: Recipes
+title: AI Vulnerability Remediation Recipes
 linkTitle: Recipes
 url: /recipes/
 weight: 4

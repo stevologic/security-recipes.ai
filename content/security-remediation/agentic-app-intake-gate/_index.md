@@ -2,6 +2,8 @@
 title: Agentic App Intake Gate
 linkTitle: Agentic App Intake
 weight: 5
+date: 2026-05-04
+lastmod: 2026-07-13
 toc: true
 description: >
   A generated launch-review gate for agentic applications, agent hosts,

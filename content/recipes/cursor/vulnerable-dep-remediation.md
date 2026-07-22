@@ -1,5 +1,5 @@
 ---
-title: "Vulnerable dependency remediation (rule + command)"
+title: "Cursor Vulnerable Dependency Remediation"
 linkTitle: "Vulnerable dep remediation"
 tool: "cursor"
 author: "Stephen M Abbott"

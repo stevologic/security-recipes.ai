@@ -2,6 +2,8 @@
 title: Secure Context Trust Pack
 linkTitle: Secure Context Trust
 weight: 9
+date: 2026-05-02
+lastmod: 2026-07-13
 sidebar:
   exclude: true
 description: >

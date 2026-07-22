@@ -2,6 +2,8 @@
 title: Context Egress Boundary
 linkTitle: Context Egress Boundary
 weight: 11
+date: 2026-05-02
+lastmod: 2026-07-13
 toc: true
 description: >
   A generated data-boundary and runtime evaluator for secure-context

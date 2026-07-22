@@ -2,6 +2,8 @@
 title: MCP Gateway Policy Pack
 linkTitle: Gateway Policy
 weight: 5
+date: 2026-05-02
+lastmod: 2026-07-13
 sidebar:
   exclude: true
 description: >

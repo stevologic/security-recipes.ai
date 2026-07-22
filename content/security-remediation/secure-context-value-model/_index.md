@@ -2,12 +2,14 @@
 title: Secure Context Value Model
 linkTitle: Value Model
 weight: 12
+date: 2026-05-05
+lastmod: 2026-07-21
 sidebar:
   exclude: true
 description: >
-  A generated trust review- and trust-value model that turns the
-  open SecurityRecipes corpus, generated evidence packs, and production
-  MCP path into conservative operational-impact scenarios and reviewer diligence answers.
+  Model conservative operational impact and reviewer diligence for Security
+  Recipes using the open corpus, generated evidence packs, and production MCP
+  path.
 ---
 
 {{< callout type="info" >}}

@@ -1,5 +1,5 @@
 ---
-title: "Sensitive data element remediation (issue template + instructions)"
+title: "GitHub Copilot Sensitive Data Remediation"
 linkTitle: "Sensitive data remediation"
 tool: "github_copilot"
 author: "Stephen M Abbott"

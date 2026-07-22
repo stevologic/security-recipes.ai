@@ -2,6 +2,8 @@
 title: Browser Agent Workspace Boundary
 linkTitle: Browser Agent Boundary
 weight: 16
+date: 2026-05-04
+lastmod: 2026-07-13
 sidebar:
   exclude: true
 description: >

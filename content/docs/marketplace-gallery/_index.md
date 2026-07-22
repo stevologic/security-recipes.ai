@@ -1,5 +1,6 @@
 ---
 title: "Marketplace and Workflow Gallery"
+page_kind: collection
 description: "A public gallery of SecurityRecipes input channels, output routes, report contracts, and workflow bundles for the BYO-token browser workbench."
 date: 2026-05-04
 lastmod: 2026-05-05

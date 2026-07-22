@@ -1,5 +1,5 @@
 ---
-title: "Sensitive data element remediation (rule + command)"
+title: "Cursor Sensitive Data Remediation"
 linkTitle: "Sensitive data remediation"
 tool: "cursor"
 author: "Stephen M Abbott"

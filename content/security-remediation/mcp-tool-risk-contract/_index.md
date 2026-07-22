@@ -2,6 +2,8 @@
 title: MCP Tool Risk Contract
 linkTitle: MCP Tool Risk
 weight: 7
+date: 2026-05-04
+lastmod: 2026-07-13
 sidebar:
   exclude: true
 description: >

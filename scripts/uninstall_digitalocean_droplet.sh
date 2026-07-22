@@ -19,6 +19,7 @@ SSH_CONFIG="/etc/ssh/sshd_config.d/99-security-recipes.conf"
 FAIL2BAN_JAIL="/etc/fail2ban/jail.d/sshd-security-recipes.local"
 CADDY_404_FAIL2BAN_FILTER="/etc/fail2ban/filter.d/security-recipes-caddy-404.conf"
 CADDY_404_FAIL2BAN_JAIL="/etc/fail2ban/jail.d/security-recipes-caddy-404.local"
+CADDY_404_GOOGLEBOT_VERIFIER="/usr/local/bin/security-recipes-verify-googlebot.py"
 
 usage() {
   cat <<'EOF'
@@ -201,9 +202,13 @@ remove_managed_security_config() {
   fi
 
   if [[ -f "${CADDY_404_FAIL2BAN_FILTER}" ||
-        -f "${CADDY_404_FAIL2BAN_JAIL}" ]]; then
+        -f "${CADDY_404_FAIL2BAN_JAIL}" ||
+        -f "${CADDY_404_GOOGLEBOT_VERIFIER}" ]]; then
     log "Removing managed Caddy 404 fail2ban filter and jail."
-    rm -f "${CADDY_404_FAIL2BAN_FILTER}" "${CADDY_404_FAIL2BAN_JAIL}"
+    rm -f \
+      "${CADDY_404_FAIL2BAN_FILTER}" \
+      "${CADDY_404_FAIL2BAN_JAIL}" \
+      "${CADDY_404_GOOGLEBOT_VERIFIER}"
     fail2ban_changed="true"
   fi
 

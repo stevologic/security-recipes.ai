@@ -13,7 +13,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     RECIPES_MCP_TRANSPORT=streamable-http \
     RECIPES_MCP_HOST=0.0.0.0 \
     RECIPES_MCP_PORT=80 \
-    RECIPES_MCP_PATH=/mcp
+    RECIPES_MCP_PATH=/mcp \
+    RECIPES_PUBLIC_SITE_BASE_URL=https://security-recipes.ai/
 
 WORKDIR /app
 
@@ -35,7 +36,7 @@ COPY static/api/cve-catalog /app/static/api/cve-catalog
 
 EXPOSE 80
 
-HEALTHCHECK --interval=30s --timeout=3s --start-period=30s --retries=5 \
-    CMD python -c "import socket; socket.create_connection(('127.0.0.1', 80), timeout=3).close()" || exit 1
+HEALTHCHECK --interval=30s --timeout=8s --start-period=30s --retries=5 \
+    CMD python -c "import os, urllib.request as u; base=os.environ.get('RECIPES_PUBLIC_SITE_BASE_URL', 'https://security-recipes.ai/').rstrip('/'); canonical=f'<link rel=\"canonical\" href=\"{base}/cve/CVE-2024-3400/\">'.encode(); r=u.urlopen('http://127.0.0.1/cve/CVE-2024-3400/', timeout=5); b=r.read(262144); assert r.status == 200 and canonical in b and b'<meta name=\"robots\" content=\"index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1\">' in b and b'data-cve-initial-id=\"CVE-2024-3400\"' in b and b'\"@type\":\"Article\"' in b and b'\"additionalType\":\"https://schema.org/TechArticle\"' in b" || exit 1
 
 CMD ["python", "/app/mcp_server.py"]

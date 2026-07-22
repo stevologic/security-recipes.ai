@@ -3,13 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>security-recipes.ai &mdash; Open security intelligence for verified action</title>
+<title>CVE Database &amp; AI Vulnerability Remediation | Security Recipes</title>
 {{ {
   url: page.url,
-  title: "security-recipes.ai — Security intelligence for verified action",
-  description: "Research a rolling catalog of CVE intelligence and reviewed security workflows, then deliver the same bounded context to humans and AI agents through JSON and read-first MCP.",
+  title: "CVE Database & AI Vulnerability Remediation",
+  description: "Search source-backed CVE intelligence and use reviewed AI vulnerability remediation playbooks for Codex, Claude, Cursor, GitHub Copilot, and Devin.",
   keywords: keywords,
-  image: "/images/og-card.svg",
+  image: "/images/og-card.png",
+  imageWidth: 1731,
+  imageHeight: 909,
   isHome: true,
   isSection: false
 } | seoHead | safe }}
@@ -341,17 +343,17 @@
     </div>
   </header>
 
-  <aside class="cve-ticker" aria-label="Latest published CVEs" data-cve-ticker>
+  <aside class="cve-ticker" aria-label="Recently reviewed CVEs" data-cve-ticker>
     <div class="site-shell cve-ticker__inner">
       <a class="cve-ticker__label" href="/cve-database/">
         <span class="cve-ticker__signal" aria-hidden="true"></span>
-        <span>Latest CVEs</span>
+        <span>Reviewed CVEs</span>
       </a>
       <div class="cve-ticker__viewport">
         <div class="cve-ticker__track">
           <ul class="cve-ticker__list">
-            {% if latestCves and latestCves.length %}
-            {% for item in latestCves %}
+            {% if latestReviewedCves and latestReviewedCves.length %}
+            {% for item in latestReviewedCves %}
             <li>
               <a class="cve-ticker__item" data-cve-ticker-link href="{{ item.href | escape }}" aria-label="{{ item.cve | escape }}: {{ item.title | escape }}. {{ item.severity | escape }}, published {{ item.published | escape }}.">
                 <span class="cve-ticker__id">{{ item.cve | escape }}</span>
@@ -366,14 +368,14 @@
             <li>
               <span class="cve-ticker__item">
                 <span class="cve-ticker__id">CVE feed</span>
-                <span class="cve-ticker__title">Latest CVEs are being refreshed</span>
+                <span class="cve-ticker__title">Reviewed CVEs are being refreshed</span>
               </span>
             </li>
             {% endif %}
           </ul>
           <ul class="cve-ticker__list" aria-hidden="true" inert>
-            {% if latestCves and latestCves.length %}
-            {% for item in latestCves %}
+            {% if latestReviewedCves and latestReviewedCves.length %}
+            {% for item in latestReviewedCves %}
             <li>
               <span class="cve-ticker__item">
                 <span class="cve-ticker__id">{{ item.cve | escape }}</span>
@@ -388,14 +390,14 @@
             <li>
               <span class="cve-ticker__item">
                 <span class="cve-ticker__id">CVE feed</span>
-                <span class="cve-ticker__title">Latest CVEs are being refreshed</span>
+                <span class="cve-ticker__title">Reviewed CVEs are being refreshed</span>
               </span>
             </li>
             {% endif %}
           </ul>
         </div>
       </div>
-      {% if latestCves and latestCves.length %}
+      {% if latestReviewedCves and latestReviewedCves.length %}
       <button class="cve-ticker__toggle" type="button" data-cve-ticker-toggle aria-label="Pause latest CVE ticker" aria-pressed="false" title="Pause ticker" hidden>
         <span aria-hidden="true">&#8545;</span>
       </button>
@@ -408,14 +410,14 @@
       <div class="site-shell observatory-hero__grid">
         <div class="hero-copy-block">
           <p class="hero-eyebrow">OPEN SECURITY INTELLIGENCE &bull; HUMAN + AGENT READY</p>
-          <h1 class="hero-title" id="home-title">From vulnerability intelligence to verified action<span class="hero-title__period">.</span></h1>
+          <h1 class="hero-title" id="home-title">Search CVEs. Remediate vulnerabilities with AI agents<span class="hero-title__period">.</span></h1>
           <p class="hero-summary">
             Research <strong>{{ homepageMetrics.cves.compact }}</strong> CVEs and
             <strong>{{ homepageMetrics.reviewedWorkflows.formatted }}</strong> reviewed workflows in a fast human interface&mdash;or give AI agents the same bounded context through MCP.
           </p>
           <div class="hero-actions">
-            <a class="button button--primary" href="/recipes/">Search CVEs &amp; Workflows</a>
-            <a class="button" href="/mcp-servers/">Connect via MCP</a>
+            <a class="button button--primary" href="/cve-database/">Search the CVE Database</a>
+            <a class="button" href="/security-remediation/">AI remediation playbooks</a>
             <a class="button button--text" href="https://github.com/stevologic/security-recipes.ai">View on GitHub <span class="button-arrow" aria-hidden="true">&rarr;</span></a>
           </div>
           <ul class="hero-trust" aria-label="Trust principles">
@@ -611,7 +613,7 @@
           </a>
           <a class="knowledge-card" href="/security-remediation/">
             <span class="knowledge-card__icon"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3 20 6.5v5.8c0 4.7-3 8-8 9.7-5-1.7-8-5-8-9.7V6.5L12 3Z"/><path d="m8.8 12.1 2.2 2.2 4.4-5"/></svg></span>
-            <div><h3>Governed Action</h3><p>Scope, verification, rollback, and proof.</p></div>
+            <div><h3>AI Vulnerability Remediation</h3><p>Agent playbooks with scope, verification, rollback, and proof.</p></div>
             <span class="knowledge-card__arrow" aria-hidden="true">&rarr;</span>
           </a>
         </div>
@@ -683,7 +685,7 @@
           <article class="adoption-card">
             <span class="adoption-card__label">Small teams</span>
             <h3>Start with one repository.</h3>
-            <p>Use one finding class, the agent you already trust, existing tests, and mandatory review for every change.</p>
+            <p>Use one finding class, follow the <a href="/agents/">AI agent setup guides</a> for the tool you already trust, keep existing tests, and require review for every change.</p>
           </article>
           <article class="adoption-card">
             <span class="adoption-card__label">Enterprise teams</span>
@@ -776,6 +778,7 @@
         <a href="/agents/">Agents</a>
         <a href="/mcp-servers/">MCP</a>
         <a href="/docs/">Docs</a>
+        <a href="/about/">About</a>
         <a href="https://github.com/stevologic/security-recipes.ai">GitHub</a>
       </nav>
       {% include "partials/footer-donations.njk" %}

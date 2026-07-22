@@ -85,8 +85,9 @@ emit() {
   local ip="$1"
   local status="$2"
   local timestamp="${3:-$(date +%s)}"
-  printf '{"level":"info","ts":%s.001,"logger":"http.log.access","msg":"handled request","request":{"remote_ip":"198.51.100.8","remote_port":"55000","client_ip":"%s","proto":"HTTP/2.0","method":"GET","host":"security-recipes.ai","uri":"/missing","headers":{}},"bytes_read":0,"duration":0.001,"size":0,"status":%s,"resp_headers":{}}\n' \
-    "${timestamp}" "${ip}" "${status}" >>"${access_log}"
+  local uri="${4:-/.env}"
+  printf '{"level":"info","ts":%s.001,"logger":"http.log.access","msg":"handled request","request":{"remote_ip":"198.51.100.8","remote_port":"55000","client_ip":"%s","proto":"HTTP/2.0","method":"GET","host":"security-recipes.ai","uri":"%s","headers":{}},"bytes_read":0,"duration":0.001,"size":0,"status":%s,"resp_headers":{}}\n' \
+    "${timestamp}" "${ip}" "${uri}" "${status}" >>"${access_log}"
 }
 
 is_banned() {
@@ -116,7 +117,17 @@ for _ in 1 2 3 4; do
 done
 sleep 1.2
 if is_banned "${four_ip}"; then
-  printf 'ERROR: four 404 responses triggered a ban.\n' >&2
+  printf 'ERROR: four scanner-path 404 responses triggered a ban.\n' >&2
+  exit 1
+fi
+
+benign_ip="203.0.113.39"
+for _ in 1 2 3 4 5 6 7 8 9 10; do
+  emit "${benign_ip}" 404 "$(date +%s)" "/cve/CVE-2026-999999/"
+done
+sleep 1.2
+if is_banned "${benign_ip}"; then
+  printf 'ERROR: ordinary CVE misses triggered a ban.\n' >&2
   exit 1
 fi
 
@@ -128,7 +139,7 @@ done
 emit "${stale_ip}" 404
 sleep 1.2
 if is_banned "${stale_ip}"; then
-  printf 'ERROR: 404 responses outside the five-second window triggered a ban.\n' >&2
+  printf 'ERROR: scanner-path 404 responses outside the five-second window triggered a ban.\n' >&2
   exit 1
 fi
 

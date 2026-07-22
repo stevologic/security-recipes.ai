@@ -1,17 +1,26 @@
 ---
-title: Agent Setup
+title: AI Agents for Vulnerability Remediation
 linkTitle: Agent Setup
+page_kind: collection
 weight: 3
 toc: true
 sidebar:
   open: true
 description: >
-  How to configure common AI coding agents to consume security recipes,
-  prompts, and scoped MCP context.
+  Compare Codex, Claude Code, Cursor, GitHub Copilot, and Devin for AI
+  vulnerability remediation, then configure bounded instructions, MCP context,
+  and review gates.
 ---
 
-Start with the agent your team already uses. The recipe pattern works across
-tools as long as the agent gets three things:
+Use this page to choose the best-supported tool for your team and configure its
+native instruction surface. For integration architecture that delivers recipes,
+finding evidence, and policy to an existing agent, use
+[AI agent security-context integration]({{< relref "/docs/agent-integration" >}}).
+For the end-to-end method, return to
+[AI vulnerability remediation playbooks]({{< relref "/security-remediation" >}}).
+
+Start with the agent your team already uses. The remediation pattern works
+across tools as long as the agent gets three things:
 
 - A local rule file or knowledge entry.
 - The specific security recipe for the finding.
@@ -38,7 +47,7 @@ Every agent page follows this shape:
 
 1. Create or update the agent's native instruction file.
 2. Add the remediation rules and stop conditions.
-3. Link or vendor the relevant security-recipes.ai recipe.
+3. Link or vendor the relevant [security-recipes.ai recipe](/recipes/).
 4. Add read-only MCP context only when the finding needs it.
 5. Run one low-risk finding and inspect the PR or triage note.
 6. Promote the pattern only after reviewers trust the output.

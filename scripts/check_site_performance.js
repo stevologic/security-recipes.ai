@@ -17,6 +17,18 @@ const PLAYBOOK_CONTENT = path.resolve("content/security-remediation");
 const MiB = 1024 * 1024;
 const KiB = 1024;
 const failures = [];
+const indexableTitles = new Map();
+const indexableDescriptions = new Map();
+const indexableCanonicals = new Map();
+const htmlOutputs = new Map();
+const indexableHtmlRoutes = new Set();
+const noindexHtmlRoutes = new Set();
+const forbiddenSearchSpam = [
+  /\b(?:NADIMTOGEL|BUGISTOTO)\b/i,
+  /\bslot\s+gacor\b/i,
+  /\btogel\b/i,
+  /\bgampang\s+scatter\s+maxwin\b/i,
+];
 
 function fail(message) {
   failures.push(message);
@@ -92,6 +104,420 @@ function routeForSource(file) {
   return `/recipes/cve/${path.basename(file, ".md")}/`;
 }
 
+function canonicalRouteForCve(cve) {
+  return `/cve/${cve}/`;
+}
+
+function outputForRoute(route) {
+  return path.join(ROOT, route.replace(/^\//, "").replace(/\/$/, ""), "index.html");
+}
+
+function routeForOutput(file) {
+  const relative = path.relative(ROOT, file).replace(/\\/g, "/");
+  return `/${relative.replace(/index\.html$/, "")}`;
+}
+
+function decodeHtmlAttribute(value) {
+  return String(value || "")
+    .replace(/&amp;/gi, "&")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#(?:39|x27);/gi, "'")
+    .replace(/&#(\d+);/g, (_, codePoint) => String.fromCodePoint(Number(codePoint)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, codePoint) =>
+      String.fromCodePoint(Number.parseInt(codePoint, 16)),
+    );
+}
+
+function outputRouteForPathname(pathname) {
+  if (htmlOutputs.has(pathname)) return pathname;
+  if (!pathname.endsWith("/") && htmlOutputs.has(`${pathname}/`)) return `${pathname}/`;
+  return "";
+}
+
+function checkInternalFragments() {
+  const targets = new Map();
+  for (const [route, html] of htmlOutputs) {
+    const ids = new Set(
+      Array.from(
+        html.matchAll(/\b(?:id|name)=(['"])([^'"]+)\1/gi),
+        (match) => decodeHtmlAttribute(match[2]),
+      ),
+    );
+    targets.set(route, ids);
+  }
+
+  for (const [sourceRoute, html] of htmlOutputs) {
+    for (const match of html.matchAll(/<a\b[^>]*\bhref=(['"])([^'"]+)\1/gi)) {
+      let destination;
+      try {
+        destination = new URL(
+          decodeHtmlAttribute(match[2]),
+          `https://security-recipes.ai${sourceRoute}`,
+        );
+      } catch {
+        continue;
+      }
+      if (destination.origin !== "https://security-recipes.ai" || destination.hash.length <= 1) {
+        continue;
+      }
+      const targetRoute = outputRouteForPathname(destination.pathname);
+      if (!targetRoute) continue;
+      let fragment;
+      try {
+        fragment = decodeURIComponent(destination.hash.slice(1));
+      } catch {
+        fragment = destination.hash.slice(1);
+      }
+      if (!targets.get(targetRoute).has(fragment)) {
+        fail(`broken internal fragment from ${sourceRoute} to ${targetRoute}#${fragment}`);
+      }
+    }
+  }
+}
+
+// Eleventy accepts functions for computed data. If one is accidentally placed
+// in ordinary template data, JavaScript's source text can leak into titles,
+// descriptions, canonical tags, or JSON-LD while the build still succeeds.
+function hasStringifiedMetadataFunction(html) {
+  const head = html.match(/<head\b[^>]*>([\s\S]*?)<\/head>/i)?.[1] || "";
+  const values = [
+    ...Array.from(head.matchAll(/<title\b[^>]*>([\s\S]*?)<\/title>/gi), (match) => match[1]),
+    ...Array.from(
+      head.matchAll(/<meta\b[^>]*\bcontent=(["'])([\s\S]*?)\1[^>]*>/gi),
+      (match) => match[2],
+    ),
+    ...Array.from(
+      head.matchAll(/<script\b[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi),
+      (match) => match[1],
+    ),
+  ];
+  return values.some((value) => {
+    const normalized = value.replace(/&gt;|&#(?:62|x3e);/gi, ">");
+    return /\[object Function\]|\b(?:async\s+)?function\s*[^<(]*\([^)]*\)\s*\{|(?:\([^()<>]{0,80}\)|\b(?:data|ctx|page|item)\b)\s*=>/i.test(normalized);
+  });
+}
+
+function hasBalancedSnippetDelimiters(value) {
+  const stack = [];
+  const closingToOpening = new Map([[')', '('], [']', '['], ['}', '{']]);
+  for (const character of String(value || "")) {
+    if (character === "(" || character === "[" || character === "{") {
+      stack.push(character);
+      continue;
+    }
+    const opening = closingToOpening.get(character);
+    if (!opening) continue;
+    if (stack.pop() !== opening) return false;
+  }
+  return stack.length === 0;
+}
+
+function checkIndexableHtml(relative, html) {
+  if (!/<(?:!doctype\s+html|html\b)/i.test(html)) return;
+  const isNoindex = /<meta\b[^>]*name=["'](?:robots|googlebot)["'][^>]*content=["'][^"']*noindex/i.test(html);
+  const isRedirect = /<meta\b[^>]*http-equiv=["']refresh["']/i.test(html);
+  const route = routeForOutput(path.join(ROOT, relative));
+  if (isNoindex) noindexHtmlRoutes.add(route);
+  if (isNoindex || isRedirect) return;
+  indexableHtmlRoutes.add(route);
+
+  const titleCount = (html.match(/<title\b/gi) || []).length;
+  if (titleCount !== 1) {
+    fail(`indexable HTML has ${titleCount} title elements; expected one: ${relative}`);
+  }
+  const title = html.match(/<title\b[^>]*>([\s\S]*?)<\/title>/i)?.[1].trim() || "";
+  if (!title) fail(`indexable HTML has no non-empty title: ${relative}`);
+  const descriptionCount = (
+    html.match(/<meta\b[^>]*name=["']description["'][^>]*>/gi) || []
+  ).length;
+  if (descriptionCount !== 1) {
+    fail(`indexable HTML has ${descriptionCount} meta descriptions; expected one: ${relative}`);
+  }
+  const description = html.match(
+    /<meta\b[^>]*name=["']description["'][^>]*content=["']([^"']+)["']/i,
+  )?.[1] || "";
+  if (!description) {
+    fail(`indexable HTML has no non-empty meta description: ${relative}`);
+  }
+  const canonicalCount = (
+    html.match(/<link\b[^>]*rel=["']canonical["'][^>]*>/gi) || []
+  ).length;
+  if (canonicalCount !== 1) {
+    fail(`indexable HTML has ${canonicalCount} canonical links; expected one: ${relative}`);
+  }
+  const canonical = html.match(
+    /<link\b[^>]*rel=["']canonical["'][^>]*href=["'](https?:\/\/[^"']+)["']/i,
+  )?.[1] || "";
+  if (!canonical) {
+    fail(`indexable HTML has no absolute canonical link: ${relative}`);
+  }
+  const ogImage = decodeHtmlAttribute(
+    html.match(/<meta\b[^>]*property=["']og:image["'][^>]*content=["']([^"']+)["']/i)?.[1] || "",
+  );
+  const twitterImage = decodeHtmlAttribute(
+    html.match(/<meta\b[^>]*name=["']twitter:image["'][^>]*content=["']([^"']+)["']/i)?.[1] || "",
+  );
+  const ogImageType = html.match(
+    /<meta\b[^>]*property=["']og:image:type["'][^>]*content=["']([^"']+)["']/i,
+  )?.[1] || "";
+  const ogImageWidth = Number.parseInt(html.match(
+    /<meta\b[^>]*property=["']og:image:width["'][^>]*content=["'](\d+)["']/i,
+  )?.[1] || "", 10);
+  const ogImageHeight = Number.parseInt(html.match(
+    /<meta\b[^>]*property=["']og:image:height["'][^>]*content=["'](\d+)["']/i,
+  )?.[1] || "", 10);
+  if (!ogImage || !/\.(?:png|jpe?g|webp)(?:[?#]|$)/iu.test(ogImage)) {
+    fail(`indexable HTML has no raster Open Graph image: ${relative}`);
+  }
+  if (!twitterImage || twitterImage !== ogImage) {
+    fail(`indexable HTML does not keep Twitter and Open Graph images aligned: ${relative}`);
+  }
+  if (!/^image\/(?:png|jpeg|webp)$/iu.test(ogImageType)) {
+    fail(`indexable HTML has an unsupported social image type: ${relative}`);
+  }
+  if (!Number.isSafeInteger(ogImageWidth) || !Number.isSafeInteger(ogImageHeight)) {
+    fail(`indexable HTML has no numeric social image dimensions: ${relative}`);
+  }
+  if (ogImage) {
+    try {
+      const imageUrl = new URL(ogImage);
+      if (imageUrl.origin === "https://security-recipes.ai") {
+        const imagePath = path.resolve(
+          ROOT,
+          decodeURIComponent(imageUrl.pathname).replace(/^\/+/, ""),
+        );
+        if (!imagePath.startsWith(`${ROOT}${path.sep}`) || !fs.existsSync(imagePath)) {
+          fail(`indexable HTML references a missing local social image: ${relative}`);
+        } else if (imageUrl.pathname.toLowerCase().endsWith(".png")) {
+          const png = fs.readFileSync(imagePath);
+          const signature = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
+          if (
+            png.length < 24 ||
+            !png.subarray(0, 8).equals(signature) ||
+            png.toString("ascii", 12, 16) !== "IHDR"
+          ) {
+            fail(`indexable HTML references an invalid PNG social image: ${relative}`);
+          } else if (
+            png.readUInt32BE(16) !== ogImageWidth ||
+            png.readUInt32BE(20) !== ogImageHeight
+          ) {
+            fail(`indexable HTML social image dimensions do not match the PNG: ${relative}`);
+          }
+        }
+      }
+    } catch {
+      fail(`indexable HTML has an invalid Open Graph image URL: ${relative}`);
+    }
+  }
+  const decodedTitle = decodeHtmlAttribute(title);
+  const decodedDescription = decodeHtmlAttribute(description);
+  for (const [label, value] of [
+    ["title", decodedTitle],
+    ["meta description", decodedDescription],
+  ]) {
+    if (/\u2026|&(?:hellip|#8230|#x2026);/iu.test(value)) {
+      fail(`indexable ${label} contains an artificial ellipsis: ${relative}`);
+    }
+    if (/`|\[[^\]]+\]\(/u.test(value)) {
+      fail(`indexable ${label} exposes Markdown presentation syntax: ${relative}`);
+    }
+  }
+  if (decodedDescription.length >= 170 && !/[.!?]$/u.test(decodedDescription)) {
+    fail(`long indexable meta description ends mid-thought: ${relative}`);
+  }
+  if (/(?:[,;:]|\(|\[|\{)\s*[.!?]$/u.test(decodedDescription)) {
+    fail(`indexable meta description has dangling punctuation: ${relative}`);
+  }
+  if (!hasBalancedSnippetDelimiters(decodedDescription)) {
+    fail(`indexable meta description has unbalanced delimiters: ${relative}`);
+  }
+  if (/\breviewers,\s+and\s+reviewers\b/iu.test(decodedDescription)) {
+    fail(`indexable meta description repeats its reviewer audience: ${relative}`);
+  }
+  if (/\[[^\]\n]{1,240}\]\(<a\b/iu.test(html)) {
+    fail(`indexable HTML exposes a malformed Markdown destination: ${relative}`);
+  }
+  if (/\bhref=["']http:\/\/(?:www\.)?security-recipes\.ai(?:[\/"'])/iu.test(html)) {
+    fail(`indexable HTML links to the canonical site over plain HTTP: ${relative}`);
+  }
+  for (const [value, index] of [
+    [title, indexableTitles],
+    [description, indexableDescriptions],
+    [canonical, indexableCanonicals],
+  ]) {
+    if (!value) continue;
+    if (!index.has(value)) index.set(value, []);
+    index.get(value).push(relative);
+  }
+
+  const h1Count = (html.match(/<h1\b/gi) || []).length;
+  if (h1Count !== 1) {
+    fail(`indexable HTML has ${h1Count} H1 elements; expected one: ${relative}`);
+  }
+  for (const image of html.matchAll(/<img\b[^>]*>/gi)) {
+    if (!/\bwidth=["']\d+["']/i.test(image[0]) || !/\bheight=["']\d+["']/i.test(image[0])) {
+      fail(`indexable HTML image has no intrinsic width and height: ${relative}`);
+    }
+  }
+
+  const structured = Array.from(
+    html.matchAll(/<script\b[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi),
+    (match) => match[1],
+  );
+  if (!structured.length) {
+    fail(`indexable HTML has no JSON-LD: ${relative}`);
+  }
+  const structuredEntities = [];
+  for (const document of structured) {
+    try {
+      const parsed = JSON.parse(document);
+      if (Array.isArray(parsed?.["@graph"])) structuredEntities.push(...parsed["@graph"]);
+      else if (parsed && typeof parsed === "object") structuredEntities.push(parsed);
+    } catch (error) {
+      fail(`indexable HTML has invalid JSON-LD (${error.message}): ${relative}`);
+    }
+  }
+
+  const hasType = (entity, type) => {
+    const values = Array.isArray(entity?.["@type"]) ? entity["@type"] : [entity?.["@type"]];
+    return values.includes(type);
+  };
+  const articleEntities = structuredEntities.filter((entity) => hasType(entity, "Article"));
+  const webPageEntities = structuredEntities.filter((entity) => hasType(entity, "WebPage"));
+  const hasCollectionPage = structuredEntities.some((entity) => hasType(entity, "CollectionPage"));
+  const hasWebPage = structuredEntities.some((entity) => hasType(entity, "WebPage"));
+  const ogType = html.match(
+    /<meta\b[^>]*property=["']og:type["'][^>]*content=["']([^"']+)["']/i,
+  )?.[1] || "";
+  const hasVisibleProvenance = /<aside\b[^>]*aria-label=["']Authorship and review["']/i.test(html);
+
+  if (ogType === "article") {
+    if (articleEntities.length !== 1) {
+      fail(`indexable article has ${articleEntities.length} Article entities; expected one: ${relative}`);
+    }
+    if (
+      !articleEntities.some((entity) => {
+        const values = Array.isArray(entity.additionalType)
+          ? entity.additionalType
+          : [entity.additionalType];
+        return values.includes("https://schema.org/TechArticle");
+      })
+    ) {
+      fail(`indexable article has no TechArticle classification: ${relative}`);
+    }
+    if (!hasVisibleProvenance) {
+      fail(`indexable article has no visible authorship and review provenance: ${relative}`);
+    }
+    const article = articleEntities[0] || {};
+    const webPage = webPageEntities[0] || {};
+    const publishedMeta = html.match(
+      /<meta\b[^>]*property=["']article:published_time["'][^>]*content=["']([^"']+)["']/i,
+    )?.[1] || "";
+    const modifiedMeta = html.match(
+      /<meta\b[^>]*property=["']article:modified_time["'][^>]*content=["']([^"']+)["']/i,
+    )?.[1] || "";
+    const visiblePublished = html.match(
+      /Published\s*<time\b[^>]*datetime=["']([^"']+)["']/i,
+    )?.[1] || "";
+    const visibleModified = html.match(
+      /Last updated\s*<time\b[^>]*datetime=["']([^"']+)["']/i,
+    )?.[1] || "";
+    if (!article.datePublished || !article.dateModified) {
+      fail(`indexable article has incomplete structured publication dates: ${relative}`);
+    }
+    if (
+      webPage.datePublished !== article.datePublished ||
+      webPage.dateModified !== article.dateModified
+    ) {
+      fail(`indexable article WebPage dates do not match its Article dates: ${relative}`);
+    }
+    if (
+      publishedMeta !== article.datePublished ||
+      modifiedMeta !== article.dateModified
+    ) {
+      fail(`indexable article Open Graph dates do not match structured data: ${relative}`);
+    }
+    if (
+      visiblePublished !== article.datePublished ||
+      visibleModified !== article.dateModified
+    ) {
+      fail(`indexable article visible dates do not match structured data: ${relative}`);
+    }
+    if (hasCollectionPage) {
+      fail(`indexable article also declares CollectionPage semantics: ${relative}`);
+    }
+  } else if (ogType === "website") {
+    if (articleEntities.length) {
+      fail(`indexable non-article declares Article structured data: ${relative}`);
+    }
+    if (!hasCollectionPage && !hasWebPage) {
+      fail(`indexable non-article has no WebPage or CollectionPage entity: ${relative}`);
+    }
+    if (hasVisibleProvenance) {
+      fail(`indexable non-article exposes article-only authorship provenance: ${relative}`);
+    }
+  } else {
+    fail(`indexable HTML has unsupported or missing Open Graph type: ${relative}`);
+  }
+}
+
+function checkIndexableLinksToNoindexTags() {
+  for (const sourceRoute of indexableHtmlRoutes) {
+    const html = htmlOutputs.get(sourceRoute) || "";
+    for (const match of html.matchAll(/<a\b[^>]*\bhref=(["'])([^"']+)\1/gi)) {
+      let destination;
+      try {
+        destination = new URL(
+          decodeHtmlAttribute(match[2]),
+          `https://security-recipes.ai${sourceRoute}`,
+        );
+      } catch {
+        continue;
+      }
+      if (destination.origin !== "https://security-recipes.ai") continue;
+      const targetRoute = outputRouteForPathname(destination.pathname);
+      if (
+        targetRoute.startsWith("/tags/") &&
+        noindexHtmlRoutes.has(targetRoute)
+      ) {
+        fail(`indexable page ${sourceRoute} links to noindex taxonomy ${targetRoute}`);
+      }
+    }
+  }
+}
+
+function checkIndexableOrphans() {
+  const inbound = new Map([...indexableHtmlRoutes].map((route) => [route, new Set()]));
+  for (const sourceRoute of indexableHtmlRoutes) {
+    const html = htmlOutputs.get(sourceRoute) || "";
+    for (const match of html.matchAll(/<a\b[^>]*\bhref=(["'])([^"']+)\1/gi)) {
+      let destination;
+      try {
+        destination = new URL(
+          decodeHtmlAttribute(match[2]),
+          `https://security-recipes.ai${sourceRoute}`,
+        );
+      } catch {
+        continue;
+      }
+      if (destination.origin !== "https://security-recipes.ai") continue;
+      const targetRoute = outputRouteForPathname(destination.pathname);
+      if (
+        targetRoute &&
+        targetRoute !== sourceRoute &&
+        indexableHtmlRoutes.has(targetRoute)
+      ) {
+        inbound.get(targetRoute).add(sourceRoute);
+      }
+    }
+  }
+  for (const [route, sources] of inbound) {
+    if (route !== "/" && sources.size === 0) {
+      fail(`indexable HTML is orphaned from every other indexable page: ${route}`);
+    }
+  }
+}
+
 if (!fs.existsSync(ROOT)) throw new Error(`site output does not exist: ${ROOT}`);
 if (!fs.existsSync(CONTENT)) throw new Error(`CVE content does not exist: ${CONTENT}`);
 
@@ -107,8 +533,70 @@ for (const file of files) {
   }
   if (generatedTextExtensions.has(path.extname(file).toLowerCase())) {
     const content = fs.readFileSync(file, "utf8");
+    for (const pattern of forbiddenSearchSpam) {
+      const match = content.match(pattern);
+      if (match) {
+        fail(`known search-spam signature ${JSON.stringify(match[0])} in ${relative}`);
+      }
+    }
     if (retiredNamespace.test(content)) {
       fail(`retired recipe namespace remains in generated text: ${relative}`);
+    }
+    if (path.extname(file).toLowerCase() === ".html" && hasStringifiedMetadataFunction(content)) {
+      fail(`generated metadata stringifies a JavaScript function: ${relative}`);
+    }
+    if (path.extname(file).toLowerCase() === ".html") {
+      htmlOutputs.set(routeForOutput(file), content);
+      if (/SRFENCE\d+/u.test(content)) {
+        fail(`generated HTML leaks a masked shortcode sentinel: ${relative}`);
+      }
+      if (/\uFFFD|\u00e2\u20ac\u2122/u.test(content)) {
+        fail(`generated HTML contains a source-encoding replacement artifact: ${relative}`);
+      }
+      checkIndexableHtml(relative, content);
+    }
+  }
+}
+checkInternalFragments();
+checkIndexableLinksToNoindexTags();
+checkIndexableOrphans();
+for (const file of files.filter((candidate) => candidate.endsWith("index.xml"))) {
+  const relative = path.relative(ROOT, file).replace(/\\/g, "/");
+  const xml = fs.readFileSync(file, "utf8");
+  if (/<rss\b/i.test(xml) && !/<item>/i.test(xml)) {
+    fail(`generated RSS feed has no items: ${relative}`);
+  }
+}
+for (const [sourceRoute, html] of htmlOutputs) {
+  for (const match of html.matchAll(
+    /<link\b[^>]*rel=["']alternate["'][^>]*type=["']application\/rss\+xml["'][^>]*href=["']([^"']+)["']/gi,
+  )) {
+    let destination;
+    try {
+      destination = new URL(decodeHtmlAttribute(match[1]), `https://security-recipes.ai${sourceRoute}`);
+    } catch {
+      fail(`invalid RSS alternate on ${sourceRoute}: ${match[1]}`);
+      continue;
+    }
+    if (destination.origin !== "https://security-recipes.ai") continue;
+    const output = path.join(ROOT, destination.pathname.replace(/^\//, ""));
+    if (!fs.existsSync(output)) {
+      fail(`RSS alternate on ${sourceRoute} has no generated feed: ${destination.pathname}`);
+      continue;
+    }
+    if (!/<item>/i.test(fs.readFileSync(output, "utf8"))) {
+      fail(`RSS alternate on ${sourceRoute} points to an empty feed: ${destination.pathname}`);
+    }
+  }
+}
+for (const [label, index] of [
+  ["title", indexableTitles],
+  ["meta description", indexableDescriptions],
+  ["canonical URL", indexableCanonicals],
+]) {
+  for (const [value, routes] of index) {
+    if (routes.length > 1) {
+      fail(`duplicate indexable ${label} across ${routes.join(", ")}: ${value}`);
     }
   }
 }
@@ -119,11 +607,29 @@ const cveHtml = files.filter((file) =>
   file.startsWith(path.join(ROOT, "recipes", "cve") + path.sep) && file.endsWith("index.html"),
 );
 const cveHtmlBytes = cveHtml.reduce((sum, file) => sum + fs.statSync(file).size, 0);
+const cveArchiveHtml = files.filter((file) =>
+  file.startsWith(path.join(ROOT, "cve", "archive") + path.sep) && file.endsWith("index.html"),
+);
+const cveArchiveHtmlBytes = cveArchiveHtml.reduce(
+  (sum, file) => sum + fs.statSync(file).size,
+  0,
+);
+const largestCveArchiveHtml = cveArchiveHtml.reduce(
+  (largest, file) => Math.max(largest, fs.statSync(file).size),
+  0,
+);
 
 budget("site output", totalBytes, 320 * MiB);
-if (files.length > 5500) fail(`site output has ${files.length.toLocaleString()} files; budget is 5,500`);
-if (cveHtml.length > 4000) fail(`CVE HTML has ${cveHtml.length.toLocaleString()} files; budget is 4,000`);
-budget("CVE HTML", cveHtmlBytes, 110 * MiB);
+if (files.length > 3000) fail(`site output has ${files.length.toLocaleString()} files; budget is 3,000`);
+if (cveHtml.length > 25) {
+  fail(`legacy CVE Markdown HTML has ${cveHtml.length.toLocaleString()} files; budget is 25`);
+}
+budget("legacy CVE Markdown HTML", cveHtmlBytes, 5 * MiB);
+if (cveArchiveHtml.length > 750) {
+  fail(`CVE archive has ${cveArchiveHtml.length.toLocaleString()} HTML pages; budget is 750`);
+}
+budget("CVE archive HTML", cveArchiveHtmlBytes, 120 * MiB);
+budget("largest CVE archive page", largestCveArchiveHtml, 512 * KiB);
 budget("CVE browser index", size("api/cve-catalog/browser-index.json.gz"), 8 * MiB);
 budget("CVE complete index manifest", size("api/cve-catalog/index.json"), 1 * MiB);
 budget("CVE runtime summary", size("api/cve-catalog/runtime-summary.json"), 8 * KiB);
@@ -281,65 +787,82 @@ for (const feed of [
 const cveSources = fs.readdirSync(CONTENT)
   .filter((name) => name.endsWith(".md") && name !== "_index.md")
   .map((name) => path.join(CONTENT, name));
-const stableRoutes = new Set();
 const stableOverrides = [];
-const developmentRoutes = new Set();
+const draftOverrides = [];
 for (const file of cveSources) {
   const source = fs.readFileSync(file, "utf8");
   const frontmatter = source.startsWith("---") ? source.slice(3, source.indexOf("---", 3)) : "";
   const match = frontmatter.match(/^maturity:\s*["']?([^"'\r\n]+)["']?\s*$/im);
-  const route = routeForSource(file);
+  const legacyRoute = routeForSource(file);
+  const cve = String(
+    frontmatter.match(/^cve:\s*["']?(CVE-\d{4}-\d{4,7})["']?\s*$/im)?.[1] || ""
+  ).toUpperCase();
+  const canonicalCveRoute = !/^canonical_cve_route:\s*false\s*$/im.test(frontmatter);
+  const override = {
+    sourceFile: path.relative(path.resolve("content"), file).replace(/\\/g, "/"),
+    legacyRoute,
+    cve,
+    canonicalCveRoute,
+    expectedRoute: canonicalCveRoute && cve ? canonicalRouteForCve(cve) : legacyRoute,
+  };
   if (String(match?.[1] || "").trim().toLowerCase() === "stable") {
-    const cve = String(
-      frontmatter.match(/^cve:\s*["']?(CVE-\d{4}-\d{4,7})["']?\s*$/im)?.[1] || ""
-    ).toUpperCase();
-    const canonicalCveRoute =
-      !/^canonical_cve_route:\s*false\s*$/im.test(frontmatter);
-    stableRoutes.add(route);
-    stableOverrides.push({ route, cve, canonicalCveRoute });
+    stableOverrides.push(override);
   } else {
-    developmentRoutes.add(route);
+    draftOverrides.push(override);
   }
 }
-if (!stableRoutes.size) fail("no stable CVE Markdown overrides were found");
-if (!developmentRoutes.size) fail("no development CVE Markdown compatibility pages were found");
+if (!stableOverrides.length) fail("no stable CVE Markdown overrides were found");
+if (!draftOverrides.length) fail("no development CVE Markdown drafts were found");
 
-for (const [label, route, expectNoindex] of [
-  ["stable", stableRoutes.values().next().value, false],
-  ["development", developmentRoutes.values().next().value, true],
-]) {
-  const output = path.join(ROOT, route.replace(/^\//, "").replace(/\/$/, ""), "index.html");
+const canonicalStableOverrides = stableOverrides.filter((override) => override.canonicalCveRoute);
+const historicalStableOverrides = stableOverrides.filter((override) => !override.canonicalCveRoute);
+const stableRoutes = new Set(stableOverrides.map((override) => override.expectedRoute));
+const developmentRoutes = new Set(draftOverrides.map((override) => override.legacyRoute));
+
+// Canonicalized reviewed records and drafts are runtime/catalog concerns; their
+// old Markdown slugs must not consume static files or become crawl targets.
+for (const override of [...canonicalStableOverrides, ...draftOverrides]) {
+  const output = outputForRoute(override.legacyRoute);
+  if (fs.existsSync(output)) {
+    fail(`superseded CVE Markdown URL was rendered: ${override.legacyRoute}`);
+  }
+}
+
+// A small set of historical reviewed recipes explicitly opts out of the
+// runtime catalog route. Those remain complete, indexable static documents.
+for (const override of historicalStableOverrides) {
+  const { legacyRoute: route } = override;
+  const output = outputForRoute(route);
   if (!fs.existsSync(output)) {
-    fail(`missing representative ${label} CVE detail page: ${route}`);
+    fail(`missing historical stable CVE detail page: ${route}`);
     continue;
   }
   const html = fs.readFileSync(output, "utf8");
   const h1Count = (html.match(/<h1\b/g) || []).length;
-  if (h1Count !== 1) fail(`${label} CVE detail ${route} renders ${h1Count} H1 elements; expected one`);
+  if (h1Count !== 1) fail(`historical CVE detail ${route} renders ${h1Count} H1 elements; expected one`);
   if (!html.includes('data-cve-detail-page="true"') || !html.includes("/css/cve-detail.css")) {
-    fail(`${label} CVE detail ${route} is missing its server-rendered detail theme`);
+    fail(`historical CVE detail ${route} is missing its server-rendered detail theme`);
   }
   if (html.includes("/css/cve-catalog.css") || html.includes("/js/cve-catalog.js")) {
-    fail(`${label} CVE detail ${route} loads standalone database catalog assets`);
+    fail(`historical CVE detail ${route} loads standalone database catalog assets`);
   }
   if (!html.includes('<a href="/cve-database/">CVE Database</a>')) {
-    fail(`${label} CVE detail ${route} is missing its CVE Database breadcrumb`);
+    fail(`historical CVE detail ${route} is missing its CVE Database breadcrumb`);
   }
   if (!html.includes('href="/cve-database/" aria-current="page">CVE Database</a>')) {
-    fail(`${label} CVE detail ${route} is missing its current CVE Database navigation item`);
+    fail(`historical CVE detail ${route} is missing its current CVE Database navigation item`);
   }
   if (!html.includes(`<link rel="canonical" href="`) || !html.includes(route)) {
-    fail(`${label} CVE detail ${route} is missing its canonical deep URL`);
+    fail(`historical CVE detail ${route} is missing its canonical deep URL`);
   }
   if (!/"item":"https?:[^"]*\/cve-database\/"/.test(html)) {
-    fail(`${label} CVE detail ${route} does not identify CVE Database in structured breadcrumbs`);
+    fail(`historical CVE detail ${route} does not identify CVE Database in structured breadcrumbs`);
   }
   if (/"item":"https?:[^"]*\/recipes\/"/.test(html)) {
-    fail(`${label} CVE detail ${route} retains Recipes in structured breadcrumbs`);
+    fail(`historical CVE detail ${route} retains Recipes in structured breadcrumbs`);
   }
-  const hasNoindex = html.includes('name="robots" content="noindex,nofollow"');
-  if (hasNoindex !== expectNoindex) {
-    fail(`${label} CVE detail ${route} has an unexpected indexing policy`);
+  if (html.includes('name="robots" content="noindex')) {
+    fail(`historical CVE detail ${route} is unexpectedly noindex`);
   }
 }
 
@@ -380,8 +903,10 @@ if (fs.existsSync(recipeLibraryPath)) {
 }
 
 const cveDatabasePath = path.join(ROOT, "cve-database", "index.html");
-if (fs.existsSync(cveDatabasePath)) {
-  const cveDatabase = fs.readFileSync(cveDatabasePath, "utf8");
+const cveDatabase = fs.existsSync(cveDatabasePath)
+  ? fs.readFileSync(cveDatabasePath, "utf8")
+  : "";
+if (cveDatabase) {
   if (!cveDatabase.includes("data-cve-catalog")) {
     fail("CVE Database does not mount the catalog");
   }
@@ -394,16 +919,43 @@ if (fs.existsSync(cveDatabasePath)) {
 }
 
 const compatibleSurfaces = [
-  ["docs search", new Set(docs.map((item) => item.path))],
-  ["rich agent feed", new Set(rich.map((item) => item.path))],
-  ["MCP recipe feed", new Set(mcp.map((item) => item.path))],
+  ["docs search", docs],
+  ["rich agent feed", rich],
+  ["MCP recipe feed", mcp],
 ];
-for (const [label, routes] of compatibleSurfaces) {
-  for (const route of stableRoutes) {
-    if (!routes.has(route)) fail(`${label} is missing stable override ${route}`);
+for (const [label, items] of compatibleSurfaces) {
+  const bySource = new Map();
+  for (const item of items) {
+    if (!bySource.has(item.source_file)) bySource.set(item.source_file, []);
+    bySource.get(item.source_file).push(item);
   }
-  for (const route of developmentRoutes) {
-    if (routes.has(route)) fail(`${label} exposes development CVE draft ${route}`);
+  for (const override of stableOverrides) {
+    const matches = bySource.get(override.sourceFile) || [];
+    if (matches.length !== 1) {
+      fail(
+        `${label} has ${matches.length} records for stable override ${override.sourceFile}; expected one`,
+      );
+      continue;
+    }
+    if (matches[0].path !== override.expectedRoute) {
+      fail(
+        `${label} publishes ${override.sourceFile} at ${matches[0].path}; expected ${override.expectedRoute}`,
+      );
+    }
+    let absolutePath = "";
+    try {
+      absolutePath = new URL(matches[0].url).pathname;
+    } catch {
+      // The policy failure below covers missing and malformed absolute URLs.
+    }
+    if (absolutePath !== override.expectedRoute) {
+      fail(`${label} has a non-canonical absolute URL for ${override.sourceFile}`);
+    }
+  }
+  for (const override of draftOverrides) {
+    if (bySource.has(override.sourceFile)) {
+      fail(`${label} exposes development CVE draft ${override.sourceFile}`);
+    }
   }
 }
 
@@ -429,6 +981,8 @@ if (!pagesSitemap) fail("missing required output: sitemaps/pages.xml");
 if (!sitemap.includes("/sitemaps/pages.xml")) {
   fail("root sitemap index does not reference /sitemaps/pages.xml");
 }
+const pagesSitemapHas = (route) =>
+  pagesSitemap.includes(`<loc>https://security-recipes.ai${route}</loc>`);
 
 const indexedSitemapRoutes = Array.from(
   sitemap.matchAll(/<loc>https?:\/\/[^/]+(\/[^<]+)<\/loc>/g),
@@ -446,17 +1000,28 @@ function readIndexedSitemap(route) {
 
 for (const override of stableOverrides) {
   if (!override.canonicalCveRoute) {
-    if (!pagesSitemap.includes(override.route)) {
-      fail(`pages sitemap is missing historical stable override ${override.route}`);
+    if (!pagesSitemapHas(override.legacyRoute)) {
+      fail(`pages sitemap is missing historical stable override ${override.legacyRoute}`);
+    }
+    if (/^CVE-\d{4}-\d{4,7}$/.test(override.cve)) {
+      const dynamicRoute = canonicalRouteForCve(override.cve);
+      const year = override.cve.slice(4, 8);
+      for (const route of indexedSitemapRoutes.filter((candidate) =>
+        new RegExp(`^/sitemaps/cves-${year}(?:-\\d+)?\\.xml$`).test(candidate)
+      )) {
+        if (readIndexedSitemap(route).includes(dynamicRoute)) {
+          fail(`CVE sitemaps expose competing dynamic route ${dynamicRoute}`);
+        }
+      }
     }
     continue;
   }
   if (!/^CVE-\d{4}-\d{4,7}$/.test(override.cve)) {
-    fail(`stable override ${override.route} is missing a canonical CVE ID`);
+    fail(`stable override ${override.legacyRoute} is missing a canonical CVE ID`);
     continue;
   }
-  if (pagesSitemap.includes(override.route)) {
-    fail(`pages sitemap exposes superseded CVE alias ${override.route}`);
+  if (pagesSitemapHas(override.legacyRoute)) {
+    fail(`pages sitemap exposes superseded CVE alias ${override.legacyRoute}`);
   }
   const year = override.cve.slice(4, 8);
   const yearSitemaps = indexedSitemapRoutes.filter((route) =>
@@ -471,18 +1036,179 @@ for (const override of stableOverrides) {
     fail(`CVE sitemaps are missing canonical route ${canonicalRoute}`);
   }
 }
-for (const route of developmentRoutes) {
-  if (pagesSitemap.includes(route)) fail(`pages sitemap exposes development CVE draft ${route}`);
+for (const override of draftOverrides) {
+  if (pagesSitemapHas(override.legacyRoute)) {
+    fail(`pages sitemap exposes development CVE draft ${override.legacyRoute}`);
+  }
 }
 
-for (const route of developmentRoutes) {
-  const html = path.join(ROOT, route.replace(/^\//, "").replace(/\/$/, ""), "index.html");
-  if (!fs.existsSync(html)) {
-    fail(`development compatibility URL was not rendered: ${route}`);
-    continue;
+if (!cveArchiveHtml.length) fail("no crawlable CVE archive HTML pages were generated");
+if (pagesSitemap.includes("/cve/archive/")) {
+  fail("pages sitemap exposes the noindex CVE archive");
+}
+
+const searchIndexableRecords = readJson("api/cve-catalog/search-indexable.json")?.records || [];
+const historicalCanonicalRoutes = new Map(
+  historicalStableOverrides
+    .filter((override) => /^CVE-\d{4}-\d{4,7}$/.test(override.cve))
+    .map((override) => [override.cve, override.legacyRoute]),
+);
+const qualifiedCanonicalRoutes = new Map(
+  searchIndexableRecords
+    .filter((record) => /^CVE-\d{4}-\d{4,7}$/.test(String(record?.cve || "")))
+    .map((record) => {
+      const cve = String(record.cve);
+      return [cve, historicalCanonicalRoutes.get(cve) || canonicalRouteForCve(cve)];
+    }),
+);
+const databaseQualifiedLinks = Array.from(
+  cveDatabase.matchAll(
+    /<a href=["']([^"']+)["'] data-qualified-cve-link=["'](CVE-\d{4}-\d{4,7})["']>/g,
+  ),
+  (match) => ({ route: match[1], cve: match[2] }),
+);
+if (databaseQualifiedLinks.length !== qualifiedCanonicalRoutes.size) {
+  fail(
+    `CVE Database renders ${databaseQualifiedLinks.length} qualified canonical links; ` +
+    `expected ${qualifiedCanonicalRoutes.size}`,
+  );
+}
+for (const [cve, route] of qualifiedCanonicalRoutes) {
+  const matching = databaseQualifiedLinks.filter(
+    (entry) => entry.cve === cve && entry.route === route,
+  );
+  if (matching.length !== 1) {
+    fail(`CVE Database does not expose exactly one canonical qualified link for ${cve}`);
   }
-  if (!fs.readFileSync(html, "utf8").includes('name="robots" content="noindex,nofollow"')) {
-    fail(`development compatibility URL is not marked noindex: ${route}`);
+}
+const expectedHistoricalDatabaseRoutes = new Map(
+  [...historicalCanonicalRoutes].filter(([cve]) => !qualifiedCanonicalRoutes.has(cve)),
+);
+const databaseHistoricalLinks = Array.from(
+  cveDatabase.matchAll(
+    /<a href=["']([^"']+)["'] data-historical-cve-link=["'](CVE-\d{4}-\d{4,7})["']>/g,
+  ),
+  (match) => ({ route: match[1], cve: match[2] }),
+);
+if (databaseHistoricalLinks.length !== expectedHistoricalDatabaseRoutes.size) {
+  fail(
+    `CVE Database renders ${databaseHistoricalLinks.length} historical reviewed links; ` +
+    `expected ${expectedHistoricalDatabaseRoutes.size}`,
+  );
+}
+for (const [cve, route] of expectedHistoricalDatabaseRoutes) {
+  const matching = databaseHistoricalLinks.filter(
+    (entry) => entry.cve === cve && entry.route === route,
+  );
+  if (matching.length !== 1) {
+    fail(`CVE Database does not expose exactly one historical reviewed link for ${cve}`);
+  }
+}
+for (const route of [
+  "/security-remediation/",
+  "/security-remediation/vulnerable-dependencies/",
+  "/recipes/general/cve-intelligence-intake-gate/",
+]) {
+  if (!cveDatabase.includes(`href="${route}"`)) {
+    fail(`CVE Database is missing its remediation-cluster link to ${route}`);
+  }
+}
+const archiveTargets = new Set(qualifiedCanonicalRoutes.values());
+const allowedArchiveTargets = new Set(archiveTargets);
+const allowedHistoricalArchiveTargets = new Set(historicalCanonicalRoutes.values());
+const forbiddenArchiveTargets = new Set(
+  historicalStableOverrides
+    .filter((override) => /^CVE-\d{4}-\d{4,7}$/.test(override.cve))
+    .map((override) => canonicalRouteForCve(override.cve)),
+);
+let archiveCanonicalLinks = 0;
+for (const file of cveArchiveHtml) {
+  const route = routeForOutput(file);
+  if (pagesSitemapHas(route)) {
+    fail(`pages sitemap exposes generated noindex CVE archive page ${route}`);
+  }
+  const html = fs.readFileSync(file, "utf8");
+  if (
+    !html.includes('<meta name="robots" content="noindex,follow">') ||
+    !html.includes('<meta name="googlebot" content="noindex,follow">')
+  ) {
+    fail(`CVE archive page is not noindex,follow: ${route}`);
+  }
+  if (!html.includes(`<link rel="canonical" href="https://security-recipes.ai${route}">`)) {
+    fail(`CVE archive page is not self-canonical: ${route}`);
+  }
+  if (
+    !html.includes('"@type":"CollectionPage"') ||
+    html.includes('"additionalType":"https://schema.org/TechArticle"')
+  ) {
+    fail(`CVE archive page does not expose collection semantics: ${route}`);
+  }
+  if (!html.includes('<meta property="og:type" content="website">')) {
+    fail(`CVE archive page has non-collection Open Graph semantics: ${route}`);
+  }
+  const historicalLinks = Array.from(
+    html.matchAll(/href=["'](\/recipes\/cve\/[^"']+\/)["']/gi),
+    (match) => match[1],
+  );
+  for (const target of historicalLinks) {
+    if (!allowedHistoricalArchiveTargets.has(target)) {
+      fail(`CVE archive page contains an unexpected Markdown CVE link ${target}: ${route}`);
+    }
+  }
+  const dynamicLinks = Array.from(
+    html.matchAll(/href=["'](\/cve\/CVE-\d{4}-\d{4,7}\/)["']/g),
+    (match) => match[1],
+  );
+  for (const target of dynamicLinks) {
+    if (!allowedArchiveTargets.has(target)) {
+      fail(`CVE archive page links an unqualified dynamic record ${target}: ${route}`);
+    }
+  }
+  const canonicalLinks = [...dynamicLinks, ...historicalLinks];
+  archiveCanonicalLinks += canonicalLinks.length;
+  if (route !== "/cve/archive/" && canonicalLinks.length === 0) {
+    fail(`CVE archive page has no crawlable canonical CVE links: ${route}`);
+  }
+  for (const target of [...archiveTargets]) {
+    if (html.includes(`href="${target}"`) || html.includes(`href='${target}'`)) {
+      archiveTargets.delete(target);
+    }
+  }
+  for (const target of forbiddenArchiveTargets) {
+    if (html.includes(`href="${target}"`) || html.includes(`href='${target}'`)) {
+      fail(`CVE archive exposes competing dynamic route ${target}`);
+    }
+  }
+}
+if (!archiveCanonicalLinks) fail("CVE archive contains no canonical CVE links");
+for (const target of archiveTargets) {
+  fail(`CVE archive is missing reviewed canonical record ${target}`);
+}
+
+const cveRssPath = path.join(ROOT, "cve-database", "index.xml");
+if (!fs.existsSync(cveRssPath)) {
+  fail("missing required output: cve-database/index.xml");
+} else {
+  const rss = fs.readFileSync(cveRssPath, "utf8");
+  const items = Array.from(rss.matchAll(/<item>([\s\S]*?)<\/item>/g), (match) => match[1]);
+  if (!items.length) fail("CVE Database RSS has no items");
+  if (items.length > 100) fail(`CVE Database RSS has ${items.length} items; budget is 100`);
+  for (const [index, item] of items.entries()) {
+    const link = item.match(/<link>(https?:\/\/[^<]+)<\/link>/)?.[1] || "";
+    const guid = item.match(/<guid>(https?:\/\/[^<]+)<\/guid>/)?.[1] || "";
+    let linkUrl;
+    try {
+      linkUrl = new URL(link);
+    } catch {
+      // The canonical-link failure below also covers malformed URLs.
+    }
+    if (
+      linkUrl?.origin !== "https://security-recipes.ai" ||
+      !allowedArchiveTargets.has(linkUrl?.pathname)
+    ) {
+      fail(`CVE Database RSS item ${index + 1} has a non-canonical link: ${link || "(missing)"}`);
+    }
+    if (guid !== link) fail(`CVE Database RSS item ${index + 1} GUID does not match its link`);
   }
 }
 
@@ -494,6 +1220,6 @@ if (failures.length) {
 
 console.log(
   `Performance budgets passed: ${files.length.toLocaleString()} files, ` +
-  `${(totalBytes / MiB).toFixed(1)} MiB, ${cveHtml.length.toLocaleString()} CVE HTML pages, ` +
-  `${stableRoutes.size} stable overrides, ${developmentRoutes.size.toLocaleString()} noindex compatibility drafts.`,
+  `${(totalBytes / MiB).toFixed(1)} MiB, ${cveArchiveHtml.length.toLocaleString()} CVE archive pages, ` +
+  `${stableOverrides.length} stable overrides, ${draftOverrides.length.toLocaleString()} unrendered drafts.`,
 );

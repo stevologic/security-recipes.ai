@@ -1,6 +1,7 @@
 ---
 title: Reputable Prompt Sources
 linkTitle: Prompt Sources
+page_kind: collection
 weight: 10
 toc: true
 sidebar:

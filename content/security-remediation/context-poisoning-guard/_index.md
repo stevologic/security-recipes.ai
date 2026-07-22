@@ -2,6 +2,8 @@
 title: Context Poisoning Guard
 linkTitle: Context Poisoning Guard
 weight: 10
+date: 2026-05-02
+lastmod: 2026-07-13
 toc: true
 description: >
   A generated pre-retrieval scanner for the secure context layer:

@@ -2,6 +2,8 @@
 title: Agentic Measurement Probes
 linkTitle: Measurement Probes
 weight: 6
+date: 2026-05-02
+lastmod: 2026-07-13
 sidebar:
   exclude: true
 description: >

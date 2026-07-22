@@ -2,6 +2,8 @@
 title: Sensitive Data Element Remediation
 linkTitle: Sensitive Data Element Remediation
 weight: 1
+date: 2026-04-22
+lastmod: 2026-07-21
 sidebar:
   open: true
 description: >
@@ -37,6 +39,15 @@ or a dedicated DLP product for data-in-motion. The
 [Automation page]({{< relref "/automation" >}}) catalogs the
 common scanners; the agentic remediation here picks up *after*
 the scanner has fired.
+
+## Run this playbook with your agent
+
+Apply the shared safety contract below with the implementation for
+[Claude Code]({{< relref "/recipes/claude/sensitive-data-remediation-skill" >}}),
+[Codex]({{< relref "/recipes/codex/sensitive-data-remediation" >}}),
+[Cursor]({{< relref "/recipes/cursor/sensitive-data-remediation" >}}),
+[Devin]({{< relref "/recipes/devin/scheduled-sde-remediation" >}}), or
+[GitHub Copilot]({{< relref "/recipes/github_copilot/sensitive-data-remediation" >}}).
 
 {{< playbook-workflow >}}
 

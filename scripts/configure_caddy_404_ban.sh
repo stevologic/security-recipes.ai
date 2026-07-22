@@ -12,11 +12,14 @@ FAIL2BAN_CONFIG_DIR="${FAIL2BAN_CONFIG_DIR:-/etc/fail2ban}"
 CADDY_ACCESS_LOG="${SECURITY_RECIPES_CADDY_ACCESS_LOG:-/var/log/caddy/access.log}"
 FILTER_NAME="security-recipes-caddy-404.conf"
 JAIL_NAME="security-recipes-caddy-404.local"
+GOOGLEBOT_VERIFIER_NAME="security-recipes-verify-googlebot.py"
 FILTER_SOURCE="${SOURCE_ROOT}/filter.d/${FILTER_NAME}"
 JAIL_SOURCE="${SOURCE_ROOT}/jail.d/${JAIL_NAME}"
+GOOGLEBOT_VERIFIER_SOURCE="${SOURCE_ROOT}/verify_googlebot_ip.py"
 FILTER_TEST_LOG="${SOURCE_ROOT}/testdata/caddy-404-sample.jsonl"
 FILTER_DEST="${FAIL2BAN_CONFIG_DIR}/filter.d/${FILTER_NAME}"
 JAIL_DEST="${FAIL2BAN_CONFIG_DIR}/jail.d/${JAIL_NAME}"
+GOOGLEBOT_VERIFIER_DEST="/usr/local/bin/${GOOGLEBOT_VERIFIER_NAME}"
 CHANGED="false"
 TEMP_FILES=()
 
@@ -81,13 +84,24 @@ verify_bundled_caddy_log_mount() {
 [[ "${CADDY_ACCESS_LOG}" != *$'\n'* && "${CADDY_ACCESS_LOG}" != *$'\r'* ]] ||
   die "SECURITY_RECIPES_CADDY_ACCESS_LOG cannot contain line breaks."
 
-for source in "${FILTER_SOURCE}" "${JAIL_SOURCE}" "${FILTER_TEST_LOG}"; do
+for source in \
+  "${FILTER_SOURCE}" \
+  "${JAIL_SOURCE}" \
+  "${GOOGLEBOT_VERIFIER_SOURCE}" \
+  "${FILTER_TEST_LOG}"; do
   [[ -f "${source}" ]] || die "Required source file is missing: ${source}"
 done
 command -v fail2ban-client >/dev/null 2>&1 || die "fail2ban is not installed."
 command -v fail2ban-regex >/dev/null 2>&1 || die "fail2ban-regex is not installed."
 command -v nft >/dev/null 2>&1 || die "nftables is not installed."
 command -v systemctl >/dev/null 2>&1 || die "systemd is required to manage fail2ban."
+[[ -x /usr/bin/python3 ]] || die "/usr/bin/python3 is required for Googlebot IP verification."
+
+verifier_check_status=0
+/usr/bin/python3 "${GOOGLEBOT_VERIFIER_SOURCE}" not-an-ip \
+  >/dev/null 2>&1 || verifier_check_status=$?
+[[ "${verifier_check_status}" -eq 2 ]] ||
+  die "The Googlebot IP verifier failed its startup validation."
 
 verify_bundled_caddy_log_mount
 
@@ -135,6 +149,7 @@ log "Validating the staged Fail2Ban configuration before installation."
 fail2ban-client -c "${validation_dir}" -t >/dev/null ||
   die "Fail2Ban rejected the managed Caddy 404 jail; the daemon was not reloaded."
 
+atomic_install "${GOOGLEBOT_VERIFIER_SOURCE}" "${GOOGLEBOT_VERIFIER_DEST}"
 atomic_install "${FILTER_SOURCE}" "${FILTER_DEST}"
 atomic_install "${jail_rendered}" "${JAIL_DEST}"
 
@@ -149,4 +164,4 @@ fi
 
 fail2ban-client status security-recipes-caddy-404 >/dev/null ||
   die "The security-recipes-caddy-404 jail is not running."
-log "Active: 5 final 404 responses in 5 seconds trigger a 1-hour web ban."
+log "Active: verified Googlebot IPs are exempt; 5 final 404 responses in 5 seconds trigger a 1-hour web ban for other clients."

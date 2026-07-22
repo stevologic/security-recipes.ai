@@ -2,6 +2,8 @@
 title: Evidence Bundles
 linkTitle: Evidence Bundles
 weight: 14
+date: 2026-07-10
+lastmod: 2026-07-21
 sidebar:
   open: true
 description: >
@@ -175,6 +177,8 @@ enterprises without hiding the control surface:
 ## See also
 
 - [Agentic Run Receipts]({{< relref "/security-remediation/agentic-run-receipts" >}}) - the per-run evidence contract that bundles package
+- [Agentic Approval Receipt Pack]({{< relref "/security-remediation/agentic-approval-receipts" >}}) - signed approval and denial evidence across gated actions
+- [Secure Context Evidence Contract]({{< relref "/security-remediation/secure-context-evidence-contract" >}}) - the portable contract for source lineage, policy, and validation evidence
 - [Compliance & Audit]({{< relref "/security-remediation/compliance" >}}) - control mapping and auditor questions
 - [Program Metrics & KPIs]({{< relref "/security-remediation/metrics" >}}) - operational measurements that complement evidence bundles
 - [MCP Server Access]({{< relref "/mcp-servers" >}}) - where tool-call logs and policy events originate

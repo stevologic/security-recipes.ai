@@ -11,8 +11,19 @@ sidebar:
 
 Type, static-analysis, exception, stream, and resource hygiene.
 
-Select one bounded recipe. Start in audit mode; authorize fixes only after reviewing the candidate evidence.
+## Choose a focused PHP recipe
 
-## Recipes
+This collection contains 2 bounded PHP workflows. Choose the recipe whose objective matches the repository evidence instead of combining unrelated cleanup into one run.
+
+- **[PHP strict types, static analysis, and suppression debt]({{< relref "/recipes/general/code-hygiene/php/php-strict-types-static-analysis-and-suppression-debt" >}}):** Use it to narrow mixed values and static-analysis suppressions without breaking framework boundaries.
+- **[PHP exception, stream, and resource lifecycle]({{< relref "/recipes/general/code-hygiene/php/php-exception-stream-and-resource-lifecycle" >}}):** Use it to close resources and preserve failure context across PHP request and worker paths.
+
+## How to use this collection
+
+Read the repository's configured runtime, compiler, framework, analyzer, and test commands before selecting a workflow. Start in audit mode, record file and symbol evidence, and authorize a fix only after the candidate scope is reviewable. Preserve supported versions, public behavior, and existing tool configuration.
+
+If the evidence is a named CVE, scanner finding, exposed secret, authorization flaw, or injection path, use the focused vulnerability-remediation playbook instead of a code-hygiene recipe. Stop when the safe result requires an owner decision about architecture, compatibility, production data, or deployment state.
+
+## Full recipe list
 
 {{< prompt-toc >}}

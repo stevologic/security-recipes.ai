@@ -2,6 +2,8 @@
 title: Secure Context Lineage Ledger
 linkTitle: Secure Context Lineage
 weight: 10
+date: 2026-05-04
+lastmod: 2026-07-13
 sidebar:
   exclude: true
 description: >

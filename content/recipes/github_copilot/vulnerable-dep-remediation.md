@@ -1,5 +1,5 @@
 ---
-title: "Vulnerable dependency remediation (issue template + instructions)"
+title: "GitHub Copilot Vulnerable Dependency Remediation"
 linkTitle: "Vulnerable dep remediation"
 tool: "github_copilot"
 author: "Stephen M Abbott"

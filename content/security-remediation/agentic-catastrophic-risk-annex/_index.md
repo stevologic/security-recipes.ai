@@ -2,6 +2,8 @@
 title: Agentic Catastrophic Risk Annex
 linkTitle: Catastrophic Risk Annex
 weight: 18
+date: 2026-05-04
+lastmod: 2026-07-13
 toc: true
 description: >
   Generated severe-risk annex for high-impact agentic AI decisions:

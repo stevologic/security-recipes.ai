@@ -2,6 +2,8 @@
 title: Agentic Red-Team Drill Pack
 linkTitle: Red-Team Drill Pack
 weight: 7
+date: 2026-05-02
+lastmod: 2026-07-13
 sidebar:
   exclude: true
 description: >

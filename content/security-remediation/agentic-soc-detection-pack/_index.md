@@ -2,6 +2,8 @@
 title: Agentic SOC Detection Pack
 linkTitle: SOC Detection Pack
 weight: 7
+date: 2026-05-05
+lastmod: 2026-07-13
 sidebar:
   exclude: true
 description: >

@@ -1,8 +1,10 @@
 ﻿---
-title: Claude
+title: Claude Code Vulnerability Remediation
 linkTitle: Claude
 weight: 5
-description: Enable agentic remediation with Claude Code, the Agent SDK, and MCP.
+date: 2026-04-21
+lastmod: 2026-07-21
+description: Use Claude Code, the Agent SDK, and read-only MCP context to remediate vulnerabilities with scoped tools, safety hooks, verification, and human review.
 sidebar:
   open: true
 ---
@@ -15,7 +17,7 @@ hooks blocking unsafe edits before they happen.
 
 {{< callout type="warning" >}}
 **In a hurry?** The
-[**Quick Start**]({{< relref "/quickstart#claude-five-minute-path" >}})
+[**Quick Start**]({{< relref "/quickstart#the-loop" >}})
 is a five-minute path to your first agentic remediation PR with
 Claude. Come back here for the full recipe once that loop is working.
 {{< /callout >}}
@@ -25,12 +27,46 @@ drive end-to-end remediation: triage, fix, test, and ship. Skills encode
 your house rules; hooks enforce them; MCP servers bring in your real
 context.
 
+Start with the [AI vulnerability remediation guide]({{< relref "/security-remediation/" >}})
+for the shared evidence and review contract, then apply the Claude-specific
+controls below.
+
+For dependency advisories, start with the reusable
+[Claude CVE triage skill]({{< relref "/recipes/claude/cve-triage-skill" >}}),
+which turns that contract into a bounded skill with explicit stop conditions.
+For a detected secret or PII leak, use the
+[Claude sensitive-data remediation skill]({{< relref "/recipes/claude/sensitive-data-remediation-skill" >}}).
+
+## Remediate a vulnerability with Claude
+
+[Claude Security](https://claude.com/product/claude-security) is
+Anthropic's native scan-to-patch workflow. It is currently a public beta
+for Claude Enterprise; the ordinary Claude Code workflow below remains
+available separately.
+
+1. In Claude.ai, open **Security**, select the GitHub repository, branch,
+   and, when useful, a narrower directory, then run the scan.
+2. Review the finding's severity, affected location, explanation, and
+   suggested fix. Dismiss false positives with a reason so the decision
+   remains attributable.
+3. For an accepted finding, choose **Open remediation session**. Claude
+   Code on the web opens with that finding in context and proposes a patch.
+4. Inspect the diff, run the original reproducer and repository tests,
+   and approve the patch only through the normal review process.
+
+See the [official setup and remediation tutorial](https://claude.com/resources/tutorials/getting-started-with-claude-security).
+Without Claude Security access, update Claude Code and run
+`/security-review`, then ask Claude to implement one accepted fix with a
+regression test. Anthropic documents that separate command in
+[Automated security reviews in Claude Code](https://support.anthropic.com/en/articles/11932705-automated-security-reviews-in-claude-code/).
+
 ## Prerequisites
 
-- Claude Code installed (or the Claude Agent SDK for headless workflows)
-- An Anthropic API key **or** a Claude Pro / Team / Enterprise subscription
-- An MCP connector for the system that owns your findings
-- A `CLAUDE.md` at the repo root
+- Claude Enterprise with Claude Security enabled for the native workflow,
+  or an up-to-date Claude Code installation for `/security-review`
+- An approved GitHub repository connection or a local repository checkout
+- The source finding, reproducer, or scanner evidence for the issue
+- Human review before applying or merging a proposed patch
 
 ## General onboarding
 
@@ -39,7 +75,7 @@ Anthropic's documented setup.
 
 1. **Pick a plan.** Claude Code works with Pro, Team, or
    Enterprise Claude subscriptions, or with an Anthropic Console
-   API key. See [Claude.com plan documentation](https://claude.com/plan documentation).
+   API key. See [Claude plan documentation](https://support.claude.com/en/articles/11049762-choose-a-claude-plan).
 2. **Install Claude Code.** Use the installer for your OS — see
    the section below, or Anthropic's
    [install overview](https://code.claude.com/docs/en/overview).
@@ -70,7 +106,7 @@ Anthropic's documented setup.
 - [GitHub Actions](https://code.claude.com/docs/en/github-actions)
 - [MCP](https://code.claude.com/docs/en/mcp)
 - [Hooks](https://code.claude.com/docs/en/hooks)
-- [Plan documentation](https://claude.com/plan documentation)
+- [Claude plan documentation](https://support.claude.com/en/articles/11049762-choose-a-claude-plan)
 - [Anthropic trust & compliance](https://trust.anthropic.com)
 
 ## Enterprise onboarding
@@ -85,23 +121,22 @@ using this at my company?" section. Forks of this project are
 expected to fill this in for their own organizations.
 {{< /callout >}}
 
-1. **Request access.** File an IT ticket for a Claude Team or
-   Enterprise seat. Internal link:
-   [Request Claude access](#placeholder-itsm-link).
+1. **Request access.** For Claude Security, file an IT ticket through
+   your organization's approved service catalog for an Enterprise seat
+   and access to the Security beta. For ordinary Claude Code, follow the
+   approved Claude access path for your organization.
 2. **Join the workspace.** Accept the invite to your org's Anthropic
-   Console workspace once Security approves. Internal link:
-   [Anthropic Console workspace](#placeholder-workspace-link).
+   Console workspace once Security approves.
 3. **Bind to corporate SSO / MFA.** Bind the account to your
-   identity provider per the standard IT guide. Internal link:
-   [SSO enrollment](#placeholder-sso-link).
+   identity provider per the standard IT guide.
 4. **Scope GitHub / GitLab access.** Make sure the Claude Code
    integration (and any Claude-facing MCP connectors) is installed
    on the org and granted to the repos this recipe targets —
    nothing broader.
 5. **Complete internal training.** Read the internal rules of
    engagement for using Claude Code on production repos before
-   running any recipe end-to-end. Internal link:
-   [your org's AI usage policy](#placeholder-policy-link).
+   running any recipe end-to-end, including your organization's AI
+   usage policy.
 
 ## Install Claude Code
 

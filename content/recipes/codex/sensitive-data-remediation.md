@@ -1,5 +1,5 @@
 ---
-title: "Sensitive data element remediation (non-interactive)"
+title: "Codex Sensitive Data Remediation"
 linkTitle: "Sensitive data remediation"
 tool: "codex"
 author: "Stephen M Abbott"

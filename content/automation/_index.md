@@ -1,14 +1,15 @@
 ﻿---
-title: Automation, not agentic
+title: Automated Vulnerability Remediation Without AI Agents
 linkTitle: Automation
 weight: 11
+date: 2026-04-21
+lastmod: 2026-07-21
 toc: true
 sidebar:
   open: true
 description: >
-  Deterministic, well-worn automation for risk reduction — Dependabot,
-  Renovate, npm audit, pip-audit, code scanning, and friends. Use these
-  before (and alongside) your agentic flows.
+  Automate routine vulnerability remediation with Dependabot, Renovate,
+  package audit tools, and code scanning before adding AI agents to the loop.
 ---
 
 {{< callout type="info" >}}

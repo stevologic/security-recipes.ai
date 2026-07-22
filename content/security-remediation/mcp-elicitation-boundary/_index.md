@@ -2,6 +2,8 @@
 title: MCP Elicitation Boundary
 linkTitle: MCP Elicitation Boundary
 weight: 11
+date: 2026-05-04
+lastmod: 2026-07-13
 toc: true
 description: >
   Generated MCP form-mode and URL-mode elicitation controls with

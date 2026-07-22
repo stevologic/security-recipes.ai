@@ -1,12 +1,12 @@
 ---
-title: General
+title: Tool-Agnostic Security Remediation Recipes
 linkTitle: General
 weight: 6
 sidebar:
   open: false
 description: >
-  Reusable prompts, Python helper toolsets, MCP context recipes,
-  triage frameworks, guardrail patterns, and review checklists.
+  Browse tool-agnostic security remediation prompts, MCP context recipes,
+  triage frameworks, guardrails, helper tools, and reviewer checklists.
 ---
 
 Prompts, toolsets, and patterns that are **not tied to a specific agent** live

@@ -20,7 +20,7 @@ test("homepage preserves the observatory narrative and authoritative bindings", 
   );
   assert.match(
     template,
-    /From vulnerability intelligence to verified action/,
+    /Search CVEs\. Remediate vulnerabilities with AI agents/,
   );
   assert.match(template, /homepageMetrics\.cves\.compact/);
   assert.match(template, /homepageMetrics\.reviewedWorkflows\.formatted/);

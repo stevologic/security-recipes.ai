@@ -2,6 +2,8 @@
 title: Vulnerable Dependency Remediation
 linkTitle: Vulnerable Dependency Remediation
 weight: 2
+date: 2026-04-22
+lastmod: 2026-07-21
 sidebar:
   open: true
 description: >
@@ -108,6 +110,24 @@ sequenceDiagram
         A->>O: TRIAGE.md<br/>+ failing test names
     end
 ```
+
+## Run this workflow with your AI coding agent
+
+This playbook defines the shared eligibility, verification, and review model.
+Choose the agent-ready recipe that matches the tool already approved for your
+repository; each recipe adapts the same bounded dependency-remediation contract
+to that agent's native instructions and execution model.
+
+{{< cards >}}
+  {{< card link="/recipes/claude/cve-triage-skill/" title="Claude CVE Triage Skill" subtitle="Triage a CVE or Dependabot alert, apply a safe package bump, or stop with a structured note." >}}
+  {{< card link="/recipes/codex/vulnerable-dep-remediation/" title="Codex Dependency Remediation" subtitle="Run a scoped package update in an isolated workspace with tests and rollback evidence." >}}
+  {{< card link="/recipes/cursor/vulnerable-dep-remediation/" title="Cursor Dependency Remediation" subtitle="Apply repository rules and a bounded task prompt to package-advisory fixes." >}}
+  {{< card link="/recipes/devin/scheduled-vulnerability-remediation/" title="Devin Scheduled Remediation" subtitle="Dispatch recurring dependency findings through a reviewed queue-to-PR playbook." >}}
+  {{< card link="/recipes/github_copilot/vulnerable-dep-remediation/" title="GitHub Copilot Dependency Remediation" subtitle="Turn a Dependabot or package alert into a constrained GitHub issue-to-PR task." >}}
+{{< /cards >}}
+
+Need to identify or verify the advisory first? Search the
+[CVE Database]({{< relref "/cve-database" >}}) before selecting a recipe.
 
 ## Per-ecosystem notes
 

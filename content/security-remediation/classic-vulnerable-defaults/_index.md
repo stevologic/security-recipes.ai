@@ -1,27 +1,28 @@
 ---
-title: Classic Vulnerable Defaults
+title: Remediate Classic Vulnerable Defaults with AI Agents
 linkTitle: Classic Vulnerable Defaults
 weight: 8
+date: 2026-04-25
+lastmod: 2026-07-21
 sidebar:
   open: true
 description: >
-  Mitigate and uplift the durable, recurring weaknesses that
-  keep landing — pickle, unsafe YAML, JNDI lookups, JWT `none`,
-  XXE, polymorphic deserialization, `eval`, and friends. Most
-  of these never get patched because the code "works"; the
-  recipes here either monkey-patch the unsafe default or replace
-  it.
+  Use this AI-agent remediation guide to decide when to mitigate or replace
+  recurring unsafe defaults such as pickle, unsafe YAML, JNDI, JWT `none`,
+  XXE, polymorphic deserialization, and `eval`.
 ---
 
 {{< callout type="info" >}}
-**Why this section exists.** Some weaknesses are not bugs in a
+**Why this remediation guide exists.** Some weaknesses are not bugs in a
 released version — they are *defaults* in widely used
 libraries. Pickle is unsafe by design; PyYAML's `load()` was
 unsafe-by-default for a decade; Java's `ObjectInputStream` will
 deserialize anything you point it at; JWT libraries used to
 accept `alg: none` because the spec said so. None of these are
 patched in the conventional sense. They get fixed by *changing
-the call*. This section is the catalogue of those changes.
+the call*. This guide defines the decision model and guardrails; the companion
+[security recipe collection]({{< relref "/recipes/general/classic-vulnerable-defaults" >}})
+contains the executable prompts for individual patterns.
 {{< /callout >}}
 
 ## What this is — and isn't

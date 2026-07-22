@@ -2,6 +2,8 @@
 title: Hosted MCP Readiness Pack
 linkTitle: Hosted MCP Readiness
 weight: 14
+date: 2026-05-05
+lastmod: 2026-07-13
 sidebar:
   exclude: true
 description: >

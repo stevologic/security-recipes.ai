@@ -11,8 +11,33 @@ sidebar:
 
 Repository-wide hygiene practices for polyglot or language-independent work.
 
-Select one bounded recipe. Start in audit mode; authorize fixes only after reviewing the candidate evidence.
+## Choose a focused Cross-language recipe
 
-## Recipes
+This collection contains 16 bounded Cross-language workflows. Choose the recipe whose objective matches the repository evidence instead of combining unrelated cleanup into one run.
+
+- **[Lint warning baseline and budget]({{< relref "/recipes/general/code-hygiene/cross-language/lint-warning-baseline-and-budget" >}}):** Use it to turn an existing warning backlog into a measured, non-growing budget.
+- **[Dead code and unused symbol removal]({{< relref "/recipes/general/code-hygiene/cross-language/dead-code-and-unused-symbol-removal" >}}):** Use it to remove unreachable code and unused symbols without deleting runtime-discovered behavior.
+- **[Duplicated logic consolidation]({{< relref "/recipes/general/code-hygiene/cross-language/duplicated-logic-consolidation" >}}):** Use it to consolidate behaviorally equivalent logic while preserving each caller's contract.
+- **[Complexity and long-function reduction]({{< relref "/recipes/general/code-hygiene/cross-language/complexity-and-long-function-reduction" >}}):** Use it to reduce hard-to-review control flow without changing behavior.
+- **[Deterministic test and flake remediation]({{< relref "/recipes/general/code-hygiene/cross-language/deterministic-test-and-flake-remediation" >}}):** Use it to remove nondeterminism from a reproducibly flaky test.
+- **[Test isolation and fixture hygiene]({{< relref "/recipes/general/code-hygiene/cross-language/test-isolation-and-fixture-hygiene" >}}):** Use it to eliminate order-dependent fixtures and leaked test state.
+- **[Deprecated API migration]({{< relref "/recipes/general/code-hygiene/cross-language/deprecated-api-migration" >}}):** Use it to replace deprecated APIs using the repository's supported runtime versions.
+- **[Configuration validation and default hygiene]({{< relref "/recipes/general/code-hygiene/cross-language/configuration-validation-and-default-hygiene" >}}):** Use it to make invalid configuration fail clearly and defaults behave consistently.
+- **[Structured logging and cardinality hygiene]({{< relref "/recipes/general/code-hygiene/cross-language/structured-logging-and-cardinality-hygiene" >}}):** Use it to make logs structured, actionable, and bounded without exposing sensitive data.
+- **[Feature flag and experiment cleanup]({{< relref "/recipes/general/code-hygiene/cross-language/feature-flag-and-experiment-cleanup" >}}):** Use it to remove stale feature-flag branches after rollout state is proven.
+- **[TODO, FIXME, and suppression debt]({{< relref "/recipes/general/code-hygiene/cross-language/todo-fixme-and-suppression-debt" >}}):** Use it to turn stale annotations and diagnostic suppressions into owned, reviewable work.
+- **[Time, date, timezone, and clock hygiene]({{< relref "/recipes/general/code-hygiene/cross-language/time-date-timezone-and-clock-hygiene" >}}):** Use it to make temporal logic explicit, testable, and timezone-safe.
+- **[Serialization schema and versioning hygiene]({{< relref "/recipes/general/code-hygiene/cross-language/serialization-schema-and-versioning-hygiene" >}}):** Use it to make serialized contracts explicit and backward-compatible.
+- **[Regular-expression correctness and complexity hygiene]({{< relref "/recipes/general/code-hygiene/cross-language/regex-correctness-and-complexity-hygiene" >}}):** Use it to make complex regular expressions bounded, readable, and behaviorally tested.
+- **[Unicode, locale, and normalization hygiene]({{< relref "/recipes/general/code-hygiene/cross-language/unicode-locale-and-normalization-hygiene" >}}):** Use it to make text comparison and normalization semantics intentional.
+- **[Dependency manifest and lockfile hygiene]({{< relref "/recipes/general/code-hygiene/cross-language/dependency-manifest-and-lockfile-hygiene" >}}):** Use it to align declared, resolved, direct, optional, and unused dependencies without upgrading them.
+
+## How to use this collection
+
+Read the repository's configured runtime, compiler, framework, analyzer, and test commands before selecting a workflow. Start in audit mode, record file and symbol evidence, and authorize a fix only after the candidate scope is reviewable. Preserve supported versions, public behavior, and existing tool configuration.
+
+If the evidence is a named CVE, scanner finding, exposed secret, authorization flaw, or injection path, use the focused vulnerability-remediation playbook instead of a code-hygiene recipe. Stop when the safe result requires an owner decision about architecture, compatibility, production data, or deployment state.
+
+## Full recipe list
 
 {{< prompt-toc >}}

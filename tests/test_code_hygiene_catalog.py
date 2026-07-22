@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 import subprocess
 import sys
 import tempfile
@@ -92,6 +93,27 @@ class CodeHygieneCatalogTests(unittest.TestCase):
             self.assertIn("Start read-only", markdown)
             self.assertIn("explicitly authorizes a fix", markdown)
             self.assertIn("https://", markdown)
+
+    def test_family_indexes_explain_selection_and_are_not_thin(self) -> None:
+        for key, family in self.catalog["families"].items():
+            path = CONTENT / key / "_index.md"
+            markdown = path.read_text(encoding="utf-8")
+            family_records = [
+                record for record in self.catalog["records"] if record["family"] == key
+            ]
+
+            self.assertIn(f"## Choose a focused {family['title']} recipe", markdown)
+            self.assertIn("## How to use this collection", markdown)
+            self.assertIn("## Full recipe list", markdown)
+            for record in family_records:
+                with self.subTest(family=key, recipe=record["slug"]):
+                    self.assertIn(record["title"], markdown)
+                    self.assertIn(record["goal"], markdown)
+                    self.assertIn(sync_catalog.recipe_url(record).rstrip("/"), markdown)
+
+            body = markdown.split("---", maxsplit=2)[-1]
+            words = re.findall(r"\b[\w'-]+\b", body)
+            self.assertGreaterEqual(len(words), 180, str(path))
 
     def test_source_registry_is_primary_and_https(self) -> None:
         sources = self.sources["sources"]

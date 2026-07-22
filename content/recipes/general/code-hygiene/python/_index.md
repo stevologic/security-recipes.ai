@@ -11,8 +11,22 @@ sidebar:
 
 Typing, object-model, exception, asyncio, import, and packaging hygiene.
 
-Select one bounded recipe. Start in audit mode; authorize fixes only after reviewing the candidate evidence.
+## Choose a focused Python recipe
 
-## Recipes
+This collection contains 5 bounded Python workflows. Choose the recipe whose objective matches the repository evidence instead of combining unrelated cleanup into one run.
+
+- **[Python typing Any and ignore debt]({{< relref "/recipes/general/code-hygiene/python/python-typing-any-and-ignore-debt" >}}):** Use it to narrow Any, casts, and type-ignore suppressions at trusted boundaries.
+- **[Python mutable-default, dataclass, and sentinel hygiene]({{< relref "/recipes/general/code-hygiene/python/python-mutable-default-dataclass-and-sentinel-hygiene" >}}):** Use it to remove shared mutable defaults and ambiguous sentinel values.
+- **[Python exception, context, and resource lifecycle]({{< relref "/recipes/general/code-hygiene/python/python-exception-chaining-context-and-resource-lifecycle" >}}):** Use it to preserve exception context and deterministically release files, locks, sessions, and generators.
+- **[Python asyncio task cancellation and timeouts]({{< relref "/recipes/general/code-hygiene/python/python-asyncio-task-cancellation-and-timeouts" >}}):** Use it to eliminate orphaned tasks, swallowed cancellation, and unbounded awaits.
+- **[Python import, packaging, and module boundaries]({{< relref "/recipes/general/code-hygiene/python/python-import-packaging-and-module-boundaries" >}}):** Use it to remove import cycles and make package exports and runtime discovery explicit.
+
+## How to use this collection
+
+Read the repository's configured runtime, compiler, framework, analyzer, and test commands before selecting a workflow. Start in audit mode, record file and symbol evidence, and authorize a fix only after the candidate scope is reviewable. Preserve supported versions, public behavior, and existing tool configuration.
+
+If the evidence is a named CVE, scanner finding, exposed secret, authorization flaw, or injection path, use the focused vulnerability-remediation playbook instead of a code-hygiene recipe. Stop when the safe result requires an owner decision about architecture, compatibility, production data, or deployment state.
+
+## Full recipe list
 
 {{< prompt-toc >}}

@@ -1,7 +1,9 @@
 ---
-title: Quick Start
+title: AI Vulnerability Remediation Quick Start
 linkTitle: Quick Start
 weight: 1
+date: 2026-04-22
+lastmod: 2026-07-21
 toc: true
 sidebar:
   open: true
@@ -10,7 +12,7 @@ description: >
   remediation output.
 ---
 
-Use this page when you want to try security-recipes.ai without adopting new
+Use this page when you want to try [security-recipes.ai](/) without adopting new
 tooling. Pick one real finding, give the agent one recipe, and keep the output
 reviewable.
 
@@ -24,7 +26,7 @@ useful triage note that followed a recipe and respected your repo rules.
 1. **Pick one finding.** Use a small dependency, SAST, secret, container, SDE,
    or CVE finding. Avoid a noisy backlog for the first run.
 2. **Pick the matching recipe.** Start in
-   [Remediation]({{< relref "/security-remediation" >}}) or search the
+   [AI vulnerability remediation playbooks]({{< relref "/security-remediation" >}}) or search the
    [Recipes]({{< relref "/recipes" >}}).
 3. **Choose the agent your team already uses.** GitHub Copilot, Claude, Cursor,
    Codex, and Devin all work with this pattern.

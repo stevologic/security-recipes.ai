@@ -2,6 +2,8 @@
 title: Artifact Cache & Mirror Quarantine
 linkTitle: Artifact Cache Purge
 weight: 5
+date: 2026-04-25
+lastmod: 2026-07-13
 sidebar:
   open: true
 description: >

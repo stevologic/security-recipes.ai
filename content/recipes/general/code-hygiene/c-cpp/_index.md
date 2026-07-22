@@ -11,8 +11,22 @@ sidebar:
 
 Compiler diagnostic, ownership, bounds, concurrency, and lifetime hygiene.
 
-Select one bounded recipe. Start in audit mode; authorize fixes only after reviewing the candidate evidence.
+## Choose a focused C & C++ recipe
 
-## Recipes
+This collection contains 5 bounded C & C++ workflows. Choose the recipe whose objective matches the repository evidence instead of combining unrelated cleanup into one run.
+
+- **[C and C++ compiler warning and suppression debt]({{< relref "/recipes/general/code-hygiene/c-cpp/c-cpp-compiler-warning-and-suppression-debt" >}}):** Use it to resolve portable compiler diagnostics without blanket flags or pragmas.
+- **[C and C++ ownership, RAII, and resource lifecycle]({{< relref "/recipes/general/code-hygiene/c-cpp/c-cpp-ownership-raii-and-resource-lifecycle" >}}):** Use it to make memory, file, socket, lock, and handle ownership explicit.
+- **[C and C++ bounds, integer, and undefined-behavior hygiene]({{< relref "/recipes/general/code-hygiene/c-cpp/c-cpp-bounds-integer-and-undefined-behavior" >}}):** Use it to remove unchecked bounds, lossy arithmetic, lifetime, and undefined-behavior hazards.
+- **[C and C++ atomic, lock, and thread lifecycle]({{< relref "/recipes/general/code-hygiene/c-cpp/c-cpp-atomic-lock-and-thread-lifecycle" >}}):** Use it to remove data races, lock-order hazards, and detached thread lifetimes.
+- **[C and C++ const, span, view, and lifetime hygiene]({{< relref "/recipes/general/code-hygiene/c-cpp/c-cpp-const-span-view-and-lifetime-hygiene" >}}):** Use it to make mutation and non-owning view lifetimes explicit.
+
+## How to use this collection
+
+Read the repository's configured runtime, compiler, framework, analyzer, and test commands before selecting a workflow. Start in audit mode, record file and symbol evidence, and authorize a fix only after the candidate scope is reviewable. Preserve supported versions, public behavior, and existing tool configuration.
+
+If the evidence is a named CVE, scanner finding, exposed secret, authorization flaw, or injection path, use the focused vulnerability-remediation playbook instead of a code-hygiene recipe. Stop when the safe result requires an owner decision about architecture, compatibility, production data, or deployment state.
+
+## Full recipe list
 
 {{< prompt-toc >}}

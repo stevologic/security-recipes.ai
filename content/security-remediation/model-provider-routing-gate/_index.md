@@ -2,6 +2,8 @@
 title: Model Provider Routing Gate
 linkTitle: Model Provider Routing
 weight: 16
+date: 2026-05-04
+lastmod: 2026-07-13
 toc: true
 description: >
   A generated model-provider routing gate for deciding which model

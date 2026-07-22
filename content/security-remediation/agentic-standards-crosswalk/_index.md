@@ -2,6 +2,8 @@
 title: Agentic Standards Crosswalk
 linkTitle: Standards Crosswalk
 weight: 19
+date: 2026-05-04
+lastmod: 2026-07-13
 toc: true
 description: >
   Generated standards-to-evidence map that ties OWASP Agentic Top 10,

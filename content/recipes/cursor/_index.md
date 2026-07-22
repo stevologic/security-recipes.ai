@@ -4,6 +4,8 @@ linkTitle: Cursor
 weight: 3
 sidebar:
   open: false
+noindex: true
+noindex_follow: true
 description: >
   `.cursor/rules/*.mdc` files, Background Agent setups, and chat
   prompts contributed by teams using Cursor for agentic

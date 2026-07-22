@@ -6,6 +6,8 @@ const path = require('node:path');
 const test = require('node:test');
 
 const { renderAiProvenance } = require('../lib/ai-provenance.js');
+const contentIndex = require('../lib/content-index.js');
+const { loadCveSearchIndexableRecords } = require('../lib/cve-indexability.js');
 const { cveDisplayTitle, stripFirstH1 } = require('../lib/html-content.js');
 const { renderCardHtml } = require('../lib/recipe-cards.js');
 
@@ -88,6 +90,87 @@ test('recipe library server render is bounded and remains useful without JavaScr
   assert.match(html, /data-recipe-filter-close>Close filters<\/button>/);
 });
 
+test('indexed agent remediation recipes use branded headings and concise navigation labels', () => {
+  const expected = [
+    {
+      sourcePath: 'recipes/codex/vulnerable-dep-remediation.md',
+      title: 'Codex Vulnerable Dependency Remediation',
+      linkTitle: 'Vulnerable dep remediation',
+      brand: 'Codex',
+    },
+    {
+      sourcePath: 'recipes/codex/sensitive-data-remediation.md',
+      title: 'Codex Sensitive Data Remediation',
+      linkTitle: 'Sensitive data remediation',
+      brand: 'Codex',
+    },
+    {
+      sourcePath: 'recipes/claude/cve-triage-skill.md',
+      title: 'Claude Code CVE and Dependency Remediation Skill',
+      linkTitle: 'CVE triage skill',
+      brand: 'Claude Code',
+    },
+    {
+      sourcePath: 'recipes/claude/sensitive-data-remediation-skill.md',
+      title: 'Claude Code Sensitive Data Remediation Skill',
+      linkTitle: 'Sensitive data remediation skill',
+      brand: 'Claude Code',
+    },
+    {
+      sourcePath: 'recipes/cursor/vulnerable-dep-remediation.md',
+      title: 'Cursor Vulnerable Dependency Remediation',
+      linkTitle: 'Vulnerable dep remediation',
+      brand: 'Cursor',
+    },
+    {
+      sourcePath: 'recipes/cursor/sensitive-data-remediation.md',
+      title: 'Cursor Sensitive Data Remediation',
+      linkTitle: 'Sensitive data remediation',
+      brand: 'Cursor',
+    },
+    {
+      sourcePath: 'recipes/github_copilot/vulnerable-dep-remediation.md',
+      title: 'GitHub Copilot Vulnerable Dependency Remediation',
+      linkTitle: 'Vulnerable dep remediation',
+      brand: 'GitHub Copilot',
+    },
+    {
+      sourcePath: 'recipes/github_copilot/sensitive-data-remediation.md',
+      title: 'GitHub Copilot Sensitive Data Remediation',
+      linkTitle: 'Sensitive data remediation',
+      brand: 'GitHub Copilot',
+    },
+    {
+      sourcePath: 'recipes/devin/scheduled-vulnerability-remediation.md',
+      title: 'Devin Scheduled Vulnerability Remediation',
+      linkTitle: 'Scheduled vulnerability remediation',
+      brand: 'Devin',
+    },
+    {
+      sourcePath: 'recipes/devin/scheduled-sde-remediation.md',
+      title: 'Devin Scheduled Sensitive Data Remediation',
+      linkTitle: 'Scheduled SDE remediation',
+      brand: 'Devin',
+    },
+  ];
+  const pages = new Map(
+    contentIndex.getIndex().pages.map((page) => [page.sourcePath, page])
+  );
+  const cards = new Map(curatedFeed().recipes.map((recipe) => [recipe.url, recipe]));
+
+  assert.equal(expected.length, 10);
+  for (const fixture of expected) {
+    const page = pages.get(fixture.sourcePath);
+    assert.ok(page, `${fixture.sourcePath} exists`);
+    assert.equal(page.title, fixture.title);
+    assert.equal(page.linkTitle, fixture.linkTitle);
+    assert.match(page.title, new RegExp(`^${fixture.brand.replace(' ', '\\s')}\\b`));
+    assert.ok(page.title.length <= 60, `${fixture.sourcePath} has a concise search title`);
+    assert.notEqual(page.fm.noindex, true, `${fixture.sourcePath} remains indexable`);
+    assert.equal(cards.get(page.url)?.title, fixture.title, `${page.url} exposes the branded title`);
+  }
+});
+
 test('CVE Database is a standalone catalog route in the primary navigation', () => {
   const site = require('../lib/site-config.js');
   const hub = cveHubSource();
@@ -111,12 +194,83 @@ test('CVE Database is a standalone catalog route in the primary navigation', () 
   assert.match(hubHtml, /data-cve-catalog\s+data-cve-catalog-base="\/api\/cve-catalog\/"/);
   assert.doesNotMatch(hubHtml, /data-cve-catalog-deferred/);
   assert.match(hubHtml, /<h1 id="cve-database-heading">CVE Database<\/h1>/);
+  assert.match(hubHtml, /<h2 id="cve-qualified-heading">Reviewed and evidence-qualified CVEs<\/h2>/);
+  assert.match(hubHtml, /<h2 id="cve-historical-heading">Historical reviewed CVEs<\/h2>/);
+  assert.match(hubHtml, /href="\/security-remediation\/">AI vulnerability remediation playbooks<\/a>/);
+  assert.match(hubHtml, /href="\/security-remediation\/vulnerable-dependencies\/">vulnerable dependency workflow<\/a>/);
+  assert.match(hubHtml, /href="\/recipes\/general\/cve-intelligence-intake-gate\/">CVE intelligence intake gate<\/a>/);
   assert.doesNotMatch(hubHtml, /From vulnerability signal to a bounded response plan/);
   assert.doesNotMatch(hubHtml, /data-cve-hero-search/);
   assert.ok(
     hubHtml.indexOf('id="cve-catalog"') < hubHtml.indexOf('id="cve-quick-heading"'),
     'the searchable records must appear before supporting content'
   );
+  assert.ok(
+    hubHtml.indexOf('id="cve-qualified-heading"') < hubHtml.indexOf('id="cve-quick-heading"'),
+    'qualified canonical links must appear before supporting content'
+  );
+
+  const qualified = loadCveSearchIndexableRecords();
+  const catalogManifest = readJson(
+    path.join(ROOT, 'static', 'api', 'cve-catalog', 'manifest.json')
+  );
+  assert.ok(qualified.length > 0, 'the evidence-qualified CVE list is not empty');
+  assert.equal(qualified.length, catalogManifest.search_index.records);
+  assert.equal(qualified.length, catalogManifest.totals.search_indexable_records);
+  const stableRoutes = new Map(
+    contentIndex.getIndex().pages
+      .filter((page) => String(page.fm?.maturity || '').toLowerCase() === 'stable' && page.fm?.cve)
+      .map((page) => [String(page.fm.cve).toUpperCase(), contentIndex.canonicalUrlForPage(page)])
+  );
+  const expectedQualifiedLinks = new Map(
+    qualified.map((record) => [
+      record.cve,
+      stableRoutes.get(record.cve) || `/cve/${record.cve}/`
+    ])
+  );
+  const renderedQualifiedLinks = new Map(
+    [...hubHtml.matchAll(/<a href="([^"]+)" data-qualified-cve-link="(CVE-\d{4}-\d{4,})">/g)]
+      .map((match) => [match[2], match[1]])
+  );
+  assert.deepEqual(
+    [...renderedQualifiedLinks].sort(([a], [b]) => a.localeCompare(b, 'en')),
+    [...expectedQualifiedLinks].sort(([a], [b]) => a.localeCompare(b, 'en'))
+  );
+  assert.equal(renderedQualifiedLinks.get('CVE-2017-18342'), '/recipes/cve/cve-2017-18342-pyyaml/');
+  const reviewedPyYamlAnchor = hubHtml.match(
+    /<a href="([^"]+)" data-qualified-cve-link="CVE-2017-18342"><strong>CVE-2017-18342<\/strong><span>([^<]+)<\/span>/
+  );
+  assert.ok(reviewedPyYamlAnchor, 'the reviewed PyYAML record has a visible database anchor');
+  assert.equal(reviewedPyYamlAnchor[1], '/recipes/cve/cve-2017-18342-pyyaml/');
+  assert.equal(
+    reviewedPyYamlAnchor[2],
+    'CVE-2017-18342 — PyYAML default load resolves arbitrary tags'
+  );
+  assert.doesNotMatch(
+    hubHtml,
+    /In PyYAML before 5\.1, the yaml\.load\(\) API could execute arbitrary code if used with untrusted data/
+  );
+  const qualifiedIds = new Set(qualified.map((record) => record.cve));
+  const expectedHistoricalLinks = new Map(
+    [...stableRoutes].filter(([cve]) => !qualifiedIds.has(cve))
+  );
+  const renderedHistoricalLinks = new Map(
+    [...hubHtml.matchAll(/<a href="([^"]+)" data-historical-cve-link="(CVE-\d{4}-\d{4,})">/g)]
+      .map((match) => [match[2], match[1]])
+  );
+  assert.deepEqual(
+    [...renderedHistoricalLinks].sort(([a], [b]) => a.localeCompare(b, 'en')),
+    [...expectedHistoricalLinks].sort(([a], [b]) => a.localeCompare(b, 'en'))
+  );
+  assert.equal(
+    renderedHistoricalLinks.get('CVE-2014-0160'),
+    '/recipes/cve/cve-2014-0160-heartbleed/'
+  );
+  assert.equal(
+    renderedHistoricalLinks.get('CVE-2014-6271'),
+    '/recipes/cve/cve-2014-6271-shellshock/'
+  );
+  assert.equal(renderedHistoricalLinks.has('CVE-2017-18342'), false);
   assert.ok(
     head.includes('/cve-database/'),
     'the standalone route must opt into route-specific CVE assets'
@@ -171,8 +325,13 @@ test('standalone CVE records use a scoped theme and one canonical page heading',
   assert.match(stripFirstH1(rendered), /Review scope/);
   assert.equal(
     cveDisplayTitle('CVE-2014-0160 — Heartbleed', 'CVE-2014-0160'),
-    'Heartbleed'
+    'CVE-2014-0160: Heartbleed'
   );
+  assert.equal(
+    cveDisplayTitle('Heartbleed', 'CVE-2014-0160'),
+    'CVE-2014-0160: Heartbleed'
+  );
+  assert.match(layout, /detailTitleSource \| cveDisplayTitle\(cve\)/);
   assert.match(layout, /data-cve-detail-page="true"/);
   assert.match(layout, /content \| stripFirstH1/);
   assert.match(layout, /class="sr-cve-detail-header"/);

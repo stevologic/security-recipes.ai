@@ -11,8 +11,24 @@ sidebar:
 
 Compiler, type-contract, resource, concurrency, and coroutine hygiene for JVM repositories.
 
-Select one bounded recipe. Start in audit mode; authorize fixes only after reviewing the candidate evidence.
+## Choose a focused Java & Kotlin recipe
 
-## Recipes
+This collection contains 7 bounded Java & Kotlin workflows. Choose the recipe whose objective matches the repository evidence instead of combining unrelated cleanup into one run.
+
+- **[Java compiler warning, deprecation, and suppression debt]({{< relref "/recipes/general/code-hygiene/jvm/java-compiler-warning-deprecation-and-suppression-debt" >}}):** Use it to resolve javac warnings and narrow SuppressWarnings annotations.
+- **[Java nullability, Optional, and boundary contracts]({{< relref "/recipes/general/code-hygiene/jvm/java-nullability-optional-and-boundary-contracts" >}}):** Use it to make null contracts explicit without misusing Optional in storage or fields.
+- **[Java AutoCloseable and resource lifecycle]({{< relref "/recipes/general/code-hygiene/jvm/java-autocloseable-and-resource-lifecycle" >}}):** Use it to close files, streams, clients, cursors, and scopes on every exit path.
+- **[Java executor, Future, and ThreadLocal lifecycle]({{< relref "/recipes/general/code-hygiene/jvm/java-executor-future-and-threadlocal-lifecycle" >}}):** Use it to bound background work and clean executor and thread-local state.
+- **[Kotlin compiler, Detekt, and suppression debt]({{< relref "/recipes/general/code-hygiene/jvm/kotlin-compiler-detekt-and-suppression-debt" >}}):** Use it to resolve Kotlin diagnostics and narrow file or declaration suppressions.
+- **[Kotlin coroutine scope, cancellation, and Flow lifecycle]({{< relref "/recipes/general/code-hygiene/jvm/kotlin-coroutine-scope-cancellation-and-flow" >}}):** Use it to replace orphaned coroutines and uncollected or multiply collected flows with owned lifecycles.
+- **[Kotlin nullability, platform types, and immutability]({{< relref "/recipes/general/code-hygiene/jvm/kotlin-nullability-platform-types-and-immutability" >}}):** Use it to contain Java platform types and remove unsafe assertions and unintended mutation.
+
+## How to use this collection
+
+Read the repository's configured runtime, compiler, framework, analyzer, and test commands before selecting a workflow. Start in audit mode, record file and symbol evidence, and authorize a fix only after the candidate scope is reviewable. Preserve supported versions, public behavior, and existing tool configuration.
+
+If the evidence is a named CVE, scanner finding, exposed secret, authorization flaw, or injection path, use the focused vulnerability-remediation playbook instead of a code-hygiene recipe. Stop when the safe result requires an owner decision about architecture, compatibility, production data, or deployment state.
+
+## Full recipe list
 
 {{< prompt-toc >}}
