@@ -11,6 +11,8 @@ const fs = require("node:fs");
 const path = require("node:path");
 const crypto = require("node:crypto");
 
+const { decodeHtmlAttributeOnce, hasTechArticleSchemaType } = require("../lib/html-content");
+
 const ROOT = path.resolve(process.env.SITE_OUTPUT_DIR || "public");
 const CONTENT = path.resolve("content/recipes/cve");
 const PLAYBOOK_CONTENT = path.resolve("content/security-remediation");
@@ -117,17 +119,6 @@ function routeForOutput(file) {
   return `/${relative.replace(/index\.html$/, "")}`;
 }
 
-function decodeHtmlAttribute(value) {
-  return String(value || "")
-    .replace(/&amp;/gi, "&")
-    .replace(/&quot;/gi, '"')
-    .replace(/&#(?:39|x27);/gi, "'")
-    .replace(/&#(\d+);/g, (_, codePoint) => String.fromCodePoint(Number(codePoint)))
-    .replace(/&#x([0-9a-f]+);/gi, (_, codePoint) =>
-      String.fromCodePoint(Number.parseInt(codePoint, 16)),
-    );
-}
-
 function outputRouteForPathname(pathname) {
   if (htmlOutputs.has(pathname)) return pathname;
   if (!pathname.endsWith("/") && htmlOutputs.has(`${pathname}/`)) return `${pathname}/`;
@@ -140,7 +131,7 @@ function checkInternalFragments() {
     const ids = new Set(
       Array.from(
         html.matchAll(/\b(?:id|name)=(['"])([^'"]+)\1/gi),
-        (match) => decodeHtmlAttribute(match[2]),
+        (match) => decodeHtmlAttributeOnce(match[2]),
       ),
     );
     targets.set(route, ids);
@@ -151,7 +142,7 @@ function checkInternalFragments() {
       let destination;
       try {
         destination = new URL(
-          decodeHtmlAttribute(match[2]),
+          decodeHtmlAttributeOnce(match[2]),
           `https://security-recipes.ai${sourceRoute}`,
         );
       } catch {
@@ -251,10 +242,10 @@ function checkIndexableHtml(relative, html) {
   if (!canonical) {
     fail(`indexable HTML has no absolute canonical link: ${relative}`);
   }
-  const ogImage = decodeHtmlAttribute(
+  const ogImage = decodeHtmlAttributeOnce(
     html.match(/<meta\b[^>]*property=["']og:image["'][^>]*content=["']([^"']+)["']/i)?.[1] || "",
   );
-  const twitterImage = decodeHtmlAttribute(
+  const twitterImage = decodeHtmlAttributeOnce(
     html.match(/<meta\b[^>]*name=["']twitter:image["'][^>]*content=["']([^"']+)["']/i)?.[1] || "",
   );
   const ogImageType = html.match(
@@ -309,8 +300,8 @@ function checkIndexableHtml(relative, html) {
       fail(`indexable HTML has an invalid Open Graph image URL: ${relative}`);
     }
   }
-  const decodedTitle = decodeHtmlAttribute(title);
-  const decodedDescription = decodeHtmlAttribute(description);
+  const decodedTitle = decodeHtmlAttributeOnce(title);
+  const decodedDescription = decodeHtmlAttributeOnce(description);
   for (const [label, value] of [
     ["title", decodedTitle],
     ["meta description", decodedDescription],
@@ -397,10 +388,7 @@ function checkIndexableHtml(relative, html) {
     }
     if (
       !articleEntities.some((entity) => {
-        const values = Array.isArray(entity.additionalType)
-          ? entity.additionalType
-          : [entity.additionalType];
-        return values.includes("https://schema.org/TechArticle");
+        return hasTechArticleSchemaType(entity.additionalType);
       })
     ) {
       fail(`indexable article has no TechArticle classification: ${relative}`);
@@ -468,7 +456,7 @@ function checkIndexableLinksToNoindexTags() {
       let destination;
       try {
         destination = new URL(
-          decodeHtmlAttribute(match[2]),
+          decodeHtmlAttributeOnce(match[2]),
           `https://security-recipes.ai${sourceRoute}`,
         );
       } catch {
@@ -494,7 +482,7 @@ function checkIndexableOrphans() {
       let destination;
       try {
         destination = new URL(
-          decodeHtmlAttribute(match[2]),
+          decodeHtmlAttributeOnce(match[2]),
           `https://security-recipes.ai${sourceRoute}`,
         );
       } catch {
@@ -573,7 +561,10 @@ for (const [sourceRoute, html] of htmlOutputs) {
   )) {
     let destination;
     try {
-      destination = new URL(decodeHtmlAttribute(match[1]), `https://security-recipes.ai${sourceRoute}`);
+      destination = new URL(
+        decodeHtmlAttributeOnce(match[1]),
+        `https://security-recipes.ai${sourceRoute}`,
+      );
     } catch {
       fail(`invalid RSS alternate on ${sourceRoute}: ${match[1]}`);
       continue;

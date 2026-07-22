@@ -418,7 +418,7 @@ test("HTML archive pages provide bounded crawlable canonical CVE links", (t) => 
 
   const records = Array.from({ length: 205 }, (_, index) => ({
     cve: `CVE-2026-${String(index + 1000).padStart(4, "0")}`,
-    title: index === 150 ? "Unsafe <script>alert(1)</script> title" : `Record ${index}`,
+    title: index === 150 ? "Unsafe <SCRIPT src=x>alert(1)</SCRIPT> title" : `Record ${index}`,
     severity: index % 2 ? "high" : "medium",
     score: index % 2 ? 8.1 : 5.4,
     published: `2026-07-${String((index % 20) + 1).padStart(2, "0")}T12:00:00Z`,
@@ -464,8 +464,8 @@ test("HTML archive pages provide bounded crawlable canonical CVE links", (t) => 
     entry.records.some((record) => record.title.includes("Unsafe"))
   );
   const maliciousHtml = renderCveArchivePage(maliciousEntry);
-  assert.doesNotMatch(maliciousHtml, /<script>/);
-  assert.match(maliciousHtml, /Unsafe &lt;script&gt;alert\(1\)&lt;\/script&gt; title/);
+  assert.doesNotMatch(maliciousHtml, /<script\b/i);
+  assert.match(maliciousHtml, /Unsafe &lt;SCRIPT src=x&gt;alert\(1\)&lt;\/SCRIPT&gt; title/);
 
   const excludedEntries = planCveArchivePages(
     manifest,
