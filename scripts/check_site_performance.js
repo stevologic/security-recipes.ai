@@ -587,8 +587,8 @@ function renderedBodyText(html) {
     )?.[1] || main;
   return decodeHtmlAttributeOnce(
     content
-      .replace(/<script\b[\s\S]*?<\/script\s*>/gi, " ")
-      .replace(/<style\b[\s\S]*?<\/style\s*>/gi, " ")
+      .replace(/<script\b[\s\S]*?<\/script(?:\s[^>]*)?>/gi, " ")
+      .replace(/<style\b[\s\S]*?<\/style(?:\s[^>]*)?>/gi, " ")
       .replace(/<[^>]+>/g, " "),
   )
     .replace(/&(?:apos|lt|gt|nbsp);/gi, " ")
