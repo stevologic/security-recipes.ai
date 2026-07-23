@@ -38,12 +38,12 @@ test("homepage metadata targets CVE lookup and AI vulnerability remediation", ()
 
 test("high-intent landing pages remain concise, distinct, and query-specific", () => {
   const pages = [
-    ["content/agents/_index.md", /AI Agents for Vulnerability Remediation/iu],
+    ["content/agents/_index.md", /Compare AI Coding Agents for Security Remediation/iu],
     ["content/how-to-use/_index.md", /Visual Guide to Security Recipes/iu],
     ["content/mcp-servers/_index.md", /MCP.+AI Vulnerability Remediation/iu],
     ["content/cve-database/_index.md", /^CVE Database$/iu],
     ["content/recipes/general/_index.md", /Tool-Agnostic Security Remediation Recipes/iu],
-    ["content/security-remediation/_index.md", /AI Vulnerability Remediation Playbooks/iu],
+    ["content/security-remediation/_index.md", /How to Remediate Vulnerabilities with AI Agents/iu],
   ];
   const titles = new Set();
 

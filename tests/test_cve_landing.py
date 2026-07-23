@@ -821,6 +821,12 @@ class CveLandingRenderTests(unittest.TestCase):
 
         self.assertIn("Stable, source-backed guidance", page)
         self.assertIn(
+            '<meta name="description" content="Critical, unauthenticated Bricksforge '
+            "privilege escalation (CVSS 9.8). Check public User Registration forms. "
+            'Upgrade WordPress sites to Bricksforge 3.1.8.7 or later.">',
+            page,
+        )
+        self.assertIn(
             "The stable source-backed recipe above contains product-specific version evidence "
             "and upgrade guidance.",
             page,

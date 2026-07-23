@@ -1,5 +1,5 @@
 ---
-title: AI Vulnerability Remediation Playbooks
+title: How to Remediate Vulnerabilities with AI Agents
 linkTitle: Playbooks
 weight: 2
 lastmod: 2026-07-22

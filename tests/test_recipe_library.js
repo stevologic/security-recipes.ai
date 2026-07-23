@@ -366,6 +366,10 @@ test('AI provenance badges are escaped and only render when a model is present',
   };
 
   assert.equal(renderAiProvenance(''), '');
+  assert.match(
+    renderCardHtml(baseCard),
+    /<h3 id="recipe-card-fixture"><a href="\/recipes\/general\/fixture\/">Fixture<\/a><\/h3>/
+  );
   assert.match(provenance, /class="sr-ai-provenance"/);
   assert.match(provenance, /aria-label="AI-enriched with gpt&lt;5&gt;&amp;&quot;"/);
   assert.match(provenance, /<code>gpt&lt;5&gt;&amp;&quot;<\/code>/);

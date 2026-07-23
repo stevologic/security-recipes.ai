@@ -306,7 +306,7 @@
       '<div class="recipe-browser-card__visual" aria-hidden="true"><span>' + escapeHtml(card.categoryLabel.slice(0, 2).toUpperCase()) + '</span></div>' +
       '<div class="recipe-browser-card__content">' +
       '<div class="recipe-browser-card__topline">' + topline + '</div>' +
-      '<h3 id="recipe-card-' + escapeHtml(card.slug) + '">' + escapeHtml(card.displayTitle) + '</h3>' +
+      '<h3 id="recipe-card-' + escapeHtml(card.slug) + '"><a href="' + escapeHtml(card.url) + '">' + escapeHtml(card.displayTitle) + '</a></h3>' +
       (card.summary ? '<p>' + escapeHtml(card.summary) + '</p>' : '') +
       '<ul class="recipe-browser-card__facets" aria-label="Recipe outcomes">' + card.facets.map(function (f) { return '<li>' + escapeHtml(f.replace(/-/g, ' ')) + '</li>'; }).join('') + '</ul>' +
       '<div class="recipe-browser-card__meta">' + meta +
