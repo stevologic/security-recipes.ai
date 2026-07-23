@@ -76,6 +76,30 @@ test("high-intent landing pages remain concise, distinct, and query-specific", (
   );
 });
 
+test("the visual guide documents the evidence-gated search publication path", () => {
+  const guide = source("content/how-to-use/_index.md");
+  const readme = source("README.md");
+  const imagePath = path.join(
+    ROOT,
+    "static/images/how-to-use/canonical-cve-search-discovery.webp",
+  );
+
+  assert.match(guide, /^## How a qualified CVE becomes discoverable$/mu);
+  assert.match(
+    guide,
+    /src="\.\.\/images\/how-to-use\/canonical-cve-search-discovery\.webp"[^>]+width="1774" height="887"/u,
+  );
+  assert.match(guide, /no markup or sitemap can guarantee a particular search position\./u);
+  assert.match(
+    readme,
+    /static\/images\/how-to-use\/canonical-cve-search-discovery\.webp/u,
+  );
+  assert.match(readme, /same-origin links drift\./u);
+  assert.match(readme, /security-recipes\.ai\/pull\/89/u);
+  assert.match(guide, /unrelated Fail2Ban work in\s+that pull request/iu);
+  assert.ok(fs.statSync(imagePath).size > 0, "the themed search-discovery image must exist");
+});
+
 test("the documentation hub stays navigational instead of competing with the remediation pillar", () => {
   const docs = frontMatter("content/docs/_index.md");
 
@@ -268,7 +292,7 @@ test("global navigation names the AI remediation destination descriptively", () 
   );
 });
 
-test("the remediation pillar labels guidance and hypothetical examples truthfully", () => {
+test("the remediation pillar labels hypothetical and repository evidence truthfully", () => {
   const pillar = source("content/security-remediation/_index.md");
 
   assert.match(pillar, /^## CVE-specific remediation guides$/mu);
@@ -276,8 +300,18 @@ test("the remediation pillar labels guidance and hypothetical examples truthfull
     pillar,
     /^## Hypothetical workflow: remediate a dependency CVE with an AI agent$/mu,
   );
-  assert.doesNotMatch(pillar, /^## Worked CVE remediation examples$/mu);
-  assert.doesNotMatch(pillar, /^## Worked example:/mu);
+  assert.match(
+    pillar,
+    /^## Real repository case study: CVE-2026-13149 in brace-expansion$/mu,
+  );
+  assert.match(pillar, /github\.com\/advisories\/GHSA-3jxr-9vmj-r5cp/u);
+  assert.match(pillar, /github\.com\/stevologic\/security-recipes\.ai\/pull\/89/u);
+  assert.match(pillar, /also fixed a\s+separate Fail2Ban deployment bootstrap problem/u);
+  assert.match(
+    pillar,
+    /src="\/images\/how-to-use\/cve-to-agent-plan\.webp"/u,
+  );
+  assert.match(pillar, /A CVE is an evidence input, not permission to patch/u);
 
   assert.match(pillar, /^## Production guardrails for AI remediation agents$/mu);
   assert.match(pillar, /^### Agent identity, delegated authority, and trust$/mu);

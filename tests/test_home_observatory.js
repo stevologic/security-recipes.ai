@@ -31,6 +31,23 @@ test("homepage preserves the observatory narrative and authoritative bindings", 
   assert.match(template, /Proof required/);
 });
 
+test("homepage research console keeps a complete heading outline", () => {
+  const template = source("_includes/layouts/home-static.html");
+  const consoleAt = template.indexOf('<section class="research-console">');
+  const headingAt = template.indexOf(
+    '<h2 class="sr-only">Security Research Console example</h2>',
+    consoleAt,
+  );
+  const findingAt = template.indexOf(
+    "<h3>Apache Log4j Remote Code Execution</h3>",
+    consoleAt,
+  );
+
+  assert.notEqual(consoleAt, -1, "homepage must retain the research console");
+  assert.ok(headingAt > consoleAt, "research console must introduce an accessible H2");
+  assert.ok(findingAt > headingAt, "finding H3 must follow the console H2");
+});
+
 test("homepage action links point to local, reviewable product surfaces", () => {
   const template = source("_includes/layouts/home-static.html");
   const expectedLinks = [

@@ -37,6 +37,28 @@ Security Recipes is meant to be used as a loop:
   {{< card link="/mcp-servers/" title="Read-only MCP" subtitle="Retrieve approved CVE and recipe context without granting write authority." >}}
 {{< /cards >}}
 
+## How a qualified CVE becomes discoverable
+
+<figure class="visual-guide-figure">
+  <img src="../images/how-to-use/canonical-cve-search-discovery.webp" alt="A broad source catalog passes a distinct evidence gate before an indexable canonical CVE page reaches search discovery and a remediation workflow that ends in human review." width="1774" height="887" loading="lazy" decoding="async">
+  <figcaption>The source catalog stays complete; only evidence-qualified records cross the publication gate into canonical search pages and reviewed remediation paths.</figcaption>
+</figure>
+
+The tracked catalog and the public search surface are deliberately different.
+Every in-scope record remains available in the database, but a canonical CVE
+page is indexable only after reviewed Markdown or a complete enrichment passes
+the deterministic remediation-evidence contract. Each qualified page owns one
+canonical URL and arrives with a specific title and description, visible source
+provenance, and `Article`, `TechArticle`, and `BreadcrumbList` structured data.
+
+Search discovery is kept mechanically consistent with that policy. The CVE
+database identifies the full catalog as a `Dataset`; the AI remediation pillar
+describes its visible seven-step process as a `HowTo`; and year-partitioned CVE
+sitemaps contain only canonical, indexable records. Build checks fail on missing
+internal targets, sitemap/indexability drift, duplicate canonical ownership, or
+unreachable pages. These controls make pages eligible and understandable for
+crawlers, but no markup or sitemap can guarantee a particular search position.
+
 ## 1. Search the CVE database
 
 <figure class="visual-guide-figure">
@@ -46,7 +68,8 @@ Security Recipes is meant to be used as a loop:
 
 Start with the [CVE Database]({{< relref "/cve-database" >}}) when you have an
 exact CVE ID, product, severity, ecosystem, or known-exploited status. The
-database covers the complete tracked Medium, High, and Critical scope. A
+database covers the complete tracked rolling ten-year Medium, High, and Critical
+scope. A
 canonical CVE page is narrower: it is published for search only after the
 record passes the repository's remediation-evidence policy. The page initially
 shows its server-rendered qualified records and downloads the full compressed
@@ -91,6 +114,12 @@ to define the finding, allowed files, verification,
 rollback, and stop conditions. The acceptable outcome is either a small,
 reviewer-ready change with evidence or a triage note that names the blocker and
 responsible owner. It is never an unreviewed production mutation.
+
+For a public repository example, read the
+[CVE-2026-13149 `brace-expansion` case study]({{< relref "/security-remediation" >}}#real-repository-case-study-cve-2026-13149-in-brace-expansion).
+It links the advisory, exact dependency change, regression test, pull request,
+and recovery path. The case study also calls out the unrelated Fail2Ban work in
+that pull request so the vulnerability evidence is not overstated.
 
 ## 4. Add read-only MCP context when needed
 

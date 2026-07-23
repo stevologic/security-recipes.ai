@@ -29,11 +29,32 @@ for the evidence-to-patch workflow. Agent-specific guides cover
 [GitHub Copilot](https://security-recipes.ai/github_copilot/), and
 [Devin](https://security-recipes.ai/devin/).
 The [Visual Guide](https://security-recipes.ai/how-to-use/) shows the complete
-path from CVE search to bounded plan, proof, rollback, and human review.
+path from source qualification and search discovery to a bounded plan, proof,
+rollback, and human review.
 
 ## Current product and workflow
 
 ![Security Recipes CVE database and AI vulnerability remediation interface](static/images/og-card.png)
+
+### Qualified search discovery
+
+![A source catalog passes an evidence gate before a canonical CVE page reaches search discovery and a reviewed remediation workflow](static/images/how-to-use/canonical-cve-search-discovery.webp)
+
+The complete catalog remains searchable, while public canonical CVE pages stay
+limited to reviewed or evidence-qualified records. Those pages ship unique
+search metadata, server-rendered remediation and source evidence, canonical
+URLs, breadcrumbs, and `Article`/`TechArticle` structured data. The CVE database
+describes the catalog as a `Dataset`; the remediation pillar exposes its visible
+seven-step workflow as a `HowTo`. Year-partitioned CVE sitemaps contain only
+indexable canonical routes, and the build fails when sitemap parity, canonical
+ownership, crawl reachability, metadata limits, or same-origin links drift.
+
+The remediation pillar also records a public repository example for
+[CVE-2026-13149 in `brace-expansion`](https://security-recipes.ai/security-remediation/#real-repository-case-study-cve-2026-13149-in-brace-expansion).
+It ties the dependency-only change to the
+[reviewed pull request](https://github.com/stevologic/security-recipes.ai/pull/89),
+tests, advisory evidence, and recovery path while explicitly separating the
+same PR's unrelated Fail2Ban work.
 
 | CVE search to canonical record | CVE evidence to bounded agent plan |
 | --- | --- |
@@ -126,8 +147,9 @@ security-recipes.ai helps teams answer:
   instructions, rules, skills, and review checklists.
 - **[MCP Integration](https://security-recipes.ai/mcp-servers/)**: how to connect
   security context safely.
-- **[Visual Guide](https://security-recipes.ai/how-to-use/)**: the CVE-to-plan,
-  proof, rollback, review, and read-only MCP flow in four diagrams.
+- **[Visual Guide](https://security-recipes.ai/how-to-use/)**: the qualified
+  search-discovery, CVE-to-plan, proof, rollback, review, and read-only MCP flow
+  in five diagrams.
 - **[Docs](https://security-recipes.ai/docs/)**: site usage, agent consumption
   patterns, and contribution guidance.
 

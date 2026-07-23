@@ -12,6 +12,10 @@ const path = require("node:path");
 const crypto = require("node:crypto");
 
 const { decodeHtmlAttributeOnce, hasTechArticleSchemaType } = require("../lib/html-content");
+const {
+  generatedOutputForPathname,
+  missingGeneratedInternalLinks,
+} = require("../lib/site-output-path");
 const { hasHtmlEncodingArtifact } = require("../lib/text-quality");
 
 const ROOT = path.resolve(process.env.SITE_OUTPUT_DIR || "public");
@@ -129,7 +133,7 @@ function outputRouteForPathname(pathname) {
   return "";
 }
 
-function checkInternalFragments() {
+function checkInternalLinksAndFragments() {
   const targets = new Map();
   for (const [route, html] of htmlOutputs) {
     const ids = new Set(
@@ -142,6 +146,9 @@ function checkInternalFragments() {
   }
 
   for (const [sourceRoute, html] of htmlOutputs) {
+    for (const pathname of missingGeneratedInternalLinks(ROOT, sourceRoute, html)) {
+      fail(`broken internal link from ${sourceRoute} to ${pathname}`);
+    }
     for (const match of html.matchAll(/<a\b[^>]*\bhref=(['"])([^'"]+)\1/gi)) {
       let destination;
       try {
@@ -152,9 +159,9 @@ function checkInternalFragments() {
       } catch {
         continue;
       }
-      if (destination.origin !== "https://security-recipes.ai" || destination.hash.length <= 1) {
-        continue;
-      }
+      if (destination.origin !== "https://security-recipes.ai") continue;
+      if (!generatedOutputForPathname(ROOT, destination.pathname)) continue;
+      if (destination.hash.length <= 1) continue;
       const targetRoute = outputRouteForPathname(destination.pathname);
       if (!targetRoute) continue;
       let fragment;
@@ -591,7 +598,7 @@ for (const file of files) {
     }
   }
 }
-checkInternalFragments();
+checkInternalLinksAndFragments();
 checkIndexableLinksToNoindexTags();
 checkIndexableLinkGraph();
 for (const file of files.filter((candidate) => candidate.endsWith("index.xml"))) {

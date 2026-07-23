@@ -89,6 +89,13 @@ operator-led triage unless separate authority and evidence are supplied.
    and rollback path. Stop with `TRIAGE.md` when ownership or safe remediation
    cannot be proved.
 
+<figure class="sr-guide-figure">
+  <img src="/images/how-to-use/cve-to-agent-plan.webp"
+       alt="A CVE record flows through affectedness checks, a bounded AI agent plan, verification, rollback evidence, and human review"
+       width="2048" height="1152" loading="lazy" decoding="async">
+  <figcaption>A CVE is an evidence input, not permission to patch. The agent receives a bounded plan only after affectedness and ownership are established.</figcaption>
+</figure>
+
 Start with the [CVE Database](/cve-database/) for an exact vulnerability, the
 [Quick Start](/quickstart/) for a first agent-assisted fix, or the playbooks
 below for a specific finding class.
@@ -198,6 +205,39 @@ when the only fixed release requires an unowned platform migration, when the
 alert refers to a package that is not in the shipped artifact, or when a vendor
 has not published a supported remediation. Those outcomes require a human risk
 decision, not a more confident prompt.
+
+## Real repository case study: CVE-2026-13149 in brace-expansion
+
+On July 21, 2026, this repository's Dependabot alert 9 identified
+[CVE-2026-13149 / GHSA-3jxr-9vmj-r5cp](https://github.com/advisories/GHSA-3jxr-9vmj-r5cp)
+in the transitive development dependency `brace-expansion`. The lockfile
+resolved `minimatch` to `brace-expansion` 1.1.15; the advisory marks the 1.x
+line below 1.1.16 as vulnerable to exponential CPU consumption from a short
+brace-pattern input.
+
+A bounded, agent-assisted task produced the dependency portion of
+[pull request 89](https://github.com/stevologic/security-recipes.ai/pull/89),
+which was reviewed and merged the same day. That pull request also fixed a
+separate Fail2Ban deployment bootstrap problem. The evidence below therefore
+describes only the dependency slice; it does not present the entire pull
+request as a one-finding change.
+
+| Contract item | Recorded evidence |
+| --- | --- |
+| Finding | One high-severity advisory affecting transitive `brace-expansion` 1.1.15; the supported first patched 1.x release was 1.1.16. |
+| Scope | `package-lock.json` and the dependency regression in `tests/test_dependabot_config.js`; no application API or unrelated package upgrade was required. |
+| Change | The lockfile moved 1.1.15 to 1.1.16 and updated its registry artifact integrity. |
+| Verification | The regression pins 1.1.16, the advisory proof input completed in about 1 ms, `npm audit` reported zero vulnerabilities, and the repository build, performance budget, and test suites passed. |
+| Review and recovery | The public PR preserves the diff and validation trail. Reverting that dependency slice would restore the vulnerable version, so an operational rollback would need another supported patched release rather than 1.1.15. |
+
+The durable proof is the
+[version regression](https://github.com/stevologic/security-recipes.ai/blob/main/tests/test_dependabot_config.js)
+and the public pull-request record, not the agent's summary. This example shows
+the useful boundary: an agent can trace a transitive package, prepare a narrow
+lockfile update, run the protected check, and assemble evidence. A person still
+accepts the advisory, reviews the combined pull-request scope, and authorizes
+the merge. It does not prove that every dependency alert, production asset, or
+breaking upgrade is safe to delegate.
 
 ## Prioritize evidence before asking the agent to patch
 

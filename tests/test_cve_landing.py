@@ -1258,6 +1258,10 @@ class CveLandingRenderTests(unittest.TestCase):
                 "CVE-2021-42013: Apache HTTP Server 2.4.50 Incomplete-Fix Bypass",
                 ("2.4.50", "incomplete-fix bypass", "CVE-2021-41773"),
             ),
+            "CVE-2024-23897": (
+                "CVE-2024-23897: Jenkins CLI Arbitrary File Read",
+                ("arbitrary Jenkins controller files", "2.442", "LTS 2.440.1"),
+            ),
             "CVE-2025-20281": (
                 "CVE-2025-20281: Cisco ISE API Root RCE (CSCwo99449)",
                 ("CSCwo99449", "3.3", "3.4"),
@@ -1265,6 +1269,10 @@ class CveLandingRenderTests(unittest.TestCase):
             "CVE-2025-20337": (
                 "CVE-2025-20337: Cisco ISE API Root RCE (CSCwp02814)",
                 ("CSCwp02814", "CSCwo99449 hot patches do not fix it", "3.4"),
+            ),
+            "CVE-2025-64446": (
+                "CVE-2025-64446: FortiWeb Path Traversal Command Execution",
+                ("known-exploited", "admin commands", "8.0.2", "7.0.12"),
             ),
             "CVE-2026-33116": (
                 "CVE-2026-33116: .NET System.Security.Cryptography.Xml DoS",
@@ -1325,7 +1333,7 @@ class CveLandingRenderTests(unittest.TestCase):
         )
 
         title, headline, source = mcp_server._cve_landing_titles(
-            "CVE-2024-23897",
+            "CVE-2024-99999",
             source_title,
         )
         description = mcp_server._cve_landing_reviewed_description(
@@ -1334,7 +1342,7 @@ class CveLandingRenderTests(unittest.TestCase):
             "fallback",
         )
 
-        self.assertEqual(title, "CVE-2024-23897: Jenkins CLI arbitrary file read")
+        self.assertEqual(title, "CVE-2024-99999: Jenkins CLI arbitrary file read")
         self.assertEqual(headline, title)
         self.assertEqual(source, source_title)
         self.assertEqual(description, "Upgrade the affected Jenkins release.")

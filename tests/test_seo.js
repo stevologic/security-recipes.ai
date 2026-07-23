@@ -717,6 +717,21 @@ test("high-intent pages publish deliberate complete descriptions", () => {
   }
 });
 
+test("search-focused recipe pages publish substantial descriptions", () => {
+  const sourcePaths = [
+    "recipes/general/compliance-standards/_index.md",
+    "recipes/devin/scheduled-sde-remediation.md",
+    "recipes/general/source-code-injection-sink-audit.md",
+  ];
+
+  for (const sourcePath of sourcePaths) {
+    const description = descriptionFor({ sourcePath });
+    assert.ok(description.length >= 120, `${sourcePath} description is too thin`);
+    assert.ok(description.length <= 155, `${sourcePath} description is too long`);
+    assert.match(description, /[.!?]$/u, `${sourcePath} description is incomplete`);
+  }
+});
+
 test("the recipe recommender example cannot become a second HTML title element", () => {
   const source = fs.readFileSync(
     path.join(

@@ -387,7 +387,7 @@ def render_index(frameworks: list[dict[str, Any]], reviewed_on: str) -> str:
     return f"""---
 title: "Compliance standards"
 linkTitle: "Compliance standards"
-description: "A source-backed library of {len(frameworks)} compliance and assurance evidence recipes."
+description: "Browse {len(frameworks)} source-backed compliance and assurance recipes with framework scope, version status, official references, and evidence requirements for review."
 weight: 10
 date: "{reviewed_on}"
 ---
