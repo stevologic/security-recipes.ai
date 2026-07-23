@@ -345,6 +345,17 @@ runs the catalog tests, and opens or refreshes
 Repository **Settings > Actions > General > Workflow permissions** must allow
 GitHub Actions to create pull requests for first-run PR publication.
 
+Set `CVE_AUTO_MERGE_ENABLED=true` to deliver a safety-approved catalog PR after
+its exact head revision passes the dedicated validation workflow. When
+`CVE_AUTOMATION_APP_CLIENT_ID` and the `CVE_AUTOMATION_APP_PRIVATE_KEY` secret
+are configured, the workflow prefers that GitHub App identity so ordinary PR
+and main-branch `Build` runs fire naturally. Without App credentials, the
+workflow remains automatic: after the guarded `GITHUB_TOKEN` merge it verifies
+that the returned merge SHA is still current `main`, then dispatches the real
+`build.yml` workflow with that exact SHA. The production deploy gate recognizes
+only those CVE-qualified Build dispatches, so scheduled monitors and unrelated
+manual workflows cannot deadlock or satisfy a release.
+
 The source sync does not require a secret. To additionally enrich bounded,
 high-priority records from the deterministic evidence queue, add an Actions
 secret named `OPENAI_API_KEY`:

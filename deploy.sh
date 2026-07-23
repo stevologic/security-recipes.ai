@@ -20,8 +20,9 @@ export GIT_SSH_COMMAND="${GIT_SSH_COMMAND:-ssh -o BatchMode=yes}"
 # Designed to run from the managed systemd timer (or cron) on the deployment
 # host. It:
 #   1. Fetches the deploy branch and exits quietly when nothing changed.
-#   2. Waits for every GitHub Actions run on the exact target commit to finish
-#      without a failure, including the required Build workflow.
+#   2. Waits for push-triggered, GitHub default-CodeQL, and trusted dispatched
+#      Build runs on the exact target commit to finish without a failure.
+#      Scheduled production monitors are deliberately excluded.
 #   3. Hard-resets the checkout to origin/main (local edits are discarded;
 #      .env and mcp-server.toml are preserved).
 #   4. Pulls CI-built, commit-tagged site and MCP images and verifies their
@@ -242,7 +243,13 @@ github_repository() {
 github_workflow_runs() {
   local repository="$1"
   local sha="$2"
+  local event="$3"
+  local workflow_file="${4:-}"
   local token="${GH_TOKEN:-${GITHUB_TOKEN:-}}"
+  local runs_url="${GITHUB_API_URL%/}/repos/${repository}/actions/runs"
+  if [[ -n "${workflow_file}" ]]; then
+    runs_url="${GITHUB_API_URL%/}/repos/${repository}/actions/workflows/${workflow_file}/runs"
+  fi
   local -a curl_args=(
     --fail
     --silent
@@ -254,9 +261,10 @@ github_workflow_runs() {
     --max-time "${GITHUB_REQUEST_TIMEOUT}"
     -H "Accept: application/vnd.github+json"
     -H "X-GitHub-Api-Version: 2022-11-28"
-    --get "${GITHUB_API_URL%/}/repos/${repository}/actions/runs"
+    --get "${runs_url}"
     --data-urlencode "branch=${BRANCH}"
     --data-urlencode "head_sha=${sha}"
+    --data-urlencode "event=${event}"
     --data-urlencode "per_page=100"
   )
 
@@ -273,9 +281,11 @@ wait_for_ci() {
   local repository="$1"
   local sha="$2"
   local deadline=$(( $(date +%s) + CI_TIMEOUT ))
-  local response failures pending pending_names count reported_total mismatched missing signature now
+  local response event_response failures pending pending_names count missing signature now
   local stable_since=0
   local last_signature=""
+  local event workflow_file expected_workflow expected_title_prefix
+  local event_count event_reported_total event_mismatched
   local workflow workflow_count required_bad_count
   local -a required_workflows
 
@@ -289,41 +299,97 @@ wait_for_ci() {
   }
 
   IFS=',' read -r -a required_workflows <<< "${REQUIRED_WORKFLOWS}"
-  log "Waiting for GitHub Actions on ${repository}@${sha:0:12} (timeout ${CI_TIMEOUT}s)."
+  log "Waiting for push/default-CodeQL/dispatched-Build GitHub Actions on ${repository}@${sha:0:12} (timeout ${CI_TIMEOUT}s)."
 
   while true; do
-    if ! response="$(github_workflow_runs "${repository}" "${sha}")"; then
-      log "ERROR: GitHub Actions query failed. Set GH_TOKEN for private repositories or higher API limits."
-      return 1
-    fi
-    if ! jq -e '(.workflow_runs | type) == "array"' >/dev/null 2>&1 <<< "${response}"; then
-      log "ERROR: GitHub returned an unexpected workflow-runs response."
-      return 1
-    fi
-    if ! jq -e '(.total_count | type) == "number"' >/dev/null 2>&1 <<< "${response}"; then
-      log "ERROR: GitHub omitted the workflow-runs total count."
-      return 1
-    fi
+    response='{"total_count":0,"workflow_runs":[]}'
+    for event in push dynamic workflow_dispatch; do
+      workflow_file=""
+      expected_workflow=""
+      expected_title_prefix=""
+      if [[ "${event}" == "workflow_dispatch" ]]; then
+        workflow_file="build.yml"
+        expected_workflow="Build"
+        expected_title_prefix="CVE catalog Build ${sha} "
+      fi
+      if ! event_response="$(github_workflow_runs "${repository}" "${sha}" "${event}" "${workflow_file}")"; then
+        log "ERROR: GitHub Actions ${event} query failed. Set GH_TOKEN for private repositories or higher API limits."
+        return 1
+      fi
+      if ! jq -e '(.workflow_runs | type) == "array"' >/dev/null 2>&1 <<< "${event_response}"; then
+        log "ERROR: GitHub returned an unexpected ${event} workflow-runs response."
+        return 1
+      fi
+      if ! jq -e '(.total_count | type) == "number"' >/dev/null 2>&1 <<< "${event_response}"; then
+        log "ERROR: GitHub omitted the ${event} workflow-runs total count."
+        return 1
+      fi
+
+      event_count="$(jq -r '.workflow_runs | length' <<< "${event_response}")"
+      event_reported_total="$(jq -r '.total_count' <<< "${event_response}")"
+      if (( event_reported_total != event_count )); then
+        log "ERROR: GitHub reported ${event_reported_total} ${event} workflow runs but returned ${event_count}; refusing an incomplete CI view."
+        return 1
+      fi
+      event_mismatched="$(
+        jq -r \
+          --arg sha "${sha}" \
+          --arg branch "${BRANCH}" \
+          --arg event "${event}" \
+          --arg workflow "${expected_workflow}" '
+          [
+            .workflow_runs[]
+            | select(
+                .head_sha != $sha
+                or .head_branch != $branch
+                or .event != $event
+                or ($workflow != "" and .name != $workflow)
+              )
+          ]
+          | length
+        ' <<< "${event_response}"
+      )"
+      if (( event_mismatched > 0 )); then
+        log "ERROR: GitHub returned workflow runs outside ${event}:${BRANCH}@${sha}; refusing to deploy."
+        return 1
+      fi
+      if [[ "${event}" == "dynamic" ]]; then
+        event_response="$(
+          jq '
+            .workflow_runs = [
+              .workflow_runs[]
+              | select(.path == "dynamic/github-code-scanning/codeql")
+            ]
+            | .total_count = (.workflow_runs | length)
+          ' <<< "${event_response}"
+        )"
+      elif [[ "${event}" == "workflow_dispatch" ]]; then
+        event_response="$(
+          jq --arg title_prefix "${expected_title_prefix}" '
+            .workflow_runs = (
+              [
+                .workflow_runs[]
+                | select((.display_title // "") | startswith($title_prefix))
+              ]
+              | sort_by(.id)
+              | reverse
+              | .[:1]
+            )
+            | .total_count = (.workflow_runs | length)
+          ' <<< "${event_response}"
+        )"
+      fi
+      response="$(
+        jq -cn \
+          --argjson accumulated "${response}" \
+          --argjson current "${event_response}" '
+            ($accumulated.workflow_runs + $current.workflow_runs | unique_by(.id)) as $runs
+            | {total_count: ($runs | length), workflow_runs: $runs}
+          '
+      )"
+    done
 
     count="$(jq -r '.workflow_runs | length' <<< "${response}")"
-    reported_total="$(jq -r '.total_count' <<< "${response}")"
-    if (( reported_total != count )); then
-      log "ERROR: GitHub reported ${reported_total} workflow runs but returned ${count}; refusing an incomplete CI view."
-      return 1
-    fi
-    mismatched="$(
-      jq -r --arg sha "${sha}" --arg branch "${BRANCH}" '
-        [
-          .workflow_runs[]
-          | select(.head_sha != $sha or .head_branch != $branch)
-        ]
-        | length
-      ' <<< "${response}"
-    )"
-    if (( mismatched > 0 )); then
-      log "ERROR: GitHub returned workflow runs outside ${BRANCH}@${sha}; refusing to deploy."
-      return 1
-    fi
 
     failures="$(
       jq -r '
@@ -408,7 +474,7 @@ wait_for_ci() {
       if [[ "${signature}" != "${last_signature}" ]]; then
         last_signature="${signature}"
         stable_since="${now}"
-        log "All discovered workflows passed; holding for ${CI_SETTLE_SECONDS}s to catch late runs."
+        log "All discovered push/default-CodeQL/dispatched-Build workflows passed; holding for ${CI_SETTLE_SECONDS}s to catch late runs."
       fi
       if (( now - stable_since >= CI_SETTLE_SECONDS )); then
         log "GitHub Actions passed for ${sha:0:12}:"
