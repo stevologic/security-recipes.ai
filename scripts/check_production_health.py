@@ -223,14 +223,14 @@ CONTENT_INTEGRITY_PROBES = (
         "AI agent comparison",
         "agents/",
         re.compile(
-            r"<h1\b[^>]*>\s*Compare AI Coding Agents for Security Remediation\s*</h1>",
+            r"<h1\b[^>]*>\s*AI Coding Agents for Vulnerability Remediation\s*</h1>",
             re.IGNORECASE,
         ),
         (
             (
                 "query-specific page title",
                 re.compile(
-                    r"<title>\s*Compare AI Coding Agents for Security Remediation"
+                    r"<title>\s*AI Coding Agents for Vulnerability Remediation"
                     r"\s*\|\s*Security Recipes\s*</title>",
                     re.IGNORECASE,
                 ),
