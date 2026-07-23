@@ -22,6 +22,7 @@ import gzip
 import hashlib
 import heapq
 import html
+from http.client import IncompleteRead
 import itertools
 import json
 import os
@@ -433,7 +434,10 @@ def fetch_bytes(url: str, *, attempts: int = 4, timeout: int = 180) -> bytes:
             retry_after = exc.headers.get("Retry-After")
             delay = float(retry_after) if retry_after and retry_after.isdigit() else 2**attempt
             time.sleep(min(delay, 30))
-        except (TimeoutError, URLError, OSError) as exc:
+        # ``IncompleteRead`` is not an ``OSError``. NVD's CDN can close a
+        # large annual-feed response after sending only part of its declared
+        # body, so retry the immutable URL instead of accepting partial data.
+        except (IncompleteRead, TimeoutError, URLError, OSError) as exc:
             last_error = exc
             time.sleep(min(2**attempt, 30))
     if last_error is None:
@@ -2173,6 +2177,7 @@ def build_outputs(
     ai_enriched = 0
     ai_enrichment_complete = 0
     ai_enrichment_insufficient = 0
+    ai_enrichment_models: dict[str, int] = {}
     search_indexable_records: list[dict[str, Any]] = []
     valid_ids = valid_archetype_ids(archetypes)
     valid_agentic_ids = valid_agentic_archetype_ids(archetypes)
@@ -2231,6 +2236,9 @@ def build_outputs(
                     ai_enriched += 1
                     ai_enrichment_complete += int(enrichment.get("status") == "complete")
                     ai_enrichment_insufficient += int(enrichment.get("status") == "insufficient_evidence")
+                    model = str(enrichment.get("model") or "").strip()
+                    if model:
+                        ai_enrichment_models[model] = ai_enrichment_models.get(model, 0) + 1
                 if is_record_search_indexable(record):
                     search_indexable_records.append(search_index_record(record))
         finally:
@@ -2364,6 +2372,7 @@ def build_outputs(
         },
         "by_severity": dict(sorted(by_severity.items())),
         "by_publication_year": dict(sorted(by_year.items())),
+        "ai_enrichment_models": dict(sorted(ai_enrichment_models.items())),
         "sources": (
             deepcopy(sources_override)
             if sources_override is not None
@@ -2402,6 +2411,7 @@ def build_outputs(
         "totals": manifest["totals"],
         "by_severity": manifest["by_severity"],
         "by_publication_year": manifest["by_publication_year"],
+        "ai_enrichment_models": manifest["ai_enrichment_models"],
         "browser_index": browser_manifest,
         "archetypes": archetypes_manifest,
         "shard_set_sha256": shard_set_sha256,
@@ -2933,6 +2943,7 @@ def rebuild_search_index(output_dir: Path, *, dry_run: bool = False) -> dict[str
         "totals": totals,
         "by_severity": manifest.get("by_severity"),
         "by_publication_year": manifest.get("by_publication_year"),
+        "ai_enrichment_models": manifest.get("ai_enrichment_models"),
         "browser_index": manifest.get("browser_index"),
         "archetypes": manifest.get("archetypes_asset"),
         "shard_set_sha256": manifest.get("shard_set_sha256"),

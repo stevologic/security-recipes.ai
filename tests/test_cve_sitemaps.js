@@ -685,7 +685,7 @@ test("CVE RSS preserves concise reviewed titles for canonical stable pages", () 
   );
   assert.equal(
     byUrl.get("/cve/CVE-2024-6387/").title,
-    "CVE-2024-6387 — regreSSHion",
+    "CVE-2024-6387: OpenSSH regreSSHion RCE Remediation",
   );
 });
 

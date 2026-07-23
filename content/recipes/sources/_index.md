@@ -323,12 +323,12 @@ agent behaviour.
   onto agentic remediation runbooks.
 - **Where.** `docs.devin.ai`.
 
-### Codex / Agents.md
+### Codex / `AGENTS.md`
 
 - The Codex ecosystem uses `AGENTS.md` as a standard
   repo-level prompt file. The `agents.md` site and a handful of
   high-quality example repos on GitHub show working patterns.
-- **Where.** `agents.md` and the OpenAI Codex docs.
+- **Where.** [agents.md](https://agents.md/) and the OpenAI Codex docs.
 
 ---
 

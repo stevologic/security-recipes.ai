@@ -8,6 +8,7 @@ const test = require("node:test");
 
 const {
   generatedOutputForPathname,
+  insecurePlainHttpLinks,
   missingGeneratedInternalLinks,
 } = require("../lib/site-output-path");
 
@@ -68,4 +69,19 @@ test("missingGeneratedInternalLinks reports only missing same-origin targets", (
     missingGeneratedInternalLinks(root, "/", html),
     ["/missing/path/"],
   );
+});
+
+test("insecurePlainHttpLinks rejects public HTTP destinations but permits loopback", () => {
+  const html = `
+    <a href="http://example.com/guide">Insecure external guide</a>
+    <a href="http://security-recipes.ai/cve-database/">Insecure canonical host</a>
+    <a href="https://example.com/guide">Secure external guide</a>
+    <a href="http://localhost:8787/">Local dashboard</a>
+    <a href="http://127.0.0.1:8787/">IPv4 loopback dashboard</a>
+    <a href="http://[::1]:8787/">IPv6 loopback dashboard</a>
+  `;
+  assert.deepEqual(insecurePlainHttpLinks(html), [
+    "http://example.com/guide",
+    "http://security-recipes.ai/cve-database/",
+  ]);
 });

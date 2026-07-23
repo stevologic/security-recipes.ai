@@ -76,6 +76,24 @@ test("high-intent landing pages remain concise, distinct, and query-specific", (
   );
 });
 
+test("regreSSHion targets OpenSSH RCE remediation with primary-source authority", () => {
+  const relativePath = "content/recipes/cve/cve-2024-6387-regresshion.md";
+  const page = source(relativePath);
+  const data = frontMatter(relativePath);
+
+  assert.equal(data.title, "CVE-2024-6387: OpenSSH regreSSHion RCE Remediation");
+  assert.equal(data.linkTitle, "CVE-2024-6387 OpenSSH regreSSHion RCE Remediation");
+  assert.match(data.description, /Remediate CVE-2024-6387.+OpenSSH.+root RCE/iu);
+  assert.ok(data.title.length <= 60, "the regreSSHion title must remain concise");
+  assert.ok(data.description.length <= 165, "the regreSSHion snippet must remain concise");
+  assert.match(page, /https:\/\/www\.openssh\.com\/txt\/release-9\.8/u);
+  assert.match(
+    page,
+    /https:\/\/www\.qualys\.com\/2024\/07\/01\/cve-2024-6387\/regresshion\.txt/u,
+  );
+  assert.match(page, /did not investigate every other libc or\s+operating system/iu);
+});
+
 test("the visual guide documents the evidence-gated search publication path", () => {
   const guide = source("content/how-to-use/_index.md");
   const readme = source("README.md");

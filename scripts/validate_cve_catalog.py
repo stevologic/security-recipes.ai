@@ -1225,6 +1225,7 @@ def validate_runtime_summary(
         "totals": manifest.get("totals"),
         "by_severity": manifest.get("by_severity"),
         "by_publication_year": manifest.get("by_publication_year"),
+        "ai_enrichment_models": manifest.get("ai_enrichment_models"),
         "browser_index": manifest.get("browser_index"),
         "archetypes": manifest.get("archetypes_asset"),
         "shard_set_sha256": manifest.get("shard_set_sha256"),
@@ -1600,6 +1601,7 @@ def validate(catalog_dir: Path, content_dir: Path = DEFAULT_CONTENT) -> dict[str
     ai_enriched = 0
     ai_enrichment_complete = 0
     ai_enrichment_insufficient = 0
+    ai_enrichment_models: Counter[str] = Counter()
     search_indexable_records: dict[str, dict[str, Any]] = {}
     catalog_markdown_paths: set[str] = set()
     for entry in shard_entries:
@@ -1854,6 +1856,9 @@ def validate(catalog_dir: Path, content_dir: Path = DEFAULT_CONTENT) -> dict[str
                 if isinstance(enrichment, dict):
                     ai_enrichment_complete += int(enrichment.get("status") == "complete")
                     ai_enrichment_insufficient += int(enrichment.get("status") == "insufficient_evidence")
+                    model = str(enrichment.get("model") or "").strip()
+                    if model:
+                        ai_enrichment_models[model] += 1
             if recipe_kind == "markdown-override" or recipe_ready(enrichment, record):
                 search_indexable_records[cve] = projected_search_index_record(record)
 
@@ -1927,6 +1932,8 @@ def validate(catalog_dir: Path, content_dir: Path = DEFAULT_CONTENT) -> dict[str
         fail(failures, "manifest complete AI-enrichment count does not match shards")
     if totals.get("ai_enrichment_insufficient_evidence") != ai_enrichment_insufficient:
         fail(failures, "manifest insufficient AI-enrichment count does not match shards")
+    if manifest.get("ai_enrichment_models") != dict(sorted(ai_enrichment_models.items())):
+        fail(failures, "manifest AI-enrichment model counts do not match shards")
     if totals.get("search_indexable_records") != search_indexable_records:
         fail(failures, "manifest search-indexable count does not match the qualified allowlist")
 

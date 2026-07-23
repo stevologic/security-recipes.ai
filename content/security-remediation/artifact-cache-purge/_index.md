@@ -35,7 +35,7 @@ can hide in any infrastructure built for speed:
 
 - **Internal proxy registries.** Artifactory, Nexus, GitHub
   Packages, Verdaccio, the org's pull-through cache for npm /
-  PyPI / Maven Central / RubyGems / crates.io / Hex.
+  PyPI / Maven Central / RubyGems / [crates.io](https://crates.io/) / Hex.
 - **Container registries.** ECR, GCR, GAR, Harbor, Docker Hub
   mirrors — the registry where every derived image's base layer
   lives.

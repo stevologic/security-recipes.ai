@@ -62,7 +62,7 @@ Inspect only operator-scoped, first-party source and configuration. Exclude gene
 
 ### Verification
 
-- Test errors.Is, errors.As, public status mapping, context, and absence of duplicate logs.
+- Test `errors.Is`, `errors.As`, public status mapping, context, and absence of duplicate logs.
 - Compare diagnostic counts and relevant behavior before and after. Report every command, result, and check that could not run.
 
 ### Stop conditions
@@ -82,7 +82,7 @@ Inspect only operator-scoped, first-party source and configuration. Exclude gene
 
 ## Verification
 
-- Test errors.Is, errors.As, public status mapping, context, and absence of duplicate logs.
+- Test `errors.Is`, `errors.As`, public status mapping, context, and absence of duplicate logs.
 - Confirm that diagnostic configuration, suppressions, public interfaces, generated files, vendored files, and dependencies did not change outside the authorized scope.
 - Review the final diff for behavior changes and run the repository's focused checks before broader suites.
 

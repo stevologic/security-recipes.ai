@@ -14,6 +14,7 @@ const crypto = require("node:crypto");
 const { decodeHtmlAttributeOnce, hasTechArticleSchemaType } = require("../lib/html-content");
 const {
   generatedOutputForPathname,
+  insecurePlainHttpLinks,
   missingGeneratedInternalLinks,
 } = require("../lib/site-output-path");
 const { hasHtmlEncodingArtifact } = require("../lib/text-quality");
@@ -146,6 +147,9 @@ function checkInternalLinksAndFragments() {
   }
 
   for (const [sourceRoute, html] of htmlOutputs) {
+    for (const destination of insecurePlainHttpLinks(html)) {
+      fail(`plain HTTP external link from ${sourceRoute} to ${destination}`);
+    }
     for (const pathname of missingGeneratedInternalLinks(ROOT, sourceRoute, html)) {
       fail(`broken internal link from ${sourceRoute} to ${pathname}`);
     }

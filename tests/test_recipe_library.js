@@ -263,6 +263,15 @@ test('CVE Database is a standalone catalog route in the primary navigation', () 
   assert.match(hubHtml, /<h1 id="cve-database-heading">CVE Database<\/h1>/);
   assert.match(hubHtml, /<h2 id="cve-qualified-heading">Reviewed and evidence-qualified CVEs<\/h2>/);
   assert.match(hubHtml, /<h2 id="cve-historical-heading">Historical reviewed CVEs<\/h2>/);
+  const aiEvaluated = Number(hubHtml.match(/<dt>AI-evaluated<\/dt><dd>([\d,]+)<\/dd>/)?.[1].replaceAll(',', ''));
+  const modelCounts = [...hubHtml.matchAll(/cve-database__model-chip[\s\S]*?<small>([\d,]+) records<\/small>/g)]
+    .map((match) => Number(match[1].replaceAll(',', '')));
+  assert.ok(modelCounts.length > 0, 'the active catalog exposes AI model provenance');
+  assert.equal(
+    modelCounts.reduce((total, records) => total + records, 0),
+    aiEvaluated,
+    'model provenance counts equal the active AI-evaluated record total'
+  );
   assert.match(hubHtml, /href="\/security-remediation\/">AI vulnerability remediation playbooks<\/a>/);
   assert.match(hubHtml, /href="\/security-remediation\/vulnerable-dependencies\/">vulnerable dependency workflow<\/a>/);
   assert.match(hubHtml, /href="\/recipes\/general\/cve-intelligence-intake-gate\/">CVE intelligence intake gate<\/a>/);
@@ -348,7 +357,7 @@ test('CVE Database is a standalone catalog route in the primary navigation', () 
   );
   assert.equal(
     qualifiedAnchorLabels.get('CVE-2024-6387'),
-    'CVE-2024-6387 — regreSSHion'
+    'CVE-2024-6387: OpenSSH regreSSHion RCE Remediation'
   );
   assert.doesNotMatch(
     hubHtml,

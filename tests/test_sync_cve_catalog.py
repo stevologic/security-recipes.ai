@@ -517,6 +517,36 @@ class SyncCveCatalogTests(unittest.TestCase):
         self.assertEqual(mocked_open.call_count, 2)
         mocked_sleep.assert_called_once_with(1)
 
+    def test_fetch_bytes_retries_truncated_http_body(self) -> None:
+        class Response:
+            def __init__(self, *, truncated: bool = False) -> None:
+                self.truncated = truncated
+
+            def __enter__(self) -> "Response":
+                return self
+
+            def __exit__(self, *args: object) -> None:
+                return None
+
+            def read(self) -> bytes:
+                if self.truncated:
+                    raise catalog.IncompleteRead(b"partial feed", 1024)
+                return b"complete feed"
+
+        with (
+            patch.object(
+                catalog,
+                "urlopen",
+                side_effect=[Response(truncated=True), Response()],
+            ) as mocked_open,
+            patch.object(catalog.time, "sleep") as mocked_sleep,
+        ):
+            payload = catalog.fetch_bytes("https://nvd.example.test/feed.json.gz")
+
+        self.assertEqual(payload, b"complete feed")
+        self.assertEqual(mocked_open.call_count, 2)
+        mocked_sleep.assert_called_once_with(1)
+
     def test_build_and_validator_account_for_ai_enrichment(self) -> None:
         record = normalize(nvd_record("CVE-2024-1234"))
         self.assertIsNotNone(record)
@@ -555,6 +585,13 @@ class SyncCveCatalogTests(unittest.TestCase):
         self.assertEqual(manifest["totals"]["ai_enriched_records"], 1)
         self.assertEqual(manifest["totals"]["ai_enrichment_complete"], 1)
         self.assertEqual(manifest["totals"]["ai_enrichment_insufficient_evidence"], 0)
+        self.assertEqual(manifest["ai_enrichment_models"], {"test-model": 1})
+        runtime_summary = json.loads(outputs[Path("runtime-summary.json")])
+        self.assertEqual(runtime_summary["ai_enrichment_models"], {"test-model": 1})
+        self.assertEqual(
+            sum(runtime_summary["ai_enrichment_models"].values()),
+            runtime_summary["totals"]["ai_enriched_records"],
+        )
         self.assertEqual(manifest["totals"]["search_indexable_records"], 0)
         self.assertEqual(
             json.loads(outputs[Path("search-indexable.json")])["records"],

@@ -393,21 +393,33 @@ class CveLandingRenderTests(unittest.TestCase):
         self.assertIn("Return a reviewed patch or a TRIAGE.md blocker record", page)
         self.assertIn("Guidance does not grant production mutation authority", page)
         self.assertIn("AI agent plan summary", page)
-        self.assertIn("Action phases", page)
+        self.assertNotIn("<h3>Action phases</h3>", page)
+        self.assertIn("<strong>Objective:</strong>", page)
         self.assertIn("Mutation authority", page)
-        self.assertIn("When no fixed version is known", page)
         self.assertNotIn("Repository discovery hints", page)
         self.assertNotIn("Phase instructions", page)
         self.assertNotIn("Evidence required", page)
-        self.assertIn("affected-surface-inventory", page)
-        self.assertIn("dependency manifest, lockfile", page)
-        self.assertIn("Read-only", page)
+        self.assertNotIn("affected-surface-inventory", page)
+        self.assertNotIn("dependency_manifest", page)
         self.assertIn("&lt;reviewer-ready&gt;", page)
         self.assertNotIn("&lt;unsafe-glob&gt;", page)
-        self.assertIn("Command &lt;injection&gt;", page)
+        self.assertNotIn("Command &lt;injection&gt;", page)
         self.assertNotIn("Command <injection>", page)
         self.assertIn('href="/agents/">AI agents for vulnerability remediation</a>', page)
         self.assertIn('href="#complete-record">complete machine-readable plan</a>', page)
+        plan_match = re.search(
+            r'<section class="cve-catalog__detail-section cve-catalog__agent-plan".*?</section>',
+            page,
+            flags=re.DOTALL,
+        )
+        self.assertIsNotNone(plan_match)
+        assert plan_match is not None
+        plan_text = unescape(re.sub(r"<[^>]+>", " ", plan_match.group(0)))
+        self.assertLessEqual(
+            len(re.findall(r"\b[\w'-]+\b", plan_text)),
+            80,
+            "the agent-plan handoff must stay compact; details belong in the complete record",
+        )
         self.assertIn(
             "concise human workflow are available above. This view adds the normalized "
             "source payload and complete machine-readable action contract.",
@@ -571,17 +583,23 @@ class CveLandingRenderTests(unittest.TestCase):
             sum(field_limits.values()),
         )
         self.assertNotIn("watch_for visible candidate", workflow_html)
-        self.assertEqual(agent_html.count('class="cve-catalog__agent-action"'), 7)
+        self.assertNotIn('class="cve-catalog__agent-action"', agent_html)
         for phase in phases:
-            self.assertEqual(agent_html.count(f"{phase.title()} —"), 1)
+            self.assertNotIn(f"{phase.title()} —", agent_html)
         for archetype_index in range(3):
-            self.assertIn(f"Archetype {archetype_index}", agent_html)
+            self.assertNotIn(f"Archetype {archetype_index}", agent_html)
         self.assertNotIn("Instruction discover.0.0", agent_html)
         self.assertNotIn("Evidence discover.0.0", agent_html)
         self.assertNotIn("&lt;unsafe-glob&gt;", agent_html)
         self.assertNotIn("<details", agent_html)
+        self.assertIn("<strong>Objective:</strong>", agent_html)
+        self.assertIn("<strong>Mutation authority:</strong>", agent_html)
         self.assertIn('href="#complete-record"', workflow_html)
         self.assertIn('href="#complete-record"', agent_html)
+
+        agent_text = unescape(re.sub(r"<[^>]+>", " ", agent_html))
+        agent_words = re.findall(r"[A-Za-z0-9][A-Za-z0-9'-]*", agent_text)
+        self.assertLessEqual(len(agent_words), 80)
 
         plain_summary = unescape(
             re.sub(r"<[^>]+>", " ", workflow_html + agent_html)

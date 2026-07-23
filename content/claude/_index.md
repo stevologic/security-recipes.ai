@@ -44,7 +44,7 @@ Anthropic's native scan-to-patch workflow. It is currently a public beta
 for Claude Enterprise; the ordinary Claude Code workflow below remains
 available separately.
 
-1. In Claude.ai, open **Security**, select the GitHub repository, branch,
+1. In [Claude.ai](https://claude.ai/), open **Security**, select the GitHub repository, branch,
    and, when useful, a narrower directory, then run the scan.
 2. Review the finding's severity, affected location, explanation, and
    suggested fix. Dismiss false positives with a reason so the decision

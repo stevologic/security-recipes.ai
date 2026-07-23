@@ -13989,7 +13989,7 @@ def _cve_landing_reviewed_phase_slugs(value: object) -> set[str]:
 
 
 def _cve_landing_agentic_plan_html(plan: object) -> str:
-    """Render a concise human summary while preserving the full plan in the record."""
+    """Render a compact handoff while preserving the full plan in the record."""
     if not isinstance(plan, dict):
         return ""
     raw_actions = plan.get("actions")
@@ -14004,154 +14004,34 @@ def _cve_landing_agentic_plan_html(plan: object) -> str:
         authoritative.get("mutation_authority"),
         500,
     )
-    fixed_version_policy = plan.get("fixed_version_policy")
-    fixed_version_policy = (
-        fixed_version_policy if isinstance(fixed_version_policy, dict) else {}
+
+    def compact_text(value: str, max_words: int) -> str:
+        words = value.split()
+        if len(words) <= max_words:
+            return value
+        return " ".join(words[:max_words]).rstrip(" ,;:.") + "\u2026"
+
+    objective = compact_text(
+        objective or "Follow the evidence-qualified remediation contract for this CVE.",
+        22,
     )
-    unknown_fix = _cve_landing_text(fixed_version_policy.get("when_unknown"), 500)
-
-    def add_unique(group: dict[str, Any], field: str, value: str) -> None:
-        values = group[field]
-        if isinstance(values, list) and value and value not in values:
-            values.append(value)
-
-    phase_groups: dict[str, dict[str, Any]] = {}
-    for action_index, action in enumerate(actions, start=1):
-        if not isinstance(action, dict):
-            continue
-        phase = _cve_landing_text(action.get("phase"), 40).lower()
-        phase_key = phase or f"phase-{action_index}"
-        if phase_key not in phase_groups:
-            phase_groups[phase_key] = {
-                "label": phase.replace("_", " ").title() or f"Phase {action_index}",
-                "archetypes": [],
-                "operations": [],
-                "target_kinds": [],
-                "approval_gates": [],
-                "required_outputs": [],
-                "mutation_states": [],
-        }
-        group = phase_groups[phase_key]
-
-        operation = _cve_landing_text(action.get("operation"), 80)
-        archetype = _cve_landing_text(action.get("archetype_title"), 180)
-        add_unique(group, "operations", operation)
-        add_unique(group, "archetypes", archetype)
-        raw_targets = action.get("target_kinds")
-        if isinstance(raw_targets, list):
-            for target in raw_targets:
-                add_unique(
-                    group,
-                    "target_kinds",
-                    _cve_landing_text(target, 80).replace("_", " "),
-                )
-        approval_gate = _cve_landing_text(action.get("approval_gate"), 120)
-        required_output = _cve_landing_text(action.get("required_output"), 180)
-        add_unique(group, "approval_gates", approval_gate)
-        add_unique(group, "required_outputs", required_output)
-        mutates = action.get("mutates_files")
-        mutation_states = group["mutation_states"]
-        if isinstance(mutation_states, list) and isinstance(mutates, bool):
-            if mutates not in mutation_states:
-                mutation_states.append(mutates)
-
-    def summarize_values(
-        values: object,
-        *,
-        limit: int,
-        separator: str = ", ",
-    ) -> str:
-        if not isinstance(values, list):
-            return ""
-        selected = [str(value) for value in values[:limit] if str(value)]
-        summary = separator.join(selected)
-        remaining = len(values) - len(selected)
-        if remaining > 0:
-            summary += f"{separator}+{remaining} more in the complete plan"
-        return summary
-
-    rendered_actions: list[str] = []
-    for index, group in enumerate(list(phase_groups.values())[:10], start=1):
-        label = str(group.get("label") or f"Phase {index}")
-        archetypes = summarize_values(group.get("archetypes"), limit=4, separator="; ")
-        operation = summarize_values(group.get("operations"), limit=4)
-        target_kinds = summarize_values(group.get("target_kinds"), limit=12)
-        required_output = summarize_values(group.get("required_outputs"), limit=4)
-        approval_gates = [
-            value
-            for value in group.get("approval_gates", [])
-            if isinstance(value, str) and value.casefold() not in {"none", "not_required"}
-        ]
-        approval_gate = summarize_values(approval_gates, limit=4)
-        mutation_states = group.get("mutation_states")
-        mutation_states = mutation_states if isinstance(mutation_states, list) else []
-        if True in mutation_states:
-            change_authority = "File mutation" + (
-                f"; approval gate: {approval_gate}" if approval_gate else ""
-            )
-            if False in mutation_states:
-                change_authority = "Read-only and file-mutation actions" + (
-                    f"; approval gate: {approval_gate}" if approval_gate else ""
-                )
-        elif False in mutation_states:
-            change_authority = "Read-only"
-        else:
-            change_authority = f"Approval gate: {approval_gate}" if approval_gate else ""
-        facts = (
-            ("Operation", operation),
-            ("Target kinds", target_kinds),
-            ("Change authority", change_authority),
-            ("Required output", required_output),
-        )
-        facts_html = "".join(
-            f"<div><dt>{html.escape(name)}</dt><dd>{html.escape(value)}</dd></div>"
-            for name, value in facts
-            if value
-        )
-        if not facts_html:
-            continue
-        action_title = html.escape(label) + (
-            f" — {html.escape(archetypes)}" if archetypes else ""
-        )
-        rendered_actions.append(
-            '<li class="cve-catalog__agent-action">'
-            f"<p><strong>{index:02d}. {action_title}</strong></p>"
-            f'<dl class="cve-catalog__facts">{facts_html}</dl></li>'
-        )
+    mutation_authority = compact_text(
+        mutation_authority
+        or "This guidance does not grant permission to change files or production systems.",
+        22,
+    )
 
     return (
         '<section class="cve-catalog__detail-section cve-catalog__agent-plan" '
         'aria-labelledby="agent-execution-plan-heading">'
         '<h2 id="agent-execution-plan-heading">AI agent plan summary</h2>'
-        '<p>Use this summary for human review, see '
-        '<a href="/agents/">AI agents for vulnerability remediation</a> for setup '
-        'guardrails, and open the <a href="#complete-record">complete machine-readable '
-        "plan</a> for every action field.</p>"
-        + (
-            f"<p><strong>Objective:</strong> {html.escape(objective)}</p>"
-            if objective
-            else ""
-        )
-        + (
-            '<aside class="cve-catalog__detail-message"><strong>Mutation authority:</strong> '
-            f"{html.escape(mutation_authority)}</aside>"
-            if mutation_authority
-            else ""
-        )
-        + (
-            '<aside class="cve-catalog__detail-message"><strong>When no fixed version is known:</strong> '
-            f"{html.escape(unknown_fix)}</aside>"
-            if unknown_fix
-            else ""
-        )
-        + (
-            '<div><h3>Action phases</h3><ol class="cve-catalog__agent-actions">'
-            + "".join(rendered_actions)
-            + "</ol></div>"
-            if rendered_actions
-            else ""
-        )
-        + "</section>"
+        f"<p><strong>Objective:</strong> {html.escape(objective)}</p>"
+        '<aside class="cve-catalog__detail-message"><strong>Mutation authority:</strong> '
+        f"{html.escape(mutation_authority)}</aside>"
+        '<p>See <a href="/agents/">AI agents for vulnerability remediation</a> for setup '
+        'guardrails and the <a href="#complete-record">complete machine-readable plan</a> '
+        "for every action, approval gate, evidence requirement, and stop condition.</p>"
+        "</section>"
     )
 
 
