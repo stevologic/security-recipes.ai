@@ -47,9 +47,11 @@ try:
         EnrichmentCache,
         OpenAIEnricher,
         canonical_priority_cve_ids,
+        enrichment_errors,
         recipe_ready,
     )
     from scripts.cve_ai_recipe import GeneratedRecipeManager
+    from scripts.cve_text_quality import clean_catalog_text
 except ModuleNotFoundError:  # Direct ``python scripts/sync_cve_catalog.py`` execution.
     from cve_ai_enrichment import (  # type: ignore[no-redef]
         DEFAULT_MODEL as DEFAULT_OPENAI_MODEL,
@@ -58,9 +60,11 @@ except ModuleNotFoundError:  # Direct ``python scripts/sync_cve_catalog.py`` exe
         EnrichmentCache,
         OpenAIEnricher,
         canonical_priority_cve_ids,
+        enrichment_errors,
         recipe_ready,
     )
     from cve_ai_recipe import GeneratedRecipeManager  # type: ignore[no-redef]
+    from cve_text_quality import clean_catalog_text  # type: ignore[no-redef]
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -312,8 +316,96 @@ def normalize_space(value: object, *, limit: int | None = None) -> str:
     return text
 
 
+def truncate_summary_at_sentence(value: object, *, limit: int) -> str:
+    """Bound a summary at its last complete sentence when one fits."""
+    text = clean_catalog_text(value)
+    if len(text) <= limit:
+        return text
+
+    candidate = text[:limit].rstrip()
+    endings = list(re.finditer(r"[.!?](?:[\"'\u2019\u201d)\]]+)?(?=\s|$)", candidate))
+    if endings:
+        return candidate[: endings[-1].end()].rstrip()
+
+    # A small minority of source descriptions contain no complete sentence
+    # inside the bound. Keep the existing explicit truncation marker rather
+    # than manufacturing punctuation that could change the source's meaning.
+    return normalize_space(text, limit=limit)
+
+
+def trim_incomplete_summary_tail(value: object) -> str:
+    """Remove an upstream truncation marker and its incomplete final sentence."""
+    text = clean_catalog_text(value)
+    if text.endswith("…"):
+        candidate = text[:-1].rstrip()
+    else:
+        return text
+    endings = list(re.finditer(r"[.!?](?:[\"'\u2019\u201d)\]]+)?(?=\s|$)", candidate))
+    return candidate[: endings[-1].end()].rstrip() if endings else text
+
+
+def normalize_catalog_record_text(record: dict[str, Any]) -> dict[str, Any]:
+    """Repair bounded user-visible source fields while preserving record structure."""
+    normalized = dict(record)
+    if isinstance(normalized.get("title"), str):
+        normalized["title"] = clean_catalog_text(normalized["title"])
+    if isinstance(normalized.get("summary"), str):
+        normalized["summary"] = trim_incomplete_summary_tail(normalized["summary"])
+
+    enrichment = normalized.get("ai_enrichment")
+    if isinstance(enrichment, dict):
+        cleaned_enrichment = dict(enrichment)
+        if isinstance(cleaned_enrichment.get("business_risk"), str):
+            cleaned_enrichment["business_risk"] = clean_catalog_text(
+                cleaned_enrichment["business_risk"]
+            )
+        for field in (
+            "exposure_conditions",
+            "remediation_steps",
+            "verification_steps",
+            "uncertainty",
+        ):
+            values = cleaned_enrichment.get(field)
+            if isinstance(values, list):
+                cleaned_enrichment[field] = [
+                    clean_catalog_text(value) if isinstance(value, str) else value
+                    for value in values
+                ]
+        claims = cleaned_enrichment.get("claim_evidence")
+        if isinstance(claims, list):
+            cleaned_claims: list[Any] = []
+            for claim in claims:
+                if not isinstance(claim, dict):
+                    cleaned_claims.append(claim)
+                    continue
+                cleaned_claim = dict(claim)
+                if isinstance(cleaned_claim.get("claim"), str):
+                    cleaned_claim["claim"] = clean_catalog_text(cleaned_claim["claim"])
+                cleaned_claims.append(cleaned_claim)
+            cleaned_enrichment["claim_evidence"] = cleaned_claims
+        # Provenance and identity fields (URLs, fingerprints, model metadata,
+        # schema identifiers) are deliberately byte-preserved.
+        normalized["ai_enrichment"] = cleaned_enrichment
+    return normalized
+
+
+def apply_valid_cached_enrichment(
+    record: dict[str, Any], entries: dict[str, dict[str, Any]]
+) -> dict[str, Any]:
+    """Reconcile a valid cache update without blessing stale evidence."""
+    candidate = entries.get(str(record.get("cve") or ""))
+    if candidate is None:
+        return record
+    normalized = normalize_catalog_record_text(record)
+    if enrichment_errors(candidate, normalized):
+        return record
+    refreshed = dict(record)
+    refreshed["ai_enrichment"] = candidate
+    return refreshed
+
+
 def safe_markdown_text(value: object, *, limit: int | None = None) -> str:
-    return html.escape(normalize_space(value, limit=limit), quote=False)
+    return html.escape(normalize_space(clean_catalog_text(value), limit=limit), quote=False)
 
 
 def fetch_bytes(url: str, *, attempts: int = 4, timeout: int = 180) -> bytes:
@@ -555,7 +647,7 @@ def english_description(cve: dict[str, Any]) -> str:
     )
     if not value:
         value = next((item.get("value") for item in descriptions if isinstance(item, dict) and item.get("value")), "")
-    return normalize_space(value, limit=1200) or (
+    return truncate_summary_at_sentence(value, limit=1200) or (
         "No description is present in the NVD record; consult the linked NVD entry and vendor references."
     )
 
@@ -2062,6 +2154,7 @@ def build_outputs(
 
         try:
             for record in ordered_records:
+                record = normalize_catalog_record_text(record)
                 shard = cve_shard(record)
                 append_shard_record(shard, json_bytes(record))
                 shard_counts[shard] = shard_counts.get(shard, 0) + 1
@@ -2494,6 +2587,7 @@ def rebuild_markdown_inventory(
     output_dir: Path,
     content_dir: Path,
     *,
+    enrichment_cache_path: Path | None = None,
     dry_run: bool = False,
 ) -> dict[str, Any]:
     """Reapply local Markdown to a verified catalog without refreshing source data."""
@@ -2588,6 +2682,11 @@ def rebuild_markdown_inventory(
         raise ValueError("CVE catalog shard-set integrity mismatch")
 
     inventory = markdown_inventory(content_dir)
+    enrichment_entries = (
+        EnrichmentCache.load(enrichment_cache_path).entries
+        if enrichment_cache_path is not None
+        else {}
+    )
     seen_ids: set[str] = set()
     previous_shard = ""
     chunk: list[dict[str, Any]] = []
@@ -2643,6 +2742,7 @@ def rebuild_markdown_inventory(
                 previous_cve = cve
                 seen_ids.add(cve)
                 apply_markdown_inventory(record, inventory.get(cve, []))
+                record = apply_valid_cached_enrichment(record, enrichment_entries)
                 chunk.append(record)
                 if len(chunk) >= chunk_limit:
                     _flush_markdown_refresh_chunk(chunk, spool_root, spool_paths)
@@ -2971,6 +3071,7 @@ def main(argv: list[str] | None = None) -> int:
                 rebuild_markdown_inventory(
                     output_dir,
                     content_dir,
+                    enrichment_cache_path=enrichment_cache_path,
                     dry_run=args.dry_run,
                 ),
                 indent=2,

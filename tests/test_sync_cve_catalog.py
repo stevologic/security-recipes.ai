@@ -281,6 +281,139 @@ def write_catalog_fixture(
 
 
 class SyncCveCatalogTests(unittest.TestCase):
+    def test_english_description_truncates_at_a_complete_sentence(self) -> None:
+        complete_sentence = (
+            "The affected component accepts attacker-controlled input and reaches the vulnerable "
+            + "processing path under the documented deployment conditions " * 15
+        ).strip() + "."
+        unfinished_sentence = (
+            "Additional source detail continues with lower-priority implementation context " * 15
+        ).strip() + "."
+        self.assertLess(len(complete_sentence), 1200)
+        self.assertGreater(len(f"{complete_sentence} {unfinished_sentence}"), 1200)
+        record = nvd_record()
+        record["descriptions"][0]["value"] = f"{complete_sentence} {unfinished_sentence}"
+
+        summary = catalog.english_description(record)
+
+        self.assertEqual(summary, complete_sentence)
+        self.assertFalse(summary.endswith("…"))
+
+    def test_sentence_aware_summary_preserves_short_and_marks_boundaryless_text(self) -> None:
+        self.assertEqual(
+            catalog.truncate_summary_at_sentence("A complete short summary.", limit=80),
+            "A complete short summary.",
+        )
+
+        boundaryless = "word " * 40
+        truncated = catalog.truncate_summary_at_sentence(boundaryless, limit=80)
+        self.assertLessEqual(len(truncated), 80)
+        self.assertTrue(truncated.endswith("…"))
+
+    def test_existing_truncated_summary_drops_incomplete_tail(self) -> None:
+        truncated = (
+            "The first sentence is complete. The source cuts off mid-senten…"
+        )
+        repaired = catalog.trim_incomplete_summary_tail(truncated)
+        self.assertEqual(repaired, "The first sentence is complete.")
+        self.assertEqual(catalog.trim_incomplete_summary_tail(repaired), repaired)
+        self.assertEqual(
+            catalog.trim_incomplete_summary_tail("Boundaryless source text…"),
+            "Boundaryless source text…",
+        )
+        self.assertEqual(
+            catalog.trim_incomplete_summary_tail("A diagnostic trace follows..."),
+            "A diagnostic trace follows...",
+        )
+
+    def test_catalog_text_cleanup_preserves_enrichment_provenance_fields(self) -> None:
+        source_url = "https://vendor.example.test/advisory?a=1&amp;b=2"
+        fingerprint = "a" * 64
+        record = {
+            "title": "Product &amp; service vulnerability",
+            "summary": "Apply the vendor’s supported update.",
+            "ai_enrichment": {
+                "business_risk": "Product &amp; service compromise.",
+                "exposure_conditions": ["The service’s endpoint is reachable."],
+                "remediation_steps": ["Apply the vendor’s update."],
+                "verification_steps": ["Confirm the service’s fixed version."],
+                "uncertainty": ["Deployment ownership isn’t recorded."],
+                "claim_evidence": [
+                    {
+                        "claim": "Product &amp; service is affected.",
+                        "kind": "affected_product",
+                        "source_url": source_url,
+                    }
+                ],
+                "source_urls": [source_url],
+                "retrieved_source_urls": [source_url],
+                "source_fingerprint": fingerprint,
+                "model": "test-model",
+            },
+        }
+
+        normalized = catalog.normalize_catalog_record_text(record)
+
+        self.assertEqual(normalized["title"], "Product & service vulnerability")
+        self.assertEqual(
+            normalized["ai_enrichment"]["business_risk"],
+            "Product & service compromise.",
+        )
+        self.assertEqual(
+            normalized["ai_enrichment"]["claim_evidence"][0]["claim"],
+            "Product & service is affected.",
+        )
+        self.assertEqual(
+            normalized["ai_enrichment"]["claim_evidence"][0]["source_url"],
+            source_url,
+        )
+        self.assertEqual(normalized["ai_enrichment"]["source_urls"], [source_url])
+        self.assertEqual(normalized["ai_enrichment"]["source_fingerprint"], fingerprint)
+
+    def test_generic_space_normalization_does_not_decode_url_entities(self) -> None:
+        source_url = "https://vendor.example.test/advisory?a=1&notid=2&amp;b=3"
+
+        self.assertEqual(catalog.normalize_space(source_url), source_url)
+
+    def test_valid_cached_enrichment_reconciles_normalized_source_fingerprint(self) -> None:
+        record = normalize(nvd_record("CVE-2024-4321"))
+        self.assertIsNotNone(record)
+        assert record is not None
+        record["summary"] = "Product &amp; service is affected."
+        source_url = record["references"][0]["url"]
+        normalized = catalog.normalize_catalog_record_text(record)
+        candidate = ai.build_enrichment_entry(
+            normalized,
+            {
+                "status": "complete",
+                "business_risk": "An exposed vulnerable service could be compromised.",
+                "exposure_conditions": ["The affected service is reachable."],
+                "remediation_steps": ["Apply the vendor-supported fixed release."],
+                "verification_steps": ["Confirm the fixed release is deployed."],
+                "uncertainty": [],
+                "recipe_specificity": "not_specific",
+                "claim_evidence": [],
+                "source_urls": [source_url],
+            },
+            model="test-model",
+            retrieved_source_urls=[source_url],
+        )
+        record["ai_enrichment"] = {**candidate, "source_fingerprint": "b" * 64}
+
+        refreshed = catalog.apply_valid_cached_enrichment(
+            record,
+            {record["cve"]: candidate},
+        )
+
+        self.assertEqual(refreshed["ai_enrichment"], candidate)
+        self.assertEqual(
+            ai.enrichment_errors(
+                refreshed["ai_enrichment"],
+                catalog.normalize_catalog_record_text(refreshed),
+            ),
+            [],
+        )
+
     def test_ai_enrichment_limit_is_hard_bounded(self) -> None:
         self.assertEqual(catalog.parse_ai_enrichment_limit("0"), 0)
         self.assertEqual(

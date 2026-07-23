@@ -118,14 +118,12 @@ should start on v3.
 ## Enterprise onboarding
 
 {{< callout type="warning" >}}
-**Placeholder — customize for your organization.** Replace the
-steps and links below with your internal process for getting a
-Devin workspace seat, connecting your source repos, and issuing
-the scoped API key this recipe expects. The structure is a
-starting point so every recipe on this site has a consistent
-"how does my team actually start using this at my company?"
-section. Forks of this project are expected to fill this in for
-their own organizations.
+**Enterprise access is organization-specific.** Before using Devin on
+company code, confirm the approved workspace, identity and data-handling
+controls, exact repository integration scope, and service-user credential
+lifecycle with your security and platform owners. The checklist below
+defines the decisions to record; feature names and availability vary by
+plan.
 {{< /callout >}}
 
 1. **Request access.** File an IT ticket through your organization's

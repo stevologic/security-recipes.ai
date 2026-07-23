@@ -149,6 +149,54 @@ class FakeResponse:
 
 
 class CVEAIEnrichmentTests(unittest.TestCase):
+    def test_text_encoding_artifacts_fail_closed_without_rejecting_unicode(self) -> None:
+        artifacts = (
+            "replacement \ufffd character",
+            "apostrophe \u00e2\u20ac\u2122",
+            "opening quote \u00e2\u20ac\u0153",
+            "en dash \u00e2\u20ac\u201c",
+            "em dash \u00e2\u20ac\u201d",
+            "accent \u00c3\u00a9",
+            "nonbreaking space \u00c2\u00a0",
+            "stray marker \u00c2 ",
+            "emoji \u00f0\u0178\u02dc\u20ac",
+            "replacement bytes \u00ef\u00bf\u00bd",
+            "C1 control \u009d",
+        )
+        for text in artifacts:
+            with self.subTest(text=repr(text)):
+                self.assertTrue(enrichment.has_text_encoding_artifact(text))
+
+        clean_text = (
+            "“quoted”",
+            "don’t",
+            "en–dash",
+            "em—dash",
+            "José",
+            "São",
+            "Ângela",
+            "lone Ã character",
+            "emoji 😀",
+        )
+        for text in clean_text:
+            with self.subTest(text=text):
+                self.assertFalse(enrichment.has_text_encoding_artifact(text))
+
+        source = record()
+        source_url = str(source["references"][0]["url"])
+        entry = enrichment.build_enrichment_entry(
+            source,
+            model_output(source_urls=[source_url]),
+            model="gpt-test",
+            retrieved_source_urls=[source_url],
+            generated_at=datetime(2026, 7, 14, tzinfo=timezone.utc),
+        )
+        entry["business_risk"] = "Corrupt apostrophe \u00e2\u20ac\u2122"
+        self.assertIn(
+            "ai_enrichment contains a text encoding artifact",
+            enrichment.enrichment_errors(entry, source),
+        )
+
     def test_gap_detection_is_deterministic_and_never_selects_stable_override(self) -> None:
         source = record()
         self.assertEqual(

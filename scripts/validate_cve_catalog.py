@@ -16,8 +16,10 @@ from typing import Any
 
 try:
     from scripts.cve_ai_enrichment import enrichment_errors, recipe_ready
+    from scripts.cve_text_quality import catalog_text_has_artifact
 except ModuleNotFoundError:  # Direct ``python scripts/validate_cve_catalog.py`` execution.
     from cve_ai_enrichment import enrichment_errors, recipe_ready  # type: ignore[no-redef]
+    from cve_text_quality import catalog_text_has_artifact  # type: ignore[no-redef]
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -1841,6 +1843,9 @@ def validate(catalog_dir: Path, content_dir: Path = DEFAULT_CONTENT) -> dict[str
                 fail(failures, f"{cve} lacks a stored Medium/High/Critical metric observation")
             if record.get("kev") and not record.get("kev_details"):
                 fail(failures, f"{cve} is marked KEV without KEV provenance")
+            for field in ("title", "summary"):
+                if catalog_text_has_artifact(record.get(field)):
+                    fail(failures, f"{cve} {field} contains a text encoding artifact")
             enrichment = record.get("ai_enrichment")
             if enrichment is not None:
                 ai_enriched += 1

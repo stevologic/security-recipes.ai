@@ -19,6 +19,7 @@ const feeds = require("./lib/feeds");
 const { escapeHtml, stripTags, isoDate } = require("./lib/util");
 const { articleDatesFor, presentationText, seoHead, seoTitle } = require("./lib/seo");
 const { cveDisplayTitle, stripFirstH1 } = require("./lib/html-content");
+const { cleanCatalogText } = require("./lib/text-quality");
 const { loadCveSearchIndexableIds } = require("./lib/cve-indexability");
 const { isDiscoveryPage, canonicalUrlForPage } = contentIndex;
 
@@ -291,12 +292,7 @@ function renderSitemapIndex(cveEntries, pagesLastmod = "") {
 }
 
 function cleanCveSourceText(value) {
-  return String(value || "")
-    .replace(/\u00e2\u20ac\u2122/g, "'")
-    .replace(/\uFFFDs\b/g, "'s")
-    .replace(/\uFFFD/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
+  return cleanCatalogText(value);
 }
 
 function pageSitemapLastmod(sourcePath, date, lastmod, frontMatter = {}) {
@@ -677,6 +673,26 @@ function buildTagList() {
   return list;
 }
 
+// Heading HTML has already passed through Markdown rendering, so decode its
+// character references before Nunjucks performs the single output escape.
+// Keeping this as plain text (rather than marking rendered HTML as safe)
+// prevents encoded heading markup from becoming executable in the TOC.
+const decodeRenderedHeadingText = markdownIt().utils.unescapeAll;
+
+function extractTocEntries(content) {
+  const entries = [];
+  const re = /<h([23])[^>]*\sid="([^"]+)"[^>]*>([\s\S]*?)<\/h\1>/g;
+  let match;
+  while ((match = re.exec(content || ""))) {
+    entries.push({
+      level: Number(match[1]),
+      id: match[2],
+      text: decodeRenderedHeadingText(stripTags(match[3])).trim(),
+    });
+  }
+  return entries;
+}
+
 module.exports = function (eleventyConfig) {
   // ---------- markdown pipeline ----------
   const md = markdownIt({ html: true, linkify: true, typographer: true })
@@ -796,19 +812,7 @@ module.exports = function (eleventyConfig) {
   eleventyConfig.addFilter("stripFirstH1", stripFirstH1);
 
   // Right-rail table of contents from the rendered page HTML (h2/h3).
-  eleventyConfig.addFilter("tocEntries", (content) => {
-    const entries = [];
-    const re = /<h([23])[^>]*\sid="([^"]+)"[^>]*>([\s\S]*?)<\/h\1>/g;
-    let m;
-    while ((m = re.exec(content || ""))) {
-      entries.push({
-        level: Number(m[1]),
-        id: m[2],
-        text: stripTags(m[3]).trim(),
-      });
-    }
-    return entries;
-  });
+  eleventyConfig.addFilter("tocEntries", extractTocEntries);
 
   // Breadcrumb trail resolved against the content index.
   eleventyConfig.addFilter("breadcrumbs", (url) => {
@@ -1241,4 +1245,8 @@ module.exports.robotsPolicy = {
   AI_CRAWLER_USER_AGENTS,
   ROBOTS_DISALLOW_RULES,
   renderRobotsTxt,
+};
+
+module.exports.toc = {
+  extractTocEntries,
 };

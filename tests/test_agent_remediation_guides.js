@@ -98,3 +98,18 @@ test("agent guides do not restore superseded product and workflow advice", () =>
     assert.doesNotMatch(source(guide.file), guide.stale, `${guide.file} contains stale guidance`);
   }
 });
+
+test("agent enterprise onboarding guidance is production-ready", () => {
+  const placeholderCopy = /Placeholder|customize for your organization|Forks of this project are expected/iu;
+
+  for (const guide of guides) {
+    const content = source(guide.file);
+    assert.match(content, /## Enterprise onboarding\s+/u, `${guide.file} is missing enterprise onboarding`);
+    assert.match(
+      content,
+      /\*\*Enterprise access is organization-specific\.\*\*/u,
+      `${guide.file} must explain that enterprise approval is organization-specific`,
+    );
+    assert.doesNotMatch(content, placeholderCopy, `${guide.file} contains placeholder onboarding copy`);
+  }
+});

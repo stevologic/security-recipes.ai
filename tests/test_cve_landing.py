@@ -714,6 +714,34 @@ class CveLandingRenderTests(unittest.TestCase):
         self.assertIn('href="/mcp"', rendered)
         self.assertNotIn('href="/mcp/"', rendered)
 
+    def test_reviewed_markdown_decodes_entities_once_and_keeps_raw_html_inert(self) -> None:
+        rendered = mcp_server._cve_landing_markdown(
+            "Compare `3 > 2` & keep AT&amp;T readable.\n\n"
+            "<script>window.evil = true</script>"
+        )
+
+        self.assertIn("<code>3 &gt; 2</code> &amp; keep AT&amp;T readable", rendered)
+        self.assertNotIn("&amp;gt;", rendered)
+        self.assertNotIn("&amp;amp;T", rendered)
+        self.assertIn("&lt;script&gt;window.evil = true&lt;/script&gt;", rendered)
+        self.assertNotIn("<script>window.evil", rendered)
+
+    def test_source_entities_and_truncated_summaries_render_as_complete_text(self) -> None:
+        self.assertEqual(
+            mcp_server._cve_landing_text("Cisco IM &amp;P&nbsp;Service"),
+            "Cisco IM &P Service",
+        )
+        summary = (
+            "The first complete source sentence explains the affected product. "
+            "The second complete sentence records the supported fix. "
+            "This final source fragment was cut during catalog normalization\u2026"
+        )
+        self.assertEqual(
+            mcp_server._cve_landing_summary_text(summary),
+            "The first complete source sentence explains the affected product. "
+            "The second complete sentence records the supported fix.",
+        )
+
     def test_generic_page_is_accessible_but_nonindexable(self) -> None:
         with patch.object(mcp_server.cve_catalog, "is_search_indexable", return_value=False):
             page = mcp_server._render_cve_landing_page(
@@ -803,6 +831,14 @@ class CveLandingRenderTests(unittest.TestCase):
             r"Bricksforge 3\.1\.8\.7 or later",
         )
         self.assertNotIn("No browser-safe affected-product rows", page)
+        for heading in (
+            "How to check exposure for CVE-2026-14956",
+            "Temporary containment",
+            "How to remediate CVE-2026-14956",
+            "How to verify the remediation",
+        ):
+            with self.subTest(heading=heading):
+                self.assertEqual(page.count(heading), 1)
 
     def test_real_reviewed_cve_omits_unrelated_qualified_records(self) -> None:
         recipe = mcp_server._bounded_cve_landing_lookup("CVE-2026-14956")
@@ -1432,7 +1468,7 @@ class CveLandingRenderTests(unittest.TestCase):
         )
         self.assertEqual(
             mcp_server._cve_landing_text("Composer\u00e2\u20ac\u2122s backup"),
-            "Composer's backup",
+            "Composer’s backup",
         )
 
     def test_unmatched_stable_override_is_not_embedded(self) -> None:

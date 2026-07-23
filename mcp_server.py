@@ -11,6 +11,7 @@ import gzip
 import hashlib
 import heapq
 import html
+from html.parser import HTMLParser
 import io
 import json
 import math
@@ -33,6 +34,7 @@ from urllib.parse import parse_qsl, quote, unquote, urlencode, urlparse
 import httpx
 import markdown
 import tomli
+from scripts.cve_text_quality import clean_catalog_text
 from fastmcp import FastMCP
 from starlette.requests import Request
 from starlette.responses import HTMLResponse, RedirectResponse, Response
@@ -12156,11 +12158,7 @@ def _cve_landing_related_href(cve_id: object) -> str:
 
 
 def _cve_landing_text(value: object, limit: int = 600) -> str:
-    text = str(value or "")
-    text = text.replace("\u00e2\u20ac\u2122", "'")
-    text = re.sub(r"\ufffds\b", "'s", text)
-    text = re.sub(r"\ufffd", " ", text)
-    text = re.sub(r"\s+", " ", text).strip()
+    text = clean_catalog_text(value)
     if len(text) <= limit:
         return text
     if limit <= 1:
@@ -12170,6 +12168,18 @@ def _cve_landing_text(value: object, limit: int = 600) -> str:
     if boundary >= max(12, int(limit * 0.6)):
         candidate = candidate[:boundary].rstrip(" /-")
     return f"{candidate}\u2026"
+
+
+def _cve_landing_summary_text(value: object, limit: int = 1800) -> str:
+    """Prefer the last complete source sentence when an upstream summary was cut."""
+    text = _cve_landing_text(value, limit)
+    if not text.endswith("\u2026"):
+        return text
+    candidate = text[:-1].rstrip()
+    endings = list(re.finditer(r"[.!?](?=\s|$)", candidate))
+    if endings and endings[-1].end() >= min(160, max(1, len(candidate) // 3)):
+        return candidate[: endings[-1].end()].rstrip()
+    return text
 
 
 def _cve_landing_plain_markdown_text(
@@ -12776,6 +12786,106 @@ def _cve_landing_relref_href(value: object) -> str:
     return f"{path}/{suffix}"
 
 
+class _CveLandingMarkdownSanitizer(HTMLParser):
+    """Allow bounded Markdown HTML while escaping unsupported embedded tags."""
+
+    ALLOWED_TAGS = {
+        "a",
+        "blockquote",
+        "br",
+        "code",
+        "del",
+        "em",
+        "h1",
+        "h2",
+        "h3",
+        "h4",
+        "h5",
+        "h6",
+        "hr",
+        "li",
+        "ol",
+        "p",
+        "pre",
+        "strong",
+        "table",
+        "tbody",
+        "td",
+        "th",
+        "thead",
+        "tr",
+        "ul",
+    }
+    VOID_TAGS = {"br", "hr"}
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=False)
+        self.output: list[str] = []
+
+    def _allowed_attributes(self, tag: str, attrs: list[tuple[str, str | None]]) -> str:
+        kept: list[str] = []
+        for name, value in attrs:
+            if tag == "a" and name.casefold() == "href" and value is not None:
+                kept.append(f'href="{html.escape(value, quote=True)}"')
+            elif (
+                tag == "code"
+                and name.casefold() == "class"
+                and value is not None
+                and re.fullmatch(r"language-[A-Za-z0-9_+.-]+", value)
+            ):
+                kept.append(f'class="{html.escape(value, quote=True)}"')
+        return f" {' '.join(kept)}" if kept else ""
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        normalized = tag.casefold()
+        if normalized == "img":
+            return
+        if normalized not in self.ALLOWED_TAGS:
+            self.output.append(html.escape(self.get_starttag_text(), quote=False))
+            return
+        self.output.append(f"<{normalized}{self._allowed_attributes(normalized, attrs)}>")
+
+    def handle_startendtag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        normalized = tag.casefold()
+        if normalized == "img":
+            return
+        if normalized not in self.ALLOWED_TAGS:
+            self.output.append(html.escape(self.get_starttag_text(), quote=False))
+            return
+        self.output.append(f"<{normalized}{self._allowed_attributes(normalized, attrs)}>")
+
+    def handle_endtag(self, tag: str) -> None:
+        normalized = tag.casefold()
+        if normalized == "img" or normalized in self.VOID_TAGS:
+            return
+        if normalized in self.ALLOWED_TAGS:
+            self.output.append(f"</{normalized}>")
+        else:
+            self.output.append(html.escape(f"</{tag}>", quote=False))
+
+    def handle_data(self, data: str) -> None:
+        self.output.append(data)
+
+    def handle_entityref(self, name: str) -> None:
+        self.output.append(f"&{name};")
+
+    def handle_charref(self, name: str) -> None:
+        self.output.append(f"&#{name};")
+
+    def handle_comment(self, data: str) -> None:
+        self.output.append(html.escape(f"<!--{data}-->", quote=False))
+
+    def handle_decl(self, decl: str) -> None:
+        self.output.append(html.escape(f"<!{decl}>", quote=False))
+
+
+def _cve_landing_sanitize_markdown_html(value: object) -> str:
+    sanitizer = _CveLandingMarkdownSanitizer()
+    sanitizer.feed(str(value or ""))
+    sanitizer.close()
+    return "".join(sanitizer.output)
+
+
 def _cve_landing_markdown(value: object) -> str:
     """Render repository-reviewed Markdown without trusting embedded HTML or URLs."""
     source = str(value or "")
@@ -12791,15 +12901,15 @@ def _cve_landing_markdown(value: object) -> str:
         source,
         flags=re.IGNORECASE,
     )
-    # Raw HTML is content, never markup. Markdown-generated images are removed
-    # after rendering so untrusted source URLs cannot become browser requests.
-    escaped_source = html.escape(source, quote=False)
+    # Markdown-generated and author-supplied structure is allowlisted after
+    # rendering. Unsupported raw HTML is inert, and images are removed so
+    # untrusted source URLs cannot become browser requests.
     rendered = markdown.markdown(
-        escaped_source,
+        source,
         extensions=["fenced_code", "tables", "sane_lists"],
         output_format="html5",
     )
-    rendered = re.sub(r"<img\b[^>]*>", "", rendered, flags=re.IGNORECASE)
+    rendered = _cve_landing_sanitize_markdown_html(rendered)
 
     def sanitize_href(match: re.Match[str]) -> str:
         safe_href = _cve_landing_content_href(match.group(1))
@@ -13346,6 +13456,7 @@ def _cve_landing_workflow_html(
     cve_id: str,
     composed: dict[str, Any],
     safety_boundary: object,
+    omitted_phases: set[str] | None = None,
 ) -> str:
     workflow_title = _cve_landing_text(composed.get("title"), 180)
     fields = (
@@ -13358,6 +13469,8 @@ def _cve_landing_workflow_html(
     )
     rendered_fields: list[str] = []
     for slug, label, key, limit in fields:
+        if omitted_phases and slug in omitted_phases:
+            continue
         rendered_list = _cve_landing_list(
             composed.get(key),
             limit=limit,
@@ -13405,6 +13518,28 @@ def _cve_landing_workflow_html(
         )
         + "</section>"
     )
+
+
+def _cve_landing_reviewed_phase_slugs(value: object) -> set[str]:
+    """Identify workflow phases already presented as headings in reviewed Markdown."""
+    phases: set[str] = set()
+    patterns = (
+        ("exposure", r"^how to check exposure\b"),
+        ("containment", r"^temporary containment\b"),
+        ("remediation", r"^how to remediate\b"),
+        ("verification", r"^how to verify\b"),
+        ("rollback", r"^rollback\b"),
+        ("stop", r"^stop and triage\b"),
+    )
+    for line in str(value or "").splitlines():
+        match = re.match(r"^\s{0,3}#{1,6}\s+(.+?)\s*#*\s*$", line)
+        if not match:
+            continue
+        heading = _cve_landing_plain_markdown_text(match.group(1), 240).casefold()
+        for slug, pattern in patterns:
+            if re.match(pattern, heading):
+                phases.add(slug)
+    return phases
 
 
 def _cve_landing_agentic_plan_html(plan: object) -> str:
@@ -13894,7 +14029,7 @@ def _render_cve_landing_page(
     title_source = reviewed.get("title") if reviewed else source_record.get("title")
     meta_title, headline, _ = _cve_landing_titles(cve_id, title_source)
     source_title = _cve_landing_text(source_record.get("title"), 600) or "Vulnerability record"
-    summary = _cve_landing_text(source_record.get("summary"), 1800)
+    summary = _cve_landing_summary_text(source_record.get("summary"), 1800)
     severity = _cve_landing_text(source_record.get("severity"), 24).lower() or "unscored"
     score_value = source_record.get("score")
     score = (
@@ -14290,6 +14425,9 @@ def _render_cve_landing_page(
         cve_id,
         composed,
         recipe.get("safety_boundary"),
+        _cve_landing_reviewed_phase_slugs(reviewed.get("content_markdown"))
+        if reviewed
+        else None,
     )
     playbook_html = _cve_landing_playbook_html(recipe.get("matched_playbook"))
     agentic_plan_html = _cve_landing_agentic_plan_html(agentic_plan)
@@ -14302,7 +14440,7 @@ def _render_cve_landing_page(
     if references:
         references_html = (
             '<section class="cve-catalog__detail-section" aria-labelledby="sources-heading">'
-            '<h2 id="sources-heading">Authoritative sources</h2><ul class="cve-catalog__references">'
+            '<h2 id="sources-heading">References and evidence</h2><ul class="cve-catalog__references">'
             + "".join(
                 f'<li><a href="{html.escape(url, quote=True)}" target="_blank" '
                 f'rel="noopener noreferrer">{html.escape(label)}</a></li>'

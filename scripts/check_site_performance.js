@@ -12,6 +12,7 @@ const path = require("node:path");
 const crypto = require("node:crypto");
 
 const { decodeHtmlAttributeOnce, hasTechArticleSchemaType } = require("../lib/html-content");
+const { hasHtmlEncodingArtifact } = require("../lib/text-quality");
 
 const ROOT = path.resolve(process.env.SITE_OUTPUT_DIR || "public");
 const CONTENT = path.resolve("content/recipes/cve");
@@ -580,7 +581,7 @@ for (const file of files) {
       if (/SRFENCE\d+/u.test(content)) {
         fail(`generated HTML leaks a masked shortcode sentinel: ${relative}`);
       }
-      if (/\uFFFD|\u00e2\u20ac\u2122/u.test(content)) {
+      if (hasHtmlEncodingArtifact(content)) {
         fail(`generated HTML contains a source-encoding replacement artifact: ${relative}`);
       }
       checkIndexableHtml(relative, content);

@@ -44,7 +44,10 @@ test("CVE archive display text removes upstream encoding artifacts", () => {
     "SAP BusinessObjects Business Intelligence",
   );
   assert.equal(cleanCveSourceText("application\uFFFDs memory"), "application's memory");
-  assert.equal(cleanCveSourceText("Composer\u00e2\u20ac\u2122s backup"), "Composer's backup");
+  assert.equal(cleanCveSourceText("Composer\u00e2\u20ac\u2122s backup"), "Composer’s backup");
+  assert.equal(cleanCveSourceText("Intel\u00e2\u201e\u00a2 product"), "Intel™ product");
+  assert.equal(cleanCveSourceText("Cisco IM &amp;P&nbsp;Service"), "Cisco IM &P Service");
+  assert.equal(cleanCveSourceText("Ângela — München"), "Ângela — München");
 });
 
 test("production manifest plans one bounded sitemap per current yearly partition", () => {

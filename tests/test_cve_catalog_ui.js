@@ -15,12 +15,26 @@ test('catalog display text removes upstream encoding artifacts', () => {
   const samples = [
     ['SAP\uFFFDBusinessObjects Business\uFFFDIntelligence', 'SAP BusinessObjects Business Intelligence'],
     ['application\uFFFDs memory', "application's memory"],
-    ['Composer\u00e2\u20ac\u2122s backup', "Composer's backup"]
+    ['Composer\u00e2\u20ac\u2122s backup', "Composer's backup"],
+    ['vendor\u00e2\u0080\u0099s advisory', "vendor's advisory"],
+    ['versions 1\u00e2\u20ac\u201c3 and 4\u00e2\u0080\u00945', 'versions 1\u20133 and 4\u20145'],
+    ['Acme\u00e2\u201e\u00a2 component', 'Acme\u2122 component'],
+    ['SAP\u00ef\u00bf\u00bdPlatform and application\u00ef\u00bf\u00bds cache', "SAP Platform and application's cache"],
+    ['men\u00c3\u00ba and execu\u00c3\u00a7\u00c3\u00a3o remota', 'men\u00fa and execu\u00e7\u00e3o remota'],
+    ['product\u00c2\u00a0name', 'product name'],
+    ['product\u00c2 name', 'product name'],
+    ['product\u00c3\u201a\u00c2 name', 'product name']
   ];
   for (const [source, expected] of samples) {
     assert.equal(worker.cleanCatalogText(source), expected);
     assert.equal(controller.cleanCatalogText(source), expected);
   }
+});
+
+test('catalog display text preserves already-correct Unicode', () => {
+  const source = 'M\u00fcnchen \u2014 \u201calready quoted\u201d \u2122 \ud83d\ude00 \u00c2ngela';
+  assert.equal(worker.cleanCatalogText(source), source);
+  assert.equal(controller.cleanCatalogText(source), source);
 });
 
 const RECIPE_FIELDS = [

@@ -64,6 +64,9 @@ UNSAFE_RECIPE_TEXT_RE = re.compile(
     r"```|\{\{[<%]|<\s*script\b|\b(?:curl|wget|powershell|invoke-webrequest|bash\s+-c|sh\s+-c|rm\s+-rf|(?:nc|ncat)\s+-e)\b",
     re.IGNORECASE,
 )
+CP1252_CONTINUATION_CHARS = frozenset(
+    chr(codepoint) for codepoint in range(0x80, 0xC0)
+) | frozenset("€‚ƒ„…†‡ˆ‰Š‹ŒŽ‘’“”•–—˜™š›œžŸ")
 SEVERITY_PRIORITY = {"medium": 1, "high": 2, "critical": 3}
 CANONICAL_CVE_ID_RE = re.compile(r"CVE-[0-9]{4}-[0-9]{4,}")
 ENTRY_FIELDS = {
@@ -155,6 +158,40 @@ def normalize_text(value: object, *, limit: int = MAX_ITEM_LENGTH) -> str:
     if len(text) > limit:
         text = text[: max(1, limit - 1)].rstrip(" ,;:-") + "…"
     return text
+
+
+def has_text_encoding_artifact(value: object) -> bool:
+    """Detect replacement characters and UTF-8 text decoded as Latin-1/CP1252."""
+    if isinstance(value, dict):
+        return any(has_text_encoding_artifact(item) for item in value.values())
+    if isinstance(value, (list, tuple)):
+        return any(has_text_encoding_artifact(item) for item in value)
+    if not isinstance(value, str):
+        return False
+    if (
+        "\ufffd" in value
+        or re.search(r"\u00c2+(?=\s|$)", value)
+        or any(0x80 <= ord(character) <= 0x9F for character in value)
+    ):
+        return True
+
+    for index, character in enumerate(value):
+        lead = ord(character)
+        continuation_count = (
+            1
+            if 0xC2 <= lead <= 0xDF
+            else 2
+            if 0xE0 <= lead <= 0xEF
+            else 3
+            if 0xF0 <= lead <= 0xF4
+            else 0
+        )
+        if continuation_count and all(
+            candidate in CP1252_CONTINUATION_CHARS
+            for candidate in value[index + 1 : index + 1 + continuation_count]
+        ) and len(value[index + 1 : index + 1 + continuation_count]) == continuation_count:
+            return True
+    return False
 
 
 def valid_http_url(value: object) -> str:
@@ -478,6 +515,8 @@ def enrichment_errors(entry: object, record: dict[str, Any]) -> list[str]:
     errors: list[str] = []
     if not isinstance(entry, dict):
         return ["ai_enrichment must be an object"]
+    if has_text_encoding_artifact(entry):
+        errors.append("ai_enrichment contains a text encoding artifact")
     if set(entry) != ENTRY_FIELDS:
         errors.append("ai_enrichment does not match the versioned schema")
     if entry.get("schema_version") != ENRICHMENT_SCHEMA_VERSION:
