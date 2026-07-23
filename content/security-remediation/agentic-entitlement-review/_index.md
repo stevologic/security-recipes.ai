@@ -7,9 +7,9 @@ lastmod: 2026-07-13
 sidebar:
   exclude: true
 description: >
-  A generated entitlement-review pack and deterministic evaluator for
-  expiring, reviewable, revocable agent permissions across MCP scopes,
-  A2A handoffs, action-runtime gates, and non-human identities.
+  Generate an entitlement-review pack for expiring, reviewable, revocable
+  agent permissions across MCP scopes, A2A handoffs, runtime gates, and
+  non-human identities.
 ---
 
 {{< callout type="info" >}}

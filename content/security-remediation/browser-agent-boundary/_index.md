@@ -7,9 +7,9 @@ lastmod: 2026-07-13
 sidebar:
   exclude: true
 description: >
-  A generated browser-agent workspace boundary and deterministic runtime
-  evaluator for logged-in sessions, untrusted web content, localhost,
-  local storage, downloads, forms, and external browser side effects.
+  Generate and evaluate browser-agent workspace boundaries for logged-in
+  sessions, untrusted web content, localhost, local storage, downloads, and
+  forms.
 ---
 
 {{< callout type="info" >}}

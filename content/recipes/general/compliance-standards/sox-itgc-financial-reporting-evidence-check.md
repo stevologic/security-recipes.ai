@@ -1,7 +1,7 @@
 ---
 title: "SOX IT General Controls Evidence Readiness Check"
 linkTitle: "SOX ITGC"
-description: "Public-company financial reporting environments where IT general controls support internal control over financial reporting; AS 2201 amendments become effective December 15, 2026."
+description: "Public-company IT general controls supporting financial reporting and internal-control evidence; AS 2201 amendments take effect December 15, 2026."
 recipe_id: "compliance.sox-itgc-as-2201"
 framework_id: "sox-itgc"
 framework: "SOX ITGC"
@@ -54,7 +54,7 @@ Use this recipe to produce a source-aware evidence-readiness assessment for **SO
 - **Industries:** public-companies, financial-services, cross-sector
 - **License boundary:** `official-text`
 
-Public-company financial reporting environments where IT general controls support internal control over financial reporting; AS 2201 amendments become effective December 15, 2026.
+Public-company IT general controls supporting financial reporting and internal-control evidence; AS 2201 amendments take effect December 15, 2026.
 
 The authority is revising or transitioning this framework. Confirm the effective source set and dates before making a current-state claim.
 

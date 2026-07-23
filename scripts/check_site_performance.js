@@ -25,6 +25,9 @@ const indexableCanonicals = new Map();
 const htmlOutputs = new Map();
 const indexableHtmlRoutes = new Set();
 const noindexHtmlRoutes = new Set();
+let maxIndexableTitleLength = 0;
+let maxIndexableDescriptionLength = 0;
+let maxIndexableDepth = 0;
 const forbiddenSearchSpam = [
   /\b(?:NADIMTOGEL|BUGISTOTO)\b/i,
   /\bslot\s+gacor\b/i,
@@ -302,6 +305,17 @@ function checkIndexableHtml(relative, html) {
   }
   const decodedTitle = decodeHtmlAttributeOnce(title);
   const decodedDescription = decodeHtmlAttributeOnce(description);
+  maxIndexableTitleLength = Math.max(maxIndexableTitleLength, decodedTitle.length);
+  maxIndexableDescriptionLength = Math.max(
+    maxIndexableDescriptionLength,
+    decodedDescription.length,
+  );
+  if (decodedTitle.length > 70) {
+    fail(`indexable title exceeds the 70-character search-result budget: ${relative}`);
+  }
+  if (decodedDescription.length > 165) {
+    fail(`indexable meta description exceeds the 165-character search-result budget: ${relative}`);
+  }
   for (const [label, value] of [
     ["title", decodedTitle],
     ["meta description", decodedDescription],
@@ -474,8 +488,9 @@ function checkIndexableLinksToNoindexTags() {
   }
 }
 
-function checkIndexableOrphans() {
+function checkIndexableLinkGraph() {
   const inbound = new Map([...indexableHtmlRoutes].map((route) => [route, new Set()]));
+  const outbound = new Map([...indexableHtmlRoutes].map((route) => [route, new Set()]));
   for (const sourceRoute of indexableHtmlRoutes) {
     const html = htmlOutputs.get(sourceRoute) || "";
     for (const match of html.matchAll(/<a\b[^>]*\bhref=(["'])([^"']+)\1/gi)) {
@@ -496,12 +511,39 @@ function checkIndexableOrphans() {
         indexableHtmlRoutes.has(targetRoute)
       ) {
         inbound.get(targetRoute).add(sourceRoute);
+        outbound.get(sourceRoute).add(targetRoute);
       }
     }
   }
   for (const [route, sources] of inbound) {
     if (route !== "/" && sources.size === 0) {
       fail(`indexable HTML is orphaned from every other indexable page: ${route}`);
+    }
+  }
+
+  if (!indexableHtmlRoutes.has("/")) {
+    fail("the homepage is not an indexable root for the internal-link graph");
+    return;
+  }
+  const depths = new Map([["/", 0]]);
+  const queue = ["/"];
+  for (let index = 0; index < queue.length; index += 1) {
+    const sourceRoute = queue[index];
+    const nextDepth = depths.get(sourceRoute) + 1;
+    for (const targetRoute of outbound.get(sourceRoute) || []) {
+      if (depths.has(targetRoute)) continue;
+      depths.set(targetRoute, nextDepth);
+      queue.push(targetRoute);
+    }
+  }
+  for (const route of indexableHtmlRoutes) {
+    const depth = depths.get(route);
+    if (!Number.isSafeInteger(depth)) {
+      fail(`indexable HTML is unreachable from the homepage: ${route}`);
+    } else if (depth > 3) {
+      fail(`indexable HTML exceeds the three-click crawl-depth budget (${depth}): ${route}`);
+    } else {
+      maxIndexableDepth = Math.max(maxIndexableDepth, depth);
     }
   }
 }
@@ -547,7 +589,7 @@ for (const file of files) {
 }
 checkInternalFragments();
 checkIndexableLinksToNoindexTags();
-checkIndexableOrphans();
+checkIndexableLinkGraph();
 for (const file of files.filter((candidate) => candidate.endsWith("index.xml"))) {
   const relative = path.relative(ROOT, file).replace(/\\/g, "/");
   const xml = fs.readFileSync(file, "utf8");
@@ -1212,5 +1254,7 @@ if (failures.length) {
 console.log(
   `Performance budgets passed: ${files.length.toLocaleString()} files, ` +
   `${(totalBytes / MiB).toFixed(1)} MiB, ${cveArchiveHtml.length.toLocaleString()} CVE archive pages, ` +
-  `${stableOverrides.length} stable overrides, ${draftOverrides.length.toLocaleString()} unrendered drafts.`,
+  `${stableOverrides.length} stable overrides, ${draftOverrides.length.toLocaleString()} unrendered drafts, ` +
+  `${indexableHtmlRoutes.size.toLocaleString()} indexable pages, max title/description ` +
+  `${maxIndexableTitleLength}/${maxIndexableDescriptionLength} characters, max crawl depth ${maxIndexableDepth}.`,
 );

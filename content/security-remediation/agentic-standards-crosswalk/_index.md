@@ -6,10 +6,9 @@ date: 2026-05-04
 lastmod: 2026-07-13
 toc: true
 description: >
-  Generated standards-to-evidence map that ties OWASP Agentic Top 10,
-  CSA AI Controls Matrix, NIST AI agent guidance, MCP authorization,
-  critical-infrastructure AI readiness, and frontier-lab prompt-injection
-  defenses to SecurityRecipes controls and MCP tools.
+  Generate a standards-to-evidence map linking OWASP Agentic Top 10, CSA AI
+  Controls Matrix, NIST AI guidance, MCP authorization, and infrastructure
+  readiness.
 sidebar:
   exclude: true
 ---

@@ -6,10 +6,9 @@ date: 2026-05-02
 lastmod: 2026-07-13
 toc: true
 description: >
-  A generated MCP authorization conformance pack for resource-bound
-  tokens, audience validation, PKCE, client ID metadata documents,
-  scope challenges, step-up authorization, token-passthrough denial,
-  workflow-scoped authorization, session binding, and scope drift.
+  Generate an MCP authorization conformance pack for resource-bound tokens,
+  audience validation, PKCE, client metadata, scope challenges, and step-up
+  authorization.
 sidebar:
   exclude: true
 ---

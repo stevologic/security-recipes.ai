@@ -7,9 +7,9 @@ lastmod: 2026-07-21
 sidebar:
   exclude: true
 description: >
-  Machine-readable workflow manifests for agentic remediation: scope,
-  MCP context, gates, evidence, KPIs, and kill signals that agents,
-  reviewers, and auditors can consume directly.
+  Publish machine-readable agentic-remediation workflows with scope, MCP
+  context, gates, evidence, KPIs, and kill signals for agents, reviewers, and
+  auditors.
 ---
 
 {{< callout type="info" >}}

@@ -322,7 +322,7 @@ class CveLandingRenderTests(unittest.TestCase):
         title_match = re.search(r"<title>(.*?)</title>", page)
         self.assertIsNotNone(title_match)
         assert title_match is not None
-        self.assertLessEqual(len(unescape(title_match.group(1))), 88)
+        self.assertLessEqual(len(unescape(title_match.group(1))), 70)
         self.assertNotIn("alert", unescape(title_match.group(1)))
         self.assertNotIn("\u2026", unescape(title_match.group(1)))
         description_match = re.search(
@@ -931,6 +931,11 @@ class CveLandingRenderTests(unittest.TestCase):
                 "(PRA) OS Command Injection Vulnerability",
                 "CVE-2026-1731: BeyondTrust RS/PRA OS Command Injection",
             ),
+            "CVE-2022-26134": (
+                "Atlassian Confluence Server and Data Center Remote Code "
+                "Execution Vulnerability",
+                "CVE-2022-26134: Atlassian Confluence Server and Data Center RCE",
+            ),
         }
         for cve_id, (source_title, expected) in fixtures.items():
             with self.subTest(cve_id=cve_id):
@@ -941,6 +946,7 @@ class CveLandingRenderTests(unittest.TestCase):
                 self.assertEqual(title, expected)
                 self.assertEqual(headline, expected)
                 self.assertEqual(source, source_title)
+                self.assertLessEqual(len(title), 70)
                 self.assertNotIn("\u2026", title)
 
     def test_metadata_text_unwraps_markdown_without_changing_the_source_fact(self) -> None:

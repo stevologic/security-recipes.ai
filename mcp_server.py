@@ -12239,12 +12239,24 @@ def _cve_landing_abbreviate_parentheticals(value: str) -> str:
     return re.sub(r"\b([A-Z]{2,})\s+and\s+([A-Z]{2,})\b", r"\1/\2", compact)
 
 
-def _cve_landing_search_title(value: object, limit: int = 88) -> str:
+def _cve_landing_search_title(value: object, limit: int = 70) -> str:
     """Return complete word-bounded search copy without an artificial ellipsis."""
 
     text = re.sub(r"\s+", " ", str(value or "")).strip()
     if len(text) <= limit:
         return text
+    # Keep the CVE, affected product, and flaw class inside a conservative
+    # result-title budget. Expand the common abbreviations in visible prose and
+    # the source facts below; title links benefit from the compact forms users
+    # already search for.
+    for pattern, replacement in (
+        (r"\bRemote Code Execution\b", "RCE"),
+        (r"\bCross[ -]Site Scripting\b", "XSS"),
+        (r"\bDenial of Service\b", "DoS"),
+    ):
+        text = re.sub(pattern, replacement, text, flags=re.IGNORECASE)
+        if len(text) <= limit:
+            return text
     candidate = text[: limit + 1]
     boundary = max(candidate.rfind(" "), candidate.rfind("/"), candidate.rfind("-"))
     if boundary >= max(8, int(limit * 0.6)):

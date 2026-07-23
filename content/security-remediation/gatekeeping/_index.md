@@ -7,10 +7,8 @@ lastmod: 2026-07-13
 sidebar:
   open: true
 description: >
-  The catalog of gates that sit between an agent's intent and
-  the world it can change — admission, mid-run tool gates,
-  pre-merge, post-merge, runtime, and cross-cutting policy
-  gates. Pick a stack, not a single gate.
+  Catalog admission, mid-run tool, pre-merge, post-merge, runtime, and policy
+  gates between an AI agent's intent and the systems it can change.
 ---
 
 {{< callout type="info" >}}

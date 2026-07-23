@@ -575,17 +575,27 @@ test("seoTitle keeps branded titles concise without duplicating the brand", () =
   assert.equal(seoTitle("Security Recipes"), "security-recipes.ai");
   assert.equal(seoTitle("CVE-2026-14956"), "CVE-2026-14956 | Security Recipes");
   assert.equal(
-    seoTitle("CVE-2026-14956 Remote Code Execution in Example Security Gateway"),
-    "CVE-2026-14956 Remote Code Execution in Example Security Gateway | Security Recipes",
+    seoTitle("CVE-2026-14956 Example Gateway RCE"),
+    "CVE-2026-14956 Example Gateway RCE | Security Recipes",
+  );
+  assert.equal(
+    seoTitle("AI agent runtime controls"),
+    "AI agent runtime controls | Security Recipes",
   );
 
   const title = seoTitle(
+    "Runtime controls for telemetry-driven AI agent session disablement",
+  );
+  assert.ok(title.length <= 70, `expected at most 70 characters, got ${title.length}`);
+  assert.doesNotMatch(title, /Security Recipes/u);
+  assert.doesNotMatch(title, /…/u);
+
+  const cveTitle = seoTitle(
     "CVE-2026-14956 Critical Remote Code Execution in an Extremely Long Product Name",
   );
-  assert.ok(title.length <= 90, `expected at most 90 characters, got ${title.length}`);
-  assert.match(title, / \| Security Recipes$/u);
-  assert.doesNotMatch(title, /…/u);
-  assert.equal((title.match(/Security Recipes/g) || []).length, 1);
+  assert.ok(cveTitle.length <= 70, `expected at most 70 characters, got ${cveTitle.length}`);
+  assert.match(cveTitle, /^CVE-2026-14956\b/u);
+  assert.doesNotMatch(cveTitle, /Security Recipes/u);
 });
 
 test("titles and descriptions expose presented text instead of Markdown source markers", () => {
@@ -599,7 +609,7 @@ test("titles and descriptions expose presented text instead of Markdown source m
   assert.equal(presentationText(title), cleanTitle);
   assert.equal(presentationText(description), cleanDescription);
   assert.equal(presentationText("Keep package_name and safe_load intact"), "Keep package_name and safe_load intact");
-  assert.equal(seoTitle(title), `${cleanTitle} | Security Recipes`);
+  assert.equal(seoTitle(title), cleanTitle);
 
   const output = seoHead({
     url: "/recipes/cve/cve-2017-18342-pyyaml/",
@@ -636,7 +646,7 @@ test("description shortening prefers complete sentences and never adds an ellips
   assert.doesNotMatch(sentenceAware, /…$/u);
 
   const wordBound = descriptionFor({ description: "bounded ".repeat(40) });
-  assert.ok(wordBound.length <= 180);
+  assert.ok(wordBound.length <= 165);
   assert.equal(wordBound.slice(0, -1).split(" ").every((word) => word === "bounded"), true);
   assert.match(wordBound, /[.!?]$/u);
   assert.doesNotMatch(wordBound, /…$/u);
@@ -696,7 +706,7 @@ test("high-intent pages publish deliberate complete descriptions", () => {
   for (const sourcePath of sourcePaths) {
     const description = descriptionFor({ sourcePath });
     assert.ok(description.length >= 80, `${sourcePath} description is too thin`);
-    assert.ok(description.length <= 180, `${sourcePath} description is too long`);
+    assert.ok(description.length <= 165, `${sourcePath} description is too long`);
     assert.match(description, /[.!?]$/u, `${sourcePath} description is incomplete`);
     assert.doesNotMatch(description, /(?:[,;:]|\(|\[|\{)\s*[.!?]$/u);
     assert.doesNotMatch(description, /\breviewers,\s+and\s+reviewers\b/iu);
@@ -730,7 +740,7 @@ test("missing descriptions are derived from indexed page content and shared acro
   const description = descriptionFor({ sourcePath });
 
   assert.match(description, /^A Claude Code skill that turns a fresh CVE or Dependabot alert/);
-  assert.ok(description.length <= 180);
+  assert.ok(description.length <= 165);
   assert.notEqual(description, descriptionFor({}));
 
   const output = seoHead({

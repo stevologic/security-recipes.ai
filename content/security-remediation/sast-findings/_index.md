@@ -7,9 +7,9 @@ lastmod: 2026-07-21
 sidebar:
   open: true
 description: >
-  Triage SAST findings, drop the false positives, and turn the
-  remainder into reviewer-ready PRs scoped to a small, named set
-  of fix shapes — everything else writes a triage note.
+  Triage SAST findings, remove false positives, and create reviewer-ready
+  remediation PRs for bounded fix shapes; route everything else to a triage
+  note.
 ---
 
 {{< callout type="warning" >}}

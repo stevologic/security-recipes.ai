@@ -1,6 +1,7 @@
 ---
 title: "OWASP Top 10 (2026) — remediate"
 linkTitle: "OWASP Top 10 2026 remediate"
+description: "Use this tool-agnostic prompt to turn one OWASP Top 10 (2026) finding into a reviewer-ready remediation pull request with category-specific guidance."
 tool: "general"
 author: "Stephen M Abbott"
 team: "Security"

@@ -7,9 +7,9 @@ lastmod: 2026-07-21
 sidebar:
   open: true
 description: >
-  Bump base images, refresh OS-package layers, and rebuild
-  derived multi-stage images in response to OS-level CVEs and
-  registry advisories — without touching application source.
+  Remediate OS-level CVEs by bumping base images, refreshing package layers,
+  and rebuilding derived multi-stage images without changing application
+  source.
 ---
 
 {{< callout type="info" >}}

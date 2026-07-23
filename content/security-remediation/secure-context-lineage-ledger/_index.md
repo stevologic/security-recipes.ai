@@ -7,9 +7,9 @@ lastmod: 2026-07-13
 sidebar:
   exclude: true
 description: >
-  A generated context-lineage ledger for agentic AI: source hashes,
-  attestations, poisoning scan state, retrieval decisions, model routes,
-  egress, handoffs, telemetry, run receipts, and reuse policy.
+  Generate a context-lineage ledger for agentic AI: source hashes,
+  attestations, poisoning scans, retrieval, model routes, egress, handoffs,
+  telemetry, and receipts.
 ---
 
 {{< callout type="info" >}}

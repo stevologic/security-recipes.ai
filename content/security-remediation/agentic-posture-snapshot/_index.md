@@ -6,9 +6,9 @@ date: 2026-05-04
 lastmod: 2026-07-13
 toc: true
 description: >
-  Generated enterprise posture evidence for agentic AI systems across secure
-  context, MCP tools, A2A handoffs, identity, skills, telemetry, exposure
-  paths, readiness, standards, and reviewer diligence.
+  Generate posture evidence for agentic AI across secure context, MCP tools,
+  A2A handoffs, identity, skills, telemetry, exposure paths, readiness, and
+  standards.
 sidebar:
   exclude: true
 ---

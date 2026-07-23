@@ -35,6 +35,7 @@ test("homepage action links point to local, reviewable product surfaces", () => 
   const template = source("_includes/layouts/home-static.html");
   const expectedLinks = [
     "/recipes/",
+    "/recipes/general/code-hygiene/",
     "/mcp-servers/",
     "/security-remediation/",
     "/security-remediation/#exact-scope",

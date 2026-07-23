@@ -7,9 +7,8 @@ lastmod: 2026-07-13
 sidebar:
   exclude: true
 description: >
-  A deterministic intake gate for new or changed MCP servers that scores
-  auth, token, network, schema, data, write, approval, evidence, and
-  red-team risk before connector promotion.
+  Score authentication, token, network, schema, data, write, approval,
+  evidence, and red-team risk before promoting a new or changed MCP connector.
 ---
 
 {{< callout type="info" >}}
