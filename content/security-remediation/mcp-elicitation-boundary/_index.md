@@ -3,12 +3,11 @@ title: MCP Elicitation Boundary
 linkTitle: MCP Elicitation Boundary
 weight: 11
 date: 2026-05-04
-lastmod: 2026-07-13
+lastmod: 2026-07-23
 toc: true
 description: >
-  Generated MCP form-mode and URL-mode elicitation controls with
-  deterministic runtime decisions for sensitive data, external auth,
-  payment, URL safety, consent, and receipt evidence.
+  Enforce MCP form-mode and URL-mode elicitation boundaries with allowlists,
+  approval gates, evidence, and deterministic runtime decisions.
 sidebar:
   exclude: true
 ---

@@ -1,7 +1,7 @@
 ---
 title: "Test isolation and fixture hygiene"
 linkTitle: "Test isolation and fixture hygiene"
-description: "Bounded audit or remediation to eliminate order-dependent fixtures and leaked test state."
+description: "Test isolation and fixture hygiene: Eliminate order-dependent fixtures and leaked test state. Includes scoped detection, verification, and stop conditions."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"

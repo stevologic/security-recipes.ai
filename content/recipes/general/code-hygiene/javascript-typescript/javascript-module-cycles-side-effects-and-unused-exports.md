@@ -1,7 +1,7 @@
 ---
 title: "JavaScript module cycles, side effects, and unused exports"
 linkTitle: "JavaScript module cycles, side effects, and unused exports"
-description: "Bounded audit or remediation to make module initialization order and public exports predictable."
+description: "JavaScript module cycles, side effects, and unused exports: Make module initialization order and public exports predictable."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"

@@ -1,7 +1,7 @@
 ---
 title: "React hook, effect, and state lifecycle"
 linkTitle: "React hook, effect, and state lifecycle"
-description: "Bounded audit or remediation to remove stale closures, redundant state, and effect cleanup defects."
+description: "React hook, effect, and state lifecycle: Remove stale closures, redundant state, and effect cleanup defects."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"

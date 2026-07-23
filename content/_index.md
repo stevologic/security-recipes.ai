@@ -1,5 +1,6 @@
 ---
 title: security-recipes.ai
+lastmod: 2026-07-23
 description: >
   Open, self-hostable security intelligence and governed workflows for
   humans and AI agents. Research CVEs, use reviewed remediation playbooks,

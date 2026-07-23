@@ -1,7 +1,7 @@
 ---
 title: "COBIT 2019 Governance System Evidence Check"
 linkTitle: "COBIT 2019"
-description: "Enterprises designing, evaluating, or improving governance of information and technology using COBIT 2019."
+description: "Assess COBIT 2019 evidence readiness: verify applicability, map official requirements to artifacts, record gaps, and plan remediation."
 recipe_id: "compliance.cobit-2019"
 framework_id: "cobit"
 framework: "COBIT 2019"

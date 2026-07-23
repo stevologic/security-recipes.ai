@@ -238,6 +238,10 @@ The complete CVE catalog is also available without MCP:
   index searched off the browser's main thread. The CVE database defers this
   download until a visitor focuses, filters, submits, or otherwise starts a
   search; the initial page keeps its server-rendered, evidence-qualified list.
+- Canonical CVE pages server-render their essential facts, remediation,
+  references, and schema. The complete catalog application and exact record
+  shard load only when a visitor selects **Load complete machine-readable
+  record**, avoiding a duplicate fetch on the initial search landing.
 - `/api/cve-catalog/search-indexable.json` is the compact, integrity-hashed
   allowlist for canonical CVE pages, related-CVE links, and search discovery.
   Its policy accepts only reviewed stable Markdown or complete AI enrichment

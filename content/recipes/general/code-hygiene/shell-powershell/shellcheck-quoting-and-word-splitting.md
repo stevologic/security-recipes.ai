@@ -1,7 +1,7 @@
 ---
 title: "ShellCheck quoting and word-splitting hygiene"
 linkTitle: "ShellCheck quoting and word-splitting hygiene"
-description: "Bounded audit or remediation to remove unintended expansion, globbing, and argument-boundary bugs."
+description: "ShellCheck quoting and word-splitting hygiene: Remove unintended expansion, globbing, and argument-boundary bugs."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"

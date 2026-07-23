@@ -3,13 +3,11 @@ title: Critical Infrastructure Secure Context Profile
 linkTitle: Critical Infrastructure Profile
 weight: 19
 date: 2026-05-05
-lastmod: 2026-07-13
+lastmod: 2026-07-23
 toc: true
 description: >
-  Generated critical-infrastructure readiness profile for agentic AI and
-  MCP: sector hazard mapping, secure-context evidence, operator approval,
-  safety-case gates, telemetry, incident response, and deterministic
-  runtime decisions.
+  Assess agentic AI and MCP readiness for critical infrastructure using sector
+  controls, evidence gates, isolation, recovery, and human authority.
 sidebar:
   exclude: true
 ---

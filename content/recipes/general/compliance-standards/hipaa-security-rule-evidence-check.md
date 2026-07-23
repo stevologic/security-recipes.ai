@@ -1,7 +1,7 @@
 ---
 title: "HIPAA Security Rule Evidence Readiness Check"
 linkTitle: "HIPAA Security Rule"
-description: "HIPAA covered entities and business associates protecting electronic protected health information; the January 2025 modification remains proposed, not final."
+description: "Assess HIPAA Security Rule evidence readiness: verify applicability, map official requirements to artifacts, record gaps, and plan remediation."
 recipe_id: "compliance.hipaa-security-rule-current"
 framework_id: "hipaa-security-rule"
 framework: "HIPAA Security Rule"

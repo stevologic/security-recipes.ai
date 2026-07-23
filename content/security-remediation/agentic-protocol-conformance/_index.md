@@ -3,13 +3,12 @@ title: Agentic Protocol Conformance Pack
 linkTitle: Protocol Conformance
 weight: 14
 date: 2026-05-04
-lastmod: 2026-07-13
+lastmod: 2026-07-23
 sidebar:
   exclude: true
 description: >
-  Generated MCP and A2A protocol conformance evidence with deterministic
-  runtime decisions for authorization, tool annotations, tool-surface
-  drift, Agent Cards, identity, handoff, and prompt-injection boundaries.
+  Validate MCP and A2A messages, capabilities, approvals, and runtime decisions
+  against deterministic protocol conformance evidence.
 ---
 
 {{< callout type="info" >}}

@@ -1,7 +1,7 @@
 ---
 title: "NIST SP 800-53 Rev. 5 Control Evidence Check"
 linkTitle: "NIST SP 800-53 Rev. 5"
-description: "Information systems using an organization-selected NIST SP 800-53 Rev. 5 control baseline or overlay."
+description: "Assess NIST SP 800-53 Rev. 5 evidence readiness: verify applicability, map official requirements to artifacts, record gaps, and plan remediation."
 recipe_id: "compliance.nist-sp-800-53-rev5-5-2-0"
 framework_id: "nist-sp-800-53"
 framework: "NIST SP 800-53 Rev. 5"

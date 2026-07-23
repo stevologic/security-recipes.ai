@@ -1,7 +1,7 @@
 ---
 title: "Go error wrapping and sentinel contracts"
 linkTitle: "Go error wrapping and sentinel contracts"
-description: "Bounded audit or remediation to preserve error identity and context without string matching or duplicate logging."
+description: "Go error wrapping and sentinel contracts: Preserve error identity and context without string matching or duplicate logging."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"

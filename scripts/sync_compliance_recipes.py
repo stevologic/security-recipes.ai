@@ -16,6 +16,7 @@ OUTPUT_DIR = (
     ROOT / "content" / "recipes" / "general" / "compliance-standards"
 )
 EXPECTED_FRAMEWORK_COUNT = 39
+META_DESCRIPTION_LIMIT = 165
 
 CATEGORY_LABELS = {
     "ai-governance": "AI governance",
@@ -125,6 +126,21 @@ def status_instruction(framework: dict[str, Any]) -> str:
     return "The cataloged version is final; still verify scope and any later official updates."
 
 
+def meta_description(framework: dict[str, Any]) -> str:
+    """Build framework-specific search copy from the reviewed catalog identity."""
+
+    description = (
+        f"Assess {framework['short_title']} evidence readiness: verify applicability, "
+        "map official requirements to artifacts, record gaps, and plan remediation."
+    )
+    if len(description) > META_DESCRIPTION_LIMIT:
+        raise ValueError(
+            f"compliance search description exceeds {META_DESCRIPTION_LIMIT} characters: "
+            f"{framework.get('framework_id')}"
+        )
+    return description
+
+
 def render_front_matter(
     framework: dict[str, Any], reviewed_on: str, weight: int
 ) -> str:
@@ -142,7 +158,7 @@ def render_front_matter(
     fields = [
         ("title", framework["title"]),
         ("linkTitle", framework["short_title"]),
-        ("description", framework["applicability"]),
+        ("description", meta_description(framework)),
         ("recipe_id", framework["recipe_id"]),
         ("framework_id", framework["framework_id"]),
         ("framework", framework["short_title"]),

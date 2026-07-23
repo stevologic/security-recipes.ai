@@ -3,13 +3,12 @@ title: MCP Gateway Policy Pack
 linkTitle: Gateway Policy
 weight: 5
 date: 2026-05-02
-lastmod: 2026-07-13
+lastmod: 2026-07-23
 sidebar:
   exclude: true
 description: >
-  A generated policy pack that turns workflow manifests into enforceable
-  MCP gateway decisions for scoped tool access, reviewer-gated writes,
-  runtime kill signals, and audit evidence.
+  Convert agentic workflow manifests into enforceable MCP gateway decisions
+  for tools, identities, approvals, arguments, evidence, and denials.
 ---
 
 {{< callout type="info" >}}

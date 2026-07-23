@@ -1,7 +1,7 @@
 ---
 title: "Python exception, context, and resource lifecycle"
 linkTitle: "Python exception, context, and resource lifecycle"
-description: "Bounded audit or remediation to preserve exception context and deterministically release files, locks, sessions, and generators."
+description: "Python exception, context, and resource lifecycle: Preserve exception context and deterministically release files, locks, sessions, and generators."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"

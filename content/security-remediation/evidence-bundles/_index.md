@@ -3,13 +3,12 @@ title: Evidence Bundles
 linkTitle: Evidence Bundles
 weight: 14
 date: 2026-07-10
-lastmod: 2026-07-21
+lastmod: 2026-07-23
 sidebar:
   open: true
 description: >
-  Audit-ready evidence bundles for agentic remediation runs: what to
-  collect, how to package it, and how to make the control surface easy
-  for security, GRC, and enterprise buyers to trust.
+  Package agentic remediation receipts, source evidence, approvals, tests, and
+  rollback records into audit-ready exports for security and GRC review.
 ---
 
 {{< callout type="info" >}}

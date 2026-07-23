@@ -1,7 +1,7 @@
 ---
 title: "Python import, packaging, and module boundaries"
 linkTitle: "Python import, packaging, and module boundaries"
-description: "Bounded audit or remediation to remove import cycles and make package exports and runtime discovery explicit."
+description: "Python import, packaging, and module boundaries: Remove import cycles and make package exports and runtime discovery explicit."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"

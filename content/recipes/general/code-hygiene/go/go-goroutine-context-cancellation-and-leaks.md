@@ -1,7 +1,7 @@
 ---
 title: "Go goroutine, context, cancellation, and leak hygiene"
 linkTitle: "Go goroutine, context, cancellation, and leak hygiene"
-description: "Bounded audit or remediation to give every goroutine and context a bounded owner and shutdown path."
+description: "Go goroutine, context, cancellation, and leak hygiene: Give every goroutine and context a bounded owner and shutdown path."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"

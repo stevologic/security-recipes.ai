@@ -1,7 +1,7 @@
 ---
 title: "Go vet and lint suppression debt"
 linkTitle: "Go vet and lint suppression debt"
-description: "Bounded audit or remediation to resolve Go diagnostics and narrow nolint directives."
+description: "Go vet and lint suppression debt: Resolve Go diagnostics and narrow nolint directives. Includes scoped detection, verification, and stop conditions."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"

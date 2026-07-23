@@ -57,7 +57,9 @@ still links to its official CVE.org source.
 On a canonical record, the visible primary references and structured-data
 citations come from the same conservative source set. Multi-branch fixes keep
 all trusted fixed-release versions in the recommended action, so reviewing one
-branch does not silently hide the others.
+branch does not silently hide the others. Essential facts and guidance arrive
+server-rendered; use **Load complete machine-readable record** only when you
+need the normalized payload and full action contract.
 
 The [Recipes]({{< relref "/recipes" >}}) library uses the same data-first
 pattern: its initial document contains 18 crawlable cards and loads the complete

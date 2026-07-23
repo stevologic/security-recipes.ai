@@ -3,14 +3,12 @@ title: Runtime Controls — Proxies & Telemetry-Driven Session Disablement
 linkTitle: Runtime Controls
 weight: 7
 date: 2026-04-25
-lastmod: 2026-07-21
+lastmod: 2026-07-23
 sidebar:
   open: true
 description: >
-  Inline proxies, action observers, and telemetry-driven kill
-  rules — the gates that watch an agent run in flight and stop
-  it when behaviour deviates, regardless of what the prompt
-  said it would do.
+  Use inline proxies, action observers, telemetry-driven kill rules, and
+  session disablement to contain unsafe agentic remediation behavior.
 ---
 
 {{< callout type="warning" >}}

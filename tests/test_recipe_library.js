@@ -313,6 +313,43 @@ test('CVE Database is a standalone catalog route in the primary navigation', () 
     reviewedPyYamlAnchor[2],
     'CVE-2017-18342 — PyYAML default load resolves arbitrary tags'
   );
+  const qualifiedAnchorLabels = new Map(
+    [...hubHtml.matchAll(
+      /data-qualified-cve-link="(CVE-\d{4}-\d{4,})"><strong>\1<\/strong><span>([^<]+)<\/span>/g
+    )].map((match) => [match[1], match[2]])
+  );
+  assert.equal(
+    qualifiedAnchorLabels.get('CVE-2021-41773'),
+    'CVE-2021-41773: Apache HTTP Server 2.4.49 Path Traversal'
+  );
+  assert.equal(
+    qualifiedAnchorLabels.get('CVE-2021-42013'),
+    'CVE-2021-42013: Apache HTTP Server 2.4.50 Incomplete-Fix Bypass'
+  );
+  assert.equal(
+    qualifiedAnchorLabels.get('CVE-2025-20281'),
+    'CVE-2025-20281: Cisco ISE API Root RCE (CSCwo99449)'
+  );
+  assert.equal(
+    qualifiedAnchorLabels.get('CVE-2025-20337'),
+    'CVE-2025-20337: Cisco ISE API Root RCE (CSCwp02814)'
+  );
+  assert.equal(
+    qualifiedAnchorLabels.get('CVE-2026-33116'),
+    'CVE-2026-33116: .NET System.Security.Cryptography.Xml DoS'
+  );
+  assert.equal(
+    qualifiedAnchorLabels.get('CVE-2026-14956'),
+    'CVE-2026-14956 — Bricksforge Pro Forms privilege escalation'
+  );
+  assert.equal(
+    qualifiedAnchorLabels.get('CVE-2021-44228'),
+    'CVE-2021-44228 — Log4Shell'
+  );
+  assert.equal(
+    qualifiedAnchorLabels.get('CVE-2024-6387'),
+    'CVE-2024-6387 — regreSSHion'
+  );
   assert.doesNotMatch(
     hubHtml,
     /In PyYAML before 5\.1, the yaml\.load\(\) API could execute arbitrary code if used with untrusted data/

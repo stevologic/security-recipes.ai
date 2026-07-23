@@ -25,6 +25,9 @@ const {
   latestSitemapLastmod,
   planPagesSitemapEntries,
 } = require("../eleventy.config").pageSitemap;
+const {
+  canonicalCvePresentationLastmod,
+} = require("../lib/cve-editorial-metadata");
 
 const CATALOG_ROOT = path.join(
   __dirname,
@@ -608,6 +611,108 @@ test("CVE RSS items prefer reviewed metadata, canonical routes, and page freshne
   assert.match(items[1].description, /CVE-2026-1234 is a CRITICAL vulnerability/);
   assert.match(items[1].description, /affected versions, source evidence/);
   assert.doesNotMatch(items[1].description, /\.\.\.|…/);
+});
+
+test("CVE RSS disambiguates canonical records that share source titles", () => {
+  const records = [
+    ["CVE-2021-41773", "Apache HTTP Server Path Traversal Vulnerability"],
+    ["CVE-2021-42013", "Apache HTTP Server Path Traversal Vulnerability"],
+    ["CVE-2025-20281", "Cisco ISE API Remote Code Execution Vulnerability"],
+    ["CVE-2025-20337", "Cisco ISE API Remote Code Execution Vulnerability"],
+  ].map(([cve, title]) => ({
+    cve,
+    title,
+    description: `${cve} source description`,
+    severity: "critical",
+    published: "2026-01-01",
+    pageLastmod: "",
+    url: `/cve/${cve}/`,
+  }));
+
+  const byUrl = new Map(
+    buildRecentCatalogItems([{ records }]).map((item) => [item.url, item]),
+  );
+  assert.equal(
+    byUrl.get("/cve/CVE-2021-41773/").title,
+    "CVE-2021-41773: Apache HTTP Server 2.4.49 Path Traversal",
+  );
+  assert.equal(
+    byUrl.get("/cve/CVE-2021-42013/").title,
+    "CVE-2021-42013: Apache HTTP Server 2.4.50 Incomplete-Fix Bypass",
+  );
+  assert.equal(
+    byUrl.get("/cve/CVE-2025-20281/").title,
+    "CVE-2025-20281: Cisco ISE API Root RCE (CSCwo99449)",
+  );
+  assert.equal(
+    byUrl.get("/cve/CVE-2025-20337/").title,
+    "CVE-2025-20337: Cisco ISE API Root RCE (CSCwp02814)",
+  );
+  assert.match(
+    byUrl.get("/cve/CVE-2025-20281/").description,
+    /CSCwo99449/,
+  );
+  assert.match(
+    byUrl.get("/cve/CVE-2025-20337/").description,
+    /CSCwp02814/,
+  );
+});
+
+test("CVE RSS preserves concise reviewed titles for canonical stable pages", () => {
+  const records = [
+    "CVE-2026-14956",
+    "CVE-2021-44228",
+    "CVE-2024-6387",
+  ].map((cve) => ({
+    cve,
+    title: `${cve} verbose upstream source sentence that should not replace reviewed copy`,
+    description: `${cve} source description`,
+    severity: "critical",
+    published: "2026-01-01",
+    pageLastmod: "",
+    url: `/cve/${cve}/`,
+  }));
+  const byUrl = new Map(
+    buildRecentCatalogItems([{ records }]).map((item) => [item.url, item]),
+  );
+  assert.equal(
+    byUrl.get("/cve/CVE-2026-14956/").title,
+    "CVE-2026-14956 — Bricksforge Pro Forms privilege escalation",
+  );
+  assert.equal(
+    byUrl.get("/cve/CVE-2021-44228/").title,
+    "CVE-2021-44228 — Log4Shell",
+  );
+  assert.equal(
+    byUrl.get("/cve/CVE-2024-6387/").title,
+    "CVE-2024-6387 — regreSSHion",
+  );
+});
+
+test("editorial CVE updates advance canonical sitemap freshness", () => {
+  assert.equal(
+    canonicalCvePresentationLastmod("CVE-2021-41773", "2026-07-17"),
+    "2026-07-23",
+  );
+  assert.equal(
+    canonicalCvePresentationLastmod("CVE-2026-33116", "2026-07-15"),
+    "2026-07-23",
+  );
+  assert.equal(
+    canonicalCvePresentationLastmod("CVE-2024-3400", "2026-07-20"),
+    "2026-07-20",
+  );
+  assert.equal(
+    canonicalCvePresentationLastmod("CVE-2021-41773", "2026-08-01"),
+    "2026-08-01",
+  );
+  assert.equal(
+    canonicalCvePresentationLastmod(
+      "CVE-2021-41773",
+      "2026-08-02T10:15:30Z",
+    ),
+    "2026-08-02",
+  );
 });
 
 test("unsafe partitions and non-canonical CVE IDs fail closed", (t) => {

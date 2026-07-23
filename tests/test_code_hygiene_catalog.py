@@ -94,6 +94,25 @@ class CodeHygieneCatalogTests(unittest.TestCase):
             self.assertIn("explicitly authorizes a fix", markdown)
             self.assertIn("https://", markdown)
 
+    def test_generated_search_descriptions_are_specific_and_bounded(self) -> None:
+        descriptions = set()
+        for record in self.catalog["records"]:
+            description = sync_catalog.recipe_meta_description(record)
+            self.assertGreaterEqual(len(description), 100)
+            self.assertLessEqual(len(description), sync_catalog.META_DESCRIPTION_LIMIT)
+            self.assertTrue(description.startswith(f"{record['title']}: "))
+            self.assertNotIn("Bounded audit or remediation", description)
+            self.assertRegex(description, r"[.!?]$")
+            descriptions.add(description)
+
+            markdown = sync_catalog.recipe_path(record).read_text(encoding="utf-8")
+            self.assertIn(
+                f"description: {sync_catalog.yaml_scalar(description)}",
+                markdown,
+            )
+
+        self.assertEqual(len(descriptions), len(self.catalog["records"]))
+
     def test_family_indexes_explain_selection_and_are_not_thin(self) -> None:
         for key, family in self.catalog["families"].items():
             path = CONTENT / key / "_index.md"
@@ -103,6 +122,13 @@ class CodeHygieneCatalogTests(unittest.TestCase):
             ]
 
             self.assertIn(f"## Choose a focused {family['title']} recipe", markdown)
+            description = sync_catalog.family_meta_description(family)
+            self.assertGreaterEqual(len(description), 120)
+            self.assertLessEqual(len(description), sync_catalog.META_DESCRIPTION_LIMIT)
+            self.assertIn(
+                f"description: {sync_catalog.yaml_scalar(description)}",
+                markdown,
+            )
             self.assertIn("## How to use this collection", markdown)
             self.assertIn("## Full recipe list", markdown)
             for record in family_records:

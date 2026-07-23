@@ -1,7 +1,7 @@
 ---
 title: "C and C++ atomic, lock, and thread lifecycle"
 linkTitle: "C and C++ atomic, lock, and thread lifecycle"
-description: "Bounded audit or remediation to remove data races, lock-order hazards, and detached thread lifetimes."
+description: "C and C++ atomic, lock, and thread lifecycle: Remove data races, lock-order hazards, and detached thread lifetimes."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"

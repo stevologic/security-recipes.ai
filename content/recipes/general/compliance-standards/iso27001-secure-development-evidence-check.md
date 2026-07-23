@@ -1,7 +1,7 @@
 ---
 title: "ISO/IEC 27001:2022 ISMS Evidence Readiness Check"
 linkTitle: "ISO/IEC 27001:2022"
-description: "Organizations operating or preparing to certify an information security management system against ISO/IEC 27001:2022."
+description: "Assess ISO/IEC 27001:2022 evidence readiness: verify applicability, map official requirements to artifacts, record gaps, and plan remediation."
 recipe_id: "compliance.iso-iec-27001-2022"
 framework_id: "iso-27001"
 framework: "ISO/IEC 27001:2022"

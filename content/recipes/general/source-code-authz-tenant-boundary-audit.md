@@ -236,5 +236,5 @@ Stop and report rather than guessing if:
 ## Related
 
 - [Source code audit - attack surface map]({{< relref "/recipes/general/source-code-attack-surface-map" >}})
-- [OWASP Top 10 (2026) - repo audit]({{< relref "/recipes/general/owasp-top-10-2026-audit" >}})
+- [OWASP Top 10:2025 repository audit]({{< relref "/recipes/general/owasp-top-10-2025-audit" >}})
 - [Reviewer Playbook]({{< relref "/security-remediation/reviewer-playbook" >}})

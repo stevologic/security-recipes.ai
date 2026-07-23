@@ -1,7 +1,7 @@
 ---
 title: "Java AutoCloseable and resource lifecycle"
 linkTitle: "Java AutoCloseable and resource lifecycle"
-description: "Bounded audit or remediation to close files, streams, clients, cursors, and scopes on every exit path."
+description: "Java AutoCloseable and resource lifecycle: Close files, streams, clients, cursors, and scopes on every exit path."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"

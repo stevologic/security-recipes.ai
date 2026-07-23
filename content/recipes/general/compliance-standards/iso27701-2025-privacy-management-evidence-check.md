@@ -1,7 +1,7 @@
 ---
 title: "ISO/IEC 27701:2025 Privacy Information Management Evidence Check"
 linkTitle: "ISO/IEC 27701:2025"
-description: "Organizations establishing, operating, or preparing to certify a privacy information management system against ISO/IEC 27701:2025."
+description: "Assess ISO/IEC 27701:2025 evidence readiness: verify applicability, map official requirements to artifacts, record gaps, and plan remediation."
 recipe_id: "compliance.iso-iec-27701-2025"
 framework_id: "iso-27701"
 framework: "ISO/IEC 27701:2025"

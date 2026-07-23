@@ -3,13 +3,12 @@ title: Agent Identity & Delegation Ledger
 linkTitle: Identity Ledger
 weight: 7
 date: 2026-05-02
-lastmod: 2026-07-13
+lastmod: 2026-07-23
 sidebar:
   exclude: true
 description: >
-  A generated non-human identity ledger for agentic remediation:
-  approved agent classes, delegated authority, MCP scopes, explicit
-  denies, review ownership, runtime kill signals, and audit evidence.
+  Record every human, agent, service, delegation, credential boundary, and
+  approval chain involved in an agentic remediation workflow.
 ---
 
 {{< callout type="info" >}}

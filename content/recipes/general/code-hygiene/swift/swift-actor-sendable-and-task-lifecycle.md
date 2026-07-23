@@ -1,7 +1,7 @@
 ---
 title: "Swift actor, Sendable, and task lifecycle"
 linkTitle: "Swift actor, Sendable, and task lifecycle"
-description: "Bounded audit or remediation to resolve isolation violations, unsafe sharing, and unowned tasks."
+description: "Swift actor, Sendable, and task lifecycle: Resolve isolation violations, unsafe sharing, and unowned tasks."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"

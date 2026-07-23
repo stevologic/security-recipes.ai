@@ -1,7 +1,7 @@
 ---
 title: "IEC 62443 Industrial Security Program Evidence Check"
 linkTitle: "IEC 62443"
-description: "Asset owners and product suppliers evaluating industrial automation and control system security programs against organization-licensed IEC 62443 parts."
+description: "Assess IEC 62443 evidence readiness: verify applicability, map official requirements to artifacts, record gaps, and plan remediation."
 recipe_id: "compliance.iec-62443-2-1-2024-4-1-2018"
 framework_id: "iec-62443"
 framework: "IEC 62443"

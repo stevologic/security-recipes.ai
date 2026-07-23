@@ -1,7 +1,7 @@
 ---
 title: "Shell & PowerShell Code Hygiene"
 linkTitle: "Shell & PowerShell"
-description: "Quoting, exit propagation, cleanup, analyzer, error, and pipeline hygiene."
+description: "Quoting, exit propagation, cleanup, analyzer, error, and pipeline hygiene. Choose bounded workflows with detection, tests, and stop conditions."
 weight: 130
 sidebar:
   open: false

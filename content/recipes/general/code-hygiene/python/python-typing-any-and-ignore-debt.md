@@ -1,7 +1,7 @@
 ---
 title: "Python typing Any and ignore debt"
 linkTitle: "Python typing Any and ignore debt"
-description: "Bounded audit or remediation to narrow Any, casts, and type-ignore suppressions at trusted boundaries."
+description: "Python typing Any and ignore debt: Narrow Any, casts, and type-ignore suppressions at trusted boundaries."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"

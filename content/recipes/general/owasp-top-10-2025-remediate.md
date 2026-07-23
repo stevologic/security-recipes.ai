@@ -9,6 +9,10 @@ model: "Opus 4.7"
 tags: ["owasp", "top-10", "remediate", "pr", "fix"]
 weight: 11
 date: 2026-04-22
+lastmod: 2026-07-23
+description: >
+  Turn one current OWASP Top 10:2025 web application finding into a bounded,
+  tested, reviewer-ready remediation pull request or an explicit triage note.
 ---
 
 A tool-agnostic **remediation prompt** that takes a single finding

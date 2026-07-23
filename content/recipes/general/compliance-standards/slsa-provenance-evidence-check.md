@@ -1,7 +1,7 @@
 ---
 title: "SLSA v1.2 Build and Source Provenance Evidence Check"
 linkTitle: "SLSA v1.2"
-description: "Software producers and consumers evaluating source and build integrity using SLSA v1.2 tracks and provenance."
+description: "Assess SLSA v1.2 evidence readiness: verify applicability, map official requirements to artifacts, record gaps, and plan remediation."
 recipe_id: "compliance.slsa-1-2"
 framework_id: "slsa"
 framework: "SLSA v1.2"

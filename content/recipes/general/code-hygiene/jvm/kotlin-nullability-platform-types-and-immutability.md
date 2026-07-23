@@ -1,7 +1,7 @@
 ---
 title: "Kotlin nullability, platform types, and immutability"
 linkTitle: "Kotlin nullability, platform types, and immutability"
-description: "Bounded audit or remediation to contain Java platform types and remove unsafe assertions and unintended mutation."
+description: "Kotlin nullability, platform types, and immutability: Contain Java platform types and remove unsafe assertions and unintended mutation."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"

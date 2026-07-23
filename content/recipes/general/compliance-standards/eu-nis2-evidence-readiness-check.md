@@ -1,7 +1,7 @@
 ---
 title: "EU NIS2 Directive Evidence Readiness Check"
 linkTitle: "EU NIS2"
-description: "Entities potentially classified as essential or important under NIS2 and the applicable member-state implementing law."
+description: "Assess EU NIS2 evidence readiness: verify applicability, map official requirements to artifacts, record gaps, and plan remediation."
 recipe_id: "compliance.eu-nis2-2022-2555"
 framework_id: "eu-nis2"
 framework: "EU NIS2"

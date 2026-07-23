@@ -3,13 +3,12 @@ title: Agent Capability Risk Register
 linkTitle: Capability Risk Register
 weight: 8
 date: 2026-05-02
-lastmod: 2026-07-13
+lastmod: 2026-07-23
 sidebar:
   exclude: true
 description: >
-  A generated capability-based risk register that scores each agentic
-  remediation workflow by system criticality, autonomy, MCP permissions,
-  impact radius, compensating controls, and residual risk tier.
+  Score agent tools and workflows by capability, authority, exposure, and
+  control coverage to prioritize reviews and enforce bounded remediation access.
 ---
 
 {{< callout type="info" >}}

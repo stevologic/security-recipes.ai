@@ -1,7 +1,7 @@
 ---
 title: "Rust panic, unwrap, expect, and error boundaries"
 linkTitle: "Rust panic, unwrap, expect, and error boundaries"
-description: "Bounded audit or remediation to keep recoverable failures out of panic paths while preserving invariants."
+description: "Rust panic, unwrap, expect, and error boundaries: Keep recoverable failures out of panic paths while preserving invariants."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"

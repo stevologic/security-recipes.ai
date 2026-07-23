@@ -3,13 +3,11 @@ title: Agentic Run Receipts
 linkTitle: Agentic Run Receipts
 weight: 12
 date: 2026-05-02
-lastmod: 2026-07-13
+lastmod: 2026-07-23
 toc: true
 description: >
-  A generated receipt template pack for enterprise agent runs: identity,
-  context retrieval, poisoning scan, MCP tool decisions, egress decisions,
-  approvals, verifier results, evidence retention, and revocation in one
-  portable proof object.
+  Record scope, inputs, policy decisions, tool actions, tests, approvals, and
+  rollback evidence for each enterprise agentic remediation run.
 sidebar:
   exclude: true
 ---

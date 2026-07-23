@@ -1,7 +1,7 @@
 ---
 title: "Dockerfile layer, cache, and build-context hygiene"
 linkTitle: "Dockerfile layer, cache, and build-context hygiene"
-description: "Bounded audit or remediation to make container builds reproducible, cache-efficient, and free of accidental context."
+description: "Dockerfile layer, cache, and build-context hygiene: Make container builds reproducible, cache-efficient, and free of accidental context."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"

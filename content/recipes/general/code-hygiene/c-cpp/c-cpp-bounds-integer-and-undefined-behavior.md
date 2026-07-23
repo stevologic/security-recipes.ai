@@ -1,7 +1,7 @@
 ---
 title: "C and C++ bounds, integer, and undefined-behavior hygiene"
 linkTitle: "C and C++ bounds, integer, and undefined-behavior hygiene"
-description: "Bounded audit or remediation to remove unchecked bounds, lossy arithmetic, lifetime, and undefined-behavior hazards."
+description: "C and C++ bounds, integer, and undefined-behavior hygiene: Remove unchecked bounds, lossy arithmetic, lifetime, and undefined-behavior hazards."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"

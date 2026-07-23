@@ -1,7 +1,7 @@
 ---
 title: "PHP strict types, static analysis, and suppression debt"
 linkTitle: "PHP strict types, static analysis, and suppression debt"
-description: "Bounded audit or remediation to narrow mixed values and static-analysis suppressions without breaking framework boundaries."
+description: "PHP strict types, static analysis, and suppression debt: Narrow mixed values and static-analysis suppressions without breaking framework boundaries."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"

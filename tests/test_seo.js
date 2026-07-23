@@ -582,6 +582,10 @@ test("seoTitle keeps branded titles concise without duplicating the brand", () =
     seoTitle("AI agent runtime controls"),
     "AI agent runtime controls | Security Recipes",
   );
+  assert.equal(
+    seoTitle("AI agent remediation evidence and rollback guides"),
+    "AI agent remediation evidence and rollback guides",
+  );
 
   const title = seoTitle(
     "Runtime controls for telemetry-driven AI agent session disablement",

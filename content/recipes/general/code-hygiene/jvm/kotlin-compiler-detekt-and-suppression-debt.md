@@ -1,7 +1,7 @@
 ---
 title: "Kotlin compiler, Detekt, and suppression debt"
 linkTitle: "Kotlin compiler, Detekt, and suppression debt"
-description: "Bounded audit or remediation to resolve Kotlin diagnostics and narrow file or declaration suppressions."
+description: "Kotlin compiler, Detekt, and suppression debt: Resolve Kotlin diagnostics and narrow file or declaration suppressions."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"

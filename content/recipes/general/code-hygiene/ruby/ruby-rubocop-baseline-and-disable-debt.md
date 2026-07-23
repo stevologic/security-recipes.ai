@@ -1,7 +1,7 @@
 ---
 title: "Ruby RuboCop baseline and disable debt"
 linkTitle: "Ruby RuboCop baseline and disable debt"
-description: "Bounded audit or remediation to resolve RuboCop offenses and narrow disabled cops without broad rewrites."
+description: "Ruby RuboCop baseline and disable debt: Resolve RuboCop offenses and narrow disabled cops without broad rewrites."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"

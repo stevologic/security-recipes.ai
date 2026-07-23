@@ -1,7 +1,7 @@
 ---
 title: "Ruby & Rails Code Hygiene"
 linkTitle: "Ruby & Rails"
-description: "RuboCop debt and Active Record query, transaction, and callback hygiene."
+description: "RuboCop debt and Active Record query, transaction, and callback hygiene. Choose bounded workflows with detection, tests, and stop conditions."
 weight: 90
 sidebar:
   open: false

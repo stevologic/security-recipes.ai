@@ -1,7 +1,7 @@
 ---
 title: "FedRAMP 2026 Rev. 5 Authorization Evidence Check"
 linkTitle: "FedRAMP 2026"
-description: "Cloud service offerings pursuing or maintaining a FedRAMP authorization under the 2026 consolidated rules and Rev. 5 control baseline."
+description: "Assess FedRAMP 2026 evidence readiness: verify applicability, map official requirements to artifacts, record gaps, and plan remediation."
 recipe_id: "compliance.fedramp-2026-consolidated-rev5"
 framework_id: "fedramp"
 framework: "FedRAMP 2026"

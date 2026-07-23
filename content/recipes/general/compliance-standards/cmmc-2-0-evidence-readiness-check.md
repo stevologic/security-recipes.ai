@@ -1,7 +1,7 @@
 ---
 title: "CMMC 2.0 Evidence Readiness Check"
 linkTitle: "CMMC 2.0"
-description: "Defense contractors and subcontractors whose solicitations or contracts specify a CMMC level and assessment requirement for FCI or CUI."
+description: "Assess CMMC 2.0 evidence readiness: verify applicability, map official requirements to artifacts, record gaps, and plan remediation."
 recipe_id: "compliance.cmmc-2-0-current"
 framework_id: "cmmc"
 framework: "CMMC 2.0"

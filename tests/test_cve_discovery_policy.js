@@ -5,6 +5,64 @@ const assert = require("node:assert/strict");
 
 const contentIndex = require("../lib/content-index");
 const feeds = require("../lib/feeds");
+const { isSectionFeedEntry } = require("../eleventy.config").sectionFeeds;
+const { buildSidebarTree } = require("../eleventy.config").sidebarNavigation;
+
+test("redirect sections do not publish competing RSS feeds", () => {
+  assert.equal(
+    isSectionFeedEntry({
+      isSection: true,
+      fm: { layout: "layouts/redirect.njk", redirectTo: "/cve-database/" },
+    }),
+    false,
+  );
+  assert.equal(isSectionFeedEntry({ isSection: true, fm: {} }), true);
+  assert.equal(isSectionFeedEntry({ isSection: false, fm: {} }), false);
+  assert.equal(
+    contentIndex.isDiscoveryPage({
+      sourcePath: "recipes/general/retired.md",
+      fm: { redirectTo: "/recipes/general/current/" },
+    }),
+    false,
+  );
+});
+
+test("root RSS uses the public site name without a duplicated suffix", () => {
+  const rss = feeds.sectionRss(
+    { title: "security-recipes.ai", url: "/" },
+    [],
+  );
+  assert.match(rss, /<title>Security Recipes<\/title>/);
+  assert.match(rss, /<description>Security recipes for AI-assisted remediation:/);
+  assert.doesNotMatch(rss, /security-recipes\.ai on security-recipes\.ai/);
+});
+
+test("retired redirects do not receive collection or sidebar links", () => {
+  const retired = new Set([
+    "/recipes/general/owasp-top-10-2026-audit/",
+    "/recipes/general/owasp-top-10-2026-remediate/",
+  ]);
+  const current = new Set([
+    "/recipes/general/owasp-top-10-2025-audit/",
+    "/recipes/general/owasp-top-10-2025-remediate/",
+  ]);
+  const generalChildren = contentIndex
+    .childrenOf("recipes/general/_index.md")
+    .map((page) => page.url);
+  for (const url of retired) assert.ok(!generalChildren.includes(url));
+  for (const url of current) assert.ok(generalChildren.includes(url));
+
+  const sidebarUrls = [];
+  const collectUrls = (items) => {
+    for (const item of items) {
+      sidebarUrls.push(item.url);
+      collectUrls(item.children || []);
+    }
+  };
+  collectUrls(buildSidebarTree());
+  for (const url of retired) assert.ok(!sidebarUrls.includes(url));
+  for (const url of current) assert.ok(sidebarUrls.includes(url));
+});
 
 test("CVE overrides stay in compatible feeds and out of curated recipe feeds", () => {
   const cvePages = contentIndex.getIndex().pages.filter(
@@ -106,27 +164,44 @@ test("reviewed CVE feeds and TOC use each page's canonical destination", () => {
   }
 });
 
-test("reviewed CVE sibling pagers use canonical destinations", () => {
+test("CVE pages do not receive generic sibling pagers", () => {
   const siblings = contentIndex.siblingsByDir().get("recipes/cve") || [];
   assert.ok(siblings.length > 1, "fixture repository must contain sibling CVE overrides");
 
-  let sawCanonicalizedNeighbor = false;
-  for (const [index, page] of siblings.entries()) {
-    const expectedItem = (neighbor) => {
-      if (!neighbor) return null;
-      const canonical = contentIndex.canonicalUrlForPage(neighbor);
-      if (canonical !== neighbor.url) sawCanonicalizedNeighbor = true;
-      return { title: neighbor.linkTitle, url: canonical };
-    };
+  const requiredLegacyCves = new Set([
+    "CVE-2014-0160",
+    "CVE-2014-6271",
+    "CVE-2017-18342",
+  ]);
+  for (const page of siblings) {
+    requiredLegacyCves.delete(page.fm.cve);
     assert.deepEqual(
       contentIndex.pagerForSourcePath(`./content/${page.sourcePath}`),
-      {
-        prev: expectedItem(siblings[index - 1]),
-        next: expectedItem(siblings[index + 1]),
-      },
+      {},
+      `${page.fm.cve} must not link to an arbitrary CVE sibling`,
     );
   }
 
-  assert.ok(sawCanonicalizedNeighbor, "fixture must exercise a migrated CVE neighbor");
+  assert.deepEqual([...requiredLegacyCves], [], "legacy CVE pager fixtures are missing");
   assert.deepEqual(contentIndex.pagerForSourcePath("./content/recipes/cve/_index.md"), {});
+});
+
+test("non-CVE articles retain sibling pagers", () => {
+  const siblings = contentIndex.siblingsByDir().get("recipes/general") || [];
+  assert.ok(siblings.length > 2, "fixture repository must contain general recipe siblings");
+  const index = Math.floor(siblings.length / 2);
+  const page = siblings[index];
+  assert.equal(Object.hasOwn(page.fm, "cve"), false);
+
+  const navigationItem = (neighbor) => ({
+    title: neighbor.linkTitle,
+    url: contentIndex.canonicalUrlForPage(neighbor),
+  });
+  assert.deepEqual(
+    contentIndex.pagerForSourcePath(`./content/${page.sourcePath}`),
+    {
+      prev: navigationItem(siblings[index - 1]),
+      next: navigationItem(siblings[index + 1]),
+    },
+  );
 });

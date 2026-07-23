@@ -3,13 +3,12 @@ title: Agentic Telemetry Contract
 linkTitle: Telemetry Contract
 weight: 6
 date: 2026-05-04
-lastmod: 2026-07-13
+lastmod: 2026-07-23
 sidebar:
   exclude: true
 description: >
-  A generated OpenTelemetry-aligned trace contract for agentic AI and MCP
-  runs: required fields, redaction tiers, reconstruction links, and
-  runtime decisions before trace evidence is trusted.
+  Standardize OpenTelemetry-aligned agent, model, MCP, tool, approval, and
+  remediation traces for detection, evidence, and incident review.
 ---
 
 {{< callout type="info" >}}

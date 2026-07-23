@@ -1,7 +1,7 @@
 ---
 title: "EU Digital Operational Resilience Act Evidence Check"
 linkTitle: "EU DORA"
-description: "EU financial entities and relevant ICT third-party service relationships after entity, proportionality, and exemption analysis."
+description: "Assess EU DORA evidence readiness: verify applicability, map official requirements to artifacts, record gaps, and plan remediation."
 recipe_id: "compliance.eu-dora-2022-2554"
 framework_id: "eu-dora"
 framework: "EU DORA"

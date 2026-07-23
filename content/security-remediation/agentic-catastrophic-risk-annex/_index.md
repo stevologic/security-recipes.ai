@@ -3,13 +3,11 @@ title: Agentic Catastrophic Risk Annex
 linkTitle: Catastrophic Risk Annex
 weight: 18
 date: 2026-05-04
-lastmod: 2026-07-13
+lastmod: 2026-07-23
 toc: true
 description: >
-  Generated severe-risk annex for high-impact agentic AI decisions:
-  loss of human oversight, uncontrolled behavior, token cascades,
-  cross-agent failure, supply-chain blast radius, private-context
-  leakage, and irreversible action gates.
+  Evaluate severe agentic AI failure modes, escalation triggers, containment
+  controls, evidence requirements, and human decision boundaries.
 sidebar:
   exclude: true
 ---

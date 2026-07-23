@@ -1,7 +1,7 @@
 ---
 title: "OWASP MASVS 2.1.0 Mobile Application Evidence Check"
 linkTitle: "OWASP MASVS 2.1.0"
-description: "Native and cross-platform mobile application teams verifying security and privacy properties against MASVS 2.1.0."
+description: "Assess OWASP MASVS 2.1.0 evidence readiness: verify applicability, map official requirements to artifacts, record gaps, and plan remediation."
 recipe_id: "compliance.owasp-masvs-2-1-0"
 framework_id: "owasp-masvs"
 framework: "OWASP MASVS 2.1.0"

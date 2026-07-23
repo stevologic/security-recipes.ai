@@ -1,7 +1,7 @@
 ---
 title: "NERC CIP Applicable Standards Evidence Check"
 linkTitle: "NERC CIP"
-description: "Registered entities with Bulk Electric System Cyber Systems must establish applicable, effective NERC CIP standards from current standards and implementation plans."
+description: "Assess NERC CIP evidence readiness: verify applicability, map official requirements to artifacts, record gaps, and plan remediation."
 recipe_id: "compliance.nerc-cip-current-applicable-set"
 framework_id: "nerc-cip"
 framework: "NERC CIP"

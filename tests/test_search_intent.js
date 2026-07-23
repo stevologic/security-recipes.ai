@@ -22,7 +22,16 @@ function frontMatter(relativePath) {
 
 test("homepage metadata targets CVE lookup and AI vulnerability remediation", () => {
   const homepage = source("_includes/layouts/home-static.html");
+  const homepageData = frontMatter("content/_index.md");
+  const lastmod = homepageData.lastmod instanceof Date
+    ? homepageData.lastmod.toISOString().slice(0, 10)
+    : String(homepageData.lastmod);
 
+  assert.equal(lastmod, "2026-07-23");
+  assert.match(
+    homepage,
+    /<link rel="alternate" type="application\/rss\+xml" href="\/index\.xml" title="Security Recipes">/u,
+  );
   assert.match(
     homepage,
     /<title>CVE Database &amp; AI Vulnerability Remediation \| Security Recipes<\/title>/u,
@@ -65,6 +74,80 @@ test("high-intent landing pages remain concise, distinct, and query-specific", (
     /vulnerability remediation/iu,
     "the visual tour must not compete with the remediation pillar",
   );
+});
+
+test("agentic remediation control pages emit useful page-specific snippets", () => {
+  const slugs = [
+    "agent-capability-risk-register",
+    "agent-identity-ledger",
+    "agent-memory-boundary",
+    "agentic-catastrophic-risk-annex",
+    "agentic-protocol-conformance",
+    "agentic-red-team-drills",
+    "agentic-run-receipts",
+    "agentic-soc-detection-pack",
+    "agentic-system-bom",
+    "agentic-telemetry-contract",
+    "classic-vulnerable-defaults",
+    "context-egress-boundary",
+    "context-poisoning-guard",
+    "critical-infrastructure-secure-context",
+    "evidence-bundles",
+    "mcp-elicitation-boundary",
+    "mcp-gateway-policy",
+    "runtime-controls",
+    "secure-context-evals",
+    "secure-context-trust-pack",
+  ];
+  const descriptions = new Set();
+
+  for (const slug of slugs) {
+    const relativePath = `content/security-remediation/${slug}/_index.md`;
+    const renderedDescription = descriptionFor(frontMatter(relativePath));
+
+    assert.ok(
+      renderedDescription.length >= 120,
+      `${relativePath} rendered description is too thin: ${renderedDescription}`,
+    );
+    assert.ok(
+      renderedDescription.length <= 165,
+      `${relativePath} rendered description is too long: ${renderedDescription}`,
+    );
+    assert.match(
+      renderedDescription,
+      /[.!?]$/u,
+      `${relativePath} rendered description is incomplete`,
+    );
+    assert.doesNotMatch(
+      renderedDescription,
+      /^(?:A )?generated\b/iu,
+      `${relativePath} should explain the page instead of its build process`,
+    );
+    descriptions.add(renderedDescription.toLocaleLowerCase("en-US"));
+  }
+
+  assert.equal(descriptions.size, slugs.length, "remediation snippets must remain unique");
+});
+
+test("OWASP web application recipes consolidate on the current 2025 edition", () => {
+  const audit = frontMatter("content/recipes/general/owasp-top-10-2025-audit.md");
+  const remediate = frontMatter("content/recipes/general/owasp-top-10-2025-remediate.md");
+  const retiredAudit = frontMatter("content/recipes/general/owasp-top-10-2026-audit.md");
+  const retiredRemediate = frontMatter("content/recipes/general/owasp-top-10-2026-remediate.md");
+
+  assert.match(audit.title, /Top 10:2025/u);
+  assert.match(remediate.title, /Top 10:2025/u);
+  assert.match(descriptionFor(audit), /current OWASP Top 10:2025/u);
+  assert.match(descriptionFor(remediate), /current OWASP Top 10:2025/u);
+  assert.deepEqual(
+    [retiredAudit.redirectTo, retiredRemediate.redirectTo],
+    [
+      "/recipes/general/owasp-top-10-2025-audit/",
+      "/recipes/general/owasp-top-10-2025-remediate/",
+    ],
+  );
+  assert.equal(retiredAudit.noindex, true);
+  assert.equal(retiredRemediate.noindex, true);
 });
 
 test("top-level discovery pages emit complete search snippets without title truncation", () => {
@@ -174,6 +257,14 @@ test("the remediation pillar labels guidance and hypothetical examples truthfull
   assert.match(pillar, /^## Production guardrails for AI remediation agents$/mu);
   assert.match(pillar, /^### Agent identity, delegated authority, and trust$/mu);
   assert.match(pillar, /^### Secure-context provenance and enterprise assurance$/mu);
+  assert.match(
+    pillar,
+    /\[CVE-2021-35395: Realtek AP-Router SDK buffer overflow\]\(\/cve\/CVE-2021-35395\/\)/u,
+  );
+  assert.match(
+    pillar,
+    /\[CVE-2014-0160: Heartbleed in OpenSSL\]\(\/recipes\/cve\/cve-2014-0160-heartbleed\/\)/u,
+  );
 });
 
 test("high-intent remediation pages expose current review provenance", () => {

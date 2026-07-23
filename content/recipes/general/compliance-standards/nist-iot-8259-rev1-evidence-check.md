@@ -1,7 +1,7 @@
 ---
 title: "NISTIR 8259 Rev. 1 IoT Product Evidence Check"
 linkTitle: "NIST IoT 8259 Series"
-description: "IoT product manufacturers and integrators establishing product cybersecurity capabilities and manufacturer supporting activities."
+description: "Assess NIST IoT 8259 Series evidence readiness: verify applicability, map official requirements to artifacts, record gaps, and plan remediation."
 recipe_id: "compliance.nistir-8259-rev1-series"
 framework_id: "nist-iot-8259"
 framework: "NIST IoT 8259 Series"

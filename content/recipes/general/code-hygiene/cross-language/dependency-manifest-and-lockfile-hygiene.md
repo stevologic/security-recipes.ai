@@ -1,7 +1,7 @@
 ---
 title: "Dependency manifest and lockfile hygiene"
 linkTitle: "Dependency manifest and lockfile hygiene"
-description: "Bounded audit or remediation to align declared, resolved, direct, optional, and unused dependencies without upgrading them."
+description: "Dependency manifest and lockfile hygiene: Align declared, resolved, direct, optional, and unused dependencies without upgrading them."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"

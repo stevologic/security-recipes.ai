@@ -3,13 +3,11 @@ title: Agent Memory Boundary
 linkTitle: Agent Memory Boundary
 weight: 13
 date: 2026-05-02
-lastmod: 2026-07-13
+lastmod: 2026-07-23
 toc: true
 description: >
-  A generated policy and runtime evaluator for agent memory: ephemeral
-  scratchpads, append-only receipts, read-only policy memory, tenant
-  runtime memory, vector memory, TTLs, provenance, rollback, and
-  prohibited persistence.
+  Define memory classes, TTLs, provenance, rollback, and prohibited persistence
+  for agentic remediation workflows and MCP context.
 sidebar:
   exclude: true
 ---

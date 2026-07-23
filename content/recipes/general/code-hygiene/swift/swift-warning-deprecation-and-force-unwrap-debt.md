@@ -1,7 +1,7 @@
 ---
 title: "Swift warning, deprecation, and force-unwrap debt"
 linkTitle: "Swift warning, deprecation, and force-unwrap debt"
-description: "Bounded audit or remediation to resolve compiler warnings and unsafe optionals without obscuring invariants."
+description: "Swift warning, deprecation, and force-unwrap debt: Resolve compiler warnings and unsafe optionals without obscuring invariants."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"

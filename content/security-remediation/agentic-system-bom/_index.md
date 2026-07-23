@@ -3,14 +3,12 @@ title: Agentic System BOM
 linkTitle: System BOM
 weight: 8
 date: 2026-05-02
-lastmod: 2026-07-13
+lastmod: 2026-07-23
 sidebar:
   exclude: true
 description: >
-  A generated Agent/AI Bill of Materials for the agentic remediation
-  system: workflows, agent classes, identities, MCP connectors,
-  policy components, evidence artifacts, knowledge sources, eval drills,
-  source hashes, and drift triggers.
+  Inventory agents, models, tools, MCP servers, data sources, policies, owners,
+  and trust boundaries in an Agentic System Bill of Materials.
 ---
 
 {{< callout type="info" >}}

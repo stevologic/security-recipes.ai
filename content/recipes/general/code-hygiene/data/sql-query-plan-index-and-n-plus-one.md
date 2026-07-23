@@ -1,7 +1,7 @@
 ---
 title: "SQL query plan, index, and N+1 hygiene"
 linkTitle: "SQL query plan, index, and N+1 hygiene"
-description: "Bounded audit or remediation to remove proven query amplification and plan regressions using representative evidence."
+description: "SQL query plan, index, and N+1 hygiene: Remove proven query amplification and plan regressions using representative evidence."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"

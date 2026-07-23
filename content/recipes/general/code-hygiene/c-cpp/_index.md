@@ -1,7 +1,7 @@
 ---
 title: "C & C++ Code Hygiene"
 linkTitle: "C & C++"
-description: "Compiler diagnostic, ownership, bounds, concurrency, and lifetime hygiene."
+description: "Compiler diagnostic, ownership, bounds, concurrency, and lifetime hygiene. Choose bounded workflows with detection, tests, and stop conditions."
 weight: 80
 sidebar:
   open: false

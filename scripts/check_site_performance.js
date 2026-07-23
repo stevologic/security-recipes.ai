@@ -314,6 +314,9 @@ function checkIndexableHtml(relative, html) {
   if (decodedTitle.length > 70) {
     fail(`indexable title exceeds the 70-character search-result budget: ${relative}`);
   }
+  if (/ \| Security Recipes$/u.test(decodedTitle) && decodedTitle.length > 65) {
+    fail(`branded indexable title exceeds the 65-character search-result budget: ${relative}`);
+  }
   if (decodedDescription.length > 165) {
     fail(`indexable meta description exceeds the 165-character search-result budget: ${relative}`);
   }
@@ -331,7 +334,7 @@ function checkIndexableHtml(relative, html) {
   if (decodedDescription.length >= 170 && !/[.!?]$/u.test(decodedDescription)) {
     fail(`long indexable meta description ends mid-thought: ${relative}`);
   }
-  if (/(?:[,;:]|\(|\[|\{)\s*[.!?]$/u.test(decodedDescription)) {
+  if (/(?:[,;:]\s*$|(?:[,;:]|\(|\[|\{)\s*[.!?]$)/u.test(decodedDescription)) {
     fail(`indexable meta description has dangling punctuation: ${relative}`);
   }
   if (!hasBalancedSnippetDelimiters(decodedDescription)) {

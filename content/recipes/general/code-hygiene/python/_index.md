@@ -1,7 +1,7 @@
 ---
 title: "Python Code Hygiene"
 linkTitle: "Python"
-description: "Typing, object-model, exception, asyncio, import, and packaging hygiene."
+description: "Typing, object-model, exception, asyncio, import, and packaging hygiene. Choose bounded workflows with detection, tests, and stop conditions."
 weight: 30
 sidebar:
   open: false

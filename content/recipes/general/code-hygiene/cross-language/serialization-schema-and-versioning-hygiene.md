@@ -1,7 +1,7 @@
 ---
 title: "Serialization schema and versioning hygiene"
 linkTitle: "Serialization schema and versioning hygiene"
-description: "Bounded audit or remediation to make serialized contracts explicit and backward-compatible."
+description: "Serialization schema and versioning hygiene: Make serialized contracts explicit and backward-compatible."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"

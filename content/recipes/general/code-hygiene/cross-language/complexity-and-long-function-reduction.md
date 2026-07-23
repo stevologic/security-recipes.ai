@@ -1,7 +1,7 @@
 ---
 title: "Complexity and long-function reduction"
 linkTitle: "Complexity and long-function reduction"
-description: "Bounded audit or remediation to reduce hard-to-review control flow without changing behavior."
+description: "Complexity and long-function reduction: Reduce hard-to-review control flow without changing behavior. Includes scoped detection, verification, and stop conditions."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"

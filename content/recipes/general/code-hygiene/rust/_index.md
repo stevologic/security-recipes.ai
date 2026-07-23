@@ -1,7 +1,7 @@
 ---
 title: "Rust Code Hygiene"
 linkTitle: "Rust"
-description: "Clippy, error boundary, unsafe invariant, and asynchronous lifecycle hygiene."
+description: "Clippy, error boundary, unsafe invariant, and asynchronous lifecycle hygiene. Choose bounded workflows with detection, tests, and stop conditions."
 weight: 70
 sidebar:
   open: false

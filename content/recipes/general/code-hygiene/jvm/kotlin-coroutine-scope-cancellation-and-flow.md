@@ -1,7 +1,7 @@
 ---
 title: "Kotlin coroutine scope, cancellation, and Flow lifecycle"
 linkTitle: "Kotlin coroutine scope, cancellation, and Flow lifecycle"
-description: "Bounded audit or remediation to replace orphaned coroutines and uncollected or multiply collected flows with owned lifecycles."
+description: "Kotlin coroutine scope, cancellation, and Flow lifecycle: Replace orphaned coroutines and uncollected or multiply collected flows with owned lifecycles."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"

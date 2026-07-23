@@ -1,7 +1,7 @@
 ---
 title: "Terraform format, validation, and provider-lock hygiene"
 linkTitle: "Terraform format, validation, and provider-lock hygiene"
-description: "Bounded audit or remediation to keep configuration canonical and provider resolution reproducible."
+description: "Terraform format, validation, and provider-lock hygiene: Keep configuration canonical and provider resolution reproducible."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"

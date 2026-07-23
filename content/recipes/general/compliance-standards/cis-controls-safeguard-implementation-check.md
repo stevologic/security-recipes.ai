@@ -1,7 +1,7 @@
 ---
 title: "CIS Controls v8.1 Safeguard Implementation Evidence Check"
 linkTitle: "CIS Controls v8.1"
-description: "Organizations using the CIS Controls and Implementation Groups to prioritize a defensible baseline security program."
+description: "Assess CIS Controls v8.1 evidence readiness: verify applicability, map official requirements to artifacts, record gaps, and plan remediation."
 recipe_id: "compliance.cis-controls-v8-1"
 framework_id: "cis-controls"
 framework: "CIS Controls v8.1"

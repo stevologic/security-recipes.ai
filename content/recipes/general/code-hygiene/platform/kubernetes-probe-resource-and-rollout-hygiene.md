@@ -1,7 +1,7 @@
 ---
 title: "Kubernetes probe, resource, and rollout hygiene"
 linkTitle: "Kubernetes probe, resource, and rollout hygiene"
-description: "Bounded audit or remediation to make probes, resources, disruption, and rollout settings internally consistent."
+description: "Kubernetes probe, resource, and rollout hygiene: Make probes, resources, disruption, and rollout settings internally consistent."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"

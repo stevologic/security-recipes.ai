@@ -1,7 +1,7 @@
 ---
 title: "C and C++ ownership, RAII, and resource lifecycle"
 linkTitle: "C and C++ ownership, RAII, and resource lifecycle"
-description: "Bounded audit or remediation to make memory, file, socket, lock, and handle ownership explicit."
+description: "C and C++ ownership, RAII, and resource lifecycle: Make memory, file, socket, lock, and handle ownership explicit."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"

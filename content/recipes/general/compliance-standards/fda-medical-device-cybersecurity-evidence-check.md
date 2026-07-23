@@ -1,7 +1,7 @@
 ---
 title: "FDA Medical Device Cybersecurity Premarket Evidence Check"
 linkTitle: "FDA Medical Device Cybersecurity"
-description: "Medical device manufacturers preparing premarket cybersecurity documentation; the February 2026 final guidance supersedes the June 2025 version."
+description: "Assess FDA Medical Device Cybersecurity evidence readiness: verify applicability, map official requirements to artifacts, record gaps, and plan remediation."
 recipe_id: "compliance.fda-medical-device-cybersecurity-2026"
 framework_id: "fda-medical-device-cybersecurity"
 framework: "FDA Medical Device Cybersecurity"

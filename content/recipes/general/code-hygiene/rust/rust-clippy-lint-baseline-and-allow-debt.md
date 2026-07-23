@@ -1,7 +1,7 @@
 ---
 title: "Rust Clippy lint baseline and allow debt"
 linkTitle: "Rust Clippy lint baseline and allow debt"
-description: "Bounded audit or remediation to resolve correctness and suspicious lints and narrow allow attributes."
+description: "Rust Clippy lint baseline and allow debt: Resolve correctness and suspicious lints and narrow allow attributes."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"

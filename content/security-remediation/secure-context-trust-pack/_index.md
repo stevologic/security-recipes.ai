@@ -3,13 +3,12 @@ title: Secure Context Trust Pack
 linkTitle: Secure Context Trust
 weight: 9
 date: 2026-05-02
-lastmod: 2026-07-13
+lastmod: 2026-07-23
 sidebar:
   exclude: true
 description: >
-  A generated provenance and retrieval trust pack for the SecurityRecipes
-  secure context layer: approved context roots, owners, trust tiers,
-  source hashes, poisoning controls, and workflow context packages.
+  Evaluate provenance, freshness, retrieval, poisoning, authorization, and
+  release evidence before context is admitted to agentic AI workflows.
 ---
 
 {{< callout type="info" >}}

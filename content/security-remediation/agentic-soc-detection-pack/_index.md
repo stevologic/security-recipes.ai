@@ -3,13 +3,12 @@ title: Agentic SOC Detection Pack
 linkTitle: SOC Detection Pack
 weight: 7
 date: 2026-05-05
-lastmod: 2026-07-13
+lastmod: 2026-07-23
 sidebar:
   exclude: true
 description: >
-  A generated SIEM-ready detection pack for agentic AI and MCP systems:
-  deployable rule logic, trace-field requirements, SOC decisions,
-  response playbooks, and runtime evaluation without raw prompt capture.
+  Deploy SIEM-ready detections for risky agent, MCP, approval, tool-use,
+  identity, and context events with mapped evidence and response steps.
 ---
 
 {{< callout type="info" >}}

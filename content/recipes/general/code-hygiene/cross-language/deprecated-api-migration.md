@@ -1,7 +1,7 @@
 ---
 title: "Deprecated API migration"
 linkTitle: "Deprecated API migration"
-description: "Bounded audit or remediation to replace deprecated APIs using the repository's supported runtime versions."
+description: "Deprecated API migration: Replace deprecated APIs using the repository's supported runtime versions. Includes scoped detection, verification, and stop conditions."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"

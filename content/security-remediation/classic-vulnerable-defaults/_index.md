@@ -3,13 +3,12 @@ title: Remediate Classic Vulnerable Defaults with AI Agents
 linkTitle: Classic Vulnerable Defaults
 weight: 8
 date: 2026-04-25
-lastmod: 2026-07-21
+lastmod: 2026-07-23
 sidebar:
   open: true
 description: >
-  Use this AI-agent remediation guide to decide when to mitigate or replace
-  recurring unsafe defaults such as pickle, unsafe YAML, JNDI, JWT `none`,
-  XXE, polymorphic deserialization, and `eval`.
+  Remediate recurring unsafe defaults such as pickle, unsafe YAML, JNDI, JWT
+  `none`, XXE, polymorphic deserialization, and `eval` with bounded AI agents.
 ---
 
 {{< callout type="info" >}}

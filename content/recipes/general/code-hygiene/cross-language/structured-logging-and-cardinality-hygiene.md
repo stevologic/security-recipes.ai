@@ -1,7 +1,7 @@
 ---
 title: "Structured logging and cardinality hygiene"
 linkTitle: "Structured logging and cardinality hygiene"
-description: "Bounded audit or remediation to make logs structured, actionable, and bounded without exposing sensitive data."
+description: "Structured logging and cardinality hygiene: Make logs structured, actionable, and bounded without exposing sensitive data."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"

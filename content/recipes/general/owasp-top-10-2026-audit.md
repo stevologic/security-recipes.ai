@@ -1,6 +1,13 @@
 ---
 title: "OWASP Top 10 (2026) — repo audit"
 linkTitle: "OWASP Top 10 2026 audit"
+layout: layouts/redirect.njk
+redirectTo: /recipes/general/owasp-top-10-2025-audit/
+noindex: true
+lastmod: 2026-07-23
+description: >
+  This retired iteration label redirects to the current OWASP Top 10:2025
+  web application repository audit.
 tool: "general"
 author: "Stephen M Abbott"
 team: "Security"

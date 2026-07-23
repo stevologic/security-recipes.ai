@@ -1,7 +1,7 @@
 ---
 title: "Terraform state-address and refactor safety"
 linkTitle: "Terraform state-address and refactor safety"
-description: "Bounded audit or remediation to preserve resource identity through module and address refactors."
+description: "Terraform state-address and refactor safety: Preserve resource identity through module and address refactors."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"

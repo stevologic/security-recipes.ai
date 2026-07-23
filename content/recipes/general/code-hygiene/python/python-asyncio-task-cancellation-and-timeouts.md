@@ -1,7 +1,7 @@
 ---
 title: "Python asyncio task cancellation and timeouts"
 linkTitle: "Python asyncio task cancellation and timeouts"
-description: "Bounded audit or remediation to eliminate orphaned tasks, swallowed cancellation, and unbounded awaits."
+description: "Python asyncio task cancellation and timeouts: Eliminate orphaned tasks, swallowed cancellation, and unbounded awaits."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"

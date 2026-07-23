@@ -1,7 +1,7 @@
 ---
 title: "Shell exit, pipeline, trap, and temporary-file lifecycle"
 linkTitle: "Shell exit, pipeline, trap, and temporary-file lifecycle"
-description: "Bounded audit or remediation to propagate failures and clean temporary state on every signal and exit."
+description: "Shell exit, pipeline, trap, and temporary-file lifecycle: Propagate failures and clean temporary state on every signal and exit."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"

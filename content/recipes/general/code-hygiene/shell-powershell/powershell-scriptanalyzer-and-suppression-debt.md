@@ -1,7 +1,7 @@
 ---
 title: "PowerShell ScriptAnalyzer and suppression debt"
 linkTitle: "PowerShell ScriptAnalyzer and suppression debt"
-description: "Bounded audit or remediation to resolve PSScriptAnalyzer findings and narrow rule exclusions."
+description: "PowerShell ScriptAnalyzer and suppression debt: Resolve PSScriptAnalyzer findings and narrow rule exclusions."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"

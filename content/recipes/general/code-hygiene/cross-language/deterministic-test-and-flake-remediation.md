@@ -1,7 +1,7 @@
 ---
 title: "Deterministic test and flake remediation"
 linkTitle: "Deterministic test and flake remediation"
-description: "Bounded audit or remediation to remove nondeterminism from a reproducibly flaky test."
+description: "Deterministic test and flake remediation: Remove nondeterminism from a reproducibly flaky test. Includes scoped detection, verification, and stop conditions."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"

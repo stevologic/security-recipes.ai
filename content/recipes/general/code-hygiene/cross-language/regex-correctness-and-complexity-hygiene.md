@@ -1,7 +1,7 @@
 ---
 title: "Regular-expression correctness and complexity hygiene"
 linkTitle: "Regular-expression correctness and complexity hygiene"
-description: "Bounded audit or remediation to make complex regular expressions bounded, readable, and behaviorally tested."
+description: "Regular-expression correctness and complexity hygiene: Make complex regular expressions bounded, readable, and behaviorally tested."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"

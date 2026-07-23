@@ -304,6 +304,23 @@ class CveLandingRenderTests(unittest.TestCase):
         self.assertIn('class="content cve-catalog cve-landing sr-cve-detail-content"', page)
         self.assertIn('<link rel="stylesheet" href="/css/cve-detail.css">', page)
         self.assertIn('<script src="/js/signal-background.js" defer></script>', page)
+        self.assertIn('<script src="/js/cve-record-loader.js" defer></script>', page)
+        self.assertIn('<link rel="stylesheet" href="/css/cve-catalog.css">', page)
+        self.assertNotIn('<script src="/js/cve-catalog.js"', page)
+        self.assertNotIn("hydrateExactCve", page)
+        self.assertIn(
+            '<button class="sr-cve-record-loader__button" type="button" '
+            'data-cve-record-activate aria-controls="complete-record-view" '
+            'aria-describedby="complete-record-status" aria-expanded="false">'
+            'Load complete machine-readable record</button>',
+            page,
+        )
+        self.assertIn(
+            'data-cve-catalog data-cve-catalog-deferred '
+            'data-cve-catalog-base="/api/cve-catalog/" '
+            'data-cve-initial-id="CVE-2024-3400" hidden',
+            page,
+        )
         self.assertIn('<meta name="theme-color" content="#020405">', page)
         self.assertIn('<meta property="og:image:type" content="image/png">', page)
         self.assertIn('<meta property="og:image:width" content="1727">', page)
@@ -596,6 +613,12 @@ class CveLandingRenderTests(unittest.TestCase):
                 "score": 10.0,
                 "published": "2021-12-10",
                 "qualification": "recipe_ready_ai",
+                "href": "javascript:alert(1)",
+                "relationship": {
+                    "type": "same_primary_product",
+                    "vendor": "Apache <script>",
+                    "product": "Log4j",
+                },
             },
             {
                 "cve": "CVE-2017-18342",
@@ -604,6 +627,10 @@ class CveLandingRenderTests(unittest.TestCase):
                 "score": 9.8,
                 "published": "2018-06-26",
                 "qualification": "stable_markdown",
+                "relationship": {
+                    "type": "same_specific_cwe",
+                    "cwe": "CWE-502",
+                },
             },
             {
                 "cve": "not-a-cve",
@@ -616,6 +643,30 @@ class CveLandingRenderTests(unittest.TestCase):
                 "score": 8.1,
                 "published": "2025-01-01",
                 "qualification": "",
+            },
+            {
+                "cve": "CVE-2025-99998",
+                "title": "Generic evidence must fail closed",
+                "severity": "high",
+                "score": 8.1,
+                "published": "2025-01-01",
+                "qualification": "recipe_ready_ai",
+                "relationship": {
+                    "type": "same_specific_cwe",
+                    "cwe": "CWE-20",
+                },
+            },
+            {
+                "cve": "CVE-2025-99997",
+                "title": "Untyped evidence must fail closed",
+                "severity": "high",
+                "score": 8.1,
+                "published": "2025-01-01",
+                "qualification": "recipe_ready_ai",
+                "relationship": {
+                    "type": "same_vendor_guess",
+                    "value": "unreviewed",
+                },
             },
         ]
 
@@ -635,10 +686,21 @@ class CveLandingRenderTests(unittest.TestCase):
             page,
         )
         self.assertNotIn('href="/cve/CVE-2017-18342/"', page)
+        self.assertIn(
+            "CVE-2017-18342: PyYAML Default load Resolves Arbitrary Tags",
+            page,
+        )
         self.assertNotIn("The current record must be excluded", page)
         self.assertIn("Log4j &lt;script&gt;related&lt;/script&gt; injection", page)
+        self.assertIn(
+            "Related by same primary product: Apache &lt;script&gt; / Log4j",
+            page,
+        )
+        self.assertIn("Related by shared specific weakness: CWE-502", page)
         self.assertNotIn("javascript:alert(1)", page)
         self.assertNotIn("Unqualified guidance must fail closed", page)
+        self.assertNotIn("Generic evidence must fail closed", page)
+        self.assertNotIn("Untyped evidence must fail closed", page)
         self.assertIn('href="#matched-playbook-heading"', page)
         self.assertIn('href="#related-cves-heading"', page)
 
@@ -660,6 +722,87 @@ class CveLandingRenderTests(unittest.TestCase):
                 "https://security-recipes.example/base/recipes/cve/cve-2017-18342-pyyaml/",
             ],
         )
+
+    def test_related_record_boundary_is_bounded_canonical_and_evidence_gated(
+        self,
+    ) -> None:
+        related = [
+            {
+                "cve": f"CVE-2026-{30000 + index}",
+                "title": f"Related record {index}",
+                "severity": "high",
+                "score": 8.0,
+                "published": "2026-01-01",
+                "qualification": "recipe_ready_ai",
+                "href": "javascript:alert(1)",
+                "relationship": {
+                    "type": "same_remediation_pattern",
+                    "archetype": "command_code_injection",
+                },
+            }
+            for index in range(7)
+        ]
+        related.insert(
+            0,
+            {
+                "cve": "CVE-2026-39998",
+                "title": "Missing typed evidence",
+                "severity": "high",
+                "score": 8.0,
+                "published": "2026-01-01",
+                "qualification": "recipe_ready_ai",
+            },
+        )
+        related.insert(
+            1,
+            {
+                "cve": "CVE-2026-39999",
+                "title": "Evidence with an unexpected field",
+                "severity": "high",
+                "score": 8.0,
+                "published": "2026-01-01",
+                "qualification": "recipe_ready_ai",
+                "relationship": {
+                    "type": "same_specific_cwe",
+                    "cwe": "CWE-89",
+                    "unreviewed": "must fail closed",
+                },
+            },
+        )
+        related.insert(
+            2,
+            {
+                "cve": "CVE-2026-39997",
+                "title": "Non-string evidence type",
+                "severity": "high",
+                "score": 8.0,
+                "published": "2026-01-01",
+                "qualification": "recipe_ready_ai",
+                "relationship": {"type": []},
+            },
+        )
+
+        records = mcp_server._cve_landing_related_records(
+            "CVE-2026-14956",
+            related,
+            limit=99,
+        )
+
+        self.assertEqual(len(records), 6)
+        self.assertEqual(
+            [record["href"] for record in records],
+            [f"/cve/CVE-2026-{30000 + index}/" for index in range(6)],
+        )
+        self.assertTrue(
+            all(
+                record["relationship"]["type"] == "same_remediation_pattern"
+                for record in records
+            )
+        )
+        self.assertNotIn("javascript:", json.dumps(records))
+        self.assertNotIn("39998", json.dumps(records))
+        self.assertNotIn("39999", json.dumps(records))
+        self.assertNotIn("39997", json.dumps(records))
 
     def test_contextual_helpers_reject_malformed_playbooks_and_use_static_canonicals(self) -> None:
         for cve_id, route in STATIC_REVIEWED_ROUTES.items():
@@ -1093,6 +1236,19 @@ class CveLandingRenderTests(unittest.TestCase):
                 self.assertNotIn("\u2026", title)
 
     def test_source_backed_editorial_metadata_differentiates_duplicate_cves(self) -> None:
+        shared_metadata = json.loads(
+            (ROOT / "data" / "cve" / "editorial-search-metadata.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        self.assertEqual(
+            mcp_server._CVE_LANDING_EDITORIAL_SEARCH_METADATA,
+            shared_metadata["records"],
+        )
+        self.assertEqual(
+            mcp_server._CVE_LANDING_EDITORIAL_LASTMOD,
+            shared_metadata["editorial_lastmod"],
+        )
         fixtures = {
             "CVE-2021-41773": (
                 "CVE-2021-41773: Apache HTTP Server 2.4.49 Path Traversal",
@@ -1109,6 +1265,14 @@ class CveLandingRenderTests(unittest.TestCase):
             "CVE-2025-20337": (
                 "CVE-2025-20337: Cisco ISE API Root RCE (CSCwp02814)",
                 ("CSCwp02814", "CSCwo99449 hot patches do not fix it", "3.4"),
+            ),
+            "CVE-2026-33116": (
+                "CVE-2026-33116: .NET System.Security.Cryptography.Xml DoS",
+                (
+                    "System.Security.Cryptography.Xml",
+                    ".NET 8, 9, or 10",
+                    "patched build",
+                ),
             ),
         }
 
@@ -1128,6 +1292,25 @@ class CveLandingRenderTests(unittest.TestCase):
                 title = unescape(title_match.group(1))
                 description = unescape(description_match.group(1))
                 self.assertEqual(title, expected_title)
+                self.assertEqual(
+                    description,
+                    shared_metadata["records"][cve_id]["description"],
+                )
+                graph_match = re.search(
+                    r'<script type="application/ld\+json">(.*?)</script>',
+                    page,
+                )
+                self.assertIsNotNone(graph_match)
+                assert graph_match is not None
+                article = next(
+                    node
+                    for node in json.loads(graph_match.group(1))["@graph"]
+                    if node.get("@type") == "Article"
+                )
+                self.assertEqual(
+                    article["dateModified"],
+                    shared_metadata["editorial_lastmod"],
+                )
                 self.assertIn(f'<h1 class="sr-page-title">{expected_title}</h1>', page)
                 for fragment in expected_description_fragments:
                     self.assertIn(fragment, description)
@@ -1790,7 +1973,9 @@ class CveLandingRenderTests(unittest.TestCase):
         )
         self.assertEqual(article["description"], expected_description)
 
-    def test_related_cves_require_product_weakness_or_bounded_archetype_overlap(self) -> None:
+    def test_related_cves_require_primary_product_specific_weakness_or_bounded_pattern(
+        self,
+    ) -> None:
         catalog = mcp_server.CVERecipeCatalog.__new__(mcp_server.CVERecipeCatalog)
         catalog._core_lock = mcp_server.threading.RLock()
 
@@ -1848,13 +2033,32 @@ class CveLandingRenderTests(unittest.TestCase):
                 products=[],
                 ecosystem="php/wordpress",
             ),
+            candidate(
+                "CVE-2026-10006",
+                archetypes=["resource_exhaustion_dos"],
+                cwes=["CWE-20"],
+                products=[{"vendor": "other", "product": "generic-input"}],
+                ecosystem="windows/system",
+            ),
+            candidate(
+                "CVE-2026-10007",
+                archetypes=["command_code_injection"],
+                cwes=[],
+                products=[
+                    {"vendor": "other", "product": "different"},
+                    {"vendor": "fedoraproject", "product": "fedora"},
+                ],
+            ),
         )
         source_record = {
             "cve": "CVE-2026-14956",
             "archetypes": ["privilege_escalation"],
-            "cwes": ["CWE-269"],
+            "cwes": ["CWE-269", "CWE-20"],
             "ecosystem": "php/wordpress",
-            "products": [{"vendor": "example", "product": "widget"}],
+            "products": [
+                {"vendor": "example", "product": "widget"},
+                {"vendor": "fedoraproject", "product": "fedora"},
+            ],
         }
 
         with patch.object(catalog, "is_search_indexable", return_value=True):
@@ -1866,6 +2070,145 @@ class CveLandingRenderTests(unittest.TestCase):
         )
         self.assertNotIn("CVE-2026-10002", {record["cve"] for record in related})
         self.assertNotIn("CVE-2026-10004", {record["cve"] for record in related})
+        self.assertNotIn("CVE-2026-10006", {record["cve"] for record in related})
+        self.assertNotIn("CVE-2026-10007", {record["cve"] for record in related})
+        by_cve = {record["cve"]: record["relationship"] for record in related}
+        self.assertEqual(
+            by_cve["CVE-2026-10001"],
+            {
+                "type": "same_primary_product",
+                "vendor": "example",
+                "product": "widget",
+            },
+        )
+        self.assertEqual(
+            by_cve["CVE-2026-10003"],
+            {"type": "same_specific_cwe", "cwe": "CWE-269"},
+        )
+        self.assertEqual(
+            by_cve["CVE-2026-10005"],
+            {
+                "type": "same_remediation_pattern",
+                "archetype": "privilege_escalation",
+            },
+        )
+
+        source_without_archetypes = {
+            "cve": "CVE-2026-14957",
+            "cwes": [],
+            "ecosystem": "software/application",
+            "products": [{"vendor": "example", "product": "widget"}],
+        }
+        with patch.object(catalog, "is_search_indexable", return_value=True):
+            related_without_archetypes = catalog.related_cves(
+                source_without_archetypes,
+            )
+        self.assertEqual(
+            [record["cve"] for record in related_without_archetypes],
+            ["CVE-2026-10001"],
+        )
+
+    def test_related_cves_are_capped_at_six_with_typed_relationships(self) -> None:
+        catalog = mcp_server.CVERecipeCatalog.__new__(mcp_server.CVERecipeCatalog)
+        catalog._core_lock = mcp_server.threading.RLock()
+        catalog._search_indexable_records = tuple(
+            {
+                "cve": f"CVE-2026-{20000 + index}",
+                "title": f"Candidate {index}",
+                "severity": "high",
+                "score": 8.0,
+                "published": "2026-01-01",
+                "ecosystem": "software/application",
+                "kev": False,
+                "archetypes": ["command_code_injection"],
+                "cwes": [],
+                "products": [],
+                "qualification": "recipe_ready_ai",
+            }
+            for index in range(8)
+        )
+        source_record = {
+            "cve": "CVE-2026-14956",
+            "archetypes": ["command_code_injection"],
+            "cwes": [],
+            "ecosystem": "software/application",
+            "products": [],
+        }
+
+        with patch.object(catalog, "is_search_indexable", return_value=True):
+            related = catalog.related_cves(source_record, limit=99)
+
+        self.assertEqual(len(related), 6)
+        self.assertTrue(
+            all(
+                record["relationship"]
+                == {
+                    "type": "same_remediation_pattern",
+                    "archetype": "command_code_injection",
+                }
+                for record in related
+            )
+        )
+        self.assertTrue(
+            all(
+                "relationship" not in record
+                for record in catalog._search_indexable_records
+            )
+        )
+
+    def test_real_catalog_related_cves_reject_weak_overlap_and_keep_evidence(
+        self,
+    ) -> None:
+        def related(cve_id: str) -> dict[str, dict[str, str]]:
+            recipe = mcp_server.cve_catalog.get_recipe(cve_id)
+            source_record = recipe.get("source_record")
+            self.assertIsInstance(source_record, dict)
+            assert isinstance(source_record, dict)
+            records = mcp_server.cve_catalog.related_cves(source_record, limit=6)
+            return {
+                record["cve"]: record["relationship"]
+                for record in records
+            }
+
+        pan_os = related("CVE-2024-3400")
+        self.assertNotIn("CVE-2026-33116", pan_os)
+        self.assertNotIn("CVE-2021-44228", pan_os)
+        self.assertEqual(
+            pan_os["CVE-2023-1671"],
+            {"type": "same_specific_cwe", "cwe": "CWE-77"},
+        )
+        dotnet = related("CVE-2026-33116")
+        self.assertNotIn("CVE-2024-3400", dotnet)
+
+        apache = related("CVE-2021-41773")
+        self.assertNotIn("CVE-2017-18342", apache)
+        self.assertEqual(
+            apache["CVE-2021-42013"]["type"],
+            "same_primary_product",
+        )
+        apache_incomplete_fix = related("CVE-2021-42013")
+        self.assertNotIn("CVE-2017-18342", apache_incomplete_fix)
+
+        cisco = related("CVE-2025-20281")
+        self.assertEqual(
+            cisco["CVE-2025-20337"]["type"],
+            "same_primary_product",
+        )
+
+        sql_injection = related("CVE-2023-34362")
+        self.assertEqual(
+            sql_injection["CVE-2026-9082"],
+            {"type": "same_specific_cwe", "cwe": "CWE-89"},
+        )
+
+        realtek = related("CVE-2021-35395")
+        self.assertTrue(realtek)
+        self.assertTrue(
+            all(
+                evidence["type"] == "same_remediation_pattern"
+                for evidence in realtek.values()
+            )
+        )
 
     def test_real_kev_record_renders_catalog_action_and_citation(self) -> None:
         recipe = mcp_server._bounded_cve_landing_lookup("CVE-2024-3400")
@@ -1893,9 +2236,10 @@ class CveLandingRenderTests(unittest.TestCase):
         related = recipe.get("related_cves")
         self.assertIsInstance(related, list)
         assert isinstance(related, list)
-        self.assertGreaterEqual(len(related), 3)
+        self.assertGreaterEqual(len(related), 1)
         self.assertLessEqual(len(related), 6)
         self.assertNotIn("CVE-2024-3400", {record["cve"] for record in related})
+        self.assertTrue(all(record.get("relationship") for record in related))
 
     def test_word_boundary_truncation_does_not_cut_the_final_word(self) -> None:
         value = "alpha beta gamma delta epsilon"

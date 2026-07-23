@@ -1,7 +1,7 @@
 ---
 title: "Node.js stream, emitter, and handle lifecycle"
 linkTitle: "Node.js stream, emitter, and handle lifecycle"
-description: "Bounded audit or remediation to prevent stream stalls, duplicate listeners, and handles that keep processes alive."
+description: "Node.js stream, emitter, and handle lifecycle: Prevent stream stalls, duplicate listeners, and handles that keep processes alive."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"

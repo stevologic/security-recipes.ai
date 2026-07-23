@@ -21,6 +21,11 @@ const { articleDatesFor, presentationText, seoHead, seoTitle } = require("./lib/
 const { cveDisplayTitle, stripFirstH1 } = require("./lib/html-content");
 const { cleanCatalogText } = require("./lib/text-quality");
 const { loadCveSearchIndexableIds } = require("./lib/cve-indexability");
+const {
+  canonicalCvePresentationDescription,
+  canonicalCvePresentationLastmod,
+  canonicalCvePresentationTitle,
+} = require("./lib/cve-editorial-metadata");
 const { isDiscoveryPage, canonicalUrlForPage } = contentIndex;
 
 // Search engines accept at most 50,000 locations in one sitemap. Keep a
@@ -136,6 +141,15 @@ function cveBelongsInSearchSurface(
   );
 }
 
+function isSectionFeedEntry(page) {
+  const frontMatter = page && page.fm ? page.fm : {};
+  return (
+    page?.isSection === true &&
+    !frontMatter.redirectTo &&
+    frontMatter.layout !== "layouts/redirect.njk"
+  );
+}
+
 function readCvePartition(partition, catalogRoot = CVE_CATALOG_ROOT) {
   const partitionPath = path.resolve(catalogRoot, partition.path);
   const expectedRoot = `${path.resolve(catalogRoot)}${path.sep}`;
@@ -201,7 +215,12 @@ function planCveSitemaps(
         partitionRecords: partition.records,
         ...(appliesSearchGate ? { eligibleRecords } : {}),
         lastmod: latestSitemapLastmod(
-          chunkRecords.map((record) => record?.page_lastmod),
+          chunkRecords.map((record) =>
+            canonicalCvePresentationLastmod(
+              record?.cve,
+              record?.page_lastmod,
+            ),
+          ),
         ),
       });
     }
@@ -255,7 +274,9 @@ function renderCveSitemap(
       if (!CANONICAL_CVE_ID.test(cve)) {
         throw new Error(`Invalid canonical CVE ID in ${entry.sourcePath}: ${cve || "(missing)"}`);
       }
-      const lastmod = sitemapLastmod(record?.page_lastmod);
+      const lastmod = sitemapLastmod(
+        canonicalCvePresentationLastmod(cve, record?.page_lastmod),
+      );
       return (
         `<url><loc>${escapeXml(feeds.absURL(`/cve/${cve}/`))}</loc>` +
         (lastmod ? `<lastmod>${escapeXml(lastmod)}</lastmod>` : "") +
@@ -377,9 +398,42 @@ function cveArchiveRecordRoute(
   return safeCanonicalCveRoute(canonicalCveRoutes.get(cve), cve);
 }
 
+let stableCvePresentationCache = null;
+function stableCvePresentation(cve) {
+  if (!stableCvePresentationCache) {
+    stableCvePresentationCache = new Map();
+    for (const page of contentIndex.getIndex().pages) {
+      const pageCve = String(page?.fm?.cve || "").trim().toUpperCase();
+      if (
+        !CANONICAL_CVE_ID.test(pageCve) ||
+        String(page?.fm?.maturity || "").trim().toLowerCase() !== "stable"
+      ) {
+        continue;
+      }
+      if (stableCvePresentationCache.has(pageCve)) {
+        throw new Error(`Duplicate stable canonical page for ${pageCve}`);
+      }
+      stableCvePresentationCache.set(pageCve, {
+        title: presentationText(page?.fm?.title || pageCve),
+        description: presentationText(page?.fm?.description || ""),
+      });
+    }
+  }
+  return stableCvePresentationCache.get(cve) || null;
+}
+
 function cveFeedTitle(record) {
-  const title = cveFeedSubject(record?.title || "Vulnerability record");
   const cve = String(record?.cve || "");
+  const isDynamicCanonical = record?.url === `/cve/${cve}/`;
+  const fallbackTitle =
+    (isDynamicCanonical ? stableCvePresentation(cve)?.title : "") ||
+    record?.title ||
+    "Vulnerability record";
+  const title = cveFeedSubject(
+    isDynamicCanonical
+      ? canonicalCvePresentationTitle(cve, fallbackTitle)
+      : fallbackTitle,
+  );
   const normalizedTitle = title.toUpperCase();
   const nextCharacter = title.charAt(cve.length);
   const alreadyPrefixed =
@@ -402,7 +456,17 @@ function cveFeedSubject(value, limit = 160) {
 }
 
 function cveFeedDescription(record) {
-  const reviewed = cleanCveSourceText(record?.description || "");
+  const cve = String(record?.cve || "");
+  const isDynamicCanonical = record?.url === `/cve/${cve}/`;
+  const fallbackDescription =
+    (isDynamicCanonical ? stableCvePresentation(cve)?.description : "") ||
+    record?.description ||
+    "";
+  const reviewed = cleanCveSourceText(
+    isDynamicCanonical
+      ? canonicalCvePresentationDescription(cve, fallbackDescription)
+      : fallbackDescription,
+  );
   if (reviewed) return reviewed;
 
   const title = cveFeedSubject(record?.title || "Vulnerability record");
@@ -482,7 +546,14 @@ function planCveArchivePages(
         severity: String(record?.severity || "unscored").toLowerCase(),
         score: Number.isFinite(record?.score) ? record.score : null,
         published: sitemapLastmod(record?.published),
-        pageLastmod: sitemapLastmod(record?.page_lastmod),
+        pageLastmod: sitemapLastmod(
+          url === `/cve/${record.cve}/`
+            ? canonicalCvePresentationLastmod(
+                record.cve,
+                record?.page_lastmod,
+              )
+            : record?.page_lastmod,
+        ),
         kev: record?.kev === true,
         ecosystem: String(record?.ecosystem || ""),
         url,
@@ -600,6 +671,7 @@ function buildSidebarTree() {
     const children = [];
     for (const p of pages) {
       if (!p.sourcePath.startsWith(dirPrefix)) continue;
+      if (!isDiscoveryPage(p)) continue;
       if (p.fm?.sidebar?.exclude === true) continue;
       const rest = p.sourcePath.slice(dirPrefix.length);
       const parts = rest.split("/");
@@ -635,7 +707,12 @@ function buildSidebarTree() {
     return i === -1 ? topOrder.length : i;
   };
   sidebarTreeCache = pages
-    .filter((p) => /^[^/]+\/_index\.md$/.test(p.sourcePath) && p.fm?.sidebar?.exclude !== true)
+    .filter(
+      (p) =>
+        /^[^/]+\/_index\.md$/.test(p.sourcePath) &&
+        isDiscoveryPage(p) &&
+        p.fm?.sidebar?.exclude !== true,
+    )
     .sort((a, b) => rank(a) - rank(b) || a.linkTitle.localeCompare(b.linkTitle, "en"))
     .map((sec) => ({
       title: sec.linkTitle,
@@ -1125,7 +1202,7 @@ module.exports = function (eleventyConfig) {
     data: () => {
       const { pages } = contentIndex.getIndex();
       const sections = pages
-        .filter((p) => p.isSection)
+        .filter(isSectionFeedEntry)
         .map((sec) => {
           const dir = sec.sourcePath.replace(/_index\.md$/, "");
           const items = sec.url === "/cve-database/"
@@ -1197,6 +1274,14 @@ module.exports.pageSitemap = {
   planPagesSitemapEntries,
   renderTagCloud,
   renderPagesSitemap,
+};
+
+module.exports.sectionFeeds = {
+  isSectionFeedEntry,
+};
+
+module.exports.sidebarNavigation = {
+  buildSidebarTree,
 };
 
 module.exports.robotsPolicy = {

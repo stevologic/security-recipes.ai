@@ -1,7 +1,7 @@
 ---
 title: "Java nullability, Optional, and boundary contracts"
 linkTitle: "Java nullability, Optional, and boundary contracts"
-description: "Bounded audit or remediation to make null contracts explicit without misusing Optional in storage or fields."
+description: "Java nullability, Optional, and boundary contracts: Make null contracts explicit without misusing Optional in storage or fields."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"

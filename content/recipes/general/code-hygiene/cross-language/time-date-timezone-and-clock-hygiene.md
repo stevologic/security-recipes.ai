@@ -1,7 +1,7 @@
 ---
 title: "Time, date, timezone, and clock hygiene"
 linkTitle: "Time, date, timezone, and clock hygiene"
-description: "Bounded audit or remediation to make temporal logic explicit, testable, and timezone-safe."
+description: "Time, date, timezone, and clock hygiene: Make temporal logic explicit, testable, and timezone-safe. Includes scoped detection, verification, and stop conditions."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"

@@ -1,7 +1,7 @@
 ---
 title: ".NET nullable and analyzer suppression debt"
 linkTitle: ".NET nullable and analyzer suppression debt"
-description: "Bounded audit or remediation to resolve nullable and analyzer warnings without null-forgiving or pragma expansion."
+description: ".NET nullable and analyzer suppression debt: Resolve nullable and analyzer warnings without null-forgiving or pragma expansion."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"

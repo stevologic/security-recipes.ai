@@ -1,7 +1,7 @@
 ---
 title: "C and C++ compiler warning and suppression debt"
 linkTitle: "C and C++ compiler warning and suppression debt"
-description: "Bounded audit or remediation to resolve portable compiler diagnostics without blanket flags or pragmas."
+description: "C and C++ compiler warning and suppression debt: Resolve portable compiler diagnostics without blanket flags or pragmas."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"

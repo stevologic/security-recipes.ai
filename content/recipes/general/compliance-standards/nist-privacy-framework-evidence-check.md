@@ -1,7 +1,7 @@
 ---
 title: "NIST Privacy Framework 1.0 Profile Evidence Check"
 linkTitle: "NIST Privacy Framework"
-description: "Organizations using Privacy Framework 1.0 to manage privacy risk; version 1.1 remains an Initial Public Draft and must not be treated as final."
+description: "Assess NIST Privacy Framework evidence readiness: verify applicability, map official requirements to artifacts, record gaps, and plan remediation."
 recipe_id: "compliance.nist-privacy-framework-1-0"
 framework_id: "nist-privacy-framework"
 framework: "NIST Privacy Framework"

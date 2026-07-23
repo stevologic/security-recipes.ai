@@ -1,7 +1,7 @@
 ---
 title: "PCI DSS 4.0.1 Cardholder Data Environment Evidence Check"
 linkTitle: "PCI DSS 4.0.1"
-description: "Entities that store, process, or transmit payment account data, and service providers that can affect the cardholder data environment."
+description: "Assess PCI DSS 4.0.1 evidence readiness: verify applicability, map official requirements to artifacts, record gaps, and plan remediation."
 recipe_id: "compliance.pci-dss-4-0-1"
 framework_id: "pci-dss"
 framework: "PCI DSS 4.0.1"

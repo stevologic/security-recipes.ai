@@ -1,7 +1,7 @@
 ---
 title: "CI workflow timeout, concurrency, and cache hygiene"
 linkTitle: "CI workflow timeout, concurrency, and cache hygiene"
-description: "Bounded audit or remediation to bound CI jobs and prevent stale caches and duplicate workflow races."
+description: "CI workflow timeout, concurrency, and cache hygiene: Bound CI jobs and prevent stale caches and duplicate workflow races."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"

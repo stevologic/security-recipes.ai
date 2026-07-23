@@ -1,7 +1,7 @@
 ---
 title: "Dart analyzer, null-safety, and ignore debt"
 linkTitle: "Dart analyzer, null-safety, and ignore debt"
-description: "Bounded audit or remediation to resolve analyzer diagnostics and remove unsafe null assertions and broad ignores."
+description: "Dart analyzer, null-safety, and ignore debt: Resolve analyzer diagnostics and remove unsafe null assertions and broad ignores."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"

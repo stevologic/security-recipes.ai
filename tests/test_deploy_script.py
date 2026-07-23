@@ -171,6 +171,13 @@ class DeployScriptStaticTests(unittest.TestCase):
         self.assertIn("proxy_cache_path /var/cache/nginx/cve-landing", nginx)
         self.assertIn("location = /recipes/cve/", nginx)
         self.assertIn("return 308 /cve-database/", nginx)
+        self.assertIn("location = /recipes/cve/index.xml", nginx)
+        self.assertIn("return 308 /cve-database/index.xml", nginx)
+        self.assertIn(
+            "location ~ ^/recipes/general/owasp-top-10-2026-(audit|remediate)/?$",
+            nginx,
+        )
+        self.assertIn("return 308 /recipes/general/owasp-top-10-2025-$1/", nginx)
         self.assertIn("location = /recipes/cve/cve-2014-0160-heartbleed/", nginx)
         self.assertIn("location = /recipes/cve/cve-2014-6271-shellshock/", nginx)
         self.assertIn("location = /recipes/cve/cve-2017-18342-pyyaml/", nginx)

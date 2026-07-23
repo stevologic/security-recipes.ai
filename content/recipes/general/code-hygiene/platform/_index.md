@@ -1,7 +1,7 @@
 ---
 title: "Infrastructure & Delivery Code Hygiene"
 linkTitle: "Infrastructure & Delivery"
-description: "Terraform, container, Kubernetes, and CI workflow hygiene."
+description: "Terraform, container, Kubernetes, and CI workflow hygiene. Choose bounded workflows with detection, tests, and stop conditions."
 weight: 150
 sidebar:
   open: false

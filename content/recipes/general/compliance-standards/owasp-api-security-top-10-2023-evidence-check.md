@@ -1,7 +1,7 @@
 ---
 title: "OWASP API Security Top 10:2023 Evidence Check"
 linkTitle: "OWASP API Top 10:2023"
-description: "API owners using the 2023 risk categories to drive threat review, testing, and remediation; it is not a certification standard."
+description: "Assess OWASP API Top 10:2023 evidence readiness: verify applicability, map official requirements to artifacts, record gaps, and plan remediation."
 recipe_id: "compliance.owasp-api-security-top-10-2023"
 framework_id: "owasp-api-top-10"
 framework: "OWASP API Top 10:2023"

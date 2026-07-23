@@ -1673,6 +1673,15 @@ class CVERecipeCatalog:
     MAX_SEARCH_ALLOWLIST_BYTES = 1024 * 1024
     MAX_SEARCH_RECORDS = 400_000
     SEARCH_ALLOWLIST_POLICY = "stable-markdown-or-recipe-ready-v1"
+    RELATED_GENERIC_CWES = frozenset({"cwe-20"})
+    RELATED_GENERIC_ARCHETYPES = frozenset({"generic"})
+    RELATED_RELATIONSHIP_TYPES = frozenset(
+        {
+            "same_primary_product",
+            "same_specific_cwe",
+            "same_remediation_pattern",
+        }
+    )
     MAX_SHARD_COMPRESSED_BYTES = 2 * 1024 * 1024
     MAX_SHARD_UNCOMPRESSED_BYTES = 8 * 1024 * 1024
     MAX_STABLE_MARKDOWN_BYTES = 256 * 1024
@@ -2579,8 +2588,30 @@ class CVERecipeCatalog:
                 if str(item).strip()
             }
 
+        def primary_product(
+            record: dict[str, Any],
+        ) -> tuple[tuple[str, str], tuple[str, str]] | None:
+            """Return the first catalog product as the primary affected product.
+
+            The compact related-CVE projection preserves source product order.
+            Comparing only the first usable identity prevents downstream distro
+            CPEs (for example Fedora on otherwise unrelated upstream defects)
+            from creating a product relationship.
+            """
+
+            for product in record.get("products") or []:
+                if not isinstance(product, dict):
+                    continue
+                vendor = str(product.get("vendor") or "").strip()
+                name = str(product.get("product") or "").strip()
+                if not vendor and not name:
+                    continue
+                return ((vendor.casefold(), name.casefold()), (vendor, name))
+            return None
+
         source_archetype_values = source_record.get("archetypes")
         source_archetypes = string_set(source_archetype_values)
+        source_primary = ""
         if isinstance(source_archetype_values, list) and source_archetype_values:
             source_primary = str(source_archetype_values[0]).strip().casefold()
         else:
@@ -2589,52 +2620,57 @@ class CVERecipeCatalog:
                 source_archetypes.add(source_primary)
         source_cwes = string_set(source_record.get("cwes"))
         source_ecosystem = str(source_record.get("ecosystem") or "").strip().casefold()
-        source_products = {
-            (
-                str(product.get("vendor") or "").strip().casefold(),
-                str(product.get("product") or "").strip().casefold(),
-            )
-            for product in source_record.get("products") or []
-            if isinstance(product, dict)
-            and (str(product.get("vendor") or "").strip() or str(product.get("product") or "").strip())
-        }
+        source_primary_product = primary_product(source_record)
         severity_rank = {"medium": 1, "high": 2, "critical": 3}
 
-        def has_relationship(candidate: dict[str, Any]) -> bool:
-            candidate_products = {
-                (
-                    str(product.get("vendor") or "").strip().casefold(),
-                    str(product.get("product") or "").strip().casefold(),
-                )
-                for product in candidate.get("products") or []
-                if isinstance(product, dict)
-            }
+        def relationship(candidate: dict[str, Any]) -> dict[str, str] | None:
+            candidate_primary_product = primary_product(candidate)
             candidate_archetype_values = candidate.get("archetypes")
             candidate_archetypes = string_set(candidate_archetype_values)
             candidate_cwes = string_set(candidate.get("cwes"))
             candidate_ecosystem = str(candidate.get("ecosystem") or "").strip().casefold()
-            product_overlap = bool(source_products & candidate_products)
-            weakness_overlap = bool(source_cwes & candidate_cwes)
-            ecosystem_bounded_archetype_overlap = bool(
+            if (
+                source_primary_product
+                and candidate_primary_product
+                and source_primary_product[0] == candidate_primary_product[0]
+            ):
+                vendor, product = source_primary_product[1]
+                return {
+                    "type": "same_primary_product",
+                    "vendor": vendor,
+                    "product": product,
+                }
+
+            specific_cwes = sorted(
+                (source_cwes & candidate_cwes) - self.RELATED_GENERIC_CWES
+            )
+            if specific_cwes:
+                return {
+                    "type": "same_specific_cwe",
+                    "cwe": specific_cwes[0].upper(),
+                }
+
+            bounded_archetypes = sorted(
+                (source_archetypes & candidate_archetypes)
+                - self.RELATED_GENERIC_ARCHETYPES
+            )
+            if (
                 source_ecosystem
                 and source_ecosystem == candidate_ecosystem
-                and source_archetypes & candidate_archetypes
-            )
-            return bool(
-                product_overlap
-                or weakness_overlap
-                or ecosystem_bounded_archetype_overlap
-            )
+                and bounded_archetypes
+            ):
+                selected = (
+                    source_primary
+                    if source_primary in bounded_archetypes
+                    else bounded_archetypes[0]
+                )
+                return {
+                    "type": "same_remediation_pattern",
+                    "archetype": selected,
+                }
+            return None
 
         def rank(candidate: dict[str, Any]) -> tuple[object, ...]:
-            candidate_products = {
-                (
-                    str(product.get("vendor") or "").strip().casefold(),
-                    str(product.get("product") or "").strip().casefold(),
-                )
-                for product in candidate.get("products") or []
-                if isinstance(product, dict)
-            }
             candidate_archetype_values = candidate.get("archetypes")
             candidate_archetypes = string_set(candidate_archetype_values)
             candidate_primary = (
@@ -2644,15 +2680,26 @@ class CVERecipeCatalog:
                 else ""
             )
             candidate_cwes = string_set(candidate.get("cwes"))
+            relationship_type = str(
+                (candidate.get("relationship") or {}).get("type") or ""
+            )
+            relationship_rank = {
+                "same_primary_product": 0,
+                "same_specific_cwe": 1,
+                "same_remediation_pattern": 2,
+            }.get(relationship_type, 3)
             try:
                 published_rank = date.fromisoformat(str(candidate.get("published") or "")).toordinal()
             except ValueError:
                 published_rank = 0
             return (
-                -len(source_products & candidate_products),
+                relationship_rank,
                 -int(bool(source_primary) and source_primary == candidate_primary),
                 -len(source_archetypes & candidate_archetypes),
-                -len(source_cwes & candidate_cwes),
+                -len(
+                    (source_cwes & candidate_cwes)
+                    - self.RELATED_GENERIC_CWES
+                ),
                 -int(bool(source_ecosystem) and source_ecosystem == str(candidate.get("ecosystem") or "").casefold()),
                 -int(candidate.get("kev") is True),
                 -severity_rank.get(str(candidate.get("severity") or ""), 0),
@@ -2662,11 +2709,14 @@ class CVERecipeCatalog:
             )
 
         bounded_limit = max(1, min(int(limit), 6))
-        related = [
-            candidate
-            for candidate in candidates
-            if candidate.get("cve") != current_cve and has_relationship(candidate)
-        ]
+        related: list[dict[str, Any]] = []
+        for candidate in candidates:
+            if candidate.get("cve") == current_cve:
+                continue
+            evidence = relationship(candidate)
+            if evidence is None:
+                continue
+            related.append({**candidate, "relationship": evidence})
         related.sort(key=rank)
         return related[:bounded_limit]
 
@@ -12285,48 +12335,77 @@ def _cve_landing_search_title(value: object, limit: int = 70) -> str:
     return candidate.rstrip(" /-,;:")
 
 
-_CVE_LANDING_EDITORIAL_SEARCH_METADATA: dict[str, dict[str, str]] = {
-    # Apache's source titles are identical, but the CVEs describe different
-    # release-specific defects: the original 2.4.49 traversal and the bypass of
-    # its incomplete 2.4.50 fix. Keep that distinction in every title-link
-    # signal instead of leaving Google two near-duplicate documents.
-    "CVE-2021-41773": {
-        "title": "CVE-2021-41773: Apache HTTP Server 2.4.49 Path Traversal",
-        "description": (
-            "CVE-2021-41773 Apache HTTP Server 2.4.49 path traversal can expose "
-            "files and enable CGI RCE. Upgrade to 2.4.51+; the 2.4.50 fix is "
-            "incomplete."
-        ),
-    },
-    "CVE-2021-42013": {
-        "title": (
-            "CVE-2021-42013: Apache HTTP Server 2.4.50 Incomplete-Fix Bypass"
-        ),
-        "description": (
-            "CVE-2021-42013 is the Apache HTTP Server 2.4.50 incomplete-fix "
-            "bypass for CVE-2021-41773. Upgrade 2.4.49/2.4.50 to 2.4.51+ to "
-            "stop traversal and CGI RCE."
-        ),
-    },
-    # Cisco publishes these independent API-root-RCE defects in one advisory.
-    # The bug IDs and hot-patch caveat are the source-backed differentiators.
-    "CVE-2025-20281": {
-        "title": "CVE-2025-20281: Cisco ISE API Root RCE (CSCwo99449)",
-        "description": (
-            "CVE-2025-20281 Cisco ISE/ISE-PIC API root RCE (CSCwo99449). "
-            "Upgrade 3.3 to Patch 7 and 3.4 to Patch 2; attempted exploitation "
-            "is reported."
-        ),
-    },
-    "CVE-2025-20337": {
-        "title": "CVE-2025-20337: Cisco ISE API Root RCE (CSCwp02814)",
-        "description": (
-            "CVE-2025-20337 Cisco ISE/ISE-PIC API root RCE (CSCwp02814). "
-            "CSCwo99449 hot patches do not fix it; upgrade to 3.3 Patch 7 or "
-            "3.4 Patch 2."
-        ),
-    },
-}
+_CVE_LANDING_EDITORIAL_SEARCH_METADATA_PATH = (
+    Path(__file__).resolve().parent
+    / "data"
+    / "cve"
+    / "editorial-search-metadata.json"
+)
+
+
+def _load_cve_landing_editorial_search_metadata(
+    source_path: Path = _CVE_LANDING_EDITORIAL_SEARCH_METADATA_PATH,
+) -> tuple[str, dict[str, dict[str, str]]]:
+    """Load the shared, fail-closed title and snippet presentation contract."""
+
+    try:
+        payload = json.loads(source_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise RuntimeError(f"Unable to load CVE editorial metadata: {exc}") from exc
+    if (
+        not isinstance(payload, dict)
+        or payload.get("schema_version") != 1
+        or not isinstance(payload.get("editorial_lastmod"), str)
+        or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", payload["editorial_lastmod"])
+        or not isinstance(payload.get("records"), dict)
+        or not payload["records"]
+    ):
+        raise RuntimeError("CVE editorial metadata payload is invalid")
+
+    records: dict[str, dict[str, str]] = {}
+    titles: set[str] = set()
+    descriptions: set[str] = set()
+    for cve_id, raw_record in payload["records"].items():
+        if (
+            not isinstance(cve_id, str)
+            or not CVERecipeCatalog.CVE_RE.fullmatch(cve_id)
+            or not isinstance(raw_record, dict)
+            or set(raw_record) != {"title", "description"}
+        ):
+            raise RuntimeError(f"CVE editorial metadata record is invalid: {cve_id}")
+        raw_title = raw_record.get("title")
+        raw_description = raw_record.get("description")
+        if not isinstance(raw_title, str) or not isinstance(raw_description, str):
+            raise RuntimeError(f"CVE editorial metadata text is invalid: {cve_id}")
+        title = _cve_landing_metadata_text(raw_title, 70)
+        description = _cve_landing_metadata_text(raw_description, 165)
+        if (
+            title != raw_title
+            or description != raw_description
+            or not title.startswith(f"{cve_id}: ")
+            or not description.startswith(f"{cve_id} ")
+            or title in titles
+            or description in descriptions
+        ):
+            raise RuntimeError(
+                f"CVE editorial metadata is not unique and presentation-safe: {cve_id}"
+            )
+        titles.add(title)
+        descriptions.add(description)
+        records[cve_id] = {"title": title, "description": description}
+    try:
+        date.fromisoformat(payload["editorial_lastmod"])
+    except ValueError as exc:
+        raise RuntimeError("CVE editorial metadata lastmod is invalid") from exc
+    return payload["editorial_lastmod"], records
+
+
+(
+    _CVE_LANDING_EDITORIAL_LASTMOD,
+    _CVE_LANDING_EDITORIAL_SEARCH_METADATA,
+) = (
+    _load_cve_landing_editorial_search_metadata()
+)
 
 
 def _cve_landing_titles(cve_id: str, source_title: object) -> tuple[str, str, str]:
@@ -13587,6 +13666,73 @@ def _cve_landing_list(
     return f"<ul>{''.join(rendered)}</ul>" if rendered else ""
 
 
+def _cve_landing_related_relationship(
+    value: object,
+) -> tuple[dict[str, str], str] | None:
+    """Validate typed related-CVE evidence and build its visible reason."""
+
+    if not isinstance(value, dict):
+        return None
+    relationship_type = value.get("type")
+    if (
+        not isinstance(relationship_type, str)
+        or relationship_type not in CVERecipeCatalog.RELATED_RELATIONSHIP_TYPES
+    ):
+        return None
+
+    if relationship_type == "same_primary_product":
+        if set(value) != {"type", "vendor", "product"}:
+            return None
+        if not isinstance(value.get("vendor"), str) or not isinstance(
+            value.get("product"), str
+        ):
+            return None
+        vendor = _cve_landing_text(value.get("vendor"), 160)
+        product = _cve_landing_text(value.get("product"), 200)
+        if not vendor and not product:
+            return None
+        normalized = {
+            "type": relationship_type,
+            "vendor": vendor,
+            "product": product,
+        }
+        label = " / ".join(
+            re.sub(r"_+", " ", item)
+            for item in (vendor, product)
+            if item
+        )
+        return normalized, f"same primary product: {label}"
+
+    if relationship_type == "same_specific_cwe":
+        if set(value) != {"type", "cwe"} or not isinstance(value.get("cwe"), str):
+            return None
+        cwe = value["cwe"].strip().upper()
+        if (
+            not re.fullmatch(r"CWE-\d+", cwe)
+            or cwe.casefold() in CVERecipeCatalog.RELATED_GENERIC_CWES
+        ):
+            return None
+        return (
+            {"type": relationship_type, "cwe": cwe},
+            f"shared specific weakness: {cwe}",
+        )
+
+    if set(value) != {"type", "archetype"} or not isinstance(
+        value.get("archetype"), str
+    ):
+        return None
+    archetype = value["archetype"].strip().casefold()
+    if (
+        not re.fullmatch(r"[a-z0-9][a-z0-9_]{0,79}", archetype)
+        or archetype in CVERecipeCatalog.RELATED_GENERIC_ARCHETYPES
+    ):
+        return None
+    return (
+        {"type": relationship_type, "archetype": archetype},
+        f"same remediation pattern: {archetype.replace('_', ' ')}",
+    )
+
+
 def _cve_landing_related_records(
     current_cve: object,
     related: object,
@@ -13603,7 +13749,11 @@ def _cve_landing_related_records(
             continue
         cve_id = str(raw_record.get("cve") or "").strip().upper()
         href = _cve_landing_related_href(cve_id)
-        title = _cve_landing_text(raw_record.get("title"), 220)
+        editorial_title = _CVE_LANDING_EDITORIAL_SEARCH_METADATA.get(
+            cve_id,
+            {},
+        ).get("title")
+        title = _cve_landing_text(editorial_title or raw_record.get("title"), 220)
         if not href or not title or cve_id in seen:
             continue
         severity = _cve_landing_text(raw_record.get("severity"), 24).casefold()
@@ -13620,6 +13770,12 @@ def _cve_landing_related_records(
         qualification = str(raw_record.get("qualification") or "").strip()
         if qualification not in {"stable_markdown", "recipe_ready_ai"}:
             continue
+        relationship = _cve_landing_related_relationship(
+            raw_record.get("relationship")
+        )
+        if relationship is None:
+            continue
+        relationship_evidence, relationship_reason = relationship
         seen.add(cve_id)
         records.append(
             {
@@ -13630,6 +13786,8 @@ def _cve_landing_related_records(
                 "score": score,
                 "published": _cve_landing_iso_date(raw_record.get("published")),
                 "qualification": qualification,
+                "relationship": relationship_evidence,
+                "relationship_reason": relationship_reason,
             }
         )
         if len(records) >= bounded_limit:
@@ -13654,6 +13812,7 @@ def _cve_landing_related_html(
             else "Qualified remediation guidance"
         )
         details = [
+            f"Related by {record['relationship_reason']}",
             f"{record['severity'].title()} severity" if record["severity"] else "",
             f"CVSS {record['score']}" if record["score"] else "",
             f"Published {record['published']}" if record["published"] else "",
@@ -14370,30 +14529,47 @@ def _render_cve_landing_page(
             or _cve_landing_text(product.get("product"), 160)
         )
     }
-    description = _cve_landing_reviewed_description(
-        reviewed.get("description") if reviewed else "",
-        _cve_landing_description(
-            cve_id,
-            meta_title,
-            severity,
-            fixed_version_claim,
-            visible_fixed_version_action,
-            product_family_count=len(product_families) or 1,
-        ),
+    search_description = _cve_landing_description(
+        cve_id,
+        meta_title,
+        severity,
+        fixed_version_claim,
+        visible_fixed_version_action,
+        product_family_count=len(product_families) or 1,
+    )
+    description = (
+        search_description
+        if _CVE_LANDING_EDITORIAL_SEARCH_METADATA.get(cve_id, {}).get("description")
+        else _cve_landing_reviewed_description(
+            reviewed.get("description") if reviewed else "",
+            search_description,
+        )
     )
     article_published = (
         _cve_landing_iso_date(reviewed.get("date"))
         if reviewed
         else _cve_landing_iso_date(enrichment.get("generated_at"))
     )
+    editorial_modified = (
+        _CVE_LANDING_EDITORIAL_LASTMOD
+        if cve_id in _CVE_LANDING_EDITORIAL_SEARCH_METADATA
+        else ""
+    )
     article_modified = (
-        _cve_landing_latest_iso_date(
-            reviewed.get("lastmod") or reviewed.get("date"),
-            modified,
+        (
+            _cve_landing_latest_iso_date(
+                reviewed.get("lastmod") or reviewed.get("date"),
+                modified,
+                editorial_modified,
+            )
+            or article_published
         )
-        or article_published
         if reviewed
-        else _cve_landing_latest_iso_date(article_published, modified)
+        else _cve_landing_latest_iso_date(
+            article_published,
+            modified,
+            editorial_modified,
+        )
         or article_published
     )
     image_url = f"{site_base}/images/cve-database-social.png"
@@ -14882,7 +15058,7 @@ def _render_cve_landing_page(
 <script type="application/ld+json">{_cve_landing_json(json_ld)}</script>
 <script>window.__SITE_BASE_PREFIX="/";</script>
 <script src="/js/signal-background.js" defer></script>
-<script src="/js/cve-catalog.js" defer></script>
+<script src="/js/cve-record-loader.js" defer></script>
 </head>
 <body class="sr-docs-body sr-cve-detail-page" data-cve-detail-page="true">
 <div class="nextra-nav-container">
@@ -14938,10 +15114,12 @@ def _render_cve_landing_page(
       {related_html}
       {references_html}
       {citation_html}
-      <section id="complete-record" aria-labelledby="complete-record-heading">
+      <section id="complete-record" aria-labelledby="complete-record-heading" data-cve-record-loader data-cve-catalog-script="/js/cve-catalog.js">
         <h2 id="complete-record-heading">Complete CVE record and remediation plan</h2>
         <p>The essential facts, evidence-qualified guidance, and concise human workflow are available above. This view adds the normalized source payload and complete machine-readable action contract.</p>
-        <div data-cve-catalog data-cve-catalog-base="/api/cve-catalog/" data-cve-initial-id="{html.escape(cve_id, quote=True)}"></div>
+        <button class="sr-cve-record-loader__button" type="button" data-cve-record-activate aria-controls="complete-record-view" aria-describedby="complete-record-status" aria-expanded="false">Load complete machine-readable record</button>
+        <p class="sr-cve-record-loader__status" id="complete-record-status" data-cve-record-status role="status" aria-live="polite" aria-atomic="true"></p>
+        <div id="complete-record-view" data-cve-catalog data-cve-catalog-deferred data-cve-catalog-base="/api/cve-catalog/" data-cve-initial-id="{html.escape(cve_id, quote=True)}" hidden></div>
         <noscript><p>JavaScript is required only for the expanded normalized source record and agentic action plan.</p></noscript>
       </section>
       {archive_context_html}
@@ -14968,32 +15146,6 @@ def _render_cve_landing_page(
   </nav>
 </div>
 <footer class="hextra-footer"><div class="sr-footer-inner"><span>Bounded recipes for agent-assisted security remediation.</span><a href="/about/">About &amp; editorial policy</a></div></footer>
-<script>
-(function () {{
-  function hydrateExactCve() {{
-    var mount = document.querySelector("[data-cve-catalog][data-cve-initial-id]");
-    if (!mount || !window.SecurityRecipesCveCatalog) return;
-    window.SecurityRecipesCveCatalog.mount(mount);
-    var observer = new MutationObserver(function () {{
-      var details = mount.querySelector(".cve-catalog__record");
-      if (!details) return;
-      observer.disconnect();
-      details.open = true;
-      details.dispatchEvent(new Event("toggle"));
-    }});
-    observer.observe(mount, {{ childList: true, subtree: true }});
-    window.requestAnimationFrame(function () {{
-      var input = mount.querySelector("[data-cve-search]");
-      if (!input) return;
-      input.value = mount.getAttribute("data-cve-initial-id") || "";
-      var form = input.closest("form");
-      if (form) form.dispatchEvent(new Event("submit", {{ bubbles: true, cancelable: true }}));
-    }});
-  }}
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", hydrateExactCve);
-  else hydrateExactCve();
-}})();
-</script>
 </body>
 </html>
 """

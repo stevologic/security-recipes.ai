@@ -1,7 +1,7 @@
 ---
 title: "Configuration validation and default hygiene"
 linkTitle: "Configuration validation and default hygiene"
-description: "Bounded audit or remediation to make invalid configuration fail clearly and defaults behave consistently."
+description: "Configuration validation and default hygiene: Make invalid configuration fail clearly and defaults behave consistently."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"

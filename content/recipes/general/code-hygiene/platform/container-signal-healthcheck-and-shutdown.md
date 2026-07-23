@@ -1,7 +1,7 @@
 ---
 title: "Container signal, healthcheck, and shutdown hygiene"
 linkTitle: "Container signal, healthcheck, and shutdown hygiene"
-description: "Bounded audit or remediation to make PID 1 signal handling, readiness, health, and graceful shutdown correct."
+description: "Container signal, healthcheck, and shutdown hygiene: Make PID 1 signal handling, readiness, health, and graceful shutdown correct."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"

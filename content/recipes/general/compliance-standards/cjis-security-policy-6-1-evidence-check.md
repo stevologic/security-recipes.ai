@@ -1,7 +1,7 @@
 ---
 title: "CJIS Security Policy v6.1 Evidence Check"
 linkTitle: "CJIS Security Policy v6.1"
-description: "Criminal justice agencies, noncriminal justice agencies, and service providers handling Criminal Justice Information under applicable agreements."
+description: "Assess CJIS Security Policy v6.1 evidence readiness: verify applicability, map official requirements to artifacts, record gaps, and plan remediation."
 recipe_id: "compliance.cjis-security-policy-6-1"
 framework_id: "cjis-security-policy"
 framework: "CJIS Security Policy v6.1"

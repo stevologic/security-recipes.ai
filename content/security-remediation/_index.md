@@ -104,6 +104,8 @@ match the finding you are investigating:
 - [CVE-2024-6387: OpenSSH regreSSHion race-condition RCE](/cve/CVE-2024-6387/)
 - [CVE-2021-44228: Log4Shell in Apache Log4j](/cve/CVE-2021-44228/)
 - [CVE-2024-3094: xz-utils supply-chain backdoor](/cve/CVE-2024-3094/)
+- [CVE-2021-35395: Realtek AP-Router SDK buffer overflow](/cve/CVE-2021-35395/)
+- [CVE-2014-0160: Heartbleed in OpenSSL](/recipes/cve/cve-2014-0160-heartbleed/)
 
 ## What an AI remediation agent should and should not do
 
