@@ -70,7 +70,7 @@ COPY static ./static
 COPY data ./data
 COPY content ./content
 COPY mcp_server.py ./
-COPY scripts/check_build_prerequisites.js scripts/materialize_cve_pages.py scripts/prepare_static_assets.js scripts/check_site_performance.js ./scripts/
+COPY scripts/check_build_prerequisites.js scripts/materialize_cve_pages.py scripts/prepare_static_assets.js scripts/check_site_performance.js scripts/cve_text_quality.py ./scripts/
 
 # If REPO_URL points at a fork, rewrite canonical repo references in content
 # markdown (matches the CI approach for forks under a different org). The

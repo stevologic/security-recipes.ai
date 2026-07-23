@@ -187,6 +187,7 @@ class CvePrerenderTests(unittest.TestCase):
     def test_build_and_nginx_wire_static_first_with_runtime_fallback(self) -> None:
         package = (ROOT / "package.json").read_text(encoding="utf-8")
         dockerfile = (ROOT / "Dockerfile").read_text(encoding="utf-8")
+        mcp_dockerfile = (ROOT / "Dockerfile.mcp-server").read_text(encoding="utf-8")
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
         nginx = (ROOT / "docker" / "nginx" / "default.conf").read_text(
             encoding="utf-8"
@@ -196,6 +197,11 @@ class CvePrerenderTests(unittest.TestCase):
         self.assertIn("python scripts/materialize_cve_pages.py", package)
         self.assertIn("COPY mcp_server.py ./", dockerfile)
         self.assertIn("scripts/materialize_cve_pages.py", dockerfile)
+        self.assertIn("scripts/cve_text_quality.py", dockerfile)
+        self.assertIn(
+            "COPY scripts/cve_text_quality.py /app/scripts/cve_text_quality.py",
+            mcp_dockerfile,
+        )
         package_copy = "COPY package.json package-lock.json ./"
         requirements_copy = "COPY requirements-mcp-server.txt ./"
         self.assertIn(package_copy, dockerfile)
