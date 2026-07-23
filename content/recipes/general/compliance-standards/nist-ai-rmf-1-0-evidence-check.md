@@ -1,7 +1,7 @@
 ---
 title: "NIST AI Risk Management Framework 1.0 Evidence Check"
 linkTitle: "NIST AI RMF 1.0"
-description: "Organizations governing, mapping, measuring, and managing AI risks using AI RMF 1.0 while NIST develops a revision."
+description: "Assess NIST AI RMF 1.0 evidence readiness: verify applicability, map official requirements to artifacts, record gaps, and plan remediation."
 recipe_id: "compliance.nist-ai-rmf-1-0"
 framework_id: "nist-ai-rmf"
 framework: "NIST AI RMF 1.0"
@@ -21,6 +21,8 @@ tool: "Compliance evidence review"
 author: "Security Recipes"
 team: "GRC and Security Engineering"
 maturity: "stable"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 tags: ["compliance", "nist-ai-rmf", "ai-governance", "audit", "ai-safety", "risk", "artificial-intelligence", "cross-sector"]
 weight: 390

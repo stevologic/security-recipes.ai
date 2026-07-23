@@ -1,11 +1,13 @@
 ---
 title: "Swift warning, deprecation, and force-unwrap debt"
 linkTitle: "Swift warning, deprecation, and force-unwrap debt"
-description: "Bounded audit or remediation to resolve compiler warnings and unsafe optionals without obscuring invariants."
+description: "Swift warning, deprecation, and force-unwrap debt: Resolve compiler warnings and unsafe optionals without obscuring invariants."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"
 maturity: "development"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 recipe_id: "code-hygiene.swift.swift-warning-deprecation-and-force-unwrap-debt"
 recipe_kind: "code-hygiene"

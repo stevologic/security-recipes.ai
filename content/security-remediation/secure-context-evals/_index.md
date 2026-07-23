@@ -2,12 +2,14 @@
 title: Secure Context Evals
 linkTitle: Secure Context Evals
 weight: 11
+date: 2026-05-02
+lastmod: 2026-07-23
 sidebar:
   exclude: true
 description: >
-  Scenario-backed evals for the SecurityRecipes secure context layer:
-  retrieval correctness, attestation, poisoning resilience, egress
-  safety, answer contracts, and agent-to-agent handoff boundaries.
+  Run scenario-backed evaluations for context provenance, poisoning resistance,
+  authorization, egress, freshness, rollback, and safe agent use.
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

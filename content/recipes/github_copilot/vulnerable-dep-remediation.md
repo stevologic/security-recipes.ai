@@ -1,20 +1,21 @@
 ---
-title: "Vulnerable dependency remediation (issue template + instructions)"
+title: "GitHub Copilot Vulnerable Dependency Remediation"
 linkTitle: "Vulnerable dep remediation"
 tool: "github_copilot"
 author: "Stephen M Abbott"
 team: "Security"
 maturity: "development"
 model: "Opus 4.7"
-tags: ["sca", "cve", "dependencies", "copilot", "coding-agent", "issue-template"]
+tags: ["sca", "cve", "dependencies", "copilot", "cloud-agent", "issue-template"]
 weight: 10
 date: 2026-04-21
+lastmod: 2026-07-23
 ---
 
 A three-part bundle — a `.github/copilot-instructions.md`
-addendum, a GitHub issue template, and the issue body that gets
-created when a scanner projects a finding. Together they shape
-the Copilot coding agent into a narrow, reviewable dependency
+addendum, a GitHub issue template, and an explicit assignment step after the
+finding is validated. Together they shape
+the GitHub Copilot cloud agent into a narrow, reviewable dependency
 remediator: one finding per issue, one draft PR per issue, no
 auto-merge.
 
@@ -22,8 +23,11 @@ auto-merge.
 
 When the scanner (or a developer) creates an issue from the
 `security-remediation-dep.yml` template and labels it
-`copilot-remediate`, the Copilot coding agent picks it up, reads
-the repository-level instructions, applies the minimum viable
+`copilot-remediate`, the label routes the issue for validation; it does not
+start the GitHub Copilot cloud agent. After an authorized reviewer confirms the
+advisory, affected package, repository, and scope, they explicitly assign the
+issue to Copilot. The cloud agent then reads the repository-level instructions,
+applies the minimum viable
 version bump in the affected manifest + lockfile, runs CI, and
 opens a draft PR linked back to the issue. The agent respects
 the house rules — no major bumps, no lockfile-only edits, no
@@ -47,7 +51,7 @@ human reviewer assigned via `CODEOWNERS`.
 **Don't use it for:**
 
 - Major version migrations — the repository instructions refuse.
-- Cross-repo fanouts — each repo needs its own label + workflow;
+- Cross-repo fanouts — each repo needs its own instructions and dispatch policy;
   this prompt is per-repo.
 - First-party SAST findings — use the SDE remediation recipe.
 
@@ -55,7 +59,7 @@ human reviewer assigned via `CODEOWNERS`.
 
 - GitHub issue template fields: finding id, affected package, severity,
   advisory URLs, scanner notes, workspace hint, direct/transitive evidence, and
-  `copilot-remediate` label.
+  a `copilot-remediate` routing label that does not itself dispatch the agent.
 - Repository instructions from `.github/copilot-instructions.md`, issue body,
   CODEOWNERS, branch protection, required CI, PR labeling rules, and reviewer
   routing.
@@ -71,7 +75,8 @@ human reviewer assigned via `CODEOWNERS`.
 
 ## The prompt
 
-Three files, checked in to the repo.
+Two files are checked in to the repository; a validated issue is then dispatched
+through an explicit assignment step.
 
 ### `.github/copilot-instructions.md` — dependency remediation addendum
 
@@ -129,7 +134,7 @@ name: Security — Dependency remediation
 description: Open a remediation task for a single CVE / GHSA finding.
 title: "Remediate: <finding-id> in <package>"
 labels: ["copilot-remediate", "security"]
-assignees: ["copilot"]
+assignees: []
 body:
   - type: input
     id: finding_id
@@ -173,17 +178,37 @@ body:
       required: false
 ~~~
 
-### What gets dispatched
+### Dispatch the validated issue
 
-When the issue is created (or labeled), the
-`assign-copilot.yml` Action from the recipe page assigns
-`@copilot`. The coding agent reads:
+Creating or labeling the issue does not start the cloud agent. First confirm
+that the advisory is authoritative, the package is installed, and the issue is
+in the repository that owns the fix. Then choose one supported mechanism:
+
+- **Manual assignment (recommended):** select **Copilot** from the issue's
+  assignee list and review the target repository, starting branch, and
+  additional instructions. See GitHub's
+  [issue-assignment workflow](https://docs.github.com/en/copilot/how-tos/use-copilot-agents/cloud-agent/use-cloud-agent-on-github#assigning-an-issue-to-copilot).
+- **API assignment after validation:** assign `copilot-swe-agent[bot]` and send
+  the supported `agent_assignment` object. The API is a public preview; use
+  GitHub's [current REST or GraphQL contract](https://docs.github.com/en/copilot/how-tos/use-copilot-agents/cloud-agent/use-cloud-agent-via-the-api).
+- **Copilot automation only for a trusted intake:** eligible private and
+  internal repositories can use an issue-created automation with a narrow
+  search filter and least-privilege tools. Do not connect raw third-party
+  scanner output directly to an autonomous code-writing session. Preserve the
+  default protection against events created by users without write access. See
+  [Copilot automations](https://docs.github.com/en/copilot/concepts/agents/cloud-agent/about-automations).
+
+The `copilot-remediate` label is a routing and filter signal only. Do not rely
+on an `assign-copilot.yml` Action, an `@copilot` alias, or
+`assignees: ["copilot"]` in the issue template.
+
+Once the session starts, the GitHub Copilot cloud agent reads:
 
 1. The repo-level `copilot-instructions.md` (house rules + the
    dependency addendum above).
 2. The issue body (finding id, package, advisory link).
 
-And produces: a draft PR on `copilot/<finding-id>` that either
+It produces a draft PR on `copilot/<finding-id>` that either
 fixes the finding or posts a comment explaining why the fix was
 refused (major bump required, pre-release only, tests fail).
 

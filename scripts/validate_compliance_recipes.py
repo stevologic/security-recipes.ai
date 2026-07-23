@@ -139,6 +139,7 @@ def validate() -> tuple[list[str], dict[str, Any]]:
             errors.append(f"{framework['framework_id']}: invalid front matter: {exc}")
             continue
         exact_metadata = {
+            "description": syncer.meta_description(framework),
             "facets": framework["facets"],
             "framework_id": framework["framework_id"],
             "framework_status": framework["status"],

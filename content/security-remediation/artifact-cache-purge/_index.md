@@ -2,6 +2,8 @@
 title: Artifact Cache & Mirror Quarantine
 linkTitle: Artifact Cache Purge
 weight: 5
+date: 2026-04-25
+lastmod: 2026-07-13
 sidebar:
   open: true
 description: >
@@ -33,7 +35,7 @@ can hide in any infrastructure built for speed:
 
 - **Internal proxy registries.** Artifactory, Nexus, GitHub
   Packages, Verdaccio, the org's pull-through cache for npm /
-  PyPI / Maven Central / RubyGems / crates.io / Hex.
+  PyPI / Maven Central / RubyGems / [crates.io](https://crates.io/) / Hex.
 - **Container registries.** ECR, GCR, GAR, Harbor, Docker Hub
   mirrors — the registry where every derived image's base layer
   lives.

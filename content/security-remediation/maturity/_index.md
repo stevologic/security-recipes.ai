@@ -2,6 +2,8 @@
 title: Rollout & Maturity Model
 linkTitle: Rollout & Maturity Model
 weight: 12
+date: 2026-04-22
+lastmod: 2026-07-13
 sidebar:
   open: true
 description: >

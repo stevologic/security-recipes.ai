@@ -1,7 +1,7 @@
 ---
 title: "EU GDPR Accountability Evidence Check"
 linkTitle: "EU GDPR"
-description: "Controllers and processors handling personal data within GDPR territorial scope, including applicable extraterritorial processing."
+description: "Assess EU GDPR evidence readiness: verify applicability, map official requirements to artifacts, record gaps, and plan remediation."
 recipe_id: "compliance.eu-gdpr-2016-679"
 framework_id: "gdpr"
 framework: "EU GDPR"
@@ -21,6 +21,8 @@ tool: "Compliance evidence review"
 author: "Security Recipes"
 team: "GRC and Security Engineering"
 maturity: "stable"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 tags: ["compliance", "gdpr", "privacy", "audit", "data-protection", "cross-sector"]
 weight: 220

@@ -1,7 +1,7 @@
 ---
 title: "NIST Cybersecurity Framework 2.0 Profile Evidence Check"
 linkTitle: "NIST CSF 2.0"
-description: "Organizations using CSF 2.0 Organizational Profiles and Tiers to communicate and improve cybersecurity risk outcomes."
+description: "Assess NIST CSF 2.0 evidence readiness: verify applicability, map official requirements to artifacts, record gaps, and plan remediation."
 recipe_id: "compliance.nist-csf-2-0"
 framework_id: "nist-csf"
 framework: "NIST CSF 2.0"
@@ -21,6 +21,8 @@ tool: "Compliance evidence review"
 author: "Security Recipes"
 team: "GRC and Security Engineering"
 maturity: "stable"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 tags: ["compliance", "nist-csf", "security-programs", "audit", "risk", "governance", "cross-sector"]
 weight: 180

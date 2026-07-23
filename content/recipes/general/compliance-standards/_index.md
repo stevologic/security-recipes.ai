@@ -1,7 +1,7 @@
 ---
 title: "Compliance standards"
 linkTitle: "Compliance standards"
-description: "A source-backed library of 39 compliance and assurance evidence recipes."
+description: "Browse 39 source-backed compliance and assurance recipes with framework scope, version status, official references, and evidence requirements for review."
 weight: 10
 date: "2026-07-12"
 ---

@@ -2,12 +2,15 @@
 title: Secure Context Firewall
 linkTitle: Secure Context Firewall
 weight: 10
+date: 2026-05-02
+lastmod: 2026-07-13
 sidebar:
   exclude: true
 description: >
   A deterministic runtime evaluator for secure-context retrieval:
   allow, hold, deny, or kill-session decisions before MCP-backed
   context is returned to an agent.
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

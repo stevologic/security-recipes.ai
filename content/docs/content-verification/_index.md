@@ -1,26 +1,33 @@
 ---
-title: Content Verification History
+title: Content Verification and SEO Quality Gates
 linkTitle: Content Verification
 weight: 33
-description: Current automated quality gates and dated historical verification snapshots for the site content.
+date: 2026-05-02
+lastmod: 2026-07-23
+description: Reproduce the source, artifact, catalog, link, structured-data, indexability, and duplicate-content gates used to publish Security Recipes.
 ---
 
-## Current automated gates (2026-07-13)
+## Current automated gates
 
 The repository now treats verification as repeatable code rather than a static
-certification claim. The current Eleventy, Python, MCP, and performance gates
-cover the full playbook suite and generated CVE catalog.
+certification claim. A green result belongs to the exact revision that ran the
+checks; this page describes what the current Eleventy, Python, MCP, catalog, and
+rendered-site gates enforce.
 
-| Area | Current result |
+| Area | What the gate enforces |
 | --- | --- |
-| Playbook contract | **Pass:** one registry profile, workflow visual, decision gate, evidence/output contract, and Python companion on all **75/75** playbook pages. |
-| Documentation integrity | **Pass:** no blank generator/evaluator fields, empty operational examples, missing referenced scripts/data/images, nonexistent documented MCP tools, or retired namespace references. |
-| Python lifecycle | **Pass:** registry validation, bounded/link-safe workspace inspection, atomic run packets, evidence hashing, tamper detection, and CLI exit-code tests. |
-| Specialized Python tools | **Pass:** **33/33** evaluators execute **46** documented allow/hold/deny scenarios; **56/56** deterministic generators are fresh in an acyclic, 23-tier evidence pipeline. |
-| MCP playbook access | **Pass:** strict schema validation plus searchable list, complete detail, and deterministic planning tools for all 75 playbooks. |
-| Eleventy build | **Pass:** Eleventy rendered **4,045** files; static preparation produced **4,677** final public files, including **3,159** CVE HTML pages. |
-| Playbook performance | **Pass:** **2.56 MiB** aggregate HTML, **84.1 KiB** largest page, and **12 KiB** shared workflow CSS; no diagram runtime is shipped to playbook pages. |
-| Complete CVE catalog | **Pass:** manifest declares **264,406** in-scope records and 100% composed remediation coverage for the current 10-year policy window. |
+| Content and playbook contracts | Required frontmatter, workflow visuals, decision gates, evidence/output contracts, documented commands, referenced files, and MCP tool names must be present and internally consistent. |
+| Deterministic artifacts | Registered generators must remain acyclic and reproduce every checked-in evidence pack, catalog artifact, and integrity hash without drift. |
+| CVE publication | Only stable reviewed Markdown or complete source-linked enrichment may own an indexable canonical CVE route. Canonical ownership, citations, title and description limits, sitemap membership, and source evidence must agree. |
+| Technical SEO | Every indexable page must have one unique title, description, self-canonical, H1, robots policy, and valid JSON-LD. Internal links, fragments, crawl reachability, depth, redirects, and sitemap parity are checked from rendered HTML. |
+| Duplicate-content control | Generated code-hygiene and compliance children are `noindex,follow` while they share a development template. A bounded five-word-shingle similarity gate fails if a materially duplicated child becomes indexable before its body is differentiated. |
+| Catalog and MCP integrity | The rolling CVE manifest, shards, exact lookup, search allowlist, remediation composition, read-only MCP schemas, and evidence provenance must validate together. |
+| Build and performance | Static output, browser payloads, initial server-rendered content, lazy data loading, shared assets, and page-size budgets must stay within the checked limits. |
+
+The [visual guide](/how-to-use/) explains the publication gate from the reader's
+perspective. Pages may remain browsable and linked for review while
+`noindex,follow`; indexability is earned by unique, trustworthy content, not by
+the existence of a generated URL.
 
 Reproduce the principal gates from a checkout:
 

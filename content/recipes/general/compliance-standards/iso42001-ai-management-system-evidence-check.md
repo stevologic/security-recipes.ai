@@ -1,7 +1,7 @@
 ---
 title: "ISO/IEC 42001:2023 AI Management System Evidence Check"
 linkTitle: "ISO/IEC 42001:2023"
-description: "Organizations establishing, operating, or preparing to certify an AI management system against ISO/IEC 42001:2023."
+description: "Assess ISO/IEC 42001:2023 evidence readiness: verify applicability, map official requirements to artifacts, record gaps, and plan remediation."
 recipe_id: "compliance.iso-iec-42001-2023"
 framework_id: "iso-42001"
 framework: "ISO/IEC 42001:2023"
@@ -21,6 +21,8 @@ tool: "Compliance evidence review"
 author: "Security Recipes"
 team: "GRC and Security Engineering"
 maturity: "stable"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 tags: ["compliance", "iso-42001", "ai-governance", "audit", "ai-safety", "governance", "artificial-intelligence", "cross-sector"]
 weight: 400

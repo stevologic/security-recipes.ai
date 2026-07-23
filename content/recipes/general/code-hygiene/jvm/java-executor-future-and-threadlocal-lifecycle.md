@@ -1,11 +1,13 @@
 ---
 title: "Java executor, Future, and ThreadLocal lifecycle"
 linkTitle: "Java executor, Future, and ThreadLocal lifecycle"
-description: "Bounded audit or remediation to bound background work and clean executor and thread-local state."
+description: "Java executor, Future, and ThreadLocal lifecycle: Bound background work and clean executor and thread-local state."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"
 maturity: "development"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 recipe_id: "code-hygiene.jvm.java-executor-future-and-threadlocal-lifecycle"
 recipe_kind: "code-hygiene"

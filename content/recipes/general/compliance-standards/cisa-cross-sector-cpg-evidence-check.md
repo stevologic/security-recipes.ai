@@ -1,7 +1,7 @@
 ---
 title: "CISA Cross-Sector Cybersecurity Performance Goals Evidence Check"
 linkTitle: "CISA Cross-Sector CPGs"
-description: "Critical infrastructure owners and operators prioritizing a voluntary baseline of high-impact cybersecurity practices while CISA updates the CPGs for CSF 2.0."
+description: "Assess CISA Cross-Sector CPGs evidence readiness: verify applicability, map official requirements to artifacts, record gaps, and plan remediation."
 recipe_id: "compliance.cisa-cross-sector-cpg-1-0-1"
 framework_id: "cisa-cross-sector-cpg"
 framework: "CISA Cross-Sector CPGs"
@@ -21,6 +21,8 @@ tool: "Compliance evidence review"
 author: "Security Recipes"
 team: "GRC and Security Engineering"
 maturity: "stable"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 tags: ["compliance", "cisa-cross-sector-cpg", "critical-infrastructure", "audit", "secure-defaults", "cross-sector"]
 weight: 450

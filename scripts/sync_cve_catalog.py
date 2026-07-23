@@ -22,14 +22,16 @@ import gzip
 import hashlib
 import heapq
 import html
+from http.client import IncompleteRead
 import itertools
 import json
 import os
 import re
 import sys
 import tempfile
-from collections import OrderedDict
 import time
+from collections import OrderedDict
+from copy import deepcopy
 from dataclasses import asdict, dataclass
 from datetime import date, datetime, timezone
 from pathlib import Path, PurePosixPath
@@ -45,8 +47,12 @@ try:
         MAX_REQUEST_LIMIT as MAX_AI_ENRICHMENT_LIMIT,
         EnrichmentCache,
         OpenAIEnricher,
+        canonical_priority_cve_ids,
+        enrichment_errors,
+        recipe_ready,
     )
     from scripts.cve_ai_recipe import GeneratedRecipeManager
+    from scripts.cve_text_quality import clean_catalog_text
 except ModuleNotFoundError:  # Direct ``python scripts/sync_cve_catalog.py`` execution.
     from cve_ai_enrichment import (  # type: ignore[no-redef]
         DEFAULT_MODEL as DEFAULT_OPENAI_MODEL,
@@ -54,8 +60,12 @@ except ModuleNotFoundError:  # Direct ``python scripts/sync_cve_catalog.py`` exe
         MAX_REQUEST_LIMIT as MAX_AI_ENRICHMENT_LIMIT,
         EnrichmentCache,
         OpenAIEnricher,
+        canonical_priority_cve_ids,
+        enrichment_errors,
+        recipe_ready,
     )
     from cve_ai_recipe import GeneratedRecipeManager  # type: ignore[no-redef]
+    from cve_text_quality import clean_catalog_text  # type: ignore[no-redef]
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -250,6 +260,17 @@ FRONTMATTER_RE = re.compile(r"\A---\s*\n(?P<body>.*?)\n---\s*\n", re.DOTALL)
 FRONTMATTER_CVE_RE = re.compile(r'^cve:\s*["\']?(CVE-\d{4}-\d+)["\']?\s*$', re.MULTILINE | re.I)
 FRONTMATTER_MATURITY_RE = re.compile(r'^maturity:\s*["\']?([^"\'\r\n]+)', re.MULTILINE | re.I)
 FRONTMATTER_TITLE_RE = re.compile(r'^title:\s*(.+?)\s*$', re.MULTILINE | re.I)
+FRONTMATTER_DESCRIPTION_RE = re.compile(r'^description:\s*(.+?)\s*$', re.MULTILINE | re.I)
+FRONTMATTER_AUTHOR_RE = re.compile(r'^author:\s*(.+?)\s*$', re.MULTILINE | re.I)
+FRONTMATTER_DATE_RE = re.compile(r'^date:\s*(.+?)\s*$', re.MULTILINE | re.I)
+FRONTMATTER_LASTMOD_RE = re.compile(r'^lastmod:\s*(.+?)\s*$', re.MULTILINE | re.I)
+FRONTMATTER_MODEL_RE = re.compile(r'^model:\s*(.+?)\s*$', re.MULTILINE | re.I)
+FRONTMATTER_SEVERITY_RE = re.compile(r'^severity:\s*(.+?)\s*$', re.MULTILINE | re.I)
+FRONTMATTER_KEV_RE = re.compile(r'^kev:\s*(.+?)\s*$', re.MULTILINE | re.I)
+MAX_FRONTMATTER_TITLE_CHARS = 200
+MAX_FRONTMATTER_DESCRIPTION_CHARS = 500
+MAX_FRONTMATTER_AUTHOR_CHARS = 120
+MAX_FRONTMATTER_MODEL_CHARS = 120
 
 
 @dataclass(frozen=True)
@@ -269,6 +290,13 @@ class ExistingRecipe:
     maturity: str
     title: str
     content_markdown: str
+    description: str = ""
+    author: str = ""
+    date: str = ""
+    lastmod: str = ""
+    model: str = ""
+    severity: str = ""
+    kev: bool | None = None
 
 
 def utc_now() -> datetime:
@@ -293,8 +321,100 @@ def normalize_space(value: object, *, limit: int | None = None) -> str:
     return text
 
 
+def truncate_summary_at_sentence(value: object, *, limit: int) -> str:
+    """Bound a summary at its last complete sentence when one fits."""
+    text = clean_catalog_text(value)
+    if len(text) <= limit:
+        return text
+
+    candidate = text[:limit].rstrip()
+    endings = list(re.finditer(r"[.!?](?:[\"'\u2019\u201d)\]]+)?(?=\s|$)", candidate))
+    if endings:
+        return candidate[: endings[-1].end()].rstrip()
+
+    # A small minority of source descriptions contain no complete sentence
+    # inside the bound. Keep the existing explicit truncation marker rather
+    # than manufacturing punctuation that could change the source's meaning.
+    return normalize_space(text, limit=limit)
+
+
+def trim_incomplete_summary_tail(value: object) -> str:
+    """Remove an upstream truncation marker and its incomplete final sentence."""
+    text = clean_catalog_text(value)
+    if text.endswith("…"):
+        candidate = text[:-1].rstrip()
+    else:
+        return text
+    endings = list(re.finditer(r"[.!?](?:[\"'\u2019\u201d)\]]+)?(?=\s|$)", candidate))
+    return candidate[: endings[-1].end()].rstrip() if endings else text
+
+
+def normalize_catalog_record_text(record: dict[str, Any]) -> dict[str, Any]:
+    """Repair bounded user-visible source fields while preserving record structure."""
+    normalized = dict(record)
+    if isinstance(normalized.get("title"), str):
+        normalized["title"] = clean_catalog_text(normalized["title"])
+    if isinstance(normalized.get("summary"), str):
+        normalized["summary"] = trim_incomplete_summary_tail(normalized["summary"])
+
+    enrichment = normalized.get("ai_enrichment")
+    if isinstance(enrichment, dict):
+        cleaned_enrichment = dict(enrichment)
+        if isinstance(cleaned_enrichment.get("business_risk"), str):
+            cleaned_enrichment["business_risk"] = clean_catalog_text(
+                cleaned_enrichment["business_risk"]
+            )
+        for field in (
+            "exposure_conditions",
+            "remediation_steps",
+            "verification_steps",
+            "uncertainty",
+        ):
+            values = cleaned_enrichment.get(field)
+            if isinstance(values, list):
+                cleaned_enrichment[field] = [
+                    clean_catalog_text(value) if isinstance(value, str) else value
+                    for value in values
+                ]
+        claims = cleaned_enrichment.get("claim_evidence")
+        if isinstance(claims, list):
+            cleaned_claims: list[Any] = []
+            for claim in claims:
+                if not isinstance(claim, dict):
+                    cleaned_claims.append(claim)
+                    continue
+                cleaned_claim = dict(claim)
+                if isinstance(cleaned_claim.get("claim"), str):
+                    cleaned_claim["claim"] = clean_catalog_text(cleaned_claim["claim"])
+                cleaned_claims.append(cleaned_claim)
+            cleaned_enrichment["claim_evidence"] = cleaned_claims
+        # Provenance and identity fields (URLs, fingerprints, model metadata,
+        # schema identifiers) are deliberately byte-preserved.
+        normalized["ai_enrichment"] = cleaned_enrichment
+    return normalized
+
+
+def apply_valid_cached_enrichment(
+    record: dict[str, Any], entries: dict[str, dict[str, Any]]
+) -> dict[str, Any]:
+    """Reconcile a valid cache update without blessing stale evidence."""
+    if record.get("recipe_kind") == "markdown-override":
+        refreshed = dict(record)
+        refreshed.pop("ai_enrichment", None)
+        return refreshed
+    candidate = entries.get(str(record.get("cve") or ""))
+    if candidate is None:
+        return record
+    normalized = normalize_catalog_record_text(record)
+    if enrichment_errors(candidate, normalized):
+        return record
+    refreshed = dict(record)
+    refreshed["ai_enrichment"] = candidate
+    return refreshed
+
+
 def safe_markdown_text(value: object, *, limit: int | None = None) -> str:
-    return html.escape(normalize_space(value, limit=limit), quote=False)
+    return html.escape(normalize_space(clean_catalog_text(value), limit=limit), quote=False)
 
 
 def fetch_bytes(url: str, *, attempts: int = 4, timeout: int = 180) -> bytes:
@@ -314,7 +434,10 @@ def fetch_bytes(url: str, *, attempts: int = 4, timeout: int = 180) -> bytes:
             retry_after = exc.headers.get("Retry-After")
             delay = float(retry_after) if retry_after and retry_after.isdigit() else 2**attempt
             time.sleep(min(delay, 30))
-        except (TimeoutError, URLError, OSError) as exc:
+        # ``IncompleteRead`` is not an ``OSError``. NVD's CDN can close a
+        # large annual-feed response after sending only part of its declared
+        # body, so retry the immutable URL instead of accepting partial data.
+        except (IncompleteRead, TimeoutError, URLError, OSError) as exc:
             last_error = exc
             time.sleep(min(2**attempt, 30))
     if last_error is None:
@@ -536,7 +659,7 @@ def english_description(cve: dict[str, Any]) -> str:
     )
     if not value:
         value = next((item.get("value") for item in descriptions if isinstance(item, dict) and item.get("value")), "")
-    return normalize_space(value, limit=1200) or (
+    return truncate_summary_at_sentence(value, limit=1200) or (
         "No description is present in the NVD record; consult the linked NVD entry and vendor references."
     )
 
@@ -611,6 +734,238 @@ def extract_products(cve: dict[str, Any]) -> tuple[list[dict[str, str]], int]:
             products.append(entry)
             seen.add(identity)
     return products, total
+
+
+def _normalized_string_list(value: object, *, limit: int, item_limit: int) -> list[str]:
+    if not isinstance(value, list):
+        return []
+    normalized: list[str] = []
+    seen: set[str] = set()
+    for item in value:
+        text = normalize_space(item, limit=item_limit)
+        identity = text.casefold()
+        if not text or identity in seen:
+            continue
+        normalized.append(text)
+        seen.add(identity)
+        if len(normalized) >= limit:
+            break
+    return normalized
+
+
+def _affected_containers(cve: dict[str, Any]) -> list[dict[str, Any]]:
+    raw = cve.get("affected")
+    containers = raw if isinstance(raw, list) else [raw]
+    valid = [container for container in containers if isinstance(container, dict)]
+    source_identifier = normalize_space(cve.get("sourceIdentifier"), limit=160).casefold()
+    # The CNA-authored affected statement is the most direct source when NVD
+    # also carries a normalized duplicate. Preserve other sources as fallbacks.
+    return sorted(
+        valid,
+        key=lambda container: (
+            normalize_space(container.get("source"), limit=160).casefold() != source_identifier,
+        ),
+    )
+
+
+def extract_affected_data(cve: dict[str, Any]) -> tuple[list[dict[str, Any]], int]:
+    """Normalize NVD 2.0 ``cve.affected[].affectedData`` product statements.
+
+    ``configurations``/CPE rows are not the only affected-product source in
+    current NVD records. CNA statements can carry human-readable product names,
+    exact affected bounds, platforms, and explicit status transitions. Keep
+    those facts separate from CPE matching so renderers never have to infer a
+    fixed version from a normalized CPE range.
+    """
+
+    merged: dict[tuple[str, str], dict[str, Any]] = {}
+    order: list[tuple[str, str]] = []
+    for container in _affected_containers(cve):
+        source = normalize_space(container.get("source"), limit=160)
+        raw_entries = container.get("affectedData")
+        if not isinstance(raw_entries, list):
+            continue
+        for raw_entry in raw_entries:
+            if not isinstance(raw_entry, dict):
+                continue
+            vendor = normalize_space(raw_entry.get("vendor"), limit=160)
+            product = normalize_space(raw_entry.get("product"), limit=200)
+            if not vendor and not product:
+                continue
+            identity = (
+                re.sub(r"[^a-z0-9]+", "", vendor.casefold()),
+                re.sub(r"[^a-z0-9]+", "", product.casefold()),
+            )
+            entry = merged.get(identity)
+            if entry is None:
+                entry = {
+                    "vendor": vendor,
+                    "product": product,
+                    "default_status": normalize_space(
+                        raw_entry.get("defaultStatus"), limit=40
+                    ).lower(),
+                    "source": source,
+                    "platforms": [],
+                    "cpes": [],
+                    "versions": [],
+                }
+                merged[identity] = entry
+                order.append(identity)
+            elif not entry["default_status"]:
+                entry["default_status"] = normalize_space(
+                    raw_entry.get("defaultStatus"), limit=40
+                ).lower()
+            if not entry["source"]:
+                entry["source"] = source
+
+            for field_name, item_limit in (("platforms", 160), ("cpes", 500)):
+                existing_values = entry[field_name]
+                existing_identities = {value.casefold() for value in existing_values}
+                for value in _normalized_string_list(
+                    raw_entry.get(field_name), limit=16, item_limit=item_limit
+                ):
+                    if value.casefold() in existing_identities or len(existing_values) >= 16:
+                        continue
+                    existing_values.append(value)
+                    existing_identities.add(value.casefold())
+
+            raw_versions = raw_entry.get("versions")
+            if not isinstance(raw_versions, list):
+                continue
+            versions = entry["versions"]
+            version_identities = {
+                (
+                    version["version"].casefold(),
+                    version["less_than"].casefold(),
+                    version["less_than_or_equal"].casefold(),
+                    version["version_type"].casefold(),
+                    version["status"].casefold(),
+                )
+                for version in versions
+            }
+            for raw_version in raw_versions:
+                if not isinstance(raw_version, dict):
+                    continue
+                version = {
+                    "version": normalize_space(raw_version.get("version"), limit=100),
+                    "less_than": normalize_space(raw_version.get("lessThan"), limit=100),
+                    "less_than_or_equal": normalize_space(
+                        raw_version.get("lessThanOrEqual"), limit=100
+                    ),
+                    "version_type": normalize_space(
+                        raw_version.get("versionType"), limit=60
+                    ),
+                    "status": normalize_space(raw_version.get("status"), limit=40).lower(),
+                    "changes": [],
+                }
+                version_identity = (
+                    version["version"].casefold(),
+                    version["less_than"].casefold(),
+                    version["less_than_or_equal"].casefold(),
+                    version["version_type"].casefold(),
+                    version["status"].casefold(),
+                )
+                if not any(version_identity):
+                    continue
+                raw_changes = raw_version.get("changes")
+                if isinstance(raw_changes, list):
+                    change_seen: set[tuple[str, str]] = set()
+                    for raw_change in raw_changes:
+                        if not isinstance(raw_change, dict):
+                            continue
+                        change = {
+                            "at": normalize_space(raw_change.get("at"), limit=100),
+                            "status": normalize_space(
+                                raw_change.get("status"), limit=40
+                            ).lower(),
+                        }
+                        change_identity = (change["at"].casefold(), change["status"].casefold())
+                        if not any(change_identity) or change_identity in change_seen:
+                            continue
+                        version["changes"].append(change)
+                        change_seen.add(change_identity)
+                        if len(version["changes"]) >= 8:
+                            break
+                if version_identity in version_identities:
+                    existing_version = next(
+                        candidate
+                        for candidate in versions
+                        if (
+                            candidate["version"].casefold(),
+                            candidate["less_than"].casefold(),
+                            candidate["less_than_or_equal"].casefold(),
+                            candidate["version_type"].casefold(),
+                            candidate["status"].casefold(),
+                        )
+                        == version_identity
+                    )
+                    existing_changes = {
+                        (change["at"].casefold(), change["status"].casefold())
+                        for change in existing_version["changes"]
+                    }
+                    for change in version["changes"]:
+                        change_identity = (change["at"].casefold(), change["status"].casefold())
+                        if change_identity in existing_changes or len(existing_version["changes"]) >= 8:
+                            continue
+                        existing_version["changes"].append(change)
+                        existing_changes.add(change_identity)
+                    continue
+                versions.append(version)
+                version_identities.add(version_identity)
+
+    order = [
+        identity
+        for identity in order
+        if merged[identity]["default_status"] == "affected"
+        or any(version.get("status") == "affected" for version in merged[identity]["versions"])
+    ]
+    total = len(order)
+    affected: list[dict[str, Any]] = []
+    for identity in order[:12]:
+        entry = merged[identity]
+        versions = entry["versions"]
+        entry["version_count"] = len(versions)
+        entry["versions_truncated"] = len(versions) > 24
+        entry["versions"] = versions[:24]
+        affected.append(entry)
+    return affected, total
+
+
+def affected_data_product_rows(affected_data: list[dict[str, Any]]) -> list[dict[str, str]]:
+    """Project structured affected statements into the legacy CPE-style rows."""
+
+    products: list[dict[str, str]] = []
+    for affected in affected_data:
+        versions = affected.get("versions")
+        affected_version = next(
+            (
+                version
+                for version in versions
+                if isinstance(version, dict) and version.get("status") == "affected"
+            ),
+            {},
+        ) if isinstance(versions, list) else {}
+        cpes = affected.get("cpes")
+        cpe = normalize_space(cpes[0], limit=500) if isinstance(cpes, list) and cpes else ""
+        parts = split_cpe(cpe)
+        products.append(
+            {
+                "part": unquote(parts[2]) if len(parts) > 2 else "",
+                "vendor": normalize_space(affected.get("vendor"), limit=160),
+                "product": normalize_space(affected.get("product"), limit=200),
+                "version": normalize_space(affected_version.get("version"), limit=100),
+                "version_start_including": "",
+                "version_start_excluding": "",
+                "version_end_including": normalize_space(
+                    affected_version.get("less_than_or_equal"), limit=100
+                ),
+                "version_end_excluding": normalize_space(
+                    affected_version.get("less_than"), limit=100
+                ),
+                "cpe": cpe,
+            }
+        )
+    return products
 
 
 def extract_references(cve: dict[str, Any]) -> list[dict[str, Any]]:
@@ -1297,6 +1652,58 @@ def frontmatter_scalar(frontmatter: str, pattern: re.Pattern[str]) -> str:
     return normalize_space(value.strip("\"'"))
 
 
+def bounded_frontmatter_scalar(
+    frontmatter: str,
+    pattern: re.Pattern[str],
+    *,
+    field: str,
+    path: Path,
+    limit: int,
+) -> str:
+    value = frontmatter_scalar(frontmatter, pattern)
+    if len(value) > limit:
+        raise ValueError(
+            f"frontmatter {field} exceeds {limit} characters: {path}"
+        )
+    return value
+
+
+def frontmatter_iso_date(
+    frontmatter: str,
+    pattern: re.Pattern[str],
+    *,
+    field: str,
+    path: Path,
+) -> str:
+    value = frontmatter_scalar(frontmatter, pattern)
+    if not value:
+        return ""
+    if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", value):
+        raise ValueError(f"frontmatter {field} must be an ISO date (YYYY-MM-DD): {path}")
+    try:
+        date.fromisoformat(value)
+    except ValueError as exc:
+        raise ValueError(
+            f"frontmatter {field} must be a valid ISO date (YYYY-MM-DD): {path}"
+        ) from exc
+    return value
+
+
+def frontmatter_boolean(
+    frontmatter: str,
+    pattern: re.Pattern[str],
+    *,
+    field: str,
+    path: Path,
+) -> bool | None:
+    value = frontmatter_scalar(frontmatter, pattern).casefold()
+    if not value:
+        return None
+    if value not in {"true", "false"}:
+        raise ValueError(f"frontmatter {field} must be true or false: {path}")
+    return value == "true"
+
+
 def markdown_inventory(content_dir: Path) -> dict[str, list[ExistingRecipe]]:
     inventory: dict[str, list[ExistingRecipe]] = {}
     for path in sorted(content_dir.glob("*.md")):
@@ -1309,7 +1716,57 @@ def markdown_inventory(content_dir: Path) -> dict[str, list[ExistingRecipe]]:
         if not cve_match:
             continue
         maturity = frontmatter_scalar(body, FRONTMATTER_MATURITY_RE).lower()
-        title = frontmatter_scalar(body, FRONTMATTER_TITLE_RE)
+        title = bounded_frontmatter_scalar(
+            body,
+            FRONTMATTER_TITLE_RE,
+            field="title",
+            path=path,
+            limit=MAX_FRONTMATTER_TITLE_CHARS,
+        )
+        description = bounded_frontmatter_scalar(
+            body,
+            FRONTMATTER_DESCRIPTION_RE,
+            field="description",
+            path=path,
+            limit=MAX_FRONTMATTER_DESCRIPTION_CHARS,
+        )
+        author = bounded_frontmatter_scalar(
+            body,
+            FRONTMATTER_AUTHOR_RE,
+            field="author",
+            path=path,
+            limit=MAX_FRONTMATTER_AUTHOR_CHARS,
+        )
+        published_date = frontmatter_iso_date(
+            body,
+            FRONTMATTER_DATE_RE,
+            field="date",
+            path=path,
+        )
+        lastmod = frontmatter_iso_date(
+            body,
+            FRONTMATTER_LASTMOD_RE,
+            field="lastmod",
+            path=path,
+        )
+        model = bounded_frontmatter_scalar(
+            body,
+            FRONTMATTER_MODEL_RE,
+            field="model",
+            path=path,
+            limit=MAX_FRONTMATTER_MODEL_CHARS,
+        )
+        severity = frontmatter_scalar(body, FRONTMATTER_SEVERITY_RE).casefold()
+        if severity and severity not in SEVERITY_RANK:
+            raise ValueError(
+                f"frontmatter severity must be low, medium, high, or critical: {path}"
+            )
+        kev = frontmatter_boolean(
+            body,
+            FRONTMATTER_KEV_RE,
+            field="kev",
+            path=path,
+        )
         content_markdown = text[frontmatter.end() :].strip() if maturity == "stable" else ""
         if len(content_markdown.encode("utf-8")) > MAX_STABLE_MARKDOWN_BYTES:
             raise ValueError(
@@ -1323,6 +1780,13 @@ def markdown_inventory(content_dir: Path) -> dict[str, list[ExistingRecipe]]:
                 maturity=maturity,
                 title=title,
                 content_markdown=content_markdown,
+                description=description,
+                author=author,
+                date=published_date,
+                lastmod=lastmod,
+                model=model,
+                severity=severity,
+                kev=kev,
             )
         )
     return inventory
@@ -1335,6 +1799,10 @@ def serialize_markdown_recipe(recipe: ExistingRecipe) -> dict[str, str]:
         "maturity": recipe.maturity,
         "title": recipe.title,
     }
+    for field in ("description", "author", "date", "lastmod", "model"):
+        value = getattr(recipe, field)
+        if value:
+            result[field] = value
     if recipe.maturity == "stable":
         result["content_markdown"] = recipe.content_markdown
     return result
@@ -1345,6 +1813,21 @@ def apply_markdown_inventory(
 ) -> dict[str, Any]:
     """Attach current Markdown metadata without changing normalized source facts."""
     stable_recipes = [recipe for recipe in recipes if recipe.maturity == "stable"]
+    for recipe in stable_recipes:
+        source_severity = str(record.get("severity") or "").strip().casefold()
+        if recipe.severity and recipe.severity != source_severity:
+            raise ValueError(
+                f"{recipe.cve} stable Markdown severity {recipe.severity!r} does not "
+                f"match catalog severity {source_severity!r}: {recipe.path}"
+            )
+        source_kev = record.get("kev") is True
+        if recipe.kev is not None and recipe.kev != source_kev:
+            raise ValueError(
+                f"{recipe.cve} stable Markdown KEV value {recipe.kev!r} does not "
+                f"match catalog KEV value {source_kev!r}: {recipe.path}"
+            )
+    if stable_recipes:
+        record.pop("ai_enrichment", None)
     record["recipe_kind"] = (
         "markdown-override" if stable_recipes else "markdown-draft" if recipes else "composed"
     )
@@ -1383,6 +1866,10 @@ def normalize_cve(
     summary = english_description(cve)
     cwes = extract_cwes(cve)
     products, product_match_count = extract_products(cve)
+    affected_data, affected_data_count = extract_affected_data(cve)
+    if not products and affected_data:
+        products = affected_data_product_rows(affected_data)
+        product_match_count = affected_data_count
     products_stored = len(products)
     references = extract_references(cve)
     kev_item = kev_map.get(cve_id)
@@ -1409,6 +1896,10 @@ def normalize_cve(
         "product_match_count": product_match_count,
         "products_stored": products_stored,
         "products_truncated": product_match_count > products_stored,
+        "affected_data": affected_data,
+        "affected_data_count": affected_data_count,
+        "affected_data_stored": len(affected_data),
+        "affected_data_truncated": affected_data_count > len(affected_data),
         "references": references,
         "kev": bool(kev_item),
         "kev_details": normalize_kev(kev_item),
@@ -1429,8 +1920,62 @@ def cve_shard(record: dict[str, Any]) -> str:
     return f"shards/{year}/{bucket:04d}.jsonl.gz"
 
 
+def stable_markdown_entry(record: dict[str, Any]) -> dict[str, Any] | None:
+    cve = str(record.get("cve") or "")
+    markdown = record.get("markdown")
+    stable = [
+        entry
+        for entry in markdown
+        if isinstance(entry, dict)
+        and entry.get("cve") == cve
+        and str(entry.get("maturity") or "").lower() == "stable"
+    ] if isinstance(markdown, list) else []
+    return stable[0] if len(stable) == 1 else None
+
+
+def record_page_lastmod(record: dict[str, Any]) -> str:
+    """Return a truthful editorial, synthesis, or source-fact update date."""
+
+    significant_dates: list[str] = []
+    stable = stable_markdown_entry(record)
+    if stable:
+        reviewed_date = str(stable.get("lastmod") or stable.get("date") or "")
+        if re.fullmatch(r"\d{4}-\d{2}-\d{2}", reviewed_date):
+            try:
+                date.fromisoformat(reviewed_date)
+            except ValueError:
+                reviewed_date = ""
+            if reviewed_date:
+                significant_dates.append(reviewed_date)
+    else:
+        enrichment = record.get("ai_enrichment")
+        if isinstance(enrichment, dict) and enrichment.get("status") == "complete":
+            generated_at = str(enrichment.get("generated_at") or "").strip()
+            match = re.match(r"^(\d{4}-\d{2}-\d{2})(?:T|$)", generated_at)
+            if match:
+                try:
+                    date.fromisoformat(match.group(1))
+                except ValueError:
+                    pass
+                else:
+                    significant_dates.append(match.group(1))
+    if not significant_dates:
+        return ""
+
+    source_modified = str(record.get("last_modified") or "").strip()
+    source_match = re.match(r"^(\d{4}-\d{2}-\d{2})(?:T|$)", source_modified)
+    if source_match:
+        try:
+            date.fromisoformat(source_match.group(1))
+        except ValueError:
+            pass
+        else:
+            significant_dates.append(source_match.group(1))
+    return max(significant_dates)
+
+
 def compact_index_record(record: dict[str, Any], shard: str) -> dict[str, Any]:
-    return {
+    compact = {
         "cve": record["cve"],
         "title": record["title"],
         "severity": record["severity"],
@@ -1443,6 +1988,65 @@ def compact_index_record(record: dict[str, Any], shard: str) -> dict[str, Any]:
         # Authoritative override content is embedded only for stable Markdown.
         "has_markdown": record["recipe_kind"] == "markdown-override",
         "shard": shard,
+    }
+    reviewed = stable_markdown_entry(record)
+    if reviewed:
+        page_title = normalize_space(reviewed.get("title"), limit=MAX_FRONTMATTER_TITLE_CHARS)
+        page_description = normalize_space(
+            reviewed.get("description"),
+            limit=MAX_FRONTMATTER_DESCRIPTION_CHARS,
+        )
+        if page_title:
+            compact["page_title"] = page_title
+        if page_description:
+            compact["page_description"] = page_description
+    page_lastmod = record_page_lastmod(record)
+    if page_lastmod:
+        compact["page_lastmod"] = page_lastmod
+    return compact
+
+
+def is_record_search_indexable(record: dict[str, Any]) -> bool:
+    """Return the single source of truth for canonical CVE search eligibility."""
+
+    if record.get("recipe_kind") == "markdown-override":
+        return True
+    return recipe_ready(record.get("ai_enrichment"), record)
+
+
+def search_index_record(record: dict[str, Any]) -> dict[str, Any]:
+    """Project one qualified record into the compact related-CVE/search surface."""
+
+    product_rows: list[dict[str, str]] = []
+    product_seen: set[tuple[str, str]] = set()
+    for product in record.get("products") or []:
+        if not isinstance(product, dict):
+            continue
+        vendor = normalize_space(product.get("vendor"), limit=160)
+        name = normalize_space(product.get("product"), limit=200)
+        identity = (vendor.casefold(), name.casefold())
+        if not any(identity) or identity in product_seen:
+            continue
+        product_rows.append({"vendor": vendor, "product": name})
+        product_seen.add(identity)
+        if len(product_rows) >= 8:
+            break
+    return {
+        "cve": record["cve"],
+        "title": record["title"],
+        "severity": record["severity"],
+        "score": record["score"],
+        "published": record["published"],
+        "ecosystem": record["ecosystem"],
+        "kev": record["kev"] is True,
+        "archetypes": list(record.get("archetypes") or []),
+        "cwes": list(record.get("cwes") or [])[:12],
+        "products": product_rows,
+        "qualification": (
+            "stable_markdown"
+            if record.get("recipe_kind") == "markdown-override"
+            else "recipe_ready_ai"
+        ),
     }
 
 
@@ -1556,6 +2160,8 @@ def build_outputs(
     archetypes: dict[str, Any],
     existing: dict[str, list[ExistingRecipe]],
     presorted: bool = False,
+    source_timestamp_override: str | None = None,
+    sources_override: dict[str, Any] | None = None,
 ) -> tuple[dict[Path, bytes], dict[str, Any]]:
     outputs: dict[Path, bytes] = {}
     index_records: list[dict[str, Any]] = []
@@ -1571,6 +2177,8 @@ def build_outputs(
     ai_enriched = 0
     ai_enrichment_complete = 0
     ai_enrichment_insufficient = 0
+    ai_enrichment_models: dict[str, int] = {}
+    search_indexable_records: list[dict[str, Any]] = []
     valid_ids = valid_archetype_ids(archetypes)
     valid_agentic_ids = valid_agentic_archetype_ids(archetypes)
     default_archetype = str(archetypes.get("default_archetype") or "")
@@ -1602,6 +2210,7 @@ def build_outputs(
 
         try:
             for record in ordered_records:
+                record = normalize_catalog_record_text(record)
                 shard = cve_shard(record)
                 append_shard_record(shard, json_bytes(record))
                 shard_counts[shard] = shard_counts.get(shard, 0) + 1
@@ -1627,6 +2236,11 @@ def build_outputs(
                     ai_enriched += 1
                     ai_enrichment_complete += int(enrichment.get("status") == "complete")
                     ai_enrichment_insufficient += int(enrichment.get("status") == "insufficient_evidence")
+                    model = str(enrichment.get("model") or "").strip()
+                    if model:
+                        ai_enrichment_models[model] = ai_enrichment_models.get(model, 0) + 1
+                if is_record_search_indexable(record):
+                    search_indexable_records.append(search_index_record(record))
         finally:
             for stream in open_spools.values():
                 stream.close()
@@ -1682,7 +2296,11 @@ def build_outputs(
         },
     }
 
-    source_timestamp = catalog_timestamp((source["metadata"] for source in feed_sources), kev_data)
+    source_timestamp = (
+        source_timestamp_override
+        if source_timestamp_override is not None
+        else catalog_timestamp((source["metadata"] for source in feed_sources), kev_data)
+    )
     duplicate_markdown = {
         cve: [recipe.path for recipe in recipes]
         for cve, recipes in sorted(existing.items())
@@ -1701,6 +2319,26 @@ def build_outputs(
         "bytes": len(browser_compressed),
         "uncompressed_bytes": len(browser_uncompressed),
     }
+    search_indexable_records.sort(key=lambda item: item["cve"])
+    search_index_path = "search-indexable.json"
+    search_index_payload = json_bytes(
+        {
+            "schema_version": 2,
+            "catalog_updated_at": source_timestamp,
+            "policy": "stable-markdown-or-recipe-ready-v1",
+            "records": search_indexable_records,
+        },
+        pretty=True,
+    )
+    outputs[Path(search_index_path)] = search_index_payload
+    search_index_manifest = {
+        "path": search_index_path,
+        "schema_version": 2,
+        "policy": "stable-markdown-or-recipe-ready-v1",
+        "records": len(search_indexable_records),
+        "sha256": hash_bytes(search_index_payload),
+        "bytes": len(search_index_payload),
+    }
     manifest = {
         "schema_version": 2,
         "catalog_updated_at": source_timestamp,
@@ -1709,7 +2347,11 @@ def build_outputs(
             "published_end": end_date.isoformat(),
             "statuses_excluded": ["Reject", "Rejected"],
             "metric_policy": "Any NVD-supplied CVSS v2/v3/v4 observation with baseScore >= 4.0; effective severity is the highest supplied/derived severity.",
-            "recipe_policy": "Every record composes with all applicable vetted remediation archetypes. Only maturity=stable Markdown is an authoritative self-contained override; has_markdown excludes drafts.",
+            "recipe_policy": (
+                "Every record composes with vetted remediation archetypes. Search indexing is limited "
+                "to stable reviewed Markdown or AI enrichment that passes the deterministic recipe-ready "
+                "evidence contract."
+            ),
         },
         "totals": {
             "catalog_records": record_count,
@@ -1724,26 +2366,33 @@ def build_outputs(
             "ai_enriched_records": ai_enriched,
             "ai_enrichment_complete": ai_enrichment_complete,
             "ai_enrichment_insufficient_evidence": ai_enrichment_insufficient,
+            "search_indexable_records": len(search_indexable_records),
             "in_scope_kev": in_scope_kev,
             "shards": len(shard_manifest),
         },
         "by_severity": dict(sorted(by_severity.items())),
         "by_publication_year": dict(sorted(by_year.items())),
-        "sources": {
-            "nvd": {
-                "feed_root": NVD_FEED_ROOT,
-                "feeds": feed_sources,
-            },
-            "cisa_kev": {
-                "url": CISA_KEV_URL,
-                "catalog_version": kev_data.get("catalogVersion"),
-                "date_released": kev_data.get("dateReleased"),
-                "sha256": hash_bytes(kev_payload),
-                "catalog_records": len(kev_data.get("vulnerabilities") or []),
-            },
-        },
+        "ai_enrichment_models": dict(sorted(ai_enrichment_models.items())),
+        "sources": (
+            deepcopy(sources_override)
+            if sources_override is not None
+            else {
+                "nvd": {
+                    "feed_root": NVD_FEED_ROOT,
+                    "feeds": feed_sources,
+                },
+                "cisa_kev": {
+                    "url": CISA_KEV_URL,
+                    "catalog_version": kev_data.get("catalogVersion"),
+                    "date_released": kev_data.get("dateReleased"),
+                    "sha256": hash_bytes(kev_payload),
+                    "catalog_records": len(kev_data.get("vulnerabilities") or []),
+                },
+            }
+        ),
         "markdown_duplicate_ids": duplicate_markdown,
         "browser_index": browser_manifest,
+        "search_index": search_index_manifest,
         "archetypes_asset": archetypes_manifest,
         "shard_set_sha256": shard_set_sha256,
         "shard_manifest": shard_manifest,
@@ -1762,6 +2411,7 @@ def build_outputs(
         "totals": manifest["totals"],
         "by_severity": manifest["by_severity"],
         "by_publication_year": manifest["by_publication_year"],
+        "ai_enrichment_models": manifest["ai_enrichment_models"],
         "browser_index": browser_manifest,
         "archetypes": archetypes_manifest,
         "shard_set_sha256": shard_set_sha256,
@@ -1954,6 +2604,381 @@ def write_outputs(output_dir: Path, outputs: dict[Path, bytes], *, dry_run: bool
     return {"changed": changed, "unchanged": unchanged, "removed": removed}
 
 
+def _existing_catalog_file(output_dir: Path, relative: str) -> Path:
+    """Resolve one declared catalog file without traversing links or escaping the root."""
+
+    pure = PurePosixPath(relative)
+    if (
+        not relative
+        or relative == "."
+        or "\\" in relative
+        or ":" in relative
+        or pure.is_absolute()
+        or ".." in pure.parts
+    ):
+        raise ValueError(f"unsafe existing catalog path: {relative!r}")
+    root = output_dir.resolve()
+    if _is_link_or_junction(root) or not root.is_dir():
+        raise FileNotFoundError(f"CVE catalog output directory is missing or unsafe: {output_dir}")
+    current = root
+    for part in pure.parts:
+        current /= part
+        if _is_link_or_junction(current):
+            raise ValueError(f"CVE catalog path must not traverse a link or junction: {relative}")
+    if not current.is_file():
+        raise FileNotFoundError(f"CVE catalog file is missing: {relative}")
+    return current
+
+
+def _flush_markdown_refresh_chunk(
+    records: list[dict[str, Any]], spool_root: Path, spool_paths: list[Path]
+) -> None:
+    if not records:
+        return
+    records.sort(key=lambda record: record["cve"])
+    path = spool_root / f"{len(spool_paths):04d}.jsonl"
+    with path.open("wb") as stream:
+        for record in records:
+            stream.write(json_bytes(record))
+    spool_paths.append(path)
+    records.clear()
+
+
+def rebuild_markdown_inventory(
+    output_dir: Path,
+    content_dir: Path,
+    *,
+    enrichment_cache_path: Path | None = None,
+    dry_run: bool = False,
+) -> dict[str, Any]:
+    """Reapply local Markdown to a verified catalog without refreshing source data."""
+
+    if not content_dir.is_dir():
+        raise FileNotFoundError(f"CVE Markdown directory is missing: {content_dir}")
+    manifest_path = _existing_catalog_file(output_dir, "manifest.json")
+    manifest = json.loads(manifest_path.read_bytes())
+    if not isinstance(manifest, dict) or manifest.get("schema_version") != 2:
+        raise ValueError("unsupported CVE catalog manifest schema")
+
+    catalog_updated_at = manifest.get("catalog_updated_at")
+    if not isinstance(catalog_updated_at, str) or not catalog_updated_at.strip():
+        raise ValueError("CVE catalog manifest is missing catalog_updated_at")
+    scope = manifest.get("scope")
+    if not isinstance(scope, dict):
+        raise ValueError("CVE catalog manifest is missing its scope")
+    published_dates: dict[str, date] = {}
+    for key in ("published_start", "published_end"):
+        value = scope.get(key)
+        if not isinstance(value, str) or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", value):
+            raise ValueError(f"CVE catalog manifest has an invalid {key}")
+        published_dates[key] = date.fromisoformat(value)
+    if published_dates["published_start"] > published_dates["published_end"]:
+        raise ValueError("CVE catalog manifest has an inverted publication scope")
+    sources = manifest.get("sources")
+    if not isinstance(sources, dict):
+        raise ValueError("CVE catalog manifest is missing source metadata")
+
+    archetype_manifest = manifest.get("archetypes_asset")
+    if not isinstance(archetype_manifest, dict):
+        raise ValueError("CVE catalog manifest is missing archetype metadata")
+    archetype_relative = str(archetype_manifest.get("path") or "")
+    archetype_digest = str(archetype_manifest.get("sha256") or "")
+    archetype_bytes = archetype_manifest.get("bytes")
+    if (
+        archetype_relative != "archetypes.json"
+        or not re.fullmatch(r"[0-9a-f]{64}", archetype_digest)
+        or type(archetype_bytes) is not int
+        or archetype_bytes < 1
+    ):
+        raise ValueError("CVE catalog manifest contains invalid archetype metadata")
+    archetype_path = _existing_catalog_file(output_dir, archetype_relative)
+    archetype_payload = archetype_path.read_bytes()
+    if (
+        len(archetype_payload) != archetype_bytes
+        or hash_bytes(archetype_payload) != archetype_digest
+    ):
+        raise ValueError("CVE catalog archetype integrity mismatch")
+    archetypes = json.loads(archetype_payload)
+    if not isinstance(archetypes, dict):
+        raise ValueError("CVE catalog archetype asset must contain an object")
+    # Generated JSON is serialized with sorted keys. Restore the explicit
+    # action order before applying the source archetype contract validator.
+    agentic_contract = archetypes.get("agentic_contract")
+    if isinstance(agentic_contract, dict):
+        for field in ("phase_contracts", "required_outputs"):
+            values = agentic_contract.get(field)
+            if isinstance(values, dict) and set(values) == set(AGENTIC_PHASES):
+                agentic_contract[field] = {phase: values[phase] for phase in AGENTIC_PHASES}
+    archetype_errors = archetype_contract_errors(archetypes)
+    if archetype_errors:
+        raise ValueError(
+            "invalid remediation archetypes in existing CVE catalog: "
+            + "; ".join(archetype_errors)
+        )
+
+    raw_entries = manifest.get("shard_manifest")
+    if not isinstance(raw_entries, list):
+        raise ValueError("CVE catalog manifest is missing its shard inventory")
+    totals = manifest.get("totals")
+    expected_total = totals.get("catalog_records") if isinstance(totals, dict) else None
+    expected_shards = totals.get("shards") if isinstance(totals, dict) else None
+    if type(expected_total) is not int or expected_total < 0:
+        raise ValueError("CVE catalog manifest has an invalid catalog record total")
+    if type(expected_shards) is not int or expected_shards != len(raw_entries):
+        raise ValueError("CVE catalog manifest has an invalid shard total")
+    shard_set_payload = json_bytes(
+        [
+            {
+                "path": entry.get("path"),
+                "sha256": entry.get("sha256"),
+            }
+            for entry in raw_entries
+            if isinstance(entry, dict)
+        ]
+    )
+    if (
+        len(raw_entries) != sum(isinstance(entry, dict) for entry in raw_entries)
+        or hash_bytes(shard_set_payload) != manifest.get("shard_set_sha256")
+    ):
+        raise ValueError("CVE catalog shard-set integrity mismatch")
+
+    inventory = markdown_inventory(content_dir)
+    enrichment_entries = (
+        EnrichmentCache.load(enrichment_cache_path).entries
+        if enrichment_cache_path is not None
+        else {}
+    )
+    seen_ids: set[str] = set()
+    previous_shard = ""
+    chunk: list[dict[str, Any]] = []
+    chunk_limit = 5_000
+    with tempfile.TemporaryDirectory(prefix="security-recipes-cve-markdown-refresh-") as tmpdir:
+        spool_root = Path(tmpdir)
+        spool_paths: list[Path] = []
+        for entry in raw_entries:
+            relative = str(entry.get("path") or "")
+            digest = str(entry.get("sha256") or "")
+            expected_bytes = entry.get("bytes")
+            expected_uncompressed = entry.get("uncompressed_bytes")
+            expected_records = entry.get("records")
+            if (
+                not re.fullmatch(r"shards/\d{4}/\d{4,}\.jsonl\.gz", relative)
+                or relative <= previous_shard
+                or not re.fullmatch(r"[0-9a-f]{64}", digest)
+                or type(expected_bytes) is not int
+                or expected_bytes < 1
+                or type(expected_uncompressed) is not int
+                or expected_uncompressed < 1
+                or type(expected_records) is not int
+                or expected_records < 1
+            ):
+                raise ValueError(f"invalid CVE shard metadata: {relative or '(missing)'}")
+            previous_shard = relative
+            shard_path = _existing_catalog_file(output_dir, relative)
+            compressed = shard_path.read_bytes()
+            if len(compressed) != expected_bytes or hash_bytes(compressed) != digest:
+                raise ValueError(f"CVE catalog shard integrity mismatch: {relative}")
+            try:
+                uncompressed = gzip.decompress(compressed)
+            except (EOFError, OSError) as exc:
+                raise ValueError(f"CVE catalog shard is not valid gzip: {relative}") from exc
+            if len(uncompressed) != expected_uncompressed:
+                raise ValueError(f"CVE catalog shard size mismatch: {relative}")
+            lines = uncompressed.splitlines()
+            if len(lines) != expected_records:
+                raise ValueError(f"CVE catalog shard record count mismatch: {relative}")
+            previous_cve = ""
+            for line in lines:
+                record = json.loads(line)
+                if not isinstance(record, dict):
+                    raise ValueError(f"CVE catalog shard contains a non-object record: {relative}")
+                cve = str(record.get("cve") or "")
+                if (
+                    not re.fullmatch(r"CVE-\d{4}-\d{4,}", cve)
+                    or cve <= previous_cve
+                    or cve in seen_ids
+                    or cve_shard(record) != relative
+                ):
+                    raise ValueError(f"CVE catalog shard contains an invalid identity: {cve!r}")
+                previous_cve = cve
+                seen_ids.add(cve)
+                apply_markdown_inventory(record, inventory.get(cve, []))
+                record = apply_valid_cached_enrichment(record, enrichment_entries)
+                chunk.append(record)
+                if len(chunk) >= chunk_limit:
+                    _flush_markdown_refresh_chunk(chunk, spool_root, spool_paths)
+        _flush_markdown_refresh_chunk(chunk, spool_root, spool_paths)
+        if len(seen_ids) != expected_total:
+            raise ValueError(
+                "CVE catalog record total does not match its verified shard inventory: "
+                f"expected {expected_total}, found {len(seen_ids)}"
+            )
+
+        outputs, refreshed_manifest = build_outputs(
+            merged_record_spools(spool_paths),
+            start_date=published_dates["published_start"],
+            end_date=published_dates["published_end"],
+            feed_sources=[],
+            kev_data={},
+            kev_payload=b"",
+            archetypes=archetypes,
+            existing=inventory,
+            presorted=True,
+            source_timestamp_override=catalog_updated_at,
+            sources_override=sources,
+        )
+    if refreshed_manifest["totals"]["catalog_records"] != expected_total:
+        raise ValueError("Markdown refresh changed the CVE catalog record total")
+    write_summary = write_outputs(output_dir, outputs, dry_run=dry_run)
+    return {
+        "catalog_records": expected_total,
+        "stable_markdown_overrides": refreshed_manifest["totals"][
+            "stable_markdown_overrides"
+        ],
+        "search_indexable_records": refreshed_manifest["totals"][
+            "search_indexable_records"
+        ],
+        "changed": write_summary["changed"],
+        "writes": write_summary,
+        "dry_run": dry_run,
+    }
+
+
+def rebuild_search_index(output_dir: Path, *, dry_run: bool = False) -> dict[str, Any]:
+    """Rebuild only the evidence-qualified allowlist from verified catalog shards."""
+
+    manifest_path = output_dir / "manifest.json"
+    if not manifest_path.is_file():
+        raise FileNotFoundError(f"CVE catalog manifest is missing: {manifest_path}")
+    manifest = json.loads(manifest_path.read_bytes())
+    if not isinstance(manifest, dict) or manifest.get("schema_version") != 2:
+        raise ValueError("unsupported CVE catalog manifest schema")
+    raw_entries = manifest.get("shard_manifest")
+    if not isinstance(raw_entries, list):
+        raise ValueError("CVE catalog manifest is missing its shard inventory")
+
+    qualified_records: list[dict[str, Any]] = []
+    seen_ids: set[str] = set()
+    for entry in raw_entries:
+        if not isinstance(entry, dict):
+            raise ValueError("CVE catalog manifest contains an invalid shard entry")
+        relative = str(entry.get("path") or "")
+        digest = str(entry.get("sha256") or "")
+        expected_bytes = entry.get("bytes")
+        expected_uncompressed = entry.get("uncompressed_bytes")
+        expected_records = entry.get("records")
+        if (
+            not re.fullmatch(r"shards/\d{4}/\d{4,}\.jsonl\.gz", relative)
+            or not re.fullmatch(r"[0-9a-f]{64}", digest)
+            or type(expected_bytes) is not int
+            or expected_bytes < 1
+            or type(expected_uncompressed) is not int
+            or expected_uncompressed < 1
+            or type(expected_records) is not int
+            or expected_records < 1
+        ):
+            raise ValueError(f"invalid CVE shard metadata: {relative or '(missing)' }")
+        root = output_dir.resolve()
+        path = (root / Path(relative)).resolve()
+        if root not in path.parents or not path.is_file():
+            raise FileNotFoundError(f"CVE catalog shard is missing or unsafe: {relative}")
+        compressed = path.read_bytes()
+        if len(compressed) != expected_bytes or hashlib.sha256(compressed).hexdigest() != digest:
+            raise ValueError(f"CVE catalog shard integrity mismatch: {relative}")
+        uncompressed = gzip.decompress(compressed)
+        if len(uncompressed) != expected_uncompressed:
+            raise ValueError(f"CVE catalog shard size mismatch: {relative}")
+        lines = uncompressed.splitlines()
+        if len(lines) != expected_records:
+            raise ValueError(f"CVE catalog shard record count mismatch: {relative}")
+        for line in lines:
+            record = json.loads(line)
+            if not isinstance(record, dict):
+                raise ValueError(f"CVE catalog shard contains a non-object record: {relative}")
+            cve = str(record.get("cve") or "")
+            if not re.fullmatch(r"CVE-\d{4}-\d{4,}", cve) or cve in seen_ids:
+                raise ValueError(f"CVE catalog shard contains an invalid identity: {cve!r}")
+            seen_ids.add(cve)
+            if is_record_search_indexable(record):
+                qualified_records.append(search_index_record(record))
+
+    qualified_records.sort(key=lambda item: item["cve"])
+    catalog_updated_at = manifest.get("catalog_updated_at")
+    policy = "stable-markdown-or-recipe-ready-v1"
+    search_payload = json_bytes(
+        {
+            "schema_version": 2,
+            "catalog_updated_at": catalog_updated_at,
+            "policy": policy,
+            "records": qualified_records,
+        },
+        pretty=True,
+    )
+    search_manifest = {
+        "path": "search-indexable.json",
+        "schema_version": 2,
+        "policy": policy,
+        "records": len(qualified_records),
+        "sha256": hash_bytes(search_payload),
+        "bytes": len(search_payload),
+    }
+    totals = dict(manifest.get("totals") or {})
+    totals["search_indexable_records"] = len(qualified_records)
+    manifest["totals"] = totals
+    manifest["search_index"] = search_manifest
+    scope = manifest.get("scope")
+    if isinstance(scope, dict):
+        scope["recipe_policy"] = (
+            "Every record composes with vetted remediation archetypes. Search indexing is limited "
+            "to stable reviewed Markdown or AI enrichment that passes the deterministic recipe-ready "
+            "evidence contract."
+        )
+    runtime_summary = {
+        "schema_version": 2,
+        "catalog_updated_at": catalog_updated_at,
+        "scope": {
+            "published_start": (scope or {}).get("published_start"),
+            "published_end": (scope or {}).get("published_end"),
+        },
+        "totals": totals,
+        "by_severity": manifest.get("by_severity"),
+        "by_publication_year": manifest.get("by_publication_year"),
+        "ai_enrichment_models": manifest.get("ai_enrichment_models"),
+        "browser_index": manifest.get("browser_index"),
+        "archetypes": manifest.get("archetypes_asset"),
+        "shard_set_sha256": manifest.get("shard_set_sha256"),
+    }
+    runtime_payload = json_bytes(runtime_summary)
+    manifest["runtime_summary"] = {
+        "path": "runtime-summary.json",
+        "bytes": len(runtime_payload),
+        "sha256": hash_bytes(runtime_payload),
+    }
+    index_path = output_dir / "index.json"
+    if not index_path.is_file():
+        raise FileNotFoundError(f"CVE catalog index is missing: {index_path}")
+    index = json.loads(index_path.read_bytes())
+    if not isinstance(index, dict) or index.get("schema_version") != 2:
+        raise ValueError("unsupported CVE catalog index schema")
+    index["scope"] = scope
+    index_payload = json_bytes(index, pretty=True)
+    manifest_payload = json_bytes(manifest, pretty=True)
+    changed = sum(
+        (
+            write_if_changed(output_dir / "search-indexable.json", search_payload, dry_run=dry_run),
+            write_if_changed(output_dir / "runtime-summary.json", runtime_payload, dry_run=dry_run),
+            write_if_changed(index_path, index_payload, dry_run=dry_run),
+            write_if_changed(manifest_path, manifest_payload, dry_run=dry_run),
+        )
+    )
+    return {
+        "catalog_records": len(seen_ids),
+        "search_indexable_records": len(qualified_records),
+        "changed": changed,
+        "dry_run": dry_run,
+    }
+
+
 def parse_ai_enrichment_limit(value: str) -> int:
     try:
         limit = int(value)
@@ -1964,6 +2989,16 @@ def parse_ai_enrichment_limit(value: str) -> int:
             f"AI enrichment limit must be between 0 and {MAX_AI_ENRICHMENT_LIMIT}"
         )
     return limit
+
+
+def parse_priority_cve_ids(value: str) -> tuple[str, ...]:
+    """Parse comma/whitespace-separated canonical CVE IDs for manual runs."""
+
+    tokens = tuple(token for token in re.split(r"[\s,]+", value.strip()) if token)
+    try:
+        return canonical_priority_cve_ids(tokens)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError(str(exc)) from exc
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -2010,6 +3045,30 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     )
     parser.add_argument("--offline", action="store_true", help="Use only cached NVD and KEV inputs.")
     parser.add_argument("--dry-run", action="store_true", help="Fetch and validate sources without writing catalog files.")
+    refresh_mode = parser.add_mutually_exclusive_group()
+    refresh_mode.add_argument(
+        "--search-index-only",
+        action="store_true",
+        help="Rebuild the evidence-qualified search allowlist from existing verified shards.",
+    )
+    refresh_mode.add_argument(
+        "--markdown-only",
+        action="store_true",
+        help=(
+            "Reapply local Markdown to the existing verified catalog without fetching "
+            "or changing source data."
+        ),
+    )
+    parser.add_argument(
+        "--priority-cve-ids",
+        type=parse_priority_cve_ids,
+        default=(),
+        metavar="CVE_IDS",
+        help=(
+            "Comma/whitespace-separated canonical CVE IDs to select before ranked "
+            "candidates without increasing --ai-enrichment-limit."
+        ),
+    )
     parser.add_argument("--limit", type=int, help="Development-only cap after normalization.")
     parser.add_argument(
         "--run-report",
@@ -2051,6 +3110,13 @@ def main(argv: list[str] | None = None) -> int:
         raise ValueError("--feed-start-year must not be later than --feed-end-year")
     if args.ai_enrichment_limit < 0:
         raise ValueError("--ai-enrichment-limit must not be negative")
+    if args.priority_cve_ids:
+        print(
+            "Manual priority lane requested for "
+            f"{len(args.priority_cve_ids)} canonical CVE ID(s) within the existing "
+            f"enrichment limit of {args.ai_enrichment_limit}.",
+            flush=True,
+        )
 
     cache_dir = resolve_path(args.cache_dir)
     content_dir = resolve_path(args.content_dir)
@@ -2058,6 +3124,22 @@ def main(argv: list[str] | None = None) -> int:
     enrichment_cache_path = resolve_path(args.enrichment_cache)
     generated_recipe_manifest_path = resolve_path(args.generated_recipe_manifest)
     output_dir = resolve_path(args.output_dir)
+    if args.search_index_only:
+        print(json.dumps(rebuild_search_index(output_dir, dry_run=args.dry_run), indent=2))
+        return 0
+    if args.markdown_only:
+        print(
+            json.dumps(
+                rebuild_markdown_inventory(
+                    output_dir,
+                    content_dir,
+                    enrichment_cache_path=enrichment_cache_path,
+                    dry_run=args.dry_run,
+                ),
+                indent=2,
+            )
+        )
+        return 0
     cache_dir.mkdir(parents=True, exist_ok=True)
 
     archetypes, cwe_mapping = load_archetypes(archetype_path)
@@ -2161,6 +3243,7 @@ def main(argv: list[str] | None = None) -> int:
         enrichment_cache.select_candidates(
             output_records(),
             limit=args.ai_enrichment_limit if openai_client is not None else 0,
+            priority_cve_ids=args.priority_cve_ids,
         )
         effective_existing = {cve: list(recipes) for cve, recipes in existing.items()}
 

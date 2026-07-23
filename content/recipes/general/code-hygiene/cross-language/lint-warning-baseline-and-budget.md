@@ -1,11 +1,13 @@
 ---
 title: "Lint warning baseline and budget"
 linkTitle: "Lint warning baseline and budget"
-description: "Bounded audit or remediation to turn an existing warning backlog into a measured, non-growing budget."
+description: "Lint warning baseline and budget: Turn an existing warning backlog into a measured, non-growing budget. Includes scoped detection, verification, and stop conditions."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"
 maturity: "development"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 recipe_id: "code-hygiene.cross-language.lint-warning-baseline-and-budget"
 recipe_kind: "code-hygiene"

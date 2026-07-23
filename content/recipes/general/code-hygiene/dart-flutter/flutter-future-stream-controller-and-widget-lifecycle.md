@@ -1,11 +1,13 @@
 ---
 title: "Flutter Future, stream, controller, and widget lifecycle"
 linkTitle: "Flutter Future, stream, controller, and widget lifecycle"
-description: "Bounded audit or remediation to cancel subscriptions and dispose controllers and async work with the owning widget or service."
+description: "Flutter Future, stream, controller, and widget lifecycle: Cancel subscriptions and dispose controllers and async work with the owning widget or service."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"
 maturity: "development"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 recipe_id: "code-hygiene.dart-flutter.flutter-future-stream-controller-and-widget-lifecycle"
 recipe_kind: "code-hygiene"

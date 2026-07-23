@@ -56,6 +56,49 @@ docker compose logs --tail=50 caddy                # ACME progress lives here
 If a host-level nginx or Caddy already runs on this droplet, stop it first so
 the container can bind 80/443: `sudo systemctl disable --now nginx caddy`.
 
+## Search discovery after an SEO release
+
+Deployment and search discovery are separate gates. Do not submit changed URLs
+while production still serves an older revision. First compare the public
+marker with the exact merge commit and verify the priority search surfaces:
+
+```bash
+git fetch origin main
+merge_sha="$(git rev-parse origin/main)"
+test "$(curl -fsS https://security-recipes.ai/.well-known/deploy-revision)" = "${merge_sha}"
+curl -fsSI https://security-recipes.ai/agentic-security/
+curl -fsSI https://security-recipes.ai/security-remediation/
+curl -fsSI https://security-recipes.ai/cve-database/
+curl -fsSI https://security-recipes.ai/cve/CVE-2026-14956/
+curl -fsS https://security-recipes.ai/sitemap.xml
+```
+
+Then use a Google Search Console **Domain property** for
+`security-recipes.ai`; Google requires DNS verification for that property type.
+The DNS record comes from the Search Console account and must not be invented
+or committed as a placeholder. In the verified property:
+
+1. Submit `https://security-recipes.ai/sitemap.xml` in the Sitemaps report.
+2. Inspect `/agentic-security/`, `/security-remediation/`, `/cve-database/`, and
+   the small set of reviewed priority CVE URLs. Run **Test live URL** and confirm
+   that crawling is allowed, the fetch succeeds, indexing is allowed, and the
+   declared and Google-selected canonicals agree.
+3. Use **Request indexing** for those priority pages after the live test passes.
+   Use the sitemap for the broader qualified set rather than manually requesting
+   every catalog record.
+4. Monitor Page indexing and Search performance separately for exact CVE IDs,
+   AI vulnerability-remediation queries, and AI-agent-security queries. Record
+   impressions, indexed URL, Google-selected canonical, title rewriting, CTR,
+   and position before making another content change.
+
+Google documents sitemap submission as a discovery hint, not an indexing or
+ranking guarantee. See the official
+[sitemap submission guide](https://developers.google.com/search/docs/crawling-indexing/sitemaps/build-sitemap),
+[URL Inspection guide](https://support.google.com/webmasters/answer/12482179),
+and [Domain property guide](https://support.google.com/webmasters/answer/34592).
+Relevant external citations and links remain necessary for competitive queries;
+do not respond to slow recrawling by publishing thin or duplicate CVE pages.
+
 ## Staying up to date: deploy.sh on a managed timer
 
 [deploy.sh](deploy.sh) keeps the droplet tracking `main` without downtime:
@@ -67,14 +110,15 @@ the container can bind 80/443: `sudo systemctl disable --now nginx caddy`.
   repository's `Build` workflow to succeed;
 - resets the deployment checkout only after CI passes while preserving `.env`
   and `mcp-server.toml`;
-- builds a commit-tagged image for the inactive slot without touching either
-  running site container;
+- pulls the CI-built, commit-tagged site and MCP images for the inactive slot
+  without touching the active site/MCP pair;
 - gracefully withdraws the inactive slot from Caddy, verifies that the active
   revision still serves through HTTPS, and atomically records the no-fallback
   state before recreating the inactive container;
-- starts only that withdrawn slot, checks it through its loopback port, and
-  requires `/.well-known/deploy-revision` to contain the exact 40-character
-  target commit before making the slot eligible for any traffic;
+- starts only that withdrawn site/MCP pair, checks both containers through their
+  loopback paths, and requires `/.well-known/deploy-revision` to contain the
+  exact 40-character target commit before making the slot eligible for any
+  traffic;
 - validates and gracefully reloads Caddy with the candidate as the primary and
   the previous release as the fallback only when that previous release still
   serves its exact recorded marker, without restarting Caddy;
@@ -83,9 +127,9 @@ the container can bind 80/443: `sudo systemctl disable --now nginx caddy`.
 - atomically records version 2 state — active service/SHA and, when verified,
   fallback service/SHA — in `.git/deploy-state`, then alternates slots on the
   next release; and
-- refuses to start a build without configured disk headroom, prunes unused site
-  images while retaining the images used by both running slots, and bounds old
-  BuildKit cache; and
+- refuses to pull and replace an inactive pair without configured disk and
+  memory headroom, prunes unused site/MCP images while retaining the images used
+  by both running pairs, and bounds old BuildKit cache; and
 - verifies that the live CVE catalog timestamp is recent before sending an
   optional dead-man success heartbeat.
 
@@ -251,10 +295,13 @@ configuration preserves the active/fallback order across the planned restart;
 version 2 `.git/deploy-state` gives `deploy.sh` an independent record to verify
 and reconcile.
 
-The static website and its images remain available throughout a normal deploy.
-The `mcp-server` is a single instance: it is rebuilt and recreated before site
-cutover, so `/mcp` may be briefly unavailable. It needs its own two-slot or
-redundant design if zero downtime is also required for MCP.
+The static website, its images, and `/mcp` remain available throughout a normal
+deploy. Each site slot has a paired MCP service (`mcp-server-blue` or
+`mcp-server-green`). `deploy.sh` pulls and verifies the inactive pair before
+cutover, then keeps the previous verified pair available as the warm fallback.
+Legacy hosts can briefly retain the transitional singleton `mcp-server`; each
+slot migrates to its paired MCP service when that slot next becomes the
+candidate.
 
 The CI gate uses GitHub's public REST API and `jq`. This public repository does
 not require a token. Private repositories must configure non-interactive Git
@@ -313,23 +360,23 @@ changed with `SECURITY_RECIPES_LOG_MAX_SIZE` and
 
 ### Resource headroom, freshness, and dead-man monitoring
 
-Before any image build, `deploy.sh` requires at least 2048 MB free on the
-checkout filesystem. If space is low it removes only unused site image tags,
-dangling images, and build cache older than seven days. It reads both running
-slot image references first and never asks Docker to remove them. After a
-successful release it performs the same bounded cleanup.
+Before pulling a candidate release, `deploy.sh` requires at least 2048 MB free
+on the deployment filesystem. If space is low it removes only unused site/MCP
+image tags, dangling images, and build cache older than seven days. It reads the
+running slot image references first and never asks Docker to remove them. After
+a successful release it performs the same bounded cleanup.
 
-The deploy also requires at least 1536 MB of `MemAvailable + SwapFree` before
-starting any image build. This is a fail-before-build guard: a small Droplet
-without enough RAM or swap keeps serving the current release instead of
-letting an Eleventy/Docker build starve the host. Configure these limits in
-`/etc/security-recipes/deploy.env`:
+The deploy also requires at least 256 MB of `MemAvailable + SwapFree` before
+replacing the inactive pair. This is a fail-before-replacement guard: a small
+Droplet without enough RAM or swap keeps serving the current release instead
+of risking host pressure while Docker pulls and starts the CI-built images.
+Configure these limits in `/etc/security-recipes/deploy.env`:
 
 ```ini
 DEPLOY_MIN_FREE_MB=2048
 # Optional override; the default is Docker's reported root directory.
 DEPLOY_DISK_PATH=
-DEPLOY_MIN_AVAILABLE_MEMORY_MB=1536
+DEPLOY_MIN_AVAILABLE_MEMORY_MB=256
 DEPLOY_BUILD_CACHE_MAX_AGE=168h
 DEPLOY_BUILD_CACHE_KEEP_STORAGE=5GB
 DEPLOY_CATALOG_MAX_AGE_HOURS=36
@@ -351,9 +398,10 @@ grep -qF '/swapfile none swap sw 0 0' /etc/fstab ||
 free -h
 ```
 
-Do not lower the memory threshold merely to make a failed deploy proceed.
-Measure peak memory during a manual build, leave capacity for Caddy and both
-site slots, and prefer a larger Droplet when builds cause sustained swapping.
+Do not lower the memory threshold merely to make a failed deploy proceed. Leave
+capacity for Caddy and both site/MCP pairs, inspect container memory during a
+manual deploy, and prefer a larger Droplet when releases cause sustained
+swapping.
 
 Every successful unchanged or updated run checks the public
 `/api/cve-catalog/manifest.json` and rejects a missing, malformed,

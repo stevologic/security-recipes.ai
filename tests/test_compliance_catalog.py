@@ -98,6 +98,38 @@ class ComplianceCatalogTests(unittest.TestCase):
         }
         self.assertEqual({item["file_name"] for item in self.frameworks}, recipe_files)
 
+    def test_generated_search_descriptions_are_specific_and_bounded(self) -> None:
+        descriptions = set()
+        for item in self.frameworks:
+            with self.subTest(framework_id=item["framework_id"]):
+                description = syncer.meta_description(item)
+                content = (syncer.OUTPUT_DIR / item["file_name"]).read_text(
+                    encoding="utf-8"
+                )
+                metadata = validator.parse_front_matter(content)
+
+                self.assertEqual(description, metadata["description"])
+                self.assertNotEqual(item["applicability"], description)
+                self.assertTrue(
+                    description.startswith(
+                        f"Assess {item['short_title']} evidence readiness:"
+                    )
+                )
+                self.assertGreaterEqual(len(description), 100)
+                self.assertLessEqual(len(description), syncer.META_DESCRIPTION_LIMIT)
+                self.assertRegex(description, r"[.!?]$")
+                for phrase in (
+                    "verify applicability",
+                    "official requirements",
+                    "artifacts",
+                    "record gaps",
+                    "plan remediation",
+                ):
+                    self.assertIn(phrase, description)
+                descriptions.add(description)
+
+        self.assertEqual(len(self.frameworks), len(descriptions))
+
     def test_each_recipe_has_stable_metadata_and_quality_sections(self) -> None:
         for item in self.frameworks:
             with self.subTest(framework_id=item["framework_id"]):

@@ -1,11 +1,13 @@
 ---
 title: "Duplicated logic consolidation"
 linkTitle: "Duplicated logic consolidation"
-description: "Bounded audit or remediation to consolidate behaviorally equivalent logic while preserving each caller's contract."
+description: "Duplicated logic consolidation: Consolidate behaviorally equivalent logic while preserving each caller's contract."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"
 maturity: "development"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 recipe_id: "code-hygiene.cross-language.duplicated-logic-consolidation"
 recipe_kind: "code-hygiene"

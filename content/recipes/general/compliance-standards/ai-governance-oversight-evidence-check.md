@@ -1,7 +1,7 @@
 ---
 title: "NIST SP 800-218A AI Model Development Evidence Check"
 linkTitle: "NIST AI SSDF"
-description: "Organizations extending secure software development practices to AI model development across the AI lifecycle."
+description: "Assess NIST AI SSDF evidence readiness: verify applicability, map official requirements to artifacts, record gaps, and plan remediation."
 recipe_id: "compliance.nist-sp-800-218a"
 framework_id: "nist-ai-ssdf"
 framework: "NIST AI SSDF"
@@ -21,6 +21,8 @@ tool: "Compliance evidence review"
 author: "Security Recipes"
 team: "GRC and Security Engineering"
 maturity: "stable"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 tags: ["compliance", "nist-ai-ssdf", "ai-governance", "audit", "ai-safety", "code-hygiene", "artificial-intelligence", "software"]
 weight: 170

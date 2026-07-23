@@ -2,12 +2,15 @@
 title: Secure Context Reviewer Brief
 linkTitle: Reviewer Brief
 weight: 14
+date: 2026-05-05
+lastmod: 2026-07-13
 sidebar:
   exclude: true
 description: >
-  A generated security reviewer brief that compresses the
-  SecurityRecipes secure-context, MCP, telemetry, pilot, source-freshness,
-  and value evidence into review-ready answers.
+  Generate a security review brief that compresses secure-context, MCP,
+  telemetry, pilot, source-freshness, and value evidence into review-ready
+  answers.
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

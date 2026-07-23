@@ -1,7 +1,7 @@
 ---
 title: "Rust Code Hygiene"
 linkTitle: "Rust"
-description: "Clippy, error boundary, unsafe invariant, and asynchronous lifecycle hygiene."
+description: "Clippy, error boundary, unsafe invariant, and asynchronous lifecycle hygiene. Choose bounded workflows with detection, tests, and stop conditions."
 weight: 70
 sidebar:
   open: false
@@ -11,8 +11,21 @@ sidebar:
 
 Clippy, error boundary, unsafe invariant, and asynchronous lifecycle hygiene.
 
-Select one bounded recipe. Start in audit mode; authorize fixes only after reviewing the candidate evidence.
+## Choose a focused Rust recipe
 
-## Recipes
+This collection contains 4 bounded Rust workflows. Choose the recipe whose objective matches the repository evidence instead of combining unrelated cleanup into one run.
+
+- **[Rust Clippy lint baseline and allow debt]({{< relref "/recipes/general/code-hygiene/rust/rust-clippy-lint-baseline-and-allow-debt" >}}):** Use it to resolve correctness and suspicious lints and narrow allow attributes.
+- **[Rust panic, unwrap, expect, and error boundaries]({{< relref "/recipes/general/code-hygiene/rust/rust-panic-unwrap-expect-and-error-boundaries" >}}):** Use it to keep recoverable failures out of panic paths while preserving invariants.
+- **[Rust unsafe block and safety-invariant hygiene]({{< relref "/recipes/general/code-hygiene/rust/rust-unsafe-block-and-safety-invariants" >}}):** Use it to minimize unsafe scope and make every safety invariant locally reviewable.
+- **[Rust async cancellation, lock, and task lifecycle]({{< relref "/recipes/general/code-hygiene/rust/rust-async-cancellation-lock-and-task-lifecycle" >}}):** Use it to avoid detached tasks, locks across await, and cancellation-unsafe partial operations.
+
+## How to use this collection
+
+Read the repository's configured runtime, compiler, framework, analyzer, and test commands before selecting a workflow. Start in audit mode, record file and symbol evidence, and authorize a fix only after the candidate scope is reviewable. Preserve supported versions, public behavior, and existing tool configuration.
+
+If the evidence is a named CVE, scanner finding, exposed secret, authorization flaw, or injection path, use the focused vulnerability-remediation playbook instead of a code-hygiene recipe. Stop when the safe result requires an owner decision about architecture, compatibility, production data, or deployment state.
+
+## Full recipe list
 
 {{< prompt-toc >}}

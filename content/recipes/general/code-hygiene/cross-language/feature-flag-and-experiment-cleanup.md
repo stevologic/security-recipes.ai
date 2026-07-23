@@ -1,11 +1,13 @@
 ---
 title: "Feature flag and experiment cleanup"
 linkTitle: "Feature flag and experiment cleanup"
-description: "Bounded audit or remediation to remove stale feature-flag branches after rollout state is proven."
+description: "Feature flag and experiment cleanup: Remove stale feature-flag branches after rollout state is proven. Includes scoped detection, verification, and stop conditions."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"
 maturity: "development"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 recipe_id: "code-hygiene.cross-language.feature-flag-and-experiment-cleanup"
 recipe_kind: "code-hygiene"

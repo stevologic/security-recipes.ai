@@ -1,11 +1,13 @@
 ---
 title: "Regular-expression correctness and complexity hygiene"
 linkTitle: "Regular-expression correctness and complexity hygiene"
-description: "Bounded audit or remediation to make complex regular expressions bounded, readable, and behaviorally tested."
+description: "Regular-expression correctness and complexity hygiene: Make complex regular expressions bounded, readable, and behaviorally tested."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"
 maturity: "development"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 recipe_id: "code-hygiene.cross-language.regex-correctness-and-complexity-hygiene"
 recipe_kind: "code-hygiene"

@@ -2,14 +2,15 @@
 title: Context Poisoning Guard
 linkTitle: Context Poisoning Guard
 weight: 10
+date: 2026-05-02
+lastmod: 2026-07-23
 toc: true
 description: >
-  A generated pre-retrieval scanner for the secure context layer:
-  prompt-injection, tool-poisoning, approval-bypass, hidden-instruction,
-  encoded-payload, and secret-exfiltration markers across registered
-  SecurityRecipes context roots.
+  Scan retrieved context before agent use for prompt injection, provenance
+  failures, unsafe instructions, and evidence-backed blocking decisions.
 sidebar:
   exclude: true
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

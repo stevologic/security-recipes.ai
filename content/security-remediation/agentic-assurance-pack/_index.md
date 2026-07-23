@@ -2,12 +2,15 @@
 title: Agentic Assurance Pack
 linkTitle: Assurance Pack
 weight: 6
+date: 2026-05-02
+lastmod: 2026-07-13
 sidebar:
   exclude: true
 description: >
   A generated reviewer-, auditor-, and AI-platform-ready evidence bundle
   for agentic remediation controls, workflow scope, MCP gateway policy,
   AI/Agent BOM readiness, and residual risk.
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

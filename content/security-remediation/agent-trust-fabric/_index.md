@@ -2,11 +2,14 @@
 title: Agent Trust Fabric
 linkTitle: Agent Trust Fabric
 weight: 16
+date: 2026-05-05
+lastmod: 2026-07-13
 sidebar:
   exclude: true
 description: >
   A generated zero-trust decision fabric for agent identity, context,
   scope, behavior, egress, telemetry, and containment evidence.
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

@@ -2,13 +2,13 @@
 title: Runtime Controls — Proxies & Telemetry-Driven Session Disablement
 linkTitle: Runtime Controls
 weight: 7
+date: 2026-04-25
+lastmod: 2026-07-23
 sidebar:
   open: true
 description: >
-  Inline proxies, action observers, and telemetry-driven kill
-  rules — the gates that watch an agent run in flight and stop
-  it when behaviour deviates, regardless of what the prompt
-  said it would do.
+  Use inline proxies, action observers, telemetry-driven kill rules, and
+  session disablement to contain unsafe agentic remediation behavior.
 ---
 
 {{< callout type="warning" >}}
@@ -99,7 +99,7 @@ Every tool call (and every tool result) passes through one
 process whose job is to inspect, classify, and (when policy
 says so) act. The proxy is **the** enforcement point for
 mid-run gates from
-[Gatekeeping Patterns]({{< relref "/security-remediation/gatekeeping#2-mid-run-tool-call-gates--is-this-specific-call-allowed" >}}).
+[Gatekeeping Patterns]({{< relref "/security-remediation/gatekeeping#2-mid-run-tool-call-gates-is-this-specific-call-allowed" >}}).
 
 ### What it inspects
 
@@ -348,6 +348,8 @@ that make agent-specific design sensible.
 - [Reviewer Playbook]({{< relref "/security-remediation/reviewer-playbook" >}})
   — what reviewers do when telemetry hold flags an agent
   output.
+- [Agentic SOC Detection Pack]({{< relref "/security-remediation/agentic-soc-detection-pack" >}})
+  — detection rules and response evidence for agent runtime activity.
 
 ## Changelog
 

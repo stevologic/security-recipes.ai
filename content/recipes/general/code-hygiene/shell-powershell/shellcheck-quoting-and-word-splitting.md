@@ -1,11 +1,13 @@
 ---
 title: "ShellCheck quoting and word-splitting hygiene"
 linkTitle: "ShellCheck quoting and word-splitting hygiene"
-description: "Bounded audit or remediation to remove unintended expansion, globbing, and argument-boundary bugs."
+description: "ShellCheck quoting and word-splitting hygiene: Remove unintended expansion, globbing, and argument-boundary bugs."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"
 maturity: "development"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 recipe_id: "code-hygiene.shell-powershell.shellcheck-quoting-and-word-splitting"
 recipe_kind: "code-hygiene"

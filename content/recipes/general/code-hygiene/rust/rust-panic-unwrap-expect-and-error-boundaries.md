@@ -1,11 +1,13 @@
 ---
 title: "Rust panic, unwrap, expect, and error boundaries"
 linkTitle: "Rust panic, unwrap, expect, and error boundaries"
-description: "Bounded audit or remediation to keep recoverable failures out of panic paths while preserving invariants."
+description: "Rust panic, unwrap, expect, and error boundaries: Keep recoverable failures out of panic paths while preserving invariants."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"
 maturity: "development"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 recipe_id: "code-hygiene.rust.rust-panic-unwrap-expect-and-error-boundaries"
 recipe_kind: "code-hygiene"

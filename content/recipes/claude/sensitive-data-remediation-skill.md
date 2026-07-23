@@ -1,5 +1,5 @@
 ---
-title: "Sensitive data element remediation skill"
+title: "Claude Code Sensitive Data Remediation Skill"
 linkTitle: "Sensitive data remediation skill"
 tool: "claude"
 author: "Stephen M Abbott"

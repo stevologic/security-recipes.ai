@@ -2,13 +2,16 @@
 title: Agentic Exposure Graph
 linkTitle: Exposure Graph
 weight: 18
+date: 2026-05-04
+lastmod: 2026-07-13
 toc: true
 description: >
-  Generated relationship graph that ranks exposure paths across secure
-  context, agent identities, MCP namespaces, authorization, egress,
-  readiness, capability risk, and run receipts.
+  Generate a relationship graph ranking exposure across secure context, agent
+  identities, MCP namespaces, authorization, egress, readiness, and capability
+  risk.
 sidebar:
   exclude: true
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

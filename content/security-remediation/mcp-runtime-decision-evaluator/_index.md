@@ -2,12 +2,15 @@
 title: MCP Runtime Decision Evaluator
 linkTitle: Runtime Decision Evaluator
 weight: 6
+date: 2026-05-02
+lastmod: 2026-07-13
 sidebar:
   exclude: true
 description: >
   A deterministic runtime evaluator that turns the generated MCP gateway
   policy into allow, hold, deny, and kill-session decisions for agent
   tool calls.
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

@@ -2,6 +2,8 @@
 title: MCP Tool Surface Drift Sentinel
 linkTitle: Tool Surface Drift
 weight: 8
+date: 2026-05-04
+lastmod: 2026-07-13
 sidebar:
   exclude: true
 description: >
@@ -9,6 +11,7 @@ description: >
   tool descriptions, schemas, annotations, and capability metadata, then
   makes deterministic allow, hold, deny, or kill decisions when a live
   MCP server changes after approval.
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

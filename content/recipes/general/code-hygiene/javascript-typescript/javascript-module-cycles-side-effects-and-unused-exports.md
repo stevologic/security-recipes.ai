@@ -1,11 +1,13 @@
 ---
 title: "JavaScript module cycles, side effects, and unused exports"
 linkTitle: "JavaScript module cycles, side effects, and unused exports"
-description: "Bounded audit or remediation to make module initialization order and public exports predictable."
+description: "JavaScript module cycles, side effects, and unused exports: Make module initialization order and public exports predictable."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"
 maturity: "development"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 recipe_id: "code-hygiene.javascript-typescript.javascript-module-cycles-side-effects-and-unused-exports"
 recipe_kind: "code-hygiene"

@@ -1,11 +1,13 @@
 ---
 title: "Rust unsafe block and safety-invariant hygiene"
 linkTitle: "Rust unsafe block and safety-invariant hygiene"
-description: "Bounded audit or remediation to minimize unsafe scope and make every safety invariant locally reviewable."
+description: "Rust unsafe block and safety-invariant hygiene: Minimize unsafe scope and make every safety invariant locally reviewable."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"
 maturity: "development"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 recipe_id: "code-hygiene.rust.rust-unsafe-block-and-safety-invariants"
 recipe_kind: "code-hygiene"

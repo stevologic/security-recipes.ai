@@ -2,11 +2,14 @@
 title: Agentic Incident Response Pack
 linkTitle: Incident Response Pack
 weight: 14
+date: 2026-05-04
+lastmod: 2026-07-13
 sidebar:
   exclude: true
 description: >
   A generated incident response, containment, forensics, replay, and
   disclosure pack for secure-context and MCP-backed agentic AI failures.
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

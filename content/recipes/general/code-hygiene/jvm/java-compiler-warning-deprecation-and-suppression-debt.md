@@ -1,11 +1,13 @@
 ---
 title: "Java compiler warning, deprecation, and suppression debt"
 linkTitle: "Java compiler warning, deprecation, and suppression debt"
-description: "Bounded audit or remediation to resolve javac warnings and narrow SuppressWarnings annotations."
+description: "Java compiler warning, deprecation, and suppression debt: Resolve javac warnings and narrow SuppressWarnings annotations."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"
 maturity: "development"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 recipe_id: "code-hygiene.jvm.java-compiler-warning-deprecation-and-suppression-debt"
 recipe_kind: "code-hygiene"

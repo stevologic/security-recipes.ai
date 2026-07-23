@@ -1,11 +1,13 @@
 ---
 title: ".NET async cancellation and fire-and-forget lifecycle"
 linkTitle: ".NET async cancellation and fire-and-forget lifecycle"
-description: "Bounded audit or remediation to propagate CancellationToken and observe every Task failure."
+description: ".NET async cancellation and fire-and-forget lifecycle: Propagate CancellationToken and observe every Task failure."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"
 maturity: "development"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 recipe_id: "code-hygiene.dotnet.dotnet-async-cancellation-and-fire-and-forget"
 recipe_kind: "code-hygiene"

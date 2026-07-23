@@ -1,7 +1,7 @@
 ---
 title: "Swift Code Hygiene"
 linkTitle: "Swift"
-description: "Diagnostic, force-unwrap, actor, Sendable, and task-lifecycle hygiene."
+description: "Diagnostic, force-unwrap, actor, Sendable, and task-lifecycle hygiene. Choose bounded workflows with detection, tests, and stop conditions."
 weight: 110
 sidebar:
   open: false
@@ -11,8 +11,19 @@ sidebar:
 
 Diagnostic, force-unwrap, actor, Sendable, and task-lifecycle hygiene.
 
-Select one bounded recipe. Start in audit mode; authorize fixes only after reviewing the candidate evidence.
+## Choose a focused Swift recipe
 
-## Recipes
+This collection contains 2 bounded Swift workflows. Choose the recipe whose objective matches the repository evidence instead of combining unrelated cleanup into one run.
+
+- **[Swift warning, deprecation, and force-unwrap debt]({{< relref "/recipes/general/code-hygiene/swift/swift-warning-deprecation-and-force-unwrap-debt" >}}):** Use it to resolve compiler warnings and unsafe optionals without obscuring invariants.
+- **[Swift actor, Sendable, and task lifecycle]({{< relref "/recipes/general/code-hygiene/swift/swift-actor-sendable-and-task-lifecycle" >}}):** Use it to resolve isolation violations, unsafe sharing, and unowned tasks.
+
+## How to use this collection
+
+Read the repository's configured runtime, compiler, framework, analyzer, and test commands before selecting a workflow. Start in audit mode, record file and symbol evidence, and authorize a fix only after the candidate scope is reviewable. Preserve supported versions, public behavior, and existing tool configuration.
+
+If the evidence is a named CVE, scanner finding, exposed secret, authorization flaw, or injection path, use the focused vulnerability-remediation playbook instead of a code-hygiene recipe. Stop when the safe result requires an owner decision about architecture, compatibility, production data, or deployment state.
+
+## Full recipe list
 
 {{< prompt-toc >}}

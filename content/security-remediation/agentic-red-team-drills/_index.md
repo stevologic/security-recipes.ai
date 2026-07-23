@@ -2,13 +2,14 @@
 title: Agentic Red-Team Drill Pack
 linkTitle: Red-Team Drill Pack
 weight: 7
+date: 2026-05-02
+lastmod: 2026-07-23
 sidebar:
   exclude: true
 description: >
-  A generated adversarial eval bundle for agentic remediation workflows:
-  prompt injection, goal hijack, credential access, approval bypass,
-  token passthrough, connector drift, runaway loops, and evidence
-  integrity failures.
+  Run bounded adversarial scenarios against agentic remediation controls and
+  record expected blocks, evidence, recovery, and review outcomes.
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

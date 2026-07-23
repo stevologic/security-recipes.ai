@@ -2,13 +2,16 @@
 title: Agentic AIVSS Risk Scoring
 linkTitle: Agentic AIVSS Risk Scoring
 weight: 13
+date: 2026-05-05
+lastmod: 2026-07-13
 toc: true
 description: >
-  Generated AIVSS-aligned severity, SLA, remediation-priority, and
-  deterministic runtime decisions for agentic AI, MCP, A2A, skill,
-  identity, context, and approval-bypass risks.
+  Generate AIVSS-aligned severity, SLAs, remediation priorities, and runtime
+  decisions for agentic AI, MCP, A2A, identity, context, skills, and
+  approval-bypass risks.
 sidebar:
   exclude: true
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

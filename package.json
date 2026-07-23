@@ -5,8 +5,8 @@
   "license": "Apache-2.0",
   "description": "security-recipes.ai — bounded security recipes for agent-assisted remediation",
   "scripts": {
-    "prebuild": "npm run clean",
-    "build": "eleventy --quiet && node scripts/prepare_static_assets.js",
+    "prebuild": "node scripts/check_build_prerequisites.js && npm run clean",
+    "build": "eleventy --quiet && python scripts/materialize_cve_pages.py && node scripts/prepare_static_assets.js",
     "check:performance": "node scripts/check_site_performance.js",
     "icons": "node scripts/generate_site_icons.js",
     "serve": "eleventy --serve",

@@ -9,12 +9,16 @@ model: "Opus 4.7"
 tags: ["owasp", "top-10", "audit", "hunt", "sast", "security-posture"]
 weight: 10
 date: 2026-04-22
+lastmod: 2026-07-23
+description: >
+  Audit a repository against the current OWASP Top 10:2025 web application
+  risks and return a prioritized, read-only report with file-level evidence.
 ---
 
 A tool-agnostic **hunt prompt** that walks an agent through a structured
 audit of a repository against every category in the OWASP Web Application
-Top 10:2025. As of 2026-05-02, OWASP's official web-application Top 10 is
-the 2025 edition. The output is a prioritised report with file-level pointers
+Top 10:2025. [OWASP identifies 2025 as the current web-application Top 10
+edition](https://owasp.org/Top10/2025/0x00_2025-Introduction/). The output is a prioritised report with file-level pointers
 and concrete remediation recommendations — not a fix.
 
 Pair this with the companion remediate prompt,

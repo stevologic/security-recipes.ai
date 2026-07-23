@@ -1,11 +1,13 @@
 ---
 title: "JavaScript promise, abort, and listener lifecycle"
 linkTitle: "JavaScript promise, abort, and listener lifecycle"
-description: "Bounded audit or remediation to close floating promises, lost failures, uncancelled work, and leaked event listeners."
+description: "JavaScript promise, abort, and listener lifecycle: Close floating promises, lost failures, uncancelled work, and leaked event listeners."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"
 maturity: "development"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 recipe_id: "code-hygiene.javascript-typescript.javascript-promise-abort-and-listener-lifecycle"
 recipe_kind: "code-hygiene"

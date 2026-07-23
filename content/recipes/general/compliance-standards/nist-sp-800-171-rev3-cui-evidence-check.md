@@ -1,7 +1,7 @@
 ---
 title: "NIST SP 800-171 Rev. 3 CUI Evidence Check"
 linkTitle: "NIST SP 800-171 Rev. 3"
-description: "Nonfederal organizations protecting Controlled Unclassified Information in systems subject to federal contract or policy requirements."
+description: "Assess NIST SP 800-171 Rev. 3 evidence readiness: verify applicability, map official requirements to artifacts, record gaps, and plan remediation."
 recipe_id: "compliance.nist-sp-800-171-rev3"
 framework_id: "nist-sp-800-171"
 framework: "NIST SP 800-171 Rev. 3"
@@ -21,6 +21,8 @@ tool: "Compliance evidence review"
 author: "Security Recipes"
 team: "GRC and Security Engineering"
 maturity: "stable"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 tags: ["compliance", "nist-sp-800-171", "government", "audit", "data-protection", "boundary", "defense-industrial-base", "government-contractors"]
 weight: 200

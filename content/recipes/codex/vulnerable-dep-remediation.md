@@ -1,5 +1,5 @@
 ---
-title: "Vulnerable dependency remediation (non-interactive)"
+title: "Codex Vulnerable Dependency Remediation"
 linkTitle: "Vulnerable dep remediation"
 tool: "codex"
 author: "Stephen M Abbott"

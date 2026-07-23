@@ -1,7 +1,7 @@
 ---
 title: "NYDFS 23 NYCRR Part 500 Evidence Check"
 linkTitle: "NYDFS Part 500"
-description: "NYDFS covered entities, with obligations determined by covered-entity and class-A status and the amendment's phased effective dates."
+description: "Assess NYDFS Part 500 evidence readiness: verify applicability, map official requirements to artifacts, record gaps, and plan remediation."
 recipe_id: "compliance.nydfs-23-nycrr-500"
 framework_id: "nydfs-part-500"
 framework: "NYDFS Part 500"
@@ -21,6 +21,8 @@ tool: "Compliance evidence review"
 author: "Security Recipes"
 team: "GRC and Security Engineering"
 maturity: "stable"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 tags: ["compliance", "nydfs-part-500", "regulated-industries", "audit", "data-protection", "incident-response", "financial-services", "insurance"]
 weight: 270

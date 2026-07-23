@@ -1,11 +1,13 @@
 ---
 title: ".NET LINQ enumeration and EF query boundaries"
 linkTitle: ".NET LINQ enumeration and EF query boundaries"
-description: "Bounded audit or remediation to avoid repeated enumeration, client evaluation, N+1 loading, and leaked query lifetimes."
+description: ".NET LINQ enumeration and EF query boundaries: Avoid repeated enumeration, client evaluation, N+1 loading, and leaked query lifetimes."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"
 maturity: "development"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 recipe_id: "code-hygiene.dotnet.dotnet-linq-enumeration-and-ef-query-boundaries"
 recipe_kind: "code-hygiene"

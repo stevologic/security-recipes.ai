@@ -2,12 +2,15 @@
 title: MCP Connector Trust Registry
 linkTitle: Connector Trust Registry
 weight: 8
+date: 2026-05-02
+lastmod: 2026-07-13
 sidebar:
   exclude: true
 description: >
   A generated MCP connector trust pack that inventories every workflow
   namespace, trust tier, access mode, control requirement, evidence
   record, promotion criterion, and runtime kill signal.
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

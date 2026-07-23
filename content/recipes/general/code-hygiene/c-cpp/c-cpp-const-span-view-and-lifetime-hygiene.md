@@ -1,11 +1,13 @@
 ---
 title: "C and C++ const, span, view, and lifetime hygiene"
 linkTitle: "C and C++ const, span, view, and lifetime hygiene"
-description: "Bounded audit or remediation to make mutation and non-owning view lifetimes explicit."
+description: "C and C++ const, span, view, and lifetime hygiene: Make mutation and non-owning view lifetimes explicit."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"
 maturity: "development"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 recipe_id: "code-hygiene.c-cpp.c-cpp-const-span-view-and-lifetime-hygiene"
 recipe_kind: "code-hygiene"

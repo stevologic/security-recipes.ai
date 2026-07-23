@@ -1,6 +1,7 @@
 ---
 title: Reputable Prompt Sources
 linkTitle: Prompt Sources
+page_kind: collection
 weight: 10
 toc: true
 sidebar:
@@ -300,7 +301,7 @@ When the target isn't just an LLM but a coding or remediation
 agent, a few sources publish prompts specifically shaped for
 agent behaviour.
 
-### GitHub Copilot Coding Agent — prompt and instruction examples
+### GitHub Copilot cloud agent — prompt and instruction examples
 
 - Microsoft publishes sample `copilot-instructions.md` files in
   docs and example repos. Mine these for structural patterns,
@@ -322,12 +323,12 @@ agent behaviour.
   onto agentic remediation runbooks.
 - **Where.** `docs.devin.ai`.
 
-### Codex / Agents.md
+### Codex / `AGENTS.md`
 
 - The Codex ecosystem uses `AGENTS.md` as a standard
   repo-level prompt file. The `agents.md` site and a handful of
   high-quality example repos on GitHub show working patterns.
-- **Where.** `agents.md` and the OpenAI Codex docs.
+- **Where.** [agents.md](https://agents.md/) and the OpenAI Codex docs.
 
 ---
 

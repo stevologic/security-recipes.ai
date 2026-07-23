@@ -2,12 +2,15 @@
 title: MCP Tool Risk Contract
 linkTitle: MCP Tool Risk
 weight: 7
+date: 2026-05-04
+lastmod: 2026-07-13
 sidebar:
   exclude: true
 description: >
   A generated MCP tool-risk contract that turns tool annotations,
   connector trust, authorization conformance, workflow scope, and
   session-combination risk into deterministic pre-call decisions.
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

@@ -1,7 +1,7 @@
 ---
 title: "CSA Cloud Controls Matrix v4.1 Evidence Check"
 linkTitle: "CSA CCM v4.1"
-description: "Cloud service providers and cloud customers assessing cloud control responsibilities using CSA CCM v4.1."
+description: "Assess CSA CCM v4.1 evidence readiness: verify applicability, map official requirements to artifacts, record gaps, and plan remediation."
 recipe_id: "compliance.csa-ccm-4-1"
 framework_id: "csa-ccm"
 framework: "CSA CCM v4.1"
@@ -21,6 +21,8 @@ tool: "Compliance evidence review"
 author: "Security Recipes"
 team: "GRC and Security Engineering"
 maturity: "stable"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 tags: ["compliance", "csa-ccm", "cloud-assurance", "audit", "cloud", "assurance", "saas"]
 weight: 230

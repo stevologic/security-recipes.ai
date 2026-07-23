@@ -1,11 +1,13 @@
 ---
 title: ".NET disposable and async-disposable lifecycle"
 linkTitle: ".NET disposable and async-disposable lifecycle"
-description: "Bounded audit or remediation to dispose synchronous and asynchronous resources exactly once after their final use."
+description: ".NET disposable and async-disposable lifecycle: Dispose synchronous and asynchronous resources exactly once after their final use."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"
 maturity: "development"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 recipe_id: "code-hygiene.dotnet.dotnet-disposable-and-async-disposable-lifecycle"
 recipe_kind: "code-hygiene"

@@ -2,11 +2,14 @@
 title: Agent Skill Supply Chain
 linkTitle: Agent Skill Supply Chain
 weight: 18
+date: 2026-05-02
+lastmod: 2026-07-13
 sidebar:
   exclude: true
 description: >
   A generated provenance, permission, isolation, and runtime-decision pack
   for agent skills, rules files, hooks, extensions, and behavior packages.
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

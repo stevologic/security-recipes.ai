@@ -1,11 +1,13 @@
 ---
 title: "PowerShell ScriptAnalyzer and suppression debt"
 linkTitle: "PowerShell ScriptAnalyzer and suppression debt"
-description: "Bounded audit or remediation to resolve PSScriptAnalyzer findings and narrow rule exclusions."
+description: "PowerShell ScriptAnalyzer and suppression debt: Resolve PSScriptAnalyzer findings and narrow rule exclusions."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"
 maturity: "development"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 recipe_id: "code-hygiene.shell-powershell.powershell-scriptanalyzer-and-suppression-debt"
 recipe_kind: "code-hygiene"

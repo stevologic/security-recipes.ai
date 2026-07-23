@@ -2,13 +2,15 @@
 title: Agentic Source Freshness Watch
 linkTitle: Source Freshness Watch
 weight: 19
+date: 2026-05-05
+lastmod: 2026-07-13
 toc: true
 description: >
-  Generated source-freshness and standards-drift evidence for the secure
-  context layer across OWASP, NIST, MCP, A2A, CISA, OpenAI, CSA, and
-  related agentic AI security sources.
+  Generate source-freshness and standards-drift evidence across OWASP, NIST,
+  MCP, A2A, CISA, OpenAI, CSA, and other agentic AI security sources.
 sidebar:
   exclude: true
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

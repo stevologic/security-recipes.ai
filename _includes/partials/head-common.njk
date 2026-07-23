@@ -1,6 +1,6 @@
 {# Shared <head> tail for docs pages: hardening meta, styles, scripts, and
-   the marketplace globals that mcp-config-helper.js and the browser
-   workbench read. Port of layouts/partials/custom/head-end.html. #}
+   public marketplace endpoint maps. Port of
+   layouts/partials/custom/head-end.html. #}
 <meta name="google" content="notranslate">
 <meta http-equiv="Content-Language" content="en">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -58,9 +58,9 @@ window.__SECURITY_RECIPES_MARKETPLACE_SCHEMAS = {
   routingLibrary: "/marketplace-schemas/routing-library.schema.json"
 };
 </script>
-<script src="/js/marketplace-globals.js" defer></script>
 <script src="/js/signal-background.js" defer></script>
-<script src="/js/mermaid-viewer.js" defer></script>
+{% set needsMermaidViewer = content and ('class="mermaid"' in content or 'sr-suite-figure' in content or 'visual-guide-figure' in content) %}
+{% if needsMermaidViewer %}<script src="/js/mermaid-viewer.js" defer></script>{% endif %}
 <script src="/js/nav-enhance.js" defer></script>
 <script src="/js/docs-search.js" defer></script>
 {% if page.url == "/cve-database/" %}<script src="/js/cve-catalog.js" defer></script>{% endif %}
@@ -69,19 +69,3 @@ window.__SECURITY_RECIPES_MARKETPLACE_SCHEMAS = {
 {% if page.url == "/recipes/" %}<script src="/js/recipe-mobile-hardening.js" defer></script>{% endif %}
 <script src="/js/mcp-config-helper.js" defer></script>
 <script src="/js/sr-tabs.js" defer></script>
-<script>
-// Render mermaid diagrams with the vendored, version-pinned bundle only on
-// pages that actually contain one.
-if (document.querySelector) {
-  window.addEventListener("DOMContentLoaded", function () {
-    if (!document.querySelector("pre.mermaid")) return;
-    var s = document.createElement("script");
-    s.src = "/js/mermaid.min.js";
-    s.onload = function () {
-      window.mermaid.initialize({ startOnLoad: false, theme: "dark" });
-      window.mermaid.run({ querySelector: "pre.mermaid" });
-    };
-    document.head.appendChild(s);
-  });
-}
-</script>

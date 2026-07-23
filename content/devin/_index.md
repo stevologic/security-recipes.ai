@@ -1,65 +1,104 @@
 ﻿---
-title: Devin
+title: Devin Vulnerability Remediation
 linkTitle: Devin
 weight: 2
-description: Enable agentic remediation with Cognition's Devin.
+date: 2026-04-21
+lastmod: 2026-07-21
+description: Use Cognition Devin to remediate vulnerability backlogs with isolated sessions, bounded playbooks, verification evidence, rollback, and reviewed pull requests.
 sidebar:
   open: true
 ---
 
 {{< callout type="info" >}}
-**Outcome.** Devin sessions are automatically created from your security
-backlog, each running an end-to-end remediation playbook against the
-affected repository.
+**Outcome.** Devin Security Swarm validates repository findings, then an
+accepted finding is assigned to Devin for a bounded remediation session
+and reviewed pull request.
 {{< /callout >}}
 
 {{< callout type="warning" >}}
 **In a hurry?** The
-[**Quick Start**]({{< relref "/quickstart#devin-five-minute-path" >}})
+[**Quick Start**]({{< relref "/quickstart#the-loop" >}})
 is a five-minute path to your first agentic remediation PR with
 Devin. Come back here for the full recipe once that loop is working.
 {{< /callout >}}
 
-Devin is a fully autonomous engineering agent — well suited to multi-step
-remediation work that spans repos, CI, and ticket systems. Unlike the
-other recipes on this site, Devin owns its own sandbox and integrations;
-your job is mainly to encode the runbook as a Knowledge entry and
-trigger sessions at the right moments.
+Devin Security Swarm provides the native scan-to-remediation workflow.
+For other multi-step work that spans repos, CI, and ticket systems, Devin
+also supports isolated engineering sessions, Knowledge, Playbooks, and
+API-driven dispatch.
+
+Use the [agent remediation guide]({{< relref "/security-remediation/" >}})
+to set the scope, stop conditions, evidence, and approval model before
+encoding the runbook in Devin.
+
+For recurring package advisories, use the
+[scheduled Devin vulnerability-remediation recipe]({{< relref "/recipes/devin/scheduled-vulnerability-remediation" >}})
+as the agent-ready playbook for the queue-to-PR loop.
+For a sensitive-data finding, use the
+[scheduled Devin SDE remediation recipe]({{< relref "/recipes/devin/scheduled-sde-remediation" >}}).
+
+## Remediate a vulnerability with Devin
+
+Use [Security Swarm](https://docs.devin.ai/work-with-devin/security-swarm)
+for Devin's native finding-to-pull-request workflow.
+
+1. Open **Security**, start a scan for the affected repository, and keep
+   interactive mode on for the first run. Review the proposed threat model
+   before investigation begins.
+2. Inspect the finding's reachable path, severity, exploitability,
+   confidence, validation result, and artifacts. A risky pattern is a lead,
+   not proof.
+3. For an accepted finding, choose **Assign to Devin**. Supply remediation
+   constraints: the smallest safe change, a focused regression test,
+   supported build and test commands, and no unrelated refactor.
+4. Review the remediation session and pull request, rerun the relevant
+   tests or reproducer, and keep the finding open until the fix is merged
+   and verified.
+
+Organizations that want Cognition engineers to help clear an existing
+backlog and establish continuous discovery can evaluate the separate
+[Security Vulnerability Remediation Program](https://devin.ai/security-program);
+it is an eligible-enterprise engagement, not a self-serve prerequisite.
 
 ## Prerequisites
 
-- Devin team workspace (Cognition)
-- API access enabled and a Devin API key issued
-- Source repos connected via the Devin GitHub / GitLab integration
-- A queue of findings (Jira, Linear, GitHub Issues, etc.)
+- Security Swarm access in the Devin workspace
+- One supported source repository connected to the workspace
+- An approved threat model or Security Swarm profile for the first scan
+- A reproducible test command and a human pull-request reviewer
 
 ## General onboarding
 
 The public path — what any team can do today using Cognition's
 documented flow.
 
-1. **Pick a plan.** Devin offers Team and Enterprise tiers. API
-   access, Knowledge, and Playbooks are on all supported tiers. See
-   [Devin plan documentation](https://devin.ai/plan documentation).
+1. **Pick a plan.** Devin currently offers Free, Pro, Max, Teams, and
+   Enterprise plans; feature availability differs by plan. See
+   [Devin pricing](https://devin.ai/pricing).
 2. **Sign up** at [devin.ai](https://devin.ai/) and create a
    workspace.
 3. **Connect your source host.** Install the GitHub / GitLab
    integration from **Workspace → Integrations** so Devin can
    clone repos and open PRs. See
    [Devin Integrations](https://docs.devin.ai/integrations/overview).
-4. **Document your runbooks as Knowledge entries.** Knowledge
+4. **Run the first Security Swarm scan interactively.** Review the
+   generated threat model before accepting any finding. See
+   [Security Swarm](https://docs.devin.ai/work-with-devin/security-swarm).
+5. **Document your runbooks as Knowledge entries.** Knowledge
    is Devin's long-term memory — used at the start of every
    session. See [Devin Knowledge](https://docs.devin.ai/product-guides/knowledge).
-5. **Author Playbooks for repeatable tasks** you can invoke by
+6. **Author Playbooks for repeatable tasks** you can invoke by
    name. See [Devin Playbooks](https://docs.devin.ai/product-guides/using-playbooks).
-6. **Mint an API credential** at **Workspace → Settings → Service users**
-   and start dispatching sessions via
+7. **For separate API automation only, mint a scoped credential** at
+   **Workspace → Settings → Service users** and dispatch sessions via
    [`POST /v3/organizations/{org_id}/sessions`](https://docs.devin.ai/api-reference/v3/sessions/post-organizations-sessions).
 
 
 **Vendor-side reference index:**
 
 - [Devin docs home](https://docs.devin.ai)
+- [Security Swarm](https://docs.devin.ai/work-with-devin/security-swarm)
+- [Security Vulnerability Remediation Program](https://devin.ai/security-program)
 - [API: `POST /v3/organizations/{org_id}/sessions`](https://docs.devin.ai/api-reference/v3/sessions/post-organizations-sessions)
 - [API overview and migration notes](https://docs.devin.ai/api-reference/overview)
 - [Authentication](https://docs.devin.ai/api-reference/authentication)
@@ -79,35 +118,28 @@ should start on v3.
 ## Enterprise onboarding
 
 {{< callout type="warning" >}}
-**Placeholder — customize for your organization.** Replace the
-steps and links below with your internal process for getting a
-Devin workspace seat, connecting your source repos, and issuing
-the scoped API key this recipe expects. The structure is a
-starting point so every recipe on this site has a consistent
-"how does my team actually start using this at my company?"
-section. Forks of this project are expected to fill this in for
-their own organizations.
+**Enterprise access is organization-specific.** Before using Devin on
+company code, confirm the approved workspace, identity and data-handling
+controls, exact repository integration scope, and service-user credential
+lifecycle with your security and platform owners. The checklist below
+defines the decisions to record; feature names and availability vary by
+plan.
 {{< /callout >}}
 
-1. **Request access.** File an IT ticket for a Devin seat on your
-   org's Cognition workspace. Internal link:
-   [Request Devin access](#placeholder-itsm-link).
+1. **Request access.** File an IT ticket through your organization's
+   approved service catalog for a Devin seat on the Cognition workspace.
 2. **Join the workspace.** Accept the invite to your org's Devin
-   workspace once Security approves. Internal link:
-   [Devin workspace](#placeholder-workspace-link).
-3. **Bind to corporate SSO.** Devin Team / Enterprise supports SSO
-   — bind the account to your identity provider per the standard
-   IT guide. Internal link:
-   [SSO enrollment](#placeholder-sso-link).
+   workspace once Security approves.
+3. **Bind to corporate identity.** Use the SSO and identity controls
+   required by your approved Devin plan and internal access policy.
 4. **Connect the right repos.** Your Devin admin installs the
    GitHub / GitLab integration and grants it to only the repos this
-   recipe targets — nothing broader. Internal link:
-   [Repo connection checklist](#placeholder-repo-link).
+   recipe targets — nothing broader — using the approved connection
+   checklist.
 5. **Complete internal training.** Read the internal rules of
    engagement for autonomous-agent usage on production repos,
-   including ACU budget caps and the "no auto-merge" policy.
-   Internal link:
-   [your org's AI usage policy](#placeholder-policy-link).
+   including workspace spend limits and the "no auto-merge" policy.
+   Follow your organization's AI usage policy throughout the run.
 
 ## Recipe steps
 
@@ -468,7 +500,7 @@ What is **constant** (build once, leave alone):
 - The `ready-for-agent` → webhook → `/sessions` POST contract.
 - The Knowledge entries you treat as authoritative (runbook,
   commit conventions, PR template).
-- The scoped API token, per-session ACU cap, per-day ACU cap,
+- The scoped repository access, bounded scan and remediation volume,
   and the review policy ("no auto-merge, ever").
 - The "stop and ask if you'd change a public API contract or a
   schema" standing instruction.
@@ -495,8 +527,8 @@ orchestration is write-once.
   connected — keep this list tight.
 - **Require human review.** Treat Devin PRs like any other contributor's
   PR: required reviewers, passing CI, no auto-merge.
-- **Budget caps.** Configure per-session and per-day ACU (agent compute
-  unit) caps in the Devin workspace settings.
+- **Budget caps.** Monitor plan quotas and on-demand credit settings, and
+  cap scheduled scan and remediation volume while reviewers calibrate signal.
 - **Standing "stop" rules.** Every session brief includes the
   API / schema / migrations "stop and ask" clause.
 
@@ -516,6 +548,8 @@ orchestration is write-once.
 ## See also
 
 - Cognition: [Devin docs home](https://docs.devin.ai)
+- Cognition: [Security Swarm](https://docs.devin.ai/work-with-devin/security-swarm)
+- Cognition: [Security Vulnerability Remediation Program](https://devin.ai/security-program)
 - Devin API: [`POST /v3/organizations/{org_id}/sessions`](https://docs.devin.ai/api-reference/v3/sessions/post-organizations-sessions)
 - Devin docs: [Knowledge](https://docs.devin.ai/product-guides/knowledge) · [Playbooks](https://docs.devin.ai/product-guides/using-playbooks) · [Integrations](https://docs.devin.ai/integrations/overview)
 - [MCP Server Access]({{< relref "/mcp-servers" >}}) — exposing richer context to agents

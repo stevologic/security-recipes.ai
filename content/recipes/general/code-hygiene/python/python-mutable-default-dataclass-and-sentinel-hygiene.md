@@ -1,11 +1,13 @@
 ---
 title: "Python mutable-default, dataclass, and sentinel hygiene"
 linkTitle: "Python mutable-default, dataclass, and sentinel hygiene"
-description: "Bounded audit or remediation to remove shared mutable defaults and ambiguous sentinel values."
+description: "Python mutable-default, dataclass, and sentinel hygiene: Remove shared mutable defaults and ambiguous sentinel values."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"
 maturity: "development"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 recipe_id: "code-hygiene.python.python-mutable-default-dataclass-and-sentinel-hygiene"
 recipe_kind: "code-hygiene"

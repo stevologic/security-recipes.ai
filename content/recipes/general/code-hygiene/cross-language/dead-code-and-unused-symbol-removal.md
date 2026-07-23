@@ -1,11 +1,13 @@
 ---
 title: "Dead code and unused symbol removal"
 linkTitle: "Dead code and unused symbol removal"
-description: "Bounded audit or remediation to remove unreachable code and unused symbols without deleting runtime-discovered behavior."
+description: "Dead code and unused symbol removal: Remove unreachable code and unused symbols without deleting runtime-discovered behavior."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"
 maturity: "development"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 recipe_id: "code-hygiene.cross-language.dead-code-and-unused-symbol-removal"
 recipe_kind: "code-hygiene"

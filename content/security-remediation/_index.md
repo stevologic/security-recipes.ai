@@ -1,7 +1,8 @@
 ---
-title: Remediation Playbooks
-linkTitle: Playbooks
+title: How to Remediate Vulnerabilities with AI Agents
+linkTitle: AI Remediation
 weight: 2
+lastmod: 2026-07-23
 sidebar:
   open: false
 toc: true
@@ -11,11 +12,51 @@ cascade:
     sidebar:
       exclude: true
 description: >
-  Practical remediation recipes that help AI agents produce narrow,
-  reviewable security fixes.
+  Learn how to remediate software vulnerabilities with AI coding agents using
+  scoped playbooks, source evidence, tests, rollback, and human review.
+how_to:
+  name: How to remediate a vulnerability with an AI coding agent
+  steps:
+    - name: Identify one finding
+      text: Start with one concrete CVE, dependency alert, SAST result, exposed secret, or vulnerable artifact.
+    - name: Establish exposure
+      text: Confirm the affected product, version, reachable code path, configuration, and deployed artifact.
+    - name: Choose the narrowest playbook
+      text: Give the agent only the repository files, evidence sources, and allowed operations required for the finding.
+    - name: Capture rollback before mutation
+      text: Record the current manifest, lockfile, configuration, image, or source state and its recovery trigger.
+    - name: Apply an authoritative fix
+      text: Use a vendor-supported release or documented mitigation without inventing a fixed version.
+    - name: Verify the result
+      text: Run focused tests, rebuild cleanly, rescan, and confirm the deployed component identity when applicable.
+    - name: Require human review
+      text: Return evidence, diff, tests, residual risk, and rollback; stop for triage when ownership or safety is unclear.
 ---
 
-Remediation playbooks are reusable, bounded recipes for one finding. Each one
+AI vulnerability remediation uses a coding agent to investigate one confirmed
+security finding, make the smallest justified change, run the relevant tests,
+and return a pull request or triage note for human review. The agent accelerates
+repository work; it does not decide risk acceptance, invent fixed versions, or
+gain permission to change production.
+
+Here, **agentic vulnerability remediation** means AI agents fixing traditional
+software, dependency, container, and repository-configuration vulnerabilities.
+It does not mean securing the agent, model, tool, memory, identity, or connector
+system itself. Use [AI Agent Security](/agentic-security/) for that workstream.
+This method is also distinct from endpoint agents that only recommend actions
+for an operator to perform.
+
+**Last updated July 23, 2026.** [Stephen M Abbott](/about/#stephen-m-abbott)
+maintains this guide with Security Recipes contributors in the public
+[source and revision history](https://github.com/stevologic/security-recipes.ai/blob/main/content/security-remediation/_index.md).
+See the [review methodology](/about/#editorial-principles) and
+[corrections policy](/about/#corrections). The method follows evidence and
+change-control principles from the
+[NIST Secure Software Development Framework](https://csrc.nist.gov/pubs/sp/800/218/final),
+while product and vulnerability facts remain anchored to the affected vendor,
+CVE record, NVD, and CISA evidence.
+
+These playbooks are reusable, bounded instructions for that workflow. Each one
 should tell an AI agent:
 
 - what kind of finding it can handle,
@@ -26,8 +67,215 @@ should tell an AI agent:
 - what a reviewer should see in the output.
 
 The goal is not to automate every security task. The goal is to make safe,
-bounded fixes easier to delegate to an agent while keeping humans in the review
-loop.
+bounded fixes easier to delegate while keeping source authority, change
+approval, and final review with people.
+
+## How to remediate a vulnerability with an AI agent
+
+Before granting write access, require a named finding, proven affectedness, an
+authoritative fix or mitigation, repository ownership, an allowed path set, a
+protected test or scan, a rollback state, and a required reviewer. Dependency,
+SAST, container, and repository-configuration findings can usually enter this
+workflow. Endpoint patching, firmware, secret rotation, production-only
+infrastructure, end-of-life products, and unclear ownership should stop for
+operator-led triage unless separate authority and evidence are supplied.
+
+1. **Identify one finding.** Start with a CVE, dependency alert, SAST result,
+   exposed secret, vulnerable container layer, or similarly concrete signal.
+2. **Establish exposure.** Confirm the affected product, version, code path,
+   configuration, and deployed artifact before changing anything.
+3. **Choose the narrowest playbook.** Give the agent only the repository files,
+   evidence sources, and allowed operations needed for this finding.
+4. **Capture rollback before mutation.** Record the current manifest, lockfile,
+   configuration, image, or source state and the trigger that would restore it.
+5. **Apply an authoritative fix.** Prefer a vendor-supported release or a
+   documented mitigation. Never infer a fixed version from absence of evidence.
+6. **Verify the result.** Run focused regression tests, rebuild from a clean
+   state, rescan, and confirm the deployed component identity where applicable.
+7. **Require human review.** Return the evidence, diff, tests, residual risk,
+   and rollback path. Stop with `TRIAGE.md` when ownership or safe remediation
+   cannot be proved.
+
+<figure class="sr-guide-figure">
+  <img src="/images/how-to-use/cve-to-agent-plan.webp"
+       alt="A CVE record flows through affectedness checks, a bounded AI agent plan, verification, rollback evidence, and human review"
+       width="2048" height="1152" loading="lazy" decoding="async">
+  <figcaption>A CVE is an evidence input, not permission to patch. The agent receives a bounded plan only after affectedness and ownership are established.</figcaption>
+</figure>
+
+Start with the [CVE Database](/cve-database/) for an exact vulnerability, the
+[Quick Start](/quickstart/) for a first agent-assisted fix, or the playbooks
+below for a specific finding class.
+
+## CVE-specific remediation guides
+
+Use a CVE-specific recipe only when its product and affected-version evidence
+match the finding you are investigating:
+
+- [CVE-2026-48172: LiteSpeed cPanel plugin root privilege escalation](/cve/CVE-2026-48172/)
+- [CVE-2026-45321: TanStack npm supply-chain compromise](/cve/CVE-2026-45321/)
+- [CVE-2026-39987: Marimo pre-auth terminal RCE](/cve/CVE-2026-39987/)
+- [CVE-2026-14956: Bricksforge Pro Forms privilege escalation](/cve/CVE-2026-14956/)
+- [CVE-2025-48384: Git submodule code execution](/cve/CVE-2025-48384/)
+- [CVE-2025-11953: Metro4Shell React Native CLI RCE](/cve/CVE-2025-11953/)
+- [CVE-2025-3248: Langflow unauthenticated RCE](/cve/CVE-2025-3248/)
+- [CVE-2024-23897: Jenkins CLI arbitrary file read](/cve/CVE-2024-23897/)
+- [CVE-2024-37079: VMware vCenter Server heap-overflow RCE](/cve/CVE-2024-37079/)
+- [CVE-2024-6387: OpenSSH regreSSHion race-condition RCE](/cve/CVE-2024-6387/)
+- [CVE-2021-44228: Log4Shell in Apache Log4j](/cve/CVE-2021-44228/)
+- [CVE-2024-3094: xz-utils supply-chain backdoor](/cve/CVE-2024-3094/)
+- [CVE-2021-35395: Realtek AP-Router SDK buffer overflow](/cve/CVE-2021-35395/)
+- [CVE-2014-6271: Shellshock Bash environment-variable RCE](/recipes/cve/cve-2014-6271-shellshock/)
+- [CVE-2014-0160: Heartbleed in OpenSSL](/recipes/cve/cve-2014-0160-heartbleed/)
+
+## What an AI remediation agent should and should not do
+
+An AI coding agent is most useful as a bounded repository operator. It can
+trace dependency resolution, locate a vulnerable call site, prepare a narrow
+patch, update tests, and assemble review evidence. It should not be treated as
+the authority for affected versions, exploitability, business risk, or release
+approval.
+
+| The agent may do | Keep human-owned |
+| --- | --- |
+| Read the named alert, advisory, manifests, lockfiles, source, and tests | Decide whether the finding is accepted, deferred, or remediated |
+| Prove which package, image, configuration, or code path is present | Confirm production ownership, exposure, and maintenance windows |
+| Apply a vendor-supported upgrade or a documented mitigation | Approve breaking changes, compensating controls, and residual risk |
+| Run focused tests, rebuild, rescan, and record command output | Review the diff and authorize merge or deployment |
+| Stop with a precise triage note when evidence is missing | Supply credentials, secrets, production access, or broader authority |
+
+Securing the remediation agent is a separate workstream from the finding it is
+assigned to fix. Use [AI Agent Security](/agentic-security/) for threat modeling,
+identity, tool and connector authorization, context poisoning, memory, browser
+isolation, evaluation, and incident readiness. For a remediation run, start
+read-only, define an explicit file boundary, grant the smallest necessary write
+capability, and provide no production credentials by default.
+
+## Choose an AI agent for vulnerability remediation
+
+Use the agent your team already governs. Start with
+[AI agents for vulnerability remediation](/agents/) to compare supported tools
+and their native instruction surfaces. Each guide maps the same evidence, scope,
+verification, rollback, and human-review contract onto that agent.
+
+| Agent guide | Focused remediation recipe |
+| --- | --- |
+| [Remediate vulnerabilities with Codex](/codex/) | [Codex vulnerable dependency remediation prompt](/recipes/codex/vulnerable-dep-remediation/) |
+| [Remediate CVEs with Claude Code](/claude/) | [Claude Code CVE remediation skill](/recipes/claude/cve-triage-skill/) |
+| [Remediate vulnerable dependencies with Cursor](/cursor/) | [Cursor vulnerable dependency remediation](/recipes/cursor/vulnerable-dep-remediation/) |
+| [Remediate vulnerabilities with GitHub Copilot](/github_copilot/) | [GitHub Copilot vulnerability remediation template](/recipes/github_copilot/vulnerable-dep-remediation/) |
+| [Run scheduled vulnerability remediation with Devin](/devin/) | [Devin scheduled vulnerability remediation](/recipes/devin/scheduled-vulnerability-remediation/) |
+
+## Hypothetical workflow: remediate a dependency CVE with an AI agent
+
+Suppose a dependency alert reports a CVE in a transitive package. A weak
+instruction such as “fix all vulnerabilities” invites unrelated upgrades and
+gives the reviewer no proof that the reported component was removed. A bounded
+run starts with the alert, the authoritative advisory, the repository's
+manifest and lockfile, and the exact tests permitted for the affected area.
+
+### Agent prompt template
+
+```text
+Remediate one finding: <CVE-ID> in <package or component>.
+
+Allowed scope:
+- Read <alert/advisory>, <manifest>, <lockfile>, affected source, and named tests.
+- Change only files required for the smallest vendor-supported remediation.
+- Do not deploy, rotate secrets, change permissions, or update unrelated packages.
+
+Required evidence before editing:
+1. Show the resolved vulnerable version and dependency path.
+2. Cite the vendor-supported fixed version or documented mitigation.
+3. State whether the affected code path or configuration is present.
+4. Record the current lockfile or artifact state for rollback.
+
+Verification:
+- Preserve the original alert, reproducer, or scan result and its checksum
+  before editing.
+- Do not weaken, delete, skip, or reconfigure the scanner, CI gate, or original
+  regression that proves the finding.
+- Run <focused tests>.
+- Rebuild from a clean dependency state.
+- Show that the vulnerable version is absent from the resolved graph.
+- Run the protected reproducer or an independently owned verifier after the
+  patch.
+- Report residual risk and the exact rollback command or revert path.
+
+If affectedness, ownership, or a supported fix cannot be proved, stop and
+write TRIAGE.md. Do not guess a version or broaden the change.
+```
+
+### Evidence a reviewer should receive
+
+A reviewer-ready result contains the finding identity and source URL, the
+before-and-after dependency path, a small diff, test and build output, a
+rescan or equivalent absence check, rollback instructions, and remaining
+uncertainty. “The tests passed” is not sufficient if the old package still
+exists in another workspace, container layer, generated artifact, or deployed
+image.
+
+The correct result may be a triage note rather than a patch. For example, stop
+when the only fixed release requires an unowned platform migration, when the
+alert refers to a package that is not in the shipped artifact, or when a vendor
+has not published a supported remediation. Those outcomes require a human risk
+decision, not a more confident prompt.
+
+## Real repository case study: CVE-2026-13149 in brace-expansion
+
+On July 21, 2026, this repository's Dependabot alert 9 identified
+[CVE-2026-13149 / GHSA-3jxr-9vmj-r5cp](https://github.com/advisories/GHSA-3jxr-9vmj-r5cp)
+in the transitive development dependency `brace-expansion`. The lockfile
+resolved `minimatch` to `brace-expansion` 1.1.15; the advisory marks the 1.x
+line below 1.1.16 as vulnerable to exponential CPU consumption from a short
+brace-pattern input.
+
+A bounded, agent-assisted task produced the dependency portion of
+[pull request 89](https://github.com/stevologic/security-recipes.ai/pull/89),
+which was reviewed and merged the same day. That pull request also fixed a
+separate Fail2Ban deployment bootstrap problem. The evidence below therefore
+describes only the dependency slice; it does not present the entire pull
+request as a one-finding change.
+
+| Contract item | Recorded evidence |
+| --- | --- |
+| Finding | One high-severity advisory affecting transitive `brace-expansion` 1.1.15; the supported first patched 1.x release was 1.1.16. |
+| Scope | `package-lock.json` and the dependency regression in `tests/test_dependabot_config.js`; no application API or unrelated package upgrade was required. |
+| Change | The lockfile moved 1.1.15 to 1.1.16 and updated its registry artifact integrity. |
+| Verification | The regression pins 1.1.16, the advisory proof input completed in about 1 ms, `npm audit` reported zero vulnerabilities, and the repository build, performance budget, and test suites passed. |
+| Review and recovery | The public PR preserves the diff and validation trail. Reverting that dependency slice would restore the vulnerable version, so an operational rollback would need another supported patched release rather than 1.1.15. |
+
+The durable proof is the
+[version regression](https://github.com/stevologic/security-recipes.ai/blob/main/tests/test_dependabot_config.js)
+and the public pull-request record, not the agent's summary. This example shows
+the useful boundary: an agent can trace a transitive package, prepare a narrow
+lockfile update, run the protected check, and assemble evidence. A person still
+accepts the advisory, reviews the combined pull-request scope, and authorizes
+the merge. It does not prove that every dependency alert, production asset, or
+breaking upgrade is safe to delegate.
+
+## Prioritize evidence before asking the agent to patch
+
+Severity is an input, not a complete remediation decision. FIRST's
+[CVSS v4 specification](https://www.first.org/cvss/v4.0/specification-document)
+separates intrinsic base characteristics from threat and environment-specific
+metrics. Combine that signal with actual deployment exposure, reachability,
+asset importance, compensating controls, and evidence of exploitation.
+
+Use this source order for a CVE-driven run:
+
+1. The affected vendor's advisory and fixed-release notes for product-specific
+   affected ranges, patches, and mitigations.
+2. The CVE record and NVD entry for identity, normalized descriptions, CWE,
+   CVSS observations, and source references.
+3. The [CISA Known Exploited Vulnerabilities Catalog](https://www.cisa.gov/known-exploited-vulnerabilities-catalog)
+   as an explicit prioritization input when exploitation is known in the wild.
+4. The repository and deployed artifact for proof that the affected component
+   and path actually exist in your environment.
+
+Never let a model-generated summary outrank a newer vendor advisory. When two
+sources disagree, preserve both claims, their dates, and the unresolved gap;
+route the finding to a person who owns the affected system.
 
 ## Exact scope
 
@@ -94,6 +342,16 @@ to reject PRs that drift outside the declared scope.
   {{< card link="/security-remediation/evidence-bundles/" title="Evidence Bundles" subtitle="Export run receipts as normalized events, manifests, control gaps, hashes, and readable audit reports." >}}
 {{< /cards >}}
 
+## Secure the remediation agent separately
+
+This pillar governs how an AI coding agent fixes a traditional software
+finding. It does not fully secure the AI-agent system that interprets untrusted
+context, holds identities, calls tools, uses browsers or connectors, retains
+memory, and hands work to other agents. Use
+[AI Agent Security: How to Secure AI Agent Systems](/agentic-security/) for the
+threat-modeling method, production baseline, source boundaries, and complete
+control directory for that separate workstream.
+
 ## Recipe run contract
 
 ```text
@@ -123,6 +381,37 @@ Most recipes get better when the agent can read structured evidence:
 Use [MCP Integration]({{< relref "/mcp-servers" >}}) to connect those sources
 as scoped context. Start read-only; add write access only after a separate
 review.
+
+## Common questions about AI vulnerability remediation
+
+### Can an AI agent automatically patch every CVE?
+
+No. It can safely handle a subset of findings where affectedness, repository
+ownership, an authoritative remediation, focused verification, and rollback
+are all available. Kernel, firmware, infrastructure, data migration,
+production-only, end-of-life, or ownership-ambiguous findings usually require
+triage and a human-owned change plan.
+
+### Which coding agents can use these playbooks?
+
+The method is tool-independent. Use the setup guides for [Codex](/codex/),
+[Claude Code](/claude/), [Cursor](/cursor/), [GitHub Copilot](/github_copilot/),
+or [Devin](/devin/) to translate the same scope, evidence, stop, and review
+contract into the agent you already operate.
+
+### Should the agent use CVSS to choose what to fix first?
+
+Not by itself. CVSS communicates vulnerability characteristics; it does not
+prove that your deployed asset is exposed or that a vulnerability is being
+exploited. Combine it with vendor urgency, CISA KEV status, reachable attack
+paths, asset criticality, and the cost and safety of the remediation.
+
+### What should happen when the agent cannot prove a safe fix?
+
+It should stop without editing and return a triage note naming the missing
+evidence, affected owner, attempted checks, temporary containment options, and
+the decision required. A bounded stop is a successful control outcome; an
+unsupported upgrade is not.
 
 ## Add or improve a recipe
 

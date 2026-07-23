@@ -11,6 +11,32 @@ const zlib = require('node:zlib');
 const controller = require('../assets/js/cve-catalog.js');
 const worker = require('../assets/js/cve-catalog-worker.js');
 
+test('catalog display text removes upstream encoding artifacts', () => {
+  const samples = [
+    ['SAP\uFFFDBusinessObjects Business\uFFFDIntelligence', 'SAP BusinessObjects Business Intelligence'],
+    ['application\uFFFDs memory', "application's memory"],
+    ['Composer\u00e2\u20ac\u2122s backup', "Composer's backup"],
+    ['vendor\u00e2\u0080\u0099s advisory', "vendor's advisory"],
+    ['versions 1\u00e2\u20ac\u201c3 and 4\u00e2\u0080\u00945', 'versions 1\u20133 and 4\u20145'],
+    ['Acme\u00e2\u201e\u00a2 component', 'Acme\u2122 component'],
+    ['SAP\u00ef\u00bf\u00bdPlatform and application\u00ef\u00bf\u00bds cache', "SAP Platform and application's cache"],
+    ['men\u00c3\u00ba and execu\u00c3\u00a7\u00c3\u00a3o remota', 'men\u00fa and execu\u00e7\u00e3o remota'],
+    ['product\u00c2\u00a0name', 'product name'],
+    ['product\u00c2 name', 'product name'],
+    ['product\u00c3\u201a\u00c2 name', 'product name']
+  ];
+  for (const [source, expected] of samples) {
+    assert.equal(worker.cleanCatalogText(source), expected);
+    assert.equal(controller.cleanCatalogText(source), expected);
+  }
+});
+
+test('catalog display text preserves already-correct Unicode', () => {
+  const source = 'M\u00fcnchen \u2014 \u201calready quoted\u201d \u2122 \ud83d\ude00 \u00c2ngela';
+  assert.equal(worker.cleanCatalogText(source), source);
+  assert.equal(controller.cleanCatalogText(source), source);
+});
+
 const RECIPE_FIELDS = [
   'exposure_checks',
   'remediation_steps',
@@ -536,6 +562,60 @@ test('runtime summary metadata produces coverage without loading the browser ind
   assert.match(summary, /100% agentic mitigation\/remediation coverage/);
 });
 
+test('qualified CVE routes come only from the server-rendered search allowlist', () => {
+  const link = (cve, href) => ({
+    getAttribute(name) {
+      if (name === 'data-qualified-cve-link') return cve;
+      if (name === 'href') return href;
+      return null;
+    }
+  });
+  const scope = {
+    querySelectorAll(selector) {
+      assert.equal(selector, '[data-qualified-cve-link]');
+      return [
+        link('CVE-2024-3400', '/cve/CVE-2024-3400/'),
+        link('CVE-2017-18342', '/recipes/cve/cve-2017-18342-pyyaml/'),
+        link('CVE-2024-9999', 'https://example.test/cve/CVE-2024-9999/'),
+        link('not-a-cve', '/cve/not-a-cve/')
+      ];
+    }
+  };
+
+  const routes = controller.collectQualifiedCveRoutes(scope);
+  assert.equal(routes.size, 2);
+  assert.equal(
+    controller.qualifiedCveHref(routes, 'CVE-2024-3400'),
+    '/cve/CVE-2024-3400/'
+  );
+  assert.equal(
+    controller.qualifiedCveHref(routes, 'CVE-2017-18342'),
+    '/recipes/cve/cve-2017-18342-pyyaml/'
+  );
+  assert.equal(controller.qualifiedCveHref(routes, 'CVE-2024-9999'), '');
+  assert.equal(controller.qualifiedCveHref(routes, 'CVE-2024-3400?redirect=1'), '');
+});
+
+test('conflicting qualified CVE routes fail closed', () => {
+  const scope = {
+    querySelectorAll() {
+      return [
+        { getAttribute: (name) => name === 'data-qualified-cve-link' ? 'CVE-2024-3400' : '/cve/CVE-2024-3400/' },
+        { getAttribute: (name) => name === 'data-qualified-cve-link' ? 'CVE-2024-3400' : '/recipes/cve/cve-2024-3400-conflict/' },
+        { getAttribute: (name) => name === 'data-qualified-cve-link' ? 'CVE-2024-3400' : '/cve/CVE-2024-3400/' }
+      ];
+    }
+  };
+
+  assert.equal(controller.collectQualifiedCveRoutes(scope).has('CVE-2024-3400'), false);
+});
+
+test('catalog bootstrap waits for explicit search intent', () => {
+  assert.equal(controller.shouldRunInitialSearch(null, false), false);
+  assert.equal(controller.shouldRunInitialSearch(null, true), true);
+  assert.equal(controller.shouldRunInitialSearch({ id: 'CVE-2024-3400' }, false), true);
+});
+
 test('runtime summary requires content-derived shard and archetype versions', () => {
   const base = {
     schema_version: 2,
@@ -832,7 +912,13 @@ test('controller never parses the full index and feed Markdown is never injected
   assert.match(controllerSource, /Source fingerprint/);
   assert.match(controllerSource, /appendAiEnrichment\(technicalBody, fullRecord\.ai_enrichment\)/);
   assert.match(controllerSource, /Open canonical CVE page/);
-  assert.match(controllerSource, /basePrefix\(\) \+ 'cve\/' \+ encodeURIComponent\(preview\.cve\) \+ '\/'/);
+  assert.match(controllerSource, /qualifiedCveHref\(state\.qualifiedCveRoutes, preview\.cve\)/);
+  assert.match(controllerSource, /if \(qualifiedHref\) \{[\s\S]*?permalink\.href = qualifiedHref/);
+  assert.doesNotMatch(
+    controllerSource,
+    /permalink\.href = basePrefix\(\) \+ 'cve\/' \+ encodeURIComponent\(preview\.cve\) \+ '\/'/,
+    'unqualified search results must not synthesize crawlable internal CVE links'
+  );
   assert.match(controllerSource, /View on CVE\.org/);
   assert.match(controllerSource, /https:\/\/www\.cve\.org\/CVERecord\?id=/);
   assert.match(controllerSource, /canonicalLink\.target = '_blank'/);
@@ -851,8 +937,18 @@ test('controller never parses the full index and feed Markdown is never injected
   assert.match(workerSource, /browser-index\.json\.gz/);
   assert.match(
     controllerSource,
+    /search\.addEventListener\('focus',[\s\S]*?if \(state\.requestId === 0\) runSearch\(\);[\s\S]*?\{ once: true \}/,
+    'the full browser index is activated only after search focus'
+  );
+  assert.match(
+    controllerSource,
+    /loadManifest\(false\)\.then\([\s\S]*?if \(hasInitialSearchIntent && state\.requestId === 0\) runSearch\(\);/,
+    'shareable URL filters and exact embedded CVEs retain their explicit bootstrap behavior'
+  );
+  assert.doesNotMatch(
+    controllerSource,
     /loadManifest\(false\)\.then\([\s\S]*?if \(state\.requestId === 0\) runSearch\(\);/,
-    'the catalog runs its newest-first browse query after bootstrap'
+    'a blank catalog must preserve the server-rendered latest seed without loading the browser index'
   );
   assert.doesNotMatch(
     controllerSource,

@@ -1,7 +1,7 @@
 ---
 title: "SOC 2 Trust Services Criteria Evidence Readiness Check"
 linkTitle: "SOC 2 TSC"
-description: "Service organizations preparing evidence for a SOC 2 examination using the applicable Trust Services Criteria."
+description: "Assess SOC 2 TSC evidence readiness: verify applicability, map official requirements to artifacts, record gaps, and plan remediation."
 recipe_id: "compliance.soc-2-tsc-2017-2022"
 framework_id: "soc-2"
 framework: "SOC 2 TSC"
@@ -21,6 +21,8 @@ tool: "Compliance evidence review"
 author: "Security Recipes"
 team: "GRC and Security Engineering"
 maturity: "stable"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 tags: ["compliance", "soc-2", "assurance", "audit", "governance", "service-organizations", "cloud"]
 weight: 160

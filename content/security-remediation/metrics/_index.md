@@ -2,12 +2,14 @@
 title: Program Metrics & KPIs
 linkTitle: Program Metrics & KPIs
 weight: 10
+date: 2026-04-22
+lastmod: 2026-07-21
 sidebar:
   open: true
 description: >
-  The measurement layer for an agentic remediation program — what to
-  count, how to compute it, and what the numbers have to show before
-  leadership (or a regulator) will let you scale further.
+  Measure an AI vulnerability remediation program with time-to-remediate,
+  agent acceptance, reviewer burden, escaped defects, rollback, and risk
+  reduction.
 ---
 
 {{< callout type="info" >}}
@@ -223,4 +225,5 @@ turn it back on until the root cause is understood:
 - [Agentic Security Remediation]({{< relref "/security-remediation" >}}) — the workflows the metrics cover
 - [Reviewer Playbook]({{< relref "/security-remediation/reviewer-playbook" >}}) — the human-in-the-loop side
 - [Rollout & Maturity Model]({{< relref "/security-remediation/maturity" >}}) — how the numbers gate stage changes
+- [Agentic AIVSS Risk Scoring]({{< relref "/security-remediation/agentic-aivss-risk-scoring" >}}) — a reviewable way to score agent-specific likelihood, impact, and control strength
 - [Automation]({{< relref "/automation" >}}) — the deterministic baseline the agent is compared against

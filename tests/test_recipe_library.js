@@ -6,6 +6,8 @@ const path = require('node:path');
 const test = require('node:test');
 
 const { renderAiProvenance } = require('../lib/ai-provenance.js');
+const contentIndex = require('../lib/content-index.js');
+const { loadCveSearchIndexableRecords } = require('../lib/cve-indexability.js');
 const { cveDisplayTitle, stripFirstH1 } = require('../lib/html-content.js');
 const { renderCardHtml } = require('../lib/recipe-cards.js');
 
@@ -74,10 +76,23 @@ test('recipe library server render is bounded and remains useful without JavaScr
   const html = renderedLibrary();
   const cards = html.match(/\bdata-recipe-card(?:\s|>)/g) || [];
   const expectedCards = Math.min(18, Number(curated.count));
+  const seedMatch = html.match(
+    /<script type="application\/json" data-recipe-seed>([\s\S]*?)<\/script>/
+  );
 
   assert.equal(cards.length, expectedCards);
   assert.ok(cards.length <= 18, 'the initial document never renders more than one bounded page');
+  assert.ok(seedMatch, 'the SSR cards have a matching inline hydration seed');
+  const seed = JSON.parse(seedMatch[1]);
+  assert.equal(seed.length, expectedCards, 'the inline seed contains only the SSR page');
+  assert.ok(seed.length <= 18, 'the inline seed cannot grow into an eager catalogue payload');
+  assert.deepEqual(
+    seed.map((recipe) => recipe.url),
+    [...html.matchAll(/\bdata-recipe-path="([^"]+)"/g)].map((match) => match[1]),
+    'seed records and crawlable SSR cards describe the same recipe links'
+  );
   assert.match(html, new RegExp(`data-recipe-ssr-count="${expectedCards}"`));
+  assert.match(html, /data-recipe-feed-policy="interaction"/);
   assert.match(html, /full feed is available at <code>\/api\/curated-recipes\.json<\/code>/);
   assert.match(html, /data-recipe-summary[^>]*role="status"[^>]*aria-live="polite"[^>]*aria-atomic="true"/);
   assert.match(
@@ -86,6 +101,141 @@ test('recipe library server render is bounded and remains useful without JavaScr
   );
   assert.match(html, /id="recipe-library-facets"[^>]*aria-hidden="false"/);
   assert.match(html, /data-recipe-filter-close>Close filters<\/button>/);
+});
+
+test('recipe browser defers the complete feed until meaningful interaction', () => {
+  const source = fs.readFileSync(path.join(ROOT, 'assets', 'js', 'recipe-browser.js'), 'utf8');
+  const ensureStart = source.indexOf('function ensureCatalogueLoaded()');
+  const refreshStart = source.indexOf('function refreshCatalogueAfterInteraction()');
+  const deferredLoad = source.indexOf('cataloguePromise = loadFeed()', ensureStart);
+  const readyMarker = source.lastIndexOf("root.dataset.recipeBrowserReady = 'true'");
+  const initEnd = source.indexOf('\n  }\n\n  function init()', readyMarker);
+
+  assert.ok(ensureStart > 0 && refreshStart > ensureStart);
+  assert.ok(
+    deferredLoad > ensureStart && deferredLoad < refreshStart,
+    'the slim feed starts only inside the shared interaction loader'
+  );
+  assert.match(
+    source.slice(ensureStart, refreshStart),
+    /if \(cataloguePromise\) return cataloguePromise;/,
+    'concurrent interactions reuse one in-flight catalogue request'
+  );
+  assert.equal(
+    [...source.matchAll(/\bloadFeed\(\)/g)].length,
+    2,
+    'loadFeed appears only in its declaration and the deferred loader'
+  );
+  assert.doesNotMatch(
+    source.slice(readyMarker, initEnd),
+    /loadFeed\(\)/,
+    'initialization must not fetch the catalogue after mounting the SSR page'
+  );
+  assert.match(source, /addEventListener\('input', refreshCatalogueAfterInteraction\)/);
+  assert.match(source, /addEventListener\('search', refreshCatalogueAfterInteraction\)/);
+  assert.match(
+    source,
+    /addEventListener\('focus', function \(\) \{[\s\S]*?ensureCatalogueLoaded\(\)/
+  );
+  assert.match(source, /severityFilter\.addEventListener\('change', refreshCatalogueAfterInteraction\)/);
+  assert.match(source, /facetFilter\.addEventListener\('change', refreshCatalogueAfterInteraction\)/);
+  assert.match(source, /qualityFilter\.addEventListener\('change', refreshCatalogueAfterInteraction\)/);
+  assert.match(source, /sortSelect\.addEventListener\('change', refreshCatalogueAfterInteraction\)/);
+  assert.match(
+    source,
+    /button\.addEventListener\('click', function \(\) \{ setActiveCategory\(filter\); \}\);/
+  );
+  assert.match(
+    source,
+    /function setActiveCategory\([^)]+\) \{[\s\S]*?refreshCatalogueAfterInteraction\(\);\s*\}/
+  );
+  assert.match(source, /loadMoreButton\.addEventListener\('click', requestNextPage\)/);
+  assert.match(
+    source,
+    /if \(hasActiveSelection\(\)\) \{\s*ensureCatalogueLoaded\(\)/,
+    'a shared or bookmarked filtered URL loads the complete result set'
+  );
+});
+
+test('indexed agent remediation recipes use branded headings and concise navigation labels', () => {
+  const expected = [
+    {
+      sourcePath: 'recipes/codex/vulnerable-dep-remediation.md',
+      title: 'Codex Vulnerable Dependency Remediation',
+      linkTitle: 'Vulnerable dep remediation',
+      brand: 'Codex',
+    },
+    {
+      sourcePath: 'recipes/codex/sensitive-data-remediation.md',
+      title: 'Codex Sensitive Data Remediation',
+      linkTitle: 'Sensitive data remediation',
+      brand: 'Codex',
+    },
+    {
+      sourcePath: 'recipes/claude/cve-triage-skill.md',
+      title: 'Claude Code CVE and Dependency Remediation Skill',
+      linkTitle: 'CVE triage skill',
+      brand: 'Claude Code',
+    },
+    {
+      sourcePath: 'recipes/claude/sensitive-data-remediation-skill.md',
+      title: 'Claude Code Sensitive Data Remediation Skill',
+      linkTitle: 'Sensitive data remediation skill',
+      brand: 'Claude Code',
+    },
+    {
+      sourcePath: 'recipes/cursor/vulnerable-dep-remediation.md',
+      title: 'Cursor Vulnerable Dependency Remediation',
+      linkTitle: 'Vulnerable dep remediation',
+      brand: 'Cursor',
+    },
+    {
+      sourcePath: 'recipes/cursor/sensitive-data-remediation.md',
+      title: 'Cursor Sensitive Data Remediation',
+      linkTitle: 'Sensitive data remediation',
+      brand: 'Cursor',
+    },
+    {
+      sourcePath: 'recipes/github_copilot/vulnerable-dep-remediation.md',
+      title: 'GitHub Copilot Vulnerable Dependency Remediation',
+      linkTitle: 'Vulnerable dep remediation',
+      brand: 'GitHub Copilot',
+    },
+    {
+      sourcePath: 'recipes/github_copilot/sensitive-data-remediation.md',
+      title: 'GitHub Copilot Sensitive Data Remediation',
+      linkTitle: 'Sensitive data remediation',
+      brand: 'GitHub Copilot',
+    },
+    {
+      sourcePath: 'recipes/devin/scheduled-vulnerability-remediation.md',
+      title: 'Devin Scheduled Vulnerability Remediation',
+      linkTitle: 'Scheduled vulnerability remediation',
+      brand: 'Devin',
+    },
+    {
+      sourcePath: 'recipes/devin/scheduled-sde-remediation.md',
+      title: 'Devin Scheduled Sensitive Data Remediation',
+      linkTitle: 'Scheduled SDE remediation',
+      brand: 'Devin',
+    },
+  ];
+  const pages = new Map(
+    contentIndex.getIndex().pages.map((page) => [page.sourcePath, page])
+  );
+  const cards = new Map(curatedFeed().recipes.map((recipe) => [recipe.url, recipe]));
+
+  assert.equal(expected.length, 10);
+  for (const fixture of expected) {
+    const page = pages.get(fixture.sourcePath);
+    assert.ok(page, `${fixture.sourcePath} exists`);
+    assert.equal(page.title, fixture.title);
+    assert.equal(page.linkTitle, fixture.linkTitle);
+    assert.match(page.title, new RegExp(`^${fixture.brand.replace(' ', '\\s')}\\b`));
+    assert.ok(page.title.length <= 60, `${fixture.sourcePath} has a concise search title`);
+    assert.notEqual(page.fm.noindex, true, `${fixture.sourcePath} remains indexable`);
+    assert.equal(cards.get(page.url)?.title, fixture.title, `${page.url} exposes the branded title`);
+  }
 });
 
 test('CVE Database is a standalone catalog route in the primary navigation', () => {
@@ -111,12 +261,129 @@ test('CVE Database is a standalone catalog route in the primary navigation', () 
   assert.match(hubHtml, /data-cve-catalog\s+data-cve-catalog-base="\/api\/cve-catalog\/"/);
   assert.doesNotMatch(hubHtml, /data-cve-catalog-deferred/);
   assert.match(hubHtml, /<h1 id="cve-database-heading">CVE Database<\/h1>/);
+  assert.match(hubHtml, /<h2 id="cve-qualified-heading">Reviewed and evidence-qualified CVEs<\/h2>/);
+  assert.match(hubHtml, /<h2 id="cve-historical-heading">Historical reviewed CVEs<\/h2>/);
+  const aiEvaluated = Number(hubHtml.match(/<dt>AI-evaluated<\/dt><dd>([\d,]+)<\/dd>/)?.[1].replaceAll(',', ''));
+  const modelCounts = [...hubHtml.matchAll(/cve-database__model-chip[\s\S]*?<small>([\d,]+) records<\/small>/g)]
+    .map((match) => Number(match[1].replaceAll(',', '')));
+  assert.ok(modelCounts.length > 0, 'the active catalog exposes AI model provenance');
+  assert.equal(
+    modelCounts.reduce((total, records) => total + records, 0),
+    aiEvaluated,
+    'model provenance counts equal the active AI-evaluated record total'
+  );
+  assert.match(hubHtml, /href="\/security-remediation\/">AI vulnerability remediation playbooks<\/a>/);
+  assert.match(hubHtml, /href="\/security-remediation\/vulnerable-dependencies\/">vulnerable dependency workflow<\/a>/);
+  assert.match(hubHtml, /href="\/recipes\/general\/cve-intelligence-intake-gate\/">CVE intelligence intake gate<\/a>/);
   assert.doesNotMatch(hubHtml, /From vulnerability signal to a bounded response plan/);
   assert.doesNotMatch(hubHtml, /data-cve-hero-search/);
   assert.ok(
     hubHtml.indexOf('id="cve-catalog"') < hubHtml.indexOf('id="cve-quick-heading"'),
     'the searchable records must appear before supporting content'
   );
+  assert.ok(
+    hubHtml.indexOf('id="cve-qualified-heading"') < hubHtml.indexOf('id="cve-quick-heading"'),
+    'qualified canonical links must appear before supporting content'
+  );
+
+  const qualified = loadCveSearchIndexableRecords();
+  const catalogManifest = readJson(
+    path.join(ROOT, 'static', 'api', 'cve-catalog', 'manifest.json')
+  );
+  assert.ok(qualified.length > 0, 'the evidence-qualified CVE list is not empty');
+  assert.equal(qualified.length, catalogManifest.search_index.records);
+  assert.equal(qualified.length, catalogManifest.totals.search_indexable_records);
+  const stableRoutes = new Map(
+    contentIndex.getIndex().pages
+      .filter((page) => String(page.fm?.maturity || '').toLowerCase() === 'stable' && page.fm?.cve)
+      .map((page) => [String(page.fm.cve).toUpperCase(), contentIndex.canonicalUrlForPage(page)])
+  );
+  const expectedQualifiedLinks = new Map(
+    qualified.map((record) => [
+      record.cve,
+      stableRoutes.get(record.cve) || `/cve/${record.cve}/`
+    ])
+  );
+  const renderedQualifiedLinks = new Map(
+    [...hubHtml.matchAll(/<a href="([^"]+)" data-qualified-cve-link="(CVE-\d{4}-\d{4,})">/g)]
+      .map((match) => [match[2], match[1]])
+  );
+  assert.deepEqual(
+    [...renderedQualifiedLinks].sort(([a], [b]) => a.localeCompare(b, 'en')),
+    [...expectedQualifiedLinks].sort(([a], [b]) => a.localeCompare(b, 'en'))
+  );
+  assert.equal(renderedQualifiedLinks.get('CVE-2017-18342'), '/recipes/cve/cve-2017-18342-pyyaml/');
+  const reviewedPyYamlAnchor = hubHtml.match(
+    /<a href="([^"]+)" data-qualified-cve-link="CVE-2017-18342"><strong>CVE-2017-18342<\/strong><span>([^<]+)<\/span>/
+  );
+  assert.ok(reviewedPyYamlAnchor, 'the reviewed PyYAML record has a visible database anchor');
+  assert.equal(reviewedPyYamlAnchor[1], '/recipes/cve/cve-2017-18342-pyyaml/');
+  assert.equal(
+    reviewedPyYamlAnchor[2],
+    'CVE-2017-18342 — PyYAML default load resolves arbitrary tags'
+  );
+  const qualifiedAnchorLabels = new Map(
+    [...hubHtml.matchAll(
+      /data-qualified-cve-link="(CVE-\d{4}-\d{4,})"><strong>\1<\/strong><span>([^<]+)<\/span>/g
+    )].map((match) => [match[1], match[2]])
+  );
+  assert.equal(
+    qualifiedAnchorLabels.get('CVE-2021-41773'),
+    'CVE-2021-41773: Apache HTTP Server 2.4.49 Path Traversal'
+  );
+  assert.equal(
+    qualifiedAnchorLabels.get('CVE-2021-42013'),
+    'CVE-2021-42013: Apache HTTP Server 2.4.50 Incomplete-Fix Bypass'
+  );
+  assert.equal(
+    qualifiedAnchorLabels.get('CVE-2025-20281'),
+    'CVE-2025-20281: Cisco ISE API Root RCE (CSCwo99449)'
+  );
+  assert.equal(
+    qualifiedAnchorLabels.get('CVE-2025-20337'),
+    'CVE-2025-20337: Cisco ISE API Root RCE (CSCwp02814)'
+  );
+  assert.equal(
+    qualifiedAnchorLabels.get('CVE-2026-33116'),
+    'CVE-2026-33116: .NET System.Security.Cryptography.Xml DoS'
+  );
+  assert.equal(
+    qualifiedAnchorLabels.get('CVE-2026-14956'),
+    'CVE-2026-14956 — Bricksforge Pro Forms privilege escalation'
+  );
+  assert.equal(
+    qualifiedAnchorLabels.get('CVE-2021-44228'),
+    'CVE-2021-44228 — Log4Shell'
+  );
+  assert.equal(
+    qualifiedAnchorLabels.get('CVE-2024-6387'),
+    'CVE-2024-6387: OpenSSH regreSSHion RCE Remediation'
+  );
+  assert.doesNotMatch(
+    hubHtml,
+    /In PyYAML before 5\.1, the yaml\.load\(\) API could execute arbitrary code if used with untrusted data/
+  );
+  const qualifiedIds = new Set(qualified.map((record) => record.cve));
+  const expectedHistoricalLinks = new Map(
+    [...stableRoutes].filter(([cve]) => !qualifiedIds.has(cve))
+  );
+  const renderedHistoricalLinks = new Map(
+    [...hubHtml.matchAll(/<a href="([^"]+)" data-historical-cve-link="(CVE-\d{4}-\d{4,})">/g)]
+      .map((match) => [match[2], match[1]])
+  );
+  assert.deepEqual(
+    [...renderedHistoricalLinks].sort(([a], [b]) => a.localeCompare(b, 'en')),
+    [...expectedHistoricalLinks].sort(([a], [b]) => a.localeCompare(b, 'en'))
+  );
+  assert.equal(
+    renderedHistoricalLinks.get('CVE-2014-0160'),
+    '/recipes/cve/cve-2014-0160-heartbleed/'
+  );
+  assert.equal(
+    renderedHistoricalLinks.get('CVE-2014-6271'),
+    '/recipes/cve/cve-2014-6271-shellshock/'
+  );
+  assert.equal(renderedHistoricalLinks.has('CVE-2017-18342'), false);
   assert.ok(
     head.includes('/cve-database/'),
     'the standalone route must opt into route-specific CVE assets'
@@ -171,8 +438,13 @@ test('standalone CVE records use a scoped theme and one canonical page heading',
   assert.match(stripFirstH1(rendered), /Review scope/);
   assert.equal(
     cveDisplayTitle('CVE-2014-0160 — Heartbleed', 'CVE-2014-0160'),
-    'Heartbleed'
+    'CVE-2014-0160: Heartbleed'
   );
+  assert.equal(
+    cveDisplayTitle('Heartbleed', 'CVE-2014-0160'),
+    'CVE-2014-0160: Heartbleed'
+  );
+  assert.match(layout, /detailTitleSource \| cveDisplayTitle\(cve\)/);
   assert.match(layout, /data-cve-detail-page="true"/);
   assert.match(layout, /content \| stripFirstH1/);
   assert.match(layout, /class="sr-cve-detail-header"/);
@@ -207,6 +479,10 @@ test('AI provenance badges are escaped and only render when a model is present',
   };
 
   assert.equal(renderAiProvenance(''), '');
+  assert.match(
+    renderCardHtml(baseCard),
+    /<h3 id="recipe-card-fixture"><a href="\/recipes\/general\/fixture\/">Fixture<\/a><\/h3>/
+  );
   assert.match(provenance, /class="sr-ai-provenance"/);
   assert.match(provenance, /aria-label="AI-enriched with gpt&lt;5&gt;&amp;&quot;"/);
   assert.match(provenance, /<code>gpt&lt;5&gt;&amp;&quot;<\/code>/);

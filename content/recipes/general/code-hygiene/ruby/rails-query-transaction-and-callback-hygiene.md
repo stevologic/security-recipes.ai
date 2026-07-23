@@ -1,11 +1,13 @@
 ---
 title: "Rails query, transaction, and callback hygiene"
 linkTitle: "Rails query, transaction, and callback hygiene"
-description: "Bounded audit or remediation to make Active Record query count, transaction scope, and callback side effects explicit."
+description: "Rails query, transaction, and callback hygiene: Make Active Record query count, transaction scope, and callback side effects explicit."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"
 maturity: "development"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 recipe_id: "code-hygiene.ruby.rails-query-transaction-and-callback-hygiene"
 recipe_kind: "code-hygiene"

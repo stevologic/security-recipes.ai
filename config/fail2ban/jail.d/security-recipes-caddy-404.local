@@ -11,6 +11,12 @@ logpath = /var/log/caddy/access.log
 backend = polling
 usedns = no
 
+# Never trust the request User-Agent. Ignore only a public client_ip whose PTR
+# is under googlebot.com and whose forward A/AAAA result contains that same IP.
+# Resolver failures and the verifier's five-second timeout fail closed.
+ignorecommand = /usr/bin/python3 /usr/local/bin/security-recipes-verify-googlebot.py "<ip>"
+ignorecache = key="<ip>", max-count=1000, max-time=1h
+
 # Health checks and private east-west traffic must never consume the public
 # abuse budget.
 ignoreip = 127.0.0.0/8 ::1 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 fc00::/7 fe80::/10

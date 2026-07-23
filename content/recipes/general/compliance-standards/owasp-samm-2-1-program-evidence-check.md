@@ -1,7 +1,7 @@
 ---
 title: "OWASP SAMM 2.1 Software Assurance Maturity Evidence Check"
 linkTitle: "OWASP SAMM 2.1"
-description: "Organizations measuring and improving a software security program using the OWASP SAMM maturity model."
+description: "Assess OWASP SAMM 2.1 evidence readiness: verify applicability, map official requirements to artifacts, record gaps, and plan remediation."
 recipe_id: "compliance.owasp-samm-2-1"
 framework_id: "owasp-samm"
 framework: "OWASP SAMM 2.1"
@@ -21,6 +21,8 @@ tool: "Compliance evidence review"
 author: "Security Recipes"
 team: "GRC and Security Engineering"
 maturity: "stable"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 tags: ["compliance", "owasp-samm", "product-security", "audit", "application-security", "maturity", "software", "cross-sector"]
 weight: 320

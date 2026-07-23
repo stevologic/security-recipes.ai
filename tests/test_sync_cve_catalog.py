@@ -281,6 +281,171 @@ def write_catalog_fixture(
 
 
 class SyncCveCatalogTests(unittest.TestCase):
+    def test_english_description_truncates_at_a_complete_sentence(self) -> None:
+        complete_sentence = (
+            "The affected component accepts attacker-controlled input and reaches the vulnerable "
+            + "processing path under the documented deployment conditions " * 15
+        ).strip() + "."
+        unfinished_sentence = (
+            "Additional source detail continues with lower-priority implementation context " * 15
+        ).strip() + "."
+        self.assertLess(len(complete_sentence), 1200)
+        self.assertGreater(len(f"{complete_sentence} {unfinished_sentence}"), 1200)
+        record = nvd_record()
+        record["descriptions"][0]["value"] = f"{complete_sentence} {unfinished_sentence}"
+
+        summary = catalog.english_description(record)
+
+        self.assertEqual(summary, complete_sentence)
+        self.assertFalse(summary.endswith("…"))
+
+    def test_sentence_aware_summary_preserves_short_and_marks_boundaryless_text(self) -> None:
+        self.assertEqual(
+            catalog.truncate_summary_at_sentence("A complete short summary.", limit=80),
+            "A complete short summary.",
+        )
+
+        boundaryless = "word " * 40
+        truncated = catalog.truncate_summary_at_sentence(boundaryless, limit=80)
+        self.assertLessEqual(len(truncated), 80)
+        self.assertTrue(truncated.endswith("…"))
+
+    def test_existing_truncated_summary_drops_incomplete_tail(self) -> None:
+        truncated = (
+            "The first sentence is complete. The source cuts off mid-senten…"
+        )
+        repaired = catalog.trim_incomplete_summary_tail(truncated)
+        self.assertEqual(repaired, "The first sentence is complete.")
+        self.assertEqual(catalog.trim_incomplete_summary_tail(repaired), repaired)
+        self.assertEqual(
+            catalog.trim_incomplete_summary_tail("Boundaryless source text…"),
+            "Boundaryless source text…",
+        )
+        self.assertEqual(
+            catalog.trim_incomplete_summary_tail("A diagnostic trace follows..."),
+            "A diagnostic trace follows...",
+        )
+
+    def test_catalog_text_cleanup_preserves_enrichment_provenance_fields(self) -> None:
+        source_url = "https://vendor.example.test/advisory?a=1&amp;b=2"
+        fingerprint = "a" * 64
+        record = {
+            "title": "Product &amp; service vulnerability",
+            "summary": "Apply the vendor’s supported update.",
+            "ai_enrichment": {
+                "business_risk": "Product &amp; service compromise.",
+                "exposure_conditions": ["The service’s endpoint is reachable."],
+                "remediation_steps": ["Apply the vendor’s update."],
+                "verification_steps": ["Confirm the service’s fixed version."],
+                "uncertainty": ["Deployment ownership isn’t recorded."],
+                "claim_evidence": [
+                    {
+                        "claim": "Product &amp; service is affected.",
+                        "kind": "affected_product",
+                        "source_url": source_url,
+                    }
+                ],
+                "source_urls": [source_url],
+                "retrieved_source_urls": [source_url],
+                "source_fingerprint": fingerprint,
+                "model": "test-model",
+            },
+        }
+
+        normalized = catalog.normalize_catalog_record_text(record)
+
+        self.assertEqual(normalized["title"], "Product & service vulnerability")
+        self.assertEqual(
+            normalized["ai_enrichment"]["business_risk"],
+            "Product & service compromise.",
+        )
+        self.assertEqual(
+            normalized["ai_enrichment"]["claim_evidence"][0]["claim"],
+            "Product & service is affected.",
+        )
+        self.assertEqual(
+            normalized["ai_enrichment"]["claim_evidence"][0]["source_url"],
+            source_url,
+        )
+        self.assertEqual(normalized["ai_enrichment"]["source_urls"], [source_url])
+        self.assertEqual(normalized["ai_enrichment"]["source_fingerprint"], fingerprint)
+
+    def test_generic_space_normalization_does_not_decode_url_entities(self) -> None:
+        source_url = "https://vendor.example.test/advisory?a=1&notid=2&amp;b=3"
+
+        self.assertEqual(catalog.normalize_space(source_url), source_url)
+
+    def test_valid_cached_enrichment_reconciles_normalized_source_fingerprint(self) -> None:
+        record = normalize(nvd_record("CVE-2024-4321"))
+        self.assertIsNotNone(record)
+        assert record is not None
+        record["summary"] = "Product &amp; service is affected."
+        source_url = record["references"][0]["url"]
+        normalized = catalog.normalize_catalog_record_text(record)
+        candidate = ai.build_enrichment_entry(
+            normalized,
+            {
+                "status": "complete",
+                "business_risk": "An exposed vulnerable service could be compromised.",
+                "exposure_conditions": ["The affected service is reachable."],
+                "remediation_steps": ["Apply the vendor-supported fixed release."],
+                "verification_steps": ["Confirm the fixed release is deployed."],
+                "uncertainty": [],
+                "recipe_specificity": "not_specific",
+                "claim_evidence": [],
+                "source_urls": [source_url],
+            },
+            model="test-model",
+            retrieved_source_urls=[source_url],
+        )
+        record["ai_enrichment"] = {**candidate, "source_fingerprint": "b" * 64}
+
+        refreshed = catalog.apply_valid_cached_enrichment(
+            record,
+            {record["cve"]: candidate},
+        )
+
+        self.assertEqual(refreshed["ai_enrichment"], candidate)
+        self.assertEqual(
+            ai.enrichment_errors(
+                refreshed["ai_enrichment"],
+                catalog.normalize_catalog_record_text(refreshed),
+            ),
+            [],
+        )
+
+    def test_valid_cached_enrichment_is_removed_from_stable_override(self) -> None:
+        record = normalize(nvd_record("CVE-2024-4321"))
+        self.assertIsNotNone(record)
+        assert record is not None
+        source_url = record["references"][0]["url"]
+        candidate = ai.build_enrichment_entry(
+            record,
+            {
+                "status": "complete",
+                "business_risk": "An exposed vulnerable service could be compromised.",
+                "exposure_conditions": ["The affected service is reachable."],
+                "remediation_steps": ["Apply the vendor-supported fixed release."],
+                "verification_steps": ["Confirm the fixed release is deployed."],
+                "uncertainty": [],
+                "recipe_specificity": "not_specific",
+                "claim_evidence": [],
+                "source_urls": [source_url],
+            },
+            model="test-model",
+            retrieved_source_urls=[source_url],
+        )
+        record["recipe_kind"] = "markdown-override"
+        record["ai_enrichment"] = candidate
+
+        refreshed = catalog.apply_valid_cached_enrichment(
+            record,
+            {record["cve"]: candidate},
+        )
+
+        self.assertNotIn("ai_enrichment", refreshed)
+        self.assertIn("ai_enrichment", record)
+
     def test_ai_enrichment_limit_is_hard_bounded(self) -> None:
         self.assertEqual(catalog.parse_ai_enrichment_limit("0"), 0)
         self.assertEqual(
@@ -291,6 +456,38 @@ class SyncCveCatalogTests(unittest.TestCase):
             with self.subTest(invalid=invalid):
                 with self.assertRaisesRegex(argparse.ArgumentTypeError, "AI enrichment limit"):
                     catalog.parse_ai_enrichment_limit(invalid)
+
+    def test_manual_priority_cve_ids_parse_canonical_comma_and_space_separators(self) -> None:
+        self.assertEqual(
+            catalog.parse_priority_cve_ids(
+                "CVE-2026-14956, CVE-2024-3400\nCVE-2026-14956"
+            ),
+            ("CVE-2026-14956", "CVE-2024-3400"),
+        )
+        self.assertEqual(catalog.parse_priority_cve_ids("  \t"), ())
+        parsed = catalog.parse_args(
+            ["--priority-cve-ids", "CVE-2026-14956 CVE-2024-3400"]
+        )
+        self.assertEqual(
+            parsed.priority_cve_ids,
+            ("CVE-2026-14956", "CVE-2024-3400"),
+        )
+
+    def test_manual_priority_cve_ids_reject_noncanonical_tokens(self) -> None:
+        for invalid in (
+            "cve-2026-14956",
+            "CVE-2026-999",
+            "CVE-2026-14956;CVE-2024-3400",
+            "CVE-2026-14956/",
+            "CVE-２０２６-１４９５６",
+            "CVE-٢٠٢٦-١٤٩٥٦",
+        ):
+            with self.subTest(invalid=invalid):
+                with self.assertRaisesRegex(
+                    argparse.ArgumentTypeError,
+                    "canonical CVE-YYYY-NNNN",
+                ):
+                    catalog.parse_priority_cve_ids(invalid)
 
     def test_fetch_bytes_retries_transient_nvd_404(self) -> None:
         class Response:
@@ -317,6 +514,36 @@ class SyncCveCatalogTests(unittest.TestCase):
             payload = catalog.fetch_bytes("https://nvd.example.test/feed.json.gz")
 
         self.assertEqual(payload, b"recovered feed")
+        self.assertEqual(mocked_open.call_count, 2)
+        mocked_sleep.assert_called_once_with(1)
+
+    def test_fetch_bytes_retries_truncated_http_body(self) -> None:
+        class Response:
+            def __init__(self, *, truncated: bool = False) -> None:
+                self.truncated = truncated
+
+            def __enter__(self) -> "Response":
+                return self
+
+            def __exit__(self, *args: object) -> None:
+                return None
+
+            def read(self) -> bytes:
+                if self.truncated:
+                    raise catalog.IncompleteRead(b"partial feed", 1024)
+                return b"complete feed"
+
+        with (
+            patch.object(
+                catalog,
+                "urlopen",
+                side_effect=[Response(truncated=True), Response()],
+            ) as mocked_open,
+            patch.object(catalog.time, "sleep") as mocked_sleep,
+        ):
+            payload = catalog.fetch_bytes("https://nvd.example.test/feed.json.gz")
+
+        self.assertEqual(payload, b"complete feed")
         self.assertEqual(mocked_open.call_count, 2)
         mocked_sleep.assert_called_once_with(1)
 
@@ -358,6 +585,18 @@ class SyncCveCatalogTests(unittest.TestCase):
         self.assertEqual(manifest["totals"]["ai_enriched_records"], 1)
         self.assertEqual(manifest["totals"]["ai_enrichment_complete"], 1)
         self.assertEqual(manifest["totals"]["ai_enrichment_insufficient_evidence"], 0)
+        self.assertEqual(manifest["ai_enrichment_models"], {"test-model": 1})
+        runtime_summary = json.loads(outputs[Path("runtime-summary.json")])
+        self.assertEqual(runtime_summary["ai_enrichment_models"], {"test-model": 1})
+        self.assertEqual(
+            sum(runtime_summary["ai_enrichment_models"].values()),
+            runtime_summary["totals"]["ai_enriched_records"],
+        )
+        self.assertEqual(manifest["totals"]["search_indexable_records"], 0)
+        self.assertEqual(
+            json.loads(outputs[Path("search-indexable.json")])["records"],
+            [],
+        )
 
         with tempfile.TemporaryDirectory(prefix="test-cve-ai-output-", dir=catalog.ROOT) as tmpdir:
             base = Path(tmpdir)
@@ -370,6 +609,69 @@ class SyncCveCatalogTests(unittest.TestCase):
         self.assertTrue(validation["ok"], validation["failures"])
         self.assertEqual(validation["ai_enrichment"]["records"], 1)
         self.assertEqual(validation["ai_enrichment"]["complete"], 1)
+        self.assertEqual(validation["search_indexable_records"], 0)
+
+    def test_search_index_contains_only_recipe_ready_ai_records(self) -> None:
+        record = normalize(nvd_record("CVE-2024-4321"))
+        self.assertIsNotNone(record)
+        assert record is not None
+        source_url = record["references"][0]["url"]
+        claims = [
+            {
+                "kind": kind,
+                "claim": claim,
+                "source_url": source_url,
+            }
+            for kind, claim in (
+                ("affected_product", "The vendor product is affected."),
+                ("exposure", "The affected service must be reachable."),
+                ("remediation", "Install the vendor-supported security update."),
+                ("verification", "Confirm the updated release is deployed."),
+                ("fixed_version", "Version 2.0.1 contains the vendor fix."),
+            )
+        ]
+        record["ai_enrichment"] = ai.build_enrichment_entry(
+            record,
+            {
+                "status": "complete",
+                "business_risk": "An exposed vulnerable service could be compromised.",
+                "exposure_conditions": ["The affected service is reachable."],
+                "remediation_steps": ["Install the vendor-supported fixed release."],
+                "verification_steps": ["Confirm version 2.0.1 is deployed."],
+                "uncertainty": [],
+                "recipe_specificity": "specific",
+                "claim_evidence": claims,
+                "source_urls": [source_url],
+            },
+            model="test-model",
+            retrieved_source_urls=[source_url],
+        )
+
+        outputs, manifest = catalog.build_outputs(
+            [record],
+            start_date=START_DATE,
+            end_date=END_DATE,
+            feed_sources=complete_feed_sources(1),
+            kev_data={
+                "catalogVersion": "2026.07.01",
+                "dateReleased": "2026-07-02T00:00:00Z",
+                "vulnerabilities": [],
+            },
+            kev_payload=b'{"vulnerabilities":[]}\n',
+            archetypes=archetype_payload(),
+            existing={},
+        )
+
+        search_index = json.loads(outputs[Path("search-indexable.json")])
+        self.assertEqual(
+            [item["cve"] for item in search_index["records"]],
+            ["CVE-2024-4321"],
+        )
+        self.assertEqual(search_index["records"][0]["qualification"], "recipe_ready_ai")
+        self.assertEqual(search_index["schema_version"], 2)
+        self.assertEqual(search_index["policy"], "stable-markdown-or-recipe-ready-v1")
+        self.assertEqual(manifest["search_index"]["records"], 1)
+        self.assertEqual(manifest["totals"]["search_indexable_records"], 1)
 
     def test_cvss_score_four_is_medium_and_below_four_is_excluded(self) -> None:
         for version in ("2.0", "3.1", "4.0"):
@@ -528,6 +830,119 @@ class SyncCveCatalogTests(unittest.TestCase):
                 "version_end_excluding": "2.0.0",
                 "cpe": "cpe:2.3:a:acme:widget:1.2.3:*:*:*:*:*:*:*",
             },
+        )
+
+    def test_affected_data_supplies_product_and_range_when_cpe_is_missing(self) -> None:
+        record = nvd_record("CVE-2026-14956")
+        record["sourceIdentifier"] = "security@wordfence.com"
+        record["descriptions"][0]["value"] = (
+            "The Bricksforge plugin for WordPress is vulnerable to privilege escalation "
+            "because a privileged action lacks sufficient authorization checks in all "
+            "versions up to and including 3.1.8.6."
+        )
+        record["affected"] = {
+            "source": "security@wordfence.com",
+            "affectedData": [
+                {
+                    "vendor": "Bricksforge",
+                    "product": "Bricksforge",
+                    "defaultStatus": "unaffected",
+                    "versions": [
+                        {
+                            "version": "0",
+                            "lessThanOrEqual": "3.1.8.6",
+                            "versionType": "semver",
+                            "status": "affected",
+                        }
+                    ],
+                }
+            ],
+        }
+
+        normalized = normalize(record)
+
+        self.assertIsNotNone(normalized)
+        assert normalized is not None
+        self.assertEqual(normalized["affected_data_count"], 1)
+        self.assertEqual(normalized["affected_data_stored"], 1)
+        self.assertFalse(normalized["affected_data_truncated"])
+        self.assertEqual(
+            normalized["affected_data"][0]["versions"][0],
+            {
+                "version": "0",
+                "less_than": "",
+                "less_than_or_equal": "3.1.8.6",
+                "version_type": "semver",
+                "status": "affected",
+                "changes": [],
+            },
+        )
+        self.assertEqual(normalized["products_stored"], 1)
+        self.assertEqual(normalized["products"][0]["vendor"], "Bricksforge")
+        self.assertEqual(normalized["products"][0]["product"], "Bricksforge")
+        self.assertEqual(normalized["products"][0]["version_end_including"], "3.1.8.6")
+        self.assertEqual(normalized["title"], "Bricksforge security vulnerability")
+
+    def test_affected_data_prefers_cna_and_preserves_explicit_fixed_transition(self) -> None:
+        record = nvd_record("CVE-2024-3400")
+        record["sourceIdentifier"] = "psirt@paloaltonetworks.com"
+        record["affected"] = [
+            {
+                "source": "normalized-nvd-source",
+                "affectedData": [
+                    {
+                        "vendor": "paloaltonetworks",
+                        "product": "pan-os",
+                        "defaultStatus": "unknown",
+                        "versions": [
+                            {
+                                "version": "10.2.0",
+                                "lessThan": "10.2.9-h1",
+                                "versionType": "custom",
+                                "status": "affected",
+                            }
+                        ],
+                    }
+                ],
+            },
+            {
+                "source": "psirt@paloaltonetworks.com",
+                "affectedData": [
+                    {
+                        "vendor": "Palo Alto Networks",
+                        "product": "PAN-OS",
+                        "defaultStatus": "unaffected",
+                        "versions": [
+                            {
+                                "version": "10.2.0",
+                                "lessThan": "10.2.9-h1",
+                                "versionType": "custom",
+                                "status": "affected",
+                                "changes": [
+                                    {"at": "10.2.9-h1", "status": "unaffected"}
+                                ],
+                            }
+                        ],
+                    },
+                    {
+                        "vendor": "Palo Alto Networks",
+                        "product": "Cloud NGFW",
+                        "defaultStatus": "unaffected",
+                        "versions": [{"version": "All", "status": "unaffected"}],
+                    },
+                ],
+            },
+        ]
+
+        affected, count = catalog.extract_affected_data(record)
+
+        self.assertEqual(count, 1)
+        self.assertEqual(len(affected), 1)
+        self.assertEqual(affected[0]["vendor"], "Palo Alto Networks")
+        self.assertEqual(affected[0]["source"], "psirt@paloaltonetworks.com")
+        self.assertEqual(
+            affected[0]["versions"][0]["changes"],
+            [{"at": "10.2.9-h1", "status": "unaffected"}],
         )
 
     def test_candidate_titles_never_use_the_affected_product_placeholder(self) -> None:
@@ -873,7 +1288,14 @@ class SyncCveCatalogTests(unittest.TestCase):
             (content_dir / "a.md").write_text(
                 "---\n"
                 'title: "First"\n'
+                'description: "Reviewed remediation and verification guidance."\n'
                 'cve: "CVE-2024-1111"\n'
+                'author: "Stephen M Abbott"\n'
+                "date: 2026-07-20\n"
+                "lastmod: '2026-07-21'\n"
+                'model: "GPT-5"\n'
+                "severity: high\n"
+                "kev: false\n"
                 'maturity: "stable"\n'
                 "---\n\n"
                 "Body mentions CVE-2025-9999, which must not become inventory.\n",
@@ -903,10 +1325,37 @@ class SyncCveCatalogTests(unittest.TestCase):
             self.assertEqual(len(inventory["CVE-2024-1111"]), 2)
             self.assertEqual(inventory["CVE-2024-1111"][0].title, "First")
             self.assertEqual(
+                inventory["CVE-2024-1111"][0].description,
+                "Reviewed remediation and verification guidance.",
+            )
+            self.assertEqual(inventory["CVE-2024-1111"][0].author, "Stephen M Abbott")
+            self.assertEqual(inventory["CVE-2024-1111"][0].date, "2026-07-20")
+            self.assertEqual(inventory["CVE-2024-1111"][0].lastmod, "2026-07-21")
+            self.assertEqual(inventory["CVE-2024-1111"][0].model, "GPT-5")
+            self.assertEqual(inventory["CVE-2024-1111"][0].severity, "high")
+            self.assertIs(inventory["CVE-2024-1111"][0].kev, False)
+            self.assertEqual(
                 inventory["CVE-2024-1111"][0].content_markdown,
                 "Body mentions CVE-2025-9999, which must not become inventory.",
             )
             self.assertEqual(inventory["CVE-2024-1111"][1].content_markdown, "")
+            self.assertEqual(
+                catalog.serialize_markdown_recipe(inventory["CVE-2024-1111"][0]),
+                {
+                    "cve": "CVE-2024-1111",
+                    "path": inventory["CVE-2024-1111"][0].path,
+                    "maturity": "stable",
+                    "title": "First",
+                    "description": "Reviewed remediation and verification guidance.",
+                    "author": "Stephen M Abbott",
+                    "date": "2026-07-20",
+                    "lastmod": "2026-07-21",
+                    "model": "GPT-5",
+                    "content_markdown": (
+                        "Body mentions CVE-2025-9999, which must not become inventory."
+                    ),
+                },
+            )
 
             _, manifest = catalog.build_outputs(
                 [],
@@ -922,6 +1371,163 @@ class SyncCveCatalogTests(unittest.TestCase):
             self.assertEqual(len(duplicate_paths), 2)
             self.assertTrue(duplicate_paths[0].endswith("/a.md"))
             self.assertTrue(duplicate_paths[1].endswith("/b.md"))
+
+    def test_stable_markdown_facts_must_match_normalized_catalog(self) -> None:
+        record = normalize(nvd_record("CVE-2024-1111"))
+        self.assertIsNotNone(record)
+        assert record is not None
+        base = {
+            "cve": "CVE-2024-1111",
+            "path": "content/recipes/cve/cve-2024-1111-reviewed.md",
+            "maturity": "stable",
+            "title": "Reviewed CVE-2024-1111",
+            "content_markdown": "Reviewed body.",
+        }
+
+        with self.assertRaisesRegex(ValueError, "does not match catalog severity"):
+            catalog.apply_markdown_inventory(
+                dict(record),
+                [catalog.ExistingRecipe(**base, severity="critical", kev=False)],
+            )
+        with self.assertRaisesRegex(ValueError, "does not match catalog KEV"):
+            catalog.apply_markdown_inventory(
+                dict(record),
+                [catalog.ExistingRecipe(**base, severity="high", kev=True)],
+            )
+
+    def test_repository_stable_markdown_declares_fact_parity_fields(self) -> None:
+        inventory = catalog.markdown_inventory(
+            catalog.ROOT / "content" / "recipes" / "cve"
+        )
+        stable_recipes = [
+            recipe
+            for recipes in inventory.values()
+            for recipe in recipes
+            if recipe.maturity == "stable"
+        ]
+        self.assertGreaterEqual(len(stable_recipes), 15)
+        for recipe in stable_recipes:
+            with self.subTest(cve=recipe.cve, path=recipe.path):
+                self.assertIn(recipe.severity, catalog.SEVERITY_RANK)
+                self.assertIsInstance(recipe.kev, bool)
+
+    def test_markdown_metadata_rejects_invalid_iso_dates(self) -> None:
+        cases = (
+            ("date", "2026-02-30"),
+            ("date", "2026-07-21T12:00:00Z"),
+            ("lastmod", "07/21/2026"),
+        )
+        with tempfile.TemporaryDirectory(prefix="test-cve-metadata-date-", dir=catalog.ROOT) as tmpdir:
+            content_dir = Path(tmpdir)
+            recipe_path = content_dir / "invalid.md"
+            for field, value in cases:
+                with self.subTest(field=field, value=value):
+                    recipe_path.write_text(
+                        "---\n"
+                        'title: "Invalid metadata date"\n'
+                        'cve: "CVE-2024-1111"\n'
+                        'maturity: "stable"\n'
+                        f'{field}: "{value}"\n'
+                        "---\n\n"
+                        "Reviewed body.\n",
+                        encoding="utf-8",
+                    )
+                    with self.assertRaisesRegex(ValueError, rf"frontmatter {field} must be"):
+                        catalog.markdown_inventory(content_dir)
+
+    def test_markdown_metadata_rejects_oversized_strings(self) -> None:
+        cases = (
+            ("title", catalog.MAX_FRONTMATTER_TITLE_CHARS),
+            ("description", catalog.MAX_FRONTMATTER_DESCRIPTION_CHARS),
+            ("author", catalog.MAX_FRONTMATTER_AUTHOR_CHARS),
+            ("model", catalog.MAX_FRONTMATTER_MODEL_CHARS),
+        )
+        with tempfile.TemporaryDirectory(prefix="test-cve-metadata-bounds-", dir=catalog.ROOT) as tmpdir:
+            content_dir = Path(tmpdir)
+            recipe_path = content_dir / "oversized.md"
+            for field, limit in cases:
+                with self.subTest(field=field):
+                    metadata = {
+                        "title": "Bounded metadata",
+                        "description": "Reviewed guidance.",
+                        "author": "Security Recipes",
+                        "model": "GPT-5",
+                    }
+                    metadata[field] = "x" * (limit + 1)
+                    recipe_path.write_text(
+                        "---\n"
+                        f'title: "{metadata["title"]}"\n'
+                        f'description: "{metadata["description"]}"\n'
+                        'cve: "CVE-2024-1111"\n'
+                        f'author: "{metadata["author"]}"\n'
+                        f'model: "{metadata["model"]}"\n'
+                        'maturity: "stable"\n'
+                        "---\n\n"
+                        "Reviewed body.\n",
+                        encoding="utf-8",
+                    )
+                    with self.assertRaisesRegex(
+                        ValueError,
+                        rf"frontmatter {field} exceeds {limit} characters",
+                    ):
+                        catalog.markdown_inventory(content_dir)
+
+    def test_markdown_serialization_omits_absent_optional_metadata(self) -> None:
+        recipe = catalog.ExistingRecipe(
+            cve="CVE-2024-1111",
+            path="content/recipes/cve/example.md",
+            maturity="development",
+            title="Generated draft",
+            content_markdown="",
+        )
+
+        self.assertEqual(
+            catalog.serialize_markdown_recipe(recipe),
+            {
+                "cve": "CVE-2024-1111",
+                "path": "content/recipes/cve/example.md",
+                "maturity": "development",
+                "title": "Generated draft",
+            },
+        )
+
+    def test_compact_page_lastmod_uses_latest_specific_content_change(self) -> None:
+        record = normalize(nvd_record("CVE-2024-1234"))
+        self.assertIsNotNone(record)
+        assert record is not None
+        record["recipe_kind"] = "markdown-override"
+        record["markdown"] = [
+            {
+                "cve": "CVE-2024-1234",
+                "path": "content/recipes/cve/cve-2024-1234.md",
+                "maturity": "stable",
+                "title": "Reviewed CVE-2024-1234",
+                "date": "2026-07-18",
+                "lastmod": "2026-07-21",
+                "content_markdown": "Reviewed body.",
+            }
+        ]
+        record["last_modified"] = "2026-07-22T12:30:00Z"
+
+        compact = catalog.compact_index_record(record, catalog.cve_shard(record))
+
+        self.assertEqual(compact["page_lastmod"], "2026-07-22")
+        self.assertEqual(validator.projected_page_lastmod(record), "2026-07-22")
+
+        record["recipe_kind"] = "composed"
+        record["markdown"] = []
+        record["last_modified"] = "2026-07-20T12:30:00Z"
+        record["ai_enrichment"] = {
+            "status": "complete",
+            "generated_at": "2026-07-21T08:00:00Z",
+        }
+        compact = catalog.compact_index_record(record, catalog.cve_shard(record))
+        self.assertEqual(compact["page_lastmod"], "2026-07-21")
+        self.assertEqual(validator.projected_page_lastmod(record), "2026-07-21")
+
+        record["ai_enrichment"]["status"] = "insufficient_evidence"
+        compact = catalog.compact_index_record(record, catalog.cve_shard(record))
+        self.assertNotIn("page_lastmod", compact)
 
     def test_only_stable_markdown_is_embedded_and_advertised_as_an_override(self) -> None:
         with tempfile.TemporaryDirectory(prefix="test-cve-overrides-", dir=catalog.ROOT) as tmpdir:
@@ -980,6 +1586,140 @@ class SyncCveCatalogTests(unittest.TestCase):
                 "Authoritative stable body.",
             )
             self.assertNotIn("content_markdown", full_by_cve["CVE-2024-2222"]["markdown"][0])
+
+    def test_markdown_only_refresh_promotes_stable_recipe_and_is_idempotent(self) -> None:
+        cve_id = "CVE-2024-1234"
+        record = normalize(nvd_record(cve_id))
+        self.assertIsNotNone(record)
+        assert record is not None
+        source_url = record["references"][0]["url"]
+        record["ai_enrichment"] = ai.build_enrichment_entry(
+            record,
+            {
+                "status": "complete",
+                "business_risk": "An exposed vulnerable service could be compromised.",
+                "exposure_conditions": ["The affected service is reachable."],
+                "remediation_steps": ["Apply the vendor-supported fixed release."],
+                "verification_steps": ["Confirm the fixed release is deployed."],
+                "uncertainty": [],
+                "recipe_specificity": "not_specific",
+                "claim_evidence": [],
+                "source_urls": [source_url],
+            },
+            model="test-model",
+            retrieved_source_urls=[source_url],
+        )
+        content_parent = catalog.ROOT / "content" / "recipes" / "cve"
+        with (
+            tempfile.TemporaryDirectory(
+                prefix=".test-markdown-refresh-", dir=content_parent
+            ) as content_tmp,
+            tempfile.TemporaryDirectory(
+                prefix="test-cve-markdown-refresh-output-", dir=catalog.ROOT
+            ) as output_tmp,
+        ):
+            content_dir = Path(content_tmp)
+            output_dir = Path(output_tmp) / "catalog"
+            outputs, original_manifest = build_catalog_outputs([record])
+            catalog.write_outputs(output_dir, outputs)
+            original_shard_entry = original_manifest["shard_manifest"][0]
+            original_shard_records = [
+                json.loads(line)
+                for line in gzip.decompress(
+                    (output_dir / original_shard_entry["path"]).read_bytes()
+                ).splitlines()
+            ]
+            self.assertIn("ai_enrichment", original_shard_records[0])
+            recipe_path = content_dir / "stable.md"
+            recipe_path.write_text(
+                "---\n"
+                f'title: "{cve_id} reviewed remediation"\n'
+                'description: "Reviewed remediation and verification guidance."\n'
+                f'cve: "{cve_id}"\n'
+                'known_as: "Synthetic reviewed CVE"\n'
+                "kev: false\n"
+                "severity: high\n"
+                'ecosystem: "test/application"\n'
+                'disclosed: "2024-05-06"\n'
+                'author: "Security Recipes"\n'
+                'model: "GPT-5"\n'
+                'date: "2026-07-21"\n'
+                'maturity: "stable"\n'
+                "---\n\n"
+                "Reviewed remediation body.\n",
+                encoding="utf-8",
+            )
+
+            first = catalog.rebuild_markdown_inventory(output_dir, content_dir)
+
+            self.assertEqual(first["catalog_records"], 1)
+            self.assertEqual(first["stable_markdown_overrides"], 1)
+            self.assertEqual(first["search_indexable_records"], 1)
+            self.assertGreater(first["changed"], 0)
+            refreshed_manifest = json.loads(
+                (output_dir / "manifest.json").read_text(encoding="utf-8")
+            )
+            self.assertEqual(
+                refreshed_manifest["catalog_updated_at"],
+                original_manifest["catalog_updated_at"],
+            )
+            self.assertEqual(refreshed_manifest["sources"], original_manifest["sources"])
+            search_index = json.loads(
+                (output_dir / "search-indexable.json").read_text(encoding="utf-8")
+            )
+            self.assertEqual([item["cve"] for item in search_index["records"]], [cve_id])
+            self.assertEqual(search_index["records"][0]["qualification"], "stable_markdown")
+            shard_entry = refreshed_manifest["shard_manifest"][0]
+            shard_records = [
+                json.loads(line)
+                for line in gzip.decompress(
+                    (output_dir / shard_entry["path"]).read_bytes()
+                ).splitlines()
+            ]
+            self.assertEqual(shard_records[0]["recipe_kind"], "markdown-override")
+            self.assertNotIn("ai_enrichment", shard_records[0])
+            self.assertEqual(
+                shard_records[0]["markdown"][0]["content_markdown"],
+                "Reviewed remediation body.",
+            )
+            self.assertEqual(
+                {
+                    key: shard_records[0]["markdown"][0][key]
+                    for key in ("description", "author", "date", "model")
+                },
+                {
+                    "description": "Reviewed remediation and verification guidance.",
+                    "author": "Security Recipes",
+                    "date": "2026-07-21",
+                    "model": "GPT-5",
+                },
+            )
+            validation = validator.validate(output_dir, content_dir)
+            self.assertTrue(validation["ok"], validation["failures"])
+
+            second = catalog.rebuild_markdown_inventory(output_dir, content_dir)
+
+            self.assertEqual(second["changed"], 0)
+            self.assertEqual(second["writes"]["removed"], 0)
+
+    def test_markdown_only_refresh_rejects_tampered_shard_before_writing(self) -> None:
+        record = normalize(nvd_record("CVE-2024-1234"))
+        self.assertIsNotNone(record)
+        assert record is not None
+        with tempfile.TemporaryDirectory(
+            prefix="test-cve-markdown-refresh-integrity-", dir=catalog.ROOT
+        ) as tmpdir:
+            output_dir, content_dir, manifest = write_catalog_fixture(Path(tmpdir), [record])
+            shard_path = output_dir / manifest["shard_manifest"][0]["path"]
+            shard_path.write_bytes(shard_path.read_bytes() + b"tampered")
+            manifest_before = (output_dir / "manifest.json").read_bytes()
+            search_before = (output_dir / "search-indexable.json").read_bytes()
+
+            with self.assertRaisesRegex(ValueError, "shard integrity mismatch"):
+                catalog.rebuild_markdown_inventory(output_dir, content_dir)
+
+            self.assertEqual((output_dir / "manifest.json").read_bytes(), manifest_before)
+            self.assertEqual((output_dir / "search-indexable.json").read_bytes(), search_before)
 
     def test_cve_sharding_is_deterministic_and_uses_identifier_year_and_sequence_bucket(self) -> None:
         cases = {

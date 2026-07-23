@@ -2,13 +2,15 @@
 title: Secure Context Customer Proof Pack
 linkTitle: Customer Proof Pack
 weight: 15
+date: 2026-05-05
+lastmod: 2026-07-21
 sidebar:
   exclude: true
 description: >
-  A generated customer-proof contract that tells design partners,
-  reviewers, and reviewers exactly which runtime events, metrics, receipts,
-  and renewal gates must exist before SecurityRecipes can claim
-  review-ready value.
+  Define the runtime events, metrics, receipts, and renewal gates a design
+  partner must produce before Security Recipes can claim review-ready customer
+  value.
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

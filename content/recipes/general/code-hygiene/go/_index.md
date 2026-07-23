@@ -1,7 +1,7 @@
 ---
 title: "Go Code Hygiene"
 linkTitle: "Go"
-description: "Diagnostic, error, context, goroutine, channel, and shared-state hygiene."
+description: "Diagnostic, error, context, goroutine, channel, and shared-state hygiene. Choose bounded workflows with detection, tests, and stop conditions."
 weight: 60
 sidebar:
   open: false
@@ -11,8 +11,21 @@ sidebar:
 
 Diagnostic, error, context, goroutine, channel, and shared-state hygiene.
 
-Select one bounded recipe. Start in audit mode; authorize fixes only after reviewing the candidate evidence.
+## Choose a focused Go recipe
 
-## Recipes
+This collection contains 4 bounded Go workflows. Choose the recipe whose objective matches the repository evidence instead of combining unrelated cleanup into one run.
+
+- **[Go vet and lint suppression debt]({{< relref "/recipes/general/code-hygiene/go/go-vet-and-lint-suppression-debt" >}}):** Use it to resolve Go diagnostics and narrow nolint directives.
+- **[Go error wrapping and sentinel contracts]({{< relref "/recipes/general/code-hygiene/go/go-error-wrapping-and-sentinel-contracts" >}}):** Use it to preserve error identity and context without string matching or duplicate logging.
+- **[Go goroutine, context, cancellation, and leak hygiene]({{< relref "/recipes/general/code-hygiene/go/go-goroutine-context-cancellation-and-leaks" >}}):** Use it to give every goroutine and context a bounded owner and shutdown path.
+- **[Go channel, lock, and shared-state hygiene]({{< relref "/recipes/general/code-hygiene/go/go-channel-lock-and-shared-state-hygiene" >}}):** Use it to remove channel ownership ambiguity, lock misuse, and data races.
+
+## How to use this collection
+
+Read the repository's configured runtime, compiler, framework, analyzer, and test commands before selecting a workflow. Start in audit mode, record file and symbol evidence, and authorize a fix only after the candidate scope is reviewable. Preserve supported versions, public behavior, and existing tool configuration.
+
+If the evidence is a named CVE, scanner finding, exposed secret, authorization flaw, or injection path, use the focused vulnerability-remediation playbook instead of a code-hygiene recipe. Stop when the safe result requires an owner decision about architecture, compatibility, production data, or deployment state.
+
+## Full recipe list
 
 {{< prompt-toc >}}

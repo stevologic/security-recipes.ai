@@ -1,11 +1,13 @@
 ---
 title: "Rust async cancellation, lock, and task lifecycle"
 linkTitle: "Rust async cancellation, lock, and task lifecycle"
-description: "Bounded audit or remediation to avoid detached tasks, locks across await, and cancellation-unsafe partial operations."
+description: "Rust async cancellation, lock, and task lifecycle: Avoid detached tasks, locks across await, and cancellation-unsafe partial operations."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"
 maturity: "development"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 recipe_id: "code-hygiene.rust.rust-async-cancellation-lock-and-task-lifecycle"
 recipe_kind: "code-hygiene"

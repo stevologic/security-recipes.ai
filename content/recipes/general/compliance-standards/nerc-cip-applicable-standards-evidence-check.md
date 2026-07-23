@@ -1,7 +1,7 @@
 ---
 title: "NERC CIP Applicable Standards Evidence Check"
 linkTitle: "NERC CIP"
-description: "Registered entities with Bulk Electric System Cyber Systems; applicability and effective versions must be established from the current NERC standards and implementation plans."
+description: "Assess NERC CIP evidence readiness: verify applicability, map official requirements to artifacts, record gaps, and plan remediation."
 recipe_id: "compliance.nerc-cip-current-applicable-set"
 framework_id: "nerc-cip"
 framework: "NERC CIP"
@@ -21,6 +21,8 @@ tool: "Compliance evidence review"
 author: "Security Recipes"
 team: "GRC and Security Engineering"
 maturity: "stable"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 tags: ["compliance", "nerc-cip", "critical-infrastructure", "audit", "ot-security", "bulk-electric-system", "energy"]
 weight: 380
@@ -54,7 +56,7 @@ Use this recipe to produce a source-aware evidence-readiness assessment for **NE
 - **Industries:** bulk-electric-system, energy
 - **License boundary:** `official-text`
 
-Registered entities with Bulk Electric System Cyber Systems; applicability and effective versions must be established from the current NERC standards and implementation plans.
+Registered entities with Bulk Electric System Cyber Systems must establish applicable, effective NERC CIP standards from current standards and implementation plans.
 
 The authority is revising or transitioning this framework. Confirm the effective source set and dates before making a current-state claim.
 

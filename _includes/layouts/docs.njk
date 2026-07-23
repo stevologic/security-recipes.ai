@@ -3,7 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>{% if title %}{{ title }} – {% endif %}{{ site.title }}</title>
+{% set pageDates = {
+  cve: cve,
+  date: date,
+  lastmod: lastmod,
+  disclosed: disclosed,
+  sourcePath: sourcePath
+} | articleDates %}
+<title>{{ title | seoTitle | escape }}</title>
 {{ {
   url: page.url,
   title: title,
@@ -12,15 +19,24 @@
   author: author,
   image: image,
   noindex: noindex,
+  noindexFollow: noindex_follow,
   keywords: keywords,
   cve: cve,
   canonicalCveRoute: canonical_cve_route,
-  date: page.date,
+  date: date,
+  lastmod: lastmod,
+  disclosed: disclosed,
+  imageWidth: image_width,
+  imageHeight: image_height,
+  howTo: how_to,
+  breadcrumbParent: breadcrumb_parent,
   sourcePath: sourcePath,
   isHome: false,
-  isSection: isSection
+  isSection: isSection,
+  isArticle: isArticle,
+  isError: isError
 } | seoHead | safe }}
-{% if isSection %}<link rel="alternate" type="application/rss+xml" href="{{ page.url }}index.xml" title="{{ title }} – {{ site.title }}">{% endif %}
+{% if isSection and sectionFeed %}<link rel="alternate" type="application/rss+xml" href="{{ page.url }}index.xml" title="{{ title | presentationText | escape }} – {{ site.title | escape }}">{% endif %}
 {% include "partials/head-common.njk" %}
 </head>
 {% set isCveDetail = page.url and page.url.startsWith("/recipes/cve/") and page.url != "/recipes/cve/" %}
@@ -33,7 +49,7 @@
     </nav>
   </aside>
   <main id="content" class="hextra-content sr-main">
-    {% set crumbs = page.url | breadcrumbs %}
+    {% set crumbs = page.url | breadcrumbs(breadcrumb_parent) %}
     {% if crumbs.length %}
     <nav class="sr-breadcrumbs" aria-label="Breadcrumb">
       <a href="/">Home</a>
@@ -42,15 +58,16 @@
     {% endif %}
     {% set provenanceModel = model or model_used %}
     {% if isCveDetail %}
-    {% set detailTitle = title | cveDisplayTitle(cve) %}
-    {% if known_as and known_as.length %}{% set detailTitle = known_as[0] %}{% endif %}
+    {% set detailTitleSource = title %}
+    {% if known_as and known_as.length %}{% set detailTitleSource = known_as[0] %}{% endif %}
+    {% set detailTitle = detailTitleSource | cveDisplayTitle(cve) %}
     <header class="sr-cve-detail-header">
       <div class="sr-cve-detail-header__topline">
         <p class="sr-cve-detail-header__kicker"><span aria-hidden="true"></span>{{ cve or "CVE intelligence record" }}</p>
         <a href="/cve-database/#cve-catalog">Back to CVE Database <span aria-hidden="true">→</span></a>
       </div>
-      {% if title %}<h1 class="sr-page-title sr-cve-detail-header__title">{{ detailTitle }}</h1>{% endif %}
-      {% if description %}<p class="sr-cve-detail-header__summary">{{ description }}</p>{% endif %}
+      {% if title %}<h1 class="sr-page-title sr-cve-detail-header__title">{{ detailTitle | presentationText | escape }}</h1>{% endif %}
+      {% if description %}<p class="sr-cve-detail-header__summary">{{ description | presentationText | escape }}</p>{% endif %}
       <dl class="sr-cve-detail-header__signals" aria-label="Vulnerability record metadata">
         {% if severity %}<div class="sr-cve-detail-header__signal sr-cve-detail-header__signal--severity-{{ severity | lower }}"><dt>Severity</dt><dd>{{ severity | upper }}</dd></div>{% endif %}
         {% if kev %}<div class="sr-cve-detail-header__signal sr-cve-detail-header__signal--kev"><dt>Priority</dt><dd>CISA KEV</dd></div>{% endif %}
@@ -71,7 +88,7 @@
       {% endif %}
     </header>
     {% else %}
-    {% if title and page.url != "/cve-database/" %}<h1 class="sr-page-title">{{ title }}</h1>{% endif %}
+    {% if title and page.url != "/cve-database/" %}<h1 class="sr-page-title">{{ title | presentationText | escape }}</h1>{% endif %}
     {% if provenanceModel %}
     <div class="sr-page-provenance">
       <span class="sr-ai-provenance" title="{% if ai_assisted %}AI-enriched{% else %}Tested with{% endif %} {{ provenanceModel | escape }}" aria-label="{% if ai_assisted %}AI-enriched{% else %}Tested with{% endif %} {{ provenanceModel | escape }}">
@@ -84,15 +101,38 @@
     {% endif %}
     {% endif %}
     {% set renderedContent = content %}
-    {% if isCveDetail %}{% set renderedContent = content | stripFirstH1 %}{% endif %}
+    {% if title and page.url != "/cve-database/" %}{% set renderedContent = content | stripFirstH1 %}{% endif %}
     <div class="content{% if isCveDetail %} sr-cve-detail-content{% endif %}">
 {{ renderedContent | safe }}
     </div>
+    {% if isArticle and not isError %}
+    {% set attributionName = author or site.seo.author %}
+    {% set attributionKey = attributionName | lower %}
+    {% set knownAuthor = site.seo.knownAuthors[attributionName] %}
+    {% set isAiAttribution = attributionKey == "codex" or attributionKey == "chatgpt" or attributionKey == "claude" or attributionKey == "gemini" or attributionKey == "copilot" or "ai-assisted" in attributionKey or "artificial intelligence" in attributionKey or "language model" in attributionKey or "openai" in attributionKey or "anthropic" in attributionKey %}
+    {% set isCollectiveAttribution = not author or "contributor" in attributionKey or "maintainer" in attributionKey or "editorial team" in attributionKey or "editorial board" in attributionKey or attributionKey == "security recipes" or attributionKey == "security-recipes.ai" %}
+    <aside class="sr-page-provenance" aria-label="Authorship and review">
+      <strong>Authorship and review</strong>
+      {% if isAiAttribution %}
+      <span>Editorial owner: <a href="/about/">{{ site.seo.author }}</a></span>
+      <span>AI assistance: {{ attributionName | escape }}</span>
+      {% elif isCollectiveAttribution %}
+      <span>By <a href="/about/">{{ attributionName | escape }}</a></span>
+      {% else %}
+      <span>By {% if knownAuthor %}<a href="{{ knownAuthor.url | escape }}">{{ attributionName | escape }}</a>{% else %}{{ attributionName | escape }}{% endif %}</span>
+      <span>Editorial standard: <a href="/about/">Security Recipes contributors</a></span>
+      {% endif %}
+      {% if pageDates.datePublished %}<span>Published <time datetime="{{ pageDates.datePublished }}">{{ pageDates.datePublished | isoDate }}</time></span>{% endif %}
+      {% if pageDates.dateModified %}<span>Last updated <time datetime="{{ pageDates.dateModified }}">{{ pageDates.dateModified | isoDate }}</time></span>{% endif %}
+      <a href="/about/#editorial-principles">Review methodology</a>
+      <a href="/about/#corrections">Corrections policy</a>
+    </aside>
+    {% endif %}
     {% set pager = page.inputPath | pagerFor %}
     {% if pager.prev or pager.next %}
     <nav class="hextra-pagination sr-pager" aria-label="Pagination">
-      {% if pager.prev %}<a class="hextra-pager sr-pager__prev" href="{{ pager.prev.url }}" rel="prev"><span aria-hidden="true">←</span> {{ pager.prev.title }}</a>{% else %}<span></span>{% endif %}
-      {% if pager.next %}<a class="hextra-pager sr-pager__next" href="{{ pager.next.url }}" rel="next">{{ pager.next.title }} <span aria-hidden="true">→</span></a>{% endif %}
+      {% if pager.prev %}<a class="hextra-pager sr-pager__prev" href="{{ pager.prev.url }}" rel="prev"><span aria-hidden="true">←</span> {{ pager.prev.title | presentationText | escape }}</a>{% else %}<span></span>{% endif %}
+      {% if pager.next %}<a class="hextra-pager sr-pager__next" href="{{ pager.next.url }}" rel="next">{{ pager.next.title | presentationText | escape }} <span aria-hidden="true">→</span></a>{% endif %}
     </nav>
     {% endif %}
   </main>
@@ -108,22 +148,25 @@
     {% endif %}
     {% if tags and tags.length %}
     <div class="sr-toc__tags">
-      {% for tag in tags %}<a class="sr-tag-chip sr-tag-chip--small" href="/tags/{{ tag | tagSlug }}/">{{ tag }}</a>{% endfor %}
+      {% for tag in tags %}
+      {% set tagUrl = tag | authoredTagUrl %}
+      {% if tagUrl %}<a class="sr-tag-chip sr-tag-chip--small" href="{{ tagUrl }}">{{ tag | escape }}</a>{% else %}<span class="sr-tag-chip sr-tag-chip--small">{{ tag | escape }}</span>{% endif %}
+      {% endfor %}
     </div>
     {% endif %}
   </nav>
 </div>
 <footer class="hextra-footer">
   <div class="sr-footer-inner">
-    <div class="sr-footer-meta"><span>{{ site.footer.copyright }}</span></div>
+    <div class="sr-footer-meta"><span>{{ site.footer.copyright }}</span><a href="/about/">About &amp; editorial policy</a></div>
     {% include "partials/footer-donations.njk" %}
   </div>
 </footer>
 <script>
 (function () {
   var links = document.querySelectorAll('.sr-sidebar a, .sr-nav__links a');
-  var navigationPath = location.pathname.indexOf('/recipes/cve/') === 0 &&
-    location.pathname !== '/recipes/cve/'
+  var navigationPath = location.pathname.indexOf('/cve/') === 0 ||
+    (location.pathname.indexOf('/recipes/cve/') === 0 && location.pathname !== '/recipes/cve/')
       ? '/cve-database/'
       : location.pathname;
   for (var i = 0; i < links.length; i++) {

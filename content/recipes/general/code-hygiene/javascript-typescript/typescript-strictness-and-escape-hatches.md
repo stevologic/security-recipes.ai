@@ -1,11 +1,13 @@
 ---
 title: "TypeScript strictness and escape-hatch debt"
 linkTitle: "TypeScript strictness and escape-hatch debt"
-description: "Bounded audit or remediation to reduce unsafe any, ignore directives, assertions, and disabled strict checks incrementally."
+description: "TypeScript strictness and escape-hatch debt: Reduce unsafe any, ignore directives, assertions, and disabled strict checks incrementally."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"
 maturity: "development"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 recipe_id: "code-hygiene.javascript-typescript.typescript-strictness-and-escape-hatches"
 recipe_kind: "code-hygiene"

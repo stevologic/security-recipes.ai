@@ -2,12 +2,15 @@
 title: Secure Context Evidence Contract
 linkTitle: Secure Context Evidence Contract
 weight: 12
+date: 2026-05-05
+lastmod: 2026-07-13
 toc: true
 description: >
   Generated evidence object, hosted API, release-channel, redaction,
   signature, and runtime decision contract for secure context exports.
 sidebar:
   exclude: true
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

@@ -77,12 +77,18 @@ test('ticker controller exposes pause, resume, and reduced-motion states', () =>
 test('homepage ticker is semantic, bounded, and explicitly motion-safe', () => {
   const source = fs.readFileSync(path.join(ROOT, '_includes', 'layouts', 'home-static.html'), 'utf8');
   assert.match(source, /<\/header>\s*<aside class="cve-ticker"/);
-  assert.match(source, /<aside class="cve-ticker" aria-label="Latest published CVEs" data-cve-ticker>/);
+  assert.match(source, /<aside class="cve-ticker" aria-label="Recently reviewed CVEs" data-cve-ticker>/);
   assert.match(source, /<a class="cve-ticker__label" href="\/cve-database\/">/);
   assert.match(source, /<nav class="nav-links" aria-label="Primary navigation">[\s\S]*?<a href="\/cve-database\/">CVE Database<\/a>/);
   assert.doesNotMatch(source, /\/recipes\/\?view=cve/);
   assert.match(source, /\.cve-ticker\s*\{[^}]*width:\s*100%;[^}]*background:\s*#000;/);
-  assert.match(source, /Latest CVEs are being refreshed/);
+  assert.match(source, /Reviewed CVEs are being refreshed/);
+  assert.match(source, /\{\% if latestReviewedCves and latestReviewedCves\.length \%\}/);
+  assert.match(source, /class="button button--primary" href="\/cve-database\/">Search the CVE Database<\/a>/);
+  assert.match(
+    source,
+    /href="\/security-remediation\/">How to remediate vulnerabilities with AI agents<\/a>/,
+  );
   assert.match(source, /<ul class="cve-ticker__list">/);
   assert.match(source, /<ul class="cve-ticker__list" aria-hidden="true" inert>/);
   assert.match(source, /data-cve-ticker-toggle[^>]*aria-pressed="false"/);

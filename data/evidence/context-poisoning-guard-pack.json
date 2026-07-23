@@ -274,7 +274,7 @@
     {
       "actionable": false,
       "disposition": "defensive_control_language",
-      "line": 146,
+      "line": 149,
       "match": "- **Never** bypass CI by adding skip tokens.",
       "path": "content/recipes/claude/cve-triage-skill.md",
       "risk_family": "approval_bypass",
@@ -329,7 +329,7 @@
     {
       "actionable": true,
       "disposition": "actionable_context_poisoning_risk",
-      "line": 218,
+      "line": 219,
       "match": "application code, skip tests, mark the PR ready for review, auto-merge, or",
       "path": "content/recipes/cursor/vulnerable-dep-remediation.md",
       "risk_family": "approval_bypass",
@@ -346,6 +346,17 @@
       "risk_family": "prompt_injection",
       "rule_id": "direct-instruction-override",
       "severity": "critical",
+      "source_id": "recipes"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 4,
+      "match": "description: \"Critical, exploited ScreenConnect authentication bypass. Upgrade self-hosted servers from 23.9.7 or earlier to 23.9.8+ and review administrative access.\"",
+      "path": "content/recipes/cve/cve-2024-1709-screenconnect-authentication-bypass.md",
+      "risk_family": "approval_bypass",
+      "rule_id": "approval-bypass-request",
+      "severity": "high",
       "source_id": "recipes"
     },
     {
@@ -483,7 +494,7 @@
     {
       "actionable": true,
       "disposition": "actionable_context_poisoning_risk",
-      "line": 151,
+      "line": 167,
       "match": "`/terminal/ws`, obtain shells, print environment variables, or expose runtime",
       "path": "content/recipes/cve/cve-2026-39987-marimo-preauth-rce.md",
       "risk_family": "secret_exposure",
@@ -802,7 +813,7 @@
     {
       "actionable": false,
       "disposition": "defensive_control_language",
-      "line": 151,
+      "line": 152,
       "match": "1. NEVER PRINT, LOG, OR EMBED A LIVE SECRET.",
       "path": "content/recipes/devin/scheduled-sde-remediation.md",
       "risk_family": "secret_exposure",
@@ -842,6 +853,17 @@
       "rule_id": "secret-exfiltration-request",
       "severity": "critical",
       "source_id": "recipes"
+    },
+    {
+      "actionable": false,
+      "disposition": "defensive_control_language",
+      "line": 196,
+      "match": "- Do not weaken, delete, skip, or reconfigure the scanner, CI gate, or original",
+      "path": "content/security-remediation/_index.md",
+      "risk_family": "approval_bypass",
+      "rule_id": "approval-bypass-request",
+      "severity": "high",
+      "source_id": "security-remediation-workflows"
     },
     {
       "actionable": true,
@@ -967,7 +989,7 @@
     {
       "actionable": false,
       "disposition": "documented_adversarial_example",
-      "line": 82,
+      "line": 85,
       "match": "| `kill_session_on_approval_bypass_signal` | The runtime observed bypass, post-execution approval, self-approval, secret transit, token passthrough, cross-tenant reuse, or another kill signal....",
       "path": "content/security-remediation/agentic-approval-receipts/_index.md",
       "risk_family": "approval_bypass",
@@ -978,7 +1000,7 @@
     {
       "actionable": false,
       "disposition": "documented_adversarial_example",
-      "line": 82,
+      "line": 85,
       "match": "| `kill_session_on_approval_bypass_signal` | The runtime observed bypass, post-execution approval, self-approval, secret transit, token passthrough, cross-tenant reuse, or another kill signal. |",
       "path": "content/security-remediation/agentic-approval-receipts/_index.md",
       "risk_family": "secret_exposure",
@@ -1044,7 +1066,7 @@
     {
       "actionable": false,
       "disposition": "documented_adversarial_example",
-      "line": 97,
+      "line": 100,
       "match": "| Approval-Required Tool Path | Approval bypass, irreversible operation, blast-radius ambiguity, and missing approval receipts. |",
       "path": "content/security-remediation/agentic-exposure-graph/_index.md",
       "risk_family": "approval_bypass",
@@ -1121,7 +1143,7 @@
     {
       "actionable": false,
       "disposition": "documented_adversarial_example",
-      "line": 88,
+      "line": 89,
       "match": "| `SR-RT-03` | Credential Retrieval and Data Exfiltration Probe | Tests whether secret, signer, token, and environment access are denied and logged. |",
       "path": "content/security-remediation/agentic-red-team-drills/_index.md",
       "risk_family": "secret_exposure",
@@ -1132,7 +1154,7 @@
     {
       "actionable": false,
       "disposition": "documented_adversarial_example",
-      "line": 89,
+      "line": 90,
       "match": "| `SR-RT-04` | Approval Bypass on High-Impact Operation | Tests whether approval-required MCP operations hold for typed human approval. |",
       "path": "content/security-remediation/agentic-red-team-drills/_index.md",
       "risk_family": "approval_bypass",
@@ -1275,7 +1297,7 @@
     {
       "actionable": false,
       "disposition": "documented_adversarial_example",
-      "line": 63,
+      "line": 64,
       "match": "| Direct instruction override | Critical | Detects text that asks an agent to ignore or override higher-priority instructions. |",
       "path": "content/security-remediation/context-poisoning-guard/_index.md",
       "risk_family": "prompt_injection",
@@ -1286,7 +1308,7 @@
     {
       "actionable": false,
       "disposition": "documented_adversarial_example",
-      "line": 65,
+      "line": 66,
       "match": "| Approval bypass request | High | Detects requests to skip, bypass, remove, or disable review, approval, policy, CI, or guardrails. |",
       "path": "content/security-remediation/context-poisoning-guard/_index.md",
       "risk_family": "approval_bypass",
@@ -1473,7 +1495,7 @@
     {
       "actionable": false,
       "disposition": "defensive_control_language",
-      "line": 154,
+      "line": 155,
       "match": "- `[skip ci]` / `[skip test]` markers \u2014 reject, no exceptions.",
       "path": "content/security-remediation/reviewer-playbook/_index.md",
       "risk_family": "approval_bypass",
@@ -1561,7 +1583,7 @@
     {
       "actionable": false,
       "disposition": "documented_adversarial_example",
-      "line": 95,
+      "line": 98,
       "match": "| `poisoning_screen` | Prompt-injection, hidden instruction, approval-bypass, exfiltration, and secret markers were scanned. |",
       "path": "content/security-remediation/secure-context-lineage-ledger/_index.md",
       "risk_family": "secret_exposure",
@@ -1594,7 +1616,7 @@
     {
       "actionable": false,
       "disposition": "defensive_control_language",
-      "line": 134,
+      "line": 154,
       "match": "- **No CI skip tokens.** The agent will never add `[skip ci]`,",
       "path": "content/security-remediation/vulnerable-dependencies/_index.md",
       "risk_family": "approval_bypass",
@@ -1605,7 +1627,7 @@
     {
       "actionable": false,
       "disposition": "defensive_control_language",
-      "line": 135,
+      "line": 155,
       "match": "`[skip test]`, or similar. If CI fails, the change fails.",
       "path": "content/security-remediation/vulnerable-dependencies/_index.md",
       "risk_family": "approval_bypass",
@@ -1616,13 +1638,13 @@
   ],
   "generated_at": "2026-05-02",
   "guard_summary": {
-    "actionable_finding_count": 91,
+    "actionable_finding_count": 92,
     "blocking_source_count": 2,
     "blocking_sources": [
       "agentic-assurance-models",
       "recipes"
     ],
-    "byte_count": 22505361,
+    "byte_count": 22812470,
     "decision_counts": {
       "allow_with_adversarial_examples": 1,
       "block_until_removed": 2,
@@ -1630,26 +1652,26 @@
       "pass": 5
     },
     "disposition_counts": {
-      "actionable_context_poisoning_risk": 91,
-      "defensive_control_language": 28,
+      "actionable_context_poisoning_risk": 92,
+      "defensive_control_language": 29,
       "documented_adversarial_example": 24
     },
     "failure_count": 0,
-    "file_count": 3496,
-    "finding_count": 143,
+    "file_count": 3503,
+    "finding_count": 145,
     "held_source_count": 1,
     "held_sources": [
       "security-remediation-workflows"
     ],
     "risk_family_counts": {
-      "approval_bypass": 36,
+      "approval_bypass": 38,
       "hidden_instruction": 59,
       "prompt_injection": 10,
       "secret_exposure": 38
     },
     "severity_counts": {
       "critical": 48,
-      "high": 36,
+      "high": 38,
       "medium": 59
     },
     "source_count": 9
@@ -1890,21 +1912,21 @@
       "risk_family_counts": {},
       "root": "mcp_server.py",
       "severity_counts": {},
-      "source_hash": "b3a5f558ff70b39e61140965291cd437002e8aa590e5e65202690904b1340c2f",
+      "source_hash": "d7b8db08d2c644dd5395b840f6e8decd76c743b53559d1484e551fe501bcf41a",
       "source_id": "mcp-server-runtime",
       "title": "MCP Server Runtime Contract",
       "trust_tier": "tier_2_policy_context"
     },
     {
-      "actionable_finding_count": 27,
+      "actionable_finding_count": 28,
       "decision": "block_until_removed",
       "disposition_counts": {
-        "actionable_context_poisoning_risk": 27,
+        "actionable_context_poisoning_risk": 28,
         "defensive_control_language": 24,
         "documented_adversarial_example": 1
       },
-      "file_count": 3361,
-      "finding_count": 52,
+      "file_count": 3368,
+      "finding_count": 53,
       "owner": {
         "accountable_team": "SecurityRecipes Maintainers",
         "escalation": "recipes-review",
@@ -1933,16 +1955,16 @@
         "content/recipes/cve/ai-enrichment-cve-2024-9465.md"
       ],
       "risk_family_counts": {
-        "approval_bypass": 16,
+        "approval_bypass": 17,
         "prompt_injection": 5,
         "secret_exposure": 31
       },
       "root": "content/recipes",
       "severity_counts": {
         "critical": 36,
-        "high": 16
+        "high": 17
       },
-      "source_hash": "5ae65491bcdf23ea6537416869b5649a32de433b6d5408814a6728ee3668f4db",
+      "source_hash": "2b82087ffe7e036e84817928041d6a3698d0f8db2c1fd94d9685e724826b282f",
       "source_id": "recipes",
       "title": "Recipes",
       "trust_tier": "tier_1_curated_guidance"
@@ -1952,11 +1974,11 @@
       "decision": "hold_for_context_review",
       "disposition_counts": {
         "actionable_context_poisoning_risk": 50,
-        "defensive_control_language": 3,
+        "defensive_control_language": 4,
         "documented_adversarial_example": 17
       },
       "file_count": 76,
-      "finding_count": 70,
+      "finding_count": 71,
       "owner": {
         "accountable_team": "Security Engineering",
         "escalation": "workflow-control-review",
@@ -1985,7 +2007,7 @@
         "content/security-remediation/agentic-posture-snapshot/_index.md"
       ],
       "risk_family_counts": {
-        "approval_bypass": 7,
+        "approval_bypass": 8,
         "hidden_instruction": 59,
         "prompt_injection": 1,
         "secret_exposure": 3
@@ -1993,10 +2015,10 @@
       "root": "content/security-remediation",
       "severity_counts": {
         "critical": 4,
-        "high": 7,
+        "high": 8,
         "medium": 59
       },
-      "source_hash": "cb472df821dc3d6e35afca27ad220b2cce25ebc9ee5eea0d6bce17a730240fc4",
+      "source_hash": "84fb4e65e307509e377c27c167cc36543b8eea697027aef30b3efc07b0caf055",
       "source_id": "security-remediation-workflows",
       "title": "Security Remediation Workflow Docs",
       "trust_tier": "tier_1_curated_guidance"

@@ -1,16 +1,18 @@
 ---
-title: Quick Start
+title: AI Vulnerability Remediation Quick Start
 linkTitle: Quick Start
 weight: 1
+date: 2026-04-22
+lastmod: 2026-07-23
 toc: true
 sidebar:
   open: true
 description: >
-  A short path from one security finding to one reviewed agent-assisted
-  remediation output.
+  Remediate one vulnerability with an AI coding agent using a scoped Security
+  Recipes playbook, source evidence, tests, rollback, and human review.
 ---
 
-Use this page when you want to try security-recipes.ai without adopting new
+Use this page when you want to try [security-recipes.ai](/) without adopting new
 tooling. Pick one real finding, give the agent one recipe, and keep the output
 reviewable.
 
@@ -24,7 +26,7 @@ useful triage note that followed a recipe and respected your repo rules.
 1. **Pick one finding.** Use a small dependency, SAST, secret, container, SDE,
    or CVE finding. Avoid a noisy backlog for the first run.
 2. **Pick the matching recipe.** Start in
-   [Remediation]({{< relref "/security-remediation" >}}) or search the
+   [AI vulnerability remediation playbooks]({{< relref "/security-remediation" >}}) or search the
    [Recipes]({{< relref "/recipes" >}}).
 3. **Choose the agent your team already uses.** GitHub Copilot, Claude, Cursor,
    Codex, and Devin all work with this pattern.
@@ -106,7 +108,9 @@ changes, secret rotation, and deployment should remain outside the first run.
 
 ## Next steps
 
-- [Agent Setup]({{< relref "/agents" >}}) for your exact tool.
+- [Visual guide to Security Recipes]({{< relref "/how-to-use" >}}) for the
+  database-to-agent workflow, screenshots, and canonical CVE discovery path.
+- [AI Agent Comparison]({{< relref "/agents" >}}) for your exact tool.
 - [Recipes]({{< relref "/recipes" >}}) for reusable prompts.
 - [MCP Integration]({{< relref "/mcp-servers" >}}) when you need richer
   security context.

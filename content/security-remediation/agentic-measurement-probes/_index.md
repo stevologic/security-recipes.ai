@@ -2,12 +2,15 @@
 title: Agentic Measurement Probes
 linkTitle: Measurement Probes
 weight: 6
+date: 2026-05-02
+lastmod: 2026-07-13
 sidebar:
   exclude: true
 description: >
   Generated measurement probes that verify agentic workflow traceability,
   context integrity, MCP authorization, memory, egress, red-team replay,
   readiness, and run receipt evidence before scale.
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

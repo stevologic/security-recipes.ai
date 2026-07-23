@@ -2,12 +2,14 @@
 title: SAST Finding Remediation
 linkTitle: SAST Finding Remediation
 weight: 3
+date: 2026-04-25
+lastmod: 2026-07-21
 sidebar:
   open: true
 description: >
-  Triage SAST findings, drop the false positives, and turn the
-  remainder into reviewer-ready PRs scoped to a small, named set
-  of fix shapes — everything else writes a triage note.
+  Triage SAST findings, remove false positives, and create reviewer-ready
+  remediation PRs for bounded fix shapes; route everything else to a triage
+  note.
 ---
 
 {{< callout type="warning" >}}
@@ -35,6 +37,12 @@ caught it.
 This workflow runs *after* a deterministic scanner, never instead
 of one. The scanner produces structured findings; the agent
 decides what to do with each one inside a tight policy envelope.
+
+## Run this playbook
+
+Use the [SAST finding triage-and-fix recipe]({{< relref "/recipes/general/sast-finding-triage-and-fix" >}})
+to turn one eligible scanner result into a bounded agent task and
+reviewer-ready output.
 
 {{< playbook-workflow >}}
 

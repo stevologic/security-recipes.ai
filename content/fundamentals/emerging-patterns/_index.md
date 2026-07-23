@@ -2,6 +2,8 @@
 title: Emerging Patterns & Tools
 linkTitle: Emerging Patterns
 weight: 6
+date: 2026-04-22
+lastmod: 2026-07-21
 toc: true
 sidebar:
   open: true
@@ -240,8 +242,8 @@ counts as a sensible agent design in 2025–2026. These map
 one-to-one onto features shipped in the Claude API and the MCP
 spec, and they're summarised here because each of them re-opens
 design decisions elsewhere on this site. See
-[MCP Integration → Where MCP is heading in 2026]({{< relref "/mcp-servers#where-mcp-is-heading-in-2026" >}})
-for the roadmap context.
+[MCP Integration]({{< relref "/mcp-servers" >}}) for the current context,
+configuration, and deployment guidance.
 
 ### Progressive tool discovery and tool search
 

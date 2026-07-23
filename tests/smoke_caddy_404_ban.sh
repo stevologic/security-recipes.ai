@@ -67,8 +67,10 @@ backend = polling
 usedns = no
 ignoreip = 127.0.0.0/8 ::1 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 fc00::/7 fe80::/10
 maxretry = 5
+# Keep the production retry window while giving Fail2Ban's asynchronous dummy
+# action enough time to become observable under runner scheduling pressure.
 findtime = 5s
-bantime = 2s
+bantime = 1m
 bantime.increment = false
 action = dummy[name=sr404-smoke,target=${action_log}]
 EOF
@@ -84,9 +86,10 @@ client() {
 emit() {
   local ip="$1"
   local status="$2"
-  local timestamp="${3:-$(date +%s)}"
-  printf '{"level":"info","ts":%s.001,"logger":"http.log.access","msg":"handled request","request":{"remote_ip":"198.51.100.8","remote_port":"55000","client_ip":"%s","proto":"HTTP/2.0","method":"GET","host":"security-recipes.ai","uri":"/missing","headers":{}},"bytes_read":0,"duration":0.001,"size":0,"status":%s,"resp_headers":{}}\n' \
-    "${timestamp}" "${ip}" "${status}" >>"${access_log}"
+  local timestamp="${3:-$(date +%s.%N)}"
+  local uri="${4:-/.env}"
+  printf '{"level":"info","ts":%s,"logger":"http.log.access","msg":"handled request","request":{"remote_ip":"198.51.100.8","remote_port":"55000","client_ip":"%s","proto":"HTTP/2.0","method":"GET","host":"security-recipes.ai","uri":"%s","headers":{}},"bytes_read":0,"duration":0.001,"size":0,"status":%s,"resp_headers":{}}\n' \
+    "${timestamp}" "${ip}" "${uri}" "${status}" >>"${access_log}"
 }
 
 is_banned() {
@@ -98,14 +101,22 @@ wait_for_ban_state() {
   local ip="$1"
   local expected="$2"
   local attempt
-  for attempt in $(seq 1 60); do
+  for attempt in $(seq 1 150); do
     if is_banned "${ip}"; then
       [[ "${expected}" == "banned" ]] && return 0
     else
       [[ "${expected}" == "clear" ]] && return 0
     fi
-    sleep 0.1
+    sleep 0.2
   done
+  printf '%s\n' '--- Fail2Ban jail status ---' >&2
+  client status "${JAIL_NAME}" >&2 || true
+  printf '%s\n' '--- Fail2Ban daemon log ---' >&2
+  tail -n 80 "${workdir}/fail2ban.log" >&2 || true
+  printf '%s\n' '--- Caddy access log ---' >&2
+  tail -n 30 "${access_log}" >&2 || true
+  printf '%s\n' '--- Dummy action log ---' >&2
+  tail -n 20 "${action_log}" >&2 || true
   printf 'ERROR: %s did not become %s.\n' "${ip}" "${expected}" >&2
   return 1
 }
@@ -116,7 +127,17 @@ for _ in 1 2 3 4; do
 done
 sleep 1.2
 if is_banned "${four_ip}"; then
-  printf 'ERROR: four 404 responses triggered a ban.\n' >&2
+  printf 'ERROR: four scanner-path 404 responses triggered a ban.\n' >&2
+  exit 1
+fi
+
+benign_ip="203.0.113.39"
+for _ in 1 2 3 4 5 6 7 8 9 10; do
+  emit "${benign_ip}" 404 "$(date +%s)" "/cve/CVE-2026-999999/"
+done
+sleep 1.2
+if is_banned "${benign_ip}"; then
+  printf 'ERROR: ordinary CVE misses triggered a ban.\n' >&2
   exit 1
 fi
 
@@ -128,7 +149,7 @@ done
 emit "${stale_ip}" 404
 sleep 1.2
 if is_banned "${stale_ip}"; then
-  printf 'ERROR: 404 responses outside the five-second window triggered a ban.\n' >&2
+  printf 'ERROR: scanner-path 404 responses outside the five-second window triggered a ban.\n' >&2
   exit 1
 fi
 
@@ -139,6 +160,7 @@ done
 wait_for_ban_state "${ban_ip}" banned
 grep -Fq -- "+${ban_ip}" "${action_log}"
 
+client set "${JAIL_NAME}" unbanip "${ban_ip}" >/dev/null
 wait_for_ban_state "${ban_ip}" clear
 grep -Fq -- "-${ban_ip}" "${action_log}"
 

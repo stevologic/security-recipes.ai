@@ -1,11 +1,13 @@
 ---
 title: "SQL transaction, locking, and concurrency hygiene"
 linkTitle: "SQL transaction, locking, and concurrency hygiene"
-description: "Bounded audit or remediation to make transaction scope and concurrent update behavior explicit."
+description: "SQL transaction, locking, and concurrency hygiene: Make transaction scope and concurrent update behavior explicit."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"
 maturity: "development"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 recipe_id: "code-hygiene.data.sql-transaction-locking-and-concurrency"
 recipe_kind: "code-hygiene"

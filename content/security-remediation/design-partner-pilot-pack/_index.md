@@ -2,12 +2,15 @@
 title: Design Partner Pilot Pack
 linkTitle: Design Partner Pilot
 weight: 13
+date: 2026-05-05
+lastmod: 2026-07-13
 sidebar:
   exclude: true
 description: >
   A generated design-partner pilot motion that turns secure-context,
   MCP, telemetry, eval, receipt, and value-model evidence into a
   reviewer-ready path from open knowledge to hosted product proof.
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

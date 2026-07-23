@@ -1,22 +1,21 @@
 ---
-title: Classic Vulnerable Defaults
+title: Classic Vulnerable Default Security Recipes
 linkTitle: Classic Vulnerable Defaults
 weight: 20
 sidebar:
   open: false
 description: >
-  Prompts that mitigate or replace the durable, unsafe-by-default
-  patterns that show up in new code year after year — pickle,
-  unsafe YAML, JNDI, JWT `none`, XXE, polymorphic
-  deserialization, `eval`, and friends.
+  Browse agent-ready security recipes for replacing unsafe defaults such as
+  pickle, unsafe YAML, JNDI, JWT `none`, XXE, polymorphic deserialization,
+  `eval`, and similar language and framework patterns.
 ---
 
 {{< callout type="info" >}}
-**Read [Classic Vulnerable Defaults]({{< relref "/security-remediation/classic-vulnerable-defaults" >}})
-first.** It explains why these patterns belong in their own
-section, the mitigate-vs.-uplift decision, and the guardrails
-that apply across all of them. The prompts here are the
-executables; that page is the operating context.
+**Start with the [classic vulnerable defaults remediation guide]({{< relref "/security-remediation/classic-vulnerable-defaults" >}})
+when you need the decision model.** That guide explains why these patterns
+belong together, when to mitigate versus uplift, and which cross-cutting
+guardrails apply. This page is the companion collection of executable,
+agent-ready security recipes.
 {{< /callout >}}
 
 Each prompt below is **agent-runnable**: a developer, a

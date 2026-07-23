@@ -2,12 +2,15 @@
 title: Agentic Readiness Scorecard
 linkTitle: Readiness Scorecard
 weight: 7
+date: 2026-05-02
+lastmod: 2026-07-13
 sidebar:
   exclude: true
 description: >
-  A generated enterprise promotion gate that turns workflow, MCP policy,
-  connector trust, identity, assurance, and red-team evidence into
-  scale, pilot, gate, or block decisions.
+  Generate a promotion gate that turns workflow, MCP policy, connector trust,
+  identity, assurance, and red-team evidence into scale, pilot, gate, or block
+  decisions.
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

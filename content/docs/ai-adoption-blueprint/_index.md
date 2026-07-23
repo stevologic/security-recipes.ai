@@ -2,6 +2,8 @@
 title: AI Adoption Blueprint
 linkTitle: AI Adoption Blueprint
 weight: 2
+date: 2026-07-10
+lastmod: 2026-07-13
 toc: true
 sidebar:
   open: true

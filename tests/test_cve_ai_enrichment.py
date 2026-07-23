@@ -59,6 +59,33 @@ def record(
     }
 
 
+def source_complete_record(
+    cve: str = "CVE-2026-1234",
+    *,
+    severity: str = "high",
+    published: str = "2026-07-10",
+    kev: bool = False,
+    recipe_kind: str = "composed",
+) -> dict[str, object]:
+    source = record(
+        cve,
+        severity=severity,
+        published=published,
+        kev=kev,
+        recipe_kind=recipe_kind,
+    )
+    source["title"] = "Acme Widget input validation flaw"
+    source["cwes"] = ["CWE-20"]
+    source["ecosystem"] = "Acme Widget"
+    source["products"] = [
+        {
+            **source["products"][0],
+            "version_end_excluding": "2.0.0",
+        }
+    ]
+    return source
+
+
 def model_output(
     *,
     source_urls: list[str] | None = None,
@@ -122,6 +149,54 @@ class FakeResponse:
 
 
 class CVEAIEnrichmentTests(unittest.TestCase):
+    def test_text_encoding_artifacts_fail_closed_without_rejecting_unicode(self) -> None:
+        artifacts = (
+            "replacement \ufffd character",
+            "apostrophe \u00e2\u20ac\u2122",
+            "opening quote \u00e2\u20ac\u0153",
+            "en dash \u00e2\u20ac\u201c",
+            "em dash \u00e2\u20ac\u201d",
+            "accent \u00c3\u00a9",
+            "nonbreaking space \u00c2\u00a0",
+            "stray marker \u00c2 ",
+            "emoji \u00f0\u0178\u02dc\u20ac",
+            "replacement bytes \u00ef\u00bf\u00bd",
+            "C1 control \u009d",
+        )
+        for text in artifacts:
+            with self.subTest(text=repr(text)):
+                self.assertTrue(enrichment.has_text_encoding_artifact(text))
+
+        clean_text = (
+            "“quoted”",
+            "don’t",
+            "en–dash",
+            "em—dash",
+            "José",
+            "São",
+            "Ângela",
+            "lone Ã character",
+            "emoji 😀",
+        )
+        for text in clean_text:
+            with self.subTest(text=text):
+                self.assertFalse(enrichment.has_text_encoding_artifact(text))
+
+        source = record()
+        source_url = str(source["references"][0]["url"])
+        entry = enrichment.build_enrichment_entry(
+            source,
+            model_output(source_urls=[source_url]),
+            model="gpt-test",
+            retrieved_source_urls=[source_url],
+            generated_at=datetime(2026, 7, 14, tzinfo=timezone.utc),
+        )
+        entry["business_risk"] = "Corrupt apostrophe \u00e2\u20ac\u2122"
+        self.assertIn(
+            "ai_enrichment contains a text encoding artifact",
+            enrichment.enrichment_errors(entry, source),
+        )
+
     def test_gap_detection_is_deterministic_and_never_selects_stable_override(self) -> None:
         source = record()
         self.assertEqual(
@@ -129,8 +204,74 @@ class CVEAIEnrichmentTests(unittest.TestCase):
             ["missing_cwe", "missing_bounded_version", "generic_ecosystem", "generic_title"],
         )
         self.assertTrue(enrichment.eligible_for_enrichment(source))
+        self.assertTrue(enrichment.eligible_for_scheduled_enrichment(source))
         stable = {**source, "recipe_kind": "markdown-override"}
         self.assertFalse(enrichment.eligible_for_enrichment(stable))
+        self.assertFalse(enrichment.eligible_for_scheduled_enrichment(stable))
+
+        complete = source_complete_record()
+        self.assertEqual(enrichment.completeness_gaps(complete), [])
+        self.assertFalse(enrichment.eligible_for_enrichment(complete))
+        self.assertTrue(enrichment.eligible_for_scheduled_enrichment(complete))
+
+        without_trusted_advisory = source_complete_record("CVE-2026-1235")
+        without_trusted_advisory["references"] = [
+            {
+                "url": "https://research.example.test/CVE-2026-1235",
+                "tags": ["Third Party Advisory"],
+            }
+        ]
+        self.assertFalse(
+            enrichment.eligible_for_scheduled_enrichment(without_trusted_advisory)
+        )
+        invalid_trusted_advisory = source_complete_record("CVE-2026-1236")
+        invalid_trusted_advisory["references"] = [
+            {"url": "http://[", "tags": ["Vendor Advisory"]}
+        ]
+        self.assertFalse(
+            enrichment.eligible_for_scheduled_enrichment(invalid_trusted_advisory)
+        )
+
+    def test_priority_lane_can_select_out_of_queue_record_without_bypassing_recipe_gate(
+        self,
+    ) -> None:
+        source = source_complete_record()
+        source["references"] = [
+            {
+                "url": "https://research.example.test/CVE-2026-1234",
+                "tags": ["Third Party Advisory"],
+            }
+        ]
+        entry = enrichment.build_enrichment_entry(
+            source,
+            model_output(source_urls=[str(source["references"][0]["url"])]),
+            model="gpt-test",
+            retrieved_source_urls=[],
+            generated_at=datetime(2026, 7, 14, tzinfo=timezone.utc),
+        )
+        with tempfile.TemporaryDirectory() as tmpdir:
+            ordinary = enrichment.EnrichmentCache(Path(tmpdir) / "ordinary.json")
+            priority = enrichment.EnrichmentCache(Path(tmpdir) / "priority.json")
+            ordinary.select_candidates([source], limit=1)
+            priority.select_candidates(
+                [source],
+                limit=1,
+                priority_cve_ids=("CVE-2026-1234",),
+            )
+
+        self.assertEqual(ordinary.selected, {})
+        self.assertEqual(ordinary.stats["eligible"], 0)
+        self.assertEqual(
+            priority.selected,
+            {"CVE-2026-1234": ["missing_priority_reference"]},
+        )
+        self.assertEqual(priority.stats["eligible"], 1)
+        self.assertEqual(priority.stats["selected"], 1)
+        self.assertFalse(enrichment.recipe_ready(entry, source))
+        self.assertIn(
+            "model_did_not_identify_specific_recipe",
+            enrichment.recipe_evidence_gaps(entry, source),
+        )
 
     def test_source_fingerprint_ignores_ai_output_but_tracks_source_changes(self) -> None:
         source = record()
@@ -421,6 +562,236 @@ class CVEAIEnrichmentTests(unittest.TestCase):
             self.assertNotIn("ai_enrichment", by_cve["CVE-2026-3000"])
             self.assertEqual(cache.stats["generated"], 1)
 
+    def test_apply_removes_cached_enrichment_from_stable_override(self) -> None:
+        source = record("CVE-2026-3000")
+        source_url = str(source["references"][0]["url"])
+        cached_entry = enrichment.build_enrichment_entry(
+            source,
+            model_output(source_urls=[source_url]),
+            model="gpt-test",
+            retrieved_source_urls=[source_url],
+            generated_at=datetime(2026, 7, 14, tzinfo=timezone.utc),
+        )
+        stable = {
+            **source,
+            "recipe_kind": "markdown-override",
+            "ai_enrichment": cached_entry,
+        }
+        with tempfile.TemporaryDirectory() as tmpdir:
+            cache = enrichment.EnrichmentCache(
+                Path(tmpdir) / "ai.json",
+                {str(source["cve"]): cached_entry},
+            )
+
+            applied = list(cache.apply([stable], client=None))
+
+        self.assertNotIn("ai_enrichment", applied[0])
+        self.assertIn("ai_enrichment", stable)
+        self.assertNotIn(str(source["cve"]), cache.entries)
+
+    def test_candidate_priority_uses_evidence_value_and_recency_in_order(self) -> None:
+        def priority(
+            source: dict[str, object],
+        ) -> tuple[int, int, int, int, int, int, int, int, str]:
+            return enrichment.enrichment_priority(source, enrichment.completeness_gaps(source))
+
+        recent = source_complete_record("CVE-2026-4100", published="2026-07-10")
+        older = source_complete_record("CVE-2025-4100", published="2025-07-10")
+        critical = source_complete_record("CVE-2026-4200", severity="critical")
+        kev = source_complete_record("CVE-2026-4300", severity="medium", kev=True)
+        no_priority_reference = source_complete_record("CVE-2026-4400")
+        no_priority_reference["references"] = [
+            {
+                "url": "https://research.example.test/CVE-2026-4400",
+                "tags": ["Third Party Advisory"],
+            }
+        ]
+        unbounded = source_complete_record("CVE-2026-4500")
+        unbounded["products"] = [
+            {
+                **unbounded["products"][0],
+                "version_end_excluding": "",
+            }
+        ]
+
+        self.assertGreater(priority(kev), priority(critical))
+        self.assertGreater(priority(critical), priority(recent))
+        self.assertGreater(priority(recent), priority(older))
+        self.assertGreater(priority(recent), priority(no_priority_reference))
+        self.assertGreater(priority(recent), priority(unbounded))
+        newer_with_gaps = record(
+            "CVE-2026-4600",
+            severity="high",
+            published="2026-07-20",
+        )
+        self.assertGreater(priority(older), priority(newer_with_gaps))
+
+    def test_scheduled_queue_includes_source_complete_records_deterministically(self) -> None:
+        records = [
+            record(f"CVE-2026-{number}", severity="critical", kev=True)
+            for number in (5001, 5004, 5002, 5003)
+        ]
+        source_complete = source_complete_record(
+            "CVE-2026-5999",
+            severity="critical",
+            published="2025-01-01",
+            kev=True,
+        )
+        inputs = [*records, source_complete]
+        with tempfile.TemporaryDirectory() as tmpdir:
+            forward = enrichment.EnrichmentCache(Path(tmpdir) / "forward.json")
+            reverse = enrichment.EnrichmentCache(Path(tmpdir) / "reverse.json")
+            explicit_empty = enrichment.EnrichmentCache(Path(tmpdir) / "empty.json")
+            none = enrichment.EnrichmentCache(Path(tmpdir) / "none.json")
+            forward.select_candidates(inputs, limit=2)
+            reverse.select_candidates(reversed(inputs), limit=2)
+            explicit_empty.select_candidates(inputs, limit=2, priority_cve_ids=())
+            none.select_candidates(inputs, limit=0)
+
+        expected = ["CVE-2026-5999", "CVE-2026-5004"]
+        self.assertEqual(list(forward.selected), expected)
+        self.assertEqual(list(reverse.selected), expected)
+        self.assertEqual(explicit_empty.selected, forward.selected)
+        self.assertEqual(forward.stats["eligible"], 5)
+        self.assertEqual(forward.stats["selected"], 2)
+        self.assertEqual(none.selected, {})
+        self.assertEqual(none.stats["eligible"], 5)
+        self.assertEqual(none.stats["selected"], 0)
+
+    def test_manual_priority_candidates_consume_slots_before_ranked_candidates(self) -> None:
+        requested = source_complete_record(
+            "CVE-2025-6001",
+            severity="medium",
+            published="2025-01-01",
+        )
+        ranked = [
+            record("CVE-2026-6002", severity="critical"),
+            record("CVE-2026-6003", severity="critical", kev=True),
+        ]
+        records = [*ranked, requested]
+        with tempfile.TemporaryDirectory() as tmpdir:
+            prioritized = enrichment.EnrichmentCache(Path(tmpdir) / "prioritized.json")
+            scheduled = enrichment.EnrichmentCache(Path(tmpdir) / "scheduled.json")
+            explicit_empty = enrichment.EnrichmentCache(Path(tmpdir) / "explicit-empty.json")
+            prioritized.select_candidates(
+                records,
+                limit=2,
+                priority_cve_ids=("CVE-2025-6001",),
+            )
+            scheduled.select_candidates(records, limit=2)
+            explicit_empty.select_candidates(records, limit=2, priority_cve_ids=())
+
+        self.assertEqual(
+            list(prioritized.selected),
+            ["CVE-2025-6001", "CVE-2026-6003"],
+        )
+        self.assertEqual(explicit_empty.selected, scheduled.selected)
+        self.assertEqual(
+            list(scheduled.selected),
+            ["CVE-2026-6003", "CVE-2026-6002"],
+        )
+
+    def test_manual_priority_ids_require_strict_canonical_form(self) -> None:
+        invalid_ids = (
+            "cve-2026-6001",
+            "CVE-2026-601",
+            "CVE-26-6001",
+            "CVE-2026-6001/",
+            " CVE-2026-6001",
+            "CVE-２０２６-６００１",
+            "CVE-٢٠٢٦-٦٠٠١",
+        )
+        with tempfile.TemporaryDirectory() as tmpdir:
+            cache = enrichment.EnrichmentCache(Path(tmpdir) / "ai.json")
+            for invalid in invalid_ids:
+                with self.subTest(invalid=invalid):
+                    with self.assertRaisesRegex(ValueError, "canonical CVE-YYYY-NNNN"):
+                        cache.select_candidates(
+                            [source_complete_record()],
+                            limit=1,
+                            priority_cve_ids=(invalid,),
+                        )
+
+    def test_cached_and_ineligible_priority_ids_do_not_consume_request_slots(self) -> None:
+        cached = source_complete_record("CVE-2026-6101")
+        cached_url = str(cached["references"][0]["url"])
+        cached_entry = enrichment.build_enrichment_entry(
+            cached,
+            model_output(source_urls=[cached_url]),
+            model="gpt-test",
+            retrieved_source_urls=[cached_url],
+            generated_at=datetime(2026, 7, 14, tzinfo=timezone.utc),
+        )
+        ineligible = source_complete_record(
+            "CVE-2026-6102",
+            recipe_kind="markdown-override",
+        )
+        ranked = [
+            record("CVE-2026-6103"),
+            record("CVE-2026-6104"),
+        ]
+        with tempfile.TemporaryDirectory() as tmpdir:
+            cache = enrichment.EnrichmentCache(
+                Path(tmpdir) / "ai.json",
+                {"CVE-2026-6101": cached_entry},
+            )
+            cache.select_candidates(
+                [cached, ineligible, *ranked],
+                limit=2,
+                priority_cve_ids=("CVE-2026-6101", "CVE-2026-6102"),
+            )
+
+        self.assertEqual(cache.entries, {"CVE-2026-6101": cached_entry})
+        self.assertEqual(
+            list(cache.selected),
+            ["CVE-2026-6104", "CVE-2026-6103"],
+        )
+        self.assertEqual(cache.stats["cached"], 1)
+        self.assertEqual(cache.stats["eligible"], 2)
+        self.assertEqual(cache.stats["selected"], 2)
+
+    def test_manual_priority_selection_never_exceeds_the_overall_limit(self) -> None:
+        records = [
+            source_complete_record(f"CVE-2026-{number}")
+            for number in (6201, 6202, 6203, 6204)
+        ]
+        requested = ("CVE-2026-6203", "CVE-2026-6201", "CVE-2026-6202")
+        with tempfile.TemporaryDirectory() as tmpdir:
+            cache = enrichment.EnrichmentCache(Path(tmpdir) / "ai.json")
+            cache.select_candidates(records, limit=2, priority_cve_ids=requested)
+
+            class RecordingClient:
+                def __init__(self) -> None:
+                    self.calls: list[str] = []
+
+                def enrich(self, source: dict[str, object]) -> dict[str, object]:
+                    cve = str(source["cve"])
+                    self.calls.append(cve)
+                    source_url = str(source["references"][0]["url"])
+                    return enrichment.build_enrichment_entry(
+                        source,
+                        model_output(source_urls=[source_url]),
+                        model="gpt-test",
+                        retrieved_source_urls=[source_url],
+                        generated_at=datetime(2026, 7, 14, tzinfo=timezone.utc),
+                    )
+
+            client = RecordingClient()
+            applied = list(cache.apply(records, client=client))
+
+        self.assertEqual(list(cache.selected), ["CVE-2026-6203", "CVE-2026-6201"])
+        self.assertEqual(cache.stats["selected"], 2)
+        self.assertEqual(cache.stats["generated"], 2)
+        self.assertEqual(client.calls, ["CVE-2026-6203", "CVE-2026-6201"])
+        self.assertEqual(
+            [str(record["cve"]) for record in applied],
+            ["CVE-2026-6201", "CVE-2026-6202", "CVE-2026-6203", "CVE-2026-6204"],
+        )
+        self.assertEqual(
+            sum("ai_enrichment" in record for record in applied),
+            2,
+        )
+
     def test_keyless_rebuild_preserves_valid_tracked_cache_and_drops_stale_entry(self) -> None:
         source = record()
         cached_entry = enrichment.build_enrichment_entry(
@@ -484,19 +855,26 @@ class CVEAIEnrichmentTests(unittest.TestCase):
         self.assertEqual(cache.stats["failed"], enrichment.MAX_CONSECUTIVE_FAILURES)
         self.assertTrue(all("ai_enrichment" not in item for item in results))
 
-    def test_global_time_budget_stops_optional_calls_but_keeps_records(self) -> None:
-        records = [record("CVE-2026-3001"), record("CVE-2026-3002")]
-        retrieved = "https://vendor.example.test/advisories/CVE-2026-3001"
+    def test_priority_order_spends_one_call_time_budget_before_source_order(self) -> None:
+        ranked = record("CVE-2026-3001", severity="critical", kev=True)
+        requested = source_complete_record("CVE-2026-3999", severity="medium")
+        records = [ranked, requested]
         with tempfile.TemporaryDirectory() as tmpdir:
             cache = enrichment.EnrichmentCache(Path(tmpdir) / "ai.json")
-            cache.select_candidates(records, limit=2)
+            cache.select_candidates(
+                records,
+                limit=2,
+                priority_cve_ids=("CVE-2026-3999",),
+            )
 
             class SuccessfulClient:
                 def __init__(self) -> None:
-                    self.calls = 0
+                    self.calls: list[str] = []
 
                 def enrich(self, source: dict[str, object]) -> dict[str, object]:
-                    self.calls += 1
+                    cve = str(source["cve"])
+                    self.calls.append(cve)
+                    retrieved = str(source["references"][0]["url"])
                     return enrichment.build_enrichment_entry(
                         source,
                         model_output(source_urls=[retrieved]),
@@ -511,9 +889,14 @@ class CVEAIEnrichmentTests(unittest.TestCase):
                 cache.apply(records, client=client, max_seconds=1.0, clock=lambda: next(times))
             )
 
-        self.assertEqual(client.calls, 1)
-        self.assertIn("ai_enrichment", results[0])
-        self.assertNotIn("ai_enrichment", results[1])
+        self.assertEqual(list(cache.selected), ["CVE-2026-3999", "CVE-2026-3001"])
+        self.assertEqual(client.calls, ["CVE-2026-3999"])
+        self.assertEqual(
+            [str(result["cve"]) for result in results],
+            ["CVE-2026-3001", "CVE-2026-3999"],
+        )
+        self.assertNotIn("ai_enrichment", results[0])
+        self.assertIn("ai_enrichment", results[1])
 
 
 if __name__ == "__main__":

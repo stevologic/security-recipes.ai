@@ -1,7 +1,7 @@
 ---
 title: "EU Cyber Resilience Act Evidence Readiness Check"
 linkTitle: "EU Cyber Resilience Act"
-description: "Manufacturers, importers, and distributors of products with digital elements placed on the EU market, subject to role, product, and exception analysis."
+description: "Assess EU Cyber Resilience Act evidence readiness: verify applicability, map official requirements to artifacts, record gaps, and plan remediation."
 recipe_id: "compliance.eu-cra-2024-2847"
 framework_id: "eu-cyber-resilience-act"
 framework: "EU Cyber Resilience Act"
@@ -21,6 +21,8 @@ tool: "Compliance evidence review"
 author: "Security Recipes"
 team: "GRC and Security Engineering"
 maturity: "stable"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 tags: ["compliance", "eu-cyber-resilience-act", "product-security", "audit", "vulnerability-management", "products-with-digital-elements", "software"]
 weight: 340

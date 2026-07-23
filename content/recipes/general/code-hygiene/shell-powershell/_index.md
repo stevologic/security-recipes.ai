@@ -1,7 +1,7 @@
 ---
 title: "Shell & PowerShell Code Hygiene"
 linkTitle: "Shell & PowerShell"
-description: "Quoting, exit propagation, cleanup, analyzer, error, and pipeline hygiene."
+description: "Quoting, exit propagation, cleanup, analyzer, error, and pipeline hygiene. Choose bounded workflows with detection, tests, and stop conditions."
 weight: 130
 sidebar:
   open: false
@@ -11,8 +11,21 @@ sidebar:
 
 Quoting, exit propagation, cleanup, analyzer, error, and pipeline hygiene.
 
-Select one bounded recipe. Start in audit mode; authorize fixes only after reviewing the candidate evidence.
+## Choose a focused Shell & PowerShell recipe
 
-## Recipes
+This collection contains 4 bounded Shell & PowerShell workflows. Choose the recipe whose objective matches the repository evidence instead of combining unrelated cleanup into one run.
+
+- **[ShellCheck quoting and word-splitting hygiene]({{< relref "/recipes/general/code-hygiene/shell-powershell/shellcheck-quoting-and-word-splitting" >}}):** Use it to remove unintended expansion, globbing, and argument-boundary bugs.
+- **[Shell exit, pipeline, trap, and temporary-file lifecycle]({{< relref "/recipes/general/code-hygiene/shell-powershell/shell-exit-pipeline-trap-and-temp-file-lifecycle" >}}):** Use it to propagate failures and clean temporary state on every signal and exit.
+- **[PowerShell ScriptAnalyzer and suppression debt]({{< relref "/recipes/general/code-hygiene/shell-powershell/powershell-scriptanalyzer-and-suppression-debt" >}}):** Use it to resolve PSScriptAnalyzer findings and narrow rule exclusions.
+- **[PowerShell error, output, and resource lifecycle]({{< relref "/recipes/general/code-hygiene/shell-powershell/powershell-error-output-and-resource-lifecycle" >}}):** Use it to make terminating behavior, pipeline output, and disposable resources predictable.
+
+## How to use this collection
+
+Read the repository's configured runtime, compiler, framework, analyzer, and test commands before selecting a workflow. Start in audit mode, record file and symbol evidence, and authorize a fix only after the candidate scope is reviewable. Preserve supported versions, public behavior, and existing tool configuration.
+
+If the evidence is a named CVE, scanner finding, exposed secret, authorization flaw, or injection path, use the focused vulnerability-remediation playbook instead of a code-hygiene recipe. Stop when the safe result requires an owner decision about architecture, compatibility, production data, or deployment state.
+
+## Full recipe list
 
 {{< prompt-toc >}}

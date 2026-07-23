@@ -2,14 +2,15 @@
 title: Context Egress Boundary
 linkTitle: Context Egress Boundary
 weight: 11
+date: 2026-05-02
+lastmod: 2026-07-23
 toc: true
 description: >
-  A generated data-boundary and runtime evaluator for secure-context
-  egress: allow, hold, deny, or kill-session decisions before context
-  leaves a tenant, model provider, MCP server, telemetry sink, or public
-  corpus boundary.
+  Classify and enforce which context may leave each trust boundary, with
+  redaction, approval, evidence, rollback, and deterministic runtime decisions.
 sidebar:
   exclude: true
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

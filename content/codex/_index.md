@@ -1,8 +1,10 @@
 ﻿---
-title: Codex
+title: Codex Vulnerability Remediation
 linkTitle: Codex
 weight: 4
-description: Enable agentic remediation with OpenAI Codex (CLI + Cloud).
+date: 2026-04-21
+lastmod: 2026-07-21
+description: Use OpenAI Codex CLI and cloud agents to remediate vulnerabilities in isolated workspaces with scoped instructions, tests, rollback, and reviewed pull requests.
 sidebar:
   open: true
 ---
@@ -15,7 +17,7 @@ remediation notes.
 
 {{< callout type="warning" >}}
 **In a hurry?** The
-[**Quick Start**]({{< relref "/quickstart#codex-five-minute-path" >}})
+[**Quick Start**]({{< relref "/quickstart#the-loop" >}})
 is a five-minute path to your first agentic remediation PR with
 Codex. Come back here for the full recipe once that loop is working.
 {{< /callout >}}
@@ -25,12 +27,44 @@ repo-aware tasks — a strong fit for **batch** remediation jobs. The
 recipe is: a small driver script, a standing `AGENTS.md`, and a
 per-task prompt template. Codex handles the rest inside its sandbox.
 
+Use the [shared AI remediation guide]({{< relref "/security-remediation/" >}})
+to define scope, rollback, evidence, and human approval before adapting the
+workflow to Codex below.
+
+Use the [Codex vulnerable-dependency recipe]({{< relref "/recipes/codex/vulnerable-dep-remediation" >}})
+when the finding is a CVE, Dependabot alert, or other package advisory.
+For a detected secret or PII leak, use the
+[Codex sensitive-data remediation recipe]({{< relref "/recipes/codex/sensitive-data-remediation" >}}).
+
+## Remediate a vulnerability with Codex
+
+Install the [Codex Security plugin](https://learn.chatgpt.com/docs/security/plugin)
+in the Codex app or CLI, then start a new chat for the repository.
+
+1. For an existing CVE, GHSA, SARIF result, or scanner ticket, run
+   `$codex-security:triage-finding`. Treat its verdict as evidence to
+   review, not permission to change code. See the
+   [triage workflow](https://learn.chatgpt.com/docs/security/plugin/triage-backlog).
+2. After a person accepts one finding, run
+   `$codex-security:fix-finding` with the finding ID and source report.
+   Require the smallest safe patch, focused regression coverage, and
+   verification that the issue no longer reproduces. See the
+   [fix workflow](https://learn.chatgpt.com/docs/security/plugin/fix-findings).
+3. Review the proposed diff before applying it. Run the repository's
+   tests and the original reproducer, record remaining proof gaps, and
+   merge only through the normal code-review process.
+
+Use `$codex-security:security-scan` when the task is vulnerability
+discovery rather than remediation of a known finding. Connected GitHub
+repositories can use [Codex Security cloud](https://learn.chatgpt.com/docs/security/setup)
+for the same finding-to-patch workflow with an editable threat model.
+
 ## Prerequisites
 
-- Codex CLI or Codex Cloud access
-- Org-level API key with appropriate quota
-- A queue (file, table, or Issues label) listing findings to remediate
-- Containerised CI runner with Docker / sandbox support
+- Codex app or CLI access with the Codex Security plugin, or Codex Security cloud access
+- One source finding with enough evidence to reproduce or validate it
+- A repository checkout or connected GitHub repository with its normal tests available
+- Human approval before applying a patch or merging a pull request
 
 ## General onboarding
 
@@ -54,9 +88,10 @@ OpenAI's documented Codex CLI flow.
 5. **Run non-interactively** with `codex exec --sandbox workspace-write
    --json` for CI / scheduled workflows. See
    [non-interactive mode](https://developers.openai.com/codex/noninteractive).
-6. **Pick the right model.** Start with `gpt-5.3-codex`; the
+6. **Pick the right model.** Choose a currently supported model and
+   reasoning level for the task; the
    [models page](https://developers.openai.com/codex/models)
-   lists what's available.
+   is the source of truth.
 7. **Review enterprise privacy + trust.** See
    [OpenAI enterprise privacy](https://openai.com/enterprise-privacy)
    and
@@ -72,42 +107,36 @@ OpenAI's documented Codex CLI flow.
 - [Models](https://developers.openai.com/codex/models)
 - [Config reference](https://developers.openai.com/codex/config-basic)
 - [OpenAI enterprise privacy](https://openai.com/enterprise-privacy)
-- [API documentation](https://openai.com/api/plan documentation)
+- [OpenAI API pricing](https://openai.com/api/pricing/)
 - [OpenAI trust & compliance](https://trust.openai.com)
 
 ## Enterprise onboarding
 
 {{< callout type="warning" >}}
-**Placeholder — customize for your organization.** Replace the
-steps and links below with your internal process for getting an
-OpenAI / Codex enterprise API key, approving use of the hosted
-endpoints, and standing up the sandbox this recipe expects. The
-structure is a starting point so every recipe on this site has a
-consistent "how does my team actually start using this at my
-company?" section. Forks of this project are expected to fill
-this in for their own organizations.
+**Enterprise access is organization-specific.** Before using Codex on
+company code, confirm the approved OpenAI account, identity and
+data-handling controls, execution or sandbox policy, network egress, and
+exact repository scope with your security and platform owners. The
+checklist below defines the decisions to record; feature names and
+availability vary by plan.
 {{< /callout >}}
 
-1. **Request access.** File an IT ticket for an OpenAI API key on
-   your org's enterprise account. Internal link:
-   [Request OpenAI / Codex access](#placeholder-itsm-link).
-2. **Issue a scoped API key.** Your platform team issues a
-   least-privilege key with the quota and model allowlist this
-   recipe needs (e.g. `gpt-5.3-codex` only). Internal link:
-   [API key request](#placeholder-key-link).
+1. **Request access.** File an IT ticket through your organization's
+   approved service catalog for Codex access on the enterprise account.
+2. **Enable the approved surface.** Give the team access to the
+   Codex Security plugin or cloud repository connection. For separate
+   headless CLI automation, use the authentication method approved by
+   your platform team.
 3. **Bind to corporate SSO.** Enterprise OpenAI accounts support
    SSO — bind the account to your identity provider per the
-   standard IT guide. Internal link:
-   [SSO enrollment](#placeholder-sso-link).
+   standard IT guide.
 4. **Approve the hosted endpoint.** Get the OpenAI API added to
    your egress allowlist for the CI runner that will execute the
-   Codex driver. Internal link:
-   [Egress allowlist request](#placeholder-egress-link).
+   Codex driver through the normal network-change process.
 5. **Complete internal training.** Read the internal rules of
    engagement for hosted-LLM use on production repos, and confirm
    the data-handling classification for anything you send to the
-   API. Internal link:
-   [your org's AI usage policy](#placeholder-policy-link).
+   API under your organization's AI usage policy.
 
 ## Install the Codex CLI
 
@@ -218,11 +247,6 @@ QUEUE="${1:?usage: remediate.sh <queue-file>}"
 WORKDIR=$(mktemp -d)
 trap 'rm -rf "$WORKDIR"' EXIT
 
-# Pin the model string in one place — upgrade here when a new Codex
-# model ships. Valid strings today include `gpt-5.3-codex` (Codex-tuned)
-# and `gpt-5.4` (general); see https://developers.openai.com/codex/models
-CODEX_MODEL="${CODEX_MODEL:-gpt-5.3-codex}"
-
 while IFS= read -r finding_id; do
   echo "→ remediating $finding_id"
 
@@ -239,7 +263,6 @@ while IFS= read -r finding_id; do
   # --json streams structured events to stdout for replay/audit.
   timeout 20m codex exec \
       --sandbox workspace-write \
-      --model "$CODEX_MODEL" \
       --json \
       "$PROMPT" \
       > "../../logs/$finding_id.jsonl" \
@@ -445,8 +468,7 @@ the PR opens, POST its URL back to the ticket via the REST API
 
 ### 6. Add cost + safety guardrails
 
-- **Per-task token cap** at the Codex CLI level
-  (`--max-tokens`).
+- **One accepted finding per task** so context and review remain bounded.
 - **Per-job wall-clock cap** via the driver's `timeout 20m`.
 - **Daily PR cap** — if the driver has already opened N PRs today,
   it exits early. Compute this with a quick `gh pr list --search`
@@ -493,7 +515,7 @@ What is **constant** (build once, leave alone):
 - The driver script itself — queue poll, prompt fill, Codex
   invocation, PR open, session log capture.
 - The sandbox container image and its tool allowlist.
-- The per-task token cap, per-job wall-clock cap, and the
+- The one-finding task boundary, per-job wall-clock cap, and the
   kill-switch label.
 - The PR template and the "link back to finding ID" requirement.
 
@@ -520,15 +542,14 @@ ecosystem without rewriting the batch pipeline.
   to avoid spam.
 - **Secret scanning.** Route Codex output through your secret scanner
   before committing — LLMs occasionally inline env values into patches.
-- **Session logs are evidence.** Keep the `--session-log` artifact for
-  every run. When a reviewer asks "why did the agent do that?", the
-  log is the answer.
+- **Structured output is evidence.** Keep the JSONL captured from
+  `codex exec --json` for every run. When a reviewer asks why the agent
+  acted, the event stream is part of the answer.
 
 ## Troubleshooting
 
-- **Codex exhausts iterations.** Lower `--max-iterations` and
-  sharpen the task template — 30 is generous; 10 is usually enough
-  for a single-dep bump.
+- **Codex loops without converging.** Sharpen the task template,
+  narrow it to one finding, and shorten the driver's wall-clock timeout.
 - **Lockfile churn.** Add a pre-commit hook in the sandbox that runs
   `pnpm install --frozen-lockfile` to catch drift before pushing.
 - **PRs opened against the wrong base.** Pin `--base main` in the

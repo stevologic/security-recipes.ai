@@ -2,12 +2,14 @@
 title: Base Image & Container Layer Remediation
 linkTitle: Base Image & Container Layers
 weight: 4
+date: 2026-04-25
+lastmod: 2026-07-21
 sidebar:
   open: true
 description: >
-  Bump base images, refresh OS-package layers, and rebuild
-  derived multi-stage images in response to OS-level CVEs and
-  registry advisories — without touching application source.
+  Remediate OS-level CVEs by bumping base images, refreshing package layers,
+  and rebuilding derived multi-stage images without changing application
+  source.
 ---
 
 {{< callout type="info" >}}
@@ -46,6 +48,12 @@ This workflow doesn't decide policy — it executes a policy the
 program has already declared, opens PRs against the affected
 Dockerfiles and manifests, and stops cleanly when the change
 escapes its blast radius.
+
+## Run this playbook
+
+Use the [base-image bump and rebuild recipe]({{< relref "/recipes/general/base-image-bump" >}})
+to give an AI coding agent one image finding, its approved upgrade path,
+the required rebuild checks, and explicit stop conditions.
 
 {{< playbook-workflow >}}
 

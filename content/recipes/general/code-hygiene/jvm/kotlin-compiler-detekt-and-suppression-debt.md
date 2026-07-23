@@ -1,11 +1,13 @@
 ---
 title: "Kotlin compiler, Detekt, and suppression debt"
 linkTitle: "Kotlin compiler, Detekt, and suppression debt"
-description: "Bounded audit or remediation to resolve Kotlin diagnostics and narrow file or declaration suppressions."
+description: "Kotlin compiler, Detekt, and suppression debt: Resolve Kotlin diagnostics and narrow file or declaration suppressions."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"
 maturity: "development"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 recipe_id: "code-hygiene.jvm.kotlin-compiler-detekt-and-suppression-debt"
 recipe_kind: "code-hygiene"

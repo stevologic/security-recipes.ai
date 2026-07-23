@@ -1,11 +1,13 @@
 ---
 title: "Shell exit, pipeline, trap, and temporary-file lifecycle"
 linkTitle: "Shell exit, pipeline, trap, and temporary-file lifecycle"
-description: "Bounded audit or remediation to propagate failures and clean temporary state on every signal and exit."
+description: "Shell exit, pipeline, trap, and temporary-file lifecycle: Propagate failures and clean temporary state on every signal and exit."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"
 maturity: "development"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 recipe_id: "code-hygiene.shell-powershell.shell-exit-pipeline-trap-and-temp-file-lifecycle"
 recipe_kind: "code-hygiene"

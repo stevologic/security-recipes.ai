@@ -2,6 +2,8 @@
 title: Python Remediation Suite
 linkTitle: Python Remediation Suite
 weight: -10
+date: 2026-06-14
+lastmod: 2026-07-21
 sidebar:
   open: true
 description: >
@@ -23,7 +25,7 @@ before work starts, then verifies the evidence attached to that run:
 - deterministic verification before completion is claimed.
 
 <figure class="sr-suite-figure">
-  <img src="/images/remediation-suite/suite-flow.svg" alt="Flow from finding to a domain-specific Python remediation tool, imported recipes and optional LLM help, then a PR handoff, triage note, evidence packet, or audit record." loading="lazy">
+  <img src="/images/remediation-suite/suite-flow.svg" alt="Flow from finding to a domain-specific Python remediation tool, imported recipes and optional LLM help, then a PR handoff, triage note, evidence packet, or audit record." width="1200" height="520" loading="lazy">
   <figcaption>The suite keeps one finding, one domain tool, one recipe-informed output, and human review.</figcaption>
 </figure>
 
@@ -256,7 +258,7 @@ without transmitting data, which makes review and redaction easier.
 ## Packet anatomy
 
 <figure class="sr-suite-figure">
-  <img src="/images/remediation-suite/tool-packet.svg" alt="A remediation packet containing classification, imported recipes, enterprise tooling, workflow rules, optional LLM assist, and human-review output." loading="lazy">
+  <img src="/images/remediation-suite/tool-packet.svg" alt="A remediation packet containing classification, imported recipes, enterprise tooling, workflow rules, optional LLM assist, and human-review output." width="1200" height="520" loading="lazy">
   <figcaption>The JSON packet is the handoff contract between scanners, agents, reviewers, and audit systems.</figcaption>
 </figure>
 

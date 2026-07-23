@@ -2,6 +2,8 @@
 title: Agentic Threat Radar
 linkTitle: Agentic Threat Radar
 weight: 18
+date: 2026-05-02
+lastmod: 2026-07-13
 toc: true
 description: >
   Source-backed radar that maps current agentic AI and MCP security
@@ -9,6 +11,7 @@ description: >
   source roadmap priorities.
 sidebar:
   exclude: true
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

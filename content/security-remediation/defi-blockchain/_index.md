@@ -2,6 +2,8 @@
 title: DeFi & Blockchain Protocol Security
 linkTitle: DeFi & Blockchain Security
 weight: 10
+date: 2026-04-26
+lastmod: 2026-07-13
 sidebar:
   open: true
 description: >

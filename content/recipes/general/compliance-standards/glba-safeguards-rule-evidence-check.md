@@ -1,7 +1,7 @@
 ---
 title: "FTC GLBA Safeguards Rule Evidence Check"
 linkTitle: "GLBA Safeguards Rule"
-description: "FTC-regulated financial institutions maintaining a written information security program for customer information."
+description: "Assess GLBA Safeguards Rule evidence readiness: verify applicability, map official requirements to artifacts, record gaps, and plan remediation."
 recipe_id: "compliance.ftc-glba-safeguards-rule"
 framework_id: "glba-safeguards"
 framework: "GLBA Safeguards Rule"
@@ -21,6 +21,8 @@ tool: "Compliance evidence review"
 author: "Security Recipes"
 team: "GRC and Security Engineering"
 maturity: "stable"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 tags: ["compliance", "glba-safeguards", "regulated-industries", "audit", "data-protection", "governance", "financial-services", "nonbank-financial-institutions"]
 weight: 260

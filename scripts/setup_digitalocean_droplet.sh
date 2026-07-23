@@ -472,6 +472,7 @@ write_env_file() {
   cat >"${env_file}" <<EOF
 # Managed by security-recipes.ai setup script.
 SECURITY_RECIPES_BASE_URL=https://${DOMAIN}/
+SECURITY_RECIPES_DOMAIN=${DOMAIN}
 SECURITY_RECIPES_REPO_URL=${REPO_URL%.git}
 SECURITY_RECIPES_HTTP_PORT=${APP_BIND}
 SECURITY_RECIPES_GREEN_HTTP_PORT=${APP_GREEN_BIND}
@@ -565,6 +566,12 @@ ${DOMAIN} {
 		lb_try_interval 100ms
 		stream_close_delay 5m
 	}
+}
+
+# Acquire a real certificate for www before consolidating it to the canonical
+# apex host. An HTTP-only redirect would strand HTTPS clients at TLS setup.
+www.${DOMAIN} {
+	redir https://${DOMAIN}{uri} permanent
 }
 EOF
   } >"${CADDYFILE}"
@@ -833,9 +840,9 @@ Useful commands:
   fail2ban-client status security-recipes-caddy-404
   ufw status verbose
 
-Before expecting HTTPS to work, make sure the ${DOMAIN} A record points
-to this droplet's public IPv4 address. Caddy will obtain and renew the
-certificate automatically once DNS is correct.
+Before expecting HTTPS to work, make sure the ${DOMAIN} and www.${DOMAIN}
+DNS records point to this droplet. Caddy will obtain and renew certificates
+for both names once DNS is correct; www permanently redirects to ${DOMAIN}.
 EOF
 }
 

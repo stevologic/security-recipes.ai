@@ -1,11 +1,13 @@
 ---
 title: "Serialization schema and versioning hygiene"
 linkTitle: "Serialization schema and versioning hygiene"
-description: "Bounded audit or remediation to make serialized contracts explicit and backward-compatible."
+description: "Serialization schema and versioning hygiene: Make serialized contracts explicit and backward-compatible."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"
 maturity: "development"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 recipe_id: "code-hygiene.cross-language.serialization-schema-and-versioning-hygiene"
 recipe_kind: "code-hygiene"

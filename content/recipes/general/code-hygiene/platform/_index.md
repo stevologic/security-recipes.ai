@@ -1,7 +1,7 @@
 ---
 title: "Infrastructure & Delivery Code Hygiene"
 linkTitle: "Infrastructure & Delivery"
-description: "Terraform, container, Kubernetes, and CI workflow hygiene."
+description: "Terraform, container, Kubernetes, and CI workflow hygiene. Choose bounded workflows with detection, tests, and stop conditions."
 weight: 150
 sidebar:
   open: false
@@ -11,8 +11,24 @@ sidebar:
 
 Terraform, container, Kubernetes, and CI workflow hygiene.
 
-Select one bounded recipe. Start in audit mode; authorize fixes only after reviewing the candidate evidence.
+## Choose a focused Infrastructure & Delivery recipe
 
-## Recipes
+This collection contains 7 bounded Infrastructure & Delivery workflows. Choose the recipe whose objective matches the repository evidence instead of combining unrelated cleanup into one run.
+
+- **[Terraform format, validation, and provider-lock hygiene]({{< relref "/recipes/general/code-hygiene/platform/terraform-fmt-validate-and-provider-lock" >}}):** Use it to keep configuration canonical and provider resolution reproducible.
+- **[Terraform state-address and refactor safety]({{< relref "/recipes/general/code-hygiene/platform/terraform-state-address-and-refactor-safety" >}}):** Use it to preserve resource identity through module and address refactors.
+- **[Dockerfile layer, cache, and build-context hygiene]({{< relref "/recipes/general/code-hygiene/platform/dockerfile-layer-cache-and-build-context" >}}):** Use it to make container builds reproducible, cache-efficient, and free of accidental context.
+- **[Container signal, healthcheck, and shutdown hygiene]({{< relref "/recipes/general/code-hygiene/platform/container-signal-healthcheck-and-shutdown" >}}):** Use it to make PID 1 signal handling, readiness, health, and graceful shutdown correct.
+- **[Kubernetes schema, deprecation, and selector drift]({{< relref "/recipes/general/code-hygiene/platform/kubernetes-schema-deprecation-and-selector-drift" >}}):** Use it to remove deprecated fields and prevent selector and label contract drift.
+- **[Kubernetes probe, resource, and rollout hygiene]({{< relref "/recipes/general/code-hygiene/platform/kubernetes-probe-resource-and-rollout-hygiene" >}}):** Use it to make probes, resources, disruption, and rollout settings internally consistent.
+- **[CI workflow timeout, concurrency, and cache hygiene]({{< relref "/recipes/general/code-hygiene/platform/ci-workflow-timeout-concurrency-and-cache-hygiene" >}}):** Use it to bound CI jobs and prevent stale caches and duplicate workflow races.
+
+## How to use this collection
+
+Read the repository's configured runtime, compiler, framework, analyzer, and test commands before selecting a workflow. Start in audit mode, record file and symbol evidence, and authorize a fix only after the candidate scope is reviewable. Preserve supported versions, public behavior, and existing tool configuration.
+
+If the evidence is a named CVE, scanner finding, exposed secret, authorization flaw, or injection path, use the focused vulnerability-remediation playbook instead of a code-hygiene recipe. Stop when the safe result requires an owner decision about architecture, compatibility, production data, or deployment state.
+
+## Full recipe list
 
 {{< prompt-toc >}}

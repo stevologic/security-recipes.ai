@@ -1,11 +1,13 @@
 ---
 title: "C and C++ ownership, RAII, and resource lifecycle"
 linkTitle: "C and C++ ownership, RAII, and resource lifecycle"
-description: "Bounded audit or remediation to make memory, file, socket, lock, and handle ownership explicit."
+description: "C and C++ ownership, RAII, and resource lifecycle: Make memory, file, socket, lock, and handle ownership explicit."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"
 maturity: "development"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 recipe_id: "code-hygiene.c-cpp.c-cpp-ownership-raii-and-resource-lifecycle"
 recipe_kind: "code-hygiene"

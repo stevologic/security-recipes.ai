@@ -2,12 +2,15 @@
 title: Agentic Action Runtime Pack
 linkTitle: Action Runtime Pack
 weight: 15
+date: 2026-05-04
+lastmod: 2026-07-13
 sidebar:
   exclude: true
 description: >
   A generated action-runtime pack and deterministic evaluator for allow,
   hold, deny, or kill decisions before MCP-backed agents execute side
   effects.
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

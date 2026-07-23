@@ -1,7 +1,7 @@
 ---
 title: "Dart & Flutter Code Hygiene"
 linkTitle: "Dart & Flutter"
-description: "Analyzer, null-safety, asynchronous, controller, and widget lifecycle hygiene."
+description: "Analyzer, null-safety, asynchronous, controller, and widget lifecycle hygiene. Choose bounded workflows with detection, tests, and stop conditions."
 weight: 120
 sidebar:
   open: false
@@ -11,8 +11,19 @@ sidebar:
 
 Analyzer, null-safety, asynchronous, controller, and widget lifecycle hygiene.
 
-Select one bounded recipe. Start in audit mode; authorize fixes only after reviewing the candidate evidence.
+## Choose a focused Dart & Flutter recipe
 
-## Recipes
+This collection contains 2 bounded Dart & Flutter workflows. Choose the recipe whose objective matches the repository evidence instead of combining unrelated cleanup into one run.
+
+- **[Dart analyzer, null-safety, and ignore debt]({{< relref "/recipes/general/code-hygiene/dart-flutter/dart-analyzer-null-safety-and-ignore-debt" >}}):** Use it to resolve analyzer diagnostics and remove unsafe null assertions and broad ignores.
+- **[Flutter Future, stream, controller, and widget lifecycle]({{< relref "/recipes/general/code-hygiene/dart-flutter/flutter-future-stream-controller-and-widget-lifecycle" >}}):** Use it to cancel subscriptions and dispose controllers and async work with the owning widget or service.
+
+## How to use this collection
+
+Read the repository's configured runtime, compiler, framework, analyzer, and test commands before selecting a workflow. Start in audit mode, record file and symbol evidence, and authorize a fix only after the candidate scope is reviewable. Preserve supported versions, public behavior, and existing tool configuration.
+
+If the evidence is a named CVE, scanner finding, exposed secret, authorization flaw, or injection path, use the focused vulnerability-remediation playbook instead of a code-hygiene recipe. Stop when the safe result requires an owner decision about architecture, compatibility, production data, or deployment state.
+
+## Full recipe list
 
 {{< prompt-toc >}}

@@ -1,7 +1,7 @@
 ---
 title: "Ruby & Rails Code Hygiene"
 linkTitle: "Ruby & Rails"
-description: "RuboCop debt and Active Record query, transaction, and callback hygiene."
+description: "RuboCop debt and Active Record query, transaction, and callback hygiene. Choose bounded workflows with detection, tests, and stop conditions."
 weight: 90
 sidebar:
   open: false
@@ -11,8 +11,19 @@ sidebar:
 
 RuboCop debt and Active Record query, transaction, and callback hygiene.
 
-Select one bounded recipe. Start in audit mode; authorize fixes only after reviewing the candidate evidence.
+## Choose a focused Ruby & Rails recipe
 
-## Recipes
+This collection contains 2 bounded Ruby & Rails workflows. Choose the recipe whose objective matches the repository evidence instead of combining unrelated cleanup into one run.
+
+- **[Ruby RuboCop baseline and disable debt]({{< relref "/recipes/general/code-hygiene/ruby/ruby-rubocop-baseline-and-disable-debt" >}}):** Use it to resolve RuboCop offenses and narrow disabled cops without broad rewrites.
+- **[Rails query, transaction, and callback hygiene]({{< relref "/recipes/general/code-hygiene/ruby/rails-query-transaction-and-callback-hygiene" >}}):** Use it to make Active Record query count, transaction scope, and callback side effects explicit.
+
+## How to use this collection
+
+Read the repository's configured runtime, compiler, framework, analyzer, and test commands before selecting a workflow. Start in audit mode, record file and symbol evidence, and authorize a fix only after the candidate scope is reviewable. Preserve supported versions, public behavior, and existing tool configuration.
+
+If the evidence is a named CVE, scanner finding, exposed secret, authorization flaw, or injection path, use the focused vulnerability-remediation playbook instead of a code-hygiene recipe. Stop when the safe result requires an owner decision about architecture, compatibility, production data, or deployment state.
+
+## Full recipe list
 
 {{< prompt-toc >}}

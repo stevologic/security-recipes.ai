@@ -1,7 +1,7 @@
 ---
 title: "SQL & Data Code Hygiene"
 linkTitle: "SQL & Data"
-description: "Migration, transaction, locking, query-plan, and data-access hygiene."
+description: "Migration, transaction, locking, query-plan, and data-access hygiene. Choose bounded workflows with detection, tests, and stop conditions."
 weight: 140
 sidebar:
   open: false
@@ -11,8 +11,20 @@ sidebar:
 
 Migration, transaction, locking, query-plan, and data-access hygiene.
 
-Select one bounded recipe. Start in audit mode; authorize fixes only after reviewing the candidate evidence.
+## Choose a focused SQL & Data recipe
 
-## Recipes
+This collection contains 3 bounded SQL & Data workflows. Choose the recipe whose objective matches the repository evidence instead of combining unrelated cleanup into one run.
+
+- **[SQL migration idempotence and rollback hygiene]({{< relref "/recipes/general/code-hygiene/data/sql-migration-idempotence-and-rollback" >}}):** Use it to make schema migrations ordered, restartable where required, and operationally reversible.
+- **[SQL transaction, locking, and concurrency hygiene]({{< relref "/recipes/general/code-hygiene/data/sql-transaction-locking-and-concurrency" >}}):** Use it to make transaction scope and concurrent update behavior explicit.
+- **[SQL query plan, index, and N+1 hygiene]({{< relref "/recipes/general/code-hygiene/data/sql-query-plan-index-and-n-plus-one" >}}):** Use it to remove proven query amplification and plan regressions using representative evidence.
+
+## How to use this collection
+
+Read the repository's configured runtime, compiler, framework, analyzer, and test commands before selecting a workflow. Start in audit mode, record file and symbol evidence, and authorize a fix only after the candidate scope is reviewable. Preserve supported versions, public behavior, and existing tool configuration.
+
+If the evidence is a named CVE, scanner finding, exposed secret, authorization flaw, or injection path, use the focused vulnerability-remediation playbook instead of a code-hygiene recipe. Stop when the safe result requires an owner decision about architecture, compatibility, production data, or deployment state.
+
+## Full recipe list
 
 {{< prompt-toc >}}

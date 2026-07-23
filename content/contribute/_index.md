@@ -1,6 +1,7 @@
 ---
 title: Contribute
 linkTitle: Contribute
+page_kind: webpage
 weight: 4
 toc: true
 sidebar:
@@ -34,8 +35,10 @@ two copies are intentionally redundant.
    [`stevologic/security-recipes.ai`](https://github.com/stevologic/security-recipes.ai).
 6. Get **one reviewer from Security** and **one from the team that
    owns the prompt or recipe**.
-7. On merge, the GitHub Actions workflow rebuilds the site and
-   pushes to `gh-pages` automatically — no manual deploy.
+7. On merge, GitHub Actions builds and publishes commit-tagged site and MCP
+   container images. The deployment server's managed systemd timer runs
+   `deploy.sh`, waits for the exact revision's checks, and rolls out those
+   immutable images.
 
 ## Fork-and-PR workflow
 
@@ -110,8 +113,12 @@ prompts for the four things reviewers check:
 
 ### 7. Address review and merge
 
-Squash-merge is the default. Once merged, the GH Actions pipeline
-builds the site and publishes `gh-pages` in about a minute.
+Squash-merge is the default. Once merged, GitHub Actions builds and publishes
+commit-tagged site and MCP images to GitHub Container Registry (GHCR). The
+deployment host's managed `security-recipes-deploy.timer` then runs
+`deploy.sh`, waits for the exact commit's required checks, and deploys the
+immutable images through the blue/green slots. Publication time depends on CI
+and the timer interval; it is not a `gh-pages` publish.
 
 ### Keeping your fork in sync
 

@@ -1,11 +1,13 @@
 ---
 title: "Go channel, lock, and shared-state hygiene"
 linkTitle: "Go channel, lock, and shared-state hygiene"
-description: "Bounded audit or remediation to remove channel ownership ambiguity, lock misuse, and data races."
+description: "Go channel, lock, and shared-state hygiene: Remove channel ownership ambiguity, lock misuse, and data races."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"
 maturity: "development"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 recipe_id: "code-hygiene.go.go-channel-lock-and-shared-state-hygiene"
 recipe_kind: "code-hygiene"

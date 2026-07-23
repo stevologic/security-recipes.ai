@@ -1,7 +1,7 @@
 ---
 title: "SEC Cybersecurity Disclosure Evidence Readiness Check"
 linkTitle: "SEC Cyber Disclosure Rule"
-description: "SEC reporting companies preparing evidence for material cybersecurity incident and annual risk-management, strategy, and governance disclosures."
+description: "Assess SEC Cyber Disclosure Rule evidence readiness: verify applicability, map official requirements to artifacts, record gaps, and plan remediation."
 recipe_id: "compliance.sec-cyber-disclosure-2023"
 framework_id: "sec-cyber-disclosure"
 framework: "SEC Cyber Disclosure Rule"
@@ -21,6 +21,8 @@ tool: "Compliance evidence review"
 author: "Security Recipes"
 team: "GRC and Security Engineering"
 maturity: "stable"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 tags: ["compliance", "sec-cyber-disclosure", "assurance", "audit", "governance", "incident-response", "public-companies"]
 weight: 280

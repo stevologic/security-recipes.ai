@@ -2,12 +2,14 @@
 title: MCP Connector Intake Scanner
 linkTitle: Connector Intake Scanner
 weight: 7
+date: 2026-05-02
+lastmod: 2026-07-13
 sidebar:
   exclude: true
 description: >
-  A deterministic intake gate for new or changed MCP servers that scores
-  auth, token, network, schema, data, write, approval, evidence, and
-  red-team risk before connector promotion.
+  Score authentication, token, network, schema, data, write, approval,
+  evidence, and red-team risk before promoting a new or changed MCP connector.
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

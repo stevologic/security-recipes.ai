@@ -1,7 +1,7 @@
 ---
 title: "EU AI Act Evidence Readiness Check"
 linkTitle: "EU AI Act"
-description: "AI providers, deployers, importers, distributors, and product manufacturers after role, system classification, exclusions, and current phased dates are verified with official Commission guidance."
+description: "Assess EU AI Act evidence readiness: verify applicability, map official requirements to artifacts, record gaps, and plan remediation."
 recipe_id: "compliance.eu-ai-act-2024-1689"
 framework_id: "eu-ai-act"
 framework: "EU AI Act"
@@ -21,6 +21,8 @@ tool: "Compliance evidence review"
 author: "Security Recipes"
 team: "GRC and Security Engineering"
 maturity: "stable"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 tags: ["compliance", "eu-ai-act", "ai-governance", "audit", "ai-safety", "legal-readiness", "artificial-intelligence", "cross-sector"]
 weight: 410

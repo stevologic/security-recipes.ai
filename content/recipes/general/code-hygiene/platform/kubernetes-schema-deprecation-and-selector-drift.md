@@ -1,11 +1,13 @@
 ---
 title: "Kubernetes schema, deprecation, and selector drift"
 linkTitle: "Kubernetes schema, deprecation, and selector drift"
-description: "Bounded audit or remediation to remove deprecated fields and prevent selector and label contract drift."
+description: "Kubernetes schema, deprecation, and selector drift: Remove deprecated fields and prevent selector and label contract drift."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"
 maturity: "development"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 recipe_id: "code-hygiene.platform.kubernetes-schema-deprecation-and-selector-drift"
 recipe_kind: "code-hygiene"

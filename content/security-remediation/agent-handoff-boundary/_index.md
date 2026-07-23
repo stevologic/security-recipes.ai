@@ -2,12 +2,15 @@
 title: Agent Handoff Boundary
 linkTitle: Agent Handoff Boundary
 weight: 12
+date: 2026-05-04
+lastmod: 2026-07-13
 sidebar:
   exclude: true
 description: >
   Generated protocol trust evidence and runtime decisions for MCP,
   A2A, provider-native subagents, and human approval bridges before
   context crosses an agent boundary.
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

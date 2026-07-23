@@ -2,12 +2,15 @@
 title: Browser Agent Workspace Boundary
 linkTitle: Browser Agent Boundary
 weight: 16
+date: 2026-05-04
+lastmod: 2026-07-13
 sidebar:
   exclude: true
 description: >
-  A generated browser-agent workspace boundary and deterministic runtime
-  evaluator for logged-in sessions, untrusted web content, localhost,
-  local storage, downloads, forms, and external browser side effects.
+  Generate and evaluate browser-agent workspace boundaries for logged-in
+  sessions, untrusted web content, localhost, local storage, downloads, and
+  forms.
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

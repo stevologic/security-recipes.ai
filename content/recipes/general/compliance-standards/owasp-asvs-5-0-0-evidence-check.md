@@ -1,7 +1,7 @@
 ---
 title: "OWASP ASVS 5.0.0 Application Verification Evidence Check"
 linkTitle: "OWASP ASVS 5.0.0"
-description: "Teams specifying or verifying web application security requirements against an explicitly selected ASVS level and version."
+description: "Assess OWASP ASVS 5.0.0 evidence readiness: verify applicability, map official requirements to artifacts, record gaps, and plan remediation."
 recipe_id: "compliance.owasp-asvs-5-0-0"
 framework_id: "owasp-asvs"
 framework: "OWASP ASVS 5.0.0"
@@ -21,6 +21,8 @@ tool: "Compliance evidence review"
 author: "Security Recipes"
 team: "GRC and Security Engineering"
 maturity: "stable"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 tags: ["compliance", "owasp-asvs", "product-security", "audit", "application-security", "code-hygiene", "software", "web-applications"]
 weight: 290

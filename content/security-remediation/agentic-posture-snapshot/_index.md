@@ -2,13 +2,16 @@
 title: Agentic Posture Snapshot
 linkTitle: Agentic Posture Snapshot
 weight: 12
+date: 2026-05-04
+lastmod: 2026-07-23
 toc: true
 description: >
-  Generated enterprise posture evidence for agentic AI systems across secure
-  context, MCP tools, A2A handoffs, identity, skills, telemetry, exposure
-  paths, readiness, standards, and reviewer diligence.
+  Generate posture evidence for agentic AI across secure context, MCP tools,
+  A2A handoffs, identity, skills, telemetry, exposure paths, readiness, and
+  standards.
 sidebar:
   exclude: true
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}
@@ -55,10 +58,24 @@ of product claims.
 
 ## Generated artifacts
 
+The posture pack keeps its decision model, generator, and generated evidence
+separate so a reviewer can inspect both the rules and the result:
+
+- [`data/assurance/agentic-posture-model.json`](https://github.com/stevologic/security-recipes.ai/blob/main/data/assurance/agentic-posture-model.json)
+  defines the dimensions, weights, risk factors, and fail-closed decision contract.
+- [`scripts/generate_agentic_posture_snapshot.py`](https://github.com/stevologic/security-recipes.ai/blob/main/scripts/generate_agentic_posture_snapshot.py)
+  joins the registered evidence packs and validates their contracts.
+- [`data/evidence/agentic-posture-snapshot.json`](https://github.com/stevologic/security-recipes.ai/blob/main/data/evidence/agentic-posture-snapshot.json)
+  is the generated posture score, workflow decision set, source-artifact hash
+  inventory, residual-risk list, and reviewer view.
 
 Run the generator after changing any evidence pack that participates in
 the posture view:
 
+```bash
+python3 scripts/generate_agentic_posture_snapshot.py
+python3 scripts/generate_agentic_posture_snapshot.py --check
+```
 
 Evaluate a runtime posture event:
 
@@ -71,6 +88,13 @@ python3 scripts/evaluate_agentic_posture_decision.py \
 
 Hold high-autonomy XPIA-sensitive execution until a human approval exists:
 
+```bash
+python3 scripts/evaluate_agentic_posture_decision.py \
+  --workflow-id artifact-cache-quarantine \
+  --autonomy-level high \
+  --indirect-prompt-injection-risk high \
+  --expect-decision hold_for_xpia_human_review
+```
 
 ## Decision model
 
@@ -140,7 +164,7 @@ This feature is intentionally aligned with current industry movement:
 
 ## What to look at first
 
-For a reviewer or reviewer, start with:
+For a security or platform reviewer, start with:
 
 1. `posture_summary` - the single posture score and decision.
 2. `risk_factor_summary` - XPIA, high-exposure, pilot connector, skill,

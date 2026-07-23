@@ -1,6 +1,7 @@
 ---
-title: "Scheduled sensitive data element (SDE) remediation"
+title: "Devin Scheduled Sensitive Data Remediation"
 linkTitle: "Scheduled SDE remediation"
+description: "Use Devin to scan repositories and Git history for secrets, PII, PHI, and PCI data, then produce bounded fixes, verification evidence, and a reviewed PR."
 tool: "devin"
 author: "Stephen M Abbott"
 team: "Security"

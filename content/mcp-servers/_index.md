@@ -1,17 +1,25 @@
 ---
-title: MCP Integration
+title: MCP Context for AI Vulnerability Remediation
 linkTitle: MCP Integration
 weight: 5
+date: 2026-04-21
+lastmod: 2026-07-23
 toc: true
 sidebar:
   open: true
 description: >
-  How to connect security-recipes.ai, its MCP server, and approved security
-  context sources to AI remediation agents.
+  Connect security-recipes.ai and approved security systems to AI remediation
+  agents through read-only MCP servers, scoped tools, and auditable context.
 ---
 
+This page covers the MCP-specific security and context layer: server roles,
+transports, read-only defaults, scoped tool access, deployment, and connector
+review. For non-MCP delivery patterns such as vendored recipes, native rule
+files, and CI injection, use the
+[AI agent integration architecture]({{< relref "/docs/agent-integration" >}}).
+
 MCP lets an AI application connect to external context and tools through a
-standard protocol. For security remediation, use it to give an agent the
+standard protocol. For vulnerability remediation, use it to give an agent the
 evidence it needs to fix one finding: the recipe, advisory data, scanner output,
 repository context, and review rules.
 
@@ -58,7 +66,7 @@ Start with three layers. Add more only when the finding requires it.
 
 | Layer | Purpose | Examples |
 | --- | --- | --- |
-| Recipe context | Tell the agent how this class of fix should be handled. | security-recipes.ai recipe index, matching recipe page, local `SECURITY_RECIPES.md`. |
+| Recipe context | Tell the agent how this class of fix should be handled. | [security-recipes.ai recipe index](/recipes/), matching recipe page, local `SECURITY_RECIPES.md`. |
 | Finding context | Explain the specific vulnerability or alert. | OSV, deps.dev, GitHub Advisory data, Snyk, Semgrep, CodeQL, SARIF, SBOMs. |
 | Repository context | Let the agent inspect code and evidence. | GitHub, GitLab, Azure DevOps, CI logs, branch protections, CODEOWNERS, runbooks. |
 
@@ -98,7 +106,7 @@ be able to see which grant was used and why.
 ## Security Recipes MCP server
 
 This repository includes an optional FastMCP server in `mcp_server.py`. It is a
-read-first knowledge server for security-recipes.ai.
+read-first knowledge server for [security-recipes.ai](/).
 
 It exposes **MCP tools** that let compatible clients:
 
@@ -455,7 +463,11 @@ catalog that would be awkward to paste into every task.
 ## See also
 
 - [Integrate an AI Agent]({{< relref "/docs/agent-integration" >}})
-- [Agent Setup]({{< relref "/agents" >}})
+- [AI Agent Comparison]({{< relref "/agents" >}})
 - [Recipe Browser]({{< relref "/recipes" >}})
 - [Security Remediation]({{< relref "/security-remediation" >}})
+- [Hosted MCP Readiness Pack]({{< relref "/security-remediation/hosted-mcp-readiness-pack" >}}) — deployment, transport, authentication, and operations readiness
+- [MCP Elicitation Boundary]({{< relref "/security-remediation/mcp-elicitation-boundary" >}}) — safe user-input requests without hidden authority expansion
+- [MCP and Agentic Skills Risk Coverage]({{< relref "/security-remediation/mcp-risk-coverage" >}}) — coverage across connector, tool, and skill risks
+- [MCP STDIO Launch Boundary]({{< relref "/security-remediation/mcp-stdio-launch-boundary" >}}) — local process launch, environment, and command boundaries
 - [Local MCP runbook](https://github.com/stevologic/security-recipes.ai/blob/main/README.mcp-localhost.md)

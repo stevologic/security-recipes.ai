@@ -1,11 +1,13 @@
 ---
 title: "PowerShell error, output, and resource lifecycle"
 linkTitle: "PowerShell error, output, and resource lifecycle"
-description: "Bounded audit or remediation to make terminating behavior, pipeline output, and disposable resources predictable."
+description: "PowerShell error, output, and resource lifecycle: Make terminating behavior, pipeline output, and disposable resources predictable."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"
 maturity: "development"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 recipe_id: "code-hygiene.shell-powershell.powershell-error-output-and-resource-lifecycle"
 recipe_kind: "code-hygiene"

@@ -1,11 +1,13 @@
 ---
 title: "TODO, FIXME, and suppression debt"
 linkTitle: "TODO, FIXME, and suppression debt"
-description: "Bounded audit or remediation to turn stale annotations and diagnostic suppressions into owned, reviewable work."
+description: "TODO, FIXME, and suppression debt: Turn stale annotations and diagnostic suppressions into owned, reviewable work."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"
 maturity: "development"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 recipe_id: "code-hygiene.cross-language.todo-fixme-and-suppression-debt"
 recipe_kind: "code-hygiene"

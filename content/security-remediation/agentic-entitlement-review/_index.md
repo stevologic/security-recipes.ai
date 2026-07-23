@@ -2,12 +2,15 @@
 title: Agentic Entitlement Review Pack
 linkTitle: Entitlement Review
 weight: 16
+date: 2026-05-04
+lastmod: 2026-07-13
 sidebar:
   exclude: true
 description: >
-  A generated entitlement-review pack and deterministic evaluator for
-  expiring, reviewable, revocable agent permissions across MCP scopes,
-  A2A handoffs, action-runtime gates, and non-human identities.
+  Generate an entitlement-review pack for expiring, reviewable, revocable
+  agent permissions across MCP scopes, A2A handoffs, runtime gates, and
+  non-human identities.
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

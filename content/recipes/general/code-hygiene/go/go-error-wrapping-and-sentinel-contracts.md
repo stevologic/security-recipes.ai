@@ -1,11 +1,13 @@
 ---
 title: "Go error wrapping and sentinel contracts"
 linkTitle: "Go error wrapping and sentinel contracts"
-description: "Bounded audit or remediation to preserve error identity and context without string matching or duplicate logging."
+description: "Go error wrapping and sentinel contracts: Preserve error identity and context without string matching or duplicate logging."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"
 maturity: "development"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 recipe_id: "code-hygiene.go.go-error-wrapping-and-sentinel-contracts"
 recipe_kind: "code-hygiene"
@@ -62,7 +64,7 @@ Inspect only operator-scoped, first-party source and configuration. Exclude gene
 
 ### Verification
 
-- Test errors.Is, errors.As, public status mapping, context, and absence of duplicate logs.
+- Test `errors.Is`, `errors.As`, public status mapping, context, and absence of duplicate logs.
 - Compare diagnostic counts and relevant behavior before and after. Report every command, result, and check that could not run.
 
 ### Stop conditions
@@ -82,7 +84,7 @@ Inspect only operator-scoped, first-party source and configuration. Exclude gene
 
 ## Verification
 
-- Test errors.Is, errors.As, public status mapping, context, and absence of duplicate logs.
+- Test `errors.Is`, `errors.As`, public status mapping, context, and absence of duplicate logs.
 - Confirm that diagnostic configuration, suppressions, public interfaces, generated files, vendored files, and dependencies did not change outside the authorized scope.
 - Review the final diff for behavior changes and run the repository's focused checks before broader suites.
 

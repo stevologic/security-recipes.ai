@@ -1,11 +1,13 @@
 ---
 title: "Unicode, locale, and normalization hygiene"
 linkTitle: "Unicode, locale, and normalization hygiene"
-description: "Bounded audit or remediation to make text comparison and normalization semantics intentional."
+description: "Unicode, locale, and normalization hygiene: Make text comparison and normalization semantics intentional."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"
 maturity: "development"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 recipe_id: "code-hygiene.cross-language.unicode-locale-and-normalization-hygiene"
 recipe_kind: "code-hygiene"

@@ -2,6 +2,8 @@
 title: Compliance & Audit
 linkTitle: Compliance & Audit
 weight: 13
+date: 2026-04-22
+lastmod: 2026-07-21
 sidebar:
   open: true
 description: >
@@ -339,5 +341,7 @@ fix the instrumentation.
 - [Agentic Assurance Pack]({{< relref "/security-remediation/agentic-assurance-pack" >}}) — the generated index for control evidence and AI/Agent BOM readiness
 - [Agentic Readiness Scorecard]({{< relref "/security-remediation/agentic-readiness-scorecard" >}}) - the generated workflow promotion gate for scale and pilot decisions
 - [Agentic Red-Team Drill Pack]({{< relref "/security-remediation/agentic-red-team-drills" >}}) - the adversarial eval evidence layer
+- [Critical Infrastructure Secure Context Profile]({{< relref "/security-remediation/critical-infrastructure-secure-context" >}}) - sector-specific context, authority, and evidence boundaries
+- [Model Provider Routing Gate]({{< relref "/security-remediation/model-provider-routing-gate" >}}) - auditable provider eligibility, residency, and fallback decisions
 - [Threat Model]({{< relref "/fundamentals/threat-model" >}}) — the basis of the anomaly-detection answer
 - [MCP Integration]({{< relref "/mcp-servers" >}}) — the access-logging layer

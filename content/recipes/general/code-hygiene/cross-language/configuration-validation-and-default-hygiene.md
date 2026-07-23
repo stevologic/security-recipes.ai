@@ -1,11 +1,13 @@
 ---
 title: "Configuration validation and default hygiene"
 linkTitle: "Configuration validation and default hygiene"
-description: "Bounded audit or remediation to make invalid configuration fail clearly and defaults behave consistently."
+description: "Configuration validation and default hygiene: Make invalid configuration fail clearly and defaults behave consistently."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"
 maturity: "development"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 recipe_id: "code-hygiene.cross-language.configuration-validation-and-default-hygiene"
 recipe_kind: "code-hygiene"

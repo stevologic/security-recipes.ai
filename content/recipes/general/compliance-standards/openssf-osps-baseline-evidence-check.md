@@ -1,7 +1,7 @@
 ---
 title: "OpenSSF OSPS Baseline Evidence Check"
 linkTitle: "OpenSSF OSPS Baseline"
-description: "Open source projects and downstream consumers evaluating baseline security practices at an explicitly selected OSPS level."
+description: "Assess OpenSSF OSPS Baseline evidence readiness: verify applicability, map official requirements to artifacts, record gaps, and plan remediation."
 recipe_id: "compliance.openssf-osps-baseline-2026-02-19"
 framework_id: "openssf-osps-baseline"
 framework: "OpenSSF OSPS Baseline"
@@ -21,6 +21,8 @@ tool: "Compliance evidence review"
 author: "Security Recipes"
 team: "GRC and Security Engineering"
 maturity: "stable"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 tags: ["compliance", "openssf-osps-baseline", "product-security", "audit", "supply-chain", "secure-defaults", "open-source", "software"]
 weight: 330

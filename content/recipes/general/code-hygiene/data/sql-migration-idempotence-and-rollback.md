@@ -1,11 +1,13 @@
 ---
 title: "SQL migration idempotence and rollback hygiene"
 linkTitle: "SQL migration idempotence and rollback hygiene"
-description: "Bounded audit or remediation to make schema migrations ordered, restartable where required, and operationally reversible."
+description: "SQL migration idempotence and rollback hygiene: Make schema migrations ordered, restartable where required, and operationally reversible."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"
 maturity: "development"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 recipe_id: "code-hygiene.data.sql-migration-idempotence-and-rollback"
 recipe_kind: "code-hygiene"

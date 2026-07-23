@@ -2,12 +2,15 @@
 title: Secure Context Lineage Ledger
 linkTitle: Secure Context Lineage
 weight: 10
+date: 2026-05-04
+lastmod: 2026-07-13
 sidebar:
   exclude: true
 description: >
-  A generated context-lineage ledger for agentic AI: source hashes,
-  attestations, poisoning scan state, retrieval decisions, model routes,
-  egress, handoffs, telemetry, run receipts, and reuse policy.
+  Generate a context-lineage ledger for agentic AI: source hashes,
+  attestations, poisoning scans, retrieval, model routes, egress, handoffs,
+  telemetry, and receipts.
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

@@ -1,11 +1,13 @@
 ---
 title: "Python import, packaging, and module boundaries"
 linkTitle: "Python import, packaging, and module boundaries"
-description: "Bounded audit or remediation to remove import cycles and make package exports and runtime discovery explicit."
+description: "Python import, packaging, and module boundaries: Remove import cycles and make package exports and runtime discovery explicit."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"
 maturity: "development"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 recipe_id: "code-hygiene.python.python-import-packaging-and-module-boundaries"
 recipe_kind: "code-hygiene"

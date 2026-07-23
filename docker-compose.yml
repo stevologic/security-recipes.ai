@@ -12,6 +12,33 @@ x-security-recipes-logging: &security-recipes-logging
     max-size: "${SECURITY_RECIPES_LOG_MAX_SIZE:-10m}"
     max-file: "${SECURITY_RECIPES_LOG_MAX_FILES:-5}"
 
+x-security-recipes-mcp-runtime: &security-recipes-mcp-runtime
+  build:
+    context: .
+    dockerfile: Dockerfile.mcp-server
+    args:
+      REVISION: "${SECURITY_RECIPES_IMAGE_REVISION:-bootstrap}"
+  environment:
+    RECIPES_MCP_CONFIG: "/app/mcp-server.toml"
+    RECIPES_MCP_TRANSPORT: "streamable-http"
+    RECIPES_MCP_HOST: "0.0.0.0"
+    RECIPES_MCP_PORT: "80"
+    RECIPES_MCP_PATH: "/mcp"
+    RECIPES_MCP_SOURCE_INDEX_URL: "${RECIPES_MCP_SOURCE_INDEX_URL:-https://security-recipes.ai/api/recipes-index.json}"
+    RECIPES_MCP_ALLOWED_SOURCE_HOSTS: "${RECIPES_MCP_ALLOWED_SOURCE_HOSTS:-caddy,security-recipes,security-recipes-green,mcp-server,mcp-server-blue,mcp-server-green,security-recipes.ai}"
+    RECIPES_MCP_PUBLIC_BASE_URL: "${RECIPES_MCP_PUBLIC_BASE_URL:-https://security-recipes.ai/mcp}"
+    RECIPES_PUBLIC_SITE_BASE_URL: "${SECURITY_RECIPES_BASE_URL:-https://security-recipes.ai/}"
+    RECIPES_MCP_PLAYBOOK_REGISTRY_PATH: "${RECIPES_MCP_PLAYBOOK_REGISTRY_PATH:-/app/data/remediation_suite/playbooks.json}"
+    RECIPES_MCP_LOG_LEVEL: "${RECIPES_MCP_LOG_LEVEL:-info}"
+    RECIPES_MCP_EAGER_REFRESH: "${RECIPES_MCP_EAGER_REFRESH:-false}"
+    # Keep the compact text index lazy on memory-constrained hosts. Exact CVE
+    # lookups remain shard-only; operators can opt into eager warming.
+    RECIPES_MCP_EAGER_CVE_SEARCH: "${RECIPES_MCP_EAGER_CVE_SEARCH:-false}"
+  expose:
+    - "80"
+  logging: *security-recipes-logging
+  restart: unless-stopped
+
 x-security-recipes-runtime: &security-recipes-runtime
   build: *security-recipes-build
   volumes:
@@ -32,14 +59,28 @@ services:
   security-recipes:
     <<: *security-recipes-runtime
     image: "${SECURITY_RECIPES_BLUE_IMAGE:-security-recipes-ai-site:bootstrap}"
+    environment:
+      # The legacy singleton remains the default for the first rollout because
+      # the already-running deploy.sh process was parsed before this Compose
+      # file existed. The new deploy script explicitly selects the paired MCP
+      # when it recreates a withdrawn slot on subsequent deployments.
+      MCP_UPSTREAM: "${SECURITY_RECIPES_BLUE_MCP_UPSTREAM:-mcp-server}"
     ports:
       - "${SECURITY_RECIPES_HTTP_PORT:-127.0.0.1:8080}:80"
+    depends_on:
+      mcp-server:
+        condition: service_healthy
 
   security-recipes-green:
     <<: *security-recipes-runtime
     image: "${SECURITY_RECIPES_GREEN_IMAGE:-security-recipes-ai-site:bootstrap}"
+    environment:
+      MCP_UPSTREAM: "${SECURITY_RECIPES_GREEN_MCP_UPSTREAM:-mcp-server}"
     ports:
       - "${SECURITY_RECIPES_GREEN_HTTP_PORT:-127.0.0.1:8081}:80"
+    depends_on:
+      mcp-server:
+        condition: service_healthy
 
   # Automatic HTTPS termination. Opt in via COMPOSE_PROFILES=caddy in .env;
   # hosts that already run their own proxy on 80/443 leave this profile off.
@@ -102,6 +143,7 @@ services:
       - fail2ban_data:/data
       - ./config/fail2ban/filter.d/security-recipes-caddy-404.conf:/data/filter.d/security-recipes-caddy-404.conf:ro
       - ./config/fail2ban/jail.d/security-recipes-caddy-404.local:/data/jail.d/security-recipes-caddy-404.local:ro
+      - ./config/fail2ban/verify_googlebot_ip.py:/usr/local/bin/security-recipes-verify-googlebot.py:ro
       - "${SECURITY_RECIPES_TRAFFIC_LOGS_SOURCE:-caddy_logs}:/var/log/caddy:ro"
     depends_on:
       caddy:
@@ -139,33 +181,21 @@ services:
       retries: 8
     restart: unless-stopped
 
+  # Transitional singleton retained for old site images during the first
+  # blue/green MCP migration and for backwards-compatible manual workflows.
+  # New site slots use the paired services below, so an inactive MCP can be
+  # replaced without interrupting the live /mcp or dynamic CVE routes.
   mcp-server:
+    <<: *security-recipes-mcp-runtime
     image: "${RECIPES_MCP_IMAGE:-security-recipes-ai-mcp:bootstrap}"
-    build:
-      context: .
-      dockerfile: Dockerfile.mcp-server
-      args:
-        REVISION: "${SECURITY_RECIPES_IMAGE_REVISION:-bootstrap}"
-    environment:
-      RECIPES_MCP_CONFIG: "/app/mcp-server.toml"
-      RECIPES_MCP_TRANSPORT: "streamable-http"
-      RECIPES_MCP_HOST: "0.0.0.0"
-      RECIPES_MCP_PORT: "80"
-      RECIPES_MCP_PATH: "/mcp"
-      RECIPES_MCP_SOURCE_INDEX_URL: "${RECIPES_MCP_SOURCE_INDEX_URL:-https://security-recipes.ai/api/recipes-index.json}"
-      RECIPES_MCP_ALLOWED_SOURCE_HOSTS: "${RECIPES_MCP_ALLOWED_SOURCE_HOSTS:-caddy,security-recipes,security-recipes-green,security-recipes.ai}"
-      RECIPES_MCP_PUBLIC_BASE_URL: "${RECIPES_MCP_PUBLIC_BASE_URL:-https://security-recipes.ai/mcp}"
-      RECIPES_PUBLIC_SITE_BASE_URL: "${SECURITY_RECIPES_BASE_URL:-https://security-recipes.ai/}"
-      RECIPES_MCP_PLAYBOOK_REGISTRY_PATH: "${RECIPES_MCP_PLAYBOOK_REGISTRY_PATH:-/app/data/remediation_suite/playbooks.json}"
-      RECIPES_MCP_LOG_LEVEL: "${RECIPES_MCP_LOG_LEVEL:-info}"
-      RECIPES_MCP_EAGER_REFRESH: "${RECIPES_MCP_EAGER_REFRESH:-false}"
-      # Keep the compact text index lazy on memory-constrained hosts. Exact CVE
-      # lookups remain shard-only; operators can opt into eager warming.
-      RECIPES_MCP_EAGER_CVE_SEARCH: "${RECIPES_MCP_EAGER_CVE_SEARCH:-false}"
-    expose:
-      - "80"
-    logging: *security-recipes-logging
-    restart: unless-stopped
+
+  mcp-server-blue:
+    <<: *security-recipes-mcp-runtime
+    image: "${RECIPES_MCP_BLUE_IMAGE:-security-recipes-ai-mcp:bootstrap}"
+
+  mcp-server-green:
+    <<: *security-recipes-mcp-runtime
+    image: "${RECIPES_MCP_GREEN_IMAGE:-security-recipes-ai-mcp:bootstrap}"
 
 volumes:
   caddy_data:

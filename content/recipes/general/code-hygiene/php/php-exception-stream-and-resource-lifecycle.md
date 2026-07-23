@@ -1,11 +1,13 @@
 ---
 title: "PHP exception, stream, and resource lifecycle"
 linkTitle: "PHP exception, stream, and resource lifecycle"
-description: "Bounded audit or remediation to close resources and preserve failure context across PHP request and worker paths."
+description: "PHP exception, stream, and resource lifecycle: Close resources and preserve failure context across PHP request and worker paths."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"
 maturity: "development"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 recipe_id: "code-hygiene.php.php-exception-stream-and-resource-lifecycle"
 recipe_kind: "code-hygiene"

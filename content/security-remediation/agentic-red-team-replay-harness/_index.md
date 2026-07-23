@@ -2,12 +2,15 @@
 title: Agentic Red-Team Replay Harness
 linkTitle: Red-Team Replay Harness
 weight: 7
+date: 2026-05-05
+lastmod: 2026-07-13
 sidebar:
   exclude: true
 description: >
   A generated replay harness that turns agentic red-team drills into
   safe fixtures, expected runtime decisions, trace requirements, run
   receipt bindings, and reviewer evidence before a drill can be counted.
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

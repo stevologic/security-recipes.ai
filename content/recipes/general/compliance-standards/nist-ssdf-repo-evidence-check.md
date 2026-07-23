@@ -1,7 +1,7 @@
 ---
 title: "NIST SSDF 1.1 Repository Evidence Check"
 linkTitle: "NIST SSDF 1.1"
-description: "Software producers assessing secure development practices and repository evidence against NIST SP 800-218."
+description: "Assess NIST SSDF 1.1 evidence readiness: verify applicability, map official requirements to artifacts, record gaps, and plan remediation."
 recipe_id: "compliance.nist-ssdf-1-1"
 framework_id: "nist-ssdf"
 framework: "NIST SSDF 1.1"
@@ -21,6 +21,8 @@ tool: "Compliance evidence review"
 author: "Security Recipes"
 team: "GRC and Security Engineering"
 maturity: "stable"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 tags: ["compliance", "nist-ssdf", "product-security", "audit", "code-hygiene", "supply-chain", "software", "cross-sector"]
 weight: 130

@@ -1,7 +1,8 @@
 ---
-title: Docs
+title: "Security Recipes Documentation: Playbooks, Agents, and MCP"
 linkTitle: Docs
 weight: 6
+lastmod: 2026-07-23
 toc: true
 sidebar:
   open: true
@@ -15,11 +16,12 @@ cascade:
     sidebar:
       open: false
 description: >
-  How to use security-recipes.ai as a focused recipe library for
-  agent-assisted security remediation.
+  Explore Security Recipes documentation for remediation playbooks, AI agent
+  setup, AI-agent system security, read-only MCP integrations, CVE intake, and
+  review workflows.
 ---
 
-security-recipes.ai is a recipe library for teams that want AI agents to help
+[security-recipes.ai](/) is a recipe library for teams that want AI agents to help
 with security remediation without handing those agents broad authority.
 
 Use the site to answer four questions:
@@ -37,15 +39,23 @@ prompts, setup guides, and review patterns.
 
 {{< cards >}}
   {{< card link="/quickstart/" title="Quick Start" subtitle="A short path from one finding to one reviewed agent output." >}}
-  {{< card link="/security-remediation/" title="Remediation" subtitle="Playbooks for dependency, SAST, sensitive-data, container, CVE, and default-hardening work." >}}
-  {{< card link="/agents/" title="Agent Setup" subtitle="How to feed recipes into GitHub Copilot, Claude, Cursor, Codex, and Devin." >}}
+  {{< card link="/security-remediation/" title="AI Vulnerability Remediation" subtitle="Agent playbooks for dependency, SAST, sensitive-data, container, CVE, and default-hardening work." >}}
+  {{< card link="/agents/" title="AI Agent Comparison" subtitle="Compare verified operating modes, instruction surfaces, artifacts, limits, and review gates." >}}
+  {{< card link="/agentic-security/" title="AI Agent Security" subtitle="Secure agent identities, tools, connectors, context, memory, runtimes, evaluations, and incident response." >}}
   {{< card link="/recipes/" title="Recipes" subtitle="Reusable prompts, instruction files, rules, skills, and review checklists." >}}
   {{< card link="/mcp-servers/" title="MCP Integration" subtitle="How to connect public and internal security context as scoped, read-only agent input." >}}
   {{< card link="/docs/agent-integration/" title="Agent Consumption" subtitle="Patterns for direct fetch, vendored snapshots, MCP connectors, and CI injection." >}}
   {{< card link="/docs/cve-intelligence-intake/" title="CVE Intake" subtitle="Route advisory signals into remediation, containment, suppression, triage, or rejection." >}}
+  {{< card link="/docs/control-plane-marketplace/" title="Control Plane Marketplace" subtitle="Review the browser workbench's input channels, output routes, report packs, and workflow templates." >}}
   {{< card link="/docs/ai-adoption-blueprint/" title="AI Adoption Blueprint" subtitle="A staged rollout path for small teams and governed enterprise programs." >}}
   {{< card link="/docs/recipe-routing-evals/" title="Recipe Routing Evals" subtitle="Golden-set tests that verify search and dispatch choose the intended recipe." >}}
+  {{< card link="/docs/content-verification/" title="Content Verification" subtitle="Validate source authority, freshness, generated artifacts, links, and review evidence before publishing." >}}
 {{< /cards >}}
+
+For governed delivery, explore the [Control Plane Marketplace](/docs/control-plane-marketplace/)
+to compare input channels and workflow outputs, then use the
+[Secure Context Release Gate](/docs/secure-context-release/) to verify evidence
+before context reaches production MCP or trust-center channels.
 
 ## What the site does
 
@@ -86,6 +96,6 @@ If a team wants to operationalize a recipe, the recommended path is:
 ## Where to start
 
 Start with the [Quick Start]({{< relref "/quickstart" >}}), then choose the
-agent your team already uses under [Agent Setup]({{< relref "/agents" >}}).
+agent your team already uses under [AI Agent Comparison]({{< relref "/agents" >}}).
 When the first loop works, add [MCP context]({{< relref "/mcp-servers" >}})
 and stronger prompts from [Recipes]({{< relref "/recipes" >}}).

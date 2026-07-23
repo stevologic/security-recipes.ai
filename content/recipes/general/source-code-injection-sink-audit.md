@@ -1,6 +1,7 @@
 ---
 title: "Source code audit - injection and unsafe sinks"
 linkTitle: "Source code injection sink audit"
+description: "Audit source-to-sink data flows for SQL injection, shell execution, SSRF, XSS, unsafe deserialization, path traversal, XXE, and LLM tool calls."
 tool: "general"
 author: "Stephen M Abbott"
 team: "Security"

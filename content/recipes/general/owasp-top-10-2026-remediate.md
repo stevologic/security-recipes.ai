@@ -1,6 +1,13 @@
 ---
 title: "OWASP Top 10 (2026) — remediate"
 linkTitle: "OWASP Top 10 2026 remediate"
+layout: layouts/redirect.njk
+redirectTo: /recipes/general/owasp-top-10-2025-remediate/
+noindex: true
+lastmod: 2026-07-23
+description: >
+  This retired iteration label redirects to the current OWASP Top 10:2025
+  web application remediation workflow.
 tool: "general"
 author: "Stephen M Abbott"
 team: "Security"

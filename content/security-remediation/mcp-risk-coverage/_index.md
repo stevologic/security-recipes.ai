@@ -2,6 +2,8 @@
 title: MCP and Agentic Skills Risk Coverage
 linkTitle: MCP Risk Coverage
 weight: 18
+date: 2026-05-04
+lastmod: 2026-07-13
 toc: true
 description: >
   Generated OWASP MCP Top 10 and OWASP Agentic Skills Top 10 coverage
@@ -9,6 +11,7 @@ description: >
   hosted readiness gates.
 sidebar:
   exclude: true
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

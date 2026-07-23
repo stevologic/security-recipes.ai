@@ -1,11 +1,13 @@
 # security-recipes.ai
 
-[security-recipes.ai](https://security-recipes.ai/) is a static site (built
-with Eleventy) for security recipes that AI agents can consume during
-remediation work.
+[security-recipes.ai](https://security-recipes.ai/) is an Eleventy site for
+sourced CVE intelligence and evidence-gated vulnerability remediation that AI
+agents can consume without inheriting deployment or production authority.
 
 The project is intentionally narrow:
 
+- a complete rolling Medium/High/Critical CVE database,
+- evidence-qualified canonical CVE remediation records,
 - practical security remediation recipes,
 - prompt and rules-file examples,
 - agent setup guides,
@@ -17,13 +19,65 @@ It is not a scanner, ticketing system, SOAR platform, deployment tool, or custom
 security toolkit. Existing security tools should produce the findings; this
 site helps agents use the right remediation context and stop at the right time.
 
-## Screenshots
+Start with the live [CVE Database](https://security-recipes.ai/cve-database/)
+for an exact vulnerability or the
+[AI Vulnerability Remediation Playbooks](https://security-recipes.ai/security-remediation/)
+for the evidence-to-patch workflow. Agent-specific guides cover
+[Codex](https://security-recipes.ai/codex/),
+[Claude Code](https://security-recipes.ai/claude/),
+[Cursor](https://security-recipes.ai/cursor/),
+[GitHub Copilot](https://security-recipes.ai/github_copilot/), and
+[Devin](https://security-recipes.ai/devin/).
+The [Visual Guide](https://security-recipes.ai/how-to-use/) shows the complete
+path from source qualification and search discovery to a bounded plan, proof,
+rollback, and human review.
+For the distinct problem of securing an agent system's identities, tools,
+connectors, context, memory, runtime, and recovery controls, use
+[AI Agent Security](https://security-recipes.ai/agentic-security/).
 
-![Home page: security recipes for AI-assisted fixes, showing the findings-to-reviewed-PR context flow](docs/screenshots/home.png)
+## Current product and workflow
 
-| Recipes catalogue | Remediation playbooks | Agent setup |
-| --- | --- | --- |
-| ![Recipes catalogue with search, filters, and agent JSON/MCP endpoints](docs/screenshots/recipes-catalogue.png) | ![Remediation playbooks hub describing bounded, single-finding recipes](docs/screenshots/security-remediation.png) | ![Agent setup guide covering Copilot, Claude, Cursor, Codex, and Devin](docs/screenshots/agent-setup.png) |
+![Security Recipes CVE database and AI vulnerability remediation interface](static/images/og-card.png)
+
+### Qualified search discovery
+
+![A source catalog passes an evidence gate before a canonical CVE page reaches search discovery and a reviewed remediation workflow](static/images/how-to-use/canonical-cve-search-discovery.webp)
+
+The complete catalog remains searchable, while public canonical CVE pages stay
+limited to reviewed or evidence-qualified records. Those pages ship unique
+search metadata, server-rendered remediation and source evidence, canonical
+URLs, breadcrumbs, and `Article`/`TechArticle` structured data. The CVE database
+describes the catalog as a `Dataset`; the remediation pillar exposes its visible
+seven-step workflow as a `HowTo`. Year-partitioned CVE sitemaps contain only
+indexable canonical routes, and the build fails when sitemap parity, canonical
+ownership, crawl reachability, metadata limits, or same-origin links drift.
+
+Indexability is also withheld from mass-templated recipe children. The 72
+development code-hygiene recipes and 39 generated compliance-framework recipes
+remain browsable from their canonical hubs with `noindex,follow` while they
+share a common method. A bounded rendered-body similarity gate prevents a child
+from re-entering sitemaps until its evidence, examples, and tests are materially
+distinct. The hubs remain indexable and carry the shared discovery context.
+
+After an SEO-bearing release, the public revision must match the merge commit
+before sitemap submission or URL inspection. The
+[Caddy deployment guide](README.caddy-deploy.md#search-discovery-after-an-seo-release)
+documents the DNS-verified Search Console handoff, priority live-URL checks,
+sitemap submission, indexing requests, and query monitoring. Submission is a
+discovery hint; it does not guarantee indexing or a particular ranking.
+
+The remediation pillar also records a public repository example for
+[CVE-2026-13149 in `brace-expansion`](https://security-recipes.ai/security-remediation/#real-repository-case-study-cve-2026-13149-in-brace-expansion).
+It ties the dependency-only change to the
+[reviewed pull request](https://github.com/stevologic/security-recipes.ai/pull/89),
+tests, advisory evidence, and recovery path while explicitly separating the
+same PR's unrelated Fail2Ban work.
+
+| CVE search to canonical record | CVE evidence to bounded agent plan |
+| --- | --- |
+| ![CVE search, affected surface, evidence, and canonical remediation record](static/images/how-to-use/cve-search-to-record.webp) | ![Seven-phase CVE remediation plan inside a review gate](static/images/how-to-use/cve-to-agent-plan.webp) |
+| Proof and human review | Read-only MCP context |
+| ![Scope, change, tests, evidence, rollback, and human review](static/images/how-to-use/proof-and-review.webp) | ![Read-only MCP context with write access behind explicit approval](static/images/how-to-use/read-only-mcp-context.webp) |
 
 ## What this project is for
 
@@ -42,7 +96,7 @@ security-recipes.ai helps teams answer:
 ## What ships
 
 - Eleventy documentation site (fast static builds, no Go toolchain).
-- Custom home page for the recipe-focused identity.
+- CVE-first observatory home page and data-first CVE database.
 - Recipe hubs for dependency, SAST, sensitive-data, base-image, CVE, and
   default-hardening remediation.
 - CVE intelligence intake policy, prompt, fixtures, and evaluator for routing
@@ -51,6 +105,10 @@ security-recipes.ai helps teams answer:
   integrity-verified NVD JSON 2.0 feeds, CISA KEV metadata, and every applicable
   vetted remediation archetype. Only reviewed `stable` Markdown pages override
   that conservative baseline.
+- An integrity-hashed search allowlist that publishes canonical CVE pages only
+  for reviewed stable Markdown or AI enrichment that passes the deterministic
+  recipe-ready evidence contract. The full database remains searchable even
+  when a record is not eligible for search indexing.
 - A versioned seven-phase agentic change contract for every catalog CVE:
   discover, assess, mitigate, remediate, verify, rollback, and triage. Each
   action declares likely file targets, mutation and approval boundaries,
@@ -58,9 +116,12 @@ security-recipes.ai helps teams answer:
   fixed version.
 - A structured compliance library spanning 39 security, privacy, assurance,
   resilience, and software-supply-chain frameworks without reproducing
-  licensed control text.
+  licensed control text. Its framework hub is the search surface; templated
+  child assessments remain `noindex,follow` until differentiated.
 - A 72-recipe code-hygiene library covering cross-language and ecosystem-
   specific audit, remediation, verification, and stop-condition workflows.
+  Its development children remain `noindex,follow` while their bodies share a
+  generated template.
 - Recipes with existing prompt collections preserved.
 - Agent setup guides for GitHub Copilot, Claude, Cursor, Codex, and Devin.
 - MCP integration guidance for public and organization-approved security data
@@ -74,17 +135,17 @@ security-recipes.ai helps teams answer:
 
 | Path | Purpose |
 | --- | --- |
-| `content/` | Recipes, docs, recipes, and agent setup pages. |
+| `content/` | Recipes, documentation, remediation guides, and agent setup pages. |
 | `eleventy.config.js` | Site build configuration (permalinks, feeds, tag pages). |
 | `_includes/` | Page layouts: docs chrome and the standalone home page. |
 | `lib/` | Build modules: shortcode ports, JSON feed builders, SEO head. |
 | `assets/` | Site CSS and JavaScript for the recipe browser, navigation, and helper tools. |
 | `static/` | Images, logos, schemas, and static assets. |
 | `static/api/cve-catalog/` | Complete sharded CVE catalog, year-partitioned machine index, compressed browser-search index, provenance manifest, and archetypes. |
-| `data/cve/` | Human-reviewed remediation archetype source. |
+| `data/cve/` | Human-reviewed remediation archetypes, deterministic AI-enrichment cache, and generated-recipe ownership ledger. |
 | `data/compliance-frameworks/` | Structured compliance-framework catalog and source registry. |
 | `data/code-hygiene/` | Structured code-hygiene catalog, source registry, and routing fixtures. |
-| `docs/` | Repository documentation assets, including the README screenshots. |
+| `docs/` | Repository documentation and legacy screenshot assets; current README and visual-guide images live in `static/images/`. |
 | `mcp_server.py` | Optional read-only MCP server for recipe search and approved upstream MCP context. |
 | `mcp-server.toml.example` | MCP server configuration template. |
 | `Dockerfile` | Site image. |
@@ -94,14 +155,27 @@ security-recipes.ai helps teams answer:
 
 ## Core content areas
 
-- **Quick Start**: one finding to one reviewed PR or triage note.
-- **Recipes**: remediation playbooks agents can follow.
-- **Agent Setup**: how to feed recipes into Copilot, Claude, Cursor, Codex, and
-  Devin.
-- **Recipes**: reusable prompts, instructions, rules, skills, and review
-  checklists.
-- **MCP Integration**: how to connect security context safely.
-- **Docs**: site usage, agent consumption patterns, and contribution guidance.
+- **[CVE Database](https://security-recipes.ai/cve-database/)**: sourced CVE
+  intelligence, affected-version evidence, and canonical remediation records.
+- **[AI Vulnerability Remediation](https://security-recipes.ai/security-remediation/)**:
+  evidence-gated playbooks from one finding to a reviewed patch or triage note.
+- **[AI Agent Security](https://security-recipes.ai/agentic-security/)**:
+  threat modeling, production baselines, source boundaries, control routing,
+  evidence, and incident readiness for the AI-agent system itself.
+- **[Quick Start](https://security-recipes.ai/quickstart/)**: one finding to one
+  reviewed PR or triage note.
+- **[AI Agent Comparison](https://security-recipes.ai/agents/)**: verified
+  operating modes, native instructions, expected artifacts, prerequisites, and
+  review gates for Copilot, Claude Code, Cursor, Codex, and Devin.
+- **[Recipes](https://security-recipes.ai/recipes/)**: reusable prompts,
+  instructions, rules, skills, and review checklists.
+- **[MCP Integration](https://security-recipes.ai/mcp-servers/)**: how to connect
+  security context safely.
+- **[Visual Guide](https://security-recipes.ai/how-to-use/)**: the qualified
+  search-discovery, CVE-to-plan, proof, rollback, review, and read-only MCP flow
+  in five diagrams.
+- **[Docs](https://security-recipes.ai/docs/)**: site usage, agent consumption
+  patterns, and contribution guidance.
 
 ## Python remediation tooling
 
@@ -165,6 +239,10 @@ MCP-compatible agents search and retrieve recipes. Self-hosted deployments can
 also configure it as a context hub for approved upstream MCP servers without
 putting those credentials into the public site.
 
+Retrieved context never grants mutation authority. Any connector that can
+change repositories, tickets, secrets, deployments, or production systems must
+be configured and approved separately by the calling host.
+
 Common tools:
 
 - `recipes_search`
@@ -187,6 +265,10 @@ The MCP server accepts both generated recipe feeds:
 - `/api/recipes.json` is the preferred agent feed with category, severity,
   CVE/GHSA, ecosystem, and handoff metadata.
 - `/recipes-index.json` remains supported for legacy consumers.
+- `/recipes-browser.json` is the compact interactive-library feed. The
+  `/recipes/` page server-renders 18 crawlable recipe cards and an exactly
+  matching hydration seed, then requests the complete feed only when a visitor
+  focuses search, filters, sorts, follows a filtered URL, or loads more.
 
 The complete CVE catalog is also available without MCP:
 
@@ -199,7 +281,20 @@ The complete CVE catalog is also available without MCP:
   consumers can fetch only the years they need; neither a browser page load
   nor an exact MCP lookup parses those partitions.
 - `/api/cve-catalog/browser-index.json.gz` is the smaller dictionary-encoded
-  index searched off the browser's main thread.
+  index searched off the browser's main thread. The CVE database defers this
+  download until a visitor focuses, filters, submits, or otherwise starts a
+  search; the initial page keeps its server-rendered, evidence-qualified list.
+- Canonical CVE pages server-render their essential facts, remediation,
+  references, and schema. The complete catalog application and exact record
+  shard load only when a visitor selects **Load complete machine-readable
+  record**, avoiding a duplicate fetch on the initial search landing.
+- `/api/cve-catalog/search-indexable.json` is the compact, integrity-hashed
+  allowlist for canonical CVE pages, related-CVE links, and search discovery.
+  Its policy accepts only reviewed stable Markdown or complete AI enrichment
+  that passes the deterministic recipe-ready evidence contract. Browser
+  results link internally only when the CVE has a route in this allowlist;
+  other results retain their official CVE.org source link without advertising
+  a deliberately non-indexable local page.
 - `/api/cve-catalog/archetypes.json` contains the reviewed remediation
   contracts used to compose a conservative recipe for every catalog record.
   It also contains the versioned agentic action schema and ecosystem-specific
@@ -211,10 +306,22 @@ The complete CVE catalog is also available without MCP:
   rows together with the source match total and an explicit truncation flag;
   consumers must follow NVD/vendor evidence when that flag is set.
 
-Development CVE Markdown keeps its direct page URL for compatibility but is
-excluded from generic recipe/search feeds, tag pages, RSS, and the sitemap.
-Use the dedicated catalog or `recipes_cve_*` MCP tools for complete discovery;
-only reviewed `maturity: stable` Markdown is republished in generic indexes.
+Canonical CVE pages use one primary-reference set for the visible source list
+and structured-data citations. Raw generated records admit NVD, CVE.org,
+scoped CISA KEV records, and source-linked vendor advisories, patches, release
+notes, or mitigations; broken, third-party-only, exploit-only, and generic
+vulnerability-database links are not promoted automatically. Stable reviewed
+Markdown can deliberately cite additional HTTPS evidence in its References
+section. When remediation spans several supported branches or product
+families, the displayed action preserves every trusted fixed-release claim
+instead of collapsing the guidance to one incomplete upgrade.
+
+Development CVE Markdown emits no standalone page in the pure static build and
+is excluded from generic recipe/search feeds, tag pages, RSS, and the sitemap.
+Production can retain a legacy recipe URL as a redirect to the canonical CVE
+route through nginx and the MCP-backed landing service. Use the dedicated
+catalog or `recipes_cve_*` MCP tools for complete discovery; only reviewed
+`maturity: stable` Markdown is republished in generic indexes.
 
 The browser's exact-ID path and compressed worker index both cover every
 in-scope Medium, High, and Critical record declared by the manifest. The MCP
@@ -239,7 +346,7 @@ Repository **Settings > Actions > General > Workflow permissions** must allow
 GitHub Actions to create pull requests for first-run PR publication.
 
 The source sync does not require a secret. To additionally enrich bounded,
-high-priority records that have deterministic evidence gaps, add an Actions
+high-priority records from the deterministic evidence queue, add an Actions
 secret named `OPENAI_API_KEY`:
 
 ```bash
@@ -247,8 +354,15 @@ gh secret set OPENAI_API_KEY --repo stevologic/security-recipes.ai
 ```
 
 The workflow defaults to the cost-sensitive `gpt-5.6-luna` Responses API model
-and at most 20 new or source-changed records per run. Both can be changed with
-optional Actions variables; the enrichment limit is hard-bounded from 0 to 50:
+and at most 20 new or source-changed records per run. The scheduled queue is
+derived from the tracked NVD/CISA catalog: a candidate must have a valid tagged
+vendor advisory, patch, release-note, or mitigation URL. Source-complete records
+remain eligible because they still need a sourced remediation synthesis; within
+each KEV and severity band they rank ahead of records with deterministic source
+gaps, followed by affected-product/version evidence and recency. This uses the
+existing daily request budget and does not require an additional manual run.
+Both the model and limit can be changed with optional Actions variables; the
+enrichment limit is hard-bounded from 0 to 50:
 
 ```bash
 gh variable set OPENAI_MODEL --body "gpt-5.6-luna" --repo stevologic/security-recipes.ai
@@ -275,14 +389,19 @@ changes source CVSS/KEV facts, affected-version data, archetype selection, or
 reviewed stable Markdown. A
 missing key, API refusal, timeout, or rate limit does not block the NVD/CISA
 refresh; calls stop after three consecutive failures or a 15-minute budget,
-and valid cached enrichments remain attached. Use the manual input to
-temporarily change the request cap for a controlled backfill:
+and valid cached enrichments remain attached. A manual run may prioritize named
+CVEs, but those IDs consume slots inside that run's existing cap and never
+bypass the recipe-ready evidence gate:
 
 ```bash
-gh workflow run cve-catalog-sync.yml --ref main -f ai_enrichment_limit=50
+gh workflow run cve-catalog-sync.yml --ref main \
+  -f ai_enrichment_limit=20 \
+  -f priority_cve_ids="CVE-2026-58644,CVE-2026-56164"
 ```
 
-A manual run on a non-default branch uploads its enrichment cache, ownership
+A manual dispatch is an additional workflow run and can therefore make
+additional requests; it is not needed for the daily deterministic queue. A
+manual run on a non-default branch uploads its enrichment cache, ownership
 ledger, and generated drafts as a short-lived workflow artifact for review.
 
 The runtime paths are deliberately bounded for catalog-scale traffic:
@@ -349,9 +468,12 @@ python mcp_server.py
 Prerequisites:
 
 - Node.js `>= 20`
+- Python `>= 3.10` with `requirements-mcp-server.txt` installed for the
+  production `npm run build` CVE prerender step
 - Git
 
 ```bash
+python -m pip install -r requirements-mcp-server.txt
 npm install
 npm run serve
 ```
@@ -363,7 +485,9 @@ http://localhost:8080
 ```
 
 `npm run serve` watches for changes and rebuilds incrementally. A one-off
-production build is `npm run build` (output lands in `public/`).
+production build is `npm run build` (output lands in `public/`). The build
+performs a Python/dependency preflight before deleting an existing output and
+then uses the same CVE renderer as the MCP runtime.
 
 ## Docker Compose
 
@@ -398,17 +522,21 @@ agent recipe feed: /api/recipes.json
 MCP endpoint: /mcp
 ```
 
-The Compose stack is intentionally small:
+The Compose stack keeps the public site and its dynamic CVE/MCP renderer in
+matching blue/green pairs:
 
-- `security-recipes`: nginx static site and recipe/API routes.
-- `mcp-server`: optional read-only MCP server. In Compose it reads the
+- `security-recipes` / `mcp-server-blue`: blue site and renderer.
+- `security-recipes-green` / `mcp-server-green`: green site and renderer.
+- `mcp-server`: transitional singleton retained for the first paired rollout
+  and backwards-compatible manual Compose workflows. It reads the
   locally built site feed at `http://security-recipes/api/recipes.json`, so a
   fork or droplet serves its own recipes instead of depending on the public
   production index.
 
-`security-recipes` does not wait for the MCP container before the site starts.
-That keeps the docs site available even if the optional MCP sidecar is still
-warming up or temporarily unhealthy.
+`deploy.sh` starts and revision-verifies the withdrawn slot's MCP container
+before its site container, validates a canonical CVE directly, and only then
+admits the pair to Caddy. Manual Compose startup retains the singleton default
+so the first rollout remains compatible with the previously installed script.
 
 For an nginx or Caddy reverse proxy with Let's Encrypt, keep Docker bound to
 loopback and let the proxy own public ports `80` and `443`:
@@ -451,9 +579,16 @@ sudo bash scripts/setup_digitalocean_droplet.sh \
 The script installs Docker/Compose, configures a locked app user, enables basic
 host hardening, starts the Compose stack, and can place Caddy in front for
 HTTPS. It also enables a Caddy-aware Fail2Ban jail: five final HTTP 404
-responses from one client within five seconds block that address from the
-site's TCP and HTTP/3 ports for one hour, after which access is restored
-automatically.
+responses for high-confidence exploit-probe paths (for example `.env`, Git,
+WordPress, phpMyAdmin, or PHPUnit probes) from one client within five seconds
+block that address from the site's TCP and HTTP/3 ports for one hour, after
+which access is restored automatically. Ordinary missing pages, CVE-shaped
+misses, and archive pagination misses do not consume the ban budget.
+
+Point both the apex and `www` DNS records at the Droplet before setup. Managed
+Caddy obtains certificates for both names and permanently redirects `www` to
+the apex canonical host; redirecting only at HTTP would leave HTTPS crawlers
+unable to complete the TLS handshake.
 
 Existing Droplets need this one-time, idempotent activation after deploying
 the commit that contains the jail:
@@ -478,6 +613,13 @@ headers or User-Agent values. If the origin is later placed behind a CDN or
 load balancer, move the ban action to that provider's WAF/API; an origin
 firewall cannot directly block an end client whose packets arrive from a
 trusted proxy.
+
+The jail does not trust Googlebot User-Agent strings. Before counting a public
+client, it performs Google's reverse-then-forward DNS check: the PTR hostname
+must be under `googlebot.com`, and resolving that hostname must return the same
+IP. Results are cached by IP for one hour; lookup errors and the five-second
+resolver deadline fail closed, so an unverified client remains subject to the
+scanner-path 404 budget.
 
 For a fully Compose-managed Caddy deployment, Fail2Ban can instead run in the
 stack. Set `DEPLOY_COMPOSE_FAIL2BAN=true` in `.env` and keep Caddy's log source
@@ -534,6 +676,23 @@ Production deploys pull commit-addressed site and MCP images published by the
 required GitHub Actions `Build` workflow. The Droplet does not run Node,
 Eleventy, pip, or Docker image builds during a deploy, which keeps deployment
 within a 1 CPU / 2 GB memory envelope.
+
+### One-time paired MCP deployment upgrade
+
+Before the first deployment that introduces the paired MCP services, update
+only the deployment script and then run it. An already-running older
+`deploy.sh` process was parsed before the paired Compose file existed and would
+otherwise recreate the live singleton MCP during that one rollout:
+
+```bash
+git fetch origin main
+git checkout origin/main -- deploy.sh
+bash deploy.sh
+```
+
+The new script leaves the live singleton untouched, prepares the inactive MCP
+and site together, and switches them as one unit. After this one-time step, the
+existing `bash deploy.sh` cron entry needs no change.
 
 The first successful `main` workflow creates two GHCR packages. Make them
 public, or authenticate the root account used by the deployment service with a

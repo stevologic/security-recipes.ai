@@ -2,6 +2,8 @@
 title: Hosted MCP Readiness Pack
 linkTitle: Hosted MCP Readiness
 weight: 14
+date: 2026-05-05
+lastmod: 2026-07-13
 sidebar:
   exclude: true
 description: >
@@ -10,6 +12,7 @@ description: >
   protected-resource authorization, private context ingestion, connector
   isolation, telemetry, signed receipts, metering, and reviewer rollout
   gates.
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

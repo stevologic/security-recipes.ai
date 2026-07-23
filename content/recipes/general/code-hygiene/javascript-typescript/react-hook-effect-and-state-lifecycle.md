@@ -1,11 +1,13 @@
 ---
 title: "React hook, effect, and state lifecycle"
 linkTitle: "React hook, effect, and state lifecycle"
-description: "Bounded audit or remediation to remove stale closures, redundant state, and effect cleanup defects."
+description: "React hook, effect, and state lifecycle: Remove stale closures, redundant state, and effect cleanup defects."
 tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"
 maturity: "development"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 recipe_id: "code-hygiene.javascript-typescript.react-hook-effect-and-state-lifecycle"
 recipe_kind: "code-hygiene"

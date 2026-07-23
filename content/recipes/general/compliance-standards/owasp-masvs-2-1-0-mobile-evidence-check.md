@@ -1,7 +1,7 @@
 ---
 title: "OWASP MASVS 2.1.0 Mobile Application Evidence Check"
 linkTitle: "OWASP MASVS 2.1.0"
-description: "Native and cross-platform mobile application teams verifying security and privacy properties against MASVS 2.1.0."
+description: "Assess OWASP MASVS 2.1.0 evidence readiness: verify applicability, map official requirements to artifacts, record gaps, and plan remediation."
 recipe_id: "compliance.owasp-masvs-2-1-0"
 framework_id: "owasp-masvs"
 framework: "OWASP MASVS 2.1.0"
@@ -21,6 +21,8 @@ tool: "Compliance evidence review"
 author: "Security Recipes"
 team: "GRC and Security Engineering"
 maturity: "stable"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 tags: ["compliance", "owasp-masvs", "product-security", "audit", "application-security", "mobile-security", "software", "mobile-applications"]
 weight: 310

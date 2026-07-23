@@ -64,7 +64,11 @@ UNSAFE_RECIPE_TEXT_RE = re.compile(
     r"```|\{\{[<%]|<\s*script\b|\b(?:curl|wget|powershell|invoke-webrequest|bash\s+-c|sh\s+-c|rm\s+-rf|(?:nc|ncat)\s+-e)\b",
     re.IGNORECASE,
 )
+CP1252_CONTINUATION_CHARS = frozenset(
+    chr(codepoint) for codepoint in range(0x80, 0xC0)
+) | frozenset("€‚ƒ„…†‡ˆ‰Š‹ŒŽ‘’“”•–—˜™š›œžŸ")
 SEVERITY_PRIORITY = {"medium": 1, "high": 2, "critical": 3}
+CANONICAL_CVE_ID_RE = re.compile(r"CVE-[0-9]{4}-[0-9]{4,}")
 ENTRY_FIELDS = {
     "schema_version",
     "prompt_version",
@@ -128,6 +132,23 @@ class EnrichmentError(RuntimeError):
     """An enrichment request or response was unusable without exposing secrets."""
 
 
+def canonical_priority_cve_ids(values: Iterable[str]) -> tuple[str, ...]:
+    """Validate and de-duplicate canonical priority IDs without changing order."""
+
+    result: list[str] = []
+    seen: set[str] = set()
+    for value in values:
+        if not isinstance(value, str) or CANONICAL_CVE_ID_RE.fullmatch(value) is None:
+            raise ValueError(
+                "priority CVE IDs must use canonical CVE-YYYY-NNNN form: "
+                f"{value!r}"
+            )
+        if value not in seen:
+            result.append(value)
+            seen.add(value)
+    return tuple(result)
+
+
 def utc_now() -> datetime:
     return datetime.now(timezone.utc).replace(microsecond=0)
 
@@ -137,6 +158,40 @@ def normalize_text(value: object, *, limit: int = MAX_ITEM_LENGTH) -> str:
     if len(text) > limit:
         text = text[: max(1, limit - 1)].rstrip(" ,;:-") + "…"
     return text
+
+
+def has_text_encoding_artifact(value: object) -> bool:
+    """Detect replacement characters and UTF-8 text decoded as Latin-1/CP1252."""
+    if isinstance(value, dict):
+        return any(has_text_encoding_artifact(item) for item in value.values())
+    if isinstance(value, (list, tuple)):
+        return any(has_text_encoding_artifact(item) for item in value)
+    if not isinstance(value, str):
+        return False
+    if (
+        "\ufffd" in value
+        or re.search(r"\u00c2+(?=\s|$)", value)
+        or any(0x80 <= ord(character) <= 0x9F for character in value)
+    ):
+        return True
+
+    for index, character in enumerate(value):
+        lead = ord(character)
+        continuation_count = (
+            1
+            if 0xC2 <= lead <= 0xDF
+            else 2
+            if 0xE0 <= lead <= 0xEF
+            else 3
+            if 0xF0 <= lead <= 0xF4
+            else 0
+        )
+        if continuation_count and all(
+            candidate in CP1252_CONTINUATION_CHARS
+            for candidate in value[index + 1 : index + 1 + continuation_count]
+        ) and len(value[index + 1 : index + 1 + continuation_count]) == continuation_count:
+            return True
+    return False
 
 
 def valid_http_url(value: object) -> str:
@@ -311,7 +366,7 @@ def record_source_urls(record: dict[str, Any]) -> list[str]:
 
 def evidence_payload(record: dict[str, Any]) -> dict[str, Any]:
     """Return only authoritative/source-derived fields supplied to the model."""
-    return {
+    payload = {
         "cve": record.get("cve"),
         "title": record.get("title"),
         "summary": record.get("summary"),
@@ -334,6 +389,12 @@ def evidence_payload(record: dict[str, Any]) -> dict[str, Any]:
         "archetypes": record.get("archetypes") or [],
         "nvd_url": record.get("nvd_url"),
     }
+    affected_data = record.get("affected_data")
+    if isinstance(affected_data, list) and affected_data:
+        payload["affected_data"] = affected_data
+        payload["affected_data_count"] = record.get("affected_data_count")
+        payload["affected_data_truncated"] = record.get("affected_data_truncated")
+    return payload
 
 
 def source_fingerprint(record: dict[str, Any]) -> str:
@@ -402,12 +463,28 @@ def completeness_gaps(record: dict[str, Any]) -> list[str]:
 
 
 def eligible_for_enrichment(record: dict[str, Any]) -> bool:
-    return record.get("recipe_kind") != "markdown-override" and bool(completeness_gaps(record))
+    return record.get("recipe_kind") != "markdown-override" and bool(
+        completeness_gaps(record)
+    )
+
+
+def eligible_for_scheduled_enrichment(record: dict[str, Any]) -> bool:
+    """Return whether the bounded daily queue has usable recipe evidence.
+
+    Source-complete records intentionally remain eligible: they need a sourced
+    remediation synthesis even though the normalized NVD/CISA facts have no
+    deterministic gaps.  A valid tagged advisory is mandatory because the
+    recipe-ready gate cannot qualify claims without that exact trusted source.
+    """
+
+    return record.get("recipe_kind") != "markdown-override" and bool(
+        priority_reference_urls(record)
+    )
 
 
 def enrichment_priority(
     record: dict[str, Any], gaps: list[str]
-) -> tuple[int, int, int, int, int, int, int, str]:
+) -> tuple[int, int, int, int, int, int, int, int, str]:
     try:
         published = date.fromisoformat(str(record.get("published") or "")[:10]).toordinal()
     except ValueError:
@@ -415,6 +492,7 @@ def enrichment_priority(
     return (
         int(bool(record.get("kev"))),
         SEVERITY_PRIORITY.get(str(record.get("severity") or "").lower(), 0),
+        int(not gaps),
         int(_has_priority_reference(record.get("references"))),
         int(bool(record.get("products"))),
         int(_has_bounded_version(record.get("products"))),
@@ -437,6 +515,8 @@ def enrichment_errors(entry: object, record: dict[str, Any]) -> list[str]:
     errors: list[str] = []
     if not isinstance(entry, dict):
         return ["ai_enrichment must be an object"]
+    if has_text_encoding_artifact(entry):
+        errors.append("ai_enrichment contains a text encoding artifact")
     if set(entry) != ENTRY_FIELDS:
         errors.append("ai_enrichment does not match the versioned schema")
     if entry.get("schema_version") != ENRICHMENT_SCHEMA_VERSION:
@@ -748,6 +828,7 @@ class EnrichmentCache:
         self.path = path
         self.entries: dict[str, dict[str, Any]] = entries or {}
         self.selected: dict[str, list[str]] = {}
+        self._selected_records: dict[str, dict[str, Any]] = {}
         self.stats: dict[str, int] = {
             "eligible": 0,
             "cached": 0,
@@ -772,10 +853,18 @@ class EnrichmentCache:
         entries = {str(cve): entry for cve, entry in raw_entries.items() if isinstance(entry, dict)}
         return cls(path, entries)
 
-    def select_candidates(self, records: Iterable[dict[str, Any]], *, limit: int) -> None:
+    def select_candidates(
+        self,
+        records: Iterable[dict[str, Any]],
+        *,
+        limit: int,
+        priority_cve_ids: Iterable[str] = (),
+    ) -> None:
+        priority_order = canonical_priority_cve_ids(priority_cve_ids)
         previous = self.entries
         self.entries = {}
         self.selected = {}
+        self._selected_records = {}
         self.stats = {
             "eligible": 0,
             "cached": 0,
@@ -783,27 +872,63 @@ class EnrichmentCache:
             "generated": 0,
             "failed": 0,
         }
-        heap: list[tuple[tuple[int, int, int, int, str], str, tuple[str, ...]]] = []
+        heap: list[
+            tuple[
+                tuple[int, int, int, int, int, int, int, int, str],
+                str,
+                tuple[str, ...],
+            ]
+        ] = []
         maximum = max(0, int(limit))
+        priority_set = set(priority_order)
+        priority_candidates: dict[str, tuple[str, ...]] = {}
+        priority_records: dict[str, dict[str, Any]] = {}
+        ranked_records: dict[str, dict[str, Any]] = {}
         for record in records:
             cve = str(record.get("cve") or "")
             gaps = completeness_gaps(record)
             cached = previous.get(cve)
-            if record.get("recipe_kind") != "markdown-override" and cached and not enrichment_errors(cached, record):
+            automatable = record.get("recipe_kind") != "markdown-override"
+            if automatable and cached and not enrichment_errors(cached, record):
                 self.entries[cve] = cached
                 self.stats["cached"] += 1
                 continue
-            if record.get("recipe_kind") == "markdown-override" or not gaps:
+            priority_eligible = cve in priority_set and automatable
+            scheduled_eligible = eligible_for_scheduled_enrichment(record)
+            if not scheduled_eligible and not priority_eligible:
                 continue
             self.stats["eligible"] += 1
             if maximum == 0:
                 continue
+            if priority_eligible:
+                priority_candidates[cve] = tuple(gaps)
+                priority_records[cve] = dict(record)
+                continue
             candidate = (enrichment_priority(record, gaps), cve, tuple(gaps))
             if len(heap) < maximum:
                 heapq.heappush(heap, candidate)
+                ranked_records[cve] = dict(record)
             elif candidate > heap[0]:
-                heapq.heapreplace(heap, candidate)
-        self.selected = {cve: list(gaps) for _, cve, gaps in sorted(heap, reverse=True)}
+                replaced = heapq.heapreplace(heap, candidate)
+                ranked_records.pop(replaced[1], None)
+                ranked_records[cve] = dict(record)
+        selected_priority = [
+            (cve, priority_candidates[cve])
+            for cve in priority_order
+            if cve in priority_candidates
+        ][:maximum]
+        remaining = maximum - len(selected_priority)
+        selected_ranked = sorted(heap, reverse=True)[:remaining]
+        self.selected = {
+            **{cve: list(gaps) for cve, gaps in selected_priority},
+            **{cve: list(gaps) for _, cve, gaps in selected_ranked},
+        }
+        self._selected_records = {
+            cve: priority_records[cve]
+            if cve in priority_records
+            else ranked_records[cve]
+            for cve in self.selected
+        }
         self.stats["selected"] = len(self.selected)
 
     def apply(
@@ -817,43 +942,51 @@ class EnrichmentCache:
         consecutive_failures = 0
         active_client = client
         deadline = clock() + max(0.0, max_seconds) if active_client is not None else None
-        for source in records:
-            record = dict(source)
-            cve = str(record.get("cve") or "")
-            entry = self.entries.get(cve)
-            if (
-                entry is None
-                and cve in self.selected
-                and active_client is not None
-                and deadline is not None
-                and clock() >= deadline
-            ):
+        for cve in self.selected:
+            if active_client is None:
+                break
+            if deadline is not None and clock() >= deadline:
                 print(
                     "Optional OpenAI enrichment time budget was exhausted; source sync will continue.",
                     file=sys.stderr,
                     flush=True,
                 )
                 active_client = None
-            if entry is None and cve in self.selected and active_client is not None:
-                try:
-                    entry = active_client.enrich(record)
-                except EnrichmentError as exc:
-                    self.stats["failed"] += 1
-                    consecutive_failures += 1
-                    print(f"[{cve}] optional OpenAI enrichment skipped: {exc}", file=sys.stderr, flush=True)
-                    if consecutive_failures >= MAX_CONSECUTIVE_FAILURES:
-                        print(
-                            "Optional OpenAI enrichment circuit breaker opened after "
-                            f"{consecutive_failures} consecutive failures; source sync will continue.",
-                            file=sys.stderr,
-                            flush=True,
-                        )
-                        active_client = None
-                else:
-                    self.entries[cve] = entry
-                    self.stats["generated"] += 1
-                    consecutive_failures = 0
-            if entry is not None:
+                break
+            source = self._selected_records.get(cve)
+            if source is None:
+                continue
+            try:
+                entry = active_client.enrich(source)
+            except EnrichmentError as exc:
+                self.stats["failed"] += 1
+                consecutive_failures += 1
+                print(
+                    f"[{cve}] optional OpenAI enrichment skipped: {exc}",
+                    file=sys.stderr,
+                    flush=True,
+                )
+                if consecutive_failures >= MAX_CONSECUTIVE_FAILURES:
+                    print(
+                        "Optional OpenAI enrichment circuit breaker opened after "
+                        f"{consecutive_failures} consecutive failures; source sync will continue.",
+                        file=sys.stderr,
+                        flush=True,
+                    )
+                    active_client = None
+            else:
+                self.entries[cve] = entry
+                self.stats["generated"] += 1
+                consecutive_failures = 0
+
+        for source in records:
+            record = dict(source)
+            cve = str(record.get("cve") or "")
+            entry = self.entries.get(cve)
+            if record.get("recipe_kind") == "markdown-override":
+                record.pop("ai_enrichment", None)
+                self.entries.pop(cve, None)
+            elif entry is not None:
                 record["ai_enrichment"] = entry
             yield record
 
