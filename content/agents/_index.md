@@ -3,6 +3,7 @@ title: Compare AI Coding Agents for Security Remediation
 linkTitle: Agent Setup
 page_kind: collection
 weight: 3
+lastmod: 2026-07-23
 toc: true
 sidebar:
   open: true
@@ -18,6 +19,13 @@ finding evidence, and policy to an existing agent, use
 [AI agent security-context integration]({{< relref "/docs/agent-integration" >}}).
 For the end-to-end method, return to
 [AI vulnerability remediation playbooks]({{< relref "/security-remediation" >}}).
+
+**Last updated July 23, 2026.** [Security Recipes contributors](/about/)
+maintain this workflow-fit comparison in the public
+[source and revision history](https://github.com/stevologic/security-recipes.ai/blob/main/content/agents/_index.md).
+It is not a model-quality benchmark. See the
+[review methodology](/about/#editorial-principles) and
+[corrections policy](/about/#corrections).
 
 Start with the agent your team already uses. The remediation pattern works
 across tools as long as the agent gets three things:

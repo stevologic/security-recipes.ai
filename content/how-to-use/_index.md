@@ -3,7 +3,7 @@ title: Visual Guide to Security Recipes
 linkTitle: Visual Guide
 weight: 3
 date: 2026-05-02
-lastmod: 2026-07-22
+lastmod: 2026-07-23
 toc: true
 sidebar:
   open: true
@@ -31,8 +31,8 @@ Security Recipes is meant to be used as a loop:
 
 {{< cards >}}
   {{< card link="/cve-database/" title="CVE Database" subtitle="Search sourced vulnerability facts and evidence-qualified canonical records." >}}
-  {{< card link="/security-remediation/" title="Remediation Playbooks" subtitle="Move from one finding to a bounded patch or complete triage note." >}}
-  {{< card link="/agents/" title="Agent Setup" subtitle="Load the right native instruction file for the tool your team uses." >}}
+  {{< card link="/security-remediation/" title="AI Remediation" subtitle="Move from one finding to a bounded patch or complete triage note." >}}
+  {{< card link="/agents/" title="Compare AI Agents" subtitle="Choose an agent, then load its native instruction file for the task." >}}
   {{< card link="/recipes/" title="Recipes" subtitle="Use reviewed prompts, rules, skills, and verification contracts." >}}
   {{< card link="/mcp-servers/" title="Read-only MCP" subtitle="Retrieve approved CVE and recipe context without granting write authority." >}}
 {{< /cards >}}
@@ -48,7 +48,16 @@ Start with the [CVE Database]({{< relref "/cve-database" >}}) when you have an
 exact CVE ID, product, severity, ecosystem, or known-exploited status. The
 database covers the complete tracked Medium, High, and Critical scope. A
 canonical CVE page is narrower: it is published for search only after the
-record passes the repository's remediation-evidence policy.
+record passes the repository's remediation-evidence policy. The page initially
+shows its server-rendered qualified records and downloads the full compressed
+browser index only after you interact with search. Results link to a local
+canonical page only when that evidence-qualified route exists; every record
+still links to its official CVE.org source.
+
+On a canonical record, the visible primary references and structured-data
+citations come from the same conservative source set. Multi-branch fixes keep
+all trusted fixed-release versions in the recommended action, so reviewing one
+branch does not silently hide the others.
 
 ## 2. Turn evidence into a bounded plan
 

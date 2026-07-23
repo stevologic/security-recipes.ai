@@ -1257,6 +1257,8 @@ class SyncCveCatalogTests(unittest.TestCase):
                 "date: 2026-07-20\n"
                 "lastmod: '2026-07-21'\n"
                 'model: "GPT-5"\n'
+                "severity: high\n"
+                "kev: false\n"
                 'maturity: "stable"\n'
                 "---\n\n"
                 "Body mentions CVE-2025-9999, which must not become inventory.\n",
@@ -1293,6 +1295,8 @@ class SyncCveCatalogTests(unittest.TestCase):
             self.assertEqual(inventory["CVE-2024-1111"][0].date, "2026-07-20")
             self.assertEqual(inventory["CVE-2024-1111"][0].lastmod, "2026-07-21")
             self.assertEqual(inventory["CVE-2024-1111"][0].model, "GPT-5")
+            self.assertEqual(inventory["CVE-2024-1111"][0].severity, "high")
+            self.assertIs(inventory["CVE-2024-1111"][0].kev, False)
             self.assertEqual(
                 inventory["CVE-2024-1111"][0].content_markdown,
                 "Body mentions CVE-2025-9999, which must not become inventory.",
@@ -1330,6 +1334,45 @@ class SyncCveCatalogTests(unittest.TestCase):
             self.assertEqual(len(duplicate_paths), 2)
             self.assertTrue(duplicate_paths[0].endswith("/a.md"))
             self.assertTrue(duplicate_paths[1].endswith("/b.md"))
+
+    def test_stable_markdown_facts_must_match_normalized_catalog(self) -> None:
+        record = normalize(nvd_record("CVE-2024-1111"))
+        self.assertIsNotNone(record)
+        assert record is not None
+        base = {
+            "cve": "CVE-2024-1111",
+            "path": "content/recipes/cve/cve-2024-1111-reviewed.md",
+            "maturity": "stable",
+            "title": "Reviewed CVE-2024-1111",
+            "content_markdown": "Reviewed body.",
+        }
+
+        with self.assertRaisesRegex(ValueError, "does not match catalog severity"):
+            catalog.apply_markdown_inventory(
+                dict(record),
+                [catalog.ExistingRecipe(**base, severity="critical", kev=False)],
+            )
+        with self.assertRaisesRegex(ValueError, "does not match catalog KEV"):
+            catalog.apply_markdown_inventory(
+                dict(record),
+                [catalog.ExistingRecipe(**base, severity="high", kev=True)],
+            )
+
+    def test_repository_stable_markdown_declares_fact_parity_fields(self) -> None:
+        inventory = catalog.markdown_inventory(
+            catalog.ROOT / "content" / "recipes" / "cve"
+        )
+        stable_recipes = [
+            recipe
+            for recipes in inventory.values()
+            for recipe in recipes
+            if recipe.maturity == "stable"
+        ]
+        self.assertGreaterEqual(len(stable_recipes), 15)
+        for recipe in stable_recipes:
+            with self.subTest(cve=recipe.cve, path=recipe.path):
+                self.assertIn(recipe.severity, catalog.SEVERITY_RANK)
+                self.assertIsInstance(recipe.kev, bool)
 
     def test_markdown_metadata_rejects_invalid_iso_dates(self) -> None:
         cases = (

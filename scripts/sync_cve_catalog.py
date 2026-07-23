@@ -264,6 +264,8 @@ FRONTMATTER_AUTHOR_RE = re.compile(r'^author:\s*(.+?)\s*$', re.MULTILINE | re.I)
 FRONTMATTER_DATE_RE = re.compile(r'^date:\s*(.+?)\s*$', re.MULTILINE | re.I)
 FRONTMATTER_LASTMOD_RE = re.compile(r'^lastmod:\s*(.+?)\s*$', re.MULTILINE | re.I)
 FRONTMATTER_MODEL_RE = re.compile(r'^model:\s*(.+?)\s*$', re.MULTILINE | re.I)
+FRONTMATTER_SEVERITY_RE = re.compile(r'^severity:\s*(.+?)\s*$', re.MULTILINE | re.I)
+FRONTMATTER_KEV_RE = re.compile(r'^kev:\s*(.+?)\s*$', re.MULTILINE | re.I)
 MAX_FRONTMATTER_TITLE_CHARS = 200
 MAX_FRONTMATTER_DESCRIPTION_CHARS = 500
 MAX_FRONTMATTER_AUTHOR_CHARS = 120
@@ -292,6 +294,8 @@ class ExistingRecipe:
     date: str = ""
     lastmod: str = ""
     model: str = ""
+    severity: str = ""
+    kev: bool | None = None
 
 
 def utc_now() -> datetime:
@@ -1681,6 +1685,21 @@ def frontmatter_iso_date(
     return value
 
 
+def frontmatter_boolean(
+    frontmatter: str,
+    pattern: re.Pattern[str],
+    *,
+    field: str,
+    path: Path,
+) -> bool | None:
+    value = frontmatter_scalar(frontmatter, pattern).casefold()
+    if not value:
+        return None
+    if value not in {"true", "false"}:
+        raise ValueError(f"frontmatter {field} must be true or false: {path}")
+    return value == "true"
+
+
 def markdown_inventory(content_dir: Path) -> dict[str, list[ExistingRecipe]]:
     inventory: dict[str, list[ExistingRecipe]] = {}
     for path in sorted(content_dir.glob("*.md")):
@@ -1733,6 +1752,17 @@ def markdown_inventory(content_dir: Path) -> dict[str, list[ExistingRecipe]]:
             path=path,
             limit=MAX_FRONTMATTER_MODEL_CHARS,
         )
+        severity = frontmatter_scalar(body, FRONTMATTER_SEVERITY_RE).casefold()
+        if severity and severity not in SEVERITY_RANK:
+            raise ValueError(
+                f"frontmatter severity must be low, medium, high, or critical: {path}"
+            )
+        kev = frontmatter_boolean(
+            body,
+            FRONTMATTER_KEV_RE,
+            field="kev",
+            path=path,
+        )
         content_markdown = text[frontmatter.end() :].strip() if maturity == "stable" else ""
         if len(content_markdown.encode("utf-8")) > MAX_STABLE_MARKDOWN_BYTES:
             raise ValueError(
@@ -1751,6 +1781,8 @@ def markdown_inventory(content_dir: Path) -> dict[str, list[ExistingRecipe]]:
                 date=published_date,
                 lastmod=lastmod,
                 model=model,
+                severity=severity,
+                kev=kev,
             )
         )
     return inventory
@@ -1777,6 +1809,19 @@ def apply_markdown_inventory(
 ) -> dict[str, Any]:
     """Attach current Markdown metadata without changing normalized source facts."""
     stable_recipes = [recipe for recipe in recipes if recipe.maturity == "stable"]
+    for recipe in stable_recipes:
+        source_severity = str(record.get("severity") or "").strip().casefold()
+        if recipe.severity and recipe.severity != source_severity:
+            raise ValueError(
+                f"{recipe.cve} stable Markdown severity {recipe.severity!r} does not "
+                f"match catalog severity {source_severity!r}: {recipe.path}"
+            )
+        source_kev = record.get("kev") is True
+        if recipe.kev is not None and recipe.kev != source_kev:
+            raise ValueError(
+                f"{recipe.cve} stable Markdown KEV value {recipe.kev!r} does not "
+                f"match catalog KEV value {source_kev!r}: {recipe.path}"
+            )
     if stable_recipes:
         record.pop("ai_enrichment", None)
     record["recipe_kind"] = (

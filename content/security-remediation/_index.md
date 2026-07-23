@@ -1,8 +1,8 @@
 ---
 title: How to Remediate Vulnerabilities with AI Agents
-linkTitle: Playbooks
+linkTitle: AI Remediation
 weight: 2
-lastmod: 2026-07-22
+lastmod: 2026-07-23
 sidebar:
   open: false
 toc: true
@@ -39,9 +39,13 @@ and return a pull request or triage note for human review. The agent accelerates
 repository work; it does not decide risk acceptance, invent fixed versions, or
 gain permission to change production.
 
-**Reviewed July 21, 2026.** Security Recipes contributors maintain this guide
-in the public repository. The method follows evidence and change-control
-principles from the [NIST Secure Software Development Framework](https://csrc.nist.gov/pubs/sp/800/218/final),
+**Last updated July 23, 2026.** [Security Recipes contributors](/about/)
+maintain this guide in the public
+[source and revision history](https://github.com/stevologic/security-recipes.ai/blob/main/content/security-remediation/_index.md).
+See the [review methodology](/about/#editorial-principles) and
+[corrections policy](/about/#corrections). The method follows evidence and
+change-control principles from the
+[NIST Secure Software Development Framework](https://csrc.nist.gov/pubs/sp/800/218/final),
 while product and vulnerability facts remain anchored to the affected vendor,
 CVE record, NVD, and CISA evidence.
 
@@ -60,6 +64,14 @@ bounded fixes easier to delegate while keeping source authority, change
 approval, and final review with people.
 
 ## How to remediate a vulnerability with an AI agent
+
+Before granting write access, require a named finding, proven affectedness, an
+authoritative fix or mitigation, repository ownership, an allowed path set, a
+protected test or scan, a rollback state, and a required reviewer. Dependency,
+SAST, container, and repository-configuration findings can usually enter this
+workflow. Endpoint patching, firmware, secret rotation, production-only
+infrastructure, end-of-life products, and unclear ownership should stop for
+operator-led triage unless separate authority and evidence are supplied.
 
 1. **Identify one finding.** Start with a CVE, dependency alert, SAST result,
    exposed secret, vulnerable container layer, or similarly concrete signal.
@@ -155,9 +167,15 @@ Required evidence before editing:
 4. Record the current lockfile or artifact state for rollback.
 
 Verification:
+- Preserve the original alert, reproducer, or scan result and its checksum
+  before editing.
+- Do not weaken, delete, skip, or reconfigure the scanner, CI gate, or original
+  regression that proves the finding.
 - Run <focused tests>.
 - Rebuild from a clean dependency state.
 - Show that the vulnerable version is absent from the resolved graph.
+- Run the protected reproducer or an independently owned verifier after the
+  patch.
 - Report residual risk and the exact rollback command or revert path.
 
 If affectedness, ownership, or a supported fix cannot be proved, stop and

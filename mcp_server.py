@@ -27,6 +27,7 @@ from copy import deepcopy
 from dataclasses import dataclass, field
 from datetime import date, datetime, timezone
 from functools import partial
+from itertools import combinations
 from pathlib import Path, PurePosixPath
 from typing import Any
 from urllib.parse import parse_qsl, quote, unquote, urlencode, urlparse
@@ -12405,12 +12406,14 @@ def _cve_landing_description(
     return fallback[:limit].rstrip()
 
 
-def _cve_landing_fixed_version_claim(enrichment: dict[str, Any]) -> str:
-    """Return a source-linked fixed-version claim from qualified enrichment."""
+def _cve_landing_fixed_version_claims(enrichment: dict[str, Any]) -> list[str]:
+    """Return every source-linked fixed-version claim in evidence order."""
 
     raw_claims = enrichment.get("claim_evidence")
     if not isinstance(raw_claims, list):
-        return ""
+        return []
+    claims: list[str] = []
+    seen: set[str] = set()
     for raw_claim in raw_claims:
         if not isinstance(raw_claim, dict):
             continue
@@ -12419,9 +12422,19 @@ def _cve_landing_fixed_version_claim(enrichment: dict[str, Any]) -> str:
         if not _cve_landing_safe_https_url(raw_claim.get("source_url")):
             continue
         claim = _cve_landing_metadata_text(raw_claim.get("claim"), 600)
-        if claim:
-            return claim
-    return ""
+        key = claim.casefold()
+        if not claim or key in seen:
+            continue
+        seen.add(key)
+        claims.append(claim)
+    return claims
+
+
+def _cve_landing_fixed_version_claim(enrichment: dict[str, Any]) -> str:
+    return " ".join(
+        claim if claim[-1] in ".!?" else f"{claim}."
+        for claim in _cve_landing_fixed_version_claims(enrichment)
+    )
 
 
 _CVE_LANDING_VERSION_TOKEN_RE = re.compile(
@@ -12432,12 +12445,14 @@ _CVE_LANDING_VERSION_TOKEN_RE = re.compile(
     r")(?![A-Za-z0-9])",
     flags=re.IGNORECASE,
 )
-_CVE_LANDING_REMEDIATION_ACTION_RE = re.compile(
-    r"\b(?:apply|hotfix|migrate|patch|update|upgrade)\b",
-    flags=re.IGNORECASE,
-)
 _CVE_LANDING_CONCRETE_FIX_RE = re.compile(
     r"\b(?:fix(?:ed|es|ing)?|hotfix|migrate|patch|update|upgrade)\b",
+    flags=re.IGNORECASE,
+)
+_CVE_LANDING_PRIMARY_FIX_RE = re.compile(
+    r"^(?:(?:immediately|promptly)\s+)?"
+    r"(?:(?:for|on)\b.{1,180},\s*)?"
+    r"(?:apply|install|migrate|patch|update|upgrade)\b",
     flags=re.IGNORECASE,
 )
 
@@ -12459,6 +12474,12 @@ def _cve_landing_fixed_version_action(
     claim_tokens = _cve_landing_version_tokens(fixed_version_claim)
     if not claim_tokens or limit < 32:
         return ""
+    if len(_cve_landing_fixed_version_claims(enrichment)) > 1:
+        complete_action = (
+            "Upgrade every affected product family to its corresponding "
+            "vendor-fixed release."
+        )
+        return complete_action if len(complete_action) <= limit else ""
     raw_steps = enrichment.get("remediation_steps")
     if not isinstance(raw_steps, list):
         raw_steps = []
@@ -12470,7 +12491,7 @@ def _cve_landing_fixed_version_action(
             2400,
             drop_parenthetical_citations=True,
         ).strip()
-        if not action or not _CVE_LANDING_REMEDIATION_ACTION_RE.search(action):
+        if not action or not _CVE_LANDING_PRIMARY_FIX_RE.search(action):
             continue
         action_tokens = _cve_landing_version_tokens(action)
         if action[-1] not in ".!?":
@@ -12482,7 +12503,7 @@ def _cve_landing_fixed_version_action(
         # A branch-generic vendor fix can be accurate without repeating every
         # release from the fixed-version evidence. Require concrete fix wording
         # so a short containment-only step cannot displace the supported action.
-        if _CVE_LANDING_CONCRETE_FIX_RE.search(action):
+        if _CVE_LANDING_PRIMARY_FIX_RE.search(action):
             generic_actions.append(action)
 
     # Prefer an action that repeats a source-backed fixed version. Use a
@@ -12547,18 +12568,32 @@ def _cve_landing_visible_fixed_version_action(
     fixed_version_claim: str,
     concise_action: str,
 ) -> str:
-    """Keep the visible action complete when one CVE spans release branches."""
+    """Keep every trusted fixed-version branch in the visible primary action."""
 
     action = _cve_landing_metadata_text(concise_action, 1200).strip()
-    if not action:
-        return ""
     claim_tokens = _cve_landing_version_tokens(fixed_version_claim)
-    action_tokens = _cve_landing_version_tokens(action)
-    if not claim_tokens or claim_tokens <= action_tokens:
+    if not claim_tokens:
         return action
+    fixed_version_claims = _cve_landing_fixed_version_claims(enrichment)
+    if len(fixed_version_claims) > 1:
+        complete_claims = " ".join(
+            claim if claim[-1] in ".!?" else f"{claim}."
+            for claim in fixed_version_claims
+        )
+        complete_action = (
+            "Apply the vendor-fixed releases for every affected product family: "
+            f"{complete_claims}"
+        )
+        if len(complete_action) <= 1200:
+            return complete_action
+    claim = _cve_landing_metadata_text(fixed_version_claim, 1000).strip()
+    action_tokens = _cve_landing_version_tokens(action)
+    if action and claim_tokens <= action_tokens:
+        if _CVE_LANDING_PRIMARY_FIX_RE.search(action):
+            return action
+        return f"Apply the vendor-fixed releases: {action.rstrip(' .;:')}."
 
-    corroborated_tokens: set[str] = set()
-    generic_fix_actions: list[str] = []
+    versioned_actions: list[tuple[str, set[str]]] = []
     raw_steps = enrichment.get("remediation_steps")
     if isinstance(raw_steps, list):
         for raw_step in raw_steps:
@@ -12567,26 +12602,45 @@ def _cve_landing_visible_fixed_version_action(
                 2400,
                 drop_parenthetical_citations=True,
             ).strip()
-            if not step or not _CVE_LANDING_REMEDIATION_ACTION_RE.search(step):
+            if not step or not _CVE_LANDING_PRIMARY_FIX_RE.search(step):
                 continue
             step_tokens = _cve_landing_version_tokens(step)
-            corroborated_tokens.update(step_tokens & claim_tokens)
-            if (
-                not step_tokens
-                and len(step) <= 600
-                and _CVE_LANDING_CONCRETE_FIX_RE.search(step)
-            ):
-                if step[-1] not in ".!?":
-                    step += "."
-                generic_fix_actions.append(step)
+            covered_tokens = step_tokens & claim_tokens
+            if not covered_tokens:
+                continue
+            if step[-1] not in ".!?":
+                step += "."
+            versioned_actions.append((step, covered_tokens))
 
-    if corroborated_tokens - action_tokens:
-        if generic_fix_actions:
-            return min(generic_fix_actions, key=len)
+    # Bound the exact subset search. Oversized or malformed enrichment falls
+    # through to the complete fixed-version claim instead of doing exponential
+    # work or dropping a branch.
+    if len(versioned_actions) > 12:
+        versioned_actions = []
+
+    # Use the fewest source-linked remediation steps that preserve every fixed
+    # release token. For equal-size sets, prefer the shortest readable answer;
+    # the original step order remains intact in the rendered summary.
+    for count in range(1, len(versioned_actions) + 1):
+        complete_sets: list[tuple[int, tuple[tuple[str, set[str]], ...]]] = []
+        for selected in combinations(versioned_actions, count):
+            covered: set[str] = set()
+            for _, tokens in selected:
+                covered.update(tokens)
+            if claim_tokens <= covered:
+                complete_sets.append((sum(len(step) for step, _ in selected), selected))
+        if complete_sets:
+            _, selected = min(complete_sets, key=lambda item: item[0])
+            combined = " ".join(step for step, _ in selected)
+            if len(combined) <= 1200:
+                return combined
+            break
+
+    if claim:
+        claim = claim.rstrip(" .;:")
         return (
-            "Upgrade every deployed release branch to its corresponding "
-            "vendor-fixed release in the source-backed remediation guidance "
-            "below; verify the installed build and branch before closing the finding."
+            "Apply the vendor-fixed releases for every deployed branch: "
+            f"{claim}."
         )
     return action
 
@@ -12712,6 +12766,7 @@ def _cve_landing_safe_https_url(value: object) -> str:
         hostname = parsed.hostname
         username = parsed.username
         password = parsed.password
+        parsed.port
     except ValueError:
         return ""
     if (
@@ -12974,32 +13029,192 @@ def _cve_landing_is_search_indexable(source_record: dict[str, Any]) -> bool:
         return False
 
 
-def _cve_landing_citation_urls(
+_CVE_LANDING_PRIMARY_REFERENCE_TAGS = (
+    "Vendor Advisory",
+    "Patch",
+    "Release Notes",
+    "Mitigation",
+)
+_CVE_LANDING_REJECTED_REFERENCE_TAGS = frozenset(
+    {"broken link", "third party advisory", "vdb entry"}
+)
+
+
+def _cve_landing_evidence_url_key(value: object) -> str:
+    """Normalize a safe evidence URL for cross-source identity checks."""
+
+    url = _cve_landing_safe_https_url(value)
+    if not url:
+        return ""
+    parsed = urlparse(url)
+    hostname = (parsed.hostname or "").casefold()
+    try:
+        port = parsed.port
+    except ValueError:
+        return ""
+    netloc = hostname if port in {None, 443} else f"{hostname}:{port}"
+    path = parsed.path.rstrip("/") or "/"
+    return parsed._replace(
+        scheme="https",
+        netloc=netloc,
+        path=path,
+        fragment="",
+    ).geturl()
+
+
+def _cve_landing_reference_tags(reference: object) -> tuple[str, ...]:
+    if not isinstance(reference, dict):
+        return ()
+    raw_tags = reference.get("tags")
+    if not isinstance(raw_tags, list):
+        return ()
+    return tuple(
+        tag
+        for raw_tag in raw_tags
+        if (tag := _cve_landing_text(raw_tag, 60))
+    )
+
+
+def _cve_landing_qualified_reference_label(reference: object) -> str:
+    """Return a primary-source label without promoting raw exploit tags."""
+
+    tags = _cve_landing_reference_tags(reference)
+    normalized = {tag.casefold() for tag in tags}
+    if normalized & _CVE_LANDING_REJECTED_REFERENCE_TAGS:
+        return ""
+    accepted = [
+        tag
+        for tag in _CVE_LANDING_PRIMARY_REFERENCE_TAGS
+        if tag.casefold() in normalized
+    ]
+    return " / ".join(accepted)
+
+
+def _cve_landing_reviewed_references(reviewed: object) -> list[tuple[str, str]]:
+    """Read only links deliberately placed in a stable recipe's References section."""
+
+    if not isinstance(reviewed, dict):
+        return []
+    markdown_source = str(reviewed.get("content_markdown") or "")
+    section = re.search(
+        r"^\s{0,3}##\s+(?:Primary\s+)?References\s*#*\s*$"
+        r"(?P<body>.*?)(?=^\s{0,3}#{1,2}\s+|\Z)",
+        markdown_source,
+        flags=re.IGNORECASE | re.MULTILINE | re.DOTALL,
+    )
+    if not section:
+        return []
+
+    references: list[tuple[str, str]] = []
+    seen: set[str] = set()
+    link_pattern = re.compile(
+        r"\[(?P<markdown_label>[^\]\r\n]+)\]\((?P<markdown_url>https://[^\s)]+)\)"
+        r"|<(?P<angle_url>https://[^>\s]+)>"
+        r"|(?P<bare_url>https://[^\s<>()]+)",
+        flags=re.IGNORECASE,
+    )
+    for raw_line in section.group("body").splitlines():
+        for match in link_pattern.finditer(raw_line):
+            raw_url = (
+                match.group("markdown_url")
+                or match.group("angle_url")
+                or match.group("bare_url")
+                or ""
+            ).rstrip(".,;:")
+            url = _cve_landing_safe_https_url(raw_url)
+            key = _cve_landing_evidence_url_key(url)
+            if not url or not key or key in seen:
+                continue
+            raw_label = match.group("markdown_label") or raw_line[: match.start()]
+            raw_label = re.sub(r"^\s*(?:[-*+]\s+|\d+[.)]\s+)", "", raw_label)
+            label = _cve_landing_plain_markdown_text(
+                raw_label.rstrip(" :-"),
+                120,
+            )
+            if not label:
+                label = urlparse(url).hostname or "Reviewed source"
+            seen.add(key)
+            references.append((label, url))
+    return references
+
+
+def _cve_landing_primary_references(
+    cve_id: str,
     source_record: dict[str, Any],
     enrichment: dict[str, Any],
-) -> list[str]:
-    urls: list[str] = []
+    reviewed: dict[str, Any],
+    limit: int = 10,
+) -> list[tuple[str, str]]:
+    """Build one conservative reference set for visible links and Article citations."""
+
+    references: list[tuple[str, str]] = []
     seen: set[str] = set()
 
-    def add(value: object) -> None:
+    def add(label: object, value: object) -> None:
+        if len(references) >= limit:
+            return
         url = _cve_landing_safe_https_url(value)
-        if url and url not in seen:
-            seen.add(url)
-            urls.append(url)
+        key = _cve_landing_evidence_url_key(url)
+        if not url or not key or key in seen:
+            return
+        clean_label = _cve_landing_text(label, 120) or urlparse(url).hostname or "Source"
+        seen.add(key)
+        references.append((clean_label, url))
 
-    add(source_record.get("nvd_url"))
-    kev_details = source_record.get("kev_details")
-    if isinstance(kev_details, dict):
-        add(kev_details.get("source"))
-    for reference in source_record.get("references", []):
-        if isinstance(reference, dict):
-            add(reference.get("url"))
-    for value in enrichment.get("source_urls", []):
-        add(value)
-    for claim in enrichment.get("claim_evidence", []):
-        if isinstance(claim, dict):
-            add(claim.get("source_url"))
-    return urls
+    add(
+        "NVD vulnerability record",
+        source_record.get("nvd_url")
+        or f"https://nvd.nist.gov/vuln/detail/{quote(cve_id)}",
+    )
+    add(
+        "CVE Program record",
+        f"https://www.cve.org/CVERecord?id={quote(cve_id)}",
+    )
+    if source_record.get("kev") is True:
+        add(
+            "CISA Known Exploited Vulnerabilities record",
+            "https://www.cisa.gov/known-exploited-vulnerabilities-catalog"
+            f"?field_cve={quote(cve_id)}",
+        )
+
+    if reviewed:
+        for label, url in _cve_landing_reviewed_references(reviewed):
+            add(label, url)
+        return references
+
+    raw_source_urls = enrichment.get("source_urls")
+    raw_source_urls = raw_source_urls if isinstance(raw_source_urls, list) else []
+    source_keys = {
+        key
+        for value in raw_source_urls
+        if (key := _cve_landing_evidence_url_key(value))
+    }
+    claim_urls: dict[str, str] = {}
+    raw_claims = enrichment.get("claim_evidence")
+    raw_claims = raw_claims if isinstance(raw_claims, list) else []
+    for claim in raw_claims:
+        if not isinstance(claim, dict):
+            continue
+        url = _cve_landing_safe_https_url(claim.get("source_url"))
+        key = _cve_landing_evidence_url_key(url)
+        if url and key:
+            claim_urls.setdefault(key, url)
+
+    qualified: dict[str, str] = {}
+    raw_references = source_record.get("references")
+    raw_references = raw_references if isinstance(raw_references, list) else []
+    for raw_reference in raw_references:
+        label = _cve_landing_qualified_reference_label(raw_reference)
+        if not label or not isinstance(raw_reference, dict):
+            continue
+        key = _cve_landing_evidence_url_key(raw_reference.get("url"))
+        if key:
+            qualified.setdefault(key, label)
+
+    for key, url in claim_urls.items():
+        if key in source_keys and key in qualified:
+            add(qualified[key], url)
+    return references
 
 
 def _cve_landing_kev_html(cve_id: str, source_record: dict[str, Any]) -> str:
@@ -13250,39 +13465,6 @@ def _cve_landing_affected_data_html(
         if len(rendered) >= limit:
             break
     return (f'<ul class="cve-catalog__affected-ranges">{"".join(rendered)}</ul>' if rendered else "", len(rendered))
-
-
-def _cve_landing_references(
-    source_record: dict[str, Any],
-    limit: int = 6,
-) -> list[tuple[str, str]]:
-    references: list[tuple[str, str]] = []
-    seen: set[str] = set()
-
-    def add(raw_url: object, raw_label: object) -> None:
-        url = _cve_landing_safe_https_url(raw_url)
-        if not url or url in seen or len(references) >= limit:
-            return
-        seen.add(url)
-        label = _cve_landing_text(raw_label, 120)
-        if not label:
-            label = urlparse(url).hostname or "Source"
-        references.append((label, url))
-
-    add(source_record.get("nvd_url"), "NVD vulnerability record")
-    raw_references = source_record.get("references")
-    if isinstance(raw_references, list):
-        for reference in raw_references:
-            if not isinstance(reference, dict):
-                continue
-            tags = reference.get("tags")
-            label = " / ".join(
-                _cve_landing_text(tag, 60)
-                for tag in tags
-                if _cve_landing_text(tag, 60)
-            ) if isinstance(tags, list) else ""
-            add(reference.get("url"), label)
-    return references
 
 
 def _cve_landing_list(
@@ -14111,7 +14293,13 @@ def _render_cve_landing_page(
         if search_indexable
         else "noindex,follow"
     )
-    citation_urls = _cve_landing_citation_urls(source_record, enrichment)
+    primary_references = _cve_landing_primary_references(
+        cve_id,
+        source_record,
+        enrichment,
+        reviewed,
+    )
+    citation_urls = [url for _, url in primary_references]
     cve_org_url = f"https://www.cve.org/CVERecord?id={cve_id}"
     defined_term_same_as = [cve_org_url]
     if nvd_url:
@@ -14349,11 +14537,9 @@ def _render_cve_landing_page(
             "versions with the linked vendor advisory and NVD record.</p>"
         )
 
-    recommended_action = (
-        _cve_landing_text(reviewed.get("description"), 600) if reviewed else ""
-    )
-    if not recommended_action:
-        recommended_action = visible_fixed_version_action
+    recommended_action = visible_fixed_version_action
+    if not recommended_action and reviewed:
+        recommended_action = _cve_landing_text(reviewed.get("description"), 600)
     kev_details = source_record.get("kev_details")
     kev_details = kev_details if isinstance(kev_details, dict) else {}
     if not recommended_action:
@@ -14444,7 +14630,7 @@ def _render_cve_landing_page(
     related_html = _cve_landing_related_html(cve_id, related_records)
 
     references_html = ""
-    references = _cve_landing_references(source_record)
+    references = primary_references
     if references:
         references_html = (
             '<section class="cve-catalog__detail-section" aria-labelledby="sources-heading">'

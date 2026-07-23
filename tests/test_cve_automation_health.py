@@ -289,6 +289,33 @@ Sitemap: https://security-recipes.ai/sitemap.xml
                 b'<!doctype html><html><body><h1 class="sr-page-title">'
                 b"Automated Vulnerability Remediation Without AI Agents</h1></body></html>"
             ),
+            "https://security-recipes.ai/security-remediation/": (
+                b"<!doctype html><html><head>"
+                b"<title>How to Remediate Vulnerabilities with AI Agents | "
+                b"Security Recipes</title>"
+                b'<meta name="description" content="Learn how to remediate software '
+                b"vulnerabilities with AI coding agents using scoped playbooks, source "
+                b'evidence, tests, rollback, and human review.">'
+                b'<meta name="robots" content="index,follow,max-image-preview:large">'
+                b'<link rel="canonical" href="https://security-recipes.ai/'
+                b'security-remediation/">'
+                b'<script type="application/ld+json">{"@context":"https://schema.org",'
+                b'"@graph":[{"@type":"HowTo"}]}</script>'
+                b'</head><body><h1 class="sr-page-title">'
+                b"How to Remediate Vulnerabilities with AI Agents</h1></body></html>"
+            ),
+            "https://security-recipes.ai/agents/": (
+                b"<!doctype html><html><head>"
+                b"<title>Compare AI Coding Agents for Security Remediation | "
+                b"Security Recipes</title>"
+                b'<meta name="description" content="Compare Codex, Claude Code, Cursor, '
+                b"GitHub Copilot, and Devin for AI vulnerability remediation, then configure "
+                b'bounded instructions, MCP context, and review gates.">'
+                b'<meta name="robots" content="index,follow,max-image-preview:large">'
+                b'<link rel="canonical" href="https://security-recipes.ai/agents/">'
+                b'</head><body><h1 class="sr-page-title">'
+                b"Compare AI Coding Agents for Security Remediation</h1></body></html>"
+            ),
         }
         integrity_pages.update(content_overrides or {})
         googlebot_pages = dict(integrity_pages)
@@ -609,6 +636,86 @@ Disallow: /traffic/
         failed = [check for check in report["checks"] if not check["ok"]]
         self.assertEqual([check["name"] for check in failed], ["content_integrity"])
         self.assertIn("known search-spam signature", failed[0]["message"])
+
+    def test_old_generic_remediation_page_fails_content_integrity(self) -> None:
+        remediation_url = "https://security-recipes.ai/security-remediation/"
+        report = production.run_probes(
+            base_url="https://security-recipes.ai",
+            expected_revision=self.SHA,
+            expected_commit_time=self.NOW - timedelta(hours=2),
+            now=self.NOW,
+            opener=self.opener(
+                content_overrides={
+                    remediation_url: (
+                        b"<!doctype html><html><head>"
+                        b"<title>Remediation Playbooks | Security Recipes</title>"
+                        b'</head><body><h1 class="sr-page-title">'
+                        b"Remediation Playbooks</h1></body></html>"
+                    )
+                }
+            ),
+            certificate_expiry=self.certificate,
+        )
+
+        failed = [check for check in report["checks"] if not check["ok"]]
+        self.assertEqual([check["name"] for check in failed], ["content_integrity"])
+        self.assertIn("AI remediation guide", failed[0]["message"])
+        self.assertIn("expected primary heading", failed[0]["message"])
+
+    def test_remediation_page_must_include_howto_search_contract(self) -> None:
+        remediation_url = "https://security-recipes.ai/security-remediation/"
+        page_without_howto = (
+            b"<!doctype html><html><head>"
+            b"<title>How to Remediate Vulnerabilities with AI Agents | "
+            b"Security Recipes</title>"
+            b'<meta name="description" content="Learn how to remediate software '
+            b"vulnerabilities with AI coding agents using scoped playbooks, source "
+            b'evidence, tests, rollback, and human review.">'
+            b'<meta name="robots" content="index,follow,max-image-preview:large">'
+            b'<link rel="canonical" href="https://security-recipes.ai/'
+            b'security-remediation/">'
+            b'</head><body><h1 class="sr-page-title">'
+            b"How to Remediate Vulnerabilities with AI Agents</h1></body></html>"
+        )
+        report = production.run_probes(
+            base_url="https://security-recipes.ai",
+            expected_revision=self.SHA,
+            expected_commit_time=self.NOW - timedelta(hours=2),
+            now=self.NOW,
+            opener=self.opener(
+                content_overrides={remediation_url: page_without_howto}
+            ),
+            certificate_expiry=self.certificate,
+        )
+
+        failed = [check for check in report["checks"] if not check["ok"]]
+        self.assertEqual([check["name"] for check in failed], ["content_integrity"])
+        self.assertIn("HowTo structured data", failed[0]["message"])
+
+    def test_old_generic_agents_page_fails_content_integrity(self) -> None:
+        agents_url = "https://security-recipes.ai/agents/"
+        report = production.run_probes(
+            base_url="https://security-recipes.ai",
+            expected_revision=self.SHA,
+            expected_commit_time=self.NOW - timedelta(hours=2),
+            now=self.NOW,
+            opener=self.opener(
+                content_overrides={
+                    agents_url: (
+                        b"<!doctype html><html><head>"
+                        b"<title>Agent Setup | Security Recipes</title>"
+                        b'</head><body><h1 class="sr-page-title">'
+                        b"Agent Setup</h1></body></html>"
+                    )
+                }
+            ),
+            certificate_expiry=self.certificate,
+        )
+
+        failed = [check for check in report["checks"] if not check["ok"]]
+        self.assertEqual([check["name"] for check in failed], ["content_integrity"])
+        self.assertIn("AI agent comparison", failed[0]["message"])
+        self.assertIn("expected primary heading", failed[0]["message"])
 
     def test_clean_googlebot_variant_still_fails_cloaking_parity(self) -> None:
         automation_url = "https://security-recipes.ai/automation/"

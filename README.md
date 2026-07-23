@@ -231,11 +231,16 @@ The complete CVE catalog is also available without MCP:
   consumers can fetch only the years they need; neither a browser page load
   nor an exact MCP lookup parses those partitions.
 - `/api/cve-catalog/browser-index.json.gz` is the smaller dictionary-encoded
-  index searched off the browser's main thread.
+  index searched off the browser's main thread. The CVE database defers this
+  download until a visitor focuses, filters, submits, or otherwise starts a
+  search; the initial page keeps its server-rendered, evidence-qualified list.
 - `/api/cve-catalog/search-indexable.json` is the compact, integrity-hashed
   allowlist for canonical CVE pages, related-CVE links, and search discovery.
   Its policy accepts only reviewed stable Markdown or complete AI enrichment
-  that passes the deterministic recipe-ready evidence contract.
+  that passes the deterministic recipe-ready evidence contract. Browser
+  results link internally only when the CVE has a route in this allowlist;
+  other results retain their official CVE.org source link without advertising
+  a deliberately non-indexable local page.
 - `/api/cve-catalog/archetypes.json` contains the reviewed remediation
   contracts used to compose a conservative recipe for every catalog record.
   It also contains the versioned agentic action schema and ecosystem-specific
@@ -246,6 +251,16 @@ The complete CVE catalog is also available without MCP:
 - To keep records bounded, a shard stores at most 12 vulnerable CPE/version
   rows together with the source match total and an explicit truncation flag;
   consumers must follow NVD/vendor evidence when that flag is set.
+
+Canonical CVE pages use one primary-reference set for the visible source list
+and structured-data citations. Raw generated records admit NVD, CVE.org,
+scoped CISA KEV records, and source-linked vendor advisories, patches, release
+notes, or mitigations; broken, third-party-only, exploit-only, and generic
+vulnerability-database links are not promoted automatically. Stable reviewed
+Markdown can deliberately cite additional HTTPS evidence in its References
+section. When remediation spans several supported branches or product
+families, the displayed action preserves every trusted fixed-release claim
+instead of collapsing the guidance to one incomplete upgrade.
 
 Development CVE Markdown emits no standalone page in the pure static build and
 is excluded from generic recipe/search feeds, tag pages, RSS, and the sitemap.

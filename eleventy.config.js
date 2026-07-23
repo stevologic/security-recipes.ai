@@ -899,25 +899,6 @@ module.exports = function (eleventyConfig) {
     });
   }
 
-  // Marketplace globals as one cacheable script instead of ~100KB of JSON
-  // inlined into every page head (which alone made the Hugo output huge).
-  eleventyConfig.addTemplate("marketplace-globals.11ty.js", {
-    data: () => ({ permalink: "/js/marketplace-globals.js", eleventyExcludeFromCollections: true }),
-    render: () => {
-      const data = require("./lib/site-data").marketplace();
-      return (
-        `window.__SECURITY_RECIPES_MARKETPLACE = {` +
-        `catalog: ${JSON.stringify(data.catalog)},` +
-        `inputChannels: ${JSON.stringify(data.input_channels)},` +
-        `outputChannels: ${JSON.stringify(data.output_channels)},` +
-        `reportProfiles: ${JSON.stringify(data.report_profiles)},` +
-        `workflowTemplates: ${JSON.stringify(data.workflow_templates)},` +
-        `readinessProfiles: ${JSON.stringify(data.readiness_profiles)}` +
-        `};\n`
-      );
-    },
-  });
-
   // robots.txt (port of layouts/robots.txt)
   eleventyConfig.addTemplate("robots.11ty.js", {
     data: () => ({ permalink: "/robots.txt", eleventyExcludeFromCollections: true }),

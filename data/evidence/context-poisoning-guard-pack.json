@@ -855,6 +855,17 @@
       "source_id": "recipes"
     },
     {
+      "actionable": false,
+      "disposition": "defensive_control_language",
+      "line": 172,
+      "match": "- Do not weaken, delete, skip, or reconfigure the scanner, CI gate, or original",
+      "path": "content/security-remediation/_index.md",
+      "risk_family": "approval_bypass",
+      "rule_id": "approval-bypass-request",
+      "severity": "high",
+      "source_id": "security-remediation-workflows"
+    },
+    {
       "actionable": true,
       "disposition": "actionable_context_poisoning_risk",
       "line": 1,
@@ -1633,7 +1644,7 @@
       "agentic-assurance-models",
       "recipes"
     ],
-    "byte_count": 22777951,
+    "byte_count": 22785801,
     "decision_counts": {
       "allow_with_adversarial_examples": 1,
       "block_until_removed": 2,
@@ -1642,25 +1653,25 @@
     },
     "disposition_counts": {
       "actionable_context_poisoning_risk": 92,
-      "defensive_control_language": 28,
+      "defensive_control_language": 29,
       "documented_adversarial_example": 24
     },
     "failure_count": 0,
     "file_count": 3503,
-    "finding_count": 144,
+    "finding_count": 145,
     "held_source_count": 1,
     "held_sources": [
       "security-remediation-workflows"
     ],
     "risk_family_counts": {
-      "approval_bypass": 37,
+      "approval_bypass": 38,
       "hidden_instruction": 59,
       "prompt_injection": 10,
       "secret_exposure": 38
     },
     "severity_counts": {
       "critical": 48,
-      "high": 37,
+      "high": 38,
       "medium": 59
     },
     "source_count": 9
@@ -1901,7 +1912,7 @@
       "risk_family_counts": {},
       "root": "mcp_server.py",
       "severity_counts": {},
-      "source_hash": "ae6fe77508a959cb1d409258984eca7b9da473dc8cb389dbc7a595e8ecde93a3",
+      "source_hash": "8e046f8f487637080a4b362e9f600ee269aff42d777d8bb3bae65ced9aadd683",
       "source_id": "mcp-server-runtime",
       "title": "MCP Server Runtime Contract",
       "trust_tier": "tier_2_policy_context"
@@ -1953,7 +1964,7 @@
         "critical": 36,
         "high": 17
       },
-      "source_hash": "cea0a607d97bbb02bdf73b0e2ccc6da42ea2767a953dc935beb8643f6c432d86",
+      "source_hash": "dbe7543d7b6900c470eeb47326fadfd6aae19438f4ba94dfb5b62ce478319f29",
       "source_id": "recipes",
       "title": "Recipes",
       "trust_tier": "tier_1_curated_guidance"
@@ -1963,11 +1974,11 @@
       "decision": "hold_for_context_review",
       "disposition_counts": {
         "actionable_context_poisoning_risk": 50,
-        "defensive_control_language": 3,
+        "defensive_control_language": 4,
         "documented_adversarial_example": 17
       },
       "file_count": 76,
-      "finding_count": 70,
+      "finding_count": 71,
       "owner": {
         "accountable_team": "Security Engineering",
         "escalation": "workflow-control-review",
@@ -1996,7 +2007,7 @@
         "content/security-remediation/agentic-posture-snapshot/_index.md"
       ],
       "risk_family_counts": {
-        "approval_bypass": 7,
+        "approval_bypass": 8,
         "hidden_instruction": 59,
         "prompt_injection": 1,
         "secret_exposure": 3
@@ -2004,10 +2015,10 @@
       "root": "content/security-remediation",
       "severity_counts": {
         "critical": 4,
-        "high": 7,
+        "high": 8,
         "medium": 59
       },
-      "source_hash": "08838eed2c7d7884be29befeaf68f676daf39b8b77d33c5699200321a0d7f945",
+      "source_hash": "690ddb4c9b74b3563729dcbab3db12aeb5f4f92c2987d727487f77b3b8c2082f",
       "source_id": "security-remediation-workflows",
       "title": "Security Remediation Workflow Docs",
       "trust_tier": "tier_1_curated_guidance"

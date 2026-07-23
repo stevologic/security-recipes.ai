@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import re
 import unittest
+from copy import deepcopy
 from html import unescape
 from pathlib import Path
 from unittest.mock import AsyncMock, patch
@@ -474,13 +475,14 @@ class CveLandingRenderTests(unittest.TestCase):
             "2026-07-17T07:02:25Z",
         )
         self.assertEqual(article["image"]["width"], 1727)
-        self.assertIn(
-            "https://vendor.example.test/advisories/CVE-2024-3400",
+        self.assertEqual(
             article["citation"],
-        )
-        self.assertIn(
-            "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json",
-            article["citation"],
+            [
+                "https://nvd.nist.gov/vuln/detail/CVE-2024-3400",
+                "https://www.cve.org/CVERecord?id=CVE-2024-3400",
+                "https://www.cisa.gov/known-exploited-vulnerabilities-catalog"
+                "?field_cve=CVE-2024-3400",
+            ],
         )
         self.assertIn("CISA KEV", article["keywords"])
         self.assertEqual(by_type["DefinedTerm"]["termCode"], "CVE-2024-3400")
@@ -936,6 +938,105 @@ class CveLandingRenderTests(unittest.TestCase):
         self.assertNotIn("](", page)
         self.assertNotIn("utm_source=openai", page)
 
+    def test_primary_references_filter_raw_nvd_links_and_match_schema(self) -> None:
+        recipe = sample_recipe()
+        composed = recipe["composed_recipe"]
+        source = recipe["source_record"]
+        assert isinstance(composed, dict)
+        assert isinstance(source, dict)
+        composed["product_specific_override"] = []
+        enrichment = source["ai_enrichment"]
+        references = source["references"]
+        assert isinstance(enrichment, dict)
+        assert isinstance(references, list)
+
+        rejected = {
+            "https://attacker.example/exploit": ["Exploit"],
+            "https://third.example/advisory": [
+                "Vendor Advisory",
+                "Third Party Advisory",
+            ],
+            "https://vendor.example/broken": ["Patch", "Broken Link"],
+            "https://vdb.example/entry": ["Release Notes", "VDB Entry"],
+        }
+        for url, tags in rejected.items():
+            references.append({"url": url, "tags": tags})
+            enrichment["source_urls"].append(url)
+            enrichment["claim_evidence"].append(
+                {
+                    "kind": "remediation",
+                    "claim": "This rejected source must not become primary evidence.",
+                    "source_url": url,
+                }
+            )
+
+        page = mcp_server._render_cve_landing_page(recipe)
+        graph_match = re.search(
+            r'<script type="application/ld\+json">(.*?)</script>',
+            page,
+        )
+        self.assertIsNotNone(graph_match)
+        assert graph_match is not None
+        graph = json.loads(graph_match.group(1))["@graph"]
+        article = next(node for node in graph if node.get("@type") == "Article")
+        citations = article["citation"]
+
+        sources_match = re.search(
+            r'<h2 id="sources-heading">.*?<ul class="cve-catalog__references">'
+            r"(.*?)</ul></section>",
+            page,
+            flags=re.DOTALL,
+        )
+        self.assertIsNotNone(sources_match)
+        assert sources_match is not None
+        visible_urls = re.findall(r'href="([^"]+)"', sources_match.group(1))
+        self.assertEqual(visible_urls, citations)
+        self.assertIn(
+            "https://vendor.example.test/advisories/CVE-2024-3400",
+            citations,
+        )
+        for url in rejected:
+            self.assertNotIn(url, citations)
+            self.assertNotIn(url, visible_urls)
+        self.assertNotRegex(
+            sources_match.group(1),
+            r">(?:Exploit|Broken Link|Third Party Advisory|VDB Entry)<",
+        )
+
+    def test_reviewed_recipe_uses_deliberate_primary_references_only(self) -> None:
+        exploit_url = (
+            "https://github.com/0xBlackash/CVE-2026-21643/"
+            "blob/main/cve-2026-21643.py"
+        )
+        vendor_url = "https://fortiguard.fortinet.com/psirt/FG-IR-25-1142"
+        page = mcp_server._render_cve_landing_page(
+            mcp_server._bounded_cve_landing_lookup("CVE-2026-21643")
+        )
+        graph_match = re.search(
+            r'<script type="application/ld\+json">(.*?)</script>',
+            page,
+        )
+        self.assertIsNotNone(graph_match)
+        assert graph_match is not None
+        article = next(
+            node
+            for node in json.loads(graph_match.group(1))["@graph"]
+            if node.get("@type") == "Article"
+        )
+        sources_match = re.search(
+            r'<h2 id="sources-heading">.*?<ul class="cve-catalog__references">'
+            r"(.*?)</ul></section>",
+            page,
+            flags=re.DOTALL,
+        )
+        self.assertIsNotNone(sources_match)
+        assert sources_match is not None
+
+        self.assertIn(vendor_url, article["citation"])
+        self.assertIn(vendor_url, sources_match.group(1))
+        self.assertNotIn(exploit_url, article["citation"])
+        self.assertNotIn(exploit_url, sources_match.group(1))
+
     def test_non_kev_record_does_not_render_known_exploitation_section(self) -> None:
         recipe = sample_recipe()
         source = recipe["source_record"]
@@ -1195,12 +1296,11 @@ class CveLandingRenderTests(unittest.TestCase):
         self.assertNotIn("8.0.2", concise)
         self.assertEqual(
             visible,
-            "Upgrade every deployed release branch to its corresponding "
-            "vendor-fixed release in the source-backed remediation guidance "
-            "below; verify the installed build and branch before closing the finding.",
+            "Upgrade Example Platform 7.0 to release 7.0.3. "
+            "Upgrade Example Platform 8.0 to release 8.0.2.",
         )
 
-    def test_visible_action_preserves_generic_patch_wording_across_branches(self) -> None:
+    def test_visible_action_joins_branch_specific_patch_steps(self) -> None:
         enrichment = {
             "remediation_steps": [
                 "Apply the vendor-provided buffer-overflow patch appropriate to "
@@ -1224,9 +1324,79 @@ class CveLandingRenderTests(unittest.TestCase):
         self.assertIn("3.2.3", concise)
         self.assertEqual(
             visible,
-            "Apply the vendor-provided buffer-overflow patch appropriate to "
-            "the deployed SDK branch.",
+            "For SDK 3.2.x, apply the vendor patch for release 3.2.3. "
+            "For SDK 3.4.x, apply the vendor patch for release 3.4.11.",
         )
+
+    def test_multiple_fixed_version_claims_preserve_product_identity(self) -> None:
+        enrichment = {
+            "claim_evidence": [
+                {
+                    "kind": "fixed_version",
+                    "claim": "For Unified CM, releases 14SU5 and 15SU4 are fixed.",
+                    "source_url": "https://vendor.example.test/advisory",
+                },
+                {
+                    "kind": "fixed_version",
+                    "claim": "For Unity Connection, releases 14SU5 and 15SU4 are fixed.",
+                    "source_url": "https://vendor.example.test/advisory",
+                },
+            ],
+            "remediation_steps": [
+                "Upgrade Unified CM release 14 to 14SU5 and release 15 to 15SU4.",
+                "Upgrade Unity Connection release 14 to 14SU5 and release 15 to 15SU4.",
+            ],
+        }
+        claim = mcp_server._cve_landing_fixed_version_claim(enrichment)
+        concise = mcp_server._cve_landing_fixed_version_action(
+            enrichment,
+            claim,
+            120,
+        )
+        visible = mcp_server._cve_landing_visible_fixed_version_action(
+            enrichment,
+            claim,
+            concise,
+        )
+
+        self.assertIn("Unified CM", claim)
+        self.assertIn("Unity Connection", claim)
+        self.assertEqual(
+            concise,
+            "Upgrade every affected product family to its corresponding "
+            "vendor-fixed release.",
+        )
+        self.assertIn("Unified CM", visible)
+        self.assertIn("Unity Connection", visible)
+        self.assertIn("14SU5", visible)
+        self.assertIn("15SU4", visible)
+
+    def test_invalid_https_port_is_discarded_without_breaking_rendering(self) -> None:
+        self.assertEqual(
+            mcp_server._cve_landing_safe_https_url(
+                "https://vendor.example.test:bad/advisory"
+            ),
+            "",
+        )
+        recipe = deepcopy(
+            mcp_server._bounded_cve_landing_lookup("CVE-2026-20045")
+        )
+        source = recipe["source_record"]
+        assert isinstance(source, dict)
+        references = source.get("references")
+        assert isinstance(references, list)
+        references.insert(
+            0,
+            {
+                "url": "https://vendor.example.test:bad/advisory",
+                "tags": ["Vendor Advisory"],
+            },
+        )
+
+        page = mcp_server._render_cve_landing_page(recipe)
+
+        self.assertIn("CVE-2026-20045", page)
+        self.assertNotIn("vendor.example.test:bad", page)
 
     def test_reviewed_metadata_drives_search_authorship_and_article_dates(self) -> None:
         recipe = sample_recipe()
@@ -1358,6 +1528,180 @@ class CveLandingRenderTests(unittest.TestCase):
                     description,
                     r"(?i)\b(?:apply|fix(?:ed|es)|migrate|patch|update|upgrade)\b",
                 )
+
+    def test_all_qualified_pages_publish_primary_sources_and_complete_actions(self) -> None:
+        allowlist = json.loads(
+            (ROOT / "static" / "api" / "cve-catalog" / "search-indexable.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        weak_multi_branch_ids = {
+            "CVE-2024-23897",
+            "CVE-2024-37079",
+            "CVE-2024-47575",
+            "CVE-2025-20281",
+            "CVE-2025-20337",
+            "CVE-2025-34028",
+            "CVE-2025-64446",
+            "CVE-2026-1731",
+            "CVE-2026-20045",
+            "CVE-2026-20182",
+        }
+        ai_ids = {
+            record["cve"]
+            for record in allowlist.get("records", [])
+            if record.get("qualification") == "recipe_ready_ai"
+        }
+        self.assertTrue(weak_multi_branch_ids <= ai_ids)
+
+        for record in allowlist.get("records", []):
+            cve_id = record["cve"]
+            with self.subTest(cve_id=cve_id):
+                recipe = mcp_server._bounded_cve_landing_lookup(cve_id)
+                source = recipe["source_record"]
+                assert isinstance(source, dict)
+                page = mcp_server._render_cve_landing_page(recipe)
+                graph_match = re.search(
+                    r'<script type="application/ld\+json">(.*?)</script>',
+                    page,
+                )
+                self.assertIsNotNone(graph_match)
+                assert graph_match is not None
+                article = next(
+                    node
+                    for node in json.loads(graph_match.group(1))["@graph"]
+                    if node.get("@type") == "Article"
+                )
+                citations = article["citation"]
+                sources_match = re.search(
+                    r'<h2 id="sources-heading">.*?'
+                    r'<ul class="cve-catalog__references">(.*?)</ul></section>',
+                    page,
+                    flags=re.DOTALL,
+                )
+                self.assertIsNotNone(sources_match)
+                assert sources_match is not None
+                visible_urls = re.findall(r'href="([^"]+)"', sources_match.group(1))
+                self.assertEqual(visible_urls, citations)
+                self.assertNotRegex(
+                    sources_match.group(1),
+                    r">(?:Exploit|Broken Link|Third Party Advisory|VDB Entry)<",
+                )
+                for raw_reference in source.get("references", []):
+                    if record.get("qualification") == "stable_markdown":
+                        continue
+                    qualified_label = (
+                        mcp_server._cve_landing_qualified_reference_label(raw_reference)
+                    )
+                    if qualified_label:
+                        continue
+                    if not isinstance(raw_reference, dict):
+                        continue
+                    tags = {
+                        tag.casefold()
+                        for tag in mcp_server._cve_landing_reference_tags(raw_reference)
+                    }
+                    unsafe = bool(
+                        tags & mcp_server._CVE_LANDING_REJECTED_REFERENCE_TAGS
+                        or "exploit" in tags
+                    )
+                    if not unsafe:
+                        continue
+                    rejected_url = mcp_server._cve_landing_safe_https_url(
+                        raw_reference.get("url")
+                    )
+                    if rejected_url:
+                        self.assertNotIn(rejected_url, citations)
+
+                if record.get("qualification") != "recipe_ready_ai":
+                    continue
+                enrichment = mcp_server._cve_landing_complete_ai_enrichment(source)
+                claim = mcp_server._cve_landing_fixed_version_claim(enrichment)
+                required_tokens = mcp_server._cve_landing_version_tokens(claim)
+                self.assertTrue(required_tokens)
+                action_match = re.search(
+                    r"<dt>Recommended action</dt><dd>(.*?)</dd>",
+                    page,
+                    flags=re.DOTALL,
+                )
+                self.assertIsNotNone(action_match)
+                assert action_match is not None
+                action = unescape(re.sub(r"<[^>]+>", " ", action_match.group(1)))
+                self.assertRegex(
+                    action,
+                    r"(?i)\b(?:apply|install|migrate|patch|update|upgrade)\b",
+                )
+                self.assertLessEqual(len(action), 1200)
+                self.assertTrue(
+                    required_tokens <= mcp_server._cve_landing_version_tokens(action)
+                )
+                fixed_claims = mcp_server._cve_landing_fixed_version_claims(
+                    enrichment
+                )
+                if len(fixed_claims) > 1:
+                    for fixed_claim in fixed_claims:
+                        self.assertIn(
+                            fixed_claim.rstrip(" .!?").casefold(),
+                            action.casefold(),
+                        )
+
+    def test_cisco_multi_product_fixed_versions_stay_product_complete(self) -> None:
+        page = mcp_server._render_cve_landing_page(
+            mcp_server._bounded_cve_landing_lookup("CVE-2026-20045")
+        )
+        action_match = re.search(
+            r"<dt>Recommended action</dt><dd>(.*?)</dd>",
+            page,
+            flags=re.DOTALL,
+        )
+        self.assertIsNotNone(action_match)
+        assert action_match is not None
+        action = unescape(re.sub(r"<[^>]+>", " ", action_match.group(1)))
+        self.assertIn("Unified CM", action)
+        self.assertIn("Unity Connection", action)
+        self.assertIn("Webex Calling Dedicated Instance", action)
+        self.assertIn("14SU5", action)
+        self.assertIn("15SU4", action)
+        self.assertIn("12.5", action)
+        description_match = re.search(
+            r'<meta name="description" content="([^"]+)">',
+            page,
+        )
+        self.assertIsNotNone(description_match)
+        assert description_match is not None
+        self.assertNotIn("Upgrade Unity Connection", description_match.group(1))
+
+    def test_modular_max_serve_reviewed_metadata_matches_catalog_facts(self) -> None:
+        expected_description = (
+            "Upgrade Modular Max Serve to 25.6.0 or later to fix unsafe "
+            "deserialization; disable the experimental kvcache agent until all "
+            "deployments are patched."
+        )
+        page = mcp_server._render_cve_landing_page(
+            mcp_server._bounded_cve_landing_lookup("CVE-2025-60455")
+        )
+        self.assertIn(
+            f'<meta name="description" content="{expected_description}">',
+            page,
+        )
+        self.assertIn("cve-catalog__badge--severity-high\">High</span>", page)
+        self.assertIn("cve-catalog__badge--score\">CVSS 8.4</span>", page)
+        self.assertIn(
+            f"<dt>Recommended action</dt><dd>{expected_description}</dd>",
+            page,
+        )
+        graph_match = re.search(
+            r'<script type="application/ld\+json">(.*?)</script>',
+            page,
+        )
+        self.assertIsNotNone(graph_match)
+        assert graph_match is not None
+        article = next(
+            node
+            for node in json.loads(graph_match.group(1))["@graph"]
+            if node.get("@type") == "Article"
+        )
+        self.assertEqual(article["description"], expected_description)
 
     def test_related_cves_require_product_weakness_or_bounded_archetype_overlap(self) -> None:
         catalog = mcp_server.CVERecipeCatalog.__new__(mcp_server.CVERecipeCatalog)

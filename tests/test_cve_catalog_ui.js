@@ -562,6 +562,60 @@ test('runtime summary metadata produces coverage without loading the browser ind
   assert.match(summary, /100% agentic mitigation\/remediation coverage/);
 });
 
+test('qualified CVE routes come only from the server-rendered search allowlist', () => {
+  const link = (cve, href) => ({
+    getAttribute(name) {
+      if (name === 'data-qualified-cve-link') return cve;
+      if (name === 'href') return href;
+      return null;
+    }
+  });
+  const scope = {
+    querySelectorAll(selector) {
+      assert.equal(selector, '[data-qualified-cve-link]');
+      return [
+        link('CVE-2024-3400', '/cve/CVE-2024-3400/'),
+        link('CVE-2017-18342', '/recipes/cve/cve-2017-18342-pyyaml/'),
+        link('CVE-2024-9999', 'https://example.test/cve/CVE-2024-9999/'),
+        link('not-a-cve', '/cve/not-a-cve/')
+      ];
+    }
+  };
+
+  const routes = controller.collectQualifiedCveRoutes(scope);
+  assert.equal(routes.size, 2);
+  assert.equal(
+    controller.qualifiedCveHref(routes, 'CVE-2024-3400'),
+    '/cve/CVE-2024-3400/'
+  );
+  assert.equal(
+    controller.qualifiedCveHref(routes, 'CVE-2017-18342'),
+    '/recipes/cve/cve-2017-18342-pyyaml/'
+  );
+  assert.equal(controller.qualifiedCveHref(routes, 'CVE-2024-9999'), '');
+  assert.equal(controller.qualifiedCveHref(routes, 'CVE-2024-3400?redirect=1'), '');
+});
+
+test('conflicting qualified CVE routes fail closed', () => {
+  const scope = {
+    querySelectorAll() {
+      return [
+        { getAttribute: (name) => name === 'data-qualified-cve-link' ? 'CVE-2024-3400' : '/cve/CVE-2024-3400/' },
+        { getAttribute: (name) => name === 'data-qualified-cve-link' ? 'CVE-2024-3400' : '/recipes/cve/cve-2024-3400-conflict/' },
+        { getAttribute: (name) => name === 'data-qualified-cve-link' ? 'CVE-2024-3400' : '/cve/CVE-2024-3400/' }
+      ];
+    }
+  };
+
+  assert.equal(controller.collectQualifiedCveRoutes(scope).has('CVE-2024-3400'), false);
+});
+
+test('catalog bootstrap waits for explicit search intent', () => {
+  assert.equal(controller.shouldRunInitialSearch(null, false), false);
+  assert.equal(controller.shouldRunInitialSearch(null, true), true);
+  assert.equal(controller.shouldRunInitialSearch({ id: 'CVE-2024-3400' }, false), true);
+});
+
 test('runtime summary requires content-derived shard and archetype versions', () => {
   const base = {
     schema_version: 2,
@@ -858,7 +912,13 @@ test('controller never parses the full index and feed Markdown is never injected
   assert.match(controllerSource, /Source fingerprint/);
   assert.match(controllerSource, /appendAiEnrichment\(technicalBody, fullRecord\.ai_enrichment\)/);
   assert.match(controllerSource, /Open canonical CVE page/);
-  assert.match(controllerSource, /basePrefix\(\) \+ 'cve\/' \+ encodeURIComponent\(preview\.cve\) \+ '\/'/);
+  assert.match(controllerSource, /qualifiedCveHref\(state\.qualifiedCveRoutes, preview\.cve\)/);
+  assert.match(controllerSource, /if \(qualifiedHref\) \{[\s\S]*?permalink\.href = qualifiedHref/);
+  assert.doesNotMatch(
+    controllerSource,
+    /permalink\.href = basePrefix\(\) \+ 'cve\/' \+ encodeURIComponent\(preview\.cve\) \+ '\/'/,
+    'unqualified search results must not synthesize crawlable internal CVE links'
+  );
   assert.match(controllerSource, /View on CVE\.org/);
   assert.match(controllerSource, /https:\/\/www\.cve\.org\/CVERecord\?id=/);
   assert.match(controllerSource, /canonicalLink\.target = '_blank'/);
@@ -877,8 +937,18 @@ test('controller never parses the full index and feed Markdown is never injected
   assert.match(workerSource, /browser-index\.json\.gz/);
   assert.match(
     controllerSource,
+    /search\.addEventListener\('focus',[\s\S]*?if \(state\.requestId === 0\) runSearch\(\);[\s\S]*?\{ once: true \}/,
+    'the full browser index is activated only after search focus'
+  );
+  assert.match(
+    controllerSource,
+    /loadManifest\(false\)\.then\([\s\S]*?if \(hasInitialSearchIntent && state\.requestId === 0\) runSearch\(\);/,
+    'shareable URL filters and exact embedded CVEs retain their explicit bootstrap behavior'
+  );
+  assert.doesNotMatch(
+    controllerSource,
     /loadManifest\(false\)\.then\([\s\S]*?if \(state\.requestId === 0\) runSearch\(\);/,
-    'the catalog runs its newest-first browse query after bootstrap'
+    'a blank catalog must preserve the server-rendered latest seed without loading the browser index'
   );
   assert.doesNotMatch(
     controllerSource,

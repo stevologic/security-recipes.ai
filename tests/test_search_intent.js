@@ -94,6 +94,23 @@ test("the homepage, remediation pillar, and agent hub cross-link contextually", 
   );
 });
 
+test("global navigation names the AI remediation destination descriptively", () => {
+  const homepage = source("_includes/layouts/home-static.html");
+  const siteConfig = source("lib/site-config.js");
+  const pillar = frontMatter("content/security-remediation/_index.md");
+
+  assert.equal(pillar.linkTitle, "AI Remediation");
+  assert.match(
+    siteConfig,
+    /\{ name: "AI Remediation", url: "\/security-remediation\/" \}/u,
+  );
+  assert.deepEqual(
+    [...homepage.matchAll(/<a href="\/security-remediation\/">([^<]+)<\/a>/gu)]
+      .map((match) => match[1]),
+    ["AI Remediation", "AI Remediation"],
+  );
+});
+
 test("the remediation pillar labels guidance and hypothetical examples truthfully", () => {
   const pillar = source("content/security-remediation/_index.md");
 
@@ -108,4 +125,37 @@ test("the remediation pillar labels guidance and hypothetical examples truthfull
   assert.match(pillar, /^## Production guardrails for AI remediation agents$/mu);
   assert.match(pillar, /^### Agent identity, delegated authority, and trust$/mu);
   assert.match(pillar, /^### Secure-context provenance and enterprise assurance$/mu);
+});
+
+test("high-intent remediation pages expose current review provenance", () => {
+  for (const relativePath of [
+    "content/security-remediation/_index.md",
+    "content/agents/_index.md",
+  ]) {
+    const page = source(relativePath);
+    const data = frontMatter(relativePath);
+    const lastmod = data.lastmod instanceof Date
+      ? data.lastmod.toISOString().slice(0, 10)
+      : String(data.lastmod);
+    assert.equal(lastmod, "2026-07-23");
+    assert.match(page, /\*\*Last updated July 23, 2026\.\*\*/u);
+    assert.match(page, /\[source and revision history\]\(https:\/\/github\.com\/stevologic/u);
+    assert.match(page, /\[review methodology\]\(\/about\/#editorial-principles\)/u);
+    assert.match(page, /\[corrections policy\]\(\/about\/#corrections\)/u);
+  }
+});
+
+test("the remediation workflow protects finding evidence from the patching agent", () => {
+  const pillar = source("content/security-remediation/_index.md");
+  const prerequisites = pillar.indexOf("Before granting write access");
+  const firstMutation = pillar.indexOf("1. **Identify one finding.**");
+
+  assert.ok(prerequisites > 0 && prerequisites < firstMutation);
+  assert.match(pillar, /production-only\s+infrastructure[\s\S]*stop for\s+operator-led triage/u);
+  assert.match(pillar, /Preserve the original alert, reproducer, or scan result and its checksum/u);
+  assert.match(
+    pillar,
+    /Do not weaken, delete, skip, or reconfigure the scanner, CI gate, or original\s+regression/u,
+  );
+  assert.match(pillar, /protected reproducer or an independently owned verifier/u);
 });

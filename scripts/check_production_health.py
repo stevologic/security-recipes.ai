@@ -47,6 +47,7 @@ CONTENT_INTEGRITY_PROBES = (
             r"<h1\b[^>]*>\s*Search CVEs\. Remediate vulnerabilities with AI agents",
             re.IGNORECASE,
         ),
+        (),
     ),
     (
         "Codex guide",
@@ -55,6 +56,7 @@ CONTENT_INTEGRITY_PROBES = (
             r"<h1\b[^>]*>\s*Codex(?: Vulnerability Remediation)?\s*</h1>",
             re.IGNORECASE,
         ),
+        (),
     ),
     (
         "automation guide",
@@ -63,6 +65,101 @@ CONTENT_INTEGRITY_PROBES = (
             r"<h1\b[^>]*>\s*(?:Automation(?:, not agentic)?|Automated Vulnerability Remediation"
             r"(?: Without AI Agents)?)\s*</h1>",
             re.IGNORECASE,
+        ),
+        (),
+    ),
+    (
+        "AI remediation guide",
+        "security-remediation/",
+        re.compile(
+            r"<h1\b[^>]*>\s*How to Remediate Vulnerabilities with AI Agents\s*</h1>",
+            re.IGNORECASE,
+        ),
+        (
+            (
+                "query-specific page title",
+                re.compile(
+                    r"<title>\s*How to Remediate Vulnerabilities with AI Agents"
+                    r"\s*\|\s*Security Recipes\s*</title>",
+                    re.IGNORECASE,
+                ),
+            ),
+            (
+                "remediation meta description",
+                re.compile(
+                    r"<meta\b(?=[^>]*\bname=[\"']description[\"'])"
+                    r"(?=[^>]*\bcontent=[\"']Learn how to remediate software vulnerabilities "
+                    r"with AI coding agents using scoped playbooks, source evidence, tests, "
+                    r"rollback, and human review\.[\"'])[^>]*>",
+                    re.IGNORECASE,
+                ),
+            ),
+            (
+                "canonical URL",
+                re.compile(
+                    r"<link\b(?=[^>]*\brel=[\"']canonical[\"'])"
+                    r"(?=[^>]*\bhref=[\"']https://security-recipes\.ai/"
+                    r"security-remediation/[\"'])[^>]*>",
+                    re.IGNORECASE,
+                ),
+            ),
+            (
+                "indexable robots directive",
+                re.compile(
+                    r"<meta\b(?=[^>]*\bname=[\"']robots[\"'])"
+                    r"(?=[^>]*\bcontent=[\"']index,follow(?:,[^\"']*)?[\"'])[^>]*>",
+                    re.IGNORECASE,
+                ),
+            ),
+            (
+                "HowTo structured data",
+                re.compile(r"[\"']@type[\"']\s*:\s*[\"']HowTo[\"']", re.IGNORECASE),
+            ),
+        ),
+    ),
+    (
+        "AI agent comparison",
+        "agents/",
+        re.compile(
+            r"<h1\b[^>]*>\s*Compare AI Coding Agents for Security Remediation\s*</h1>",
+            re.IGNORECASE,
+        ),
+        (
+            (
+                "query-specific page title",
+                re.compile(
+                    r"<title>\s*Compare AI Coding Agents for Security Remediation"
+                    r"\s*\|\s*Security Recipes\s*</title>",
+                    re.IGNORECASE,
+                ),
+            ),
+            (
+                "agent-comparison meta description",
+                re.compile(
+                    r"<meta\b(?=[^>]*\bname=[\"']description[\"'])"
+                    r"(?=[^>]*\bcontent=[\"']Compare Codex, Claude Code, Cursor, GitHub "
+                    r"Copilot, and Devin for AI vulnerability remediation, then configure "
+                    r"bounded instructions, MCP context, and review gates\.[\"'])[^>]*>",
+                    re.IGNORECASE,
+                ),
+            ),
+            (
+                "canonical URL",
+                re.compile(
+                    r"<link\b(?=[^>]*\brel=[\"']canonical[\"'])"
+                    r"(?=[^>]*\bhref=[\"']https://security-recipes\.ai/agents/[\"'])"
+                    r"[^>]*>",
+                    re.IGNORECASE,
+                ),
+            ),
+            (
+                "indexable robots directive",
+                re.compile(
+                    r"<meta\b(?=[^>]*\bname=[\"']robots[\"'])"
+                    r"(?=[^>]*\bcontent=[\"']index,follow(?:,[^\"']*)?[\"'])[^>]*>",
+                    re.IGNORECASE,
+                ),
+            ),
         ),
     ),
 )
@@ -175,10 +272,14 @@ def _validate_content_integrity(
     label: str,
     payload: bytes,
     expected_heading: re.Pattern[str],
+    required_patterns: tuple[tuple[str, re.Pattern[str]], ...] = (),
 ) -> None:
     page = payload.decode("utf-8")
     if not expected_heading.search(page):
         raise ValueError(f"{label} is missing its expected primary heading")
+    for requirement, pattern in required_patterns:
+        if not pattern.search(page):
+            raise ValueError(f"{label} is missing its expected {requirement}")
     for pattern in FORBIDDEN_SEARCH_SPAM:
         match = pattern.search(page)
         if match:
@@ -270,7 +371,12 @@ def run_probes(
 
     try:
         compared_pages = 0
-        for label, relative_url, expected_heading in CONTENT_INTEGRITY_PROBES:
+        for (
+            label,
+            relative_url,
+            expected_heading,
+            required_patterns,
+        ) in CONTENT_INTEGRITY_PROBES:
             probe_url = urljoin(normalized_base, relative_url)
             if relative_url == "" and homepage_payload is not None:
                 standard_payload = homepage_payload
@@ -297,9 +403,17 @@ def run_probes(
                     f"{label} returned unexpected Googlebot Content-Type "
                     f"{googlebot_type!r}"
                 )
-            _validate_content_integrity(label, standard_payload, expected_heading)
             _validate_content_integrity(
-                f"{label} (Googlebot)", googlebot_payload, expected_heading
+                label,
+                standard_payload,
+                expected_heading,
+                required_patterns,
+            )
+            _validate_content_integrity(
+                f"{label} (Googlebot)",
+                googlebot_payload,
+                expected_heading,
+                required_patterns,
             )
             if not hashlib.sha256(standard_payload).digest() == hashlib.sha256(
                 googlebot_payload
