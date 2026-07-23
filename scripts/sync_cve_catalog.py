@@ -393,6 +393,10 @@ def apply_valid_cached_enrichment(
     record: dict[str, Any], entries: dict[str, dict[str, Any]]
 ) -> dict[str, Any]:
     """Reconcile a valid cache update without blessing stale evidence."""
+    if record.get("recipe_kind") == "markdown-override":
+        refreshed = dict(record)
+        refreshed.pop("ai_enrichment", None)
+        return refreshed
     candidate = entries.get(str(record.get("cve") or ""))
     if candidate is None:
         return record
@@ -1773,6 +1777,8 @@ def apply_markdown_inventory(
 ) -> dict[str, Any]:
     """Attach current Markdown metadata without changing normalized source facts."""
     stable_recipes = [recipe for recipe in recipes if recipe.maturity == "stable"]
+    if stable_recipes:
+        record.pop("ai_enrichment", None)
     record["recipe_kind"] = (
         "markdown-override" if stable_recipes else "markdown-draft" if recipes else "composed"
     )

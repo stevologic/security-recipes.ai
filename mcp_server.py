@@ -2611,10 +2611,18 @@ class CVERecipeCatalog:
             candidate_archetype_values = candidate.get("archetypes")
             candidate_archetypes = string_set(candidate_archetype_values)
             candidate_cwes = string_set(candidate.get("cwes"))
+            candidate_ecosystem = str(candidate.get("ecosystem") or "").strip().casefold()
+            product_overlap = bool(source_products & candidate_products)
+            weakness_overlap = bool(source_cwes & candidate_cwes)
+            ecosystem_bounded_archetype_overlap = bool(
+                source_ecosystem
+                and source_ecosystem == candidate_ecosystem
+                and source_archetypes & candidate_archetypes
+            )
             return bool(
-                source_products & candidate_products
-                or source_archetypes & candidate_archetypes
-                or source_cwes & candidate_cwes
+                product_overlap
+                or weakness_overlap
+                or ecosystem_bounded_archetype_overlap
             )
 
         def rank(candidate: dict[str, Any]) -> tuple[object, ...]:

@@ -562,6 +562,33 @@ class CVEAIEnrichmentTests(unittest.TestCase):
             self.assertNotIn("ai_enrichment", by_cve["CVE-2026-3000"])
             self.assertEqual(cache.stats["generated"], 1)
 
+    def test_apply_removes_cached_enrichment_from_stable_override(self) -> None:
+        source = record("CVE-2026-3000")
+        source_url = str(source["references"][0]["url"])
+        cached_entry = enrichment.build_enrichment_entry(
+            source,
+            model_output(source_urls=[source_url]),
+            model="gpt-test",
+            retrieved_source_urls=[source_url],
+            generated_at=datetime(2026, 7, 14, tzinfo=timezone.utc),
+        )
+        stable = {
+            **source,
+            "recipe_kind": "markdown-override",
+            "ai_enrichment": cached_entry,
+        }
+        with tempfile.TemporaryDirectory() as tmpdir:
+            cache = enrichment.EnrichmentCache(
+                Path(tmpdir) / "ai.json",
+                {str(source["cve"]): cached_entry},
+            )
+
+            applied = list(cache.apply([stable], client=None))
+
+        self.assertNotIn("ai_enrichment", applied[0])
+        self.assertIn("ai_enrichment", stable)
+        self.assertNotIn(str(source["cve"]), cache.entries)
+
     def test_candidate_priority_uses_evidence_value_and_recency_in_order(self) -> None:
         def priority(
             source: dict[str, object],

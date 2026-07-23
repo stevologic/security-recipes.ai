@@ -349,6 +349,17 @@
       "source_id": "recipes"
     },
     {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 4,
+      "match": "description: \"Critical, exploited ScreenConnect authentication bypass. Upgrade self-hosted servers from 23.9.7 or earlier to 23.9.8+ and review administrative access.\"",
+      "path": "content/recipes/cve/cve-2024-1709-screenconnect-authentication-bypass.md",
+      "risk_family": "approval_bypass",
+      "rule_id": "approval-bypass-request",
+      "severity": "high",
+      "source_id": "recipes"
+    },
+    {
       "actionable": false,
       "disposition": "defensive_control_language",
       "line": 123,
@@ -1616,13 +1627,13 @@
   ],
   "generated_at": "2026-05-02",
   "guard_summary": {
-    "actionable_finding_count": 91,
+    "actionable_finding_count": 92,
     "blocking_source_count": 2,
     "blocking_sources": [
       "agentic-assurance-models",
       "recipes"
     ],
-    "byte_count": 22667503,
+    "byte_count": 22777951,
     "decision_counts": {
       "allow_with_adversarial_examples": 1,
       "block_until_removed": 2,
@@ -1630,26 +1641,26 @@
       "pass": 5
     },
     "disposition_counts": {
-      "actionable_context_poisoning_risk": 91,
+      "actionable_context_poisoning_risk": 92,
       "defensive_control_language": 28,
       "documented_adversarial_example": 24
     },
     "failure_count": 0,
-    "file_count": 3497,
-    "finding_count": 143,
+    "file_count": 3503,
+    "finding_count": 144,
     "held_source_count": 1,
     "held_sources": [
       "security-remediation-workflows"
     ],
     "risk_family_counts": {
-      "approval_bypass": 36,
+      "approval_bypass": 37,
       "hidden_instruction": 59,
       "prompt_injection": 10,
       "secret_exposure": 38
     },
     "severity_counts": {
       "critical": 48,
-      "high": 36,
+      "high": 37,
       "medium": 59
     },
     "source_count": 9
@@ -1890,21 +1901,21 @@
       "risk_family_counts": {},
       "root": "mcp_server.py",
       "severity_counts": {},
-      "source_hash": "2fe6a842f351c01d1d4b99913683cf42152409711ae725ab5a61fedc9de766f1",
+      "source_hash": "ae6fe77508a959cb1d409258984eca7b9da473dc8cb389dbc7a595e8ecde93a3",
       "source_id": "mcp-server-runtime",
       "title": "MCP Server Runtime Contract",
       "trust_tier": "tier_2_policy_context"
     },
     {
-      "actionable_finding_count": 27,
+      "actionable_finding_count": 28,
       "decision": "block_until_removed",
       "disposition_counts": {
-        "actionable_context_poisoning_risk": 27,
+        "actionable_context_poisoning_risk": 28,
         "defensive_control_language": 24,
         "documented_adversarial_example": 1
       },
-      "file_count": 3362,
-      "finding_count": 52,
+      "file_count": 3368,
+      "finding_count": 53,
       "owner": {
         "accountable_team": "SecurityRecipes Maintainers",
         "escalation": "recipes-review",
@@ -1933,16 +1944,16 @@
         "content/recipes/cve/ai-enrichment-cve-2024-9465.md"
       ],
       "risk_family_counts": {
-        "approval_bypass": 16,
+        "approval_bypass": 17,
         "prompt_injection": 5,
         "secret_exposure": 31
       },
       "root": "content/recipes",
       "severity_counts": {
         "critical": 36,
-        "high": 16
+        "high": 17
       },
-      "source_hash": "0fb2d2822453f4473bebcb84db11112cccad89fa1ed80e139286391900d3c528",
+      "source_hash": "cea0a607d97bbb02bdf73b0e2ccc6da42ea2767a953dc935beb8643f6c432d86",
       "source_id": "recipes",
       "title": "Recipes",
       "trust_tier": "tier_1_curated_guidance"

@@ -101,10 +101,10 @@ security-recipes.ai helps teams answer:
 | `assets/` | Site CSS and JavaScript for the recipe browser, navigation, and helper tools. |
 | `static/` | Images, logos, schemas, and static assets. |
 | `static/api/cve-catalog/` | Complete sharded CVE catalog, year-partitioned machine index, compressed browser-search index, provenance manifest, and archetypes. |
-| `data/cve/` | Human-reviewed remediation archetype source. |
+| `data/cve/` | Human-reviewed remediation archetypes, deterministic AI-enrichment cache, and generated-recipe ownership ledger. |
 | `data/compliance-frameworks/` | Structured compliance-framework catalog and source registry. |
 | `data/code-hygiene/` | Structured code-hygiene catalog, source registry, and routing fixtures. |
-| `docs/` | Repository documentation assets, including the README screenshots. |
+| `docs/` | Repository documentation and legacy screenshot assets; current README and visual-guide images live in `static/images/`. |
 | `mcp_server.py` | Optional read-only MCP server for recipe search and approved upstream MCP context. |
 | `mcp-server.toml.example` | MCP server configuration template. |
 | `Dockerfile` | Site image. |
@@ -247,10 +247,12 @@ The complete CVE catalog is also available without MCP:
   rows together with the source match total and an explicit truncation flag;
   consumers must follow NVD/vendor evidence when that flag is set.
 
-Development CVE Markdown keeps its direct page URL for compatibility but is
-excluded from generic recipe/search feeds, tag pages, RSS, and the sitemap.
-Use the dedicated catalog or `recipes_cve_*` MCP tools for complete discovery;
-only reviewed `maturity: stable` Markdown is republished in generic indexes.
+Development CVE Markdown emits no standalone page in the pure static build and
+is excluded from generic recipe/search feeds, tag pages, RSS, and the sitemap.
+Production can retain a legacy recipe URL as a redirect to the canonical CVE
+route through nginx and the MCP-backed landing service. Use the dedicated
+catalog or `recipes_cve_*` MCP tools for complete discovery; only reviewed
+`maturity: stable` Markdown is republished in generic indexes.
 
 The browser's exact-ID path and compressed worker index both cover every
 in-scope Medium, High, and Critical record declared by the manifest. The MCP

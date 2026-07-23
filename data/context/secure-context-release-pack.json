@@ -217,7 +217,7 @@
         "title": "Open Reference Context"
       },
       "commercial_value": "Gives open-source users a hash-bound context bundle they can consume without waiting for hosted infrastructure.",
-      "context_package_hash": "3c33b5aab3f9a2ffbeda577b469b69291311d085d2041d467260bac50286ae67",
+      "context_package_hash": "1052e6c9108cf857b6adb10398435090d84b724d9ddfd502105502ae2488793d",
       "default_release_decision": "hold_for_poisoning_review",
       "egress_policy_state": {
         "pack": "context_egress_boundary_pack",
@@ -273,7 +273,7 @@
       "poisoning_scan_state": {
         "source_results": [
           {
-            "actionable_finding_count": 27,
+            "actionable_finding_count": 28,
             "decision": "block_until_removed",
             "source_id": "recipes"
           },
@@ -315,7 +315,7 @@
         ]
       },
       "release_id": "open-remediation-context-release",
-      "release_manifest_hash": "f97ab76dd8c84200b33ff8f19d50410f9c7c7125a08ec72929d451f0d18e877c",
+      "release_manifest_hash": "b2f635157257dda39411df2d278ad2115309269000b7365916d0b8d15641677c",
       "rollback_triggers": [
         "source_hash_change",
         "poisoning_decision_blocked",
@@ -391,8 +391,8 @@
         "agentic-threat-intelligence": "0a00261af9173007067727225260d936539b2ecd2fbb7a57e92abea459c9ec84",
         "mcp-connector-trust": "e2c3baa10d7bc4baa1d423b5da3bf8ee3e94e17a971a8655f60d8577dd3d8cae",
         "mcp-gateway-policy": "a52079afd7bf65c0be2b9bd2455046b22b4b03b10fd65632663ebf503a0acc46",
-        "mcp-server-runtime": "2fe6a842f351c01d1d4b99913683cf42152409711ae725ab5a61fedc9de766f1",
-        "recipes": "0fb2d2822453f4473bebcb84db11112cccad89fa1ed80e139286391900d3c528",
+        "mcp-server-runtime": "ae6fe77508a959cb1d409258984eca7b9da473dc8cb389dbc7a595e8ecde93a3",
+        "recipes": "cea0a607d97bbb02bdf73b0e2ccc6da42ea2767a953dc935beb8643f6c432d86",
         "security-remediation-workflows": "08838eed2c7d7884be29befeaf68f676daf39b8b77d33c5699200321a0d7f945",
         "workflow-control-plane": "f72c4bf711d6d8ac8f54f44f6f1e5dcc644ae2470a01ac9a89b68ea4076f6e21"
       },
@@ -424,7 +424,7 @@
         "title": "Production MCP Context"
       },
       "commercial_value": "Creates the paid product path for signed production MCP context releases.",
-      "context_package_hash": "ee62f8d43163c8d4d4c5c01fa8c82c83f14133bc6d51543e5608c2e1b6cce1a7",
+      "context_package_hash": "ce6ae86f9d217d6d88cfc14492d4cde4cb1f89824138e1a2cf96602ae68bd2f0",
       "default_release_decision": "hold_for_poisoning_review",
       "egress_policy_state": {
         "pack": "context_egress_boundary_pack",
@@ -525,7 +525,7 @@
         ]
       },
       "release_id": "production-policy-context-release",
-      "release_manifest_hash": "2e21d0cece4bcc31127de8df35608a1fea1a555f8497a9922469a3264bbcec0b",
+      "release_manifest_hash": "839f55b6f655b4d2632bedf168fad95eb8adf7f23f64c8d1cb77e03ccf0ef089",
       "rollback_triggers": [
         "signature_bundle_missing",
         "transparency_log_missing",
@@ -595,7 +595,7 @@
         "agentic-threat-intelligence": "0a00261af9173007067727225260d936539b2ecd2fbb7a57e92abea459c9ec84",
         "mcp-connector-trust": "e2c3baa10d7bc4baa1d423b5da3bf8ee3e94e17a971a8655f60d8577dd3d8cae",
         "mcp-gateway-policy": "a52079afd7bf65c0be2b9bd2455046b22b4b03b10fd65632663ebf503a0acc46",
-        "mcp-server-runtime": "2fe6a842f351c01d1d4b99913683cf42152409711ae725ab5a61fedc9de766f1",
+        "mcp-server-runtime": "ae6fe77508a959cb1d409258984eca7b9da473dc8cb389dbc7a595e8ecde93a3",
         "security-remediation-workflows": "08838eed2c7d7884be29befeaf68f676daf39b8b77d33c5699200321a0d7f945",
         "workflow-control-plane": "f72c4bf711d6d8ac8f54f44f6f1e5dcc644ae2470a01ac9a89b68ea4076f6e21"
       },
@@ -952,23 +952,23 @@
   "source_artifacts": {
     "agentic_threat_radar": {
       "path": "data/evidence/agentic-threat-radar.json",
-      "sha256": "6122b4aa8781c748c88097e1499265d6ef03260010b5186731ac7932c9c5cf2c"
+      "sha256": "148db15d313e93ff6a9a8d0c2ac0d840f24c3f5c293145c13ca06eabfd97de76"
     },
     "context_egress_boundary_pack": {
       "path": "data/evidence/context-egress-boundary-pack.json",
-      "sha256": "dcfb78456a344bc8a2361d4eb0a89875065fa4a892a0bffb0e3a7eeb09acc467"
+      "sha256": "e38d1ba92445641ac8688afacce815ba129d060424e7b5635c39f6b63207a084"
     },
     "context_poisoning_guard_pack": {
       "path": "data/evidence/context-poisoning-guard-pack.json",
-      "sha256": "2fe695a29aa1851d35468dd8ad83570a3b8716a42b59496cc877179847ecce73"
+      "sha256": "7b61d08b04e93d59ef758eae997ecea8e16705e5e2895e7451b08c1b17ed3583"
     },
     "secure_context_attestation_pack": {
       "path": "data/evidence/secure-context-attestation-pack.json",
-      "sha256": "985c4155c43429c76602088f4e678d55d27543e930e54bed8ecf3deceef0da3d"
+      "sha256": "f1b5106c0e89260587bd17c0f05c303b03368aa50fd9c6c77ed358320889fc82"
     },
     "secure_context_eval_pack": {
       "path": "data/evidence/secure-context-eval-pack.json",
-      "sha256": "535006d7f32115be49d42a65472b64c9e789023d1ef9c38504cd27b38eb43b08"
+      "sha256": "4080990972117b9f1bd01311d35317e72803e2378de45f7c5d5497976ee2dbdd"
     },
     "secure_context_release_profile": {
       "path": "data/context/secure-context-release-profile.json",
@@ -976,7 +976,7 @@
     },
     "secure_context_trust_pack": {
       "path": "data/evidence/secure-context-trust-pack.json",
-      "sha256": "6a88d602347306e1ee5afe4389cf63f0069b03ff254c46416061988555c9e776"
+      "sha256": "6a0dc0d5f19f54d7168c9891467cd2cc4b31adde36fcbe9e46835ff2d0dc44c6"
     }
   },
   "standards_alignment": [

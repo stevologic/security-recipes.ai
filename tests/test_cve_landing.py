@@ -1359,7 +1359,7 @@ class CveLandingRenderTests(unittest.TestCase):
                     r"(?i)\b(?:apply|fix(?:ed|es)|migrate|patch|update|upgrade)\b",
                 )
 
-    def test_related_cves_require_a_product_archetype_or_weakness_overlap(self) -> None:
+    def test_related_cves_require_product_weakness_or_bounded_archetype_overlap(self) -> None:
         catalog = mcp_server.CVERecipeCatalog.__new__(mcp_server.CVERecipeCatalog)
         catalog._core_lock = mcp_server.threading.RLock()
 
@@ -1369,6 +1369,7 @@ class CveLandingRenderTests(unittest.TestCase):
             archetypes: list[str],
             cwes: list[str],
             products: list[dict[str, str]],
+            ecosystem: str = "software/application",
         ) -> dict[str, object]:
             return {
                 "cve": cve_id,
@@ -1376,7 +1377,7 @@ class CveLandingRenderTests(unittest.TestCase):
                 "severity": "high",
                 "score": 8.0,
                 "published": "2026-01-01",
-                "ecosystem": "software/application",
+                "ecosystem": ecosystem,
                 "kev": False,
                 "archetypes": archetypes,
                 "cwes": cwes,
@@ -1409,6 +1410,13 @@ class CveLandingRenderTests(unittest.TestCase):
                 cwes=["CWE-999"],
                 products=[{"vendor": "other", "product": "different"}],
             ),
+            candidate(
+                "CVE-2026-10005",
+                archetypes=["privilege_escalation"],
+                cwes=["CWE-999"],
+                products=[],
+                ecosystem="php/wordpress",
+            ),
         )
         source_record = {
             "cve": "CVE-2026-14956",
@@ -1423,8 +1431,9 @@ class CveLandingRenderTests(unittest.TestCase):
 
         self.assertEqual(
             {record["cve"] for record in related},
-            {"CVE-2026-10001", "CVE-2026-10002", "CVE-2026-10003"},
+            {"CVE-2026-10001", "CVE-2026-10003", "CVE-2026-10005"},
         )
+        self.assertNotIn("CVE-2026-10002", {record["cve"] for record in related})
         self.assertNotIn("CVE-2026-10004", {record["cve"] for record in related})
 
     def test_real_kev_record_renders_catalog_action_and_citation(self) -> None:

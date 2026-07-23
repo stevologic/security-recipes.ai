@@ -80,7 +80,7 @@ responsible owner. It is never an unreviewed production mutation.
 
 <figure class="visual-guide-figure">
   <img src="../images/how-to-use/read-only-mcp-context.webp" alt="An agent retrieves CVE context and recipes through a read-only MCP layer with audit, while write access remains blocked behind a separate approval-required gate." width="2048" height="1152" loading="lazy" decoding="async">
-  <figcaption>The public MCP baseline retrieves context and records an audit trail; write authority remains a separate, explicit decision.</figcaption>
+  <figcaption>The public MCP baseline retrieves context read-only; an approved host or gateway can add redacted audit logging while write authority remains a separate decision.</figcaption>
 </figure>
 
 Use MCP when an agent needs structured recipe or CVE retrieval at runtime.

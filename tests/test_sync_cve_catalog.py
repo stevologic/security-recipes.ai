@@ -414,6 +414,38 @@ class SyncCveCatalogTests(unittest.TestCase):
             [],
         )
 
+    def test_valid_cached_enrichment_is_removed_from_stable_override(self) -> None:
+        record = normalize(nvd_record("CVE-2024-4321"))
+        self.assertIsNotNone(record)
+        assert record is not None
+        source_url = record["references"][0]["url"]
+        candidate = ai.build_enrichment_entry(
+            record,
+            {
+                "status": "complete",
+                "business_risk": "An exposed vulnerable service could be compromised.",
+                "exposure_conditions": ["The affected service is reachable."],
+                "remediation_steps": ["Apply the vendor-supported fixed release."],
+                "verification_steps": ["Confirm the fixed release is deployed."],
+                "uncertainty": [],
+                "recipe_specificity": "not_specific",
+                "claim_evidence": [],
+                "source_urls": [source_url],
+            },
+            model="test-model",
+            retrieved_source_urls=[source_url],
+        )
+        record["recipe_kind"] = "markdown-override"
+        record["ai_enrichment"] = candidate
+
+        refreshed = catalog.apply_valid_cached_enrichment(
+            record,
+            {record["cve"]: candidate},
+        )
+
+        self.assertNotIn("ai_enrichment", refreshed)
+        self.assertIn("ai_enrichment", record)
+
     def test_ai_enrichment_limit_is_hard_bounded(self) -> None:
         self.assertEqual(catalog.parse_ai_enrichment_limit("0"), 0)
         self.assertEqual(
@@ -1480,6 +1512,23 @@ class SyncCveCatalogTests(unittest.TestCase):
         record = normalize(nvd_record(cve_id))
         self.assertIsNotNone(record)
         assert record is not None
+        source_url = record["references"][0]["url"]
+        record["ai_enrichment"] = ai.build_enrichment_entry(
+            record,
+            {
+                "status": "complete",
+                "business_risk": "An exposed vulnerable service could be compromised.",
+                "exposure_conditions": ["The affected service is reachable."],
+                "remediation_steps": ["Apply the vendor-supported fixed release."],
+                "verification_steps": ["Confirm the fixed release is deployed."],
+                "uncertainty": [],
+                "recipe_specificity": "not_specific",
+                "claim_evidence": [],
+                "source_urls": [source_url],
+            },
+            model="test-model",
+            retrieved_source_urls=[source_url],
+        )
         content_parent = catalog.ROOT / "content" / "recipes" / "cve"
         with (
             tempfile.TemporaryDirectory(
@@ -1493,6 +1542,14 @@ class SyncCveCatalogTests(unittest.TestCase):
             output_dir = Path(output_tmp) / "catalog"
             outputs, original_manifest = build_catalog_outputs([record])
             catalog.write_outputs(output_dir, outputs)
+            original_shard_entry = original_manifest["shard_manifest"][0]
+            original_shard_records = [
+                json.loads(line)
+                for line in gzip.decompress(
+                    (output_dir / original_shard_entry["path"]).read_bytes()
+                ).splitlines()
+            ]
+            self.assertIn("ai_enrichment", original_shard_records[0])
             recipe_path = content_dir / "stable.md"
             recipe_path.write_text(
                 "---\n"
@@ -1540,6 +1597,7 @@ class SyncCveCatalogTests(unittest.TestCase):
                 ).splitlines()
             ]
             self.assertEqual(shard_records[0]["recipe_kind"], "markdown-override")
+            self.assertNotIn("ai_enrichment", shard_records[0])
             self.assertEqual(
                 shard_records[0]["markdown"][0]["content_markdown"],
                 "Reviewed remediation body.",

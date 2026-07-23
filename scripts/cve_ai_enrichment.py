@@ -983,7 +983,10 @@ class EnrichmentCache:
             record = dict(source)
             cve = str(record.get("cve") or "")
             entry = self.entries.get(cve)
-            if entry is not None:
+            if record.get("recipe_kind") == "markdown-override":
+                record.pop("ai_enrichment", None)
+                self.entries.pop(cve, None)
+            elif entry is not None:
                 record["ai_enrichment"] = entry
             yield record
 
