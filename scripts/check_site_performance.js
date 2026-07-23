@@ -1078,14 +1078,17 @@ if (!remediationHtml) {
     fail(`remediation pillar title is not the exact query-specific title: ${title || "(missing)"}`);
   }
 
-  const h1Matches = Array.from(
+  const h1Contents = Array.from(
     remediationHtml.matchAll(/<h1\b[^>]*>([\s\S]*?)<\/h1>/gi),
-    (match) => decodeHtmlAttributeOnce(match[1].replace(/<[^>]+>/g, "").trim()),
+    (match) => match[1].trim(),
   );
-  if (h1Matches.length !== 1 || h1Matches[0] !== remediationTitle) {
+  if (
+    h1Contents.length !== 1 ||
+    decodeHtmlAttributeOnce(h1Contents[0] || "") !== remediationTitle
+  ) {
     fail(
-      `remediation pillar renders ${h1Matches.length} H1 elements with ` +
-      `the wrong search-intent title: ${h1Matches.join(" | ") || "(missing)"}`,
+      `remediation pillar renders ${h1Contents.length} H1 elements with ` +
+      "the wrong search-intent title",
     );
   }
 
