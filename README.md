@@ -59,6 +59,13 @@ share a common method. A bounded rendered-body similarity gate prevents a child
 from re-entering sitemaps until its evidence, examples, and tests are materially
 distinct. The hubs remain indexable and carry the shared discovery context.
 
+After an SEO-bearing release, the public revision must match the merge commit
+before sitemap submission or URL inspection. The
+[Caddy deployment guide](README.caddy-deploy.md#search-discovery-after-an-seo-release)
+documents the DNS-verified Search Console handoff, priority live-URL checks,
+sitemap submission, indexing requests, and query monitoring. Submission is a
+discovery hint; it does not guarantee indexing or a particular ranking.
+
 The remediation pillar also records a public repository example for
 [CVE-2026-13149 in `brace-expansion`](https://security-recipes.ai/security-remediation/#real-repository-case-study-cve-2026-13149-in-brace-expansion).
 It ties the dependency-only change to the

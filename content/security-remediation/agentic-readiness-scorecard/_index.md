@@ -10,6 +10,7 @@ description: >
   Generate a promotion gate that turns workflow, MCP policy, connector trust,
   identity, assurance, and red-team evidence into scale, pilot, gate, or block
   decisions.
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

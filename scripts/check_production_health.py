@@ -50,6 +50,109 @@ CONTENT_INTEGRITY_PROBES = (
         (),
     ),
     (
+        "CVE database",
+        "cve-database/",
+        re.compile(r"<h1\b[^>]*>\s*CVE Database\s*</h1>", re.IGNORECASE),
+        (
+            (
+                "database page title",
+                re.compile(
+                    r"<title>\s*CVE Database\s*\|\s*Security Recipes\s*</title>",
+                    re.IGNORECASE,
+                ),
+            ),
+            (
+                "database meta description",
+                re.compile(
+                    r"<meta\b(?=[^>]*\bname=[\"']description[\"'])"
+                    r"(?=[^>]*\bcontent=[\"']Search a synchronized CVE database "
+                    r"with sourced facts, affected-version evidence, canonical "
+                    r"advisories, and bounded AI-agent remediation guidance\.[\"'])"
+                    r"[^>]*>",
+                    re.IGNORECASE,
+                ),
+            ),
+            (
+                "canonical URL",
+                re.compile(
+                    r"<link\b(?=[^>]*\brel=[\"']canonical[\"'])"
+                    r"(?=[^>]*\bhref=[\"']https://security-recipes\.ai/"
+                    r"cve-database/[\"'])[^>]*>",
+                    re.IGNORECASE,
+                ),
+            ),
+            (
+                "indexable robots directive",
+                re.compile(
+                    r"<meta\b(?=[^>]*\bname=[\"']robots[\"'])"
+                    r"(?=[^>]*\bcontent=[\"']index,follow(?:,[^\"']*)?[\"'])[^>]*>",
+                    re.IGNORECASE,
+                ),
+            ),
+            (
+                "Dataset structured data",
+                re.compile(
+                    r"[\"']@type[\"']\s*:\s*[\"']Dataset[\"']", re.IGNORECASE
+                ),
+            ),
+            (
+                "evidence-qualified CVE links",
+                re.compile(r"\bdata-qualified-cve-link=[\"']CVE-", re.IGNORECASE),
+            ),
+        ),
+    ),
+    (
+        "AI agent security guide",
+        "agentic-security/",
+        re.compile(
+            r"<h1\b[^>]*>\s*AI Agent Security: How to Secure AI Agent Systems\s*</h1>",
+            re.IGNORECASE,
+        ),
+        (
+            (
+                "query-specific page title",
+                re.compile(
+                    r"<title>\s*AI Agent Security: How to Secure AI Agent Systems\s*</title>",
+                    re.IGNORECASE,
+                ),
+            ),
+            (
+                "agent-security meta description",
+                re.compile(
+                    r"<meta\b(?=[^>]*\bname=[\"']description[\"'])"
+                    r"(?=[^>]*\bcontent=[\"']Secure AI agent systems against prompt "
+                    r"injection, tool abuse, excessive permissions, unsafe memory, "
+                    r"connector risk, and weak incident response\.[\"'])[^>]*>",
+                    re.IGNORECASE,
+                ),
+            ),
+            (
+                "canonical URL",
+                re.compile(
+                    r"<link\b(?=[^>]*\brel=[\"']canonical[\"'])"
+                    r"(?=[^>]*\bhref=[\"']https://security-recipes\.ai/"
+                    r"agentic-security/[\"'])[^>]*>",
+                    re.IGNORECASE,
+                ),
+            ),
+            (
+                "indexable robots directive",
+                re.compile(
+                    r"<meta\b(?=[^>]*\bname=[\"']robots[\"'])"
+                    r"(?=[^>]*\bcontent=[\"']index,follow(?:,[^\"']*)?[\"'])[^>]*>",
+                    re.IGNORECASE,
+                ),
+            ),
+            (
+                "CollectionPage structured data",
+                re.compile(
+                    r"[\"']@type[\"']\s*:\s*[\"']CollectionPage[\"']",
+                    re.IGNORECASE,
+                ),
+            ),
+        ),
+    ),
+    (
         "Codex guide",
         "codex/",
         re.compile(
@@ -734,11 +837,18 @@ def run_probes(
         page = payload.decode("utf-8")
         required_fragments = {
             "title": f"<title>{cve_probe_id}",
+            "meta description": '<meta name="description" content="',
             "canonical": f'<link rel="canonical" href="{cve_url}">',
             "indexable robots": '<meta name="robots" content="index,follow',
             "Article JSON-LD": '"@type":"Article"',
             "TechArticle semantics": '"additionalType":"https://schema.org/TechArticle"',
             "server-rendered CVE identity": f'data-cve-initial-id="{cve_probe_id}"',
+            "CVE detail stylesheet": '<link rel="stylesheet" href="/css/cve-detail.css">',
+            "site-themed CVE body": '<body class="sr-docs-body sr-cve-detail-page"',
+            "CVE database breadcrumb": '<a href="/cve-database/">CVE Database</a>',
+            "query-specific primary heading": (
+                f'<h1 class="sr-page-title">{cve_probe_id}:'
+            ),
         }
         missing = [
             label for label, fragment in required_fragments.items() if fragment not in page

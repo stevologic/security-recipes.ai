@@ -10,6 +10,7 @@ description: >
   signature, and runtime decision contract for secure context exports.
 sidebar:
   exclude: true
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

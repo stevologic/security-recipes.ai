@@ -10,6 +10,7 @@ description: >
   for agentic remediation workflows and MCP context.
 sidebar:
   exclude: true
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

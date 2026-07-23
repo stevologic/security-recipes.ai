@@ -10,6 +10,7 @@ description: >
   MCP, A2A, CISA, OpenAI, CSA, and other agentic AI security sources.
 sidebar:
   exclude: true
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

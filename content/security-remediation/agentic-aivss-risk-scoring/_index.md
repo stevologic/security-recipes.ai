@@ -11,6 +11,7 @@ description: >
   approval-bypass risks.
 sidebar:
   exclude: true
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

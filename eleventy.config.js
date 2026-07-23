@@ -904,10 +904,18 @@ module.exports = function (eleventyConfig) {
   eleventyConfig.addFilter("tocEntries", extractTocEntries);
 
   // Breadcrumb trail resolved against the content index.
-  eleventyConfig.addFilter("breadcrumbs", (url) => {
+  eleventyConfig.addFilter("breadcrumbs", (url, breadcrumbParent) => {
     const { byUrl } = contentIndex.getIndex();
     const crumbs = [];
     const currentUrl = typeof url === "string" ? url : "";
+    const requestedParent = typeof breadcrumbParent === "string" ? breadcrumbParent.trim() : "";
+    const parent = requestedParent && requestedParent !== currentUrl
+      ? byUrl.get(requestedParent)
+      : null;
+    if (parent) {
+      crumbs.push({ title: parent.linkTitle, url: parent.url });
+      return crumbs;
+    }
     const segments = currentUrl.replace(/^\/|\/$/g, "").split("/");
     const isCveDetail = currentUrl.startsWith("/recipes/cve/") && currentUrl !== "/recipes/cve/";
     if (currentUrl.startsWith("/cve/archive/")) {

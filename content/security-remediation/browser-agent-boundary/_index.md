@@ -10,6 +10,7 @@ description: >
   Generate and evaluate browser-agent workspace boundaries for logged-in
   sessions, untrusted web content, localhost, local storage, downloads, and
   forms.
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

@@ -10,6 +10,7 @@ description: >
   Generate an entitlement-review pack for expiring, reviewable, revocable
   agent permissions across MCP scopes, A2A handoffs, runtime gates, and
   non-human identities.
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

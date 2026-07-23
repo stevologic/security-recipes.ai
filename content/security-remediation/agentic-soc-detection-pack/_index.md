@@ -9,6 +9,7 @@ sidebar:
 description: >
   Deploy SIEM-ready detections for risky agent, MCP, approval, tool-use,
   identity, and context events with mapped evidence and response steps.
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

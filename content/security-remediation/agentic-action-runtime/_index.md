@@ -10,6 +10,7 @@ description: >
   A generated action-runtime pack and deterministic evaluator for allow,
   hold, deny, or kill decisions before MCP-backed agents execute side
   effects.
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

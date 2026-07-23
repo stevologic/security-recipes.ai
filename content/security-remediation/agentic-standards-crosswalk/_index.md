@@ -11,6 +11,7 @@ description: >
   readiness.
 sidebar:
   exclude: true
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

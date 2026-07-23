@@ -10,6 +10,7 @@ description: >
   controls, evidence requirements, and human decision boundaries.
 sidebar:
   exclude: true
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

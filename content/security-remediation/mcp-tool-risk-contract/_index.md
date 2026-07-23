@@ -10,6 +10,7 @@ description: >
   A generated MCP tool-risk contract that turns tool annotations,
   connector trust, authorization conformance, workflow scope, and
   session-combination risk into deterministic pre-call decisions.
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

@@ -9,6 +9,7 @@ sidebar:
 description: >
   Convert agentic workflow manifests into enforceable MCP gateway decisions
   for tools, identities, approvals, arguments, evidence, and denials.
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

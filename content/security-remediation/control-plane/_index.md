@@ -10,6 +10,7 @@ description: >
   Publish machine-readable agentic-remediation workflows with scope, MCP
   context, gates, evidence, KPIs, and kill signals for agents, reviewers, and
   auditors.
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

@@ -76,6 +76,38 @@ test("high-intent landing pages remain concise, distinct, and query-specific", (
   );
 });
 
+test("every agent-security control links from its hub and declares that breadcrumb parent", () => {
+  const hub = source("content/agentic-security/_index.md");
+  const controls = [...new Set(
+    [...hub.matchAll(/\]\(\/security-remediation\/([^/]+)\/\)/gu)]
+      .map((match) => match[1]),
+  )];
+
+  assert.ok(controls.length >= 58, "the agent-security hub must retain its complete control map");
+  for (const slug of controls) {
+    const relativePath = `content/security-remediation/${slug}/_index.md`;
+    assert.equal(
+      frontMatter(relativePath).breadcrumb_parent,
+      "/agentic-security/",
+      `${relativePath} must use the agent-security breadcrumb hierarchy`,
+    );
+  }
+});
+
+test("reviewed historical CVE guides preserve explicit rollback and recovery boundaries", () => {
+  const guides = [
+    ["content/recipes/cve/cve-2014-0160-heartbleed.md", /Do not restore an affected OpenSSL release/iu],
+    ["content/recipes/cve/cve-2014-6271-shellshock.md", /Never roll back to a Bash package/iu],
+    ["content/recipes/cve/cve-2017-18342-pyyaml.md", /Do not restore an unsafe `yaml\.load` path/iu],
+  ];
+
+  for (const [relativePath, recoveryBoundary] of guides) {
+    const page = source(relativePath);
+    assert.match(page, /^## Rollback and recovery$/mu, `${relativePath} needs recovery guidance`);
+    assert.match(page, recoveryBoundary, `${relativePath} must forbid insecure rollback`);
+  }
+});
+
 test("regreSSHion targets OpenSSH RCE remediation with primary-source authority", () => {
   const relativePath = "content/recipes/cve/cve-2024-6387-regresshion.md";
   const page = source(relativePath);

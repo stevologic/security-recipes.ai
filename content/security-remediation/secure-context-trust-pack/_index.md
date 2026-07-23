@@ -9,6 +9,7 @@ sidebar:
 description: >
   Evaluate provenance, freshness, retrieval, poisoning, authorization, and
   release evidence before context is admitted to agentic AI workflows.
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

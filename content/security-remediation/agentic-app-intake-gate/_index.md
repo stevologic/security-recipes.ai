@@ -11,6 +11,7 @@ description: >
   handoffs, guardrails, telemetry, and approval evidence.
 sidebar:
   exclude: true
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

@@ -9,6 +9,7 @@ sidebar:
 description: >
   Score agent tools and workflows by capability, authority, exposure, and
   control coverage to prioritize reviews and enforce bounded remediation access.
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

@@ -10,6 +10,7 @@ description: >
   A generated review packet that bundles SecurityRecipes
   secure-context, MCP, identity, eval, readiness, runtime evidence, and
   trust artifacts into one MCP-readable trust-center export.
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

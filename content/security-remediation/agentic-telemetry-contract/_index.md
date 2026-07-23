@@ -9,6 +9,7 @@ sidebar:
 description: >
   Standardize OpenTelemetry-aligned agent, model, MCP, tool, approval, and
   remediation traces for detection, evidence, and incident review.
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

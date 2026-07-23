@@ -10,6 +10,7 @@ description: >
   A generated reviewer-, auditor-, and AI-platform-ready evidence bundle
   for agentic remediation controls, workflow scope, MCP gateway policy,
   AI/Agent BOM readiness, and residual risk.
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

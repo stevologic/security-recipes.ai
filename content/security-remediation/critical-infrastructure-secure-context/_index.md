@@ -10,6 +10,7 @@ description: >
   controls, evidence gates, isolation, recovery, and human authority.
 sidebar:
   exclude: true
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

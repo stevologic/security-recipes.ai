@@ -10,6 +10,7 @@ description: >
   A deterministic runtime evaluator that turns the generated MCP gateway
   policy into allow, hold, deny, and kill-session decisions for agent
   tool calls.
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

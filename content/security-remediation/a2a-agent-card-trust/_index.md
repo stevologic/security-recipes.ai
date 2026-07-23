@@ -9,6 +9,7 @@ sidebar:
 description: >
   Generated trust profile and runtime decisions for A2A Agent Cards
   before remote agents receive secure context or join an agent handoff.
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

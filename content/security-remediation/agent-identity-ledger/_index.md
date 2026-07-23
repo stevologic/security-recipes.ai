@@ -9,6 +9,7 @@ sidebar:
 description: >
   Record every human, agent, service, delegation, credential boundary, and
   approval chain involved in an agentic remediation workflow.
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

@@ -10,6 +10,7 @@ description: >
   Define the runtime events, metrics, receipts, and renewal gates a design
   partner must produce before Security Recipes can claim review-ready customer
   value.
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

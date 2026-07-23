@@ -10,6 +10,7 @@ description: >
   A generated attestation and recertification layer for SecurityRecipes
   context sources and workflow context packages, designed for CI, MCP
   gateways, procurement review, and future production keyless signing.
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

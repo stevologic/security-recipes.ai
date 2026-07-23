@@ -10,6 +10,7 @@ description: >
   A generated MCP connector trust pack that inventories every workflow
   namespace, trust tier, access mode, control requirement, evidence
   record, promotion criterion, and runtime kill signal.
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

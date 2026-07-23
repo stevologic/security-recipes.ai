@@ -9,6 +9,7 @@ sidebar:
 description: >
   A generated provenance, permission, isolation, and runtime-decision pack
   for agent skills, rules files, hooks, extensions, and behavior packages.
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

@@ -239,10 +239,14 @@ class ProductionHealthTests(unittest.TestCase):
         excluded_cve_url = f"https://security-recipes.ai/cve/{excluded_cve_id}/"
         default_cve_html = f"""<!doctype html><html><head>
 <title>{cve_id}: PAN-OS command injection</title>
+<meta name="description" content="Fix {cve_id} with source-backed PAN-OS remediation guidance.">
 <meta name="robots" content="index,follow,max-image-preview:large">
 <link rel="canonical" href="{cve_url}">
+<link rel="stylesheet" href="/css/cve-detail.css">
 <script type="application/ld+json">{{"@context":"https://schema.org","@type":"Article","additionalType":"https://schema.org/TechArticle"}}</script>
-</head><body><h1>{cve_id}: PAN-OS command injection</h1>
+</head><body class="sr-docs-body sr-cve-detail-page" data-cve-detail-page="true">
+<nav class="sr-breadcrumbs" aria-label="Breadcrumb"><a href="/cve-database/">CVE Database</a></nav>
+<h1 class="sr-page-title">{cve_id}: PAN-OS command injection</h1>
 <div data-cve-initial-id="{cve_id}"></div></body></html>""".encode()
         default_excluded_cve_html = f"""<!doctype html><html><head>
 <title>{excluded_cve_id}: Windows shortcut vulnerability</title>
@@ -280,6 +284,35 @@ Sitemap: https://security-recipes.ai/sitemap.xml
             "https://security-recipes.ai/": (
                 b'<!doctype html><html><body><h1 class="hero-title">'
                 b"Search CVEs. Remediate vulnerabilities with AI agents</h1></body></html>"
+            ),
+            "https://security-recipes.ai/cve-database/": (
+                b"<!doctype html><html><head>"
+                b"<title>CVE Database | Security Recipes</title>"
+                b'<meta name="description" content="Search a synchronized CVE database '
+                b"with sourced facts, affected-version evidence, canonical advisories, "
+                b'and bounded AI-agent remediation guidance.">'
+                b'<meta name="robots" content="index,follow,max-image-preview:large">'
+                b'<link rel="canonical" href="https://security-recipes.ai/'
+                b'cve-database/">'
+                b'<script type="application/ld+json">{"@context":"https://schema.org",'
+                b'"@graph":[{"@type":"Dataset"}]}</script>'
+                b'</head><body><h1 id="cve-database-heading">CVE Database</h1>'
+                b'<a data-qualified-cve-link="CVE-2026-14956" '
+                b'href="/cve/CVE-2026-14956/">CVE-2026-14956</a></body></html>'
+            ),
+            "https://security-recipes.ai/agentic-security/": (
+                b"<!doctype html><html><head>"
+                b"<title>AI Agent Security: How to Secure AI Agent Systems</title>"
+                b'<meta name="description" content="Secure AI agent systems against '
+                b"prompt injection, tool abuse, excessive permissions, unsafe memory, "
+                b'connector risk, and weak incident response.">'
+                b'<meta name="robots" content="index,follow,max-image-preview:large">'
+                b'<link rel="canonical" href="https://security-recipes.ai/'
+                b'agentic-security/">'
+                b'<script type="application/ld+json">{"@context":"https://schema.org",'
+                b'"@graph":[{"@type":"CollectionPage"}]}</script>'
+                b'</head><body><h1 class="sr-page-title">'
+                b"AI Agent Security: How to Secure AI Agent Systems</h1></body></html>"
             ),
             "https://security-recipes.ai/codex/": (
                 b'<!doctype html><html><body><h1 class="sr-page-title">'
@@ -499,6 +532,33 @@ Sitemap: https://security-recipes.ai/sitemap.xml
         failed = {check["name"] for check in report["checks"] if not check["ok"]}
         self.assertEqual(failed, {"sitemap", "cve_landing"})
 
+    def test_old_generic_cve_renderer_fails_the_theme_contract(self) -> None:
+        cve_id = production.DEFAULT_CVE_PROBE_ID
+        cve_url = f"https://security-recipes.ai/cve/{cve_id}/"
+        generic_page = f"""<!doctype html><html><head>
+<title>{cve_id}: PAN-OS command injection</title>
+<meta name="description" content="PAN-OS vulnerability record.">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<link rel="canonical" href="{cve_url}">
+<script type="application/ld+json">{{"@context":"https://schema.org","@type":"Article","additionalType":"https://schema.org/TechArticle"}}</script>
+</head><body><h1>{cve_id}: PAN-OS command injection</h1>
+<div data-cve-initial-id="{cve_id}"></div></body></html>""".encode()
+        report = production.run_probes(
+            base_url="https://security-recipes.ai",
+            expected_revision=self.SHA,
+            expected_commit_time=self.NOW - timedelta(hours=2),
+            now=self.NOW,
+            opener=self.opener(cve_html=generic_page),
+            certificate_expiry=self.certificate,
+        )
+
+        failed = [check for check in report["checks"] if not check["ok"]]
+        self.assertEqual([check["name"] for check in failed], ["cve_landing"])
+        self.assertIn("CVE detail stylesheet", failed[0]["message"])
+        self.assertIn("site-themed CVE body", failed[0]["message"])
+        self.assertIn("CVE database breadcrumb", failed[0]["message"])
+        self.assertIn("query-specific primary heading", failed[0]["message"])
+
     def test_www_must_resolve_over_https_and_consolidate_to_apex(self) -> None:
         report = production.run_probes(
             base_url="https://security-recipes.ai",
@@ -689,6 +749,86 @@ Disallow: /traffic/
         failed = [check for check in report["checks"] if not check["ok"]]
         self.assertEqual([check["name"] for check in failed], ["content_integrity"])
         self.assertIn("HowTo structured data", failed[0]["message"])
+
+    def test_missing_agent_security_hub_fails_content_integrity(self) -> None:
+        agentic_url = "https://security-recipes.ai/agentic-security/"
+        report = production.run_probes(
+            base_url="https://security-recipes.ai",
+            expected_revision=self.SHA,
+            expected_commit_time=self.NOW - timedelta(hours=2),
+            now=self.NOW,
+            opener=self.opener(
+                content_overrides={
+                    agentic_url: (
+                        b"<!doctype html><html><head><title>Not Found</title></head>"
+                        b'<body><h1 class="sr-page-title">Page not found</h1></body></html>'
+                    )
+                }
+            ),
+            certificate_expiry=self.certificate,
+        )
+
+        failed = [check for check in report["checks"] if not check["ok"]]
+        self.assertEqual([check["name"] for check in failed], ["content_integrity"])
+        self.assertIn("AI agent security guide", failed[0]["message"])
+        self.assertIn("expected primary heading", failed[0]["message"])
+
+    def test_cve_database_must_keep_dataset_and_qualified_links(self) -> None:
+        database_url = "https://security-recipes.ai/cve-database/"
+        page_without_dataset = (
+            b"<!doctype html><html><head>"
+            b"<title>CVE Database | Security Recipes</title>"
+            b'<meta name="description" content="Search a synchronized CVE database '
+            b"with sourced facts, affected-version evidence, canonical advisories, "
+            b'and bounded AI-agent remediation guidance.">'
+            b'<meta name="robots" content="index,follow,max-image-preview:large">'
+            b'<link rel="canonical" href="https://security-recipes.ai/cve-database/">'
+            b'</head><body><h1 id="cve-database-heading">CVE Database</h1></body></html>'
+        )
+        report = production.run_probes(
+            base_url="https://security-recipes.ai",
+            expected_revision=self.SHA,
+            expected_commit_time=self.NOW - timedelta(hours=2),
+            now=self.NOW,
+            opener=self.opener(
+                content_overrides={database_url: page_without_dataset}
+            ),
+            certificate_expiry=self.certificate,
+        )
+
+        failed = [check for check in report["checks"] if not check["ok"]]
+        self.assertEqual([check["name"] for check in failed], ["content_integrity"])
+        self.assertIn("Dataset structured data", failed[0]["message"])
+
+    def test_cve_database_must_keep_evidence_qualified_links(self) -> None:
+        database_url = "https://security-recipes.ai/cve-database/"
+        page_without_qualified_links = (
+            b"<!doctype html><html><head>"
+            b"<title>CVE Database | Security Recipes</title>"
+            b'<meta name="description" content="Search a synchronized CVE database '
+            b"with sourced facts, affected-version evidence, canonical advisories, "
+            b'and bounded AI-agent remediation guidance.">'
+            b'<meta name="robots" content="index,follow,max-image-preview:large">'
+            b'<link rel="canonical" href="https://security-recipes.ai/cve-database/">'
+            b'<script type="application/ld+json">{"@context":"https://schema.org",'
+            b'"@graph":[{"@type":"Dataset"}]}</script>'
+            b'</head><body><h1 id="cve-database-heading">CVE Database</h1>'
+            b'<a href="/cve/CVE-2026-14956/">CVE-2026-14956</a></body></html>'
+        )
+        report = production.run_probes(
+            base_url="https://security-recipes.ai",
+            expected_revision=self.SHA,
+            expected_commit_time=self.NOW - timedelta(hours=2),
+            now=self.NOW,
+            opener=self.opener(
+                content_overrides={database_url: page_without_qualified_links}
+            ),
+            certificate_expiry=self.certificate,
+        )
+
+        failed = [check for check in report["checks"] if not check["ok"]]
+        self.assertEqual([check["name"] for check in failed], ["content_integrity"])
+        self.assertIn("evidence-qualified CVE links", failed[0]["message"])
 
     def test_old_generic_agents_page_fails_content_integrity(self) -> None:
         agents_url = "https://security-recipes.ai/agents/"

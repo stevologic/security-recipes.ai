@@ -9,6 +9,7 @@ sidebar:
 description: >
   Score authentication, token, network, schema, data, write, approval,
   evidence, and red-team risk before promoting a new or changed MCP connector.
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

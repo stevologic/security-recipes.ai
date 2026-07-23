@@ -12,6 +12,7 @@ description: >
   telemetry, receipts, and approval before the model call starts.
 sidebar:
   exclude: true
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

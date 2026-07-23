@@ -10,6 +10,7 @@ description: >
   failures, unsafe instructions, and evidence-backed blocking decisions.
 sidebar:
   exclude: true
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

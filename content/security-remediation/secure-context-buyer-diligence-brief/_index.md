@@ -10,6 +10,7 @@ description: >
   Generate a security review brief that compresses secure-context, MCP,
   telemetry, pilot, source-freshness, and value evidence into review-ready
   answers.
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

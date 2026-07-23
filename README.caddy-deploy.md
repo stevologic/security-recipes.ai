@@ -56,6 +56,49 @@ docker compose logs --tail=50 caddy                # ACME progress lives here
 If a host-level nginx or Caddy already runs on this droplet, stop it first so
 the container can bind 80/443: `sudo systemctl disable --now nginx caddy`.
 
+## Search discovery after an SEO release
+
+Deployment and search discovery are separate gates. Do not submit changed URLs
+while production still serves an older revision. First compare the public
+marker with the exact merge commit and verify the priority search surfaces:
+
+```bash
+git fetch origin main
+merge_sha="$(git rev-parse origin/main)"
+test "$(curl -fsS https://security-recipes.ai/.well-known/deploy-revision)" = "${merge_sha}"
+curl -fsSI https://security-recipes.ai/agentic-security/
+curl -fsSI https://security-recipes.ai/security-remediation/
+curl -fsSI https://security-recipes.ai/cve-database/
+curl -fsSI https://security-recipes.ai/cve/CVE-2026-14956/
+curl -fsS https://security-recipes.ai/sitemap.xml
+```
+
+Then use a Google Search Console **Domain property** for
+`security-recipes.ai`; Google requires DNS verification for that property type.
+The DNS record comes from the Search Console account and must not be invented
+or committed as a placeholder. In the verified property:
+
+1. Submit `https://security-recipes.ai/sitemap.xml` in the Sitemaps report.
+2. Inspect `/agentic-security/`, `/security-remediation/`, `/cve-database/`, and
+   the small set of reviewed priority CVE URLs. Run **Test live URL** and confirm
+   that crawling is allowed, the fetch succeeds, indexing is allowed, and the
+   declared and Google-selected canonicals agree.
+3. Use **Request indexing** for those priority pages after the live test passes.
+   Use the sitemap for the broader qualified set rather than manually requesting
+   every catalog record.
+4. Monitor Page indexing and Search performance separately for exact CVE IDs,
+   AI vulnerability-remediation queries, and AI-agent-security queries. Record
+   impressions, indexed URL, Google-selected canonical, title rewriting, CTR,
+   and position before making another content change.
+
+Google documents sitemap submission as a discovery hint, not an indexing or
+ranking guarantee. See the official
+[sitemap submission guide](https://developers.google.com/search/docs/crawling-indexing/sitemaps/build-sitemap),
+[URL Inspection guide](https://support.google.com/webmasters/answer/12482179),
+and [Domain property guide](https://support.google.com/webmasters/answer/34592).
+Relevant external citations and links remain necessary for competitive queries;
+do not respond to slow recrawling by publishing thin or duplicate CVE pages.
+
 ## Staying up to date: deploy.sh on a managed timer
 
 [deploy.sh](deploy.sh) keeps the droplet tracking `main` without downtime:

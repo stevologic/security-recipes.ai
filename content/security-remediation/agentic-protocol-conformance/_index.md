@@ -9,6 +9,7 @@ sidebar:
 description: >
   Validate MCP and A2A messages, capabilities, approvals, and runtime decisions
   against deterministic protocol conformance evidence.
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

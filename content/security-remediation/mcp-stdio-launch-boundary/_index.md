@@ -10,6 +10,7 @@ description: >
   A deterministic launch gate for local STDIO MCP servers that treats
   MCP client configuration as executable supply-chain surface before an
   agent host starts a subprocess.
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

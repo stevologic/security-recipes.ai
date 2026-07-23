@@ -10,6 +10,7 @@ description: >
   Generated protocol trust evidence and runtime decisions for MCP,
   A2A, provider-native subagents, and human approval bridges before
   context crosses an agent boundary.
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

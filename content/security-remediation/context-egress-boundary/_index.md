@@ -10,6 +10,7 @@ description: >
   redaction, approval, evidence, rollback, and deterministic runtime decisions.
 sidebar:
   exclude: true
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

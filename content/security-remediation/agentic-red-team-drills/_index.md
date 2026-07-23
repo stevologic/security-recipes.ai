@@ -9,6 +9,7 @@ sidebar:
 description: >
   Run bounded adversarial scenarios against agentic remediation controls and
   record expected blocks, evidence, recovery, and review outcomes.
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

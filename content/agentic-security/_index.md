@@ -122,6 +122,7 @@ rotate credentials, change production, or accept residual risk.
 
 ### Agent identity, delegated authority, and trust
 
+- [Govern the agent skill supply chain](/security-remediation/agent-skill-supply-chain/) across rules files, hooks, extensions, permissions, provenance, and runtime loading.
 - [Validate A2A Agent Cards](/security-remediation/a2a-agent-card-trust/) before trusting a remote agent's declared identity or capabilities.
 - [Inventory agent capabilities and risk](/security-remediation/agent-capability-risk-register/) so each tool and action has an accountable owner.
 - [Constrain agent-to-agent handoffs](/security-remediation/agent-handoff-boundary/) when work crosses identities, scopes, or execution environments.
@@ -134,22 +135,40 @@ rotate credentials, change production, or accept residual risk.
 - [Gate new agentic applications](/security-remediation/agentic-app-intake-gate/) before they receive repository or production-adjacent access.
 - [Design an agentic control plane](/security-remediation/agentic-control-plane-blueprint/) for admission, authorization, telemetry, and stop controls.
 - [Measure current agentic posture](/security-remediation/agentic-posture-snapshot/) with a reproducible inventory of controls and gaps.
+- [Score deployment readiness](/security-remediation/agentic-readiness-scorecard/) before an agent receives broader data, tool, or production authority.
+- [Crosswalk agentic standards](/security-remediation/agentic-standards-crosswalk/) without presenting voluntary guidance or draft protocols as binding requirements.
+- [Track the agentic threat radar](/security-remediation/agentic-threat-radar/) so new threat evidence reaches owned controls and evaluations.
 - [Operate the workflow control plane](/security-remediation/control-plane/) across admission, execution, review, and release gates.
 - [Score agentic risk with AIVSS](/security-remediation/agentic-aivss-risk-scoring/) when an AI-system finding needs consistent prioritization evidence.
 - [Route model-provider traffic safely](/security-remediation/model-provider-routing-gate/) when data sensitivity or jurisdiction changes the allowed provider.
+- [Assemble an agentic assurance pack](/security-remediation/agentic-assurance-pack/) for architecture, security, and risk review.
+- [Bound a design-partner pilot](/security-remediation/design-partner-pilot-pack/) with named owners, success criteria, stop signals, and recovery evidence.
+- [Prepare hosted MCP readiness evidence](/security-remediation/hosted-mcp-readiness-pack/) before exposing a managed connector service.
+- [Export enterprise trust-center evidence](/security-remediation/enterprise-trust-center-export/) without overstating unverified control claims.
+- [Prepare a buyer diligence brief](/security-remediation/secure-context-buyer-diligence-brief/) and [customer proof pack](/security-remediation/secure-context-customer-proof-pack/) from reviewable evidence rather than marketing assertions.
 
 ### Authorization, exposure, and runtime boundaries
 
 - [Review agent entitlements](/security-remediation/agentic-entitlement-review/) to find excessive, stale, or unowned permissions.
 - [Map agentic exposure paths](/security-remediation/agentic-exposure-graph/) from untrusted input through tools, identities, and consequential actions.
+- [Constrain the agentic action runtime](/security-remediation/agentic-action-runtime/) so consequential operations bind identity, policy, approval, evidence, and stop behavior.
 - [Isolate browser-agent workspaces](/security-remediation/browser-agent-boundary/) before an agent handles authenticated sessions or downloaded content.
 - [Guard against context poisoning](/security-remediation/context-poisoning-guard/) when retrieved text can influence privileged tool use.
+- [Enforce a context-egress boundary](/security-remediation/context-egress-boundary/) before retrieved data, memory, or tool output can leave its approved trust zone.
 - [Enforce a secure-context firewall](/security-remediation/secure-context-firewall/) between untrusted evidence and executable instructions.
 
 ### Protocols, connectors, and system inventory
 
 - [Test agent protocol conformance](/security-remediation/agentic-protocol-conformance/) for deterministic identity, error, and authorization behavior.
 - [Maintain an MCP connector trust registry](/security-remediation/mcp-connector-trust-registry/) with ownership, provenance, and review state.
+- [Test MCP authorization conformance](/security-remediation/mcp-authorization-conformance/) for token audience, resource binding, delegation, and failure behavior.
+- [Scan new MCP connector intake](/security-remediation/mcp-connector-intake-scanner/) before a server, tool, or credential enters the approved registry.
+- [Constrain MCP elicitation](/security-remediation/mcp-elicitation-boundary/) so a server cannot turn a data request into hidden approval or secret collection.
+- [Apply an MCP gateway policy](/security-remediation/mcp-gateway-policy/) for admission, routing, authentication, authorization, telemetry, and revocation.
+- [Evaluate MCP runtime decisions](/security-remediation/mcp-runtime-decision-evaluator/) against versioned allow, deny, approval, and stop fixtures.
+- [Secure the MCP stdio launch boundary](/security-remediation/mcp-stdio-launch-boundary/) around executable provenance, arguments, environment, and inherited privileges.
+- [Publish an MCP tool risk contract](/security-remediation/mcp-tool-risk-contract/) for the data, side effects, authority, and evidence of every operation.
+- [Detect MCP tool-surface drift](/security-remediation/mcp-tool-surface-drift-sentinel/) before changed schemas or capabilities silently bypass review.
 - [Measure MCP and agent-skill risk coverage](/security-remediation/mcp-risk-coverage/) against the tool and connector surface actually in use.
 - [Generate an agentic system BOM](/security-remediation/agentic-system-bom/) for models, agents, tools, connectors, identities, and data stores.
 - [Watch authoritative sources for drift](/security-remediation/agentic-source-freshness-watch/) before stale guidance reaches an agent.
@@ -158,9 +177,13 @@ rotate credentials, change production, or accept residual risk.
 
 - [Prepare an agentic incident-response pack](/security-remediation/agentic-incident-response-pack/) with containment, evidence, and recovery procedures.
 - [Run agentic measurement probes](/security-remediation/agentic-measurement-probes/) against the controls that should stop or constrain a run.
+- [Run agentic red-team drills](/security-remediation/agentic-red-team-drills/) with owned scenarios, safe boundaries, findings, and retest evidence.
 - [Replay adversarial agent scenarios](/security-remediation/agentic-red-team-replay-harness/) to prove fixes remain effective after policy or model changes.
 - [Evaluate secure-context behavior](/security-remediation/secure-context-evals/) with versioned fixtures and reviewable pass criteria.
 - [Capture approval receipts](/security-remediation/agentic-approval-receipts/) for high-impact actions that require explicit human authorization.
+- [Capture agentic run receipts](/security-remediation/agentic-run-receipts/) that bind inputs, identity, policy, tools, approvals, outputs, and resulting state.
+- [Define an agentic telemetry contract](/security-remediation/agentic-telemetry-contract/) for reconstructing consequential runs without logging secrets.
+- [Build an agentic SOC detection pack](/security-remediation/agentic-soc-detection-pack/) around observable misuse, escalation, egress, and containment signals.
 - [Publish a secure-context evidence contract](/security-remediation/secure-context-evidence-contract/) so reviewers know which claims and artifacts are required.
 
 ### Secure-context provenance and enterprise assurance

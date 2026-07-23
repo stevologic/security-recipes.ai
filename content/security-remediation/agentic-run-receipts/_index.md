@@ -10,6 +10,7 @@ description: >
   rollback evidence for each enterprise agentic remediation run.
 sidebar:
   exclude: true
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

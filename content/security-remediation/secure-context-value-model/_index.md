@@ -10,6 +10,7 @@ description: >
   Model conservative operational impact and reviewer diligence for Security
   Recipes using the open corpus, generated evidence packs, and production MCP
   path.
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

@@ -10,6 +10,7 @@ description: >
   A deterministic runtime evaluator for secure-context retrieval:
   allow, hold, deny, or kill-session decisions before MCP-backed
   context is returned to an agent.
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

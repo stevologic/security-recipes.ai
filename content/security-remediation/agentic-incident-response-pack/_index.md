@@ -9,6 +9,7 @@ sidebar:
 description: >
   A generated incident response, containment, forensics, replay, and
   disclosure pack for secure-context and MCP-backed agentic AI failures.
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

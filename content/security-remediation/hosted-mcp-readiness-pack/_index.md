@@ -12,6 +12,7 @@ description: >
   protected-resource authorization, private context ingestion, connector
   isolation, telemetry, signed receipts, metering, and reviewer rollout
   gates.
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

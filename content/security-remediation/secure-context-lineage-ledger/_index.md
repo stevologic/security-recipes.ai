@@ -10,6 +10,7 @@ description: >
   Generate a context-lineage ledger for agentic AI: source hashes,
   attestations, poisoning scans, retrieval, model routes, egress, handoffs,
   telemetry, and receipts.
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

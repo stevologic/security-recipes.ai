@@ -9,6 +9,7 @@ sidebar:
 description: >
   Inventory agents, models, tools, MCP servers, data sources, policies, owners,
   and trust boundaries in an Agentic System Bill of Materials.
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

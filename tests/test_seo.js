@@ -412,6 +412,32 @@ test("CVE archive pages expose the database hierarchy as structured breadcrumbs"
   );
 });
 
+test("agentic controls use the agent-security hub as their structured parent", () => {
+  const output = seoHead({
+    url: "/security-remediation/mcp-gateway-policy/",
+    title: "MCP Gateway Policy",
+    description: "Bound MCP admission, authorization, routing, and evidence.",
+    breadcrumbParent: "/agentic-security/",
+  });
+  const breadcrumbs = graphEntity(structuredDocument(output), "BreadcrumbList");
+
+  assert.deepEqual(
+    breadcrumbs.itemListElement.map((entry) => entry.name),
+    ["Security Recipes", "AI Agent Security: How to Secure AI Agent Systems", "MCP Gateway Policy"],
+  );
+  assert.deepEqual(
+    breadcrumbs.itemListElement.map((entry) => new URL(entry.item).pathname),
+    ["/", "/agentic-security/", "/security-remediation/mcp-gateway-policy/"],
+  );
+
+  const template = fs.readFileSync(
+    path.join(__dirname, "..", "_includes", "layouts", "docs.njk"),
+    "utf8",
+  );
+  assert.match(template, /breadcrumbParent: breadcrumb_parent/u);
+  assert.match(template, /page\.url \| breadcrumbs\(breadcrumb_parent\)/u);
+});
+
 test("virtual collection templates retain explicit section semantics", () => {
   const virtualPage = {
     page: {

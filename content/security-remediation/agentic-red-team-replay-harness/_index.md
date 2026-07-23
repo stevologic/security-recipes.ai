@@ -10,6 +10,7 @@ description: >
   A generated replay harness that turns agentic red-team drills into
   safe fixtures, expected runtime decisions, trace requirements, run
   receipt bindings, and reviewer evidence before a drill can be counted.
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

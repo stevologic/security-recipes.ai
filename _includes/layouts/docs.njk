@@ -29,6 +29,7 @@
   imageWidth: image_width,
   imageHeight: image_height,
   howTo: how_to,
+  breadcrumbParent: breadcrumb_parent,
   sourcePath: sourcePath,
   isHome: false,
   isSection: isSection,
@@ -48,7 +49,7 @@
     </nav>
   </aside>
   <main id="content" class="hextra-content sr-main">
-    {% set crumbs = page.url | breadcrumbs %}
+    {% set crumbs = page.url | breadcrumbs(breadcrumb_parent) %}
     {% if crumbs.length %}
     <nav class="sr-breadcrumbs" aria-label="Breadcrumb">
       <a href="/">Home</a>

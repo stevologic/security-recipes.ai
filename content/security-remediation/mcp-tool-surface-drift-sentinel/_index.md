@@ -11,6 +11,7 @@ description: >
   tool descriptions, schemas, annotations, and capability metadata, then
   makes deterministic allow, hold, deny, or kill decisions when a live
   MCP server changes after approval.
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

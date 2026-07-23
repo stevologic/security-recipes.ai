@@ -9,6 +9,7 @@ sidebar:
 description: >
   A generated zero-trust decision fabric for agent identity, context,
   scope, behavior, egress, telemetry, and containment evidence.
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}

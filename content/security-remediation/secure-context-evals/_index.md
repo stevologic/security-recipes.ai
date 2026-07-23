@@ -9,6 +9,7 @@ sidebar:
 description: >
   Run scenario-backed evaluations for context provenance, poisoning resistance,
   authorization, egress, freshness, rollback, and safe agent use.
+breadcrumb_parent: /agentic-security/
 ---
 
 {{< callout type="info" >}}
