@@ -21,6 +21,8 @@ tool: "Compliance evidence review"
 author: "Security Recipes"
 team: "GRC and Security Engineering"
 maturity: "stable"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 tags: ["compliance", "nydfs-part-500", "regulated-industries", "audit", "data-protection", "incident-response", "financial-services", "insurance"]
 weight: 270

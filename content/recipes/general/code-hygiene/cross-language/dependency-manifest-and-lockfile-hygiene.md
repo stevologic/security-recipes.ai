@@ -6,6 +6,8 @@ tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"
 maturity: "development"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 recipe_id: "code-hygiene.cross-language.dependency-manifest-and-lockfile-hygiene"
 recipe_kind: "code-hygiene"

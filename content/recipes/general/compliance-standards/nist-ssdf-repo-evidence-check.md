@@ -21,6 +21,8 @@ tool: "Compliance evidence review"
 author: "Security Recipes"
 team: "GRC and Security Engineering"
 maturity: "stable"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 tags: ["compliance", "nist-ssdf", "product-security", "audit", "code-hygiene", "supply-chain", "software", "cross-sector"]
 weight: 130

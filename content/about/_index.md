@@ -3,7 +3,7 @@ title: About Security Recipes
 linkTitle: About
 page_kind: webpage
 weight: 99
-lastmod: 2026-07-21
+lastmod: 2026-07-23
 toc: true
 sidebar:
   open: false
@@ -22,7 +22,7 @@ rollback, and a human decision before changes are merged or deployed.
 The project is maintained in public at
 [stevologic/security-recipes.ai](https://github.com/stevologic/security-recipes.ai).
 Repository history, contributors, tests, generated-data contracts, and review
-discussion are available there for inspection. Last reviewed: **July 21, 2026**.
+discussion are available there for inspection. Last reviewed: **July 23, 2026**.
 
 ## Stephen M Abbott
 
@@ -48,6 +48,10 @@ provide the public source and review trail for his work on the project.
    risk that a reviewer can evaluate.
 5. **Correct the record visibly.** Material source or remediation changes are
    committed through public history and reflected in page freshness metadata.
+
+The repository's [content verification contract](/docs/content-verification/)
+turns these principles into source, freshness, link, generated-artifact, and
+review checks that maintainers can run before publication.
 
 ## CVE data and review levels
 

@@ -56,8 +56,11 @@ database identifies the full catalog as a `Dataset`; the AI remediation pillar
 describes its visible seven-step process as a `HowTo`; and year-partitioned CVE
 sitemaps contain only canonical, indexable records. Build checks fail on missing
 internal targets, sitemap/indexability drift, duplicate canonical ownership, or
-unreachable pages. These controls make pages eligible and understandable for
-crawlers, but no markup or sitemap can guarantee a particular search position.
+unreachable pages. A rendered-body similarity gate also keeps highly templated
+generated recipe children `noindex,follow` until they gain materially unique
+evidence and examples. These controls make pages eligible and understandable
+for crawlers, but no markup or sitemap can guarantee a particular search
+position.
 
 ## 1. Search the CVE database
 
@@ -104,6 +107,11 @@ tool's native instruction surface: `AGENTS.md`, `CLAUDE.md`,
 `.github/copilot-instructions.md`, `.cursor/rules/*.mdc`, or Devin's repository
 `.agents/skills/<skill-name>/SKILL.md` where supported. The plan is context, not permission; repository
 scope and every approval gate still apply.
+
+If the finding is in the agent system itself—its tools, identities, memory,
+retrieved context, browser, MCP or A2A connections, or incident controls—use
+the separate [AI Agent Security]({{< relref "/agentic-security" >}}) threat-model
+and control directory.
 
 ## 3. Return proof for human review
 

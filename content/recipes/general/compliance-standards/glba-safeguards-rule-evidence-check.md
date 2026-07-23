@@ -21,6 +21,8 @@ tool: "Compliance evidence review"
 author: "Security Recipes"
 team: "GRC and Security Engineering"
 maturity: "stable"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 tags: ["compliance", "glba-safeguards", "regulated-industries", "audit", "data-protection", "governance", "financial-services", "nonbank-financial-institutions"]
 weight: 260

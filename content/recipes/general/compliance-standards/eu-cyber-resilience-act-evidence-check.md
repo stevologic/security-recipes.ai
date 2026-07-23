@@ -21,6 +21,8 @@ tool: "Compliance evidence review"
 author: "Security Recipes"
 team: "GRC and Security Engineering"
 maturity: "stable"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 tags: ["compliance", "eu-cyber-resilience-act", "product-security", "audit", "vulnerability-management", "products-with-digital-elements", "software"]
 weight: 340

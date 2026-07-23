@@ -6,6 +6,8 @@ tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"
 maturity: "development"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 recipe_id: "code-hygiene.data.sql-query-plan-index-and-n-plus-one"
 recipe_kind: "code-hygiene"

@@ -41,8 +41,10 @@ gain permission to change production.
 
 Here, **agentic vulnerability remediation** means AI agents fixing traditional
 software, dependency, container, and repository-configuration vulnerabilities.
-It does not mean finding flaws in AI models or AI systems, and it is distinct
-from endpoint agents that only recommend actions for an operator to perform.
+It does not mean securing the agent, model, tool, memory, identity, or connector
+system itself. Use [AI Agent Security](/agentic-security/) for that workstream.
+This method is also distinct from endpoint agents that only recommend actions
+for an operator to perform.
 
 **Last updated July 23, 2026.** [Stephen M Abbott](/about/#stephen-m-abbott)
 maintains this guide with Security Recipes contributors in the public
@@ -110,6 +112,7 @@ below for a specific finding class.
 Use a CVE-specific recipe only when its product and affected-version evidence
 match the finding you are investigating:
 
+- [CVE-2026-48172: LiteSpeed cPanel plugin root privilege escalation](/cve/CVE-2026-48172/)
 - [CVE-2026-45321: TanStack npm supply-chain compromise](/cve/CVE-2026-45321/)
 - [CVE-2026-39987: Marimo pre-auth terminal RCE](/cve/CVE-2026-39987/)
 - [CVE-2026-14956: Bricksforge Pro Forms privilege escalation](/cve/CVE-2026-14956/)
@@ -122,6 +125,7 @@ match the finding you are investigating:
 - [CVE-2021-44228: Log4Shell in Apache Log4j](/cve/CVE-2021-44228/)
 - [CVE-2024-3094: xz-utils supply-chain backdoor](/cve/CVE-2024-3094/)
 - [CVE-2021-35395: Realtek AP-Router SDK buffer overflow](/cve/CVE-2021-35395/)
+- [CVE-2014-6271: Shellshock Bash environment-variable RCE](/recipes/cve/cve-2014-6271-shellshock/)
 - [CVE-2014-0160: Heartbleed in OpenSSL](/recipes/cve/cve-2014-0160-heartbleed/)
 
 ## What an AI remediation agent should and should not do
@@ -140,11 +144,12 @@ approval.
 | Run focused tests, rebuild, rescan, and record command output | Review the diff and authorize merge or deployment |
 | Stop with a precise triage note when evidence is missing | Supply credentials, secrets, production access, or broader authority |
 
-OWASP's [Agentic Security Initiative](https://genai.owasp.org/initiatives/agentic-security-initiative/)
-tracks risks such as tool misuse, identity and privilege abuse, and goal
-manipulation in autonomous workflows. In practice, give a remediation agent a
-read-only starting posture, an explicit file boundary, the smallest necessary
-write capability, and no production credentials.
+Securing the remediation agent is a separate workstream from the finding it is
+assigned to fix. Use [AI Agent Security](/agentic-security/) for threat modeling,
+identity, tool and connector authorization, context poisoning, memory, browser
+isolation, evaluation, and incident readiness. For a remediation run, start
+read-only, define an explicit file boundary, grant the smallest necessary write
+capability, and provide no production credentials by default.
 
 ## Choose an AI agent for vulnerability remediation
 
@@ -337,64 +342,15 @@ to reject PRs that drift outside the declared scope.
   {{< card link="/security-remediation/evidence-bundles/" title="Evidence Bundles" subtitle="Export run receipts as normalized events, manifests, control gaps, hashes, and readable audit reports." >}}
 {{< /cards >}}
 
-## Production guardrails for AI remediation agents
+## Secure the remediation agent separately
 
-After the finding-specific workflow is working, use the control groups below
-to choose the next production safeguard. They connect agent identity, runtime
-authority, evidence, and incident response without treating every control as a
-requirement for every remediation run.
-
-### Agent identity, delegated authority, and trust
-
-- [Validate A2A Agent Cards](/security-remediation/a2a-agent-card-trust/) before trusting a remote agent's declared identity or capabilities.
-- [Inventory agent capabilities and risk](/security-remediation/agent-capability-risk-register/) so each tool and action has an accountable owner.
-- [Constrain agent-to-agent handoffs](/security-remediation/agent-handoff-boundary/) when work crosses identities, scopes, or execution environments.
-- [Record identity and delegation chains](/security-remediation/agent-identity-ledger/) for reviewer-visible authority and provenance.
-- [Bound persistent agent memory](/security-remediation/agent-memory-boundary/) so later runs cannot silently inherit unsafe state.
-- [Build an agent trust fabric](/security-remediation/agent-trust-fabric/) that joins identity, policy, evidence, and revocation signals.
-
-### Governance, posture, and risk routing
-
-- [Gate new agentic applications](/security-remediation/agentic-app-intake-gate/) before they receive repository or production-adjacent access.
-- [Design an agentic control plane](/security-remediation/agentic-control-plane-blueprint/) for admission, authorization, telemetry, and stop controls.
-- [Measure current agentic posture](/security-remediation/agentic-posture-snapshot/) with a reproducible inventory of controls and gaps.
-- [Operate the workflow control plane](/security-remediation/control-plane/) across admission, execution, review, and release gates.
-- [Score agentic risk with AIVSS](/security-remediation/agentic-aivss-risk-scoring/) when an AI-system finding needs consistent prioritization evidence.
-- [Route model-provider traffic safely](/security-remediation/model-provider-routing-gate/) when data sensitivity or jurisdiction changes the allowed provider.
-
-### Authorization, exposure, and runtime boundaries
-
-- [Review agent entitlements](/security-remediation/agentic-entitlement-review/) to find excessive, stale, or unowned permissions.
-- [Map agentic exposure paths](/security-remediation/agentic-exposure-graph/) from untrusted input through tools, identities, and consequential actions.
-- [Isolate browser-agent workspaces](/security-remediation/browser-agent-boundary/) before an agent handles authenticated sessions or downloaded content.
-- [Guard against context poisoning](/security-remediation/context-poisoning-guard/) when retrieved text can influence privileged tool use.
-- [Enforce a secure-context firewall](/security-remediation/secure-context-firewall/) between untrusted evidence and executable instructions.
-
-### Protocols, connectors, and system inventory
-
-- [Test agent protocol conformance](/security-remediation/agentic-protocol-conformance/) for deterministic identity, error, and authorization behavior.
-- [Maintain an MCP connector trust registry](/security-remediation/mcp-connector-trust-registry/) with ownership, provenance, and review state.
-- [Measure MCP and agent-skill risk coverage](/security-remediation/mcp-risk-coverage/) against the tool and connector surface actually in use.
-- [Generate an agentic system BOM](/security-remediation/agentic-system-bom/) for models, agents, tools, connectors, identities, and data stores.
-- [Watch authoritative sources for drift](/security-remediation/agentic-source-freshness-watch/) before stale guidance reaches a remediation agent.
-
-### Evidence, evaluation, and incident readiness
-
-- [Prepare an agentic incident-response pack](/security-remediation/agentic-incident-response-pack/) with containment, evidence, and recovery procedures.
-- [Run agentic measurement probes](/security-remediation/agentic-measurement-probes/) against the controls that should stop or constrain a run.
-- [Replay adversarial agent scenarios](/security-remediation/agentic-red-team-replay-harness/) to prove fixes remain effective after policy or model changes.
-- [Evaluate secure-context behavior](/security-remediation/secure-context-evals/) with versioned fixtures and reviewable pass criteria.
-- [Capture approval receipts](/security-remediation/agentic-approval-receipts/) for high-impact actions that require explicit human authorization.
-- [Publish a secure-context evidence contract](/security-remediation/secure-context-evidence-contract/) so reviewers know which claims and artifacts are required.
-
-### Secure-context provenance and enterprise assurance
-
-- [Model catastrophic agentic risk](/security-remediation/agentic-catastrophic-risk-annex/) for low-frequency, high-impact failure paths.
-- [Attest secure-context controls](/security-remediation/secure-context-attestation/) with integrity-bound evidence rather than self-reported claims.
-- [Trace secure-context lineage](/security-remediation/secure-context-lineage-ledger/) from source acquisition through transformation and agent use.
-- [Assemble a secure-context trust pack](/security-remediation/secure-context-trust-pack/) for security, procurement, and architecture review.
-- [Quantify secure-context value](/security-remediation/secure-context-value-model/) using measurable risk and operating outcomes.
-- [Apply a critical-infrastructure profile](/security-remediation/critical-infrastructure-secure-context/) where safety, availability, and regulatory evidence raise the bar.
+This pillar governs how an AI coding agent fixes a traditional software
+finding. It does not fully secure the AI-agent system that interprets untrusted
+context, holds identities, calls tools, uses browsers or connectors, retains
+memory, and hands work to other agents. Use
+[AI Agent Security: How to Secure AI Agent Systems](/agentic-security/) for the
+threat-modeling method, production baseline, source boundaries, and complete
+control directory for that separate workstream.
 
 ## Recipe run contract
 

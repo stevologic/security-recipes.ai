@@ -6,6 +6,8 @@ tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"
 maturity: "development"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 recipe_id: "code-hygiene.platform.ci-workflow-timeout-concurrency-and-cache-hygiene"
 recipe_kind: "code-hygiene"

@@ -21,6 +21,8 @@ tool: "Compliance evidence review"
 author: "Security Recipes"
 team: "GRC and Security Engineering"
 maturity: "stable"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 tags: ["compliance", "owasp-masvs", "product-security", "audit", "application-security", "mobile-security", "software", "mobile-applications"]
 weight: 310

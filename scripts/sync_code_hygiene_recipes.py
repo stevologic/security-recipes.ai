@@ -119,6 +119,8 @@ def render_recipe(
         'author: "security-recipes.ai contributors"',
         'team: "Security Engineering"',
         'maturity: "development"',
+        "noindex: true",
+        "noindex_follow: true",
         'model: "gpt-5-codex"',
         f"recipe_id: {yaml_scalar(recipe_id(record))}",
         'recipe_kind: "code-hygiene"',

@@ -6,6 +6,8 @@ tool: "general"
 author: "security-recipes.ai contributors"
 team: "Security Engineering"
 maturity: "development"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 recipe_id: "code-hygiene.go.go-channel-lock-and-shared-state-hygiene"
 recipe_kind: "code-hygiene"

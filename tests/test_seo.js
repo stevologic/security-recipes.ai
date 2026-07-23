@@ -505,6 +505,7 @@ test("semantic page kinds distinguish guide articles, collections, and utility p
 test("semantic page-kind overrides are explicit in the authored front matter", () => {
   const expected = new Map([
     ["about/_index.md", "webpage"],
+    ["agentic-security/_index.md", "collection"],
     ["agents/_index.md", "collection"],
     ["contribute/_index.md", "webpage"],
     ["cve-database/_index.md", "collection"],

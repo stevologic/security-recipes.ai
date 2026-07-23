@@ -107,7 +107,7 @@ test("the visual guide documents the evidence-gated search publication path", ()
     guide,
     /src="\.\.\/images\/how-to-use\/canonical-cve-search-discovery\.webp"[^>]+width="1774" height="887"/u,
   );
-  assert.match(guide, /no markup or sitemap can guarantee a particular search position\./u);
+  assert.match(guide, /no markup or sitemap can guarantee a particular search\s+position\./u);
   assert.match(
     readme,
     /static\/images\/how-to-use\/canonical-cve-search-discovery\.webp/u,
@@ -125,7 +125,7 @@ test("the documentation hub stays navigational instead of competing with the rem
   assert.doesNotMatch(docs.title, /AI Vulnerability Remediation Documentation/iu);
   assert.match(
     docs.description.trim(),
-    /remediation playbooks, AI agent setup, read-only MCP integrations, CVE intake, and review workflows\.$/iu,
+    /remediation playbooks, AI agent setup, AI-agent system security, read-only MCP integrations, CVE intake, and review workflows\.$/iu,
   );
 });
 
@@ -312,6 +312,7 @@ test("global navigation names the AI remediation destination descriptively", () 
 
 test("the remediation pillar labels hypothetical and repository evidence truthfully", () => {
   const pillar = source("content/security-remediation/_index.md");
+  const agentic = source("content/agentic-security/_index.md");
 
   assert.match(pillar, /^## CVE-specific remediation guides$/mu);
   assert.match(
@@ -331,9 +332,14 @@ test("the remediation pillar labels hypothetical and repository evidence truthfu
   );
   assert.match(pillar, /A CVE is an evidence input, not permission to patch/u);
 
-  assert.match(pillar, /^## Production guardrails for AI remediation agents$/mu);
-  assert.match(pillar, /^### Agent identity, delegated authority, and trust$/mu);
-  assert.match(pillar, /^### Secure-context provenance and enterprise assurance$/mu);
+  assert.match(pillar, /^## Secure the remediation agent separately$/mu);
+  assert.match(
+    pillar,
+    /\[AI Agent Security: How to Secure AI Agent Systems\]\(\/agentic-security\/\)/u,
+  );
+  assert.match(agentic, /^## Control directory for securing AI agent systems$/mu);
+  assert.match(agentic, /^### Agent identity, delegated authority, and trust$/mu);
+  assert.match(agentic, /^### Secure-context provenance and enterprise assurance$/mu);
   assert.match(
     pillar,
     /\[CVE-2021-35395: Realtek AP-Router SDK buffer overflow\]\(\/cve\/CVE-2021-35395\/\)/u,
@@ -341,6 +347,14 @@ test("the remediation pillar labels hypothetical and repository evidence truthfu
   assert.match(
     pillar,
     /\[CVE-2014-0160: Heartbleed in OpenSSL\]\(\/recipes\/cve\/cve-2014-0160-heartbleed\/\)/u,
+  );
+  assert.match(
+    pillar,
+    /\[CVE-2026-48172: LiteSpeed cPanel plugin root privilege escalation\]\(\/cve\/CVE-2026-48172\/\)/u,
+  );
+  assert.match(
+    pillar,
+    /\[CVE-2014-6271: Shellshock Bash environment-variable RCE\]\(\/recipes\/cve\/cve-2014-6271-shellshock\/\)/u,
   );
 });
 

@@ -21,6 +21,8 @@ tool: "Compliance evidence review"
 author: "Security Recipes"
 team: "GRC and Security Engineering"
 maturity: "stable"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 tags: ["compliance", "cmmc", "government", "audit", "defense", "data-protection", "defense-industrial-base", "government-contractors"]
 weight: 430

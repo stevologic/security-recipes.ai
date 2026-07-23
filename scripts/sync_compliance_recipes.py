@@ -178,6 +178,8 @@ def render_front_matter(
         ("author", "Security Recipes"),
         ("team", "GRC and Security Engineering"),
         ("maturity", "stable"),
+        ("noindex", True),
+        ("noindex_follow", True),
         ("model", "gpt-5-codex"),
         ("tags", tags),
         ("weight", weight),

@@ -21,6 +21,8 @@ tool: "Compliance evidence review"
 author: "Security Recipes"
 team: "GRC and Security Engineering"
 maturity: "stable"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 tags: ["compliance", "iso-42001", "ai-governance", "audit", "ai-safety", "governance", "artificial-intelligence", "cross-sector"]
 weight: 400

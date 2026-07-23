@@ -21,6 +21,8 @@ tool: "Compliance evidence review"
 author: "Security Recipes"
 team: "GRC and Security Engineering"
 maturity: "stable"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 tags: ["compliance", "sox-itgc", "assurance", "audit", "financial-reporting", "control-testing", "public-companies", "financial-services"]
 weight: 250

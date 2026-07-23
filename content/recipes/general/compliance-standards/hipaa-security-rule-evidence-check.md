@@ -21,6 +21,8 @@ tool: "Compliance evidence review"
 author: "Security Recipes"
 team: "GRC and Security Engineering"
 maturity: "stable"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 tags: ["compliance", "hipaa-security-rule", "regulated-industries", "audit", "privacy", "data-protection", "healthcare", "health-technology"]
 weight: 210

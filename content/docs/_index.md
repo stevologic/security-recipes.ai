@@ -17,7 +17,8 @@ cascade:
       open: false
 description: >
   Explore Security Recipes documentation for remediation playbooks, AI agent
-  setup, read-only MCP integrations, CVE intake, and review workflows.
+  setup, AI-agent system security, read-only MCP integrations, CVE intake, and
+  review workflows.
 ---
 
 [security-recipes.ai](/) is a recipe library for teams that want AI agents to help
@@ -40,6 +41,7 @@ prompts, setup guides, and review patterns.
   {{< card link="/quickstart/" title="Quick Start" subtitle="A short path from one finding to one reviewed agent output." >}}
   {{< card link="/security-remediation/" title="AI Vulnerability Remediation" subtitle="Agent playbooks for dependency, SAST, sensitive-data, container, CVE, and default-hardening work." >}}
   {{< card link="/agents/" title="AI Agent Comparison" subtitle="Compare verified operating modes, instruction surfaces, artifacts, limits, and review gates." >}}
+  {{< card link="/agentic-security/" title="AI Agent Security" subtitle="Secure agent identities, tools, connectors, context, memory, runtimes, evaluations, and incident response." >}}
   {{< card link="/recipes/" title="Recipes" subtitle="Reusable prompts, instruction files, rules, skills, and review checklists." >}}
   {{< card link="/mcp-servers/" title="MCP Integration" subtitle="How to connect public and internal security context as scoped, read-only agent input." >}}
   {{< card link="/docs/agent-integration/" title="Agent Consumption" subtitle="Patterns for direct fetch, vendored snapshots, MCP connectors, and CI injection." >}}
@@ -47,6 +49,7 @@ prompts, setup guides, and review patterns.
   {{< card link="/docs/control-plane-marketplace/" title="Control Plane Marketplace" subtitle="Review the browser workbench's input channels, output routes, report packs, and workflow templates." >}}
   {{< card link="/docs/ai-adoption-blueprint/" title="AI Adoption Blueprint" subtitle="A staged rollout path for small teams and governed enterprise programs." >}}
   {{< card link="/docs/recipe-routing-evals/" title="Recipe Routing Evals" subtitle="Golden-set tests that verify search and dispatch choose the intended recipe." >}}
+  {{< card link="/docs/content-verification/" title="Content Verification" subtitle="Validate source authority, freshness, generated artifacts, links, and review evidence before publishing." >}}
 {{< /cards >}}
 
 For governed delivery, explore the [Control Plane Marketplace](/docs/control-plane-marketplace/)

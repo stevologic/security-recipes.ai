@@ -31,6 +31,22 @@ const indexableCanonicals = new Map();
 const htmlOutputs = new Map();
 const indexableHtmlRoutes = new Set();
 const noindexHtmlRoutes = new Set();
+const GENERATED_SIMILARITY_COLLECTIONS = Object.freeze([
+  {
+    label: "code-hygiene recipes",
+    routePattern: /^\/recipes\/general\/code-hygiene\/[^/]+\/[^/]+\/$/,
+  },
+  {
+    label: "compliance-standard recipes",
+    routePattern: /^\/recipes\/general\/compliance-standards\/[^/]+\/$/,
+  },
+]);
+const GENERATED_SIMILARITY_SHINGLE_WORDS = 5;
+const GENERATED_SIMILARITY_MIN_SHINGLES = 32;
+const GENERATED_SIMILARITY_MAX_PAGES = 128;
+const GENERATED_SIMILARITY_MAX_PAIRS = 8_192;
+const GENERATED_SIMILARITY_MAX_REPORTS = 12;
+const GENERATED_SIMILARITY_JACCARD_LIMIT = 0.5;
 let maxIndexableTitleLength = 0;
 let maxIndexableDescriptionLength = 0;
 let maxIndexableDepth = 0;
@@ -563,6 +579,113 @@ function checkIndexableLinkGraph() {
   }
 }
 
+function renderedBodyText(html) {
+  const main = html.match(/<main\b[^>]*>([\s\S]*?)<\/main>/i)?.[1] || html;
+  const content =
+    main.match(
+      /<div\b[^>]*class=["'][^"']*\bcontent\b[^"']*["'][^>]*>([\s\S]*?)<\/div>\s*(?=<aside\b[^>]*aria-label=["']Authorship and review["'])/i,
+    )?.[1] || main;
+  return decodeHtmlAttributeOnce(
+    content
+      .replace(/<script\b[\s\S]*?<\/script>/gi, " ")
+      .replace(/<style\b[\s\S]*?<\/style>/gi, " ")
+      .replace(/<[^>]+>/g, " "),
+  )
+    .replace(/&(?:apos|lt|gt|nbsp);/gi, " ")
+    .replace(/\s+/gu, " ")
+    .trim()
+    .toLowerCase();
+}
+
+function wordShingles(text, size = GENERATED_SIMILARITY_SHINGLE_WORDS) {
+  const words = text.match(/[\p{L}\p{N}][\p{L}\p{N}'’-]*/gu) || [];
+  const shingles = new Set();
+  for (let index = 0; index + size <= words.length; index += 1) {
+    shingles.add(words.slice(index, index + size).join(" "));
+  }
+  return shingles;
+}
+
+function jaccardSimilarity(left, right) {
+  if (left.size === 0 && right.size === 0) return 0;
+  const smaller = left.size <= right.size ? left : right;
+  const larger = smaller === left ? right : left;
+  let intersection = 0;
+  for (const value of smaller) {
+    if (larger.has(value)) intersection += 1;
+  }
+  return intersection / (left.size + right.size - intersection);
+}
+
+function checkGeneratedSimilarityIndexability() {
+  for (const collection of GENERATED_SIMILARITY_COLLECTIONS) {
+    const pages = [...htmlOutputs.entries()]
+      .filter(([route]) => collection.routePattern.test(route))
+      .sort(([left], [right]) => left.localeCompare(right, "en"))
+      .map(([route, html]) => ({
+        route,
+        shingles: wordShingles(renderedBodyText(html)),
+      }));
+    if (pages.length > GENERATED_SIMILARITY_MAX_PAGES) {
+      fail(
+        `${collection.label} similarity gate exceeds its bounded page budget ` +
+          `(${pages.length} > ${GENERATED_SIMILARITY_MAX_PAGES})`,
+      );
+      continue;
+    }
+    const pairCount = (pages.length * (pages.length - 1)) / 2;
+    if (pairCount > GENERATED_SIMILARITY_MAX_PAIRS) {
+      fail(
+        `${collection.label} similarity gate exceeds its bounded pair budget ` +
+          `(${pairCount} > ${GENERATED_SIMILARITY_MAX_PAIRS})`,
+      );
+      continue;
+    }
+
+    for (const page of pages) {
+      if (
+        indexableHtmlRoutes.has(page.route) &&
+        page.shingles.size < GENERATED_SIMILARITY_MIN_SHINGLES
+      ) {
+        fail(
+          `${collection.label} leaves an indexable page with too little rendered body text ` +
+            `for the similarity gate (${page.shingles.size} shingles): ${page.route}`,
+        );
+      }
+    }
+
+    let similarIndexablePairs = 0;
+    for (let leftIndex = 0; leftIndex < pages.length; leftIndex += 1) {
+      const left = pages[leftIndex];
+      for (let rightIndex = leftIndex + 1; rightIndex < pages.length; rightIndex += 1) {
+        const right = pages[rightIndex];
+        if (
+          !indexableHtmlRoutes.has(left.route) &&
+          !indexableHtmlRoutes.has(right.route)
+        ) {
+          continue;
+        }
+        const similarity = jaccardSimilarity(left.shingles, right.shingles);
+        if (similarity < GENERATED_SIMILARITY_JACCARD_LIMIT) continue;
+        similarIndexablePairs += 1;
+        if (similarIndexablePairs <= GENERATED_SIMILARITY_MAX_REPORTS) {
+          fail(
+            `${collection.label} leaves a materially duplicated generated page indexable ` +
+              `(${similarity.toFixed(3)} five-word-shingle Jaccard): ` +
+              `${left.route}, ${right.route}`,
+          );
+        }
+      }
+    }
+    if (similarIndexablePairs > GENERATED_SIMILARITY_MAX_REPORTS) {
+      fail(
+        `${collection.label} has ${similarIndexablePairs - GENERATED_SIMILARITY_MAX_REPORTS} ` +
+          "additional materially duplicated pairs involving an indexable page",
+      );
+    }
+  }
+}
+
 if (!fs.existsSync(ROOT)) throw new Error(`site output does not exist: ${ROOT}`);
 if (!fs.existsSync(CONTENT)) throw new Error(`CVE content does not exist: ${CONTENT}`);
 
@@ -605,6 +728,7 @@ for (const file of files) {
 checkInternalLinksAndFragments();
 checkIndexableLinksToNoindexTags();
 checkIndexableLinkGraph();
+checkGeneratedSimilarityIndexability();
 for (const file of files.filter((candidate) => candidate.endsWith("index.xml"))) {
   const relative = path.relative(ROOT, file).replace(/\\/g, "/");
   const xml = fs.readFileSync(file, "utf8");

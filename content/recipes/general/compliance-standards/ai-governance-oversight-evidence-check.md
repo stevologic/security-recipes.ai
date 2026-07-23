@@ -21,6 +21,8 @@ tool: "Compliance evidence review"
 author: "Security Recipes"
 team: "GRC and Security Engineering"
 maturity: "stable"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 tags: ["compliance", "nist-ai-ssdf", "ai-governance", "audit", "ai-safety", "code-hygiene", "artificial-intelligence", "software"]
 weight: 170

@@ -21,6 +21,8 @@ tool: "Compliance evidence review"
 author: "Security Recipes"
 team: "GRC and Security Engineering"
 maturity: "stable"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 tags: ["compliance", "nerc-cip", "critical-infrastructure", "audit", "ot-security", "bulk-electric-system", "energy"]
 weight: 380

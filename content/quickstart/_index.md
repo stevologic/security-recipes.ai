@@ -108,6 +108,8 @@ changes, secret rotation, and deployment should remain outside the first run.
 
 ## Next steps
 
+- [Visual guide to Security Recipes]({{< relref "/how-to-use" >}}) for the
+  database-to-agent workflow, screenshots, and canonical CVE discovery path.
 - [AI Agent Comparison]({{< relref "/agents" >}}) for your exact tool.
 - [Recipes]({{< relref "/recipes" >}}) for reusable prompts.
 - [MCP Integration]({{< relref "/mcp-servers" >}}) when you need richer

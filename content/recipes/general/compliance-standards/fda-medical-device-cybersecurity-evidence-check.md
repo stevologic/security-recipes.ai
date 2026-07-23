@@ -21,6 +21,8 @@ tool: "Compliance evidence review"
 author: "Security Recipes"
 team: "GRC and Security Engineering"
 maturity: "stable"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 tags: ["compliance", "fda-medical-device-cybersecurity", "regulated-industries", "audit", "product-security", "safety", "medical-devices", "healthcare"]
 weight: 360

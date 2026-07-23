@@ -17,8 +17,12 @@ Use this page to choose a governed agent that matches your finding source,
 execution environment, and review path, then configure its native instruction
 surface. This is a workflow-fit comparison for AI agents remediating traditional
 software and repository vulnerabilities, not a model-quality benchmark or a
-guide to vulnerabilities in AI systems. For integration architecture that
-delivers recipes, finding evidence, and policy to an existing agent, use
+guide to vulnerabilities in AI systems. If the system under review is the
+agent itself, including its tools, identities, memory, retrieved context,
+browser, MCP or A2A connections, and incident controls, use
+[AI Agent Security]({{< relref "/agentic-security" >}}). For integration
+architecture that delivers recipes, finding evidence, and policy to an
+existing agent, use
 [AI agent security-context integration]({{< relref "/docs/agent-integration" >}}).
 For the end-to-end method, return to
 [AI vulnerability remediation playbooks]({{< relref "/security-remediation" >}}).
@@ -199,6 +203,7 @@ a valid triage result.
 ## See also
 
 - [Quick Start]({{< relref "/quickstart" >}})
+- [AI Agent Security]({{< relref "/agentic-security" >}})
 - [Recipes]({{< relref "/recipes" >}})
 - [MCP Integration]({{< relref "/mcp-servers" >}})
 - [Integrate an AI Agent]({{< relref "/docs/agent-integration" >}})

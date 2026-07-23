@@ -21,6 +21,8 @@ tool: "Compliance evidence review"
 author: "Security Recipes"
 team: "GRC and Security Engineering"
 maturity: "stable"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 tags: ["compliance", "iec-62443", "critical-infrastructure", "audit", "ot-security", "product-security", "industrial-automation"]
 weight: 370

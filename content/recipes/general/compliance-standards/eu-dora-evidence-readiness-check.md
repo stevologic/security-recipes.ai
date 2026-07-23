@@ -21,6 +21,8 @@ tool: "Compliance evidence review"
 author: "Security Recipes"
 team: "GRC and Security Engineering"
 maturity: "stable"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 tags: ["compliance", "eu-dora", "regulated-industries", "audit", "resilience", "third-party-risk", "financial-services", "ict-third-party-providers"]
 weight: 460

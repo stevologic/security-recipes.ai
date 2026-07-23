@@ -1233,7 +1233,7 @@ class CveLandingRenderTests(unittest.TestCase):
             "CVE-2026-1731": (
                 "BeyondTrust Remote Support (RS) and Privileged Remote Access "
                 "(PRA) OS Command Injection Vulnerability",
-                "CVE-2026-1731: BeyondTrust RS/PRA OS Command Injection",
+                "CVE-2026-1731: BeyondTrust RS and PRA Pre-Auth RCE",
             ),
             "CVE-2022-26134": (
                 "Atlassian Confluence Server and Data Center Remote Code "
@@ -1268,6 +1268,10 @@ class CveLandingRenderTests(unittest.TestCase):
             shared_metadata["editorial_lastmod"],
         )
         fixtures = {
+            "CVE-2021-35395": (
+                "CVE-2021-35395: Realtek AP-Router SDK Buffer Overflow",
+                ("boa web servers", "3.2.3", "3.4.11", "rtl819x-eCos 1.5.3"),
+            ),
             "CVE-2021-41773": (
                 "CVE-2021-41773: Apache HTTP Server 2.4.49 Path Traversal",
                 ("2.4.49", "CGI RCE", "2.4.51+"),
@@ -1280,6 +1284,14 @@ class CveLandingRenderTests(unittest.TestCase):
                 "CVE-2024-23897: Jenkins CLI Arbitrary File Read",
                 ("arbitrary Jenkins controller files", "2.442", "LTS 2.440.1"),
             ),
+            "CVE-2024-37079": (
+                "CVE-2024-37079: VMware vCenter Out-of-Bounds Write RCE",
+                ("8.0 U2d", "8.0 U1e", "7.0 U3r", "no workaround"),
+            ),
+            "CVE-2024-47575": (
+                "CVE-2024-47575: FortiManager Authentication Bypass",
+                ("exploited", "6.2.13", "7.2.8", "7.6.1"),
+            ),
             "CVE-2025-20281": (
                 "CVE-2025-20281: Cisco ISE API Root RCE (CSCwo99449)",
                 ("CSCwo99449", "3.3", "3.4"),
@@ -1291,6 +1303,18 @@ class CveLandingRenderTests(unittest.TestCase):
             "CVE-2025-64446": (
                 "CVE-2025-64446: FortiWeb Path Traversal Command Execution",
                 ("known-exploited", "admin commands", "8.0.2", "7.0.12"),
+            ),
+            "CVE-2026-1731": (
+                "CVE-2026-1731: BeyondTrust RS and PRA Pre-Auth RCE",
+                ("RS to 25.3.2+", "PRA to 25.1.1+", "BT26-02"),
+            ),
+            "CVE-2026-20045": (
+                "CVE-2026-20045: Cisco Unified Communications Pre-Auth RCE",
+                ("14SU5", "15SU4", "migrate 12.5", "no workaround"),
+            ),
+            "CVE-2026-20182": (
+                "CVE-2026-20182: Cisco SD-WAN Authentication Bypass",
+                ("exploited", "each component", "fixed release", "no workaround"),
             ),
             "CVE-2026-33116": (
                 "CVE-2026-33116: .NET System.Security.Cryptography.Xml DoS",
@@ -1790,8 +1814,15 @@ class CveLandingRenderTests(unittest.TestCase):
     def test_multi_branch_ai_search_snippets_are_scope_complete(self) -> None:
         fixtures = {
             "CVE-2024-23897": ("every affected software branch",),
-            "CVE-2024-37079": ("every affected product family",),
-            "CVE-2024-47575": ("every affected product family",),
+            "CVE-2024-37079": ("8.0 U2d", "8.0 U1e", "7.0 U3r"),
+            "CVE-2024-47575": (
+                "6.2.13",
+                "6.4.15",
+                "7.0.13",
+                "7.2.8",
+                "7.4.5",
+                "7.6.1",
+            ),
             "CVE-2025-20281": ("3.3", "3.4"),
             "CVE-2025-20337": ("3.3", "3.4"),
             "CVE-2025-34028": (
@@ -1801,10 +1832,15 @@ class CveLandingRenderTests(unittest.TestCase):
                 "SP38-CU25-438",
             ),
             "CVE-2025-64446": ("every affected software branch",),
-            "CVE-2026-20182": ("every affected product family",),
+            "CVE-2026-20182": (
+                "each component",
+                "fixed release for its branch",
+                "no workaround",
+            ),
             "CVE-2026-1731": (
-                "Patch or upgrade every affected product family",
-                "RS/PRA",
+                "RS to 25.3.2+",
+                "PRA to 25.1.1+",
+                "BT26-02",
             ),
         }
 

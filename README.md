@@ -31,6 +31,9 @@ for the evidence-to-patch workflow. Agent-specific guides cover
 The [Visual Guide](https://security-recipes.ai/how-to-use/) shows the complete
 path from source qualification and search discovery to a bounded plan, proof,
 rollback, and human review.
+For the distinct problem of securing an agent system's identities, tools,
+connectors, context, memory, runtime, and recovery controls, use
+[AI Agent Security](https://security-recipes.ai/agentic-security/).
 
 ## Current product and workflow
 
@@ -48,6 +51,13 @@ describes the catalog as a `Dataset`; the remediation pillar exposes its visible
 seven-step workflow as a `HowTo`. Year-partitioned CVE sitemaps contain only
 indexable canonical routes, and the build fails when sitemap parity, canonical
 ownership, crawl reachability, metadata limits, or same-origin links drift.
+
+Indexability is also withheld from mass-templated recipe children. The 72
+development code-hygiene recipes and 39 generated compliance-framework recipes
+remain browsable from their canonical hubs with `noindex,follow` while they
+share a common method. A bounded rendered-body similarity gate prevents a child
+from re-entering sitemaps until its evidence, examples, and tests are materially
+distinct. The hubs remain indexable and carry the shared discovery context.
 
 The remediation pillar also records a public repository example for
 [CVE-2026-13149 in `brace-expansion`](https://security-recipes.ai/security-remediation/#real-repository-case-study-cve-2026-13149-in-brace-expansion).
@@ -99,9 +109,12 @@ security-recipes.ai helps teams answer:
   fixed version.
 - A structured compliance library spanning 39 security, privacy, assurance,
   resilience, and software-supply-chain frameworks without reproducing
-  licensed control text.
+  licensed control text. Its framework hub is the search surface; templated
+  child assessments remain `noindex,follow` until differentiated.
 - A 72-recipe code-hygiene library covering cross-language and ecosystem-
   specific audit, remediation, verification, and stop-condition workflows.
+  Its development children remain `noindex,follow` while their bodies share a
+  generated template.
 - Recipes with existing prompt collections preserved.
 - Agent setup guides for GitHub Copilot, Claude, Cursor, Codex, and Devin.
 - MCP integration guidance for public and organization-approved security data
@@ -139,6 +152,9 @@ security-recipes.ai helps teams answer:
   intelligence, affected-version evidence, and canonical remediation records.
 - **[AI Vulnerability Remediation](https://security-recipes.ai/security-remediation/)**:
   evidence-gated playbooks from one finding to a reviewed patch or triage note.
+- **[AI Agent Security](https://security-recipes.ai/agentic-security/)**:
+  threat modeling, production baselines, source boundaries, control routing,
+  evidence, and incident readiness for the AI-agent system itself.
 - **[Quick Start](https://security-recipes.ai/quickstart/)**: one finding to one
   reviewed PR or triage note.
 - **[AI Agent Comparison](https://security-recipes.ai/agents/)**: verified

@@ -21,6 +21,8 @@ tool: "Compliance evidence review"
 author: "Security Recipes"
 team: "GRC and Security Engineering"
 maturity: "stable"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 tags: ["compliance", "openssf-osps-baseline", "product-security", "audit", "supply-chain", "secure-defaults", "open-source", "software"]
 weight: 330

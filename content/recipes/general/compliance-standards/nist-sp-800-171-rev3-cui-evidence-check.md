@@ -21,6 +21,8 @@ tool: "Compliance evidence review"
 author: "Security Recipes"
 team: "GRC and Security Engineering"
 maturity: "stable"
+noindex: true
+noindex_follow: true
 model: "gpt-5-codex"
 tags: ["compliance", "nist-sp-800-171", "government", "audit", "data-protection", "boundary", "defense-industrial-base", "government-contractors"]
 weight: 200
