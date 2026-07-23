@@ -9,6 +9,7 @@ model: "Opus 4.7"
 tags: ["sde", "secrets", "pii", "dlp", "cursor", "rules", "commands"]
 weight: 20
 date: 2026-04-21
+lastmod: 2026-07-23
 ---
 
 A Cursor **project rule** + **custom slash command** pair for
@@ -21,7 +22,7 @@ engineer or Cursor Automation invokes.
 ## What this prompt does
 
 When `/remediate-sde <finding-id> <class>` runs, the Cursor Agent
-(interactive or Background) confirms the literal is in the
+(interactive or Cloud Agent) confirms the literal is in the
 current working tree, classifies the exposure scope, and — if
 pre-exposure — replaces the literal with a reference to the
 approved secret store (or a redaction helper for PII), adds a

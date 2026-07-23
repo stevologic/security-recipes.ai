@@ -301,7 +301,7 @@ When the target isn't just an LLM but a coding or remediation
 agent, a few sources publish prompts specifically shaped for
 agent behaviour.
 
-### GitHub Copilot Coding Agent — prompt and instruction examples
+### GitHub Copilot cloud agent — prompt and instruction examples
 
 - Microsoft publishes sample `copilot-instructions.md` files in
   docs and example repos. Mine these for structural patterns,

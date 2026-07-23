@@ -6,12 +6,13 @@ author: "Stephen M Abbott"
 team: "Security"
 maturity: "development"
 model: "Opus 4.7"
-tags: ["sde", "secrets", "pii", "dlp", "copilot", "coding-agent", "issue-template"]
+tags: ["sde", "secrets", "pii", "dlp", "copilot", "cloud-agent", "issue-template"]
 weight: 20
 date: 2026-04-21
+lastmod: 2026-07-23
 ---
 
-A three-part bundle for the Copilot coding agent — a
+A three-part bundle for the GitHub Copilot cloud agent — a
 `.github/copilot-instructions.md` addendum, an issue template,
 and a repository policy — that shapes Copilot into a careful
 SDE remediator: pre-exposure findings get a minimal code fix in
@@ -22,8 +23,12 @@ no code edits at all.
 
 When an engineer (or a scanner's issue projector) creates an
 issue from the `security-remediation-sde.yml` template and it
-lands labeled `copilot-remediate`, the Copilot coding agent
-picks it up. Guided by the repo-level instructions, it:
+lands labeled `copilot-remediate`, it becomes a bounded candidate for the
+GitHub Copilot cloud agent; the label alone does not start a session. An
+authorized operator must assign Copilot explicitly, use the supported issue
+assignment API, or configure an eligible Copilot automation. Manual assignment
+is the safest default for sensitive-data work. Once started, the agent follows
+the repo-level instructions and:
 
 1. Confirms the SDE literal still appears in the current
    working tree.
@@ -38,7 +43,8 @@ picks it up. Guided by the repo-level instructions, it:
    `needs-rotation` label, routing the work to the on-call.
 
 **Inputs:** finding id, SDE class, exposure hint (from the
-issue body); repo-level `copilot-instructions.md`.<br/>
+issue body); repo-level `copilot-instructions.md`; an explicit Copilot
+assignment or eligible automation.<br/>
 **Outputs:** either a draft PR (pre-exposure) or an issue
 comment with a rotation checklist + `needs-rotation` label
 (exposed).
@@ -159,7 +165,7 @@ name: Security — Sensitive data element remediation
 description: Open a remediation task for a single SDE finding.
 title: "Remediate: <finding-id> (<sde-class>)"
 labels: ["copilot-remediate", "security"]
-assignees: ["copilot"]
+assignees: []
 body:
   - type: input
     id: finding_id
@@ -211,6 +217,29 @@ body:
     validations:
       required: false
 ~~~
+
+### Dispatch Copilot explicitly
+
+Creating or labeling the issue does not start the cloud agent. Use one current
+dispatch mechanism:
+
+- **Manual assignment (recommended here):** open the issue, choose **Copilot**
+  from the assignee list, and review the target repository, starting branch,
+  and additional instructions. See GitHub's
+  [issue-assignment workflow](https://docs.github.com/en/copilot/how-tos/use-copilot-agents/cloud-agent/use-cloud-agent-on-github#assigning-an-issue-to-copilot).
+- **API assignment:** assign `copilot-swe-agent[bot]` and include the supported
+  `agent_assignment` object. This API is a public preview; follow GitHub's
+  [current REST or GraphQL contract](https://docs.github.com/en/copilot/how-tos/use-copilot-agents/cloud-agent/use-cloud-agent-via-the-api)
+  rather than inventing an assignee alias.
+- **Copilot automation:** in an eligible private or internal repository, use an
+  issue-created trigger filtered to `label:copilot-remediate`, grant only the
+  required tools, and retain the default protection against events created by
+  users without write access. See
+  [Copilot automations](https://docs.github.com/en/copilot/concepts/agents/cloud-agent/about-automations).
+
+The `copilot-remediate` label is a routing and filter signal only. Do not rely
+on an ordinary GitHub Action assigning `@copilot`, and do not put
+`assignees: ["copilot"]` in the issue template.
 
 ### `CODEOWNERS` pairing
 

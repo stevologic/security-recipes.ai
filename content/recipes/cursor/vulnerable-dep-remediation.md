@@ -9,6 +9,7 @@ model: "Opus 4.7"
 tags: ["sca", "cve", "dependencies", "cursor", "rules", "commands"]
 weight: 10
 date: 2026-04-21
+lastmod: 2026-07-23
 ---
 
 A Cursor **project rule** + **custom slash command** pair for
@@ -22,7 +23,7 @@ invokes on a schedule / webhook.
 
 When an engineer runs `/remediate-dep CVE-2026-1234` in Cursor's
 chat (or Cursor Automations invokes it on a schedule), the
-underlying Agent / Background Agent reads the finding, locates
+underlying Agent / Cloud Agent reads the finding, locates
 the affected package, applies the lowest-viable bump, runs the
 project's tests, and opens a PR scoped to that single finding.
 The rule file guarantees the constraints are applied on every
@@ -31,8 +32,8 @@ invocation regardless of who typed the command.
 **Inputs:** the finding id (as the command argument), optional
 package hint in the chat body.<br/>
 **Outputs:** either a branch + draft PR (happy path), or a
-summary in chat + no commits (triage path). Cursor Background
-Agents surface the run in the sidebar for review.
+summary in chat + no commits (triage path). Cursor Cloud Agents
+surface the run in the sidebar for review.
 
 ## When to use it
 
@@ -41,7 +42,7 @@ Agents surface the run in the sidebar for review.
 - Cursor Automations is wired to a GitHub issue label
   (`security:remediate`) and needs a consistent command to
   invoke.
-- Nightly Background Agent sweeps through the top-N open
+- Nightly Cloud Agent sweeps through the top-N open
   findings, opening up to 5 PRs per run.
 
 **Don't use it for:**
@@ -236,7 +237,7 @@ bundle multiple findings.
   Pair it with a repo-level branch protection that blocks merges
   from `@cursor[bot]`-authored PRs until a human reviewer
   approves.
-- **Background Agent context budget.** Very large monorepos can
+- **Cloud Agent context budget.** Very large monorepos can
   push the agent past its retrieval budget. Pin the
   `.cursor/mcp.json` allowlist to only the MCP tools this flow
   needs.

@@ -97,10 +97,13 @@ more. The full JSON feed remains available for agents and offline consumers.
 </figure>
 
 Confirm the affected asset, versions, exposure, and owner before asking an
-agent to edit anything. Then choose the relevant [agent setup]({{< relref "/agents" >}})
-and load its native instruction file: `AGENTS.md`, `CLAUDE.md`,
-`.github/copilot-instructions.md`, or `.cursor/rules/*.mdc`. The plan is
-context, not permission; repository scope and every approval gate still apply.
+agent to edit anything. Then use the verified
+[AI agent comparison]({{< relref "/agents" >}}) to match the finding surface,
+operating mode, expected artifact, prerequisites, and review gate. Load the
+tool's native instruction surface: `AGENTS.md`, `CLAUDE.md`,
+`.github/copilot-instructions.md`, `.cursor/rules/*.mdc`, or Devin's repository
+`.agents/skills/<skill-name>/SKILL.md` where supported. The plan is context, not permission; repository
+scope and every approval gate still apply.
 
 ## 3. Return proof for human review
 

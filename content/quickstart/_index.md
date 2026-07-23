@@ -108,7 +108,7 @@ changes, secret rotation, and deployment should remain outside the first run.
 
 ## Next steps
 
-- [Agent Setup]({{< relref "/agents" >}}) for your exact tool.
+- [AI Agent Comparison]({{< relref "/agents" >}}) for your exact tool.
 - [Recipes]({{< relref "/recipes" >}}) for reusable prompts.
 - [MCP Integration]({{< relref "/mcp-servers" >}}) when you need richer
   security context.

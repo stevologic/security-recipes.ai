@@ -463,7 +463,7 @@ catalog that would be awkward to paste into every task.
 ## See also
 
 - [Integrate an AI Agent]({{< relref "/docs/agent-integration" >}})
-- [Agent Setup]({{< relref "/agents" >}})
+- [AI Agent Comparison]({{< relref "/agents" >}})
 - [Recipe Browser]({{< relref "/recipes" >}})
 - [Security Remediation]({{< relref "/security-remediation" >}})
 - [Hosted MCP Readiness Pack]({{< relref "/security-remediation/hosted-mcp-readiness-pack" >}}) — deployment, transport, authentication, and operations readiness

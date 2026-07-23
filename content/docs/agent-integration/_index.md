@@ -15,7 +15,7 @@ description: >
 This architecture guide is for teams that already have an AI coding agent and
 need a repeatable way to deliver recipes, repository rules, finding evidence,
 and review requirements into each run. If you are still selecting or setting up
-a tool, start with [AI coding agent setup]({{< relref "/agents" >}}).
+a tool, start with the [AI coding agent comparison]({{< relref "/agents" >}}).
 
 An agent should consume a recipe the same way a careful engineer would:
 read the relevant guidance, understand the repository rules, inspect only the
@@ -173,7 +173,7 @@ Output:
 
 ## See also
 
-- [Agent Setup]({{< relref "/agents" >}})
+- [AI Agent Comparison]({{< relref "/agents" >}})
 - [Recipes]({{< relref "/recipes" >}})
 - [MCP Integration]({{< relref "/mcp-servers" >}})
 - [Recipes]({{< relref "/security-remediation" >}})

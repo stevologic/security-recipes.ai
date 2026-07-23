@@ -39,8 +39,13 @@ and return a pull request or triage note for human review. The agent accelerates
 repository work; it does not decide risk acceptance, invent fixed versions, or
 gain permission to change production.
 
-**Last updated July 23, 2026.** [Security Recipes contributors](/about/)
-maintain this guide in the public
+Here, **agentic vulnerability remediation** means AI agents fixing traditional
+software, dependency, container, and repository-configuration vulnerabilities.
+It does not mean finding flaws in AI models or AI systems, and it is distinct
+from endpoint agents that only recommend actions for an operator to perform.
+
+**Last updated July 23, 2026.** [Stephen M Abbott](/about/#stephen-m-abbott)
+maintains this guide with Security Recipes contributors in the public
 [source and revision history](https://github.com/stevologic/security-recipes.ai/blob/main/content/security-remediation/_index.md).
 See the [review methodology](/about/#editorial-principles) and
 [corrections policy](/about/#corrections). The method follows evidence and
@@ -105,7 +110,12 @@ below for a specific finding class.
 Use a CVE-specific recipe only when its product and affected-version evidence
 match the finding you are investigating:
 
+- [CVE-2026-45321: TanStack npm supply-chain compromise](/cve/CVE-2026-45321/)
+- [CVE-2026-39987: Marimo pre-auth terminal RCE](/cve/CVE-2026-39987/)
 - [CVE-2026-14956: Bricksforge Pro Forms privilege escalation](/cve/CVE-2026-14956/)
+- [CVE-2025-48384: Git submodule code execution](/cve/CVE-2025-48384/)
+- [CVE-2025-11953: Metro4Shell React Native CLI RCE](/cve/CVE-2025-11953/)
+- [CVE-2025-3248: Langflow unauthenticated RCE](/cve/CVE-2025-3248/)
 - [CVE-2024-23897: Jenkins CLI arbitrary file read](/cve/CVE-2024-23897/)
 - [CVE-2024-37079: VMware vCenter Server heap-overflow RCE](/cve/CVE-2024-37079/)
 - [CVE-2024-6387: OpenSSH regreSSHion race-condition RCE](/cve/CVE-2024-6387/)

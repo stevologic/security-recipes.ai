@@ -7,21 +7,21 @@ sidebar:
 noindex: true
 noindex_follow: true
 description: >
-  `.cursor/rules/*.mdc` files, Background Agent setups, and chat
+  `.cursor/rules/*.mdc` files, Cloud Agent setups, and chat
   prompts contributed by teams using Cursor for agentic
   remediation.
 ---
 
 Prompts and configuration targeted at **Cursor** — both the
-interactive Agent and the headless **Background Agents**.
+interactive Agent and headless **Cloud Agents**.
 
 ## What usually lives here
 
 - **`.cursor/rules/*.mdc`** — project rules that steer Cursor's
-  Agent and Background Agents. Scoped with glob patterns so you
+  Agent and Cloud Agents. Scoped with glob patterns so you
   can apply different guidance to different file types.
-- **Background Agent task prompts** — the canned task description
-  you paste into a Background Agent when kicking off a run.
+- **Cloud Agent task prompts** — the canned task description
+  you paste into a Cloud Agent when kicking off a run.
 - **Cursor chat macros** — long chat prompts that have proven
   themselves worth keeping.
 

@@ -152,9 +152,9 @@ to follow this site.
 
 | Tool | Surface | Best at | Where the recipe lives |
 | ---- | ------- | ------- | ---------------------- |
-| **GitHub Copilot** | Inside GitHub / VS Code. Issue-driven via the Coding Agent. | Teams already standardised on GitHub. Short, well-scoped tasks dispatched as issues. | [Agents → Copilot]({{< relref "/github_copilot" >}}) |
+| **GitHub Copilot** | Inside GitHub and supported IDEs. Issue-to-PR work runs through the GitHub Copilot cloud agent in an ephemeral GitHub Actions-powered environment. | Teams already standardised on GitHub. Short, well-scoped tasks dispatched as issues. | [Agents → Copilot]({{< relref "/github_copilot" >}}) |
 | **Claude** (Code + Agent SDK) | Terminal-native CLI, Skills, hooks, plus a programmatic SDK. | Deep customisation with Skills and `PreToolUse`/`PostToolUse` hooks; mixed interactive + batch use. | [Agents → Claude]({{< relref "/claude" >}}) |
-| **Cursor** (Agent + Background Agents) | Inside the Cursor editor. Background Agents run headlessly on Cursor's infra. | Engineer-driven interactive fixes plus overnight batch runs, all from the same editor. | [Agents → Cursor]({{< relref "/cursor" >}}) |
+| **Cursor** (Agent + Cloud Agents) | Inside the Cursor editor. Cloud Agents run headlessly on Cursor's infrastructure. | Engineer-driven interactive fixes plus asynchronous runs, all from the same editor. | [Agents → Cursor]({{< relref "/cursor" >}}) |
 | **Codex** (CLI + Cloud) | Sandboxed CLI; cloud agent. Driven by a small script that fills prompt templates. | Batch remediation with strong isolation. Good fit when you want to treat remediation like a scheduled job. | [Agents → Codex]({{< relref "/codex" >}}) |
 | **Devin** (Cognition) | Fully managed, autonomous agent with its own sandbox and integrations. | End-to-end "ticket in, PR out" when you don't want to run your own sandbox. | [Agents → Devin]({{< relref "/devin" >}}) |
 
@@ -554,7 +554,7 @@ Every recipe on this site is an instance of the same picture:
 6. **The finding is closed** when (and only when) the PR merges.
 
 The recipes differ on how exactly steps 2, 3, and 4 are packaged —
-a GitHub Action for Copilot, a scheduled Background Agent for
+an issue assignment or Copilot automation for GitHub Copilot, a scheduled Cloud Agent for
 Cursor, a nightly driver script for Codex, a webhook-created
 session for Devin, a Claude skill invoked via MCP. The picture is
 the same.

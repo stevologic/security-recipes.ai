@@ -141,8 +141,9 @@ security-recipes.ai helps teams answer:
   evidence-gated playbooks from one finding to a reviewed patch or triage note.
 - **[Quick Start](https://security-recipes.ai/quickstart/)**: one finding to one
   reviewed PR or triage note.
-- **[Agent Setup](https://security-recipes.ai/agents/)**: how to feed bounded
-  recipes into Copilot, Claude Code, Cursor, Codex, and Devin.
+- **[AI Agent Comparison](https://security-recipes.ai/agents/)**: verified
+  operating modes, native instructions, expected artifacts, prerequisites, and
+  review gates for Copilot, Claude Code, Cursor, Codex, and Devin.
 - **[Recipes](https://security-recipes.ai/recipes/)**: reusable prompts,
   instructions, rules, skills, and review checklists.
 - **[MCP Integration](https://security-recipes.ai/mcp-servers/)**: how to connect

@@ -39,7 +39,7 @@ prompts, setup guides, and review patterns.
 {{< cards >}}
   {{< card link="/quickstart/" title="Quick Start" subtitle="A short path from one finding to one reviewed agent output." >}}
   {{< card link="/security-remediation/" title="AI Vulnerability Remediation" subtitle="Agent playbooks for dependency, SAST, sensitive-data, container, CVE, and default-hardening work." >}}
-  {{< card link="/agents/" title="Agent Setup" subtitle="How to feed recipes into GitHub Copilot, Claude, Cursor, Codex, and Devin." >}}
+  {{< card link="/agents/" title="AI Agent Comparison" subtitle="Compare verified operating modes, instruction surfaces, artifacts, limits, and review gates." >}}
   {{< card link="/recipes/" title="Recipes" subtitle="Reusable prompts, instruction files, rules, skills, and review checklists." >}}
   {{< card link="/mcp-servers/" title="MCP Integration" subtitle="How to connect public and internal security context as scoped, read-only agent input." >}}
   {{< card link="/docs/agent-integration/" title="Agent Consumption" subtitle="Patterns for direct fetch, vendored snapshots, MCP connectors, and CI injection." >}}
@@ -93,6 +93,6 @@ If a team wants to operationalize a recipe, the recommended path is:
 ## Where to start
 
 Start with the [Quick Start]({{< relref "/quickstart" >}}), then choose the
-agent your team already uses under [Agent Setup]({{< relref "/agents" >}}).
+agent your team already uses under [AI Agent Comparison]({{< relref "/agents" >}}).
 When the first loop works, add [MCP context]({{< relref "/mcp-servers" >}})
 and stronger prompts from [Recipes]({{< relref "/recipes" >}}).
