@@ -8,6 +8,7 @@ const {
   authoredTagUrl,
   GENERATED_TAG_PAGE_SEO,
   planPagesSitemapEntries,
+  renderTagCloud,
   renderPagesSitemap,
 } = require("../eleventy.config").pageSitemap;
 
@@ -118,4 +119,38 @@ test("article tag labels do not link to generated noindex taxonomy pages", () =>
   assert.match(template, /\{% if tagUrl %\}<a[^>]+href="\{\{ tagUrl \}\}"/u);
   assert.match(template, /\{% else %\}<span class="sr-tag-chip sr-tag-chip--small">/u);
   assert.doesNotMatch(template, /href="\/tags\/\{\{ tag \| tagSlug \}\}\//u);
+});
+
+test("tag cloud links authored taxonomies and labels generated tags without crawl URLs", () => {
+  const output = renderTagCloud([
+    {
+      tag: "reviewed topic",
+      authoredUrl: "/tags/reviewed-topic/",
+      pages: [{}, {}],
+    },
+    {
+      tag: "generated <topic>",
+      authoredUrl: "",
+      pages: [{}],
+    },
+  ]);
+
+  assert.match(
+    output,
+    /<a class="sr-tag-chip" href="\/tags\/reviewed-topic\/">reviewed topic <span>2<\/span><\/a>/u,
+  );
+  assert.match(
+    output,
+    /<span class="sr-tag-chip">generated &lt;topic&gt; <span>1<\/span><\/span>/u,
+  );
+  assert.doesNotMatch(output, /href="\/tags\/generated-topic\//u);
+});
+
+test("Eleventy does not emit generated noindex taxonomy detail pages", () => {
+  const config = fs.readFileSync(
+    path.join(__dirname, "..", "eleventy.config.js"),
+    "utf8",
+  );
+
+  assert.doesNotMatch(config, /addTemplate\("tag-pages\.11ty\.js"/u);
 });

@@ -648,6 +648,12 @@ const cveArchiveHtmlBytes = cveArchiveHtml.reduce(
   (sum, file) => sum + fs.statSync(file).size,
   0,
 );
+const generatedTagHtml = files.filter((file) => {
+  if (!file.startsWith(path.join(ROOT, "tags") + path.sep) || !file.endsWith("index.html")) {
+    return false;
+  }
+  return path.relative(path.join(ROOT, "tags"), file) !== "index.html";
+});
 const largestCveArchiveHtml = cveArchiveHtml.reduce(
   (largest, file) => Math.max(largest, fs.statSync(file).size),
   0,
@@ -670,7 +676,8 @@ budget("CVE runtime summary", size("api/cve-catalog/runtime-summary.json"), 8 * 
 budget("CVE manifest", size("api/cve-catalog/manifest.json"), 256 * KiB);
 budget("CVE remediation archetypes", size("api/cve-catalog/archetypes.json"), 1 * MiB);
 budget("CVE Database HTML", size("cve-database/index.html"), 512 * KiB);
-budget("recipe library HTML", size("recipes/index.html"), 768 * KiB);
+budget("recipe library HTML", size("recipes/index.html"), 128 * KiB);
+budget("marketplace gallery HTML", size("docs/marketplace-gallery/index.html"), 160 * KiB);
 budget("recipe library JavaScript", size("js/recipe-browser.js"), 160 * KiB);
 budget("recipe library styles", size("css/recipe-library.css"), 160 * KiB);
 budget("CVE detail styles", size("css/cve-detail.css"), 32 * KiB);
@@ -680,6 +687,22 @@ budget("curated recipe browser feed", size("recipes-browser.json"), 2 * MiB);
 budget("curated rich agent feed", size("api/curated-recipes.json"), 8 * MiB);
 budget("generic rich agent feed", size("api/recipes.json"), 8 * MiB);
 budget("generic MCP recipe feed", size("api/recipes-index.json"), 6 * MiB);
+if (generatedTagHtml.length) {
+  fail(
+    `site emits ${generatedTagHtml.length.toLocaleString()} generated noindex tag detail pages; expected none`,
+  );
+}
+
+const marketplaceGalleryPath = path.join(ROOT, "docs", "marketplace-gallery", "index.html");
+if (fs.existsSync(marketplaceGalleryPath)) {
+  const marketplaceGallery = fs.readFileSync(marketplaceGalleryPath, "utf8");
+  const marketplaceElements = (marketplaceGallery.match(/<[a-z][^>]*>/gi) || []).length;
+  if (marketplaceElements > 4000) {
+    fail(
+      `marketplace gallery renders ${marketplaceElements.toLocaleString()} elements; budget is 4,000`,
+    );
+  }
+}
 
 const manifest = readJson("site.webmanifest");
 if (manifest) {
@@ -922,6 +945,29 @@ if (fs.existsSync(recipeLibraryPath)) {
   const recipeLibrary = fs.readFileSync(recipeLibraryPath, "utf8");
   const ssrCards = (recipeLibrary.match(/\bdata-recipe-card(?:\s|>)/g) || []).length;
   if (ssrCards > 18) fail(`recipe library server-renders ${ssrCards} cards; budget is 18`);
+  const seedMatch = recipeLibrary.match(
+    /<script type="application\/json" data-recipe-seed>([\s\S]*?)<\/script>/,
+  );
+  if (!seedMatch) {
+    fail("recipe library is missing its bounded SSR hydration seed");
+  } else {
+    try {
+      const seed = JSON.parse(seedMatch[1]);
+      if (!Array.isArray(seed) || seed.length !== ssrCards || seed.length > 18) {
+        fail(
+          `recipe library hydration seed has ${Array.isArray(seed) ? seed.length : "non-array"} records; expected the ${ssrCards} SSR cards only`,
+        );
+      }
+      if (Buffer.byteLength(seedMatch[1], "utf8") > 48 * KiB) {
+        fail("recipe library hydration seed exceeds its 48 KiB payload budget");
+      }
+    } catch (error) {
+      fail(`recipe library hydration seed is invalid JSON: ${error.message}`);
+    }
+  }
+  if (!recipeLibrary.includes('data-recipe-feed-policy="interaction"')) {
+    fail("recipe library does not declare its interaction-triggered feed policy");
+  }
   if (recipeLibrary.includes("data-library-tab") || recipeLibrary.includes("data-library-panel")) {
     fail("recipe library still renders the retired federated collection tabs");
   }

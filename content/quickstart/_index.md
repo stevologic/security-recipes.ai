@@ -3,13 +3,13 @@ title: AI Vulnerability Remediation Quick Start
 linkTitle: Quick Start
 weight: 1
 date: 2026-04-22
-lastmod: 2026-07-21
+lastmod: 2026-07-23
 toc: true
 sidebar:
   open: true
 description: >
-  A short path from one security finding to one reviewed agent-assisted
-  remediation output.
+  Remediate one vulnerability with an AI coding agent using a scoped Security
+  Recipes playbook, source evidence, tests, rollback, and human review.
 ---
 
 Use this page when you want to try [security-recipes.ai](/) without adopting new

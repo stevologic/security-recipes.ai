@@ -334,8 +334,8 @@ class CveLandingRenderTests(unittest.TestCase):
         assert description_match is not None
         description = unescape(description_match.group(1))
         self.assertLessEqual(len(description), 165)
-        self.assertTrue(description.endswith("included."))
-        self.assertIn("AI remediation", description)
+        self.assertNotIn("Verification steps and sources are included.", description)
+        self.assertNotIn(" AI remediation:", description)
         self.assertIn("Upgrade Widget", description)
         self.assertIn("2.0.0", description)
         self.assertNotIn("\u2026", description)
@@ -1092,6 +1092,49 @@ class CveLandingRenderTests(unittest.TestCase):
                 self.assertLessEqual(len(title), 70)
                 self.assertNotIn("\u2026", title)
 
+    def test_source_backed_editorial_metadata_differentiates_duplicate_cves(self) -> None:
+        fixtures = {
+            "CVE-2021-41773": (
+                "CVE-2021-41773: Apache HTTP Server 2.4.49 Path Traversal",
+                ("2.4.49", "CGI RCE", "2.4.51+"),
+            ),
+            "CVE-2021-42013": (
+                "CVE-2021-42013: Apache HTTP Server 2.4.50 Incomplete-Fix Bypass",
+                ("2.4.50", "incomplete-fix bypass", "CVE-2021-41773"),
+            ),
+            "CVE-2025-20281": (
+                "CVE-2025-20281: Cisco ISE API Root RCE (CSCwo99449)",
+                ("CSCwo99449", "3.3", "3.4"),
+            ),
+            "CVE-2025-20337": (
+                "CVE-2025-20337: Cisco ISE API Root RCE (CSCwp02814)",
+                ("CSCwp02814", "CSCwo99449 hot patches do not fix it", "3.4"),
+            ),
+        }
+
+        for cve_id, (expected_title, expected_description_fragments) in fixtures.items():
+            with self.subTest(cve_id=cve_id):
+                recipe = mcp_server.cve_catalog.get_recipe(cve_id)
+                page = mcp_server._render_cve_landing_page(recipe)
+                title_match = re.search(r"<title>(.*?)</title>", page)
+                description_match = re.search(
+                    r'<meta name="description" content="([^"]+)">',
+                    page,
+                )
+                self.assertIsNotNone(title_match)
+                self.assertIsNotNone(description_match)
+                assert title_match is not None
+                assert description_match is not None
+                title = unescape(title_match.group(1))
+                description = unescape(description_match.group(1))
+                self.assertEqual(title, expected_title)
+                self.assertIn(f'<h1 class="sr-page-title">{expected_title}</h1>', page)
+                for fragment in expected_description_fragments:
+                    self.assertIn(fragment, description)
+                self.assertLessEqual(len(title), 70)
+                self.assertLessEqual(len(description), 165)
+                self.assertNotIn("Verification steps and sources are included.", description)
+
     def test_metadata_text_unwraps_markdown_without_changing_the_source_fact(self) -> None:
         source_title = (
             "`Jenkins` [CLI](https://jenkins.example/advisory?utm_source=openai) "
@@ -1183,10 +1226,10 @@ class CveLandingRenderTests(unittest.TestCase):
             action,
             "Upgrade Example Widget to release 2.0.0 after change approval.",
         )
-        self.assertIn("CVE-2026-12345 AI remediation", description)
+        self.assertTrue(description.startswith("CVE-2026-12345:"))
         self.assertIn("Upgrade Example Widget", description)
         self.assertIn("2.0.0", description)
-        self.assertTrue(description.endswith("included."))
+        self.assertNotIn("Verification steps and sources are included.", description)
         self.assertLessEqual(len(description), 165)
         self.assertEqual(
             mcp_server._cve_landing_fixed_version_claim(
@@ -1516,18 +1559,62 @@ class CveLandingRenderTests(unittest.TestCase):
                 self.assertIsNotNone(match)
                 assert match is not None
                 description = unescape(match.group(1))
-                self.assertTrue(description.startswith(f"{cve_id} AI remediation: "))
+                self.assertTrue(description.startswith(cve_id))
                 self.assertLessEqual(len(description), 165)
                 self.assertRegex(description, r"[.!?]$")
                 self.assertNotRegex(description, r"[\u2026\ufffd]")
+                self.assertNotIn(" AI remediation:", description)
+                self.assertNotIn(
+                    "Verification steps and sources are included.",
+                    description,
+                )
                 self.assertNotRegex(
                     description,
-                    r"\b(?:and|or|as|at|by|for|from|in|of|on|the|to|version|were)\.$",
+                    r"\b(?:and|or|as|at|by|for|from|in|of|on|the|to|were)\.$",
                 )
+                self.assertNotRegex(description, r"\bto version\.$")
                 self.assertRegex(
                     description,
                     r"(?i)\b(?:apply|fix(?:ed|es)|migrate|patch|update|upgrade)\b",
                 )
+
+    def test_multi_branch_ai_search_snippets_are_scope_complete(self) -> None:
+        fixtures = {
+            "CVE-2024-23897": ("every affected software branch",),
+            "CVE-2024-37079": ("every affected product family",),
+            "CVE-2024-47575": ("every affected product family",),
+            "CVE-2025-20281": ("3.3", "3.4"),
+            "CVE-2025-20337": ("3.3", "3.4"),
+            "CVE-2025-34028": (
+                "11.38.20",
+                "SP38-CU20-433",
+                "11.38.25",
+                "SP38-CU25-438",
+            ),
+            "CVE-2025-64446": ("every affected software branch",),
+            "CVE-2026-20182": ("every affected product family",),
+            "CVE-2026-1731": (
+                "Patch or upgrade every affected product family",
+                "RS/PRA",
+            ),
+        }
+
+        for cve_id, expected_fragments in fixtures.items():
+            with self.subTest(cve_id=cve_id):
+                page = mcp_server._render_cve_landing_page(
+                    mcp_server.cve_catalog.get_recipe(cve_id)
+                )
+                match = re.search(
+                    r'<meta name="description" content="([^"]+)">',
+                    page,
+                )
+                self.assertIsNotNone(match)
+                assert match is not None
+                description = unescape(match.group(1))
+                for fragment in expected_fragments:
+                    self.assertIn(fragment, description)
+                self.assertLessEqual(len(description), 165)
+                self.assertNotIn("Verification steps and sources are included.", description)
 
     def test_all_qualified_pages_publish_primary_sources_and_complete_actions(self) -> None:
         allowlist = json.loads(

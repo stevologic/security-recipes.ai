@@ -5,6 +5,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const test = require("node:test");
 const yaml = require("js-yaml");
+const { descriptionFor, seoTitle } = require("../lib/seo");
 
 const ROOT = path.resolve(__dirname, "..");
 
@@ -14,7 +15,7 @@ function source(relativePath) {
 
 function frontMatter(relativePath) {
   const input = source(relativePath);
-  const match = input.match(/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/u);
+  const match = input.match(/^\uFEFF?---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/u);
   assert.ok(match, `${relativePath} must have YAML front matter`);
   return yaml.load(match[1]);
 }
@@ -38,7 +39,7 @@ test("homepage metadata targets CVE lookup and AI vulnerability remediation", ()
 
 test("high-intent landing pages remain concise, distinct, and query-specific", () => {
   const pages = [
-    ["content/agents/_index.md", /Compare AI Coding Agents for Security Remediation/iu],
+    ["content/agents/_index.md", /AI Coding Agents for Vulnerability Remediation/iu],
     ["content/how-to-use/_index.md", /Visual Guide to Security Recipes/iu],
     ["content/mcp-servers/_index.md", /MCP.+AI Vulnerability Remediation/iu],
     ["content/cve-database/_index.md", /^CVE Database$/iu],
@@ -63,6 +64,54 @@ test("high-intent landing pages remain concise, distinct, and query-specific", (
     frontMatter("content/how-to-use/_index.md").title,
     /vulnerability remediation/iu,
     "the visual tour must not compete with the remediation pillar",
+  );
+});
+
+test("top-level discovery pages emit complete search snippets without title truncation", () => {
+  const pages = [
+    "content/quickstart/_index.md",
+    "content/fundamentals/_index.md",
+    "content/agents/_index.md",
+    "content/mcp-servers/_index.md",
+    "content/docs/agent-integration/_index.md",
+    "content/docs/_index.md",
+  ];
+
+  for (const relativePath of pages) {
+    const data = frontMatter(relativePath);
+    const renderedTitle = seoTitle(data.title);
+    const renderedDescription = descriptionFor(data);
+
+    assert.ok(
+      renderedTitle.length <= 65,
+      `${relativePath} rendered title is too long: ${renderedTitle}`,
+    );
+    assert.ok(
+      renderedDescription.length >= 120,
+      `${relativePath} rendered description is too thin: ${renderedDescription}`,
+    );
+    assert.ok(
+      renderedDescription.length <= 165,
+      `${relativePath} rendered description is too long: ${renderedDescription}`,
+    );
+    assert.match(
+      renderedDescription,
+      /[.!?]$/u,
+      `${relativePath} rendered description is incomplete`,
+    );
+  }
+});
+
+test("documentation hub links contextually to marketplace and release guidance", () => {
+  const docs = source("content/docs/_index.md");
+
+  assert.match(
+    docs,
+    /\[Control Plane Marketplace\]\(\/docs\/control-plane-marketplace\/\)/u,
+  );
+  assert.match(
+    docs,
+    /\[Secure Context Release Gate\]\(\/docs\/secure-context-release\/\)/u,
   );
 });
 

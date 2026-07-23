@@ -208,9 +208,9 @@
     };
   }
 
-  // Inline seed emitted by lib/shortcodes/recipe-browser.js: the SSR first
-  // page plus a bounded slice of every lane, so filters always have data
-  // even before (or without) the full feed.
+  // Inline seed emitted by lib/shortcodes/recipe-browser.js: exactly the SSR
+  // first page. The complete browser feed is requested only after a visitor
+  // searches, filters, sorts, focuses the search field, or asks for more.
   function parseSeed(root) {
     var script = root.querySelector('script[type="application/json"][data-recipe-seed]');
     if (!script) return [];
@@ -361,13 +361,19 @@
     var filterReturnFocus = null;
     var loadedIndex = null;
     // False until the full catalogue (feed or API fallback) has loaded; until
-    // then allCards holds only the inline seed slice. catalogueFailed flips
-    // when every source has been tried, so messaging stops saying "loading".
+    // then allCards holds only the inline SSR page. The shared promise keeps
+    // overlapping interactions from starting duplicate network requests.
     var catalogueComplete = false;
     var catalogueFailed = false;
+    var catalogueLoading = false;
+    var cataloguePromise = null;
 
     var seed = parseSeed(root);
     if (seed.length) allCards = seed.map(toCard);
+    var catalogueTotal = Math.max(
+      allCards.length,
+      Number(root.getAttribute('data-recipe-total') || 0)
+    );
 
     function setStatus(message, tone) {
       if (!status) return;
@@ -377,6 +383,17 @@
 
     function allowed(value, values, fallback) {
       return values.indexOf(value) !== -1 ? value : fallback;
+    }
+
+    function hasActiveSelection() {
+      return !!(
+        (searchInput && searchInput.value.trim()) ||
+        activeCategory !== 'all' ||
+        (severityFilter && severityFilter.value !== 'all') ||
+        (facetFilter && facetFilter.value !== 'all') ||
+        (qualityFilter && qualityFilter.value !== '0') ||
+        (sortSelect && sortSelect.value !== 'newest')
+      );
     }
 
     function relevantParams() {
@@ -446,7 +463,7 @@
         button.classList.toggle('is-active', active);
         button.setAttribute('aria-pressed', active ? 'true' : 'false');
       });
-      applyFilters();
+      refreshCatalogueAfterInteraction();
       closeTypeahead();
       if (focusSearch && searchInput) searchInput.focus();
     }
@@ -502,6 +519,11 @@
       });
       restoringHistory = false;
       applyFilters();
+      if (hasActiveSelection()) {
+        ensureCatalogueLoaded().then(function (loaded) {
+          if (loaded) applyFilters();
+        });
+      }
     }
 
     // Rich agent feed (/api/recipes.json), used for downloads only.
@@ -545,25 +567,104 @@
       return null;
     }
 
+    function adoptPartialCatalogue() {
+      catalogueFailed = true;
+      setStatus('Showing a partial curated collection. Reload to fetch the complete curated feed.', 'info');
+      return false;
+    }
+
+    function ensureCatalogueLoaded() {
+      if (catalogueComplete) return Promise.resolve(true);
+      if (catalogueFailed) return Promise.resolve(false);
+      if (cataloguePromise) return cataloguePromise;
+
+      catalogueLoading = true;
+      root.dataset.recipeCatalogueState = 'loading';
+      setStatus('Loading the complete curated collection…', 'info');
+      renderSummary(visible.length || allCards.length);
+      updateLoadMore();
+
+      cataloguePromise = loadFeed()
+        .then(function (recipes) {
+          if (recipes) {
+            allCards = recipes.map(toCard);
+            catalogueComplete = true;
+            catalogueTotal = Math.max(catalogueTotal, allCards.length);
+            return true;
+          }
+          return loadIndex().then(function (index) {
+            if (!index.recipes.length) return adoptPartialCatalogue();
+            allCards = index.recipes.map(apiRecipeToFeedEntry).filter(Boolean).map(toCard);
+            catalogueComplete = true;
+            catalogueTotal = Math.max(catalogueTotal, allCards.length);
+            return true;
+          });
+        })
+        .catch(adoptPartialCatalogue)
+        .then(function (loaded) {
+          catalogueLoading = false;
+          root.dataset.recipeCatalogueState = loaded ? 'complete' : 'partial';
+          if (loaded) setStatus('', '');
+          else {
+            renderSummary(visible.length);
+            updateLoadMore();
+          }
+          return loaded;
+        });
+
+      return cataloguePromise;
+    }
+
+    function refreshCatalogueAfterInteraction() {
+      applyFilters();
+      if (catalogueComplete || catalogueFailed) return Promise.resolve(catalogueComplete);
+      return ensureCatalogueLoaded().then(function (loaded) {
+        if (loaded) applyFilters();
+        else {
+          renderSummary(visible.length);
+          updateLoadMore();
+        }
+        return loaded;
+      });
+    }
+
     function renderSummary(count) {
       if (!summary) return;
       var suffix = activeCategory === 'all' ? '' : ' in ' + (filterLabels[activeCategory] || 'this category');
       var note = '';
+      var reportedCount = count;
       if (!catalogueComplete) {
+        if (!catalogueFailed && !hasActiveSelection()) {
+          reportedCount = Math.max(reportedCount, catalogueTotal);
+        }
         note = catalogueFailed
           ? ' Partial curated list — reload to retry the curated feed.'
-          : ' Curated collection still loading.';
+          : catalogueLoading
+            ? ' Loading the complete curated collection.'
+            : ' Search, filter, sort, or load more to open the complete collection.';
       }
-      summary.textContent = 'Showing ' + Math.min(renderedCount, count) + ' of ' +
-        pluralize(count, 'curated recipe', 'curated recipes') + suffix + '.' + note;
+      summary.textContent = 'Showing ' + Math.min(renderedCount, reportedCount) + ' of ' +
+        pluralize(reportedCount, 'curated recipe', 'curated recipes') + suffix + '.' + note;
     }
 
     function updateLoadMore() {
       if (!loadMoreButton) return;
+      if (catalogueLoading) {
+        loadMoreButton.hidden = false;
+        loadMoreButton.disabled = true;
+        loadMoreButton.textContent = 'Loading curated recipes…';
+        return;
+      }
+      loadMoreButton.disabled = false;
       var remaining = visible.length - renderedCount;
+      var total = visible.length;
+      if (!catalogueComplete && !catalogueFailed && !hasActiveSelection()) {
+        total = Math.max(total, catalogueTotal);
+        remaining = total - renderedCount;
+      }
       if (remaining > 0) {
         loadMoreButton.hidden = false;
-        loadMoreButton.textContent = 'Load ' + Math.min(pageSize, remaining) + ' more of ' + visible.length;
+        loadMoreButton.textContent = 'Load ' + Math.min(pageSize, remaining) + ' more of ' + total;
       } else {
         loadMoreButton.hidden = true;
       }
@@ -595,6 +696,30 @@
       if (firstAction) firstAction.focus();
     }
 
+    function requestNextPage() {
+      if (catalogueComplete) {
+        appendNextPage();
+        return;
+      }
+      if (catalogueFailed) {
+        updateLoadMore();
+        return;
+      }
+      var firstNewIndex = renderedCount;
+      var requestedCount = renderedCount + pageSize;
+      ensureCatalogueLoaded().then(function (loaded) {
+        if (!loaded) {
+          renderSummary(visible.length);
+          updateLoadMore();
+          return;
+        }
+        applyFilters(requestedCount);
+        var firstAdded = grid && grid.children[firstNewIndex];
+        var firstAction = firstAdded && firstAdded.querySelector('a, button');
+        if (firstAction) firstAction.focus();
+      });
+    }
+
     function sortVisible(items) {
       var mode = sortSelect ? sortSelect.value : 'newest';
       items.sort(function (a, b) {
@@ -615,7 +740,7 @@
       });
     }
 
-    function applyFilters() {
+    function applyFilters(requestedCount) {
       var queryTokens = tokens(searchInput ? searchInput.value : '');
       var severity = severityFilter ? severityFilter.value : 'all';
       var facet = facetFilter ? facetFilter.value : 'all';
@@ -637,7 +762,9 @@
       });
 
       sortVisible(visible);
-      renderedCount = Math.min(visible.length, pageSize);
+      var renderLimit = Number(requestedCount);
+      if (!Number.isFinite(renderLimit) || renderLimit < pageSize) renderLimit = pageSize;
+      renderedCount = Math.min(visible.length, renderLimit);
       renderPage();
 
       if (clearSearchButton) clearSearchButton.hidden = queryTokens.length === 0;
@@ -655,13 +782,13 @@
         button.classList.toggle('is-active', active);
         button.setAttribute('aria-pressed', active ? 'true' : 'false');
       });
-      applyFilters();
+      refreshCatalogueAfterInteraction();
     }
 
     function clearSearch() {
       if (!searchInput) return;
       searchInput.value = '';
-      applyFilters();
+      refreshCatalogueAfterInteraction();
       closeTypeahead();
       searchInput.focus();
     }
@@ -727,18 +854,18 @@
       } else if (suggestion.kind === 'severity') {
         searchInput.value = '';
         if (severityFilter) severityFilter.value = suggestion.value;
-        applyFilters();
+        refreshCatalogueAfterInteraction();
       } else if (suggestion.kind === 'facet') {
         searchInput.value = '';
         if (facetFilter) facetFilter.value = suggestion.value;
-        applyFilters();
+        refreshCatalogueAfterInteraction();
       } else if (suggestion.kind === 'quality') {
         searchInput.value = '';
         if (qualityFilter) qualityFilter.value = suggestion.value;
-        applyFilters();
+        refreshCatalogueAfterInteraction();
       } else {
         searchInput.value = suggestion.query || suggestion.title || '';
-        applyFilters();
+        refreshCatalogueAfterInteraction();
       }
       closeTypeahead();
       searchInput.focus();
@@ -942,9 +1069,16 @@
         searchInput.setAttribute('aria-controls', typeaheadList.id);
         searchInput.setAttribute('aria-haspopup', 'listbox');
       }
-      searchInput.addEventListener('input', applyFilters);
-      searchInput.addEventListener('search', applyFilters);
-      searchInput.addEventListener('focus', renderTypeahead);
+      searchInput.addEventListener('input', refreshCatalogueAfterInteraction);
+      searchInput.addEventListener('search', refreshCatalogueAfterInteraction);
+      searchInput.addEventListener('focus', function () {
+        renderTypeahead();
+        if (!catalogueComplete && !catalogueFailed) {
+          ensureCatalogueLoaded().then(function (loaded) {
+            if (loaded) applyFilters();
+          });
+        }
+      });
       searchInput.addEventListener('keydown', function (event) {
         var exactCve = /^CVE-\d{4}-\d{4,}$/i.test(searchInput.value.trim());
         if (event.key === 'Enter' && exactCve && activeTypeaheadIndex < 0) {
@@ -989,10 +1123,10 @@
       });
     }
 
-    if (severityFilter) severityFilter.addEventListener('change', applyFilters);
-    if (facetFilter) facetFilter.addEventListener('change', applyFilters);
-    if (qualityFilter) qualityFilter.addEventListener('change', applyFilters);
-    if (sortSelect) sortSelect.addEventListener('change', applyFilters);
+    if (severityFilter) severityFilter.addEventListener('change', refreshCatalogueAfterInteraction);
+    if (facetFilter) facetFilter.addEventListener('change', refreshCatalogueAfterInteraction);
+    if (qualityFilter) qualityFilter.addEventListener('change', refreshCatalogueAfterInteraction);
+    if (sortSelect) sortSelect.addEventListener('change', refreshCatalogueAfterInteraction);
 
     filterButtons.forEach(function (button) {
       var filter = button.getAttribute('data-recipe-filter') || 'all';
@@ -1021,7 +1155,7 @@
           filterButton.classList.toggle('is-active', active);
           filterButton.setAttribute('aria-pressed', active ? 'true' : 'false');
         });
-        applyFilters();
+        refreshCatalogueAfterInteraction();
         if (searchInput) searchInput.focus();
       });
     }
@@ -1042,7 +1176,7 @@
     }
 
     if (loadMoreButton) {
-      loadMoreButton.addEventListener('click', function () { appendNextPage(); });
+      loadMoreButton.addEventListener('click', requestNextPage);
     }
 
     // Per-card download via delegation (cards are re-rendered on every filter).
@@ -1073,37 +1207,6 @@
     restoreFromUrl();
     win.addEventListener('popstate', restoreFromUrl);
     root.dataset.recipeBrowserReady = 'true';
-
-    // Fetch the catalogue feed, then take over rendering. Until it arrives the
-    // server-rendered first page stays on screen and filters run over the
-    // inline seed, so there is never a blank grid. If the slim feed is
-    // unavailable, fall back to the rich agent feed before settling for the
-    // seed slice.
-    function adoptPartialCatalogue() {
-      catalogueFailed = true;
-      setStatus('Showing a partial curated collection. Reload to fetch the complete curated feed.', 'info');
-      if (root.dataset.filtered === 'true') applyFilters();
-    }
-
-    loadFeed().then(function (recipes) {
-      if (recipes) {
-        allCards = recipes.map(toCard);
-        catalogueComplete = true;
-        applyFilters();
-        return null;
-      }
-      return loadIndex().then(function (index) {
-        if (index.recipes.length) {
-          allCards = index.recipes.map(apiRecipeToFeedEntry).filter(Boolean).map(toCard);
-          catalogueComplete = true;
-          applyFilters();
-        } else {
-          adoptPartialCatalogue();
-        }
-      });
-    }).catch(function () {
-      adoptPartialCatalogue();
-    });
   }
 
   function init() {

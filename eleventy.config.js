@@ -673,6 +673,18 @@ function buildTagList() {
   return list;
 }
 
+function renderTagCloud(tags) {
+  const items = tags
+    .map((entry) => {
+      const label = `${escapeHtml(entry.tag)} <span>${entry.pages.length}</span>`;
+      return entry.authoredUrl
+        ? `<a class="sr-tag-chip" href="${entry.authoredUrl}">${label}</a>`
+        : `<span class="sr-tag-chip">${label}</span>`;
+    })
+    .join("\n");
+  return `<div class="sr-tag-cloud">${items}</div>`;
+}
+
 // Heading HTML has already passed through Markdown rendering, so decode its
 // character references before Nunjucks performs the single output escape.
 // Keeping this as plain text (rather than marking rendered HTML as safe)
@@ -1105,43 +1117,7 @@ module.exports = function (eleventyConfig) {
       isSection: true,
       ...GENERATED_TAG_PAGE_SEO,
     }),
-    render: () => {
-      const tags = buildTagList();
-      const items = tags
-        .map(
-          (t) =>
-            `<a class="sr-tag-chip" href="${t.authoredUrl || `/tags/${t.slug}/`}">${escapeHtml(t.tag)} <span>${t.pages.length}</span></a>`
-        )
-        .join("\n");
-      return `<div class="sr-tag-cloud">${items}</div>`;
-    },
-  });
-  eleventyConfig.addTemplate("tag-pages.11ty.js", {
-    data: () => ({
-      pagination: { data: "tagList", size: 1, alias: "tagEntry" },
-      tagList: buildTagList().filter((entry) => !entry.authoredUrl),
-      eleventyExcludeFromCollections: true,
-      layout: "layouts/docs.njk",
-      permalink: (data) => `/tags/${data.tagEntry.slug}/index.html`,
-      ...GENERATED_TAG_PAGE_SEO,
-      eleventyComputed: {
-        title: (data) => data.tagEntry.tag,
-        description: (data) =>
-          `Browse ${data.tagEntry.pages.length} Security Recipes resources tagged ${data.tagEntry.tag}, with scoped remediation guidance, evidence, verification, and review boundaries.`,
-        isSection: true,
-      },
-    }),
-    render: (data) => {
-      const rows = data.tagEntry.pages
-        .map(
-          (p) =>
-            `<li><a href="${p.url}">${escapeHtml(p.title)}</a>` +
-            (p.date ? ` <time>${isoDate(p.date)}</time>` : "") +
-            `</li>`
-        )
-        .join("\n");
-      return `<p>Resources tagged <strong>${escapeHtml(data.tagEntry.tag)}</strong>.</p>\n<ul class="sr-tag-list">${rows}</ul>`;
-    },
+    render: () => renderTagCloud(buildTagList()),
   });
 
   // Section RSS feeds (index.xml under every section URL).
@@ -1219,6 +1195,7 @@ module.exports.pageSitemap = {
   latestSitemapLastmod,
   pageSitemapLastmod,
   planPagesSitemapEntries,
+  renderTagCloud,
   renderPagesSitemap,
 };
 

@@ -2,6 +2,7 @@
 title: AI Vulnerability Remediation Documentation
 linkTitle: Docs
 weight: 6
+lastmod: 2026-07-23
 toc: true
 sidebar:
   open: true
@@ -15,8 +16,8 @@ cascade:
     sidebar:
       open: false
 description: >
-  How to use security-recipes.ai as a focused recipe library for
-  agent-assisted security remediation.
+  Use Security Recipes to select AI vulnerability remediation playbooks,
+  configure agents, connect read-only MCP context, and verify reviewed changes.
 ---
 
 [security-recipes.ai](/) is a recipe library for teams that want AI agents to help
@@ -47,6 +48,11 @@ prompts, setup guides, and review patterns.
   {{< card link="/docs/ai-adoption-blueprint/" title="AI Adoption Blueprint" subtitle="A staged rollout path for small teams and governed enterprise programs." >}}
   {{< card link="/docs/recipe-routing-evals/" title="Recipe Routing Evals" subtitle="Golden-set tests that verify search and dispatch choose the intended recipe." >}}
 {{< /cards >}}
+
+For governed delivery, explore the [Control Plane Marketplace](/docs/control-plane-marketplace/)
+to compare input channels and workflow outputs, then use the
+[Secure Context Release Gate](/docs/secure-context-release/) to verify evidence
+before context reaches production MCP or trust-center channels.
 
 ## What the site does
 

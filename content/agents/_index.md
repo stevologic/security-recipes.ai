@@ -1,5 +1,5 @@
 ---
-title: Compare AI Coding Agents for Security Remediation
+title: AI Coding Agents for Vulnerability Remediation
 linkTitle: Agent Setup
 page_kind: collection
 weight: 3

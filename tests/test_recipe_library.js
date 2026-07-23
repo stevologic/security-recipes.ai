@@ -76,10 +76,23 @@ test('recipe library server render is bounded and remains useful without JavaScr
   const html = renderedLibrary();
   const cards = html.match(/\bdata-recipe-card(?:\s|>)/g) || [];
   const expectedCards = Math.min(18, Number(curated.count));
+  const seedMatch = html.match(
+    /<script type="application\/json" data-recipe-seed>([\s\S]*?)<\/script>/
+  );
 
   assert.equal(cards.length, expectedCards);
   assert.ok(cards.length <= 18, 'the initial document never renders more than one bounded page');
+  assert.ok(seedMatch, 'the SSR cards have a matching inline hydration seed');
+  const seed = JSON.parse(seedMatch[1]);
+  assert.equal(seed.length, expectedCards, 'the inline seed contains only the SSR page');
+  assert.ok(seed.length <= 18, 'the inline seed cannot grow into an eager catalogue payload');
+  assert.deepEqual(
+    seed.map((recipe) => recipe.url),
+    [...html.matchAll(/\bdata-recipe-path="([^"]+)"/g)].map((match) => match[1]),
+    'seed records and crawlable SSR cards describe the same recipe links'
+  );
   assert.match(html, new RegExp(`data-recipe-ssr-count="${expectedCards}"`));
+  assert.match(html, /data-recipe-feed-policy="interaction"/);
   assert.match(html, /full feed is available at <code>\/api\/curated-recipes\.json<\/code>/);
   assert.match(html, /data-recipe-summary[^>]*role="status"[^>]*aria-live="polite"[^>]*aria-atomic="true"/);
   assert.match(
@@ -88,6 +101,60 @@ test('recipe library server render is bounded and remains useful without JavaScr
   );
   assert.match(html, /id="recipe-library-facets"[^>]*aria-hidden="false"/);
   assert.match(html, /data-recipe-filter-close>Close filters<\/button>/);
+});
+
+test('recipe browser defers the complete feed until meaningful interaction', () => {
+  const source = fs.readFileSync(path.join(ROOT, 'assets', 'js', 'recipe-browser.js'), 'utf8');
+  const ensureStart = source.indexOf('function ensureCatalogueLoaded()');
+  const refreshStart = source.indexOf('function refreshCatalogueAfterInteraction()');
+  const deferredLoad = source.indexOf('cataloguePromise = loadFeed()', ensureStart);
+  const readyMarker = source.lastIndexOf("root.dataset.recipeBrowserReady = 'true'");
+  const initEnd = source.indexOf('\n  }\n\n  function init()', readyMarker);
+
+  assert.ok(ensureStart > 0 && refreshStart > ensureStart);
+  assert.ok(
+    deferredLoad > ensureStart && deferredLoad < refreshStart,
+    'the slim feed starts only inside the shared interaction loader'
+  );
+  assert.match(
+    source.slice(ensureStart, refreshStart),
+    /if \(cataloguePromise\) return cataloguePromise;/,
+    'concurrent interactions reuse one in-flight catalogue request'
+  );
+  assert.equal(
+    [...source.matchAll(/\bloadFeed\(\)/g)].length,
+    2,
+    'loadFeed appears only in its declaration and the deferred loader'
+  );
+  assert.doesNotMatch(
+    source.slice(readyMarker, initEnd),
+    /loadFeed\(\)/,
+    'initialization must not fetch the catalogue after mounting the SSR page'
+  );
+  assert.match(source, /addEventListener\('input', refreshCatalogueAfterInteraction\)/);
+  assert.match(source, /addEventListener\('search', refreshCatalogueAfterInteraction\)/);
+  assert.match(
+    source,
+    /addEventListener\('focus', function \(\) \{[\s\S]*?ensureCatalogueLoaded\(\)/
+  );
+  assert.match(source, /severityFilter\.addEventListener\('change', refreshCatalogueAfterInteraction\)/);
+  assert.match(source, /facetFilter\.addEventListener\('change', refreshCatalogueAfterInteraction\)/);
+  assert.match(source, /qualityFilter\.addEventListener\('change', refreshCatalogueAfterInteraction\)/);
+  assert.match(source, /sortSelect\.addEventListener\('change', refreshCatalogueAfterInteraction\)/);
+  assert.match(
+    source,
+    /button\.addEventListener\('click', function \(\) \{ setActiveCategory\(filter\); \}\);/
+  );
+  assert.match(
+    source,
+    /function setActiveCategory\([^)]+\) \{[\s\S]*?refreshCatalogueAfterInteraction\(\);\s*\}/
+  );
+  assert.match(source, /loadMoreButton\.addEventListener\('click', requestNextPage\)/);
+  assert.match(
+    source,
+    /if \(hasActiveSelection\(\)\) \{\s*ensureCatalogueLoaded\(\)/,
+    'a shared or bookmarked filtered URL loads the complete result set'
+  );
 });
 
 test('indexed agent remediation recipes use branded headings and concise navigation labels', () => {

@@ -219,6 +219,10 @@ The MCP server accepts both generated recipe feeds:
 - `/api/recipes.json` is the preferred agent feed with category, severity,
   CVE/GHSA, ecosystem, and handoff metadata.
 - `/recipes-index.json` remains supported for legacy consumers.
+- `/recipes-browser.json` is the compact interactive-library feed. The
+  `/recipes/` page server-renders 18 crawlable recipe cards and an exactly
+  matching hydration seed, then requests the complete feed only when a visitor
+  focuses search, filters, sorts, follows a filtered URL, or loads more.
 
 The complete CVE catalog is also available without MCP:
 

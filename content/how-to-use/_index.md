@@ -59,6 +59,11 @@ citations come from the same conservative source set. Multi-branch fixes keep
 all trusted fixed-release versions in the recommended action, so reviewing one
 branch does not silently hide the others.
 
+The [Recipes]({{< relref "/recipes" >}}) library uses the same data-first
+pattern: its initial document contains 18 crawlable cards and loads the complete
+curated feed only after you search, filter, sort, open a filtered URL, or ask for
+more. The full JSON feed remains available for agents and offline consumers.
+
 ## 2. Turn evidence into a bounded plan
 
 <figure class="visual-guide-figure">

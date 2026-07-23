@@ -1,9 +1,9 @@
 ---
-title: Secure MCP Context for AI Vulnerability Remediation
+title: MCP Context for AI Vulnerability Remediation
 linkTitle: MCP Integration
 weight: 5
 date: 2026-04-21
-lastmod: 2026-07-21
+lastmod: 2026-07-23
 toc: true
 sidebar:
   open: true

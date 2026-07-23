@@ -7,6 +7,8 @@ const test = require("node:test");
 
 const ROOT = path.resolve(__dirname, "..");
 const LEGACY_GLOBAL = /window\.__SECURITY_RECIPES_MARKETPLACE\b/u;
+const { marketplace } = require("../lib/site-data");
+const { escapeHtml } = require("../lib/util");
 
 function sourceFiles(root) {
   if (!fs.existsSync(root)) return [];
@@ -49,4 +51,28 @@ test("the unused marketplace payload is neither emitted nor loaded sitewide", ()
   assert.match(head, /window\.__SECURITY_RECIPES_MARKETPLACE_FEEDS\b/u);
   assert.match(head, /window\.__SECURITY_RECIPES_MARKETPLACE_SCHEMAS\b/u);
   assert.match(config, /marketplace-control-plane\.json/u);
+});
+
+test("marketplace input and output channels render once in the readiness matrix", () => {
+  const html = require("../lib/shortcodes/marketplace-gallery.js")();
+  const data = marketplace();
+  const channels = [
+    ...(data.input_channels.channels || []),
+    ...(data.output_channels.channels || []),
+  ];
+
+  for (const channel of channels) {
+    const marker = `<strong>${escapeHtml(channel.label)}</strong>`;
+    assert.equal(
+      html.split(marker).length - 1,
+      1,
+      `${channel.label} should have one rendered channel entry`,
+    );
+  }
+  assert.equal(
+    (html.match(/class="sr-marketplace-readiness-item"/gu) || []).length,
+    channels.length,
+  );
+  assert.match(html, /<dt>Version<\/dt>/u);
+  assert.match(html, /<dt>Review<\/dt>/u);
 });

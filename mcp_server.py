@@ -12285,9 +12285,59 @@ def _cve_landing_search_title(value: object, limit: int = 70) -> str:
     return candidate.rstrip(" /-,;:")
 
 
+_CVE_LANDING_EDITORIAL_SEARCH_METADATA: dict[str, dict[str, str]] = {
+    # Apache's source titles are identical, but the CVEs describe different
+    # release-specific defects: the original 2.4.49 traversal and the bypass of
+    # its incomplete 2.4.50 fix. Keep that distinction in every title-link
+    # signal instead of leaving Google two near-duplicate documents.
+    "CVE-2021-41773": {
+        "title": "CVE-2021-41773: Apache HTTP Server 2.4.49 Path Traversal",
+        "description": (
+            "CVE-2021-41773 Apache HTTP Server 2.4.49 path traversal can expose "
+            "files and enable CGI RCE. Upgrade to 2.4.51+; the 2.4.50 fix is "
+            "incomplete."
+        ),
+    },
+    "CVE-2021-42013": {
+        "title": (
+            "CVE-2021-42013: Apache HTTP Server 2.4.50 Incomplete-Fix Bypass"
+        ),
+        "description": (
+            "CVE-2021-42013 is the Apache HTTP Server 2.4.50 incomplete-fix "
+            "bypass for CVE-2021-41773. Upgrade 2.4.49/2.4.50 to 2.4.51+ to "
+            "stop traversal and CGI RCE."
+        ),
+    },
+    # Cisco publishes these independent API-root-RCE defects in one advisory.
+    # The bug IDs and hot-patch caveat are the source-backed differentiators.
+    "CVE-2025-20281": {
+        "title": "CVE-2025-20281: Cisco ISE API Root RCE (CSCwo99449)",
+        "description": (
+            "CVE-2025-20281 Cisco ISE/ISE-PIC API root RCE (CSCwo99449). "
+            "Upgrade 3.3 to Patch 7 and 3.4 to Patch 2; attempted exploitation "
+            "is reported."
+        ),
+    },
+    "CVE-2025-20337": {
+        "title": "CVE-2025-20337: Cisco ISE API Root RCE (CSCwp02814)",
+        "description": (
+            "CVE-2025-20337 Cisco ISE/ISE-PIC API root RCE (CSCwp02814). "
+            "CSCwo99449 hot patches do not fix it; upgrade to 3.3 Patch 7 or "
+            "3.4 Patch 2."
+        ),
+    },
+}
+
+
 def _cve_landing_titles(cve_id: str, source_title: object) -> tuple[str, str, str]:
     """Return concise metadata/H1 titles while retaining the full source title."""
     full_title = _cve_landing_text(source_title, 600) or "Vulnerability record"
+    editorial_title = _CVE_LANDING_EDITORIAL_SEARCH_METADATA.get(cve_id, {}).get(
+        "title",
+        "",
+    )
+    if editorial_title:
+        return editorial_title, editorial_title, full_title
     metadata_title = _cve_landing_metadata_text(full_title, 600)
     subject = re.sub(
         rf"^{re.escape(cve_id)}\s*(?:[:\-\u2013\u2014]\s*)?",
@@ -12341,19 +12391,66 @@ def _cve_landing_description(
     fixed_version_claim: object = "",
     fixed_version_action: object = "",
     limit: int = 165,
+    *,
+    product_family_count: int = 1,
 ) -> str:
     """Build a complete search-intent description instead of truncating source prose."""
+
+    editorial_description = _CVE_LANDING_EDITORIAL_SEARCH_METADATA.get(cve_id, {}).get(
+        "description",
+        "",
+    )
+    if editorial_description and len(editorial_description) <= limit:
+        return editorial_description
 
     action = _cve_landing_metadata_text(fixed_version_action, 1200).strip()
     if action:
         if action[-1] not in ".!?":
             action += "."
-        prefix = f"{cve_id} AI remediation: "
-        if len(prefix) + len(action) <= limit:
-            suffix = " Verification steps and sources are included."
-            if len(prefix) + len(action) + len(suffix) <= limit:
-                return f"{prefix}{action}{suffix}"
-            return f"{prefix}{action}"
+        topic = re.sub(
+            rf"^{re.escape(cve_id)}\s*:\s*",
+            "",
+            _cve_landing_text(meta_title, 100),
+            flags=re.IGNORECASE,
+        ).rstrip(" .\u2026")
+        prefix = f"{cve_id}: "
+        with_topic = f"{prefix}{topic}. {action}" if topic else ""
+        if with_topic and len(with_topic) <= limit:
+            return with_topic
+        action_only = f"{prefix}{action}"
+        if len(action_only) <= limit:
+            return action_only
+
+        scope = (
+            "product family"
+            if max(1, int(product_family_count)) > 1
+            else "software branch"
+        )
+        has_upgrade = bool(
+            re.search(r"\b(?:migrate|update|upgrade)\b", action, re.IGNORECASE)
+        )
+        has_patch = bool(
+            re.search(r"\b(?:apply|install|patch)\b", action, re.IGNORECASE)
+        )
+        if has_upgrade and has_patch:
+            complete_action = (
+                f"Patch or upgrade every affected {scope} to its corresponding "
+                "vendor-fixed release."
+            )
+        elif has_upgrade:
+            complete_action = (
+                f"Upgrade every affected {scope} to its corresponding "
+                "vendor-fixed release."
+            )
+        else:
+            complete_action = f"Apply the vendor fix for every affected {scope}."
+
+        with_complete_scope = (
+            f"{prefix}{topic}. {complete_action}" if topic else ""
+        )
+        if with_complete_scope and len(with_complete_scope) <= limit:
+            return with_complete_scope
+        return f"{prefix}{complete_action}"
 
     topic = re.sub(
         rf"^{re.escape(cve_id)}\s*:\s*",
@@ -14261,6 +14358,18 @@ def _render_cve_landing_page(
         fixed_version_claim,
         fixed_version_action,
     )
+    product_families = {
+        (
+            _cve_landing_text(product.get("vendor"), 120).casefold(),
+            _cve_landing_text(product.get("product"), 160).casefold(),
+        )
+        for product in source_record.get("products") or []
+        if isinstance(product, dict)
+        and (
+            _cve_landing_text(product.get("vendor"), 120)
+            or _cve_landing_text(product.get("product"), 160)
+        )
+    }
     description = _cve_landing_reviewed_description(
         reviewed.get("description") if reviewed else "",
         _cve_landing_description(
@@ -14268,7 +14377,8 @@ def _render_cve_landing_page(
             meta_title,
             severity,
             fixed_version_claim,
-            fixed_version_action,
+            visible_fixed_version_action,
+            product_family_count=len(product_families) or 1,
         ),
     )
     article_published = (

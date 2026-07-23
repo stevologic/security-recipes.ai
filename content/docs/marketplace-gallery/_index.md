@@ -38,12 +38,13 @@ and Agents views are where an operator inspects which routing policy
 matched, which defaults were suggested, and whether the current planner
 still diverges before a case or webhook leaves the browser.
 
-The gallery now also includes a dedicated readiness matrix for input and
-output packs plus a derived `/marketplace-readiness.json` feed. That
-surface answers a more operational question than the normal catalog
-cards do: what exactly must the operator configure, and what is still
-blocking a starter contract from being considered honestly live in the
-browser?
+The gallery includes one compact readiness entry for every input and output
+pack plus a derived `/marketplace-readiness.json` feed. Each entry combines
+the pack description, governance version, configuration requirements, and
+current blockers without repeating the same channel in a second catalog
+card. That surface answers an operational question: what exactly must the
+operator configure, and what is still blocking a starter contract from being
+considered honestly live in the browser?
 
 The browser workbench now derives one more layer on top of that public
 readiness view: a tenant-local portfolio coverage snapshot. The Router

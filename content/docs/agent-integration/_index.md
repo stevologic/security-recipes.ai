@@ -1,9 +1,9 @@
 ---
-title: AI Agent Security Context Integration Architecture
+title: AI Agent Security Context Integration
 linkTitle: Integrate an AI Agent
 weight: 2
 date: 2026-04-25
-lastmod: 2026-07-21
+lastmod: 2026-07-23
 toc: true
 sidebar:
   open: true

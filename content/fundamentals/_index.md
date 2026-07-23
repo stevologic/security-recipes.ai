@@ -1,16 +1,15 @@
 ﻿---
-title: Fundamentals
+title: AI Vulnerability Remediation Fundamentals
 linkTitle: Fundamentals
 weight: 1
+lastmod: 2026-07-23
 toc: true
 sidebar:
   open: true
 description: >
-  Plain-English primer on the ideas behind every recipe on this site —
-  what an agent actually is, what the five tools do, why prompts and
-  MCP servers matter, and the security vocabulary you'll see on every
-  other page. Start here if anything on the rest of the site feels
-  like jargon.
+  Learn the core concepts behind AI vulnerability remediation, including
+  agents, prompts, MCP context, scoped permissions, evidence, testing, and
+  human review.
 ---
 
 {{< callout type="info" >}}
