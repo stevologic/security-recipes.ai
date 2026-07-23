@@ -1,17 +1,36 @@
 # Test the Eleventy and Docker build. Deployment is handled on the server.
 name: Build
+run-name: >-
+  ${{ github.event_name == 'workflow_dispatch' && inputs.expected_sha != ''
+      && inputs.request_id != ''
+      && format('CVE catalog Build {0} {1}', inputs.expected_sha, inputs.request_id)
+      || 'Build' }}
 
 on:
   push:
     branches: [main]
   pull_request:
   workflow_dispatch:
+    inputs:
+      expected_sha:
+        description: Optional exact main revision expected by an automation caller
+        required: false
+        default: ""
+        type: string
+      request_id:
+        description: CVE automation request identifier; empty means a manual build
+        required: false
+        default: ""
+        type: string
 
 permissions:
   contents: read
 
 concurrency:
-  group: build-${{ github.ref }}
+  group: >-
+    ${{ github.event_name == 'workflow_dispatch'
+        && format('build-dispatch-{0}', github.run_id)
+        || format('build-{0}', github.ref) }}
   cancel-in-progress: true
 
 defaults:
@@ -31,6 +50,22 @@ jobs:
         with:
           submodules: recursive
           fetch-depth: 0
+
+      - name: Verify dispatched revision
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          EXPECTED_SHA: ${{ inputs.expected_sha }}
+          REQUEST_ID: ${{ inputs.request_id }}
+        run: |
+          if [ -z "$EXPECTED_SHA" ]; then
+            echo "Manual Build dispatch accepted at ${GITHUB_SHA}."
+            exit 0
+          fi
+          if [[ ! "$EXPECTED_SHA" =~ ^[0-9a-f]{40}$ ]] || [ "$GITHUB_SHA" != "$EXPECTED_SHA" ]; then
+            echo "::error::Dispatched Build revision mismatch: expected=${EXPECTED_SHA} actual=${GITHUB_SHA} request=${REQUEST_ID:-unspecified}"
+            exit 1
+          fi
+          echo "Verified dispatched Build revision ${GITHUB_SHA} for request ${REQUEST_ID:-unspecified}."
 
       - name: Setup Python for checks
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0

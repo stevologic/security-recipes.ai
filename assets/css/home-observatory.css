@@ -524,7 +524,7 @@ html[data-signal-background-ready="true"] .site-ambient {
 .observatory {
   position: relative;
   min-width: 0;
-  min-height: 550px;
+  min-height: 570px;
   margin: 0;
   isolation: isolate;
   animation: home-rise-in 780ms 80ms cubic-bezier(0.22, 1, 0.36, 1) both;
@@ -583,14 +583,21 @@ html[data-signal-background-ready="true"] .site-ambient {
 
 .observatory-node {
   position: absolute;
-  z-index: 1;
+  z-index: 5;
   display: flex;
   align-items: center;
-  max-width: 112px;
-  gap: 9px;
-  color: #a8b9b6;
+  max-width: none;
+  padding: 4px 9px 4px 4px;
+  gap: 8px;
+  border: 1px solid rgba(151, 215, 206, 0.12);
+  border-radius: 999px;
+  color: #c3d0cd;
+  background: linear-gradient(90deg, rgba(4, 16, 15, 0.96), rgba(4, 16, 15, 0.76));
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.24);
   font-size: 0.69rem;
   line-height: 1.25;
+  pointer-events: none;
+  white-space: nowrap;
 }
 
 .observatory-node::after {
@@ -631,7 +638,7 @@ html[data-signal-background-ready="true"] .site-ambient {
 }
 
 .observatory-node--cve {
-  top: 17%;
+  top: 0;
   left: 0;
 }
 
@@ -642,7 +649,7 @@ html[data-signal-background-ready="true"] .site-ambient {
 
 .observatory-node--playbooks {
   top: 0;
-  left: 45%;
+  left: 50%;
   transform: translateX(-50%);
 }
 
@@ -652,7 +659,7 @@ html[data-signal-background-ready="true"] .site-ambient {
 }
 
 .observatory-node--hygiene {
-  top: 16%;
+  top: 0;
   right: 0;
 }
 
@@ -662,8 +669,8 @@ html[data-signal-background-ready="true"] .site-ambient {
 }
 
 .observatory-node--compliance {
-  bottom: 19%;
-  left: 1%;
+  bottom: 0;
+  left: 0;
 }
 
 .observatory-node--compliance::after {
@@ -672,8 +679,9 @@ html[data-signal-background-ready="true"] .site-ambient {
 }
 
 .observatory-node--guides {
-  bottom: 4%;
-  left: 32%;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .observatory-node--guides::after {
@@ -682,7 +690,7 @@ html[data-signal-background-ready="true"] .site-ambient {
 }
 
 .observatory-node--delivery {
-  right: 19%;
+  right: 0;
   bottom: 0;
 }
 
@@ -2132,16 +2140,11 @@ a.adoption-card:focus-visible {
   }
 
   .observatory {
-    min-height: 505px;
+    min-height: 555px;
   }
 
   .research-console {
-    top: 7%;
-  }
-
-  .observatory-node--guides,
-  .observatory-node--delivery {
-    bottom: 1%;
+    top: 11%;
   }
 }
 

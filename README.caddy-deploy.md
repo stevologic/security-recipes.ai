@@ -105,9 +105,12 @@ do not respond to slow recrawling by publishing thin or duplicate CVE pages.
 
 - fetches `origin/main` and exits quietly when the commit recorded in
   `.git/deploy-state` is already active;
-- waits for every GitHub Actions run — including default CodeQL analysis — on
-  the exact target commit to complete without a failure, and requires the
-  repository's `Build` workflow to succeed;
+- waits for every `push` workflow, GitHub default-CodeQL (`dynamic`) run, and
+  CVE-automation-qualified exact-SHA `workflow_dispatch` run from `build.yml`
+  on the target commit to complete without a failure, and requires the
+  repository's `Build` workflow to succeed; scheduled production watchdog and
+  catalog jobs remain independent so they cannot deadlock the deployment that
+  repairs them;
 - resets the deployment checkout only after CI passes while preserving `.env`
   and `mcp-server.toml`;
 - pulls the CI-built, commit-tagged site and MCP images for the inactive slot
@@ -311,8 +314,14 @@ are not loaded by the systemd service. This token is separate from the CVE
 enrichment key stored in GitHub Actions secrets. The polling defaults are a
 30-minute timeout, 60-second interval, and 30-second stable-green window;
 override them with `DEPLOY_CI_TIMEOUT`, `DEPLOY_CI_POLL_SECONDS`, and
-`DEPLOY_CI_SETTLE_SECONDS`. Git fetches and individual GitHub requests also
-have timeouts so a network stall cannot hold the deployment lock indefinitely.
+`DEPLOY_CI_SETTLE_SECONDS`. The gate queries the `push` and `dynamic` event
+classes plus CVE catalog dispatches from the `Build` workflow independently,
+rejects truncated or mismatched results, then evaluates their merged run set.
+The CVE fallback title embeds its expected full SHA; only the newest exact-SHA
+fallback run is evaluated. Dependabot graph updates, other manually dispatched
+runs, and all scheduled workflows remain outside the gate. Git fetches and
+individual GitHub requests also have timeouts so a network stall cannot hold
+the deployment lock indefinitely.
 
 Ancillary service updates are not part of the site routing rollback. In
 particular, a refreshed MCP container is not rebuilt from the old checkout when

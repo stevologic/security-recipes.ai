@@ -123,8 +123,9 @@ class CveSyncWorkflowTests(unittest.TestCase):
 
     def test_ai_cache_and_generated_recipes_are_included_in_catalog_commit(self) -> None:
         commit_step = self.step("Open or refresh catalog pull request")
+        self.assertIn("github.event_name == 'schedule'", commit_step)
         self.assertIn(
-            "if: github.event_name == 'schedule' || github.ref_name == github.event.repository.default_branch",
+            "github.ref_name == github.event.repository.default_branch",
             commit_step,
         )
         for path in (
@@ -195,6 +196,8 @@ class CveSyncWorkflowTests(unittest.TestCase):
 
     def test_exact_sha_delivery_catches_up_revalidates_and_merges_safely(self) -> None:
         auth_step = self.step("Detect GitHub App automation credentials")
+        token_step = self.step("Mint CVE automation GitHub App token")
+        commit_step = self.step("Open or refresh catalog pull request")
         delivery_step = self.step(
             "Reconcile, validate, and merge exact catalog revision"
         )
@@ -202,7 +205,10 @@ class CveSyncWorkflowTests(unittest.TestCase):
 
         self.assertIn("CVE_AUTOMATION_APP_CLIENT_ID", auth_step)
         self.assertIn("CVE_AUTOMATION_APP_PRIVATE_KEY", auth_step)
-        self.assertIn("workflow_dispatch validation will be used", auth_step)
+        self.assertIn("post-merge Build will be used", auth_step)
+        self.assertIn("actions/create-github-app-token@", token_step)
+        app_first_token = "steps.app-token.outputs.token || github.token"
+        self.assertIn(f"GH_TOKEN: ${{{{ {app_first_token} }}}}", commit_step)
         self.assertIn("MAX_DELIVERY_ATTEMPTS=5", delivery_step)
         self.assertIn("gh workflow run cve-catalog-validate.yml", delivery_step)
         self.assertIn('--ref "$GITHUB_DEFAULT_BRANCH"', delivery_step)
@@ -221,6 +227,23 @@ class CveSyncWorkflowTests(unittest.TestCase):
         self.assertIn("pulls/${PR_NUMBER}/merge", delivery_step)
         self.assertIn('sha=$EXPECTED_SHA', delivery_step)
         self.assertIn("AUTO_MERGE_ENABLED", delivery_step)
+        self.assertIn("APP_CONFIGURED", delivery_step)
+        self.assertIn(f"GH_TOKEN: ${{{{ {app_first_token} }}}}", delivery_step)
+        self.assertIn("dispatch_main_build_after_merge", delivery_step)
+        self.assertIn(
+            "GitHub App merge authentication will emit the normal push-triggered Build",
+            delivery_step,
+        )
+        self.assertIn("gh workflow run build.yml", delivery_step)
+        self.assertIn('--field "expected_sha=$merge_commit_sha"', delivery_step)
+        self.assertIn('--field "request_id=$request_id"', delivery_step)
+        self.assertIn(
+            'git/ref/heads/${GITHUB_DEFAULT_BRANCH}', delivery_step
+        )
+        self.assertIn(
+            '"$current_main_sha" != "$merge_commit_sha"', delivery_step
+        )
+        self.assertEqual(delivery_step.count("dispatch_main_build_after_merge"), 4)
         self.assertNotIn("--auto", delivery_step)
         self.assertNotIn("--admin", delivery_step)
         self.assertNotIn("git checkout", delivery_step)

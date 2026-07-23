@@ -85,3 +85,42 @@ test("homepage motion is bounded by user preference and page visibility", () => 
   assert.match(background, /document\.addEventListener\("visibilitychange", start\)/);
   assert.doesNotMatch(background, /https?:\/\//);
 });
+
+test("observatory topic nodes stay readable around the console perimeter", () => {
+  const css = source("assets/css/home-observatory.css");
+
+  assert.match(css, /\.observatory\s*{[^}]*min-height:\s*570px;/s);
+  assert.match(
+    css,
+    /\.observatory-node\s*{[^}]*z-index:\s*5;[^}]*max-width:\s*none;[^}]*pointer-events:\s*none;[^}]*white-space:\s*nowrap;/s,
+  );
+  assert.match(css, /\.observatory-node--cve\s*{\s*top:\s*0;\s*left:\s*0;/);
+  assert.match(
+    css,
+    /\.observatory-node--playbooks\s*{\s*top:\s*0;\s*left:\s*50%;/,
+  );
+  assert.match(
+    css,
+    /\.observatory-node--hygiene\s*{\s*top:\s*0;\s*right:\s*0;/,
+  );
+  assert.match(
+    css,
+    /\.observatory-node--compliance\s*{\s*bottom:\s*0;\s*left:\s*0;/,
+  );
+  assert.match(
+    css,
+    /\.observatory-node--guides\s*{\s*bottom:\s*0;\s*left:\s*50%;[^}]*translateX\(-50%\);/,
+  );
+  assert.match(
+    css,
+    /\.observatory-node--delivery\s*{\s*right:\s*0;\s*bottom:\s*0;/,
+  );
+  assert.match(
+    css,
+    /@media \(min-width: 1101px\) and \(max-width: 1400px\)[\s\S]*?\.observatory\s*{\s*min-height:\s*555px;[\s\S]*?\.research-console\s*{\s*top:\s*11%;/,
+  );
+  assert.match(
+    css,
+    /@media \(max-width: 720px\)[\s\S]*?\.observatory-node,[\s\S]*?display:\s*none;/,
+  );
+});

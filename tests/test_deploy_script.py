@@ -74,7 +74,12 @@ class DeployScriptStaticTests(unittest.TestCase):
         self.assertIn('"${REPO_DIR}/.git" "${REPO_DIR}/deploy.sh"', source)
         self.assertIn("curl \"${curl_args[@]}\" --header @-", source)
         self.assertIn('--data-urlencode "head_sha=${sha}"', source)
+        self.assertIn('--data-urlencode "event=${event}"', source)
         self.assertIn('REQUIRED_WORKFLOWS="${DEPLOY_REQUIRED_WORKFLOWS:-Build}"', source)
+        self.assertIn("for event in push dynamic workflow_dispatch; do", source)
+        self.assertIn('workflow_file="build.yml"', source)
+        self.assertIn('expected_title_prefix="CVE catalog Build ${sha} "', source)
+        self.assertIn('select(.path == "dynamic/github-code-scanning/codeql")', source)
         self.assertLess(
             main.index('wait_for_ci "${REPOSITORY}" "${TARGET}"'),
             main.index('git reset --hard "${TARGET}"'),
@@ -1005,8 +1010,34 @@ printf 'curl %s\n' "$*" >> "$FAKE_COMMAND_LOG"
 url="${@: -1}"
 
 for argument in "$@"; do
-  if [[ "$argument" == *"/actions/runs" ]]; then
-    cat "$FAKE_CI_RESPONSE"
+  if [[ "$argument" == *"/actions/runs" ||
+        "$argument" == *"/actions/workflows/build.yml/runs" ]]; then
+    event_filter=""
+    workflow_filter=""
+    previous=""
+    for query_argument in "$@"; do
+      if [[ "$previous" == "--data-urlencode" && "$query_argument" == event=* ]]; then
+        event_filter="${query_argument#event=}"
+      fi
+      if [[ "$query_argument" == *"/actions/workflows/build.yml/runs" ]]; then
+        workflow_filter="Build"
+      fi
+      previous="$query_argument"
+    done
+    jq --arg event "$event_filter" --arg workflow "$workflow_filter" '
+      . as $root
+      | {workflow_runs: [
+          $root.workflow_runs[]
+          | select(
+              .event == $event
+              and ($workflow == "" or .name == $workflow)
+            )
+        ]}
+      | .total_count = (
+          $root.reported_total_by_event[$event]
+          // (.workflow_runs | length)
+        )
+    ' "$FAKE_CI_RESPONSE"
     exit 0
   fi
 done
@@ -1138,6 +1169,7 @@ exit 0
                     "head_branch": "main",
                     "head_sha": "b" * 40,
                     "event": "dynamic",
+                    "path": "dynamic/github-code-scanning/codeql",
                     "status": "completed",
                     "conclusion": "success",
                     "html_url": "https://github.test/runs/2",
@@ -1229,6 +1261,25 @@ exit 0
         result = self.run_deploy()
 
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertTrue(
+            any(
+                "--data-urlencode event=push" in command
+                for command in self.commands()
+            )
+        )
+        self.assertTrue(
+            any(
+                "--data-urlencode event=dynamic" in command
+                for command in self.commands()
+            )
+        )
+        self.assertTrue(
+            any(
+                "/actions/workflows/build.yml/runs" in command
+                and "--data-urlencode event=workflow_dispatch" in command
+                for command in self.commands()
+            )
+        )
         self.assertEqual(self.blue_revision.read_text(), "a" * 40)
         self.assertEqual(self.green_revision.read_text(), "b" * 40)
         self.assertEqual(self.proxy_active.read_text(), "security-recipes-green")
@@ -1654,12 +1705,25 @@ printf 'fake 10000000 9999000 %s 99%% /\n' "${FAKE_FREE_KB:-1024}"
     def test_incomplete_workflow_page_fails_closed(self) -> None:
         self.workflow_response()
         payload = json.loads(self.ci_response.read_text())
-        payload["total_count"] = 101
+        payload["reported_total_by_event"] = {"push": 101}
         self.ci_response.write_text(json.dumps(payload))
 
         result = self.run_deploy()
 
         self.assertNotEqual(result.returncode, 0)
+        self.assertIn("refusing an incomplete CI view", result.stdout)
+        self.assertFalse(any("compose up" in command for command in self.commands()))
+
+    def test_incomplete_dynamic_workflow_page_fails_closed(self) -> None:
+        self.workflow_response()
+        payload = json.loads(self.ci_response.read_text())
+        payload["reported_total_by_event"] = {"dynamic": 101}
+        self.ci_response.write_text(json.dumps(payload))
+
+        result = self.run_deploy()
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("101 dynamic workflow runs", result.stdout)
         self.assertIn("refusing an incomplete CI view", result.stdout)
         self.assertFalse(any("compose up" in command for command in self.commands()))
 
@@ -1673,6 +1737,176 @@ printf 'fake 10000000 9999000 %s 99%% /\n' "${FAKE_FREE_KB:-1024}"
 
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("returned workflow runs outside", result.stdout)
+        self.assertFalse(any("compose up" in command for command in self.commands()))
+
+    def test_failed_scheduled_workflow_is_not_queried_or_gated(self) -> None:
+        self.workflow_response()
+        payload = json.loads(self.ci_response.read_text())
+        payload["workflow_runs"].append(
+            {
+                "id": 3,
+                "run_attempt": 1,
+                "name": "Production watchdog",
+                "head_branch": "main",
+                "head_sha": "b" * 40,
+                "event": "schedule",
+                "status": "completed",
+                "conclusion": "failure",
+                "html_url": "https://github.test/runs/3",
+            }
+        )
+        self.ci_response.write_text(json.dumps(payload))
+
+        result = self.run_deploy()
+
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertFalse(
+            any("--data-urlencode event=schedule" in command for command in self.commands())
+        )
+
+    def test_exact_sha_dispatched_build_can_satisfy_required_workflow(self) -> None:
+        self.workflow_response()
+        payload = json.loads(self.ci_response.read_text())
+        payload["workflow_runs"][0]["event"] = "workflow_dispatch"
+        payload["workflow_runs"][0]["display_title"] = (
+            f"CVE catalog Build {'b' * 40} test-request"
+        )
+        self.ci_response.write_text(json.dumps(payload))
+
+        result = self.run_deploy()
+
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertTrue(
+            any(
+                "/actions/workflows/build.yml/runs" in command
+                and "--data-urlencode event=workflow_dispatch" in command
+                for command in self.commands()
+            )
+        )
+
+    def test_unrelated_failed_dispatch_is_not_queried_or_gated(self) -> None:
+        self.workflow_response()
+        payload = json.loads(self.ci_response.read_text())
+        payload["workflow_runs"].append(
+            {
+                "id": 4,
+                "run_attempt": 1,
+                "name": "CVE catalog validation",
+                "head_branch": "main",
+                "head_sha": "b" * 40,
+                "event": "workflow_dispatch",
+                "status": "completed",
+                "conclusion": "failure",
+                "html_url": "https://github.test/runs/4",
+            }
+        )
+        self.ci_response.write_text(json.dumps(payload))
+
+        result = self.run_deploy()
+
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertNotIn("CVE catalog validation: failure", result.stdout)
+
+    def test_manual_build_dispatch_is_ignored_without_poisoning_push_ci(self) -> None:
+        self.workflow_response()
+        payload = json.loads(self.ci_response.read_text())
+        payload["workflow_runs"].append(
+            {
+                "id": 5,
+                "run_attempt": 1,
+                "name": "Build",
+                "display_title": "Build",
+                "head_branch": "main",
+                "head_sha": "b" * 40,
+                "event": "workflow_dispatch",
+                "status": "completed",
+                "conclusion": "failure",
+                "html_url": "https://github.test/runs/5",
+            }
+        )
+        self.ci_response.write_text(json.dumps(payload))
+
+        result = self.run_deploy()
+
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertNotIn("Build: failure", result.stdout)
+
+    def test_latest_exact_sha_dispatched_build_supersedes_failed_retry(self) -> None:
+        self.workflow_response()
+        payload = json.loads(self.ci_response.read_text())
+        payload["workflow_runs"][0]["event"] = "workflow_dispatch"
+        payload["workflow_runs"][0]["display_title"] = (
+            f"CVE catalog Build {'b' * 40} latest"
+        )
+        payload["workflow_runs"].append(
+            {
+                "id": 0,
+                "run_attempt": 1,
+                "name": "Build",
+                "display_title": f"CVE catalog Build {'b' * 40} older",
+                "head_branch": "main",
+                "head_sha": "b" * 40,
+                "event": "workflow_dispatch",
+                "status": "completed",
+                "conclusion": "failure",
+                "html_url": "https://github.test/runs/0",
+            }
+        )
+        self.ci_response.write_text(json.dumps(payload))
+
+        result = self.run_deploy()
+
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertNotIn("Build: failure", result.stdout)
+
+    def test_failed_dependabot_dynamic_run_does_not_replace_codeql_gate(self) -> None:
+        self.workflow_response()
+        payload = json.loads(self.ci_response.read_text())
+        payload["workflow_runs"].append(
+            {
+                "id": 6,
+                "run_attempt": 1,
+                "name": "Graph Update: pip",
+                "head_branch": "main",
+                "head_sha": "b" * 40,
+                "event": "dynamic",
+                "path": "dynamic/dependabot/update-graph",
+                "status": "completed",
+                "conclusion": "failure",
+                "html_url": "https://github.test/runs/6",
+            }
+        )
+        self.ci_response.write_text(json.dumps(payload))
+
+        result = self.run_deploy()
+
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertNotIn("Graph Update: pip: failure", result.stdout)
+
+    def test_failed_dynamic_codeql_stops_before_candidate_mutation(self) -> None:
+        self.workflow_response()
+        payload = json.loads(self.ci_response.read_text())
+        payload["workflow_runs"][1]["conclusion"] = "failure"
+        self.ci_response.write_text(json.dumps(payload))
+
+        result = self.run_deploy()
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("CodeQL: failure", result.stdout)
+        self.assertFalse(any("compose up" in command for command in self.commands()))
+
+    def test_pending_dynamic_codeql_times_out_before_candidate_mutation(self) -> None:
+        self.workflow_response()
+        payload = json.loads(self.ci_response.read_text())
+        payload["workflow_runs"][1]["status"] = "in_progress"
+        payload["workflow_runs"][1]["conclusion"] = None
+        self.ci_response.write_text(json.dumps(payload))
+
+        result = self.run_deploy(DEPLOY_CI_TIMEOUT="1")
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("CI still running (CodeQL=in_progress)", result.stdout)
+        self.assertIn("Timed out waiting for CI", result.stdout)
         self.assertFalse(any("compose up" in command for command in self.commands()))
 
     def test_candidate_pull_failure_keeps_blue_active(self) -> None:
