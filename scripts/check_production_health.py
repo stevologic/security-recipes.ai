@@ -79,8 +79,7 @@ CONTENT_INTEGRITY_PROBES = (
             (
                 "query-specific page title",
                 re.compile(
-                    r"<title>\s*How to Remediate Vulnerabilities with AI Agents"
-                    r"\s*\|\s*Security Recipes\s*</title>",
+                    r"<title>\s*How to Remediate Vulnerabilities with AI Agents\s*</title>",
                     re.IGNORECASE,
                 ),
             ),

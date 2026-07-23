@@ -291,8 +291,7 @@ Sitemap: https://security-recipes.ai/sitemap.xml
             ),
             "https://security-recipes.ai/security-remediation/": (
                 b"<!doctype html><html><head>"
-                b"<title>How to Remediate Vulnerabilities with AI Agents | "
-                b"Security Recipes</title>"
+                b"<title>How to Remediate Vulnerabilities with AI Agents</title>"
                 b'<meta name="description" content="Learn how to remediate software '
                 b"vulnerabilities with AI coding agents using scoped playbooks, source "
                 b'evidence, tests, rollback, and human review.">'
@@ -666,8 +665,7 @@ Disallow: /traffic/
         remediation_url = "https://security-recipes.ai/security-remediation/"
         page_without_howto = (
             b"<!doctype html><html><head>"
-            b"<title>How to Remediate Vulnerabilities with AI Agents | "
-            b"Security Recipes</title>"
+            b"<title>How to Remediate Vulnerabilities with AI Agents</title>"
             b'<meta name="description" content="Learn how to remediate software '
             b"vulnerabilities with AI coding agents using scoped playbooks, source "
             b'evidence, tests, rollback, and human review.">'

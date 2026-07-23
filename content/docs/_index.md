@@ -1,5 +1,5 @@
 ---
-title: AI Vulnerability Remediation Documentation
+title: "Security Recipes Documentation: Playbooks, Agents, and MCP"
 linkTitle: Docs
 weight: 6
 lastmod: 2026-07-23
@@ -16,8 +16,8 @@ cascade:
     sidebar:
       open: false
 description: >
-  Use Security Recipes to select AI vulnerability remediation playbooks,
-  configure agents, connect read-only MCP context, and verify reviewed changes.
+  Explore Security Recipes documentation for remediation playbooks, AI agent
+  setup, read-only MCP integrations, CVE intake, and review workflows.
 ---
 
 [security-recipes.ai](/) is a recipe library for teams that want AI agents to help

@@ -1067,6 +1067,79 @@ if (!sitemap.includes("/sitemaps/pages.xml")) {
 const pagesSitemapHas = (route) =>
   pagesSitemap.includes(`<loc>https://security-recipes.ai${route}</loc>`);
 
+const remediationRoute = "/security-remediation/";
+const remediationHtml = htmlOutputs.get(remediationRoute);
+const remediationTitle = "How to Remediate Vulnerabilities with AI Agents";
+if (!remediationHtml) {
+  fail(`missing rendered remediation pillar: ${remediationRoute}`);
+} else {
+  const title = remediationHtml.match(/<title\b[^>]*>([\s\S]*?)<\/title>/i)?.[1]?.trim() || "";
+  if (decodeHtmlAttributeOnce(title) !== remediationTitle) {
+    fail(`remediation pillar title is not the exact query-specific title: ${title || "(missing)"}`);
+  }
+
+  const h1Matches = Array.from(
+    remediationHtml.matchAll(/<h1\b[^>]*>([\s\S]*?)<\/h1>/gi),
+    (match) => decodeHtmlAttributeOnce(match[1].replace(/<[^>]+>/g, "").trim()),
+  );
+  if (h1Matches.length !== 1 || h1Matches[0] !== remediationTitle) {
+    fail(
+      `remediation pillar renders ${h1Matches.length} H1 elements with ` +
+      `the wrong search-intent title: ${h1Matches.join(" | ") || "(missing)"}`,
+    );
+  }
+
+  if (
+    !remediationHtml.includes(
+      '<link rel="canonical" href="https://security-recipes.ai/security-remediation/">',
+    )
+  ) {
+    fail("remediation pillar is not self-canonical");
+  }
+  for (const crawler of ["robots", "googlebot"]) {
+    const indexablePattern = new RegExp(
+      `<meta\\b(?=[^>]*\\bname=["']${crawler}["'])` +
+      `(?=[^>]*\\bcontent=["']index,follow(?:,|["']))[^>]*>`,
+      "i",
+    );
+    if (!indexablePattern.test(remediationHtml)) {
+      fail(`remediation pillar ${crawler} directive does not begin with index,follow`);
+    }
+  }
+
+  const remediationEntities = [];
+  for (const document of remediationHtml.matchAll(
+    /<script\b[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi,
+  )) {
+    try {
+      const parsed = JSON.parse(document[1]);
+      if (Array.isArray(parsed?.["@graph"])) remediationEntities.push(...parsed["@graph"]);
+      else if (parsed && typeof parsed === "object") remediationEntities.push(parsed);
+    } catch (error) {
+      fail(`remediation pillar has invalid JSON-LD (${error.message})`);
+    }
+  }
+  const hasSchemaType = (entity, type) => {
+    const values = Array.isArray(entity?.["@type"]) ? entity["@type"] : [entity?.["@type"]];
+    return values.includes(type);
+  };
+  const howTo = remediationEntities.find((entity) => hasSchemaType(entity, "HowTo"));
+  const collectionPage = remediationEntities.find((entity) => hasSchemaType(entity, "CollectionPage"));
+  const howToSteps = Array.isArray(howTo?.step) ? howTo.step : [];
+  if (
+    howToSteps.length !== 7 ||
+    !howToSteps.every((step) => hasSchemaType(step, "HowToStep"))
+  ) {
+    fail(`remediation pillar HowTo has ${howToSteps.length} valid steps; expected seven`);
+  }
+  if (!howTo?.["@id"] || collectionPage?.mainEntity?.["@id"] !== howTo["@id"]) {
+    fail("remediation pillar CollectionPage does not identify the HowTo as its main entity");
+  }
+}
+if (!pagesSitemapHas(remediationRoute)) {
+  fail(`pages sitemap is missing the remediation pillar ${remediationRoute}`);
+}
+
 const indexedSitemapRoutes = Array.from(
   sitemap.matchAll(/<loc>https?:\/\/[^/]+(\/[^<]+)<\/loc>/g),
   (match) => match[1]
@@ -1144,6 +1217,17 @@ const qualifiedCanonicalRoutes = new Map(
       return [cve, historicalCanonicalRoutes.get(cve) || canonicalRouteForCve(cve)];
     }),
 );
+const remediationContextLink =
+  '<a href="/security-remediation/">Explore AI vulnerability remediation playbooks</a>';
+for (const [cve, route] of qualifiedCanonicalRoutes) {
+  if (!route.startsWith("/cve/")) continue;
+  const html = htmlOutputs.get(route);
+  if (!html) {
+    fail(`missing materialized canonical CVE page for ${cve}: ${route}`);
+  } else if (!html.includes(remediationContextLink)) {
+    fail(`canonical CVE page ${route} is missing its contextual remediation-pillar link`);
+  }
+}
 const databaseQualifiedLinks = Array.from(
   cveDatabase.matchAll(
     /<a href=["']([^"']+)["'] data-qualified-cve-link=["'](CVE-\d{4}-\d{4,7})["']>/g,

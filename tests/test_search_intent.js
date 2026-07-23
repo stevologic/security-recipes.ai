@@ -76,6 +76,17 @@ test("high-intent landing pages remain concise, distinct, and query-specific", (
   );
 });
 
+test("the documentation hub stays navigational instead of competing with the remediation pillar", () => {
+  const docs = frontMatter("content/docs/_index.md");
+
+  assert.equal(docs.title, "Security Recipes Documentation: Playbooks, Agents, and MCP");
+  assert.doesNotMatch(docs.title, /AI Vulnerability Remediation Documentation/iu);
+  assert.match(
+    docs.description.trim(),
+    /remediation playbooks, AI agent setup, read-only MCP integrations, CVE intake, and review workflows\.$/iu,
+  );
+});
+
 test("agentic remediation control pages emit useful page-specific snippets", () => {
   const slugs = [
     "agent-capability-risk-register",
@@ -219,11 +230,25 @@ test("the homepage, remediation pillar, and agent hub cross-link contextually", 
   const agents = source("content/agents/_index.md");
 
   assert.match(homepage, /<a href="\/agents\/">AI agent setup guides<\/a>/u);
+  assert.match(
+    homepage,
+    /<a class="button" href="\/security-remediation\/">How to remediate vulnerabilities with AI agents<\/a>/u,
+  );
   assert.match(pillar, /\[AI agents for vulnerability remediation\]\(\/agents\/\)/u);
   assert.match(
     agents,
     /\[AI vulnerability remediation playbooks\]\(\{\{< relref "\/security-remediation" >\}\}\)/u,
   );
+});
+
+test("the contribution guide describes the immutable deployment pipeline", () => {
+  const contributionGuide = source("content/contribute/_index.md");
+
+  assert.doesNotMatch(contributionGuide, /push(?:es)? to `gh-pages`|publishes `gh-pages`/iu);
+  assert.match(contributionGuide, /commit-tagged site and MCP (?:container )?images/iu);
+  assert.match(contributionGuide, /`security-recipes-deploy\.timer`/u);
+  assert.match(contributionGuide, /`deploy\.sh`/u);
+  assert.match(contributionGuide, /immutable images through the\s+blue\/green slots/iu);
 });
 
 test("global navigation names the AI remediation destination descriptively", () => {

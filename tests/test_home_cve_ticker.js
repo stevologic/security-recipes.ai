@@ -85,7 +85,10 @@ test('homepage ticker is semantic, bounded, and explicitly motion-safe', () => {
   assert.match(source, /Reviewed CVEs are being refreshed/);
   assert.match(source, /\{\% if latestReviewedCves and latestReviewedCves\.length \%\}/);
   assert.match(source, /class="button button--primary" href="\/cve-database\/">Search the CVE Database<\/a>/);
-  assert.match(source, /href="\/security-remediation\/">AI remediation playbooks<\/a>/);
+  assert.match(
+    source,
+    /href="\/security-remediation\/">How to remediate vulnerabilities with AI agents<\/a>/,
+  );
   assert.match(source, /<ul class="cve-ticker__list">/);
   assert.match(source, /<ul class="cve-ticker__list" aria-hidden="true" inert>/);
   assert.match(source, /data-cve-ticker-toggle[^>]*aria-pressed="false"/);
