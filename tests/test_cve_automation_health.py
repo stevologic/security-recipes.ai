@@ -338,7 +338,7 @@ Sitemap: https://security-recipes.ai/sitemap.xml
             ),
             "https://security-recipes.ai/agents/": (
                 b"<!doctype html><html><head>"
-                b"<title>Compare AI Coding Agents for Security Remediation | "
+                b"<title>AI Coding Agents for Vulnerability Remediation | "
                 b"Security Recipes</title>"
                 b'<meta name="description" content="Compare Codex, Claude Code, Cursor, '
                 b"GitHub Copilot, and Devin for AI vulnerability remediation, then configure "
@@ -346,7 +346,7 @@ Sitemap: https://security-recipes.ai/sitemap.xml
                 b'<meta name="robots" content="index,follow,max-image-preview:large">'
                 b'<link rel="canonical" href="https://security-recipes.ai/agents/">'
                 b'</head><body><h1 class="sr-page-title">'
-                b"Compare AI Coding Agents for Security Remediation</h1></body></html>"
+                b"AI Coding Agents for Vulnerability Remediation</h1></body></html>"
             ),
         }
         integrity_pages.update(content_overrides or {})
@@ -854,6 +854,28 @@ Disallow: /traffic/
         self.assertEqual([check["name"] for check in failed], ["content_integrity"])
         self.assertIn("AI agent comparison", failed[0]["message"])
         self.assertIn("expected primary heading", failed[0]["message"])
+
+    def test_agents_watchdog_contract_matches_source_title(self) -> None:
+        source = (
+            Path(__file__).resolve().parents[1] / "content" / "agents" / "_index.md"
+        ).read_text(encoding="utf-8")
+        title = next(
+            line.removeprefix("title:").strip()
+            for line in source.splitlines()
+            if line.startswith("title:")
+        )
+        probe = next(
+            item
+            for item in production.CONTENT_INTEGRITY_PROBES
+            if item[0] == "AI agent comparison"
+        )
+        required = dict(probe[3])
+
+        self.assertRegex(f'<h1 class="sr-page-title">{title}</h1>', probe[2])
+        self.assertRegex(
+            f"<title>{title} | Security Recipes</title>",
+            required["query-specific page title"],
+        )
 
     def test_clean_googlebot_variant_still_fails_cloaking_parity(self) -> None:
         automation_url = "https://security-recipes.ai/automation/"
