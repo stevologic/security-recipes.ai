@@ -81,6 +81,9 @@ class DeployScriptStaticTests(unittest.TestCase):
         self.assertIn('expected_title_prefix="CVE catalog Build ${sha} "', source)
         self.assertIn('select(.path == "dynamic/github-code-scanning/codeql")', source)
         self.assertIn('select(.name != "Scheduled")', source)
+        # run-name masks .name, so workflow identity must come from .path.
+        self.assertIn('--arg path "${expected_path}"', source)
+        self.assertIn('expected_path=".github/workflows/build.yml"', source)
         # Opening the lock must not truncate the holder's recorded PID, and the
         # systemd timer must never take the lock away from a running deploy.
         self.assertIn('exec 9>>"${LOCK_FILE}"', source)
@@ -1163,6 +1166,7 @@ exit 0
                     "head_branch": "main",
                     "head_sha": "b" * 40,
                     "event": "push",
+                    "path": ".github/workflows/build.yml",
                     "status": "completed",
                     "conclusion": conclusion,
                     "html_url": "https://github.test/runs/1",
@@ -1790,6 +1794,41 @@ printf 'fake 10000000 9999000 %s 99%% /\n' "${FAKE_FREE_KB:-1024}"
                 for command in self.commands()
             )
         )
+
+    def test_dispatched_build_is_matched_by_path_not_its_run_name(self) -> None:
+        # build.yml sets run-name, so a dispatched run reports
+        # "CVE catalog Build <sha> <request>" in .name rather than "Build".
+        # Matching on .name rejected the run outright and, once past that,
+        # never satisfied the required-workflow check.
+        self.workflow_response()
+        payload = json.loads(self.ci_response.read_text())
+        run_name = f"CVE catalog Build {'b' * 40} test-request"
+        payload["workflow_runs"][0]["event"] = "workflow_dispatch"
+        payload["workflow_runs"][0]["name"] = run_name
+        payload["workflow_runs"][0]["display_title"] = run_name
+        payload["workflow_runs"][0]["path"] = ".github/workflows/build.yml"
+        self.ci_response.write_text(json.dumps(payload))
+
+        result = self.run_deploy()
+
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertNotIn("refusing to deploy", result.stdout)
+        self.assertNotIn("Waiting for required workflow", result.stdout)
+
+    def test_dispatch_from_another_workflow_file_is_rejected(self) -> None:
+        self.workflow_response()
+        payload = json.loads(self.ci_response.read_text())
+        run_name = f"CVE catalog Build {'b' * 40} test-request"
+        payload["workflow_runs"][0]["event"] = "workflow_dispatch"
+        payload["workflow_runs"][0]["name"] = run_name
+        payload["workflow_runs"][0]["display_title"] = run_name
+        payload["workflow_runs"][0]["path"] = ".github/workflows/impostor.yml"
+        self.ci_response.write_text(json.dumps(payload))
+
+        result = self.run_deploy()
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("refusing to deploy", result.stdout)
 
     def test_unrelated_failed_dispatch_is_not_queried_or_gated(self) -> None:
         self.workflow_response()

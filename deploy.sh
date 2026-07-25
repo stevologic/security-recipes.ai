@@ -361,7 +361,7 @@ wait_for_ci() {
   local response event_response failures pending pending_names count missing signature now
   local stable_since=0
   local last_signature=""
-  local event workflow_file expected_workflow expected_title_prefix
+  local event workflow_file expected_workflow expected_title_prefix expected_path
   local event_count event_reported_total event_mismatched
   local workflow workflow_count required_bad_count
   local -a required_workflows
@@ -384,10 +384,12 @@ wait_for_ci() {
       workflow_file=""
       expected_workflow=""
       expected_title_prefix=""
+      expected_path=""
       if [[ "${event}" == "workflow_dispatch" ]]; then
         workflow_file="build.yml"
         expected_workflow="Build"
         expected_title_prefix="CVE catalog Build ${sha} "
+        expected_path=".github/workflows/build.yml"
       fi
       if ! event_response="$(github_workflow_runs "${repository}" "${sha}" "${event}" "${workflow_file}")"; then
         log "ERROR: GitHub Actions ${event} query failed. Set GH_TOKEN for private repositories or higher API limits."
@@ -408,19 +410,22 @@ wait_for_ci() {
         log "ERROR: GitHub reported ${event_reported_total} ${event} workflow runs but returned ${event_count}; refusing an incomplete CI view."
         return 1
       fi
+      # Identity is checked against .path, never .name: a workflow's run-name
+      # overrides .name, so build.yml's dispatched runs report "CVE catalog
+      # Build <sha> <request>" rather than "Build".
       event_mismatched="$(
         jq -r \
           --arg sha "${sha}" \
           --arg branch "${BRANCH}" \
           --arg event "${event}" \
-          --arg workflow "${expected_workflow}" '
+          --arg path "${expected_path}" '
           [
             .workflow_runs[]
             | select(
                 .head_sha != $sha
                 or .head_branch != $branch
                 or .event != $event
-                or ($workflow != "" and .name != $workflow)
+                or ($path != "" and .path != $path)
               )
           ]
           | length
@@ -447,12 +452,17 @@ wait_for_ci() {
           ' <<< "${event_response}"
         )"
       elif [[ "${event}" == "workflow_dispatch" ]]; then
+        # Restore the workflow name that run-name masked, so the required-workflow
+        # checks below still recognize this as the Build run they are waiting for.
         event_response="$(
-          jq --arg title_prefix "${expected_title_prefix}" '
+          jq \
+            --arg title_prefix "${expected_title_prefix}" \
+            --arg workflow "${expected_workflow}" '
             .workflow_runs = (
               [
                 .workflow_runs[]
                 | select((.display_title // "") | startswith($title_prefix))
+                | .name = $workflow
               ]
               | sort_by(.id)
               | reverse
