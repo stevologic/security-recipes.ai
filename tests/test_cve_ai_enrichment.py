@@ -283,6 +283,142 @@ class CVEAIEnrichmentTests(unittest.TestCase):
         changed = {**source, "summary": str(source["summary"]) + " Updated source facts."}
         self.assertNotEqual(enrichment.source_fingerprint(changed), baseline)
 
+    def test_evidence_payload_shape_change_requires_a_fingerprint_migration(self) -> None:
+        """Pin the payload shape so a change cannot silently wipe the cache.
+
+        ``source_fingerprint`` hashes this payload, so adding or removing a field
+        changes every stored fingerprint at once and discards every cached
+        enrichment on the next sync.  That is exactly what happened when
+        ``affected_data`` was added, and it is invisible until a sync runs.
+        """
+        populated = {
+            **record(),
+            "affected_data": [
+                {"vendor": "acme", "product": "widget", "versions": ["1.0.0"]}
+            ],
+            "affected_data_count": 1,
+            "affected_data_truncated": False,
+        }
+        self.assertEqual(
+            sorted(enrichment.evidence_payload(populated)),
+            [
+                "affected_data",
+                "affected_data_count",
+                "affected_data_truncated",
+                "archetypes",
+                "cve",
+                "cvss_version",
+                "cwes",
+                "ecosystem",
+                "kev",
+                "kev_details",
+                "last_modified",
+                "nvd_url",
+                "product_match_count",
+                "products",
+                "products_truncated",
+                "published",
+                "references",
+                "score",
+                "severity",
+                "source_identifier",
+                "status",
+                "summary",
+                "title",
+                "vector",
+            ],
+            "evidence_payload changed shape. Bump EVIDENCE_PAYLOAD_REVISION and"
+            " register a downgrade in EVIDENCE_PAYLOAD_DOWNGRADES that rebuilds the"
+            " previous payload, then update this list. Without a downgrade the next"
+            " sync discards every cached AI enrichment and deletes their drafts.",
+        )
+
+    def test_every_evidence_payload_revision_registers_a_downgrade(self) -> None:
+        self.assertEqual(
+            len(enrichment.EVIDENCE_PAYLOAD_DOWNGRADES),
+            enrichment.EVIDENCE_PAYLOAD_REVISION - 1,
+            "each evidence_payload revision must register a downgrade so cached"
+            " entries written before the change survive the next sync",
+        )
+
+    def test_entry_written_before_a_payload_field_existed_is_still_reused(self) -> None:
+        legacy_source = record()
+        source_url = str(legacy_source["references"][0]["url"])
+        entry = enrichment.build_enrichment_entry(
+            legacy_source,
+            model_output(source_urls=[source_url]),
+            model="gpt-test",
+            retrieved_source_urls=[source_url],
+            generated_at=datetime(2026, 7, 14, tzinfo=timezone.utc),
+        )
+        legacy_fingerprint = entry["source_fingerprint"]
+        self.assertNotIn("affected_data", enrichment.evidence_payload(legacy_source))
+
+        # A fresh sync rebuilds the same CVE with the affected_data evidence that
+        # was added to the payload after this entry was generated.
+        resynced = {
+            **legacy_source,
+            "affected_data": [
+                {"vendor": "acme", "product": "widget", "versions": ["1.0.0"]}
+            ],
+            "affected_data_count": 1,
+            "affected_data_truncated": False,
+        }
+        self.assertIn("affected_data", enrichment.evidence_payload(resynced))
+        self.assertNotEqual(enrichment.source_fingerprint(resynced), legacy_fingerprint)
+        self.assertIn(legacy_fingerprint, enrichment.accepted_source_fingerprints(resynced))
+        self.assertEqual(enrichment.enrichment_errors(entry, resynced), [])
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            cache = enrichment.EnrichmentCache(
+                Path(tmpdir) / "cache.json", {"CVE-2026-1234": entry}
+            )
+            cache.select_candidates([resynced], limit=5)
+
+        self.assertEqual(cache.stats["cached"], 1)
+        self.assertEqual(cache.selected, {})
+        # The stored fingerprint records the evidence the model actually saw and
+        # is what the generated recipe drafts cite, so it is preserved as-is.
+        self.assertEqual(
+            cache.entries["CVE-2026-1234"]["source_fingerprint"], legacy_fingerprint
+        )
+
+    def test_legacy_entry_still_re_enriches_when_other_source_evidence_changes(self) -> None:
+        legacy_source = record()
+        source_url = str(legacy_source["references"][0]["url"])
+        entry = enrichment.build_enrichment_entry(
+            legacy_source,
+            model_output(source_urls=[source_url]),
+            model="gpt-test",
+            retrieved_source_urls=[source_url],
+            generated_at=datetime(2026, 7, 14, tzinfo=timezone.utc),
+        )
+        changed = {
+            **legacy_source,
+            "summary": str(legacy_source["summary"]) + " Updated source facts.",
+            "affected_data": [
+                {"vendor": "acme", "product": "widget", "versions": ["1.0.0"]}
+            ],
+            "affected_data_count": 1,
+            "affected_data_truncated": False,
+        }
+        self.assertNotIn(
+            entry["source_fingerprint"], enrichment.accepted_source_fingerprints(changed)
+        )
+        self.assertIn(
+            "ai_enrichment source_fingerprint is stale",
+            enrichment.enrichment_errors(entry, changed),
+        )
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            cache = enrichment.EnrichmentCache(
+                Path(tmpdir) / "cache.json", {"CVE-2026-1234": entry}
+            )
+            cache.select_candidates([changed], limit=5)
+
+        self.assertEqual(cache.stats["cached"], 0)
+        self.assertIn("CVE-2026-1234", cache.selected)
+
     def test_responses_request_uses_strict_schema_web_search_and_never_puts_key_in_body(self) -> None:
         captured: dict[str, object] = {}
         searched = "https://vendor.example.test/patches/CVE-2026-1234"
@@ -897,67 +1033,6 @@ class CVEAIEnrichmentTests(unittest.TestCase):
         )
         self.assertNotIn("ai_enrichment", results[0])
         self.assertIn("ai_enrichment", results[1])
-
-
-class EvidencePayloadMigrationTests(unittest.TestCase):
-    """Enrichments cached before a payload field existed must survive its arrival."""
-
-    def _cached_entry(self, source: dict[str, object]) -> dict[str, object]:
-        """An entry fingerprinted before evidence_payload grew affected_data."""
-        return {
-            "schema_version": enrichment.ENRICHMENT_SCHEMA_VERSION,
-            "prompt_version": enrichment.PROMPT_VERSION,
-            "model": "gpt-test",
-            "generated_at": "2026-07-20T00:00:00Z",
-            "source_fingerprint": enrichment.source_fingerprint(source),
-            "gaps": enrichment.completeness_gaps(source),
-            "status": "insufficient_evidence",
-            "business_risk": "",
-            "exposure_conditions": [],
-            "remediation_steps": [],
-            "verification_steps": [],
-            "uncertainty": [],
-            "recipe_specificity": "generic",
-            "claim_evidence": [],
-            "source_urls": [],
-            "retrieved_source_urls": [],
-        }
-
-    def _with_affected_data(self, source: dict[str, object]) -> dict[str, object]:
-        rebuilt = dict(source)
-        rebuilt["affected_data"] = [{"vendor": "acme", "product": "widget", "versions": ["1.0"]}]
-        rebuilt["affected_data_count"] = 1
-        rebuilt["affected_data_truncated"] = False
-        return rebuilt
-
-    def _fingerprint_stale(self, entry: dict[str, object], source: dict[str, object]) -> bool:
-        return any(
-            "source_fingerprint" in error for error in enrichment.enrichment_errors(entry, source)
-        )
-
-    def test_cached_entry_survives_a_newly_populated_payload_field(self) -> None:
-        source = record()
-        entry = self._cached_entry(source)
-
-        self.assertFalse(self._fingerprint_stale(entry, self._with_affected_data(source)))
-
-    def test_real_source_changes_are_still_detected_as_stale(self) -> None:
-        source = record()
-        entry = self._cached_entry(source)
-
-        for field, value in (
-            ("summary", "A materially different advisory summary."),
-            ("last_modified", "2099-01-01T00:00:00Z"),
-            ("severity", "critical"),
-        ):
-            with self.subTest(field=field):
-                changed = self._with_affected_data(source)
-                changed[field] = value
-                self.assertTrue(self._fingerprint_stale(entry, changed))
-
-    def test_records_without_the_later_field_have_no_legacy_digests(self) -> None:
-        # Nothing to migrate, so the strict fingerprint stays the only match.
-        self.assertEqual(enrichment.legacy_source_fingerprints(record()), frozenset())
 
 
 if __name__ == "__main__":
