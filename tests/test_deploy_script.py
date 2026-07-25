@@ -1027,8 +1027,13 @@ for argument in "$@"; do
       if [[ "$previous" == "--data-urlencode" && "$query_argument" == event=* ]]; then
         event_filter="${query_argument#event=}"
       fi
-      if [[ "$query_argument" == *"/actions/workflows/build.yml/runs" ]]; then
-        workflow_filter="Build"
+      if [[ "$query_argument" == *"/actions/workflows/build.yml/runs" &&
+            "${FAKE_CI_UNSCOPED_WORKFLOW:-}" != "1" ]]; then
+        # GitHub scopes this endpoint by workflow file, not by run name, and
+        # run-name can rename the run. Filter the way the real API does.
+        # FAKE_CI_UNSCOPED_WORKFLOW simulates the API returning something
+        # outside that scope, which deploy.sh must still refuse.
+        workflow_filter=".github/workflows/build.yml"
       fi
       previous="$query_argument"
     done
@@ -1038,7 +1043,7 @@ for argument in "$@"; do
           $root.workflow_runs[]
           | select(
               .event == $event
-              and ($workflow == "" or .name == $workflow)
+              and ($workflow == "" or .path == $workflow)
             )
         ]}
       | .total_count = (
@@ -1816,6 +1821,9 @@ printf 'fake 10000000 9999000 %s 99%% /\n' "${FAKE_FREE_KB:-1024}"
         self.assertNotIn("Waiting for required workflow", result.stdout)
 
     def test_dispatch_from_another_workflow_file_is_rejected(self) -> None:
+        # GitHub scopes the dispatch query to build.yml, so this can only happen
+        # if the API returns something outside the scope it was asked for. The
+        # path check is the defence, so simulate exactly that.
         self.workflow_response()
         payload = json.loads(self.ci_response.read_text())
         run_name = f"CVE catalog Build {'b' * 40} test-request"
@@ -1825,7 +1833,7 @@ printf 'fake 10000000 9999000 %s 99%% /\n' "${FAKE_FREE_KB:-1024}"
         payload["workflow_runs"][0]["path"] = ".github/workflows/impostor.yml"
         self.ci_response.write_text(json.dumps(payload))
 
-        result = self.run_deploy()
+        result = self.run_deploy(FAKE_CI_UNSCOPED_WORKFLOW="1")
 
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("refusing to deploy", result.stdout)
@@ -1841,6 +1849,7 @@ printf 'fake 10000000 9999000 %s 99%% /\n' "${FAKE_FREE_KB:-1024}"
                 "head_branch": "main",
                 "head_sha": "b" * 40,
                 "event": "workflow_dispatch",
+                "path": ".github/workflows/cve-catalog-validate.yml",
                 "status": "completed",
                 "conclusion": "failure",
                 "html_url": "https://github.test/runs/4",
@@ -1865,6 +1874,7 @@ printf 'fake 10000000 9999000 %s 99%% /\n' "${FAKE_FREE_KB:-1024}"
                 "head_branch": "main",
                 "head_sha": "b" * 40,
                 "event": "workflow_dispatch",
+                "path": ".github/workflows/build.yml",
                 "status": "completed",
                 "conclusion": "failure",
                 "html_url": "https://github.test/runs/5",
@@ -1893,6 +1903,7 @@ printf 'fake 10000000 9999000 %s 99%% /\n' "${FAKE_FREE_KB:-1024}"
                 "head_branch": "main",
                 "head_sha": "b" * 40,
                 "event": "workflow_dispatch",
+                "path": ".github/workflows/build.yml",
                 "status": "completed",
                 "conclusion": "failure",
                 "html_url": "https://github.test/runs/0",
