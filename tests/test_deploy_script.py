@@ -81,6 +81,10 @@ class DeployScriptStaticTests(unittest.TestCase):
         self.assertIn('expected_title_prefix="CVE catalog Build ${sha} "', source)
         self.assertIn('select(.path == "dynamic/github-code-scanning/codeql")', source)
         self.assertIn('select(.name != "Scheduled")', source)
+        # Opening the lock must not truncate the holder's recorded PID, and the
+        # systemd timer must never take the lock away from a running deploy.
+        self.assertIn('exec 9>>"${LOCK_FILE}"', source)
+        self.assertIn('[[ "${FORCE}" == "true" && -t 0 && -z "${INVOCATION_ID:-}" ]]', source)
         self.assertLess(
             main.index('wait_for_ci "${REPOSITORY}" "${TARGET}"'),
             main.index('git reset --hard "${TARGET}"'),
@@ -1179,7 +1183,9 @@ exit 0
         }
         self.ci_response.write_text(json.dumps(payload), encoding="utf-8")
 
-    def run_deploy(self, **extra_environment: str) -> subprocess.CompletedProcess[str]:
+    def run_deploy(
+        self, *args: str, **extra_environment: str
+    ) -> subprocess.CompletedProcess[str]:
         environment = os.environ.copy()
         requested_path = f"{self.fake_bin}{os.pathsep}{environment['PATH']}"
         if os.name == "nt":
@@ -1235,7 +1241,7 @@ exit 0
         )
         environment.update(extra_environment)
         return subprocess.run(
-            [BASH, str(self.repo / "deploy.sh")],
+            [BASH, str(self.repo / "deploy.sh"), *args],
             text=True,
             capture_output=True,
             env=environment,
@@ -1883,6 +1889,74 @@ printf 'fake 10000000 9999000 %s 99%% /\n' "${FAKE_FREE_KB:-1024}"
 
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertNotIn("Graph Update: pip: failure", result.stdout)
+
+    def _start_lock_holder(self) -> subprocess.Popen[str]:
+        """Hold the deploy lock from a live process that looks like deploy.sh."""
+        holder = self.repo / "holder-deploy.sh"
+        # sleep runs with fd 9 closed so that killing this shell really does
+        # release the lock instead of leaving it held by an orphaned child.
+        holder.write_text(
+            '#!/usr/bin/env bash\nexec 9>>"$1"\nflock 9\necho ready\nsleep 120 9>&-\n',
+            encoding="utf-8",
+        )
+        holder.chmod(0o755)
+        process = subprocess.Popen(
+            [BASH, str(holder), str(self.repo / "deploy.lock")],
+            stdout=subprocess.PIPE,
+            text=True,
+        )
+
+        def _stop() -> None:
+            if process.poll() is None:
+                process.kill()
+            process.wait(timeout=10)
+            if process.stdout is not None:
+                process.stdout.close()
+
+        self.addCleanup(_stop)
+        self.assertEqual((process.stdout.readline() if process.stdout else ""), "ready\n")
+        (self.repo / "deploy.lock.pid").write_text(f"{process.pid}\n", encoding="utf-8")
+        return process
+
+    def test_interactive_force_takes_over_a_running_deploy(self) -> None:
+        self.workflow_response()
+        holder = self._start_lock_holder()
+
+        result = self.run_deploy(
+            "--force", DEPLOY_ALLOW_TAKEOVER="1", DEPLOY_TAKEOVER_GRACE="2"
+        )
+
+        self.assertIn(f"Taking over from running deploy process {holder.pid}", result.stdout)
+        self.assertNotIn("Another deploy is already running", result.stdout)
+        holder.wait(timeout=10)
+        self.assertIsNotNone(holder.poll())
+
+    def test_scheduled_run_never_takes_over_the_lock(self) -> None:
+        holder = self._start_lock_holder()
+
+        # INVOCATION_ID is what systemd sets; the timer must still defer.
+        result = self.run_deploy(
+            "--force",
+            INVOCATION_ID="deadbeef",
+            DEPLOY_ALLOW_TAKEOVER="auto",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("Another deploy is already running", result.stdout)
+        self.assertIsNone(holder.poll(), "the scheduled run killed the active deploy")
+
+    def test_stale_lock_pid_does_not_signal_an_unrelated_process(self) -> None:
+        holder = self._start_lock_holder()
+        # A recycled PID belonging to something that is not a deploy.
+        (self.repo / "deploy.lock.pid").write_text("1\n", encoding="utf-8")
+
+        result = self.run_deploy(
+            "--force", DEPLOY_ALLOW_TAKEOVER="1", DEPLOY_TAKEOVER_GRACE="2"
+        )
+
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("Another deploy is already running", result.stdout)
+        self.assertIsNone(holder.poll())
 
     def test_failed_scheduled_codeql_does_not_block_the_release(self) -> None:
         # A scheduled default-setup CodeQL scan shares the SHA main points at

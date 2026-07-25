@@ -397,46 +397,62 @@ def evidence_payload(record: dict[str, Any]) -> dict[str, Any]:
     return payload
 
 
-# Groups of evidence_payload keys in the order they were introduced, newest
-# last. A cached enrichment generated before a group existed hashed a payload
-# without it, so its digest can never match once the field starts being
-# populated. Replaying those older payload shapes migrates the accumulated
-# cache instead of silently discarding every enrichment the first time this
-# list grows. Append a group here whenever evidence_payload gains a field.
-_LATER_EVIDENCE_FIELDS: tuple[frozenset[str], ...] = (
-    frozenset({"affected_data", "affected_data_count", "affected_data_truncated"}),
+def _downgrade_payload_to_revision_1(payload: dict[str, Any]) -> dict[str, Any]:
+    """Revision 1 predates the ``affected_data`` evidence added on 2026-07-23."""
+    return {
+        key: value
+        for key, value in payload.items()
+        if key not in {"affected_data", "affected_data_count", "affected_data_truncated"}
+    }
+
+
+# ``source_fingerprint`` hashes the whole evidence payload, so adding a field to
+# ``evidence_payload`` changes every stored fingerprint at once and would discard
+# the entire accumulated cache on the next sync.  Any change to the payload must
+# bump EVIDENCE_PAYLOAD_REVISION and register a downgrade that rebuilds the
+# previous revision, keeping entries written before the change reusable.
+# Ordered newest first: each downgrade walks the payload one revision further
+# back.  ``test_every_evidence_payload_revision_registers_a_downgrade`` enforces
+# that the two stay in step.
+EVIDENCE_PAYLOAD_REVISION = 2
+EVIDENCE_PAYLOAD_DOWNGRADES: tuple[Callable[[dict[str, Any]], dict[str, Any]], ...] = (
+    _downgrade_payload_to_revision_1,
 )
 
 
-def _hash_evidence(payload: dict[str, Any]) -> str:
-    return hashlib.sha256(
-        json.dumps(
-            payload,
-            ensure_ascii=False,
-            separators=(",", ":"),
-            sort_keys=True,
-        ).encode("utf-8")
-    ).hexdigest()
+def _payload_fingerprint(payload: dict[str, Any]) -> str:
+    encoded = json.dumps(
+        payload,
+        ensure_ascii=False,
+        separators=(",", ":"),
+        sort_keys=True,
+    ).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
 
 
 def source_fingerprint(record: dict[str, Any]) -> str:
-    return _hash_evidence(evidence_payload(record))
+    return _payload_fingerprint(evidence_payload(record))
 
 
-def legacy_source_fingerprints(record: dict[str, Any]) -> frozenset[str]:
-    """Return digests this record produced under earlier evidence_payload shapes."""
+def accepted_source_fingerprints(record: dict[str, Any]) -> tuple[str, ...]:
+    """Return every fingerprint that still identifies this record's evidence.
 
+    The current payload plus each earlier revision, so an entry generated before
+    a payload field existed is not mistaken for stale evidence.  A matching entry
+    keeps its stored fingerprint rather than being rewritten to the current one:
+    the fingerprint records the evidence the model actually saw, and the
+    generated recipe drafts carry that same value.  Older revisions still cover
+    every other source field, so a genuine change to the record re-enriches the
+    entry on its own.
+    """
     payload = evidence_payload(record)
-    digests: set[str] = set()
-    dropped: set[str] = set()
-    for group in reversed(_LATER_EVIDENCE_FIELDS):
-        dropped |= group
-        if not dropped & payload.keys():
-            continue
-        digests.add(
-            _hash_evidence({key: value for key, value in payload.items() if key not in dropped})
-        )
-    return frozenset(digests)
+    fingerprints = [_payload_fingerprint(payload)]
+    for downgrade in EVIDENCE_PAYLOAD_DOWNGRADES:
+        payload = downgrade(payload)
+        fingerprint = _payload_fingerprint(payload)
+        if fingerprint not in fingerprints:
+            fingerprints.append(fingerprint)
+    return tuple(fingerprints)
 
 
 def _has_bounded_version(products: object) -> bool:
@@ -559,10 +575,7 @@ def enrichment_errors(entry: object, record: dict[str, Any]) -> list[str]:
         errors.append("ai_enrichment model is missing")
     if not _valid_generated_at(entry.get("generated_at")):
         errors.append("ai_enrichment generated_at is invalid")
-    fingerprint = entry.get("source_fingerprint")
-    if fingerprint != source_fingerprint(record) and fingerprint not in legacy_source_fingerprints(
-        record
-    ):
+    if entry.get("source_fingerprint") not in accepted_source_fingerprints(record):
         errors.append("ai_enrichment source_fingerprint is stale")
     if entry.get("gaps") != completeness_gaps(record):
         errors.append("ai_enrichment gaps do not match the source record")

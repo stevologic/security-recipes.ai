@@ -41,7 +41,9 @@ export GIT_SSH_COMMAND="${GIT_SSH_COMMAND:-ssh -o BatchMode=yes}"
 #   */15 * * * * /opt/security-recipes.ai/deploy.sh >> /var/log/security-recipes-deploy.log 2>&1
 #
 # Options / environment overrides:
-#   --force            Pull and redeploy even when HEAD did not change.
+#   --force            Pull and redeploy even when HEAD did not change. Run
+#                      interactively, this also takes over a deploy already
+#                      holding the lock (see DEPLOY_ALLOW_TAKEOVER).
 #   DEPLOY_PATH        Complete executable search path. Default: current PATH + Ubuntu paths
 #   DEPLOY_BRANCH      Branch to track.               Default: main
 #   DEPLOY_REMOTE      Git remote to fetch.           Default: origin
@@ -62,6 +64,10 @@ export GIT_SSH_COMMAND="${GIT_SSH_COMMAND:-ssh -o BatchMode=yes}"
 #   DEPLOY_GITHUB_API_URL     GitHub REST API base.    Default: https://api.github.com
 #   DEPLOY_GITHUB_REQUEST_TIMEOUT  Seconds per GitHub API request. Default: 30
 #   DEPLOY_REQUIRED_WORKFLOWS Comma-separated workflow names. Default: Build
+#   DEPLOY_ALLOW_TAKEOVER     Force taking over the lock on/off. Default: auto,
+#                           meaning --force from a terminal outside systemd.
+#   DEPLOY_TAKEOVER_GRACE     Seconds to wait after SIGTERM before SIGKILL when
+#                           taking over a running deploy. Default: 30
 #   DEPLOY_CI_TIMEOUT         Seconds to wait for CI.  Default: 1800
 #   DEPLOY_CI_POLL_SECONDS    Seconds between polls.   Default: 60
 #   DEPLOY_CI_SETTLE_SECONDS  Stable-green window.     Default: 30
@@ -87,6 +93,7 @@ REMOTE="${DEPLOY_REMOTE:-origin}"
 GIT_TIMEOUT="${DEPLOY_GIT_TIMEOUT:-120}"
 HEALTH_TIMEOUT="${DEPLOY_HEALTH_TIMEOUT:-90}"
 LOCK_FILE="${DEPLOY_LOCK_FILE:-/var/lock/security-recipes-deploy.lock}"
+TAKEOVER_GRACE="${DEPLOY_TAKEOVER_GRACE:-30}"
 PROXY_HEALTH_URL="${DEPLOY_PROXY_HEALTH_URL:-${DEPLOY_HEALTH_URL:-}}"
 PROXY_MODE="${DEPLOY_PROXY_MODE:-auto}"
 COMPOSE_FAIL2BAN="${DEPLOY_COMPOSE_FAIL2BAN:-}"
@@ -149,6 +156,7 @@ if [[ "${SUCCESS_HEARTBEAT_URL}" == *$'\n'* ||
       "${SUCCESS_HEARTBEAT_URL}" == *$'\r'* ]]; then
   die "DEPLOY_SUCCESS_HEARTBEAT_URL cannot contain line breaks."
 fi
+[[ "${TAKEOVER_GRACE}" =~ ^[1-9][0-9]*$ ]] || die "DEPLOY_TAKEOVER_GRACE must be a positive integer."
 [[ -n "${REQUIRED_WORKFLOWS//[[:space:],]/}" ]] || die "DEPLOY_REQUIRED_WORKFLOWS must name at least one workflow."
 [[ "${PROXY_MODE}" =~ ^(auto|bundled|host)$ ]] || die "DEPLOY_PROXY_MODE must be auto, bundled, or host."
 [[ "${HOST_CADDY_LOG_DIR}" =~ ^/[A-Za-z0-9._-]+/[A-Za-z0-9._-]+/[A-Za-z0-9._/-]+$ &&
@@ -164,19 +172,88 @@ fi
   die "DEPLOY_MCP_IMAGE_REPOSITORY contains unsupported characters."
 
 # --- single-instance guard (flock on Linux, mkdir fallback elsewhere) -------
+LOCK_PID_FILE="${LOCK_FILE}.pid"
+
+# An operator running --force at a terminal is asking to take control of the
+# host, so a deploy left running by the timer (it can sit in wait_for_ci for
+# DEPLOY_CI_TIMEOUT) must not turn that into a no-op. The scheduler itself must
+# never take over: overlapping unattended deploys are what the lock exists for.
+deploy_takeover_allowed() {
+  case "${DEPLOY_ALLOW_TAKEOVER:-auto}" in
+    1 | true | yes) return 0 ;;
+    0 | false | no) return 1 ;;
+  esac
+  [[ "${FORCE}" == "true" && -t 0 && -z "${INVOCATION_ID:-}" ]]
+}
+
+# Print the PID recorded by the lock holder, but only when it is still a live
+# deploy.sh. A stale or recycled PID therefore fails closed rather than
+# signalling an unrelated process.
+lock_holder_pid() {
+  local pid
+  [[ -r "${LOCK_PID_FILE}" ]] || return 1
+  read -r pid <"${LOCK_PID_FILE}" 2>/dev/null || return 1
+  [[ "${pid}" =~ ^[1-9][0-9]*$ ]] || return 1
+  (( pid == $$ || pid == 1 )) && return 1
+  grep -qa 'deploy\.sh' "/proc/${pid}/cmdline" 2>/dev/null || return 1
+  printf '%s' "${pid}"
+}
+
+terminate_lock_holder() {
+  local pid="$1"
+  local waited=0
+  log "Taking over from running deploy process ${pid}."
+  kill -TERM "${pid}" 2>/dev/null || true
+  while (( waited < TAKEOVER_GRACE )) && kill -0 "${pid}" 2>/dev/null; do
+    sleep 1
+    (( waited += 1 ))
+  done
+  if kill -0 "${pid}" 2>/dev/null; then
+    log "Deploy process ${pid} ignored SIGTERM after ${TAKEOVER_GRACE}s; sending SIGKILL."
+    kill -KILL "${pid}" 2>/dev/null || true
+    sleep 1
+  fi
+}
+
 if command -v flock >/dev/null 2>&1; then
   mkdir -p "$(dirname "${LOCK_FILE}")"
-  exec 9>"${LOCK_FILE}"
+  # Append rather than truncate: opening the lock must not destroy the holder's
+  # recorded PID before we have had a chance to read it.
+  exec 9>>"${LOCK_FILE}"
   if ! flock -n 9; then
-    log "Another deploy is already running; exiting."
-    exit 0
+    lock_holder=""
+    if deploy_takeover_allowed; then
+      lock_holder="$(lock_holder_pid || true)"
+    fi
+    if [[ -n "${lock_holder}" ]]; then
+      terminate_lock_holder "${lock_holder}"
+      flock -w "${TAKEOVER_GRACE}" 9 ||
+        die "Could not acquire the deploy lock after taking over ${lock_holder}."
+    else
+      log "Another deploy is already running; exiting."
+      exit 0
+    fi
   fi
+  printf '%s\n' "$$" >"${LOCK_PID_FILE}"
+  trap 'rm -f "${LOCK_PID_FILE}"' EXIT
 else
   if ! mkdir "${LOCK_FILE}.d" 2>/dev/null; then
-    log "Another deploy is already running (${LOCK_FILE}.d exists); exiting."
-    exit 0
+    lock_holder=""
+    if deploy_takeover_allowed; then
+      lock_holder="$(lock_holder_pid || true)"
+    fi
+    if [[ -n "${lock_holder}" ]]; then
+      terminate_lock_holder "${lock_holder}"
+      rm -rf "${LOCK_FILE}.d"
+      mkdir "${LOCK_FILE}.d" 2>/dev/null ||
+        die "Could not acquire the deploy lock after taking over ${lock_holder}."
+    else
+      log "Another deploy is already running (${LOCK_FILE}.d exists); exiting."
+      exit 0
+    fi
   fi
-  trap 'rmdir "${LOCK_FILE}.d"' EXIT
+  printf '%s\n' "$$" >"${LOCK_PID_FILE}"
+  trap 'rm -f "${LOCK_PID_FILE}"; rmdir "${LOCK_FILE}.d"' EXIT
 fi
 
 cd "${REPO_DIR}"
