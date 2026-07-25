@@ -80,6 +80,7 @@ class DeployScriptStaticTests(unittest.TestCase):
         self.assertIn('workflow_file="build.yml"', source)
         self.assertIn('expected_title_prefix="CVE catalog Build ${sha} "', source)
         self.assertIn('select(.path == "dynamic/github-code-scanning/codeql")', source)
+        self.assertIn('select(.name != "Scheduled")', source)
         self.assertLess(
             main.index('wait_for_ci "${REPOSITORY}" "${TARGET}"'),
             main.index('git reset --hard "${TARGET}"'),
@@ -1882,6 +1883,32 @@ printf 'fake 10000000 9999000 %s 99%% /\n' "${FAKE_FREE_KB:-1024}"
 
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertNotIn("Graph Update: pip: failure", result.stdout)
+
+    def test_failed_scheduled_codeql_does_not_block_the_release(self) -> None:
+        # A scheduled default-setup CodeQL scan shares the SHA main points at
+        # and cannot be retried, so it must never gate the release.
+        self.workflow_response()
+        payload = json.loads(self.ci_response.read_text())
+        payload["workflow_runs"].append(
+            {
+                "id": 7,
+                "run_attempt": 1,
+                "name": "Scheduled",
+                "head_branch": "main",
+                "head_sha": "b" * 40,
+                "event": "dynamic",
+                "path": "dynamic/github-code-scanning/codeql",
+                "status": "completed",
+                "conclusion": "failure",
+                "html_url": "https://github.test/runs/7",
+            }
+        )
+        self.ci_response.write_text(json.dumps(payload))
+
+        result = self.run_deploy()
+
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertNotIn("Scheduled: failure", result.stdout)
 
     def test_failed_dynamic_codeql_stops_before_candidate_mutation(self) -> None:
         self.workflow_response()
