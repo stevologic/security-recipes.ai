@@ -1,0 +1,536 @@
+/* One collection UI for the two browsable corpora: /recipes/ and
+ * /cve-database/.
+ *
+ * Both pages present the same task — search a large set, narrow it with
+ * facets, scan results — so they should not look or behave like two products.
+ * They previously carried three separate token vocabularies (--library-*,
+ * --cve-db-*, --cve-*) that expressed the same intent with different values,
+ * and the catalog additionally shipped a light palette that a later file had
+ * to override back to dark.
+ *
+ * This file is the single source of truth for that shared surface. It loads
+ * after both page stylesheets, so the tokens below win. Structural rules are
+ * written with paired selectors rather than a renamed component so the two
+ * pages cannot drift apart again: one rule always styles both.
+ */
+
+.recipe-library,
+.cve-catalog,
+.cve-database {
+  --collection-surface: rgba(3, 9, 11, 0.9);
+  --collection-surface-soft: rgba(9, 18, 21, 0.8);
+  --collection-surface-raised: rgba(2, 8, 10, 0.94);
+  --collection-border: rgba(148, 163, 184, 0.2);
+  --collection-border-strong: rgba(45, 212, 191, 0.42);
+  --collection-text: var(--arr-ink-0, #f5f7fb);
+  --collection-muted: var(--arr-ink-2, #8a92a6);
+  --collection-accent: var(--arr-accent-1, #2dd4bf);
+  --collection-focus: var(--arr-accent-2, #67e8f9);
+
+  --collection-radius-panel: 11px;
+  --collection-radius-control: 8px;
+  --collection-radius-card: 9px;
+
+  --collection-label-size: 0.69rem;
+  --collection-control-size: 0.79rem;
+  --collection-legend-size: 0.65rem;
+  --collection-sidebar-width: 16.5rem;
+  --collection-sticky-top: 9.45rem;
+}
+
+/* Legacy vocabularies now resolve to the shared tokens, so existing rules in
+ * recipe-library.css, cve-catalog.css, and cve-database.css render identical
+ * surfaces without being rewritten. */
+.recipe-library {
+  --library-surface: var(--collection-surface);
+  --library-surface-soft: var(--collection-surface-soft);
+  --library-surface-raised: var(--collection-surface-raised);
+  --library-border: var(--collection-border);
+  --library-border-strong: var(--collection-border-strong);
+  --library-text: var(--collection-text);
+  --library-muted: var(--collection-muted);
+  --library-accent: var(--collection-accent);
+  --library-focus: var(--collection-focus);
+}
+
+.cve-catalog,
+.cve-database__catalog-region .cve-catalog {
+  --cve-surface: var(--collection-surface);
+  --cve-surface-strong: var(--collection-surface-raised);
+  --cve-border: var(--collection-border);
+  --cve-border-strong: var(--collection-border-strong);
+  --cve-text: var(--collection-text);
+  --cve-muted: var(--collection-muted);
+  --cve-subtle: rgba(255, 255, 255, 0.035);
+  --cve-accent: var(--collection-accent);
+  --cve-focus: var(--collection-focus);
+}
+
+.cve-database {
+  --cve-db-panel: var(--collection-surface);
+  --cve-db-panel-strong: var(--collection-surface-raised);
+  --cve-db-border: var(--collection-border);
+  --cve-db-border-strong: var(--collection-border-strong);
+  --cve-db-muted: var(--collection-muted);
+  --cve-db-copy: var(--arr-ink-1, #c8cdd9);
+  --cve-db-ink: var(--collection-text);
+  --cve-db-teal: var(--collection-accent);
+  --cve-db-cyan: var(--collection-focus);
+  --cve-db-radius: var(--collection-radius-control);
+  --cve-db-feature-radius: var(--collection-radius-panel);
+}
+
+/* ---------------------------------------------------------------- layout - */
+
+.recipe-library__panel,
+.cve-catalog__panel {
+  display: grid;
+  grid-template-columns: var(--collection-sidebar-width) minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.recipe-library__panel > *,
+.cve-catalog__panel > * {
+  min-width: 0;
+}
+
+.recipe-library__facets,
+.cve-catalog__facets {
+  position: sticky;
+  top: var(--collection-sticky-top);
+  z-index: 4;
+  max-height: calc(100vh - 10.4rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0.85rem;
+  border: 1px solid var(--collection-border);
+  border-radius: var(--collection-radius-panel);
+  background: var(--collection-surface);
+  scrollbar-width: thin;
+}
+
+.recipe-library__results,
+.cve-catalog__results-region {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  min-width: 0;
+}
+
+/* --------------------------------------------------------------- toolbar - */
+
+.recipe-library__toolbar,
+.cve-catalog__toolbar {
+  position: sticky;
+  top: var(--collection-sticky-top);
+  z-index: 10;
+  display: grid;
+  grid-template-columns: minmax(16rem, 1fr) 11rem;
+  gap: 0.7rem;
+  align-items: end;
+  padding: 0.7rem;
+  border: 1px solid var(--collection-border);
+  border-radius: var(--collection-radius-panel);
+  background: var(--collection-surface-raised);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+/* ---------------------------------------------------------------- search - */
+
+.recipe-browser__search,
+.cve-catalog__search {
+  display: grid;
+  gap: 0.28rem;
+  min-width: 0;
+}
+
+.recipe-browser__search > label,
+.cve-catalog__search > label {
+  color: var(--collection-muted);
+  font-size: var(--collection-label-size);
+  font-weight: 700;
+}
+
+.recipe-browser__search-field,
+.cve-catalog__search-field {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  padding: 0 0.65rem;
+  border: 1px solid var(--collection-border);
+  border-radius: var(--collection-radius-control);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--collection-muted);
+}
+
+.recipe-browser__search-field:focus-within,
+.cve-catalog__search-field:focus-within {
+  border-color: var(--collection-focus);
+}
+
+.recipe-browser__search-field svg,
+.cve-catalog__search-field svg {
+  flex: none;
+  width: 1rem;
+  height: 1rem;
+  fill: none;
+  stroke: var(--collection-accent);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.recipe-browser__search-field input,
+.cve-catalog__search-field input,
+.cve-catalog__search-field .cve-catalog__input {
+  width: 100%;
+  min-width: 0;
+  min-height: 42px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--collection-text);
+  font-size: 0.86rem;
+}
+
+.recipe-browser__search-field input:focus,
+.cve-catalog__search-field input:focus {
+  outline: none;
+}
+
+.recipe-browser__search-clear,
+.cve-catalog__search-clear {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 1.65rem;
+  height: 1.65rem;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--collection-muted);
+  cursor: pointer;
+}
+
+.recipe-browser__search-clear svg,
+.cve-catalog__search-clear svg {
+  width: 0.7rem;
+  height: 0.7rem;
+  stroke: currentColor;
+}
+
+/* ----------------------------------------------------- selects and labels - */
+
+.recipe-library__filter-group,
+.cve-catalog__filter-group {
+  display: grid;
+  gap: 0.65rem;
+  min-width: 0;
+  margin: 0.85rem 0 0;
+  padding: 0.8rem 0 0;
+  border: 0;
+  border-top: 1px solid var(--collection-border);
+}
+
+.recipe-library__filter-group legend,
+.cve-catalog__filter-group legend {
+  float: left;
+  width: 100%;
+  margin: 0 0 0.6rem;
+  padding: 0;
+  color: var(--collection-muted);
+  font-family: var(--arr-font-mono, ui-monospace, monospace);
+  font-size: var(--collection-legend-size);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.recipe-library__filter-group label,
+.recipe-library__sort,
+.cve-catalog__filter-group label,
+.cve-catalog__sort,
+.cve-catalog__field {
+  display: grid;
+  gap: 0.28rem;
+  color: var(--collection-muted);
+  font-size: var(--collection-label-size);
+  font-weight: 700;
+}
+
+.recipe-library__filter-group select,
+.recipe-library__sort select,
+.cve-catalog__filter-group select,
+.cve-catalog__sort select,
+.cve-catalog__select {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 2rem 0 0.65rem;
+  border: 1px solid var(--collection-border);
+  border-radius: var(--collection-radius-control);
+  background: #071012;
+  color: var(--collection-text);
+  font-size: var(--collection-control-size);
+}
+
+/* ---------------------------------------------------------- facet lanes - */
+
+.recipe-browser__categories,
+.cve-catalog__lanes {
+  display: grid;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.recipe-browser__category,
+.cve-catalog__lane {
+  display: grid;
+  grid-template-columns: 0.5rem minmax(0, 1fr) auto;
+  gap: 0.55rem;
+  align-items: center;
+  width: 100%;
+  min-height: 44px;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--collection-border);
+  border-radius: var(--collection-radius-control);
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--collection-text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.recipe-browser__category:hover,
+.cve-catalog__lane:hover {
+  border-color: var(--collection-border-strong);
+}
+
+.recipe-browser__category.is-active,
+.cve-catalog__lane.is-active,
+.cve-catalog__lane[aria-pressed="true"] {
+  border-color: rgba(45, 212, 191, 0.44);
+  background: rgba(45, 212, 191, 0.09);
+}
+
+.recipe-browser__category-mark,
+.cve-catalog__lane-mark {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: var(--collection-accent);
+}
+
+.cve-catalog__lane strong {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.cve-catalog__lane small {
+  display: block;
+  color: var(--collection-muted);
+  font-size: 0.66rem;
+}
+
+.cve-catalog__lane b {
+  color: var(--collection-muted);
+  font-family: var(--arr-font-mono, ui-monospace, monospace);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+/* -------------------------------------------------------- active filters - */
+
+.recipe-library__active-filters,
+.cve-catalog__active-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding: 0.65rem 0 0;
+}
+
+.recipe-library__active-filters:empty,
+.cve-catalog__active-filters:empty {
+  display: none;
+}
+
+.recipe-library__active-filters button,
+.cve-catalog__active-filters button {
+  min-height: 44px;
+  padding: 0.35rem 0.65rem;
+  border: 1px solid rgba(45, 212, 191, 0.3);
+  border-radius: 999px;
+  background: rgba(45, 212, 191, 0.08);
+  color: #bcf7ef;
+  font-size: 0.7rem;
+  cursor: pointer;
+}
+
+.recipe-library__active-filters button:hover,
+.cve-catalog__active-filters button:hover {
+  border-color: var(--collection-focus);
+  background: rgba(45, 212, 191, 0.16);
+}
+
+/* --------------------------------------------------------- result header - */
+
+.recipe-library__result-heading,
+.cve-catalog__result-heading {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 0.15rem 0.1rem 0;
+}
+
+.recipe-library__result-heading > span,
+.cve-catalog__result-heading > span {
+  color: var(--collection-muted);
+  font-family: var(--arr-font-mono, ui-monospace, monospace);
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.recipe-browser__summary,
+.cve-catalog__summary {
+  margin: 0;
+  color: var(--collection-muted);
+  font-size: 0.76rem;
+}
+
+/* -------------------------------------------- reset, toggle, and buttons - */
+
+.recipe-library__reset,
+.recipe-library__filter-toggle,
+.cve-catalog__reset,
+.cve-catalog__filter-toggle,
+.cve-catalog__clear {
+  min-height: 44px;
+  padding: 0.4rem 0.75rem;
+  border: 1px solid var(--collection-border);
+  border-radius: var(--collection-radius-control);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--collection-text);
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.recipe-library__reset:hover,
+.recipe-library__filter-toggle:hover,
+.cve-catalog__reset:hover,
+.cve-catalog__filter-toggle:hover,
+.cve-catalog__clear:hover {
+  border-color: var(--collection-border-strong);
+}
+
+/* The sidebar is always visible from the medium breakpoint up, so the toggle
+ * and its close button only exist for the stacked mobile layout. */
+.recipe-library__filter-toggle,
+.cve-catalog__filter-toggle,
+.recipe-library__filter-close,
+.cve-catalog__filter-close {
+  display: none;
+}
+
+/* ------------------------------------------------------ empty and paging - */
+
+.recipe-browser__empty,
+.cve-catalog__empty {
+  display: grid;
+  gap: 0.4rem;
+  justify-items: start;
+  padding: 1.1rem;
+  border: 1px dashed var(--collection-border);
+  border-radius: var(--collection-radius-panel);
+  background: var(--collection-surface-soft);
+  color: var(--collection-muted);
+  font-size: 0.8rem;
+}
+
+.recipe-browser__more,
+.cve-catalog__more-region {
+  display: flex;
+  justify-content: center;
+  padding: 0.35rem 0 0;
+}
+
+.recipe-browser__more-button,
+.cve-catalog__more {
+  min-height: 44px;
+  padding: 0.5rem 1.15rem;
+  border: 1px solid var(--collection-border-strong);
+  border-radius: var(--collection-radius-control);
+  background: rgba(45, 212, 191, 0.08);
+  color: var(--collection-text);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.recipe-browser__more-button:hover,
+.cve-catalog__more:hover {
+  background: rgba(45, 212, 191, 0.16);
+}
+
+.recipe-browser__status,
+.cve-catalog__status {
+  margin: 0;
+  color: var(--collection-muted);
+  font-size: 0.72rem;
+}
+
+/* --------------------------------------------------------------- results - */
+
+/* Both corpora scan best as one dense column: a CVE row and a recipe card
+ * carry long titles plus a metadata strip, which a two-up grid truncates. */
+.cve-catalog__results {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* ------------------------------------------------------------ responsive - */
+
+@media (max-width: 60rem) {
+  .recipe-library__panel,
+  .cve-catalog__panel {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .recipe-library__facets,
+  .cve-catalog__facets {
+    position: static;
+    max-height: none;
+  }
+
+  .recipe-library__toolbar,
+  .cve-catalog__toolbar {
+    position: static;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .recipe-library__filter-toggle,
+  .cve-catalog__filter-toggle,
+  .recipe-library__filter-close,
+  .cve-catalog__filter-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+  }
+
+  .recipe-library__facets[aria-hidden="true"],
+  .cve-catalog__facets[aria-hidden="true"] {
+    display: none;
+  }
+}
