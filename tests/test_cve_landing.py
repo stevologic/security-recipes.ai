@@ -1013,8 +1013,12 @@ class CveLandingRenderTests(unittest.TestCase):
         rule stays covered either way.
         """
         recipe = deepcopy(mcp_server.cve_catalog.get_recipe("CVE-2026-14956"))
+        # products_html is structured affected_data OR the CPE product rows, so
+        # both have to be empty to reach the fallback.
         recipe["source_record"]["products"] = []
         recipe["source_record"]["product_match_count"] = 0
+        recipe["source_record"]["affected_data"] = []
+        recipe["source_record"]["affected_data_count"] = 0
 
         page = mcp_server._render_cve_landing_page(recipe)
 
