@@ -397,14 +397,46 @@ def evidence_payload(record: dict[str, Any]) -> dict[str, Any]:
     return payload
 
 
+# Groups of evidence_payload keys in the order they were introduced, newest
+# last. A cached enrichment generated before a group existed hashed a payload
+# without it, so its digest can never match once the field starts being
+# populated. Replaying those older payload shapes migrates the accumulated
+# cache instead of silently discarding every enrichment the first time this
+# list grows. Append a group here whenever evidence_payload gains a field.
+_LATER_EVIDENCE_FIELDS: tuple[frozenset[str], ...] = (
+    frozenset({"affected_data", "affected_data_count", "affected_data_truncated"}),
+)
+
+
+def _hash_evidence(payload: dict[str, Any]) -> str:
+    return hashlib.sha256(
+        json.dumps(
+            payload,
+            ensure_ascii=False,
+            separators=(",", ":"),
+            sort_keys=True,
+        ).encode("utf-8")
+    ).hexdigest()
+
+
 def source_fingerprint(record: dict[str, Any]) -> str:
-    payload = json.dumps(
-        evidence_payload(record),
-        ensure_ascii=False,
-        separators=(",", ":"),
-        sort_keys=True,
-    ).encode("utf-8")
-    return hashlib.sha256(payload).hexdigest()
+    return _hash_evidence(evidence_payload(record))
+
+
+def legacy_source_fingerprints(record: dict[str, Any]) -> frozenset[str]:
+    """Return digests this record produced under earlier evidence_payload shapes."""
+
+    payload = evidence_payload(record)
+    digests: set[str] = set()
+    dropped: set[str] = set()
+    for group in reversed(_LATER_EVIDENCE_FIELDS):
+        dropped |= group
+        if not dropped & payload.keys():
+            continue
+        digests.add(
+            _hash_evidence({key: value for key, value in payload.items() if key not in dropped})
+        )
+    return frozenset(digests)
 
 
 def _has_bounded_version(products: object) -> bool:
@@ -527,7 +559,10 @@ def enrichment_errors(entry: object, record: dict[str, Any]) -> list[str]:
         errors.append("ai_enrichment model is missing")
     if not _valid_generated_at(entry.get("generated_at")):
         errors.append("ai_enrichment generated_at is invalid")
-    if entry.get("source_fingerprint") != source_fingerprint(record):
+    fingerprint = entry.get("source_fingerprint")
+    if fingerprint != source_fingerprint(record) and fingerprint not in legacy_source_fingerprints(
+        record
+    ):
         errors.append("ai_enrichment source_fingerprint is stale")
     if entry.get("gaps") != completeness_gaps(record):
         errors.append("ai_enrichment gaps do not match the source record")
