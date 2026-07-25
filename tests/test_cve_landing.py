@@ -989,11 +989,6 @@ class CveLandingRenderTests(unittest.TestCase):
             'Upgrade WordPress sites to Bricksforge 3.1.8.7 or later.">',
             page,
         )
-        self.assertIn(
-            "The stable source-backed recipe above contains product-specific version evidence "
-            "and upgrade guidance.",
-            page,
-        )
         self.assertRegex(
             page,
             r"<dt>Recommended action</dt><dd>[^<]*Upgrade WordPress sites to "
@@ -1008,6 +1003,51 @@ class CveLandingRenderTests(unittest.TestCase):
         ):
             with self.subTest(heading=heading):
                 self.assertEqual(page.count(heading), 1)
+
+    def test_reviewed_version_evidence_fills_an_empty_product_table(self) -> None:
+        """Cover the empty-products branch without assuming upstream stays empty.
+
+        NVD can start publishing affected-product rows for any CVE at any time
+        (CVE-2026-14956 gained one), which legitimately replaces this fallback
+        with a real table. Drive the branch from the record so the rendering
+        rule stays covered either way.
+        """
+        recipe = deepcopy(mcp_server.cve_catalog.get_recipe("CVE-2026-14956"))
+        recipe["source_record"]["products"] = []
+        recipe["source_record"]["product_match_count"] = 0
+
+        page = mcp_server._render_cve_landing_page(recipe)
+
+        self.assertIn(
+            "The stable source-backed recipe above contains product-specific version evidence "
+            "and upgrade guidance.",
+            page,
+        )
+        self.assertNotIn("No browser-safe affected-product rows", page)
+
+    def test_populated_products_replace_the_reviewed_evidence_fallback(self) -> None:
+        recipe = deepcopy(mcp_server.cve_catalog.get_recipe("CVE-2026-14956"))
+        recipe["source_record"]["products"] = [
+            {
+                "vendor": "bricksforge",
+                "product": "bricksforge",
+                "version": "*",
+                "version_start_including": "",
+                "version_start_excluding": "",
+                "version_end_including": "",
+                "version_end_excluding": "3.1.8.7",
+            }
+        ]
+        recipe["source_record"]["product_match_count"] = 1
+
+        page = mcp_server._render_cve_landing_page(recipe)
+
+        self.assertIn("bricksforge", page.lower())
+        self.assertNotIn(
+            "The stable source-backed recipe above contains product-specific version evidence",
+            page,
+        )
+        self.assertNotIn("No browser-safe affected-product rows", page)
 
     def test_real_reviewed_cve_omits_unrelated_qualified_records(self) -> None:
         recipe = mcp_server._bounded_cve_landing_lookup("CVE-2026-14956")
