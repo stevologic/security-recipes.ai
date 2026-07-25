@@ -899,5 +899,66 @@ class CVEAIEnrichmentTests(unittest.TestCase):
         self.assertIn("ai_enrichment", results[1])
 
 
+class EvidencePayloadMigrationTests(unittest.TestCase):
+    """Enrichments cached before a payload field existed must survive its arrival."""
+
+    def _cached_entry(self, source: dict[str, object]) -> dict[str, object]:
+        """An entry fingerprinted before evidence_payload grew affected_data."""
+        return {
+            "schema_version": enrichment.ENRICHMENT_SCHEMA_VERSION,
+            "prompt_version": enrichment.PROMPT_VERSION,
+            "model": "gpt-test",
+            "generated_at": "2026-07-20T00:00:00Z",
+            "source_fingerprint": enrichment.source_fingerprint(source),
+            "gaps": enrichment.completeness_gaps(source),
+            "status": "insufficient_evidence",
+            "business_risk": "",
+            "exposure_conditions": [],
+            "remediation_steps": [],
+            "verification_steps": [],
+            "uncertainty": [],
+            "recipe_specificity": "generic",
+            "claim_evidence": [],
+            "source_urls": [],
+            "retrieved_source_urls": [],
+        }
+
+    def _with_affected_data(self, source: dict[str, object]) -> dict[str, object]:
+        rebuilt = dict(source)
+        rebuilt["affected_data"] = [{"vendor": "acme", "product": "widget", "versions": ["1.0"]}]
+        rebuilt["affected_data_count"] = 1
+        rebuilt["affected_data_truncated"] = False
+        return rebuilt
+
+    def _fingerprint_stale(self, entry: dict[str, object], source: dict[str, object]) -> bool:
+        return any(
+            "source_fingerprint" in error for error in enrichment.enrichment_errors(entry, source)
+        )
+
+    def test_cached_entry_survives_a_newly_populated_payload_field(self) -> None:
+        source = record()
+        entry = self._cached_entry(source)
+
+        self.assertFalse(self._fingerprint_stale(entry, self._with_affected_data(source)))
+
+    def test_real_source_changes_are_still_detected_as_stale(self) -> None:
+        source = record()
+        entry = self._cached_entry(source)
+
+        for field, value in (
+            ("summary", "A materially different advisory summary."),
+            ("last_modified", "2099-01-01T00:00:00Z"),
+            ("severity", "critical"),
+        ):
+            with self.subTest(field=field):
+                changed = self._with_affected_data(source)
+                changed[field] = value
+                self.assertTrue(self._fingerprint_stale(entry, changed))
+
+    def test_records_without_the_later_field_have_no_legacy_digests(self) -> None:
+        # Nothing to migrate, so the strict fingerprint stays the only match.
+        self.assertEqual(enrichment.legacy_source_fingerprints(record()), frozenset())
+
+
 if __name__ == "__main__":
     unittest.main()
