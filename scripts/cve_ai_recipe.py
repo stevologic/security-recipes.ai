@@ -28,6 +28,7 @@ except (ImportError, ModuleNotFoundError):  # Direct ``python scripts/...`` exec
 
 MANIFEST_SCHEMA_VERSION = 1
 GENERATOR_ID = "cve-ai-enrichment-v1"
+GENERATED_RECIPE_AUTHOR = "AI-assisted draft"
 MANAGED_PREFIX = "ai-enrichment-"
 GENERATED_MARKER = f'generated_by: "{GENERATOR_ID}"'
 CVE_RE = re.compile(r"CVE-\d{4}-\d{4,}")
@@ -75,6 +76,10 @@ class RecipeDraft:
     source_fingerprint: str
     content: str
     sha256: str
+    description: str
+    author: str
+    date: str
+    model: str
 
     @property
     def metadata(self) -> dict[str, str]:
@@ -83,6 +88,10 @@ class RecipeDraft:
             "path": self.path,
             "maturity": "development",
             "title": self.title,
+            "description": self.description,
+            "author": self.author,
+            "date": self.date,
+            "model": self.model,
         }
 
 
@@ -229,7 +238,13 @@ def _claim_lines(
 
 def _frontmatter(
     record: dict[str, Any], entry: dict[str, Any], *, title: str, archetype_ids: list[str]
-) -> list[str] | None:
+) -> tuple[list[str], dict[str, str]] | None:
+    """Render the draft frontmatter and the catalog metadata it commits to.
+
+    The catalog records these values before ``reconcile`` writes the file, so
+    they must be the post-parse values the inventory reads back rather than the
+    raw inputs.
+    """
     cve = _normalized_text(record.get("cve"), limit=40).upper()
     severity = _normalized_text(record.get("severity"), limit=20).lower()
     ecosystem = _normalized_text(record.get("ecosystem"), limit=100)
@@ -247,6 +262,14 @@ def _frontmatter(
     description = f"AI-assisted, evidence-gated remediation draft for {cve}; security review required."
     weight = {"critical": 70, "high": 75, "medium": 80, "low": 85}[severity]
     source_fingerprint = _normalized_text(entry.get("source_fingerprint"), limit=64)
+    # _yaml_string round-trips through json, so the normalized text below is
+    # exactly what the catalog's frontmatter reader parses back out.
+    metadata = {
+        "description": _normalized_text(description, limit=300),
+        "author": GENERATED_RECIPE_AUTHOR,
+        "date": _normalized_text(disclosed, limit=40),
+        "model": _normalized_text(entry.get("model"), limit=160),
+    }
 
     return [
         "---",
@@ -254,7 +277,7 @@ def _frontmatter(
         f"linkTitle: {_yaml_string(f'{cve} AI-assisted draft', limit=300)}",
         f"description: {_yaml_string(description, limit=300)}",
         'tool: "general"',
-        'author: "AI-assisted draft"',
+        f"author: {_yaml_string(GENERATED_RECIPE_AUTHOR, limit=160)}",
         'team: "Security"',
         'maturity: "development"',
         f"model: {_yaml_string(entry.get('model'), limit=160)}",
@@ -272,7 +295,7 @@ def _frontmatter(
         f"generated_by: {_yaml_string(GENERATOR_ID, limit=80)}",
         f"source_fingerprint: {_yaml_string(source_fingerprint, limit=64)}",
         "---",
-    ]
+    ], metadata
 
 
 def build_recipe_draft(
@@ -296,9 +319,10 @@ def build_recipe_draft(
         return None
 
     title = f"{cve} — AI-assisted evidence-gated remediation draft"
-    frontmatter = _frontmatter(record, entry, title=title, archetype_ids=archetype_ids)
-    if frontmatter is None:
+    rendered = _frontmatter(record, entry, title=title, archetype_ids=archetype_ids)
+    if rendered is None:
         return None
+    frontmatter, frontmatter_metadata = rendered
 
     lines = [
         *frontmatter,
@@ -373,6 +397,10 @@ def build_recipe_draft(
         source_fingerprint=source_fingerprint,
         content=content,
         sha256=digest,
+        description=frontmatter_metadata["description"],
+        author=frontmatter_metadata["author"],
+        date=frontmatter_metadata["date"],
+        model=frontmatter_metadata["model"],
     )
 
 

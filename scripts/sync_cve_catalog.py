@@ -3259,6 +3259,10 @@ def main(argv: list[str] | None = None) -> int:
                         maturity=str(metadata["maturity"]),
                         title=str(metadata["title"]),
                         content_markdown="",
+                        description=str(metadata["description"]),
+                        author=str(metadata["author"]),
+                        date=str(metadata["date"]),
+                        model=str(metadata["model"]),
                     )
                     effective_existing[recipe.cve] = [recipe]
                     apply_markdown_inventory(record, [recipe])
