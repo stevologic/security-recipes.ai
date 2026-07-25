@@ -354,11 +354,17 @@ wait_for_ci() {
         return 1
       fi
       if [[ "${event}" == "dynamic" ]]; then
+        # Default-setup CodeQL reports its trigger in .name ("Push on main",
+        # "PR #12", "Scheduled"). Only the run for this push gates the release:
+        # a scheduled scan merely shares the SHA of whatever main points at, and
+        # GitHub refuses to retry it, so letting it gate would strand every
+        # deployment on that commit until an unrelated commit landed.
         event_response="$(
           jq '
             .workflow_runs = [
               .workflow_runs[]
               | select(.path == "dynamic/github-code-scanning/codeql")
+              | select(.name != "Scheduled")
             ]
             | .total_count = (.workflow_runs | length)
           ' <<< "${event_response}"

@@ -5,10 +5,12 @@ import json
 import re
 import tempfile
 import unittest
+import unittest.mock
 from pathlib import Path
 
 from scripts import cve_ai_enrichment as enrichment
 from scripts import cve_ai_recipe as recipe
+from scripts import sync_cve_catalog as sync
 from scripts import validate_cve_catalog as validator
 
 
@@ -496,6 +498,35 @@ class GeneratedRecipeManagerTests(unittest.TestCase):
             )
             with self.assertRaisesRegex(ValueError, "unsafe path"):
                 recipe.GeneratedRecipeManager(root / "content", manifest)
+
+
+class GeneratedRecipeCatalogParityTests(unittest.TestCase):
+    """The catalog commits to draft metadata before the file exists on disk."""
+
+    def test_draft_metadata_matches_the_frontmatter_the_draft_writes(self) -> None:
+        record = source_record()
+        entry = enrichment_entry(record)
+        draft = recipe.build_recipe_draft(record, entry, archetypes_payload())
+        self.assertIsNotNone(draft)
+        assert draft is not None
+
+        with tempfile.TemporaryDirectory() as tmp:
+            content_dir = Path(tmp) / "content" / "recipes" / "cve"
+            content_dir.mkdir(parents=True)
+            (content_dir / draft.path).write_text(draft.content, encoding="utf-8")
+
+            with unittest.mock.patch.object(sync, "ROOT", Path(tmp)):
+                inventory = sync.markdown_inventory(content_dir)
+
+        parsed = inventory[draft.cve][0]
+        # Exactly the fields validate_cve_catalog compares between the catalog
+        # record and the on-disk draft.
+        for field in ("description", "author", "date", "model"):
+            with self.subTest(field=field):
+                self.assertEqual(draft.metadata[field], getattr(parsed, field))
+                self.assertTrue(draft.metadata[field], f"{field} must not be empty")
+        self.assertEqual(draft.metadata["title"], parsed.title)
+        self.assertEqual(draft.metadata["maturity"], parsed.maturity)
 
 
 if __name__ == "__main__":
