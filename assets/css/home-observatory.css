@@ -211,43 +211,49 @@ html[data-signal-background-ready="true"] .site-ambient {
   backdrop-filter: blur(18px);
 }
 
+/* Matches the shared .sr-nav geometry in docs-chrome.css so the landing page
+ * carries the same top bar as every other route: flex row, 1400px shell, and
+ * links pushed to the right against the actions rather than spread across the
+ * middle. The landing page cannot simply include partials/navbar.njk because
+ * it never loads custom.css, so the measurements are mirrored here instead. */
 .topbar-inner {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  display: flex;
   align-items: center;
-  width: var(--home-shell);
-  min-height: 72px;
+  gap: 28px;
+  width: 100%;
+  max-width: 1400px;
+  min-height: 64px;
   margin: 0 auto;
-  gap: clamp(20px, 3vw, 48px);
+  padding: 0 24px;
 }
 
 .brand {
   display: inline-flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   min-width: 0;
   color: #f8fbfa;
-  font-size: clamp(1rem, 1.2vw, 1.18rem);
-  font-weight: 760;
+  font-size: 1.02rem;
+  font-weight: 700;
   letter-spacing: -0.02em;
   white-space: nowrap;
 }
 
 .brand img {
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   flex: 0 0 auto;
 }
 
 .nav-links {
   display: flex;
   align-items: center;
-  justify-content: center;
   min-width: 0;
-  gap: clamp(18px, 2.5vw, 40px);
+  margin-left: auto;
+  gap: 22px;
   color: #d9e1df;
-  font-size: 0.9rem;
-  font-weight: 650;
+  font-size: 0.92rem;
+  font-weight: 540;
 }
 
 .nav-links a,
@@ -2216,15 +2222,18 @@ a.adoption-card:focus-visible {
 }
 
 @media (max-width: 900px) {
+  /* The bar is a flex row at desktop, so the narrow layout wraps the links
+     onto their own second line instead of relying on grid placement. */
   .topbar-inner {
-    grid-template-columns: minmax(0, 1fr) auto;
-    padding: 12px 0 9px;
+    flex-wrap: wrap;
+    padding: 12px 16px 9px;
     gap: 10px 18px;
   }
 
   .nav-links {
-    grid-column: 1 / -1;
-    grid-row: 2;
+    order: 3;
+    flex: 1 0 100%;
+    margin-left: 0;
     justify-content: space-between;
     width: 100%;
     padding-top: 8px;
@@ -2232,8 +2241,7 @@ a.adoption-card:focus-visible {
   }
 
   .top-actions {
-    grid-column: 2;
-    grid-row: 1;
+    margin-left: auto;
   }
 
   .metric-rail__inner {
