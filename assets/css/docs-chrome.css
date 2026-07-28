@@ -213,7 +213,10 @@ body.sr-docs-body {
 
 .sr-main .content > *:first-child { margin-top: 0; }
 
-.sr-main img { max-width: 100%; }
+/* height:auto is required alongside max-width. Content images carry intrinsic
+ * width/height attributes for layout stability, so constraining only the width
+ * leaves the attribute height in force and stretches the image vertically. */
+.sr-main img { max-width: 100%; height: auto; }
 
 .sr-main pre {
   padding: 14px 16px;
