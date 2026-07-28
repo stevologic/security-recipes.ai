@@ -27,6 +27,9 @@
 {% if page.url == "/recipes/" %}<link rel="stylesheet" href="/css/recipe-library-mobile-fix.css">{% endif %}
 {% if page.url == "/recipes/" %}<link rel="stylesheet" href="/css/recipe-mobile-hardening.css">{% endif %}
 {% if page.url == "/recipes/" %}<link rel="stylesheet" href="/css/recipe-mobile-width.css">{% endif %}
+{# Shared collection surface for the two browsable corpora. Loads last so its
+   tokens win over both pages' older, divergent vocabularies. #}
+{% if page.url == "/recipes/" or page.url == "/cve-database/" %}<link rel="stylesheet" href="/css/collection-ui.css">{% endif %}
 <script>
 document.documentElement.dataset.siteSignalBackground = "true";
 {% if page.url == "/recipes/" %}document.documentElement.dataset.recipeBrowserPage = "true";{% endif %}
