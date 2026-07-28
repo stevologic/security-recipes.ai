@@ -17,9 +17,11 @@ permissions: {}
 
 jobs:
   enable-auto-merge:
+    # No github.actor guard: a maintainer clicking "Update branch" retriggers
+    # this workflow as themselves, and verification belongs to the PR author
+    # check plus fetch-metadata's maintainer-changes gate below.
     if: >-
       github.event.action != 'closed' &&
-      github.actor == 'dependabot[bot]' &&
       github.event.pull_request.user.login == 'dependabot[bot]' &&
       github.event.pull_request.base.ref == 'main' &&
       github.event.pull_request.head.repo.full_name == github.repository &&
