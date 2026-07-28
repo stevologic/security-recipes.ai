@@ -1,12 +1,13 @@
 'use strict';
 
 const { latestCves } = require('../lib/cve-latest');
-const { loadCveSearchIndexableRecords } = require('../lib/cve-indexability');
 const { homepageMetrics } = require('../lib/homepage-metrics');
 
 module.exports = {
-  latestReviewedCves: latestCves(10, {
-    eligibleRecords: loadCveSearchIndexableRecords(),
-  }),
+  // The homepage ticker represents the newest CVEs available in the catalog,
+  // not only the smaller evidence-qualified/indexable subset. Every catalog
+  // record has a public /cve/<id>/ route, with nonqualified records safely
+  // served by the runtime fallback and excluded from search indexing.
+  latestReviewedCves: latestCves(10),
   homepageMetrics: homepageMetrics(),
 };
