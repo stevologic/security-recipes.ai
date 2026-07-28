@@ -67,7 +67,7 @@ test('Dependabot auto-merge cannot execute PR code and only admits patch/minor u
 
   assert.deepEqual(
     trigger.pull_request_target.types,
-    ['opened', 'reopened', 'synchronize', 'ready_for_review'],
+    ['opened', 'reopened', 'synchronize', 'ready_for_review', 'closed'],
   );
   assert.equal(trigger.pull_request, undefined);
   assert.deepEqual(workflow.permissions, {});
