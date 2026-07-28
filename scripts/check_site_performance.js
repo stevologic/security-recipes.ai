@@ -10,6 +10,7 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const crypto = require("node:crypto");
+const zlib = require("node:zlib");
 
 const { decodeHtmlAttributeOnce, hasTechArticleSchemaType } = require("../lib/html-content");
 const {
@@ -150,6 +151,35 @@ function outputRouteForPathname(pathname) {
   return "";
 }
 
+const CVE_ROUTE_RE = /^\/cve\/(CVE-\d{4}-\d{4,})\/$/;
+let catalogCveIds = null;
+
+function catalogServedCveRoute(pathname) {
+  const match = CVE_ROUTE_RE.exec(pathname);
+  if (!match) return false;
+  if (catalogCveIds === null) {
+    catalogCveIds = new Set();
+    try {
+      const payload = JSON.parse(
+        zlib
+          .gunzipSync(fs.readFileSync(path.join(ROOT, "api/cve-catalog/browser-index.json.gz")))
+          .toString("utf8"),
+      );
+      const cveField = Array.isArray(payload.fields) ? payload.fields.indexOf("cve") : -1;
+      if (cveField >= 0 && Array.isArray(payload.records)) {
+        for (const record of payload.records) {
+          if (Array.isArray(record) && typeof record[cveField] === "string") {
+            catalogCveIds.add(record[cveField]);
+          }
+        }
+      }
+    } catch (error) {
+      fail(`unreadable catalog browser index for CVE link validation: ${error.message}`);
+    }
+  }
+  return catalogCveIds.has(match[1]);
+}
+
 function checkInternalLinksAndFragments() {
   const targets = new Map();
   for (const [route, html] of htmlOutputs) {
@@ -167,6 +197,10 @@ function checkInternalLinksAndFragments() {
       fail(`plain HTTP external link from ${sourceRoute} to ${destination}`);
     }
     for (const pathname of missingGeneratedInternalLinks(ROOT, sourceRoute, html)) {
+      // Only a bounded subset of catalog CVEs is materialized as static
+      // pages; every other catalog record still serves at /cve/<id>/ through
+      // the runtime fallback, so catalog membership makes the link valid.
+      if (catalogServedCveRoute(pathname)) continue;
       fail(`broken internal link from ${sourceRoute} to ${pathname}`);
     }
     for (const match of html.matchAll(/<a\b[^>]*\bhref=(['"])([^'"]+)\1/gi)) {
