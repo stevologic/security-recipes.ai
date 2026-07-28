@@ -96,7 +96,7 @@ operator-led triage unless separate authority and evidence are supplied.
    and rollback path. Stop with `TRIAGE.md` when ownership or safe remediation
    cannot be proved.
 
-<figure class="sr-guide-figure">
+<figure class="visual-guide-figure">
   <img src="/images/how-to-use/cve-to-agent-plan.webp"
        alt="A CVE record flows through affectedness checks, a bounded AI agent plan, verification, rollback evidence, and human review"
        width="2048" height="1152" loading="lazy" decoding="async">
