@@ -130,6 +130,18 @@ test('the summary shows disabled checks with how to enable them', async () => {
   assert.match(summary, /auto-selected lowest available/u);
   assert.match(summary, /Not enabled — set `check-owasp: true`/u);
   assert.match(summary, /1 check\(s\) are not enabled/u);
+
+  const hostile = renderSummary(
+    [
+      {
+        key: 'secrets', label: 'Secrets', input: 'check-secrets',
+        page: 'https://security-recipes.ai/x/', status: 'warn',
+        summary: 'path C:\\temp | quoted', findings: [],
+      },
+    ],
+    { provider: 'openai', model: 'gpt-5-nano', autoSelected: false, contextSource: 'feed' },
+  );
+  assert.match(hostile, /C:\\\\temp \\\| quoted/u, 'backslashes must be escaped before pipes');
 });
 
 test('evidence collection finds this repository manifests deterministically', async () => {

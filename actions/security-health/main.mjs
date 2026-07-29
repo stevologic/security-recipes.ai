@@ -497,7 +497,10 @@ export function renderSummary(results, meta) {
       lines.push(`| ${result.label} | ${STATUS_ICON.skipped} | Not enabled — set \`${result.input}: true\` to run it. [Recipe](${result.page}) |`);
     } else {
       const detail = result.summary
-        ? result.summary.replace(/\|/g, '\\|').replace(/\n/g, ' ')
+        ? result.summary
+          .replace(/\\/g, '\\\\')
+          .replace(/\|/g, '\\|')
+          .replace(/\n/g, ' ')
         : '';
       const findings = result.findings.length ? ` ${result.findings.length} finding(s).` : '';
       lines.push(`| [${result.label}](${result.page}) | ${STATUS_ICON[result.status]} | ${detail}${findings} |`);
