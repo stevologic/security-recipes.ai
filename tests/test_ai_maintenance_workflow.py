@@ -57,6 +57,15 @@ class AiMaintenanceWorkflowTests(unittest.TestCase):
         self.assertIn("never force-push", self.workflow)
         self.assertIn("never weaken or skip checks", self.workflow)
 
+    def test_each_failed_run_gets_its_own_repair_slot(self) -> None:
+        # A shared concurrency group let GitHub cancel queued investigations
+        # when several workflows completed at once, dropping real failures.
+        self.assertIn(
+            "group: ai-maintenance-${{ github.event.workflow_run.id || github.run_id }}",
+            self.workflow,
+        )
+        self.assertIn("cancel-in-progress: false", self.workflow)
+
     def test_workflow_permissions_stay_scoped_to_the_repair_job(self) -> None:
         self.assertIn("permissions: {}", self.workflow)
         job_section = self.workflow.split("jobs:", 1)[1]
