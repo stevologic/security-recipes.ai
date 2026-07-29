@@ -1401,9 +1401,33 @@ class CveLandingRenderTests(unittest.TestCase):
                     for node in json.loads(graph_match.group(1))["@graph"]
                     if node.get("@type") == "Article"
                 )
+                # Nightly source refreshes can move a record's last_modified
+                # past the editorial lastmod, and the renderer surfaces the
+                # newest timestamp, so pin the policy rather than one value:
+                # dateModified must come from the record's real timestamps and
+                # must never predate the shared editorial lastmod.
+                source_record = recipe["source_record"]
+                reviewed = mcp_server._cve_landing_stable_override(
+                    cve_id,
+                    recipe.get("composed_recipe") or {},
+                )
+                legitimate_modified = {
+                    mcp_server._cve_landing_iso_date(value)
+                    for value in (
+                        shared_metadata["editorial_lastmod"],
+                        source_record.get("last_modified"),
+                        reviewed.get("lastmod"),
+                        reviewed.get("date"),
+                        article.get("datePublished"),
+                    )
+                } - {""}
+                self.assertIn(article["dateModified"], legitimate_modified)
                 self.assertEqual(
+                    mcp_server._cve_landing_latest_iso_date(
+                        article["dateModified"],
+                        shared_metadata["editorial_lastmod"],
+                    ),
                     article["dateModified"],
-                    shared_metadata["editorial_lastmod"],
                 )
                 self.assertIn(f'<h1 class="sr-page-title">{expected_title}</h1>', page)
                 for fragment in expected_description_fragments:

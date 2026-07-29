@@ -13,7 +13,6 @@ const {
   compareLatestCves,
   latestCves,
 } = require('../lib/cve-latest.js');
-const { loadCveSearchIndexableIds } = require('../lib/cve-indexability.js');
 
 function writePartition(root, year, records) {
   const relative = `indexes/${year}.json.gz`;
@@ -127,13 +126,14 @@ test('latest CVEs can use compact qualified records across publication years', (
   );
 });
 
-test('homepage data exposes ten sorted records from the real generated catalog', () => {
+test('homepage data exposes the ten newest records from the real generated catalog', () => {
   const data = require('../content/_index.11tydata.js');
-  const indexable = loadCveSearchIndexableIds();
+  const expected = latestCves(10);
   assert.equal(data.latestReviewedCves.length, 10);
-  for (const record of data.latestReviewedCves) {
-    assert.equal(indexable.has(record.cve), true, `${record.cve} must be indexable`);
-  }
+  assert.deepEqual(
+    data.latestReviewedCves.map((record) => record.cve),
+    expected.map((record) => record.cve),
+  );
   for (let index = 1; index < data.latestReviewedCves.length; index += 1) {
     assert.ok(
       compareLatestCves(
