@@ -6,6 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
+  actions: write
   contents: read
   issues: write
 
@@ -115,6 +116,86 @@ jobs:
           else
             gh issue create --title "$TITLE" --label "$LABEL" --body-file "$BODY_FILE"
           fi
+
+      - name: Self-heal an unbuilt main revision
+        if: always() && steps.production.outputs.healthy != 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          REPORT="$RUNNER_TEMP/production-health.json"
+          if [ ! -s "$REPORT" ]; then
+            echo "No structured report exists; skipping the revision self-heal."
+            exit 0
+          fi
+          if ! jq -e '.checks[] | select(.name == "revision" and .ok == false)' "$REPORT" >/dev/null; then
+            echo "The revision check is healthy; no Build dispatch is needed."
+            exit 0
+          fi
+
+          # Merges performed with GITHUB_TOKEN do not emit push events, so a
+          # merged main revision can exist without any Build; dispatching one
+          # is the exception that GITHUB_TOKEN is allowed to trigger.
+          MAIN_SHA="$(git rev-parse HEAD)"
+          RUNS_JSON="$(gh api \
+            "repos/${GITHUB_REPOSITORY}/actions/runs?head_sha=${MAIN_SHA}&per_page=50" \
+            --jq '[.workflow_runs[]
+              | select(.path == ".github/workflows/build.yml")
+              | {status, conclusion}]')"
+          HEALTHY_RUNS="$(jq '[.[] | select(.conclusion == "success"
+            or .status == "queued"
+            or .status == "in_progress")] | length' <<<"$RUNS_JSON")"
+          if [ "$HEALTHY_RUNS" -gt 0 ]; then
+            echo "A Build already covers main revision ${MAIN_SHA}; the deploy pull cron will catch up."
+            exit 0
+          fi
+          TOTAL_RUNS="$(jq 'length' <<<"$RUNS_JSON")"
+          if [ "$TOTAL_RUNS" -ge 2 ]; then
+            echo "::warning::Main revision ${MAIN_SHA} already failed ${TOTAL_RUNS} Build attempts; leaving it to AI maintenance."
+            exit 0
+          fi
+
+          gh workflow run build.yml \
+            --ref "$GITHUB_DEFAULT_BRANCH" \
+            --field "expected_sha=${MAIN_SHA}" \
+            --field "request_id=watchdog-heal-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          echo "Dispatched the missing Build for main revision ${MAIN_SHA}."
+
+      - name: Self-heal a stale CVE catalog
+        if: always() && steps.production.outputs.healthy != 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          REPORT="$RUNNER_TEMP/production-health.json"
+          if [ ! -s "$REPORT" ]; then
+            echo "No structured report exists; skipping the catalog self-heal."
+            exit 0
+          fi
+          if ! jq -e '.checks[] | select(.name == "catalog" and .ok == false)' "$REPORT" >/dev/null; then
+            echo "The catalog freshness check is healthy; no sync dispatch is needed."
+            exit 0
+          fi
+
+          # One failed nightly sync leaves the catalog stale for a full day, so
+          # redispatch it here, rate-limited so repeated failures cannot burn
+          # NVD bandwidth or enrichment credits twice an hour.
+          LAST_STARTED="$(gh api \
+            "repos/${GITHUB_REPOSITORY}/actions/workflows/cve-catalog-sync.yml/runs?per_page=1" \
+            --jq '.workflow_runs[0].created_at // ""')"
+          if [ -n "$LAST_STARTED" ]; then
+            LAST_EPOCH="$(date -d "$LAST_STARTED" +%s)"
+            NOW_EPOCH="$(date +%s)"
+            if [ $(( NOW_EPOCH - LAST_EPOCH )) -lt 21600 ]; then
+              echo "The last catalog sync started at ${LAST_STARTED}; honoring the six-hour heal cooldown."
+              exit 0
+            fi
+          fi
+
+          gh workflow run cve-catalog-sync.yml --ref "$GITHUB_DEFAULT_BRANCH"
+          echo "Dispatched a CVE catalog sync to refresh the stale catalog."
 
       - name: Fail unhealthy watchdog run
         if: steps.production.outcome != 'success'
