@@ -6,6 +6,7 @@ from copy import deepcopy
 from pathlib import Path
 from typing import Any
 
+from scripts import sync_cve_catalog as sync
 from scripts import validate_cve_catalog as validator
 
 
@@ -47,6 +48,28 @@ class CVEAgenticContractTests(unittest.TestCase):
         self.assertGreaterEqual(len(payload["archetypes"]), 19)
         self.assertEqual(len(action_ids), len(payload["archetypes"]) * 7)
         self.assertEqual(len(action_ids), len(set(action_ids)))
+
+    def test_risk_precedence_is_shared_and_covers_every_archetype(self) -> None:
+        # The validator deliberately keeps its own copy so a sync defect cannot
+        # pass its own check, which means the two can drift. They did: adding
+        # remediation families updated only the sync's order, and the mismatch
+        # surfaced as thousands of "not in deterministic risk order" failures
+        # during a production catalog refresh. Catch it here instead.
+        self.assertEqual(
+            list(sync.ARCHETYPE_RISK_PRECEDENCE),
+            list(validator.ARCHETYPE_RISK_PRECEDENCE),
+        )
+        archetypes = set(load_archetypes()["archetypes"])
+        default = load_archetypes()["default_archetype"]
+        self.assertEqual(
+            set(sync.ARCHETYPE_RISK_PRECEDENCE),
+            archetypes - {default},
+            "every archetype except the default needs a deterministic risk position",
+        )
+        self.assertEqual(
+            len(sync.ARCHETYPE_RISK_PRECEDENCE),
+            len(set(sync.ARCHETYPE_RISK_PRECEDENCE)),
+        )
 
     def test_contract_requires_safe_version_evidence_and_rollback(self) -> None:
         payload = load_archetypes()
