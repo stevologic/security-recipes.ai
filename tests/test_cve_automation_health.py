@@ -270,8 +270,16 @@ class ProductionHealthTests(unittest.TestCase):
         default_allowlist = json.dumps(
             {
                 "records": [
-                    {"cve": "CVE-2017-18342", "qualification": "stable_markdown"},
-                    {"cve": cve_id, "qualification": "stable_markdown"},
+                    {
+                        "cve": "CVE-2017-18342",
+                        "qualification": "stable_markdown",
+                        "published": "2018-06-27",
+                    },
+                    {
+                        "cve": cve_id,
+                        "qualification": "stable_markdown",
+                        "published": "2024-04-12",
+                    },
                 ]
             }
         ).encode()
@@ -614,6 +622,61 @@ Disallow: /traffic/
         failed = [check for check in report["checks"] if not check["ok"]]
         self.assertEqual([check["name"] for check in failed], ["sitemap"])
         self.assertIn("unqualified record", failed[0]["message"])
+
+    def test_sitemap_year_follows_publication_not_the_identifier(self) -> None:
+        # A CVE assigned late in one year is regularly published in the next,
+        # and the sitemaps partition by publication year. Inferring the year
+        # from the identifier failed production on CVE-2022-47966, which was
+        # published 2023-01-18 and correctly filed under 2023.
+        cve_id = production.DEFAULT_CVE_PROBE_ID
+        allowlist = json.dumps(
+            {
+                "records": [
+                    {
+                        "cve": cve_id,
+                        "qualification": "stable_markdown",
+                        # Assigned in the identifier's year, published later.
+                        "published": "2024-01-05",
+                    }
+                ]
+            }
+        ).encode()
+        report = production.run_probes(
+            base_url="https://security-recipes.ai",
+            expected_revision=self.SHA,
+            expected_commit_time=self.NOW - timedelta(hours=2),
+            now=self.NOW,
+            opener=self.opener(search_indexable_json=allowlist),
+            certificate_expiry=self.certificate,
+        )
+        sitemap = next(
+            check for check in report["checks"] if check["name"] == "sitemap"
+        )
+        self.assertTrue(sitemap["ok"], sitemap["message"])
+
+        # A genuine mismatch against the published year is still rejected.
+        mismatched = json.dumps(
+            {
+                "records": [
+                    {
+                        "cve": cve_id,
+                        "qualification": "stable_markdown",
+                        "published": "2021-11-02",
+                    }
+                ]
+            }
+        ).encode()
+        report = production.run_probes(
+            base_url="https://security-recipes.ai",
+            expected_revision=self.SHA,
+            expected_commit_time=self.NOW - timedelta(hours=2),
+            now=self.NOW,
+            opener=self.opener(search_indexable_json=mismatched),
+            certificate_expiry=self.certificate,
+        )
+        failed = [check for check in report["checks"] if not check["ok"]]
+        self.assertEqual([check["name"] for check in failed], ["sitemap"])
+        self.assertIn("published in 2021", failed[0]["message"])
 
     def test_each_cve_sitemap_is_bounded_below_fifty_thousand_urls(self) -> None:
         cve_url = (

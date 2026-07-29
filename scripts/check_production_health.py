@@ -669,13 +669,24 @@ def run_probes(
         if not isinstance(qualified_records, list) or not qualified_records:
             raise ValueError("qualified CVE allowlist has no records")
         qualified_cve_ids = set()
+        # Sitemaps are partitioned by publication year, which is not always the
+        # year in the identifier: a CVE assigned late in one year is regularly
+        # published in the next. Carry each record's published year so sitemap
+        # placement is checked against the catalog rather than inferred.
+        qualified_published_years: dict[str, str] = {}
         for record in qualified_records:
             if not isinstance(record, dict):
                 raise ValueError("qualified CVE allowlist contains a non-object record")
             cve = str(record.get("cve") or "")
             qualification = str(record.get("qualification") or "")
+            published = str(record.get("published") or "")
             if not CVE_RE.fullmatch(cve):
                 raise ValueError(f"qualified CVE allowlist contains invalid ID {cve!r}")
+            if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", published):
+                raise ValueError(
+                    f"qualified CVE allowlist has an invalid published date for {cve}"
+                )
+            qualified_published_years[cve] = published[:4]
             if qualification not in QUALIFIED_CVE_TYPES:
                 raise ValueError(
                     f"qualified CVE allowlist contains invalid qualification for {cve}"
@@ -790,8 +801,17 @@ def run_probes(
                         f"CVE sitemap exposes a non-canonical URL: {child_location}"
                     )
                 cve = route_match.group(1)
-                if cve[4:8] != match.group(1):
-                    raise ValueError(f"{cve} appears in the wrong yearly sitemap")
+                expected_year = qualified_published_years.get(cve)
+                if expected_year is None:
+                    # The dedicated allowlist-membership check below reports
+                    # this case; keep its wording so one failure mode has one
+                    # message regardless of which check reaches it first.
+                    raise ValueError(f"CVE sitemap exposes unqualified record {cve}")
+                if expected_year != match.group(1):
+                    raise ValueError(
+                        f"{cve} was published in {expected_year} but appears in the "
+                        f"{match.group(1)} sitemap"
+                    )
                 if cve not in qualified_cve_ids:
                     raise ValueError(f"CVE sitemap exposes unqualified record {cve}")
                 if cve in dynamic_cve_ids:
