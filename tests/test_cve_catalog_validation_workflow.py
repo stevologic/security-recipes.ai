@@ -15,12 +15,8 @@ class CveCatalogValidationWorkflowTests(unittest.TestCase):
         cls.workflow = WORKFLOW.read_text(encoding="utf-8")
 
     def test_only_accepts_explicit_dispatch_with_exact_sha_input(self) -> None:
-        self.assertRegex(
-            self.workflow, r"(?m)^on:\s*\n\s+workflow_dispatch:"
-        )
-        self.assertNotRegex(
-            self.workflow, r"(?m)^\s+(push|pull_request|schedule):"
-        )
+        self.assertRegex(self.workflow, r"(?m)^on:\s*\n\s+workflow_dispatch:")
+        self.assertNotRegex(self.workflow, r"(?m)^\s+(push|pull_request|schedule):")
         self.assertIn("expected_sha:", self.workflow)
         self.assertIn("request_id:", self.workflow)
         self.assertIn("pr_number:", self.workflow)
@@ -59,6 +55,16 @@ class CveCatalogValidationWorkflowTests(unittest.TestCase):
             self.workflow.index("run: docker compose build"),
             self.workflow.index("publish-required-status"),
         )
+
+    def test_expected_branch_input_defaults_to_the_catalog_sync_branch(self) -> None:
+        self.assertIn("expected_branch:", self.workflow)
+        self.assertIn("default: automation/cve-catalog-sync", self.workflow)
+        self.assertIn(
+            "EXPECTED_BRANCH: ${{ inputs.expected_branch || 'automation/cve-catalog-sync' }}",
+            self.workflow,
+        )
+        self.assertIn('[ -z "$EXPECTED_BRANCH" ]', self.workflow)
+        self.assertIn('[ "$HEAD_BRANCH" != "$EXPECTED_BRANCH" ]', self.workflow)
 
     def test_checkout_must_match_requested_sha(self) -> None:
         self.assertIn("ref: ${{ inputs.expected_sha }}", self.workflow)
