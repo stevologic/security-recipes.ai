@@ -9,10 +9,22 @@ name: Automation shepherd
 #   an auto-merge PR can wait forever for its required build check; the
 #   shepherd step updates stale branches and dispatches the trusted exact-SHA
 #   validation that publishes the required context.
+#
+# The workflow_run chaining makes the train self-driving without depending
+# on GitHub's cron scheduler: every completed Build or validation re-runs
+# the shepherd, which advances the next queued auto-merge PR and exits
+# without dispatching when there is nothing left to do, so the chain
+# terminates naturally.
 
 on:
   schedule:
     - cron: "7,37 * * * *"
+  workflow_run:
+    workflows:
+      - Build
+      - CVE catalog validation
+    types:
+      - completed
   workflow_dispatch:
 
 permissions:
