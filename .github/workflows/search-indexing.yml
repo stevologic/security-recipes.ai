@@ -37,6 +37,8 @@ jobs:
           import json
           import os
           import sys
+          import time
+          import urllib.error
           import urllib.request
           import xml.etree.ElementTree as ET
 
@@ -86,11 +88,12 @@ jobs:
 
           submitted = 0
           for start in range(0, len(urls), 10000):
+              batch = urls[start:start + 10000]
               payload = json.dumps({
                   "host": host,
                   "key": key,
                   "keyLocation": f"https://{host}/{key}.txt",
-                  "urlList": urls[start:start + 10000],
+                  "urlList": batch,
               }).encode()
               request = urllib.request.Request(
                   "https://api.indexnow.org/indexnow",
@@ -100,9 +103,32 @@ jobs:
                       "User-Agent": "security-recipes-indexnow/1",
                   },
               )
-              with urllib.request.urlopen(request, timeout=30) as response:
-                  print(f"IndexNow batch {start // 10000 + 1}: HTTP {response.status}")
-              submitted += len(urls[start:start + 10000])
+              # Submission is a discovery hint, not a correctness gate. The
+              # endpoint answered 403 for hours after this key was first
+              # published, before accepting the identical request, so a
+              # refusal by the receiving service is reported and tolerated.
+              # Everything this repository controls -- the key file and the
+              # sitemap -- is still verified above and still fails hard.
+              for attempt in range(3):
+                  try:
+                      with urllib.request.urlopen(request, timeout=30) as response:
+                          print(f"IndexNow batch {start // 10000 + 1}: HTTP {response.status}")
+                      submitted += len(batch)
+                      break
+                  except urllib.error.HTTPError as exc:
+                      reason = f"HTTP {exc.code}"
+                  except (urllib.error.URLError, TimeoutError, OSError) as exc:
+                      reason = str(exc)
+                  if attempt < 2:
+                      time.sleep(5 * (attempt + 1))
+                  else:
+                      print(
+                          f"::warning::IndexNow declined batch {start // 10000 + 1} "
+                          f"({reason}); the sitemap remains the durable discovery path."
+                      )
 
-          print(f"Submitted {submitted} URLs from the live sitemap to IndexNow.")
+          if submitted:
+              print(f"Submitted {submitted} URLs from the live sitemap to IndexNow.")
+          else:
+              print("::warning::IndexNow accepted no batches during this run.")
           PY

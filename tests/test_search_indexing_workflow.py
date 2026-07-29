@@ -30,6 +30,18 @@ class SearchIndexingWorkflowTests(unittest.TestCase):
         self.assertIn("skipping submission", self.workflow)
         self.assertIn("urls[start:start + 10000]", self.workflow)
 
+    def test_a_declining_endpoint_warns_instead_of_failing_the_run(self) -> None:
+        # IndexNow answered 403 for hours after this key was first published,
+        # then accepted the identical request. A discovery hint refused by the
+        # receiving service must not red-flag the repository.
+        self.assertIn("::warning::IndexNow declined batch", self.workflow)
+        self.assertIn("the sitemap remains the durable discovery path", self.workflow)
+        self.assertIn("for attempt in range(3):", self.workflow)
+        # What this repository controls -- the key file and the sitemap --
+        # still fails the run rather than warning.
+        self.assertIn("skipping submission", self.workflow)
+        self.assertNotIn("continue-on-error", self.workflow)
+
     def test_the_public_key_file_matches_the_workflow_key(self) -> None:
         match = re.search(r"INDEXNOW_KEY: ([0-9a-f]{32})", self.workflow)
         self.assertIsNotNone(match)
