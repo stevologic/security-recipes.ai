@@ -24,6 +24,7 @@ class AiMaintenanceWorkflowTests(unittest.TestCase):
             "- Production watchdog",
             "- CVE catalog validation",
             "- Automation shepherd",
+            "- AI issue maintenance",
         ):
             with self.subTest(watched=watched):
                 self.assertIn(watched, self.workflow)
