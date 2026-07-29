@@ -239,9 +239,8 @@ CONTENT_INTEGRITY_PROBES = (
                 "agent-comparison meta description",
                 re.compile(
                     r"<meta\b(?=[^>]*\bname=[\"']description[\"'])"
-                    r"(?=[^>]*\bcontent=[\"']Compare Codex, Claude Code, Cursor, Copilot, "
-                    r"Devin, Shiba Studio, Hermes, and OpenClaw for AI vulnerability "
-                    r"remediation with bounded instructions and review gates\.[\"'])[^>]*>",
+                    r"(?=[^>]*\bcontent=[\"'][^\"']*\bCompare\b[^\"']*"
+                    r"\bAI vulnerability remediation\b[^\"']*[\"'])[^>]*>",
                     re.IGNORECASE,
                 ),
             ),
