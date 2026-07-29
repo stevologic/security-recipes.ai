@@ -49,7 +49,9 @@ test('all remote GitHub Actions are pinned to immutable commits with version com
       );
       assert.match(
         versionComment || '',
-        /^v\d+\.\d+\.\d+(?:[-+][A-Za-z0-9.-]+)?$/u,
+        // Two-part versions are allowed because some vendors (openai/codex-action)
+        // tag releases without a patch component.
+        /^v\d+\.\d+(?:\.\d+)?(?:[-+][A-Za-z0-9.-]+)?$/u,
         `${fileName}:${index + 1} must preserve a precise version comment`,
       );
     });

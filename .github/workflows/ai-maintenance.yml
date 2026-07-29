@@ -1,6 +1,6 @@
 name: AI maintenance
 
-# Unattended repair layer: when automation-critical workflows fail, Claude
+# Unattended repair layer: when automation-critical workflows fail, Codex
 # investigates the failure, fixes root causes in a branch, and opens an
 # auto-merge PR that the Automation shepherd validates and lands. It never
 # pushes to main directly and never merges its own work.
@@ -37,21 +37,20 @@ jobs:
     permissions:
       actions: write
       contents: write
-      id-token: write
       issues: write
       pull-requests: write
     steps:
-      - name: Detect Anthropic credentials
+      - name: Detect OpenAI credentials
         id: auth
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         shell: bash
         run: |
-          if [ -n "$ANTHROPIC_API_KEY" ]; then
+          if [ -n "$OPENAI_API_KEY" ]; then
             echo "configured=true" >> "$GITHUB_OUTPUT"
           else
             echo "configured=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::ANTHROPIC_API_KEY is not configured; AI maintenance is inactive until the repository secret is added."
+            echo "::notice::OPENAI_API_KEY is not configured; AI maintenance is inactive until the repository secret is added."
           fi
 
       - name: Checkout default branch
@@ -63,15 +62,15 @@ jobs:
 
       - name: Investigate and repair the failed automation
         if: steps.auth.outputs.configured == 'true'
-        uses: anthropics/claude-code-action@be7b93b1907a4abad570368f3c74b6fe3807510b # v1.0.183
+        uses: openai/codex-action@52fe01ec70a42f454c9d2ebd47598f9fd6893d56 # v1.11
         env:
           GH_TOKEN: ${{ github.token }}
         with:
-          github_token: ${{ github.token }}
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          claude_args: |
-            --allowedTools "Bash,Read,Write,Edit,Glob,Grep"
-            --max-turns 120
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          # Writes stay confined to the checkout; network stays on so the
+          # agent can query gh and push its fix branch.
+          sandbox: workspace-write
+          codex-args: '["-c","sandbox_workspace_write.network_access=true"]'
           prompt: |
             You are the unattended maintenance engineer for this repository.
             The workflow "${{ github.event.workflow_run.name }}" concluded
