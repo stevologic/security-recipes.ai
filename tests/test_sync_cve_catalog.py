@@ -281,6 +281,12 @@ def write_catalog_fixture(
 
 
 class SyncCveCatalogTests(unittest.TestCase):
+    def test_generator_and_validator_share_archetype_risk_precedence(self) -> None:
+        self.assertEqual(
+            catalog.ARCHETYPE_RISK_PRECEDENCE,
+            validator.ARCHETYPE_RISK_PRECEDENCE,
+        )
+
     def test_english_description_truncates_at_a_complete_sentence(self) -> None:
         complete_sentence = (
             "The affected component accepts attacker-controlled input and reaches the vulnerable "
