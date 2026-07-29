@@ -1,0 +1,43 @@
+name: Security health
+
+# This repository consumes its own published action: an LLM check grounded
+# in the hosted security-recipes.ai MCP context, running on the existing
+# OpenAI key with the model auto-selected to the lowest available.
+
+on:
+  pull_request:
+  schedule:
+    - cron: "23 5 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-health-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
+jobs:
+  security-health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Run the Security Recipes health check
+        uses: ./actions/security-health
+        with:
+          provider: openai
+          api-key: ${{ secrets.OPENAI_API_KEY }}
+          check-containers: "true"
+          check-cve-exposure: "true"
+          # Verdicts guide review; the build gate stays the required check,
+          # so an LLM warn/fail surfaces loudly without blocking the
+          # autonomous merge train.
+          fail-on: never

@@ -142,6 +142,11 @@ Opening `/mcp` in a normal browser can show an MCP or HTTP method error. That is
 expected. MCP clients connect by sending JSON-RPC messages over the selected
 transport.
 
+Running in CI instead of a chat client? The
+[Security Health GitHub Action]({{< relref "/docs/security-health-action" >}})
+connects to this MCP server automatically and turns the recipe context into
+toggleable pull-request health checks.
+
 ## Configure this Security Recipes MCP server
 
 Use the values below for the page you are viewing now. They update from the
