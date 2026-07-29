@@ -7,6 +7,7 @@ on:
       - reopened
       - synchronize
       - ready_for_review
+      - closed
 
 concurrency:
   group: dependabot-automerge-${{ github.event.pull_request.number }}
@@ -16,8 +17,11 @@ permissions: {}
 
 jobs:
   enable-auto-merge:
+    # No github.actor guard: a maintainer clicking "Update branch" retriggers
+    # this workflow as themselves, and verification belongs to the PR author
+    # check plus fetch-metadata's maintainer-changes gate below.
     if: >-
-      github.actor == 'dependabot[bot]' &&
+      github.event.action != 'closed' &&
       github.event.pull_request.user.login == 'dependabot[bot]' &&
       github.event.pull_request.base.ref == 'main' &&
       github.event.pull_request.head.repo.full_name == github.repository &&
@@ -56,3 +60,29 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           PR_URL: ${{ github.event.pull_request.html_url }}
         run: gh pr merge --auto --squash "$PR_URL"
+
+  dispatch-post-merge-build:
+    if: >-
+      github.event.action == 'closed' &&
+      github.event.pull_request.merged == true &&
+      github.event.pull_request.user.login == 'dependabot[bot]' &&
+      github.event.pull_request.base.ref == 'main' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: write
+      contents: read
+    steps:
+      - name: Dispatch exact merged revision Build
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MERGED_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+          REQUEST_ID: dependabot-${{ github.event.pull_request.number }}-${{ github.run_id }}
+        run: |
+          test "$MERGED_SHA" != "null"
+          gh workflow run build.yml \
+            --repo "$GITHUB_REPOSITORY" \
+            --ref main \
+            -f expected_sha="$MERGED_SHA" \
+            -f request_id="$REQUEST_ID"

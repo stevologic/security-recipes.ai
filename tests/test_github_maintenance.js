@@ -67,7 +67,7 @@ test('Dependabot auto-merge cannot execute PR code and only admits patch/minor u
 
   assert.deepEqual(
     trigger.pull_request_target.types,
-    ['opened', 'reopened', 'synchronize', 'ready_for_review'],
+    ['opened', 'reopened', 'synchronize', 'ready_for_review', 'closed'],
   );
   assert.equal(trigger.pull_request, undefined);
   assert.deepEqual(workflow.permissions, {});
@@ -81,7 +81,10 @@ test('Dependabot auto-merge cannot execute PR code and only admits patch/minor u
   );
   assert.equal(workflow.concurrency['cancel-in-progress'], true);
 
-  assert.match(jobGuard, /github\.actor == 'dependabot\[bot\]'/u);
+  // Guarding on github.actor would skip auto-merge whenever a maintainer
+  // updates a Dependabot branch; author identity plus the maintainer-changes
+  // gate carry the verification instead.
+  assert.doesNotMatch(jobGuard, /github\.actor/u);
   assert.match(jobGuard, /pull_request\.user\.login == 'dependabot\[bot\]'/u);
   assert.match(jobGuard, /pull_request\.base\.ref == 'main'/u);
   assert.match(jobGuard, /pull_request\.head\.repo\.full_name == github\.repository/u);
