@@ -914,10 +914,14 @@ test('controller never parses the full index and feed Markdown is never injected
   assert.match(controllerSource, /Open canonical CVE page/);
   assert.match(controllerSource, /qualifiedCveHref\(state\.qualifiedCveRoutes, preview\.cve\)/);
   assert.match(controllerSource, /if \(qualifiedHref\) \{[\s\S]*?permalink\.href = qualifiedHref/);
-  assert.doesNotMatch(
+  // Every catalog record owns a public /cve/<id>/ route (static when
+  // qualified, noindex runtime fallback otherwise), so linked browse rows
+  // resolve the server-declared route first and synthesize the canonical
+  // route for the remainder.
+  assert.match(
     controllerSource,
-    /permalink\.href = basePrefix\(\) \+ 'cve\/' \+ encodeURIComponent\(preview\.cve\) \+ '\/'/,
-    'unqualified search results must not synthesize crawlable internal CVE links'
+    /record\.href = qualifiedCveHref\(state\.qualifiedCveRoutes, preview\.cve\) \|\|\s*basePrefix\(\) \+ 'cve\/' \+ encodeURIComponent\(preview\.cve\) \+ '\/'/,
+    'linked browse rows must prefer server-declared qualified routes before synthesizing the canonical route'
   );
   assert.match(controllerSource, /View on CVE\.org/);
   assert.match(controllerSource, /https:\/\/www\.cve\.org\/CVERecord\?id=/);
@@ -960,6 +964,47 @@ test('controller never parses the full index and feed Markdown is never injected
     /clear\.addEventListener\([\s\S]*?kev\.value = 'all';\s*runSearch\(\);/,
     'clearing filters restores the newest-first browse view'
   );
+});
+
+test('browse results are canonical record links and only landing embeds expand in place', () => {
+  const root = path.resolve(__dirname, '..');
+  const controllerSource = fs.readFileSync(path.join(root, 'assets/js/cve-catalog.js'), 'utf8');
+  const catalogCss = fs.readFileSync(path.join(root, 'assets/css/cve-catalog.css'), 'utf8');
+
+  // Mode selection: the complete-record loader strips the initial-id
+  // attribute during mount, so the loader-section ancestor must gate the
+  // expandable view alongside a declared initial CVE.
+  assert.match(
+    controllerSource,
+    /var linkedRecordRows = !initialCve &&\s*!\(element\.closest && element\.closest\('\[data-cve-record-loader\]'\)\);/
+  );
+  assert.match(
+    controllerSource,
+    /function renderRecord\(preview\) \{\s*if \(linkedRecordRows\) return renderLinkedRecord\(preview\);/,
+    'browse surfaces must route through the linked canonical record renderer'
+  );
+
+  // Linked rows are a single anchor: no disclosure, no in-place record body,
+  // and no separate record-actions cluster.
+  const linkedRenderer = controllerSource.split('function renderLinkedRecord(preview)')[1]
+    .split('function renderRecord(preview)')[0];
+  assert.doesNotMatch(linkedRenderer, /createElement\('details'/);
+  assert.doesNotMatch(linkedRenderer, /loadDetails/);
+  assert.doesNotMatch(linkedRenderer, /recordActions/);
+  assert.match(linkedRenderer, /cve-catalog__record-link/);
+  assert.match(linkedRenderer, /cve-catalog__record-open/);
+  assert.match(linkedRenderer, /Open remediation record/);
+
+  // Keyboard focus lands on whichever row primitive the mode rendered.
+  assert.match(
+    controllerSource,
+    /querySelector\('summary, \.cve-catalog__record-link'\)/,
+    'paging focus must support both linked rows and landing-page disclosures'
+  );
+
+  assert.match(catalogCss, /\.cve-catalog__record-link\s*\{/);
+  assert.match(catalogCss, /\.cve-catalog__record-link:focus-visible/);
+  assert.match(catalogCss, /\.cve-catalog__record-link\s*\{[\s\S]*?min-height:\s*44px/);
 });
 
 test('worker accepts only a single bounded cache-version parameter', () => {
