@@ -128,6 +128,19 @@ class DeployScriptStaticTests(unittest.TestCase):
         self.assertIn("RECIPES_MCP_BLUE_IMAGE", compose)
         self.assertIn("RECIPES_MCP_GREEN_IMAGE", compose)
         self.assertGreaterEqual(compose.count("condition: service_healthy"), 2)
+
+        self.assertIn(
+            "RECIPES_MCP_BLUE_SOURCE_INDEX_URL:-http://security-recipes/api/recipes-index.json",
+            compose,
+        )
+        self.assertIn(
+            "RECIPES_MCP_GREEN_SOURCE_INDEX_URL:-http://security-recipes-green/api/recipes-index.json",
+            compose,
+        )
+        self.assertNotIn(
+            "RECIPES_MCP_SOURCE_INDEX_URL:-https://security-recipes.ai",
+            compose,
+        )
         deploy = DEPLOY_SCRIPT.read_text(encoding="utf-8")
         self.assertIn(
             'SECURITY_RECIPES_BLUE_MCP_UPSTREAM="mcp-server-blue"', deploy

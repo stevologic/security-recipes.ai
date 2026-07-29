@@ -184,10 +184,13 @@ Set `DEPLOY_PROXY_HEALTH_URL` only when the default local HTTPS verification is
 not appropriate. Otherwise the script derives the domain from `.env` and
 resolves that hostname to `127.0.0.1` for the post-cutover check.
 
-The MCP service also reads its recipe index from the public active URL,
-`https://<domain>/api/recipes-index.json`, in both proxy modes. It therefore
-follows the same Caddy-selected release instead of being pinned to a blue,
-green, or bundled-Caddy hostname.
+Each paired MCP service reads its recipe index directly from its matching site
+container over the Compose network. This avoids depending on public DNS,
+hairpin routing, or the edge proxy for tool calls and keeps each pair on the
+same release. The transitional singleton reads from the blue site by default.
+Operators can override these sources with `RECIPES_MCP_BLUE_SOURCE_INDEX_URL`,
+`RECIPES_MCP_GREEN_SOURCE_INDEX_URL`, or the singleton
+`RECIPES_MCP_SOURCE_INDEX_URL`.
 
 ### One-time migration from the old single slot
 
