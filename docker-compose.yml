@@ -18,13 +18,13 @@ x-security-recipes-mcp-runtime: &security-recipes-mcp-runtime
     dockerfile: Dockerfile.mcp-server
     args:
       REVISION: "${SECURITY_RECIPES_IMAGE_REVISION:-bootstrap}"
-  environment:
+  environment: &security-recipes-mcp-environment
     RECIPES_MCP_CONFIG: "/app/mcp-server.toml"
     RECIPES_MCP_TRANSPORT: "streamable-http"
     RECIPES_MCP_HOST: "0.0.0.0"
     RECIPES_MCP_PORT: "80"
     RECIPES_MCP_PATH: "/mcp"
-    RECIPES_MCP_SOURCE_INDEX_URL: "${RECIPES_MCP_SOURCE_INDEX_URL:-https://security-recipes.ai/api/recipes-index.json}"
+    RECIPES_MCP_SOURCE_INDEX_URL: "${RECIPES_MCP_SOURCE_INDEX_URL:-http://security-recipes/api/recipes-index.json}"
     RECIPES_MCP_ALLOWED_SOURCE_HOSTS: "${RECIPES_MCP_ALLOWED_SOURCE_HOSTS:-caddy,security-recipes,security-recipes-green,mcp-server,mcp-server-blue,mcp-server-green,security-recipes.ai}"
     RECIPES_MCP_PUBLIC_BASE_URL: "${RECIPES_MCP_PUBLIC_BASE_URL:-https://security-recipes.ai/mcp}"
     RECIPES_PUBLIC_SITE_BASE_URL: "${SECURITY_RECIPES_BASE_URL:-https://security-recipes.ai/}"
@@ -192,10 +192,16 @@ services:
   mcp-server-blue:
     <<: *security-recipes-mcp-runtime
     image: "${RECIPES_MCP_BLUE_IMAGE:-security-recipes-ai-mcp:bootstrap}"
+    environment:
+      <<: *security-recipes-mcp-environment
+      RECIPES_MCP_SOURCE_INDEX_URL: "${RECIPES_MCP_BLUE_SOURCE_INDEX_URL:-http://security-recipes/api/recipes-index.json}"
 
   mcp-server-green:
     <<: *security-recipes-mcp-runtime
     image: "${RECIPES_MCP_GREEN_IMAGE:-security-recipes-ai-mcp:bootstrap}"
+    environment:
+      <<: *security-recipes-mcp-environment
+      RECIPES_MCP_SOURCE_INDEX_URL: "${RECIPES_MCP_GREEN_SOURCE_INDEX_URL:-http://security-recipes-green/api/recipes-index.json}"
 
 volumes:
   caddy_data:
