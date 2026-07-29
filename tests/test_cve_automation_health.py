@@ -226,6 +226,7 @@ class ProductionHealthTests(unittest.TestCase):
         search_indexable_json: bytes | None = None,
         pages_sitemap_xml: bytes | None = None,
         cve_sitemap_xml: bytes | None = None,
+        cve_sitemap_year: str = "2024",
         excluded_cve_html: bytes | None = None,
         traffic_x_robots_tag: str = "noindex, nofollow, noarchive",
         www_final_url: str = "https://security-recipes.ai/",
@@ -253,11 +254,11 @@ class ProductionHealthTests(unittest.TestCase):
 <meta content="noindex,follow" name="robots">
 <link rel="canonical" href="{excluded_cve_url}">
 </head><body><div data-cve-initial-id="{excluded_cve_id}"></div></body></html>""".encode()
-        default_sitemap = b"""<?xml version="1.0" encoding="utf-8"?>
+        default_sitemap = f"""<?xml version="1.0" encoding="utf-8"?>
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <sitemap><loc>https://security-recipes.ai/sitemaps/pages.xml</loc></sitemap>
-  <sitemap><loc>https://security-recipes.ai/sitemaps/cves-2024.xml</loc></sitemap>
-</sitemapindex>"""
+  <sitemap><loc>https://security-recipes.ai/sitemaps/cves-{cve_sitemap_year}.xml</loc></sitemap>
+</sitemapindex>""".encode()
         default_pages_sitemap = b"""<?xml version="1.0" encoding="utf-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://security-recipes.ai/</loc></url>
@@ -270,8 +271,16 @@ class ProductionHealthTests(unittest.TestCase):
         default_allowlist = json.dumps(
             {
                 "records": [
-                    {"cve": "CVE-2017-18342", "qualification": "stable_markdown"},
-                    {"cve": cve_id, "qualification": "stable_markdown"},
+                    {
+                        "cve": "CVE-2017-18342",
+                        "published": "2018-06-27",
+                        "qualification": "stable_markdown",
+                    },
+                    {
+                        "cve": cve_id,
+                        "published": "2024-04-12",
+                        "qualification": "stable_markdown",
+                    },
                 ]
             }
         ).encode()
@@ -400,7 +409,7 @@ Sitemap: https://security-recipes.ai/sitemap.xml
                     else default_pages_sitemap,
                     "application/xml",
                 )
-            if url.endswith("/sitemaps/cves-2024.xml"):
+            if url.endswith(f"/sitemaps/cves-{cve_sitemap_year}.xml"):
                 return FakeResponse(
                     url,
                     cve_sitemap_xml
@@ -614,6 +623,39 @@ Disallow: /traffic/
         failed = [check for check in report["checks"] if not check["ok"]]
         self.assertEqual([check["name"] for check in failed], ["sitemap"])
         self.assertIn("unqualified record", failed[0]["message"])
+
+    def test_sitemap_partition_uses_publication_year_not_cve_id_year(self) -> None:
+        cve_id = production.DEFAULT_CVE_PROBE_ID
+        allowlist = json.dumps(
+            {
+                "records": [
+                    {
+                        "cve": "CVE-2017-18342",
+                        "published": "2018-06-27",
+                        "qualification": "stable_markdown",
+                    },
+                    {
+                        "cve": cve_id,
+                        "published": "2023-12-31",
+                        "qualification": "stable_markdown",
+                    },
+                ]
+            }
+        ).encode()
+        report = production.run_probes(
+            base_url="https://security-recipes.ai",
+            expected_revision=self.SHA,
+            expected_commit_time=self.NOW - timedelta(hours=2),
+            now=self.NOW,
+            opener=self.opener(
+                search_indexable_json=allowlist,
+                cve_sitemap_year="2023",
+            ),
+            certificate_expiry=self.certificate,
+        )
+
+        sitemap = next(check for check in report["checks"] if check["name"] == "sitemap")
+        self.assertTrue(sitemap["ok"], sitemap["message"])
 
     def test_each_cve_sitemap_is_bounded_below_fifty_thousand_urls(self) -> None:
         cve_url = (
