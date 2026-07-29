@@ -1,0 +1,142 @@
+name: Automation shepherd
+
+# Keeps the hands-off merge train moving with only GITHUB_TOKEN:
+# - Merges performed with GITHUB_TOKEN emit no push event, so a merged main
+#   revision can exist with no Build and therefore no deployable image; the
+#   reconcile step dispatches the missing Build (workflow_dispatch is the
+#   event GITHUB_TOKEN is allowed to trigger).
+# - Branch updates performed with GITHUB_TOKEN emit no pull_request run, so
+#   an auto-merge PR can wait forever for its required build check; the
+#   shepherd step updates stale branches and dispatches the trusted exact-SHA
+#   validation that publishes the required context.
+
+on:
+  schedule:
+    - cron: "7,37 * * * *"
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: automation-shepherd
+  cancel-in-progress: false
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
+jobs:
+  shepherd:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Reconcile the main branch Build
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          MAIN_SHA="$(gh api \
+            "repos/${GITHUB_REPOSITORY}/git/ref/heads/${GITHUB_DEFAULT_BRANCH}" \
+            --jq '.object.sha')"
+          RUNS_JSON="$(gh api \
+            "repos/${GITHUB_REPOSITORY}/actions/runs?head_sha=${MAIN_SHA}&per_page=50" \
+            --jq '[.workflow_runs[]
+              | select(.path == ".github/workflows/build.yml")
+              | {status, conclusion}]')"
+          HEALTHY_RUNS="$(jq '[.[] | select(.conclusion == "success"
+            or .status == "queued"
+            or .status == "in_progress")] | length' <<<"$RUNS_JSON")"
+          if [ "$HEALTHY_RUNS" -gt 0 ]; then
+            echo "Main revision ${MAIN_SHA} already has a Build."
+            exit 0
+          fi
+          TOTAL_RUNS="$(jq 'length' <<<"$RUNS_JSON")"
+          if [ "$TOTAL_RUNS" -ge 2 ]; then
+            echo "::warning::Main revision ${MAIN_SHA} failed ${TOTAL_RUNS} Build attempts; leaving it to AI maintenance."
+            exit 0
+          fi
+
+          gh workflow run build.yml \
+            --ref "$GITHUB_DEFAULT_BRANCH" \
+            --field "expected_sha=${MAIN_SHA}" \
+            --field "request_id=shepherd-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          echo "Dispatched the missing Build for merged main revision ${MAIN_SHA}."
+
+      - name: Shepherd auto-merge pull requests
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          # The CVE catalog sync owns its branch end to end, including guarded
+          # updates and exact-SHA validation, so the shepherd never touches it.
+          SYNC_BRANCH="automation/cve-catalog-sync"
+
+          PRS_JSON="$(gh pr list \
+            --state open \
+            --base "$GITHUB_DEFAULT_BRANCH" \
+            --limit 50 \
+            --json number,isCrossRepository,autoMergeRequest,mergeStateStatus,headRefName,headRefOid)"
+
+          echo "$PRS_JSON" | jq -c '.[]
+            | select(.isCrossRepository == false)
+            | select(.autoMergeRequest != null)' |
+          while IFS= read -r PR_JSON; do
+            PR_NUMBER="$(jq -r '.number' <<<"$PR_JSON")"
+            HEAD_BRANCH="$(jq -r '.headRefName' <<<"$PR_JSON")"
+            HEAD_SHA="$(jq -r '.headRefOid' <<<"$PR_JSON")"
+            MERGE_STATE="$(jq -r '.mergeStateStatus' <<<"$PR_JSON")"
+
+            if [ "$HEAD_BRANCH" = "$SYNC_BRANCH" ]; then
+              echo "#${PR_NUMBER}: the catalog sync manages its own delivery."
+              continue
+            fi
+
+            if [ "$MERGE_STATE" = "DIRTY" ]; then
+              echo "#${PR_NUMBER}: has merge conflicts; a human or AI maintenance must resolve them."
+              continue
+            fi
+
+            if [ "$MERGE_STATE" = "BEHIND" ]; then
+              echo "#${PR_NUMBER}: behind ${GITHUB_DEFAULT_BRANCH}; requesting a guarded branch update."
+              gh api --method PUT \
+                "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/update-branch" \
+                --raw-field "expected_head_sha=${HEAD_SHA}" >/dev/null || true
+              continue
+            fi
+
+            # A build check or status on the head means CI ran (or runs now);
+            # a failed one is a real defect for AI maintenance, not for retry.
+            CHECK_RUNS="$(gh api \
+              "repos/${GITHUB_REPOSITORY}/commits/${HEAD_SHA}/check-runs?per_page=100" \
+              --jq '[.check_runs[] | select(.name == "build")] | length')"
+            STATUSES="$(gh api \
+              "repos/${GITHUB_REPOSITORY}/commits/${HEAD_SHA}/status" \
+              --jq '[.statuses[] | select(.context == "build")] | length')"
+            if [ "$CHECK_RUNS" -gt 0 ] || [ "$STATUSES" -gt 0 ]; then
+              echo "#${PR_NUMBER}: the required build context already exists for ${HEAD_SHA}."
+              continue
+            fi
+
+            PENDING_VALIDATIONS="$(gh run list \
+              --workflow cve-catalog-validate.yml \
+              --limit 20 \
+              --json displayTitle,status \
+              --jq "[.[] | select(.status != \"completed\")
+                | select(.displayTitle | endswith(\"@ ${HEAD_SHA}\"))] | length")"
+            if [ "$PENDING_VALIDATIONS" -gt 0 ]; then
+              echo "#${PR_NUMBER}: an exact-SHA validation is already running for ${HEAD_SHA}."
+              continue
+            fi
+
+            echo "#${PR_NUMBER}: head ${HEAD_SHA} has no build context; dispatching exact-SHA validation."
+            gh workflow run cve-catalog-validate.yml \
+              --ref "$GITHUB_DEFAULT_BRANCH" \
+              --field "expected_sha=${HEAD_SHA}" \
+              --field "request_id=shepherd-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${PR_NUMBER}" \
+              --field "pr_number=${PR_NUMBER}" \
+              --field "expected_branch=${HEAD_BRANCH}"
+          done

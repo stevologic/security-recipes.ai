@@ -49,13 +49,44 @@ class ProductionWatchdogWorkflowTests(unittest.TestCase):
         self.assertIn("steps.production.outputs.healthy", self.workflow)
 
     def test_unhealthy_probe_fails_only_after_issue_reconciliation(self) -> None:
-        reconcile = self.workflow.index(
-            "Upsert or recover production health issue"
-        )
+        reconcile = self.workflow.index("Upsert or recover production health issue")
         failure = self.workflow.index("Fail unhealthy watchdog run")
 
         self.assertLess(reconcile, failure)
         self.assertIn("continue-on-error: true", self.workflow)
+
+    def test_unhealthy_runs_self_heal_missing_builds_and_stale_catalogs(self) -> None:
+        revision_heal = self.workflow.split("- name: Self-heal an unbuilt main revision", 1)[1]
+        catalog_heal = revision_heal.split("- name: Self-heal a stale CVE catalog", 1)[1]
+        revision_heal = revision_heal.split("- name: Self-heal a stale CVE catalog", 1)[0]
+
+        self.assertRegex(self.workflow, r"(?m)^\s{2}actions: write\s*$")
+        for heal_step in (revision_heal, catalog_heal):
+            self.assertIn(
+                "if: always() && steps.production.outputs.healthy != 'true'",
+                heal_step,
+            )
+            self.assertIn("production-health.json", heal_step)
+
+        self.assertIn('select(.name == "revision" and .ok == false)', revision_heal)
+        self.assertIn("gh workflow run build.yml", revision_heal)
+        self.assertIn('--field "expected_sha=${MAIN_SHA}"', revision_heal)
+        self.assertIn('.path == ".github/workflows/build.yml"', revision_heal)
+        self.assertIn('[ "$TOTAL_RUNS" -ge 2 ]', revision_heal)
+
+        self.assertIn('select(.name == "catalog" and .ok == false)', catalog_heal)
+        self.assertIn("gh workflow run cve-catalog-sync.yml", catalog_heal)
+        self.assertIn("six-hour heal cooldown", catalog_heal)
+        self.assertIn("21600", catalog_heal)
+
+        self.assertLess(
+            self.workflow.index("Upsert or recover production health issue"),
+            self.workflow.index("Self-heal an unbuilt main revision"),
+        )
+        self.assertLess(
+            self.workflow.index("Self-heal a stale CVE catalog"),
+            self.workflow.index("Fail unhealthy watchdog run"),
+        )
 
     def test_actions_are_pinned_to_full_commit_shas(self) -> None:
         references = re.findall(r"(?m)^\s*uses:\s*([^#\s]+)", self.workflow)
