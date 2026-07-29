@@ -96,6 +96,11 @@ block when it dispatches the agent.
 Use this for security programs that want the same instructions applied every
 time a class of finding appears.
 
+For GitHub repositories, the
+[Security Health GitHub Action]({{< relref "/docs/security-health-action" >}})
+packages this pattern: it fetches recipe context from the hosted MCP server
+and runs toggleable, model-agnostic health checks as CI.
+
 ## Add MCP context safely
 
 MCP is useful because it lets agents read structured context instead of asking

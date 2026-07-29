@@ -1,0 +1,109 @@
+name: Security Recipes Health Check
+description: >-
+  LLM-evaluated application security health grounded in security-recipes.ai
+  recipe context from the hosted MCP server. Boolean toggles select the
+  checks; disabled checks stay visible in the CI summary. Works with
+  Anthropic, OpenAI, Grok (xAI), or an Ollama-served model, defaulting to
+  the lowest available model when none is chosen.
+author: security-recipes.ai
+
+branding:
+  icon: shield
+  color: green
+
+inputs:
+  provider:
+    description: "Model provider: anthropic, openai, xai, or ollama."
+    required: false
+    default: openai
+  model:
+    description: >-
+      Model identifier. Leave empty to auto-select the lowest available
+      model from the provider's live model list (Ollama picks the smallest
+      installed model by size).
+    required: false
+    default: ""
+  api-key:
+    description: Provider API key. Required for anthropic, openai, and xai.
+    required: false
+    default: ""
+  base-url:
+    description: >-
+      Override the provider base URL. Required for a non-local Ollama server
+      and usable for any OpenAI-compatible endpoint.
+    required: false
+    default: ""
+  mcp-url:
+    description: Hosted Security Recipes MCP endpoint providing recipe context.
+    required: false
+    default: "https://security-recipes.ai/mcp"
+  fail-on:
+    description: "When the job should fail: fail, warn, or never."
+    required: false
+    default: fail
+  working-directory:
+    description: Repository path to evaluate.
+    required: false
+    default: ""
+  check-dependencies:
+    description: Evaluate dependency manifests against vulnerable-dependency guidance.
+    required: false
+    default: "true"
+  check-secrets:
+    description: Audit source excerpts for secrets and data exposure.
+    required: false
+    default: "true"
+  check-injection:
+    description: Audit source excerpts for injection sinks.
+    required: false
+    default: "true"
+  check-supply-chain:
+    description: Audit CI workflows and lockfiles for build-integrity risks.
+    required: false
+    default: "true"
+  check-authz:
+    description: Audit source excerpts for authorization and tenant-boundary gaps.
+    required: false
+    default: "false"
+  check-containers:
+    description: Audit Dockerfiles and compose files for container hygiene.
+    required: false
+    default: "false"
+  check-owasp:
+    description: Run the OWASP Top 10 audit recipe against source excerpts.
+    required: false
+    default: "false"
+  check-cve-exposure:
+    description: Evaluate manifests through the CVE intelligence intake gate.
+    required: false
+    default: "false"
+  check-compliance:
+    description: Evaluate pipeline configuration against compliance-standards recipes.
+    required: false
+    default: "false"
+
+outputs:
+  result:
+    description: "Overall outcome: pass, warn, or fail."
+  dependencies:
+    description: Outcome of the vulnerable-dependencies check when enabled.
+  secrets:
+    description: Outcome of the secrets and data-exposure check when enabled.
+  injection:
+    description: Outcome of the injection-sink check when enabled.
+  supply-chain:
+    description: Outcome of the supply-chain check when enabled.
+  authz:
+    description: Outcome of the authorization check when enabled.
+  containers:
+    description: Outcome of the container-hygiene check when enabled.
+  owasp:
+    description: Outcome of the OWASP Top 10 check when enabled.
+  cve-exposure:
+    description: Outcome of the CVE intake check when enabled.
+  compliance:
+    description: Outcome of the compliance check when enabled.
+
+runs:
+  using: node24
+  main: main.mjs
