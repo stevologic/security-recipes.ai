@@ -1,4 +1,20 @@
+<div align="center">
+
+<img src=".github/readme/hero.svg" alt="security-recipes.ai — Search CVEs. Remediate vulnerabilities with AI agents. Sourced NVD + CISA KEV intelligence, evidence-gated canonical records, and bounded remediation plans." width="100%" />
+
+[![Live site](https://img.shields.io/badge/Live-security--recipes.ai-2dd4bf.svg?style=flat-square&labelColor=020506)](https://security-recipes.ai/)
+[![CVE Database](https://img.shields.io/badge/CVE_Database-260k%2B_records-2dd4bf.svg?style=flat-square&labelColor=020506)](https://security-recipes.ai/cve-database/)
+[![MCP server](https://img.shields.io/badge/MCP-%2Fmcp-5eead4.svg?style=flat-square&labelColor=020506)](https://security-recipes.ai/mcp-servers/)
+[![Security health action](https://img.shields.io/badge/CI-Security_Health_Action-5eead4.svg?style=flat-square&labelColor=020506)](https://security-recipes.ai/docs/security-health-action/)
+[![llms.txt](https://img.shields.io/badge/agents-llms.txt-67e8f9.svg?style=flat-square&labelColor=020506)](https://security-recipes.ai/llms.txt)
+
+</div>
+
 # security-recipes.ai
+
+**Search CVEs. Remediate vulnerabilities with AI agents.** Sourced facts stay
+sourced, remediation stays bounded, and every plan carries verification,
+rollback, and stop conditions — the live site's contract, and this repo's.
 
 [security-recipes.ai](https://security-recipes.ai/) is an Eleventy site for
 sourced CVE intelligence and evidence-gated vulnerability remediation that AI
@@ -13,7 +29,9 @@ The project is intentionally narrow:
 - agent setup guides,
 - MCP integration patterns,
 - an optional read-only MCP server for recipe search and approved upstream MCP
-  context.
+  context,
+- a [reusable GitHub Action](https://security-recipes.ai/docs/security-health-action/)
+  that turns this guidance into toggleable CI health checks.
 
 It is not a scanner, ticketing system, SOAR platform, deployment tool, or custom
 security toolkit. Existing security tools should produce the findings; this
@@ -26,8 +44,11 @@ for the evidence-to-patch workflow. Agent-specific guides cover
 [Codex](https://security-recipes.ai/codex/),
 [Claude Code](https://security-recipes.ai/claude/),
 [Cursor](https://security-recipes.ai/cursor/),
-[GitHub Copilot](https://security-recipes.ai/github_copilot/), and
-[Devin](https://security-recipes.ai/devin/).
+[GitHub Copilot](https://security-recipes.ai/github_copilot/),
+[Devin](https://security-recipes.ai/devin/),
+[Shiba Studio](https://security-recipes.ai/agents/#shiba-studio),
+[Hermes Desktop](https://security-recipes.ai/agents/#hermes-desktop), and
+[OpenClaw](https://security-recipes.ai/agents/#openclaw).
 The [Visual Guide](https://security-recipes.ai/how-to-use/) shows the complete
 path from source qualification and search discovery to a bounded plan, proof,
 rollback, and human review.
