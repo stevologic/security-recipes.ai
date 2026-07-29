@@ -3,15 +3,24 @@ name: AI issue maintenance
 # Unattended issue triage: Codex works open issues filed by the repository
 # owner or its own automation, fixes root causes through auto-merge PRs that
 # the Automation shepherd delivers, and closes what it can prove resolved.
-# Issues created with GITHUB_TOKEN emit no `issues` events, so the schedule
-# is the reliable path for automation-authored issues; the event trigger
-# covers owner-authored issues immediately.
+# Issues created with GITHUB_TOKEN emit no `issues` events, so the event
+# trigger only covers owner-authored issues. The workflows that publish
+# automation issues (the watchdog and the catalog sync) chain into this one
+# on completion, so a token-published issue is worked minutes after it is
+# filed instead of waiting for the twice-daily sweep, which remains the
+# backstop.
 
 on:
   issues:
     types:
       - opened
       - reopened
+  workflow_run:
+    workflows:
+      - Production watchdog
+      - CVE catalog sync
+    types:
+      - completed
   schedule:
     - cron: "41 4,16 * * *"
   workflow_dispatch:
