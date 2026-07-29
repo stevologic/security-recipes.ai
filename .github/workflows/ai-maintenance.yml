@@ -20,7 +20,12 @@ on:
 permissions: {}
 
 concurrency:
-  group: ai-maintenance
+  # One group per failed run. A single shared group looked safe but silently
+  # dropped work: GitHub keeps only the newest pending run in a group, so a
+  # burst of completions cancelled the queued investigations and a real CVE
+  # sync failure went unhandled. Each failure now gets its own repair run,
+  # while retries of the same run still collapse into one.
+  group: ai-maintenance-${{ github.event.workflow_run.id || github.run_id }}
   cancel-in-progress: false
 
 env:
