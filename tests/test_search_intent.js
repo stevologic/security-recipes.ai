@@ -405,7 +405,7 @@ test("high-intent remediation pages expose current review provenance", () => {
     assert.equal(lastmod, reviewedIso);
     assert.match(
       page,
-      new RegExp(`\\*\\*Last updated ${reviewedLabel.replace(/ /gu, " ")}\\.\\*\\*`, "u"),
+      new RegExp(`\\*\\*Last updated ${reviewedLabel}\\.\\*\\*`, "u"),
     );
     assert.match(page, /\[source and revision history\]\(https:\/\/github\.com\/stevologic/u);
     assert.match(page, /\[review methodology\]\(\/about\/#editorial-principles\)/u);
