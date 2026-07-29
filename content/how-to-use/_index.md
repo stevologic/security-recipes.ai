@@ -104,8 +104,10 @@ agent to edit anything. Then use the verified
 [AI agent comparison]({{< relref "/agents" >}}) to match the finding surface,
 operating mode, expected artifact, prerequisites, and review gate. Load the
 tool's native instruction surface: `AGENTS.md`, `CLAUDE.md`,
-`.github/copilot-instructions.md`, `.cursor/rules/*.mdc`, or Devin's repository
-`.agents/skills/<skill-name>/SKILL.md` where supported. The plan is context, not permission; repository
+`.github/copilot-instructions.md`, `.cursor/rules/*.mdc`, Devin's repository
+`.agents/skills/<skill-name>/SKILL.md`, Shiba Studio's per-agent
+instructions, a Hermes skill, or OpenClaw's workspace `AGENTS.md` where
+supported. The plan is context, not permission; repository
 scope and every approval gate still apply.
 
 If the finding is in the agent system itself—its tools, identities, memory,
