@@ -297,8 +297,9 @@ Sitemap: https://security-recipes.ai/sitemap.xml
                 b'<script type="application/ld+json">{"@context":"https://schema.org",'
                 b'"@graph":[{"@type":"Dataset"}]}</script>'
                 b'</head><body><h1 id="cve-database-heading">CVE Database</h1>'
-                b'<a data-qualified-cve-link="CVE-2026-14956" '
-                b'href="/cve/CVE-2026-14956/">CVE-2026-14956</a></body></html>'
+                b'<script type="application/json" data-cve-qualified-routes>'
+                b'{"qualified":{"CVE-2026-14956":"/cve/CVE-2026-14956/"},'
+                b'"historical":{}}</script></body></html>'
             ),
             "https://security-recipes.ai/agentic-security/": (
                 b"<!doctype html><html><head>"
@@ -828,7 +829,7 @@ Disallow: /traffic/
 
         failed = [check for check in report["checks"] if not check["ok"]]
         self.assertEqual([check["name"] for check in failed], ["content_integrity"])
-        self.assertIn("evidence-qualified CVE links", failed[0]["message"])
+        self.assertIn("evidence-qualified CVE route payload", failed[0]["message"])
 
     def test_old_generic_agents_page_fails_content_integrity(self) -> None:
         agents_url = "https://security-recipes.ai/agents/"
