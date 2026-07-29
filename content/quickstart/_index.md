@@ -29,7 +29,8 @@ useful triage note that followed a recipe and respected your repo rules.
    [AI vulnerability remediation playbooks]({{< relref "/security-remediation" >}}) or search the
    [Recipes]({{< relref "/recipes" >}}).
 3. **Choose the agent your team already uses.** GitHub Copilot, Claude, Cursor,
-   Codex, and Devin all work with this pattern.
+   Codex, Devin, Shiba Studio, Hermes, and OpenClaw all work with this
+   pattern.
 4. **Put the rules where the agent reads them.** Use the native instruction file
    for your agent.
 5. **Add only the context needed.** Attach scanner output, advisory details,
@@ -63,6 +64,9 @@ Rules:
 | Cursor | `.cursor/rules/security-remediation.mdc` |
 | Codex | `AGENTS.md` |
 | Devin | Knowledge entry or playbook attached to the task |
+| Shiba Studio | Per-agent instructions and skills on a workspace-bound agent |
+| Hermes | A dedicated remediation skill with the provider and sandbox backend pinned |
+| OpenClaw | Workspace `AGENTS.md` operating rules (persona boundaries stay in `SOUL.md`) |
 
 ## Starter repo rules
 
