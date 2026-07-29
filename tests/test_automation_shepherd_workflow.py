@@ -60,6 +60,12 @@ class AutomationShepherdWorkflowTests(unittest.TestCase):
         self.assertNotIn("gh pr merge", self.workflow)
         self.assertNotIn("actions/checkout", self.workflow)
         self.assertNotIn("git push", self.workflow)
+        # Without a checkout there is no git directory, so every gh command
+        # needs an explicit repository context.
+        self.assertEqual(
+            self.workflow.count("GH_REPO: ${{ github.repository }}"),
+            2,
+        )
 
     def test_actions_are_pinned_to_full_commit_shas(self) -> None:
         references = re.findall(r"(?m)^\s*uses:\s*([^#\s]+)", self.workflow)
