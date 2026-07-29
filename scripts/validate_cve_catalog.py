@@ -160,23 +160,32 @@ VENDOR_CONTROLLED_ECOSYSTEMS = {
     "operating-system",
     "hardware/firmware",
 }
+# Deliberately duplicated rather than imported: this validator re-derives its
+# expectations independently so a defect in the sync cannot pass its own check.
+# tests/test_cve_agentic_contract.py asserts this order stays identical to the
+# sync's copy and covers every archetype, so the duplication cannot drift.
 ARCHETYPE_RISK_PRECEDENCE = (
     "command_code_injection",
     "unsafe_deserialization",
+    "prototype_pollution",
     "memory_corruption",
     "use_after_free",
     "privilege_escalation",
     "authentication_bypass",
+    "session_lifecycle",
     "authorization_idor",
     "sql_query_injection",
     "ssrf",
     "xxe",
     "path_traversal_file_handling",
+    "insecure_default_configuration",
     "supply_chain_update_integrity",
     "http_request_smuggling",
     "crypto_certificate_validation",
     "information_disclosure",
     "cross_site_scripting",
+    "csrf_state_change",
+    "input_validation_boundary",
     "race_lifetime",
     "resource_exhaustion_dos",
 )
