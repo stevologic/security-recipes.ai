@@ -3,13 +3,13 @@ title: AI Coding Agents for Vulnerability Remediation
 linkTitle: AI Agent Comparison
 page_kind: collection
 weight: 3
-lastmod: 2026-07-23
+lastmod: 2026-07-29
 toc: true
 sidebar:
   open: true
 description: >
-  Compare Codex, Claude Code, Cursor, GitHub Copilot, and Devin for AI
-  vulnerability remediation, then configure bounded instructions, MCP context,
+  Compare Codex, Claude Code, Cursor, Copilot, Devin, Shiba Studio, Hermes,
+  and OpenClaw for AI vulnerability remediation with bounded instructions
   and review gates.
 ---
 
@@ -27,7 +27,7 @@ existing agent, use
 For the end-to-end method, return to
 [AI vulnerability remediation playbooks]({{< relref "/security-remediation" >}}).
 
-**Last updated July 23, 2026.** Capabilities and documentation were verified
+**Last updated July 29, 2026.** Capabilities and documentation were verified
 against the linked primary sources.
 [Stephen M Abbott](/about/#stephen-m-abbott) maintains this workflow-fit
 comparison with Security Recipes contributors in the public
@@ -56,6 +56,9 @@ one already connected to your repos, approvals, and review habits.
   {{< card link="/cursor/" title="Cursor" subtitle="Use Cursor Rules, local agents, Cloud Agents, dependency automation, and Security Review where available." >}}
   {{< card link="/codex/" title="Codex" subtitle="Use `AGENTS.md`, skills, and bounded tasks across the app, IDE, terminal, cloud, CI, and Codex Security." >}}
   {{< card link="/devin/" title="Devin" subtitle="Use Knowledge, Playbooks, and repository `.agents/skills/your-skill/SKILL.md` files for hosted alert-or-ticket-to-PR workflows." >}}
+  {{< card link="#shiba-studio" title="Shiba Studio" subtitle="Use per-agent instructions, integration scopes, skills, and MCP servers on local worktree-bound agents powered by Grok/xAI." >}}
+  {{< card link="#hermes-desktop" title="Hermes Desktop" subtitle="Use skills and sandboxed execution backends (local, Docker, SSH, Modal) with Nous Research's self-improving open-source agent." >}}
+  {{< card link="#openclaw" title="OpenClaw" subtitle="Use workspace `AGENTS.md` operating rules and `SOUL.md` boundaries with a local Gateway and a bring-your-own model." >}}
 {{< /cards >}}
 
 ## Compare supported remediation workflows
@@ -71,6 +74,9 @@ required CI, and human approval provide the enforceable boundary.
 | [Cursor](/cursor/) | General repository fixes, dependency-vulnerability automation, and Security Review where licensed | IDE, CLI, autonomous Cloud Agents, or scheduled review | `.cursor/rules/*.mdc`, nested `AGENTS.md`, user or team rules | Local diff/worktree or cloud PR with run artifacts; protect the branch and require review and CI |
 | [GitHub Copilot](/github_copilot/) | Issue-to-PR work and eligible code-scanning campaign alerts | GitHub Copilot cloud agent in an ephemeral Actions-powered environment | `.github/copilot-instructions.md`, path-specific instructions, `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, organization instructions | One task branch and PR; required reviews still apply and the requester's approval does not replace them |
 | [Devin](/devin/) | Dependabot, static-analysis, ticket, and CI-driven repository remediation | Hosted asynchronous workspace connected to source control and CI | Knowledge, Playbooks, repository `.agents/skills/<skill-name>/SKILL.md`, task prompt | Tested PR and CI evidence; existing branch protection, review, and SDLC controls remain authoritative |
+| [Shiba Studio](#shiba-studio) | Bounded repository fixes through local agents and automations with per-agent integration scopes | Local web studio; agents work in their own git worktrees, powered exclusively by Grok/xAI | Per-agent instructions, skills, MCP servers | Branch or PR from an isolated worktree with a local audit trail; branch protection, review, and required CI stay authoritative |
+| [Hermes Desktop](#hermes-desktop) | General agent able to take bounded repository tasks in sandboxed backends | Desktop app or self-hosted gateway; local, Docker, SSH, Singularity, or Modal execution | Skills ([open standard](https://agentskills.io)), agent-curated memory, task prompt | Reviewable diff or PR from a sandboxed run; scoped credentials, human review, and CI remain the enforceable gate |
+| [OpenClaw](#openclaw) | Personal-assistant Gateway able to drive bounded repository work under workspace rules | Local Gateway daemon reachable from approved messaging channels | Workspace `AGENTS.md` and `SOUL.md`, workspace skills, `MEMORY.md` | Reviewable change from a scoped workspace; treat channel input as untrusted and keep review and CI authoritative |
 
 ### Codex
 
@@ -136,6 +142,77 @@ administrative operation with broad repository access. See Devin's official
 [Skills](https://docs.devin.ai/product-guides/skills),
 [Knowledge](https://docs.devin.ai/product-guides/knowledge), and
 [GitHub integration](https://docs.devin.ai/integrations/gh).
+
+### Shiba Studio
+
+[Shiba Studio](https://shiba-studio.io) is a local agent studio that routes
+all intelligence through Grok/xAI. It is built by this site's maintainer, so
+read this section as first-party documentation rather than an independent
+review. Agents are autonomous workers with their own model, workspace,
+git worktree, integration scopes, and skills; Automations own scheduling and
+triggers; runs and approvals land in a local, auditable store, and MCP
+servers plus built-in tools provide read-only context.
+
+Set up a bounded remediation agent:
+
+1. Install and start the studio (Node.js ≥ 22.5 and Git required):
+
+   ```bash
+   git clone https://github.com/stevologic/shiba-studio.git
+   cd shiba-studio
+   npm install
+   npm run dev
+   ```
+
+   Then open `http://localhost:3000` and follow the dashboard's first-run
+   checklist.
+2. Connect a model source in **Settings** — an xAI API key, OAuth with X, the
+   local Grok CLI, or an OpenAI-compatible local server.
+3. Create an **Agent**, bind it to the repository workspace so it edits in
+   its own git worktree, and grant only the integration scopes the finding
+   needs (for example GitHub, but not social posting).
+4. Put the remediation rules, stop conditions, and the matching
+   [security recipe](/recipes/) link in the agent's instructions and skills.
+5. Add read-only MCP context only when the finding needs it, run one
+   low-risk finding, and review the PR before promoting the pattern to an
+   Automation.
+
+See the official
+[getting started guide](https://github.com/stevologic/shiba-studio/blob/main/docs/getting-started.md)
+and [repository documentation](https://github.com/stevologic/shiba-studio).
+
+### Hermes Desktop
+
+[Hermes Agent](https://hermes-agent.nousresearch.com/) is Nous Research's
+MIT-licensed, self-improving agent; Hermes Desktop packages it for Windows,
+macOS, and Linux as a public preview. It plans tasks in natural language,
+executes in sandboxed backends (local, Docker, SSH, Singularity, or Modal),
+writes and reuses skills compatible with the
+[agentskills.io](https://agentskills.io) standard, and keeps agent-curated
+memory across sessions. Providers include Nous Portal, OpenRouter, OpenAI,
+or your own endpoint. For remediation work, pin the model and provider, put
+repository rules and stop conditions in a dedicated skill, run edits in the
+Docker backend with scoped credentials, and review self-created skills like
+code before trusting them with security work — the learning loop is a
+capability, not a control. See the official
+[documentation](https://hermes-agent.nousresearch.com/docs/) and
+[repository](https://github.com/NousResearch/hermes-agent).
+
+### OpenClaw
+
+[OpenClaw](https://openclaw.ai) is an MIT-licensed personal AI assistant
+with a local Gateway, a bring-your-own-model design, and workspace
+instruction files that load every session: operating rules in `AGENTS.md`,
+persona and boundaries in `SOUL.md`, optional durable facts in `MEMORY.md`,
+plus workspace-scoped skills. Install with the platform installer, then run
+`openclaw onboard --install-daemon` to choose a provider and configure the
+Gateway. Because the Gateway can be reached from many messaging channels,
+scope a remediation agent to a dedicated workspace, keep repository rules
+and stop conditions in `AGENTS.md`, restrict tokens to the repositories in
+scope, and treat inbound channel messages as untrusted input rather than
+instructions. See the official
+[getting started guide](https://docs.openclaw.ai/start/getting-started) and
+[agent workspace documentation](https://docs.openclaw.ai/concepts/agent-workspace).
 
 ## Common setup pattern
 

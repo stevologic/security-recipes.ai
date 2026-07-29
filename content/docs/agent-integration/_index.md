@@ -83,6 +83,9 @@ guardrails, and output contract into the format your tool already reads:
 | Cursor | `.cursor/rules/*.mdc` |
 | Codex | `AGENTS.md` |
 | Devin | Knowledge entries and playbooks |
+| Shiba Studio | Per-agent instructions, skills, and MCP servers |
+| Hermes | Skills and agent-curated memory |
+| OpenClaw | Workspace `AGENTS.md` and workspace skills |
 
 Use native configuration for repeated remediation work. It keeps the task
 prompt short and makes the agent behavior more consistent.

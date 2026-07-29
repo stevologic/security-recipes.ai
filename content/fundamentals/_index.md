@@ -145,7 +145,7 @@ guardrails on every recipe exist to catch exactly that failure.
 
 ## The five tools this site covers
 
-All five tools are the same idea — LLM + tools + loop + goal — with
+All of these tools are the same idea — LLM + tools + loop + goal — with
 different packaging, integration surface, and plan documentation. Pick the one
 your team already has licenses for; don't shop for a new agent just
 to follow this site.
@@ -157,6 +157,9 @@ to follow this site.
 | **Cursor** (Agent + Cloud Agents) | Inside the Cursor editor. Cloud Agents run headlessly on Cursor's infrastructure. | Engineer-driven interactive fixes plus asynchronous runs, all from the same editor. | [Agents → Cursor]({{< relref "/cursor" >}}) |
 | **Codex** (CLI + Cloud) | Sandboxed CLI; cloud agent. Driven by a small script that fills prompt templates. | Batch remediation with strong isolation. Good fit when you want to treat remediation like a scheduled job. | [Agents → Codex]({{< relref "/codex" >}}) |
 | **Devin** (Cognition) | Fully managed, autonomous agent with its own sandbox and integrations. | End-to-end "ticket in, PR out" when you don't want to run your own sandbox. | [Agents → Devin]({{< relref "/devin" >}}) |
+| **Shiba Studio** | Local web studio; agents with their own workspaces, git worktrees, scopes, skills, and automations, powered exclusively by Grok/xAI. | Local-first orchestration when you want agents, schedules, and approvals on your own machine. | [Agents → Shiba Studio]({{< relref "/agents" >}}#shiba-studio) |
+| **Hermes** (Nous Research) | Open-source self-improving agent; desktop app or gateway with skills, memory, and five sandbox backends. | Self-hosted general agent that can take bounded repository tasks; bring any provider. | [Agents → Hermes Desktop]({{< relref "/agents" >}}#hermes-desktop) |
+| **OpenClaw** | Open-source personal assistant with a local Gateway, workspace instruction files, and messaging-channel reach. | An always-on local assistant that can drive bounded repository work under workspace rules. | [Agents → OpenClaw]({{< relref "/agents" >}}#openclaw) |
 
 The recipes are opinionated but the choice of tool is not — every
 page on this site has the same guardrails regardless of which
