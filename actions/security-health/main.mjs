@@ -116,9 +116,18 @@ const SKIP_DIRS = new Set([
 ]);
 
 export function readInput(name, fallback = '') {
-  const env = `INPUT_${name.replace(/[ -]/g, '_').toUpperCase()}`;
-  const value = process.env[env];
-  return value === undefined || value === '' ? fallback : value.trim();
+  // The GitHub runner exports inputs as INPUT_<NAME> with spaces converted
+  // to underscores but dashes preserved (INPUT_API-KEY), so probe the
+  // runner spelling first and the underscore variant second.
+  const variants = [
+    `INPUT_${name.replace(/ /g, '_').toUpperCase()}`,
+    `INPUT_${name.replace(/[ -]/g, '_').toUpperCase()}`,
+  ];
+  for (const env of variants) {
+    const value = process.env[env];
+    if (value !== undefined && value !== '') return value.trim();
+  }
+  return fallback;
 }
 
 export function readBoolInput(name, fallback) {

@@ -62,6 +62,20 @@ test('the check registry matches the action toggles and cites site guidance', as
   }
 });
 
+test('inputs read the runner env spelling where dashes are preserved', async () => {
+  const { readInput, readBoolInput } = await loadModule();
+
+  process.env['INPUT_API-KEY'] = 'runner-spelling';
+  process.env['INPUT_CHECK-CONTAINERS'] = 'true';
+  try {
+    assert.equal(readInput('api-key', ''), 'runner-spelling');
+    assert.equal(readBoolInput('check-containers', false), true);
+  } finally {
+    delete process.env['INPUT_API-KEY'];
+    delete process.env['INPUT_CHECK-CONTAINERS'];
+  }
+});
+
 test('lowest-model selection prefers small tiers and skips non-chat models', async () => {
   const { pickLowestModel } = await loadModule();
 
