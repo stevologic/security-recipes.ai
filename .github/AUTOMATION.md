@@ -14,7 +14,7 @@ access token is required.
 | Production watchdog (`production-watchdog.yml`) | every 30 min | Probes the live site, catalog freshness, revision, and TLS; maintains the health issue; self-heals unbuilt revisions and stale catalogs |
 | Automation shepherd (`automation-shepherd.yml`) | every 30 min | Dispatches missing main Builds after token-authored merges, updates stale auto-merge PR branches, and attaches missing build validations |
 | Dependabot auto-merge (`dependabot-automerge.yml`) | Dependabot PRs | Arms auto-merge for verified patch/minor bumps |
-| AI maintenance (`ai-maintenance.yml`) | failure of the workflows above | Claude investigates, fixes the root cause, and opens an auto-merge PR (or documents infra failures on the health issue) |
+| AI maintenance (`ai-maintenance.yml`) | failure of the workflows above | Codex investigates, fixes the root cause, and opens an auto-merge PR (or documents infra failures on the health issue) |
 
 ## Why the shepherd exists
 
@@ -48,7 +48,6 @@ the watchdog's `revision` probe confirms the handoff landed.
 
 | Item | Kind | Status | Purpose |
 | --- | --- | --- | --- |
-| `OPENAI_API_KEY` | secret | configured | CVE enrichment and recipe drafts in the catalog sync |
-| `ANTHROPIC_API_KEY` | secret | **must be added** | Claude-powered AI maintenance; the workflow no-ops with a notice until it exists |
+| `OPENAI_API_KEY` | secret | configured | CVE enrichment and recipe drafts in the catalog sync, plus Codex-powered AI maintenance (which no-ops with a notice if the secret is removed) |
 | `CVE_AUTO_MERGE_ENABLED` | variable | `true` | Lets the catalog sync merge its own PR |
 | `CVE_AUTOMATION_APP_CLIENT_ID` / `CVE_AUTOMATION_APP_PRIVATE_KEY` | variable / secret | optional | A dedicated GitHub App; when configured, its pushes trigger normal CI events and the dispatch workarounds above become unnecessary |

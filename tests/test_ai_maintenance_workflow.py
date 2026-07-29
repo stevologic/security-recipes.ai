@@ -35,7 +35,8 @@ class AiMaintenanceWorkflowTests(unittest.TestCase):
                 self.assertIn(branch_guard, self.workflow)
 
     def test_missing_api_key_disables_ai_repair_gracefully(self) -> None:
-        self.assertIn("ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}", self.workflow)
+        self.assertIn("OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}", self.workflow)
+        self.assertIn("openai-api-key: ${{ secrets.OPENAI_API_KEY }}", self.workflow)
         self.assertIn("configured=false", self.workflow)
         self.assertIn(
             "AI maintenance is inactive until the repository secret is added",
