@@ -41,7 +41,11 @@ class CVEAgenticContractTests(unittest.TestCase):
                 self.assertEqual(action["id"], f"{archetype_id}.{action['phase']}")
                 self.assertTrue(archetype[action["source_field"]])
                 action_ids.append(action["id"])
-        self.assertEqual(len(action_ids), 19 * 7)
+        # Every archetype contributes one action per phase. Deriving the count
+        # from the catalog keeps new remediation families covered instead of
+        # pinning a number that must be edited whenever one is added.
+        self.assertGreaterEqual(len(payload["archetypes"]), 19)
+        self.assertEqual(len(action_ids), len(payload["archetypes"]) * 7)
         self.assertEqual(len(action_ids), len(set(action_ids)))
 
     def test_contract_requires_safe_version_evidence_and_rollback(self) -> None:

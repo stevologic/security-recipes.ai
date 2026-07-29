@@ -197,6 +197,246 @@
     }
   },
   "archetypes": {
+    "csrf_state_change": {
+      "title": "Cross-site request forgery and UI redress",
+      "description": "Remediation for state-changing requests a third-party site can cause an authenticated browser to send, including framing and origin-trust weaknesses.",
+      "matching_cwes": ["CWE-352", "CWE-346", "CWE-1021"],
+      "exposure_checks": [
+        "Inventory every state-changing route and confirm which ones accept ambient browser credentials such as cookies, basic auth, or client certificates.",
+        "Record the framework's anti-forgery defaults, which handlers opt out, and whether cookies set SameSite, Secure, and an explicit path and domain.",
+        "Identify sensitive operations that a framed or cross-origin page could trigger, including administrative actions, funds or permission changes, and account recovery."
+      ],
+      "remediation_steps": [
+        "Apply the supported fix and require a per-session anti-forgery token, bound to the authenticated session, on every state-changing request.",
+        "Set SameSite on session cookies, validate Origin or Referer for state-changing methods, and reject requests carrying neither a token nor a trusted origin.",
+        "Restrict framing with frame-ancestors, require re-authentication for high-value operations, and add tests that submit each route cross-origin and framed."
+      ],
+      "containment_steps": [
+        "Disable the affected state-changing route or feature, or restrict it to a trusted network or identity-aware gateway until the fix ships.",
+        "Tighten session cookie attributes and framing policy at the gateway and shorten session lifetime for affected roles."
+      ],
+      "verification_steps": [
+        "Confirm each state-changing route rejects requests with a missing, stale, foreign-session, or replayed token while normal same-origin use still succeeds.",
+        "Verify safe methods remain side-effect free and that JSON, form, and multipart encodings are all covered by the same check.",
+        "Confirm framing and origin policy reach every affected host, including cached responses and alternate domains."
+      ],
+      "stop_conditions": [
+        "Stop if the only proposed defense is a deny list, a custom header check without origin validation, or a token that is not bound to the session.",
+        "Stop and involve the owning team if removing ambient credentials would break a documented integration or partner callback.",
+        "Switch to incident response if evidence shows unauthorized state changes already occurred."
+      ],
+      "watch_for": [
+        "Routes that change state on GET, legacy endpoints, mobile or partner APIs, and framework escape hatches that disable the anti-forgery filter.",
+        "Permissive CORS that reflects arbitrary origins or allows credentials, and proxy layers that rewrite or drop Origin headers.",
+        "Login, logout, and account-recovery flows, where forgery and session fixation frequently appear together."
+      ],
+      "rollback_steps": [
+        "Restore the previous route handlers, cookie attributes, framing policy, and gateway rules from the captured state.",
+        "Keep the affected feature disabled or network-restricted while the previous behavior is restored, and preserve rotated session material.",
+        "Re-run the cross-origin and framed request tests after the restore and record any route left unprotected in TRIAGE.md."
+      ],
+      "agentic_actions": [
+        {"id": "csrf_state_change.discover", "phase": "discover", "source_field": "exposure_checks", "operation": "inspect", "target_kinds": ["source_code", "configuration", "deployment_manifest", "runtime_policy", "test"]},
+        {"id": "csrf_state_change.assess", "phase": "assess", "source_field": "watch_for", "operation": "assess", "target_kinds": ["source_code", "configuration", "runtime_policy", "test"]},
+        {"id": "csrf_state_change.mitigate", "phase": "mitigate", "source_field": "containment_steps", "operation": "edit", "target_kinds": ["configuration", "deployment_manifest", "runtime_policy"]},
+        {"id": "csrf_state_change.remediate", "phase": "remediate", "source_field": "remediation_steps", "operation": "edit", "target_kinds": ["source_code", "dependency_manifest", "configuration", "deployment_manifest", "runtime_policy", "test"]},
+        {"id": "csrf_state_change.verify", "phase": "verify", "source_field": "verification_steps", "operation": "test", "target_kinds": ["source_code", "configuration", "runtime_policy", "test"]},
+        {"id": "csrf_state_change.rollback", "phase": "rollback", "source_field": "rollback_steps", "operation": "restore", "target_kinds": ["source_code", "configuration", "deployment_manifest", "runtime_policy", "test"]},
+        {"id": "csrf_state_change.triage", "phase": "triage", "source_field": "stop_conditions", "operation": "report", "target_kinds": ["triage_report", "documentation"]}
+      ]
+    },
+    "input_validation_boundary": {
+      "title": "Improper input validation at a trust boundary",
+      "description": "Remediation for untrusted input accepted, transformed, or forwarded without complete validation, canonicalization, or sink-appropriate encoding.",
+      "matching_cwes": ["CWE-20", "CWE-116", "CWE-601", "CWE-1236", "CWE-1284"],
+      "exposure_checks": [
+        "Map the trust boundary the affected input crosses and record its source, expected type, range, length, encoding, and every downstream sink.",
+        "Identify where validation happens today, whether it runs before canonicalization, and whether client-side checks are relied on as the control.",
+        "List the interpreters the value reaches, including redirects, spreadsheet exports, template engines, and downstream service calls."
+      ],
+      "remediation_steps": [
+        "Apply the supported fix and validate on the server against an allowlist of expected type, format, range, and length after canonicalizing the value once.",
+        "Encode or neutralize at each sink for that sink's grammar rather than sanitizing once at input, and constrain redirect targets to an allowlist of relative paths or approved hosts.",
+        "Reject rather than silently coerce invalid input, and add tests for boundary, malformed, oversized, mixed-encoding, and formula-prefixed values."
+      ],
+      "containment_steps": [
+        "Reject the affected input pattern at the gateway or feature-flag the accepting route off until the validating fix ships.",
+        "Restrict the affected interface to trusted networks or roles and cap request size and rate."
+      ],
+      "verification_steps": [
+        "Confirm valid input still succeeds and that each invalid class is rejected with a safe, non-revealing error at the server boundary.",
+        "Verify canonicalization runs before validation so alternate encodings and normalization forms cannot bypass the check.",
+        "Confirm every identified sink applies its own encoding, including exports, redirects, and forwarded service calls."
+      ],
+      "stop_conditions": [
+        "Stop if the proposed fix is a deny list, a client-side check, or a single global sanitizer applied without regard to the sink.",
+        "Stop if the correct accepted values cannot be established from documentation, schema, or the owning team.",
+        "Do not test with payloads that would reach production systems, third parties, or other tenants."
+      ],
+      "watch_for": [
+        "Validation that runs before decoding, double decoding, Unicode normalization, and locale-dependent parsing.",
+        "Alternate entry points that reach the same handler, including batch import, API, queue consumers, and administrative tooling.",
+        "Values that are validated once and then reused across several interpreters with different escaping rules."
+      ],
+      "rollback_steps": [
+        "Restore the previous validation, encoding, and routing code plus gateway rules from the captured state.",
+        "Keep the accepting route disabled or network-restricted while the previous behavior is restored.",
+        "Re-run the boundary and malformed-input tests after the restore and record any unvalidated sink in TRIAGE.md."
+      ],
+      "agentic_actions": [
+        {"id": "input_validation_boundary.discover", "phase": "discover", "source_field": "exposure_checks", "operation": "inspect", "target_kinds": ["source_code", "configuration", "deployment_manifest", "runtime_policy", "test"]},
+        {"id": "input_validation_boundary.assess", "phase": "assess", "source_field": "watch_for", "operation": "assess", "target_kinds": ["source_code", "configuration", "runtime_policy", "test"]},
+        {"id": "input_validation_boundary.mitigate", "phase": "mitigate", "source_field": "containment_steps", "operation": "edit", "target_kinds": ["configuration", "deployment_manifest", "runtime_policy"]},
+        {"id": "input_validation_boundary.remediate", "phase": "remediate", "source_field": "remediation_steps", "operation": "edit", "target_kinds": ["source_code", "dependency_manifest", "lockfile", "configuration", "runtime_policy", "test"]},
+        {"id": "input_validation_boundary.verify", "phase": "verify", "source_field": "verification_steps", "operation": "test", "target_kinds": ["source_code", "configuration", "runtime_policy", "test"]},
+        {"id": "input_validation_boundary.rollback", "phase": "rollback", "source_field": "rollback_steps", "operation": "restore", "target_kinds": ["source_code", "dependency_manifest", "lockfile", "configuration", "runtime_policy", "test"]},
+        {"id": "input_validation_boundary.triage", "phase": "triage", "source_field": "stop_conditions", "operation": "report", "target_kinds": ["triage_report", "documentation"]}
+      ]
+    },
+    "session_lifecycle": {
+      "title": "Session lifecycle and credential recovery weaknesses",
+      "description": "Remediation for sessions that outlive their authorization or survive privilege changes, and for recovery or credential policies that let an attacker take over an account.",
+      "matching_cwes": ["CWE-384", "CWE-521", "CWE-613", "CWE-640"],
+      "exposure_checks": [
+        "Record how session identifiers are issued, stored, renewed, and destroyed, and whether they rotate at login and at every privilege change.",
+        "Establish the configured idle and absolute session lifetimes, and whether logout, password change, and role change invalidate existing sessions everywhere.",
+        "Review the account-recovery flow end to end: token entropy, single use, expiry, delivery channel, and whether it can enumerate or confirm accounts."
+      ],
+      "remediation_steps": [
+        "Apply the supported fix, issue a fresh session identifier on authentication and privilege change, and invalidate the previous one server side.",
+        "Enforce idle and absolute lifetimes server side, and make logout, credential change, and deauthorization revoke every active session, token, and long-lived connection.",
+        "Make recovery tokens high-entropy, single-use, short-lived, and non-enumerating, and align credential policy with current guidance rather than forced rotation and composition rules."
+      ],
+      "containment_steps": [
+        "Shorten session lifetime, revoke active sessions for affected roles, and require re-authentication for sensitive operations.",
+        "Disable the affected recovery flow or gate it behind a verified secondary channel while the fix ships."
+      ],
+      "verification_steps": [
+        "Confirm a session identifier captured before login is unusable afterward, and that logout and privilege change invalidate sessions across every replica and cache.",
+        "Verify idle and absolute expiry are enforced by the server, not only by cookie attributes or client timers.",
+        "Confirm recovery tokens cannot be reused, do not survive password change, and return an identical response for known and unknown accounts."
+      ],
+      "stop_conditions": [
+        "Stop if session state is invalidated only in the browser, only in one replica, or only for the current device.",
+        "Stop if lifetime or recovery requirements cannot be established from policy or the owning team.",
+        "Switch to incident response if evidence shows session or recovery abuse already occurred."
+      ],
+      "watch_for": [
+        "Session identifiers accepted from URLs or attacker-settable cookies, and identifiers reused across authentication states.",
+        "Tokens, refresh tokens, API keys, and websocket or mobile sessions that survive a revocation that only targeted browser cookies.",
+        "Recovery answers, predictable tokens, and support workflows that bypass the documented recovery path."
+      ],
+      "rollback_steps": [
+        "Restore the previous session, lifetime, and recovery configuration and code from the captured state.",
+        "Keep revoked sessions and rotated recovery material revoked; do not restore old session state.",
+        "Re-run the fixation, expiry, and recovery tests after the restore and record unresolved gaps in TRIAGE.md."
+      ],
+      "agentic_actions": [
+        {"id": "session_lifecycle.discover", "phase": "discover", "source_field": "exposure_checks", "operation": "inspect", "target_kinds": ["source_code", "configuration", "deployment_manifest", "runtime_policy", "test"]},
+        {"id": "session_lifecycle.assess", "phase": "assess", "source_field": "watch_for", "operation": "assess", "target_kinds": ["source_code", "configuration", "runtime_policy", "test"]},
+        {"id": "session_lifecycle.mitigate", "phase": "mitigate", "source_field": "containment_steps", "operation": "edit", "target_kinds": ["configuration", "deployment_manifest", "runtime_policy"]},
+        {"id": "session_lifecycle.remediate", "phase": "remediate", "source_field": "remediation_steps", "operation": "edit", "target_kinds": ["source_code", "configuration", "deployment_manifest", "runtime_policy", "test"]},
+        {"id": "session_lifecycle.verify", "phase": "verify", "source_field": "verification_steps", "operation": "test", "target_kinds": ["source_code", "configuration", "runtime_policy", "test"]},
+        {"id": "session_lifecycle.rollback", "phase": "rollback", "source_field": "rollback_steps", "operation": "restore", "target_kinds": ["source_code", "configuration", "deployment_manifest", "runtime_policy", "test"]},
+        {"id": "session_lifecycle.triage", "phase": "triage", "source_field": "stop_conditions", "operation": "report", "target_kinds": ["triage_report", "documentation"]}
+      ]
+    },
+    "prototype_pollution": {
+      "title": "Prototype pollution and unsafe object merging",
+      "description": "Remediation for untrusted keys that reach a recursive merge, clone, or property assignment and modify shared object prototypes or runtime behavior.",
+      "matching_cwes": ["CWE-1321"],
+      "exposure_checks": [
+        "Locate every recursive merge, deep clone, object assignment, and query or body parser that builds objects from untrusted keys.",
+        "Record which dependency versions provide the affected helper and whether the application, a transitive dependency, or both are affected.",
+        "Identify behavior that a polluted prototype could influence, such as access-control flags, template options, command arguments, or configuration lookups."
+      ],
+      "remediation_steps": [
+        "Upgrade the affected dependency to a fixed release and update the lockfile so every transitive path resolves to that release.",
+        "Reject or strip the __proto__, constructor, and prototype keys at the parsing boundary, and build result objects with a null prototype.",
+        "Prefer explicit field-by-field mapping over recursive merges for untrusted input, and add tests asserting that a polluting payload leaves Object.prototype unchanged."
+      ],
+      "containment_steps": [
+        "Disable or gate the affected endpoint that accepts nested user-controlled objects until the fixed dependency ships.",
+        "Freeze Object.prototype at process start where the runtime and dependencies tolerate it, and reject nested keys at the gateway."
+      ],
+      "verification_steps": [
+        "Confirm a payload carrying __proto__ and constructor keys does not add or change properties on Object.prototype after the request completes.",
+        "Verify the resolved dependency version in the lockfile matches the fixed release across every workspace and transitive path.",
+        "Confirm normal nested payloads still round-trip correctly and that behavior depending on defaults is unchanged."
+      ],
+      "stop_conditions": [
+        "Stop if no fixed release exists and the affected helper cannot be replaced or bounded within this change.",
+        "Stop if freezing the prototype breaks a dependency that mutates built-ins at load time.",
+        "Do not verify with payloads that would pollute a shared or production runtime."
+      ],
+      "watch_for": [
+        "Bundled or vendored copies of the affected helper, and duplicate versions kept by the lockfile for different dependents.",
+        "Query-string and form parsers that expand bracket or dotted keys into nested objects.",
+        "Server-side rendering, template option objects, and configuration lookups where a polluted default silently changes behavior."
+      ],
+      "rollback_steps": [
+        "Restore the previous dependency versions, lockfile, parser configuration, and merge code from the captured state.",
+        "Keep the affected endpoint disabled or gated while the previous behavior is restored.",
+        "Re-run the prototype-pollution assertion after the restore and record unresolved paths in TRIAGE.md."
+      ],
+      "agentic_actions": [
+        {"id": "prototype_pollution.discover", "phase": "discover", "source_field": "exposure_checks", "operation": "inspect", "target_kinds": ["source_code", "dependency_manifest", "lockfile", "configuration", "test"]},
+        {"id": "prototype_pollution.assess", "phase": "assess", "source_field": "watch_for", "operation": "assess", "target_kinds": ["source_code", "dependency_manifest", "lockfile", "configuration", "test"]},
+        {"id": "prototype_pollution.mitigate", "phase": "mitigate", "source_field": "containment_steps", "operation": "edit", "target_kinds": ["configuration", "deployment_manifest", "runtime_policy"]},
+        {"id": "prototype_pollution.remediate", "phase": "remediate", "source_field": "remediation_steps", "operation": "edit", "target_kinds": ["source_code", "dependency_manifest", "lockfile", "configuration", "test"]},
+        {"id": "prototype_pollution.verify", "phase": "verify", "source_field": "verification_steps", "operation": "test", "target_kinds": ["source_code", "dependency_manifest", "lockfile", "configuration", "test"]},
+        {"id": "prototype_pollution.rollback", "phase": "rollback", "source_field": "rollback_steps", "operation": "restore", "target_kinds": ["source_code", "dependency_manifest", "lockfile", "configuration", "test"]},
+        {"id": "prototype_pollution.triage", "phase": "triage", "source_field": "stop_conditions", "operation": "report", "target_kinds": ["triage_report", "documentation"]}
+      ]
+    },
+    "insecure_default_configuration": {
+      "title": "Insecure default initialization and shipped configuration",
+      "description": "Remediation for products that are unsafe as delivered because a default setting, sample configuration, or initial state grants access the operator never chose.",
+      "matching_cwes": ["CWE-453", "CWE-1188"],
+      "exposure_checks": [
+        "Determine the affected default and whether each deployment still runs it, was hardened at install, or diverged later.",
+        "Inventory every install path that inherits the default, including images, packaged installers, infrastructure templates, and sample configuration copied into production.",
+        "Record which deployments expose the affected interface to untrusted networks and which accounts or capabilities the default grants."
+      ],
+      "remediation_steps": [
+        "Apply the supported fix and change the shipped default to the safe value rather than documenting a manual hardening step.",
+        "Require an explicit, logged opt-in for the permissive mode and fail closed when the setting is absent or unparsable.",
+        "Update images, templates, and provisioning so new and rebuilt deployments inherit the safe default, and add a test asserting the delivered default."
+      ],
+      "containment_steps": [
+        "Override the default in running deployments and restrict the affected interface to trusted networks until rebuilt artifacts ship.",
+        "Rotate any credential, key, or token the insecure default exposed or generated."
+      ],
+      "verification_steps": [
+        "Confirm a fresh install and a rebuilt image both start with the safe default and that the permissive mode requires explicit configuration.",
+        "Verify existing deployments were remediated rather than only new ones, and that overrides survive restart and redeploy.",
+        "Confirm the service fails closed when the setting is missing, empty, or invalid."
+      ],
+      "stop_conditions": [
+        "Stop if changing the default would break documented operator behavior without a migration path, and record the tradeoff instead.",
+        "Stop if the affected deployments cannot be inventoried, since a partial default change leaves exposure in place.",
+        "Switch to incident response if the insecure default was reachable from an untrusted network and abuse evidence exists."
+      ],
+      "watch_for": [
+        "Sample and quick-start configuration copied into production, and defaults reintroduced by image rebuilds or template drift.",
+        "Embedded credentials, self-signed material, or permissive rules generated at first start.",
+        "Settings that appear hardened in one layer while a lower layer keeps the permissive default."
+      ],
+      "rollback_steps": [
+        "Restore the previous configuration, image tags, and provisioning templates from the captured state.",
+        "Keep the interface network-restricted and rotated credentials rotated while the previous state is restored.",
+        "Re-run the delivered-default test after the restore and record deployments still on the insecure default in TRIAGE.md."
+      ],
+      "agentic_actions": [
+        {"id": "insecure_default_configuration.discover", "phase": "discover", "source_field": "exposure_checks", "operation": "inspect", "target_kinds": ["configuration", "deployment_manifest", "infrastructure_as_code", "inventory", "runtime_policy", "test"]},
+        {"id": "insecure_default_configuration.assess", "phase": "assess", "source_field": "watch_for", "operation": "assess", "target_kinds": ["configuration", "deployment_manifest", "infrastructure_as_code", "inventory", "runtime_policy"]},
+        {"id": "insecure_default_configuration.mitigate", "phase": "mitigate", "source_field": "containment_steps", "operation": "edit", "target_kinds": ["configuration", "deployment_manifest", "infrastructure_as_code", "runtime_policy"]},
+        {"id": "insecure_default_configuration.remediate", "phase": "remediate", "source_field": "remediation_steps", "operation": "edit", "target_kinds": ["source_code", "configuration", "deployment_manifest", "infrastructure_as_code", "runtime_policy", "test"]},
+        {"id": "insecure_default_configuration.verify", "phase": "verify", "source_field": "verification_steps", "operation": "test", "target_kinds": ["configuration", "deployment_manifest", "infrastructure_as_code", "runtime_policy", "test"]},
+        {"id": "insecure_default_configuration.rollback", "phase": "rollback", "source_field": "rollback_steps", "operation": "restore", "target_kinds": ["configuration", "deployment_manifest", "infrastructure_as_code", "runtime_policy", "test"]},
+        {"id": "insecure_default_configuration.triage", "phase": "triage", "source_field": "stop_conditions", "operation": "report", "target_kinds": ["triage_report", "documentation"]}
+      ]
+    },
     "generic": {
       "title": "General vulnerability remediation",
       "description": "Conservative inventory, vendor-fix, containment, and verification guidance when authoritative evidence does not identify a more specific vulnerability family.",
@@ -248,7 +488,7 @@
     "command_code_injection": {
       "title": "Command, code, expression, and template injection",
       "description": "Remediation for untrusted input that can cross an interpreter, shell, evaluator, template, or dynamic-code boundary.",
-      "matching_cwes": ["CWE-77", "CWE-78", "CWE-94", "CWE-95", "CWE-96", "CWE-917", "CWE-1336"],
+      "matching_cwes": ["CWE-77", "CWE-78", "CWE-94", "CWE-95", "CWE-96", "CWE-917", "CWE-1336", "CWE-74", "CWE-88"],
       "exposure_checks": [
         "Trace untrusted values to process execution, interpreters, evaluators, template engines, dynamic imports, and administrative scripting features.",
         "Determine whether the affected path is reachable across each trust boundary and which service account or host privilege it inherits.",
@@ -344,7 +584,7 @@
     "authentication_bypass": {
       "title": "Authentication bypass and missing authentication",
       "description": "Remediation for paths that establish identity or session state without complete, correctly bound authentication checks.",
-      "matching_cwes": ["CWE-287", "CWE-288", "CWE-294", "CWE-305", "CWE-306", "CWE-307", "CWE-798"],
+      "matching_cwes": ["CWE-287", "CWE-288", "CWE-294", "CWE-305", "CWE-306", "CWE-307", "CWE-798", "CWE-290"],
       "exposure_checks": [
         "Map every affected endpoint and protocol path, including alternate ports, legacy routes, recovery flows, service accounts, and machine-to-machine access.",
         "Confirm which deployments enable the affected authentication mode and whether the interface is reachable from untrusted networks.",
@@ -392,7 +632,7 @@
     "authorization_idor": {
       "title": "Authorization bypass, IDOR, and cross-tenant access",
       "description": "Remediation for missing or incorrect permission, ownership, role, and tenant-boundary enforcement after identity is known.",
-      "matching_cwes": ["CWE-284", "CWE-285", "CWE-639", "CWE-862", "CWE-863"],
+      "matching_cwes": ["CWE-284", "CWE-285", "CWE-639", "CWE-862", "CWE-863", "CWE-425"],
       "exposure_checks": [
         "Map object and action authorization checks across API, UI, batch, import/export, and background-job paths.",
         "Identify tenant, ownership, role, and policy boundaries for affected resources and administrative operations.",
@@ -488,7 +728,7 @@
     "path_traversal_file_handling": {
       "title": "Path traversal, unsafe upload, and file handling",
       "description": "Remediation for attacker-controlled paths, archives, uploads, links, or file operations that escape intended storage boundaries.",
-      "matching_cwes": ["CWE-22", "CWE-23", "CWE-36", "CWE-59", "CWE-73", "CWE-98", "CWE-377", "CWE-379", "CWE-434"],
+      "matching_cwes": ["CWE-22", "CWE-23", "CWE-36", "CWE-59", "CWE-73", "CWE-98", "CWE-377", "CWE-379", "CWE-434", "CWE-552"],
       "exposure_checks": [
         "Trace untrusted filenames, archive entries, URLs, and path segments into read, write, include, extraction, and upload operations.",
         "Identify filesystem roots, mount permissions, symbolic-link behavior, archive handling, and whether uploaded content is web-accessible or executable.",
@@ -728,7 +968,7 @@
     "memory_corruption": {
       "title": "Buffer bounds, memory safety, and memory corruption",
       "description": "Remediation for unsafe bounds, arithmetic, parsing, or memory operations that can corrupt process state or disclose memory.",
-      "matching_cwes": ["CWE-119", "CWE-120", "CWE-121", "CWE-122", "CWE-124", "CWE-125", "CWE-126", "CWE-127", "CWE-129", "CWE-131", "CWE-415", "CWE-476", "CWE-787", "CWE-788", "CWE-805", "CWE-823", "CWE-824"],
+      "matching_cwes": ["CWE-119", "CWE-120", "CWE-121", "CWE-122", "CWE-124", "CWE-125", "CWE-126", "CWE-127", "CWE-129", "CWE-131", "CWE-415", "CWE-476", "CWE-787", "CWE-788", "CWE-805", "CWE-823", "CWE-824", "CWE-190", "CWE-843", "CWE-908", "CWE-134", "CWE-191", "CWE-665", "CWE-704", "CWE-822"],
       "exposure_checks": [
         "Identify affected native-code versions, build flags, architectures, parsers, codecs, drivers, and input paths in all shipped artifacts.",
         "Determine whether untrusted data reaches the affected routine and the process privilege, sandbox, and network exposure.",
@@ -872,7 +1112,7 @@
     "resource_exhaustion_dos": {
       "title": "Resource exhaustion and denial of service",
       "description": "Remediation for unbounded work, allocation, recursion, concurrency, or state retention that can exhaust service resources.",
-      "matching_cwes": ["CWE-400", "CWE-401", "CWE-404", "CWE-409", "CWE-674", "CWE-770", "CWE-776", "CWE-789", "CWE-834"],
+      "matching_cwes": ["CWE-400", "CWE-401", "CWE-404", "CWE-409", "CWE-674", "CWE-770", "CWE-776", "CWE-789", "CWE-834", "CWE-617", "CWE-754", "CWE-755", "CWE-248", "CWE-369", "CWE-772", "CWE-1333"],
       "exposure_checks": [
         "Identify attacker-influenced work factors including input size, nesting, compression, fan-out, regex cost, allocation, recursion, retries, and connection lifetime.",
         "Map per-request and shared CPU, memory, disk, descriptor, thread, queue, and downstream-service limits.",
@@ -920,7 +1160,7 @@
     "crypto_certificate_validation": {
       "title": "Cryptography, certificate, signature, and channel validation",
       "description": "Remediation for incorrect cryptographic use, incomplete certificate or signature validation, and insecure channel or key handling.",
-      "matching_cwes": ["CWE-295", "CWE-296", "CWE-297", "CWE-298", "CWE-299", "CWE-311", "CWE-319", "CWE-321", "CWE-326", "CWE-327", "CWE-328", "CWE-330", "CWE-338"],
+      "matching_cwes": ["CWE-295", "CWE-296", "CWE-297", "CWE-298", "CWE-299", "CWE-311", "CWE-319", "CWE-321", "CWE-326", "CWE-327", "CWE-328", "CWE-330", "CWE-338", "CWE-347", "CWE-354"],
       "exposure_checks": [
         "Inventory affected algorithms, key uses, trust stores, certificate validation settings, random sources, and plaintext channels across clients and services.",
         "Determine which secrets, identities, signatures, or data protections depend on the affected primitive or validation path.",
@@ -968,7 +1208,7 @@
     "information_disclosure": {
       "title": "Information disclosure and sensitive data exposure",
       "description": "Remediation for unintended access to secrets, personal data, tenant content, memory, logs, metadata, or other protected information.",
-      "matching_cwes": ["CWE-200", "CWE-201", "CWE-203", "CWE-209", "CWE-212", "CWE-359", "CWE-497", "CWE-522", "CWE-532", "CWE-538"],
+      "matching_cwes": ["CWE-200", "CWE-201", "CWE-203", "CWE-209", "CWE-212", "CWE-359", "CWE-497", "CWE-522", "CWE-532", "CWE-538", "CWE-312", "CWE-668"],
       "exposure_checks": [
         "Trace sensitive data through responses, errors, logs, metrics, traces, caches, exports, files, backups, and client bundles.",
         "Identify affected subjects, tenants, retention windows, access controls, and downstream copies without opening unnecessary sensitive records.",
@@ -1016,7 +1256,7 @@
     "privilege_escalation": {
       "title": "Privilege escalation and unsafe privilege management",
       "description": "Remediation for operations that let a lower-privileged actor acquire, inherit, or exercise capabilities beyond the intended boundary.",
-      "matching_cwes": ["CWE-250", "CWE-266", "CWE-269", "CWE-270", "CWE-271", "CWE-272", "CWE-273", "CWE-274", "CWE-276", "CWE-732"],
+      "matching_cwes": ["CWE-250", "CWE-266", "CWE-269", "CWE-270", "CWE-271", "CWE-272", "CWE-273", "CWE-274", "CWE-276", "CWE-732", "CWE-264", "CWE-281", "CWE-428"],
       "exposure_checks": [
         "Map service accounts, operating-system identities, roles, capabilities, impersonation, set-user transitions, and administrative helper paths.",
         "Determine whether untrusted users or lower-privilege processes can reach the affected transition or modify inputs it trusts.",

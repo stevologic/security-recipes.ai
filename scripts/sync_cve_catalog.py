@@ -239,20 +239,25 @@ VENDOR_CONTROLLED_ECOSYSTEMS = frozenset(
 ARCHETYPE_RISK_PRECEDENCE = (
     "command_code_injection",
     "unsafe_deserialization",
+    "prototype_pollution",
     "memory_corruption",
     "use_after_free",
     "privilege_escalation",
     "authentication_bypass",
+    "session_lifecycle",
     "authorization_idor",
     "sql_query_injection",
     "ssrf",
     "xxe",
     "path_traversal_file_handling",
+    "insecure_default_configuration",
     "supply_chain_update_integrity",
     "http_request_smuggling",
     "crypto_certificate_validation",
     "information_disclosure",
     "cross_site_scripting",
+    "csrf_state_change",
+    "input_validation_boundary",
     "race_lifetime",
     "resource_exhaustion_dos",
 )
@@ -1358,6 +1363,23 @@ KEYWORD_ARCHETYPES: list[tuple[str, tuple[str, ...]]] = [
     ("crypto_certificate_validation", ("certificate validation", "cryptographic", "signature verification")),
     ("information_disclosure", ("information disclosure", "information exposure", "sensitive information")),
     ("privilege_escalation", ("privilege escalation", "elevation of privilege")),
+    ("prototype_pollution", ("prototype pollution",)),
+    (
+        "csrf_state_change",
+        ("cross-site request forgery", " csrf ", "clickjacking", "ui redress"),
+    ),
+    (
+        "session_lifecycle",
+        ("session fixation", "session expiration", "password recovery"),
+    ),
+    (
+        "insecure_default_configuration",
+        ("insecure default", "default configuration", "default credential"),
+    ),
+    (
+        "input_validation_boundary",
+        ("improper input validation", "open redirect", "unvalidated redirect"),
+    ),
 ]
 
 

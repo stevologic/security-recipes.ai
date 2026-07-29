@@ -12168,6 +12168,11 @@ _CVE_ARCHETYPE_PLAYBOOK_IDS = {
         "information_disclosure",
         "privilege_escalation",
         "supply_chain_update_integrity",
+        "csrf_state_change",
+        "input_validation_boundary",
+        "session_lifecycle",
+        "prototype_pollution",
+        "insecure_default_configuration",
     )
 }
 _cve_landing_admission = threading.BoundedSemaphore(_CVE_LANDING_LOOKUP_CONCURRENCY)
