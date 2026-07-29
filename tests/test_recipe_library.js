@@ -261,8 +261,14 @@ test('CVE Database is a standalone catalog route in the primary navigation', () 
   assert.match(hubHtml, /data-cve-catalog\s+data-cve-catalog-base="\/api\/cve-catalog\/"/);
   assert.doesNotMatch(hubHtml, /data-cve-catalog-deferred/);
   assert.match(hubHtml, /<h1 id="cve-database-heading">CVE Database<\/h1>/);
-  assert.match(hubHtml, /<h2 id="cve-qualified-heading">Reviewed and evidence-qualified CVEs<\/h2>/);
-  assert.match(hubHtml, /<h2 id="cve-historical-heading">Historical reviewed CVEs<\/h2>/);
+  // The browser results are the canonical record links now, so the page must
+  // not repeat them as visible lists; the archive stays the no-JS index.
+  assert.doesNotMatch(hubHtml, /Reviewed and evidence-qualified CVEs/);
+  assert.doesNotMatch(hubHtml, /Browse the canonical records below/);
+  assert.doesNotMatch(hubHtml, /data-qualified-cve-link=/);
+  assert.doesNotMatch(hubHtml, /data-historical-cve-link=/);
+  assert.match(hubHtml, /href="\/cve\/archive\/">Browse the plain-HTML CVE archive by publication year<\/a>/);
+  assert.doesNotMatch(hubHtml, /Historical reviewed CVEs/);
   const aiEvaluated = Number(hubHtml.match(/<dt>AI-evaluated<\/dt><dd>([\d,]+)<\/dd>/)?.[1].replaceAll(',', ''));
   const modelCounts = [...hubHtml.matchAll(/cve-database__model-chip[\s\S]*?<small>([\d,]+) records<\/small>/g)]
     .map((match) => Number(match[1].replaceAll(',', '')));
@@ -280,10 +286,6 @@ test('CVE Database is a standalone catalog route in the primary navigation', () 
   assert.ok(
     hubHtml.indexOf('id="cve-catalog"') < hubHtml.indexOf('id="cve-quick-heading"'),
     'the searchable records must appear before supporting content'
-  );
-  assert.ok(
-    hubHtml.indexOf('id="cve-qualified-heading"') < hubHtml.indexOf('id="cve-quick-heading"'),
-    'qualified canonical links must appear before supporting content'
   );
 
   const qualified = loadCveSearchIndexableRecords();
@@ -304,61 +306,17 @@ test('CVE Database is a standalone catalog route in the primary navigation', () 
       stableRoutes.get(record.cve) || `/cve/${record.cve}/`
     ])
   );
-  const renderedQualifiedLinks = new Map(
-    [...hubHtml.matchAll(/<a href="([^"]+)" data-qualified-cve-link="(CVE-\d{4}-\d{4,})">/g)]
-      .map((match) => [match[2], match[1]])
+  const routePayloadMatch = hubHtml.match(
+    /<script type="application\/json" data-cve-qualified-routes>([\s\S]*?)<\/script>/
   );
+  assert.ok(routePayloadMatch, 'the database must publish its qualified-route payload');
+  const routePayload = JSON.parse(routePayloadMatch[1]);
+  const renderedQualifiedLinks = new Map(Object.entries(routePayload.qualified));
   assert.deepEqual(
     [...renderedQualifiedLinks].sort(([a], [b]) => a.localeCompare(b, 'en')),
     [...expectedQualifiedLinks].sort(([a], [b]) => a.localeCompare(b, 'en'))
   );
   assert.equal(renderedQualifiedLinks.get('CVE-2017-18342'), '/recipes/cve/cve-2017-18342-pyyaml/');
-  const reviewedPyYamlAnchor = hubHtml.match(
-    /<a href="([^"]+)" data-qualified-cve-link="CVE-2017-18342"><strong>CVE-2017-18342<\/strong><span>([^<]+)<\/span>/
-  );
-  assert.ok(reviewedPyYamlAnchor, 'the reviewed PyYAML record has a visible database anchor');
-  assert.equal(reviewedPyYamlAnchor[1], '/recipes/cve/cve-2017-18342-pyyaml/');
-  assert.equal(
-    reviewedPyYamlAnchor[2],
-    'CVE-2017-18342 — PyYAML default load resolves arbitrary tags'
-  );
-  const qualifiedAnchorLabels = new Map(
-    [...hubHtml.matchAll(
-      /data-qualified-cve-link="(CVE-\d{4}-\d{4,})"><strong>\1<\/strong><span>([^<]+)<\/span>/g
-    )].map((match) => [match[1], match[2]])
-  );
-  assert.equal(
-    qualifiedAnchorLabels.get('CVE-2021-41773'),
-    'CVE-2021-41773: Apache HTTP Server 2.4.49 Path Traversal'
-  );
-  assert.equal(
-    qualifiedAnchorLabels.get('CVE-2021-42013'),
-    'CVE-2021-42013: Apache HTTP Server 2.4.50 Incomplete-Fix Bypass'
-  );
-  assert.equal(
-    qualifiedAnchorLabels.get('CVE-2025-20281'),
-    'CVE-2025-20281: Cisco ISE API Root RCE (CSCwo99449)'
-  );
-  assert.equal(
-    qualifiedAnchorLabels.get('CVE-2025-20337'),
-    'CVE-2025-20337: Cisco ISE API Root RCE (CSCwp02814)'
-  );
-  assert.equal(
-    qualifiedAnchorLabels.get('CVE-2026-33116'),
-    'CVE-2026-33116: .NET System.Security.Cryptography.Xml DoS'
-  );
-  assert.equal(
-    qualifiedAnchorLabels.get('CVE-2026-14956'),
-    'CVE-2026-14956 — Bricksforge Pro Forms privilege escalation'
-  );
-  assert.equal(
-    qualifiedAnchorLabels.get('CVE-2021-44228'),
-    'CVE-2021-44228 — Log4Shell'
-  );
-  assert.equal(
-    qualifiedAnchorLabels.get('CVE-2024-6387'),
-    'CVE-2024-6387: OpenSSH regreSSHion RCE Remediation'
-  );
   assert.doesNotMatch(
     hubHtml,
     /In PyYAML before 5\.1, the yaml\.load\(\) API could execute arbitrary code if used with untrusted data/
@@ -367,10 +325,7 @@ test('CVE Database is a standalone catalog route in the primary navigation', () 
   const expectedHistoricalLinks = new Map(
     [...stableRoutes].filter(([cve]) => !qualifiedIds.has(cve))
   );
-  const renderedHistoricalLinks = new Map(
-    [...hubHtml.matchAll(/<a href="([^"]+)" data-historical-cve-link="(CVE-\d{4}-\d{4,})">/g)]
-      .map((match) => [match[2], match[1]])
-  );
+  const renderedHistoricalLinks = new Map(Object.entries(routePayload.historical));
   assert.deepEqual(
     [...renderedHistoricalLinks].sort(([a], [b]) => a.localeCompare(b, 'en')),
     [...expectedHistoricalLinks].sort(([a], [b]) => a.localeCompare(b, 'en'))

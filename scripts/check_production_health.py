@@ -96,8 +96,8 @@ CONTENT_INTEGRITY_PROBES = (
                 ),
             ),
             (
-                "evidence-qualified CVE links",
-                re.compile(r"\bdata-qualified-cve-link=[\"']CVE-", re.IGNORECASE),
+                "evidence-qualified CVE route payload",
+                re.compile(r"\bdata-cve-qualified-routes\b", re.IGNORECASE),
             ),
         ),
     ),
