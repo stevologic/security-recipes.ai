@@ -19,6 +19,14 @@ class AutomationShepherdWorkflowTests(unittest.TestCase):
         self.assertRegex(self.workflow, r"(?m)^\s*workflow_dispatch:\s*$")
         self.assertNotRegex(self.workflow, r"(?m)^\s+(push|pull_request|pull_request_target):")
 
+    def test_chains_off_build_and_validation_completions(self) -> None:
+        # GitHub cron can lag or skip; every completed Build or validation
+        # re-running the shepherd keeps the merge train self-driving.
+        self.assertIn("workflow_run:", self.workflow)
+        self.assertIn("- Build", self.workflow)
+        self.assertIn("- CVE catalog validation", self.workflow)
+        self.assertIn("exits\n# without dispatching", self.workflow)
+
     def test_reconciles_unbuilt_main_revisions_without_retry_storms(self) -> None:
         reconcile = self.workflow.split("- name: Reconcile the main branch Build", 1)[1]
         reconcile = reconcile.split("- name: Shepherd auto-merge pull requests", 1)[0]
