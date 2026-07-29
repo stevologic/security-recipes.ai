@@ -669,6 +669,7 @@ def run_probes(
         if not isinstance(qualified_records, list) or not qualified_records:
             raise ValueError("qualified CVE allowlist has no records")
         qualified_cve_ids = set()
+        qualified_cve_years: dict[str, str] = {}
         for record in qualified_records:
             if not isinstance(record, dict):
                 raise ValueError("qualified CVE allowlist contains a non-object record")
@@ -680,9 +681,15 @@ def run_probes(
                 raise ValueError(
                     f"qualified CVE allowlist contains invalid qualification for {cve}"
                 )
+            published = _utc_timestamp(record.get("published"))
+            if published is None:
+                raise ValueError(
+                    f"qualified CVE allowlist contains invalid publication date for {cve}"
+                )
             if cve in qualified_cve_ids:
                 raise ValueError(f"qualified CVE allowlist duplicates {cve}")
             qualified_cve_ids.add(cve)
+            qualified_cve_years[cve] = str(published.year)
         if cve_probe_id not in qualified_cve_ids:
             raise ValueError(f"indexable probe {cve_probe_id} is absent from the allowlist")
         if excluded_cve_probe_id in qualified_cve_ids:
@@ -790,10 +797,10 @@ def run_probes(
                         f"CVE sitemap exposes a non-canonical URL: {child_location}"
                     )
                 cve = route_match.group(1)
-                if cve[4:8] != match.group(1):
-                    raise ValueError(f"{cve} appears in the wrong yearly sitemap")
                 if cve not in qualified_cve_ids:
                     raise ValueError(f"CVE sitemap exposes unqualified record {cve}")
+                if qualified_cve_years[cve] != match.group(1):
+                    raise ValueError(f"{cve} appears in the wrong yearly sitemap")
                 if cve in dynamic_cve_ids:
                     raise ValueError(f"CVE sitemap duplicates {cve}")
                 dynamic_cve_ids.add(cve)
