@@ -1214,6 +1214,46 @@ class SyncCveCatalogTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "integrity failure"):
                 catalog.cache_feed(2024, cache_dir, offline=True)
 
+    def test_unreachable_feed_object_falls_back_to_the_last_verified_cache(self) -> None:
+        # NVD publishes a refreshed .meta before the matching .json.gz is
+        # retrievable often enough to fail a whole daily refresh. The cached
+        # feed carries that year instead, and only when it verifies.
+        with tempfile.TemporaryDirectory(prefix="test-cve-cache-", dir=catalog.ROOT) as tmpdir:
+            cache_dir = Path(tmpdir)
+            stem = "nvdcve-2.0-2024"
+            raw = b'{"vulnerabilities":[]}\n'
+            cached_sha = hashlib.sha256(raw).hexdigest()
+            cached_meta = f"lastModifiedDate:2026-07-01T00:00:00\nsha256:{cached_sha}\n"
+            (cache_dir / f"{stem}.meta").write_text(cached_meta, encoding="utf-8")
+            (cache_dir / f"{stem}.verified").write_text(cached_sha + "\n", encoding="ascii")
+            gzip_path = cache_dir / f"{stem}.json.gz"
+            gzip_path.write_bytes(gzip.compress(raw, mtime=0))
+
+            refreshed_meta = b"lastModifiedDate:2026-07-29T00:00:00\nsha256:" + b"a" * 64 + b"\n"
+
+            def fetch(url: str, **_: object) -> bytes:
+                if url.endswith(".meta"):
+                    return refreshed_meta
+                raise HTTPError(url, 404, "Not Found", {}, None)  # type: ignore[arg-type]
+
+            with patch.object(catalog, "fetch_bytes", fetch):
+                resolved, metadata = catalog.cache_feed(2024, cache_dir)
+
+            self.assertEqual(resolved, gzip_path)
+            # The returned metadata must describe the bytes actually served,
+            # never the newer upstream metadata whose object never arrived.
+            self.assertEqual(metadata["sha256"], cached_sha)
+            self.assertEqual(metadata["lastModifiedDate"], "2026-07-01T00:00:00")
+            self.assertEqual(
+                (cache_dir / f"{stem}.meta").read_text(encoding="utf-8"), cached_meta
+            )
+
+            # A cached feed that no longer verifies is never served.
+            gzip_path.write_bytes(gzip.compress(b'{"vulnerabilities":[{"x":1}]}\n', mtime=0))
+            with patch.object(catalog, "fetch_bytes", fetch):
+                with self.assertRaises(ValueError):
+                    catalog.cache_feed(2024, cache_dir)
+
     def test_archetype_contract_requires_descriptions_and_nonempty_string_lists(self) -> None:
         payload = archetype_payload()
         self.assertEqual(catalog.archetype_contract_errors(payload), [])
