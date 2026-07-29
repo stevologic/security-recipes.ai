@@ -269,15 +269,32 @@ test('CVE Database is a standalone catalog route in the primary navigation', () 
   assert.doesNotMatch(hubHtml, /data-historical-cve-link=/);
   assert.match(hubHtml, /href="\/cve\/archive\/">Browse the plain-HTML CVE archive by publication year<\/a>/);
   assert.doesNotMatch(hubHtml, /Historical reviewed CVEs/);
-  const aiEvaluated = Number(hubHtml.match(/<dt>AI-evaluated<\/dt><dd>([\d,]+)<\/dd>/)?.[1].replaceAll(',', ''));
-  const modelCounts = [...hubHtml.matchAll(/cve-database__model-chip[\s\S]*?<small>([\d,]+) records<\/small>/g)]
-    .map((match) => Number(match[1].replaceAll(',', '')));
-  assert.ok(modelCounts.length > 0, 'the active catalog exposes AI model provenance');
-  assert.equal(
-    modelCounts.reduce((total, records) => total + records, 0),
-    aiEvaluated,
-    'model provenance counts equal the active AI-evaluated record total'
+
+  // The catalog shows the newest records before any search or filter intent,
+  // server-rendered in the same linked-row markup the browser hydrates.
+  const seedList = hubHtml.match(
+    /<ul class="cve-catalog__results cve-catalog__results--seed"[^>]*data-cve-latest-seed[^>]*>([\s\S]*?)<\/ul>/
   );
+  assert.ok(seedList, 'the database seeds the latest CVEs server-side');
+  const seedRows = [...seedList[1].matchAll(/<a class="cve-catalog__record-link" href="([^"]+)">/g)]
+    .map((match) => match[1]);
+  assert.equal(seedRows.length, 10, 'exactly ten latest records are seeded');
+  for (const href of seedRows) {
+    assert.match(href, /^\/(cve|recipes\/cve)\//, `${href} must be a canonical record route`);
+  }
+  assert.ok(
+    hubHtml.indexOf('data-cve-latest-seed') > hubHtml.indexOf('data-cve-catalog'),
+    'the seed renders inside the catalog mount so hydration adopts it'
+  );
+
+  // Marketing sections below the fast lanes are gone; the page ends on the
+  // records, the filters, and the shareable lanes.
+  assert.doesNotMatch(hubHtml, /cve-database__access/);
+  assert.doesNotMatch(hubHtml, /cve-database__provenance/);
+  assert.doesNotMatch(hubHtml, /cve-database__method/);
+  assert.doesNotMatch(hubHtml, /data-cve-agent-instructions/);
+  assert.doesNotMatch(hubHtml, /Readable by humans\. Retrievable by agents\./);
+
   assert.match(hubHtml, /href="\/security-remediation\/">AI vulnerability remediation playbooks<\/a>/);
   assert.match(hubHtml, /href="\/security-remediation\/vulnerable-dependencies\/">vulnerable dependency workflow<\/a>/);
   assert.match(hubHtml, /href="\/recipes\/general\/cve-intelligence-intake-gate\/">CVE intelligence intake gate<\/a>/);
