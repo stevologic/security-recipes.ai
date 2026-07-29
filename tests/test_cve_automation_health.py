@@ -342,8 +342,8 @@ Sitemap: https://security-recipes.ai/sitemap.xml
                 b"<title>AI Coding Agents for Vulnerability Remediation | "
                 b"Security Recipes</title>"
                 b'<meta name="description" content="Compare Codex, Claude Code, Cursor, '
-                b"GitHub Copilot, and Devin for AI vulnerability remediation, then configure "
-                b'bounded instructions, MCP context, and review gates.">'
+                b"Copilot, Devin, Shiba Studio, Hermes, and OpenClaw for AI vulnerability "
+                b'remediation with bounded instructions and review gates.">'
                 b'<meta name="robots" content="index,follow,max-image-preview:large">'
                 b'<link rel="canonical" href="https://security-recipes.ai/agents/">'
                 b'</head><body><h1 class="sr-page-title">'
@@ -871,11 +871,19 @@ Disallow: /traffic/
             if item[0] == "AI agent comparison"
         )
         required = dict(probe[3])
+        description_lines = source.split("description: >", 1)[1].split("---", 1)[0]
+        description = " ".join(
+            line.strip() for line in description_lines.splitlines() if line.strip()
+        )
 
         self.assertRegex(f'<h1 class="sr-page-title">{title}</h1>', probe[2])
         self.assertRegex(
             f"<title>{title} | Security Recipes</title>",
             required["query-specific page title"],
+        )
+        self.assertRegex(
+            f'<meta name="description" content="{description}">',
+            required["agent-comparison meta description"],
         )
 
     def test_clean_googlebot_variant_still_fails_cloaking_parity(self) -> None:
