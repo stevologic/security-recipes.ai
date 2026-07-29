@@ -101,12 +101,20 @@ function createHarness() {
     console: { error() {} },
   };
 
+  const record = new FakeElement('details');
+  const scrolls = { count: 0 };
+  record.scrollIntoView = () => {
+    scrolls.count += 1;
+  };
+  catalog.queries.set('.cve-catalog__record', record);
+
   return {
     assets,
     button,
     catalog,
     document,
     exactShardFetches,
+    scrolls,
     section,
     status,
     window,
@@ -175,19 +183,18 @@ test('canonical CVE catalog script and exact shard stay idle until explicit acti
   assert.equal(harness.button.getAttribute('aria-disabled'), null);
   assert.equal(harness.button.getAttribute('aria-expanded'), 'true');
   assert.equal(harness.section.getAttribute('data-cve-record-state'), 'loaded');
-  assert.match(harness.status.textContent, /retrieving the normalized record/i);
-  assert.match(harness.button.textContent, /focus complete machine-readable record controls/i);
-  assert.equal(harness.catalog.querySelector('[data-cve-search]').focused, true);
+  assert.match(harness.status.textContent, /retrieving the normalized record below/i);
+  assert.match(harness.button.textContent, /show the complete machine-readable record/i);
+  assert.ok(harness.scrolls.count >= 1, 'the loaded record is brought into view');
 
-  harness.catalog.querySelector('[data-cve-search]').focused = false;
+  const scrollsAfterLoad = harness.scrolls.count;
   harness.button.click();
   await instance.whenIdle();
   assert.equal(harness.assets.length, 1, 'repeat activation reuses the same script');
   assert.equal(mountCalls, 1, 'repeat activation does not hydrate twice');
   assert.equal(harness.exactShardFetches.length, 1, 'repeat activation does not fetch twice');
-  assert.equal(
-    harness.catalog.querySelector('[data-cve-search]').focused,
-    true,
-    'repeat activation returns focus to the loaded controls',
+  assert.ok(
+    harness.scrolls.count > scrollsAfterLoad,
+    'repeat activation brings the record back into view',
   );
 });
