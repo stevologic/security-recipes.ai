@@ -563,22 +563,23 @@ test('runtime summary metadata produces coverage without loading the browser ind
 });
 
 test('qualified CVE routes come only from the server-rendered search allowlist', () => {
-  const link = (cve, href) => ({
-    getAttribute(name) {
-      if (name === 'data-qualified-cve-link') return cve;
-      if (name === 'href') return href;
-      return null;
-    }
-  });
   const scope = {
-    querySelectorAll(selector) {
-      assert.equal(selector, '[data-qualified-cve-link]');
-      return [
-        link('CVE-2024-3400', '/cve/CVE-2024-3400/'),
-        link('CVE-2017-18342', '/recipes/cve/cve-2017-18342-pyyaml/'),
-        link('CVE-2024-9999', 'https://example.test/cve/CVE-2024-9999/'),
-        link('not-a-cve', '/cve/not-a-cve/')
-      ];
+    querySelector(selector) {
+      assert.equal(selector, 'script[data-cve-qualified-routes]');
+      return {
+        textContent: JSON.stringify({
+          qualified: {
+            'CVE-2024-3400': '/cve/CVE-2024-3400/',
+            'CVE-2017-18342': '/recipes/cve/cve-2017-18342-pyyaml/',
+            'CVE-2024-9999': 'https://example.test/cve/CVE-2024-9999/',
+            'not-a-cve': '/cve/not-a-cve/'
+          },
+          historical: { 'CVE-2014-0160': '/recipes/cve/cve-2014-0160-heartbleed/' }
+        })
+      };
+    },
+    querySelectorAll() {
+      throw new Error('a valid payload must not fall back to anchor scanning');
     }
   };
 
@@ -594,6 +595,32 @@ test('qualified CVE routes come only from the server-rendered search allowlist',
   );
   assert.equal(controller.qualifiedCveHref(routes, 'CVE-2024-9999'), '');
   assert.equal(controller.qualifiedCveHref(routes, 'CVE-2024-3400?redirect=1'), '');
+});
+
+test('a malformed route payload falls back to anchor scanning', () => {
+  const link = (cve, href) => ({
+    getAttribute(name) {
+      if (name === 'data-qualified-cve-link') return cve;
+      if (name === 'href') return href;
+      return null;
+    }
+  });
+  const scope = {
+    querySelector() {
+      return { textContent: '{not json' };
+    },
+    querySelectorAll(selector) {
+      assert.equal(selector, '[data-qualified-cve-link]');
+      return [link('CVE-2024-3400', '/cve/CVE-2024-3400/')];
+    }
+  };
+
+  const routes = controller.collectQualifiedCveRoutes(scope);
+  assert.equal(routes.size, 1);
+  assert.equal(
+    controller.qualifiedCveHref(routes, 'CVE-2024-3400'),
+    '/cve/CVE-2024-3400/'
+  );
 });
 
 test('conflicting qualified CVE routes fail closed', () => {
