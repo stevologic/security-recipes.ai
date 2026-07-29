@@ -537,13 +537,13 @@ def cache_feed(year: int, cache_dir: Path, *, offline: bool = False) -> tuple[Pa
     gzip_path = cache_dir / f"{stem}.json.gz"
     verified_path = cache_dir / f"{stem}.verified"
 
+    cached_meta_text = meta_path.read_text(encoding="utf-8") if meta_path.exists() else ""
     if offline:
         if not meta_path.exists() or not gzip_path.exists():
             raise FileNotFoundError(f"offline cache is missing {stem}")
-        meta_text = meta_path.read_text(encoding="utf-8")
+        meta_text = cached_meta_text
     else:
         meta_text = fetch_bytes(f"{NVD_FEED_ROOT}/{stem}.meta").decode("utf-8", errors="strict")
-        write_if_changed(meta_path, meta_text.encode("utf-8"))
 
     metadata = parse_meta(meta_text)
     expected_sha = metadata["sha256"].lower()
@@ -552,7 +552,27 @@ def cache_feed(year: int, cache_dir: Path, *, offline: bool = False) -> tuple[Pa
         if offline and not gzip_path.exists():
             raise FileNotFoundError(f"offline cache is missing {gzip_path}")
         if not offline:
-            payload = fetch_bytes(f"{NVD_FEED_ROOT}/{stem}.json.gz")
+            try:
+                payload = fetch_bytes(f"{NVD_FEED_ROOT}/{stem}.json.gz")
+            except (HTTPError, IncompleteRead, TimeoutError, URLError, OSError) as exc:
+                # NVD periodically publishes a refreshed .meta while the
+                # matching .json.gz object is still unreachable. Serving the
+                # last independently verified feed for this year keeps the
+                # refresh complete and honest for every other year instead of
+                # discarding the entire run; the cached metadata, not the
+                # newer upstream metadata, describes the bytes actually used.
+                if not gzip_path.exists() or not verified_sha or not cached_meta_text:
+                    raise
+                cached_metadata = parse_meta(cached_meta_text)
+                if cached_metadata["sha256"].lower() != verified_sha:
+                    raise
+                verify_gzip_payload(gzip_path, verified_sha)
+                print(
+                    f"::warning::[{year}] NVD published metadata for a feed object that is not "
+                    f"retrievable ({exc}); this year keeps its last verified cached feed.",
+                    flush=True,
+                )
+                return gzip_path, cached_metadata
             write_if_changed(gzip_path, payload)
     # The marker records which upstream metadata was checked; it is not proof
     # that cached bytes still match. Rehash decompressed feed contents on every
@@ -565,6 +585,9 @@ def cache_feed(year: int, cache_dir: Path, *, offline: bool = False) -> tuple[Pa
         payload = fetch_bytes(f"{NVD_FEED_ROOT}/{stem}.json.gz")
         write_if_changed(gzip_path, payload)
         verify_gzip_payload(gzip_path, expected_sha)
+    # Only record metadata once its feed object has been verified, so a cached
+    # fallback on a later run still describes the bytes it actually serves.
+    write_if_changed(meta_path, meta_text.encode("utf-8"))
     write_if_changed(verified_path, (expected_sha + "\n").encode("ascii"))
     return gzip_path, metadata
 
