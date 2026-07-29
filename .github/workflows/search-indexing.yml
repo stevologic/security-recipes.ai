@@ -1,0 +1,108 @@
+name: Search indexing
+
+# Submits the live sitemap's URLs to IndexNow (Bing, Yandex, Seznam, Naver,
+# and other participating engines) so new and refreshed pages get discovered
+# without waiting for a crawl. The key is public by design; the matching
+# key file ships in static/ and proves ownership. Google does not accept
+# IndexNow; its discovery runs through the sitemap and Search Console.
+
+on:
+  schedule:
+    - cron: "53 7 * * *"
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: search-indexing
+  cancel-in-progress: true
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
+jobs:
+  indexnow:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Submit live sitemap URLs to IndexNow
+        shell: bash
+        env:
+          SITE_HOST: security-recipes.ai
+          INDEXNOW_KEY: 1053cadd3418c88fab6a70e63cf15d53
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          import sys
+          import urllib.request
+          import xml.etree.ElementTree as ET
+
+          host = os.environ["SITE_HOST"]
+          key = os.environ["INDEXNOW_KEY"]
+          namespace = "{http://www.sitemaps.org/schemas/sitemap/0.9}"
+
+          def fetch(url):
+              request = urllib.request.Request(
+                  url, headers={"User-Agent": "security-recipes-indexnow/1"}
+              )
+              with urllib.request.urlopen(request, timeout=30) as response:
+                  return response.read()
+
+          key_probe = fetch(f"https://{host}/{key}.txt").decode().strip()
+          if key_probe != key:
+              print(f"::notice::The IndexNow key file is not deployed yet; skipping submission.")
+              sys.exit(0)
+
+          root = ET.fromstring(fetch(f"https://{host}/sitemap.xml"))
+          urls = []
+          child_maps = [
+              node.findtext(f"{namespace}loc")
+              for node in root.findall(f"{namespace}sitemap")
+          ]
+          if child_maps:
+              for child in child_maps:
+                  if not child:
+                      continue
+                  child_root = ET.fromstring(fetch(child.strip()))
+                  urls.extend(
+                      node.findtext(f"{namespace}loc").strip()
+                      for node in child_root.findall(f"{namespace}url")
+                      if node.findtext(f"{namespace}loc")
+                  )
+          else:
+              urls.extend(
+                  node.findtext(f"{namespace}loc").strip()
+                  for node in root.findall(f"{namespace}url")
+                  if node.findtext(f"{namespace}loc")
+              )
+
+          urls = sorted({url for url in urls if url.startswith(f"https://{host}/")})
+          if not urls:
+              print("::warning::The live sitemap yielded no URLs; nothing to submit.")
+              sys.exit(0)
+
+          submitted = 0
+          for start in range(0, len(urls), 10000):
+              payload = json.dumps({
+                  "host": host,
+                  "key": key,
+                  "keyLocation": f"https://{host}/{key}.txt",
+                  "urlList": urls[start:start + 10000],
+              }).encode()
+              request = urllib.request.Request(
+                  "https://api.indexnow.org/indexnow",
+                  data=payload,
+                  headers={
+                      "Content-Type": "application/json; charset=utf-8",
+                      "User-Agent": "security-recipes-indexnow/1",
+                  },
+              )
+              with urllib.request.urlopen(request, timeout=30) as response:
+                  print(f"IndexNow batch {start // 10000 + 1}: HTTP {response.status}")
+              submitted += len(urls[start:start + 10000])
+
+          print(f"Submitted {submitted} URLs from the live sitemap to IndexNow.")
+          PY
