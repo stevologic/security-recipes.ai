@@ -391,17 +391,22 @@ test("the remediation pillar labels hypothetical and repository evidence truthfu
 });
 
 test("high-intent remediation pages expose current review provenance", () => {
-  for (const relativePath of [
-    "content/security-remediation/_index.md",
-    "content/agents/_index.md",
+  // Each page pins its own verified review date so a content change cannot
+  // silently advertise a review that never happened.
+  for (const [relativePath, reviewedIso, reviewedLabel] of [
+    ["content/security-remediation/_index.md", "2026-07-23", "July 23, 2026"],
+    ["content/agents/_index.md", "2026-07-29", "July 29, 2026"],
   ]) {
     const page = source(relativePath);
     const data = frontMatter(relativePath);
     const lastmod = data.lastmod instanceof Date
       ? data.lastmod.toISOString().slice(0, 10)
       : String(data.lastmod);
-    assert.equal(lastmod, "2026-07-23");
-    assert.match(page, /\*\*Last updated July 23, 2026\.\*\*/u);
+    assert.equal(lastmod, reviewedIso);
+    assert.match(
+      page,
+      new RegExp(`\\*\\*Last updated ${reviewedLabel}\\.\\*\\*`, "u"),
+    );
     assert.match(page, /\[source and revision history\]\(https:\/\/github\.com\/stevologic/u);
     assert.match(page, /\[review methodology\]\(\/about\/#editorial-principles\)/u);
     assert.match(page, /\[corrections policy\]\(\/about\/#corrections\)/u);
