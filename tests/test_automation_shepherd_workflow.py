@@ -47,6 +47,13 @@ class AutomationShepherdWorkflowTests(unittest.TestCase):
         self.assertIn("pulls/${PR_NUMBER}/update-branch", shepherd)
         self.assertIn("expected_head_sha=${HEAD_SHA}", shepherd)
         self.assertIn('[ "$MERGE_STATE" = "DIRTY" ]', shepherd)
+        # A token update-branch emits no events, so the same pass must adopt
+        # the new head and continue to the validation logic.
+        self.assertIn('HEAD_SHA="$UPDATED_SHA"', shepherd)
+        self.assertLess(
+            shepherd.index('HEAD_SHA="$UPDATED_SHA"'),
+            shepherd.index("gh workflow run cve-catalog-validate.yml"),
+        )
 
     def test_dispatches_validation_only_when_the_build_context_is_absent(self) -> None:
         shepherd = self.workflow.split("- name: Shepherd auto-merge pull requests", 1)[1]

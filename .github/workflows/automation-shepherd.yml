@@ -118,10 +118,27 @@ jobs:
 
             if [ "$MERGE_STATE" = "BEHIND" ]; then
               echo "#${PR_NUMBER}: behind ${GITHUB_DEFAULT_BRANCH}; requesting a guarded branch update."
-              gh api --method PUT \
+              if ! gh api --method PUT \
                 "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/update-branch" \
-                --raw-field "expected_head_sha=${HEAD_SHA}" >/dev/null || true
-              continue
+                --raw-field "expected_head_sha=${HEAD_SHA}" >/dev/null; then
+                continue
+              fi
+              # A token-authored branch update emits no events at all, so
+              # wait for the new head and keep working the PR in this same
+              # pass instead of stranding it until the next trigger.
+              UPDATED_SHA=""
+              for _ in $(seq 1 20); do
+                sleep 3
+                UPDATED_SHA="$(gh pr view "$PR_NUMBER" --json headRefOid --jq '.headRefOid' 2>/dev/null || true)"
+                if [ -n "$UPDATED_SHA" ] && [ "$UPDATED_SHA" != "$HEAD_SHA" ]; then
+                  break
+                fi
+              done
+              if [ -z "$UPDATED_SHA" ] || [ "$UPDATED_SHA" = "$HEAD_SHA" ]; then
+                echo "#${PR_NUMBER}: the branch update has not surfaced a new head yet; a later pass finishes it."
+                continue
+              fi
+              HEAD_SHA="$UPDATED_SHA"
             fi
 
             # A build check or status on the head means CI ran (or runs now);
