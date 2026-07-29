@@ -32,6 +32,7 @@ const indexableCanonicals = new Map();
 const htmlOutputs = new Map();
 const indexableHtmlRoutes = new Set();
 const noindexHtmlRoutes = new Set();
+const noindexFollowHtmlRoutes = new Set();
 const GENERATED_SIMILARITY_COLLECTIONS = Object.freeze([
   {
     label: "code-hygiene recipes",
@@ -271,9 +272,20 @@ function hasBalancedSnippetDelimiters(value) {
 function checkIndexableHtml(relative, html) {
   if (!/<(?:!doctype\s+html|html\b)/i.test(html)) return;
   const isNoindex = /<meta\b[^>]*name=["'](?:robots|googlebot)["'][^>]*content=["'][^"']*noindex/i.test(html);
+  const robotsContent = html.match(
+    /<meta\b[^>]*name=["'](?:robots|googlebot)["'][^>]*content=["']([^"']*noindex[^"']*)["']/i,
+  )?.[1] || "";
   const isRedirect = /<meta\b[^>]*http-equiv=["']refresh["']/i.test(html);
   const route = routeForOutput(path.join(ROOT, relative));
-  if (isNoindex) noindexHtmlRoutes.add(route);
+  if (isNoindex) {
+    noindexHtmlRoutes.add(route);
+    // noindex,follow pages are deliberate crawl paths: search engines do
+    // not index them but do follow their links, so they participate in the
+    // reachability graph below.
+    if (/\bfollow\b/i.test(robotsContent) && !/\bnofollow\b/i.test(robotsContent)) {
+      noindexFollowHtmlRoutes.add(route);
+    }
+  }
   if (isNoindex || isRedirect) return;
   indexableHtmlRoutes.add(route);
 
@@ -554,9 +566,16 @@ function checkIndexableLinksToNoindexTags() {
 }
 
 function checkIndexableLinkGraph() {
+  // Crawlers traverse noindex,follow pages even though they never index
+  // them, so those routes carry reachability without being subject to the
+  // orphan or depth budgets themselves.
+  const traversableRoutes = new Set([
+    ...indexableHtmlRoutes,
+    ...noindexFollowHtmlRoutes,
+  ]);
   const inbound = new Map([...indexableHtmlRoutes].map((route) => [route, new Set()]));
-  const outbound = new Map([...indexableHtmlRoutes].map((route) => [route, new Set()]));
-  for (const sourceRoute of indexableHtmlRoutes) {
+  const outbound = new Map([...traversableRoutes].map((route) => [route, new Set()]));
+  for (const sourceRoute of traversableRoutes) {
     const html = htmlOutputs.get(sourceRoute) || "";
     for (const match of html.matchAll(/<a\b[^>]*\bhref=(["'])([^"']+)\1/gi)) {
       let destination;
@@ -573,9 +592,11 @@ function checkIndexableLinkGraph() {
       if (
         targetRoute &&
         targetRoute !== sourceRoute &&
-        indexableHtmlRoutes.has(targetRoute)
+        traversableRoutes.has(targetRoute)
       ) {
-        inbound.get(targetRoute).add(sourceRoute);
+        if (indexableHtmlRoutes.has(targetRoute)) {
+          inbound.get(targetRoute).add(sourceRoute);
+        }
         outbound.get(sourceRoute).add(targetRoute);
       }
     }
@@ -1400,47 +1421,48 @@ for (const [cve, route] of qualifiedCanonicalRoutes) {
     fail(`canonical CVE page ${route} is missing its contextual remediation-pillar link`);
   }
 }
-const databaseQualifiedLinks = Array.from(
-  cveDatabase.matchAll(
-    /<a href=["']([^"']+)["'] data-qualified-cve-link=["'](CVE-\d{4}-\d{4,7})["']>/g,
-  ),
-  (match) => ({ route: match[1], cve: match[2] }),
+const routePayloadMatch = cveDatabase.match(
+  /<script type="application\/json" data-cve-qualified-routes>([\s\S]*?)<\/script>/,
 );
-if (databaseQualifiedLinks.length !== qualifiedCanonicalRoutes.size) {
+let databaseRoutePayload = null;
+if (!routePayloadMatch) {
+  fail("CVE Database is missing its machine-readable qualified-route payload");
+} else {
+  try {
+    databaseRoutePayload = JSON.parse(routePayloadMatch[1]);
+  } catch (error) {
+    fail(`CVE Database qualified-route payload is invalid JSON: ${error.message}`);
+  }
+}
+const databaseQualifiedRoutes = new Map(
+  Object.entries(databaseRoutePayload?.qualified || {}),
+);
+if (databaseQualifiedRoutes.size !== qualifiedCanonicalRoutes.size) {
   fail(
-    `CVE Database renders ${databaseQualifiedLinks.length} qualified canonical links; ` +
+    `CVE Database publishes ${databaseQualifiedRoutes.size} qualified canonical routes; ` +
     `expected ${qualifiedCanonicalRoutes.size}`,
   );
 }
 for (const [cve, route] of qualifiedCanonicalRoutes) {
-  const matching = databaseQualifiedLinks.filter(
-    (entry) => entry.cve === cve && entry.route === route,
-  );
-  if (matching.length !== 1) {
-    fail(`CVE Database does not expose exactly one canonical qualified link for ${cve}`);
+  if (databaseQualifiedRoutes.get(cve) !== route) {
+    fail(`CVE Database does not publish the canonical qualified route for ${cve}`);
   }
 }
 const expectedHistoricalDatabaseRoutes = new Map(
   [...historicalCanonicalRoutes].filter(([cve]) => !qualifiedCanonicalRoutes.has(cve)),
 );
-const databaseHistoricalLinks = Array.from(
-  cveDatabase.matchAll(
-    /<a href=["']([^"']+)["'] data-historical-cve-link=["'](CVE-\d{4}-\d{4,7})["']>/g,
-  ),
-  (match) => ({ route: match[1], cve: match[2] }),
+const databaseHistoricalRoutes = new Map(
+  Object.entries(databaseRoutePayload?.historical || {}),
 );
-if (databaseHistoricalLinks.length !== expectedHistoricalDatabaseRoutes.size) {
+if (databaseHistoricalRoutes.size !== expectedHistoricalDatabaseRoutes.size) {
   fail(
-    `CVE Database renders ${databaseHistoricalLinks.length} historical reviewed links; ` +
+    `CVE Database publishes ${databaseHistoricalRoutes.size} historical reviewed routes; ` +
     `expected ${expectedHistoricalDatabaseRoutes.size}`,
   );
 }
 for (const [cve, route] of expectedHistoricalDatabaseRoutes) {
-  const matching = databaseHistoricalLinks.filter(
-    (entry) => entry.cve === cve && entry.route === route,
-  );
-  if (matching.length !== 1) {
-    fail(`CVE Database does not expose exactly one historical reviewed link for ${cve}`);
+  if (databaseHistoricalRoutes.get(cve) !== route) {
+    fail(`CVE Database does not publish the historical reviewed route for ${cve}`);
   }
 }
 for (const route of [

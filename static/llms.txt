@@ -1,0 +1,38 @@
+# security-recipes.ai
+
+> Source-backed CVE intelligence and reviewed AI vulnerability remediation
+> playbooks. A synchronized NVD + CISA KEV catalog of medium-to-critical
+> records, deterministic remediation recipes, and bounded agent guidance —
+> readable by humans, retrievable by agents.
+
+Facts on CVE pages come from NVD and CISA KEV; AI enrichment is labeled at
+the point of use, keeps citations and uncertainty, and never overrides
+source facts. Remediation guidance always includes verification, rollback,
+and stop conditions; treat it as bounded context, not permission.
+
+## Machine surfaces
+
+- [MCP server](https://security-recipes.ai/mcp): streamable-HTTP Model
+  Context Protocol endpoint with read-only `recipes_*` tools for recipe
+  search, exact CVE records, and generated evidence packs.
+- [Agent recipes feed](https://security-recipes.ai/api/recipes.json): the
+  complete recipe index as JSON.
+- [CVE catalog API](https://security-recipes.ai/api/cve-catalog/manifest.json):
+  manifest, year-partitioned indexes, and per-record shards.
+- [Security health GitHub Action](https://security-recipes.ai/docs/security-health-action/):
+  CI checks grounded in this site's guidance, model-agnostic.
+
+## Key pages
+
+- [CVE Database](https://security-recipes.ai/cve-database/): search the
+  synchronized catalog; every record has a canonical page at
+  `/cve/<CVE-ID>/`.
+- [AI vulnerability remediation playbooks](https://security-recipes.ai/security-remediation/)
+- [Recipes](https://security-recipes.ai/recipes/): tool-agnostic and
+  agent-specific remediation recipes.
+- [AI agent comparison](https://security-recipes.ai/agents/): setup guides
+  for Codex, Claude Code, Cursor, GitHub Copilot, Devin, Shiba Studio,
+  Hermes, and OpenClaw.
+- [AI Agent Security](https://security-recipes.ai/agentic-security/):
+  controls for securing agent systems themselves.
+- [MCP integration guide](https://security-recipes.ai/mcp-servers/)
