@@ -661,24 +661,32 @@ html[data-recipe-browser-page="true"] .hextra-max-page-width > article {
   max-width: none !important;
 }
 
+/* The sidebar and TOC are hidden on this page, so the shell collapses to a
+ * single centered column. Every width here is container-relative: 100vw
+ * ignores both the scrollbar and the shell's grid track, which cut the
+ * library off on tablet and phone widths. */
+html[data-recipe-browser-page="true"] .hextra-max-page-width.sr-shell {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 html[data-recipe-browser-page="true"] .hextra-content {
-  width: min(1450px, calc(100vw - 88px));
+  width: min(1450px, 100%);
   margin-inline: auto !important;
 }
 
 html[data-recipe-browser-page="true"] .hextra-max-page-width {
-  width: min(1450px, calc(100vw - 88px)) !important;
-  max-width: min(1450px, calc(100vw - 88px)) !important;
+  width: min(1498px, 100%) !important;
+  max-width: min(1498px, 100%) !important;
 }
 
 html[data-recipe-browser-page="true"] .hextra-max-page-width > article {
-  width: min(1450px, 100vw) !important;
-  max-width: min(1450px, 100vw) !important;
+  width: min(1450px, 100%) !important;
+  max-width: min(1450px, 100%) !important;
 }
 
 html[data-recipe-browser-page="true"] #content {
-  width: min(1450px, 100vw) !important;
-  max-width: min(1450px, 100vw) !important;
+  width: min(1450px, 100%) !important;
+  max-width: min(1450px, 100%) !important;
   padding-left: 0 !important;
   padding-right: 0 !important;
 }
