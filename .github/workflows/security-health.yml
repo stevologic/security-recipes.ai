@@ -31,6 +31,10 @@ jobs:
           persist-credentials: false
 
       - name: Run the Security Recipes health check
+        # Repository and fork pull requests do not receive Actions secrets.
+        # Do not turn an unavailable optional LLM credential into a broken
+        # application build; scheduled and trusted runs still exercise it.
+        if: ${{ secrets.OPENAI_API_KEY != '' }}
         uses: ./actions/security-health
         with:
           provider: openai
