@@ -2,8 +2,7 @@ name: AI maintenance
 
 # Unattended repair layer: when automation-critical workflows fail, Codex
 # investigates the failure, fixes root causes in a branch, and opens an
-# auto-merge PR that the Automation shepherd validates and lands. It never
-# pushes to main directly and never merges its own work.
+# reviewable PR. It never pushes to main or merges its own work.
 
 on:
   workflow_run:
@@ -96,19 +95,25 @@ jobs:
                pins volatile catalog data, convert it to assert the governing
                policy instead (see the editorial lastmod test in
                tests/test_cve_landing.py for the established pattern).
-            4. If a repository change fixes it: create a branch named
-               automation/ai-fix-<short-topic>, commit with a clear message,
-               push it, open a PR to main that explains root cause, fix, and
-               verification, then enable auto-merge with
-               `gh pr merge --auto --squash <pr-number>`. The Automation
-               shepherd workflow attaches the required build validation and
-               GitHub completes the merge; never merge directly and never
-               push to main.
-            5. If the failure is outside the repository (production droplet,
+            4. Automated changes are limited to these paths only:
+               scripts/**, tests/**, src/**, static/**, package.json,
+               package-lock.json, requirements.txt, and requirements-dev.txt.
+               Never modify .github/**, workflow files, action pins,
+               permissions, repository settings, secrets, deployment files,
+               authentication, access-control, or security-policy files.
+               Before committing, inspect `git diff --name-only` and stop if
+               any changed path falls outside this allowlist.
+            5. If an allowed repository change fixes it: create a branch
+               named automation/ai-fix-<short-topic>, commit with a clear
+               message, push it, and open a PR to main. Its body must contain
+               a concise report of the failed run, root cause, changed files,
+               and validation performed. Do not enable auto-merge, merge a
+               PR, or push to main.
+            6. If the failure is outside the repository (production droplet,
                external feeds, registry outages), comment your diagnosis on
                the open issue labeled automation:production-health, or create
                that issue if none is open, instead of opening a PR.
-            6. If an open automation/ai-fix-* PR already covers the same root
+            7. If an open automation/ai-fix-* PR already covers the same root
                cause, push improvements to that PR instead of opening a
                duplicate.
 
