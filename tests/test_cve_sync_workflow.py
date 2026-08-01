@@ -243,6 +243,9 @@ class CveSyncWorkflowTests(unittest.TestCase):
         self.assertIn(
             '"$current_main_sha" != "$merge_commit_sha"', delivery_step
         )
+        self.assertIn("gh_api_with_retry()", delivery_step)
+        self.assertNotIn("gh api --retry", delivery_step)
+        self.assertNotIn("--retry-delay", delivery_step)
         self.assertEqual(delivery_step.count("dispatch_main_build_after_merge"), 4)
         self.assertNotIn("--auto", delivery_step)
         self.assertNotIn("--admin", delivery_step)

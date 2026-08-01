@@ -66,6 +66,11 @@ class CveCatalogValidationWorkflowTests(unittest.TestCase):
         self.assertIn('[ -z "$EXPECTED_BRANCH" ]', self.workflow)
         self.assertIn('[ "$HEAD_BRANCH" != "$EXPECTED_BRANCH" ]', self.workflow)
 
+    def test_github_api_retries_are_compatible_with_hosted_runner_cli(self) -> None:
+        self.assertIn("gh_api_with_retry()", self.workflow)
+        self.assertNotIn("gh api --retry", self.workflow)
+        self.assertNotIn("--retry-delay", self.workflow)
+
     def test_checkout_must_match_requested_sha(self) -> None:
         self.assertIn("ref: ${{ inputs.expected_sha }}", self.workflow)
         self.assertIn('ACTUAL_SHA="$(git rev-parse HEAD)"', self.workflow)
