@@ -304,6 +304,178 @@
         "Record the device model, hardware revision, firmware version, update status, and any service-provider-specific applicability determination."
       ]
     },
+    "CVE-2016-7836": {
+      "business_risk": "No additional source-verified CVE-specific business impact was established.",
+      "claim_evidence": [],
+      "exposure_conditions": [],
+      "gaps": [
+        "generic_ecosystem"
+      ],
+      "generated_at": "2026-08-03T13:05:23Z",
+      "model": "gpt-5.6-luna",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [],
+      "retrieved_source_urls": [
+        "https://www.skygroup.jp/security-info/news/170308.html",
+        "https://www.skygroup.jp/security-info/news/210421.html",
+        "https://www.skygroup.jp/security-info/policy/",
+        "https://www.skygroup.jp/security-info/security/",
+        "https://jvn.jp/en/report/all.html",
+        "https://www.skygroup.jp/security-info/handling-policy/",
+        "https://jvn.jp/jp/JVN84995847/index.html",
+        "https://www.skygroup.jp/security-info/bugbounty-en/",
+        "https://jvndb.jvn.jp/en/contents/2016/JVNDB-2016-000249.html",
+        "https://www.skygroup.jp/security-info/bugbounty/entry.html",
+        "https://nvd.nist.gov/vuln/detail/cve-2016-0736",
+        "https://www.skygroup.jp/security-info/assets/docs/%EF%BC%B3%EF%BD%8B%EF%BD%99%E8%84%86%E5%BC%B1%E6%80%A7%E5%A0%B1%E5%A5%A8%E9%87%91%E5%88%B6%E5%BA%A6%E8%A6%8F%E7%B4%84.pdf",
+        "https://www.skygroup.jp/security-info/bugbounty-en/entry.html",
+        "https://www.skygroup.jp/security-info/assets/docs/%EF%BC%B3%EF%BD%8B%EF%BD%99%E8%84%86%E5%BC%B1%E6%80%A7%E5%A0%B1%E5%A5%A8%E9%87%91%E5%88%B6%E5%BA%A6%E3%83%AB%E3%83%BC%E3%83%AB%E3%83%96%E3%83%83%E3%82%AF.pdf",
+        "https://www.skygroup.jp/security-info/assets/docs/Sky%20Bug%20Bounty%20Program%20Rulebook.pdf",
+        "https://www.skygroup.jp/security-info/assets/docs/Sky%20Bug%20Bounty%20Program%20Terms%20and%20Conditions.pdf",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=0",
+        "https://www.cisa.gov/news-events/alerts/2022/02/10/cisa-adds-15-known-exploited-vulnerabilities-catalog",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=50",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=24",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=70",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=21",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=38",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A795&f%5B10%5D=vendor_project%3A833&f%5B11%5D=vendor_project%3A834&f%5B12%5D=vendor_project%3A837&f%5B13%5D=vendor_project%3A842&f%5B14%5D=vendor_project%3A845&f%5B15%5D=vendor_project%3A854&f%5B16%5D=vendor_project%3A865&f%5B17%5D=vendor_project%3A877&f%5B18%5D=vendor_project%3A880&f%5B19%5D=vendor_project%3A886&f%5B1%5D=vendor_project%3A797&f%5B20%5D=vendor_project%3A888&f%5B21%5D=vendor_project%3A893&f%5B22%5D=vendor_project%3A902&f%5B23%5D=vendor_project%3A917&f%5B24%5D=vendor_project%3A931&f%5B25%5D=vendor_project%3A932&f%5B26%5D=vendor_project%3A933&f%5B27%5D=vendor_project%3A938&f%5B28%5D=vendor_project%3A951&f%5B29%5D=vendor_project%3A1174&f%5B2%5D=vendor_project%3A800&f%5B3%5D=vendor_project%3A801&f%5B4%5D=vendor_project%3A803&f%5B5%5D=vendor_project%3A808&f%5B6%5D=vendor_project%3A820&f%5B7%5D=vendor_project%3A823&f%5B8%5D=vendor_project%3A825&f%5B9%5D=vendor_project%3A828&page=1"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "fa8c664e74ba569cacc2ccf6a6125ffc798a67decfe546892b2e5145282752ef",
+      "source_urls": [
+        "https://www.skygroup.jp/security-info/news/170308.html",
+        "https://jvn.jp/jp/JVN84995847/index.html",
+        "https://www.skygroup.jp/security-info/news/210421.html"
+      ],
+      "status": "insufficient_evidence",
+      "uncertainty": [
+        "The returned authoritative sources establish affected versions, exposure conditions, remediated versions, and compensating controls, but do not provide a detailed, independently verifiable procedure for confirming patch installation.",
+        "The supplied record identifies this CVE as present in CISA KEV, but the returned CISA search result did not display the specific CVE entry; KEV status was therefore not independently confirmed here.",
+        "The vendor lists multiple remediated release branches rather than one universal minimum fixed version; select the branch appropriate to the deployment and vendor support status."
+      ],
+      "verification_steps": []
+    },
+    "CVE-2016-8735": {
+      "business_risk": "High risk of unauthenticated remote code execution when Apache Tomcat uses JmxRemoteLifecycleListener and an attacker can reach the associated JMX ports. The vulnerability is listed in the CISA Known Exploited Vulnerabilities catalog, so exposed instances should be prioritized.",
+      "claim_evidence": [
+        {
+          "claim": "The affected product is Apache Tomcat.",
+          "kind": "affected_product",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2016-8735"
+        },
+        {
+          "claim": "Affected versions are before 6.0.48, 7.x before 7.0.73, 8.x before 8.0.39, 8.5.x before 8.5.7, and 9.x before 9.0.0.M12.",
+          "kind": "affected_version",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2016-8735"
+        },
+        {
+          "claim": "Exploitation requires use of JmxRemoteLifecycleListener and attacker reachability to the JMX ports.",
+          "kind": "exposure",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2016-8735"
+        },
+        {
+          "claim": "Apache describes the issue as limited to installations using JmxRemoteLifecycleListener and notes that JMX-port exposure is the relevant access condition.",
+          "kind": "exposure",
+          "source_url": "https://tomcat.apache.org/security-9"
+        },
+        {
+          "claim": "Apache documents the issue as affecting Tomcat 6.0.0 through 6.0.47 and fixed in 6.0.48.",
+          "kind": "fixed_version",
+          "source_url": "https://tomcat.apache.org/security-6.html"
+        },
+        {
+          "claim": "Apache documents the issue as affecting Tomcat 7.0.0 through 7.0.72 and fixed in 7.0.73.",
+          "kind": "fixed_version",
+          "source_url": "https://tomcat.apache.org/security-7.html"
+        },
+        {
+          "claim": "Apache documents the issue as affecting Tomcat 8.0.x before 8.0.39 and Tomcat 8.5.0 through 8.5.6, with the 8.5.x fix included in 8.5.7/8.5.8 release availability as described by Apache.",
+          "kind": "fixed_version",
+          "source_url": "https://tomcat.apache.org/security-8.html"
+        },
+        {
+          "claim": "Apache documents the 9.0.x issue as affecting 9.0.0.M1 through 9.0.0.M11 and fixed in the 9.0.0.M12 code line; the M13 release incorporated the fix after the M12 release vote did not pass.",
+          "kind": "fixed_version",
+          "source_url": "https://tomcat.apache.org/security-9"
+        },
+        {
+          "claim": "Apache's security guidance identifies upgrading to a release containing the fix as the remediation approach.",
+          "kind": "remediation",
+          "source_url": "https://tomcat.apache.org/security-9"
+        },
+        {
+          "claim": "A safe verification can compare the deployed Tomcat version and whether JmxRemoteLifecycleListener is configured against Apache's affected-version and listener conditions; intrusive exploit testing is unnecessary.",
+          "kind": "verification",
+          "source_url": "https://tomcat.apache.org/security-9"
+        }
+      ],
+      "exposure_conditions": [
+        "Apache Tomcat is running an affected version.",
+        "JmxRemoteLifecycleListener is configured and active.",
+        "The JMX ports used by the listener are reachable by an attacker.",
+        "The deployment has not been upgraded to a fixed release."
+      ],
+      "gaps": [
+        "missing_cwe",
+        "generic_ecosystem"
+      ],
+      "generated_at": "2026-08-03T13:06:13Z",
+      "model": "gpt-5.6-luna",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [
+        "Upgrade Apache Tomcat to at least 6.0.48 for the 6.0.x branch, 7.0.73 for the 7.0.x branch, 8.0.39 for the 8.0.x branch, 8.5.7 for the 8.5.x branch, or 9.0.0.M12 for the 9.0.x branch.",
+        "Because the 6.0.x, 7.0.x, 8.0.x, and 8.5.x branches are obsolete, migrate to a currently supported Tomcat release where application compatibility permits.",
+        "Until upgrade is complete, review whether JmxRemoteLifecycleListener is required and restrict JMX port reachability to authorized management networks using existing approved access controls.",
+        "Review downstream or vendor-provided Tomcat packages separately because package versioning and backported fixes may differ from Apache release numbering."
+      ],
+      "retrieved_source_urls": [
+        "https://tomcat.apache.org/security-9",
+        "https://nvd.nist.gov/vuln/detail/CVE-2016-8735",
+        "https://tomcat.apache.org/security.html",
+        "https://tomcat.apache.org/security-impact.html",
+        "https://tomcat.apache.org/security-model.html",
+        "https://tomcat.apache.org/security-taglibs.html",
+        "https://tomcat.apache.org/security-native.html",
+        "https://tomcat.apache.org/tomcat-9.0.x-eos.html",
+        "https://tomcat.apache.org/tomcat-7.0-doc/api/org/apache/catalina/mbeans/JmxRemoteLifecycleListener.html",
+        "https://tomcat.apache.org/tomcat-9.0-doc/security-howto.html",
+        "https://tomcat.apache.org/security-3.html",
+        "https://nvd.nist.gov/vuln/detail/CVE-2016-8935",
+        "https://tomcat.apache.org/presentations/2017-05-16-acna-2017-state-of-the-cat.pdf",
+        "https://tomcat.apache.org/presentations/2016-05-acna-Seamless%20Upgrades%20for%20Credential%20Security%20in%20Apache%20Tomcat.pdf",
+        "https://tomcat.apache.org/presentations/2020-09-29-achome-Openly%20Handling%20Security%20Vulnerabilities.pdf",
+        "https://tomcat.apache.org/security-8.html",
+        "https://tomcat.apache.org/security-7.html",
+        "https://tomcat.apache.org/security-6.html",
+        "https://tomcat.apache.org/tomcat-85-eol.html",
+        "https://tomcat.apache.org/oldnews-2016.html",
+        "https://tomcat.apache.org/security-10.html"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "68008b676c2c358cb20090446d5b0377dff84aa17e8ab4f1e740e65936e95d7e",
+      "source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2016-8735",
+        "https://tomcat.apache.org/security-6.html",
+        "https://tomcat.apache.org/security-7.html",
+        "https://tomcat.apache.org/security-8.html",
+        "https://tomcat.apache.org/security-9"
+      ],
+      "status": "complete",
+      "uncertainty": [
+        "NVD assigns NVD-CWE-noinfo, while the supplied CISA KEV metadata identifies CWE-284; the available authoritative sources do not establish a single definitive CWE mapping.",
+        "The Apache advisories establish the listener and JMX reachability conditions but do not provide a universal configuration-file path or a non-invasive automated verification command.",
+        "The Apache fixed-version statements refer to historical release branches; current supported-release selection requires an application compatibility review."
+      ],
+      "verification_steps": [
+        "Record the running Apache Tomcat version and compare it with the branch-specific fixed versions.",
+        "Review Tomcat configuration and deployment records to determine whether JmxRemoteLifecycleListener is enabled.",
+        "Confirm, through approved network-inventory or firewall-review processes, that the listener's JMX ports are not reachable from untrusted networks.",
+        "After remediation, repeat the version and configuration review; do not perform exploit testing or intrusive remote probing."
+      ]
+    },
     "CVE-2017-1000353": {
       "business_risk": "No additional source-verified CVE-specific business impact was established.",
       "claim_evidence": [],
@@ -326,6 +498,100 @@
         "The model did not return a fully sourced exposure, remediation, and verification set; consult the linked NVD and vendor sources before acting."
       ],
       "verification_steps": []
+    },
+    "CVE-2017-11317": {
+      "business_risk": "Critical risk for ASP.NET applications using affected Telerik UI for ASP.NET AJAX components, particularly RadAsyncUpload. The vulnerability can permit arbitrary file uploads and potentially remote code execution. CVE-2017-11317 is listed in CISA's Known Exploited Vulnerabilities Catalog, so internet-facing deployments should be prioritized.",
+      "claim_evidence": [
+        {
+          "claim": "NVD identifies Telerik UI for ASP.NET AJAX configurations through version 2016.3.1027 and versions 2017.2.503 and 2017.2.621 as affected.",
+          "kind": "affected_version",
+          "source_url": "https://nvd.nist.gov/vuln/detail/cve-2017-11317"
+        },
+        {
+          "claim": "The vulnerability can result in arbitrary file uploads and/or remote code execution, and Telerik states that websites using Telerik.Web.UI.dll were at risk; network reachability and lack of required privileges are reflected in the NVD record.",
+          "kind": "exposure",
+          "source_url": "https://www.telerik.com/forums/security-vulnerabilities-cve-2017-11357-cve-2017-11317-cve-2014-2217-safe-if-we-don%27t-use-radasyncupload-control"
+        },
+        {
+          "claim": "Telerik's security alert identifies R2 2017 SP2, version 2017.2.711, or newer as the upgrade path addressing the affected vulnerabilities.",
+          "kind": "fixed_version",
+          "source_url": "https://www.telerik.com/forums/security-vulnerabilities-cve-2017-11357-cve-2017-11317-cve-2014-2217-safe-if-we-don%27t-use-radasyncupload-control"
+        },
+        {
+          "claim": "Telerik documents checking the web.config for the Telerik.Web.UI.WebResource handler and checking the Telerik.Web.UI.dll assembly version to identify Telerik UI for ASP.NET AJAX usage and version.",
+          "kind": "verification",
+          "source_url": "https://www.telerik.com/blogs/blue-mockingbird-vulnerability-telerik-guidance"
+        },
+        {
+          "claim": "CISA's Known Exploited Vulnerabilities Catalog includes CVE-2017-11317 and requires applying vendor updates.",
+          "kind": "exposure",
+          "source_url": "https://nvd.nist.gov/vuln/detail/cve-2017-11317"
+        }
+      ],
+      "exposure_conditions": [
+        "The application deploys Telerik.Web.UI.dll from an affected release.",
+        "The application uses or exposes the RadAsyncUpload functionality or its Telerik upload handler.",
+        "The ASP.NET application is reachable by an attacker through the network; the NVD record rates the vulnerability as network-exploitable without privileges or user interaction.",
+        "The deployed Telerik version is earlier than R2 2017 SP2, version 2017.2.711, or otherwise falls within the affected product versions identified by NVD."
+      ],
+      "gaps": [
+        "generic_ecosystem"
+      ],
+      "generated_at": "2026-08-03T13:03:45Z",
+      "model": "gpt-5.6-luna",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [
+        "Upgrade Telerik UI for ASP.NET AJAX to R2 2017 SP2, version 2017.2.711, or a later release; Telerik identifies this as the patched upgrade path for the affected Telerik.Web.UI.dll vulnerabilities.",
+        "Prefer upgrading to R1 2020, version 2020.1.114, or later because Telerik states that the earlier CVE-2017-11317 patch does not address the separate CVE-2019-18935 deserialization vulnerability.",
+        "If immediate upgrade is not possible, follow Telerik's documented mitigation path for RadAsyncUpload, including disabling the Telerik upload handler where supported and using a reviewed custom handler when uploads are required.",
+        "Prioritize remediation for externally reachable systems and investigate systems that may have exposed the affected upload functionality because the CVE is cataloged by CISA as known exploited."
+      ],
+      "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/cve-2017-11317",
+        "https://nvd.nist.gov/vuln/detail/CVE-2017-11317",
+        "https://www.telerik.com/products/aspnet-ajax/documentation/knowledge-base/kb-security-critical-rce-chain-bulletin-july-2026",
+        "https://www.telerik.com/forums/security-vulnerabilities-cve-2017-11357-cve-2017-11317-cve-2014-2217-safe-if-we-don%27t-use-radasyncupload-control",
+        "https://docs.telerik.com/data-access/developers-guide/asp.net-development/integrating-with-telerikui-for-asp.net-ajax/developer-guide-aspnet-dev-asp-ajax-overview.html",
+        "https://www.telerik.com/products/aspnet-ajax/documentation/knowledge-base/asyncupload-insecure-direct-object-reference",
+        "https://docs.telerik.com/devtools/document-processing/integration/integration-with-visual-studio",
+        "https://www.telerik.com/products/aspnet-ajax/documentation/knowledge-base/kb-security-rau-padding-oracle-cve-2026-13182",
+        "https://docs.telerik.com/controlpanel",
+        "https://docs.telerik.com/reporting/knowledge-base/javascript-runtime-error-object-doesnt-support-property-or-method-telerik-reportviewer",
+        "https://www.telerik.com/blogs/blue-mockingbird-vulnerability-telerik-guidance",
+        "https://docs.telerik.com/devtools/teststudiodev/features/project-settings/translators",
+        "https://www.cyber.gov.au/sites/default/files/2023-02/ACSC%20Advisory%20%E2%80%93%202019-126%20Vulnerable%20version%20of%20Telerik%20UI%20being%20actively%20exploited%20by%20APT%20actor.pdf",
+        "https://isomer-user-content.by.gov.sg/36/f88a5638-8b0a-44fe-9f03-88254e0c1d8c/29_Apr_2026.pdf",
+        "https://assets.adgm.com/download/assets/20240604%2BCyber%2BSecurity%2BCouncil%2BAlert%2B219.pdf/c15d2292701611efad46d2f226f728e9",
+        "https://resources.speakerbus.com/hubfs/Speakerbus%20Security%20Notes/SA013.pdf?hsLang=en",
+        "https://www.caloes.ca.gov/wp-content/uploads/Homeland-Security/Documents/Cyber-Advisories/Cal-CSIC-Cyber-Advisory_Progress-Telerik-Vulnerability.pdf",
+        "https://filestore.fortinet.com/fortiguard/outbreak_alert/progress_telerik_ui_attack/report.pdf",
+        "https://arxiv.org/abs/1709.04621",
+        "https://www.reddit.com/r/Tidra/comments/1ustg9y/weekly_maintenance_radar_week_ending_july_10_2026/",
+        "https://www.reddit.com/r/Tidra/comments/1v78wc0/weekly_maintenance_radar_week_ending_july_24_2026/",
+        "https://www.reddit.com/r/digitalmunition/comments/e9il1j",
+        "https://www.reddit.com/r/Tidra/comments/1va54f8/wednesday_reconciliation_turning_security/",
+        "https://www.reddit.com/r/Action1/comments/1erek9d"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "adfaf03453d75e3b67b4820a1f92d2603341ec85fba1d094ec091331c9aee7b0",
+      "source_urls": [
+        "https://nvd.nist.gov/vuln/detail/cve-2017-11317",
+        "https://www.telerik.com/forums/security-vulnerabilities-cve-2017-11357-cve-2017-11317-cve-2014-2217-safe-if-we-don%27t-use-radasyncupload-control",
+        "https://www.telerik.com/blogs/blue-mockingbird-vulnerability-telerik-guidance"
+      ],
+      "status": "complete",
+      "uncertainty": [
+        "The supplied source record contains generic affected product and version values of n/a, while NVD identifies Telerik UI for ASP.NET AJAX and specific affected configurations; applicability should therefore be confirmed against the deployed assembly and application configuration.",
+        "The installed product version, whether RadAsyncUpload is enabled, and external reachability are not provided.",
+        "The fixed-version claim of 2017.2.711 is supported by Telerik's security alert/forum material; Telerik's current guidance recommends 2020.1.114 or later because additional vulnerabilities affect older releases."
+      ],
+      "verification_steps": [
+        "Review the deployed Telerik.Web.UI.dll assembly version and confirm it is at least 2017.2.711; for the broader Telerik security baseline, confirm it is at least 2020.1.114.",
+        "Review the ASP.NET configuration and application feature inventory to determine whether the Telerik WebResource or RadAsyncUpload handler is deployed and reachable.",
+        "Confirm the production deployment contains the intended upgraded Telerik.Web.UI.dll and that stale vulnerable copies are not loaded from another application directory or deployment artifact.",
+        "Use configuration and version review only; do not perform exploit attempts or production upload probes."
+      ]
     },
     "CVE-2017-12240": {
       "business_risk": "No additional source-verified CVE-specific business impact was established.",
@@ -558,6 +824,71 @@
       ],
       "verification_steps": []
     },
+    "CVE-2017-5638": {
+      "business_risk": "Critical remote-code-execution risk in Apache Struts applications that process file uploads through the Jakarta Multipart parser. An attacker may be able to submit crafted multipart HTTP header values and achieve arbitrary command execution. The issue has documented exploitation history and is listed in CISA's Known Exploited Vulnerabilities catalog.",
+      "claim_evidence": [
+        {
+          "claim": "NVD records the vulnerability as remotely exploitable and notes exploitation in the wild; NVD also records its inclusion in CISA's Known Exploited Vulnerabilities catalog.",
+          "kind": "exposure",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2017-5638"
+        }
+      ],
+      "exposure_conditions": [
+        "The application uses Apache Struts 2.3.5 through 2.3.31 or Struts 2.5 through 2.5.10.",
+        "The application performs file uploads using the Jakarta-based Multipart parser.",
+        "Externally reachable upload-processing endpoints accept attacker-controlled multipart request headers, including Content-Type, Content-Disposition, or Content-Length values."
+      ],
+      "gaps": [
+        "generic_ecosystem"
+      ],
+      "generated_at": "2026-08-03T13:06:30Z",
+      "model": "gpt-5.6-luna",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [
+        "Upgrade Apache Struts to version 2.3.32 or 2.5.10.1, or a later supported release, according to the application's supported upgrade path.",
+        "If immediate upgrading is not possible, switch from the Jakarta-based Multipart parser to another supported Multipart parser implementation.",
+        "For applicable Struts 2.5.8 through 2.5.10 deployments, consider removing the File Upload Interceptor from the interceptor stack only after confirming that file-upload functionality is not required and the configuration change has been reviewed.",
+        "Prioritize internet-facing and file-upload-enabled Struts applications because the vulnerability is remotely exploitable and has known exploitation history."
+      ],
+      "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2017-5638",
+        "https://nvd.nist.gov/vuln/detail/CVE-2017-5638/change-record?changeRecordedOn=03%2F14%2F2017T09%3A45%3A34.203-0400",
+        "https://nvd.nist.gov/vuln/detail/CVE-2017-5638/change-record?changeRecordedOn=07%2F25%2F2024T09%3A58%3A42.967-0400",
+        "https://cwiki.apache.org/confluence/display/WW/S2-017",
+        "https://nvd.nist.gov/vuln/detail/CVE-2017-0038",
+        "https://cwiki.apache.org/confluence/download/export/pdfexport-20260603-030626-1712-186091/S2-046_8a0f4c64ccc344ba9746789fe61d28c1-030626-1712-186092.pdf?contentType=application%2Fpdf",
+        "https://nvd.nist.gov/vuln/detail/CVE-2017-5637",
+        "https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=73639611",
+        "https://nvd.nist.gov/vuln/detail/CVE-2017-14358",
+        "https://nvd.nist.gov/vuln/detail/CVE-2017-12378",
+        "https://nvd.nist.gov/vuln/detail/cve-2017-3138",
+        "https://nvd.nist.gov/vuln/detail/CVE-2017-9338",
+        "https://nvd.nist.gov/vuln/detail/CVE-2017-9358",
+        "https://cwiki.apache.org/confluence/spaces/flyingpdf/pdfpageexport.action?pageId=61758",
+        "https://cwiki.apache.org/confluence/download/export/pdfexport-20260603-030626-1611-184383/Version%2BNotes%2B2.5.12_7b2213881c154d6c9011701c87093c15-030626-1611-184384.pdf?contentType=application%2Fpdf",
+        "https://cwiki.apache.org/confluence/download/export/pdfexport-20260617-170626-0450-534429/Release%2BNotes_7ad60066e8e842469e5116b3ff2a6b14-170626-0450-534430.pdf?contentType=application%2Fpdf",
+        "https://cwiki.apache.org/confluence/download/export/pdfexport-20260424-240426-1848-506087/SecurityPolicy_5752b8f3b9334a50b0eb564a5c905f86-240426-1848-506088.pdf?contentType=application%2Fpdf"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "160b8a8621ac4213451533649405ac6194ddb4ca46c02f9d548ae65e0f7b671e",
+      "source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2017-5638"
+      ],
+      "status": "complete",
+      "uncertainty": [
+        "The supplied record contains truncated product matches, so downstream IBM, Lenovo, HP, or other vendor-packaged products may require separate vendor-specific advisories and update paths.",
+        "Apache's advisory identifies fixed versions for the Apache Struts branches but does not establish fixed versions for every vendor-integrated product listed in the supplied record.",
+        "No source was found establishing a universal runtime command or non-invasive network test for confirming remediation; verification should rely on authorized artifact, dependency, and configuration review.",
+        "The Apache advisory's affected-version presentation is branch-specific; use the exact deployed product and vendor support guidance when the application embeds or repackages Struts."
+      ],
+      "verification_steps": [
+        "Review the deployed application artifact, dependency inventory, or equivalent runtime inventory to confirm that Apache Struts is not in the affected ranges and is at least version 2.3.32 or 2.5.10.1 on the corresponding branch.",
+        "Confirm through application configuration and dependency review whether the Jakarta-based Multipart parser and File Upload Interceptor are enabled.",
+        "Record the deployed Struts version and Multipart parser implementation as remediation evidence; do not use exploit payloads or active destructive testing.",
+        "If a compensating parser change or File Upload Interceptor removal was used, verify through configuration review and a normal, authorized file-upload regression test that the intended mitigation is active."
+      ]
+    },
     "CVE-2017-5689": {
       "business_risk": "Critical privilege-escalation vulnerability in Intel AMT, Intel Standard Manageability (ISM), and Intel Small Business Technology (SBT). An unprivileged network attacker may gain system privileges on provisioned AMT/ISM systems, while a local attacker may provision manageability features and obtain network or local-system privileges. CVE-2017-5689 is listed in CISA's Known Exploited Vulnerabilities Catalog. ([intel.com](https://www.intel.com/content/www/us/en/security-center/advisory/intel-sa-00075.html?utm_source=openai))",
       "claim_evidence": [
@@ -751,6 +1082,336 @@
         "The Microsoft advisory lists update applicability for Windows Server 2003 SP2 and its x64 edition; applicability to other service-pack or edition combinations should not be inferred."
       ],
       "verification_steps": []
+    },
+    "CVE-2017-7494": {
+      "business_risk": "Critical remote code execution risk. A malicious network client may upload a shared library to a writable Samba share and cause the Samba server to load and execute it. CISA lists this CVE in the Known Exploited Vulnerabilities catalog, indicating active exploitation risk.",
+      "claim_evidence": [
+        {
+          "claim": "The vulnerability affects Samba versions from 3.5.0 onward.",
+          "kind": "affected_product",
+          "source_url": "https://www.samba.org/samba/security/CVE-2017-7494.html"
+        },
+        {
+          "claim": "NVD identifies affected version ranges beginning at 3.5.0 and ending before 4.4.14, 4.5.10, and 4.6.4 for the corresponding release branches.",
+          "kind": "affected_version",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2017-7494"
+        },
+        {
+          "claim": "A malicious client can upload a shared library to a writable share and cause the Samba server to load and execute it.",
+          "kind": "exposure",
+          "source_url": "https://www.samba.org/samba/security/CVE-2017-7494.html"
+        },
+        {
+          "claim": "Samba 4.6.4, 4.5.10, and 4.4.14 were issued as security releases correcting the defect.",
+          "kind": "fixed_version",
+          "source_url": "https://www.samba.org/samba/security/CVE-2017-7494.html"
+        },
+        {
+          "claim": "Samba administrators running affected versions are advised to upgrade or apply the available patch; the advisory also documents disabling named-pipe support as a workaround.",
+          "kind": "remediation",
+          "source_url": "https://www.samba.org/samba/security/CVE-2017-7494.html"
+        },
+        {
+          "claim": "The Samba security release history associates CVE-2017-7494 with the fixed release boundary of 4.6.4, 4.5.10, and 4.4.14, supporting version-inventory verification against those thresholds.",
+          "kind": "verification",
+          "source_url": "https://www.samba.org/samba/history/security.html"
+        },
+        {
+          "claim": "CVE-2017-7494 is listed in CISA's Known Exploited Vulnerabilities catalog with the required action to apply vendor updates.",
+          "kind": "exposure",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2017-7494"
+        }
+      ],
+      "exposure_conditions": [
+        "Samba version is from 3.5.0 through the affected pre-fix releases.",
+        "The attacker can reach the Samba service over the network.",
+        "The attacker can write to a Samba share and the server permits the vulnerable loading behavior."
+      ],
+      "gaps": [
+        "generic_ecosystem"
+      ],
+      "generated_at": "2026-08-03T13:05:42Z",
+      "model": "gpt-5.6-luna",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [
+        "Upgrade Samba to at least version 4.6.4, 4.5.10, or 4.4.14, according to the applicable release branch; alternatively apply the vendor-provided patch.",
+        "Prioritize remediation because the vulnerability is listed in CISA's Known Exploited Vulnerabilities catalog.",
+        "If immediate patching is not possible, Samba's advisory documents disabling named-pipe access with the `nt pipe support = no` global setting and restarting `smbd`; this may disable expected Windows-client functionality and should be treated as a temporary mitigation."
+      ],
+      "retrieved_source_urls": [
+        "https://www.samba.org/samba/security/CVE-2017-7494.html",
+        "https://nvd.nist.gov/vuln/detail/CVE-2017-7494",
+        "https://www.samba.org/samba/history/security.html",
+        "https://lists.samba.org/archive/samba/2017-May/208594.html",
+        "https://nvd.nist.gov/vuln/detail/CVE-2017-7494?source=post_page---------------------------",
+        "https://lists.samba.org/archive/samba/2017-June/208754.html",
+        "https://lists.samba.org/archive/samba/2017-June/208801.html",
+        "https://nvd.nist.gov/vuln/detail/CVE-2017-7494/change-record?changeRecordedOn=06%2F09%2F2017T13%3A04%3A57.130-0400",
+        "https://lists.samba.org/archive/samba/2017-June/208770.html",
+        "https://lists.samba.org/archive/samba/2017-June/208793.html",
+        "https://lists.samba.org/archive/samba/2017-June/209335.html",
+        "https://lists.samba.org/archive/samba/2017-May/208515.html",
+        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
+        "https://www.cisa.gov/sites/default/files/2024-05/Secure_by_Design_Alert_Eliminating_Directory_Traversal_Vulnerabilities_in_Software_508c%20%283%29.pdf",
+        "https://www.cisa.gov/sites/default/files/publications/AA22-117A_Joint_CSA_2021_Top_Routinely_Exploited_Vulnerabilities_Final.pdf",
+        "https://www.cisa.gov/sites/default/files/2024-08/SECURING_THE_SOFTWARE_SUPPLY_CHAIN_RECOMMENDED_PRACTICES_FOR_SOFTWARE_BILL_OF_MATERIALS_CONSUMPTION-508.pdf",
+        "https://www.cisa.gov/sites/default/files/publications/AA20-133A_Top_10_Routinely_Exploited_Vulnerabilities_S508C.pdf",
+        "https://www.cisa.gov/sites/default/files/2023-11/SbD%20Alert%20-%20How%20Software%20Manufacturers%20Can%20Shield%20Web%20Management%20Interfaces%20From%20Malicious%20Cyber%20Activity_508c%20%281%29_0.pdf"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "67e17c2c199cdd2015680f50815e6666f5e4dc1b0caf6deb87c3f9ee62507e2e",
+      "source_urls": [
+        "https://www.samba.org/samba/security/CVE-2017-7494.html",
+        "https://www.samba.org/samba/history/security.html",
+        "https://nvd.nist.gov/vuln/detail/CVE-2017-7494"
+      ],
+      "status": "complete",
+      "uncertainty": [
+        "The supplied record includes a Debian 8.0 CPE, but no Debian package version or Debian-specific fixed package information was established by the authoritative sources consulted.",
+        "The advisory establishes the vulnerable behavior and fixed upstream Samba releases, but it does not establish whether a particular vendor backport is present in an installed package.",
+        "No environment-specific information was provided about network reachability, share permissions, named-pipe configuration, or compensating controls."
+      ],
+      "verification_steps": [
+        "Confirm the deployed Samba version is at or above the fixed version for its release branch: 4.4.14, 4.5.10, or 4.6.4.",
+        "Confirm that the running service has been restarted or otherwise loaded the remediated package/configuration after the update.",
+        "Review share permissions and service exposure to confirm that untrusted or unauthorized clients cannot write to shares exposed through the Samba service.",
+        "Do not perform exploit testing against production systems; rely on package/version inventory and configuration review."
+      ]
+    },
+    "CVE-2017-9248": {
+      "business_risk": "Critical. This vulnerability is listed in CISA's Known Exploited Vulnerabilities Catalog and can expose Telerik encryption keys or the ASP.NET MachineKey, potentially enabling ViewState compromise, cross-site scripting, and arbitrary file upload or download. Internet-facing deployments should receive urgent remediation.",
+      "claim_evidence": [
+        {
+          "claim": "The vulnerability affects Telerik UI for ASP.NET AJAX through Telerik.Web.UI.dll and Progress Sitefinity.",
+          "kind": "affected_product",
+          "source_url": "https://www.progress.com/amp/security-alert-for-progress-sitefinity-and-telerik-ui-for-asp.net-ajax/dWU5d09jQTFGZndVVnJod2xERzk5TENYb204PQ2"
+        },
+        {
+          "claim": "Progress identifies Telerik.Web.UI.dll versions prior to 2017.2.621 and Sitefinity versions prior to 10.0.6412.0 as affected.",
+          "kind": "affected_version",
+          "source_url": "https://www.progress.com/amp/security-alert-for-progress-sitefinity-and-telerik-ui-for-asp.net-ajax/dWU5d09jQTFGZndVVnJod2xERzk5TENYb204PQ2"
+        },
+        {
+          "claim": "CISA lists CVE-2017-9248 as a known exploited vulnerability and recommends applying vendor updates.",
+          "kind": "exposure",
+          "source_url": "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=68&source=read_next_recirc---two_column_layout_sidebar------1---------------------7d6750f4_0650_49de_9ddb_8addfb93e174-------"
+        },
+        {
+          "claim": "CISA reported exploitation of CVE-2017-9248 against an IIS server and unauthorized access to the Telerik Document Manager for file operations.",
+          "kind": "exposure",
+          "source_url": "https://www.cisa.gov/sites/default/files/2023-06/aa23-074a-threat-actors-exploit-telerik-vulnerability-in-us-government-iis-server%20%281%29.pdf"
+        }
+      ],
+      "exposure_conditions": [
+        "The application uses Telerik UI for ASP.NET AJAX with a Telerik.Web.UI.dll version prior to 2017.2.621.",
+        "The application uses Progress Sitefinity prior to version 10.0.6412.0.",
+        "The affected web application or Telerik Dialog Handler is reachable by an attacker over the network.",
+        "Exposure may be reduced by preventing access to the Telerik Dialog Handler, although this can disable built-in RadEditor and RadSpell dialogs."
+      ],
+      "gaps": [
+        "generic_ecosystem"
+      ],
+      "generated_at": "2026-08-03T13:04:36Z",
+      "model": "gpt-5.6-luna",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [
+        "Upgrade Telerik UI for ASP.NET AJAX to R2 2017 SP1, version 2017.2.621, or later.",
+        "Upgrade Progress Sitefinity to version 10.0.6412.0 or later.",
+        "If an upgrade is not immediately possible, obtain the vendor security patch matching the deployed Telerik version and replace the deployed Telerik.Web.UI assembly with the patched assembly.",
+        "Regenerate unique values for Telerik.Web.UI.DialogParametersEncryptionKey and the ASP.NET MachineKey after remediation.",
+        "As a compensating control, restrict or disable access to the Telerik Dialog Handler, after assessing the resulting impact on application functionality.",
+        "For current deployments, consider upgrading to Telerik UI for ASP.NET AJAX R1 2020, version 2020.1.114, or later because the vendor states that later vulnerabilities were not prevented by the earlier CVE-2017-9248 patches alone."
+      ],
+      "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2017-9248",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=68&source=read_next_recirc---two_column_layout_sidebar------1---------------------7d6750f4_0650_49de_9ddb_8addfb93e174-------",
+        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?_cldee=jpUNG-sft0Lr74jsazzEoZ17jTSFEy6lQDvCJArCUYT0C1B4SWuT29F0dx7GSSfN&esid=f8736f67-efb4-ec11-983e-000d3a5a7186&f%5B0%5D=vendor_project%3A813&f%5B1%5D=vendor_project%3A829&f%5B2%5D=vendor_project%3A849&f%5B3%5D=vendor_project%3A911&f%5B4%5D=vendor_project%3A1320&page=1&recipientid=contact-41de9e007aace811a963000d3a363879-a794569726594743b07ecd7aaff0e97c",
+        "https://www.progress.com/legal/license-agreements/sitefinity/license-agreement",
+        "https://www.progress.com/amp/security-alert-for-progress-sitefinity-and-telerik-ui-for-asp.net-ajax/dWU5d09jQTFGZndVVnJod2xERzk5TENYb204PQ2",
+        "https://www.progress.com/sitefinity-cms/release-notes/sitefinity-cms-7-15200",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-21-266-01",
+        "https://www.progress.com/sitefinity-cms/release-notes/sitefinity-cms-13-3-7600-%28official-release%29",
+        "https://www.progress.com/sitefinity-cms/release-notes/sitefinity-cms-13-0-7300-%28official-release%29",
+        "https://www.cisa.gov/sites/default/files/2023-06/aa23-074a-threat-actors-exploit-telerik-vulnerability-in-us-government-iis-server%20%281%29.pdf",
+        "https://www.progress.com/sitefinity-cms/release-notes/sitefinity-cms-10-16500",
+        "https://www.progress.com/sitefinity-cms/release-notes/sitefinity-cms-14-4-8100-%28official-release%29",
+        "https://www.progress.com/sitefinity-cms/release-notes/sitefinity-cms-10-2-6600",
+        "https://www.cisa.gov/sites/default/files/publications/AA20-133A_Top_10_Routinely_Exploited_Vulnerabilities_S508C.pdf",
+        "https://www.cisa.gov/sites/default/files/publications/AA22-117A_Joint_CSA_2021_Top_Routinely_Exploited_Vulnerabilities_Final.pdf",
+        "https://www.cisa.gov/sites/default/files/2023-11/SbD%20Alert%20-%20How%20Software%20Manufacturers%20Can%20Shield%20Web%20Management%20Interfaces%20From%20Malicious%20Cyber%20Activity_508c%20%281%29_0.pdf",
+        "https://www.cisa.gov/sites/default/files/publications/aa22-228a-threat-actors-exploiting-multiple-cves-against-zimbra.pdf"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "3fc360494b5f3426d798ffd6afcae319c54bb1dfffb8ddcdefe0eb55cf5954b2",
+      "source_urls": [
+        "https://www.progress.com/amp/security-alert-for-progress-sitefinity-and-telerik-ui-for-asp.net-ajax/dWU5d09jQTFGZndVVnJod2xERzk5TENYb204PQ2",
+        "https://nvd.nist.gov/vuln/detail/CVE-2017-9248",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=68&source=read_next_recirc---two_column_layout_sidebar------1---------------------7d6750f4_0650_49de_9ddb_8addfb93e174-------",
+        "https://www.cisa.gov/sites/default/files/2023-06/aa23-074a-threat-actors-exploit-telerik-vulnerability-in-us-government-iis-server%20%281%29.pdf"
+      ],
+      "status": "complete",
+      "uncertainty": [
+        "The supplied record contains generic n/a affected-product data that conflicts with the product-specific CPE data.",
+        "The NVD record identifies Telerik UI for ASP.NET AJAX versions through 2017.2.503, while the vendor advisory identifies all Telerik.Web.UI.dll versions prior to 2017.2.621 as affected. The vendor advisory is used for remediation guidance.",
+        "The sources do not establish the exact installed product, assembly version, Sitefinity version, handler exposure, or whether compensating controls are currently present in the target environment.",
+        "The vendor page describes R1 2020 or later as recommended for protection against additional vulnerabilities; that recommendation should not be interpreted as the original CVE-2017-9248 fixed version."
+      ],
+      "verification_steps": [
+        "Inventory the deployed Telerik.Web.UI.dll metadata and confirm that the version is at least 2017.2.621, or confirm that a supported patched assembly is installed.",
+        "For Sitefinity, verify that the deployed version is at least 10.0.6412.0.",
+        "For a patched assembly, inspect its file metadata and confirm the vendor-described Telerik.Web.UI.Patch file description where applicable.",
+        "Confirm that new, unique Telerik.Web.UI.DialogParametersEncryptionKey and MachineKey values were deployed without disclosing their values.",
+        "Review application routing or access-control configuration to confirm that the Telerik Dialog Handler is either appropriately restricted or intentionally available for required functionality.",
+        "Validate the change in a non-production environment using normal application health checks; do not send exploit payloads or attempt key disclosure."
+      ]
+    },
+    "CVE-2017-9791": {
+      "business_risk": "No additional source-verified CVE-specific business impact was established.",
+      "claim_evidence": [],
+      "exposure_conditions": [],
+      "gaps": [
+        "generic_ecosystem"
+      ],
+      "generated_at": "2026-08-03T13:04:12Z",
+      "model": "gpt-5.6-luna",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [],
+      "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/cve-2017-9791",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A795&f%5B10%5D=vendor_project%3A1266&f%5B1%5D=vendor_project%3A810&f%5B2%5D=vendor_project%3A814&f%5B3%5D=vendor_project%3A815&f%5B4%5D=vendor_project%3A817&f%5B5%5D=vendor_project%3A865&f%5B6%5D=vendor_project%3A881&f%5B7%5D=vendor_project%3A917&f%5B8%5D=vendor_project%3A929&f%5B9%5D=vendor_project%3A1000&page=5",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=52",
+        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A800&f%5B10%5D=vendor_project%3A840&f%5B11%5D=vendor_project%3A842&f%5B12%5D=vendor_project%3A854&f%5B13%5D=vendor_project%3A859&f%5B14%5D=vendor_project%3A864&f%5B15%5D=vendor_project%3A875&f%5B16%5D=vendor_project%3A882&f%5B17%5D=vendor_project%3A886&f%5B18%5D=vendor_project%3A889&f%5B19%5D=vendor_project%3A893&f%5B1%5D=vendor_project%3A801&f%5B20%5D=vendor_project%3A902&f%5B21%5D=vendor_project%3A905&f%5B22%5D=vendor_project%3A917&f%5B23%5D=vendor_project%3A932&f%5B24%5D=vendor_project%3A938&f%5B25%5D=vendor_project%3A949&f%5B26%5D=vendor_project%3A1143&f%5B27%5D=vendor_project%3A1147&f%5B28%5D=vendor_project%3A1267&f%5B2%5D=vendor_project%3A809&f%5B3%5D=vendor_project%3A817&f%5B4%5D=vendor_project%3A819&f%5B5%5D=vendor_project%3A821&f%5B6%5D=vendor_project%3A822&f%5B7%5D=vendor_project%3A823&f%5B8%5D=vendor_project%3A827&f%5B9%5D=vendor_project%3A837&page=4",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=51",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=22&source=rss------hacking-5",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=53",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A794&f%5B10%5D=vendor_project%3A845&f%5B11%5D=vendor_project%3A854&f%5B12%5D=vendor_project%3A875&f%5B13%5D=vendor_project%3A886&f%5B14%5D=vendor_project%3A893&f%5B15%5D=vendor_project%3A897&f%5B16%5D=vendor_project%3A902&f%5B17%5D=vendor_project%3A917&f%5B18%5D=vendor_project%3A938&f%5B19%5D=vendor_project%3A942&f%5B1%5D=vendor_project%3A798&f%5B20%5D=vendor_project%3A1147&f%5B21%5D=vendor_project%3A1172&f%5B22%5D=vendor_project%3A1267&f%5B2%5D=vendor_project%3A800&f%5B3%5D=vendor_project%3A801&f%5B4%5D=vendor_project%3A806&f%5B5%5D=vendor_project%3A817&f%5B6%5D=vendor_project%3A823&f%5B7%5D=vendor_project%3A832&f%5B8%5D=vendor_project%3A837&f%5B9%5D=vendor_project%3A842&page=3",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=24",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=0",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=55",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=57",
+        "https://www.cisa.gov/sites/default/files/2024-05/Secure_by_Design_Alert_Eliminating_Directory_Traversal_Vulnerabilities_in_Software_508c%20%283%29.pdf",
+        "https://www.cisa.gov/sites/default/files/publications/AA22-117A_Joint_CSA_2021_Top_Routinely_Exploited_Vulnerabilities_Final.pdf",
+        "https://www.cisa.gov/sites/default/files/2024-08/SECURING_THE_SOFTWARE_SUPPLY_CHAIN_RECOMMENDED_PRACTICES_FOR_SOFTWARE_BILL_OF_MATERIALS_CONSUMPTION-508.pdf",
+        "https://github.com/apache/struts/security",
+        "https://struts.apache.org/announce-2017.html",
+        "https://github.com/apache/struts/pulls",
+        "https://struts.apache.org/releases.html",
+        "https://struts.apache.org/releases",
+        "https://struts.apache.org/eol-versions.html",
+        "https://seclists.org/cert/2017/33"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "1a38531d6bdcaac21b99a6e3f75fcfdb55afaba57e62b8864760f1361470d676",
+      "source_urls": [
+        "https://struts.apache.org/announce-2017.html",
+        "https://struts.apache.org/eol-versions.html"
+      ],
+      "status": "insufficient_evidence",
+      "uncertainty": [
+        "The supplied record identifies both Struts 2.1.x and 2.3.x series, but the Apache S2-048 bulletin specifically describes Struts 2.3.x with the Struts 1 plugin and a Struts 1 action.",
+        "No authoritative returned source establishes a fixed version for the Struts 2.1.x series.",
+        "Struts 2.5.x is described by Apache as unaffected by this bulletin, but the Apache project now lists the 2.5.x line as end-of-life; this does not constitute a recommendation to remain on that line.",
+        "The returned sources establish active exploitation through CISA KEV status but do not establish that a particular supplied asset is exposed."
+      ],
+      "verification_steps": []
+    },
+    "CVE-2017-9841": {
+      "business_risk": "Critical remote code execution risk exists when vulnerable PHPUnit files are deployed in a web-accessible application directory. An unauthenticated remote attacker may execute arbitrary PHP code, potentially causing full compromise of application confidentiality, integrity, and availability. CISA lists CVE-2017-9841 in its Known Exploited Vulnerabilities Catalog.",
+      "claim_evidence": [
+        {
+          "claim": "The vulnerability affects PHPUnit, specifically the Util/PHP/eval-stdin.php component; NVD also lists Oracle Communications Diameter Signaling Router as an affected product configuration.",
+          "kind": "affected_product",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2017-9841"
+        },
+        {
+          "claim": "NVD identifies PHPUnit versions through 4.8.27 and versions 5.0.0 through 5.6.2 as affected.",
+          "kind": "affected_version",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2017-9841"
+        },
+        {
+          "claim": "Exploitation requires an externally reachable PHPUnit vendor path, including /vendor/phpunit/phpunit/src/Util/PHP/eval-stdin.php, with remote HTTP POST input.",
+          "kind": "exposure",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2017-9841"
+        },
+        {
+          "claim": "The affected ranges imply PHPUnit 4.8.28 and PHPUnit 5.6.3 are the first non-affected versions in their respective release lines.",
+          "kind": "fixed_version",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2017-9841"
+        },
+        {
+          "claim": "A safe version-based verification is supported by NVD's explicit affected ranges; exposure review should focus on whether the cited vendor path is externally reachable.",
+          "kind": "verification",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2017-9841"
+        },
+        {
+          "claim": "Oracle states that its October 2021 patch for CVE-2017-9841 also addresses related CVEs, confirming that the CVE is handled in an Oracle product security update context.",
+          "kind": "affected_product",
+          "source_url": "https://www.oracle.com/security-alerts/cpuoct2021.html"
+        }
+      ],
+      "exposure_conditions": [
+        "PHPUnit versions before 4.8.28 or versions 5.0.0 through 5.6.2 are present.",
+        "The PHPUnit file eval-stdin.php is deployed under an externally reachable vendor path, such as /vendor/phpunit/phpunit/src/Util/PHP/eval-stdin.php.",
+        "The exposed endpoint accepts remote HTTP POST input.",
+        "Oracle Communications Diameter Signaling Router versions 8.0.0 through 8.5.0 are separately listed by NVD, but the supplied sources do not establish the corresponding Oracle fixed revision."
+      ],
+      "gaps": [
+        "generic_ecosystem"
+      ],
+      "generated_at": "2026-08-03T13:05:01Z",
+      "model": "gpt-5.6-luna",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [
+        "Upgrade PHPUnit 4.x installations to version 4.8.28 or later.",
+        "Upgrade PHPUnit 5.x installations to version 5.6.3 or later, or migrate to a currently supported PHPUnit release compatible with the application.",
+        "Remove PHPUnit and other development-only dependencies from production deployments where they are not required.",
+        "Ensure the PHPUnit vendor directory and the eval-stdin.php path are not externally reachable; treat access restriction as a temporary compensating control, not a substitute for upgrading.",
+        "Review Oracle's applicable security advisory and support documentation separately if Oracle Communications Diameter Signaling Router is present; do not infer its fixed revision from the PHPUnit versions."
+      ],
+      "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2017-9841",
+        "https://www.oracle.com/security-alerts/cpuoct2021.html",
+        "https://www.oracle.com/security-alerts/cpuoct2017.html",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=0",
+        "https://www.oracle.com/security-alerts/cpuoct2021verbose.html",
+        "https://www.oracle.com/security-alerts/",
+        "https://nvd.nist.gov/vuln/detail/CVE-2016-9841",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=52",
+        "https://github.com/sebastianbergmann/phpunit",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=50",
+        "https://nvd.nist.gov/vuln/detail/CVE-2014-9841",
+        "https://www.oracle.com/security-alerts/cpujan2021.html",
+        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
+        "https://www.cisa.gov/sites/default/files/publications/AA20-258A-Chinese_Ministry_of_State_Security-Affiliated_Cyber_Threat_Actor_Activity_S508C.pdf",
+        "https://www.cisa.gov/sites/default/files/publications/AA22-117A_Joint_CSA_2021_Top_Routinely_Exploited_Vulnerabilities_Final.pdf",
+        "https://www.cisa.gov/sites/default/files/publications/AA20-133A_Top_10_Routinely_Exploited_Vulnerabilities_S508C.pdf",
+        "https://www.cisa.gov/sites/default/files/2023-11/SbD%20Alert%20-%20How%20Software%20Manufacturers%20Can%20Shield%20Web%20Management%20Interfaces%20From%20Malicious%20Cyber%20Activity_508c%20%281%29_0.pdf",
+        "https://www.cisa.gov/sites/default/files/publications/AA21-356A_Joint_CSA_Mitigating_Log4Shell_and_Other_Log4j-Related_Vulnerabilities.pdf"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "f4d1da0af42ef5a8ee1bb7faba0b764edf8e37ed1864a0689317e7ecb5ab323e",
+      "source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2017-9841",
+        "https://www.oracle.com/security-alerts/cpuoct2021.html"
+      ],
+      "status": "complete",
+      "uncertainty": [
+        "The NVD record contains a generic affected-data entry with product and version set to n/a; the actionable version ranges come from NVD's product configurations and description.",
+        "The supplied evidence does not provide a concrete fixed version for Oracle Communications Diameter Signaling Router 8.0.0 through 8.5.0.",
+        "No claim is made about current deployment state, exploit history in the user's environment, or successful verification results."
+      ],
+      "verification_steps": [
+        "Inspect the deployed dependency manifest or lock data and confirm PHPUnit is not below 4.8.28 in the 4.x line or below 5.6.3 in the 5.x line.",
+        "Confirm through deployment configuration or an approved asset review that the PHPUnit vendor directory and the cited eval-stdin.php path are not exposed to untrusted networks.",
+        "Verify that production artifacts do not contain the vulnerable PHPUnit file when PHPUnit is not required at runtime.",
+        "For Oracle Communications Diameter Signaling Router, verify remediation against the Oracle-specific patch documentation for the installed supported release."
+      ]
     },
     "CVE-2018-0125": {
       "business_risk": "Critical risk to exposed Cisco RV132W or RV134W routers: an unauthenticated remote attacker may execute arbitrary code with root privileges, obtain full device control, or force a denial-of-service reload.",
@@ -1115,6 +1776,59 @@
         "Review the Jenkins security advisory and release metadata to confirm that the deployed version includes the SECURITY-595 fix. Do not validate by sending crafted URLs or attempting exploit behavior."
       ]
     },
+    "CVE-2018-1273": {
+      "business_risk": "No additional source-verified CVE-specific business impact was established.",
+      "claim_evidence": [],
+      "exposure_conditions": [],
+      "gaps": [
+        "generic_ecosystem"
+      ],
+      "generated_at": "2026-08-03T13:02:12Z",
+      "model": "gpt-5.6-luna",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [],
+      "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2018-1273",
+        "https://nvd.nist.gov/vuln/detail/cve-2018-1273",
+        "https://advisories.gitlab.com/pkg/maven/org.springframework.data/spring-data-commons/CVE-2018-1273/",
+        "https://spring.io/security/cve-2026-41695/",
+        "https://spring.io/security/cve-2018-1274/",
+        "https://spring.io/security/",
+        "https://nvd.nist.gov/vuln/detail/CVE-2018-9273",
+        "https://docs.spring.io/spring-data/commons/reference/upgrade.html",
+        "https://docs.spring.io/spring-data/commons/reference/3.5/dependencies.html",
+        "https://spring.io/security/cve-2018-1272/",
+        "https://spring.io/security/cve-2018-1271/",
+        "https://spring.io/blog/2018/04/11/multiple-cve-reports-published-for-spring-data/",
+        "https://www.hulft.com/application/files/3315/2464/4698/information_20180425_3_en.pdf",
+        "https://isomer-user-content.by.gov.sg/36/f88a5638-8b0a-44fe-9f03-88254e0c1d8c/29_Apr_2026.pdf",
+        "https://www.reddit.com/r/prtg/comments/1mus6xm",
+        "https://cdn.nca.gov.sa/api/files/public/upload/3c064a3e-6ca8-41c2-9128-d1a845b5da98_Weekly_Vulnerabilities_Summary_26_Apr_to_02_May-.pdf",
+        "https://publications.lexmark.com/publications/security-alerts/CVE-2017-8046.pdf",
+        "https://cdn.nca.gov.sa/api/files/public/upload/1b6c4feb-674d-4bd5-8636-8b27b5efecb1_Weekly_Vulnerabilities_Summary_05_Apr_to_11_Apr-.pdf",
+        "https://resources.docs.pivotal.io/pdfs/rabbitmq-pcf-1.12.pdf",
+        "https://arxiv.org/abs/2007.14319",
+        "https://arxiv.org/abs/1808.09753",
+        "https://arxiv.org/abs/1709.04621",
+        "https://www.reddit.com/r/java/comments/mr8ysy",
+        "https://arxiv.org/abs/2512.02259"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "2226c1f5a66b40f2c0c22b82a93ed6cff5bef1173a2cbb05f3fcc2f53c15da07",
+      "source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2018-1273",
+        "https://spring.io/blog/2018/04/11/multiple-cve-reports-published-for-spring-data/"
+      ],
+      "status": "insufficient_evidence",
+      "uncertainty": [
+        "The supplied affected product is listed as Spring Framework, while authoritative CVE records identify Spring Data Commons and related Spring Data REST products. Asset-level applicability cannot be confirmed.",
+        "The authoritative sources establish patched 1.13.x and 2.0.x release versions, but do not provide a concrete fixed version for every older unsupported branch.",
+        "The record also includes Apache Ignite and Oracle product matches; this enrichment does not independently validate those product-specific applicability conditions.",
+        "No asset version, dependency graph, exposed endpoint inventory, or deployment context was supplied."
+      ],
+      "verification_steps": []
+    },
     "CVE-2018-13379": {
       "business_risk": "Critical, remotely reachable SSL VPN exposure. An unauthenticated attacker may download FortiOS or FortiProxy system files. CISA lists this vulnerability in the Known Exploited Vulnerabilities Catalog, so internet-facing appliances should be prioritized for immediate remediation and review for compromise indicators.",
       "claim_evidence": [
@@ -1478,6 +2192,100 @@
         "Review the post-upgrade configuration for unexpected scripts, SOCKS proxy settings, users, or other abnormalities."
       ]
     },
+    "CVE-2018-15961": {
+      "business_risk": "Critical risk: successful exploitation may permit arbitrary code execution. Adobe reported active exploitation in the wild, and CISA lists the CVE in its Known Exploited Vulnerabilities Catalog.",
+      "claim_evidence": [
+        {
+          "claim": "CVE-2018-15961 affects Adobe ColdFusion 2018, ColdFusion 2016, and ColdFusion 11.",
+          "kind": "affected_product",
+          "source_url": "https://helpx.adobe.com/sg/security/products/coldfusion/apsb18-33.html"
+        },
+        {
+          "claim": "Affected versions are ColdFusion 2018 July 12 release 2018.0.0.310739, ColdFusion 2016 Update 6 and earlier, and ColdFusion 11 Update 14 and earlier, on all platforms.",
+          "kind": "affected_version",
+          "source_url": "https://helpx.adobe.com/sg/security/products/coldfusion/apsb18-33.html"
+        },
+        {
+          "claim": "NVD describes the vulnerability as network exploitable without privileges or user interaction, with potential for arbitrary code execution; the CVE is also identified as present in CISA’s Known Exploited Vulnerabilities Catalog.",
+          "kind": "exposure",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2018-15961"
+        },
+        {
+          "claim": "Adobe lists ColdFusion 2018 Update 1, ColdFusion 2016 Update 7, and ColdFusion 11 Update 15 as the updated versions for the affected releases.",
+          "kind": "fixed_version",
+          "source_url": "https://helpx.adobe.com/sg/security/products/coldfusion/apsb18-33.html"
+        },
+        {
+          "claim": "Adobe requires or recommends the corresponding JDK/JRE updates and states that applying the ColdFusion update without the required JDK/JRE update will not secure the server; JEE/J2EE deployments also require the specified JVM serialization-filter configuration where applicable.",
+          "kind": "remediation",
+          "source_url": "https://helpx.adobe.com/sg/security/products/coldfusion/apsb18-33.html"
+        },
+        {
+          "claim": "Remediation can be checked by reviewing the installed ColdFusion update, JDK/JRE level, and applicable JEE/J2EE startup configuration against Adobe’s documented requirements.",
+          "kind": "verification",
+          "source_url": "https://helpx.adobe.com/sg/security/products/coldfusion/apsb18-33.html"
+        }
+      ],
+      "exposure_conditions": [
+        "ColdFusion 2018 release July 12 build 2018.0.0.310739 is affected on all platforms.",
+        "ColdFusion 2016 Update 6 and earlier is affected on all platforms.",
+        "ColdFusion 11 Update 14 and earlier is affected on all platforms.",
+        "Risk is greatest when the ColdFusion service is network reachable; NVD rates the vulnerability as network exploitable without privileges or user interaction."
+      ],
+      "gaps": [
+        "generic_ecosystem"
+      ],
+      "generated_at": "2026-08-03T13:00:45Z",
+      "model": "gpt-5.6-luna",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [
+        "Upgrade ColdFusion 2018 to Update 1 or later.",
+        "Upgrade ColdFusion 2016 to Update 7 or later.",
+        "Upgrade ColdFusion 11 to Update 15 or later.",
+        "Update the ColdFusion JDK/JRE as required by the target release: JDK 8u121 or later for ColdFusion 2016, and JDK 7u131 or JDK 8u121 or later for ColdFusion 11. Adobe states that applying the ColdFusion update without the corresponding JDK/JRE update does not secure the server.",
+        "For JEE/J2EE deployments, apply Adobe’s specified JVM serialization-filter setting in the relevant application-server startup configuration; do not apply this setting to standalone ColdFusion installations.",
+        "Prioritize remediation for any internet- or partner-facing ColdFusion deployment and review Adobe’s applicable security configuration and lockdown guidance."
+      ],
+      "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2018-15961",
+        "https://helpx.adobe.com/sg/security/products/coldfusion/apsb18-33.html",
+        "https://helpx.adobe.com/pl/security/products/coldfusion/apsb18-33.html",
+        "https://helpx.adobe.com/se/security/products/coldfusion/apsb18-33.html",
+        "https://helpx.adobe.com/tr/security/products/coldfusion/apsb18-33.html",
+        "https://nvd.nist.gov/vuln/detail/cve-2018-15961",
+        "https://helpx.adobe.com/ch_de/security/products/coldfusion/apsb18-33.html",
+        "https://helpx.adobe.com/security/security-bulletin.html",
+        "https://helpx.adobe.com/no/security/products/coldfusion/apsb18-33.html",
+        "https://helpx.adobe.com/dk/security/products/coldfusion/apsb18-33.html",
+        "https://helpx.adobe.com/es/security/products/coldfusion/apsb18-33.html",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=57",
+        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
+        "https://www.cisa.gov/sites/default/files/publications/202008131030_COVID-19%2520Cyber%2520Threats%2520Update_TLP_WHITE.pdf",
+        "https://www.cisa.gov/sites/default/files/2024-05/Secure_by_Design_Alert_Eliminating_Directory_Traversal_Vulnerabilities_in_Software_508c%20%283%29.pdf",
+        "https://www.cisa.gov/sites/default/files/publications/AA22-117A_Joint_CSA_2021_Top_Routinely_Exploited_Vulnerabilities_Final.pdf",
+        "https://www.cisa.gov/sites/default/files/publications/AA20-258A-Chinese_Ministry_of_State_Security-Affiliated_Cyber_Threat_Actor_Activity_S508C.pdf",
+        "https://www.cisa.gov/sites/default/files/2024-08/SECURING_THE_SOFTWARE_SUPPLY_CHAIN_RECOMMENDED_PRACTICES_FOR_SOFTWARE_BILL_OF_MATERIALS_CONSUMPTION-508.pdf"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "5423d284edffce5625464a8bee8bce9edd63e7ad5edefb5c503a74c6fb03e7b9",
+      "source_urls": [
+        "https://helpx.adobe.com/sg/security/products/coldfusion/apsb18-33.html",
+        "https://nvd.nist.gov/vuln/detail/CVE-2018-15961"
+      ],
+      "status": "complete",
+      "uncertainty": [
+        "The supplied source record conflates update thresholds across ColdFusion generations; Adobe’s advisory separates them by product generation, which is used here.",
+        "The advisory establishes the required update levels and JDK/JRE conditions but does not provide a CVE-specific non-exploit validation procedure.",
+        "The exact currently installed ColdFusion edition, generation, update level, deployment mode, JDK/JRE, and network exposure were not provided."
+      ],
+      "verification_steps": [
+        "Review the deployed ColdFusion product generation and update level, confirming it is at or above the applicable Adobe fixed update: 2018 Update 1, 2016 Update 7, or ColdFusion 11 Update 15.",
+        "Review the runtime JDK/JRE version and confirm it meets Adobe’s stated requirement for the installed ColdFusion generation.",
+        "For JEE/J2EE deployments, review the application-server startup configuration to confirm the Adobe-recommended JVM serialization-filter setting is present where applicable.",
+        "Confirm that the updated ColdFusion instance has restarted successfully and that normal application health checks pass; do not perform exploit testing against production systems."
+      ]
+    },
     "CVE-2018-18809": {
       "business_risk": "Critical directory-traversal exposure in the default server implementation may allow web-server users to access host-system contents. CVE-2018-18809 is listed in CISA's Known Exploited Vulnerabilities catalog, so affected internet- or network-reachable deployments should receive urgent remediation priority.",
       "claim_evidence": [
@@ -1583,6 +2391,81 @@
         "Reassess the vulnerability after upgrade using an approved, non-destructive vulnerability-management check rather than attempting exploit validation."
       ]
     },
+    "CVE-2018-19323": {
+      "business_risk": "Critical privilege-escalation risk affecting GIGABYTE utility applications and their low-level drivers. The vulnerability exposes functionality that can enable unauthorized access to protected system resources and potentially complete system compromise. CISA lists CVE-2018-19323 as a Known Exploited Vulnerability and reports known ransomware-campaign use.",
+      "claim_evidence": [
+        {
+          "claim": "Affected versions are APP Center v1.05.21 and earlier, AORUS GRAPHICS ENGINE before 1.57, XTREME GAMING ENGINE before 1.26, and OC GURU II v2.08.",
+          "kind": "affected_version",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2018-19323"
+        },
+        {
+          "claim": "NVD lists the affected GIGABYTE application configurations and records NVD-CWE-noinfo rather than a specific CWE classification.",
+          "kind": "affected_product",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2018-19323"
+        }
+      ],
+      "exposure_conditions": [
+        "GIGABYTE APP Center version 1.05.21 or earlier is installed.",
+        "AORUS GRAPHICS ENGINE versions before 1.57 are installed.",
+        "XTREME GAMING ENGINE versions before 1.26 are installed.",
+        "OC GURU II version 2.08 is installed.",
+        "The affected low-level GDrv or GPCIDrv driver is present and available to the system."
+      ],
+      "gaps": [
+        "missing_cwe",
+        "generic_ecosystem"
+      ],
+      "generated_at": "2026-08-03T13:00:21Z",
+      "model": "gpt-5.6-luna",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [
+        "Update GIGABYTE APP Center to version B19.0422.1 or later.",
+        "Update AORUS GRAPHICS ENGINE to version 1.57 or later.",
+        "Update XTREME GAMING ENGINE to version 1.27 or later.",
+        "Remove OC GURU II v2.08 because GIGABYTE states that this utility is no longer available; use a supported replacement utility where appropriate.",
+        "Obtain updates through GIGABYTE’s official utility-download and support channels.",
+        "Prioritize remediation because CISA identifies this CVE as actively exploited and recommends applying vendor updates."
+      ],
+      "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2018-19323",
+        "https://www.gigabyte.com/uk/Support/Security/1801",
+        "https://nvd.nist.gov/vuln/detail/cve-2018-20023",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A793&f%5B10%5D=vendor_project%3A847&f%5B11%5D=vendor_project%3A854&f%5B12%5D=vendor_project%3A868&f%5B13%5D=vendor_project%3A876&f%5B14%5D=vendor_project%3A886&f%5B15%5D=vendor_project%3A893&f%5B16%5D=vendor_project%3A902&f%5B17%5D=vendor_project%3A917&f%5B18%5D=vendor_project%3A925&f%5B19%5D=vendor_project%3A929&f%5B1%5D=vendor_project%3A800&f%5B20%5D=vendor_project%3A938&f%5B21%5D=vendor_project%3A1147&f%5B22%5D=vendor_project%3A1168&f%5B23%5D=vendor_project%3A1174&f%5B2%5D=vendor_project%3A808&f%5B3%5D=vendor_project%3A817&f%5B4%5D=vendor_project%3A821&f%5B5%5D=vendor_project%3A823&f%5B6%5D=vendor_project%3A837&f%5B7%5D=vendor_project%3A839&f%5B8%5D=vendor_project%3A842&f%5B9%5D=vendor_project%3A845&page=2",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=0",
+        "https://www.gigabyte.com/us/Support/Security?type=1",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=50",
+        "https://nvd.nist.gov/vuln/detail/CVE-2018-18323",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=52",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A802&f%5B1%5D=vendor_project%3A804&f%5B2%5D=vendor_project%3A811&f%5B3%5D=vendor_project%3A822&f%5B4%5D=vendor_project%3A826&f%5B5%5D=vendor_project%3A877&f%5B6%5D=vendor_project%3A880&f%5B7%5D=vendor_project%3A887&f%5B8%5D=vendor_project%3A927&f%5B9%5D=vendor_project%3A1249&page=14",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=24",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=21",
+        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
+        "https://www.cisa.gov/sites/default/files/publications/AA20-133A_Top_10_Routinely_Exploited_Vulnerabilities_S508C.pdf",
+        "https://www.cisa.gov/sites/default/files/publications/AA22-117A_Joint_CSA_2021_Top_Routinely_Exploited_Vulnerabilities_Final.pdf",
+        "https://www.cisa.gov/sites/default/files/publications/AA20-258A-Chinese_Ministry_of_State_Security-Affiliated_Cyber_Threat_Actor_Activity_S508C.pdf",
+        "https://www.cisa.gov/sites/default/files/publications/AA21-209A_Joint_CSA%20Top%20Routinely%20Exploited%20Vulnerabilities.pdf"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "735cc097af950498e8e7f8130b518f79659b6db46c96739cc89107bad5d487c1",
+      "source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2018-19323"
+      ],
+      "status": "complete",
+      "uncertainty": [
+        "NVD currently assigns NVD-CWE-noinfo; no authoritative specific CWE mapping was established by the consulted sources.",
+        "The vendor advisory contains a wording discrepancy: its summary and NVD describe MSR access, while the CVE-specific vendor paragraph describes arbitrary physical-memory access. Remediation and affected-version guidance are consistent across the advisory.",
+        "No fixed version is specified for OC GURU II; the vendor states only that the utility is no longer available.",
+        "The supplied source record’s generic affected product entry is less precise than the NVD and vendor product configurations."
+      ],
+      "verification_steps": [
+        "Inventory installed GIGABYTE utility applications and compare their versions with the vendor’s remediated versions: APP Center B19.0422.1 or later, AORUS GRAPHICS ENGINE 1.57 or later, and XTREME GAMING ENGINE 1.27 or later.",
+        "Confirm that OC GURU II v2.08 is not installed or that the affected system has been migrated to a supported utility.",
+        "After updating or removing the affected utilities, verify through normal software inventory that the vulnerable application versions are no longer present.",
+        "Do not treat the absence of an application entry alone as proof that a low-level driver has been removed; validate driver presence using approved endpoint inventory or change-management tooling."
+      ]
+    },
     "CVE-2018-19949": {
       "business_risk": "Critical remote command-injection vulnerability in QNAP File Station. Successful exploitation can allow arbitrary command execution with potential confidentiality, integrity, and availability impact. The CVE is listed in CISA's Known Exploited Vulnerabilities Catalog, indicating active exploitation risk.",
       "claim_evidence": [
@@ -1646,6 +2529,429 @@
         "Verify that the installed version/build is at or above the applicable QNAP fixed baseline for the device's QTS branch.",
         "Confirm that the QTS update process reports successful installation; do not perform exploit testing or command-injection probes."
       ]
+    },
+    "CVE-2018-20753": {
+      "business_risk": "Critical remote code execution in Kaseya VSA can allow an unprivileged remote attacker to execute PowerShell payloads on managed devices. CVE-2018-20753 is listed in CISA's Known Exploited Vulnerabilities Catalog, indicating exploitation in the wild and requiring prioritized remediation. ([nvd.nist.gov](https://nvd.nist.gov/vuln/detail/CVE-2018-20753?utm_source=openai))",
+      "claim_evidence": [
+        {
+          "claim": "The affected product is Kaseya Virtual System/Server Administrator (VSA), including the R9.3, R9.4, and R9.5 branches identified by NVD.",
+          "kind": "affected_product",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2018-20753"
+        },
+        {
+          "claim": "NVD identifies affected ranges as R9.3 before 9.3.0.35, R9.4 before 9.4.0.36, and R9.5 before 9.5.0.5.",
+          "kind": "affected_version",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2018-20753"
+        },
+        {
+          "claim": "NVD describes remote execution of PowerShell payloads by unprivileged remote attackers, and Kaseya's advisory states that the vulnerability affected its VSA product and that endpoint mining deployments were observed.",
+          "kind": "exposure",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2018-20753"
+        }
+      ],
+      "exposure_conditions": [
+        "Kaseya VSA R9.3 versions before 9.3.0.35 are affected.",
+        "Kaseya VSA R9.4 versions before 9.4.0.36 are affected.",
+        "Kaseya VSA R9.5 versions before 9.5.0.5 are affected.",
+        "The vulnerability applies to exposed or reachable VSA deployments because the recorded impact is remote, unauthenticated code execution. The sources do not establish a required network port, endpoint, or specific deployment topology.",
+        "Kaseya states that its SaaS and hosted VSA environments received the updates, while the remediation requirement applies primarily to on-premises customers. ([nvd.nist.gov](https://nvd.nist.gov/vuln/detail/CVE-2018-20753?utm_source=openai))"
+      ],
+      "gaps": [
+        "missing_cwe",
+        "generic_ecosystem"
+      ],
+      "generated_at": "2026-08-03T13:00:02Z",
+      "model": "gpt-5.6-luna",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [
+        "Immediately identify all on-premises Kaseya VSA installations and their release branches.",
+        "For R9.3, apply Kaseya patch 9.3.0.35 or a later vendor-supported release.",
+        "For R9.4, apply Kaseya patch 9.4.0.36 or a later vendor-supported release.",
+        "For R9.5, apply Kaseya patch 9.5.0.5 or a later vendor-supported release.",
+        "For R9.2 or earlier, upgrade to R9.3 or later with Kaseya Support assistance, as directed by Kaseya.",
+        "If compromise is suspected, use Kaseya's vendor-provided assessment and remediation procedures and investigate managed endpoints for unauthorized activity. Avoid relying on an upgrade alone as proof that prior exploitation did not occur. ([helpdesk.kaseya.com](https://helpdesk.kaseya.com/hc/en-gb/articles/360000333152))"
+      ],
+      "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2018-20753",
+        "https://nvd.nist.gov/vuln/detail/CVE-2018-10753",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=0",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=50",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=52",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=17",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=19",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=38",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=57",
+        "https://nvd.nist.gov/vuln/detail/CVE-2019-20753",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?_cldee=jpUNG-sft0Lr74jsazzEoZ17jTSFEy6lQDvCJArCUYT0C1B4SWuT29F0dx7GSSfN&esid=f8736f67-efb4-ec11-983e-000d3a5a7186&f%5B0%5D=vendor_project%3A813&f%5B1%5D=vendor_project%3A829&f%5B2%5D=vendor_project%3A849&f%5B3%5D=vendor_project%3A911&f%5B4%5D=vendor_project%3A1320&page=1&recipientid=contact-41de9e007aace811a963000d3a363879-a794569726594743b07ecd7aaff0e97c",
+        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
+        "https://nvd.nist.gov/vuln/detail/CVE-2018-20783",
+        "https://www.cisa.gov/sites/default/files/publications/AA20-258A-Chinese_Ministry_of_State_Security-Affiliated_Cyber_Threat_Actor_Activity_S508C.pdf",
+        "https://www.cisa.gov/sites/default/files/publications/AA22-117A_Joint_CSA_2021_Top_Routinely_Exploited_Vulnerabilities_Final.pdf",
+        "https://www.cisa.gov/sites/default/files/publications/AA20-133A_Top_10_Routinely_Exploited_Vulnerabilities_S508C.pdf"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "e17158e41ea23506e27c50642285889c9152e8779729b2f18d9b7296f75ea54f",
+      "source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2018-20753"
+      ],
+      "status": "complete",
+      "uncertainty": [
+        "NVD currently records the weakness as NVD-CWE-noinfo; a more specific CWE cannot be established from the authoritative sources reviewed.",
+        "The sources do not provide a concrete network exposure test, affected endpoint or file path, configuration setting, or safe exploit-free probe.",
+        "The vendor advisory contains earlier patch values from January 28, 2018 and later superseding values from February 16, 2018. The later values—9.3.0.35, 9.4.0.36, and 9.5.0.5—should be used for remediation.",
+        "The supplied record contains a last-modified date of June 17, 2026, but the authoritative NVD page returned by the search shows an NVD last-modified date of November 7, 2025; this discrepancy was not resolved from the reviewed sources."
+      ],
+      "verification_steps": [
+        "Using authorized administrative inventory, confirm that each on-premises VSA instance is running at least 9.3.0.35, 9.4.0.36, or 9.5.0.5 for its respective branch, or another later vendor-supported release.",
+        "Confirm that the applicable Kaseya patch was successfully applied and that the VSA service is operating normally through standard administrative checks.",
+        "Review Kaseya's Agent Procedure guidance for environment assessment and endpoint remediation; do not perform exploit validation or send crafted requests to production systems.",
+        "For SaaS or hosted VSA, obtain confirmation from Kaseya or the hosting provider that the security update was deployed. ([helpdesk.kaseya.com](https://helpdesk.kaseya.com/hc/en-gb/articles/360000333152))"
+      ]
+    },
+    "CVE-2018-2628": {
+      "business_risk": "No additional source-verified CVE-specific business impact was established.",
+      "claim_evidence": [],
+      "exposure_conditions": [],
+      "gaps": [
+        "generic_ecosystem"
+      ],
+      "generated_at": "2026-08-03T13:01:45Z",
+      "model": "gpt-5.6-luna",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [],
+      "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2018-2628",
+        "https://nvd.nist.gov/vuln/detail/cve-2018-2628",
+        "https://www.oracle.com/security-alerts/cpuapr2018.html",
+        "https://nvd.nist.gov/vuln/detail/CVE-2017-2628",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?_cldee=jpUNG-sft0Lr74jsazzEoZ17jTSFEy6lQDvCJArCUYT0C1B4SWuT29F0dx7GSSfN&esid=f8736f67-efb4-ec11-983e-000d3a5a7186&f%5B0%5D=vendor_project%3A813&f%5B1%5D=vendor_project%3A829&f%5B2%5D=vendor_project%3A849&f%5B3%5D=vendor_project%3A911&f%5B4%5D=vendor_project%3A1320&page=1&recipientid=contact-41de9e007aace811a963000d3a363879-a794569726594743b07ecd7aaff0e97c",
+        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=52",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=0",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=53",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?%3F%3Futm_source=adzuna&f%5B0%5D=vendor_project%3A814&f%5B1%5D=vendor_project%3A827&f%5B2%5D=vendor_project%3A852&f%5B3%5D=vendor_project%3A875&f%5B4%5D=vendor_project%3A879&f%5B5%5D=vendor_project%3A907&f%5B6%5D=vendor_project%3A942&f%5B7%5D=vendor_project%3A1000&page=1",
+        "https://community.oracle.com/products/oracleanalytics/discussion/5169/weblogic-version-12-2-1-0-0-critical-patch-apr-2018",
+        "https://www.oracle.com/security-alerts/security-advisories23.html",
+        "https://nvd.nist.gov/vuln/detail/CVE-2018-20181",
+        "https://www.cisa.gov/sites/default/files/2024-05/Secure_by_Design_Alert_Eliminating_Directory_Traversal_Vulnerabilities_in_Software_508c%20%283%29.pdf",
+        "https://www.cisa.gov/sites/default/files/publications/AA22-117A_Joint_CSA_2021_Top_Routinely_Exploited_Vulnerabilities_Final.pdf",
+        "https://www.cisa.gov/sites/default/files/2024-08/SECURING_THE_SOFTWARE_SUPPLY_CHAIN_RECOMMENDED_PRACTICES_FOR_SOFTWARE_BILL_OF_MATERIALS_CONSUMPTION-508.pdf",
+        "https://www.cisa.gov/sites/default/files/publications/AA20-133A_Top_10_Routinely_Exploited_Vulnerabilities_S508C.pdf",
+        "https://www.oracle.com/security-alerts/cpuapr2018verbose.html",
+        "https://community.oracle.com/mosc/discussion/4561333/seek-help-to-get-solution-for-the-va-finding",
+        "https://community.oracle.com/mosc/discussion/4272027/patch-set-for-weblogic-12c",
+        "https://forums.oracle.com/ords/r/apexds/community/q?question=weblogic-version-12-2-1-0-0-critical-patch-apr-2018-3892&session=601735020710800",
+        "https://wwwcmsapi.oracle.com/security-alerts/cpuapr2018.html"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "a1eb69d25a57a908230a776a206c0e038295817be883f742c64e0d64a3a2d07e",
+      "source_urls": [
+        "https://www.oracle.com/security-alerts/cpuapr2018.html",
+        "https://nvd.nist.gov/vuln/detail/CVE-2018-2628"
+      ],
+      "status": "insufficient_evidence",
+      "uncertainty": [
+        "The returned authoritative sources identify affected versions and the Oracle April 2018 CPU, but do not expose concrete fixed build numbers or patch identifiers for each affected WebLogic release.",
+        "Because a concrete fixed_version claim could not be verified from the returned authoritative sources, remediation should not be considered complete solely from a generic version comparison.",
+        "The supplied source record's future-dated last_modified value is not independently relied upon; the authoritative NVD page was consulted as returned."
+      ],
+      "verification_steps": []
+    },
+    "CVE-2018-4939": {
+      "business_risk": "Critical remote-code-execution risk in Adobe ColdFusion. NVD rates CVE-2018-4939 9.8 Critical, and the vulnerability is listed in CISA's Known Exploited Vulnerabilities Catalog. Successful exploitation may result in arbitrary code execution, potentially affecting confidentiality, integrity, and availability.",
+      "claim_evidence": [
+        {
+          "claim": "Adobe identifies ColdFusion 2016 and ColdFusion 11 as affected product lines for APSB18-14, which includes mitigation for CVE-2018-4939.",
+          "kind": "affected_product",
+          "source_url": "https://helpx.adobe.com/uk/security/products/coldfusion/apsb18-14.html"
+        },
+        {
+          "claim": "Adobe lists ColdFusion 2016 Update 5 and earlier, and ColdFusion 11 Update 13 and earlier, as affected versions.",
+          "kind": "affected_version",
+          "source_url": "https://helpx.adobe.com/uk/security/products/coldfusion/apsb18-14.html"
+        },
+        {
+          "claim": "NVD describes CVE-2018-4939 as a remotely exploitable unsafe deserialization vulnerability with network attack vector, low attack complexity, no privileges required, and no user interaction; the impact can include arbitrary code execution.",
+          "kind": "exposure",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2018-4939"
+        },
+        {
+          "claim": "Adobe lists ColdFusion 2016 Update 6 and ColdFusion 11 Update 14 as the updated versions for the affected release lines.",
+          "kind": "fixed_version",
+          "source_url": "https://helpx.adobe.com/uk/security/products/coldfusion/apsb18-14.html"
+        },
+        {
+          "claim": "Adobe requires the specified minimum JDK levels, states that updating ColdFusion without the corresponding JDK update will not secure the server, and directs customers to apply security configuration settings and review lockdown guides.",
+          "kind": "remediation",
+          "source_url": "https://helpx.adobe.com/uk/security/products/coldfusion/apsb18-14.html"
+        },
+        {
+          "claim": "Adobe's bulletin provides deployment-specific JDK requirements and distinguishes JEE/J2EE configuration requirements from standalone installations, supporting verification through installed update, runtime, and deployment configuration review.",
+          "kind": "verification",
+          "source_url": "https://helpx.adobe.com/uk/security/products/coldfusion/apsb18-14.html"
+        }
+      ],
+      "exposure_conditions": [
+        "Adobe ColdFusion 2016 Update 5 or earlier is deployed.",
+        "Adobe ColdFusion 11 Update 13 or earlier is deployed.",
+        "The affected ColdFusion service is reachable over a network path that permits an attacker to interact with it. NVD characterizes the issue as network exploitable without privileges or user interaction.",
+        "JEE/J2EE deployments require the Java runtime and serialization-filtering requirements described by Adobe to be satisfied; applying only the ColdFusion update is not sufficient."
+      ],
+      "gaps": [
+        "generic_ecosystem"
+      ],
+      "generated_at": "2026-08-03T13:01:25Z",
+      "model": "gpt-5.6-luna",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [
+        "Upgrade ColdFusion 2016 to Update 6 or later, or migrate to a currently supported Adobe ColdFusion release following Adobe's supported upgrade path.",
+        "Upgrade ColdFusion 11 to Update 14 or later if that legacy release must be retained; prefer migration to a supported release because ColdFusion 11 is legacy software.",
+        "For ColdFusion 2016, use JDK 8u121 or later as required by Adobe's bulletin; for ColdFusion 11, use JDK 7u131 or JDK 8u121 or later. Adobe recommends the latest supported JDK/JRE.",
+        "For JEE/J2EE deployments, apply Adobe's required Java deserialization-filtering configuration according to the deployment-specific technical note. Do not apply that JEE-only setting to standalone installations.",
+        "Apply Adobe's ColdFusion security configuration guidance and review the applicable ColdFusion lockdown guide.",
+        "Because CVE-2018-4939 is in CISA's KEV Catalog, prioritize remediation, restrict unnecessary network exposure, and investigate potentially affected internet-facing instances."
+      ],
+      "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2018-4939",
+        "https://helpx.adobe.com/pl/security/products/coldfusion/apsb18-14.html",
+        "https://nvd.nist.gov/vuln/detail/cve-2018-4939",
+        "https://helpx.adobe.com/uk/security/products/coldfusion/apsb18-14.html",
+        "https://helpx.adobe.com/se/security/products/coldfusion/apsb18-14.html",
+        "https://helpx.adobe.com/no/security/products/coldfusion/apsb18-14.html",
+        "https://helpx.adobe.com/tr/security/products/coldfusion/apsb18-14.html",
+        "https://helpx.adobe.com/cz/security/products/coldfusion/apsb18-14.html",
+        "https://helpx.adobe.com/cn/security/products/coldfusion/apsb18-14.html",
+        "https://helpx.adobe.com/dk/security/products/coldfusion/apsb18-14.html",
+        "https://helpx.adobe.com/es/security/products/coldfusion/apsb18-14.html",
+        "https://helpx.adobe.com/security/products/coldfusion/apsb20-16.html",
+        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
+        "https://www.cisa.gov/sites/default/files/2024-05/Secure_by_Design_Alert_Eliminating_Directory_Traversal_Vulnerabilities_in_Software_508c%20%283%29.pdf",
+        "https://www.cisa.gov/sites/default/files/publications/AA22-117A_Joint_CSA_2021_Top_Routinely_Exploited_Vulnerabilities_Final.pdf",
+        "https://www.cisa.gov/sites/default/files/2024-08/SECURING_THE_SOFTWARE_SUPPLY_CHAIN_RECOMMENDED_PRACTICES_FOR_SOFTWARE_BILL_OF_MATERIALS_CONSUMPTION-508.pdf",
+        "https://www.cisa.gov/sites/default/files/publications/AA20-133A_Top_10_Routinely_Exploited_Vulnerabilities_S508C.pdf",
+        "https://helpx.adobe.com/pdf/coldfusion_configuring.pdf"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "40edc5541cd2a36e5aa76e6e976b364612c9c48d0b32689074af5b379ee7a088",
+      "source_urls": [
+        "https://helpx.adobe.com/uk/security/products/coldfusion/apsb18-14.html",
+        "https://nvd.nist.gov/vuln/detail/CVE-2018-4939"
+      ],
+      "status": "complete",
+      "uncertainty": [
+        "The supplied record truncates and inconsistently represents affected product/version data; Adobe's advisory identifies both ColdFusion 2016 and ColdFusion 11 as affected.",
+        "Adobe's 2018 bulletin provides fixed update levels for the affected release lines, but it does not establish that those legacy updates are appropriate for every currently supported deployment scenario.",
+        "No safe, product-specific non-exploit application test was identified in the returned authoritative sources; verification should rely on version, runtime, configuration, and follow-up scanning evidence."
+      ],
+      "verification_steps": [
+        "Confirm the installed ColdFusion release and update level through the product's supported administrative or inventory mechanism; verify ColdFusion 2016 is at least Update 6 or ColdFusion 11 is at least Update 14.",
+        "Confirm the runtime JDK meets Adobe's stated minimum for the deployed ColdFusion release.",
+        "For JEE/J2EE deployments, confirm the Adobe-required serialization-filtering configuration is present in the appropriate application-server startup configuration, without performing an exploit test.",
+        "Confirm the relevant Adobe security configuration and lockdown guidance has been reviewed and applied where applicable.",
+        "Re-scan the asset using a version-aware vulnerability scanner or authenticated software inventory after remediation; do not send deserialization payloads to production systems."
+      ]
+    },
+    "CVE-2018-6789": {
+      "business_risk": "No additional source-verified CVE-specific business impact was established.",
+      "claim_evidence": [],
+      "exposure_conditions": [],
+      "gaps": [
+        "generic_ecosystem"
+      ],
+      "generated_at": "2026-08-03T13:02:54Z",
+      "model": "gpt-5.6-luna",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [],
+      "retrieved_source_urls": [],
+      "schema_version": 2,
+      "source_fingerprint": "f2f1af1c3595c2749edb82890fe76b0da1780bd924ed2527765414d3317bb98e",
+      "source_urls": [],
+      "status": "insufficient_evidence",
+      "uncertainty": [
+        "The upstream advisory describes preconditions but does not enumerate them in detail, so exploitability cannot be determined from the CVE alone.",
+        "The generic source record does not identify a concrete product version, operating-system release, package type, or deployment topology.",
+        "The upstream advisory indicates that remote code execution seemed possible but also described exploitation as potentially difficult; the exact exploitability depends on the deployment and build.",
+        "Distribution backports may use version strings that do not correspond directly to upstream Exim version 4.90.1; use the vendor package thresholds where applicable.",
+        "The model did not return a fully sourced exposure, remediation, and verification set; consult the linked NVD and vendor sources before acting."
+      ],
+      "verification_steps": []
+    },
+    "CVE-2018-7600": {
+      "business_risk": "Critical remote code execution vulnerability in Drupal core. A successful attack could completely compromise the site, affecting confidentiality, integrity, and availability. Drupal reported automated exploitation attempts against unpatched sites.",
+      "claim_evidence": [
+        {
+          "claim": "The vulnerability affects Drupal core and is identified by the vendor as SA-CORE-2018-002 / CVE-2018-7600.",
+          "kind": "affected_product",
+          "source_url": "https://www.drupal.org/sa-core-2018-002"
+        },
+        {
+          "claim": "Affected ranges are Drupal 7.0 through 7.57, 8.0.0 through 8.3.8, 8.4.0 through 8.4.5, and 8.5.0.",
+          "kind": "affected_version",
+          "source_url": "https://www.drupal.org/sa-core-2018-002"
+        },
+        {
+          "claim": "The vendor describes remote code execution through multiple subsystems and states that attackers could exploit multiple attack vectors on a Drupal site.",
+          "kind": "exposure",
+          "source_url": "https://www.drupal.org/sa-core-2018-002"
+        },
+        {
+          "claim": "Drupal reported automated attacks attempting to compromise unpatched Drupal 7 and 8 websites.",
+          "kind": "exposure",
+          "source_url": "https://www.drupal.org/psa-2018-002"
+        },
+        {
+          "claim": "Drupal 7 is fixed by upgrading to Drupal 7.58.",
+          "kind": "fixed_version",
+          "source_url": "https://www.drupal.org/sa-core-2018-002"
+        },
+        {
+          "claim": "Drupal 8.3.x is fixed by upgrading to Drupal 8.3.9.",
+          "kind": "fixed_version",
+          "source_url": "https://www.drupal.org/sa-core-2018-002"
+        },
+        {
+          "claim": "Drupal 8.4.x is fixed by upgrading to Drupal 8.4.6.",
+          "kind": "fixed_version",
+          "source_url": "https://www.drupal.org/sa-core-2018-002"
+        },
+        {
+          "claim": "Drupal 8.5.x is fixed by upgrading to Drupal 8.5.1.",
+          "kind": "fixed_version",
+          "source_url": "https://www.drupal.org/sa-core-2018-002"
+        },
+        {
+          "claim": "The vendor solution is to upgrade to the applicable Drupal core release; the advisory also describes vendor patches as interim options for certain branches.",
+          "kind": "remediation",
+          "source_url": "https://www.drupal.org/sa-core-2018-002"
+        },
+        {
+          "claim": "Drupal documentation states that the installed core version can be verified through Administration > Reports > Status report.",
+          "kind": "verification",
+          "source_url": "https://www.drupal.org/docs/getting-started/understanding-drupal/understanding-drupal-version-numbers/which-version-am-i-running"
+        },
+        {
+          "claim": "Drupal documentation identifies Administration > Reports > Available updates as the location for reviewing available updates.",
+          "kind": "verification",
+          "source_url": "https://www.drupal.org/docs/getting-started/understanding-drupal/understanding-drupal-version-numbers/which-version-am-i-running"
+        }
+      ],
+      "exposure_conditions": [
+        "Drupal core is in an affected range: 7.0 through 7.57; 8.0.0 through 8.3.8; 8.4.0 through 8.4.5; or 8.5.0.",
+        "The Drupal site is remotely reachable and uses default or common module configurations or another affected attack path described by the vendor advisory.",
+        "Because exploitation was observed against unpatched Drupal 7 and 8 sites, internet-facing deployments should be treated as high priority."
+      ],
+      "gaps": [
+        "generic_ecosystem"
+      ],
+      "generated_at": "2026-08-03T13:02:34Z",
+      "model": "gpt-5.6-luna",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [
+        "Upgrade Drupal 7 installations to 7.58 or later.",
+        "Upgrade Drupal 8.3 installations to 8.3.9 or later, or apply the vendor-provided security patch as an interim measure.",
+        "Upgrade Drupal 8.4 installations to 8.4.6 or later, or apply the vendor-provided security patch as an interim measure.",
+        "Upgrade Drupal 8.5 installations to 8.5.1 or later.",
+        "For Drupal 8.2.x and earlier, update to a more recent supported release and then apply the applicable security update; the advisory states these branches were no longer supported.",
+        "Use the normal Drupal maintenance and backup process, and review the vendor advisory and its FAQ before applying changes."
+      ],
+      "retrieved_source_urls": [
+        "https://www.drupal.org/sa-core-2018-002",
+        "https://www.drupal.org/psa-2018-002",
+        "https://groups.drupal.org/security/faq-2018-002",
+        "https://www.drupal.org/security/p?page=69",
+        "https://nvd.nist.gov/vuln/detail/CVE-2018-7600?source=post_page---------------------------",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=52",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=50",
+        "https://www.drupal.org/sa-core-2018-004",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=38",
+        "https://www.drupal.org/security/core/all?page=8",
+        "https://www.drupal.org/psa-2018-001",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?_cldee=jpUNG-sft0Lr74jsazzEoZ17jTSFEy6lQDvCJArCUYT0C1B4SWuT29F0dx7GSSfN&esid=f8736f67-efb4-ec11-983e-000d3a5a7186&f%5B0%5D=vendor_project%3A813&f%5B1%5D=vendor_project%3A829&f%5B2%5D=vendor_project%3A849&f%5B3%5D=vendor_project%3A911&f%5B4%5D=vendor_project%3A1320&page=1&recipientid=contact-41de9e007aace811a963000d3a363879-a794569726594743b07ecd7aaff0e97c",
+        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
+        "https://www.cisa.gov/sites/default/files/publications/AA21-209A_Joint_CSA%20Top%20Routinely%20Exploited%20Vulnerabilities.pdf",
+        "https://www.cisa.gov/sites/default/files/publications/AA20-133A_Top_10_Routinely_Exploited_Vulnerabilities_S508C.pdf",
+        "https://www.cisa.gov/sites/default/files/2024-05/Secure_by_Design_Alert_Eliminating_Directory_Traversal_Vulnerabilities_in_Software_508c%20%283%29.pdf",
+        "https://www.drupal.org/project/available_updates",
+        "https://www.drupal.org/docs/user_guide/en/security-update-core.html",
+        "https://www.drupal.org/docs/getting-started/understanding-drupal/understanding-drupal-version-numbers/which-version-am-i-running",
+        "https://www.drupal.org/docs/develop/core-modules-and-themes/core-modules/update-module",
+        "https://www.drupal.org/docs/updating-drupal/troubleshooting-database-updates",
+        "https://www.drupal.org/docs/updating-drupal/updating-drupal-core-via-composer",
+        "https://www.drupal.org/docs/updating-drupal/options-for-updating-drupal-core",
+        "https://www.drupal.org/project/status_dashboard"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "50c0200004dfd7e959a6c3ab5e48713eb7071c2b968d1daeed4082dfd0c676bb",
+      "source_urls": [
+        "https://www.drupal.org/sa-core-2018-002",
+        "https://www.drupal.org/psa-2018-002",
+        "https://www.drupal.org/docs/getting-started/understanding-drupal/understanding-drupal-version-numbers/which-version-am-i-running"
+      ],
+      "status": "complete",
+      "uncertainty": [
+        "The supplied record includes Debian operating-system CPEs, but the consulted Drupal advisory does not establish Debian package-specific fixed versions; Debian remediation should be handled through the relevant Debian security advisory.",
+        "The advisory states that Drupal 6 is affected but does not provide a Drupal 6 fixed version in the consulted source.",
+        "A version check cannot determine whether a site was previously compromised or whether custom patches, backports, altered modules, or deployment-specific configuration change exposure.",
+        "No exploit testing or active probing is recommended or supported by the consulted sources."
+      ],
+      "verification_steps": [
+        "In the Drupal administrative interface, open Administration > Reports > Status report and record the reported Drupal core version.",
+        "Confirm the installed core version is not in any affected range and meets or exceeds the applicable fixed version: 7.58, 8.3.9, 8.4.6, or 8.5.1.",
+        "Review Administration > Reports > Available updates, where enabled, to confirm Drupal core is not reported as requiring this security update.",
+        "For sites that were unpatched during the exploitation window, conduct an incident-response review of application, web-server, authentication, and integrity logs; do not treat version remediation alone as evidence that compromise did not occur."
+      ]
+    },
+    "CVE-2018-7602": {
+      "business_risk": "No additional source-verified CVE-specific business impact was established.",
+      "claim_evidence": [],
+      "exposure_conditions": [],
+      "gaps": [
+        "generic_ecosystem"
+      ],
+      "generated_at": "2026-08-03T13:01:02Z",
+      "model": "gpt-5.6-luna",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [],
+      "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2018-7602",
+        "https://www.drupal.org/sa-core-2018-004",
+        "https://www.drupal.org/sa-core-2018-002",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A793&f%5B10%5D=vendor_project%3A876&f%5B11%5D=vendor_project%3A904&f%5B12%5D=vendor_project%3A906&f%5B13%5D=vendor_project%3A918&f%5B14%5D=vendor_project%3A926&f%5B15%5D=vendor_project%3A936&f%5B16%5D=vendor_project%3A944&f%5B1%5D=vendor_project%3A804&f%5B2%5D=vendor_project%3A807&f%5B3%5D=vendor_project%3A810&f%5B4%5D=vendor_project%3A824&f%5B5%5D=vendor_project%3A825&f%5B6%5D=vendor_project%3A863&f%5B7%5D=vendor_project%3A865&f%5B8%5D=vendor_project%3A866&f%5B9%5D=vendor_project%3A869&page=2",
+        "https://www.drupal.org/security/core/all?page=8",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?_cldee=jpUNG-sft0Lr74jsazzEoZ17jTSFEy6lQDvCJArCUYT0C1B4SWuT29F0dx7GSSfN&esid=f8736f67-efb4-ec11-983e-000d3a5a7186&f%5B0%5D=vendor_project%3A813&f%5B1%5D=vendor_project%3A829&f%5B2%5D=vendor_project%3A849&f%5B3%5D=vendor_project%3A911&f%5B4%5D=vendor_project%3A1320&page=1&recipientid=contact-41de9e007aace811a963000d3a363879-a794569726594743b07ecd7aaff0e97c",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A800&f%5B10%5D=vendor_project%3A842&f%5B11%5D=vendor_project%3A845&f%5B12%5D=vendor_project%3A847&f%5B13%5D=vendor_project%3A853&f%5B14%5D=vendor_project%3A854&f%5B15%5D=vendor_project%3A865&f%5B16%5D=vendor_project%3A877&f%5B17%5D=vendor_project%3A880&f%5B18%5D=vendor_project%3A886&f%5B19%5D=vendor_project%3A888&f%5B1%5D=vendor_project%3A801&f%5B20%5D=vendor_project%3A893&f%5B21%5D=vendor_project%3A902&f%5B22%5D=vendor_project%3A917&f%5B23%5D=vendor_project%3A931&f%5B24%5D=vendor_project%3A932&f%5B25%5D=vendor_project%3A933&f%5B26%5D=vendor_project%3A938&f%5B27%5D=vendor_project%3A941&f%5B28%5D=vendor_project%3A951&f%5B29%5D=vendor_project%3A1174&f%5B2%5D=vendor_project%3A802&f%5B3%5D=vendor_project%3A803&f%5B4%5D=vendor_project%3A807&f%5B5%5D=vendor_project%3A820&f%5B6%5D=vendor_project%3A823&f%5B7%5D=vendor_project%3A828&f%5B8%5D=vendor_project%3A837&f%5B9%5D=vendor_project%3A839&page=9",
+        "https://nvd.nist.gov/vuln/detail/CVE-2018-20181",
+        "https://nvd.nist.gov/vuln/detail/CVE-2018-0762",
+        "https://www.drupal.org/security/se?page=72",
+        "https://www.drupal.org/psa-2018-003",
+        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=50",
+        "https://www.cisa.gov/sites/default/files/publications/AA20-133A_Top_10_Routinely_Exploited_Vulnerabilities_S508C.pdf",
+        "https://www.cisa.gov/sites/default/files/2024-05/Secure_by_Design_Alert_Eliminating_Directory_Traversal_Vulnerabilities_in_Software_508c%20%283%29.pdf",
+        "https://www.cisa.gov/sites/default/files/publications/AA20-258A-Chinese_Ministry_of_State_Security-Affiliated_Cyber_Threat_Actor_Activity_S508C.pdf",
+        "https://www.cisa.gov/sites/default/files/2024-08/SECURING_THE_SOFTWARE_SUPPLY_CHAIN_RECOMMENDED_PRACTICES_FOR_SOFTWARE_BILL_OF_MATERIALS_CONSUMPTION-508.pdf",
+        "https://www.cisa.gov/sites/default/files/publications/AA22-117A_Joint_CSA_2021_Top_Routinely_Exploited_Vulnerabilities_Final.pdf"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "797936e9f80e0e4d4148d15e34846ddbc2835032c24bce372025f76aa0f26760",
+      "source_urls": [
+        "https://www.drupal.org/sa-core-2018-004",
+        "https://nvd.nist.gov/vuln/detail/CVE-2018-7602"
+      ],
+      "status": "insufficient_evidence",
+      "uncertainty": [
+        "The available authoritative sources establish affected ranges and vendor remediation but do not provide a complete safe verification procedure for every deployment type.",
+        "The advisory's fixed releases are historical minimums; it does not establish which currently supported Drupal release should be used in a modern deployment.",
+        "The sources do not establish exposure for a specific site, distribution, configuration, reverse proxy, WAF, or backported package.",
+        "No source-supported commands, file paths, configuration values, or exploit-specific test procedure are provided."
+      ],
+      "verification_steps": []
     },
     "CVE-2018-7841": {
       "business_risk": "No additional source-verified CVE-specific business impact was established.",
@@ -30541,7 +31847,7 @@
       "gaps": [
         "generic_ecosystem"
       ],
-      "generated_at": "2026-07-30T11:34:52Z",
+      "generated_at": "2026-08-03T12:59:46Z",
       "model": "gpt-5.6-luna",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
@@ -30549,39 +31855,41 @@
       "retrieved_source_urls": [
         "https://nvd.nist.gov/vuln/detail/CVE-2026-16232",
         "https://nvd.nist.gov/vuln/detail/CVE-2026-16232/change-record?changeRecordedOn=07%2F23%2F2026T11%3A44%3A54.743-0400",
-        "https://nvd.nist.gov/vuln/detail/CVE-2020-16232",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=0",
         "https://nvd.nist.gov/vuln/detail/CVE-2026-20233",
         "https://nvd.nist.gov/vuln/detail/CVE-2018-16232",
         "https://nvd.nist.gov/vuln/detail/CVE-2017-16232",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=0",
         "https://nvd.nist.gov/vuln/detail/CVE-2026-46232",
         "https://nvd.nist.gov/vuln/detail/CVE-2022-46487",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=19",
         "https://nvd.nist.gov/vuln/detail/CVE-2026-20632",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=23",
         "https://nvd.nist.gov/vuln/detail/CVE-2024-26232",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?_cldee=jpUNG-sft0Lr74jsazzEoZ17jTSFEy6lQDvCJArCUYT0C1B4SWuT29F0dx7GSSfN&esid=f8736f67-efb4-ec11-983e-000d3a5a7186&f%5B0%5D=vendor_project%3A813&f%5B1%5D=vendor_project%3A829&f%5B2%5D=vendor_project%3A849&f%5B3%5D=vendor_project%3A911&f%5B4%5D=vendor_project%3A1320&page=1&recipientid=contact-41de9e007aace811a963000d3a363879-a794569726594743b07ecd7aaff0e97c",
         "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
-        "https://www.cisa.gov/sites/default/files/2025-08/CSA_COUNTERING_CHINA_STATE_ACTORS_COMPROMISE_OF_NETWORKS.pdf",
+        "https://www.cisa.gov/sites/default/files/2025-01/joint-guidance-product-security-bad-practices-508c_0.pdf",
+        "https://www.cisa.gov/sites/default/files/2025-09/AA25-266A_advisory_cisa_shares_lessons_learned_from_ir_engagement.pdf",
         "https://www.cisa.gov/sites/default/files/2024-05/Secure_by_Design_Alert_Eliminating_Directory_Traversal_Vulnerabilities_in_Software_508c%20%283%29.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/AA22-117A_Joint_CSA_2021_Top_Routinely_Exploited_Vulnerabilities_Final.pdf",
-        "https://www.cisa.gov/sites/default/files/2024-08/SECURING_THE_SOFTWARE_SUPPLY_CHAIN_RECOMMENDED_PRACTICES_FOR_SOFTWARE_BILL_OF_MATERIALS_CONSUMPTION-508.pdf",
-        "https://asec.ahnlab.com/en/94630/",
-        "https://www.cyberwald.com/advisories/cve-2026-16232/",
+        "https://www.cisa.gov/sites/default/files/2025-08/CSA_COUNTERING_CHINA_STATE_ACTORS_COMPROMISE_OF_NETWORKS.pdf",
         "https://www.penligent.ai/hackinglabs/cve-2026-16232/",
         "https://www.preferreddata.com/blog/check-point-smartconsole-cve-2026-16232-auth-bypass-kev-july-2026-nc-smb-firewall-management-emergency",
-        "https://community.checkpoint.com/t5/user/viewprofilepage/user-id/10384",
-        "https://techscurrent.com/2026/07/check-point-smartconsole-zero-day-firewall-management-patch/"
+        "https://asec.ahnlab.com/en/94630/",
+        "https://blog.checkpoint.com/security/security-advisory-action-required-active-exploitation-of-check-point-smartconsole-authentication-bypass-cve-2026-16232/amp/",
+        "https://www.cyberwald.com/advisories/cve-2026-16232/",
+        "https://www.helpnetsecurity.com/2026/07/23/check-point-vulnerability-cve-2026-16232/",
+        "https://www.redlegg.com/blog/security-bulletin-check-point-smartconsole-authentication-bypass-vulnerability"
       ],
       "schema_version": 2,
-      "source_fingerprint": "bfa65bd9c7083c209dda26e576dae0145b9ce35660663fe54ed5256ed6fe3fee",
+      "source_fingerprint": "220c9f7f859bf89b6b7613e44fa26ef031f958d7d8a15eccd861fc8a317c0a63",
       "source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2026-16232"
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-16232",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-16232/change-record?changeRecordedOn=07%2F23%2F2026T11%3A44%3A54.743-0400",
+        "https://blog.checkpoint.com/security/security-advisory-action-required-active-exploitation-of-check-point-smartconsole-authentication-bypass-cve-2026-16232/amp/"
       ],
       "status": "insufficient_evidence",
       "uncertainty": [
-        "The authoritative NVD record identifies affected versions and exposure conditions but does not provide a complete fixed-version claim.",
-        "The Check Point SK185169 advisory is referenced by NVD as the mitigation and patch source, but it was not retrievable for direct verification during enrichment.",
-        "Publicly indexed secondary material suggests fixed Jumbo Hotfix boundaries for R81.20, R82, and R82.10, but those claims were not treated as authoritative and are therefore not asserted here.",
-        "No authoritative, safe technical test for confirming remediation was available from the retrieved sources."
+        "The Check Point SK185169 page was not accessible through the returned web source, so exact branch-specific fixed Jumbo Hotfix boundaries could not be independently verified from an accessible authoritative source.",
+        "NVD records affected products and versions but do not independently establish a complete fixed-version matrix. ([nvd.nist.gov](https://nvd.nist.gov/vuln/detail/CVE-2026-16232?utm_source=openai))",
+        "The supplied record states specific take thresholds, but those thresholds are not used here as independently verified fixed-version claims."
       ],
       "verification_steps": []
     },
