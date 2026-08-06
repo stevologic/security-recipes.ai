@@ -4032,96 +4032,45 @@
       ]
     },
     "CVE-2019-15107": {
-      "business_risk": "Critical, remotely reachable command injection in Webmin can enable unauthenticated operating-system command execution with potentially complete confidentiality, integrity, and availability impact. CISA lists the CVE in the Known Exploited Vulnerabilities Catalog and requires applying vendor updates. ([nvd.nist.gov](https://nvd.nist.gov/vuln/detail/CVE-2019-15107?utm_source=openai))",
-      "claim_evidence": [
-        {
-          "claim": "The affected product is Webmin, and the vulnerable component is the `old` parameter in `password_change.cgi`.",
-          "kind": "affected_product",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2019-15107"
-        },
-        {
-          "claim": "NVD identifies Webmin versions up to and including 1.920 as affected.",
-          "kind": "affected_version",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2019-15107"
-        },
-        {
-          "claim": "The Webmin advisory states that versions 1.900–1.920 were exploitable when changing of expired passwords was enabled; this was not enabled by default.",
-          "kind": "exposure",
-          "source_url": "https://webmin.com/security/"
-        },
-        {
-          "claim": "The Webmin advisory recommends upgrading to Webmin 1.930, and the vendor’s 1.930 release notice states that the security vulnerability was fixed.",
-          "kind": "fixed_version",
-          "source_url": "https://webmin.com/security/"
-        },
-        {
-          "claim": "Upgrade Webmin to 1.930 or later; the vendor recommends immediate installation.",
-          "kind": "remediation",
-          "source_url": "https://webmin.com/changelog/webmin-1.930-and-usermin-1.780-released/"
-        },
-        {
-          "claim": "The vendor provides a configuration-based interim mitigation for Webmin 1.900–1.920 by removing the `passwd_mode=` setting from `miniserv.conf`; verification should be limited to reviewing the approved configuration and deployed version.",
-          "kind": "verification",
-          "source_url": "https://webmin.com/security/"
-        }
-      ],
-      "exposure_conditions": [
-        "NVD identifies Webmin versions up to and including 1.920 as affected; the vulnerable parameter is `old` in `password_change.cgi`. ([nvd.nist.gov](https://nvd.nist.gov/vuln/detail/CVE-2019-15107?utm_source=openai))",
-        "The Webmin security advisory states that Webmin 1.900–1.920 installations were exploitable when the option allowing users to change expired passwords was enabled; this condition does not apply to the default installation according to the vendor. ([webmin.com](https://webmin.com/security/?utm_source=openai))",
-        "Any Webmin instance exposed to an attacker who can reach its web interface should be treated as potentially exposed until upgraded and reviewed."
-      ],
+      "business_risk": "No additional source-verified CVE-specific business impact was established.",
+      "claim_evidence": [],
+      "exposure_conditions": [],
       "gaps": [
         "generic_ecosystem"
       ],
-      "generated_at": "2026-08-05T12:10:00Z",
+      "generated_at": "2026-08-06T12:11:04Z",
       "model": "gpt-5.6-luna",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
-      "remediation_steps": [
-        "Upgrade Webmin to version 1.930 or later; the vendor states that Webmin 1.930 fixes the security vulnerability and recommends immediate installation. ([webmin.com](https://webmin.com/security/?utm_source=openai))",
-        "Prioritize externally reachable Webmin instances and systems running versions 1.920 or earlier because the CVE is listed as known exploited by CISA. ([nvd.nist.gov](https://nvd.nist.gov/vuln/detail/CVE-2019-15107?utm_source=openai))",
-        "If immediate upgrade is not possible, review whether the expired-password-change feature is enabled on Webmin 1.900–1.920 and disable that feature in accordance with the vendor advisory. ([webmin.com](https://webmin.com/security/?utm_source=openai))",
-        "After remediation, review Webmin and host authentication, process, and security logs for unexpected password-change activity or command execution, using the organization’s established incident-response procedures."
-      ],
+      "remediation_steps": [],
       "retrieved_source_urls": [
         "https://webmin.com/security/",
         "https://nvd.nist.gov/vuln/detail/CVE-2019-15107",
         "https://nvd.nist.gov/vuln/detail/cve-2019-15107",
-        "https://webmin.com/changelog/webmin-1.920-and-usermin-1.770-released/",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A798&f%5B10%5D=vendor_project%3A845&f%5B11%5D=vendor_project%3A854&f%5B12%5D=vendor_project%3A858&f%5B13%5D=vendor_project%3A865&f%5B14%5D=vendor_project%3A877&f%5B15%5D=vendor_project%3A880&f%5B16%5D=vendor_project%3A886&f%5B17%5D=vendor_project%3A887&f%5B18%5D=vendor_project%3A888&f%5B19%5D=vendor_project%3A893&f%5B1%5D=vendor_project%3A800&f%5B20%5D=vendor_project%3A901&f%5B21%5D=vendor_project%3A902&f%5B22%5D=vendor_project%3A917&f%5B23%5D=vendor_project%3A929&f%5B24%5D=vendor_project%3A931&f%5B25%5D=vendor_project%3A932&f%5B26%5D=vendor_project%3A933&f%5B27%5D=vendor_project%3A938&f%5B28%5D=vendor_project%3A951&f%5B29%5D=vendor_project%3A954&f%5B2%5D=vendor_project%3A801&f%5B30%5D=vendor_project%3A1174&f%5B3%5D=vendor_project%3A803&f%5B4%5D=vendor_project%3A805&f%5B5%5D=vendor_project%3A820&f%5B6%5D=vendor_project%3A823&f%5B7%5D=vendor_project%3A828&f%5B8%5D=vendor_project%3A837&f%5B9%5D=vendor_project%3A842&page=6",
-        "https://webmin.com/changelog/page/11/",
-        "https://webmin.com/changelog/",
-        "https://webmin.com/tags/webmin-changelog/page/6/",
-        "https://nvd.nist.gov/vuln/detail/CVE-2019-15231/change-record?changeRecordedOn=08%2F22%2F2019T15%3A15%3A15.110-0400",
         "https://webmin.com/changelog/webmin-1.930-and-usermin-1.780-released/",
-        "https://webmin.com/search/",
-        "https://webmin.com/download/",
-        "https://www.cisa.gov/sites/default/files/publications/202008131030_COVID-19%20Cyber%20Threats%20Update_TLP_WHITE.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/AA21-259A-APT_Actors_Exploiting_Newly_Identified_Vulnerability_in_ManageEngine_ADSelfService_Plus.pdf",
-        "https://www.cisa.gov/sites/default/files/Joint_CISA_FBI_CSA-AA20-296A__Russian_State_Sponsored_APT_Actor_Compromise_US_Government_Targets.pdf",
-        "https://www.cisa.gov/sites/default/files/2023-08/aa23-215a_joint_csa_2022_top_routinely_exploited_vulnerabilities.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/AA21-209A_Joint_CSA%20Top%20Routinely%20Exploited%20Vulnerabilities.pdf",
-        "https://nvd.nist.gov/vuln/detail/CVE-2019-15107?utm_source=openai",
-        "https://webmin.com/security/?utm_source=openai"
+        "https://webmin.com/changelog/",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-15107",
+        "https://webmin.com/changelog/webmin-1.920-and-usermin-1.770-released/",
+        "https://webmin.com/changelog/page/11/",
+        "https://webmin.com/changelog/webmin-1.990-and-usermin-1.840-released/",
+        "https://webmin.com/changelog/webmin-1.970-and-usermin-1.820-released/",
+        "https://webmin.com/changelog/page/9/",
+        "https://webmin.com/changelog/webmin-1.900-released/"
       ],
       "schema_version": 2,
-      "source_fingerprint": "d927442253355e8b9824c3161320dce0ca3b8771a0f8e1f2b8e7e19bc1358750",
+      "source_fingerprint": "7bd94b6e362536e646d144e1d77733ea32b152e5f63e02bd0581c798c969080b",
       "source_urls": [
         "https://nvd.nist.gov/vuln/detail/CVE-2019-15107",
         "https://webmin.com/security/",
         "https://webmin.com/changelog/webmin-1.930-and-usermin-1.780-released/"
       ],
-      "status": "complete",
+      "status": "insufficient_evidence",
       "uncertainty": [
-        "NVD’s current description defines the affected range as Webmin <=1.920, while the Webmin advisory discusses closely related 1.890 and 1.900–1.920 backdoor behavior under CVE-2019-15231. The vendor explicitly notes that CVE-2019-15231 is separate from CVE-2019-15107, so exact per-version behavior should be confirmed against the deployed build and vendor advisory. ([webmin.com](https://webmin.com/security/?utm_source=openai))",
-        "The supplied record’s generic affected-product entry is incomplete; the product and version range are taken from the NVD record and Webmin’s advisory."
+        "The retrieved vendor security page discusses multiple Webmin vulnerabilities and does not explicitly map the 1.930 fix statement to CVE-2019-15107 by identifier.",
+        "The NVD record identifies the affected range as Webmin <=1.920, while the vendor page's nearby detailed discussion concerns CVE-2019-15231 and related backdoor behavior; those conditions should not be assumed identical.",
+        "No authoritative source retrieved provided a CVE-specific, non-invasive application-level verification procedure."
       ],
-      "verification_steps": [
-        "Use approved asset or package inventory to confirm the deployed Webmin version is 1.930 or later. ([webmin.com](https://webmin.com/security/?utm_source=openai))",
-        "For systems previously running Webmin 1.900–1.920, review the Webmin authentication configuration and confirm the expired-password-change option is not enabled unless explicitly required. ([webmin.com](https://webmin.com/security/?utm_source=openai))",
-        "Confirm that the vulnerable Webmin deployment is no longer identified as version 1.920 or earlier by the organization’s authenticated vulnerability scanner or software inventory.",
-        "Review relevant logs for unexpected activity after the upgrade; do not send exploit payloads or perform production command-execution tests."
-      ]
+      "verification_steps": []
     },
     "CVE-2019-16278": {
       "business_risk": "Critical unauthenticated remote-code-execution risk for exposed Nostromo nhttpd instances. CVE-2019-16278 affects nhttpd through version 1.9.6, and the vulnerability is listed in CISA's Known Exploited Vulnerabilities Catalog.",
@@ -5630,6 +5579,98 @@
         "No authoritative returned source established a safe application-level or network-level verification test specific to this vulnerability."
       ],
       "verification_steps": []
+    },
+    "CVE-2020-0796": {
+      "business_risk": "Critical network-reachable remote code execution in SMBv3. The CVSS vector indicates no authentication or user interaction is required, and NVD lists CVE-2020-0796 in CISA's Known Exploited Vulnerabilities Catalog. Prioritize remediation for systems exposing SMBv3 to untrusted or broadly reachable networks.",
+      "claim_evidence": [
+        {
+          "claim": "Microsoft describes unpatched Windows servers as being at risk from CVE-2020-0796 and recommends ensuring devices are patched.",
+          "kind": "exposure",
+          "source_url": "https://learn.microsoft.com/th-th/defender-for-identity/alerts-mdi-classic"
+        },
+        {
+          "claim": "Microsoft KB4551762 applies to Windows 10 version 1903/1909 and Windows Server version 1903/1909 and provides OS builds 18362.720 for version 1903 and 18363.720 for version 1909.",
+          "kind": "fixed_version",
+          "source_url": "https://support.microsoft.com/pl-pl/topic/12-marca-2020-r-kb4551762-kompilacje-systemu-operacyjnego-18362-720-i-18363-720-wygas%C5%82e-b542fc1d-21dc-6295-1c8d-ed40fedb0742"
+        },
+        {
+          "claim": "The Microsoft KB identifies the update as a security update for the SMBv3 protocol and recommends moving to the latest security-quality update because the KB is expired.",
+          "kind": "remediation",
+          "source_url": "https://support.microsoft.com/pl-pl/topic/12-marca-2020-r-kb4551762-kompilacje-systemu-operacyjnego-18362-720-i-18363-720-wygas%C5%82e-b542fc1d-21dc-6295-1c8d-ed40fedb0742"
+        },
+        {
+          "claim": "Microsoft documents checking the installed Windows edition, version, and OS build through Settings > System > About or by using winver.",
+          "kind": "verification",
+          "source_url": "https://learn.microsoft.com/en-us/windows/client-management/client-tools/windows-version-search"
+        },
+        {
+          "claim": "Microsoft's KB page provides the 18362.720 and 18363.720 build identifiers associated with the SMBv3 security update, enabling an inert OS-build comparison.",
+          "kind": "verification",
+          "source_url": "https://support.microsoft.com/pl-pl/topic/12-marca-2020-r-kb4551762-kompilacje-systemu-operacyjnego-18362-720-i-18363-720-wygas%C5%82e-b542fc1d-21dc-6295-1c8d-ed40fedb0742"
+        }
+      ],
+      "exposure_conditions": [
+        "The affected product set is Windows 10 version 1903, Windows 10 version 1909, Windows Server version 1903 Server Core, and Windows Server version 1909 Server Core.",
+        "Exposure requires the vulnerable SMBv3 implementation to process applicable network requests; the vulnerability is described as remote code execution in SMBv3 request handling.",
+        "The supplied record does not establish a specific network port, firewall state, SMB compression configuration, or whether a particular host is externally reachable."
+      ],
+      "gaps": [
+        "missing_bounded_version"
+      ],
+      "generated_at": "2026-08-06T12:14:19Z",
+      "model": "gpt-5.6-luna",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [
+        "Apply Microsoft's security update KB4551762, which addresses SMBv3 for Windows 10 version 1903/1909 and Windows Server version 1903/1909.",
+        "Use a later cumulative security-quality update instead when KB4551762 is unavailable; Microsoft identifies KB4551762 as expired and recommends updating to the latest security-quality update.",
+        "For Windows 10 version 1903, establish at least OS build 18362.720; for Windows 10 version 1909, establish at least OS build 18363.720. Treat these as minimum known remediated builds, not as a replacement for current supported servicing."
+      ],
+      "retrieved_source_urls": [
+        "https://support.microsoft.com/pl-pl/topic/12-marca-2020-r-kb4551762-kompilacje-systemu-operacyjnego-18362-720-i-18363-720-wygas%C5%82e-b542fc1d-21dc-6295-1c8d-ed40fedb0742",
+        "https://support.microsoft.com/hr-hr/topic/12-o%C5%BEujka-2020-kb4551762-me%C4%91uverzije-os-a-18362-720-i-18363-720-isteklo-b542fc1d-21dc-6295-1c8d-ed40fedb0742",
+        "https://support.microsoft.com/sr-latn-rs/servicing/os/windows-10/2020/03/march-12-2020-kb4551762-os-builds-18362-720-and-18363-720-expired",
+        "https://support.microsoft.com/tr-TR/servicing/os/windows-10/2020/03/march-12-2020-kb4551762-os-builds-18362-720-and-18363-720-expired",
+        "https://learn.microsoft.com/th-th/defender-for-identity/alerts-mdi-classic",
+        "https://support.microsoft.com/uk-ua/topic/12-%D0%B1%D0%B5%D1%80%D0%B5%D0%B7%D0%BD%D1%8F-2020-%D1%80-kb4551762-%D0%B7%D0%B1%D1%96%D1%80%D0%BA%D0%B0-%D0%BE%D1%81-18362-720-%D1%96-18363-720-%D1%82%D0%B5%D1%80%D0%BC%D1%96%D0%BD-%D0%B4%D1%96%D1%97-%D0%B7%D0%B0%D0%B2%D0%B5%D1%80%D1%88%D0%B8%D0%B2%D1%81%D1%8F-b542fc1d-21dc-6295-1c8d-ed40fedb0742",
+        "https://learn.microsoft.com/en-us/defender-for-identity/whats-new-archive",
+        "https://support.microsoft.com/hu-hu/topic/2020-m%C3%A1rcius-12-kb4551762-az-oper%C3%A1ci%C3%B3s-rendszer-18362-720-as-%C3%A9s-18363-720-as-buildj%C3%A9ben-lej%C3%A1rt-b542fc1d-21dc-6295-1c8d-ed40fedb0742",
+        "https://learn.microsoft.com/cs-cz/defender-for-identity/alerts-mdi-classic",
+        "https://support.microsoft.com/it-it/servicing/os/windows-10/2020/03/march-12-2020-kb4551762-os-builds-18362-720-and-18363-720-expired",
+        "https://support.microsoft.com/es-ES/servicing/os/windows-10/2020/03/march-12-2020-kb4551762-os-builds-18362-720-and-18363-720-expired",
+        "https://support.microsoft.com/nb-no/servicing/os/windows-10/2020/03/march-12-2020-kb4551762-os-builds-18362-720-and-18363-720-expired",
+        "https://learn.microsoft.com/en-us/openspecs/interopevents/interopevents/media/index/pdfs/bof_windows_file_server_protocol_test_suite_cross_platform.pdf",
+        "https://learn.microsoft.com/en-us/windows/apps/get-started/versioning-overview",
+        "https://support.microsoft.com/en-us/windows/deployment/updates-lifecycle/windows-update-assistant",
+        "https://learn.microsoft.com/en-us/windows/client-management/client-tools/windows-version-search",
+        "https://support.microsoft.com/en-us/windows/join-the-windows-insider-program-and-manage-insider-settings-ef20bb3d-40f4-20cc-ba3c-a72c844b563c",
+        "https://support.microsoft.com/en-us/servicing/os/windows/safeos-du/2026/03/methods-to-verify-the-winre-version-installed",
+        "https://learn.microsoft.com/en-us/windows/win32/cimwin32prov/win32-operatingsystem",
+        "https://learn.microsoft.com/en-us/windows/win32/api/sysinfoapi/nf-sysinfoapi-getversion",
+        "https://learn.microsoft.com/en-us/windows/win32/api/winnt/ns-winnt-osversioninfow",
+        "https://support.microsoft.com/en-US/Windows/activation/get-help-with-windows-activation-errors",
+        "https://learn.microsoft.com/en-us/windows/win32/stg/operating-system-versions",
+        "https://support.microsoft.com/en-US/servicing/os/windows-10/2020/10/version-and-build-number-are-reported-incorrectly-after-you-build-a-new-windows-image-file"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "de135cdcd1b31e4268ec52cd9de9ca9741391384df41191a58e28cc672779ad7",
+      "source_urls": [
+        "https://support.microsoft.com/pl-pl/topic/12-marca-2020-r-kb4551762-kompilacje-systemu-operacyjnego-18362-720-i-18363-720-wygas%C5%82e-b542fc1d-21dc-6295-1c8d-ed40fedb0742",
+        "https://learn.microsoft.com/th-th/defender-for-identity/alerts-mdi-classic",
+        "https://learn.microsoft.com/en-us/windows/client-management/client-tools/windows-version-search"
+      ],
+      "status": "complete",
+      "uncertainty": [
+        "The CVE record's affected versions are marked unspecified and do not provide a complete bounded version range.",
+        "The authoritative Microsoft update page establishes the initial remediated OS builds but does not enumerate every later superseding cumulative update in the retrieved content.",
+        "The evidence does not establish whether SMBv3 compression is enabled on a particular host or whether SMBv3 is reachable from an untrusted network.",
+        "Windows Server build applicability is supported by the KB page's product scope, but separate architecture-specific server build mapping was not provided."
+      ],
+      "verification_steps": [
+        "On the affected host, view the Windows version and OS build using the graphical About page or the supported winver utility.",
+        "For version 1903, confirm the reported OS build is 18362.720 or later; for version 1909, confirm it is 18363.720 or later.",
+        "Record the installed cumulative update and OS build through normal asset-management or patch-compliance tooling. Do not use exploit attempts or intrusive SMB probes as validation."
+      ]
     },
     "CVE-2020-10148": {
       "business_risk": "Critical remote authentication bypass in the SolarWinds Orion API can permit unauthenticated API command execution and compromise of the Orion instance. The vulnerability is listed in CISA's Known Exploited Vulnerabilities Catalog, so affected internet-accessible deployments require urgent remediation.",
@@ -10281,108 +10322,103 @@
       ]
     },
     "CVE-2021-22205": {
-      "business_risk": "Critical remote code execution affecting GitLab CE/EE. Successful exploitation can compromise the GitLab instance and affect confidentiality, integrity, and availability. GitLab reported exploitation against public-facing self-managed instances.",
+      "business_risk": "Critical remote command execution in GitLab CE/EE can result in compromise of a self-managed GitLab instance, with potential impact to confidentiality, integrity, and availability. GitLab reported confirmed exploitation of vulnerable public-facing self-managed instances, and the CVE is listed in CISA's Known Exploited Vulnerabilities Catalog.",
       "claim_evidence": [
         {
-          "claim": "GitLab CE/EE is affected by CVE-2021-22205.",
+          "claim": "CVE-2021-22205 affects GitLab CE/EE, where improperly validated image files passed to a file parser can result in remote command execution.",
           "kind": "affected_product",
           "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2021-22205"
         },
         {
-          "claim": "Affected versions are >=11.9 and <13.8.8, >=13.9 and <13.9.6, and >=13.10 and <13.10.3.",
+          "claim": "GitLab lists affected ranges as >=11.9 and <13.8.8, >=13.9 and <13.9.6, and >=13.10 and <13.10.3.",
           "kind": "affected_version",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2021-22205"
+          "source_url": "https://gitlab.com/gitlab-org/cves/-/blob/master/2021/CVE-2021-22205.json"
         },
         {
-          "claim": "GitLab reported confirmed exploitation against public-facing self-managed GitLab instances and stated that GitLab.com users are not affected.",
+          "claim": "GitLab reported confirmed exploitation of vulnerable public-facing self-managed GitLab instances and stated that GitLab.com users were not affected.",
           "kind": "exposure",
           "source_url": "https://about.gitlab.com/blog/action-needed-in-response-to-cve2021-22205/"
         },
         {
-          "claim": "GitLab directs self-managed customers running outdated versions to update immediately; it also identifies a vendor hotpatch/support path if an immediate upgrade is not possible.",
-          "kind": "remediation",
-          "source_url": "https://about.gitlab.com/blog/action-needed-in-response-to-cve2021-22205/"
-        },
-        {
-          "claim": "The issue was patched in GitLab 13.10.3, 13.9.6, and 13.8.8.",
+          "claim": "GitLab states that the issue was remediated in versions 13.10.3, 13.9.6, and 13.8.8.",
           "kind": "fixed_version",
           "source_url": "https://about.gitlab.com/blog/action-needed-in-response-to-cve2021-22205/"
         },
         {
-          "claim": "GitLab documentation states that authenticated users can view the installed version through Help > Help, where the version is displayed at the top of the page.",
-          "kind": "verification",
-          "source_url": "https://docs.gitlab.com/user/version/"
+          "claim": "GitLab instructs self-managed customers running outdated versions to upgrade to a fixed version as soon as possible.",
+          "kind": "remediation",
+          "source_url": "https://about.gitlab.com/blog/action-needed-in-response-to-cve2021-22205/"
         },
         {
-          "claim": "GitLab's advisory references documented steps for investigating whether a self-managed instance was compromised.",
+          "claim": "GitLab states that self-managed administrators can view their GitLab version at the instance administration interface.",
           "kind": "verification",
           "source_url": "https://about.gitlab.com/blog/action-needed-in-response-to-cve2021-22205/"
+        },
+        {
+          "claim": "CISA includes CVE-2021-22205 in its Known Exploited Vulnerabilities Catalog.",
+          "kind": "exposure",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2021-22205"
         }
       ],
       "exposure_conditions": [
-        "The deployment is GitLab Self-Managed CE or EE.",
-        "The installed version is within one of the affected ranges: >=11.9 and <13.8.8; >=13.9 and <13.9.6; or >=13.10 and <13.10.3.",
-        "The instance is network-reachable; public-facing self-managed instances have confirmed exploitation reports.",
-        "GitLab.com users are not affected according to GitLab's advisory."
+        "GitLab self-managed Community Edition or Enterprise Edition is running an affected version: >=11.9 and <13.8.8, >=13.9 and <13.9.6, or >=13.10 and <13.10.3.",
+        "The instance processes image files through the affected file parser; the issue involves improper validation of image files passed to that parser.",
+        "Public-facing self-managed instances are a higher-priority exposure condition. GitLab.com users were stated not to be affected by this advisory."
       ],
       "gaps": [
         "generic_ecosystem"
       ],
-      "generated_at": "2026-08-01T10:57:56Z",
+      "generated_at": "2026-08-06T12:10:51Z",
       "model": "gpt-5.6-luna",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [
-        "Upgrade GitLab Self-Managed to the fixed release for the applicable branch: 13.8.8, 13.9.6, or 13.10.3.",
-        "If the installation cannot be upgraded immediately, follow GitLab's vendor-provided hotpatch or support guidance; do not rely on unverified mitigations.",
-        "Because exploitation has been reported, assess the instance for compromise after containment and before treating the upgrade as sufficient remediation."
+        "Upgrade GitLab self-managed to GitLab 13.8.8 or later within the 13.8 release line, 13.9.6 or later within the 13.9 release line, or 13.10.3 or later within the 13.10 release line.",
+        "Prefer the latest supported GitLab release rather than remaining on an old release branch.",
+        "Prioritize externally reachable self-managed instances and follow the vendor's guidance to assess whether an exposed instance may have been compromised."
       ],
       "retrieved_source_urls": [
         "https://nvd.nist.gov/vuln/detail/cve-2021-22205",
         "https://gitlab.com/gitlab-org/cves",
         "https://nvd.nist.gov/vuln/detail/CVE-2021-22205",
+        "https://about.gitlab.com/blog/action-needed-in-response-to-cve2021-22205/",
         "https://gitlab.com/gitlab-org/cves/-/blob/master/2021/CVE-2021-22205.json",
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-20255",
         "https://nvd.nist.gov/vuln/detail/CVE-2021-22005",
         "https://gitlab.com/gitlab-org/cves/-/tree/a99cddd9f043f7f0c880c6c74a1e67b0c80dcdff/2021",
-        "https://nvd.nist.gov/vuln/detail/CVE-2025-22205",
-        "https://about.gitlab.com/blog/action-needed-in-response-to-cve2021-22205/",
         "https://nvd.nist.gov/vuln/detail/CVE-2022-22205",
-        "https://about.gitlab.com/security/cve/",
         "https://gitlab.com/gitlab-org/gitlab/-/issues/345091",
+        "https://about.gitlab.com/security/cve/",
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-0222",
+        "https://gitlab.com/gitlab-com/gl-security/threatmanagement/redteam/redteam-public/cve-hash-harvester",
         "https://about.gitlab.com/resources/downloads/gitlab-seismic-shift-in-application-security-whitepaper.pdf",
-        "https://about.gitlab.com/resources/downloads/icse25-preprint.pdf",
-        "https://about.gitlab.com/documents/GRI_CONTENT_INDEX_FY23.pdf",
-        "https://handbook.gitlab.com/pdfs/customer-success/customer-success-vision/gitLab_customer_success_capabilities_roadmap.pdf",
-        "https://docs.gitlab.com/administration/admin_area/",
-        "https://docs.gitlab.com/administration/",
-        "https://docs.gitlab.com/user/version/",
-        "https://docs.gitlab.com/administration/get_started/",
-        "https://docs.gitlab.com/administration/whats-new/",
-        "https://docs.gitlab.com/administration/settings/visibility_and_access_controls/",
-        "https://docs.gitlab.com/administration/maintenance_mode/",
-        "https://docs.gitlab.com/user/operations_dashboard/"
+        "https://about.gitlab.com/images/press/gitlab-data-sheet.pdf",
+        "https://about.gitlab.com/resources/downloads/gitlab-scaled-ci-cd-whitepaper.pdf",
+        "https://gitlab.com/gitlab-org/gitlab/-/releases",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=0",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=56",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=52",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=55",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=23",
+        "https://gitlab.com/-/snippets/2174345",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=38"
       ],
       "schema_version": 2,
-      "source_fingerprint": "b688551f0e2def3aa05058b5602161c8212d416f5df8db594a7320d90c5e0abe",
+      "source_fingerprint": "5550179e75cca914d0bb6bb0559e044c9e319bb4ae01200b73014cb8b20ef91d",
       "source_urls": [
         "https://nvd.nist.gov/vuln/detail/CVE-2021-22205",
         "https://gitlab.com/gitlab-org/cves/-/blob/master/2021/CVE-2021-22205.json",
-        "https://about.gitlab.com/blog/action-needed-in-response-to-cve2021-22205/",
-        "https://docs.gitlab.com/user/version/"
+        "https://about.gitlab.com/blog/action-needed-in-response-to-cve2021-22205/"
       ],
       "status": "complete",
       "uncertainty": [
-        "The supplied record does not identify the deployed GitLab edition, deployment type, installed version, or network exposure.",
-        "Version status alone does not establish whether exploitation occurred.",
-        "The cited GitLab advisory identifies fixed releases in the 13.8, 13.9, and 13.10 branches; an upgrade path for installations outside those branches should follow GitLab's supported upgrade guidance.",
-        "No safe, CVE-specific external validation probe was established from the authoritative sources reviewed."
+        "The supplied evidence does not identify the deployed GitLab edition, release version, deployment topology, or whether the instance is externally reachable.",
+        "The sources establish vendor-fixed versions and a version-check procedure, but do not establish that a particular environment was exploited or compromised.",
+        "The affected-version ranges are historical release branches; current support status and upgrade-path requirements for a specific deployment were not established by the returned sources."
       ],
       "verification_steps": [
-        "Use the authenticated GitLab interface's Help > Help page to record the installed GitLab version.",
-        "Confirm that the recorded version is no longer in an affected range and meets the applicable fixed release identified by GitLab.",
-        "Document whether the deployment is self-managed or GitLab.com, since GitLab states that GitLab.com users are not affected by this advisory.",
-        "Review GitLab's documented compromise-investigation guidance referenced in the vendor advisory; no conclusion about compromise can be made from version status alone."
+        "In the GitLab administration interface, check the reported GitLab version.",
+        "Confirm that the installed version is not within any affected range and is at least the applicable fixed version: 13.8.8, 13.9.6, or 13.10.3, depending on the release branch.",
+        "Record the post-upgrade version and confirm that the deployment completed successfully across all GitLab components. Do not perform exploit testing against production."
       ]
     },
     "CVE-2021-22502": {
@@ -12417,6 +12453,61 @@
       ],
       "verification_steps": []
     },
+    "CVE-2021-36260": {
+      "business_risk": "No additional source-verified CVE-specific business impact was established.",
+      "claim_evidence": [],
+      "exposure_conditions": [],
+      "gaps": [
+        "missing_bounded_version"
+      ],
+      "generated_at": "2026-08-06T12:13:28Z",
+      "model": "gpt-5.6-luna",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [],
+      "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-36260",
+        "https://www.hikvision.com/content/dam/hikvision/ca/bulletin/technical-bulletin/camera/how_to_upgrade_firmware_to_guard_against_potential_vulnerability_v6.pdf",
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-36260?force_isolation=true",
+        "https://us-legacy.hikvision.com/en/support-resources/documentation/special-notices",
+        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?af=11056&page=54",
+        "https://www.hikvision.com/content/dam/hikvision/eu/support/cybersecurity/security-advisory/security-vulnerability-in-some-hikvision-access-control-intercom-products/Latest-Firmware-for-Security-Vulnerability-in-Some-Hikvision-Access-Control-Intercom-Products-EU-20230629.pdf",
+        "https://nvd.nist.gov/vuln/search/results?form_type=Advanced&isCpeNameSearch=true&query=cpe%3A2.3%3Ah%3Ahikvision%3Ads-2cd2686g2-izsu%5C%2Fsl%3A-%3A%2A%3A%2A%3A%2A%3A%2A%3A%2A%3A%2A%3A%2A&results_type=overview&seach_type=all",
+        "https://www.cisa.gov/news-events/alerts/2025/04/17/cisa-adds-three-known-exploited-vulnerabilities-catalog",
+        "https://www.hikvision.com/content/dam/hikvision/en/marketing/image/support/cybersecurity/How-to-update-firmware-to-prevent-potential-risks-CVE-ID-CVE-2021-36260.pdf",
+        "https://www.hikvision.com/content/dam/hikvision/en/brochures/cybersecurity/Hikvision%20Product%20Security%20Long-term%20Support%20Policy.pdf",
+        "https://supportusa.hikvision.com/support/solutions/articles/17000107875-browser-and-plugin-support-of-hikvision-products",
+        "https://www.cisa.gov/sites/default/files/publications/AA22-117A_Joint_CSA_2021_Top_Routinely_Exploited_Vulnerabilities_Final.pdf",
+        "https://supportusa.hikvision.com/support/solutions/articles/17000129608-i-cannot-update-camera-firmware-what-are-some-reasons-why-",
+        "https://supportusa.hikvision.com/support/solutions/articles/17000129086-i-found-firmware-newer-than-the-firmware-on-your-website-can-i-use-it-",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=52",
+        "https://supportusa.hikvision.com/support/solutions/articles/17000128914-my-hikvision-devices-are-behind-on-firmware-what-is-hikvision-s-stance-on-firmware-upgrades-",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=0",
+        "https://www.systemtek.co.uk/2021/09/command-injection-vulnerability-in-some-hikvision-products-cve-2021-36260/",
+        "https://www.hikvisionindia.com/support/security-center/security-notices",
+        "https://andreivladescu.github.io/Hikvision-Intercom-RE/REPORT",
+        "https://secureverifyconnect.info/zero-click-hikvision-cameras-rce-flaw-cve-2021-36260",
+        "https://www.sentinelone.com/vulnerability-database/cve-2021-36260/",
+        "https://media.defense.gov/2022/Oct/06/2003092365/-1/-1/0/Joint_CSA_Top_CVEs_Exploited_by_PRC_cyber_actors.PDF"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "17d6255b4104eae819a332cd07ccf7dc9b95f39912798a0d0f1fb4ff915714c5",
+      "source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-36260",
+        "https://www.hikvision.com/content/dam/hikvision/en/marketing/image/support/cybersecurity/How-to-update-firmware-to-prevent-potential-risks-CVE-ID-CVE-2021-36260.pdf",
+        "https://www.hikvision.com/content/dam/hikvision/ca/bulletin/technical-bulletin/camera/how_to_upgrade_firmware_to_guard_against_potential_vulnerability_v6.pdf",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?af=11056&page=54"
+      ],
+      "status": "insufficient_evidence",
+      "uncertainty": [
+        "The supplied record contains no bounded affected-version range and lists the affected product and version as n/a.",
+        "NVD currently shows broad Hikvision CPE associations but does not provide a concrete fixed firmware version in the returned record.",
+        "The returned Hikvision materials instruct users to identify affected products and obtain product-specific updated firmware, but the fetched authoritative sources did not expose a complete model-by-model fixed-version table.",
+        "Because a concrete authoritative fixed_version claim could not be established, this enrichment is not recipe-specific."
+      ],
+      "verification_steps": []
+    },
     "CVE-2021-37415": {
       "business_risk": "Critical authentication-bypass vulnerability in Zoho ManageEngine ServiceDesk Plus. Unauthenticated access to certain REST API URLs may permit compromise of confidentiality, integrity, and availability, consistent with the published CVSS 3.1 9.8 network/no-auth assessment. The CVE is listed in CISA's Known Exploited Vulnerabilities Catalog, so affected deployments should be prioritized. ([nvd.nist.gov](https://nvd.nist.gov/vuln/detail/CVE-2021-37415?utm_source=openai))",
       "claim_evidence": [
@@ -12623,6 +12714,51 @@
       ],
       "verification_steps": []
     },
+    "CVE-2021-38647": {
+      "business_risk": "No additional source-verified CVE-specific business impact was established.",
+      "claim_evidence": [],
+      "exposure_conditions": [],
+      "gaps": [
+        "missing_cwe",
+        "missing_bounded_version"
+      ],
+      "generated_at": "2026-08-06T12:13:51Z",
+      "model": "gpt-5.6-luna",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [],
+      "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-38647",
+        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-38647",
+        "https://www.cisa.gov/news-events/alerts/2023/09/13/cisa-adds-three-known-vulnerabilities-catalog",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=69",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?%3F%3Futm_source=adzuna&f%5B0%5D=vendor_project%3A822&f%5B1%5D=vendor_project%3A879&f%5B2%5D=vendor_project%3A906&f%5B3%5D=vendor_project%3A917&f%5B4%5D=vendor_project%3A942&page=13",
+        "https://www.cisa.gov/sites/default/files/publications/AA22-117A_Joint_CSA_2021_Top_Routinely_Exploited_Vulnerabilities_Final.pdf",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-38647",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A798&f%5B10%5D=vendor_project%3A932&f%5B11%5D=vendor_project%3A933&f%5B12%5D=vendor_project%3A939&f%5B13%5D=vendor_project%3A943&f%5B14%5D=vendor_project%3A1151&f%5B15%5D=vendor_project%3A1168&f%5B16%5D=vendor_project%3A1172&f%5B17%5D=vendor_project%3A1275&f%5B1%5D=vendor_project%3A799&f%5B2%5D=vendor_project%3A801&f%5B3%5D=vendor_project%3A816&f%5B4%5D=vendor_project%3A823&f%5B5%5D=vendor_project%3A842&f%5B6%5D=vendor_project%3A905&f%5B7%5D=vendor_project%3A914&f%5B8%5D=vendor_project%3A917&f%5B9%5D=vendor_project%3A920&page=6",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=0",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A797&f%5B10%5D=vendor_project%3A917&f%5B11%5D=vendor_project%3A918&f%5B12%5D=vendor_project%3A920&f%5B13%5D=vendor_project%3A932&f%5B14%5D=vendor_project%3A1168&f%5B15%5D=vendor_project%3A1249&f%5B1%5D=vendor_project%3A799&f%5B2%5D=vendor_project%3A817&f%5B3%5D=vendor_project%3A841&f%5B4%5D=vendor_project%3A842&f%5B5%5D=vendor_project%3A848&f%5B6%5D=vendor_project%3A880&f%5B7%5D=vendor_project%3A887&f%5B8%5D=vendor_project%3A889&f%5B9%5D=vendor_project%3A890&page=2",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=55",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A790&f%5B10%5D=vendor_project%3A845&f%5B11%5D=vendor_project%3A848&f%5B12%5D=vendor_project%3A854&f%5B13%5D=vendor_project%3A866&f%5B14%5D=vendor_project%3A877&f%5B15%5D=vendor_project%3A886&f%5B16%5D=vendor_project%3A892&f%5B17%5D=vendor_project%3A893&f%5B18%5D=vendor_project%3A895&f%5B19%5D=vendor_project%3A902&f%5B1%5D=vendor_project%3A792&f%5B20%5D=vendor_project%3A907&f%5B21%5D=vendor_project%3A911&f%5B22%5D=vendor_project%3A917&f%5B23%5D=vendor_project%3A938&f%5B24%5D=vendor_project%3A1042&f%5B2%5D=vendor_project%3A800&f%5B3%5D=vendor_project%3A801&f%5B4%5D=vendor_project%3A812&f%5B5%5D=vendor_project%3A820&f%5B6%5D=vendor_project%3A823&f%5B7%5D=vendor_project%3A831&f%5B8%5D=vendor_project%3A837&f%5B9%5D=vendor_project%3A842&page=6",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A804&f%5B10%5D=vendor_project%3A913&f%5B11%5D=vendor_project%3A914&f%5B12%5D=vendor_project%3A1151&f%5B1%5D=vendor_project%3A811&f%5B2%5D=vendor_project%3A822&f%5B3%5D=vendor_project%3A826&f%5B4%5D=vendor_project%3A827&f%5B5%5D=vendor_project%3A830&f%5B6%5D=vendor_project%3A862&f%5B7%5D=vendor_project%3A877&f%5B8%5D=vendor_project%3A888&f%5B9%5D=vendor_project%3A908&page=16"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "2400554139b978d10860d277924d88b1dbbae5a46b5ba76216c6d2f86fb1568c",
+      "source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-38647",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?%3F%3Futm_source=adzuna&f%5B0%5D=vendor_project%3A822&f%5B1%5D=vendor_project%3A879&f%5B2%5D=vendor_project%3A906&f%5B3%5D=vendor_project%3A917&f%5B4%5D=vendor_project%3A942&page=13"
+      ],
+      "status": "insufficient_evidence",
+      "uncertainty": [
+        "NVD currently records NVD-CWE-noinfo, while CISA's KEV entry identifies CWE-1390; the supplied missing-CWE gap can be enriched with CWE-1390 as CISA's classification, but the discrepancy should be retained.",
+        "The supplied affected records mix product placeholders, custom versions, and embedded-agent thresholds. They do not establish one normalized bounded-version rule for every listed product.",
+        "The Container Monitoring Solution record uses 'publication' as its upper bound and does not provide a concrete fixed version.",
+        "The Microsoft advisory page requires JavaScript in the retrieved source, so product-specific update and verification details could not be independently confirmed from its rendered content.",
+        "No safe, product-specific verification procedure beyond version and configuration review was established by the returned authoritative sources."
+      ],
+      "verification_steps": []
+    },
     "CVE-2021-39226": {
       "business_risk": "Critical remote exposure can allow unauthenticated or authenticated users to view snapshot data and, under documented conditions, delete snapshots. The combined impact can expose all snapshot data and cause snapshot data loss. CISA lists CVE-2021-39226 in the Known Exploited Vulnerabilities Catalog.",
       "claim_evidence": [
@@ -12713,10 +12849,10 @@
       ]
     },
     "CVE-2021-40438": {
-      "business_risk": "Critical server-side request forgery in Apache HTTP Server mod_proxy. A remote attacker may cause requests to be forwarded to an origin server selected by the attacker, potentially enabling unauthorized access to reachable internal services or networks. The CVE is listed in CISA's Known Exploited Vulnerabilities Catalog.",
+      "business_risk": "Critical server-side request forgery risk. A remote user can potentially cause Apache HTTP Server's mod_proxy to forward a crafted request to an origin selected by that user, with the NVD-recorded impact rating indicating potential confidentiality, integrity, and availability impact.",
       "claim_evidence": [
         {
-          "claim": "The vulnerability affects Apache HTTP Server, specifically mod_proxy.",
+          "claim": "The affected product is Apache HTTP Server, specifically the mod_proxy component.",
           "kind": "affected_product",
           "source_url": "https://httpd.apache.org/security/vulnerabilities_24.html"
         },
@@ -12726,76 +12862,77 @@
           "source_url": "https://httpd.apache.org/security/vulnerabilities_24.html"
         },
         {
-          "claim": "A crafted request URI-path can cause mod_proxy to forward a request to an origin server selected by the remote user.",
+          "claim": "A crafted request URI path can cause mod_proxy to forward a request to an origin server chosen by the remote user.",
           "kind": "exposure",
           "source_url": "https://httpd.apache.org/security/vulnerabilities_24.html"
         },
         {
-          "claim": "Apache HTTP Server 2.4.49 fixes the issue; the Apache advisory records the vulnerability under the release of version 2.4.49.",
+          "claim": "mod_proxy provides proxy and gateway capabilities, and Apache warns that unsecured proxying is dangerous to internal networks and the Internet.",
+          "kind": "exposure",
+          "source_url": "https://httpd.apache.org/docs/current/mod/mod_proxy.html"
+        },
+        {
+          "claim": "Apache HTTP Server 2.4.49 is identified as the release that fixes CVE-2021-40438.",
           "kind": "fixed_version",
           "source_url": "https://httpd.apache.org/security/vulnerabilities_24.html"
         },
         {
-          "claim": "Upgrade to Apache HTTP Server 2.4.49 or later, or apply the applicable vendor update.",
+          "claim": "The vendor remediation is to update from affected Apache HTTP Server versions through 2.4.48 to the fixed 2.4.49 release or later.",
           "kind": "remediation",
           "source_url": "https://httpd.apache.org/security/vulnerabilities_24.html"
         },
         {
-          "claim": "Version-based verification can establish that an upstream Apache HTTP Server deployment is outside the affected range when it is running version 2.4.49 or later.",
+          "claim": "A version and configuration review can verify whether the deployment is at or above the fixed upstream version and whether mod_proxy is enabled and configured.",
           "kind": "verification",
-          "source_url": "https://httpd.apache.org/security/vulnerabilities_24.html"
-        },
-        {
-          "claim": "NVD classifies the issue as an Apache HTTP Server SSRF vulnerability and identifies it as present in CISA's Known Exploited Vulnerabilities Catalog.",
-          "kind": "exposure",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2021-40438"
+          "source_url": "https://httpd.apache.org/docs/current/mod/mod_proxy.html"
         }
       ],
       "exposure_conditions": [
-        "Apache HTTP Server 2.4.48 or earlier is deployed.",
-        "The affected server uses the mod_proxy functionality and accepts attacker-controlled request URI paths.",
-        "The server can reach origin systems or internal services that should not be accessible to the requester."
+        "Apache HTTP Server version 2.4.48 or earlier is deployed; the Apache advisory identifies versions through 2.4.48 as affected.",
+        "The request is processed by mod_proxy or related proxy functionality. Apache documents mod_proxy as providing proxy/gateway capabilities and warns that unsecured proxying can expose internal networks and the Internet.",
+        "A remote user can submit a crafted request URI to the affected server."
       ],
       "gaps": [],
-      "generated_at": "2026-08-01T10:57:09Z",
+      "generated_at": "2026-08-06T12:08:31Z",
       "model": "gpt-5.6-luna",
       "prompt_version": "2026-07-14.2",
-      "recipe_specificity": "specific",
+      "recipe_specificity": "not_specific",
       "remediation_steps": [
-        "Upgrade Apache HTTP Server to version 2.4.49 or later, or apply the operating-system vendor's backported security update that addresses CVE-2021-40438.",
-        "Until patched, restrict or disable the affected mod_proxy functionality where operationally feasible and limit the server's network access to unnecessary internal destinations.",
-        "Prioritize remediation because the vulnerability is recorded in CISA's Known Exploited Vulnerabilities Catalog."
+        "Upgrade Apache HTTP Server to version 2.4.49 or later; Apache identifies 2.4.49 as the fixing release for CVE-2021-40438.",
+        "If an immediate upgrade is not possible, restrict or disable unnecessary proxy functionality and review proxy rules and reachable origin destinations. Treat this as a temporary risk-reduction measure, not a substitute for the vendor fix.",
+        "For operating-system or vendor-packaged Apache installations, apply the vendor security update corresponding to this CVE and confirm whether the vendor backported the fix."
       ],
       "retrieved_source_urls": [
-        "https://httpd.apache.org/security/vulnerabilities_24.html",
         "https://nvd.nist.gov/vuln/detail/CVE-2021-40438",
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-4048",
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-40488",
+        "https://httpd.apache.org/security/vulnerabilities_24.html",
         "https://httpd.apache.org/security/",
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-40438/change-record?changeRecordedOn=05%2F16%2F2025T11%3A27%3A13.890-0400",
+        "https://httpd.apache.org/docs/current/mod/mod_proxy.html",
         "https://nvd.nist.gov/vuln/search/results?adv_search=true&isCpeNameSearch=true&query=cpe%3A2.3%3Ao%3Aredhat%3Aenterprise_linux_server_aus%3A7.2%3A%2A%3A%2A%3A%2A%3A%2A%3A%2A%3A%2A%3A%2A",
-        "https://httpd.apache.org/security/impact_levels.html",
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-20325",
-        "https://nvd.nist.gov/vuln/detail/CVE-2022-40438",
-        "https://httpd.apache.org/security_report.html",
-        "https://httpd.apache.org/security/?C=N%3BO%3DD"
+        "https://httpd.apache.org/docs/current/mod/mod_proxy_http.html",
+        "https://httpd.apache.org/docs/2.4/mod/mod_proxy_http2.html",
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-4044",
+        "https://httpd.apache.org/docs/current/misc/relevant_standards.html",
+        "https://httpd.apache.org/docs/2.4/mod/mod_proxy_ajp.html",
+        "https://nvd.nist.gov/search",
+        "https://httpd.apache.org/docs/2.4/en/new_features_2_4.html"
       ],
       "schema_version": 2,
-      "source_fingerprint": "3700fba937774295b9a4bf697f6625416b468c98f9ce84f843b614b5641e8e3d",
+      "source_fingerprint": "1ff2746bcac0ad5ce3f8b1b2aaee95fb75d535bc40762651c905acf26e29b0c1",
       "source_urls": [
         "https://httpd.apache.org/security/vulnerabilities_24.html",
+        "https://httpd.apache.org/docs/current/mod/mod_proxy.html",
         "https://nvd.nist.gov/vuln/detail/CVE-2021-40438"
       ],
       "status": "complete",
       "uncertainty": [
-        "Operating-system packages may backport the fix while retaining an older upstream version string; package-specific verification should rely on the relevant vendor advisory or package security status.",
-        "The supplied product list is truncated and does not establish the status of every listed operating-system package.",
-        "The Apache advisory establishes the vulnerable and fixed upstream versions but does not define the security status of every downstream distribution build."
+        "The supplied record lists numerous operating-system CPE matches, but it does not establish the exact installed package, vendor backport status, enabled modules, or proxy configuration.",
+        "The Apache advisory establishes the upstream fixed release, but vendor-packaged systems may use a different package version while retaining the fix.",
+        "No safe, CVE-specific runtime test procedure was identified in the consulted authoritative sources."
       ],
       "verification_steps": [
-        "Confirm the deployed Apache HTTP Server version is 2.4.49 or later, or confirm through the operating-system vendor's advisory that its package contains the CVE-2021-40438 fix.",
-        "Review the effective Apache configuration to determine whether mod_proxy is enabled and whether attacker-controlled request paths can reach proxy-forwarding behavior.",
-        "Confirm that network controls prevent the Apache host from reaching unnecessary internal or sensitive origin services."
+        "Verify the deployed Apache HTTP Server package or build reports version 2.4.49 or later, or verify the operating-system vendor's package advisory explicitly states that CVE-2021-40438 is fixed.",
+        "Confirm that mod_proxy is enabled only where required and review its proxy configuration for unintended external or internal origin reachability.",
+        "Use a configuration and package inventory review rather than sending exploit-like requests or probing production origin services."
       ]
     },
     "CVE-2021-40539": {
@@ -13597,6 +13734,123 @@
         "Review the effective logging configuration to determine whether a non-default Pattern Layout with Thread Context Lookup or Thread Context Map patterns is enabled.",
         "Confirm whether the application contains only log4j-api and no log4j-core; such an application is not affected by this CVE according to Apache.",
         "Use release or package inventory records to document the upgraded artifact version; do not perform exploit testing against production systems."
+      ]
+    },
+    "CVE-2021-45382": {
+      "business_risk": "No additional source-verified CVE-specific business impact was established.",
+      "claim_evidence": [],
+      "exposure_conditions": [],
+      "gaps": [
+        "missing_bounded_version"
+      ],
+      "generated_at": "2026-08-06T12:13:06Z",
+      "model": "gpt-5.6-luna",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [],
+      "retrieved_source_urls": [],
+      "schema_version": 2,
+      "source_fingerprint": "9b5d80ff1514f722ff54c066f8c4cf9f6c5bcba066abe97714ac5bcf51ec8e83",
+      "source_urls": [],
+      "status": "insufficient_evidence",
+      "uncertainty": [
+        "No bounded affected-version range is provided. NVD CPE entries use an unspecified firmware version, while D-Link describes all hardware revisions of the named models as affected.",
+        "No concrete fixed firmware version is identified; the vendor states that the products are end-of-life and the issue will not be patched.",
+        "The available authoritative sources establish model and lifecycle impact but do not provide a non-invasive device-level test for confirming vulnerability status.",
+        "The supplied source record's generic affected product value of n/a is less specific than the NVD and D-Link model-level information."
+      ],
+      "verification_steps": []
+    },
+    "CVE-2022-0543": {
+      "business_risk": "Critical remote-code-execution risk for affected Debian Redis deployments. The flaw is Debian-specific and results from a packaging issue that can permit a Redis user or remote attacker who can execute arbitrary Lua code to access arbitrary Lua functionality and potentially execute shell commands. NVD rates the issue CVSS 3.1 Critical, 10.0. Non-Debian Redis distributions are not established as affected by these sources.",
+      "claim_evidence": [
+        {
+          "claim": "CVE-2022-0543 affects Debian's redis package because of a Debian-specific Lua sandbox escape caused by packaging of the Lua library.",
+          "kind": "affected_product",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-0543"
+        },
+        {
+          "claim": "Debian's bug record lists redis/5:5.0.14-1+deb10u1, redis/5:5.0.3-4, and redis/5:6.0.15-1 among the versions in which the issue was found.",
+          "kind": "affected_version",
+          "source_url": "https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=1005787"
+        },
+        {
+          "claim": "An attacker with the ability to execute arbitrary Lua code could potentially access arbitrary Lua functionality and execute arbitrary shell commands.",
+          "kind": "exposure",
+          "source_url": "https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=1005787"
+        },
+        {
+          "claim": "Debian lists buster fixed version 5:5.0.14-1+deb10u2 and bullseye fixed version 5:6.0.16-1+deb11u2; the Debian bug report also lists 5:6.0.16-2 as fixed in unstable.",
+          "kind": "fixed_version",
+          "source_url": "https://security-tracker.debian.org/tracker/CVE-2022-0543"
+        },
+        {
+          "claim": "The Debian security advisory identifies the issue as a redis security update and directs users to obtain the vendor package update.",
+          "kind": "remediation",
+          "source_url": "https://lists.debian.org/debian-security-announce/2022/msg00048.html"
+        },
+        {
+          "claim": "The Debian security tracker provides per-release fixed-version status, supporting inert package-version comparison against the fixed version for the installed Debian release.",
+          "kind": "verification",
+          "source_url": "https://security-tracker.debian.org/tracker/CVE-2022-0543"
+        }
+      ],
+      "exposure_conditions": [
+        "Redis is installed from an affected Debian package release, including Debian buster versions before 5:5.0.14-1+deb10u2 or Debian bullseye versions before 5:6.0.16-1+deb11u2.",
+        "The attacker can reach the Redis service and obtain the ability to execute arbitrary Lua code through the exposed Redis functionality.",
+        "The deployment uses the Debian packaging configuration implicated by the vulnerability; the available evidence does not establish generic upstream Redis or every Redis-derived image as affected."
+      ],
+      "gaps": [
+        "missing_bounded_version",
+        "generic_ecosystem"
+      ],
+      "generated_at": "2026-08-06T12:12:53Z",
+      "model": "gpt-5.6-luna",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [
+        "Upgrade the Debian redis package to at least 5:5.0.14-1+deb10u2 on buster or 5:6.0.16-1+deb11u2 on bullseye.",
+        "For Debian unstable, use at least redis 5:6.0.16-2. Debian's tracker also records later fixed packages for bookworm and trixie; use the fixed package supplied for the installed release.",
+        "Until the package is upgraded, restrict Redis network access to trusted clients and avoid exposing the service to untrusted networks. This is compensating guidance; the authoritative sources identify applying the vendor update as the required remediation."
+      ],
+      "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-0543",
+        "https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=1005787",
+        "https://nvd.nist.gov/vuln/detail/cve-2022-0543",
+        "https://security-tracker.debian.org/tracker/CVE-2022-0543",
+        "https://bugs.debian.org/redis",
+        "https://lists.debian.org/debian-security-announce/2022/msg00048.html",
+        "https://bugs.debian.org/redisearch",
+        "https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=1012658",
+        "https://nvd.nist.gov/vuln/detail/CVE-2013-0543",
+        "https://www.debian.org/security/",
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-20943",
+        "https://bugs-devel.debian.org/cgi-bin/pkgreport.cgi?pkg=redis%3Bdist%3Dunstable",
+        "https://www.debian.org/releases/stable/release-notes.en.pdf",
+        "https://www.debian.org/releases/bullseye/i386/release-notes.en.pdf",
+        "https://www.debian.org/releases/oldstable/armel/release-notes.es.pdf",
+        "https://www.debian.org/releases/bullseye/amd64/release-notes.en.pdf",
+        "https://www.debian.org/releases/testing/release-notes.en.pdf"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "8a2373925189ca42616e388750b5de926d435d39b394ec249485357b3b6d8ca3",
+      "source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-0543",
+        "https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=1005787",
+        "https://security-tracker.debian.org/tracker/CVE-2022-0543",
+        "https://lists.debian.org/debian-security-announce/2022/msg00048.html"
+      ],
+      "status": "complete",
+      "uncertainty": [
+        "The supplied record's generic product value 'redis' is broader than the authoritative scope; the confirmed affected condition is Debian-specific packaging.",
+        "The Debian bug report lists vulnerable versions and fixed versions, but does not provide a universal bounded version range for every Debian derivative, vendor image, or backport.",
+        "The sources do not establish whether a particular deployment permits unauthenticated access, exposes Lua execution, or is reachable from an untrusted network.",
+        "CISA records this CVE in the Known Exploited Vulnerabilities catalog, but the provided authoritative records do not establish exploitation status for the specific asset."
+      ],
+      "verification_steps": [
+        "Identify the operating-system distribution and Redis package version from trusted package inventory or asset metadata without executing Lua or sending exploit traffic.",
+        "Confirm that the installed Debian package is at or above the fixed version for its Debian release: buster 5:5.0.14-1+deb10u2, bullseye 5:6.0.16-1+deb11u2, or unstable 5:6.0.16-2.",
+        "Confirm that the package-management status reports the installed security update and that the Redis service was restarted or replaced as required for the updated package to be active. The sources do not provide a product-specific runtime probe."
       ]
     },
     "CVE-2022-1040": {
@@ -16068,49 +16322,100 @@
       ]
     },
     "CVE-2022-29499": {
-      "business_risk": "No additional source-verified CVE-specific business impact was established.",
-      "claim_evidence": [],
-      "exposure_conditions": [],
+      "business_risk": "Critical remote code execution risk affecting MiVoice Connect Service Appliances. The vulnerability is network-reachable, requires no privileges or user interaction, can compromise confidentiality, integrity, and availability, and is listed in CISA's Known Exploited Vulnerabilities Catalog with known ransomware use.",
+      "claim_evidence": [
+        {
+          "claim": "The affected product is MiVoice Connect, including earlier versions 14.2; affected versions are 19.2 SP3 and earlier.",
+          "kind": "affected_product",
+          "source_url": "https://www.mitel.com/support/security-advisories/mitel-product-security-advisory-22-0002"
+        },
+        {
+          "claim": "NVD identifies MiVoice Connect versions up to and including build 22.20.2300.0 as affected.",
+          "kind": "affected_version",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-29499"
+        },
+        {
+          "claim": "The vulnerability affects deployments containing MiVoice Connect Service Appliances SA 100, SA 400, and/or Virtual SA.",
+          "kind": "exposure",
+          "source_url": "https://www.mitel.com/support/security-advisories/mitel-product-security-advisory-22-0002"
+        },
+        {
+          "claim": "The vulnerability has a network attack vector, requires no privileges or user interaction, and has a CVSS 3.1 score of 9.8 Critical.",
+          "kind": "exposure",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-29499"
+        },
+        {
+          "claim": "Mitel advises customers with affected product versions to implement the available remediation and review Security Bulletin 22-0002-001.",
+          "kind": "remediation",
+          "source_url": "https://www.mitel.com/support/security-advisories/mitel-product-security-advisory-22-0002"
+        },
+        {
+          "claim": "A version-based verification can compare deployed MiVoice Connect releases against the vendor/NVD affected boundary, including 19.2 SP3 and build 22.20.2300.0.",
+          "kind": "verification",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-29499"
+        }
+      ],
+      "exposure_conditions": [
+        "The deployment includes a MiVoice Connect Service Appliance: SA 100, SA 400, or Virtual SA.",
+        "The affected appliance runs MiVoice Connect 19.2 SP3 or earlier; NVD maps the affected range through build 22.20.2300.0.",
+        "The Service Appliance is reachable through a network path that permits exploitation of its exposed service."
+      ],
       "gaps": [
         "generic_ecosystem"
       ],
-      "generated_at": "2026-08-01T07:23:30Z",
+      "generated_at": "2026-08-06T12:10:33Z",
       "model": "gpt-5.6-luna",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
-      "remediation_steps": [],
+      "remediation_steps": [
+        "Apply Mitel's remediation from Security Bulletin 22-0002-001 for affected MiVoice Connect Service Appliances.",
+        "Prioritize remediation because CVE-2022-29499 is listed in CISA's Known Exploited Vulnerabilities Catalog.",
+        "If the vendor remediation cannot be applied immediately, consult Mitel Product Support for the supported mitigation applicable to the deployed release.",
+        "Do not treat network isolation or access restriction as a replacement for the vendor remediation."
+      ],
       "retrieved_source_urls": [
-        "https://www.mitel.com/support/security-advisories",
         "https://www.mitel.com/support/security-advisories/mitel-product-security-advisory-22-0002",
         "https://nvd.nist.gov/vuln/detail/CVE-2022-29499",
-        "https://www.mitel.com/support/security-advisories/mitel-product-security-policy",
-        "https://www.mitel.com/support/security-advisories/mitel-product-security-advisory-22-0001",
-        "https://www.mitel.com/support/security-advisories?order=field_severity&page=0&sort=asc",
         "https://www.mitel.com/support/security-advisories/mitel-product-security-advisory-misa-2026-0002",
-        "https://www.mitel.com/support/security-advisories/mitel-product-security-advisory-22-0009",
+        "https://www.mitel.com/support/security-advisories/mitel-product-security-policy",
+        "https://www.mitel.com/support/security-advisories",
         "https://www.mitel.com/support/security-advisories?cve=title&order=field_severity&page=1&sort=asc",
-        "https://www.mitel.com/support/security-advisories/mitel-product-security-advisory-22-0004",
-        "https://www.mitel.com/support/security-advisories/mitel-product-security-advisory-18-0001",
-        "https://www.mitel.com/support/security-advisories/mitel-product-security-advisory-22-0008",
+        "https://www.mitel.com/support/security-advisories?order=field_date&page=3&sort=desc",
+        "https://www.mitel.com/support/security-advisories?order=field_severity&page=8&sort=desc",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A799&f%5B10%5D=vendor_project%3A920&f%5B11%5D=vendor_project%3A932&f%5B12%5D=vendor_project%3A1168&f%5B1%5D=vendor_project%3A817&f%5B2%5D=vendor_project%3A818&f%5B3%5D=vendor_project%3A842&f%5B4%5D=vendor_project%3A848&f%5B5%5D=vendor_project%3A887&f%5B6%5D=vendor_project%3A889&f%5B7%5D=vendor_project%3A890&f%5B8%5D=vendor_project%3A908&f%5B9%5D=vendor_project%3A917&page=1",
+        "https://www.mitel.com/support/security-advisories/mitel-product-security-advisory-22-0001",
+        "https://www.mitel.com/support/security-advisories?page=3",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A800&f%5B10%5D=vendor_project%3A854&f%5B11%5D=vendor_project%3A865&f%5B12%5D=vendor_project%3A866&f%5B13%5D=vendor_project%3A877&f%5B14%5D=vendor_project%3A880&f%5B15%5D=vendor_project%3A886&f%5B16%5D=vendor_project%3A887&f%5B17%5D=vendor_project%3A888&f%5B18%5D=vendor_project%3A893&f%5B19%5D=vendor_project%3A902&f%5B1%5D=vendor_project%3A801&f%5B20%5D=vendor_project%3A917&f%5B21%5D=vendor_project%3A929&f%5B22%5D=vendor_project%3A931&f%5B23%5D=vendor_project%3A932&f%5B24%5D=vendor_project%3A933&f%5B25%5D=vendor_project%3A936&f%5B26%5D=vendor_project%3A938&f%5B27%5D=vendor_project%3A951&f%5B28%5D=vendor_project%3A954&f%5B29%5D=vendor_project%3A1172&f%5B2%5D=vendor_project%3A803&f%5B30%5D=vendor_project%3A1174&f%5B3%5D=vendor_project%3A805&f%5B4%5D=vendor_project%3A820&f%5B5%5D=vendor_project%3A823&f%5B6%5D=vendor_project%3A828&f%5B7%5D=vendor_project%3A837&f%5B8%5D=vendor_project%3A842&f%5B9%5D=vendor_project%3A845&page=4",
         "https://www.mitel.com/sites/default/files/2025-05/Mitel%20Product%20Security%20Vulnerability%20Policy.pdf",
         "https://www.mitel.com/sites/default/files/2026-02/24-0022_24-0022-001.pdf",
-        "https://www.mitel.com/sites/default/files/s3_imports/Security/Technical%20Papers/All%20Releases/en/Mitel%20Secure%20Development%20Life%20Cycle%20%28v1.1%29.pdf",
-        "https://www.mitel.com/sites/default/files/s3_imports/Security/Technical%20Papers/All%20Releases/en/MiVoice%20Office%20Web%20Application%20Security%20Guidelines%20-%20Release%201.0.0%20Version%201.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf"
+        "https://advisories.ncsc.nl/2022/ncsc-2022-0300.html",
+        "https://www.cvedetails.com/version/1236200/Mitel-Mivoice-Connect-22.20.2300.0.html",
+        "https://digital.nhs.uk/cyber-alerts/2022/cc-4122",
+        "https://www.mitel.com/sites/default/files/s3_imports/Business%20Phone%20Systems/MiVoice%20Connect/MiVoice%20Connect%20Platform/20.0%20SP1/en/MiVoice%20Connect%2020.0%20SP1%20Release%20Notes_latest.pdf",
+        "https://www.mitel.com/sites/default/files/s3_imports/Business%20Phone%20Systems/MiVoice%20Connect/MiVoice%20Connect%20Platform/20.0%20SP2/en/MiVoice%20Connect%2020.0%20SP2%20Release%20Notes.pdf",
+        "https://www.cvedetails.com/cve/CVE-2022-29499/",
+        "https://www.mitel.com/sites/default/files/s3_imports/Business%20Phone%20Systems/MiVoice%20Connect/MiVoice%20Connect%20Platform/19.2%20SP3/en/1MiVoice%20Connect%2019.2%20SP3%20Release%20Notes.pdf",
+        "https://www.incibe.es/index.php/en/incibe-cert/early-warning/vulnerabilities/cve-2022-29499"
       ],
       "schema_version": 2,
-      "source_fingerprint": "b28c2da155c0faad47d2fec31c588b3a70c8b2a17803eed9c77517ee77791abe",
+      "source_fingerprint": "4268956de7759fea9fcf5e60fba6fb0b04c3e46a4e97e93634ad4db142561bd2",
       "source_urls": [
         "https://www.mitel.com/support/security-advisories/mitel-product-security-advisory-22-0002",
         "https://nvd.nist.gov/vuln/detail/CVE-2022-29499"
       ],
-      "status": "insufficient_evidence",
+      "status": "complete",
       "uncertainty": [
-        "The returned authoritative sources identify available remediation and a planned R19.3 remediation release, but they do not provide a definitive, confirmed fixed-version statement.",
-        "The detailed remediation procedure is behind Mitel customer or partner knowledge-base access and was not available in the returned source content.",
-        "No source-supported passive verification artifact, version-query procedure, or remediation identifier was provided."
+        "The retrieved Mitel advisory identifies the affected range and directs customers to Security Bulletin 22-0002-001, but the bulletin's concrete fixed-release statement was not available in the returned authoritative content.",
+        "The supplied record's generic ecosystem and n/a affected-product fields are inconsistent with the authoritative Mitel and NVD records.",
+        "No safe vendor-defined non-exploit verification procedure was found in the retrieved authoritative sources.",
+        "The exact supported remediation may depend on the deployed MiVoice Connect release and appliance model; obtain release-specific instructions from Mitel if the bulletin is inaccessible."
       ],
-      "verification_steps": []
+      "verification_steps": [
+        "Inventory MiVoice Connect releases and identify whether SA 100, SA 400, or Virtual SA appliances are deployed.",
+        "Confirm that each relevant Service Appliance is not running MiVoice Connect 19.2 SP3 or earlier, including build 22.20.2300.0 or earlier.",
+        "Confirm completion of the Mitel remediation using the vendor's supported change or update records; do not use exploit attempts as a verification method.",
+        "Reassess network exposure and review relevant appliance and security logs for suspicious activity after remediation."
+      ]
     },
     "CVE-2022-30525": {
       "business_risk": "Critical. This is an OS command-injection flaw in Zyxel firewall CGI functionality that may allow an attacker to modify specific files and execute operating-system commands. CVE-2022-30525 is listed in CISA's Known Exploited Vulnerabilities catalog, indicating prioritized remediation. [Source: https://nvd.nist.gov/vuln/detail/CVE-2022-30525]",
@@ -16588,67 +16893,75 @@
       "verification_steps": []
     },
     "CVE-2022-40684": {
-      "business_risk": "Critical unauthenticated authentication bypass affecting administrative interfaces. A remotely reachable vulnerable device may permit unauthorized administrative operations, potentially affecting confidentiality, integrity, and availability. The vulnerability is listed in CISA's Known Exploited Vulnerabilities catalog, so exposed or internet-reachable instances should be treated as actively exploitable.",
+      "business_risk": "Critical remote authentication bypass affecting administrative interfaces. An unauthenticated attacker may perform administrative operations through specially crafted HTTP or HTTPS requests. Fortinet reported exploitation involving configuration-file downloads and creation of a malicious super-admin account; CISA lists the CVE in its Known Exploited Vulnerabilities Catalog and notes known ransomware-campaign use.",
       "claim_evidence": [
         {
-          "claim": "The CVE is listed in CISA's Known Exploited Vulnerabilities catalog with required action to apply vendor updates.",
-          "kind": "exposure",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-40684"
+          "claim": "Affected versions are FortiOS 7.2.0 through 7.2.1 and 7.0.0 through 7.0.6; FortiProxy 7.2.0 and 7.0.0 through 7.0.6; and FortiSwitchManager 7.2.0 and 7.0.0.",
+          "kind": "affected_version",
+          "source_url": "https://nvd.nist.gov/vuln/detail/cve-2022-40684"
+        },
+        {
+          "claim": "CISA identifies CVE-2022-40684 as a known exploited vulnerability and directs organizations to apply vendor updates.",
+          "kind": "remediation",
+          "source_url": "https://nvd.nist.gov/vuln/detail/cve-2022-40684"
         }
       ],
       "exposure_conditions": [
-        "FortiOS 7.2.0–7.2.1, FortiOS 7.0.0–7.0.6, FortiProxy 7.2.0, FortiProxy 7.0.0–7.0.6, or FortiSwitchManager 7.2.0 or 7.0.0 is deployed.",
-        "The administrative interface is reachable over HTTP or HTTPS by an attacker who can send specially crafted requests.",
-        "The affected management interface is not otherwise restricted by network access controls; the vendor specifically recommends disabling FortiSwitchManager HTTP/HTTPS administrative access as a mitigation."
+        "The device runs an affected FortiOS, FortiProxy, or FortiSwitchManager version.",
+        "The product's administrative interface is reachable by an attacker over HTTP or HTTPS.",
+        "Unauthenticated requests can reach the affected administrative-interface component."
       ],
       "gaps": [
         "generic_ecosystem"
       ],
-      "generated_at": "2026-07-22T04:38:07Z",
+      "generated_at": "2026-08-06T12:09:48Z",
       "model": "gpt-5.6-luna",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [
-        "Upgrade FortiOS 7.2.0–7.2.1 to FortiOS 7.2.2 or later.",
-        "Upgrade FortiOS 7.0.0–7.0.6 to FortiOS 7.0.7 or later. For FG6000F and 7000E/F platforms, follow Fortinet's platform-specific guidance to upgrade to FortiOS 7.0.5 B8001 or later.",
-        "Upgrade FortiProxy 7.2.0 to FortiProxy 7.2.1 or later.",
-        "Upgrade FortiProxy 7.0.0–7.0.6 to FortiProxy 7.0.7 or later.",
-        "Upgrade FortiSwitchManager 7.2.0 to FortiSwitchManager 7.2.1 or later.",
-        "Upgrade FortiSwitchManager 7.0.0 to FortiSwitchManager 7.0.1 or later.",
-        "Until upgrades are completed, restrict administrative-interface access and disable FortiSwitchManager HTTP/HTTPS administrative access where applicable.",
-        "Use Fortinet's documented upgrade path for the deployed product and platform."
+        "Upgrade FortiOS 7.2.0 or 7.2.1 to 7.2.2 or later.",
+        "Upgrade FortiOS 7.0.0 through 7.0.6 to 7.0.7 or later.",
+        "Upgrade FortiProxy 7.2.0 to 7.2.1 or later.",
+        "Upgrade FortiProxy 7.0.0 through 7.0.6 to 7.0.7 or later.",
+        "Upgrade FortiSwitchManager 7.2.0 to 7.2.1 or later.",
+        "Upgrade FortiSwitchManager 7.0.0 to 7.0.1 or later.",
+        "For FortiSwitchManager, disable the HTTP/HTTPS administrative interface if immediate upgrading is not possible.",
+        "Follow Fortinet's documented upgrade path, including any platform-specific guidance for FG6000F and 7000E/F series devices."
       ],
       "retrieved_source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2022-40684",
+        "https://nvd.nist.gov/vuln/detail/cve-2022-40684",
         "https://www.fortiguard.com/psirt/FG-IR-22-377",
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-40684",
         "https://www.fortiguard.com/psirt",
+        "https://www.cisa.gov/news-events/alerts/2022/09/15/cisa-adds-six-known-exploited-vulnerabilities-catalog",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?_cldee=jpUNG-sft0Lr74jsazzEoZ17jTSFEy6lQDvCJArCUYT0C1B4SWuT29F0dx7GSSfN&esid=f8736f67-efb4-ec11-983e-000d3a5a7186&f%5B0%5D=vendor_project%3A813&f%5B1%5D=vendor_project%3A855&f%5B2%5D=vendor_project%3A924&f%5B3%5D=vendor_project%3A1277&f%5B4%5D=vendor_project%3A1320&page=1&recipientid=contact-41de9e007aace811a963000d3a363879-a794569726594743b07ecd7aaff0e97c",
         "https://nvd.nist.gov/vuln/detail/CVE-2022-40684/change-record?changeRecordedOn=10%2F20%2F2022T15%3A06%3A50.180-0400",
-        "https://www.fortiguard.com/psirt/FG-IR-22-220",
         "https://nvd.nist.gov/vuln/detail/CVE-2022-4064",
+        "https://www.fortiguard.com/psirt/FG-IR-22-220",
         "https://www.fortiguard.com/psirt/FG-IR-21-248",
         "https://www.fortiguard.com/psirt/FG-IR-22-019",
-        "https://www.fortiguard.com/psirt/FG-IR-22-218",
-        "https://www.fortiguard.com/psirt/FG-IR-22-174",
-        "https://www.fortiguard.com/psirt/FG-IR-22-109",
-        "https://www.fortiguard.com/psirt/FG-IR-22-086"
+        "https://www.fortiguard.com/psirt/FG-IR-22-041",
+        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
+        "https://www.cisa.gov/sites/default/files/2023-08/aa23-215a_joint_csa_2022_top_routinely_exploited_vulnerabilities.pdf",
+        "https://www.cisa.gov/sites/default/files/2024-05/Secure_by_Design_Alert_Eliminating_Directory_Traversal_Vulnerabilities_in_Software_508c%20%283%29.pdf",
+        "https://www.cisa.gov/sites/default/files/publications/AA22-117A_Joint_CSA_2021_Top_Routinely_Exploited_Vulnerabilities_Final.pdf"
       ],
       "schema_version": 2,
-      "source_fingerprint": "6bc5b3cb9d36f1e6507d6cd76756b7d70ea8358e0e3ccbc173e5b92318e880f3",
+      "source_fingerprint": "fbc98001e44b1051aec0c250ee7dee2e65284fd293fcc52d7c940a4061ea84b6",
       "source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2022-40684"
+        "https://nvd.nist.gov/vuln/detail/cve-2022-40684"
       ],
       "status": "complete",
       "uncertainty": [
-        "The supplied product inventory identifies affected product/version ranges but does not establish whether a particular deployment exposes its administrative interface to an attacker.",
-        "Fortinet's advisory and the NVD/CISA metadata differ in their presentation of exploitation status; the NVD states that the CVE is in CISA's Known Exploited Vulnerabilities catalog, while the advisory page currently displays a different vendor status field.",
-        "The platform-specific FortiOS 7.0.5 B8001 guidance applies only to the models identified by Fortinet; applicability to other platforms should be confirmed before using that release as the remediation target."
+        "The supplied record truncates the Fortinet version list; the complete affected ranges were validated against NVD and Fortinet's advisory.",
+        "The FortiOS 7.0.5 B8001-or-later exception for specific FG6000F and 7000E/F platforms requires confirmation of the exact hardware model and supported upgrade path.",
+        "Log indicators are useful for incident review but their absence does not prove that exploitation did not occur."
       ],
       "verification_steps": [
-        "Confirm the running product and version are outside the affected ranges and meet the corresponding fixed-version threshold.",
-        "Review device logs for the vendor-published indicator `user=Local_Process_Access`; treat its presence as requiring incident-response investigation.",
-        "Review administrative-account and configuration changes for unauthorized activity, including unexpected privileged accounts or configuration downloads, as recommended by the vendor.",
-        "Confirm administrative HTTP/HTTPS exposure is restricted according to the organization's management-plane access policy.",
-        "Do not treat absence of the published log indicator as proof that exploitation did not occur."
+        "Confirm the installed product and version are outside the affected ranges and meet the corresponding Fortinet fixed-version guidance.",
+        "Review device logs for Fortinet's documented indicator `user=Local_Process_Access`.",
+        "Review administrative-account configuration and audit records for an unexpected account named `fortigate-tech-support` or other unauthorized super-admin changes.",
+        "After remediation, confirm that the administrative interface is not exposed through unintended HTTP/HTTPS paths and that access controls remain enforced. Do not use exploit payloads or production attack probes."
       ]
     },
     "CVE-2022-41080": {
@@ -17446,44 +17759,37 @@
       "claim_evidence": [],
       "exposure_conditions": [],
       "gaps": [],
-      "generated_at": "2026-07-26T11:01:13Z",
+      "generated_at": "2026-08-06T12:08:18Z",
       "model": "gpt-5.6-luna",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [],
       "retrieved_source_urls": [
-        "https://www.cisa.gov/news-events/alerts/2023/09/13/cisa-adds-three-known-vulnerabilities-catalog",
         "https://nvd.nist.gov/vuln/detail/CVE-2023-20269",
         "https://nvd.nist.gov/vuln/detail/cve-2023-20269",
+        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-asaftd-ravpn-auth-8LyfCkeC",
         "https://nvd.nist.gov/vuln/detail/CVE-2023-20169",
         "https://nvd.nist.gov/vuln/detail/cve-2023-20209",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-asaftd-ravpn-auth-8LyfCkeC",
+        "https://nvd.nist.gov/vuln/detail/cve-2023-20069",
         "https://nvd.nist.gov/vuln/detail/CVE-2023-6990",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-asaftd-bf-dos-vDZhLqrW",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A794&f%5B10%5D=vendor_project%3A837&f%5B11%5D=vendor_project%3A839&f%5B12%5D=vendor_project%3A841&f%5B13%5D=vendor_project%3A842&f%5B14%5D=vendor_project%3A845&f%5B15%5D=vendor_project%3A849&f%5B16%5D=vendor_project%3A854&f%5B17%5D=vendor_project%3A865&f%5B18%5D=vendor_project%3A867&f%5B19%5D=vendor_project%3A879&f%5B1%5D=vendor_project%3A796&f%5B20%5D=vendor_project%3A880&f%5B21%5D=vendor_project%3A886&f%5B22%5D=vendor_project%3A893&f%5B23%5D=vendor_project%3A897&f%5B24%5D=vendor_project%3A902&f%5B25%5D=vendor_project%3A903&f%5B26%5D=vendor_project%3A909&f%5B27%5D=vendor_project%3A917&f%5B28%5D=vendor_project%3A924&f%5B29%5D=vendor_project%3A938&f%5B2%5D=vendor_project%3A799&f%5B30%5D=vendor_project%3A942&f%5B31%5D=vendor_project%3A946&f%5B32%5D=vendor_project%3A954&f%5B33%5D=vendor_project%3A1147&f%5B34%5D=vendor_project%3A1172&f%5B35%5D=vendor_project%3A1267&f%5B36%5D=vendor_project%3A1286&f%5B3%5D=vendor_project%3A800&f%5B4%5D=vendor_project%3A801&f%5B5%5D=vendor_project%3A805&f%5B6%5D=vendor_project%3A806&f%5B7%5D=vendor_project%3A817&f%5B8%5D=vendor_project%3A823&f%5B9%5D=vendor_project%3A828&page=3",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A800&f%5B10%5D=vendor_project%3A879&f%5B11%5D=vendor_project%3A893&f%5B12%5D=vendor_project%3A897&f%5B13%5D=vendor_project%3A902&f%5B14%5D=vendor_project%3A911&f%5B15%5D=vendor_project%3A917&f%5B16%5D=vendor_project%3A918&f%5B17%5D=vendor_project%3A932&f%5B18%5D=vendor_project%3A937&f%5B19%5D=vendor_project%3A938&f%5B1%5D=vendor_project%3A801&f%5B20%5D=vendor_project%3A944&f%5B21%5D=vendor_project%3A1147&f%5B22%5D=vendor_project%3A1267&f%5B2%5D=vendor_project%3A806&f%5B3%5D=vendor_project%3A817&f%5B4%5D=vendor_project%3A819&f%5B5%5D=vendor_project%3A823&f%5B6%5D=vendor_project%3A837&f%5B7%5D=vendor_project%3A842&f%5B8%5D=vendor_project%3A850&f%5B9%5D=vendor_project%3A854&page=2",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-asaftd-ipsec-mitm-CKnLr4",
-        "https://nvd.nist.gov/vuln/detail/CVE-2023-6992",
-        "https://www.cisa.gov/sites/default/files/2023-07/aa23-201a_csa_threat_actors_exploiting_citrix-cve-2023-3519_to_implant_webshells.pdf",
-        "https://www.cisa.gov/sites/default/files/2023-05/aa23-131a_joint_csa_malicious_actors_exploit_cve-2023-27350_in_papercut_mf_and_ng_3.pdf",
-        "https://www.cisa.gov/sites/default/files/2023-10/aa23-201a_csa_threat_actors_exploiting_citrix-cve-2023-3519_to_implant_webshells.pdf",
-        "https://www.cisa.gov/sites/default/files/2023-09/aa23-201a_csa_threat_actors_exploiting_citrix-cve-2023-3519_to_implant_webshells.pdf",
-        "https://www.cisa.gov/sites/default/files/2023-11/SbD%20Alert%20-%20How%20Software%20Manufacturers%20Can%20Shield%20Web%20Management%20Interfaces%20From%20Malicious%20Cyber%20Activity_508c%20%281%29_0.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf"
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-20269",
+        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-getvpn-rce-g8qR68sx",
+        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-asa-webvpn-dos-3GhZQBAS",
+        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-asaftd-saml-hijack-ttuQfyz",
+        "https://nvd.nist.gov/vuln/detail/CVE-2023-6992"
       ],
       "schema_version": 2,
-      "source_fingerprint": "80de13324b8c10de338abae3befa0e882e87f0b32d7cfa0fb967a906305177cd",
+      "source_fingerprint": "c4e17bc55fd2e712a4d481929bdfb08a1edda7466eca23bb87cfd73d32715b01",
       "source_urls": [
         "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-asaftd-ravpn-auth-8LyfCkeC",
-        "https://nvd.nist.gov/vuln/detail/CVE-2023-20269",
-        "https://www.cisa.gov/news-events/alerts/2023/09/13/cisa-adds-three-known-vulnerabilities-catalog"
+        "https://nvd.nist.gov/vuln/detail/CVE-2023-20269"
       ],
       "status": "insufficient_evidence",
       "uncertainty": [
-        "The supplied affected-version lists are explicitly truncated, and the Cisco advisory directs administrators to the Software Checker for the exact first-fixed release rather than presenting a complete fixed-version table in the retrieved content.",
-        "No complete authoritative fixed-version mapping was established for all ASA and FTD release branches.",
-        "The actual exposure of any particular device cannot be determined without its installed release and relevant VPN, AAA, group-policy, and user configuration.",
-        "The advisory distinguishes brute-force exposure from the clientless SSL VPN path; not every affected release or deployment is exposed to both outcomes."
+        "The supplied affected-version lists are truncated and do not establish complete version boundaries.",
+        "The Cisco advisory confirms that fixed software exists but directs administrators to the Cisco Software Checker rather than publishing a complete fixed-version table in the accessible advisory content.",
+        "A precise fixed version cannot be asserted without the device's exact product, platform, installed release, and Cisco Software Checker result.",
+        "The advisory describes configuration-dependent exposure; product/version matching alone is insufficient to determine whether a device is exploitable."
       ],
       "verification_steps": []
     },
@@ -24024,6 +24330,106 @@
         "Use only a non-destructive validation of the installed application version; do not send crafted test messages to production."
       ]
     },
+    "CVE-2024-43468": {
+      "business_risk": "Critical. CVE-2024-43468 is an unauthenticated, network-reachable SQL injection vulnerability in Microsoft Configuration Manager with a Microsoft CVSS 3.1 score of 9.8. Successful exploitation may enable remote code execution and compromise of confidentiality, integrity, and availability. CISA added it to the Known Exploited Vulnerabilities Catalog on February 12, 2026. [Source evidence: https://nvd.nist.gov/vuln/detail/CVE-2024-43468]",
+      "claim_evidence": [
+        {
+          "claim": "The affected product is Microsoft Configuration Manager.",
+          "kind": "affected_product",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-43468"
+        },
+        {
+          "claim": "NVD records Microsoft Configuration Manager versions from 1.0.0 through, but excluding, 5.00.9106 as affected.",
+          "kind": "affected_version",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-43468"
+        },
+        {
+          "claim": "The vulnerability is network exploitable with no privileges or user interaction required according to Microsoft’s CVSS vector; the affected security boundary includes management-point connections to the site-server database.",
+          "kind": "exposure",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-43468"
+        },
+        {
+          "claim": "Microsoft provides the revised KB29166583 management-point security update for Configuration Manager 2309 and documents its applicability to the corresponding Configuration Manager servicing branches.",
+          "kind": "remediation",
+          "source_url": "https://learn.microsoft.com/en-us/intune/configmgr/hotfix/2309/29166583"
+        },
+        {
+          "claim": "Microsoft identifies KB34503790 as a revised security update for Configuration Manager versions 2403, 2409, and 2503, superseding the prior release for applicable branches.",
+          "kind": "remediation",
+          "source_url": "https://learn.microsoft.com/en-us/intune/configmgr/hotfix/2503/34503790"
+        },
+        {
+          "claim": "The recorded fixed threshold is 5.00.9106 or later.",
+          "kind": "fixed_version",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-43468"
+        },
+        {
+          "claim": "Microsoft documents verifying secondary-site update currency through Configuration Manager’s site-management workflow and status check.",
+          "kind": "verification",
+          "source_url": "https://learn.microsoft.com/en-us/intune/configmgr/hotfix/2309/29166583"
+        }
+      ],
+      "exposure_conditions": [
+        "A Microsoft Configuration Manager deployment is running an affected product build below 5.00.9106. [Source evidence: https://nvd.nist.gov/vuln/detail/CVE-2024-43468]",
+        "The vulnerable management-point functionality is reachable over a network path accessible to an attacker; the Microsoft update addresses security between the management point and site-server database. [Source evidence: https://learn.microsoft.com/en-us/intune/configmgr/hotfix/2309/29166583]"
+      ],
+      "gaps": [
+        "missing_bounded_version"
+      ],
+      "generated_at": "2026-08-06T12:12:39Z",
+      "model": "gpt-5.6-luna",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [
+        "Apply the revised KB29166583 management-point security update to Configuration Manager versions 2303, 2309, and 2403 where applicable. Microsoft states that the revised update was republished on September 18, 2024 after an earlier issue. [Source evidence: https://learn.microsoft.com/en-us/intune/configmgr/hotfix/2309/29166583]",
+        "Ensure the resulting Configuration Manager build is at least 5.00.9106, which is the bounded fixed-version threshold recorded by NVD for the Microsoft Configuration Manager product. [Source evidence: https://nvd.nist.gov/vuln/detail/CVE-2024-43468]",
+        "After updating a primary site, manually update preexisting secondary sites through the Configuration Manager console as directed by Microsoft. [Source evidence: https://learn.microsoft.com/en-us/intune/configmgr/hotfix/2309/29166583]",
+        "For Configuration Manager 2403 and 2409 environments, review Microsoft’s subsequent security-update guidance and apply the applicable current security update; Microsoft identifies KB34503790 as superseding the prior KB33926600 release for those branches. [Source evidence: https://learn.microsoft.com/en-us/intune/configmgr/hotfix/2503/34503790]"
+      ],
+      "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-43468",
+        "https://msrc.microsoft.com/update-guide/vulnerability/CV",
+        "https://msrc.microsoft.com/update-guide/",
+        "https://learn.microsoft.com/en-us/intune/configmgr/hotfix/2503/34503790",
+        "https://learn.microsoft.com/en-us/intune/configmgr/hotfix/",
+        "https://learn.microsoft.com/en-us/intune/configmgr/core/plan-design/changes/whats-new-in-version-2503",
+        "https://learn.microsoft.com/en-us/intune/configmgr/core/plan-design/changes/whats-new-in-version-2403",
+        "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2026-21527/",
+        "https://learn.microsoft.com/en-us/intune/configmgr/core/servers/deploy/install/release-notes",
+        "https://learn.microsoft.com/en-us/intune/configmgr/hotfix/2509/33247081",
+        "https://learn.microsoft.com/en-au/lifecycle/products/microsoft-configuration-manager",
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-23468",
+        "https://learn.microsoft.com/en-us/microsoft-365/media/deploy-foundation-infrastructure/microsoft365enterprisefoundinfra.pdf?view=o365-21vianet",
+        "https://learn.microsoft.com/en-us/services-hub/health/pdfs/getting-started-sccm/datasheet_ondemandassessment_onsite_cm.pdf",
+        "https://learn.microsoft.com/tr-tr/windows/deployment/media/windows10deploymentconfigmanager.pdf",
+        "https://learn.microsoft.com/es-es/services-hub/release-notes/september-fy20/sccm_admin_concepts.pdf",
+        "https://learn.microsoft.com/en-us/services-hub/sfbus/health/getting-started-sccm/prereqscmassessment.pdf",
+        "https://learn.microsoft.com/pt-br/microsoft-365/media/deploy-foundation-infrastructure/microsoft365enterprisefoundinfra.pdf?view=o365-worldwide",
+        "https://learn.microsoft.com/en-us/answers/questions/5508257/how-vulnerable-is-a-closed-environements-endpoint",
+        "https://threats.kaspersky.com/en/vulnerability/KLA73904/",
+        "https://learn.microsoft.com/en-us/answers/questions/2168079/does-sccm-2409-still-require-patching-for-cve-2024",
+        "https://www.rapid7.com/db/vulnerabilities/microsoft-sccm-cve-2024-43468/",
+        "https://lyrie.ai/research/research/active-exploit-cve-2024-43468-configuration-manager",
+        "https://learn.microsoft.com/en-us/intune/configmgr/hotfix/2309/29166583"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "8801c7a955098f8aa2935e4f922da1575d7f66053e3f49d33dd0090869b456f8",
+      "source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-43468",
+        "https://learn.microsoft.com/en-us/intune/configmgr/hotfix/2309/29166583",
+        "https://learn.microsoft.com/en-us/intune/configmgr/hotfix/2503/34503790"
+      ],
+      "status": "complete",
+      "uncertainty": [
+        "The NVD record currently uses a generic product bound of version 5.00.9106 and also lists branch-specific CPEs; it does not provide a CVE-specific KB mapping for every listed branch. [Source evidence: https://nvd.nist.gov/vuln/detail/CVE-2024-43468]",
+        "The Microsoft MSRC advisory page was not available for detailed retrieval during this enrichment, so branch-by-branch applicability should be confirmed against the tenant’s Configuration Manager console and Microsoft’s current servicing guidance. [Source evidence: https://msrc.microsoft.com/update-guide/vulnerability/CVE-2024-43468]"
+      ],
+      "verification_steps": [
+        "In the Configuration Manager console, confirm that the revised KB29166583 update is installed for applicable 2303, 2309, or 2403 environments, rather than only the revoked initial release. [Source evidence: https://learn.microsoft.com/en-us/intune/configmgr/hotfix/2309/29166583]",
+        "Confirm the installed Configuration Manager/SMS Provider build is at or above 5.00.9106. [Source evidence: https://nvd.nist.gov/vuln/detail/CVE-2024-43468]",
+        "Confirm that all preexisting secondary sites show current update status after the primary-site remediation. Microsoft documents a console-based secondary-site recovery/update process and a status check for this purpose. [Source evidence: https://learn.microsoft.com/en-us/intune/configmgr/hotfix/2309/29166583]"
+      ]
+    },
     "CVE-2024-4358": {
       "business_risk": "No additional source-verified CVE-specific business impact was established.",
       "claim_evidence": [],
@@ -24500,6 +24906,58 @@
         "The Progress vendor advisory page was not available in readable form during retrieval; remediation and version evidence therefore relies on NVD and Progress release notes.",
         "The supplied record describes a broad pre-23.1.3 range, while the current NVD change history separately identifies 2023.1.0 as affected. Treat 23.1.3 as the minimum documented remediation threshold and verify applicability with Progress for older or differently versioned deployments. ([nvd.nist.gov](https://nvd.nist.gov/vuln/detail/CVE-2024-4885))",
         "No authoritative source retrieved here specifies a safe, non-invasive product-version command, endpoint, configuration setting, or compensating-control value."
+      ],
+      "verification_steps": []
+    },
+    "CVE-2024-49035": {
+      "business_risk": "No additional source-verified CVE-specific business impact was established.",
+      "claim_evidence": [],
+      "exposure_conditions": [],
+      "gaps": [
+        "missing_bounded_version"
+      ],
+      "generated_at": "2026-08-06T12:12:09Z",
+      "model": "gpt-5.6-luna",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [],
+      "retrieved_source_urls": [
+        "https://msrc.microsoft.com/update-guide/en-us/",
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-49035",
+        "https://msrc.microsoft.com/update-guide/vulnerability/CV",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-24303",
+        "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2026-21527/",
+        "https://www.cve.org/CVERecord?id=CVE-2024-49035",
+        "https://www.cert.ssi.gouv.fr/avis/CERTFR-2024-AVI-1024/",
+        "https://msrc.microsoft.com/en-us/security-guidance/advisory/cve-2022-29117",
+        "https://support.microsoft.com/en-US/servicing/Exchange/server/hotfix/2024/description-of-version-2-of-the-security-update-for-microsoft-exchange-server-2019-and-2016-november",
+        "https://security.stackexchange.com/questions/280774/whats-the-deal-with-cisa-adding-cve-2024-49035-microsoft-partner-center-vulner",
+        "https://msrc.microsoft.com/update-guide/zh-cn/vulnerability/CVE",
+        "https://support.microsoft.com/en-US/servicing/os/windows/2023/03/how-to-manage-the-windows-boot-manager-revocations-for-secure-boot-changes-associated-with-cve-2023",
+        "https://cert.gov.sa/documents/199/Weekly_Vulnerabilities_Summary_4_%D9%80August_10_August.pdf",
+        "https://www.reddit.com/r/u_all-in-one-wisper/comments/1tbytog/daily_wisper_report_patch_tuesday_may_12_2026/",
+        "https://hivepro.com/wp-content/uploads/2025/03/CISA-KEV-February-2025.pdf",
+        "https://techcommunity.microsoft.com/t5/s/gxcuf89792/attachments/gxcuf89792/ASfP/64/1/Microsoft%20Cloud%20and%20Datacenter%20Management%20Newsletter%20-%20August%202023.pdf",
+        "https://www.youtube.com/watch?v=qLgie0x-5QU",
+        "https://www.reddit.com/r/cybersecurity/comments/1j7vabu",
+        "https://www.reddit.com/r/sysadmin/comments/1sl9kpd/patch_tuesday_megathread_april_14_2026/",
+        "https://www.reddit.com/r/sysadmin/comments/1uw9kba/patch_tuesday_megathread_july_14_2026/",
+        "https://www.reddit.com/r/sysadmin/comments/1u15uc7/patch_tuesday_megathread_june_09_2026/",
+        "https://e.cyberint.com/hubfs/Research%20Reports/2024/Week%2048.cleaned.pdf",
+        "https://www.reddit.com/r/sysadmin/comments/1tb2j6r/patch_tuesday_megathread_may_12_2026/",
+        "https://arxiv.org/abs/2301.03797"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "cbb08622fd731def1f69e8172a842cf5befc98982fdf4fb34c1b957f835f3ea6",
+      "source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-49035"
+      ],
+      "status": "insufficient_evidence",
+      "uncertainty": [
+        "Microsoft’s publicly retrievable advisory content did not expose a concrete fixed version, update identifier, mitigation procedure, or safe CVE-specific validation procedure.",
+        "NVD records the affected product as Microsoft Partner Center with an unspecified version and an unversioned CPE; therefore the detected missing_bounded_version gap cannot be filled reliably.",
+        "The supplied record’s CVSS 9.8 vector differs from Microsoft’s CNA vector of 8.7, so exploitability details should not be inferred beyond the published descriptions.",
+        "No authoritative source reviewed here establishes the exact tenant, role, authentication, or API conditions for exposure."
       ],
       "verification_steps": []
     },
@@ -27138,6 +27596,58 @@
         "Review relevant Triofox and web-server audit logs for anomalous unauthenticated access to setup or configuration functionality, including requests associated with unexpected localhost host-header behavior."
       ]
     },
+    "CVE-2025-1316": {
+      "business_risk": "No additional source-verified CVE-specific business impact was established.",
+      "claim_evidence": [],
+      "exposure_conditions": [],
+      "gaps": [
+        "missing_bounded_version"
+      ],
+      "generated_at": "2026-08-06T12:11:42Z",
+      "model": "gpt-5.6-luna",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [],
+      "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-13116",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-13316",
+        "https://www.edimax.com/edimax/post/post/data/edimax/global/press_releases/4801/",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-12816",
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-1316",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-1916",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=4&source=rss------hacking-5",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-43316",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-52816",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-23316",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-11716",
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-46487",
+        "https://edimax.com/edimax/mw/cufiles/files/download/manual/transfer/IPSurveillance/NetworkCamera/PT-112E_PT-111E_MD-111E_Mini_PT%26MD_user_manual_v1.1.pdf",
+        "https://www.edimax.com/edimax/mw/cufiles/files/faq/IP-Camera/Network_Camera_Firmware_Upgrade_Instructions_V1_EN.PDF",
+        "https://www.edimax.com/edimax/mw/cufiles/files/download/manual/transfer/IP_Cam/IC-3110_Series_Manual.pdf",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-1316",
+        "https://vulnerability.circl.lu/vuln/icsa-25-063-08",
+        "https://www.edimax.com/edimax/post/post/data/edimax/global/press_releases/4802/",
+        "https://jvn.jp/vu/JVNVU94445964/",
+        "https://vulnerability.circl.lu/search?product=IC-7100+IP+Camera&vendor=Edimax",
+        "https://advisories.checkpoint.com/defense/advisories/public/2025/cpai-2025-0090.html/",
+        "https://www.cve.news/cve-2025-1316/",
+        "https://assets.adgm.com/download/assets/20250310%2B-%2BExploited%2BVulnerability%2Bin%2BEdimax%2BIC-7100%2BIP%2BCamera%2B-%2BAlert%2B203.pdf/6a1f345afe3911efad4e925a7219b349"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "18058a1e0b55f062719767c1424aba2a099d387ebfcb3637a75de7537bb48eb5",
+      "source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-1316",
+        "https://www.edimax.com/edimax/post/post/data/edimax/global/press_releases/4801/"
+      ],
+      "status": "insufficient_evidence",
+      "uncertainty": [
+        "No authoritative source provides a concrete fixed firmware version; Edimax explicitly states that no security patch or firmware update is available.",
+        "The affected-version record uses “All” rather than a bounded version range, so the missing_bounded_version gap cannot be resolved with a fixed-version claim.",
+        "The returned authoritative sources do not define a product-specific, non-invasive technical test that proves the vulnerability is absent.",
+        "The supplied source record says KEV status is active exploitation; the NVD page also records CISA SSVC exploitation as active, automatable, and having total technical impact."
+      ],
+      "verification_steps": []
+    },
     "CVE-2025-14733": {
       "business_risk": "Critical, remotely exploitable unauthenticated arbitrary-code-execution risk affecting the Fireware OS iked process. WatchGuard reports active exploitation attempts in the wild, and CISA classifies the CVE as a Known Exploited Vulnerability. Successful exploitation may expose active configuration data and the local management-user database, and may require rotation of secrets stored on the Firebox.",
       "claim_evidence": [
@@ -28245,6 +28755,49 @@
         "No deployment-specific evidence was provided regarding whether guest access to SolrSearch is currently exposed.",
         "The vendor advisory describes a proof-of-vulnerability test, but this enrichment intentionally omits exploit payloads and does not infer vulnerability status from an active test.",
         "The model did not return a fully sourced exposure, remediation, and verification set; consult the linked NVD and vendor sources before acting."
+      ],
+      "verification_steps": []
+    },
+    "CVE-2025-24989": {
+      "business_risk": "No additional source-verified CVE-specific business impact was established.",
+      "claim_evidence": [],
+      "exposure_conditions": [],
+      "gaps": [
+        "missing_bounded_version"
+      ],
+      "generated_at": "2026-08-06T12:11:56Z",
+      "model": "gpt-5.6-luna",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [],
+      "retrieved_source_urls": [
+        "https://learn.microsoft.com/en-us/power-pages/getting-started/action-center",
+        "https://msrc.microsoft.com/update-guide/vulnerability/CV",
+        "https://learn.microsoft.com/en-us/power-platform/release-plan/2025wave2/power-pages/review-security-scan-recommendations-security-hub",
+        "https://learn.microsoft.com/en-us/power-pages/security/security-scan",
+        "https://learn.microsoft.com/en-us/power-pages/configure/create-code-sites",
+        "https://learn.microsoft.com/en-us/power-platform/admin/security-recommendations",
+        "https://learn.microsoft.com/en-us/power-platform/admin/performance-recommendations",
+        "https://learn.microsoft.com/en-us/power-pages/admin/delete-website",
+        "https://learn.microsoft.com/en-us/power-pages/security/power-pages-security",
+        "https://learn.microsoft.com/en-us/power-pages/admin/phishing-detection-agent",
+        "https://learn.microsoft.com/en-us/power-pages/security/site-checker-security",
+        "https://learn.microsoft.com/en-us/power-platform/release-plan/2025wave2/power-pages/administration-governance",
+        "https://learn.microsoft.com/en-us/aspnet/web-forms/overview/data-access/paging-and-sorting-with-the-datalist-and-repeater/paging-report-data-in-a-datalist-or-repeater-control-vb/_static/datatutorial44vb1.pdf",
+        "https://learn.microsoft.com/en-us/microsoft-365/enterprise/media/teams-sharepoint-online-sites-highly-regulated-data/SharePointSitesHighlyRegulatedData.pdf",
+        "https://learn.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/media/business-central-and-dataverse-integration.pdf",
+        "https://learn.microsoft.com/en-us/azure/databricks/_extras/documents/usage-policies-openai.pdf",
+        "https://learn.microsoft.com/en-us/azure/databricks/_static/documents/nvidia-cloud-end-user-license-agreement_clean.pdf"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "3c7be6a02180c035048ce5405cb58dca0f77577ca3c1a1db68d8053b6281b1e4",
+      "source_urls": [],
+      "status": "insufficient_evidence",
+      "uncertainty": [
+        "The authoritative NVD record identifies the affected product as Microsoft Power Pages with an unbounded placeholder version ('-'), so no concrete affected-version range can be derived.",
+        "No authoritative fixed version, build number, deployment ring, or customer-visible patch identifier was found.",
+        "The public record does not provide the detailed exploitation-review or cleanup procedure; those instructions appear to have been supplied directly to affected customers.",
+        "Generic Power Pages security scans or access-control reviews should not be treated as proof that CVE-2025-24989 was remediated unless Microsoft explicitly correlates them to this CVE."
       ],
       "verification_steps": []
     },
@@ -33387,6 +33940,72 @@
       ],
       "verification_steps": []
     },
+    "CVE-2026-34486": {
+      "business_risk": "High confidentiality risk: a bypass in Apache Tomcat's EncryptInterceptor can leave sensitive data unencrypted and enable information disclosure. Red Hat rates the issue Important with CVSS 7.5 for affected Red Hat products.",
+      "claim_evidence": [
+        {
+          "claim": "Apache Tomcat versions 11.0.20, 10.1.53, and 9.0.116 are affected.",
+          "kind": "affected_product",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-34486"
+        },
+        {
+          "claim": "Apache Tomcat 11.0.21, 10.1.54, and 9.0.117 fix the issue.",
+          "kind": "fixed_version",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-34486"
+        }
+      ],
+      "exposure_conditions": [
+        "The application uses Apache Tomcat's EncryptInterceptor or a Red Hat product containing the affected Tomcat component.",
+        "Sensitive data is processed or stored through the affected encryption path.",
+        "Network-accessible deployments may be at greater risk because the vendor CVSS vector specifies network attack access with no required privileges or user interaction; the exact application-level exposure depends on how the component is configured and used."
+      ],
+      "gaps": [
+        "generic_ecosystem"
+      ],
+      "generated_at": "2026-08-06T12:09:34Z",
+      "model": "gpt-5.6-luna",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [
+        "Upgrade standalone Apache Tomcat 11.0.20 to 11.0.21 or later, 10.1.53 to 10.1.54 or later, or 9.0.116 to 9.0.117 or later.",
+        "For Red Hat products, apply the applicable Red Hat security erratum for the deployed product and stream rather than substituting an upstream Tomcat version; Red Hat documents that its packages may contain backported fixes.",
+        "If immediate patching is not possible, do not assume an effective mitigation is available: Red Hat states that mitigation is unavailable or does not meet its deployment criteria. Review the affected encryption use with the vendor and reduce exposure only through documented, tested compensating controls."
+      ],
+      "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-34486",
+        "https://access.redhat.com/security/vulnerabilities",
+        "https://access.redhat.com/security/updates/advisory",
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-34486",
+        "https://access.redhat.com/solutions/7025257",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-3446",
+        "https://access.redhat.com/articles/5554431",
+        "https://access.redhat.com/security/vulnerabilities?page=1",
+        "https://access.redhat.com/security/vulnerabilities?order=field_cve_public_date&sort=asc",
+        "https://nvd.nist.gov/vuln/detail/CVE-2023-27178",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-3846",
+        "https://access.redhat.com/errata/RHSA-2026%3A10703",
+        "https://access.redhat.com/webassets/avalon/d/Red_Hat_Security_Data_API-0.1-Red_Hat_Security_Data_API-en-US/Red_Hat_Security_Data_API-0.1-Red_Hat_Security_Data_API-en-US.pdf",
+        "https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/6/pdf/6.3_technical_notes/index63-technical-notes.pdf",
+        "https://access.redhat.com/webassets/avalon/d/Red_Hat_Enterprise_Linux_Atomic_Host-7-CLI_Reference-en-US/Red_Hat_Enterprise_Linux_Atomic_Host-7-CLI_Reference-en-US.pdf",
+        "https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/6/pdf/6.3_technical_notes/63-technical-notes.pdf"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "8ed15cd93414e06d6946263f0116a35ace4aac5c02175ab56bf8c399912aa396",
+      "source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-34486"
+      ],
+      "status": "complete",
+      "uncertainty": [
+        "The supplied affected-product list is truncated, and the returned Red Hat advisory evidence directly verifies only the referenced Red Hat update rather than every Red Hat product and erratum listed in the input.",
+        "The Apache mailing-list advisory could not be retrieved directly, so upstream affected and fixed-version claims are corroborated through NVD.",
+        "The exact runtime exposure depends on whether the affected encryption path is enabled and used by the application; the authoritative sources do not provide a universal deployment configuration condition."
+      ],
+      "verification_steps": [
+        "Confirm the deployed standalone Tomcat version is 11.0.21 or later, 10.1.54 or later, or 9.0.117 or later, as applicable.",
+        "For Red Hat deployments, confirm that the installed Tomcat package corresponds to the applicable RHSA security update and that the vendor marks the update as installed or fixed; do not rely solely on upstream version comparison because Red Hat backports security fixes.",
+        "Review the deployment configuration and application flow to confirm that sensitive data requiring EncryptInterceptor protection is processed only by the remediated component, without performing exploit attempts or sending sensitive test data."
+      ]
+    },
     "CVE-2026-34908": {
       "business_risk": "Critical. A network-accessible attacker may make unauthorized changes to UniFi OS systems. NVD records a CVSS 3.1 score of 10.0 and active exploitation status through CISA KEV enrichment; treat affected devices as urgent remediation targets.",
       "claim_evidence": [
@@ -34969,6 +35588,96 @@
         "The exact current stable branch beyond the listed patched versions was not used to define an additional fixed-version claim."
       ],
       "verification_steps": []
+    },
+    "CVE-2026-63077": {
+      "business_risk": "Critical risk to TeamCity On-Premises: an unauthenticated attacker with HTTP(S) access may bypass authentication and execute operating-system commands with the TeamCity server process privileges, potentially exposing credentials and CI/CD assets or altering build pipelines.",
+      "claim_evidence": [
+        {
+          "claim": "JetBrains identifies TeamCity On-Premises as affected and states that all TeamCity On-Premises versions are affected; TeamCity Cloud customers are not required to take action.",
+          "kind": "affected_product",
+          "source_url": "https://blog.jetbrains.com/teamcity/2026/07/cve-2026-63077/"
+        },
+        {
+          "claim": "The NVD record describes JetBrains TeamCity versions before 2026.1.3 and 2025.11.7 as affected.",
+          "kind": "affected_version",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-63077"
+        },
+        {
+          "claim": "The vulnerability can be exploited by an unauthenticated attacker with HTTP(S) access via the TeamCity agent polling protocol.",
+          "kind": "exposure",
+          "source_url": "https://blog.jetbrains.com/teamcity/2026/07/cve-2026-63077/"
+        },
+        {
+          "claim": "JetBrains states that the issue was fixed in TeamCity versions 2025.11.7 and 2026.1.3.",
+          "kind": "fixed_version",
+          "source_url": "https://blog.jetbrains.com/teamcity/2026/07/cve-2026-63077/"
+        },
+        {
+          "claim": "JetBrains recommends updating to 2025.11.7 or 2026.1.3 and provides a security patch plugin for TeamCity 2017.1 and later when upgrading is not possible.",
+          "kind": "remediation",
+          "source_url": "https://blog.jetbrains.com/teamcity/2026/07/cve-2026-63077/"
+        },
+        {
+          "claim": "The vendor's remediation path provides concrete target versions—2025.11.7 or 2026.1.3—that can be checked against the deployed TeamCity server version.",
+          "kind": "verification",
+          "source_url": "https://blog.jetbrains.com/teamcity/2026/07/cve-2026-63077/"
+        }
+      ],
+      "exposure_conditions": [
+        "TeamCity On-Premises is affected; TeamCity Cloud customers are stated by JetBrains not to require action because mitigations were already applied.",
+        "The server is reachable by an attacker over HTTP(S).",
+        "The attack does not require authentication and uses the TeamCity agent polling protocol."
+      ],
+      "gaps": [
+        "generic_ecosystem"
+      ],
+      "generated_at": "2026-08-06T12:09:16Z",
+      "model": "gpt-5.6-luna",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [
+        "Upgrade TeamCity On-Premises to version 2025.11.7 or 2026.1.3, as applicable to the deployed release line.",
+        "If upgrading is not immediately possible, install JetBrains' security patch plugin for TeamCity 2017.1 and later, following the vendor's installation guidance.",
+        "Restrict internet exposure of TeamCity servers to trusted networks where feasible, such as through a VPN or an additional access-control layer.",
+        "Run the TeamCity server with the minimum operating-system privileges required and keep it on a dedicated host separate from build agents."
+      ],
+      "retrieved_source_urls": [
+        "https://blog.jetbrains.com/teamcity/2026/07/cve-2026-63077/",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-63077",
+        "https://blog.jetbrains.com/teamcity/2026/07/teamcity-2026-1-3-2025-11-7-bugfix/",
+        "https://www.jetbrains.com/privacy-security/issues-fixed/",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=0",
+        "https://blog.jetbrains.com/category/news/?post_type=big-data-tools",
+        "https://blog.jetbrains.com/teamcity/2024/03/our-approach-addressing-recently-discovered-vulnerabilities-in-teamcity-on-premises/",
+        "https://www.jetbrains.com/zh-cn/privacy-security/issues-fixed/",
+        "https://blog.jetbrains.com/category/security/",
+        "https://blog.jetbrains.com/teamcity/2026/03/ci-cd-security-risks/",
+        "https://www.jetbrains.com/privacy-security/",
+        "https://blog.jetbrains.com/teamcity/category/releases/",
+        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
+        "https://www.cisa.gov/sites/default/files/2025-01/joint-guidance-product-security-bad-practices-508c_0.pdf",
+        "https://www.cisa.gov/sites/default/files/2025-05/CSSO-VDP%20Platform%20FAQ%202024.pdf",
+        "https://www.cisa.gov/sites/default/files/2024-05/Secure_by_Design_Alert_Eliminating_Directory_Traversal_Vulnerabilities_in_Software_508c%20%283%29.pdf",
+        "https://www.cisa.gov/sites/default/files/publications/AA21-209A_Joint_CSA%20Top%20Routinely%20Exploited%20Vulnerabilities.pdf",
+        "https://www.cisa.gov/sites/default/files/publications/AA22-117A_Joint_CSA_2021_Top_Routinely_Exploited_Vulnerabilities_Final.pdf"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "e6ba702e4c84ce9122febd5ffe9ab9a20d5979e67aed7fa64bfbced6fcc78262",
+      "source_urls": [
+        "https://blog.jetbrains.com/teamcity/2026/07/cve-2026-63077/",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-63077",
+        "https://www.jetbrains.com/privacy-security/issues-fixed/"
+      ],
+      "status": "complete",
+      "uncertainty": [
+        "The returned CISA search results did not independently confirm the supplied KEV date, due date, or catalog entry; treat those metadata fields as requiring separate validation.",
+        "The vendor advisory states that all TeamCity On-Premises versions are affected, while the NVD/CNA record expresses the affected range using a version boundary; the vendor advisory is used here for product-scope guidance.",
+        "No evidence was returned establishing that a particular asset is internet-exposed or exploitable; exposure must be assessed per deployment."
+      ],
+      "verification_steps": [
+        "Confirm that the deployed TeamCity On-Premises server reports version 2025.11.7 or 2026.1.3, matching the applicable release line.",
+        "If the upgrade path was not used, confirm through TeamCity administration and deployment records that the JetBrains security patch plugin was installed and enabled; for TeamCity 2017.1–2018.1, confirm that the required restart was completed."
+      ]
     },
     "CVE-2026-8398": {
       "business_risk": "Critical supply-chain compromise: a maliciously modified, legitimately signed DAEMON Tools Lite installer could execute attacker-controlled code, expose host and organizational information, and enable additional payload deployment. Treat systems that installed an affected package as potentially compromised, not merely vulnerable.",
