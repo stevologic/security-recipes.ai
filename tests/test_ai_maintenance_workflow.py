@@ -21,6 +21,7 @@ class AiMaintenanceWorkflowTests(unittest.TestCase):
         for watched in (
             "- Build",
             "- CVE catalog sync",
+            "- Content refresh",
             "- Production watchdog",
             "- CVE catalog validation",
             "- Automation shepherd",

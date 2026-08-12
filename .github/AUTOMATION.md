@@ -10,6 +10,7 @@ access token is required.
 | --- | --- | --- |
 | Build (`build.yml`) | push to main, PRs, dispatch | Full test/build/image gate; publishes immutable deploy images on non-PR runs |
 | CVE catalog sync (`cve-catalog-sync.yml`) | daily 09:23 UTC | Refreshes the rolling ten-year CVE catalog, runs OpenAI enrichment and recipe drafts, opens/merges its own PR through exact-SHA validation |
+| Content refresh (`content-refresh.yml`) | daily 11:47 UTC | Researches one source-backed opportunity across reviewed remediation workflows, executable playbooks, or non-CVE recipes and submits a validated auto-merge PR when a substantive update is warranted |
 | CVE catalog validation (`cve-catalog-validate.yml`) | dispatch only | Runs the build-equivalent suite against one exact SHA and publishes the required `build` status for it |
 | Production watchdog (`production-watchdog.yml`) | every 30 min | Probes the live site, catalog freshness, revision, and TLS; maintains the health issue; self-heals unbuilt revisions and stale catalogs |
 | Automation shepherd (`automation-shepherd.yml`) | every 30 min | Dispatches missing main Builds after token-authored merges, updates stale auto-merge PR branches, and attaches missing build validations |
@@ -49,6 +50,6 @@ the watchdog's `revision` probe confirms the handoff landed.
 
 | Item | Kind | Status | Purpose |
 | --- | --- | --- | --- |
-| `OPENAI_API_KEY` | secret | configured | CVE enrichment and recipe drafts in the catalog sync, plus Codex-powered AI maintenance (which no-ops with a notice if the secret is removed) |
+| `OPENAI_API_KEY` | secret | configured | CVE enrichment and recipe drafts, daily non-CVE content refresh, and Codex-powered AI maintenance (which no-ops with a notice if the secret is removed) |
 | `CVE_AUTO_MERGE_ENABLED` | variable | `true` | Lets the catalog sync merge its own PR |
 | `CVE_AUTOMATION_APP_CLIENT_ID` / `CVE_AUTOMATION_APP_PRIVATE_KEY` | variable / secret | optional | A dedicated GitHub App; when configured, its pushes trigger normal CI events and the dispatch workarounds above become unnecessary |
