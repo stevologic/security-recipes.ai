@@ -11,12 +11,48 @@ const config = yaml.load(fs.readFileSync(configPath, 'utf8'));
 const lockPath = path.join(__dirname, '..', 'package-lock.json');
 const lock = JSON.parse(fs.readFileSync(lockPath, 'utf8'));
 
+function compareVersions(left, right) {
+  const leftParts = left.split('.').map(Number);
+  const rightParts = right.split('.').map(Number);
+
+  for (let index = 0; index < Math.max(leftParts.length, rightParts.length); index += 1) {
+    const difference = (leftParts[index] || 0) - (rightParts[index] || 0);
+    if (difference !== 0) {
+      return difference;
+    }
+  }
+
+  return 0;
+}
+
 test('brace-expansion is pinned to the patched 1.x release', () => {
   assert.equal(
     lock.packages?.['node_modules/brace-expansion']?.version,
-    '1.1.16',
-    'GHSA-3jxr-9vmj-r5cp affects brace-expansion versions below 1.1.16',
+    '1.1.18',
+    'GHSA-mh99-v99m-4gvg and GHSA-rgw5-rvv9-x895 affect older brace-expansion 1.x releases',
   );
+});
+
+test('every js-yaml dependency line meets the patched advisory floor', () => {
+  const patchedFloors = new Map([
+    [3, '3.15.1'],
+    [4, '4.3.1'],
+    [5, '5.2.1'],
+  ]);
+
+  for (const [packagePath, packageMetadata] of Object.entries(lock.packages || {})) {
+    if (packagePath !== 'node_modules/js-yaml' && !packagePath.endsWith('/node_modules/js-yaml')) {
+      continue;
+    }
+
+    const version = packageMetadata.version;
+    const patchedFloor = patchedFloors.get(Number(version.split('.')[0]));
+    assert.ok(patchedFloor, `unexpected js-yaml major version at ${packagePath}: ${version}`);
+    assert.ok(
+      compareVersions(version, patchedFloor) >= 0,
+      `GHSA-5p4m-2wfm-xmqj affects ${packagePath} at ${version}; require ${patchedFloor} or newer`,
+    );
+  }
 });
 
 test('Dependabot sends grouped version updates for every repository ecosystem to main', () => {
