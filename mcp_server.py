@@ -123,6 +123,10 @@ class ServerConfig:
         "RECIPES_MCP_PLAYBOOK_REGISTRY_PATH",
         "./data/remediation_suite/playbooks.json",
     )
+    public_mcp_server_catalog_path: str = os.environ.get(
+        "RECIPES_MCP_PUBLIC_SERVER_CATALOG_PATH",
+        "./data/mcp/public-servers.json",
+    )
     assurance_pack_path: str = os.environ.get(
         "RECIPES_MCP_ASSURANCE_PACK_PATH",
         "./data/evidence/agentic-assurance-pack.json",
@@ -726,6 +730,135 @@ class UpstreamMCPRegistry:
             "results": results,
             "security_boundary": "Upstream MCP context is disabled unless configured in mcp-server.toml or RECIPES_MCP_UPSTREAM_SERVERS_JSON.",
         }
+
+
+class PublicMCPServerCatalog:
+    """Validated discovery catalog for the MCP servers documented by the site."""
+
+    REQUIRED_FIELDS = (
+        "id",
+        "name",
+        "provider",
+        "official_url",
+        "availability",
+        "capabilities",
+        "authentication",
+        "safer_default",
+    )
+    ID_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+    MAX_LIMIT = 50
+
+    def __init__(self, path: str):
+        self.path = Path(path)
+
+    def _load(self) -> dict[str, Any]:
+        if not self.path.is_file():
+            raise ValueError(f"public MCP server catalog is missing or not a regular file: {self.path}")
+        payload = json.loads(self.path.read_text(encoding="utf-8"))
+        if not isinstance(payload, dict) or payload.get("schema_version") != 1:
+            raise ValueError("public MCP server catalog schema_version must be 1")
+        if not isinstance(payload.get("source_page"), str) or not payload["source_page"].startswith("https://"):
+            raise ValueError("public MCP server catalog requires an HTTPS source_page")
+        servers = payload.get("servers")
+        if not isinstance(servers, list):
+            raise ValueError("public MCP server catalog servers must be a list")
+
+        seen: set[str] = set()
+        for position, server in enumerate(servers):
+            if not isinstance(server, dict):
+                raise ValueError(f"public MCP server catalog entry {position} must be an object")
+            missing = [field for field in self.REQUIRED_FIELDS if field not in server]
+            if missing:
+                raise ValueError(f"public MCP server catalog entry {position} missing required fields: {missing}")
+            server_id = str(server["id"])
+            if not self.ID_RE.fullmatch(server_id):
+                raise ValueError(f"public MCP server id is invalid: {server_id}")
+            if server_id in seen:
+                raise ValueError(f"duplicate public MCP server id: {server_id}")
+            seen.add(server_id)
+            parsed = urlparse(str(server["official_url"]))
+            if parsed.scheme != "https" or not parsed.netloc or parsed.username or parsed.password:
+                raise ValueError(f"public MCP server {server_id} requires a credential-free HTTPS official_url")
+            capabilities = server["capabilities"]
+            if not isinstance(capabilities, list) or not capabilities or not all(
+                isinstance(item, str) and item.strip() for item in capabilities
+            ):
+                raise ValueError(f"public MCP server {server_id} capabilities must be a non-empty string list")
+        return payload
+
+    def metadata(self) -> dict[str, Any]:
+        try:
+            payload = self._load()
+        except (OSError, ValueError, json.JSONDecodeError) as exc:
+            return {"available": False, "server_count": 0, "error": str(exc)}
+        return {
+            "available": True,
+            "server_count": len(payload["servers"]),
+            "reviewed_at": payload.get("reviewed_at"),
+            "source_page": payload["source_page"],
+        }
+
+    def list_servers(
+        self,
+        query: str | None = None,
+        availability: str | None = None,
+        limit: int = 20,
+    ) -> dict[str, Any]:
+        if limit < 1 or limit > self.MAX_LIMIT:
+            raise ValueError(f"limit must be between 1 and {self.MAX_LIMIT}")
+        payload = self._load()
+        def search_term(value: str) -> str:
+            if value.endswith("ies") and len(value) > 4:
+                return value[:-3] + "y"
+            if value.endswith("s") and len(value) > 3:
+                return value[:-1]
+            return value
+
+        query_terms = [
+            search_term(term)
+            for term in re.findall(r"[a-z0-9]+", (query or "").lower())
+            if term
+        ]
+        availability_key = (availability or "").strip().lower()
+        matches = []
+        for server in payload["servers"]:
+            if availability_key and str(server["availability"]).lower() != availability_key:
+                continue
+            haystack_terms = {
+                search_term(term)
+                for value in (
+                    server["id"],
+                    server["name"],
+                    server["provider"],
+                    server["availability"],
+                    *server["capabilities"],
+                )
+                for term in re.findall(r"[a-z0-9]+", str(value).lower())
+            }
+            if query_terms and not all(
+                any(term in candidate for candidate in haystack_terms) for term in query_terms
+            ):
+                continue
+            matches.append(deepcopy(server))
+        return {
+            "query": query,
+            "availability": availability,
+            "matched_count": len(matches),
+            "count": min(len(matches), limit),
+            "servers": matches[:limit],
+            "reviewed_at": payload.get("reviewed_at"),
+            "source_page": payload["source_page"],
+            "connection_boundary": "Catalog entries are discovery metadata only; no third-party server is contacted or enabled automatically.",
+        }
+
+    def get_server(self, server_id: str) -> dict[str, Any] | None:
+        if not self.ID_RE.fullmatch(server_id.strip()):
+            raise ValueError("server_id must match lowercase kebab-case")
+        payload = self._load()
+        return next(
+            (deepcopy(server) for server in payload["servers"] if server["id"] == server_id.strip()),
+            None,
+        )
 
 
 class RecipeIndex:
@@ -11791,6 +11924,10 @@ def load_config(config_path: str) -> ServerConfig:
         "playbook_registry_path",
         cfg.playbook_registry_path,
     )
+    cfg.public_mcp_server_catalog_path = data.get(
+        "public_mcp_server_catalog_path",
+        cfg.public_mcp_server_catalog_path,
+    )
     cfg.assurance_pack_path = data.get("assurance_pack_path", cfg.assurance_pack_path)
     cfg.identity_ledger_path = data.get("identity_ledger_path", cfg.identity_ledger_path)
     cfg.entitlement_review_pack_path = data.get(
@@ -12065,6 +12202,7 @@ config = load_config(DEFAULT_CONFIG_PATH)
 index = RecipeIndex(config)
 cve_catalog = CVERecipeCatalog(config.cve_catalog_path)
 playbook_registry = PlaybookRegistry(config.playbook_registry_path)
+public_mcp_server_catalog = PublicMCPServerCatalog(config.public_mcp_server_catalog_path)
 # Non-exact catalog searches are CPU-heavy only on a cache miss. A dedicated
 # single worker coalesces that pressure naturally and prevents cold/broad
 # searches from occupying the shared asyncio executor used by exact CVE gets
@@ -15241,6 +15379,7 @@ async def cve_landing_page(request: Request) -> Response:
 async def recipes_server_info() -> dict[str, Any]:
     """Return MCP server metadata and source-index configuration."""
     playbook_registry_metadata = await asyncio.to_thread(playbook_registry.metadata)
+    public_mcp_server_catalog_metadata = await asyncio.to_thread(public_mcp_server_catalog.metadata)
     return {
         "name": "security-recipes-mcp",
         "server_public_base_url": config.server_public_base_url,
@@ -15248,6 +15387,8 @@ async def recipes_server_info() -> dict[str, Any]:
         "cve_catalog_path": config.cve_catalog_path,
         "playbook_registry_path": config.playbook_registry_path,
         "playbook_registry": playbook_registry_metadata,
+        "public_mcp_server_catalog_path": config.public_mcp_server_catalog_path,
+        "public_mcp_server_catalog": public_mcp_server_catalog_metadata,
         "allowed_source_hosts": config.allowed_source_hosts,
         "cache_ttl_seconds": config.cache_ttl_seconds,
         "control_plane_manifest_path": config.control_plane_manifest_path,
@@ -15320,6 +15461,39 @@ async def recipes_mcp_upstream_servers() -> dict[str, Any]:
         "servers": servers,
         "configured_by_default": False,
         "security_boundary": "No upstream MCP servers are enabled unless the operator configures them locally.",
+    }
+
+
+@mcp.tool()
+async def recipes_mcp_servers_list(
+    query: str | None = None,
+    availability: str | None = None,
+    limit: int = 20,
+) -> dict[str, Any]:
+    """Search the bundled catalog of publicly documented MCP servers and ecosystems."""
+    try:
+        return await asyncio.to_thread(
+            public_mcp_server_catalog.list_servers,
+            query,
+            availability,
+            limit,
+        )
+    except (OSError, ValueError, json.JSONDecodeError) as exc:
+        return {"count": 0, "matched_count": 0, "servers": [], "error": str(exc)}
+
+
+@mcp.tool()
+async def recipes_mcp_server_get(server_id: str) -> dict[str, Any]:
+    """Return one publicly documented MCP server with official setup and safety guidance."""
+    try:
+        server = await asyncio.to_thread(public_mcp_server_catalog.get_server, server_id)
+    except (OSError, ValueError, json.JSONDecodeError) as exc:
+        return {"found": False, "server_id": server_id, "error": str(exc)}
+    return {
+        "found": server is not None,
+        "server_id": server_id,
+        "server": server,
+        "connection_boundary": "This is discovery metadata; configure and approve an upstream separately before calling it.",
     }
 
 
