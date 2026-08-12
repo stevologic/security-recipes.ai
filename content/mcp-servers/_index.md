@@ -117,10 +117,19 @@ It exposes **MCP tools** that let compatible clients:
 | Control and gateway policy | Return generated workflow and MCP gateway policy packs. | `recipes_workflow_control_plane`, `recipes_mcp_gateway_policy` |
 | Agent and secure-context evidence | Return generated trust, identity, entitlement, telemetry, incident, and assurance packs. | `recipes_agentic_assurance_pack`, `recipes_agent_identity_ledger`, `recipes_secure_context_trust_pack` |
 | MCP governance evidence | Return connector intake, authorization, elicitation, stdio boundary, tool-risk, and drift packs. | `recipes_mcp_connector_intake_pack`, `recipes_mcp_authorization_conformance_pack`, `recipes_mcp_tool_risk_contract` |
+| Public MCP server discovery | Search and inspect the bundled catalog of officially documented MCP servers listed on this page. | `recipes_mcp_servers_list`, `recipes_mcp_server_get` |
 | Optional upstream bridge | List configured upstream MCP servers, inspect tools, call allowed tools, and collect bounded context. | `recipes_mcp_upstream_servers`, `recipes_mcp_upstream_tools`, `recipes_mcp_upstream_call`, `recipes_mcp_upstream_context` |
 
 The exact tool list is available through your MCP client's `tools/list` view.
-This repo currently defines 66 `recipes_*` tools.
+This repo currently defines 68 `recipes_*` tools.
+
+The MCP server bundles the public-server directory documented below as
+validated discovery data. An MCP client can call `recipes_mcp_servers_list` to
+search it by provider or capability (for example, `cloud observability`) and
+then call `recipes_mcp_server_get` for the official setup URL, authentication
+expectations, and safer default. Catalog inclusion does **not** connect to,
+install, authenticate to, or endorse a third-party server; operators must still
+review and configure any upstream separately.
 
 ### What it is not
 
@@ -332,6 +341,7 @@ Use `mcp-server.toml` to change:
   The legacy `/recipes-index.json` array is still accepted.
 - `allowed_source_hosts`: the host allow-list for that index.
 - generated evidence-pack file paths.
+- the bundled public MCP server catalog path.
 - cache TTL, request timeout, and result limits.
 - optional upstream MCP servers.
 

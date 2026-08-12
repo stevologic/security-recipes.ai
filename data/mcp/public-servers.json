@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-08-12",
+  "source_page": "https://security-recipes.ai/mcp-servers/",
+  "servers": [
+    {
+      "id": "github",
+      "name": "GitHub MCP Server",
+      "provider": "GitHub",
+      "official_url": "https://github.com/github/github-mcp-server",
+      "availability": "open-source",
+      "capabilities": ["repositories", "issues", "pull requests", "Actions", "code security"],
+      "authentication": "GitHub authentication is required for private or account-scoped data.",
+      "safer_default": "Start with repository-scoped read permissions and enable mutation separately."
+    },
+    {
+      "id": "semgrep-docs",
+      "name": "Semgrep docs MCP",
+      "provider": "Semgrep",
+      "official_url": "https://semgrep.dev/docs/mcp",
+      "availability": "public-docs-and-product",
+      "capabilities": ["documentation", "SAST guidance", "SCA guidance", "secrets guidance", "finding triage"],
+      "authentication": "Public documentation can be available without a token; organization findings require Semgrep authentication.",
+      "safer_default": "Use public documentation without credentials and scope organization access to the required tenant."
+    },
+    {
+      "id": "snyk-studio",
+      "name": "Snyk Studio MCP integrations",
+      "provider": "Snyk",
+      "official_url": "https://docs.snyk.io/integrations/snyk-studio-agentic-integrations/getting-started-with-snyk-studio",
+      "availability": "product-integration",
+      "capabilities": ["vulnerability context", "fix advice", "agentic security workflows"],
+      "authentication": "Snyk tenant, organization, and platform authentication may be required.",
+      "safer_default": "Limit access to the intended tenant and organization and review write-capable tools separately."
+    },
+    {
+      "id": "aws-labs",
+      "name": "AWS Labs MCP servers",
+      "provider": "Amazon Web Services",
+      "official_url": "https://github.com/awslabs/mcp",
+      "availability": "open-source-collection",
+      "capabilities": ["AWS documentation", "cloud intelligence", "account resources", "service investigation"],
+      "authentication": "Account and resource tools use AWS credentials; documentation servers may not require account access.",
+      "safer_default": "Scope the account, region, role, and allowed tools; review every write-capable tool."
+    },
+    {
+      "id": "azure",
+      "name": "Azure MCP Server",
+      "provider": "Microsoft Azure",
+      "official_url": "https://github.com/Azure/azure-mcp",
+      "availability": "open-source",
+      "capabilities": ["Azure resources", "subscriptions", "cloud context"],
+      "authentication": "Azure authentication is required for tenant, subscription, or resource data.",
+      "safer_default": "Use tenant and subscription scoping with least-privilege Azure authentication."
+    },
+    {
+      "id": "cloudflare",
+      "name": "Cloudflare MCP servers",
+      "provider": "Cloudflare",
+      "official_url": "https://developers.cloudflare.com/agents/model-context-protocol/mcp-servers-for-cloudflare/",
+      "availability": "public-docs-and-product",
+      "capabilities": ["Cloudflare documentation", "accounts", "zones", "Workers", "observability"],
+      "authentication": "Account or zone data requires Cloudflare authentication.",
+      "safer_default": "Use account-scoped permissions and separately review tools that can change zones or deployments."
+    },
+    {
+      "id": "docker",
+      "name": "Docker MCP Toolkit and Catalog",
+      "provider": "Docker",
+      "official_url": "https://docs.docker.com/ai/mcp-catalog-and-toolkit/toolkit/",
+      "availability": "public-catalog-and-product",
+      "capabilities": ["server discovery", "MCP gateway", "containerized MCP execution"],
+      "authentication": "Authentication depends on the selected catalog server and its backing service.",
+      "safer_default": "Review each catalog server, image, permissions, credentials, and tool surface before promotion."
+    }
+  ]
+}
