@@ -112,7 +112,8 @@ def normalize_request(runtime_request: dict[str, Any]) -> dict[str, Any]:
         "namespace",
         "server_id",
         "elicitation_profile_id",
-        "elicitation_id",
+        "input_request_id",
+        "request_state",
         "mode",
         "url",
         "url_domain",
@@ -126,7 +127,9 @@ def normalize_request(runtime_request: dict[str, Any]) -> dict[str, Any]:
         request[key] = str(request.get(key) or "").strip()
     for key in [
         "client_supports_mode",
-        "completion_notification_bound",
+        "request_state_echoed_exactly",
+        "request_state_integrity_validated",
+        "retry_request_bound",
         "credential_requested",
         "form_contains_clickable_url",
         "https_url",
@@ -199,7 +202,8 @@ def decision_result(
             "agent_id": request.get("agent_id"),
             "connector_id": request.get("connector_id"),
             "correlation_id": request.get("correlation_id"),
-            "elicitation_id": request.get("elicitation_id"),
+            "input_request_id": request.get("input_request_id"),
+            "request_state_present": bool(request.get("request_state")),
             "elicitation_profile_id": request.get("elicitation_profile_id"),
             "mode": request.get("mode"),
             "namespace": request.get("namespace"),
@@ -219,7 +223,7 @@ def decision_result(
 def missing_identity_fields(request: dict[str, Any]) -> list[str]:
     return [
         key
-        for key in ["workflow_id", "agent_id", "run_id", "server_id", "elicitation_id", "mode", "session_id", "correlation_id"]
+        for key in ["workflow_id", "agent_id", "run_id", "server_id", "input_request_id", "mode", "session_id", "correlation_id"]
         if not request.get(key)
     ]
 
@@ -439,19 +443,31 @@ def evaluate_mcp_elicitation_boundary_decision(
             violations=["user_can_review=false"],
         )
 
-    if mode == "url" and (not request["user_consent_recorded"] or not request["completion_notification_bound"]):
+    if mode == "url" and (
+        not request["user_consent_recorded"]
+        or not request["request_state_echoed_exactly"]
+        or not request["request_state_integrity_validated"]
+        or not request["retry_request_bound"]
+    ):
         return decision_result(
             decision="hold_for_elicitation_evidence",
-            reason="URL-mode consent or completion binding evidence is missing",
+            reason="URL-mode consent or multi-round-trip request binding evidence is missing",
             pack=elicitation_pack,
             request=request,
             profile=profile,
             workflow=workflow,
             violations=[
                 flag
-                for flag in ["user_consent_recorded=false", "completion_notification_bound=false"]
+                for flag in [
+                    "user_consent_recorded=false",
+                    "request_state_echoed_exactly=false",
+                    "request_state_integrity_validated=false",
+                    "retry_request_bound=false",
+                ]
                 if flag == "user_consent_recorded=false" and not request["user_consent_recorded"]
-                or flag == "completion_notification_bound=false" and not request["completion_notification_bound"]
+                or flag == "request_state_echoed_exactly=false" and not request["request_state_echoed_exactly"]
+                or flag == "request_state_integrity_validated=false" and not request["request_state_integrity_validated"]
+                or flag == "retry_request_bound=false" and not request["retry_request_bound"]
             ],
         )
 
@@ -500,7 +516,8 @@ def request_from_args(args: argparse.Namespace) -> dict[str, Any]:
         "namespace",
         "server_id",
         "elicitation_profile_id",
-        "elicitation_id",
+        "input_request_id",
+        "request_state",
         "mode",
         "url",
         "url_domain",
@@ -520,7 +537,9 @@ def request_from_args(args: argparse.Namespace) -> dict[str, Any]:
         payload["response_schema_fields"] = args.schema_field
     for flag in [
         "client_supports_mode",
-        "completion_notification_bound",
+        "request_state_echoed_exactly",
+        "request_state_integrity_validated",
+        "retry_request_bound",
         "credential_requested",
         "form_contains_clickable_url",
         "https_url",
@@ -557,7 +576,8 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--namespace")
     parser.add_argument("--server-id", dest="server_id")
     parser.add_argument("--elicitation-profile-id", dest="elicitation_profile_id")
-    parser.add_argument("--elicitation-id", dest="elicitation_id")
+    parser.add_argument("--input-request-id", dest="input_request_id")
+    parser.add_argument("--request-state", dest="request_state")
     parser.add_argument("--mode", choices=["form", "url"])
     parser.add_argument("--url")
     parser.add_argument("--url-domain", dest="url_domain")
@@ -571,7 +591,9 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--schema-field", dest="schema_field", action="append", default=[])
     parser.add_argument("--approval", action="append", default=[], help="Approval field as KEY=VALUE.")
     parser.add_argument("--client-supports-mode", dest="client_supports_mode", action="store_true")
-    parser.add_argument("--completion-notification-bound", dest="completion_notification_bound", action="store_true")
+    parser.add_argument("--request-state-echoed-exactly", dest="request_state_echoed_exactly", action="store_true")
+    parser.add_argument("--request-state-integrity-validated", dest="request_state_integrity_validated", action="store_true")
+    parser.add_argument("--retry-request-bound", dest="retry_request_bound", action="store_true")
     parser.add_argument("--credential-requested", dest="credential_requested", action="store_true")
     parser.add_argument("--form-contains-clickable-url", dest="form_contains_clickable_url", action="store_true")
     parser.add_argument("--https-url", dest="https_url", action="store_true")

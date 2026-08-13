@@ -3,11 +3,11 @@ title: MCP Elicitation Boundary
 linkTitle: MCP Elicitation Boundary
 weight: 11
 date: 2026-05-04
-lastmod: 2026-07-23
+lastmod: 2026-08-13
 toc: true
 description: >
-  Enforce MCP form-mode and URL-mode elicitation boundaries with allowlists,
-  approval gates, evidence, and deterministic runtime decisions.
+  Enforce MCP multi-round-trip form-mode and URL-mode elicitation boundaries
+  with state binding, allowlists, approval gates, and deterministic decisions.
 sidebar:
   exclude: true
 breadcrumb_parent: /agentic-security/
@@ -30,6 +30,16 @@ The new MCP elicitation surface makes AI easier for users because a
 server can ask for missing information inside a workflow. The enterprise
 version needs a default-deny policy:
 
+- clients advertise elicitation modes in capabilities metadata on every
+  parent request, and servers only ask for modes declared on that request;
+- servers return elicitation inside `InputRequiredResult.inputRequests`,
+  never as a standalone server-initiated JSON-RPC request;
+- clients correlate each response by its `inputRequests` map key, echo
+  opaque `requestState` exactly, and retry the original operation with a
+  new JSON-RPC ID;
+- servers treat `requestState` as attacker-controlled, verify its integrity,
+  bind it to the principal and original request, enforce a short expiry, and
+  add single-use enforcement where replay would have side effects;
 - low-risk form prompts can collect display names, preferences, and
   approval rationale;
 - passwords, API keys, payment credentials, access tokens, private keys,
@@ -74,7 +84,8 @@ python3 scripts/evaluate_mcp_elicitation_boundary_decision.py \
   --namespace github.oauth \
   --server-id mcp-server::github \
   --elicitation-profile-id profile-third-party-oauth-url \
-  --elicitation-id elicit-123 \
+  --input-request-id github_oauth \
+  --request-state opaque-aead-state \
   --mode url \
   --url https://github.com/login/oauth/authorize \
   --url-domain github.com \
@@ -86,7 +97,9 @@ python3 scripts/evaluate_mcp_elicitation_boundary_decision.py \
   --server-identity-displayed \
   --user-can-decline \
   --user-consent-recorded \
-  --completion-notification-bound \
+  --request-state-echoed-exactly \
+  --request-state-integrity-validated \
+  --retry-request-bound \
   --https-url \
   --url-allowlisted \
   --expect-decision allow_elicitation_with_receipt
@@ -101,7 +114,8 @@ python3 scripts/evaluate_mcp_elicitation_boundary_decision.py \
   --run-id run-124 \
   --server-id mcp-server::unknown \
   --elicitation-profile-id profile-credential-form-prohibited \
-  --elicitation-id elicit-124 \
+  --input-request-id api_key_form \
+  --request-state opaque-aead-state \
   --mode form \
   --data-class api_key \
   --schema-field api_key \
@@ -140,13 +154,22 @@ That gives reviewers a single answer for a subtle production question:
 when an MCP server asks a user for more information, is the request safe,
 auditable, and separate from tool authorization?
 
+For MCP 2026-07-28, the answer also covers the breaking multi-round-trip
+transport change: supported parent request, per-request client capability,
+unique input-request correlation, exact opaque-state echo, a distinct retry
+request ID, state integrity and replay protection, and binding to the
+authenticated principal and original operation.
+
 ## Industry alignment
 
 This feature follows current primary guidance:
 
-- [MCP Elicitation 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25/client/elicitation)
-  for form mode, URL mode, sensitive data handling, URL safe handling,
-  user identity binding, completion notifications, and phishing controls.
+- [MCP Elicitation 2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28/client/elicitation)
+  for form mode, URL mode, per-request capabilities, `InputRequiredResult`,
+  sensitive data handling, URL safety, identity binding, and phishing controls.
+- [MCP Multi Round-Trip Requests 2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28/basic/patterns/mrtr)
+  for the breaking replacement of server-initiated requests, opaque
+  `requestState`, retry correlation, integrity checks, and replay protection.
 - [MCP Authorization 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
   for protected-resource metadata, resource indicators, audience-bound
   tokens, client identity metadata, and scope challenges.

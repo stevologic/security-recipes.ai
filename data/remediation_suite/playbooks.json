@@ -3608,12 +3608,12 @@
       "title": "MCP Elicitation Boundary",
       "page": "/security-remediation/mcp-elicitation-boundary/",
       "category": "mcp-governance",
-      "summary": "Control what an MCP server may ask a user to provide, how consent is presented, and whether sensitive values can enter the exchange.",
+      "summary": "Control multi-round-trip MCP input requests, state-bound retries, user consent, and whether sensitive values can enter the exchange.",
       "phases": [
         {
           "label": "Signal",
-          "title": "Receive an elicitation request",
-          "detail": "Capture server/tool, workflow, purpose, requested fields, field types, UI mode, destination, retention, and identity."
+          "title": "Receive required input",
+          "detail": "Capture the supported parent request, per-request client capabilities, InputRequiredResult, inputRequests key, opaque requestState, server/tool, purpose, UI mode, destination, and identity."
         },
         {
           "label": "Scope",
@@ -3622,18 +3622,18 @@
         },
         {
           "label": "Decision",
-          "title": "Validate consent context",
-          "detail": "Check server trust, purpose, minimization, user-visible destination, URL/form safety, scopes, approval, and anti-phishing controls."
+          "title": "Validate consent and retry context",
+          "detail": "Check server trust, purpose, minimization, URL/form safety, approval, state integrity and expiry, replay controls, principal binding, and original-request binding."
         },
         {
           "label": "Action",
           "title": "Render or block safely",
-          "detail": "Allow minimized input, redirect to approved URL, redact, require confirmation, hold, deny, or kill credential harvesting."
+          "detail": "Correlate inputResponses, echo opaque state unchanged, retry with a new JSON-RPC ID, or hold, deny, and kill unsafe or credential-harvesting requests."
         },
         {
           "label": "Proof",
           "title": "Write the elicitation receipt",
-          "detail": "Record displayed purpose, allowed fields, user decision, redactions, destination, policy, and correlation ID."
+          "detail": "Record the parent and retry requests, input key, state-validation outcome, displayed purpose, allowed fields, user decision, destination, policy, and correlation ID."
         }
       ],
       "gate": {
@@ -3644,7 +3644,7 @@
       "evidence": [
         "request/data classification",
         "server/consent policy decision",
-        "user-facing elicitation receipt"
+        "state-bound elicitation receipt"
       ],
       "outputs": [
         "safe elicitation form/URL",
