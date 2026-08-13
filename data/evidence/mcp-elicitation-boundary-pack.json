@@ -29,8 +29,8 @@
       "external_token_boundary",
       "mcp_authorization_separation",
       "user_identity_binding",
-      "elicitation_id_correlation",
-      "completion_notification_binding",
+      "input_request_correlation",
+      "multi_round_trip_request_binding",
       "rate_limit_repeated_prompts",
       "run_receipt_logging",
       "gateway_policy_hash_binding"
@@ -42,7 +42,8 @@
       "server_id",
       "connector_id",
       "elicitation_profile_id",
-      "elicitation_id",
+      "input_request_id",
+      "request_state_present",
       "mode",
       "requested_data_classes",
       "url_domain",
@@ -60,7 +61,8 @@
       "namespace",
       "server_id",
       "elicitation_profile_id",
-      "elicitation_id",
+      "input_request_id",
+      "request_state",
       "mode",
       "client_capabilities",
       "server_identity_displayed",
@@ -82,7 +84,10 @@
       "no_preauthenticated_url",
       "no_sensitive_data_in_url",
       "external_credentials_never_transit_mcp_client",
-      "completion_notification_bound_to_elicitation_id",
+      "elicitation_delivered_in_input_required_result",
+      "request_state_echoed_without_inspection_or_modification",
+      "request_state_integrity_and_replay_protected",
+      "retry_bound_to_original_method_and_parameters",
       "state_bound_to_user_identity_not_session_only"
     ],
     "sensitive_data_classes": [
@@ -145,7 +150,7 @@
   "control_checks": [
     {
       "applies_to": "all_elicitation",
-      "control_reason": "Servers must not send elicitation requests for modes the client did not declare.",
+      "control_reason": "Servers must not include elicitation input requests for modes absent from the capabilities metadata on the current parent request.",
       "evidence_key": "client_capabilities",
       "id": "client_capability_check",
       "severity": "high"
@@ -250,16 +255,16 @@
     },
     {
       "applies_to": "all_elicitation",
-      "control_reason": "Each prompt needs a stable ID so completion notifications, retries, receipts, and incident review bind to the original request.",
-      "evidence_key": "elicitation_id",
-      "id": "elicitation_id_correlation",
+      "control_reason": "Each inputRequests map key must be unique within the parent request and must correlate the matching inputResponses entry and receipt.",
+      "evidence_key": "input_request_id",
+      "id": "input_request_correlation",
       "severity": "medium"
     },
     {
       "applies_to": "url_mode",
-      "control_reason": "URL completion notifications must only satisfy the original client and elicitation ID.",
-      "evidence_key": "completion_notification_bound",
-      "id": "completion_notification_binding",
+      "control_reason": "Clients must echo opaque requestState exactly, while servers treat it as attacker-controlled, validate integrity, limit replay, and bind it to the principal and original request.",
+      "evidence_key": "request_state_integrity_validated",
+      "id": "multi_round_trip_request_binding",
       "severity": "medium"
     },
     {
@@ -337,7 +342,8 @@
         "agent_id",
         "run_id",
         "server_id",
-        "elicitation_id",
+        "input_request_id",
+        "request_state",
         "mode",
         "requested_data_classes",
         "response_schema_fields",
@@ -347,9 +353,9 @@
       "risk_score": 100,
       "risk_tier": "critical",
       "source_ids": [
-        "mcp-elicitation-2025-11-25",
-        "mcp-security-best-practices-2025-11-25",
-        "cisa-ai-data-security-2025"
+        "mcp-elicitation-2026-07-28",
+        "mcp-mrtr-2026-07-28",
+        "mcp-security-best-practices-2025-11-25"
       ],
       "title": "Credential Form Mode Prohibited",
       "workflow_ids": [
@@ -402,7 +408,8 @@
         "connector_id",
         "namespace",
         "server_id",
-        "elicitation_id",
+        "input_request_id",
+        "request_state",
         "mode",
         "url",
         "user_id",
@@ -413,8 +420,8 @@
       "risk_score": 100,
       "risk_tier": "critical",
       "source_ids": [
-        "mcp-elicitation-2025-11-25",
-        "owasp-agentic-top-10-2026",
+        "mcp-elicitation-2026-07-28",
+        "mcp-mrtr-2026-07-28",
         "openai-agent-prompt-injection-2026"
       ],
       "title": "Payment or Billing URL Mode",
@@ -456,7 +463,8 @@
         "agent_id",
         "run_id",
         "server_id",
-        "elicitation_id",
+        "input_request_id",
+        "request_state",
         "mode",
         "url",
         "session_id",
@@ -465,9 +473,9 @@
       "risk_score": 100,
       "risk_tier": "critical",
       "source_ids": [
-        "mcp-elicitation-2025-11-25",
-        "openai-agent-prompt-injection-2026",
-        "anthropic-browser-prompt-injection-2025"
+        "mcp-elicitation-2026-07-28",
+        "mcp-mrtr-2026-07-28",
+        "openai-agent-prompt-injection-2026"
       ],
       "title": "Untrusted URL Mode Prohibited",
       "workflow_ids": [
@@ -519,7 +527,8 @@
         "connector_id",
         "namespace",
         "server_id",
-        "elicitation_id",
+        "input_request_id",
+        "request_state",
         "mode",
         "url",
         "user_id",
@@ -530,9 +539,9 @@
       "risk_score": 75,
       "risk_tier": "high",
       "source_ids": [
-        "mcp-elicitation-2025-11-25",
-        "mcp-security-best-practices-2025-11-25",
-        "cisa-ai-data-security-2025"
+        "mcp-elicitation-2026-07-28",
+        "mcp-mrtr-2026-07-28",
+        "mcp-security-best-practices-2025-11-25"
       ],
       "title": "Connector API Key URL Mode",
       "workflow_ids": [
@@ -586,7 +595,8 @@
         "connector_id",
         "namespace",
         "server_id",
-        "elicitation_id",
+        "input_request_id",
+        "request_state",
         "mode",
         "url",
         "user_id",
@@ -597,9 +607,9 @@
       "risk_score": 75,
       "risk_tier": "high",
       "source_ids": [
-        "mcp-elicitation-2025-11-25",
-        "mcp-authorization-2025-11-25",
-        "mcp-security-best-practices-2025-11-25"
+        "mcp-elicitation-2026-07-28",
+        "mcp-mrtr-2026-07-28",
+        "mcp-authorization-2025-11-25"
       ],
       "title": "Third-Party OAuth URL Mode",
       "workflow_ids": [
@@ -636,7 +646,8 @@
         "server_identity_display",
         "decline_and_cancel_available",
         "form_response_review",
-        "elicitation_id_correlation",
+        "input_request_correlation",
+        "multi_round_trip_request_binding",
         "run_receipt_logging"
       ],
       "required_runtime_attributes": [
@@ -644,7 +655,8 @@
         "agent_id",
         "run_id",
         "server_id",
-        "elicitation_id",
+        "input_request_id",
+        "request_state",
         "mode",
         "user_id",
         "session_id",
@@ -654,8 +666,8 @@
       "risk_score": 45,
       "risk_tier": "medium",
       "source_ids": [
-        "mcp-elicitation-2025-11-25",
-        "owasp-agentic-top-10-2026",
+        "mcp-elicitation-2026-07-28",
+        "mcp-mrtr-2026-07-28",
         "openai-agent-prompt-injection-2026"
       ],
       "title": "Human Approval Rationale Form",
@@ -700,7 +712,8 @@
         "agent_id",
         "run_id",
         "server_id",
-        "elicitation_id",
+        "input_request_id",
+        "request_state",
         "mode",
         "user_id",
         "session_id",
@@ -709,8 +722,8 @@
       "risk_score": 25,
       "risk_tier": "low",
       "source_ids": [
-        "mcp-elicitation-2025-11-25",
-        "cisa-ai-data-security-2025",
+        "mcp-elicitation-2026-07-28",
+        "mcp-mrtr-2026-07-28",
         "nist-ai-600-1"
       ],
       "title": "Display Name and Preferences Form",
@@ -734,13 +747,13 @@
     "sales_motion": "Lead with open elicitation rules, then sell hosted MCP prompt and URL safety enforcement, customer domain allowlists, consent receipts, phishing telemetry, and connector setup flows."
   },
   "failures": [],
-  "generated_at": "2026-05-04",
+  "generated_at": "2026-08-13",
   "intent": "Define the SecurityRecipes MCP elicitation boundary so agent hosts, MCP clients, gateways, and enterprise buyers can decide when a server may ask a user for form input or direct the user to an external URL without leaking credentials, tokens, payment data, or prompt-injection-controlled context through the LLM, client, or intermediate MCP servers.",
   "positioning": {
     "buyer": "AI Platform, Product Security, IAM, Privacy, GRC, procurement security, and enterprise architecture teams",
     "category": "MCP elicitation, URL-mode consent, and sensitive interaction boundary",
     "enterprise_promise": "SecurityRecipes can prove that human input requests from MCP servers are identity-bound, mode-aware, consented, URL-safe, and logged before user data or third-party authorization enters the agentic workflow.",
-    "why_now": "MCP 2025-11-25 introduced URL-mode elicitation for sensitive flows that must not pass through the MCP client. That is an enterprise-grade feature, but it creates a new trust boundary: users can be phished, forms can request secrets, URLs can carry sensitive data, and servers can confuse external authorization with MCP authorization unless clients enforce a structured policy."
+    "why_now": "MCP 2026-07-28 moved elicitation into the multi round-trip request pattern. Clients now advertise capabilities on each request, servers return InputRequiredResult, and clients retry with inputResponses plus opaque requestState. This breaking change adds state-integrity, replay, and request-binding risks to the existing phishing and sensitive-data boundary."
   },
   "runtime_evidence_contract": {
     "required_receipt_fields": [
@@ -750,7 +763,8 @@
       "server_id",
       "connector_id",
       "elicitation_profile_id",
-      "elicitation_id",
+      "input_request_id",
+      "request_state_present",
       "mode",
       "requested_data_classes",
       "url_domain",
@@ -769,7 +783,10 @@
       "no_preauthenticated_url",
       "no_sensitive_data_in_url",
       "external_credentials_never_transit_mcp_client",
-      "completion_notification_bound_to_elicitation_id",
+      "elicitation_delivered_in_input_required_result",
+      "request_state_echoed_without_inspection_or_modification",
+      "request_state_integrity_and_replay_protected",
+      "retry_bound_to_original_method_and_parameters",
       "state_bound_to_user_identity_not_session_only"
     ],
     "sensitive_data_classes": [
@@ -798,11 +815,11 @@
   "source_artifacts": {
     "agentic_run_receipt_pack": {
       "path": "data/evidence/agentic-run-receipt-pack.json",
-      "sha256": "b748dbd7b4016d41c50dcb9c7bc7e9191a07f444dadb2d537e3623b1cb32abe1"
+      "sha256": "2ee0bee83bad9218bc3990096222d51c7e67bbb0512be9cb1643e530e94ef6c5"
     },
     "context_egress_boundary_pack": {
       "path": "data/evidence/context-egress-boundary-pack.json",
-      "sha256": "3b23ebaacb2559c7e6894a814b35308ac46edb1a27fb5687afae2d256e47a26d"
+      "sha256": "3c78f13f12d1219cef79624e17e379aec25aa2725e63f3aa6ad97979518157f4"
     },
     "mcp_authorization_conformance_pack": {
       "path": "data/evidence/mcp-authorization-conformance-pack.json",
@@ -810,7 +827,7 @@
     },
     "mcp_elicitation_boundary_profile": {
       "path": "data/assurance/mcp-elicitation-boundary-profile.json",
-      "sha256": "423f1c151ed73300188faa283f3b8235ec90f8fac81209a18c6e2d2142a1daed"
+      "sha256": "7318a3c2e9eabbd88ed197a1df1b58367d44f6fc78a4143241f7d956e43c545d"
     },
     "mcp_gateway_policy": {
       "path": "data/policy/mcp-gateway-policy.json",
@@ -911,10 +928,16 @@
   },
   "standards_alignment": [
     {
-      "coverage": "Form-mode and URL-mode elicitation, sensitive data handling, user consent, decline/cancel actions, URL safe handling, user identity binding, statefulness, and external OAuth/payment/API-key flow separation.",
-      "id": "mcp-elicitation-2025-11-25",
+      "coverage": "Form-mode and URL-mode elicitation delivered through InputRequiredResult, per-request client capabilities, inputResponses on retry, sensitive data handling, consent, URL safety, identity binding, and external authorization separation.",
+      "id": "mcp-elicitation-2026-07-28",
       "name": "Model Context Protocol Elicitation",
-      "url": "https://modelcontextprotocol.io/specification/2025-11-25/client/elicitation"
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/client/elicitation"
+    },
+    {
+      "coverage": "Breaking replacement for server-initiated requests, including unique inputRequests keys, opaque requestState echoing, integrity and replay protection, supported parent requests, and retry binding.",
+      "id": "mcp-mrtr-2026-07-28",
+      "name": "Model Context Protocol Multi Round-Trip Requests",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/patterns/mrtr"
     },
     {
       "coverage": "OAuth 2.1 alignment, protected resource metadata, resource indicators, audience-bound tokens, client identity metadata, scope challenges, and token-passthrough denial for protected MCP servers.",
