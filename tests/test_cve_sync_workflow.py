@@ -271,6 +271,7 @@ class CveSyncWorkflowTests(unittest.TestCase):
         self.assertIn("gh issue create", health_step)
         self.assertIn("gh issue edit", health_step)
         self.assertIn("gh issue close", health_step)
+        self.assertIn("Provider error", health_step)
 
     def test_every_action_reference_is_immutable(self) -> None:
         references = re.findall(r"(?m)^\s*uses:\s*([^#\s]+)", self.workflow)

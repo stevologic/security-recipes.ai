@@ -49,6 +49,7 @@ try:
         OpenAIEnricher,
         canonical_priority_cve_ids,
         enrichment_errors,
+        probe_openai_credentials,
         recipe_ready,
     )
     from scripts.cve_ai_recipe import GeneratedRecipeManager
@@ -62,6 +63,7 @@ except ModuleNotFoundError:  # Direct ``python scripts/sync_cve_catalog.py`` exe
         OpenAIEnricher,
         canonical_priority_cve_ids,
         enrichment_errors,
+        probe_openai_credentials,
         recipe_ready,
     )
     from cve_ai_recipe import GeneratedRecipeManager  # type: ignore[no-redef]
@@ -3210,13 +3212,34 @@ def main(argv: list[str] | None = None) -> int:
     enrichment_cache = EnrichmentCache.load(enrichment_cache_path)
     openai_key = os.environ.get("OPENAI_API_KEY", "").strip()
     openai_client: OpenAIEnricher | None = None
-    if openai_key and not args.disable_ai_enrichment and not args.offline and not args.dry_run:
+    intended_ai = bool(
+        openai_key
+        and not args.disable_ai_enrichment
+        and not args.offline
+        and not args.dry_run
+    )
+    provider_error: str | None = None
+    if intended_ai:
         openai_client = OpenAIEnricher(openai_key, model=args.openai_model)
-        print(
-            f"Optional OpenAI enrichment enabled with model {openai_client.model!r} "
-            f"and limit {args.ai_enrichment_limit}.",
-            flush=True,
+        credential_status = probe_openai_credentials(
+            openai_key,
+            model=openai_client.model,
+            opener=openai_client.opener,
         )
+        if not credential_status.usable:
+            provider_error = credential_status.reason
+            openai_client = None
+            print(
+                f"Optional OpenAI enrichment is inactive ({credential_status.reason}); "
+                "source sync and valid cached enrichments will continue.",
+                flush=True,
+            )
+        else:
+            print(
+                f"Optional OpenAI enrichment enabled with model {openai_client.model!r} "
+                f"and limit {args.ai_enrichment_limit}.",
+                flush=True,
+            )
     elif not openai_key:
         print("OPENAI_API_KEY is not set; source sync and valid cached enrichments will continue.", flush=True)
     else:
@@ -3336,7 +3359,12 @@ def main(argv: list[str] | None = None) -> int:
             **enrichment_cache.stats,
             "cache": str(enrichment_cache_path),
             "cache_changed": enrichment_cache_changed,
-            "api_enabled": openai_client is not None,
+            "api_enabled": intended_ai,
+            **(
+                {"provider_error": provider_error or enrichment_cache.provider_error}
+                if provider_error or enrichment_cache.provider_error
+                else {}
+            ),
         },
         "generated_recipes": {
             **generated_recipe_summary,

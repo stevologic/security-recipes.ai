@@ -17,6 +17,7 @@ import sys
 import time
 from datetime import date, datetime, timezone
 from pathlib import Path
+from dataclasses import dataclass
 from typing import Any, Callable, Iterable, Iterator
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlsplit, urlunsplit
@@ -35,6 +36,14 @@ DEFAULT_REQUEST_TIMEOUT = 60
 MAX_CONSECUTIVE_FAILURES = 3
 MAX_ENRICHMENT_SECONDS = 15 * 60
 MAX_RESPONSE_BYTES = 2 * 1024 * 1024
+MAX_ERROR_BODY_BYTES = 4096
+QUOTA_ERROR_MARKERS = (
+    "insufficient_quota",
+    "no credits remaining",
+    "exceeded your current quota",
+    "add credits to continue",
+    "check your plan and billing",
+)
 MAX_SOURCE_URLS = 24
 MAX_LIST_ITEMS = 8
 MAX_ITEM_LENGTH = 600
@@ -130,6 +139,110 @@ OUTPUT_SCHEMA: dict[str, Any] = {
 
 class EnrichmentError(RuntimeError):
     """An enrichment request or response was unusable without exposing secrets."""
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        fatal: bool = False,
+        reason: str | None = None,
+    ) -> None:
+        super().__init__(message)
+        self.fatal = fatal
+        self.reason = reason
+
+
+@dataclass(frozen=True)
+class OpenAICredentialStatus:
+    reason: str
+    usable: bool
+
+    @property
+    def notice(self) -> str:
+        if self.reason == "missing":
+            return (
+                "OPENAI_API_KEY is not configured; OpenAI automation is inactive "
+                "until the repository secret is added."
+            )
+        if self.reason == "invalid_key":
+            return (
+                "OPENAI_API_KEY was rejected by OpenAI; automation is inactive "
+                "until the repository secret is replaced."
+            )
+        if self.reason == "insufficient_quota":
+            return (
+                "OPENAI_API_KEY has no remaining credits; automation is inactive "
+                "until billing is restored."
+            )
+        return f"OPENAI_API_KEY is not usable ({self.reason})."
+
+
+def _http_error_body(exc: HTTPError) -> str:
+    try:
+        raw = exc.read(MAX_ERROR_BODY_BYTES)
+    except Exception:
+        return ""
+    if not raw:
+        return ""
+    return raw.decode("utf-8", errors="replace")
+
+
+def classify_openai_http_error(exc: HTTPError) -> str:
+    """Return a stable provider reason without echoing secret-bearing bodies."""
+
+    snippet = _http_error_body(exc).lower()
+    if exc.code in {401, 403}:
+        return "invalid_key"
+    if any(marker in snippet for marker in QUOTA_ERROR_MARKERS):
+        return "insufficient_quota"
+    if exc.code == 429:
+        return "rate_limited"
+    return "http_error"
+
+
+def probe_openai_credentials(
+    api_key: str,
+    *,
+    model: str = DEFAULT_MODEL,
+    api_url: str = DEFAULT_API_URL,
+    opener: Callable[..., Any] | None = None,
+    timeout: int = 30,
+) -> OpenAICredentialStatus:
+    """Classify whether the configured OpenAI key can serve billed requests."""
+
+    key = str(api_key or "").strip()
+    if not key:
+        return OpenAICredentialStatus("missing", usable=False)
+    if opener is None:
+        opener = urlopen
+    payload = {
+        "model": normalize_text(model, limit=160) or DEFAULT_MODEL,
+        "store": False,
+        "input": "ok",
+        "max_output_tokens": 16,
+    }
+    request = Request(
+        api_url,
+        data=json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8"),
+        method="POST",
+        headers={
+            "Authorization": f"Bearer {key}",
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+            "User-Agent": "security-recipes.ai/openai-credential-check",
+        },
+    )
+    try:
+        with opener(request, timeout=max(1, timeout)) as response:
+            response.read(MAX_RESPONSE_BYTES)
+    except HTTPError as exc:
+        reason = classify_openai_http_error(exc)
+        if reason in {"insufficient_quota", "invalid_key"}:
+            return OpenAICredentialStatus(reason, usable=False)
+        return OpenAICredentialStatus(reason, usable=True)
+    except (TimeoutError, URLError, OSError):
+        return OpenAICredentialStatus("unreachable", usable=True)
+    return OpenAICredentialStatus("ready", usable=True)
 
 
 def canonical_priority_cve_ids(values: Iterable[str]) -> tuple[str, ...]:
@@ -840,6 +953,19 @@ class OpenAIEnricher:
                 return parsed
             except HTTPError as exc:
                 last_error = exc
+                reason = classify_openai_http_error(exc)
+                if reason == "insufficient_quota":
+                    raise EnrichmentError(
+                        "OpenAI Responses API has no remaining credits",
+                        fatal=True,
+                        reason=reason,
+                    ) from exc
+                if reason == "invalid_key":
+                    raise EnrichmentError(
+                        "OpenAI Responses API rejected the API key",
+                        fatal=True,
+                        reason=reason,
+                    ) from exc
                 if exc.code not in retryable_codes or attempt + 1 >= self.attempts:
                     raise EnrichmentError(f"OpenAI Responses API returned HTTP {exc.code}") from exc
                 retry_after = exc.headers.get("Retry-After") if exc.headers else None
@@ -877,6 +1003,7 @@ class EnrichmentCache:
         self.entries: dict[str, dict[str, Any]] = entries or {}
         self.selected: dict[str, list[str]] = {}
         self._selected_records: dict[str, dict[str, Any]] = {}
+        self.provider_error: str | None = None
         self.stats: dict[str, int] = {
             "eligible": 0,
             "cached": 0,
@@ -913,6 +1040,7 @@ class EnrichmentCache:
         self.entries = {}
         self.selected = {}
         self._selected_records = {}
+        self.provider_error = None
         self.stats = {
             "eligible": 0,
             "cached": 0,
@@ -1014,7 +1142,9 @@ class EnrichmentCache:
                     file=sys.stderr,
                     flush=True,
                 )
-                if consecutive_failures >= MAX_CONSECUTIVE_FAILURES:
+                if exc.reason and self.provider_error is None:
+                    self.provider_error = exc.reason
+                if exc.fatal or consecutive_failures >= MAX_CONSECUTIVE_FAILURES:
                     print(
                         "Optional OpenAI enrichment circuit breaker opened after "
                         f"{consecutive_failures} consecutive failures; source sync will continue.",

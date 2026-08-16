@@ -53,10 +53,12 @@ class ContentRefreshWorkflowTests(unittest.TestCase):
         ):
             self.assertIn(delivery_rule, self.workflow)
 
-    def test_missing_openai_key_is_a_safe_noop(self) -> None:
+    def test_missing_or_unusable_openai_key_is_a_safe_noop(self) -> None:
         self.assertIn("secrets.OPENAI_API_KEY", self.workflow)
         self.assertIn("daily content refresh is inactive", self.workflow)
         self.assertIn("if: steps.auth.outputs.configured == 'true'", self.workflow)
+        self.assertIn("scripts/check_openai_credentials.py", self.workflow)
+        self.assertIn("if: steps.openai.outputs.usable == 'true'", self.workflow)
 
 
 if __name__ == "__main__":

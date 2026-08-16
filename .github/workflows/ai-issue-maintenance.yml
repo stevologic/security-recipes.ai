@@ -61,15 +61,56 @@ jobs:
             echo "::notice::OPENAI_API_KEY is not configured; AI issue maintenance is inactive until the repository secret is added."
           fi
 
-      - name: Checkout default branch
+      - name: Select issues that need triage
+        id: work
         if: steps.auth.outputs.configured == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TARGET_ISSUE: ${{ github.event_name == 'issues' && github.event.issue.number || '' }}
+        shell: bash
+        run: |
+          if [ -n "$TARGET_ISSUE" ]; then
+            echo "needed=true" >> "$GITHUB_OUTPUT"
+            echo "Selected TARGET_ISSUE #${TARGET_ISSUE}."
+            exit 0
+          fi
+          COUNT="$(gh issue list \
+            --state open \
+            --limit 50 \
+            --json number,author,labels \
+            --jq '[.[]
+              | select(
+                  .author.login == "stevologic"
+                  or .author.login == "github-actions[bot]"
+                  or .author.login == "github-actions"
+                )
+              | select([.labels[].name] | index("automation:ai-triaged") | not)
+            ] | length')"
+          if [ "${COUNT:-0}" -eq 0 ]; then
+            echo "needed=false" >> "$GITHUB_OUTPUT"
+            echo "No untriaged owner or automation issues; skipping Codex."
+            exit 0
+          fi
+          echo "needed=true" >> "$GITHUB_OUTPUT"
+          echo "Selected ${COUNT} untriaged owner or automation issue(s)."
+
+      - name: Checkout default branch
+        if: steps.auth.outputs.configured == 'true' && steps.work.outputs.needed == 'true'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.repository.default_branch }}
           fetch-depth: 0
 
+      - name: Verify OpenAI credentials are usable
+        id: openai
+        if: steps.auth.outputs.configured == 'true' && steps.work.outputs.needed == 'true'
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        shell: bash
+        run: python scripts/check_openai_credentials.py --github-output "$GITHUB_OUTPUT"
+
       - name: Triage and repair open issues
-        if: steps.auth.outputs.configured == 'true'
+        if: steps.openai.outputs.usable == 'true'
         uses: openai/codex-action@52fe01ec70a42f454c9d2ebd47598f9fd6893d56 # v1.11
         env:
           GH_TOKEN: ${{ github.token }}

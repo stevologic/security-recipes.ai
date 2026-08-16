@@ -61,16 +61,20 @@ def sync_report(
     generated: int = 20,
     failed: int = 0,
     deleted: int = 0,
+    provider_error: str | None = None,
 ) -> dict[str, Any]:
+    enrichment = {
+        "api_enabled": api_enabled,
+        "eligible": 500,
+        "cached": 100,
+        "selected": selected,
+        "generated": generated,
+        "failed": failed,
+    }
+    if provider_error:
+        enrichment["provider_error"] = provider_error
     return {
-        "ai_enrichment": {
-            "api_enabled": api_enabled,
-            "eligible": 500,
-            "cached": 100,
-            "selected": selected,
-            "generated": generated,
-            "failed": failed,
-        },
+        "ai_enrichment": enrichment,
         "generated_recipes": {"deleted": deleted},
     }
 
@@ -145,6 +149,28 @@ class CatalogUpdateGuardTests(unittest.TestCase):
 
         self.assertFalse(health["healthy"])
         self.assertIn("OPENAI_API_KEY", health["alerts"][0])
+
+    def test_exhausted_quota_is_explicit_and_does_not_blame_the_time_budget(self) -> None:
+        health = catalog_guard.enrichment_health(
+            sync_report(
+                selected=20,
+                generated=0,
+                failed=1,
+                provider_error="insufficient_quota",
+            )
+        )
+
+        self.assertFalse(health["healthy"])
+        self.assertEqual(health["metrics"]["provider_error"], "insufficient_quota")
+        self.assertTrue(
+            any("credits are exhausted" in alert for alert in health["alerts"])
+        )
+        self.assertTrue(
+            any("provider became unavailable" in alert for alert in health["alerts"])
+        )
+        self.assertFalse(
+            any("time budget" in alert for alert in health["alerts"])
+        )
 
     def test_cli_writes_fail_closed_github_outputs(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
