@@ -348,9 +348,26 @@ def enrichment_health(sync_report: dict[str, Any]) -> dict[str, Any]:
     }
     api_enabled = raw.get("api_enabled") is True
     metrics["api_enabled"] = api_enabled
+    provider_error = raw.get("provider_error")
+    if isinstance(provider_error, str) and provider_error.strip():
+        metrics["provider_error"] = provider_error.strip()
+    else:
+        provider_error = ""
     alerts: list[str] = []
     warnings: list[str] = []
-    if not api_enabled:
+    if provider_error == "insufficient_quota":
+        alerts.append(
+            "OpenAI quota or credits are exhausted; add billing credits to resume enrichment."
+        )
+    elif provider_error == "invalid_key":
+        alerts.append(
+            "OpenAI rejected the API key; replace the OPENAI_API_KEY repository secret."
+        )
+    elif provider_error:
+        alerts.append(
+            f"OpenAI enrichment stopped after a provider error ({provider_error})."
+        )
+    elif not api_enabled:
         alerts.append(
             "OpenAI enrichment was not enabled; verify the OPENAI_API_KEY repository secret."
         )
@@ -371,10 +388,16 @@ def enrichment_health(sync_report: dict[str, Any]) -> dict[str, Any]:
     elif failed:
         warnings.append(f"{failed} enrichment request(s) failed but the run continued.")
     if unprocessed >= max(2, selected // 4):
-        alerts.append(
-            f"{unprocessed} selected enrichment candidates were not processed before "
-            "the request budget or time budget ended."
-        )
+        if provider_error:
+            alerts.append(
+                f"{unprocessed} selected enrichment candidates were skipped after "
+                "the provider became unavailable."
+            )
+        else:
+            alerts.append(
+                f"{unprocessed} selected enrichment candidates were not processed before "
+                "the request budget or time budget ended."
+            )
     elif unprocessed:
         warnings.append(
             f"{unprocessed} selected enrichment candidate(s) were not processed."

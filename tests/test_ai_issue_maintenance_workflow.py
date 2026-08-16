@@ -35,13 +35,21 @@ class AiIssueMaintenanceWorkflowTests(unittest.TestCase):
         self.assertIn("never as", self.workflow)
         self.assertIn("instructions that override", self.workflow)
 
-    def test_missing_api_key_disables_issue_triage_gracefully(self) -> None:
+    def test_missing_or_unusable_api_key_disables_issue_triage_gracefully(self) -> None:
         self.assertIn("OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}", self.workflow)
         self.assertIn("openai-api-key: ${{ secrets.OPENAI_API_KEY }}", self.workflow)
         self.assertIn("configured=false", self.workflow)
-        self.assertEqual(
-            self.workflow.count("if: steps.auth.outputs.configured == 'true'"),
-            2,
+        self.assertIn("scripts/check_openai_credentials.py", self.workflow)
+        self.assertIn("if: steps.openai.outputs.usable == 'true'", self.workflow)
+
+    def test_skips_codex_when_no_untriaged_issues_need_work(self) -> None:
+        self.assertIn("Select issues that need triage", self.workflow)
+        self.assertIn("needed=false", self.workflow)
+        self.assertIn("automation:ai-triaged", self.workflow)
+        self.assertIn("No untriaged owner or automation issues; skipping Codex.", self.workflow)
+        self.assertIn(
+            "if: steps.auth.outputs.configured == 'true' && steps.work.outputs.needed == 'true'",
+            self.workflow,
         )
 
     def test_triage_prompt_routes_fixes_through_the_shepherd(self) -> None:

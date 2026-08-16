@@ -4,6 +4,7 @@ import json
 import tempfile
 import unittest
 from datetime import datetime, timezone
+from io import BytesIO
 from pathlib import Path
 from urllib.error import HTTPError
 
@@ -669,6 +670,107 @@ class CVEAIEnrichmentTests(unittest.TestCase):
         self.assertEqual(result["status"], "complete")
         self.assertEqual(len(attempts), 2)
         self.assertEqual(delays, [0.0])
+
+    def test_quota_exhaustion_is_fatal_and_does_not_retry(self) -> None:
+        attempts: list[int] = []
+        source = record()
+        body = json.dumps(
+            {
+                "error": {
+                    "code": "insufficient_quota",
+                    "message": "You have no credits remaining. Add credits to continue using the API.",
+                }
+            }
+        ).encode("utf-8")
+
+        def opener(_: object, *, timeout: int) -> FakeResponse:
+            attempts.append(timeout)
+            raise HTTPError(
+                enrichment.DEFAULT_API_URL,
+                429,
+                "Too Many Requests",
+                {"Retry-After": "0"},
+                BytesIO(body),
+            )
+
+        client = enrichment.OpenAIEnricher(
+            "not-real",
+            opener=opener,
+            sleep=lambda _: None,
+            attempts=2,
+        )
+        with self.assertRaises(enrichment.EnrichmentError) as raised:
+            client.enrich(source)
+        self.assertTrue(raised.exception.fatal)
+        self.assertEqual(raised.exception.reason, "insufficient_quota")
+        self.assertIn("no remaining credits", str(raised.exception))
+        self.assertEqual(len(attempts), 1)
+
+    def test_quota_exhaustion_opens_the_circuit_immediately(self) -> None:
+        records = [record(f"CVE-2026-{number}") for number in range(2000, 2005)]
+        with tempfile.TemporaryDirectory() as tmpdir:
+            cache = enrichment.EnrichmentCache(Path(tmpdir) / "ai.json")
+            cache.select_candidates(records, limit=len(records))
+
+            class QuotaClient:
+                def __init__(self) -> None:
+                    self.calls = 0
+
+                def enrich(self, _: dict[str, object]) -> dict[str, object]:
+                    self.calls += 1
+                    raise enrichment.EnrichmentError(
+                        "OpenAI Responses API has no remaining credits",
+                        fatal=True,
+                        reason="insufficient_quota",
+                    )
+
+            client = QuotaClient()
+            results = list(cache.apply(records, client=client))
+
+        self.assertEqual(client.calls, 1)
+        self.assertEqual(cache.stats["failed"], 1)
+        self.assertEqual(cache.provider_error, "insufficient_quota")
+        self.assertTrue(all("ai_enrichment" not in item for item in results))
+
+    def test_probe_classifies_missing_invalid_and_exhausted_keys(self) -> None:
+        self.assertEqual(
+            enrichment.probe_openai_credentials(""),
+            enrichment.OpenAICredentialStatus("missing", usable=False),
+        )
+
+        def rejected(_: object, *, timeout: int) -> FakeResponse:
+            raise HTTPError(
+                enrichment.DEFAULT_API_URL,
+                401,
+                "Unauthorized",
+                {},
+                BytesIO(b'{"error":{"code":"invalid_api_key"}}'),
+            )
+
+        invalid = enrichment.probe_openai_credentials("sk-test", opener=rejected)
+        self.assertEqual(invalid.reason, "invalid_key")
+        self.assertFalse(invalid.usable)
+
+        def exhausted(_: object, *, timeout: int) -> FakeResponse:
+            raise HTTPError(
+                enrichment.DEFAULT_API_URL,
+                429,
+                "Too Many Requests",
+                {},
+                BytesIO(b'{"error":{"code":"insufficient_quota","message":"You have no credits remaining."}}'),
+            )
+
+        quota = enrichment.probe_openai_credentials("sk-test", opener=exhausted)
+        self.assertEqual(quota.reason, "insufficient_quota")
+        self.assertFalse(quota.usable)
+        self.assertIn("no remaining credits", quota.notice)
+
+        def ready(_: object, *, timeout: int) -> FakeResponse:
+            return FakeResponse({"id": "resp_ok"})
+
+        ok = enrichment.probe_openai_credentials("sk-test", opener=ready)
+        self.assertEqual(ok.reason, "ready")
+        self.assertTrue(ok.usable)
 
     def test_cache_prioritizes_kev_critical_and_applies_only_bounded_selection(self) -> None:
         older = record("CVE-2025-1000", severity="medium", published="2025-01-01")

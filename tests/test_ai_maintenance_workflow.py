@@ -37,7 +37,7 @@ class AiMaintenanceWorkflowTests(unittest.TestCase):
             with self.subTest(branch_guard=branch_guard):
                 self.assertIn(branch_guard, self.workflow)
 
-    def test_missing_api_key_disables_ai_repair_gracefully(self) -> None:
+    def test_missing_or_unusable_api_key_disables_ai_repair_gracefully(self) -> None:
         self.assertIn("OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}", self.workflow)
         self.assertIn("openai-api-key: ${{ secrets.OPENAI_API_KEY }}", self.workflow)
         self.assertIn("configured=false", self.workflow)
@@ -45,7 +45,9 @@ class AiMaintenanceWorkflowTests(unittest.TestCase):
             "AI maintenance is inactive until the repository secret is added",
             self.workflow,
         )
-        self.assertEqual(
+        self.assertIn("scripts/check_openai_credentials.py", self.workflow)
+        self.assertIn("if: steps.openai.outputs.usable == 'true'", self.workflow)
+        self.assertGreaterEqual(
             self.workflow.count("if: steps.auth.outputs.configured == 'true'"),
             2,
         )
