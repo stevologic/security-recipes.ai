@@ -3,7 +3,7 @@ title: MCP Authorization Conformance
 linkTitle: MCP Authorization Conformance
 weight: 10
 date: 2026-05-02
-lastmod: 2026-07-13
+lastmod: 2026-08-21
 toc: true
 description: >
   Generate an MCP authorization conformance pack for resource-bound tokens,
