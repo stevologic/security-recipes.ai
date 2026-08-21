@@ -7,7 +7,7 @@ framework_id: "fda-medical-device-cybersecurity"
 framework: "FDA Medical Device Cybersecurity"
 framework_version: "Final Guidance, February 2026"
 framework_status: "final"
-source_reviewed: "2026-07-12"
+source_reviewed: "2026-08-21"
 jurisdiction: ["united-states"]
 jurisdictions: ["united-states"]
 industry: ["medical-devices", "healthcare"]
@@ -26,7 +26,7 @@ noindex_follow: true
 model: "gpt-5-codex"
 tags: ["compliance", "fda-medical-device-cybersecurity", "regulated-industries", "audit", "product-security", "safety", "medical-devices", "healthcare"]
 weight: 360
-date: "2026-07-12"
+date: "2026-08-21"
 severity: "info"
 ---
 
@@ -51,7 +51,7 @@ Use this recipe to produce a source-aware evidence-readiness assessment for **FD
 - **Publisher:** U.S. Food and Drug Administration
 - **Version:** Final Guidance, February 2026
 - **Status:** `final`
-- **Sources reviewed:** 2026-07-12
+- **Sources reviewed:** 2026-08-21
 - **Jurisdictions:** united-states
 - **Industries:** medical-devices, healthcare
 - **License boundary:** `public-domain`
@@ -85,7 +85,7 @@ Evidence domains for this framework:
 ## The prompt
 
 ```markdown
-You are a compliance evidence-readiness analyst. Evaluate the supplied scope against FDA Medical Device Cybersecurity (Final Guidance, February 2026). The catalog status is final and the source review date is 2026-07-12.
+You are a compliance evidence-readiness analyst. Evaluate the supplied scope against FDA Medical Device Cybersecurity (Final Guidance, February 2026). The catalog status is final and the source review date is 2026-08-21.
 
 Never claim certification or legal compliance. Never invent applicability, evidence, control operation, sampling results, or requirement text. Separate observed facts, organization assertions, and analyst inferences. Treat missing or inaccessible evidence as unknown, not as failure, unless the authoritative assessment method says otherwise.
 

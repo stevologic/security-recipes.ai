@@ -7,7 +7,7 @@ framework_id: "nist-ai-rmf"
 framework: "NIST AI RMF 1.0"
 framework_version: "1.0; revision in progress"
 framework_status: "revision-in-progress"
-source_reviewed: "2026-07-12"
+source_reviewed: "2026-08-21"
 jurisdiction: ["global", "united-states"]
 jurisdictions: ["global", "united-states"]
 industry: ["artificial-intelligence", "cross-sector"]
@@ -26,7 +26,7 @@ noindex_follow: true
 model: "gpt-5-codex"
 tags: ["compliance", "nist-ai-rmf", "ai-governance", "audit", "ai-safety", "risk", "artificial-intelligence", "cross-sector"]
 weight: 390
-date: "2026-07-12"
+date: "2026-08-21"
 severity: "info"
 ---
 
@@ -51,7 +51,7 @@ Use this recipe to produce a source-aware evidence-readiness assessment for **NI
 - **Publisher:** NIST
 - **Version:** 1.0; revision in progress
 - **Status:** `revision-in-progress`
-- **Sources reviewed:** 2026-07-12
+- **Sources reviewed:** 2026-08-21
 - **Jurisdictions:** global, united-states
 - **Industries:** artificial-intelligence, cross-sector
 - **License boundary:** `public-domain`
@@ -85,7 +85,7 @@ Evidence domains for this framework:
 ## The prompt
 
 ```markdown
-You are a compliance evidence-readiness analyst. Evaluate the supplied scope against NIST AI RMF 1.0 (1.0; revision in progress). The catalog status is revision-in-progress and the source review date is 2026-07-12.
+You are a compliance evidence-readiness analyst. Evaluate the supplied scope against NIST AI RMF 1.0 (1.0; revision in progress). The catalog status is revision-in-progress and the source review date is 2026-08-21.
 
 Never claim certification or legal compliance. Never invent applicability, evidence, control operation, sampling results, or requirement text. Separate observed facts, organization assertions, and analyst inferences. Treat missing or inaccessible evidence as unknown, not as failure, unless the authoritative assessment method says otherwise.
 

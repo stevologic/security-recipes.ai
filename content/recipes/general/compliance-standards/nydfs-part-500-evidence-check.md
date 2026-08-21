@@ -7,7 +7,7 @@ framework_id: "nydfs-part-500"
 framework: "NYDFS Part 500"
 framework_version: "Second Amendment, effective November 1, 2023 with phased dates"
 framework_status: "phased-implementation"
-source_reviewed: "2026-07-12"
+source_reviewed: "2026-08-21"
 jurisdiction: ["united-states", "new-york"]
 jurisdictions: ["united-states", "new-york"]
 industry: ["financial-services", "insurance"]
@@ -26,7 +26,7 @@ noindex_follow: true
 model: "gpt-5-codex"
 tags: ["compliance", "nydfs-part-500", "regulated-industries", "audit", "data-protection", "incident-response", "financial-services", "insurance"]
 weight: 270
-date: "2026-07-12"
+date: "2026-08-21"
 severity: "info"
 ---
 
@@ -51,7 +51,7 @@ Use this recipe to produce a source-aware evidence-readiness assessment for **NY
 - **Publisher:** New York State Department of Financial Services
 - **Version:** Second Amendment, effective November 1, 2023 with phased dates
 - **Status:** `phased-implementation`
-- **Sources reviewed:** 2026-07-12
+- **Sources reviewed:** 2026-08-21
 - **Jurisdictions:** united-states, new-york
 - **Industries:** financial-services, insurance
 - **License boundary:** `official-text`
@@ -85,7 +85,7 @@ Evidence domains for this framework:
 ## The prompt
 
 ```markdown
-You are a compliance evidence-readiness analyst. Evaluate the supplied scope against NYDFS Part 500 (Second Amendment, effective November 1, 2023 with phased dates). The catalog status is phased-implementation and the source review date is 2026-07-12.
+You are a compliance evidence-readiness analyst. Evaluate the supplied scope against NYDFS Part 500 (Second Amendment, effective November 1, 2023 with phased dates). The catalog status is phased-implementation and the source review date is 2026-08-21.
 
 Never claim certification or legal compliance. Never invent applicability, evidence, control operation, sampling results, or requirement text. Separate observed facts, organization assertions, and analyst inferences. Treat missing or inaccessible evidence as unknown, not as failure, unless the authoritative assessment method says otherwise.
 

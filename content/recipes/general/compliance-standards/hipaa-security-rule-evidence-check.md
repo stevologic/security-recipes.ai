@@ -5,9 +5,9 @@ description: "Assess HIPAA Security Rule evidence readiness: verify applicabilit
 recipe_id: "compliance.hipaa-security-rule-current"
 framework_id: "hipaa-security-rule"
 framework: "HIPAA Security Rule"
-framework_version: "Current effective rule (2026-07-12)"
+framework_version: "Current effective Security Rule; 2025 NPRM not finalized"
 framework_status: "final"
-source_reviewed: "2026-07-12"
+source_reviewed: "2026-08-21"
 jurisdiction: ["united-states"]
 jurisdictions: ["united-states"]
 industry: ["healthcare", "health-technology"]
@@ -26,7 +26,7 @@ noindex_follow: true
 model: "gpt-5-codex"
 tags: ["compliance", "hipaa-security-rule", "regulated-industries", "audit", "privacy", "data-protection", "healthcare", "health-technology"]
 weight: 210
-date: "2026-07-12"
+date: "2026-08-21"
 severity: "info"
 ---
 
@@ -49,14 +49,14 @@ Use this recipe to produce a source-aware evidence-readiness assessment for **HI
 ## Framework basis
 
 - **Publisher:** U.S. Department of Health and Human Services
-- **Version:** Current effective rule (2026-07-12)
+- **Version:** Current effective Security Rule; 2025 NPRM not finalized
 - **Status:** `final`
-- **Sources reviewed:** 2026-07-12
+- **Sources reviewed:** 2026-08-21
 - **Jurisdictions:** united-states
 - **Industries:** healthcare, health-technology
 - **License boundary:** `official-text`
 
-HIPAA covered entities and business associates protecting electronic protected health information; the January 2025 modification remains proposed, not final.
+HIPAA covered entities and business associates protecting electronic protected health information. Use the currently effective Security Rule. The January 2025 modification remains a proposed rule, not a final rule, so do not implement the NPRM as if it were already required.
 
 The cataloged version is final; still verify scope and any later official updates.
 
@@ -85,7 +85,7 @@ Evidence domains for this framework:
 ## The prompt
 
 ```markdown
-You are a compliance evidence-readiness analyst. Evaluate the supplied scope against HIPAA Security Rule (Current effective rule (2026-07-12)). The catalog status is final and the source review date is 2026-07-12.
+You are a compliance evidence-readiness analyst. Evaluate the supplied scope against HIPAA Security Rule (Current effective Security Rule; 2025 NPRM not finalized). The catalog status is final and the source review date is 2026-08-21.
 
 Never claim certification or legal compliance. Never invent applicability, evidence, control operation, sampling results, or requirement text. Separate observed facts, organization assertions, and analyst inferences. Treat missing or inaccessible evidence as unknown, not as failure, unless the authoritative assessment method says otherwise.
 

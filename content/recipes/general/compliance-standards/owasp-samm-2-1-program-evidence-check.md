@@ -7,7 +7,7 @@ framework_id: "owasp-samm"
 framework: "OWASP SAMM 2.1"
 framework_version: "2.1"
 framework_status: "final"
-source_reviewed: "2026-07-12"
+source_reviewed: "2026-08-21"
 jurisdiction: ["global"]
 jurisdictions: ["global"]
 industry: ["software", "cross-sector"]
@@ -26,7 +26,7 @@ noindex_follow: true
 model: "gpt-5-codex"
 tags: ["compliance", "owasp-samm", "product-security", "audit", "application-security", "maturity", "software", "cross-sector"]
 weight: 320
-date: "2026-07-12"
+date: "2026-08-21"
 severity: "info"
 ---
 
@@ -51,7 +51,7 @@ Use this recipe to produce a source-aware evidence-readiness assessment for **OW
 - **Publisher:** OWASP Foundation
 - **Version:** 2.1
 - **Status:** `final`
-- **Sources reviewed:** 2026-07-12
+- **Sources reviewed:** 2026-08-21
 - **Jurisdictions:** global
 - **Industries:** software, cross-sector
 - **License boundary:** `open-attribution`
@@ -85,7 +85,7 @@ Evidence domains for this framework:
 ## The prompt
 
 ```markdown
-You are a compliance evidence-readiness analyst. Evaluate the supplied scope against OWASP SAMM 2.1 (2.1). The catalog status is final and the source review date is 2026-07-12.
+You are a compliance evidence-readiness analyst. Evaluate the supplied scope against OWASP SAMM 2.1 (2.1). The catalog status is final and the source review date is 2026-08-21.
 
 Never claim certification or legal compliance. Never invent applicability, evidence, control operation, sampling results, or requirement text. Separate observed facts, organization assertions, and analyst inferences. Treat missing or inaccessible evidence as unknown, not as failure, unless the authoritative assessment method says otherwise.
 

@@ -7,7 +7,7 @@ framework_id: "iec-62443"
 framework: "IEC 62443"
 framework_version: "IEC 62443-2-1:2024 and IEC 62443-4-1:2018"
 framework_status: "final"
-source_reviewed: "2026-07-12"
+source_reviewed: "2026-08-21"
 jurisdiction: ["global"]
 jurisdictions: ["global"]
 industry: ["industrial-automation", "critical-infrastructure", "manufacturing"]
@@ -26,7 +26,7 @@ noindex_follow: true
 model: "gpt-5-codex"
 tags: ["compliance", "iec-62443", "critical-infrastructure", "audit", "ot-security", "product-security", "industrial-automation"]
 weight: 370
-date: "2026-07-12"
+date: "2026-08-21"
 severity: "info"
 ---
 
@@ -51,7 +51,7 @@ Use this recipe to produce a source-aware evidence-readiness assessment for **IE
 - **Publisher:** IEC
 - **Version:** IEC 62443-2-1:2024 and IEC 62443-4-1:2018
 - **Status:** `final`
-- **Sources reviewed:** 2026-07-12
+- **Sources reviewed:** 2026-08-21
 - **Jurisdictions:** global
 - **Industries:** industrial-automation, critical-infrastructure, manufacturing
 - **License boundary:** `summary-only`
@@ -85,7 +85,7 @@ Evidence domains for this framework:
 ## The prompt
 
 ```markdown
-You are a compliance evidence-readiness analyst. Evaluate the supplied scope against IEC 62443 (IEC 62443-2-1:2024 and IEC 62443-4-1:2018). The catalog status is final and the source review date is 2026-07-12.
+You are a compliance evidence-readiness analyst. Evaluate the supplied scope against IEC 62443 (IEC 62443-2-1:2024 and IEC 62443-4-1:2018). The catalog status is final and the source review date is 2026-08-21.
 
 Never claim certification or legal compliance. Never invent applicability, evidence, control operation, sampling results, or requirement text. Separate observed facts, organization assertions, and analyst inferences. Treat missing or inaccessible evidence as unknown, not as failure, unless the authoritative assessment method says otherwise.
 

@@ -56,6 +56,16 @@ class ComplianceCatalogTests(unittest.TestCase):
             ),
             "pci-dss": ("4.0.1", "final"),
             "slsa": ("1.2", "final"),
+            "cisa-cross-sector-cpg": ("2.0", "final"),
+            "hipaa-security-rule": (
+                "Current effective Security Rule; 2025 NPRM not finalized",
+                "final",
+            ),
+            "glba-safeguards": ("16 CFR Part 314 current rule", "final"),
+            "nerc-cip": (
+                "Operator-supplied effective standards set; checked 2026-08-21",
+                "revision-in-progress",
+            ),
         }
         for framework_id, (version, status) in expected.items():
             with self.subTest(framework_id=framework_id):
@@ -156,7 +166,7 @@ class ComplianceCatalogTests(unittest.TestCase):
         self.assertEqual(39, metrics["frameworks"])
         self.assertEqual(39, metrics["recipes"])
         self.assertGreaterEqual(metrics["official_sources"], 39)
-        self.assertEqual("2026-07-12", metrics["reviewed_on"])
+        self.assertEqual("2026-08-21", metrics["reviewed_on"])
 
     def test_catalog_is_valid_json_and_deterministically_serializable(self) -> None:
         reparsed = json.loads(syncer.CATALOG_PATH.read_text(encoding="utf-8"))
