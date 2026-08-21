@@ -19,6 +19,7 @@ cve_archetypes:
 cve_workflow_role: "audit"
 weight: 15
 date: 2026-06-06
+lastmod: 2026-08-21
 ---
 
 A source-code audit recipe for tracing untrusted input into dangerous
@@ -224,6 +225,13 @@ Stop and report rather than pushing through if:
 - Findings must include source, sink, data flow, existing controls, and
   why the controls fail.
 - No code edits.
+
+## Verification
+
+- Each finding names the source, sink, and the data-flow path between them.
+- Existing sanitization, parameterization, or allowlists are recorded before calling them insufficient.
+- No finding is labeled exploitable without a source-to-sink explanation.
+- The report stays read-only and contains no payloads, credentials, or live-system tests.
 
 ## Guardrails
 

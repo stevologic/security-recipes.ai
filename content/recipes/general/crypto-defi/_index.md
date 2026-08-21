@@ -2,6 +2,7 @@
 title: Crypto & DeFi Security Recipes
 linkTitle: Crypto & DeFi Recipes
 weight: 20
+lastmod: 2026-08-21
 sidebar:
   open: false
 description: >

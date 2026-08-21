@@ -11,6 +11,7 @@ cve_archetypes: ["supply_chain_update_integrity"]
 cve_workflow_role: "audit"
 weight: 17
 date: 2026-06-06
+lastmod: 2026-08-21
 ---
 
 A source-code audit recipe for dependency hygiene, lockfile integrity,
@@ -228,6 +229,13 @@ Stop and report rather than continuing if:
   verification suggestion.
 - No package installs that execute scripts.
 - No code edits.
+
+## Verification
+
+- Findings name the lockfile, workflow, Dockerfile, or publish path that creates the integrity gap.
+- Mutable tags, unsigned artifacts, and script-running installs are called out with the verification that would prove them.
+- No untrusted install scripts, publishes, deploys, or cache mutations were run.
+- Live secrets found in CI or image layers are redacted and escalated instead of validated.
 
 ## Guardrails
 

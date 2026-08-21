@@ -14,6 +14,7 @@ cve_archetypes:
 cve_workflow_role: "audit"
 weight: 14
 date: 2026-06-06
+lastmod: 2026-08-21
 ---
 
 A focused source-code audit recipe for authorization, tenant isolation,
@@ -223,6 +224,13 @@ Stop and report rather than guessing if:
 - Findings include file paths, boundary type, blast radius, confidence,
   and test ideas.
 - No code edits.
+
+## Verification
+
+- Each finding names the entry point, the object or tenant identifier, and the missing or bypassed check.
+- Middleware, framework guards, and policy wrappers were inspected before treating a missing inline check as a bug.
+- Uncertain issues are labeled Needs Human Confirmation instead of proven vulnerabilities.
+- The report stays read-only and does not call production APIs or use customer data.
 
 ## Guardrails
 
