@@ -470,17 +470,6 @@
       "source_id": "recipes"
     },
     {
-      "actionable": true,
-      "disposition": "actionable_context_poisoning_risk",
-      "line": 30,
-      "match": "...The SEO Plugin by Squirrly SEO plugin for WordPress is vulnerable to Arbitrary Post Creation and Stored Cross-Site Scripting in all versions up to, and including, 14.0.0 due to a leak of an API token and insufficient input sanitization and output escaping.",
-      "path": "content/recipes/cve/cve-2026-1667-the-seo-plugin-by-squirrly-seo-plugin-for-wordpress-is-vulnerable-to-arbitrary-post-creation-and-stored-cross.md",
-      "risk_family": "secret_exposure",
-      "rule_id": "secret-exfiltration-request",
-      "severity": "critical",
-      "source_id": "recipes"
-    },
-    {
       "actionable": false,
       "disposition": "defensive_control_language",
       "line": 125,
@@ -1737,13 +1726,13 @@
   ],
   "generated_at": "2026-05-02",
   "guard_summary": {
-    "actionable_finding_count": 96,
+    "actionable_finding_count": 95,
     "blocking_source_count": 2,
     "blocking_sources": [
       "agentic-assurance-models",
       "recipes"
     ],
-    "byte_count": 20997835,
+    "byte_count": 20956582,
     "decision_counts": {
       "allow_with_adversarial_examples": 1,
       "block_until_removed": 2,
@@ -1751,13 +1740,13 @@
       "pass": 5
     },
     "disposition_counts": {
-      "actionable_context_poisoning_risk": 96,
+      "actionable_context_poisoning_risk": 95,
       "defensive_control_language": 34,
       "documented_adversarial_example": 24
     },
     "failure_count": 0,
     "file_count": 3520,
-    "finding_count": 154,
+    "finding_count": 153,
     "held_source_count": 1,
     "held_sources": [
       "security-remediation-workflows"
@@ -1766,10 +1755,10 @@
       "approval_bypass": 45,
       "hidden_instruction": 59,
       "prompt_injection": 10,
-      "secret_exposure": 40
+      "secret_exposure": 39
     },
     "severity_counts": {
-      "critical": 50,
+      "critical": 49,
       "high": 45,
       "medium": 59
     },
@@ -2018,15 +2007,15 @@
       "trust_tier": "tier_2_policy_context"
     },
     {
-      "actionable_finding_count": 32,
+      "actionable_finding_count": 31,
       "decision": "block_until_removed",
       "disposition_counts": {
-        "actionable_context_poisoning_risk": 32,
+        "actionable_context_poisoning_risk": 31,
         "defensive_control_language": 29,
         "documented_adversarial_example": 1
       },
       "file_count": 3384,
-      "finding_count": 62,
+      "finding_count": 61,
       "owner": {
         "accountable_team": "SecurityRecipes Maintainers",
         "escalation": "recipes-review",
@@ -2057,14 +2046,14 @@
       "risk_family_counts": {
         "approval_bypass": 24,
         "prompt_injection": 5,
-        "secret_exposure": 33
+        "secret_exposure": 32
       },
       "root": "content/recipes",
       "severity_counts": {
-        "critical": 38,
+        "critical": 37,
         "high": 24
       },
-      "source_hash": "13d21d44ac719389eed7853c34f77be9c14effb10e8859a5274e010ac2fb8f06",
+      "source_hash": "ac92982993161eecff495478f720b3644ac800ac4c34106e26d1f02865fd2538",
       "source_id": "recipes",
       "title": "Recipes",
       "trust_tier": "tier_1_curated_guidance"

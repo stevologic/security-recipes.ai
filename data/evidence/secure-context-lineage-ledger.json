@@ -429,49 +429,49 @@
       "failure_count": 0,
       "path": "data/evidence/agent-handoff-boundary-pack.json",
       "schema_version": "1.0",
-      "sha256": "13e1c4dfef678aa363c844e9e42fa7513dbede7d59e2342de804e6f361b7eed6"
+      "sha256": "7f59e19c212734caf9cf6797e96a219d547035569d3b69c28f717eb744b7b43a"
     },
     "agentic_run_receipt_pack": {
       "failure_count": 0,
       "path": "data/evidence/agentic-run-receipt-pack.json",
       "schema_version": "1.0",
-      "sha256": "b5f20c96824185613d34e76cc605995dbe550f48e3a62a44bf9d586a855d918f"
+      "sha256": "208a810fbe5e1d713e787fc799edcde075d2913447f927224b86e4028bc2dd03"
     },
     "agentic_telemetry_contract": {
       "failure_count": 0,
       "path": "data/evidence/agentic-telemetry-contract.json",
       "schema_version": "1.0",
-      "sha256": "fb30a274b4973446e80c2eb3774cba8f6d601c4345e21b0982a8f6a9993c1916"
+      "sha256": "d762f715af7831f5a91c2248d823c32a7cfed895cd1e56e77343ddac41c6012e"
     },
     "context_egress_boundary_pack": {
       "failure_count": 0,
       "path": "data/evidence/context-egress-boundary-pack.json",
       "schema_version": "1.0",
-      "sha256": "d1f1345bb9c34717bb023c6000aed92d7f8099c5f0fde166928a9dde31c28ac2"
+      "sha256": "380cbbf7cc201ed598c7e0cf522485eda9e23f3e8ba3c31ebd084c584d94d1b8"
     },
     "context_poisoning_guard_pack": {
       "failure_count": 0,
       "path": "data/evidence/context-poisoning-guard-pack.json",
       "schema_version": "1.0",
-      "sha256": "118b3574cc1fd630b6938e8fc27ae64a39f7bb5d8562f0e3e1e090cc0712d042"
+      "sha256": "80dcec37be8717bb8614bb3024d3b6b565d70da543ab8183e9243f1dbcf5d8fd"
     },
     "model_provider_routing_pack": {
       "failure_count": 0,
       "path": "data/evidence/model-provider-routing-pack.json",
       "schema_version": "1.0",
-      "sha256": "f5098b6338bcca1e45e2564b1ddbebf3f503ac50793250826b1d415d729dca39"
+      "sha256": "ebd16ac10e0457871810140918bf14e20fc27240d9538b81595abc38d32da6ef"
     },
     "secure_context_attestation_pack": {
       "failure_count": 0,
       "path": "data/evidence/secure-context-attestation-pack.json",
       "schema_version": "1.0",
-      "sha256": "0b1260d305bb8d760a65d696a21ee9bdc63968451c8fe6534153ed3a5c521f2d"
+      "sha256": "933d5518738ee19983a567cfe0cb02c2264fc363162cf66c262b8fb39f25f8e8"
     },
     "secure_context_trust_pack": {
       "failure_count": 0,
       "path": "data/evidence/secure-context-trust-pack.json",
       "schema_version": "1.0",
-      "sha256": "443b37fe663fa5e34591c3580100ea3c67362aecba154dbb73719e9b2b4ab6cc"
+      "sha256": "3273c6002a4992e34d18cf9435703a64e42352fe224cf37ce71a4a6f521831e4"
     }
   },
   "source_lineage": [
@@ -778,13 +778,13 @@
         "evidence_owner": "Security Engineering"
       },
       "poisoning": {
-        "actionable_finding_count": 32,
+        "actionable_finding_count": 31,
         "decision": "block_until_removed",
-        "finding_count": 62,
+        "finding_count": 61,
         "risk_family_counts": {
           "approval_bypass": 24,
           "prompt_injection": 5,
-          "secret_exposure": 33
+          "secret_exposure": 32
         }
       },
       "retrieval_decision": "allow_public_context",
@@ -794,7 +794,7 @@
         "workflow_prompt_context"
       ],
       "root": "content/recipes",
-      "source_hash": "13d21d44ac719389eed7853c34f77be9c14effb10e8859a5274e010ac2fb8f06",
+      "source_hash": "ac92982993161eecff495478f720b3644ac800ac4c34106e26d1f02865fd2538",
       "source_id": "recipes",
       "title": "Recipes",
       "trust_tier": "tier_1_curated_guidance"
@@ -958,7 +958,7 @@
         "same_run_context_replay"
       ],
       "attestation_decision": "allow_attested_workflow_context",
-      "context_package_hash": "10becbdb716a899b51732a3651358af1f35c53d20794f955bad66fd5110ed9f7",
+      "context_package_hash": "e53df935486d567db470a45caf266ef39244ce3babad36868fc965873be1d8db",
       "decision": "hold_for_poisoning_review",
       "egress_policy_hash": "dbe427420d1f3ed8cff135d727d159b5df57809913070fe447ae8f7540a4ffdd",
       "handoff_default_decision": "deny_unregistered_handoff",
@@ -1119,7 +1119,7 @@
         "agentic-threat-intelligence": "0a00261af9173007067727225260d936539b2ecd2fbb7a57e92abea459c9ec84",
         "mcp-connector-trust": "6b3d46f3b8cb2e8cb95eb294ed2edfd584dee0229defab2eb2da35f3467de503",
         "mcp-gateway-policy": "a52079afd7bf65c0be2b9bd2455046b22b4b03b10fd65632663ebf503a0acc46",
-        "recipes": "13d21d44ac719389eed7853c34f77be9c14effb10e8859a5274e010ac2fb8f06",
+        "recipes": "ac92982993161eecff495478f720b3644ac800ac4c34106e26d1f02865fd2538",
         "security-remediation-workflows": "b260d8ac255a0c10e5437c90fe826589d160647b9ba3880fa3662895dba9f56f",
         "workflow-control-plane": "f72c4bf711d6d8ac8f54f44f6f1e5dcc644ae2470a01ac9a89b68ea4076f6e21"
       },
@@ -1151,7 +1151,7 @@
         "same_run_context_replay"
       ],
       "attestation_decision": "allow_attested_workflow_context",
-      "context_package_hash": "b2f89b8df1978482e968ed6b9dcf41361352ca77c04c7d12167622a1a563d3e0",
+      "context_package_hash": "cedf47619cbd51a04d0df2881827db47ee8b2a176a140a1b0c54954d9ab53cdf",
       "decision": "hold_for_poisoning_review",
       "egress_policy_hash": "71b09e53adae52cc909d622313e883af2e43a85836d7c9b8e717b8fb39359249",
       "handoff_default_decision": "deny_unregistered_handoff",
@@ -1312,7 +1312,7 @@
         "agentic-threat-intelligence": "0a00261af9173007067727225260d936539b2ecd2fbb7a57e92abea459c9ec84",
         "mcp-connector-trust": "6b3d46f3b8cb2e8cb95eb294ed2edfd584dee0229defab2eb2da35f3467de503",
         "mcp-gateway-policy": "a52079afd7bf65c0be2b9bd2455046b22b4b03b10fd65632663ebf503a0acc46",
-        "recipes": "13d21d44ac719389eed7853c34f77be9c14effb10e8859a5274e010ac2fb8f06",
+        "recipes": "ac92982993161eecff495478f720b3644ac800ac4c34106e26d1f02865fd2538",
         "security-remediation-workflows": "b260d8ac255a0c10e5437c90fe826589d160647b9ba3880fa3662895dba9f56f",
         "workflow-control-plane": "f72c4bf711d6d8ac8f54f44f6f1e5dcc644ae2470a01ac9a89b68ea4076f6e21"
       },
@@ -1343,7 +1343,7 @@
         "same_run_context_replay"
       ],
       "attestation_decision": "allow_attested_workflow_context",
-      "context_package_hash": "cc6aac48838729ec5d50859b20ec32fe2ba734dbb9aa49b6ec8ae9383f0fc06e",
+      "context_package_hash": "975a334e503e00e98acf00c0bab120ee28d0b3e4dd1b7c3496d80b3e202a7701",
       "decision": "hold_for_poisoning_review",
       "egress_policy_hash": "d8adf24aa36b0c0bb4092a6262690c5217f74c6b5404a315621ef4b9e6bc7e00",
       "handoff_default_decision": "deny_unregistered_handoff",
@@ -1504,7 +1504,7 @@
         "agentic-threat-intelligence": "0a00261af9173007067727225260d936539b2ecd2fbb7a57e92abea459c9ec84",
         "mcp-connector-trust": "6b3d46f3b8cb2e8cb95eb294ed2edfd584dee0229defab2eb2da35f3467de503",
         "mcp-gateway-policy": "a52079afd7bf65c0be2b9bd2455046b22b4b03b10fd65632663ebf503a0acc46",
-        "recipes": "13d21d44ac719389eed7853c34f77be9c14effb10e8859a5274e010ac2fb8f06",
+        "recipes": "ac92982993161eecff495478f720b3644ac800ac4c34106e26d1f02865fd2538",
         "security-remediation-workflows": "b260d8ac255a0c10e5437c90fe826589d160647b9ba3880fa3662895dba9f56f",
         "workflow-control-plane": "f72c4bf711d6d8ac8f54f44f6f1e5dcc644ae2470a01ac9a89b68ea4076f6e21"
       },
@@ -1534,7 +1534,7 @@
         "same_run_context_replay"
       ],
       "attestation_decision": "allow_attested_workflow_context",
-      "context_package_hash": "4d4e062855c538e21da1eaa06f845700193b234bcc3c82a29e90752330e96db3",
+      "context_package_hash": "a9fd956b5a8bdfcf187312eae592f4e88037e6b0b4d016a6927a2e7c3db590fc",
       "decision": "hold_for_poisoning_review",
       "egress_policy_hash": "9017117d2b7a20d5c504bc081fafa6f97b79cf86a743f9e7642232f169b3ce62",
       "handoff_default_decision": "deny_unregistered_handoff",
@@ -1695,7 +1695,7 @@
         "agentic-threat-intelligence": "0a00261af9173007067727225260d936539b2ecd2fbb7a57e92abea459c9ec84",
         "mcp-connector-trust": "6b3d46f3b8cb2e8cb95eb294ed2edfd584dee0229defab2eb2da35f3467de503",
         "mcp-gateway-policy": "a52079afd7bf65c0be2b9bd2455046b22b4b03b10fd65632663ebf503a0acc46",
-        "recipes": "13d21d44ac719389eed7853c34f77be9c14effb10e8859a5274e010ac2fb8f06",
+        "recipes": "ac92982993161eecff495478f720b3644ac800ac4c34106e26d1f02865fd2538",
         "security-remediation-workflows": "b260d8ac255a0c10e5437c90fe826589d160647b9ba3880fa3662895dba9f56f",
         "workflow-control-plane": "f72c4bf711d6d8ac8f54f44f6f1e5dcc644ae2470a01ac9a89b68ea4076f6e21"
       },
@@ -1725,7 +1725,7 @@
         "same_run_context_replay"
       ],
       "attestation_decision": "allow_attested_workflow_context",
-      "context_package_hash": "3991d3f1de987cfa34f7f30dca2e917a39b3b0ff1ebaebd0436f1dddf91b6d31",
+      "context_package_hash": "f374b1f36020c933cf42c5ad1d2a54c092cc195c1fbcda4019f390eb3f03b494",
       "decision": "hold_for_poisoning_review",
       "egress_policy_hash": "8b243ba912cdd2a36f2cb9a6e5366a27abbdb83fb6cc897a2f17d142c67fbe30",
       "handoff_default_decision": "deny_unregistered_handoff",
@@ -1886,7 +1886,7 @@
         "agentic-threat-intelligence": "0a00261af9173007067727225260d936539b2ecd2fbb7a57e92abea459c9ec84",
         "mcp-connector-trust": "6b3d46f3b8cb2e8cb95eb294ed2edfd584dee0229defab2eb2da35f3467de503",
         "mcp-gateway-policy": "a52079afd7bf65c0be2b9bd2455046b22b4b03b10fd65632663ebf503a0acc46",
-        "recipes": "13d21d44ac719389eed7853c34f77be9c14effb10e8859a5274e010ac2fb8f06",
+        "recipes": "ac92982993161eecff495478f720b3644ac800ac4c34106e26d1f02865fd2538",
         "security-remediation-workflows": "b260d8ac255a0c10e5437c90fe826589d160647b9ba3880fa3662895dba9f56f",
         "workflow-control-plane": "f72c4bf711d6d8ac8f54f44f6f1e5dcc644ae2470a01ac9a89b68ea4076f6e21"
       },
@@ -1917,7 +1917,7 @@
         "same_run_context_replay"
       ],
       "attestation_decision": "allow_attested_workflow_context",
-      "context_package_hash": "b3a0d15cfa61af23bbb50b28eb5a9afa0a7206528a3560de092729cadc571ee8",
+      "context_package_hash": "4e7056239b6e19b70c8d2ac1967a96c55180cd52b91b4e4d34782513e35c5dc1",
       "decision": "hold_for_poisoning_review",
       "egress_policy_hash": "9a65a7b7b045108b27bcf6d383ef58bbd69e4cad6c61a1b08be08ccc535e93cc",
       "handoff_default_decision": "deny_unregistered_handoff",
@@ -2078,7 +2078,7 @@
         "agentic-threat-intelligence": "0a00261af9173007067727225260d936539b2ecd2fbb7a57e92abea459c9ec84",
         "mcp-connector-trust": "6b3d46f3b8cb2e8cb95eb294ed2edfd584dee0229defab2eb2da35f3467de503",
         "mcp-gateway-policy": "a52079afd7bf65c0be2b9bd2455046b22b4b03b10fd65632663ebf503a0acc46",
-        "recipes": "13d21d44ac719389eed7853c34f77be9c14effb10e8859a5274e010ac2fb8f06",
+        "recipes": "ac92982993161eecff495478f720b3644ac800ac4c34106e26d1f02865fd2538",
         "security-remediation-workflows": "b260d8ac255a0c10e5437c90fe826589d160647b9ba3880fa3662895dba9f56f",
         "workflow-control-plane": "f72c4bf711d6d8ac8f54f44f6f1e5dcc644ae2470a01ac9a89b68ea4076f6e21"
       },
@@ -2110,7 +2110,7 @@
         "same_run_context_replay"
       ],
       "attestation_decision": "allow_attested_workflow_context",
-      "context_package_hash": "b277fff8404b32c6efd52ccc3c28374399b9598b6403de0ddd9c1bbdd72fb5b4",
+      "context_package_hash": "f06701b79669307801790ad69aaa2dde3250239ee3e2840a1b2a5ecee590553b",
       "decision": "hold_for_poisoning_review",
       "egress_policy_hash": "50d90e47c9cf159117d6b78687263ef16c341d785a4915141ede2f9034b71ac0",
       "handoff_default_decision": "deny_unregistered_handoff",
@@ -2271,7 +2271,7 @@
         "agentic-threat-intelligence": "0a00261af9173007067727225260d936539b2ecd2fbb7a57e92abea459c9ec84",
         "mcp-connector-trust": "6b3d46f3b8cb2e8cb95eb294ed2edfd584dee0229defab2eb2da35f3467de503",
         "mcp-gateway-policy": "a52079afd7bf65c0be2b9bd2455046b22b4b03b10fd65632663ebf503a0acc46",
-        "recipes": "13d21d44ac719389eed7853c34f77be9c14effb10e8859a5274e010ac2fb8f06",
+        "recipes": "ac92982993161eecff495478f720b3644ac800ac4c34106e26d1f02865fd2538",
         "security-remediation-workflows": "b260d8ac255a0c10e5437c90fe826589d160647b9ba3880fa3662895dba9f56f",
         "workflow-control-plane": "f72c4bf711d6d8ac8f54f44f6f1e5dcc644ae2470a01ac9a89b68ea4076f6e21"
       },
@@ -2303,7 +2303,7 @@
         "same_run_context_replay"
       ],
       "attestation_decision": "allow_attested_workflow_context",
-      "context_package_hash": "274df54e7a4292b4473f6d0458aaca105531a9e618de522150afa585f3e65dda",
+      "context_package_hash": "c3a7d37c9f9825747e56c276b0a807d5c8996e4ca12b3bd84d3c1ab5c9517cc1",
       "decision": "hold_for_poisoning_review",
       "egress_policy_hash": "c0abb42357dfae407d9f5ba4d13b4b62ae5bd079aab02c82761b42733813c0ff",
       "handoff_default_decision": "deny_unregistered_handoff",
@@ -2464,7 +2464,7 @@
         "agentic-threat-intelligence": "0a00261af9173007067727225260d936539b2ecd2fbb7a57e92abea459c9ec84",
         "mcp-connector-trust": "6b3d46f3b8cb2e8cb95eb294ed2edfd584dee0229defab2eb2da35f3467de503",
         "mcp-gateway-policy": "a52079afd7bf65c0be2b9bd2455046b22b4b03b10fd65632663ebf503a0acc46",
-        "recipes": "13d21d44ac719389eed7853c34f77be9c14effb10e8859a5274e010ac2fb8f06",
+        "recipes": "ac92982993161eecff495478f720b3644ac800ac4c34106e26d1f02865fd2538",
         "security-remediation-workflows": "b260d8ac255a0c10e5437c90fe826589d160647b9ba3880fa3662895dba9f56f",
         "workflow-control-plane": "f72c4bf711d6d8ac8f54f44f6f1e5dcc644ae2470a01ac9a89b68ea4076f6e21"
       },
