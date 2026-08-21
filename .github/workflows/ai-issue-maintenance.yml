@@ -66,6 +66,8 @@ jobs:
         if: steps.auth.outputs.configured == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
+          # No checkout exists yet, so gh must be told its repository context.
+          GH_REPO: ${{ github.repository }}
           TARGET_ISSUE: ${{ github.event_name == 'issues' && github.event.issue.number || '' }}
         shell: bash
         run: |
