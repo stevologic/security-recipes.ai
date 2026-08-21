@@ -3,7 +3,7 @@ title: Agent Identity & Delegation Ledger
 linkTitle: Identity Ledger
 weight: 7
 date: 2026-05-02
-lastmod: 2026-07-23
+lastmod: 2026-08-21
 sidebar:
   exclude: true
 description: >
