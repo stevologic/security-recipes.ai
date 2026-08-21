@@ -274,7 +274,7 @@
     {
       "actionable": false,
       "disposition": "defensive_control_language",
-      "line": 149,
+      "line": 150,
       "match": "- **Never** bypass CI by adding skip tokens.",
       "path": "content/recipes/claude/cve-triage-skill.md",
       "risk_family": "approval_bypass",
@@ -285,7 +285,7 @@
     {
       "actionable": false,
       "disposition": "defensive_control_language",
-      "line": 203,
+      "line": 204,
       "match": "- **Never** bypass a `PreToolUse` hook that blocks writing to",
       "path": "content/recipes/claude/sensitive-data-remediation-skill.md",
       "risk_family": "approval_bypass",
@@ -296,7 +296,7 @@
     {
       "actionable": false,
       "disposition": "defensive_control_language",
-      "line": 243,
+      "line": 244,
       "match": "- NEVER disable scanner rules broadly \u2014 only allowlist the",
       "path": "content/recipes/codex/sensitive-data-remediation.md",
       "risk_family": "approval_bypass",
@@ -307,7 +307,7 @@
     {
       "actionable": true,
       "disposition": "actionable_context_poisoning_risk",
-      "line": 267,
+      "line": 274,
       "match": "disable scanner rules, or merge its own PR.",
       "path": "content/recipes/codex/sensitive-data-remediation.md",
       "risk_family": "approval_bypass",
@@ -318,7 +318,7 @@
     {
       "actionable": false,
       "disposition": "defensive_control_language",
-      "line": 251,
+      "line": 252,
       "match": "- NEVER disable a test or add skip markers to make CI green.",
       "path": "content/recipes/codex/vulnerable-dep-remediation.md",
       "risk_family": "approval_bypass",
@@ -778,6 +778,28 @@
       "source_id": "recipes"
     },
     {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 64,
+      "match": "- **Affected endpoints:** `GET`/`POST` `/api/v1/auto_login` (token mint) and",
+      "path": "content/recipes/cve/cve-2026-9198-langflow-auto-login-validate-code-rce.md",
+      "risk_family": "secret_exposure",
+      "rule_id": "secret-exfiltration-request",
+      "severity": "critical",
+      "source_id": "recipes"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 100,
+      "match": "execute decorators, or dump environment variables.",
+      "path": "content/recipes/cve/cve-2026-9198-langflow-auto-login-validate-code-rce.md",
+      "risk_family": "secret_exposure",
+      "rule_id": "secret-exfiltration-request",
+      "severity": "critical",
+      "source_id": "recipes"
+    },
+    {
       "actionable": false,
       "disposition": "defensive_control_language",
       "line": 154,
@@ -813,7 +835,7 @@
     {
       "actionable": false,
       "disposition": "defensive_control_language",
-      "line": 152,
+      "line": 153,
       "match": "1. NEVER PRINT, LOG, OR EMBED A LIVE SECRET.",
       "path": "content/recipes/devin/scheduled-sde-remediation.md",
       "risk_family": "secret_exposure",
@@ -1638,13 +1660,13 @@
   ],
   "generated_at": "2026-05-02",
   "guard_summary": {
-    "actionable_finding_count": 92,
+    "actionable_finding_count": 94,
     "blocking_source_count": 2,
     "blocking_sources": [
       "agentic-assurance-models",
       "recipes"
     ],
-    "byte_count": 22908255,
+    "byte_count": 22963101,
     "decision_counts": {
       "allow_with_adversarial_examples": 1,
       "block_until_removed": 2,
@@ -1652,13 +1674,13 @@
       "pass": 5
     },
     "disposition_counts": {
-      "actionable_context_poisoning_risk": 92,
+      "actionable_context_poisoning_risk": 94,
       "defensive_control_language": 29,
       "documented_adversarial_example": 24
     },
     "failure_count": 0,
-    "file_count": 3515,
-    "finding_count": 145,
+    "file_count": 3520,
+    "finding_count": 147,
     "held_source_count": 1,
     "held_sources": [
       "security-remediation-workflows"
@@ -1667,10 +1689,10 @@
       "approval_bypass": 38,
       "hidden_instruction": 59,
       "prompt_injection": 10,
-      "secret_exposure": 38
+      "secret_exposure": 40
     },
     "severity_counts": {
-      "critical": 48,
+      "critical": 50,
       "high": 38,
       "medium": 59
     },
@@ -1919,15 +1941,15 @@
       "trust_tier": "tier_2_policy_context"
     },
     {
-      "actionable_finding_count": 28,
+      "actionable_finding_count": 30,
       "decision": "block_until_removed",
       "disposition_counts": {
-        "actionable_context_poisoning_risk": 28,
+        "actionable_context_poisoning_risk": 30,
         "defensive_control_language": 24,
         "documented_adversarial_example": 1
       },
-      "file_count": 3379,
-      "finding_count": 53,
+      "file_count": 3384,
+      "finding_count": 55,
       "owner": {
         "accountable_team": "SecurityRecipes Maintainers",
         "escalation": "recipes-review",
@@ -1958,14 +1980,14 @@
       "risk_family_counts": {
         "approval_bypass": 17,
         "prompt_injection": 5,
-        "secret_exposure": 31
+        "secret_exposure": 33
       },
       "root": "content/recipes",
       "severity_counts": {
-        "critical": 36,
+        "critical": 38,
         "high": 17
       },
-      "source_hash": "0af7c220ace466c49dbaa5172e1f49b54434effdcff41b3fc7b054c2d3c0330f",
+      "source_hash": "01b9c0eda1101249fabdbd33b925c38ddbe10baedfd654a2fcae81a60c8a8fa9",
       "source_id": "recipes",
       "title": "Recipes",
       "trust_tier": "tier_1_curated_guidance"
