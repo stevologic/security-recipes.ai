@@ -108,10 +108,10 @@ This feature is aligned to primary industry direction:
 - [OWASP Top 10 for Agentic Applications 2026](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/)
   calls out tool misuse, identity and privilege abuse, agentic supply
   chain risk, and rogue-agent behavior.
-- [MCP Authorization](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
+- [MCP Authorization](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
   defines the authorization flow for restricted MCP servers over HTTP
   transports.
-- [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices)
+- [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices)
   emphasizes scoped authorization, confused-deputy prevention,
   token-passthrough avoidance, and session safety.
 - [NIST AI RMF](https://www.nist.gov/itl/ai-risk-management-framework)

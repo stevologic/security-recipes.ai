@@ -3,7 +3,7 @@ title: Hosted MCP Readiness Pack
 linkTitle: Hosted MCP Readiness
 weight: 14
 date: 2026-05-05
-lastmod: 2026-07-13
+lastmod: 2026-08-21
 sidebar:
   exclude: true
 description: >
@@ -172,14 +172,14 @@ recipes_hosted_mcp_readiness_pack(buyer_evidence_id="reviewer-adoption proof-pro
 
 The profile is grounded in current primary sources:
 
-- [MCP basic specification](https://modelcontextprotocol.io/specification/2025-11-25/basic)
+- [MCP basic specification](https://modelcontextprotocol.io/specification/2026-07-28/basic)
   for protocol layers, lifecycle, resources, prompts, tools, client
   features, and utilities.
-- [MCP Authorization](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
+- [MCP Authorization](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
   for protected-resource metadata, resource indicators, token audience
   binding, scope minimization, step-up authorization, PKCE, and no token
   passthrough.
-- [MCP Elicitation](https://modelcontextprotocol.io/specification/2025-11-25/client/elicitation)
+- [MCP Elicitation](https://modelcontextprotocol.io/specification/2026-07-28/client/elicitation)
   for form-mode and URL-mode interaction boundaries.
 - [OpenTelemetry MCP semantic conventions](https://opentelemetry.io/docs/specs/semconv/gen-ai/mcp/)
   for MCP spans, sessions, methods, transports, errors, and duration
