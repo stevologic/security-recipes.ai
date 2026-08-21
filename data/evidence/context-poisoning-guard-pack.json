@@ -756,6 +756,17 @@
       "source_id": "recipes"
     },
     {
+      "actionable": false,
+      "disposition": "defensive_control_language",
+      "line": 61,
+      "match": "- Tests never send a shared credential to an arbitrary MCP URL.",
+      "path": "content/recipes/cve/cve-2026-59207-n8n-is-an-open-source-workflow-automation-platform.md",
+      "risk_family": "secret_exposure",
+      "rule_id": "secret-exfiltration-request",
+      "severity": "critical",
+      "source_id": "recipes"
+    },
+    {
       "actionable": true,
       "disposition": "actionable_context_poisoning_risk",
       "line": 133,
@@ -1666,7 +1677,7 @@
       "agentic-assurance-models",
       "recipes"
     ],
-    "byte_count": 22963101,
+    "byte_count": 22805662,
     "decision_counts": {
       "allow_with_adversarial_examples": 1,
       "block_until_removed": 2,
@@ -1675,12 +1686,12 @@
     },
     "disposition_counts": {
       "actionable_context_poisoning_risk": 94,
-      "defensive_control_language": 29,
+      "defensive_control_language": 30,
       "documented_adversarial_example": 24
     },
     "failure_count": 0,
     "file_count": 3520,
-    "finding_count": 147,
+    "finding_count": 148,
     "held_source_count": 1,
     "held_sources": [
       "security-remediation-workflows"
@@ -1689,10 +1700,10 @@
       "approval_bypass": 38,
       "hidden_instruction": 59,
       "prompt_injection": 10,
-      "secret_exposure": 40
+      "secret_exposure": 41
     },
     "severity_counts": {
-      "critical": 50,
+      "critical": 51,
       "high": 38,
       "medium": 59
     },
@@ -1945,11 +1956,11 @@
       "decision": "block_until_removed",
       "disposition_counts": {
         "actionable_context_poisoning_risk": 30,
-        "defensive_control_language": 24,
+        "defensive_control_language": 25,
         "documented_adversarial_example": 1
       },
       "file_count": 3384,
-      "finding_count": 55,
+      "finding_count": 56,
       "owner": {
         "accountable_team": "SecurityRecipes Maintainers",
         "escalation": "recipes-review",
@@ -1980,14 +1991,14 @@
       "risk_family_counts": {
         "approval_bypass": 17,
         "prompt_injection": 5,
-        "secret_exposure": 33
+        "secret_exposure": 34
       },
       "root": "content/recipes",
       "severity_counts": {
-        "critical": 38,
+        "critical": 39,
         "high": 17
       },
-      "source_hash": "01b9c0eda1101249fabdbd33b925c38ddbe10baedfd654a2fcae81a60c8a8fa9",
+      "source_hash": "70d8860dba8758d3ed1cbf1b524df59496c2d18e0baec03ce6fa5157e3a9b2b5",
       "source_id": "recipes",
       "title": "Recipes",
       "trust_tier": "tier_1_curated_guidance"
@@ -2041,7 +2052,7 @@
         "high": 8,
         "medium": 59
       },
-      "source_hash": "96ca8a5f84a801bea2e97e01a0e7d2742673245d5bdbec110e65bc2eba59983d",
+      "source_hash": "e269370bc102f7c2e4d30cbf702d41f1a3205cbc7774182589b457a913ea0dd5",
       "source_id": "security-remediation-workflows",
       "title": "Security Remediation Workflow Docs",
       "trust_tier": "tier_1_curated_guidance"
