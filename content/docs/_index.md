@@ -2,7 +2,7 @@
 title: "Security Recipes Documentation: Playbooks, Agents, and MCP"
 linkTitle: Docs
 weight: 6
-lastmod: 2026-07-23
+lastmod: 2026-08-21
 toc: true
 sidebar:
   open: true
@@ -66,7 +66,8 @@ before context reaches production MCP or trust-center channels.
 - Keeps review gates clear: one finding, one bounded change, tests run, human
   approval before merge.
 - Makes the optional site index and MCP server available for teams that want
-  agents to search the recipes directly.
+  agents to search recipes, look up CVE catalog records, and inspect recipe
+  quality before promoting a workflow.
 
 ## What the site does not do
 

@@ -3,7 +3,7 @@ title: MCP Context for AI Vulnerability Remediation
 linkTitle: MCP Integration
 weight: 5
 date: 2026-04-21
-lastmod: 2026-07-23
+lastmod: 2026-08-21
 toc: true
 sidebar:
   open: true
@@ -28,8 +28,9 @@ repository context, and review rules.
 command-executing MCP tools as a separate security review.
 {{< /callout >}}
 
-Last reviewed against the public MCP documentation and this repository's
-`mcp_server.py` implementation on **June 14, 2026**.
+Last reviewed against the public MCP specification
+[2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25) and this
+repository's `mcp_server.py` implementation on **August 21, 2026**.
 
 ## MCP in one minute
 
@@ -114,6 +115,9 @@ It exposes **MCP tools** that let compatible clients:
 | --- | --- | --- |
 | Server metadata and cache | Inspect configuration and refresh the in-memory recipe index. | `recipes_server_info`, `recipes_refresh` |
 | Recipe search and retrieval | Search, list, fetch, and match recipes to a finding. | `recipes_search`, `recipes_list`, `recipes_get`, `recipes_match_finding` |
+| Recipe quality | Score discovery recipes and name missing inputs, selection guidance, output contracts, verification, or guardrails. | `recipes_quality_report` |
+| CVE catalog intelligence | Search the rolling Medium/High/Critical catalog and fetch one normalized record plus its agentic change plan. | `recipes_cve_catalog_info`, `recipes_cve_search`, `recipes_cve_get` |
+| Playbook planning | List the 75 published playbooks and return a bounded start plan for one finding. | `recipes_playbooks_list`, `recipes_playbook_get`, `recipes_playbook_plan` |
 | Control and gateway policy | Return generated workflow and MCP gateway policy packs. | `recipes_workflow_control_plane`, `recipes_mcp_gateway_policy` |
 | Agent and secure-context evidence | Return generated trust, identity, entitlement, telemetry, incident, and assurance packs. | `recipes_agentic_assurance_pack`, `recipes_agent_identity_ledger`, `recipes_secure_context_trust_pack` |
 | MCP governance evidence | Return connector intake, authorization, elicitation, stdio boundary, tool-risk, and drift packs. | `recipes_mcp_connector_intake_pack`, `recipes_mcp_authorization_conformance_pack`, `recipes_mcp_tool_risk_contract` |
@@ -121,7 +125,8 @@ It exposes **MCP tools** that let compatible clients:
 | Optional upstream bridge | List configured upstream MCP servers, inspect tools, call allowed tools, and collect bounded context. | `recipes_mcp_upstream_servers`, `recipes_mcp_upstream_tools`, `recipes_mcp_upstream_call`, `recipes_mcp_upstream_context` |
 
 The exact tool list is available through your MCP client's `tools/list` view.
-This repo currently defines 68 `recipes_*` tools.
+This repo currently defines 75 `recipes_*` tools. A check fails if this
+published count drifts from `@mcp.tool()` registrations in `mcp_server.py`.
 
 The MCP server bundles the public-server directory documented below as
 validated discovery data. An MCP client can call `recipes_mcp_servers_list` to

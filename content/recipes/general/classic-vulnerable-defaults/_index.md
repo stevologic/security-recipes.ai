@@ -2,6 +2,7 @@
 title: Classic Vulnerable Default Security Recipes
 linkTitle: Classic Vulnerable Defaults
 weight: 20
+lastmod: 2026-08-21
 sidebar:
   open: false
 description: >
@@ -29,6 +30,7 @@ behaviour preservation, open a PR.
 
 Every recipe has:
 
+- **When to use it** — how to choose this recipe over a broader audit.
 - **Pattern** — the exact call shape it targets.
 - **Why it matters** — what the unsafe default does to a real
   attack.

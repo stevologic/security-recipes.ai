@@ -2,6 +2,7 @@
 title: Tool-Agnostic Security Remediation Recipes
 linkTitle: General
 weight: 6
+lastmod: 2026-08-21
 sidebar:
   open: false
 description: >

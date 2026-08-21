@@ -1,10 +1,11 @@
 ---
 title: security-recipes.ai
-lastmod: 2026-07-23
+lastmod: 2026-08-21
 description: >
   Open, self-hostable security intelligence and governed workflows for
-  humans and AI agents. Research CVEs, use reviewed remediation playbooks,
-  and deliver bounded context through JSON and read-first MCP.
+  humans and AI agents. Research CISA KEV and NVD-backed CVEs, use reviewed
+  remediation playbooks, and deliver bounded context through JSON and
+  read-first MCP.
 keywords:
   - "open security intelligence"
   - "security intelligence platform"
@@ -25,7 +26,11 @@ keywords:
   - "Devin security"
   - "Codex security"
   - "MCP servers"
+  - "OWASP Top 10:2025"
   - "OWASP Top 10 2025"
+  - "CISA KEV"
+  - "MLflow security"
+  - "Langflow security"
   - "SAST autofix"
   - "supply chain security"
   - "Log4Shell"

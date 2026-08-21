@@ -27,7 +27,7 @@ test("homepage metadata targets CVE lookup and AI vulnerability remediation", ()
     ? homepageData.lastmod.toISOString().slice(0, 10)
     : String(homepageData.lastmod);
 
-  assert.equal(lastmod, "2026-07-23");
+  assert.equal(lastmod, "2026-08-21");
   assert.match(
     homepage,
     /<link rel="alternate" type="application\/rss\+xml" href="\/index\.xml" title="Security Recipes">/u,
@@ -39,7 +39,7 @@ test("homepage metadata targets CVE lookup and AI vulnerability remediation", ()
   assert.match(homepage, /title: "CVE Database & AI Vulnerability Remediation"/u);
   assert.match(
     homepage,
-    /description: "Search source-backed CVE intelligence and use reviewed AI vulnerability remediation playbooks[^"]+"/u,
+    /description: "Search NVD and CISA KEV-backed CVE intelligence and use reviewed AI vulnerability remediation playbooks[^"]+"/u,
   );
   assert.match(homepage, /image: "\/images\/og-card\.png"/u);
   assert.match(homepage, /imageWidth: 1731/u);
