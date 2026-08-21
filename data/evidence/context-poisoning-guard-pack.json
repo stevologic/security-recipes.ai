@@ -382,6 +382,50 @@
       "source_id": "recipes"
     },
     {
+      "actionable": false,
+      "disposition": "defensive_control_language",
+      "line": 4,
+      "match": "description: \"CVE-2025-71363 lets a pickle REDUCE cProfile.run call bypass picklescan before 0.0.30. Upgrade the scanner to 0.0.30+ and treat missed pickles as unsafe.\"",
+      "path": "content/recipes/cve/cve-2025-71363-picklescan-before-0-0-30-fails-to-detect-cprofile-run-function-calls-in-pickle-reduce-methods-allowing-attack.md",
+      "risk_family": "approval_bypass",
+      "rule_id": "approval-bypass-request",
+      "severity": "high",
+      "source_id": "recipes"
+    },
+    {
+      "actionable": false,
+      "disposition": "defensive_control_language",
+      "line": 4,
+      "match": "description: \"CVE-2025-71368 lets doctest.debug_script in a pickle bypass picklescan before 0.0.30. Upgrade the scanner to 0.0.30+ and treat missed pickles as unsafe.\"",
+      "path": "content/recipes/cve/cve-2025-71368-picklescan-before-0-0-30-fails-to-detect-the-doctest-debug-script-function-when-analyzing-pickle-files-allowi.md",
+      "risk_family": "approval_bypass",
+      "rule_id": "approval-bypass-request",
+      "severity": "high",
+      "source_id": "recipes"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 4,
+      "match": "description: \"CVE-2025-71374 lets profile.Profile.run in a pickle bypass picklescan before 0.0.29. Upgrade the scanner to 0.0.29+. Do not copy 0.0.30 onto this CVE.\"",
+      "path": "content/recipes/cve/cve-2025-71374-picklescan-before-0-0-29-fails-to-detect-the-built-in-python-profile-profile-run-function-when-used-in-pickle.md",
+      "risk_family": "approval_bypass",
+      "rule_id": "approval-bypass-request",
+      "severity": "high",
+      "source_id": "recipes"
+    },
+    {
+      "actionable": false,
+      "disposition": "defensive_control_language",
+      "line": 4,
+      "match": "description: \"CVE-2025-71378 lets a pickle REDUCE cProfile.runctx call bypass picklescan before 0.0.30. Upgrade the scanner to 0.0.30+ and treat missed pickles as unsafe.\"",
+      "path": "content/recipes/cve/cve-2025-71378-picklescan-before-0-0-30-fails-to-detect-cprofile-runctx-function-calls-in-pickle-file-reduce-methods-allowin.md",
+      "risk_family": "approval_bypass",
+      "rule_id": "approval-bypass-request",
+      "severity": "high",
+      "source_id": "recipes"
+    },
+    {
       "actionable": true,
       "disposition": "actionable_context_poisoning_risk",
       "line": 81,
@@ -1693,13 +1737,13 @@
   ],
   "generated_at": "2026-05-02",
   "guard_summary": {
-    "actionable_finding_count": 95,
+    "actionable_finding_count": 96,
     "blocking_source_count": 2,
     "blocking_sources": [
       "agentic-assurance-models",
       "recipes"
     ],
-    "byte_count": 22384417,
+    "byte_count": 22303831,
     "decision_counts": {
       "allow_with_adversarial_examples": 1,
       "block_until_removed": 2,
@@ -1707,26 +1751,26 @@
       "pass": 5
     },
     "disposition_counts": {
-      "actionable_context_poisoning_risk": 95,
-      "defensive_control_language": 31,
+      "actionable_context_poisoning_risk": 96,
+      "defensive_control_language": 34,
       "documented_adversarial_example": 24
     },
     "failure_count": 0,
     "file_count": 3520,
-    "finding_count": 150,
+    "finding_count": 154,
     "held_source_count": 1,
     "held_sources": [
       "security-remediation-workflows"
     ],
     "risk_family_counts": {
-      "approval_bypass": 40,
+      "approval_bypass": 44,
       "hidden_instruction": 59,
       "prompt_injection": 10,
       "secret_exposure": 41
     },
     "severity_counts": {
       "critical": 51,
-      "high": 40,
+      "high": 44,
       "medium": 59
     },
     "source_count": 9
@@ -1974,15 +2018,15 @@
       "trust_tier": "tier_2_policy_context"
     },
     {
-      "actionable_finding_count": 31,
+      "actionable_finding_count": 32,
       "decision": "block_until_removed",
       "disposition_counts": {
-        "actionable_context_poisoning_risk": 31,
-        "defensive_control_language": 26,
+        "actionable_context_poisoning_risk": 32,
+        "defensive_control_language": 29,
         "documented_adversarial_example": 1
       },
       "file_count": 3384,
-      "finding_count": 58,
+      "finding_count": 62,
       "owner": {
         "accountable_team": "SecurityRecipes Maintainers",
         "escalation": "recipes-review",
@@ -2011,16 +2055,16 @@
         "content/recipes/cve/ai-enrichment-cve-2022-47966.md"
       ],
       "risk_family_counts": {
-        "approval_bypass": 19,
+        "approval_bypass": 23,
         "prompt_injection": 5,
         "secret_exposure": 34
       },
       "root": "content/recipes",
       "severity_counts": {
         "critical": 39,
-        "high": 19
+        "high": 23
       },
-      "source_hash": "ef14af82da85a809bd4f5b003945ea01e474a15f74af58657de87e3c4fbf2610",
+      "source_hash": "42d835127aac20090215a9c355a3f5c10c02f3fa1321b058f1a3744da1a14db4",
       "source_id": "recipes",
       "title": "Recipes",
       "trust_tier": "tier_1_curated_guidance"
