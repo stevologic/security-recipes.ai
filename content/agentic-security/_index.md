@@ -3,7 +3,7 @@ title: "AI Agent Security: How to Secure AI Agent Systems"
 linkTitle: Agentic Security
 page_kind: collection
 weight: 4
-lastmod: 2026-07-23
+lastmod: 2026-08-21
 toc: true
 sidebar:
   open: false
@@ -26,7 +26,10 @@ secret, or repository-configuration finding, use
 Those are related workstreams, but they answer different questions and require
 different evidence.
 
-**Last updated July 23, 2026.** [Stephen M Abbott](/about/#stephen-m-abbott)
+**Last updated August 21, 2026.** Rechecked the public MCP specification
+[2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25) and the
+[MCP integration page](/mcp-servers/) on that date; 2025-11-25 remains the
+current stable spec. [Stephen M Abbott](/about/#stephen-m-abbott)
 maintains this guide with Security Recipes contributors in the public
 [source and revision history](https://github.com/stevologic/security-recipes.ai/blob/main/content/agentic-security/_index.md).
 See the [review methodology](/about/#editorial-principles) and

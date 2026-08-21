@@ -124,6 +124,12 @@ test("regreSSHion targets OpenSSH RCE remediation with primary-source authority"
     /https:\/\/www\.qualys\.com\/2024\/07\/01\/cve-2024-6387\/regresshion\.txt/u,
   );
   assert.match(page, /did not investigate every other libc or\s+operating system/iu);
+  assert.equal(data.kev, false, "regreSSHion is not in the live CISA KEV catalog");
+  assert.match(
+    page,
+    /does \*\*not\*\* list\s+CVE-2024-6387/u,
+    "regreSSHion must say CISA has not listed it",
+  );
 });
 
 test("the visual guide documents the evidence-gated search publication path", () => {

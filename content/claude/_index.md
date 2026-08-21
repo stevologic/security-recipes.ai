@@ -3,7 +3,7 @@ title: Claude Code Vulnerability Remediation
 linkTitle: Claude
 weight: 5
 date: 2026-04-21
-lastmod: 2026-07-21
+lastmod: 2026-08-21
 description: Use Claude Code, the Agent SDK, and read-only MCP context to remediate vulnerabilities with scoped tools, safety hooks, verification, and human review.
 sidebar:
   open: true
@@ -40,9 +40,10 @@ For a detected secret or PII leak, use the
 ## Remediate a vulnerability with Claude
 
 [Claude Security](https://claude.com/product/claude-security) is
-Anthropic's native scan-to-patch workflow. It is currently a public beta
-for Claude Enterprise; the ordinary Claude Code workflow below remains
-available separately.
+Anthropic's native scan-to-patch workflow. Rechecked against the live product
+page on 2026-08-21: it remains a public beta for Claude Enterprise, scans run
+on Claude Mythos 5, and the Claude Security plugin for Claude Code is separately
+in beta. The ordinary Claude Code workflow below remains available separately.
 
 1. In [Claude.ai](https://claude.ai/), open **Security**, select the GitHub repository, branch,
    and, when useful, a narrower directory, then run the scan.
