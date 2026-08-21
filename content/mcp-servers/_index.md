@@ -29,16 +29,18 @@ command-executing MCP tools as a separate security review.
 {{< /callout >}}
 
 Last reviewed against the public MCP specification
-[2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25) and this
+[2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) and this
 repository's `mcp_server.py` implementation on **August 21, 2026**.
+[2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25) remains
+a prior final revision.
 
 ## MCP in one minute
 
 The [Model Context Protocol](https://modelcontextprotocol.io/docs/getting-started/intro)
 is an open standard for connecting AI applications to external systems. The
 current public specification page identifies version
-[2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25) as the
-latest stable spec.
+[2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) as the
+current protocol version.
 
 The main roles are:
 
@@ -57,7 +59,7 @@ MCP servers can expose:
 | Prompts | Reusable workflows or message templates. | Start a dependency update or SAST triage flow with consistent instructions. |
 
 MCP uses JSON-RPC. The standard transports are
-[stdio and Streamable HTTP](https://modelcontextprotocol.io/specification/2025-11-25/basic/transports).
+[stdio and Streamable HTTP](https://modelcontextprotocol.io/specification/2026-07-28/basic/transports).
 Use Streamable HTTP for hosted or browser-reachable servers. Use stdio when the
 client starts a local subprocess.
 

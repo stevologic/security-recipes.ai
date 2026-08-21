@@ -372,12 +372,15 @@ flowchart LR
   not in the raw model stream.
 - **Representative tooling.** MCP clients that implement the
   elicitation spec (client-side); MCP SDKs that expose it
-  server-side; the `elicitation/create` request/response shape
-  in the 2025-11-25 MCP spec.
+  server-side; form mode and URL mode inside
+  `InputRequiredResult.inputRequests` in the current
+  [2026-07-28 elicitation](https://modelcontextprotocol.io/specification/2026-07-28/client/elicitation)
+  spec. Do not treat the older `elicitation/create` shape from
+  2025-11-25 as current.
 
 ### MCP tasks primitive for long-running work
 
-- **What it is.** An experimental MCP primitive in the 2025-11-25 spec for
+- **What it is.** An MCP primitive in the current 2026-07-28 spec for
   work that outlives a single request/response cycle. The agent
   submits a task; the server returns a task handle; the agent
   (or an orchestrator queue) polls or receives callbacks as
@@ -392,8 +395,8 @@ flowchart LR
   of tasks across several servers. Plan for a correlation ID
   that spans the tree — otherwise your audit trail fragments
   and postmortems get painful.
-- **Representative tooling.** The 2025-11-25 MCP spec's
-  experimental [tasks](https://modelcontextprotocol.io/specification/2025-11-25/basic/utilities/tasks)
+- **Representative tooling.** The current 2026-07-28 MCP spec's
+  [tasks](https://modelcontextprotocol.io/specification/2026-07-28/basic/utilities/tasks)
   primitive; MCP SDKs as they adopt it;
   orchestrator queues (LangGraph, Temporal, Inngest, internal
   queues) that expose MCP-task-shaped work items.
