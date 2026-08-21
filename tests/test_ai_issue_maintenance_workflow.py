@@ -51,6 +51,8 @@ class AiIssueMaintenanceWorkflowTests(unittest.TestCase):
             "if: steps.auth.outputs.configured == 'true' && steps.work.outputs.needed == 'true'",
             self.workflow,
         )
+        # The triage listing runs before checkout, so gh needs an explicit repo.
+        self.assertIn("GH_REPO: ${{ github.repository }}", self.workflow)
 
     def test_triage_prompt_routes_fixes_through_the_shepherd(self) -> None:
         self.assertIn("automation/ai-fix-", self.workflow)

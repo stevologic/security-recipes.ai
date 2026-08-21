@@ -53,22 +53,50 @@ test("CVE archive display text removes upstream encoding artifacts", () => {
   assert.equal(cleanCveSourceText("Ângela — München"), "Ângela — München");
 });
 
-test("production manifest plans one bounded sitemap per current yearly partition", () => {
+test("production manifest plans bounded sitemaps for every yearly partition", () => {
   const manifest = loadCveSitemapManifest(CATALOG_ROOT);
   const entries = planCveSitemaps(manifest);
+  const entriesByYear = Map.groupBy
+    ? Map.groupBy(entries, (entry) => entry.year)
+    : entries.reduce((grouped, entry) => {
+        const current = grouped.get(entry.year) || [];
+        current.push(entry);
+        grouped.set(entry.year, current);
+        return grouped;
+      }, new Map());
 
-  assert.equal(entries.length, manifest.partitions.length);
   assert.equal(
     entries.reduce((total, entry) => total + entry.count, 0),
     manifest.total
   );
   assert.equal(new Set(entries.map((entry) => entry.outputPath)).size, entries.length);
-  for (const entry of entries) {
-    assert.ok(entry.count > 0);
-    assert.ok(entry.count < 50_000);
-    assert.ok(entry.count <= CVE_SITEMAP_URL_LIMIT);
-    assert.match(entry.outputPath, /^\/sitemaps\/cves-\d{4}\.xml$/);
-    assert.match(entry.sourcePath, /^indexes\/\d{4}\.json\.gz$/);
+  assert.deepEqual(
+    [...entriesByYear.keys()].sort(),
+    manifest.partitions.map((partition) => String(partition.year)).sort(),
+  );
+  for (const partition of manifest.partitions) {
+    const year = String(partition.year);
+    const yearEntries = entriesByYear.get(year);
+    const expectedChunks = Math.ceil(partition.records / CVE_SITEMAP_URL_LIMIT);
+    assert.ok(yearEntries);
+    assert.equal(yearEntries.length, expectedChunks);
+    assert.equal(
+      yearEntries.reduce((total, entry) => total + entry.count, 0),
+      partition.records,
+    );
+    yearEntries.forEach((entry, index) => {
+      assert.ok(entry.count > 0);
+      assert.ok(entry.count < 50_000);
+      assert.ok(entry.count <= CVE_SITEMAP_URL_LIMIT);
+      assert.equal(entry.offset, index * CVE_SITEMAP_URL_LIMIT);
+      assert.equal(entry.sourcePath, partition.path);
+      assert.match(entry.sourcePath, /^indexes\/\d{4}\.json\.gz$/);
+      if (expectedChunks === 1) {
+        assert.equal(entry.outputPath, `/sitemaps/cves-${year}.xml`);
+      } else {
+        assert.equal(entry.outputPath, `/sitemaps/cves-${year}-${index + 1}.xml`);
+      }
+    });
   }
 });
 
