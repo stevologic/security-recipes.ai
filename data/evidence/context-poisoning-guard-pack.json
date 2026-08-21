@@ -360,6 +360,17 @@
       "source_id": "recipes"
     },
     {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 50,
+      "match": "- Until a floor is named, disable the WINS hook / WINS server and recheck GHSA before naming a tag.",
+      "path": "content/recipes/cve/cve-2025-10230-a-flaw-was-found-in-samba-in-the-front-end-wins-hook-handling-netbios-names-from-registration-packets-are-pa.md",
+      "risk_family": "approval_bypass",
+      "rule_id": "approval-bypass-request",
+      "severity": "high",
+      "source_id": "recipes"
+    },
+    {
       "actionable": false,
       "disposition": "defensive_control_language",
       "line": 123,
@@ -1726,13 +1737,13 @@
   ],
   "generated_at": "2026-05-02",
   "guard_summary": {
-    "actionable_finding_count": 95,
+    "actionable_finding_count": 96,
     "blocking_source_count": 2,
     "blocking_sources": [
       "agentic-assurance-models",
       "recipes"
     ],
-    "byte_count": 20459563,
+    "byte_count": 20255776,
     "decision_counts": {
       "allow_with_adversarial_examples": 1,
       "block_until_removed": 2,
@@ -1740,26 +1751,26 @@
       "pass": 5
     },
     "disposition_counts": {
-      "actionable_context_poisoning_risk": 95,
+      "actionable_context_poisoning_risk": 96,
       "defensive_control_language": 34,
       "documented_adversarial_example": 24
     },
     "failure_count": 0,
     "file_count": 3520,
-    "finding_count": 153,
+    "finding_count": 154,
     "held_source_count": 1,
     "held_sources": [
       "security-remediation-workflows"
     ],
     "risk_family_counts": {
-      "approval_bypass": 45,
+      "approval_bypass": 46,
       "hidden_instruction": 59,
       "prompt_injection": 10,
       "secret_exposure": 39
     },
     "severity_counts": {
       "critical": 49,
-      "high": 45,
+      "high": 46,
       "medium": 59
     },
     "source_count": 9
@@ -2007,15 +2018,15 @@
       "trust_tier": "tier_2_policy_context"
     },
     {
-      "actionable_finding_count": 31,
+      "actionable_finding_count": 32,
       "decision": "block_until_removed",
       "disposition_counts": {
-        "actionable_context_poisoning_risk": 31,
+        "actionable_context_poisoning_risk": 32,
         "defensive_control_language": 29,
         "documented_adversarial_example": 1
       },
       "file_count": 3384,
-      "finding_count": 61,
+      "finding_count": 62,
       "owner": {
         "accountable_team": "SecurityRecipes Maintainers",
         "escalation": "recipes-review",
@@ -2044,16 +2055,16 @@
         "content/recipes/cve/ai-enrichment-cve-2022-47966.md"
       ],
       "risk_family_counts": {
-        "approval_bypass": 24,
+        "approval_bypass": 25,
         "prompt_injection": 5,
         "secret_exposure": 32
       },
       "root": "content/recipes",
       "severity_counts": {
         "critical": 37,
-        "high": 24
+        "high": 25
       },
-      "source_hash": "aaba64b6c6431ce8367727442e1686449a6a2e8d8104c356f087dcdeed0835a5",
+      "source_hash": "e831ef06bbd6402fdc34678863d7c9bcd98f4c66d3f06543b724c34b44300f45",
       "source_id": "recipes",
       "title": "Recipes",
       "trust_tier": "tier_1_curated_guidance"
