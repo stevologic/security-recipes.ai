@@ -3,7 +3,7 @@ title: Codex Vulnerability Remediation
 linkTitle: Codex
 weight: 4
 date: 2026-04-21
-lastmod: 2026-07-21
+lastmod: 2026-08-21
 description: Use OpenAI Codex CLI and cloud agents to remediate vulnerabilities in isolated workspaces with scoped instructions, tests, rollback, and reviewed pull requests.
 sidebar:
   open: true

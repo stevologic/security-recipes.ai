@@ -3,7 +3,7 @@ title: Devin Vulnerability Remediation
 linkTitle: Devin
 weight: 2
 date: 2026-04-21
-lastmod: 2026-07-21
+lastmod: 2026-08-21
 description: Use Cognition Devin to remediate vulnerability backlogs with isolated sessions, bounded playbooks, verification evidence, rollback, and reviewed pull requests.
 sidebar:
   open: true
