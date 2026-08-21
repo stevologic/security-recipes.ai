@@ -3,7 +3,7 @@ title: "Threat model: agents as attack surface"
 linkTitle: "Threat model for agents"
 weight: 5
 date: 2026-04-22
-lastmod: 2026-07-06
+lastmod: 2026-08-21
 sidebar:
   open: true
 description: >
