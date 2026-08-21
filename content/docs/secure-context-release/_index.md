@@ -3,7 +3,7 @@ title: Secure Context Release Gate
 linkTitle: Secure Context Release
 weight: 6
 date: 2026-05-04
-lastmod: 2026-06-14
+lastmod: 2026-08-21
 toc: true
 sidebar:
   exclude: true
