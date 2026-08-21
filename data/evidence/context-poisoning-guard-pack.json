@@ -813,6 +813,17 @@
     {
       "actionable": false,
       "disposition": "defensive_control_language",
+      "line": 4,
+      "match": "description: \"CVE-2026-9800 lets an authenticated caller skip Keycloak Policy Enforcer checks by embedding the access-denied path in the URL. Upgrade to Keyc...",
+      "path": "content/recipes/cve/cve-2026-9800-a-flaw-was-found-in-keycloak-policy-enforcer.md",
+      "risk_family": "approval_bypass",
+      "rule_id": "approval-bypass-request",
+      "severity": "high",
+      "source_id": "recipes"
+    },
+    {
+      "actionable": false,
+      "disposition": "defensive_control_language",
       "line": 154,
       "match": "- Do not print secrets, package payloads, `.env` files, CI secret values, or",
       "path": "content/recipes/cve/ghsa-jpvj-wpmj-h7rv-cap-js-openapi-package-compromise.md",
@@ -1677,7 +1688,7 @@
       "agentic-assurance-models",
       "recipes"
     ],
-    "byte_count": 22566835,
+    "byte_count": 22507454,
     "decision_counts": {
       "allow_with_adversarial_examples": 1,
       "block_until_removed": 2,
@@ -1686,25 +1697,25 @@
     },
     "disposition_counts": {
       "actionable_context_poisoning_risk": 94,
-      "defensive_control_language": 30,
+      "defensive_control_language": 31,
       "documented_adversarial_example": 24
     },
     "failure_count": 0,
     "file_count": 3520,
-    "finding_count": 148,
+    "finding_count": 149,
     "held_source_count": 1,
     "held_sources": [
       "security-remediation-workflows"
     ],
     "risk_family_counts": {
-      "approval_bypass": 38,
+      "approval_bypass": 39,
       "hidden_instruction": 59,
       "prompt_injection": 10,
       "secret_exposure": 41
     },
     "severity_counts": {
       "critical": 51,
-      "high": 38,
+      "high": 39,
       "medium": 59
     },
     "source_count": 9
@@ -1956,11 +1967,11 @@
       "decision": "block_until_removed",
       "disposition_counts": {
         "actionable_context_poisoning_risk": 30,
-        "defensive_control_language": 25,
+        "defensive_control_language": 26,
         "documented_adversarial_example": 1
       },
       "file_count": 3384,
-      "finding_count": 56,
+      "finding_count": 57,
       "owner": {
         "accountable_team": "SecurityRecipes Maintainers",
         "escalation": "recipes-review",
@@ -1989,16 +2000,16 @@
         "content/recipes/cve/ai-enrichment-cve-2022-47966.md"
       ],
       "risk_family_counts": {
-        "approval_bypass": 17,
+        "approval_bypass": 18,
         "prompt_injection": 5,
         "secret_exposure": 34
       },
       "root": "content/recipes",
       "severity_counts": {
         "critical": 39,
-        "high": 17
+        "high": 18
       },
-      "source_hash": "c864ccb050c441e1ef886c8482c5476058bb3571d26508996b1c4a9a17a00157",
+      "source_hash": "ecdab2e326724f604d04b2f0a95007da765e6c3c60c8b937203ad83811efb809",
       "source_id": "recipes",
       "title": "Recipes",
       "trust_tier": "tier_1_curated_guidance"
