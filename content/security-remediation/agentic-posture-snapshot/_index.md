@@ -3,7 +3,7 @@ title: Agentic Posture Snapshot
 linkTitle: Agentic Posture Snapshot
 weight: 12
 date: 2026-05-04
-lastmod: 2026-07-23
+lastmod: 2026-08-21
 toc: true
 description: >
   Generate posture evidence for agentic AI across secure context, MCP tools,
@@ -20,6 +20,9 @@ which agents exist, what they can reach, how they are identified, which
 context they consume, where high-autonomy and XPIA exposure meet, and
 which evidence proves the current state. This pack turns the open
 SecurityRecipes corpus into a posture snapshot a reviewer can inspect.
+Rechecked against MCP
+[2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28)
+on August 21, 2026.
 {{< /callout >}}
 
 ## What this adds

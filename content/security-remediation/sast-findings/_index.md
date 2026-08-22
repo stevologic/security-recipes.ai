@@ -3,7 +3,7 @@ title: SAST Finding Remediation
 linkTitle: SAST Finding Remediation
 weight: 3
 date: 2026-04-25
-lastmod: 2026-07-21
+lastmod: 2026-08-21
 sidebar:
   open: true
 description: >
@@ -37,6 +37,9 @@ caught it.
 This workflow runs *after* a deterministic scanner, never instead
 of one. The scanner produces structured findings; the agent
 decides what to do with each one inside a tight policy envelope.
+Do not import a leftover CVE draft version or a guessed next tag
+as the SAST fix. The scanner rule, source, and sink remain the
+finding identity.
 
 ## Run this playbook
 

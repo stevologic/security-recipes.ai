@@ -3,7 +3,7 @@ title: Gatekeeping Patterns
 linkTitle: Gatekeeping Patterns
 weight: 6
 date: 2026-04-25
-lastmod: 2026-07-13
+lastmod: 2026-08-21
 sidebar:
   open: true
 description: >
@@ -19,7 +19,8 @@ the agent runs, gates while it's running, gates before its PR
 merges, gates after the PR merges, and gates the runtime imposes
 regardless of what any of the previous gates allowed. This page
 catalogues the flavours, where each one fits, and what each
-buys you that the others don't.
+buys you that the others don't. Rechecked August 21, 2026: leftover
+CVE draft text is not admission evidence for a version floor.
 {{< /callout >}}
 
 ## How to read this page

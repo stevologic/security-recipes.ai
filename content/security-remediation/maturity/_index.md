@@ -3,7 +3,7 @@ title: Rollout & Maturity Model
 linkTitle: Rollout & Maturity Model
 weight: 12
 date: 2026-04-22
-lastmod: 2026-07-13
+lastmod: 2026-08-21
 sidebar:
   open: true
 description: >
@@ -18,7 +18,9 @@ description: >
 not "doesn't work." It's "works for one class on one repo, then
 the program owner tries to ship it org-wide Monday and discovers
 the guardrails were load-bearing on accident." This page
-sequences the rollout so that doesn't happen.
+sequences the rollout so that doesn't happen. Rechecked August 21,
+2026: do not promote a workflow to walk or run while agents still
+invent version floors.
 {{< /callout >}}
 
 ## The five stages

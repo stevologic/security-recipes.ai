@@ -3,7 +3,7 @@ title: Artifact Cache & Mirror Quarantine
 linkTitle: Artifact Cache Purge
 weight: 5
 date: 2026-04-25
-lastmod: 2026-07-13
+lastmod: 2026-08-21
 sidebar:
   open: true
 description: >
@@ -18,7 +18,10 @@ description: >
 or base-image remediation when an advisory says the artifact
 itself is compromised — maintainer account takeover, poisoned
 release, supply-chain worm. Routine version bumps don't trigger
-this workflow; the lockfile bump is sufficient.
+this workflow; the lockfile bump is sufficient. Rechecked August
+21, 2026: quarantine only the advisory-named artifact identity.
+Do not invent a replacement version or purge a sibling package
+because leftover draft text mentioned it.
 {{< /callout >}}
 
 ## What problem this solves
