@@ -681,6 +681,17 @@
     {
       "actionable": true,
       "disposition": "actionable_context_poisoning_risk",
+      "line": 23,
+      "match": "Vault can forward a Vault token to an auth plugin when the Authorization header is passed through. GHSA-72gw-fm...",
+      "path": "content/recipes/cve/cve-2026-4525-if-a-vault-auth-mount-is-configured-to-pass-through-the-authorization-header-and-the-authorization-header.md",
+      "risk_family": "secret_exposure",
+      "rule_id": "secret-exfiltration-request",
+      "severity": "critical",
+      "source_id": "recipes"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
       "line": 147,
       "match": "exec requests to live services, print secret-bearing configuration values, or",
       "path": "content/recipes/cve/cve-2026-45505-apache-activemq-jolokia-discovery-wrapper-bypass.md",
@@ -769,9 +780,9 @@
     {
       "actionable": true,
       "disposition": "actionable_context_poisoning_risk",
-      "line": 26,
-      "match": "A contributor with workflow execution can bypass runner hardening and reach the CI host as root, directly threatening source and release secrets.",
-      "path": "content/recipes/cve/cve-2026-58053-gitea-act-runner-docker-container-options-host-escape.md",
+      "line": 23,
+      "match": "@cedar-policy/authorization-for-expressjs has query-string authorization bypass. GHSA-g4w6-vmgf-xqvx names `@cedar-policy/authorization-for-expressjs 0.3.0+` for `@cedar-policy/authorization-for-expressjs <= 0.2.0`. Leftover dump text named 0.3.0; GHAD agr...",
+      "path": "content/recipes/cve/cve-2026-49473-cedar-policy-authorization-for-expressjs-has-an-authorization-bypass-via-query-string-manipulation.md",
       "risk_family": "approval_bypass",
       "rule_id": "approval-bypass-request",
       "severity": "high",
@@ -857,7 +868,7 @@
     {
       "actionable": false,
       "disposition": "defensive_control_language",
-      "line": 171,
+      "line": 178,
       "match": "- disable Git hooks or run with safe hook policy where supported.",
       "path": "content/recipes/cve/ghsa-rpm5-x2qx-gitpython-command-injection.md",
       "risk_family": "approval_bypass",
@@ -868,7 +879,7 @@
     {
       "actionable": false,
       "disposition": "defensive_control_language",
-      "line": 149,
+      "line": 150,
       "match": "- Do not print secrets, symlink target contents, private skill bodies, token",
       "path": "content/recipes/cve/ghsa-wx3m-whqv-xv47-skillctl-path-symlink-traversal.md",
       "risk_family": "secret_exposure",
@@ -1704,13 +1715,13 @@
   ],
   "generated_at": "2026-08-21",
   "guard_summary": {
-    "actionable_finding_count": 93,
+    "actionable_finding_count": 94,
     "blocking_source_count": 2,
     "blocking_sources": [
       "agentic-assurance-models",
       "recipes"
     ],
-    "byte_count": 17855836,
+    "byte_count": 16563118,
     "decision_counts": {
       "allow_with_adversarial_examples": 1,
       "block_until_removed": 2,
@@ -1718,13 +1729,13 @@
       "pass": 5
     },
     "disposition_counts": {
-      "actionable_context_poisoning_risk": 93,
+      "actionable_context_poisoning_risk": 94,
       "defensive_control_language": 34,
       "documented_adversarial_example": 24
     },
     "failure_count": 0,
     "file_count": 3520,
-    "finding_count": 151,
+    "finding_count": 152,
     "held_source_count": 1,
     "held_sources": [
       "security-remediation-workflows"
@@ -1733,10 +1744,10 @@
       "approval_bypass": 45,
       "hidden_instruction": 59,
       "prompt_injection": 9,
-      "secret_exposure": 38
+      "secret_exposure": 39
     },
     "severity_counts": {
-      "critical": 47,
+      "critical": 48,
       "high": 45,
       "medium": 59
     },
@@ -1985,15 +1996,15 @@
       "trust_tier": "tier_2_policy_context"
     },
     {
-      "actionable_finding_count": 29,
+      "actionable_finding_count": 30,
       "decision": "block_until_removed",
       "disposition_counts": {
-        "actionable_context_poisoning_risk": 29,
+        "actionable_context_poisoning_risk": 30,
         "defensive_control_language": 29,
         "documented_adversarial_example": 1
       },
       "file_count": 3384,
-      "finding_count": 59,
+      "finding_count": 60,
       "owner": {
         "accountable_team": "SecurityRecipes Maintainers",
         "escalation": "recipes-review",
@@ -2024,14 +2035,14 @@
       "risk_family_counts": {
         "approval_bypass": 24,
         "prompt_injection": 4,
-        "secret_exposure": 31
+        "secret_exposure": 32
       },
       "root": "content/recipes",
       "severity_counts": {
-        "critical": 35,
+        "critical": 36,
         "high": 24
       },
-      "source_hash": "bf9c9dc59d9a33de05fd7b2d06e34feb5d1bf15d4752faa1376957de468ba785",
+      "source_hash": "55df464615a5d2015389642106d96fead2e083f1d231c368d39709ab15033c29",
       "source_id": "recipes",
       "title": "Recipes",
       "trust_tier": "tier_1_curated_guidance"
