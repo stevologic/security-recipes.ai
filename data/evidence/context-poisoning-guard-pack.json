@@ -426,6 +426,17 @@
       "source_id": "recipes"
     },
     {
+      "actionable": false,
+      "disposition": "defensive_control_language",
+      "line": 25,
+      "match": "Do not prove exposure with leftover dump LoLLMs secret-key prose.",
+      "path": "content/recipes/cve/cve-2026-1114-lollms-is-vulnerable-to-improper-access-control-through-weak-secret-key.md",
+      "risk_family": "secret_exposure",
+      "rule_id": "secret-exfiltration-request",
+      "severity": "critical",
+      "source_id": "recipes"
+    },
+    {
       "actionable": true,
       "disposition": "actionable_context_poisoning_risk",
       "line": 81,
@@ -681,6 +692,17 @@
     {
       "actionable": true,
       "disposition": "actionable_context_poisoning_risk",
+      "line": 23,
+      "match": "Vault can forward a Vault token to an auth plugin when the Authorization header is passed through. GHSA-72gw-fm...",
+      "path": "content/recipes/cve/cve-2026-4525-if-a-vault-auth-mount-is-configured-to-pass-through-the-authorization-header-and-the-authorization-header.md",
+      "risk_family": "secret_exposure",
+      "rule_id": "secret-exfiltration-request",
+      "severity": "critical",
+      "source_id": "recipes"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
       "line": 147,
       "match": "exec requests to live services, print secret-bearing configuration values, or",
       "path": "content/recipes/cve/cve-2026-45505-apache-activemq-jolokia-discovery-wrapper-bypass.md",
@@ -769,9 +791,9 @@
     {
       "actionable": true,
       "disposition": "actionable_context_poisoning_risk",
-      "line": 26,
-      "match": "A contributor with workflow execution can bypass runner hardening and reach the CI host as root, directly threatening source and release secrets.",
-      "path": "content/recipes/cve/cve-2026-58053-gitea-act-runner-docker-container-options-host-escape.md",
+      "line": 23,
+      "match": "@cedar-policy/authorization-for-expressjs has query-string authorization bypass. GHSA-g4w6-vmgf-xqvx names `@cedar-policy/authorization-for-expressjs 0.3.0+` for `@cedar-policy/authorization-for-expressjs <= 0.2.0`. Leftover dump text named 0.3.0; GHAD agr...",
+      "path": "content/recipes/cve/cve-2026-49473-cedar-policy-authorization-for-expressjs-has-an-authorization-bypass-via-query-string-manipulation.md",
       "risk_family": "approval_bypass",
       "rule_id": "approval-bypass-request",
       "severity": "high",
@@ -794,17 +816,6 @@
       "line": 133,
       "match": "bypass URL path policy checks. Produce exactly one output:",
       "path": "content/recipes/cve/cve-2026-6321-fast-uri-percent-encoded-path-traversal.md",
-      "risk_family": "approval_bypass",
-      "rule_id": "approval-bypass-request",
-      "severity": "high",
-      "source_id": "recipes"
-    },
-    {
-      "actionable": true,
-      "disposition": "actionable_context_poisoning_risk",
-      "line": 66,
-      "match": ".... Confirm whether the vulnerable path is reachable: `iPAddress name constraints bypass when WOLFSSL_IP_ALT_NAME` and attacker-controlled parameter `input` are the first review anchors.",
-      "path": "content/recipes/cve/cve-2026-7532-ipaddress-name-constraints-bypass-when-wolfssl-ip-alt-name-certificate-constraint-bypass.md",
       "risk_family": "approval_bypass",
       "rule_id": "approval-bypass-request",
       "severity": "high",
@@ -857,7 +868,7 @@
     {
       "actionable": false,
       "disposition": "defensive_control_language",
-      "line": 171,
+      "line": 178,
       "match": "- disable Git hooks or run with safe hook policy where supported.",
       "path": "content/recipes/cve/ghsa-rpm5-x2qx-gitpython-command-injection.md",
       "risk_family": "approval_bypass",
@@ -868,7 +879,7 @@
     {
       "actionable": false,
       "disposition": "defensive_control_language",
-      "line": 149,
+      "line": 150,
       "match": "- Do not print secrets, symlink target contents, private skill bodies, token",
       "path": "content/recipes/cve/ghsa-wx3m-whqv-xv47-skillctl-path-symlink-traversal.md",
       "risk_family": "secret_exposure",
@@ -1710,7 +1721,7 @@
       "agentic-assurance-models",
       "recipes"
     ],
-    "byte_count": 17855836,
+    "byte_count": 15940590,
     "decision_counts": {
       "allow_with_adversarial_examples": 1,
       "block_until_removed": 2,
@@ -1719,25 +1730,25 @@
     },
     "disposition_counts": {
       "actionable_context_poisoning_risk": 93,
-      "defensive_control_language": 34,
+      "defensive_control_language": 35,
       "documented_adversarial_example": 24
     },
     "failure_count": 0,
     "file_count": 3520,
-    "finding_count": 151,
+    "finding_count": 152,
     "held_source_count": 1,
     "held_sources": [
       "security-remediation-workflows"
     ],
     "risk_family_counts": {
-      "approval_bypass": 45,
+      "approval_bypass": 44,
       "hidden_instruction": 59,
       "prompt_injection": 9,
-      "secret_exposure": 38
+      "secret_exposure": 40
     },
     "severity_counts": {
-      "critical": 47,
-      "high": 45,
+      "critical": 49,
+      "high": 44,
       "medium": 59
     },
     "source_count": 9
@@ -1989,11 +2000,11 @@
       "decision": "block_until_removed",
       "disposition_counts": {
         "actionable_context_poisoning_risk": 29,
-        "defensive_control_language": 29,
+        "defensive_control_language": 30,
         "documented_adversarial_example": 1
       },
       "file_count": 3384,
-      "finding_count": 59,
+      "finding_count": 60,
       "owner": {
         "accountable_team": "SecurityRecipes Maintainers",
         "escalation": "recipes-review",
@@ -2022,16 +2033,16 @@
         "content/recipes/cve/ai-enrichment-cve-2022-47966.md"
       ],
       "risk_family_counts": {
-        "approval_bypass": 24,
+        "approval_bypass": 23,
         "prompt_injection": 4,
-        "secret_exposure": 31
+        "secret_exposure": 33
       },
       "root": "content/recipes",
       "severity_counts": {
-        "critical": 35,
-        "high": 24
+        "critical": 37,
+        "high": 23
       },
-      "source_hash": "bf9c9dc59d9a33de05fd7b2d06e34feb5d1bf15d4752faa1376957de468ba785",
+      "source_hash": "3cf50c98b9c34abc51691e12b75f74ae49c58b33974fc334b8cf229a21429d02",
       "source_id": "recipes",
       "title": "Recipes",
       "trust_tier": "tier_1_curated_guidance"
