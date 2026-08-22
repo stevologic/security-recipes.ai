@@ -17,6 +17,7 @@ facets: ["code-hygiene", "audit", "remediation"]
 tags: ["code-hygiene", "python", "dataclasses", "mutable-defaults", "sentinels"]
 weight: 302
 date: 2026-08-21
+lastmod: 2026-08-21
 reference_ids: ["nist-ssdf", "python-typing", "python-asyncio", "python-contextlib", "python-dataclasses"]
 references_reviewed: 2026-08-21
 ---

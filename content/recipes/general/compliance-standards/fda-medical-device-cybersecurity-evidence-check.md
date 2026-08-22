@@ -27,6 +27,7 @@ model: "gpt-5-codex"
 tags: ["compliance", "fda-medical-device-cybersecurity", "regulated-industries", "audit", "product-security", "safety", "medical-devices", "healthcare"]
 weight: 360
 date: "2026-08-21"
+lastmod: "2026-08-21"
 severity: "info"
 ---
 

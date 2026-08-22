@@ -27,6 +27,7 @@ model: "gpt-5-codex"
 tags: ["compliance", "openssf-osps-baseline", "product-security", "audit", "supply-chain", "secure-defaults", "open-source", "software"]
 weight: 330
 date: "2026-08-21"
+lastmod: "2026-08-21"
 severity: "info"
 ---
 

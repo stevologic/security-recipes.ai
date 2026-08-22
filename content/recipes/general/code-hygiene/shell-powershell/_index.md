@@ -3,6 +3,7 @@ title: "Shell & PowerShell Code Hygiene"
 linkTitle: "Shell & PowerShell"
 description: "Quoting, exit propagation, cleanup, analyzer, error, and pipeline hygiene. Choose bounded workflows with detection, tests, and stop conditions."
 weight: 130
+lastmod: 2026-08-21
 sidebar:
   open: false
 ---

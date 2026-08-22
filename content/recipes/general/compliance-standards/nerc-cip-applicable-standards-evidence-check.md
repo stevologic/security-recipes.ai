@@ -27,6 +27,7 @@ model: "gpt-5-codex"
 tags: ["compliance", "nerc-cip", "critical-infrastructure", "audit", "ot-security", "bulk-electric-system", "energy"]
 weight: 380
 date: "2026-08-21"
+lastmod: "2026-08-21"
 severity: "info"
 ---
 

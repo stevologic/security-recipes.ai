@@ -3,6 +3,7 @@ title: ".NET Code Hygiene"
 linkTitle: ".NET"
 description: "Nullable, analyzer, asynchronous, disposal, LINQ, and Entity Framework hygiene. Choose bounded workflows with detection, tests, and stop conditions."
 weight: 50
+lastmod: 2026-08-21
 sidebar:
   open: false
 ---

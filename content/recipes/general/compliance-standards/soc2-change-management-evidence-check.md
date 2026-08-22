@@ -27,6 +27,7 @@ model: "gpt-5-codex"
 tags: ["compliance", "soc-2", "assurance", "audit", "governance", "service-organizations", "cloud"]
 weight: 160
 date: "2026-08-21"
+lastmod: "2026-08-21"
 severity: "info"
 ---
 

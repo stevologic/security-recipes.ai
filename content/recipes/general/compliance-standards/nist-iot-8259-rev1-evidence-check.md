@@ -27,6 +27,7 @@ model: "gpt-5-codex"
 tags: ["compliance", "nist-iot-8259", "product-security", "audit", "iot-security", "iot", "consumer-products"]
 weight: 350
 date: "2026-08-21"
+lastmod: "2026-08-21"
 severity: "info"
 ---
 

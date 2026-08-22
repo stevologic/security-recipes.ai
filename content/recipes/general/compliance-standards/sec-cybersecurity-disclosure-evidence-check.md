@@ -27,6 +27,7 @@ model: "gpt-5-codex"
 tags: ["compliance", "sec-cyber-disclosure", "assurance", "audit", "governance", "incident-response", "public-companies"]
 weight: 280
 date: "2026-08-21"
+lastmod: "2026-08-21"
 severity: "info"
 ---
 

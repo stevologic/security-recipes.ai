@@ -27,6 +27,7 @@ model: "gpt-5-codex"
 tags: ["compliance", "eu-nis2", "critical-infrastructure", "audit", "incident-response", "essential-entities", "important-entities"]
 weight: 470
 date: "2026-08-21"
+lastmod: "2026-08-21"
 severity: "info"
 ---
 

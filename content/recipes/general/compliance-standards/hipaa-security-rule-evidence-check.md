@@ -27,6 +27,7 @@ model: "gpt-5-codex"
 tags: ["compliance", "hipaa-security-rule", "regulated-industries", "audit", "privacy", "data-protection", "healthcare", "health-technology"]
 weight: 210
 date: "2026-08-21"
+lastmod: "2026-08-21"
 severity: "info"
 ---
 

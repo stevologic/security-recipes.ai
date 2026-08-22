@@ -27,6 +27,7 @@ model: "gpt-5-codex"
 tags: ["compliance", "nist-csf", "security-programs", "audit", "risk", "governance", "cross-sector"]
 weight: 180
 date: "2026-08-21"
+lastmod: "2026-08-21"
 severity: "info"
 ---
 

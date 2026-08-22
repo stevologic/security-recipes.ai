@@ -27,6 +27,7 @@ model: "gpt-5-codex"
 tags: ["compliance", "nist-ai-ssdf", "ai-governance", "audit", "ai-safety", "code-hygiene", "artificial-intelligence", "software"]
 weight: 170
 date: "2026-08-21"
+lastmod: "2026-08-21"
 severity: "info"
 ---
 

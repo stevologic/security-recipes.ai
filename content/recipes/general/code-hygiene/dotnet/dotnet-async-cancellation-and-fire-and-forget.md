@@ -17,6 +17,7 @@ facets: ["code-hygiene", "audit", "remediation"]
 tags: ["code-hygiene", "dotnet", "async", "cancellationtoken", "tasks"]
 weight: 502
 date: 2026-08-21
+lastmod: 2026-08-21
 reference_ids: ["nist-ssdf", "dotnet-analysis", "dotnet-nullable", "dotnet-async"]
 references_reviewed: 2026-08-21
 ---

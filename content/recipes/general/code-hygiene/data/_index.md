@@ -3,6 +3,7 @@ title: "SQL & Data Code Hygiene"
 linkTitle: "SQL & Data"
 description: "Migration, transaction, locking, query-plan, and data-access hygiene. Choose bounded workflows with detection, tests, and stop conditions."
 weight: 140
+lastmod: 2026-08-21
 sidebar:
   open: false
 ---

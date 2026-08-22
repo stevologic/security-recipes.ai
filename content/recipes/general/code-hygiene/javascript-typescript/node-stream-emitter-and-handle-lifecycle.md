@@ -17,6 +17,7 @@ facets: ["code-hygiene", "audit", "remediation"]
 tags: ["code-hygiene", "javascript-typescript", "nodejs", "streams", "eventemitter", "handles"]
 weight: 205
 date: 2026-08-21
+lastmod: 2026-08-21
 reference_ids: ["nist-ssdf", "typescript-tsconfig", "eslint-suppressions", "node-events", "node-streams"]
 references_reviewed: 2026-08-21
 ---

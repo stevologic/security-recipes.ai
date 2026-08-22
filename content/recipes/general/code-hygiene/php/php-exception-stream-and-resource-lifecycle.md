@@ -17,6 +17,7 @@ facets: ["code-hygiene", "audit", "remediation"]
 tags: ["code-hygiene", "php", "exceptions", "streams", "resources"]
 weight: 1002
 date: 2026-08-21
+lastmod: 2026-08-21
 reference_ids: ["nist-ssdf", "php-types", "php-errors"]
 references_reviewed: 2026-08-21
 ---

@@ -17,6 +17,7 @@ facets: ["code-hygiene", "audit", "remediation"]
 tags: ["code-hygiene", "data", "sql", "migrations", "rollback", "schema"]
 weight: 1401
 date: 2026-08-21
+lastmod: 2026-08-21
 reference_ids: ["nist-ssdf", "postgres-transactions", "postgres-explain"]
 references_reviewed: 2026-08-21
 ---

@@ -27,6 +27,7 @@ model: "gpt-5-codex"
 tags: ["compliance", "eu-cyber-resilience-act", "product-security", "audit", "vulnerability-management", "products-with-digital-elements", "software"]
 weight: 340
 date: "2026-08-21"
+lastmod: "2026-08-21"
 severity: "info"
 ---
 

@@ -27,6 +27,7 @@ model: "gpt-5-codex"
 tags: ["compliance", "glba-safeguards", "regulated-industries", "audit", "data-protection", "governance", "financial-services", "nonbank-financial-institutions"]
 weight: 260
 date: "2026-08-21"
+lastmod: "2026-08-21"
 severity: "info"
 ---
 

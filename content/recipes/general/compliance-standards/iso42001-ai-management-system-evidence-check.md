@@ -27,6 +27,7 @@ model: "gpt-5-codex"
 tags: ["compliance", "iso-42001", "ai-governance", "audit", "ai-safety", "governance", "artificial-intelligence", "cross-sector"]
 weight: 400
 date: "2026-08-21"
+lastmod: "2026-08-21"
 severity: "info"
 ---
 

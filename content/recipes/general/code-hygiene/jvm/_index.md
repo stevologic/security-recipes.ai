@@ -3,6 +3,7 @@ title: "Java & Kotlin Code Hygiene"
 linkTitle: "Java & Kotlin"
 description: "Compiler, type-contract, resource, concurrency, and coroutine hygiene for JVM repositories. Choose bounded workflows with detection, tests, and stop conditions."
 weight: 40
+lastmod: 2026-08-21
 sidebar:
   open: false
 ---

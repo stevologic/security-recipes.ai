@@ -28,6 +28,8 @@ keywords:
   - "MCP servers"
   - "OWASP Top 10:2025"
   - "OWASP Top 10 2025"
+  - "OWASP Top 10:2026"
+  - "OWASP Top 10 2026"
   - "CISA KEV"
   - "MLflow security"
   - "Langflow security"

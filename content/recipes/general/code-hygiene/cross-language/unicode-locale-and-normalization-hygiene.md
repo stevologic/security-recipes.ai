@@ -17,6 +17,7 @@ facets: ["code-hygiene", "audit", "remediation"]
 tags: ["code-hygiene", "cross-language", "unicode", "locale", "normalization"]
 weight: 115
 date: 2026-08-21
+lastmod: 2026-08-21
 reference_ids: ["nist-ssdf", "owasp-implementation"]
 references_reviewed: 2026-08-21
 ---

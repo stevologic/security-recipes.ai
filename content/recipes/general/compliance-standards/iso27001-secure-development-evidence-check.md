@@ -27,6 +27,7 @@ model: "gpt-5-codex"
 tags: ["compliance", "iso-27001", "security-programs", "audit", "risk", "governance", "cross-sector"]
 weight: 120
 date: "2026-08-21"
+lastmod: "2026-08-21"
 severity: "info"
 ---
 

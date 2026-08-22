@@ -27,6 +27,7 @@ model: "gpt-5-codex"
 tags: ["compliance", "nist-ai-rmf", "ai-governance", "audit", "ai-safety", "risk", "artificial-intelligence", "cross-sector"]
 weight: 390
 date: "2026-08-21"
+lastmod: "2026-08-21"
 severity: "info"
 ---
 

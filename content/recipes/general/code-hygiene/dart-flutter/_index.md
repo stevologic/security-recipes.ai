@@ -3,6 +3,7 @@ title: "Dart & Flutter Code Hygiene"
 linkTitle: "Dart & Flutter"
 description: "Analyzer, null-safety, asynchronous, controller, and widget lifecycle hygiene. Choose bounded workflows with detection, tests, and stop conditions."
 weight: 120
+lastmod: 2026-08-21
 sidebar:
   open: false
 ---

@@ -17,6 +17,7 @@ facets: ["code-hygiene", "audit", "remediation"]
 tags: ["code-hygiene", "dart-flutter", "flutter", "futures", "streams", "controllers", "dispose"]
 weight: 1202
 date: 2026-08-21
+lastmod: 2026-08-21
 reference_ids: ["nist-ssdf", "dart-analysis", "dart-async", "flutter-dispose"]
 references_reviewed: 2026-08-21
 ---

@@ -27,6 +27,7 @@ model: "gpt-5-codex"
 tags: ["compliance", "owasp-asvs", "product-security", "audit", "application-security", "code-hygiene", "software", "web-applications"]
 weight: 290
 date: "2026-08-21"
+lastmod: "2026-08-21"
 severity: "info"
 ---
 

@@ -17,6 +17,7 @@ facets: ["code-hygiene", "audit", "remediation"]
 tags: ["code-hygiene", "shell-powershell", "powershell", "psscriptanalyzer", "lint", "suppressions"]
 weight: 1303
 date: 2026-08-21
+lastmod: 2026-08-21
 reference_ids: ["nist-ssdf", "shellcheck-docs", "posix-shell", "powershell-analyzer"]
 references_reviewed: 2026-08-21
 ---

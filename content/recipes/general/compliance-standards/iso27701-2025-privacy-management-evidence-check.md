@@ -27,6 +27,7 @@ model: "gpt-5-codex"
 tags: ["compliance", "iso-27701", "privacy", "audit", "governance", "pii-controllers", "pii-processors"]
 weight: 490
 date: "2026-08-21"
+lastmod: "2026-08-21"
 severity: "info"
 ---
 

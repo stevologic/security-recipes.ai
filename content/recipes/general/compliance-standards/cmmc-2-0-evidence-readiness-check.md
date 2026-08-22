@@ -27,6 +27,7 @@ model: "gpt-5-codex"
 tags: ["compliance", "cmmc", "government", "audit", "defense", "data-protection", "defense-industrial-base", "government-contractors"]
 weight: 430
 date: "2026-08-21"
+lastmod: "2026-08-21"
 severity: "info"
 ---
 

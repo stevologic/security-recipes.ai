@@ -17,6 +17,7 @@ facets: ["code-hygiene", "audit", "remediation"]
 tags: ["code-hygiene", "shell-powershell", "shell", "exit-codes", "pipelines", "traps", "temp-files"]
 weight: 1302
 date: 2026-08-21
+lastmod: 2026-08-21
 reference_ids: ["nist-ssdf", "shellcheck-docs", "posix-shell", "powershell-analyzer"]
 references_reviewed: 2026-08-21
 ---

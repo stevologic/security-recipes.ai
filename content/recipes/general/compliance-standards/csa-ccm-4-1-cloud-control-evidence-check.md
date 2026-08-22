@@ -27,6 +27,7 @@ model: "gpt-5-codex"
 tags: ["compliance", "csa-ccm", "cloud-assurance", "audit", "cloud", "assurance", "saas"]
 weight: 230
 date: "2026-08-21"
+lastmod: "2026-08-21"
 severity: "info"
 ---
 

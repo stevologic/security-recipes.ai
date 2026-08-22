@@ -27,6 +27,7 @@ model: "gpt-5-codex"
 tags: ["compliance", "nydfs-part-500", "regulated-industries", "audit", "data-protection", "incident-response", "financial-services", "insurance"]
 weight: 270
 date: "2026-08-21"
+lastmod: "2026-08-21"
 severity: "info"
 ---
 

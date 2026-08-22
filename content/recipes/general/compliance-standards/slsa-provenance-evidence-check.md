@@ -27,6 +27,7 @@ model: "gpt-5-codex"
 tags: ["compliance", "slsa", "product-security", "audit", "supply-chain", "provenance", "software", "cross-sector"]
 weight: 150
 date: "2026-08-21"
+lastmod: "2026-08-21"
 severity: "info"
 ---
 

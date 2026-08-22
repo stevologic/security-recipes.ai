@@ -27,6 +27,7 @@ model: "gpt-5-codex"
 tags: ["compliance", "owasp-samm", "product-security", "audit", "application-security", "maturity", "software", "cross-sector"]
 weight: 320
 date: "2026-08-21"
+lastmod: "2026-08-21"
 severity: "info"
 ---
 

@@ -27,6 +27,7 @@ model: "gpt-5-codex"
 tags: ["compliance", "nist-privacy-framework", "privacy", "audit", "risk", "cross-sector"]
 weight: 480
 date: "2026-08-21"
+lastmod: "2026-08-21"
 severity: "info"
 ---
 

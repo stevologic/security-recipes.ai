@@ -2,17 +2,24 @@
 title: Devin
 linkTitle: Devin
 weight: 5
+lastmod: 2026-08-21
 sidebar:
   open: false
 noindex: true
 noindex_follow: true
 description: >
-  Knowledge entries, playbooks, and task prompts contributed by
-  teams using Devin for agentic remediation.
+  Devin Knowledge entries, playbooks, and task prompts for bounded
+  remediation that humans can review and MCP clients can fetch as
+  context.
 ---
 
 Prompts and configuration targeted at **Devin** (Cognition's
 autonomous engineering agent).
+
+These pages stay `noindex` so leftover drafts cannot rank as
+authoritative CVE floors. Humans browse the cards below; agents can
+fetch the same bounded files through the recipe JSON feed and MCP
+search tools.
 
 ## What usually lives here
 

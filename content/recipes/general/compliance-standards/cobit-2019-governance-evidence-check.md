@@ -27,6 +27,7 @@ model: "gpt-5-codex"
 tags: ["compliance", "cobit", "assurance", "audit", "governance", "risk", "cross-sector"]
 weight: 240
 date: "2026-08-21"
+lastmod: "2026-08-21"
 severity: "info"
 ---
 

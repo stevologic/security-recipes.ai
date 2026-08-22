@@ -27,6 +27,7 @@ model: "gpt-5-codex"
 tags: ["compliance", "eu-dora", "regulated-industries", "audit", "resilience", "third-party-risk", "financial-services", "ict-third-party-providers"]
 weight: 460
 date: "2026-08-21"
+lastmod: "2026-08-21"
 severity: "info"
 ---
 

@@ -27,6 +27,7 @@ model: "gpt-5-codex"
 tags: ["compliance", "pci-dss", "regulated-industries", "audit", "data-protection", "boundary", "payments", "retail"]
 weight: 140
 date: "2026-08-21"
+lastmod: "2026-08-21"
 severity: "info"
 ---
 
@@ -56,7 +57,7 @@ Use this recipe to produce a source-aware evidence-readiness assessment for **PC
 - **Industries:** payments, retail, financial-services
 - **License boundary:** `summary-only`
 
-Entities that store, process, or transmit payment account data, and service providers that can affect the cardholder data environment.
+Entities that store, process, or transmit payment account data, and service providers that can affect the cardholder data environment. PCI DSS v4.0.1 is the active standard; the v4.x future-dated requirements became mandatory on 31 March 2025.
 
 The cataloged version is final; still verify scope and any later official updates.
 

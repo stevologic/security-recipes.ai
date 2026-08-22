@@ -4,13 +4,14 @@ linkTitle: "Compliance standards"
 description: "Browse 39 source-backed compliance and assurance recipes with framework scope, version status, official references, and evidence requirements for review."
 weight: 10
 date: "2026-08-21"
+lastmod: "2026-08-21"
 ---
 
 # Compliance standards
 
 This library contains **39 framework recipes**, generated from a reviewed structured catalog. Each recipe separates framework applicability from evidence readiness, identifies its exact version and status, and links to official sources. It never treats a recipe as certification or legal advice.
 
-Catalog sources were reviewed on **2026-08-21**. Draft, phased, and revision-in-progress entries are labeled; users must confirm official changes before relying on an assessment.
+Catalog sources were reviewed on **2026-08-21**. Draft, phased, and revision-in-progress entries are labeled; users must confirm official changes before relying on an assessment. Humans can browse the table below; agents can fetch the same bounded evidence recipes through the recipe JSON feed and MCP search tools.
 
 ## Section index
 

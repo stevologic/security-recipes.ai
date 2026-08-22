@@ -17,6 +17,7 @@ facets: ["code-hygiene", "audit", "remediation"]
 tags: ["code-hygiene", "javascript-typescript", "typescript", "strict", "any", "ts-ignore"]
 weight: 201
 date: 2026-08-21
+lastmod: 2026-08-21
 reference_ids: ["nist-ssdf", "typescript-tsconfig", "eslint-suppressions", "node-events"]
 references_reviewed: 2026-08-21
 ---

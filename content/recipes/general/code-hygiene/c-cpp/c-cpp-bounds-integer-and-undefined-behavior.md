@@ -17,6 +17,7 @@ facets: ["code-hygiene", "audit", "remediation"]
 tags: ["code-hygiene", "c-cpp", "c", "cpp", "bounds", "integers", "undefined-behavior"]
 weight: 803
 date: 2026-08-21
+lastmod: 2026-08-21
 reference_ids: ["nist-ssdf", "cpp-guidelines", "clang-sanitizers"]
 references_reviewed: 2026-08-21
 ---

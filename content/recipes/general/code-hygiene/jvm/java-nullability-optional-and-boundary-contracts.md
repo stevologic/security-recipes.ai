@@ -17,6 +17,7 @@ facets: ["code-hygiene", "audit", "remediation"]
 tags: ["code-hygiene", "jvm", "java", "nullability", "optional", "contracts"]
 weight: 402
 date: 2026-08-21
+lastmod: 2026-08-21
 reference_ids: ["nist-ssdf", "java-javac", "kotlin-conventions"]
 references_reviewed: 2026-08-21
 ---

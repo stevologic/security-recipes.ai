@@ -27,6 +27,7 @@ model: "gpt-5-codex"
 tags: ["compliance", "cisa-cross-sector-cpg", "critical-infrastructure", "audit", "secure-defaults", "cross-sector"]
 weight: 450
 date: "2026-08-21"
+lastmod: "2026-08-21"
 severity: "info"
 ---
 

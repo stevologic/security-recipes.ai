@@ -17,6 +17,7 @@ facets: ["code-hygiene", "audit", "remediation"]
 tags: ["code-hygiene", "platform", "containers", "signals", "healthcheck", "shutdown"]
 weight: 1504
 date: 2026-08-21
+lastmod: 2026-08-21
 reference_ids: ["nist-ssdf", "terraform-validate", "docker-build", "kubernetes-config", "github-actions-syntax", "docker-run"]
 references_reviewed: 2026-08-21
 ---

@@ -27,6 +27,7 @@ model: "gpt-5-codex"
 tags: ["compliance", "cis-controls", "security-programs", "audit", "risk", "secure-defaults", "cross-sector"]
 weight: 110
 date: "2026-08-21"
+lastmod: "2026-08-21"
 severity: "info"
 ---
 

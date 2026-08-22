@@ -17,6 +17,7 @@ facets: ["code-hygiene", "audit", "remediation"]
 tags: ["code-hygiene", "platform", "docker", "dockerfile", "layers", "cache", "build-context"]
 weight: 1503
 date: 2026-08-21
+lastmod: 2026-08-21
 reference_ids: ["nist-ssdf", "terraform-validate", "docker-build", "kubernetes-config", "github-actions-syntax"]
 references_reviewed: 2026-08-21
 ---

@@ -27,6 +27,7 @@ model: "gpt-5-codex"
 tags: ["compliance", "owasp-masvs", "product-security", "audit", "application-security", "mobile-security", "software", "mobile-applications"]
 weight: 310
 date: "2026-08-21"
+lastmod: "2026-08-21"
 severity: "info"
 ---
 

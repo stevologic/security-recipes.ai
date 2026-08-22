@@ -27,6 +27,7 @@ model: "gpt-5-codex"
 tags: ["compliance", "eu-ai-act", "ai-governance", "audit", "ai-safety", "legal-readiness", "artificial-intelligence", "cross-sector"]
 weight: 410
 date: "2026-08-21"
+lastmod: "2026-08-21"
 severity: "info"
 ---
 

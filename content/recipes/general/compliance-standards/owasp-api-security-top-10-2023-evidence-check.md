@@ -27,6 +27,7 @@ model: "gpt-5-codex"
 tags: ["compliance", "owasp-api-top-10", "product-security", "audit", "application-security", "api-security", "software", "api-providers"]
 weight: 300
 date: "2026-08-21"
+lastmod: "2026-08-21"
 severity: "info"
 ---
 

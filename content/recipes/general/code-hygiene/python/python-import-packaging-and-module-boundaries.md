@@ -17,6 +17,7 @@ facets: ["code-hygiene", "audit", "remediation"]
 tags: ["code-hygiene", "python", "imports", "packaging", "modules"]
 weight: 305
 date: 2026-08-21
+lastmod: 2026-08-21
 reference_ids: ["nist-ssdf", "python-typing", "python-asyncio", "python-contextlib", "python-imports"]
 references_reviewed: 2026-08-21
 ---

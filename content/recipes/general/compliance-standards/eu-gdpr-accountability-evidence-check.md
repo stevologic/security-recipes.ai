@@ -27,6 +27,7 @@ model: "gpt-5-codex"
 tags: ["compliance", "gdpr", "privacy", "audit", "data-protection", "cross-sector"]
 weight: 220
 date: "2026-08-21"
+lastmod: "2026-08-21"
 severity: "info"
 ---
 

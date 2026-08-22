@@ -17,6 +17,7 @@ facets: ["code-hygiene", "audit", "remediation"]
 tags: ["code-hygiene", "jvm", "kotlin", "nullability", "platform-types", "immutability"]
 weight: 407
 date: 2026-08-21
+lastmod: 2026-08-21
 reference_ids: ["nist-ssdf", "java-javac", "kotlin-conventions", "kotlin-null-safety"]
 references_reviewed: 2026-08-21
 ---

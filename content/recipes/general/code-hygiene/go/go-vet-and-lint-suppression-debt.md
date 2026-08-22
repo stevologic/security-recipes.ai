@@ -17,6 +17,7 @@ facets: ["code-hygiene", "audit", "remediation"]
 tags: ["code-hygiene", "go", "vet", "lint", "nolint"]
 weight: 601
 date: 2026-08-21
+lastmod: 2026-08-21
 reference_ids: ["nist-ssdf", "go-vet", "go-errors", "go-context"]
 references_reviewed: 2026-08-21
 ---

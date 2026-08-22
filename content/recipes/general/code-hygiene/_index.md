@@ -3,6 +3,7 @@ title: "Code Hygiene Recipes"
 linkTitle: "Code Hygiene"
 description: "Bounded audit and remediation recipes for code correctness, maintainability, lifecycle safety, and diagnostic debt across major ecosystems."
 weight: 22
+lastmod: 2026-08-21
 sidebar:
   open: false
 ---

@@ -27,6 +27,7 @@ model: "gpt-5-codex"
 tags: ["compliance", "sox-itgc", "assurance", "audit", "financial-reporting", "control-testing", "public-companies", "financial-services"]
 weight: 250
 date: "2026-08-21"
+lastmod: "2026-08-21"
 severity: "info"
 ---
 

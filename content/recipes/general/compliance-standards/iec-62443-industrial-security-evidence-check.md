@@ -27,6 +27,7 @@ model: "gpt-5-codex"
 tags: ["compliance", "iec-62443", "critical-infrastructure", "audit", "ot-security", "product-security", "industrial-automation"]
 weight: 370
 date: "2026-08-21"
+lastmod: "2026-08-21"
 severity: "info"
 ---
 

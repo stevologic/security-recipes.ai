@@ -17,6 +17,7 @@ facets: ["code-hygiene", "audit", "remediation"]
 tags: ["code-hygiene", "jvm", "kotlin", "coroutines", "flow", "cancellation"]
 weight: 406
 date: 2026-08-21
+lastmod: 2026-08-21
 reference_ids: ["nist-ssdf", "java-javac", "kotlin-conventions", "kotlin-coroutines"]
 references_reviewed: 2026-08-21
 ---

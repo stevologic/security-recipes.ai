@@ -17,6 +17,7 @@ facets: ["code-hygiene", "audit", "remediation"]
 tags: ["code-hygiene", "ruby", "rails", "active-record", "transactions", "n-plus-one"]
 weight: 902
 date: 2026-08-21
+lastmod: 2026-08-21
 reference_ids: ["nist-ssdf", "rubocop-docs", "rails-active-record"]
 references_reviewed: 2026-08-21
 ---

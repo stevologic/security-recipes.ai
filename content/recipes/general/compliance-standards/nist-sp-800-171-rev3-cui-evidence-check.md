@@ -27,6 +27,7 @@ model: "gpt-5-codex"
 tags: ["compliance", "nist-sp-800-171", "government", "audit", "data-protection", "boundary", "defense-industrial-base", "government-contractors"]
 weight: 200
 date: "2026-08-21"
+lastmod: "2026-08-21"
 severity: "info"
 ---
 

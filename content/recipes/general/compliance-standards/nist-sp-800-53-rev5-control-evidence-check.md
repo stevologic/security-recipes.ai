@@ -27,6 +27,7 @@ model: "gpt-5-codex"
 tags: ["compliance", "nist-sp-800-53", "government", "audit", "risk", "control-testing", "cross-sector"]
 weight: 190
 date: "2026-08-21"
+lastmod: "2026-08-21"
 severity: "info"
 ---
 
