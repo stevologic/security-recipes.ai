@@ -1,35 +1,36 @@
 ---
-title: "GHSA-gv7w-rqvm-qjhr - esbuild Deno binary integrity RCE"
-linkTitle: "GHSA-gv7w-rqvm-qjhr esbuild Deno RCE"
-description: "High-severity esbuild Deno module RCE via unverified binary downloads from attacker-influenced npm registries. Upgrade to 0.28.1+, restore hash verification, and lock registry trust in CI."
+title: "GHSA-gv7w-rqvm-qjhr: withdrawn esbuild Deno advisory"
+linkTitle: "GHSA-gv7w withdrawn esbuild"
+description: "GHSA-gv7w-rqvm-qjhr is a withdrawn esbuild Deno-binary advisory. Do not treat npm esbuild 0.28.1 as a live GHAD floor."
 tool: "general"
 author: "Codex"
 team: "Security"
 maturity: "development"
 model: "GPT 5.5 Extra High reasoning"
-tags: ["ghsa", "esbuild", "deno", "npm", "supply-chain", "binary-integrity", "rce", "high"]
+tags: ["ghsa", "esbuild", "deno", "npm", "supply-chain", "binary-integrity", "withdrawn"]
 weight: 55
 date: 2026-06-13
+lastmod: 2026-08-21
 ghsa: "GHSA-gv7w-rqvm-qjhr"
 known_as: ["esbuild Deno binary integrity RCE", "esbuild NPM_CONFIG_REGISTRY binary download RCE"]
 kev: false
 severity: "high"
 ecosystem: "typescript/npm"
 disclosed: "2026-06-11"
+ai_enrichment_review_status: human-reviewed-development-draft
 ---
 
-`GHSA-gv7w-rqvm-qjhr` covers a high-severity remote code execution path in the
-esbuild Deno module. Affected versions download a native esbuild binary from an
-npm registry URL derived from `NPM_CONFIG_REGISTRY`, write it to disk with
-execute permissions, and run it without any integrity check.
+GitHub **withdrew GHSA-gv7w-rqvm-qjhr on 2026-06-17**. GHAD says the affected
+package was incorrectly identified and the actual Deno module is not in a
+supported ecosystem. Do not treat npm `esbuild` **0.28.1** as a live GHAD
+floor for this advisory. Recheck GHAD before using this page as an MCP
+override.
 
-The Node.js install path already had SHA-256 verification, but the Deno module
-did not. That gap matters most in CI/CD, shared development environments, and
-enterprise networks that route npm traffic through internal registries or
-registry mirrors. If an attacker can control the registry URL, the mirror, or
-the network path used by the Deno process, they can supply a trojaned binary
-that esbuild will execute with the privileges of the build job or developer
-process.
+The original report described a Deno install path that downloaded a native
+binary from `NPM_CONFIG_REGISTRY` without a SHA-256 check. The Node.js install
+path already verified hashes. This page stays a development draft so leftover
+product text cannot become a catalog floor. Do not prove the withdrawn claim
+by downloading or executing a registry binary.
 
 ## When to use it
 
@@ -39,8 +40,9 @@ runners, or release jobs. It is most important when `NPM_CONFIG_REGISTRY` can
 be set by environment, CI variables, Docker build args, internal npm mirrors,
 or untrusted job context.
 
-Use it to upgrade esbuild, restore binary integrity checks, and lock registry
-trust. Do not use it to serve a malicious registry or execute downloaded test
+Use it to recheck GHAD, confirm whether a Deno-only binary path is still in
+scope, and avoid inventing an npm `esbuild` floor from a withdrawn advisory.
+Do not use it to serve a malicious registry or execute downloaded test
 binaries.
 
 ## Inputs
@@ -61,17 +63,19 @@ binaries.
 
 ## Affected versions
 
-- **Vulnerable:** `esbuild >= 0.17.0, < 0.28.1`
-- **Fixed:** `esbuild 0.28.1+`
-- **Affected surface:** Deno consumers of `esbuild`, especially CI jobs,
-  Deno-based build scripts, devcontainers, shared runners, and internal build
-  wrappers that inherit `NPM_CONFIG_REGISTRY`
-- **Fixed code shape:** the Deno module verifies the downloaded binary against
-  a trusted hash manifest before marking it executable or spawning it
+- **GHAD status:** withdrawn on 2026-06-17
+- **Withdrawn product mapping:** GHAD says the original `esbuild` npm range
+  was incorrect; do not treat `0.28.1` as a live GHAD floor
+- **Original claimed surface:** Deno consumers of an esbuild install path that
+  inherited `NPM_CONFIG_REGISTRY`
+- **Recheck:** GHAD and the esbuild/deno-esbuild repos before any upgrade or
+  suppression
 
 ## Indicator-of-exposure
 
-- The repository resolves `esbuild >= 0.17.0, < 0.28.1`.
+- The repository still treats withdrawn GHSA-gv7w as a live npm `esbuild`
+  floor, or vendors a Deno install path that fetches binaries from
+  `NPM_CONFIG_REGISTRY`.
 - Deno build or bundling workflows import `esbuild` from the Deno path rather
   than only using the Node.js package manager path.
 - CI, developer shells, wrappers, or container images set or inherit
@@ -106,34 +110,32 @@ trojaned binary on a live runner.
 
 ## Remediation strategy
 
-- Upgrade every controlled `esbuild` dependency, lockfile, image, cache seed,
-  and generated SBOM to `0.28.1+`.
-- If this repository vendors, forks, or mirrors esbuild, confirm the Deno
-  module now performs binary hash verification before `writeFile(..., 0o755)`
-  and before spawning the binary.
+- Recheck GHAD first. This advisory is withdrawn; do not invent an npm
+  `esbuild` 0.28.1 floor from the original report.
+- If this repository still vendors a Deno binary-download path, confirm it
+  performs hash verification before `writeFile(..., 0o755)` and before
+  spawning the binary.
 - Treat `NPM_CONFIG_REGISTRY` as a privileged supply-chain input. Pin it to a
   reviewed HTTPS registry, avoid mutable job-level overrides, and document who
   can change it.
-- Reduce build-job blast radius until rollout completes: remove unnecessary
-  credentials from esbuild jobs, scope publish tokens, and isolate artifact
-  signing from untrusted build steps where possible.
-- Add regression tests or policy checks proving the Deno install path rejects a
-  mismatched binary rather than executing it.
+- Reduce build-job blast radius: remove unnecessary credentials from esbuild
+  jobs, scope publish tokens, and isolate artifact signing from untrusted
+  build steps.
+- Add policy checks only for owned Deno download paths. Do not treat a version
+  bump as proof this withdrawn GHSA is still live.
 
 ## The prompt
 
 ~~~markdown
-You are remediating GHSA-gv7w-rqvm-qjhr, a high-severity esbuild Deno-module
-remote code execution issue caused by downloading and executing native binaries
-without integrity verification when `NPM_CONFIG_REGISTRY` is attacker
-influenced. Produce exactly one output:
+You are remediating GHSA-gv7w-rqvm-qjhr. GitHub withdrew this advisory on
+2026-06-17 because the affected package was incorrectly identified. Do not
+invent an npm esbuild 0.28.1 floor. Produce exactly one output:
 
-- A reviewer-ready PR/change request that upgrades esbuild, restores binary
-  integrity verification in any owned forks or vendored code, hardens registry
-  trust in CI/build paths, adds safe verification, refreshes generated
-  artifacts, and documents operator follow-up, or
-- TRIAGE.md if this repository does not control an affected esbuild dependency,
-  Deno build path, vendored code copy, or safe mitigation.
+- A reviewer-ready PR/change request that records the withdrawal, removes any
+  invented npm floor, hardens an owned Deno binary-download path if one exists,
+  and documents residual risk, or
+- TRIAGE.md if this repository does not control a Deno binary-download path
+  and no invented floor needs to be removed.
 
 ## Rules
 
@@ -155,15 +157,16 @@ influenced. Produce exactly one output:
 2. Determine whether the repository uses the Deno install path. Search for Deno
    build scripts, direct Deno imports, vendored `lib/deno/mod.ts`, and internal
    wrappers that call esbuild from Deno.
-3. Resolve all installed versions. Anything on `>= 0.17.0, < 0.28.1` is
-   affected for the Deno path.
+3. Recheck GHAD. If the advisory is still withdrawn, do not invent an npm
+   `esbuild` 0.28.1 floor from the original version range.
 4. Identify every place `NPM_CONFIG_REGISTRY` or related npm registry config
    can be set: CI variables, runner environment, Docker build args, shell
    wrappers, task runners, `.npmrc`, and Deno launch scripts.
-5. If this repository does not control an affected Deno esbuild path, stop with
-   `TRIAGE.md` naming the external owner and required version `0.28.1+`.
-6. Upgrade all controlled dependencies and lockfiles to `esbuild 0.28.1+`.
-7. If the repository vendors or forks esbuild, ensure the Deno module now:
+5. If this repository does not control a Deno binary-download path and does
+   not encode a withdrawn-GHSA floor, stop with `TRIAGE.md`.
+6. Do not upgrade npm `esbuild` solely because this withdrawn GHSA once named
+   `0.28.1`.
+7. If the repository vendors a Deno download path, ensure it:
    - computes a SHA-256 hash for downloaded binaries;
    - compares it against a trusted manifest bundled with the release;
    - refuses to cache, chmod, or execute mismatched binaries;
@@ -174,11 +177,10 @@ influenced. Produce exactly one output:
    - document who can change registry settings;
    - avoid sharing high-value credentials with build jobs that fetch native
      binaries from registries.
-9. Add safe tests or policy checks:
-   - lockfiles resolve `0.28.1+`;
-   - Deno install code rejects a mismatched hash using fixtures or mocks;
+9. Add safe tests or policy checks only for owned Deno download paths:
+   - install code rejects a mismatched hash using fixtures or mocks;
    - CI or build policy rejects insecure or unapproved registry overrides;
-   - generated dependency reports and SBOMs reflect the upgraded version.
+   - generated reports do not invent a withdrawn GHSA floor.
 10. Add a PR body section named `GHSA-gv7w-rqvm-qjhr operator actions` that
     states:
     - esbuild versions before and after;
@@ -206,8 +208,8 @@ influenced. Produce exactly one output:
 
 ## Verification - what the reviewer looks for
 
-- No controlled manifest, lockfile, image, or SBOM resolves `esbuild < 0.28.1`
-  for the affected Deno path.
+- Reviewers rechecked GHAD and did not invent an npm `esbuild` 0.28.1 floor
+  from this withdrawn advisory.
 - Any owned Deno esbuild install code verifies the binary before marking it
   executable or spawning it.
 - Registry trust is explicit and reviewed rather than inheriting mutable
@@ -218,23 +220,28 @@ influenced. Produce exactly one output:
 
 ## Watch for
 
-- Upgrading the npm dependency while a vendored Deno copy or cache seed still
-  contains the vulnerable installer.
+- Upgrading npm `esbuild` to 0.28.1 solely because this withdrawn GHSA once
+  named that floor.
 - Treating HTTPS transport alone as an integrity control for downloaded
   executables.
 - Leaving `NPM_CONFIG_REGISTRY` writable by untrusted pull requests or shared
   runner contexts.
-- Fixing the package version but not regenerating SBOMs, dependency snapshots,
+- Fixing a package version but not regenerating SBOMs, dependency snapshots,
   or build images.
+
+## Rollback and recovery
+
+Do not invent a rollback floor from this withdrawn advisory. Recheck GHAD
+before changing versions. If a Deno binary-download path remains owned, keep
+registry URLs reviewed and do not execute unverified binaries.
 
 ## Output contract
 
 Return one of:
 
-- A reviewer-ready PR/change request that upgrades esbuild to `0.28.1+`,
-  verifies or restores Deno binary hash checks in any owned fork/vendor copy,
-  hardens registry trust, minimizes build-job credentials, refreshes generated
-  artifacts, and adds safe integrity/policy tests.
+- A reviewer-ready PR/change request that records the GHAD withdrawal, removes
+  invented npm `esbuild` 0.28.1 floors, hardens any owned Deno binary-download
+  path, minimizes build-job credentials, and documents residual risk.
 - `TRIAGE.md` when no controlled affected esbuild dependency, Deno build path,
   vendored code copy, cache seed, or safe mitigation exists.
 
@@ -252,6 +259,5 @@ preserve mutable unreviewed registry overrides.
 
 ## References
 
-- GitHub Advisory Database: <https://github.com/advisories/GHSA-gv7w-rqvm-qjhr>
-- esbuild `v0.28.1` release: <https://github.com/evanw/esbuild/releases/tag/v0.28.1>
+- GitHub Advisory Database (withdrawn): <https://github.com/advisories/GHSA-gv7w-rqvm-qjhr>
 - GitHub repository: <https://github.com/evanw/esbuild>

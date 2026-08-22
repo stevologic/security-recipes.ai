@@ -1,7 +1,7 @@
 ---
-title: "GHSA-vr7g-88fq-vhq3 - Paperclip workspace cleanup command injection"
+title: "GHSA-vr7g-88fq-vhq3: Paperclip cleanupCommand injection"
 linkTitle: "GHSA-vr7g Paperclip cleanupCommand"
-description: "Critical Paperclip OS command injection through execution workspace cleanupCommand. Upgrade to 2026.416.0+, remove shell-backed cleanup strings, and add lifecycle-action allow-list tests."
+description: "GHSA-vr7g-88fq-vhq3 is Paperclip cleanupCommand OS injection. Upgrade @paperclipai/server to 2026.416.0+ and drop shell cleanup strings."
 tool: "general"
 author: "Codex"
 team: "Security"
@@ -10,23 +10,24 @@ model: "GPT 5.5 Extra High reasoning"
 tags: ["ghsa", "paperclip", "agentic-ai", "npm", "command-injection", "workspace", "critical"]
 weight: 47
 date: 2026-05-02
+lastmod: 2026-08-21
 ghsa: "GHSA-vr7g-88fq-vhq3"
 known_as: ["Paperclip cleanupCommand OS command injection"]
 kev: false
 severity: "critical"
 ecosystem: "typescript/npm"
 disclosed: "2026-04-16"
+ai_enrichment_review_status: human-reviewed-development-draft
 ---
 
-Paperclip versions before `2026.416.0` allowed OS command injection through the
-execution workspace lifecycle. The vulnerable API accepted
-`config.cleanupCommand` through `PATCH /api/execution-workspaces/:id`, stored
-that value, and later executed it through a shell during workspace cleanup.
+GHSA-vr7g-88fq-vhq3 covers `@paperclipai/server` versions before
+`2026.416.0`. The execution-workspace API accepted `config.cleanupCommand`
+through `PATCH /api/execution-workspaces/:id`, stored that value, and later
+executed it through a shell during workspace cleanup.
 
-This is especially dangerous for agent workspaces because cleanup runs at a
-privileged lifecycle boundary: the server may have source code, generated
-artifacts, browser state, credentials, local files, and network access that the
-agent used during execution.
+GitHub names **`@paperclipai/server` 2026.416.0**. Do not invent a later
+2026.417.0 floor. This page stays a development draft. Do not prove exposure
+by submitting cleanup-command strings.
 
 ## When to use it
 
@@ -207,6 +208,13 @@ cleanupCommand OS command injection). Produce exactly one output:
 - Treating localhost APIs as safe while browsers, extensions, or other local
   processes can reach them.
 - Logging command strings that contain secrets or file paths.
+
+## Rollback and recovery
+
+Prefer forward recovery to another GitHub-named `@paperclipai/server`
+2026.416.0+ release. If an operational rollback restores a build before
+`2026.416.0`, disable execution-workspace PATCH and block custom cleanup
+strings until the named floor is restored.
 
 ## Related recipes
 

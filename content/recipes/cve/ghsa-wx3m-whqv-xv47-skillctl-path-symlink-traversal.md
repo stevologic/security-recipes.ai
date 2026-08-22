@@ -1,7 +1,7 @@
 ---
-title: "GHSA-wx3m-whqv-xv47 - skillctl path and symlink traversal"
+title: "GHSA-wx3m-whqv-xv47: skillctl path and symlink traversal"
 linkTitle: "GHSA-wx3m skillctl traversal"
-description: "High-severity skillctl path traversal and symlink-follow issue. Upgrade to 0.1.2+, reject unsafe skill paths, and quarantine untrusted skill libraries."
+description: "GHSA-wx3m-whqv-xv47 is skillctl path and symlink traversal. Upgrade to 0.1.2+ and reject unsafe skill paths and libraries."
 tool: "general"
 author: "Codex"
 team: "Security"
@@ -10,25 +10,26 @@ model: "GPT 5.5 Extra High reasoning"
 tags: ["ghsa", "skillctl", "rust", "cargo", "path-traversal", "symlink", "skills", "supply-chain", "high"]
 weight: 73
 date: 2026-06-07
+lastmod: 2026-08-21
 ghsa: "GHSA-wx3m-whqv-xv47"
 known_as: ["skillctl path traversal and symlink-follow", "skill supply-chain file disclosure"]
 kev: false
 severity: "high"
 ecosystem: "rust/cargo"
 disclosed: "2026-05-20"
+ai_enrichment_review_status: human-reviewed-development-draft
 ---
 
-`skillctl` versions before `0.1.2` could follow symlinks inside skill folders
-and trust unsafe path fields in `.skills.toml`. A malicious skill library or PR
-could exfiltrate local files by copying symlink targets into a project and then
-publishing them, or delete writable directories outside the intended project or
-library root through unsafe `destination`, `source_path`, `detect --target`, or
-fork-name handling.
+GHSA-wx3m-whqv-xv47 covers `skillctl` versions before `0.1.2`. Affected
+releases could follow skill-folder symlinks and trust unsafe `.skills.toml`
+path fields. A malicious library or PR could copy symlink targets into a
+project and publish them, or delete writable directories outside the intended
+root through `destination`, `source_path`, `detect --target`, or fork-name
+handling.
 
-For teams that treat skills as reusable agent instructions, this is a
-supply-chain boundary issue. The right PR upgrades the tool, rejects unsafe
-library metadata, quarantines untrusted skill imports, and adds path-safety
-tests around destructive copy, pull, push, detect, and fork operations.
+GitHub names **`skillctl` 0.1.2**. Do not invent a later 0.1.3 floor. This
+page stays a development draft. Do not prove exposure by following untrusted
+skill paths or publishing copied local files.
 
 ## When to use it
 
@@ -255,6 +256,13 @@ processed. Produce exactly one output:
   allowed.
 - Publishing skill libraries before checking whether vulnerable runs copied
   unexpected local files into the project.
+
+## Rollback and recovery
+
+Prefer forward recovery to another GitHub-named `skillctl` 0.1.2+ release. If
+an operational rollback restores 0.1.0 or 0.1.1, quarantine untrusted skill
+libraries and stop pull, push, detect, and publish jobs until the named floor
+is restored.
 
 ## Output contract
 

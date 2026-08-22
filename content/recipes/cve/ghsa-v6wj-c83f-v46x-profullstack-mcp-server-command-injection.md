@@ -1,7 +1,7 @@
 ---
-title: "GHSA-v6wj-c83f-v46x - profullstack MCP server command injection"
+title: "GHSA-v6wj-c83f-v46x: profullstack MCP command injection"
 linkTitle: "GHSA-v6wj profullstack MCP"
-description: "Critical unauthenticated command injection in @profullstack/mcp-server domain_lookup. Remove exposed vulnerable servers, replace shell execution with argv-based process calls, and require MCP auth/bind controls."
+description: "GHSA-v6wj-c83f-v46x is @profullstack/mcp-server domain_lookup command injection. Last-affected 1.4.12; GHAD names no patched release."
 tool: "general"
 author: "Codex"
 team: "Security"
@@ -10,25 +10,26 @@ model: "GPT 5.5 Extra High reasoning"
 tags: ["ghsa", "mcp", "npm", "command-injection", "critical", "agentic-ai"]
 weight: 65
 date: 2026-05-12
+lastmod: 2026-08-21
 ghsa: "GHSA-v6wj-c83f-v46x"
 known_as: ["profullstack MCP server domain_lookup command injection"]
 kev: false
 severity: "critical"
 ecosystem: "npm"
 disclosed: "2026-05-09"
+ai_enrichment_review_status: human-reviewed-development-draft
 ---
 
-`@profullstack/mcp-server` exposes a `domain_lookup` module where attacker
-controlled `domains` or `keywords` are concatenated into a shell command and
-passed to process execution. The vulnerable routes are HTTP reachable and the
-reported default posture binds broadly without a global authentication layer,
-making this a remote command execution issue rather than only a local plugin
-bug.
+GHSA-v6wj-c83f-v46x covers `@profullstack/mcp-server` through **1.4.12**. The
+`domain_lookup` module concatenates attacker-controlled `domains` or
+`keywords` into a shell command and executes it. The HTTP routes
+`/domain-lookup/check` and `/domain-lookup/bulk` are reachable, and the
+reported default binds broadly without global authentication.
 
-For agentic AI deployments, the important boundary is simple: an MCP tool that
-looks like passive DNS/domain enrichment is actually a command execution
-surface. The fix must address the process call, the network exposure, and the
-MCP server admission policy.
+GitHub Advisory Database still lists **`first_patched_version: null`**. Do not
+invent a 1.4.13 floor. Recheck GHAD before treating any later release as a
+named fix. This page stays a development draft so leftover product text cannot
+become an MCP override. Do not prove exposure by posting lookup payloads.
 
 ## When to use it
 
@@ -53,7 +54,7 @@ inputs cannot reach a shell.
 
 | Package | Vulnerable versions | Fixed versions |
 | --- | --- | --- |
-| `@profullstack/mcp-server` | `<=1.4.12` | No patched version published in GHAD at intake |
+| `@profullstack/mcp-server` | `<=1.4.12` | No GHAD-named patched version as of 2026-08-21 |
 
 ## Indicator-of-exposure
 
@@ -191,6 +192,12 @@ Produce exactly one output:
 - "Internal only" MCP servers reachable from browsers through DNS rebinding,
   local containers, shared workstations, or agent runtimes.
 - Patches that add regex escaping while still invoking a shell.
+
+## Rollback and recovery
+
+Prefer removal of the exposed `@profullstack/mcp-server` process until GHAD
+names a patched release. If an operational rollback restores `<=1.4.12`,
+unbind HTTP, disable `domain_lookup`, and keep the server off the network.
 
 ## Related recipes
 
