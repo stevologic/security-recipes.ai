@@ -1,36 +1,37 @@
 ---
-title: "CVE-2026-42271 - LiteLLM MCP stdio command execution"
+title: "CVE-2026-42271: LiteLLM MCP stdio command execution"
 linkTitle: "CVE-2026-42271 LiteLLM MCP"
-description: "High-severity LiteLLM proxy command execution through MCP stdio test endpoints. Upgrade to 1.83.7+, restrict test endpoints to PROXY_ADMIN, and block stdio previews at the gateway until patched."
+description: "CVE-2026-42271 is CISA KEV LiteLLM MCP stdio command execution. Upgrade to 1.83.7+ and block /mcp-rest/test endpoints until patched."
 tool: "general"
 author: "Codex"
 team: "Security"
 maturity: "development"
 model: "GPT 5.5 Extra High reasoning"
-tags: ["cve", "ghsa", "litellm", "mcp", "python", "pip", "command-injection", "high"]
+tags: ["cve", "ghsa", "litellm", "mcp", "python", "pip", "command-injection", "kev", "high"]
 weight: 56
 date: 2026-06-11
+lastmod: 2026-08-21
 cve: "CVE-2026-42271"
 ghsa: "GHSA-v4p8-mg3p-g94g"
 known_as: ["LiteLLM MCP stdio command execution", "GHSA-v4p8-mg3p-g94g"]
-kev: false
+kev: true
 severity: "high"
 ecosystem: "python/pypi"
 disclosed: "2026-04-25"
+ai_enrichment_review_status: human-reviewed-development-draft
 ---
 
 CVE-2026-42271 / GHSA-v4p8-mg3p-g94g covers LiteLLM proxy versions `1.74.2`
-through `1.83.6`, which allowed authenticated command execution through MCP
-REST preview endpoints. The affected endpoints accepted a full MCP server
-configuration, including stdio transport fields such as `command`, `args`, and
-`env`, then attempted to connect to that server.
+through versions before `1.83.7`. Two MCP REST preview endpoints accepted a
+full server configuration, including stdio `command`, `args`, and `env`, then
+spawned that command on the proxy host. The endpoints required only a valid
+proxy API key, not `PROXY_ADMIN`. CISA added the CVE to KEV on **2026-06-08**.
 
-Because the endpoints only required a valid proxy API key and did not require
-the `PROXY_ADMIN` role, a low-privilege authenticated user could submit a stdio
-configuration that spawned an arbitrary subprocess on the LiteLLM proxy host.
-GitHub now tracks this reviewed advisory under CVE-2026-42271, so reviewers
-should key PR titles, ticket links, and scanner suppressions to the CVE while
-keeping the GHSA alias for Dependabot and GitHub Advisory Database matches.
+GHSA and NVD name **`litellm` 1.83.7**. Do not invent a later 1.83.8 floor.
+Red Hat also lists OpenShift AI trains in later NVD change records. Recheck
+the matching RHSA before treating 1.83.7 as a Red Hat floor. This page stays
+a development draft so leftover product text cannot become an MCP override.
+Do not prove exposure by submitting stdio configs to the test endpoints.
 
 ## When to use it
 
@@ -62,11 +63,14 @@ endpoints.
 
 ## Affected versions
 
-- **Vulnerable:** `litellm >=1.74.2, <1.83.7`
-- **Fixed:** `litellm 1.83.7+`
-- **Affected endpoints:**
-  - `POST /mcp-rest/test/connection`
-  - `POST /mcp-rest/test/tools/list`
+- **Vulnerable:** `litellm` 1.74.2 through versions before 1.83.7.
+- **Fixed:** `litellm` 1.83.7 or later.
+- **Also listed by NVD:** Red Hat OpenShift AI trains. Recheck the RHSA for
+  that train. Do not copy 1.83.7 onto a Red Hat RPM.
+- **Affected endpoints:** `POST /mcp-rest/test/connection` and
+  `POST /mcp-rest/test/tools/list`.
+- **Workaround:** block those paths at the reverse proxy or API gateway.
+- **CISA KEV:** yes.
 
 ## Indicator-of-exposure
 
@@ -209,6 +213,14 @@ one output:
   is not atomic.
 - Tests prove stdio MCP configs are not executed for unauthorized callers.
 - Operator actions cover key rotation and log review when exposure was possible.
+- Tests never submit attacker-controlled stdio configs to prove exposure.
+
+## Rollback and recovery
+
+Prefer forward recovery to another GHSA-named `litellm` 1.83.7+ release. If an
+operational rollback restores 1.74.2 through 1.83.6, block both
+`/mcp-rest/test` endpoints again and keep non-admin keys away from MCP
+previews.
 
 ## Watch for
 
@@ -242,6 +254,7 @@ previews.
 
 ## Related recipes
 
+- [Search the CVE Database for CVE-2026-42271](/cve-database/?q=CVE-2026-42271#cve-catalog)
 - [Agent session kill rules]({{< relref "/recipes/general/agent-session-kill-rules" >}})
 - [Critical infrastructure secure context]({{< relref "/security-remediation/critical-infrastructure-secure-context" >}})
 - [Source-code injection sink audit]({{< relref "/recipes/general/source-code-injection-sink-audit" >}})
@@ -250,4 +263,5 @@ previews.
 
 - GitHub Advisory: <https://github.com/advisories/GHSA-v4p8-mg3p-g94g>
 - NVD: <https://nvd.nist.gov/vuln/detail/CVE-2026-42271>
+- CISA KEV: <https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2026-42271>
 - LiteLLM `v1.83.7-stable` release: <https://github.com/BerriAI/litellm/releases/tag/v1.83.7-stable>
