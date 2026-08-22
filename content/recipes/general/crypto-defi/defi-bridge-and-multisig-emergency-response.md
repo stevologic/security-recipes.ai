@@ -9,6 +9,7 @@ model: "GPT-5.3-Codex"
 tags: ["defi", "bridge", "multisig", "incident-response", "runbook"]
 weight: 26
 date: 2026-04-26
+lastmod: 2026-08-21
 ---
 
 Use this prompt to codify emergency response for bridge and multisig

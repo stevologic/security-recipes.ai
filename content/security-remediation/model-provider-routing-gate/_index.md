@@ -3,7 +3,7 @@ title: Model Provider Routing Gate
 linkTitle: Model Provider Routing
 weight: 16
 date: 2026-05-04
-lastmod: 2026-07-13
+lastmod: 2026-08-21
 toc: true
 description: >
   A generated model-provider routing gate for deciding which model
@@ -20,6 +20,8 @@ breadcrumb_parent: /agentic-security/
 it can answer one operational question: which model/provider is allowed
 to receive this context for this workflow, right now?
 {{< /callout >}}
+
+Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) on August 21, 2026.
 
 ## The product bet
 
@@ -188,10 +190,10 @@ recipes_playbook_plan(
 
 This feature follows current guidance:
 
-- [MCP Authorization 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
+- [MCP Authorization 2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
   for resource indicators, audience-bound tokens, HTTPS, PKCE, scope
   challenges, and token validation.
-- [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices)
+- [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices)
   for confused-deputy prevention, token-passthrough denial, scope
   minimization, SSRF controls, session safety, and audit trails.
 - [OWASP Top 10 for Agentic Applications 2026](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/)

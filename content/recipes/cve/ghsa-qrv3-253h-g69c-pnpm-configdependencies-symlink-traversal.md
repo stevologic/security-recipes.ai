@@ -1,7 +1,7 @@
 ---
-title: "GHSA-qrv3-253h-g69c - pnpm configDependencies symlink traversal"
+title: "GHSA-qrv3-253h-g69c: pnpm configDependencies symlink traversal"
 linkTitle: "GHSA-qrv3 pnpm traversal"
-description: "High-severity pnpm path traversal where env lockfile configDependencies names can create symlinks outside node_modules/.pnpm-config. Upgrade to 10.34.4+ or 11.8.0+ and reject traversal-shaped lockfile dependency names."
+description: "GHSA-qrv3-253h-g69c is pnpm configDependencies symlink traversal. Upgrade to 10.34.4+ or 11.8.0+ and reject lockfile path escapes."
 tool: "general"
 author: "Codex"
 team: "Security"
@@ -10,23 +10,26 @@ model: "GPT 5.5 Extra High reasoning"
 tags: ["ghsa", "pnpm", "npm", "nodejs", "lockfile", "path-traversal", "symlink", "supply-chain", "high"]
 weight: 94
 date: 2026-06-27
+lastmod: 2026-08-21
 ghsa: "GHSA-qrv3-253h-g69c"
 known_as: ["pnpm configDependencies env lockfile path traversal"]
 kev: false
 severity: "high"
 ecosystem: "javascript/npm"
 disclosed: "2026-06-27"
+ai_enrichment_review_status: human-reviewed-development-draft
 ---
 
-pnpm accepts package names from env lockfile `configDependencies` and uses
-those names when creating config dependency symlinks under
-`node_modules/.pnpm-config`. A malicious repository can commit a crafted
-`pnpm-lock.yaml` with traversal-shaped config dependency names and cause
-`pnpm install` to create symlinks outside the intended directory, even with
-`--ignore-scripts`.
+GHSA-qrv3-253h-g69c covers pnpm before `10.34.4` and `11.0.0` through
+versions before `11.8.0`. Env lockfile `configDependencies` names are used
+when creating symlinks under `node_modules/.pnpm-config`. A crafted
+`pnpm-lock.yaml` can place a traversal-shaped name and create a symlink
+outside that directory, even with `--ignore-scripts`.
 
-This is a source supply-chain filesystem write primitive triggered by installing
-an untrusted or compromised repository.
+GitHub names **10.34.4** and **11.8.0** for this advisory. Do not invent
+10.34.5 or 11.8.1. Do not reuse the sibling 11.7.0 floors from GHSA-fr4h or
+GHSA-72r4. This page stays a development draft. Do not prove exposure by
+creating escaped lockfile symlinks.
 
 ## When to use it
 
@@ -177,6 +180,12 @@ You are remediating GHSA-qrv3-253h-g69c in pnpm. Traversal-shaped
   prebuilt image.
 - Trusting `--ignore-scripts` as sufficient protection.
 - Checking only package manifests while env lockfile entries remain unreviewed.
+
+## Rollback and recovery
+
+Prefer forward recovery to another GitHub-named pnpm 10.34.4+ or 11.8.0+
+release. If an operational rollback restores a vulnerable 10.x or 11.x pin,
+stop untrusted `pnpm install` jobs until the matching named floor is restored.
 
 ## Output contract
 

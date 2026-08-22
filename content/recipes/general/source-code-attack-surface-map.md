@@ -9,6 +9,7 @@ model: "gpt-5-codex"
 tags: ["source-code", "audit", "attack-surface", "threat-model", "read-only"]
 weight: 13
 date: 2026-06-06
+lastmod: 2026-08-21
 ---
 
 A tool-agnostic source-code audit recipe that asks an agent to map
@@ -206,6 +207,13 @@ Stop and report the reason if:
 - No source-code edits.
 - File and function pointers for every material claim.
 - A ranked list of follow-up audit paths.
+
+## Verification
+
+- Every material claim points to a file, function, or config path, or is labeled unknown.
+- Trust boundaries come from code evidence, not an inferred architecture diagram.
+- Follow-up audit paths are ranked and mapped to a focused sibling recipe.
+- The report contains no secret values, live credentials, or production data.
 
 ## Guardrails
 

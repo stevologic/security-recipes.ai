@@ -1,35 +1,37 @@
 ---
-title: "GHSA-74m3 - zrok WebDAV DriveRoot symlink escape"
-linkTitle: "GHSA-74m3 zrok WebDAV"
-description: "High-severity zrok WebDAV drive backend symlink escape that can expose files outside DriveRoot. Upgrade zrok/v2 to 2.0.2+, remove unsupported v1 shares, and harden shared context roots."
+title: "CVE-2026-42275: zrok WebDAV DriveRoot symlink escape"
+linkTitle: "CVE-2026-42275 zrok WebDAV"
+description: "CVE-2026-42275 is zrok WebDAV DriveRoot symlink escape. Upgrade zrok/v2 to 2.0.2+; GHAD names no v1 patched release."
 tool: "general"
 author: "Codex"
 team: "Security"
 maturity: "development"
 model: "GPT 5.5 Extra High reasoning"
-tags: ["ghsa", "zrok", "webdav", "go", "path-traversal", "symlink", "context-boundary", "high"]
+tags: ["cve", "ghsa", "zrok", "webdav", "go", "path-traversal", "symlink", "context-boundary", "high"]
 weight: 58
 date: 2026-05-02
+lastmod: 2026-08-21
+cve: "CVE-2026-42275"
 ghsa: "GHSA-74m3-9qvm-rp9h"
-known_as: ["zrok WebDAV DriveRoot symlink escape"]
+known_as: ["zrok WebDAV DriveRoot symlink escape", "GHSA-74m3-9qvm-rp9h"]
 kev: false
 severity: "high"
 ecosystem: "go/gomod"
 disclosed: "2026-04-25"
+ai_enrichment_review_status: human-reviewed-development-draft
 ---
 
-`zrok` WebDAV drive shares are vulnerable to a DriveRoot boundary escape when a
-symbolic link already exists inside the shared root and points outside that
-root. The advisory describes lexical path normalization in the WebDAV backend,
-but not enough protection against symlink following. A remote WebDAV consumer
-can use the public share endpoint to read files through the symlink and, where
-the zrok process has filesystem permission, overwrite symlink targets outside
-the intended shared directory.
+CVE-2026-42275 / GHSA-74m3-9qvm-rp9h covers zrok WebDAV drive shares when a
+symlink already exists inside `DriveRoot` and points outside that root.
+Lexical path normalization is not enough. A remote WebDAV consumer can read
+through the symlink and, where the process has permission, overwrite the
+target.
 
-For SecurityRecipes and production MCP deployments, the important lesson is
-direct: a context root is not a boundary if path checks happen before symlink
-resolution. Treat WebDAV shares, agent artifact shares, and temporary context
-exports as sensitive execution surfaces, not convenience file browsers.
+GitHub names **`github.com/openziti/zrok/v2` 2.0.2**. The v1 module
+`github.com/openziti/zrok <=1.1.11` still has
+**`first_patched_version: null`**. Do not invent a 1.1.12 or 2.0.3 floor.
+This page stays a development draft. Do not prove exposure by following
+share-root symlinks.
 
 ## When to use it
 
@@ -57,7 +59,7 @@ read or overwrite outside `DriveRoot`.
 - **Vulnerable v2 module:** `github.com/openziti/zrok/v2 <2.0.2`
 - **Fixed v2 module:** `github.com/openziti/zrok/v2 2.0.2+`
 
-The GitHub advisory has no assigned CVE at the time this recipe was written.
+GitHub now tracks this reviewed advisory as **CVE-2026-42275**.
 
 ## Indicator-of-exposure
 
@@ -236,6 +238,12 @@ exactly one output:
 - Keeping public unauthenticated WebDAV shares for agent artifacts without
   explicit data classification and access policy.
 
+## Rollback and recovery
+
+Prefer forward recovery to another GitHub-named `zrok/v2` 2.0.2+ release. If
+an operational rollback restores v2 before `2.0.2` or any v1 `<=1.1.11`
+share, disable public drive shares until a named v2 floor is restored.
+
 ## Related recipes
 
 - [Source code secrets and data exposure audit]({{< relref "/recipes/general/source-code-secrets-data-exposure-audit" >}})
@@ -246,4 +254,6 @@ exactly one output:
 ## References
 
 - GitHub Advisory `GHSA-74m3-9qvm-rp9h`: <https://github.com/advisories/GHSA-74m3-9qvm-rp9h>
+- NVD `CVE-2026-42275`: <https://nvd.nist.gov/vuln/detail/CVE-2026-42275>
+- zrok 2.0.2 release: <https://github.com/openziti/zrok/releases/tag/v2.0.2>
 - zrok project: <https://github.com/openziti/zrok>

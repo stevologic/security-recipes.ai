@@ -3,7 +3,7 @@ title: AI Vulnerability Remediation Quick Start
 linkTitle: Quick Start
 weight: 1
 date: 2026-04-22
-lastmod: 2026-07-23
+lastmod: 2026-08-21
 toc: true
 sidebar:
   open: true
@@ -88,6 +88,11 @@ match your repo:
 ```
 
 ## Add MCP context only when it helps
+
+If you use the Security Recipes MCP server, start with `recipes_search` or
+`recipes_match_finding`, then `recipes_get` or `recipes_cve_get`. Call
+`recipes_quality_report` only when you are choosing which recipe is ready
+enough to automate.
 
 Good first connectors are read-only:
 

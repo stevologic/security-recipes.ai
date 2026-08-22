@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-05-04",
+  "last_reviewed": "2026-08-21",
   "intent": "Define the Secure Context Lineage Ledger for SecurityRecipes so every context item used by an agent can be traced from registered source, hash, attestation, poisoning scan, retrieval decision, model route, egress boundary, handoff boundary, telemetry event, and sealed run receipt before it is reused or trusted.",
   "positioning": {
     "buyer": "AI Platform, Security Engineering, Product Security, GRC, procurement security, incident response, and acquisition diligence teams",
@@ -22,10 +22,22 @@
       "coverage": "Covers token exposure, scope creep, tool poisoning, command execution, intent-flow subversion, authentication and authorization gaps, telemetry gaps, shadow MCP servers, and context injection or over-sharing."
     },
     {
+      "id": "mcp-authorization-2026-07-28",
+      "name": "Model Context Protocol Authorization Specification (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization",
+      "coverage": "Current public MCP 2026-07-28 revision. Binds lineage to MCP authorization evidence including resource indicators, audience validation, HTTPS requirements, PKCE, protected resource metadata, and token-passthrough denial."
+    },
+    {
       "id": "mcp-authorization-2025-11-25",
       "name": "Model Context Protocol Authorization Specification",
       "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization",
       "coverage": "Binds lineage to MCP authorization evidence including resource indicators, audience validation, HTTPS requirements, PKCE, protected resource metadata, and token-passthrough denial."
+    },
+    {
+      "id": "mcp-elicitation-2026-07-28",
+      "name": "Model Context Protocol Elicitation Specification (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/client/elicitation",
+      "coverage": "Current public MCP 2026-07-28 revision. Requires lineage for user-consent boundaries when MCP servers request additional data, especially URL-mode sensitive flows that must not expose credentials, payments, or third-party authorization secrets to the client."
     },
     {
       "id": "mcp-elicitation-2025-11-25",

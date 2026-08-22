@@ -3,6 +3,7 @@ title: AI Vulnerability Remediation Recipes
 linkTitle: Recipes
 url: /recipes/
 weight: 4
+lastmod: 2026-08-21
 description: >
   Browse remediation recipes that humans can inspect, agents can fetch as
   JSON, and MCP clients can select as bounded context packs.
@@ -51,7 +52,8 @@ cloud resources through MCP unless this task explicitly grants that permission.
 ```
 
 Maintainers can run `recipes_quality_report` through MCP to find recipes that
-need stronger inputs, output contracts, verification, or guardrails.
+need stronger inputs, when-to-use guidance, output contracts, verification, or
+guardrails. Those same headings also drive search quality on this site.
 
 ## Contribute
 

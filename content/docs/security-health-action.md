@@ -4,6 +4,7 @@ linkTitle: GitHub Action
 weight: 3
 toc: true
 date: 2026-07-29
+lastmod: 2026-08-21
 description: >
   One GitHub Action that grounds an LLM in security-recipes.ai recipe context
   from the hosted MCP server and runs toggleable security health checks as CI.

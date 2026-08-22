@@ -3,7 +3,7 @@ title: Workflow Control Plane
 linkTitle: Control Plane
 weight: 4
 date: 2026-05-02
-lastmod: 2026-07-21
+lastmod: 2026-08-21
 sidebar:
   exclude: true
 description: >
@@ -20,6 +20,8 @@ workflow into a governed deployment unit: what it may touch, which MCP
 context it can read, which gates must fire, what evidence must be
 retained, and when the workflow must be paused.
 {{< /callout >}}
+
+Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) on August 21, 2026.
 
 ## The product idea
 
@@ -96,7 +98,7 @@ The manifest model is aligned to current primary guidance:
 - [OWASP GenAI Security Project](https://owasp.org/www-project-top-10-for-large-language-model-applications)
   for agentic AI risks such as excessive agency, insecure plugin design,
   prompt injection, and overreliance.
-- [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices)
+- [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices)
   for scoped authorization, tool-call safety, and confused-deputy risk.
 
 The important product move is that those references are not just linked

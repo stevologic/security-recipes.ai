@@ -2,19 +2,25 @@
 title: Claude
 linkTitle: Claude
 weight: 1
+lastmod: 2026-08-21
 sidebar:
   open: false
 noindex: true
 noindex_follow: true
 description: >
-  CLAUDE.md files, `.claude/skills/*/SKILL.md` entries, hooks, and
-  slash-commands contributed by teams using Claude for agentic
-  remediation.
+  Claude Code CLAUDE.md files, skills, hooks, and slash-commands that
+  keep agentic remediation bounded, reviewable, and safe to fetch as
+  JSON or MCP context.
 ---
 
 Prompts and configuration targeted at **Claude** and **Claude Code**.
 If it goes into a repo at `CLAUDE.md`, `.claude/skills/`, or
 `.claude/hooks/`, this is the right subfolder for it.
+
+These pages stay `noindex` so leftover drafts cannot rank as
+authoritative CVE floors. Humans browse the cards below; agents can
+fetch the same bounded files through the recipe JSON feed and MCP
+search tools.
 
 ## What usually lives here
 

@@ -3,7 +3,7 @@ title: GitHub Copilot Vulnerability Remediation
 linkTitle: GitHub Copilot
 weight: 1
 date: 2026-04-21
-lastmod: 2026-07-21
+lastmod: 2026-08-21
 description: Use GitHub Code Security, Copilot Autofix, and Copilot cloud agent to turn code-scanning alerts into tested vulnerability-remediation pull requests.
 sidebar:
   open: true
@@ -320,6 +320,9 @@ What **evolves** (expected to change, often):
   finding class.
 - **Model.** Copilot's underlying model rolls forward inside the
   product — you inherit upgrades without touching the pipeline.
+  Rechecked 2026-08-21: GitHub documents Copilot Autofix as using
+  OpenAI GPT-5.3-Codex. Do not pin that name in prompts; it will
+  move again.
 - **Tools.** New CI checks (SAST, SCA, license scanning) get
   wired into branch protections over time, tightening the
   merge gate without changing the accepted-alert workflow.

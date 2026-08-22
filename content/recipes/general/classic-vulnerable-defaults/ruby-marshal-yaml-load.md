@@ -9,6 +9,7 @@ maturity: "development"
 model: "Opus 4.7"
 tags: ["ruby", "deserialization", "yaml", "uplift", "mitigate"]
 weight: 29
+lastmod: 2026-08-21
 date: 2026-04-26
 ---
 
@@ -17,6 +18,15 @@ security traps. If untrusted bytes reach these APIs, attacker
 payloads can instantiate arbitrary classes and trigger dangerous
 code paths. This pattern appears in Rails jobs, cache/session
 layers, signed-cookie migrations, and background workers.
+
+## When to use it
+
+Use this recipe when Ruby `Marshal.load` or unsafe `YAML.load` processes
+untrusted data. Prefer it when the call site is identified; use a broader
+Ruby audit only when the sink is unknown.
+
+Do not use it to deserialize attacker-controlled Marshal streams as a
+demonstration.
 
 ## Pattern
 

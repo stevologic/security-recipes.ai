@@ -3,7 +3,7 @@ title: Runtime Controls — Proxies & Telemetry-Driven Session Disablement
 linkTitle: Runtime Controls
 weight: 7
 date: 2026-04-25
-lastmod: 2026-07-23
+lastmod: 2026-08-21
 sidebar:
   open: true
 description: >
@@ -19,6 +19,8 @@ prompt-time policy could not have anticipated. They are the
 last line of defence against an agent that has been compromised
 mid-run, that has drifted onto a different task, or that is
 doing what the prompt said but in a way nobody intended.
+Rechecked August 21, 2026: kill the session if the agent starts
+applying leftover draft version text as a floor.
 {{< /callout >}}
 
 ## What this page covers

@@ -1,38 +1,34 @@
 ---
-title: "GHSA-rm5c-5x2p-48wr - Klever-Go P2P nil RawData DoS"
-linkTitle: "GHSA-rm5c Klever-Go P2P DoS"
-description: "High-severity Klever-Go P2P transaction-interceptor denial of service. Upgrade to 1.7.18+, reject nil transaction RawData before version checks, and add panic-free P2P validation tests."
+title: "CVE-2026-52878: Klever-Go P2P nil RawData DoS"
+linkTitle: "CVE-2026-52878 Klever P2P DoS"
+description: "CVE-2026-52878 is Klever-Go P2P nil RawData DoS. Upgrade github.com/klever-io/klever-go to 1.7.18+ and reject nil transaction RawData."
 tool: "general"
 author: "Codex"
 team: "Security"
 maturity: "development"
 model: "GPT 5.5 Extra High reasoning"
-tags: ["ghsa", "klever-go", "go", "blockchain", "p2p", "libp2p", "denial-of-service", "nil-pointer", "high"]
+tags: ["cve", "ghsa", "klever-go", "go", "blockchain", "p2p", "libp2p", "denial-of-service", "nil-pointer", "high"]
 weight: 85
 date: 2026-06-07
+lastmod: 2026-08-21
+cve: "CVE-2026-52878"
 ghsa: "GHSA-rm5c-5x2p-48wr"
-known_as: ["Klever-Go P2P nil RawData DoS", "KVM txVersionChecker nil dereference"]
+known_as: ["Klever-Go P2P nil RawData DoS", "KVM txVersionChecker nil dereference", "GHSA-rm5c-5x2p-48wr"]
 kev: false
 severity: "high"
 ecosystem: "go/gomod"
 disclosed: "2026-06-02"
+ai_enrichment_review_status: human-reviewed-development-draft
 ---
 
-Klever-Go versions `1.7.14` through `1.7.17` can crash while validating
-transactions received over the P2P gossip path. The vulnerable validation flow
-reaches the transaction version checker before proving that the decoded
-transaction has a `RawData` message. A peer-supplied transaction with omitted
-`RawData` can therefore trigger a nil-pointer panic in the synchronous pubsub
-validation path and terminate the node process.
+CVE-2026-52878 / GHSA-rm5c-5x2p-48wr covers `github.com/klever-io/klever-go`
+`1.7.14` through `1.7.17`. The P2P transaction interceptor reaches
+`CheckTxVersion` before proving the decoded transaction has `RawData`. A
+peer-supplied transaction that omits `RawData` can panic the recover-free
+pubsub path and terminate the node.
 
-This is a code-path-specific availability issue, not just a dependency row.
-Repositories that vendor, fork, deploy, or configure Klever-Go nodes need to
-upgrade to the fixed release and prove that malformed or incomplete P2P
-transaction messages return validation errors instead of panicking. Validator,
-sentry, observer, and relay deployments should also review restart loops and
-network exposure because repeated delivery can keep nodes unavailable.
-
-As of 2026-06-07, GitHub Advisory Database lists no CVE for this advisory.
+GitHub names **1.7.18**. Do not invent a later 1.7.19 floor. This page stays
+a development draft. Do not prove exposure with live P2P transaction payloads.
 
 ## When to use it
 
@@ -276,6 +272,12 @@ transaction RawData during version validation. Produce exactly one output:
 - Logging peer topology, node keys, validator identifiers, crash payloads, or
   private chain configuration in regression output.
 
+## Rollback and recovery
+
+Prefer forward recovery to another GitHub-named `klever-go` 1.7.18+ release.
+If an operational rollback restores 1.7.14 through 1.7.17, isolate P2P
+transaction gossip until the named floor is restored.
+
 ## Related recipes
 
 - [Klever-Go REST API slow-header DoS]({{< relref "/recipes/cve/ghsa-w4c6-7r69-w7j9-klever-go-rest-api-slow-header-dos" >}})
@@ -285,4 +287,5 @@ transaction RawData during version validation. Produce exactly one output:
 ## References
 
 - GitHub Advisory Database: <https://github.com/advisories/GHSA-rm5c-5x2p-48wr>
+- NVD `CVE-2026-52878`: <https://nvd.nist.gov/vuln/detail/CVE-2026-52878>
 - Klever-Go 1.7.18 release: <https://github.com/klever-io/klever-go/releases/tag/v1.7.18>

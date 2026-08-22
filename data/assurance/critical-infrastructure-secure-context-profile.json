@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-05-04",
+  "last_reviewed": "2026-08-21",
   "intent": "Define a critical-infrastructure secure-context profile for SecurityRecipes so operators, frontier labs, platform teams, and acquirers can see how agentic AI and MCP evidence must be constrained before context, tools, approvals, and autonomous actions touch high-stakes IT, OT, ICS, healthcare, financial, public-sector, communications, or transportation environments.",
   "positioning": {
     "buyer": "Critical infrastructure operators, regulated enterprises, AI platform teams, GRC, product security, SOC, model-risk, safety, procurement, frontier lab enterprise teams, and acquisition diligence reviewers",
@@ -38,6 +38,12 @@
       "name": "OWASP MCP Top 10",
       "url": "https://owasp.org/www-project-mcp-top-10/",
       "coverage": "Maps MCP-specific risks such as token exposure, scope creep, tool poisoning, command execution, missing telemetry, shadow MCP servers, and context over-sharing to SecurityRecipes controls."
+    },
+    {
+      "id": "mcp-authorization-2026-07-28",
+      "name": "Model Context Protocol Authorization Specification (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization",
+      "coverage": "Current public MCP 2026-07-28 revision. Anchors protected MCP calls in OAuth 2.1, protected resource metadata, resource indicators, audience binding, PKCE, and explicit scope challenge behavior."
     },
     {
       "id": "mcp-authorization-2025-11-25",

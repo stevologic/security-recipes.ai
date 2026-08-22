@@ -1434,6 +1434,82 @@ class CVERecipeToolTests(unittest.TestCase):
             "No stable product-specific Markdown override supersedes the composed agentic plan.",
         )
 
+    def test_composed_recipe_attaches_complete_specific_ai_enrichment(self) -> None:
+        recipe = catalog_result([], recipe_kind="composed")
+        recipe["source_record"]["ai_enrichment"] = {
+            "status": "complete",
+            "recipe_specificity": "specific",
+            "business_risk": "Critical: unauthenticated callers can read controller files.",
+            "remediation_steps": [
+                "Upgrade weekly Jenkins to 2.442 or LTS to 2.426.3 or 2.440.1.",
+            ],
+            "verification_steps": [
+                "Confirm the controller reports a Jenkins-named fixed release.",
+            ],
+            "claim_evidence": [
+                {
+                    "claim": "Jenkins names weekly 2.442 and LTS 2.426.3 / 2.440.1 as fixed.",
+                    "kind": "fixed_version",
+                    "source_url": "https://www.jenkins.io/security/advisory/2024-01-24/#SECURITY-3314",
+                }
+            ],
+            "uncertainty": [
+                "This guidance is not a stable Markdown override.",
+            ],
+            "retrieved_source_urls": [
+                "https://example.invalid/should-not-be-copied",
+            ],
+        }
+        stub_catalog = StubCatalog(recipe)
+        stub_index = StubRecipeIndex(fail_if_called=True)
+
+        with (
+            patch.object(mcp_server, "cve_catalog", stub_catalog),
+            patch.object(mcp_server, "index", stub_index),
+        ):
+            result = asyncio.run(mcp_server.recipes_cve_get("CVE-2021-44228"))
+
+        guidance = result["recommended_recipe"]["ai_enrichment"]
+        self.assertEqual(result["recommended_recipe"]["kind"], "composed")
+        self.assertEqual(guidance["role"], "evidence-qualified-guidance")
+        self.assertTrue(guidance["not_a_stable_override"])
+        self.assertEqual(guidance["status"], "complete")
+        self.assertEqual(guidance["recipe_specificity"], "specific")
+        self.assertIn("2.442", guidance["remediation_steps"][0])
+        self.assertEqual(guidance["claim_evidence"][0]["kind"], "fixed_version")
+        self.assertNotIn("retrieved_source_urls", guidance)
+        self.assertEqual(
+            result["agentic_change_plan"]["authoritative_recipe"]["kind"],
+            "composed-agentic-plan",
+        )
+        self.assertEqual(
+            result["agentic_change_plan"]["authoritative_recipe"]["reason"],
+            "No stable product-specific Markdown override supersedes the composed agentic plan.",
+        )
+
+    def test_composed_recipe_omits_incomplete_or_nonspecific_ai_enrichment(self) -> None:
+        cases = (
+            {"status": "insufficient_evidence", "recipe_specificity": "specific"},
+            {"status": "complete", "recipe_specificity": "not_specific"},
+            {"status": "complete"},
+        )
+        for enrichment in cases:
+            with self.subTest(enrichment=enrichment):
+                recipe = catalog_result([], recipe_kind="composed")
+                recipe["source_record"]["ai_enrichment"] = enrichment
+                stub_catalog = StubCatalog(recipe)
+                with (
+                    patch.object(mcp_server, "cve_catalog", stub_catalog),
+                    patch.object(mcp_server, "index", StubRecipeIndex(fail_if_called=True)),
+                ):
+                    result = asyncio.run(mcp_server.recipes_cve_get("CVE-2021-44228"))
+                self.assertEqual(result["recommended_recipe"]["kind"], "composed")
+                self.assertNotIn("ai_enrichment", result["recommended_recipe"])
+                self.assertEqual(
+                    result["agentic_change_plan"]["authoritative_recipe"]["kind"],
+                    "composed-agentic-plan",
+                )
+
     def test_declared_override_without_stable_resolvable_body_fails_closed(self) -> None:
         entry = {
             "path": "content/recipes/cve/cve-2021-44228-log4shell.md",

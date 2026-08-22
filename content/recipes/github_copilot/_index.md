@@ -2,7 +2,7 @@
 title: GitHub Copilot
 linkTitle: GitHub Copilot
 weight: 2
-lastmod: 2026-07-23
+lastmod: 2026-08-21
 sidebar:
   open: false
 noindex: true

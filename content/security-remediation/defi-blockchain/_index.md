@@ -3,7 +3,7 @@ title: DeFi & Blockchain Protocol Security
 linkTitle: DeFi & Blockchain Security
 weight: 10
 date: 2026-04-26
-lastmod: 2026-07-13
+lastmod: 2026-08-21
 sidebar:
   open: true
 description: >
@@ -16,7 +16,8 @@ description: >
 **Protocol risk is system risk.** DeFi failures are often cross-component:
 contract logic, oracle assumptions, bridge trust, and governance timing.
 This workflow keeps agent actions narrow and auditable while humans own
-final protocol decisions.
+final protocol decisions. Rechecked August 21, 2026: do not treat
+leftover advisory version text as a protocol upgrade target.
 {{< /callout >}}
 
 ## What this workflow covers

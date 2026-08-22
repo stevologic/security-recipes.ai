@@ -9,6 +9,7 @@ model: "GPT-5.3-Codex"
 tags: ["defi", "signature", "permit", "replay", "eip712"]
 weight: 30
 date: 2026-06-14
+lastmod: 2026-08-21
 ---
 
 Use this prompt to prevent signature replay across chains, contracts,

@@ -3,7 +3,7 @@ title: AI Coding Agents for Vulnerability Remediation
 linkTitle: AI Agent Comparison
 page_kind: collection
 weight: 3
-lastmod: 2026-07-29
+lastmod: 2026-08-21
 toc: true
 sidebar:
   open: true
@@ -27,7 +27,7 @@ existing agent, use
 For the end-to-end method, return to
 [AI vulnerability remediation playbooks]({{< relref "/security-remediation" >}}).
 
-**Last updated July 29, 2026.** Capabilities and documentation were verified
+**Last updated August 21, 2026.** Capabilities and documentation were verified
 against the linked primary sources.
 [Stephen M Abbott](/about/#stephen-m-abbott) maintains this workflow-fit
 comparison with Security Recipes contributors in the public
@@ -93,13 +93,17 @@ and [approvals and security](https://learn.chatgpt.com/docs/agent-approvals-secu
 
 ### Claude Code
 
-Claude Security can scan a repository or change set, preserve timestamped
-Markdown and JSONL findings, and prepare a separate patch for a selected
-finding. Its documentation states that proposed security patches are never
-applied automatically. Full scans require a supported Claude Code release,
-Python and Git, may consume substantial time or usage, and can miss findings;
-keep an independent review and test gate. See
-[Claude Security](https://code.claude.com/docs/en/claude-security),
+The [Claude Security plugin](https://code.claude.com/docs/en/claude-security)
+for Claude Code (`/plugin install claude-security@claude-plugins-official`,
+Claude Code v2.1.154+) runs `/claude-security` scans and writes timestamped
+Markdown and JSONL findings. Suggested patches land in the report folder;
+Anthropic's docs state they are never applied automatically. The managed
+[Claude Security](https://claude.com/product/claude-security) product is a
+separate Enterprise public beta that scans on Claude Mythos 5. Full plugin
+scans need Python and Git, may consume substantial time or usage, and can
+miss findings; keep an independent review and test gate. See
+[Claude Security plugin](https://code.claude.com/docs/en/claude-security),
+[managed Claude Security](https://claude.com/product/claude-security),
 [security guidance](https://code.claude.com/docs/en/security-guidance),
 [memory and instructions](https://code.claude.com/docs/en/memory), and
 [permissions](https://code.claude.com/docs/en/permissions).
@@ -114,7 +118,7 @@ not a standalone security boundary. See the official
 [Rules documentation](https://cursor.com/docs/rules),
 [CLI modes and approvals](https://cursor.com/docs/cli/using),
 [Cloud Agents](https://cursor.com/changelog/cloud-in-agents-window),
-[dependency-vulnerability automation](https://cursor.com/en/marketplace/automations/remediate-dependency-vulnerabilities),
+[Security Agents Automations](https://cursor.com/automations/from-cursor/security),
 and [Security Review](https://cursor.com/changelog/04-30-26).
 
 ### GitHub Copilot cloud agent
@@ -204,9 +208,11 @@ capability, not a control. See the official
 with a local Gateway, a bring-your-own-model design, and workspace
 instruction files that load every session: operating rules in `AGENTS.md`,
 persona and boundaries in `SOUL.md`, optional durable facts in `MEMORY.md`,
-plus workspace-scoped skills. Install with the platform installer, then run
-`openclaw onboard --install-daemon` to choose a provider and configure the
-Gateway. Because the Gateway can be reached from many messaging channels,
+plus workspace-scoped skills. Install with the platform installer (`curl`/`iwr` from openclaw.ai, or
+Docker/Nix/npm). The installer starts the onboarding wizard; later
+configuration is `openclaw configure`. Confirm the Gateway with
+`openclaw gateway status` (port 18789) and `openclaw dashboard`. Because
+the Gateway can be reached from many messaging channels,
 scope a remediation agent to a dedicated workspace, keep repository rules
 and stop conditions in `AGENTS.md`, restrict tokens to the repositories in
 scope, and treat inbound channel messages as untrusted input rather than

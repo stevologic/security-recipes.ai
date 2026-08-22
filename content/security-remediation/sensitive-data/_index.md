@@ -3,7 +3,7 @@ title: Sensitive Data Element Remediation
 linkTitle: Sensitive Data Element Remediation
 weight: 1
 date: 2026-04-22
-lastmod: 2026-07-21
+lastmod: 2026-08-21
 sidebar:
   open: true
 description: >
@@ -28,7 +28,9 @@ that — usually by accident — start emitting sensitive elements
 IDs) into places where they shouldn't appear. An SDE or DLP
 scanner typically catches these; historically, the remediation
 is a ticket that sits for weeks. This workflow turns the same
-finding into a PR within the hour.
+finding into a PR within the hour. Rechecked August 21, 2026:
+this playbook still starts after a named scanner finding and
+does not rotate production secrets or invent a CVE floor.
 
 **Upstream detection is a prerequisite, not part of this workflow.**
 The orchestrator expects a deterministic scanner to be producing

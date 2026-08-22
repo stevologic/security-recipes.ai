@@ -5,6 +5,7 @@ weight: 9
 layout: layouts/redirect.njk
 redirectTo: /cve-database/
 noindex: true
+lastmod: 2026-08-21
 sidebar:
   open: false
   exclude: true

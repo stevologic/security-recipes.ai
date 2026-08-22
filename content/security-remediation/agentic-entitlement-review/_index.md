@@ -3,7 +3,7 @@ title: Agentic Entitlement Review Pack
 linkTitle: Entitlement Review
 weight: 16
 date: 2026-05-04
-lastmod: 2026-07-13
+lastmod: 2026-08-21
 sidebar:
   exclude: true
 description: >
@@ -19,6 +19,8 @@ Layer for Agentic AI**. This pack adds the access-lifecycle layer:
 which agent identity has which MCP scope right now, when that authority
 expires, who must review it, and what kills the session.
 {{< /callout >}}
+
+Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) on August 21, 2026.
 
 ## The product bet
 
@@ -186,7 +188,7 @@ The pack is anchored in current primary guidance:
 - [OWASP Top 10 for Agentic Applications 2026](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/)
   for identity abuse, tool misuse, insecure inter-agent communication,
   cascading failures, and rogue-agent containment.
-- [MCP Authorization](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
+- [MCP Authorization](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
   for protected resource metadata, resource indicators, token audience
   binding, PKCE, scope challenges, and token handling.
 - [A2A Protocol Specification](https://a2a-protocol.org/latest/specification/)

@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-05-03",
+  "last_reviewed": "2026-08-21",
   "intent": "Define a CI-ready secure-context evaluation harness for SecurityRecipes. Each scenario checks whether MCP-backed agents receive only registered, cited, attested, poisoning-scanned, and egress-safe context before they rely on it for agentic remediation.",
   "positioning": {
     "category": "Secure context evals for agentic AI",
@@ -9,6 +9,12 @@
     "why_now": "Agent platforms are moving from single-agent pilots to MCP-connected and agent-to-agent systems. Enterprise buyers need repeatable eval evidence that context, authority, memory, tool use, and data movement remain bounded as agents coordinate across systems."
   },
   "standards_alignment": [
+    {
+      "id": "mcp-authorization-2026-07-28",
+      "name": "Model Context Protocol Authorization Specification (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization",
+      "coverage": "Current public MCP 2026-07-28 revision. Resource indicators, audience validation, OAuth 2.1 security expectations, PKCE, HTTPS, token lifetime controls, and forbidden credential relay."
+    },
     {
       "id": "mcp-authorization-2025-11-25",
       "name": "Model Context Protocol Authorization Specification",

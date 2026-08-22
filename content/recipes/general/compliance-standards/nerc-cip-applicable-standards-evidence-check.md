@@ -5,9 +5,9 @@ description: "Assess NERC CIP evidence readiness: verify applicability, map offi
 recipe_id: "compliance.nerc-cip-current-applicable-set"
 framework_id: "nerc-cip"
 framework: "NERC CIP"
-framework_version: "Operator-supplied effective standards set; checked 2026-07-12"
+framework_version: "Operator-supplied effective standards set; checked 2026-08-21"
 framework_status: "revision-in-progress"
-source_reviewed: "2026-07-12"
+source_reviewed: "2026-08-21"
 jurisdiction: ["north-america", "united-states", "canada"]
 jurisdictions: ["north-america", "united-states", "canada"]
 industry: ["bulk-electric-system", "energy"]
@@ -26,7 +26,8 @@ noindex_follow: true
 model: "gpt-5-codex"
 tags: ["compliance", "nerc-cip", "critical-infrastructure", "audit", "ot-security", "bulk-electric-system", "energy"]
 weight: 380
-date: "2026-07-12"
+date: "2026-08-21"
+lastmod: "2026-08-21"
 severity: "info"
 ---
 
@@ -49,9 +50,9 @@ Use this recipe to produce a source-aware evidence-readiness assessment for **NE
 ## Framework basis
 
 - **Publisher:** North American Electric Reliability Corporation
-- **Version:** Operator-supplied effective standards set; checked 2026-07-12
+- **Version:** Operator-supplied effective standards set; checked 2026-08-21
 - **Status:** `revision-in-progress`
-- **Sources reviewed:** 2026-07-12
+- **Sources reviewed:** 2026-08-21
 - **Jurisdictions:** north-america, united-states, canada
 - **Industries:** bulk-electric-system, energy
 - **License boundary:** `official-text`
@@ -85,7 +86,7 @@ Evidence domains for this framework:
 ## The prompt
 
 ```markdown
-You are a compliance evidence-readiness analyst. Evaluate the supplied scope against NERC CIP (Operator-supplied effective standards set; checked 2026-07-12). The catalog status is revision-in-progress and the source review date is 2026-07-12.
+You are a compliance evidence-readiness analyst. Evaluate the supplied scope against NERC CIP (Operator-supplied effective standards set; checked 2026-08-21). The catalog status is revision-in-progress and the source review date is 2026-08-21.
 
 Never claim certification or legal compliance. Never invent applicability, evidence, control operation, sampling results, or requirement text. Separate observed facts, organization assertions, and analyst inferences. Treat missing or inaccessible evidence as unknown, not as failure, unless the authoritative assessment method says otherwise.
 

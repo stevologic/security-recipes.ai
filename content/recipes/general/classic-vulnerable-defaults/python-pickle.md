@@ -11,6 +11,7 @@ tags: ["python", "deserialization", "pickle", "uplift", "mitigate"]
 cve_archetypes: ["unsafe_deserialization"]
 cve_workflow_role: "remediate"
 weight: 21
+lastmod: 2026-08-21
 date: 2026-04-25
 ---
 
@@ -20,6 +21,16 @@ fed untrusted input. The Python docs say so plainly. The CVE
 trail is decades long. The unsafe behaviour is *the design* —
 pickle is meant to reconstruct any Python object, including
 ones whose `__reduce__` runs code.
+
+## When to use it
+
+Use this recipe when Python `pickle`, `dill`, or similar serializers load
+bytes that are not from a mutually trusted process. Prefer it when the
+finding is an untrusted pickle sink rather than a generic serialization
+review.
+
+Do not use it to execute pickle payloads or to load production model files as
+a proof of exploitability.
 
 ## Pattern
 

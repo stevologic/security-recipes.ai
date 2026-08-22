@@ -3,7 +3,7 @@ title: Remediate Classic Vulnerable Defaults with AI Agents
 linkTitle: Classic Vulnerable Defaults
 weight: 8
 date: 2026-04-25
-lastmod: 2026-07-23
+lastmod: 2026-08-21
 sidebar:
   open: true
 description: >
@@ -27,6 +27,9 @@ contains the executable prompts for individual patterns.
 ## What this is — and isn't
 
 This is **not** a CVE workflow. It is **not** a SAST workflow.
+Rechecked August 21, 2026: do not copy a leftover CVE version
+range onto a default-hardening change. The call-site pattern is
+the finding.
 The findings here typically aren't surfaced by either: there is
 no advisory ("`yaml.load()` was always unsafe"), and a SAST
 scanner often won't fire either, because the call site looks

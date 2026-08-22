@@ -3,14 +3,15 @@ title: "Compliance standards"
 linkTitle: "Compliance standards"
 description: "Browse 39 source-backed compliance and assurance recipes with framework scope, version status, official references, and evidence requirements for review."
 weight: 10
-date: "2026-07-12"
+date: "2026-08-21"
+lastmod: "2026-08-21"
 ---
 
 # Compliance standards
 
 This library contains **39 framework recipes**, generated from a reviewed structured catalog. Each recipe separates framework applicability from evidence readiness, identifies its exact version and status, and links to official sources. It never treats a recipe as certification or legal advice.
 
-Catalog sources were reviewed on **2026-07-12**. Draft, phased, and revision-in-progress entries are labeled; users must confirm official changes before relying on an assessment.
+Catalog sources were reviewed on **2026-08-21**. Draft, phased, and revision-in-progress entries are labeled; users must confirm official changes before relying on an assessment. Humans can browse the table below; agents can fetch the same bounded evidence recipes through the recipe JSON feed and MCP search tools.
 
 ## Section index
 
@@ -53,8 +54,8 @@ Catalog sources were reviewed on **2026-07-12**. Draft, phased, and revision-in-
 | Framework | Version | Status | Jurisdiction |
 |---|---|---|---|
 | [IEC 62443](./iec-62443-industrial-security-evidence-check/) | IEC 62443-2-1:2024 and IEC 62443-4-1:2018 | `final` | global |
-| [NERC CIP](./nerc-cip-applicable-standards-evidence-check/) | Operator-supplied effective standards set; checked 2026-07-12 | `revision-in-progress` | north-america, united-states, canada |
-| [CISA Cross-Sector CPGs](./cisa-cross-sector-cpg-evidence-check/) | 1.0.1; CSF 2.0 update in progress | `revision-in-progress` | united-states |
+| [NERC CIP](./nerc-cip-applicable-standards-evidence-check/) | Operator-supplied effective standards set; checked 2026-08-21 | `revision-in-progress` | north-america, united-states, canada |
+| [CISA Cross-Sector CPGs](./cisa-cross-sector-cpg-evidence-check/) | 2.0 | `final` | united-states |
 | [EU NIS2](./eu-nis2-evidence-readiness-check/) | Directive (EU) 2022/2555 | `final` | european-union, member-state-implementation |
 
 ## Government and public sector (5)
@@ -94,8 +95,8 @@ Catalog sources were reviewed on **2026-07-12**. Draft, phased, and revision-in-
 | Framework | Version | Status | Jurisdiction |
 |---|---|---|---|
 | [PCI DSS 4.0.1](./pci-dss-cde-agent-boundary-check/) | 4.0.1 | `final` | global |
-| [HIPAA Security Rule](./hipaa-security-rule-evidence-check/) | Current effective rule (2026-07-12) | `final` | united-states |
-| [GLBA Safeguards Rule](./glba-safeguards-rule-evidence-check/) | Current rule (2026-07-12) | `final` | united-states |
+| [HIPAA Security Rule](./hipaa-security-rule-evidence-check/) | Current effective Security Rule; 2025 NPRM not finalized | `final` | united-states |
+| [GLBA Safeguards Rule](./glba-safeguards-rule-evidence-check/) | 16 CFR Part 314 current rule | `final` | united-states |
 | [NYDFS Part 500](./nydfs-part-500-evidence-check/) | Second Amendment, effective November 1, 2023 with phased dates | `phased-implementation` | united-states, new-york |
 | [FDA Medical Device Cybersecurity](./fda-medical-device-cybersecurity-evidence-check/) | Final Guidance, February 2026 | `final` | united-states |
 | [EU DORA](./eu-dora-evidence-readiness-check/) | Regulation (EU) 2022/2554 | `final` | european-union |

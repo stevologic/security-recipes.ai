@@ -3,7 +3,7 @@ title: Design Partner Pilot Pack
 linkTitle: Design Partner Pilot
 weight: 13
 date: 2026-05-05
-lastmod: 2026-07-13
+lastmod: 2026-08-21
 sidebar:
   exclude: true
 description: >
@@ -19,6 +19,8 @@ serious reviewer wants to inspect. The next step is proving that those
 artifacts can run inside a customer pilot, produce telemetry, validate a
 hosted-ready proof path, and support a credible hosted MCP business.
 {{< /callout >}}
+
+Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) on August 21, 2026.
 
 SecurityRecipes is positioned as **The Secure Context Layer for Agentic
 AI**. That claim becomes materially more valuable when a design partner
@@ -110,10 +112,10 @@ recipes_design_partner_pilot_pack(phase_id="govern-controlled-actions")
 
 The profile is grounded in current primary sources:
 
-- [MCP Authorization](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
+- [MCP Authorization](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
   for protected-resource metadata, resource indicators, audience
   validation, PKCE, scope handling, and token-passthrough denial.
-- [MCP 2025-11-25 key changes](https://modelcontextprotocol.io/specification/2025-11-25/changelog)
+- [MCP 2026-07-28 key changes](https://modelcontextprotocol.io/specification/2026-07-28/changelog)
   for protocol drift, incremental scope consent, URL elicitation, task
   support, and metadata surfaces.
 - [NIST AI Agent Standards Initiative](https://www.nist.gov/artificial-intelligence/ai-agent-standards-initiative)

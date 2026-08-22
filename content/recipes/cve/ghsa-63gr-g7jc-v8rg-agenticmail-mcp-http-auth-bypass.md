@@ -1,27 +1,31 @@
 ---
-title: "GHSA-63gr-g7jc-v8rg - AgenticMail MCP HTTP auth bypass"
-linkTitle: "GHSA-63gr AgenticMail MCP"
-description: "High-severity @agenticmail/mcp HTTP transport authorization bypass. Upgrade to 0.9.27+, require auth on /mcp, bind locally by default, and disable master-key tools on unauthenticated transports."
+title: "CVE-2026-50287: AgenticMail MCP HTTP auth bypass"
+linkTitle: "CVE-2026-50287 AgenticMail MCP"
+description: "CVE-2026-50287 is @agenticmail/mcp HTTP auth bypass. Upgrade to 0.9.27+, require auth on /mcp, and disable master-key tools on unauthenticated transports."
 tool: "general"
 author: "Codex"
 team: "Security"
 maturity: "development"
 model: "GPT 5.5 Extra High reasoning"
-tags: ["ghsa", "agenticmail", "mcp", "npm", "authentication", "authorization", "agent-tools", "high"]
+tags: ["cve", "ghsa", "agenticmail", "mcp", "npm", "authentication", "authorization", "agent-tools", "high"]
 weight: 80
 date: 2026-06-07
+lastmod: 2026-08-21
+cve: "CVE-2026-50287"
 ghsa: "GHSA-63gr-g7jc-v8rg"
-known_as: ["AgenticMail MCP HTTP authorization bypass"]
+known_as: ["AgenticMail MCP HTTP authorization bypass", "GHSA-63gr-g7jc-v8rg"]
 kev: false
 severity: "high"
 ecosystem: "typescript/npm"
 disclosed: "2026-05-29"
+ai_enrichment_review_status: human-reviewed-development-draft
 ---
 
-`@agenticmail/mcp` versions before `0.9.27` can expose a Streamable HTTP
-transport with no HTTP authentication when started with `--http` or
-`MCP_HTTP=1`. The `/mcp` endpoint can accept remote MCP sessions and tool calls
-without requiring a bearer token, shared secret, or master key from the client.
+CVE-2026-50287 / GHSA-63gr-g7jc-v8rg covers `@agenticmail/mcp` versions before
+`0.9.27`. Streamable HTTP started with `--http` or `MCP_HTTP=1` can expose
+`/mcp` with no HTTP authentication. GitHub names **0.9.27**. Do not invent a
+later 0.9.28 floor. This page stays a development draft. Do not prove exposure
+with unauthenticated MCP tool calls.
 
 The higher-impact issue is confused authorization: tools documented as requiring
 `AGENTICMAIL_MASTER_KEY` are forwarded by the server using the server process's
@@ -251,6 +255,13 @@ Produce exactly one output:
 - Tests or logs that expose email content, phone numbers, master keys, agent
   credentials, or tenant data.
 
+## Rollback and recovery
+
+Prefer forward recovery to another GHSA-named `@agenticmail/mcp` 0.9.27+
+release. If an operational rollback restores a build before 0.9.27, bind HTTP
+MCP to loopback, require auth on `/mcp`, and disable master-key tools on that
+transport.
+
 ## Related recipes
 
 - [Source code authz tenant boundary audit]({{< relref "/recipes/general/source-code-authz-tenant-boundary-audit" >}})
@@ -261,4 +272,5 @@ Produce exactly one output:
 ## References
 
 - GitHub Advisory Database: <https://github.com/advisories/GHSA-63gr-g7jc-v8rg>
+- NVD: <https://nvd.nist.gov/vuln/detail/CVE-2026-50287>
 - AgenticMail repository: <https://github.com/agenticmail/agenticmail>

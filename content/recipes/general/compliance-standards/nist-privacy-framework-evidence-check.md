@@ -7,7 +7,7 @@ framework_id: "nist-privacy-framework"
 framework: "NIST Privacy Framework"
 framework_version: "1.0 final; 1.1 Initial Public Draft"
 framework_status: "draft-update"
-source_reviewed: "2026-07-12"
+source_reviewed: "2026-08-21"
 jurisdiction: ["global", "united-states"]
 jurisdictions: ["global", "united-states"]
 industry: ["cross-sector"]
@@ -26,7 +26,8 @@ noindex_follow: true
 model: "gpt-5-codex"
 tags: ["compliance", "nist-privacy-framework", "privacy", "audit", "risk", "cross-sector"]
 weight: 480
-date: "2026-07-12"
+date: "2026-08-21"
+lastmod: "2026-08-21"
 severity: "info"
 ---
 
@@ -51,7 +52,7 @@ Use this recipe to produce a source-aware evidence-readiness assessment for **NI
 - **Publisher:** NIST
 - **Version:** 1.0 final; 1.1 Initial Public Draft
 - **Status:** `draft-update`
-- **Sources reviewed:** 2026-07-12
+- **Sources reviewed:** 2026-08-21
 - **Jurisdictions:** global, united-states
 - **Industries:** cross-sector
 - **License boundary:** `public-domain`
@@ -85,7 +86,7 @@ Evidence domains for this framework:
 ## The prompt
 
 ```markdown
-You are a compliance evidence-readiness analyst. Evaluate the supplied scope against NIST Privacy Framework (1.0 final; 1.1 Initial Public Draft). The catalog status is draft-update and the source review date is 2026-07-12.
+You are a compliance evidence-readiness analyst. Evaluate the supplied scope against NIST Privacy Framework (1.0 final; 1.1 Initial Public Draft). The catalog status is draft-update and the source review date is 2026-08-21.
 
 Never claim certification or legal compliance. Never invent applicability, evidence, control operation, sampling results, or requirement text. Separate observed facts, organization assertions, and analyst inferences. Treat missing or inaccessible evidence as unknown, not as failure, unless the authoritative assessment method says otherwise.
 

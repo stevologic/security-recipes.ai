@@ -2,6 +2,7 @@
 title: GHAD High/Critical Iteration
 linkTitle: GHAD Iteration 2026-04-26
 date: 2026-04-26
+lastmod: 2026-08-21
 noindex: true
 noindex_follow: true
 description: Review notes for the 2026 high and critical advisory recipe pass.

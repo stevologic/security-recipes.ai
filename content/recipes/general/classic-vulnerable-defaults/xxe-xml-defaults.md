@@ -11,6 +11,7 @@ tags: ["xml", "xxe", "uplift", "mitigate", "defusedxml"]
 cve_archetypes: ["xxe"]
 cve_workflow_role: "remediate"
 weight: 24
+lastmod: 2026-08-21
 date: 2026-04-25
 ---
 
@@ -21,6 +22,14 @@ billion-laughs payload, or pivot through SSRF. Most parsers
 have safer modes; few default to them. The fix is to set the
 right flags everywhere — every parser, every library, every
 vendored XML toolkit.
+
+## When to use it
+
+Use this recipe when an XML parser still resolves external entities or DTDs
+on untrusted input. Prefer it when the language and parser are known
+(Python, Java, PHP, libxml) and the change is disabling entity loading.
+
+Do not use it to fetch internal URLs or files through XXE as a test.
 
 ## Pattern
 

@@ -2,18 +2,24 @@
 title: Cursor
 linkTitle: Cursor
 weight: 3
+lastmod: 2026-08-21
 sidebar:
   open: false
 noindex: true
 noindex_follow: true
 description: >
-  `.cursor/rules/*.mdc` files, Cloud Agent setups, and chat
-  prompts contributed by teams using Cursor for agentic
-  remediation.
+  Cursor rules, Cloud Agent task prompts, and chat macros for
+  bounded remediation that humans can inspect and MCP clients can
+  fetch as context packs.
 ---
 
 Prompts and configuration targeted at **Cursor** — both the
 interactive Agent and headless **Cloud Agents**.
+
+These pages stay `noindex` so leftover drafts cannot rank as
+authoritative CVE floors. Humans browse the cards below; agents can
+fetch the same bounded files through the recipe JSON feed and MCP
+search tools.
 
 ## What usually lives here
 

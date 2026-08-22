@@ -9,6 +9,7 @@ model: "GPT-5.3-Codex"
 tags: ["defi", "erc4626", "vault", "rounding", "invariants"]
 weight: 29
 date: 2026-06-14
+lastmod: 2026-08-21
 ---
 
 Use this prompt to harden ERC-4626 vaults and vault-like share systems

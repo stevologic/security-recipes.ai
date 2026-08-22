@@ -27,7 +27,7 @@ test("homepage metadata targets CVE lookup and AI vulnerability remediation", ()
     ? homepageData.lastmod.toISOString().slice(0, 10)
     : String(homepageData.lastmod);
 
-  assert.equal(lastmod, "2026-07-23");
+  assert.equal(lastmod, "2026-08-21");
   assert.match(
     homepage,
     /<link rel="alternate" type="application\/rss\+xml" href="\/index\.xml" title="Security Recipes">/u,
@@ -39,7 +39,7 @@ test("homepage metadata targets CVE lookup and AI vulnerability remediation", ()
   assert.match(homepage, /title: "CVE Database & AI Vulnerability Remediation"/u);
   assert.match(
     homepage,
-    /description: "Search source-backed CVE intelligence and use reviewed AI vulnerability remediation playbooks[^"]+"/u,
+    /description: "Search NVD and CISA KEV-backed CVE intelligence and use reviewed AI vulnerability remediation playbooks[^"]+"/u,
   );
   assert.match(homepage, /image: "\/images\/og-card\.png"/u);
   assert.match(homepage, /imageWidth: 1731/u);
@@ -124,6 +124,12 @@ test("regreSSHion targets OpenSSH RCE remediation with primary-source authority"
     /https:\/\/www\.qualys\.com\/2024\/07\/01\/cve-2024-6387\/regresshion\.txt/u,
   );
   assert.match(page, /did not investigate every other libc or\s+operating system/iu);
+  assert.equal(data.kev, false, "regreSSHion is not in the live CISA KEV catalog");
+  assert.match(
+    page,
+    /does \*\*not\*\* list\s+CVE-2024-6387/u,
+    "regreSSHion must say CISA has not listed it",
+  );
 });
 
 test("the visual guide documents the evidence-gated search publication path", () => {
@@ -394,8 +400,8 @@ test("high-intent remediation pages expose current review provenance", () => {
   // Each page pins its own verified review date so a content change cannot
   // silently advertise a review that never happened.
   for (const [relativePath, reviewedIso, reviewedLabel] of [
-    ["content/security-remediation/_index.md", "2026-07-23", "July 23, 2026"],
-    ["content/agents/_index.md", "2026-07-29", "July 29, 2026"],
+    ["content/security-remediation/_index.md", "2026-08-21", "August 21, 2026"],
+    ["content/agents/_index.md", "2026-08-21", "August 21, 2026"],
   ]) {
     const page = source(relativePath);
     const data = frontMatter(relativePath);

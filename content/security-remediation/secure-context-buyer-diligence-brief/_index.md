@@ -3,7 +3,7 @@ title: Secure Context Reviewer Brief
 linkTitle: Reviewer Brief
 weight: 14
 date: 2026-05-05
-lastmod: 2026-07-13
+lastmod: 2026-08-21
 sidebar:
   exclude: true
 description: >
@@ -19,6 +19,8 @@ next problem is not adding more claims. The next problem is making the
 first reviewer review easy: one brief, exact evidence paths, clear
 objection handling, and no overclaiming before customer runtime proof.
 {{< /callout >}}
+
+Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) on August 21, 2026.
 
 SecurityRecipes is positioned as **The Secure Context Layer for Agentic
 AI**. That is a strong category claim, but a serious enterprise reviewer,
@@ -129,7 +131,7 @@ The profile is grounded in current primary and authoritative sources:
 - [OWASP MCP Top 10](https://owasp.org/www-project-mcp-top-10/) for
   MCP-specific token, scope, tool, command, audit, shadow-server, and
   context risks.
-- [MCP Authorization 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
+- [MCP Authorization 2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
   for OAuth 2.1, protected resource metadata, resource indicators,
   audience validation, PKCE, and token handling.
 - [OpenAI MCP guidance](https://developers.openai.com/api/docs/mcp) and

@@ -3,7 +3,7 @@ title: Agentic Red-Team Replay Harness
 linkTitle: Red-Team Replay Harness
 weight: 7
 date: 2026-05-05
-lastmod: 2026-07-13
+lastmod: 2026-08-21
 sidebar:
   exclude: true
 description: >
@@ -19,6 +19,8 @@ static red-team drills and customer runtime proof. A drill only counts
 when the observed decision, evidence classes, trace events, and fail
 signals match the generated harness.
 {{< /callout >}}
+
+Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) on August 21, 2026.
 
 The existing red-team drill pack defines the scenarios. The replay
 harness makes them operational: every workflow/scenario pair gets a
@@ -125,7 +127,7 @@ events, fail signals, and unsafe runtime flags.
 
 - [OWASP Top 10 for Agentic Applications 2026](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/)
 - [OWASP Agentic AI Threats and Mitigations](https://genai.owasp.org/resource/agentic-ai-threats-and-mitigations/)
-- [MCP Authorization specification](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
+- [MCP Authorization specification](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
 - [MCP Security Best Practices](https://modelcontextprotocol.io/docs/tutorials/security/security_best_practices)
 - [Agent2Agent Protocol specification](https://a2a-protocol.org/v0.2.0/specification/)
 - [OpenAI Agents SDK guardrails](https://openai.github.io/openai-agents-python/guardrails/)

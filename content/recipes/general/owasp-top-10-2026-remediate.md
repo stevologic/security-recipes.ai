@@ -4,7 +4,7 @@ linkTitle: "OWASP Top 10 2026 remediate"
 layout: layouts/redirect.njk
 redirectTo: /recipes/general/owasp-top-10-2025-remediate/
 noindex: true
-lastmod: 2026-07-23
+lastmod: 2026-08-21
 description: >
   This retired iteration label redirects to the current OWASP Top 10:2025
   web application remediation workflow.
@@ -18,11 +18,16 @@ weight: 11
 date: 2026-04-22
 ---
 
+This retired 2026 iteration label still redirects to the current
+[OWASP Top 10:2025 remediate](/recipes/general/owasp-top-10-2025-remediate/).
+Rechecked August 21, 2026: do not treat this URL as a separate
+standard.
+
 A tool-agnostic **remediation prompt** that takes a single finding
-from an OWASP Top 10 (2026) audit — or any equivalent source — and
-turns it into a reviewer-ready pull request. Includes category-specific
-"how to fix this well" guidance so the agent doesn't apply a naive
-patch that looks right and isn't.
+from an OWASP Top 10 web application audit — or any equivalent source —
+and turns it into a reviewer-ready pull request. Includes
+category-specific "how to fix this well" guidance so the agent doesn't
+apply a naive patch that looks right and isn't.
 
 Works with the hunt side at
 [OWASP Top 10 (2026) — audit]({{< relref "/recipes/general/owasp-top-10-2026-audit" >}}),

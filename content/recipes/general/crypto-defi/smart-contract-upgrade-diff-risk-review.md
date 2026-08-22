@@ -9,6 +9,7 @@ model: "GPT-5.3-Codex"
 tags: ["defi", "smart-contract", "upgrade", "proxy", "invariants"]
 weight: 24
 date: 2026-04-26
+lastmod: 2026-08-21
 ---
 
 Use this prompt to review upgrade diffs and enforce invariant checks

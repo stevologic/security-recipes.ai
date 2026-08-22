@@ -1,32 +1,39 @@
 ---
-title: "GHSA-rpm5/GHSA-x2qx - GitPython command injection"
-linkTitle: "GHSA GitPython injection"
-description: "High-severity GitPython command and argument injection in repository clone/fetch helpers. Upgrade to 3.1.47+, reject user-controlled git kwargs and multi_options, and harden repo-ingest automation."
+title: "CVE-2026-42215: GitPython command injection"
+linkTitle: "CVE-2026-42215 GitPython"
+description: "CVE-2026-42215 is GitPython upload_pack command injection. Upgrade to 3.1.47+ and reject user-controlled git kwargs."
 tool: "general"
 author: "Codex"
 team: "Security"
 maturity: "development"
 model: "GPT 5.5 Extra High reasoning"
-tags: ["ghsa", "gitpython", "python", "pip", "git", "command-injection", "supply-chain", "high"]
+tags: ["cve", "ghsa", "gitpython", "python", "pip", "git", "command-injection", "supply-chain", "high"]
 weight: 57
 date: 2026-05-02
+lastmod: 2026-08-21
+cve: "CVE-2026-42215"
 ghsa: "GHSA-rpm5-65cw-6hj4"
 known_as: ["GitPython command injection", "GHSA-x2qx-6953-8485"]
 kev: false
 severity: "high"
 ecosystem: "python/pypi"
 disclosed: "2026-04-25"
+ai_enrichment_review_status: human-reviewed-development-draft
 ---
 
-Two high-severity GitPython advisories affect applications that let untrusted
-input shape Git operation options:
+CVE-2026-42215 / GHSA-rpm5-65cw-6hj4 and GHSA-x2qx-6953-8485 cover GitPython
+releases before `3.1.47` when untrusted input can shape Git operation options:
 
-- `GHSA-rpm5-65cw-6hj4`: unsafe Git option checks can be bypassed with Python
-  kwargs such as `upload_pack` and `receive_pack`, which normalize into
-  dangerous Git flags.
-- `GHSA-x2qx-6953-8485`: `multi_options` validation happens before
-  `shlex.split()`, allowing a seemingly safe option string to split into unsafe
-  flags such as `--config core.hooksPath=...`.
+- **CVE-2026-42215 / GHSA-rpm5-65cw-6hj4**: unsafe Git option checks can be
+  bypassed with Python kwargs such as `upload_pack` and `receive_pack`, which
+  normalize into dangerous Git flags. Affected `>=3.1.30, <3.1.47`.
+- **GHSA-x2qx-6953-8485**: `multi_options` validation happens before
+  `shlex.split()`, allowing a seemingly safe option string to split into
+  unsafe flags such as `--config core.hooksPath=...`.
+
+GitHub names **`GitPython` 3.1.47**. Do not invent a later 3.1.48 floor. This
+page stays a development draft. Do not prove exposure with helper-command
+kwargs or custom Git options.
 
 For agentic coding systems, CI workers, repository importers, and internal
 automation bots, the practical risk is code execution on the worker handling
@@ -217,6 +224,13 @@ GHSA-rpm5-65cw-6hj4 and GHSA-x2qx-6953-8485. Produce exactly one output:
 - Treating repository URLs as the only untrusted input and missing workflow
   fields that configure clone/fetch behavior.
 
+## Rollback and recovery
+
+Prefer forward recovery to another GitHub-named `GitPython` 3.1.47+ release.
+If an operational rollback restores a build before `3.1.47`, block
+user-controlled `upload_pack`, `receive_pack`, and `multi_options` until the
+named floor is restored.
+
 ## Output contract
 
 Return one of:
@@ -245,5 +259,7 @@ options.
 ## References
 
 - GitHub Advisory `GHSA-rpm5-65cw-6hj4`: <https://github.com/advisories/GHSA-rpm5-65cw-6hj4>
+- NVD `CVE-2026-42215`: <https://nvd.nist.gov/vuln/detail/CVE-2026-42215>
 - GitHub Advisory `GHSA-x2qx-6953-8485`: <https://github.com/advisories/GHSA-x2qx-6953-8485>
+- GitPython 3.1.47 release: <https://github.com/gitpython-developers/GitPython/releases/tag/3.1.47>
 - GitPython project: <https://github.com/gitpython-developers/GitPython>

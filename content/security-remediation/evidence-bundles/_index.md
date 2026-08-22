@@ -3,7 +3,7 @@ title: Evidence Bundles
 linkTitle: Evidence Bundles
 weight: 14
 date: 2026-07-10
-lastmod: 2026-07-23
+lastmod: 2026-08-21
 sidebar:
   open: true
 description: >
@@ -22,7 +22,9 @@ allowed to run.
 This is the operational export companion to
 [Agentic Run Receipts]({{< relref "/security-remediation/agentic-run-receipts" >}}).
 Receipts define the per-run proof contract; bundles normalize and package those
-receipts for an audit period or workflow cohort.
+receipts for an audit period or workflow cohort. Rechecked August
+21, 2026: a bundle that cites leftover draft version text is not
+ready for export.
 
 ## The product idea
 

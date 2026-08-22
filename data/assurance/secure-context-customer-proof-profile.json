@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-05-04",
+  "last_reviewed": "2026-08-21",
   "intent": "Define the SecurityRecipes customer proof pack so the secure context layer can move from credible reference evidence to acquisition-grade customer evidence. The pack binds design-partner telemetry, MCP authorization decisions, run receipts, redaction, ROI metrics, renewal gates, and buyer proof claims into one generated artifact without pretending customer runtime data already exists.",
   "positioning": {
     "buyer": "Frontier model labs, AI platform vendors, security platform vendors, regulated enterprises, VC diligence teams, and strategic acquirers",
@@ -26,6 +26,15 @@
       "url": "https://owasp.org/www-project-mcp-top-10/",
       "source_class": "industry_standard",
       "why_it_matters": "MCP-specific risks such as token exposure, scope creep, command execution, missing telemetry, shadow servers, and context over-sharing drive the proof events in this pack."
+    },
+    {
+      "id": "mcp-authorization-2026-07-28",
+      "name": "Model Context Protocol Authorization (2026-07-28 current revision)",
+      "publisher": "Model Context Protocol",
+      "published": "2026-07-28",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization",
+      "source_class": "protocol_specification",
+      "why_it_matters": "Current public MCP 2026-07-28 revision. Protected MCP servers need resource indicators, token audience validation, PKCE, secure token handling, and scope minimization before customer proof can count a tool call as governed."
     },
     {
       "id": "mcp-authorization-2025-11-25",
@@ -190,8 +199,20 @@
       "id": "governed-context-retrieval",
       "title": "Governed context retrieval is working in customer runs",
       "buyer_question": "Can the buyer prove what context an agent saw, why it was allowed, and whether the source was current?",
-      "evidence_pack_keys": ["enterprise_trust_center_export", "agentic_run_receipt_pack", "secure_context_eval_pack"],
-      "required_runtime_fields": ["tenant_id", "run_id", "context_package_hash", "context_source_ids", "retrieval_decision", "source_freshness_state", "citation_status"],
+      "evidence_pack_keys": [
+        "enterprise_trust_center_export",
+        "agentic_run_receipt_pack",
+        "secure_context_eval_pack"
+      ],
+      "required_runtime_fields": [
+        "tenant_id",
+        "run_id",
+        "context_package_hash",
+        "context_source_ids",
+        "retrieval_decision",
+        "source_freshness_state",
+        "citation_status"
+      ],
       "minimum_signal_count": 10,
       "blocked_until": "At least ten customer runs return registered context with hashes, freshness state, citations, and receipt linkage."
     },
@@ -199,8 +220,21 @@
       "id": "mcp-calls-are-authorized-before-execution",
       "title": "MCP calls are authorized before execution",
       "buyer_question": "Can protected MCP calls enforce resource, audience, scope, session, and token-handling controls?",
-      "evidence_pack_keys": ["mcp_authorization_conformance_pack", "agentic_protocol_conformance_pack", "agentic_run_receipt_pack"],
-      "required_runtime_fields": ["tenant_id", "run_id", "mcp_namespace", "mcp_tool_name", "resource_indicator", "token_audience", "authorization_decision", "scope_state"],
+      "evidence_pack_keys": [
+        "mcp_authorization_conformance_pack",
+        "agentic_protocol_conformance_pack",
+        "agentic_run_receipt_pack"
+      ],
+      "required_runtime_fields": [
+        "tenant_id",
+        "run_id",
+        "mcp_namespace",
+        "mcp_tool_name",
+        "resource_indicator",
+        "token_audience",
+        "authorization_decision",
+        "scope_state"
+      ],
       "minimum_signal_count": 25,
       "blocked_until": "Customer MCP calls produce pre-execution authorization decisions and no token passthrough or unbound audience is counted as success."
     },
@@ -208,8 +242,21 @@
       "id": "unsafe-agent-actions-hold-or-stop",
       "title": "Unsafe agent actions hold or stop cleanly",
       "buyer_question": "Does the system create measurable value by stopping risky agent behavior instead of only celebrating successful automation?",
-      "evidence_pack_keys": ["design_partner_pilot_pack", "agentic_app_intake_pack", "agentic_run_receipt_pack"],
-      "required_runtime_fields": ["tenant_id", "run_id", "action_class", "policy_decision", "approval_receipt_id", "verifier_status", "kill_signal", "reviewer_outcome"],
+      "evidence_pack_keys": [
+        "design_partner_pilot_pack",
+        "agentic_app_intake_pack",
+        "agentic_run_receipt_pack"
+      ],
+      "required_runtime_fields": [
+        "tenant_id",
+        "run_id",
+        "action_class",
+        "policy_decision",
+        "approval_receipt_id",
+        "verifier_status",
+        "kill_signal",
+        "reviewer_outcome"
+      ],
       "minimum_signal_count": 5,
       "blocked_until": "Pilot data includes safe holds, denials, or kill decisions tied to receipts and reviewer outcomes."
     },
@@ -217,8 +264,21 @@
       "id": "telemetry-is-useful-without-leaking-sensitive-data",
       "title": "Telemetry is useful without leaking sensitive data",
       "buyer_question": "Can security teams reconstruct agent runs without turning observability into a secret, prompt, or private-code leakage sink?",
-      "evidence_pack_keys": ["agentic_telemetry_contract", "agentic_run_receipt_pack", "enterprise_trust_center_export"],
-      "required_runtime_fields": ["tenant_id", "trace_id", "span_id", "event_class", "telemetry_redaction_state", "argument_capture", "result_capture", "contains_secret"],
+      "evidence_pack_keys": [
+        "agentic_telemetry_contract",
+        "agentic_run_receipt_pack",
+        "enterprise_trust_center_export"
+      ],
+      "required_runtime_fields": [
+        "tenant_id",
+        "trace_id",
+        "span_id",
+        "event_class",
+        "telemetry_redaction_state",
+        "argument_capture",
+        "result_capture",
+        "contains_secret"
+      ],
       "minimum_signal_count": 25,
       "blocked_until": "Customer telemetry shows metadata-first events, redaction state, receipt linkage, and zero counted secret captures."
     },
@@ -226,8 +286,21 @@
       "id": "roi-is-replaced-by-customer-telemetry",
       "title": "ROI assumptions are replaced by customer telemetry",
       "buyer_question": "What proves value beyond assumed productivity or demo metrics?",
-      "evidence_pack_keys": ["secure_context_value_model", "design_partner_pilot_pack", "agentic_telemetry_contract"],
-      "required_runtime_fields": ["tenant_id", "run_id", "eligible_finding_count", "review_minutes", "avoided_engineer_hours", "verifier_status", "customer_outcome", "renewal_signal"],
+      "evidence_pack_keys": [
+        "secure_context_value_model",
+        "design_partner_pilot_pack",
+        "agentic_telemetry_contract"
+      ],
+      "required_runtime_fields": [
+        "tenant_id",
+        "run_id",
+        "eligible_finding_count",
+        "review_minutes",
+        "avoided_engineer_hours",
+        "verifier_status",
+        "customer_outcome",
+        "renewal_signal"
+      ],
       "minimum_signal_count": 20,
       "blocked_until": "Customer run data replaces default value-model assumptions for at least one renewal scenario."
     },
@@ -235,8 +308,19 @@
       "id": "source-and-standards-freshness-is-maintained",
       "title": "Source and standards freshness is maintained",
       "buyer_question": "Can the buyer see whether SecurityRecipes guidance stays current as MCP, OWASP, NIST, and AI data-security guidance changes?",
-      "evidence_pack_keys": ["agentic_source_freshness_watch", "enterprise_trust_center_export", "agentic_protocol_conformance_pack"],
-      "required_runtime_fields": ["source_watch_id", "last_reviewed", "source_hash", "dependent_pack_id", "regeneration_status", "review_due_state"],
+      "evidence_pack_keys": [
+        "agentic_source_freshness_watch",
+        "enterprise_trust_center_export",
+        "agentic_protocol_conformance_pack"
+      ],
+      "required_runtime_fields": [
+        "source_watch_id",
+        "last_reviewed",
+        "source_hash",
+        "dependent_pack_id",
+        "regeneration_status",
+        "review_due_state"
+      ],
       "minimum_signal_count": 1,
       "blocked_until": "Freshness watch shows no due critical sources and every customer-facing pack has a regeneration path."
     },
@@ -244,8 +328,20 @@
       "id": "renewal-and-paid-wedge-are-explicit",
       "title": "Renewal and paid wedge are explicit",
       "buyer_question": "Which paid product surface did the customer validate, and who owns the budget?",
-      "evidence_pack_keys": ["secure_context_value_model", "design_partner_pilot_pack", "enterprise_trust_center_export"],
-      "required_runtime_fields": ["tenant_id", "paid_wedge_id", "budget_owner", "renewal_signal", "expansion_trigger", "support_burden", "blocked_gap"],
+      "evidence_pack_keys": [
+        "secure_context_value_model",
+        "design_partner_pilot_pack",
+        "enterprise_trust_center_export"
+      ],
+      "required_runtime_fields": [
+        "tenant_id",
+        "paid_wedge_id",
+        "budget_owner",
+        "renewal_signal",
+        "expansion_trigger",
+        "support_burden",
+        "blocked_gap"
+      ],
       "minimum_signal_count": 1,
       "blocked_until": "The design partner names a paid wedge, budget owner, expansion trigger, and support burden before any acquisition-ready claim is made."
     }
@@ -254,55 +350,120 @@
     {
       "id": "agent.run.started",
       "title": "Agent run started",
-      "required_fields": ["tenant_id", "run_id", "workflow_id", "agent_id", "identity_id", "model_provider", "correlation_id"],
+      "required_fields": [
+        "tenant_id",
+        "run_id",
+        "workflow_id",
+        "agent_id",
+        "identity_id",
+        "model_provider",
+        "correlation_id"
+      ],
       "redaction_default": "metadata_only"
     },
     {
       "id": "context.package.returned",
       "title": "Context package returned",
-      "required_fields": ["tenant_id", "run_id", "context_package_hash", "context_source_ids", "retrieval_decision", "source_freshness_state"],
+      "required_fields": [
+        "tenant_id",
+        "run_id",
+        "context_package_hash",
+        "context_source_ids",
+        "retrieval_decision",
+        "source_freshness_state"
+      ],
       "redaction_default": "hashes_and_metadata_only"
     },
     {
       "id": "mcp.authorization.decided",
       "title": "MCP authorization decided",
-      "required_fields": ["tenant_id", "run_id", "mcp_namespace", "mcp_tool_name", "resource_indicator", "token_audience", "authorization_decision"],
+      "required_fields": [
+        "tenant_id",
+        "run_id",
+        "mcp_namespace",
+        "mcp_tool_name",
+        "resource_indicator",
+        "token_audience",
+        "authorization_decision"
+      ],
       "redaction_default": "no_token_capture"
     },
     {
       "id": "mcp.tool_surface.checked",
       "title": "MCP tool surface checked",
-      "required_fields": ["tenant_id", "connector_id", "mcp_namespace", "tool_surface_hash", "drift_decision", "observed_at"],
+      "required_fields": [
+        "tenant_id",
+        "connector_id",
+        "mcp_namespace",
+        "tool_surface_hash",
+        "drift_decision",
+        "observed_at"
+      ],
       "redaction_default": "schema_hashes_first"
     },
     {
       "id": "approval.receipt.validated",
       "title": "Approval receipt validated",
-      "required_fields": ["tenant_id", "run_id", "approval_receipt_id", "action_class", "approval_status", "approved_scope_hash"],
+      "required_fields": [
+        "tenant_id",
+        "run_id",
+        "approval_receipt_id",
+        "action_class",
+        "approval_status",
+        "approved_scope_hash"
+      ],
       "redaction_default": "approval_metadata_only"
     },
     {
       "id": "verifier.completed",
       "title": "Verifier completed",
-      "required_fields": ["tenant_id", "run_id", "verifier_status", "test_status", "policy_status", "triage_status"],
+      "required_fields": [
+        "tenant_id",
+        "run_id",
+        "verifier_status",
+        "test_status",
+        "policy_status",
+        "triage_status"
+      ],
       "redaction_default": "summary_only"
     },
     {
       "id": "reviewer.outcome.recorded",
       "title": "Reviewer outcome recorded",
-      "required_fields": ["tenant_id", "run_id", "reviewer_outcome", "review_minutes", "accepted_output", "customer_outcome"],
+      "required_fields": [
+        "tenant_id",
+        "run_id",
+        "reviewer_outcome",
+        "review_minutes",
+        "accepted_output",
+        "customer_outcome"
+      ],
       "redaction_default": "summary_only"
     },
     {
       "id": "agent.run.closed",
       "title": "Agent run closed",
-      "required_fields": ["tenant_id", "run_id", "receipt_id", "customer_outcome", "safe_hold", "renewal_signal"],
+      "required_fields": [
+        "tenant_id",
+        "run_id",
+        "receipt_id",
+        "customer_outcome",
+        "safe_hold",
+        "renewal_signal"
+      ],
       "redaction_default": "metadata_only"
     },
     {
       "id": "incident.signal.detected",
       "title": "Incident signal detected",
-      "required_fields": ["tenant_id", "run_id", "incident_signal", "kill_signal", "containment_action", "replay_case_id"],
+      "required_fields": [
+        "tenant_id",
+        "run_id",
+        "incident_signal",
+        "kill_signal",
+        "containment_action",
+        "replay_case_id"
+      ],
       "redaction_default": "security_metadata_only"
     }
   ],
@@ -311,8 +472,18 @@
       "id": "receipt-completeness-ratio",
       "title": "Receipt completeness ratio",
       "metric_type": "evidence_quality",
-      "telemetry_fields": ["receipt_id", "identity_id", "context_package_hash", "authorization_decision", "verifier_status", "reviewer_outcome"],
-      "proof_claim_ids": ["governed-context-retrieval", "mcp-calls-are-authorized-before-execution"],
+      "telemetry_fields": [
+        "receipt_id",
+        "identity_id",
+        "context_package_hash",
+        "authorization_decision",
+        "verifier_status",
+        "reviewer_outcome"
+      ],
+      "proof_claim_ids": [
+        "governed-context-retrieval",
+        "mcp-calls-are-authorized-before-execution"
+      ],
       "target": ">= 0.95",
       "customer_proof_state": "customer_telemetry_required"
     },
@@ -320,8 +491,14 @@
       "id": "context-hash-coverage-ratio",
       "title": "Context hash coverage ratio",
       "metric_type": "context_integrity",
-      "telemetry_fields": ["context_package_hash", "context_source_ids", "source_freshness_state"],
-      "proof_claim_ids": ["governed-context-retrieval"],
+      "telemetry_fields": [
+        "context_package_hash",
+        "context_source_ids",
+        "source_freshness_state"
+      ],
+      "proof_claim_ids": [
+        "governed-context-retrieval"
+      ],
       "target": "1.00",
       "customer_proof_state": "customer_telemetry_required"
     },
@@ -329,8 +506,15 @@
       "id": "mcp-pre-execution-decision-ratio",
       "title": "MCP pre-execution decision ratio",
       "metric_type": "runtime_control",
-      "telemetry_fields": ["mcp_namespace", "mcp_tool_name", "authorization_decision", "policy_decision"],
-      "proof_claim_ids": ["mcp-calls-are-authorized-before-execution"],
+      "telemetry_fields": [
+        "mcp_namespace",
+        "mcp_tool_name",
+        "authorization_decision",
+        "policy_decision"
+      ],
+      "proof_claim_ids": [
+        "mcp-calls-are-authorized-before-execution"
+      ],
       "target": ">= 0.95",
       "customer_proof_state": "customer_telemetry_required"
     },
@@ -338,8 +522,14 @@
       "id": "safe-hold-and-deny-count",
       "title": "Safe hold and deny count",
       "metric_type": "risk_reduction",
-      "telemetry_fields": ["policy_decision", "kill_signal", "reviewer_outcome"],
-      "proof_claim_ids": ["unsafe-agent-actions-hold-or-stop"],
+      "telemetry_fields": [
+        "policy_decision",
+        "kill_signal",
+        "reviewer_outcome"
+      ],
+      "proof_claim_ids": [
+        "unsafe-agent-actions-hold-or-stop"
+      ],
       "target": "All ambiguous or unsafe states hold, deny, or kill instead of silently proceeding",
       "customer_proof_state": "customer_telemetry_required"
     },
@@ -347,8 +537,15 @@
       "id": "sensitive-telemetry-escape-count",
       "title": "Sensitive telemetry escape count",
       "metric_type": "privacy_and_security",
-      "telemetry_fields": ["telemetry_redaction_state", "argument_capture", "result_capture", "contains_secret"],
-      "proof_claim_ids": ["telemetry-is-useful-without-leaking-sensitive-data"],
+      "telemetry_fields": [
+        "telemetry_redaction_state",
+        "argument_capture",
+        "result_capture",
+        "contains_secret"
+      ],
+      "proof_claim_ids": [
+        "telemetry-is-useful-without-leaking-sensitive-data"
+      ],
       "target": "0",
       "customer_proof_state": "customer_telemetry_required"
     },
@@ -356,8 +553,14 @@
       "id": "reviewer-minutes-delta",
       "title": "Reviewer minutes delta",
       "metric_type": "roi",
-      "telemetry_fields": ["review_minutes", "accepted_output", "eligible_finding_count"],
-      "proof_claim_ids": ["roi-is-replaced-by-customer-telemetry"],
+      "telemetry_fields": [
+        "review_minutes",
+        "accepted_output",
+        "eligible_finding_count"
+      ],
+      "proof_claim_ids": [
+        "roi-is-replaced-by-customer-telemetry"
+      ],
       "target": ">= 25% reduction by week eight",
       "customer_proof_state": "customer_telemetry_required"
     },
@@ -365,8 +568,15 @@
       "id": "automation-success-ratio",
       "title": "Automation success ratio",
       "metric_type": "workflow_outcome",
-      "telemetry_fields": ["eligible_finding_count", "accepted_output", "structured_triage_note", "verifier_status"],
-      "proof_claim_ids": ["roi-is-replaced-by-customer-telemetry"],
+      "telemetry_fields": [
+        "eligible_finding_count",
+        "accepted_output",
+        "structured_triage_note",
+        "verifier_status"
+      ],
+      "proof_claim_ids": [
+        "roi-is-replaced-by-customer-telemetry"
+      ],
       "target": ">= 0.50 of eligible pilot findings produce approved output or structured triage",
       "customer_proof_state": "customer_telemetry_required"
     },
@@ -374,8 +584,14 @@
       "id": "source-refresh-due-count",
       "title": "Source refresh due count",
       "metric_type": "freshness",
-      "telemetry_fields": ["source_watch_id", "review_due_state", "regeneration_status"],
-      "proof_claim_ids": ["source-and-standards-freshness-is-maintained"],
+      "telemetry_fields": [
+        "source_watch_id",
+        "review_due_state",
+        "regeneration_status"
+      ],
+      "proof_claim_ids": [
+        "source-and-standards-freshness-is-maintained"
+      ],
       "target": "0 critical due sources before buyer export",
       "customer_proof_state": "reference_and_customer_policy_mapping_required"
     },
@@ -383,8 +599,16 @@
       "id": "paid-wedge-confirmation",
       "title": "Paid wedge confirmation",
       "metric_type": "commercial",
-      "telemetry_fields": ["paid_wedge_id", "budget_owner", "renewal_signal", "expansion_trigger", "support_burden"],
-      "proof_claim_ids": ["renewal-and-paid-wedge-are-explicit"],
+      "telemetry_fields": [
+        "paid_wedge_id",
+        "budget_owner",
+        "renewal_signal",
+        "expansion_trigger",
+        "support_burden"
+      ],
+      "proof_claim_ids": [
+        "renewal-and-paid-wedge-are-explicit"
+      ],
       "target": "Named wedge, owner, expansion trigger, and renewal decision",
       "customer_proof_state": "customer_commitment_required"
     }
@@ -393,35 +617,49 @@
     {
       "id": "evidence-complete",
       "title": "Evidence complete",
-      "linked_metric_ids": ["receipt-completeness-ratio", "context-hash-coverage-ratio", "mcp-pre-execution-decision-ratio"],
+      "linked_metric_ids": [
+        "receipt-completeness-ratio",
+        "context-hash-coverage-ratio",
+        "mcp-pre-execution-decision-ratio"
+      ],
       "decision": "hold_renewal_claim_until_evidence_complete",
       "what_passes": "Core run receipts, context hashes, and MCP decisions meet target coverage."
     },
     {
       "id": "security-value-proven",
       "title": "Security value proven",
-      "linked_metric_ids": ["safe-hold-and-deny-count", "sensitive-telemetry-escape-count"],
+      "linked_metric_ids": [
+        "safe-hold-and-deny-count",
+        "sensitive-telemetry-escape-count"
+      ],
       "decision": "hold_expansion_until_safety_value_is_visible",
       "what_passes": "The pilot shows risky actions stop safely and sensitive telemetry escapes stay at zero."
     },
     {
       "id": "roi-replaces-assumptions",
       "title": "ROI replaces assumptions",
-      "linked_metric_ids": ["reviewer-minutes-delta", "automation-success-ratio"],
+      "linked_metric_ids": [
+        "reviewer-minutes-delta",
+        "automation-success-ratio"
+      ],
       "decision": "hold_acquisition_claim_until_customer_metrics_replace_defaults",
       "what_passes": "Customer telemetry can replace at least one value-model scenario."
     },
     {
       "id": "freshness-ready",
       "title": "Freshness ready",
-      "linked_metric_ids": ["source-refresh-due-count"],
+      "linked_metric_ids": [
+        "source-refresh-due-count"
+      ],
       "decision": "hold_buyer_export_until_sources_are_current",
       "what_passes": "Critical source-backed packs are current or explicitly reviewed before buyer export."
     },
     {
       "id": "paid-wedge-ready",
       "title": "Paid wedge ready",
-      "linked_metric_ids": ["paid-wedge-confirmation"],
+      "linked_metric_ids": [
+        "paid-wedge-confirmation"
+      ],
       "decision": "hold_revenue_story_until_budget_owner_and_wedge_are_named",
       "what_passes": "Design partner names the paid wedge, budget owner, expansion trigger, and support burden."
     }

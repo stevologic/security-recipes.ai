@@ -3,7 +3,7 @@ title: Agentic Assurance Pack
 linkTitle: Assurance Pack
 weight: 6
 date: 2026-05-02
-lastmod: 2026-07-13
+lastmod: 2026-08-21
 sidebar:
   exclude: true
 description: >
@@ -20,6 +20,8 @@ SecurityRecipes into a portable trust artifact: controls, framework
 mapping, workflow coverage, MCP policy, evidence sources, and residual
 risk in one machine-readable export.
 {{< /callout >}}
+
+Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) on August 21, 2026.
 
 ## The product bet
 
@@ -120,7 +122,7 @@ The pack is mapped to current primary references:
   chain, memory poisoning, cascading failures, and rogue-agent risk.
 - [CSA AI Controls Matrix](https://cloudsecurityalliance.org/artifacts/ai-controls-matrix)
   for vendor-neutral cloud AI control objectives.
-- [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices)
+- [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices)
   for scoped MCP authorization, confused-deputy risk, token-passthrough
   avoidance, and session safety.
 - [CISA Secure by Design](https://www.cisa.gov/securebydesign) for

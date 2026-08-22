@@ -9,7 +9,7 @@ model: "Opus 4.7"
 tags: ["sca", "cve", "dependencies", "cursor", "rules", "commands"]
 weight: 10
 date: 2026-04-21
-lastmod: 2026-07-23
+lastmod: 2026-08-21
 ---
 
 A Cursor **project rule** + **custom slash command** pair for

@@ -3,7 +3,7 @@ title: Enterprise Trust Center Export
 linkTitle: Trust Center Export
 weight: 13
 date: 2026-05-04
-lastmod: 2026-07-13
+lastmod: 2026-08-21
 sidebar:
   exclude: true
 description: >
@@ -27,7 +27,9 @@ AI**. The open site already has recipes, policy packs, runtime
 evaluators, an MCP server, attestation seeds, evals, identity contracts,
 handoff controls, and a control-plane blueprint. The missing reviewer
 surface was the packaging: a single artifact a platform team, CISO staff,
-GRC reviewer, procurement team, security reviewer can inspect first.
+GRC reviewer, or procurement team can inspect first. Rechecked against
+MCP [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28)
+on August 21, 2026.
 
 The **Enterprise Trust Center Export** packages the generated evidence
 into a diligence-ready contract:
@@ -157,7 +159,7 @@ The export is anchored in current primary guidance:
   for behavior hijacking, tool misuse, identity abuse, supply chain,
   insecure inter-agent communication, memory/context poisoning, and rogue
   behavior.
-- [MCP Authorization](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
+- [MCP Authorization](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
   for resource indicators, token audience validation, PKCE, protected
   resource metadata, and token-passthrough denial.
 - [A2A Protocol](https://a2a-protocol.org/latest/specification/)

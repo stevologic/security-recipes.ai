@@ -1,7 +1,7 @@
 ---
-title: "GHSA-q6xx-5vr8-p898 - Nezha WebSocket stream ownership bypass"
+title: "GHSA-q6xx-5vr8-p898: Nezha WebSocket stream ownership bypass"
 linkTitle: "GHSA-q6xx Nezha WebSocket"
-description: "Critical Nezha cross-tenant terminal and file-manager hijack where WebSocket stream UUIDs are not bound to their creator. Upgrade to 2.0.10+ and enforce stream ownership before WebSocket upgrade."
+description: "GHSA-q6xx-5vr8-p898 is Nezha WebSocket terminal hijack. Upgrade 2.x to 2.0.10+; GHAD names no 1.14 patched release."
 tool: "general"
 author: "Codex"
 team: "Security"
@@ -10,21 +10,25 @@ model: "GPT 5.5 Extra High reasoning"
 tags: ["ghsa", "nezha", "go", "websocket", "authorization", "tenant-boundary", "rce", "critical"]
 weight: 95
 date: 2026-06-27
+lastmod: 2026-08-21
 ghsa: "GHSA-q6xx-5vr8-p898"
 known_as: ["Nezha terminal file-manager stream hijack"]
 kev: false
 severity: "critical"
 ecosystem: "go"
 disclosed: "2026-06-26"
+ai_enrichment_review_status: human-reviewed-development-draft
 ---
 
-Nezha `1.14.13-1.14.14` and `2.0.0-2.0.9` authenticated WebSocket terminal
-and file-manager sessions only by the presence of a live stream UUID. The
-stream UUID was not bound to the user who created it, so another authenticated
-dashboard user who obtained the UUID could attach to the terminal or file
-manager for a server they did not own.
+GHSA-q6xx-5vr8-p898 covers Nezha `1.14.13-1.14.14` and `2.0.0-2.0.9`. Terminal
+and file-manager WebSocket sessions authenticated only by a live stream UUID
+and did not bind that UUID to the creator, so another authenticated dashboard
+user who obtained the UUID could attach to a server they did not own.
 
-This is a cross-tenant authorization bypass with shell and filesystem impact.
+GitHub names **2.0.10** for the 2.x line. GHAD still lists
+**`first_patched_version: null`** for 1.14.13-1.14.14. Do not invent a 1.14.15
+or 2.0.11 floor. This page stays a development draft. Do not prove exposure by
+attaching to live terminal or file-manager streams.
 
 ## When to use it
 
@@ -51,6 +55,7 @@ This is a cross-tenant authorization bypass with shell and filesystem impact.
 - **Vulnerable:** `github.com/nezhahq/nezha >=1.14.13, <=1.14.14`
 - **Vulnerable:** `github.com/nezhahq/nezha >=2.0.0, <=2.0.9`
 - **Fixed:** `2.0.10+` for the 2.x line
+- **1.14 line:** no GHAD-named patched version as of 2026-08-21
 - **Affected surface:** `/ws/terminal/:id`, `/ws/file/:id`, and stream
   allocation/attachment logic
 
@@ -170,6 +175,13 @@ hijack. Produce exactly one output:
 - Checking ownership after WebSocket upgrade instead of before it.
 - Rejecting unauthorized attaches but still closing the legitimate stream.
 - Logging full stream UUIDs in shared observability systems.
+
+## Rollback and recovery
+
+Prefer forward recovery to another GitHub-named Nezha 2.0.10+ release. If an
+operational rollback restores 2.0.0-2.0.9 or 1.14.13-1.14.14, disable shared
+terminal and file-manager WebSockets until a named floor or 1.14 backport is
+restored.
 
 ## Related recipes
 

@@ -9,6 +9,7 @@ maturity: "development"
 model: "Opus 4.7"
 tags: ["javascript", "prototype-pollution", "uplift", "mitigate"]
 weight: 28
+lastmod: 2026-08-21
 date: 2026-04-25
 ---
 
@@ -19,6 +20,16 @@ internal object can — if it doesn't filter `__proto__`,
 which then leaks into every other object in the runtime. The
 attack vector is decades old; the unsafe shape is still the
 default in many homemade `merge` and `extend` utilities.
+
+## When to use it
+
+Use this recipe when JavaScript or TypeScript merges, assigns, or recursively
+copies attacker-influenced objects without blocking `__proto__`,
+`constructor`, or `prototype`. Prefer it when the sink is a merge utility
+or recursive assign, not a general XSS finding.
+
+Do not use it to pollute `Object.prototype` in shared environments as a
+demonstration.
 
 ## Pattern
 

@@ -7,7 +7,7 @@ framework_id: "cmmc"
 framework: "CMMC 2.0"
 framework_version: "32 CFR Part 170 / phased implementation beginning November 10, 2025"
 framework_status: "phased-implementation"
-source_reviewed: "2026-07-12"
+source_reviewed: "2026-08-21"
 jurisdiction: ["united-states"]
 jurisdictions: ["united-states"]
 industry: ["defense-industrial-base", "government-contractors"]
@@ -26,7 +26,8 @@ noindex_follow: true
 model: "gpt-5-codex"
 tags: ["compliance", "cmmc", "government", "audit", "defense", "data-protection", "defense-industrial-base", "government-contractors"]
 weight: 430
-date: "2026-07-12"
+date: "2026-08-21"
+lastmod: "2026-08-21"
 severity: "info"
 ---
 
@@ -51,7 +52,7 @@ Use this recipe to produce a source-aware evidence-readiness assessment for **CM
 - **Publisher:** U.S. Department of Defense
 - **Version:** 32 CFR Part 170 / phased implementation beginning November 10, 2025
 - **Status:** `phased-implementation`
-- **Sources reviewed:** 2026-07-12
+- **Sources reviewed:** 2026-08-21
 - **Jurisdictions:** united-states
 - **Industries:** defense-industrial-base, government-contractors
 - **License boundary:** `official-text`
@@ -85,7 +86,7 @@ Evidence domains for this framework:
 ## The prompt
 
 ```markdown
-You are a compliance evidence-readiness analyst. Evaluate the supplied scope against CMMC 2.0 (32 CFR Part 170 / phased implementation beginning November 10, 2025). The catalog status is phased-implementation and the source review date is 2026-07-12.
+You are a compliance evidence-readiness analyst. Evaluate the supplied scope against CMMC 2.0 (32 CFR Part 170 / phased implementation beginning November 10, 2025). The catalog status is phased-implementation and the source review date is 2026-08-21.
 
 Never claim certification or legal compliance. Never invent applicability, evidence, control operation, sampling results, or requirement text. Separate observed facts, organization assertions, and analyst inferences. Treat missing or inaccessible evidence as unknown, not as failure, unless the authoritative assessment method says otherwise.
 

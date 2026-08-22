@@ -9,6 +9,7 @@ model: "GPT-5.3-Codex"
 tags: ["defi", "oracle", "plan documentation", "manipulation", "risk-controls"]
 weight: 25
 date: 2026-04-26
+lastmod: 2026-08-21
 ---
 
 Use this prompt to add and verify protections against oracle-based

@@ -3,7 +3,7 @@ title: Secure Context Attestation Pack
 linkTitle: Secure Context Attestation
 weight: 10
 date: 2026-05-02
-lastmod: 2026-07-13
+lastmod: 2026-08-21
 sidebar:
   exclude: true
 description: >
@@ -19,6 +19,8 @@ context sources exist. This pack answers the next reviewer question:
 which context was attested, which hash should an MCP gateway verify, and
 what has to be signed before production use?
 {{< /callout >}}
+
+Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) on August 21, 2026.
 
 ## The product bet
 
@@ -113,10 +115,10 @@ The evaluator returns:
 
 This feature follows current primary guidance:
 
-- [Model Context Protocol Authorization](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
+- [Model Context Protocol Authorization](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
   for audience-bound access tokens, resource indicators, HTTPS, PKCE, and
   per-request authorization.
-- [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices)
+- [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices)
   for token-passthrough denial, confused-deputy protection, SSRF defense,
   session binding, scope minimization, and local MCP server controls.
 - [OWASP MCP Top 10](https://owasp.org/www-project-mcp-top-10/) and

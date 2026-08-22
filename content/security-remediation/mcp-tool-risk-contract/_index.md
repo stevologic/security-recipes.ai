@@ -3,7 +3,7 @@ title: MCP Tool Risk Contract
 linkTitle: MCP Tool Risk
 weight: 7
 date: 2026-05-04
-lastmod: 2026-07-13
+lastmod: 2026-08-21
 sidebar:
   exclude: true
 description: >
@@ -109,11 +109,11 @@ after approval are kill signals.
 
 ## Source anchors
 
-- [MCP Tools specification](https://modelcontextprotocol.io/specification/2025-11-25/server/tools)
+- [MCP Tools specification](https://modelcontextprotocol.io/specification/2026-07-28/server/tools)
 - [MCP Tool Annotations as Risk Vocabulary](https://blog.modelcontextprotocol.io/posts/2026-03-16-tool-annotations/)
-- [MCP Authorization specification](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
-- [MCP Security Best Practices](https://modelcontextprotocol.io/docs/tutorials/security/security_best_practices)
-- [MCP Elicitation specification](https://modelcontextprotocol.io/specification/2025-11-25/client/elicitation)
+- [MCP Authorization specification](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
+- [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices)
+- [MCP Elicitation specification](https://modelcontextprotocol.io/specification/2026-07-28/client/elicitation)
 - [OWASP Top 10 for Agentic Applications 2026](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/)
 - [NIST AI RMF](https://www.nist.gov/itl/ai-risk-management-framework)
 - [NIST AI RMF Generative AI Profile](https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence)

@@ -3,6 +3,7 @@ title: "JavaScript & TypeScript Code Hygiene"
 linkTitle: "JavaScript & TypeScript"
 description: "Type, module, asynchronous, React, and Node.js lifecycle hygiene. Choose bounded workflows with detection, tests, and stop conditions."
 weight: 20
+lastmod: 2026-08-21
 sidebar:
   open: false
 ---

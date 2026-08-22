@@ -3,7 +3,7 @@ title: Agent Trust Fabric
 linkTitle: Agent Trust Fabric
 weight: 16
 date: 2026-05-05
-lastmod: 2026-07-13
+lastmod: 2026-08-21
 sidebar:
   exclude: true
 description: >
@@ -19,6 +19,8 @@ verdict that tells an agent host, MCP gateway, SOC workflow, or reviewer:
 this agent run is trusted, needs step-up, is untrusted, or must be
 killed.
 {{< /callout >}}
+
+Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) on August 21, 2026.
 
 ## The product bet
 
@@ -215,7 +217,7 @@ The pack is anchored in current primary guidance:
 - [NIST CAISI AI Agent Security RFI](https://www.nist.gov/news-events/news/2026/01/caisi-issues-request-information-about-securing-ai-agent-systems)
   for indirect prompt injection, poisoning, misaligned actions, and
   constrained deployment access.
-- [MCP Authorization 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
+- [MCP Authorization 2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
   for protected-resource metadata, scope challenges, resource indicators,
   token audience validation, and token-passthrough denial.
 - [OWASP MCP Top 10](https://owasp.org/www-project-mcp-top-10/)

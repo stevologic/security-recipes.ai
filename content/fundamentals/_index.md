@@ -2,7 +2,7 @@
 title: AI Vulnerability Remediation Fundamentals
 linkTitle: Fundamentals
 weight: 1
-lastmod: 2026-07-23
+lastmod: 2026-08-21
 toc: true
 sidebar:
   open: true
@@ -43,6 +43,11 @@ assume you already have.
 - Every recipe on this site follows the same three-layer pattern:
   **orchestration stays the same, the prompt / model / tools
   evolve**. Read that line twice; it's the whole point of the site.
+- Treat the live [CISA KEV JSON feed](https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json)
+  as the KEV source of truth, not secondary blogs. Discovery recipes expose
+  When-to-use, Inputs, Output contract, and Related headings so humans, search
+  snippets, and the [MCP integration](/mcp-servers/) can score a packet before
+  an agent uses it.
 
 ## What is an agent?
 

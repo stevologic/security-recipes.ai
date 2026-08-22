@@ -184,6 +184,7 @@ def render_front_matter(
         ("tags", tags),
         ("weight", weight),
         ("date", reviewed_on),
+        ("lastmod", reviewed_on),
         ("severity", "info"),
     ]
     body = "\n".join(f"{key}: {yaml_scalar(value)}" for key, value in fields)
@@ -392,13 +393,14 @@ linkTitle: "Compliance standards"
 description: "Browse {len(frameworks)} source-backed compliance and assurance recipes with framework scope, version status, official references, and evidence requirements for review."
 weight: 10
 date: "{reviewed_on}"
+lastmod: "{reviewed_on}"
 ---
 
 # Compliance standards
 
 This library contains **{len(frameworks)} framework recipes**, generated from a reviewed structured catalog. Each recipe separates framework applicability from evidence readiness, identifies its exact version and status, and links to official sources. It never treats a recipe as certification or legal advice.
 
-Catalog sources were reviewed on **{reviewed_on}**. Draft, phased, and revision-in-progress entries are labeled; users must confirm official changes before relying on an assessment.
+Catalog sources were reviewed on **{reviewed_on}**. Draft, phased, and revision-in-progress entries are labeled; users must confirm official changes before relying on an assessment. Humans can browse the table below; agents can fetch the same bounded evidence recipes through the recipe JSON feed and MCP search tools.
 
 ## Section index
 

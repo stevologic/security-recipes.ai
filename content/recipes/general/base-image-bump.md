@@ -11,6 +11,7 @@ cve_archetypes: ["supply_chain_update_integrity"]
 cve_workflow_role: "remediate"
 weight: 13
 date: 2026-04-25
+lastmod: 2026-08-21
 description: >
   Use an AI coding agent to remediate one base-image or OS-package CVE,
   rebuild and rescan the container, verify the fix, and return a scoped pull

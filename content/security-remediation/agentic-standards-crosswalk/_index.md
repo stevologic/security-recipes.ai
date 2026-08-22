@@ -3,7 +3,7 @@ title: Agentic Standards Crosswalk
 linkTitle: Standards Crosswalk
 weight: 19
 date: 2026-05-04
-lastmod: 2026-07-13
+lastmod: 2026-08-21
 toc: true
 description: >
   Generate a standards-to-evidence map linking OWASP Agentic Top 10, CSA AI
@@ -23,7 +23,7 @@ control, and which generated JSON or MCP tool proves it.
 
 SecurityRecipes is positioned as **the secure context layer for
 agentic AI**. That claim needs more than a strong homepage. Enterprise
-reviewers, AI platform teams, and reviewers will ask whether the project
+reviewers and AI platform teams will ask whether the project
 tracks the current external control language: OWASP Agentic Top 10,
 CSA AI Controls Matrix, NIST agent standards work, MCP authorization,
 critical-infrastructure AI review expectations, prompt-injection
@@ -46,6 +46,10 @@ generated artifact:
   Agent Identity Ledger, Run Receipts, Red-Team Drills, Measurement
   Probes, Readiness Scorecard, Agentic System BOM, and related packs.
 - MCP tool exposure through `recipes_agentic_standards_crosswalk`.
+  This is an interpretation map, not a certification that SecurityRecipes
+  implements those standards. Rechecked against MCP
+  [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28)
+  on August 21, 2026.
 
 ## Generated artifact
 
@@ -146,8 +150,8 @@ Review and regenerate the crosswalk when these sources change:
 - [NIST AI RMF](https://www.nist.gov/itl/ai-risk-management-framework)
 - [NIST AI RMF Generative AI Profile](https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence)
 - [CSA AI Controls Matrix](https://cloudsecurityalliance.org/artifacts/ai-controls-matrix)
-- [MCP Authorization Specification](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
-- [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices)
+- [MCP Authorization Specification](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
+- [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices)
 - [OpenAI prompt-injection guidance](https://openai.com/index/prompt-injections)
 - [OpenAI guidance on designing agents to resist prompt injection](https://openai.com/index/designing-agents-to-resist-prompt-injection/)
 - [OpenAI Agents SDK guardrails](https://openai.github.io/openai-agents-js/guides/guardrails/)

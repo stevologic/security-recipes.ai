@@ -3,7 +3,7 @@ title: Recipe Recommender
 linkTitle: Recipe Recommender
 weight: 5
 date: 2026-06-14
-lastmod: 2026-07-21
+lastmod: 2026-08-21
 sidebar:
   open: true
 description: >
@@ -38,7 +38,10 @@ small routing decision:
 - the stop conditions that still apply.
 
 If the recommender cannot make that decision confidently, it writes a triage
-note and stops.
+note and stops. The same stop applies when the only available floor is
+leftover draft version text, a guessed next tag, or a generic
+"vendor-fixed release" placeholder. Those findings stay in TRIAGE.md
+until a vendor or GHSA names the patched release.
 
 {{< playbook-workflow >}}
 

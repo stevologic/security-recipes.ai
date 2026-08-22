@@ -3,7 +3,7 @@ title: A2A Agent Card Trust
 linkTitle: A2A Agent Card Trust
 weight: 13
 date: 2026-05-04
-lastmod: 2026-07-13
+lastmod: 2026-08-21
 sidebar:
   exclude: true
 description: >
@@ -18,6 +18,8 @@ front door to a remote opaque agent. This profile turns the card into an
 intake decision before context, authority, or evidence crosses the
 agent boundary.
 {{< /callout >}}
+
+Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) on August 21, 2026.
 
 SecurityRecipes is positioned as **The Secure Context Layer for Agentic
 AI**. That layer needs a decision point before a newly discovered A2A
@@ -106,7 +108,7 @@ This feature is grounded in current primary guidance:
   authorization, observability, and governance.
 - [Google Cloud A2A toolkit announcement](https://cloud.google.com/blog/products/ai-machine-learning/agent2agent-protocol-is-getting-an-upgrade/)
   for enterprise adoption momentum and signed security-card support.
-- [MCP Authorization Specification](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
+- [MCP Authorization Specification](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
   for the complementary tool-access boundary: resource indicators,
   audience validation, PKCE, and token-passthrough denial.
 - [OpenAI prompt-injection guidance](https://openai.com/index/designing-agents-to-resist-prompt-injection/)

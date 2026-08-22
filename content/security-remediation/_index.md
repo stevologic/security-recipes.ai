@@ -2,7 +2,7 @@
 title: How to Remediate Vulnerabilities with AI Agents
 linkTitle: AI Remediation
 weight: 2
-lastmod: 2026-07-23
+lastmod: 2026-08-21
 sidebar:
   open: false
 toc: true
@@ -46,7 +46,7 @@ system itself. Use [AI Agent Security](/agentic-security/) for that workstream.
 This method is also distinct from endpoint agents that only recommend actions
 for an operator to perform.
 
-**Last updated July 23, 2026.** [Stephen M Abbott](/about/#stephen-m-abbott)
+**Last updated August 21, 2026.** [Stephen M Abbott](/about/#stephen-m-abbott)
 maintains this guide with Security Recipes contributors in the public
 [source and revision history](https://github.com/stevologic/security-recipes.ai/blob/main/content/security-remediation/_index.md).
 See the [review methodology](/about/#editorial-principles) and
@@ -89,7 +89,8 @@ operator-led triage unless separate authority and evidence are supplied.
 4. **Capture rollback before mutation.** Record the current manifest, lockfile,
    configuration, image, or source state and the trigger that would restore it.
 5. **Apply an authoritative fix.** Prefer a vendor-supported release or a
-   documented mitigation. Never infer a fixed version from absence of evidence.
+   documented mitigation. Never infer a fixed version from absence of
+   evidence, leftover draft text, or a guessed next tag.
 6. **Verify the result.** Run focused regression tests, rebuild from a clean
    state, rescan, and confirm the deployed component identity where applicable.
 7. **Require human review.** Return the evidence, diff, tests, residual risk,
@@ -110,15 +111,32 @@ below for a specific finding class.
 ## CVE-specific remediation guides
 
 Use a CVE-specific recipe only when its product and affected-version evidence
-match the finding you are investigating:
+match the finding you are investigating. The [CVE Database](/cve-database/)
+publishes 57 search-indexable CVE pages: 33 human-reviewed stable guides
+and 24 AI-qualified pages that already name a vendor or GHSA fixed
+release. Development drafts stay noindex so leftover version text cannot
+become a search or MCP floor.
 
+- [CVE-2026-9198: Langflow auto-login to code-validation RCE](/cve/CVE-2026-9198/)
+- [CVE-2026-35616: FortiClient EMS improper access control](/cve/CVE-2026-35616/)
+- [CVE-2026-48027: Nx Console 18.95.0 extension compromise](/cve/CVE-2026-48027/)
+- [CVE-2025-2747: Kentico Xperience staging authentication bypass](/cve/CVE-2025-2747/)
+- [CVE-2025-1976: Brocade Fabric OS code injection](/cve/CVE-2025-1976/)
+- [CVE-2024-9465: Palo Alto Expedition SQL injection](/cve/CVE-2024-9465/)
+- [CVE-2024-40711: Veeam Backup & Replication deserialization](/cve/CVE-2024-40711/)
+- [CVE-2026-72898: Metabase unauthenticated SQL injection](/cve/CVE-2026-72898/)
+- [CVE-2026-64849: MLflow unauthenticated webhook SSRF](/cve/CVE-2026-64849/)
+- [CVE-2026-63077: TeamCity unauthenticated agent-polling RCE](/cve/CVE-2026-63077/)
+- [CVE-2026-55255: Langflow flow-ownership IDOR](/cve/CVE-2026-55255/)
 - [CVE-2026-48172: LiteSpeed cPanel plugin root privilege escalation](/cve/CVE-2026-48172/)
 - [CVE-2026-45321: TanStack npm supply-chain compromise](/cve/CVE-2026-45321/)
 - [CVE-2026-39987: Marimo pre-auth terminal RCE](/cve/CVE-2026-39987/)
 - [CVE-2026-14956: Bricksforge Pro Forms privilege escalation](/cve/CVE-2026-14956/)
 - [CVE-2025-48384: Git submodule code execution](/cve/CVE-2025-48384/)
 - [CVE-2025-11953: Metro4Shell React Native CLI RCE](/cve/CVE-2025-11953/)
+- [CVE-2025-62593: Ray dashboard jobs RCE](/cve/CVE-2025-62593/)
 - [CVE-2025-3248: Langflow unauthenticated RCE](/cve/CVE-2025-3248/)
+- [CVE-2022-26134: Confluence Server and Data Center OGNL RCE](/cve/CVE-2022-26134/)
 - [CVE-2024-23897: Jenkins CLI arbitrary file read](/cve/CVE-2024-23897/)
 - [CVE-2024-37079: VMware vCenter Server heap-overflow RCE](/cve/CVE-2024-37079/)
 - [CVE-2024-6387: OpenSSH regreSSHion race-condition RCE](/cve/CVE-2024-6387/)

@@ -567,7 +567,7 @@
     "sales_motion": "Lead with open data-boundary evidence, then sell tenant-side egress enforcement, provider policy adapters, residency alerts, DLP integrations, and trust-center exports."
   },
   "failures": [],
-  "generated_at": "2026-05-02",
+  "generated_at": "2026-08-21",
   "intent": "Define the SecurityRecipes context egress boundary for agentic AI and MCP systems: every data class, destination class, workflow namespace, source trust tier, redaction requirement, residency constraint, and secret-egress kill rule is expressed as machine-readable policy before context leaves a tenant, model, MCP server, or observability boundary.",
   "positioning": {
     "buyer": "AI Platform, Security Engineering, Product Security, Privacy Engineering, GRC, procurement security, vendor-risk, and acquisition diligence teams",
@@ -593,11 +593,11 @@
   "source_artifacts": {
     "context_egress_boundary_model": {
       "path": "data/assurance/context-egress-boundary-model.json",
-      "sha256": "9d74ea546f1b152d9ef94cc1fc8fdd1515cfc21d89be4e1e1377ffefa423b235"
+      "sha256": "9de1f7ed2da5f0acd0c99eee444cf670a102676ff7d0625948fc665f06b239d9"
     },
     "secure_context_registry": {
       "path": "data/context/secure-context-registry.json",
-      "sha256": "58b4427f871c842a2158d54e276aa8a094765bc2dd2fe0c87522b920d95bf784"
+      "sha256": "48904f22c02f684864302e534afe35ca1a7a2a36ec19d0cf2b4ed333c3f3ff93"
     },
     "workflow_manifest": {
       "path": "data/control-plane/workflow-manifests.json",
@@ -636,7 +636,7 @@
       ],
       "root": "data/assurance",
       "sensitivity": "public_control_evidence",
-      "source_hash": "75f49aab289e016c9185f5a3763c9b21f578ac9a67d12964269fbb658e99aaf4",
+      "source_hash": "68fd544d7b892ce84471821d08e7a5b75506b2a2484556b3189b78ceb81dbacd",
       "source_id": "agentic-assurance-models",
       "tenant_id_required": false,
       "title": "Agentic Assurance Source Models",
@@ -710,7 +710,7 @@
       ],
       "root": "data/intelligence",
       "sensitivity": "public_control_evidence",
-      "source_hash": "0a00261af9173007067727225260d936539b2ecd2fbb7a57e92abea459c9ec84",
+      "source_hash": "d6e61d3f403c1febd82ea329a7054de75af0e4e21c9250510fab850936c9863f",
       "source_id": "agentic-threat-intelligence",
       "tenant_id_required": false,
       "title": "Agentic Threat Radar Source Registry",
@@ -821,7 +821,7 @@
       ],
       "root": "mcp_server.py",
       "sensitivity": "public_control_evidence",
-      "source_hash": "1fe83ed992a3cf184ee9f3acbf94a92629ac057e29593966864ccfed35a1a216",
+      "source_hash": "2c02372ea473a4ee3dd9495a482bb7dde5c13ba33a15e8a9d940beb319661903",
       "source_id": "mcp-server-runtime",
       "tenant_id_required": false,
       "title": "MCP Server Runtime Contract",
@@ -836,7 +836,7 @@
       "data_class": "curated_security_guidance",
       "default_decision": "allow_public_egress_with_citation",
       "exposure": "public",
-      "file_count": 3379,
+      "file_count": 3384,
       "hold_destination_classes": [
         "approved_remote_mcp_server",
         "observability_sink"
@@ -858,7 +858,7 @@
       ],
       "root": "content/recipes",
       "sensitivity": "public",
-      "source_hash": "ca502d57685e4871b7e688136608d4739f0e7943143f94e6bf0296e9aa379512",
+      "source_hash": "da8dc6f828712b7bff8436f8aa1bd5b8dda602aa6b0d466f37865c9f6d6b2ea2",
       "source_id": "recipes",
       "tenant_id_required": false,
       "title": "Recipes",
@@ -895,7 +895,7 @@
       ],
       "root": "content/security-remediation",
       "sensitivity": "public",
-      "source_hash": "96ca8a5f84a801bea2e97e01a0e7d2742673245d5bdbec110e65bc2eba59983d",
+      "source_hash": "c3417fd9703efea4f91615bcc490ab583e9f8a4893016041eae7270ef23e644f",
       "source_id": "security-remediation-workflows",
       "tenant_id_required": false,
       "title": "Security Remediation Workflow Docs",
@@ -955,6 +955,14 @@
       "published": "2026",
       "publisher": "OpenAI API",
       "url": "https://platform.openai.com/docs/guides/agent-builder-safety"
+    },
+    {
+      "coverage": "Current public MCP 2026-07-28 revision. MCP clients and servers must use resource indicators, audience-bound tokens, HTTPS, PKCE, token validation, and no token passthrough.",
+      "id": "mcp-authorization-2026-07-28",
+      "name": "Model Context Protocol Authorization Specification (2026-07-28 current revision)",
+      "published": "2026-07-28",
+      "publisher": "Model Context Protocol",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization"
     },
     {
       "coverage": "MCP clients and servers must use resource indicators, audience-bound tokens, HTTPS, PKCE, token validation, and no token passthrough.",

@@ -1,7 +1,7 @@
 ---
-title: "GHSA-6xcp-7mpr-m7wm - Open WebUI CORS and session RCE chain"
+title: "GHSA-6xcp-7mpr-m7wm: Open WebUI CORS and session RCE"
 linkTitle: "GHSA-6xcp Open WebUI CORS"
-description: "High-severity Open WebUI CORS and session validation issue that can enable one-click admin-origin RCE. Upgrade to 0.3.33+, restrict origins, rotate sessions on logout, and test browser-origin boundaries."
+description: "GHSA-6xcp-7mpr-m7wm is Open WebUI CORS and session RCE. Upgrade to 0.3.33+, restrict origins, and invalidate sessions on logout."
 tool: "general"
 author: "Codex"
 team: "Security"
@@ -10,23 +10,24 @@ model: "GPT 5.5 Extra High reasoning"
 tags: ["ghsa", "open-webui", "python", "cors", "session", "rce", "high", "agentic-ai"]
 weight: 74
 date: 2026-05-12
+lastmod: 2026-08-21
 ghsa: "GHSA-6xcp-7mpr-m7wm"
 known_as: ["Open WebUI CORS misconfiguration and session validation issue"]
 kev: false
 severity: "high"
 ecosystem: "python/pypi"
 disclosed: "2026-05-11"
+ai_enrichment_review_status: human-reviewed-development-draft
 ---
 
-Open WebUI shipped broad CORS behavior and weak session invalidation in older
-versions. A malicious site could make authenticated browser requests against an
-admin's Open WebUI instance, including function/filter creation paths capable
-of running code in the Open WebUI container. Logout did not reliably invalidate
-session cookies, increasing the practical exposure window.
+GHSA-6xcp-7mpr-m7wm covers `open-webui` versions before `0.3.33`. Broad CORS
+plus weak session invalidation let a malicious site make authenticated
+browser requests against an admin Open WebUI instance, including
+function/filter creation paths that can run code in the container.
 
-For agentic AI workbenches, this is a control-plane issue: browser-origin
-policy, admin code-extension features, and session lifecycle must be treated as
-production security boundaries.
+GitHub names **`open-webui` 0.3.33**. Do not invent a later 0.3.34 floor.
+This page stays a development draft. Do not prove exposure with
+cross-origin admin function-create requests.
 
 ## When to use it
 
@@ -178,6 +179,13 @@ output:
 - Admin users who access Open WebUI from the same browser used for untrusted
   sites.
 - Separate Open WebUI worker images that lag behind the main service tag.
+
+## Rollback and recovery
+
+Prefer forward recovery to another GitHub-named `open-webui` 0.3.33+ release.
+If an operational rollback restores a build before `0.3.33`, restrict admin
+origins, invalidate sessions, and disable function/filter create routes until
+the named floor is restored.
 
 ## Related recipes
 

@@ -3,7 +3,7 @@ title: Agentic Control Plane Blueprint
 linkTitle: Control Plane Blueprint
 weight: 17
 date: 2026-05-02
-lastmod: 2026-07-13
+lastmod: 2026-08-21
 toc: true
 description: >
   Generated architecture and reviewer-diligence artifact that positions
@@ -21,6 +21,8 @@ above the generated packs. It explains how SecurityRecipes becomes a
 credible secure context layer for agentic AI, not just a documentation
 site or recipe catalog.
 {{< /callout >}}
+
+Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) on August 21, 2026.
 
 SecurityRecipes already has the hard parts of an enterprise agentic
 program: secure context trust, MCP gateway policy, authorization
@@ -160,7 +162,7 @@ The source model should be reviewed when these references change:
 - [NIST AI 800-2 automated benchmark evaluation draft](https://www.nist.gov/news-events/news/2026/01/towards-best-practices-automated-benchmark-evaluations)
 - [NIST AI RMF Generative AI Profile](https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence)
 - [OWASP Top 10 for Agentic Applications 2026](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/)
-- [MCP Authorization Specification](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
+- [MCP Authorization Specification](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
 - [CSA Securing the Agentic Control Plane](https://labs.cloudsecurityalliance.org/agentic/)
 - [CSA STAR for AI Catastrophic Risk Annex](https://cloudsecurityalliance.org/press-releases/2026/04/29/csai-foundation-announces-key-milestones-to-secure-the-agentic-control-plane)
 - [CSA AI Agent Governance Gap](https://labs.cloudsecurityalliance.org/research/csa-research-note-ai-agent-governance-framework-gap-20260403/)

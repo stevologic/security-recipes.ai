@@ -3,7 +3,7 @@ title: Agent Skill Supply Chain
 linkTitle: Agent Skill Supply Chain
 weight: 18
 date: 2026-05-02
-lastmod: 2026-07-13
+lastmod: 2026-08-21
 sidebar:
   exclude: true
 description: >
@@ -68,7 +68,9 @@ python3 scripts/evaluate_agent_skill_supply_chain_decision.py \
 ```
 
 The MCP server exposes the pack through
-`recipes_agent_skill_supply_chain_pack` and exposes runtime decisions
+`recipes_agent_skill_supply_chain_pack`. Runtime allow, hold, deny, or
+kill-session decisions stay with
+`scripts/evaluate_agent_skill_supply_chain_decision.py`.
 
 ## Decision model
 
@@ -107,7 +109,7 @@ This feature follows current primary guidance:
 - [OWASP MCP Top 10](https://owasp.org/www-project-mcp-top-10/) for tool
   poisoning, command execution, insufficient authorization, audit gaps,
   shadow servers, and context over-sharing.
-- [Model Context Protocol Authorization](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
+- [Model Context Protocol Authorization](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
   for OAuth 2.1, client metadata, resource indicators, token audience
   validation, and trust policy expectations.
 - [OWASP Agentic AI Threats and Mitigations](https://genai.owasp.org/resource/agentic-ai-threats-and-mitigations/)

@@ -3,7 +3,7 @@ title: Agentic Incident Response Pack
 linkTitle: Incident Response Pack
 weight: 14
 date: 2026-05-04
-lastmod: 2026-07-13
+lastmod: 2026-08-21
 sidebar:
   exclude: true
 description: >
@@ -19,6 +19,8 @@ agentic incident, correlate run receipts and context hashes, contain MCP
 authority, preserve evidence, replay the failure, and produce a
 trust-center-ready readout.
 {{< /callout >}}
+
+Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) on August 21, 2026.
 
 ## The product bet
 
@@ -186,7 +188,7 @@ The pack is anchored in current primary guidance:
 - [OWASP Top 10 for Agentic Applications 2026](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/)
   for operational risks in agents that plan, act, make decisions, and
   execute across complex workflows.
-- [MCP Authorization](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
+- [MCP Authorization](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
   for protected resource metadata, OAuth 2.1, audience binding, token
   handling, confused-deputy prevention, and scope restriction.
 - [CISA Joint Guidance on Deploying AI Systems Securely](https://www.cisa.gov/news-events/alerts/2024/04/15/joint-guidance-deploying-ai-systems-securely)

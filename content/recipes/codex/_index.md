@@ -2,17 +2,24 @@
 title: Codex
 linkTitle: Codex
 weight: 4
+lastmod: 2026-08-21
 sidebar:
   open: false
 noindex: true
 noindex_follow: true
 description: >
-  AGENTS.md files and Codex task prompts contributed by teams using
-  Codex for agentic remediation.
+  Codex AGENTS.md files and task prompts that turn one finding into a
+  reviewed PR, safe for humans to copy and for MCP clients to fetch
+  as bounded context.
 ---
 
 Prompts and configuration targeted at **Codex** (OpenAI's hosted
 coding agent).
+
+These pages stay `noindex` so leftover drafts cannot rank as
+authoritative CVE floors. Humans browse the cards below; agents can
+fetch the same bounded files through the recipe JSON feed and MCP
+search tools.
 
 ## What usually lives here
 

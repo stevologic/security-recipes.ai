@@ -9,6 +9,7 @@ maturity: "development"
 model: "Opus 4.7"
 tags: ["tls", "http-client", "uplift", "mitigate"]
 weight: 27
+lastmod: 2026-08-21
 date: 2026-04-25
 ---
 
@@ -19,6 +20,17 @@ in every language's HTTP client. Each of them transforms a
 secure channel into a man-in-the-middleable one. There is no
 patch coming; the fix is "stop disabling verification, configure
 the client correctly."
+
+## When to use it
+
+Use this recipe when HTTP clients disable TLS certificate verification
+(`verify=False`, `CURLOPT_SSL_VERIFYPEER=0`, `InsecureSkipVerify`, and
+equivalents) outside a tightly scoped test harness. Prefer it over a broad
+TLS audit when the change is restoring verification and installing the right
+CA bundle.
+
+Do not use it to permanently disable verification or to ship a custom trust
+store that includes untrusted CAs.
 
 ## Pattern
 

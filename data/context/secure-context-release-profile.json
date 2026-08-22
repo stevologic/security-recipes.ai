@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-05-03",
+  "last_reviewed": "2026-08-21",
   "intent": "Define a release gate for SecurityRecipes secure-context bundles so registered context, generated evidence, MCP policy, and trust-center packets are not distributed to agents or buyers until provenance, attestation, poisoning scans, eval readiness, egress posture, and signing requirements are checked together.",
   "positioning": {
     "buyer": "AI Platform, Security Engineering, Product Security, GRC, procurement security, model-risk, and acquisition diligence teams",
@@ -26,6 +26,12 @@
       "name": "Model Context Protocol Security Best Practices",
       "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices",
       "coverage": "Connects secure context release to MCP confused-deputy prevention, token-passthrough avoidance, SSRF controls, session binding, local-server sandboxing, scope minimization, and auditability."
+    },
+    {
+      "id": "mcp-authorization-2026-07-28",
+      "name": "Model Context Protocol Authorization Specification (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization",
+      "coverage": "Current public MCP 2026-07-28 revision. Requires production context release consumers to preserve protected resource metadata, token audience binding, resource indicators, HTTPS, PKCE, and token-use boundaries."
     },
     {
       "id": "mcp-authorization-2025-11-25",

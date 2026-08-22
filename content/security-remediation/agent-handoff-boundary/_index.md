@@ -3,7 +3,7 @@ title: Agent Handoff Boundary
 linkTitle: Agent Handoff Boundary
 weight: 12
 date: 2026-05-04
-lastmod: 2026-07-13
+lastmod: 2026-08-21
 sidebar:
   exclude: true
 description: >
@@ -19,6 +19,8 @@ This pack makes the boundary explicit: what may cross, which protocol is
 allowed, which data classes trigger redaction or approval, and which
 payload fields terminate the session.
 {{< /callout >}}
+
+Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) on August 21, 2026.
 
 SecurityRecipes is positioned as **The Secure Context Layer for Agentic
 AI**. That claim has to hold when one agent delegates to another agent,
@@ -104,7 +106,7 @@ This layer is anchored in current primary guidance:
 - [CAISI AI Agent Security RFI](https://www.nist.gov/news-events/news/2026/01/caisi-issues-request-information-about-securing-ai-agent-systems)
   for constraining and monitoring agent access in deployment
   environments.
-- [MCP Authorization Specification](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
+- [MCP Authorization Specification](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
   for resource indicators, token audience validation, PKCE, protected
   resource metadata, Client ID Metadata Documents, and token-passthrough
   denial.

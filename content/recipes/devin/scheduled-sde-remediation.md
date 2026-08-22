@@ -10,6 +10,7 @@ model: "Opus 4.7"
 tags: ["scheduled", "sde", "secrets", "pii", "phi", "pci", "dlp", "devin"]
 weight: 20
 date: 2026-04-21
+lastmod: 2026-08-21
 ---
 
 A Devin task prompt for **scheduled sensitive data element (SDE)
@@ -515,6 +516,15 @@ On failure: the exact step that failed, redacted command output, and partial art
 
 Begin now.
 ~~~
+
+## Verification
+
+- Rechecked 2026-08-21 against Devin Security Swarm and scheduled
+  playbook dispatch.
+- Exposed secrets still require rotation issues and never appear
+  unredacted in output.
+- History rewrite remains off unless `ALLOW_HISTORY_REWRITE` is
+  explicitly true.
 
 ## Output contract
 

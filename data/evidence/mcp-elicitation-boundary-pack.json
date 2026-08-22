@@ -747,7 +747,7 @@
     "sales_motion": "Lead with open elicitation rules, then sell hosted MCP prompt and URL safety enforcement, customer domain allowlists, consent receipts, phishing telemetry, and connector setup flows."
   },
   "failures": [],
-  "generated_at": "2026-08-13",
+  "generated_at": "2026-08-21",
   "intent": "Define the SecurityRecipes MCP elicitation boundary so agent hosts, MCP clients, gateways, and enterprise buyers can decide when a server may ask a user for form input or direct the user to an external URL without leaking credentials, tokens, payment data, or prompt-injection-controlled context through the LLM, client, or intermediate MCP servers.",
   "positioning": {
     "buyer": "AI Platform, Product Security, IAM, Privacy, GRC, procurement security, and enterprise architecture teams",
@@ -815,19 +815,19 @@
   "source_artifacts": {
     "agentic_run_receipt_pack": {
       "path": "data/evidence/agentic-run-receipt-pack.json",
-      "sha256": "2ee0bee83bad9218bc3990096222d51c7e67bbb0512be9cb1643e530e94ef6c5"
+      "sha256": "ecb94dd50b5ad876b5534b2d290f6aacb72afdfee8391f6652bd230a95e63148"
     },
     "context_egress_boundary_pack": {
       "path": "data/evidence/context-egress-boundary-pack.json",
-      "sha256": "3c78f13f12d1219cef79624e17e379aec25aa2725e63f3aa6ad97979518157f4"
+      "sha256": "14bc1f90e0e3e6c9fef5e52c5739a4320e0f4c389f6bbeaeca19b99a69240a7c"
     },
     "mcp_authorization_conformance_pack": {
       "path": "data/evidence/mcp-authorization-conformance-pack.json",
-      "sha256": "5497501fefe0800fed1671535b5f70fe6ec78e81d90e1c87fd58d1707b35df36"
+      "sha256": "6f44c621fecc5341282d02f08857d7ef835c1d9475216970508bbb6401aedac6"
     },
     "mcp_elicitation_boundary_profile": {
       "path": "data/assurance/mcp-elicitation-boundary-profile.json",
-      "sha256": "7318a3c2e9eabbd88ed197a1df1b58367d44f6fc78a4143241f7d956e43c545d"
+      "sha256": "4a7a94bc20daa6084458d25201193aa79b4f43ae978c105010bb73e89d7a0249"
     },
     "mcp_gateway_policy": {
       "path": "data/policy/mcp-gateway-policy.json",
@@ -835,7 +835,7 @@
     },
     "mcp_tool_risk_contract": {
       "path": "data/evidence/mcp-tool-risk-contract.json",
-      "sha256": "e9ff94a63d1d7cc2001e4f43f6724d5309d50984fb75a8212bcf6eb461f10684"
+      "sha256": "6f956faf05a898565e7c7388cfd4f501fcfe04d57ec063a9ab65f02525165b7f"
     },
     "workflow_manifest": {
       "path": "data/control-plane/workflow-manifests.json",
@@ -940,10 +940,22 @@
       "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/patterns/mrtr"
     },
     {
+      "coverage": "Current public MCP 2026-07-28 revision. OAuth 2.1 alignment, protected resource metadata, resource indicators, audience-bound tokens, client identity metadata, scope challenges, and token-passthrough denial for protected MCP servers.",
+      "id": "mcp-authorization-2026-07-28",
+      "name": "Model Context Protocol Authorization (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization"
+    },
+    {
       "coverage": "OAuth 2.1 alignment, protected resource metadata, resource indicators, audience-bound tokens, client identity metadata, scope challenges, and token-passthrough denial for protected MCP servers.",
       "id": "mcp-authorization-2025-11-25",
       "name": "Model Context Protocol Authorization",
       "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization"
+    },
+    {
+      "coverage": "Current public MCP 2026-07-28 revision. Confused-deputy prevention, token passthrough avoidance, session safety, user consent, URL and SSRF controls, auditability, and least-privilege tool access.",
+      "id": "mcp-security-best-practices-2026-07-28",
+      "name": "MCP Security Best Practices (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/docs/tutorials/security/security_best_practices"
     },
     {
       "coverage": "Confused-deputy prevention, token passthrough avoidance, session safety, user consent, URL and SSRF controls, auditability, and least-privilege tool access.",

@@ -3,6 +3,7 @@ title: "Cross-language Code Hygiene"
 linkTitle: "Cross-language"
 description: "Repository-wide hygiene practices for polyglot or language-independent work. Choose bounded workflows with detection, tests, and stop conditions."
 weight: 10
+lastmod: 2026-08-21
 sidebar:
   open: false
 ---

@@ -3,7 +3,7 @@ title: Agentic AIVSS Risk Scoring
 linkTitle: Agentic AIVSS Risk Scoring
 weight: 13
 date: 2026-05-05
-lastmod: 2026-07-13
+lastmod: 2026-08-21
 toc: true
 description: >
   Generate AIVSS-aligned severity, SLAs, remediation priorities, and runtime
@@ -21,6 +21,8 @@ severity: which agentic risks are critical, who owns them, what SLA
 applies, and what a runtime gate should do. This pack turns current
 agentic AI security guidance into generated scoring evidence.
 {{< /callout >}}
+
+Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) on August 21, 2026.
 
 ## What this adds
 
@@ -94,7 +96,7 @@ This pack tracks the strongest current source signals:
   and real tool authority.
 - [NIST AI 600-1](https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence)
   for govern, map, measure, and manage expectations.
-- [MCP Authorization](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
+- [MCP Authorization](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
   for resource indicators, audience binding, token handling, and scope
   minimization.
 

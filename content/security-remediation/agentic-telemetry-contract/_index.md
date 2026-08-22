@@ -3,7 +3,7 @@ title: Agentic Telemetry Contract
 linkTitle: Telemetry Contract
 weight: 6
 date: 2026-05-04
-lastmod: 2026-07-23
+lastmod: 2026-08-21
 sidebar:
   exclude: true
 description: >
@@ -18,6 +18,8 @@ secure context layer. Agent and MCP traces are useful only when they are
 complete enough to reconstruct a run and safe enough not to become a new
 secret, prompt, or tenant-data sink.
 {{< /callout >}}
+
+Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) on August 21, 2026.
 
 Agentic AI security is moving from "did the model answer correctly?" to
 "can we prove what context, tool, identity, policy, approval, egress
@@ -108,8 +110,8 @@ controls.
 
 - [OpenTelemetry GenAI semantic conventions](https://opentelemetry.io/docs/specs/semconv/gen-ai/)
 - [OpenTelemetry MCP semantic conventions](https://opentelemetry.io/docs/specs/semconv/gen-ai/mcp/)
-- [MCP Authorization specification](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
-- [MCP Transports specification](https://modelcontextprotocol.io/specification/2025-11-25/basic/transports)
+- [MCP Authorization specification](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
+- [MCP Transports specification](https://modelcontextprotocol.io/specification/2026-07-28/basic/transports)
 - [MCP Security Best Practices](https://modelcontextprotocol.io/docs/tutorials/security/security_best_practices)
 - [NIST AI RMF Generative AI Profile](https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence)
 - [CISA AI Data Security Best Practices](https://www.cisa.gov/resources-tools/resources/ai-data-security-best-practices-securing-data-used-train-operate-ai-systems)

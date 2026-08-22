@@ -3,7 +3,7 @@ title: Secure Context Firewall
 linkTitle: Secure Context Firewall
 weight: 10
 date: 2026-05-02
-lastmod: 2026-07-13
+lastmod: 2026-08-21
 sidebar:
   exclude: true
 description: >
@@ -50,6 +50,11 @@ That is the enterprise shape reviewers and platform teams expect:
 
 The firewall has two runtime surfaces:
 
+- `scripts/evaluate_secure_context_retrieval.py` makes the per-request
+  allow, hold, deny, or kill-session decision.
+- `recipes_secure_context_trust_pack` publishes the hashed retrieval
+  contract to MCP clients. It does not retrieve context and it does not
+  replace the evaluator.
 
 Run it locally from the repo root:
 
@@ -83,12 +88,36 @@ agent request -> MCP gateway -> secure context firewall -> retrieval
 
 For an allowed public prompt context request:
 
+```bash
+python3 scripts/evaluate_secure_context_retrieval.py \
+  --workflow-id vulnerable-dependency-remediation \
+  --source-id recipes \
+  --retrieval-mode workflow_prompt_context \
+  --requested-path content/recipes/general/base-image-bump.md \
+  --expect-decision allow_public_context
+```
 
 For a policy-context request:
 
+```bash
+python3 scripts/evaluate_secure_context_retrieval.py \
+  --workflow-id vulnerable-dependency-remediation \
+  --source-id workflow-control-plane \
+  --retrieval-mode policy_context \
+  --requested-path data/control-plane/workflow-manifests.json \
+  --expect-decision allow_policy_context_with_citation
+```
 
 For a prohibited retrieval attempt:
 
+```bash
+python3 scripts/evaluate_secure_context_retrieval.py \
+  --workflow-id vulnerable-dependency-remediation \
+  --source-id recipes \
+  --retrieval-mode workflow_prompt_context \
+  --data-class private_key \
+  --expect-decision kill_session_on_prohibited_context
+```
 
 That last request returns `kill_session_on_prohibited_context`. The
 gateway should stop the agent session and preserve the decision record as
@@ -98,11 +127,11 @@ incident evidence.
 
 This feature is intentionally boring and enforceable:
 
-- [MCP Authorization](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
+- [MCP Authorization](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
   emphasizes scoped authorization, secure transport, PKCE, and token
   handling. The firewall narrows context retrieval to declared source,
   workflow, and mode attributes.
-- [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices)
+- [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices)
   calls out confused-deputy, token-passthrough, scope, audit, and local
   server risks. The firewall gives each context request a logged
   default-deny decision before the model consumes retrieved text.
@@ -118,11 +147,11 @@ This feature is intentionally boring and enforceable:
 
 ## MCP tool
 
-Agent hosts can call the runtime tool directly:
-
-
-The tool does not retrieve the context. It only answers whether the
-retrieval may proceed and what evidence must be attached to the run log.
+Agent hosts can inspect the retrieval contract through
+`recipes_secure_context_trust_pack` and replay the same CLI evaluator in
+CI. The pack does not retrieve the context. The evaluator only answers
+whether the retrieval may proceed and what evidence must be attached to
+the run log.
 
 ## CI contract
 

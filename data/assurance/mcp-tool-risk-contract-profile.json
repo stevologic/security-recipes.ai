@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-05-03",
+  "last_reviewed": "2026-08-21",
   "intent": "Define a SecurityRecipes MCP tool-risk contract that turns MCP tool annotations, connector trust, authorization conformance, workflow scope, and runtime session context into deterministic allow, hold, deny, or kill decisions before an agent invokes a tool.",
   "positioning": {
     "buyer": "AI Platform, Product Security, MCP platform, AppSec, IAM, observability, procurement security, and enterprise architecture teams",
@@ -9,6 +9,12 @@
     "why_now": "MCP servers now expose tool annotations and richer tool schemas, but the protocol is explicit that annotations are untrusted hints unless the server is trusted. Enterprises need a policy layer that consumes those hints without confusing them for enforcement, especially when sessions combine private data access, untrusted content, and external communication."
   },
   "standards_alignment": [
+    {
+      "id": "mcp-tools-2026-07-28",
+      "name": "Model Context Protocol Tools specification (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/server/tools",
+      "coverage": "Current public MCP 2026-07-28 revision. Tool discovery, invocation, input and output schemas, human confirmation expectations, tool result validation, logging, and the requirement that clients treat annotations as untrusted unless they come from trusted servers."
+    },
     {
       "id": "mcp-tools-2025-11-25",
       "name": "Model Context Protocol Tools specification",
@@ -22,6 +28,12 @@
       "coverage": "Current annotation semantics, cautious defaults, annotation limitations, trust requirements, session-combination risk, and the emerging interest-group direction for richer tool risk metadata."
     },
     {
+      "id": "mcp-authorization-2026-07-28",
+      "name": "Model Context Protocol Authorization specification (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization",
+      "coverage": "Current public MCP 2026-07-28 revision. OAuth 2.1 resource servers, protected-resource metadata, resource indicators, audience-bound tokens, token validation, HTTPS, PKCE, and token-passthrough denial."
+    },
+    {
       "id": "mcp-authorization-2025-11-25",
       "name": "Model Context Protocol Authorization specification",
       "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization",
@@ -32,6 +44,12 @@
       "name": "Model Context Protocol Security Best Practices",
       "url": "https://modelcontextprotocol.io/docs/tutorials/security/security_best_practices",
       "coverage": "Confused-deputy prevention, token passthrough, SSRF, session hijacking, local-server compromise, scope minimization, and auditability for MCP implementations."
+    },
+    {
+      "id": "mcp-elicitation-2026-07-28",
+      "name": "Model Context Protocol Elicitation specification (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/client/elicitation",
+      "coverage": "Current public MCP 2026-07-28 revision. Form and URL elicitation modes, user approval semantics, sensitive-information restrictions, URL-mode security, and explicit accept, decline, and cancel states."
     },
     {
       "id": "mcp-elicitation-2025-11-25",

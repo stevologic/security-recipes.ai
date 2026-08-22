@@ -1,38 +1,33 @@
 ---
-title: "GHSA-w4c6-7r69-w7j9 - Klever-Go REST API slow-header DoS"
-linkTitle: "GHSA-w4c6 Klever-Go REST DoS"
-description: "High-severity Klever-Go REST API slow-header denial of service. Upgrade to 1.7.18+, replace Gin Engine.Run with explicit HTTP server limits, and add local slow-header regression tests."
+title: "CVE-2026-52880: Klever-Go REST API slow-header DoS"
+linkTitle: "CVE-2026-52880 Klever REST DoS"
+description: "CVE-2026-52880 is Klever-Go REST slow-header DoS. Upgrade github.com/klever-io/klever-go to 1.7.18+ and add HTTP header timeouts."
 tool: "general"
 author: "Codex"
 team: "Security"
 maturity: "development"
 model: "GPT 5.5 Extra High reasoning"
-tags: ["ghsa", "klever-go", "go", "gin", "rest-api", "slowloris", "denial-of-service", "resource-exhaustion", "high"]
+tags: ["cve", "ghsa", "klever-go", "go", "gin", "rest-api", "slowloris", "denial-of-service", "resource-exhaustion", "high"]
 weight: 86
 date: 2026-06-07
+lastmod: 2026-08-21
+cve: "CVE-2026-52880"
 ghsa: "GHSA-w4c6-7r69-w7j9"
-known_as: ["Klever-Go REST API slow-header DoS", "Gin Engine.Run header timeout exhaustion"]
+known_as: ["Klever-Go REST API slow-header DoS", "Gin Engine.Run header timeout exhaustion", "GHSA-w4c6-7r69-w7j9"]
 kev: false
 severity: "high"
 ecosystem: "go/gomod"
 disclosed: "2026-06-02"
+ai_enrichment_review_status: human-reviewed-development-draft
 ---
 
-Klever-Go versions `1.7.14` through `1.7.17` start seednode and node REST
-listeners through Gin's `Engine.Run`. That helper delegates to Go's default
-HTTP server path without application-level header read deadlines, request
-read deadlines, idle deadlines, or header-size limits. A client that can reach
-an exposed REST listener can hold incomplete request headers open and consume
-server-side sockets until legitimate REST traffic fails.
+CVE-2026-52880 / GHSA-w4c6-7r69-w7j9 covers `github.com/klever-io/klever-go`
+`1.7.14` through `1.7.17`. Seednode and node REST listeners start through
+Gin's `Engine.Run`, which uses Go's default HTTP server without header-read
+deadlines or header-size limits.
 
-This is an operator-relevant availability issue. The default REST bind may be
-localhost, but Klever-Go documents an all-interface `:8080` bind and common
-Docker examples publish the REST port. Repositories that fork, build, deploy,
-or wrap Klever-Go need to upgrade and prove that both REST startup paths are
-served through explicit `http.Server` limits rather than relying on a reverse
-proxy alone.
-
-As of 2026-06-07, GitHub Advisory Database lists no CVE for this advisory.
+GitHub names **1.7.18**. Do not invent a later 1.7.19 floor. This page stays
+a development draft. Do not prove exposure by holding live REST headers open.
 
 ## When to use it
 
@@ -263,6 +258,13 @@ HTTP server paths without header deadlines. Produce exactly one output:
 - Logging node topology, credentials, API tokens, private chain configuration,
   or production endpoint names in regression output.
 
+## Rollback and recovery
+
+Prefer forward recovery to another GitHub-named `klever-go` 1.7.18+ release.
+If an operational rollback restores 1.7.14 through 1.7.17, unbind REST from
+all interfaces and keep the listener off the network until the named floor
+is restored.
+
 ## Related recipes
 
 - [Klever-Go P2P nil RawData DoS]({{< relref "/recipes/cve/ghsa-rm5c-5x2p-48wr-klever-go-p2p-nil-rawdata-dos" >}})
@@ -272,4 +274,5 @@ HTTP server paths without header deadlines. Produce exactly one output:
 ## References
 
 - GitHub Advisory Database: <https://github.com/advisories/GHSA-w4c6-7r69-w7j9>
+- NVD `CVE-2026-52880`: <https://nvd.nist.gov/vuln/detail/CVE-2026-52880>
 - Klever-Go 1.7.18 release: <https://github.com/klever-io/klever-go/releases/tag/v1.7.18>

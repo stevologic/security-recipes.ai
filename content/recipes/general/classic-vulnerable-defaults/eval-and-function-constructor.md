@@ -9,6 +9,7 @@ maturity: "development"
 model: "Opus 4.7"
 tags: ["javascript", "eval", "uplift", "mitigate", "csp"]
 weight: 26
+lastmod: 2026-08-21
 date: 2026-04-25
 ---
 
@@ -19,6 +20,14 @@ includes user input, the application is one cleverly-shaped
 character away from arbitrary execution. The fix is rarely
 "escape better" — it's "stop using a code parser as a data
 parser."
+
+## When to use it
+
+Use this recipe when JavaScript evaluates attacker-influenced strings via
+`eval`, `new Function`, or string-bodied timers. Prefer it over a generic
+XSS recipe when the sink is in-process code evaluation.
+
+Do not use it to execute untrusted scripts or to disable CSP as a workaround.
 
 ## Pattern
 
