@@ -3,7 +3,7 @@ title: Program Metrics & KPIs
 linkTitle: Program Metrics & KPIs
 weight: 10
 date: 2026-04-22
-lastmod: 2026-07-21
+lastmod: 2026-08-21
 sidebar:
   open: true
 description: >
@@ -105,6 +105,9 @@ quantitative form of the rubber-stamp anti-pattern in the
 - **Regression rate** — PRs that merged and later got reverted.
   This is the quality signal that matters most; it's the
   downstream cost of everything else being misconfigured.
+- **Invented-floor stops** — runs that correctly wrote TRIAGE.md
+  because no vendor or GHSA named a patched release. Count these
+  as successful control outcomes, not automation failures.
 
 ### 5. Cost
 

@@ -3,7 +3,7 @@ title: Secure Context Trust Pack
 linkTitle: Secure Context Trust
 weight: 9
 date: 2026-05-02
-lastmod: 2026-07-23
+lastmod: 2026-08-21
 sidebar:
   exclude: true
 description: >
@@ -82,7 +82,10 @@ python3 scripts/evaluate_secure_context_release_decision.py \
 ```
 
 The local MCP server exposes the same bundle through
-`recipes_secure_context_trust_pack`, and exposes runtime retrieval
+`recipes_secure_context_trust_pack`. Runtime retrieval decisions stay
+with `scripts/evaluate_secure_context_retrieval.py` and the
+[Secure Context Firewall]({{< relref "/security-remediation/secure-context-firewall" >}}).
+There is no separate MCP tool that bypasses that evaluator.
 
 ## What is inside the pack
 
@@ -116,9 +119,10 @@ context is safe.
 
 This feature follows current primary guidance:
 
-- [Model Context Protocol Authorization](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
+- [Model Context Protocol Authorization](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
   for resource indicators, audience validation, HTTPS, PKCE, and token
-  handling.
+  handling. The [2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25)
+  revision remains a prior final specification.
 - [MCP Security Best Practices](https://modelcontextprotocol.io/docs/tutorials/security/security_best_practices)
   for confused-deputy prevention, token-passthrough avoidance, SSRF,
   session safety, local MCP server controls, and scope minimization.
@@ -159,6 +163,14 @@ for tenant-side controls; prohibited context kills the session.
 For runtime enforcement, evaluate the specific context request before
 retrieval:
 
+```bash
+python3 scripts/evaluate_secure_context_retrieval.py \
+  --workflow-id vulnerable-dependency-remediation \
+  --source-id recipes \
+  --retrieval-mode workflow_prompt_context \
+  --requested-path content/recipes/general/base-image-bump.md \
+  --expect-decision allow_public_context
+```
 
 ## CI contract
 

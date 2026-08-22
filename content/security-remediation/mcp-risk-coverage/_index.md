@@ -3,12 +3,11 @@ title: MCP and Agentic Skills Risk Coverage
 linkTitle: MCP Risk Coverage
 weight: 18
 date: 2026-05-04
-lastmod: 2026-07-13
+lastmod: 2026-08-21
 toc: true
 description: >
-  Generated OWASP MCP Top 10 and OWASP Agentic Skills Top 10 coverage
-  map for SecurityRecipes controls, evidence packs, MCP tools, and
-  hosted readiness gates.
+  Map OWASP MCP Top 10 and Agentic Skills Top 10 risks to SecurityRecipes
+  controls, evidence packs, MCP tools, and hosted readiness gates.
 sidebar:
   exclude: true
 breadcrumb_parent: /agentic-security/
@@ -35,7 +34,9 @@ The **MCP and Agentic Skills Risk Coverage Pack** maps those two layers
 to existing SecurityRecipes artifacts. It is designed for platform teams,
 procurement reviewers, GRC, reviewers, and reviewers who need to know
 whether the project tracks the newest risks without reading the whole
-site.
+site. Rechecked against the public MCP specification
+[2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28)
+on August 21, 2026.
 
 ## Generated artifact
 
@@ -143,7 +144,7 @@ Review and regenerate the pack when these sources change:
 
 - [OWASP MCP Top 10](https://owasp.org/www-project-mcp-top-10/)
 - [OWASP Agentic Skills Top 10](https://owasp.org/www-project-agentic-skills-top-10/)
-- [Model Context Protocol Security Best Practices](https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices)
+- [Model Context Protocol Security Best Practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices)
 - [NIST AI RMF Generative AI Profile](https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence)
 - [CISA Secure by Design](https://www.cisa.gov/securebydesign)
 

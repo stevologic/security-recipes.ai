@@ -400,7 +400,7 @@ test("high-intent remediation pages expose current review provenance", () => {
   // Each page pins its own verified review date so a content change cannot
   // silently advertise a review that never happened.
   for (const [relativePath, reviewedIso, reviewedLabel] of [
-    ["content/security-remediation/_index.md", "2026-07-23", "July 23, 2026"],
+    ["content/security-remediation/_index.md", "2026-08-21", "August 21, 2026"],
     ["content/agents/_index.md", "2026-08-21", "August 21, 2026"],
   ]) {
     const page = source(relativePath);

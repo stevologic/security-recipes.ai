@@ -130,6 +130,14 @@ The exact tool list is available through your MCP client's `tools/list` view.
 This repo currently defines 75 `recipes_*` tools. A check fails if this
 published count drifts from `@mcp.tool()` registrations in `mcp_server.py`.
 
+`recipes_cve_get` is evidence-gated. Follow a stable Markdown override when
+one exists. Treat a composed plan as a guardrail, not a product-specific
+floor. Development CVE drafts stay noindex and are not catalog overrides;
+leftover version text or a guessed next tag is never a named fix. The
+branch catalog currently publishes 57 search-indexable CVE pages (26
+stable, 31 AI-qualified). Production MCP still serves the last deployed
+image until this branch merges.
+
 The MCP server bundles the public-server directory documented below as
 validated discovery data. An MCP client can call `recipes_mcp_servers_list` to
 search it by provider or capability (for example, `cloud observability`) and

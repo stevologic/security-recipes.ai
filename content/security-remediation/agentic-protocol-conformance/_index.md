@@ -3,7 +3,7 @@ title: Agentic Protocol Conformance Pack
 linkTitle: Protocol Conformance
 weight: 14
 date: 2026-05-04
-lastmod: 2026-07-23
+lastmod: 2026-08-21
 sidebar:
   exclude: true
 description: >
@@ -28,7 +28,9 @@ sink controls are current and fail closed.
 
 The **Agentic Protocol Conformance Pack** turns fast-moving protocol and
 agent-security guidance into a generated artifact that a platform team,
-procurement reviewer, or reviewer can inspect through MCP.
+or procurement reviewer can inspect through MCP. Rechecked against MCP
+[2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28)
+on August 21, 2026.
 
 ## What was added
 
@@ -102,7 +104,7 @@ protocol profiles:
 
 This feature tracks current primary guidance:
 
-- [MCP Authorization](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
+- [MCP Authorization](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
   for protected-resource metadata, resource indicators, audience-bound
   tokens, PKCE, client metadata, and token-passthrough denial.
 - [MCP Tool Annotations](https://blog.modelcontextprotocol.io/posts/2026-03-16-tool-annotations/)

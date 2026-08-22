@@ -3,7 +3,7 @@ title: Secure Context Evidence Contract
 linkTitle: Secure Context Evidence Contract
 weight: 12
 date: 2026-05-05
-lastmod: 2026-07-13
+lastmod: 2026-08-21
 toc: true
 description: >
   Generated evidence object, hosted API, release-channel, redaction,
@@ -156,14 +156,14 @@ boundary.
 
 This feature follows current primary guidance:
 
-- [MCP Authorization 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
+- [MCP Authorization 2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
   for protected-resource metadata, resource indicators, audience-bound
   tokens, client metadata, scope challenges, and token-passthrough
   boundaries.
-- [MCP Elicitation 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25/client/elicitation)
+- [MCP Elicitation 2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28/client/elicitation)
   for form-mode limits, URL-mode sensitive flows, consent, identity
   binding, completion notifications, and phishing controls.
-- [MCP Tools 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25/server/tools)
+- [MCP Tools 2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28/server/tools)
   for tool schemas, output schemas, annotations, and trusted-server
   treatment.
 - [NIST AI Agent Standards Initiative](https://www.nist.gov/caisi/ai-agent-standards-initiative)

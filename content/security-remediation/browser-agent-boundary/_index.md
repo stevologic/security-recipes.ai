@@ -3,7 +3,7 @@ title: Browser Agent Workspace Boundary
 linkTitle: Browser Agent Boundary
 weight: 16
 date: 2026-05-04
-lastmod: 2026-07-13
+lastmod: 2026-08-21
 sidebar:
   exclude: true
 description: >
@@ -62,7 +62,12 @@ SIEM export, and signed run receipts.
 - `recipes_browser_agent_boundary_pack` - MCP lookup by workspace class,
   task profile, risk tier, or decision.
 
+Regenerate and validate the pack:
 
+```bash
+python3 scripts/generate_browser_agent_boundary_pack.py
+python3 scripts/generate_browser_agent_boundary_pack.py --check
+```
 
 Evaluate safe public research:
 
@@ -252,7 +257,7 @@ The pack is anchored in current primary guidance:
 - [CAISI AI Agent Security RFI](https://www.nist.gov/news-events/news/2026/01/caisi-issues-request-information-about-securing-ai-agent-systems)
   for constraining and monitoring deployment-environment access under
   indirect prompt injection and misaligned-action risk.
-- [MCP Authorization](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
+- [MCP Authorization](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
   for secure token handling, audience binding, resource indicators, PKCE,
   and token-passthrough denial when browser agents hand off to tools.
 
