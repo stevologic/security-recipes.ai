@@ -132,11 +132,16 @@ published count drifts from `@mcp.tool()` registrations in `mcp_server.py`.
 
 `recipes_cve_get` is evidence-gated. Follow a stable Markdown override when
 one exists. Treat a composed plan as a guardrail, not a product-specific
-floor. Development CVE drafts stay noindex and are not catalog overrides;
-leftover version text or a guessed next tag is never a named fix. The
-branch catalog currently publishes 57 search-indexable CVE pages (26
-stable, 31 AI-qualified). Production MCP still serves the last deployed
-image until this branch merges.
+floor. When a catalog record has complete, specific AI enrichment and no
+stable override, the tool attaches that enrichment as
+`recommended_recipe.ai_enrichment` with `role: evidence-qualified-guidance`
+and `not_a_stable_override: true`. It is not a named floor and does not
+change `recommended_source` away from `composed-agentic-plan`. Development
+CVE drafts stay noindex and are not catalog overrides; leftover version
+text or a guessed next tag is never a named fix. The branch catalog
+currently publishes 57 search-indexable CVE pages (28 stable, 29
+AI-qualified). Production MCP still serves the last deployed image until
+this branch merges.
 
 The MCP server bundles the public-server directory documented below as
 validated discovery data. An MCP client can call `recipes_mcp_servers_list` to

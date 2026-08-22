@@ -112,12 +112,13 @@ below for a specific finding class.
 
 Use a CVE-specific recipe only when its product and affected-version evidence
 match the finding you are investigating. The [CVE Database](/cve-database/)
-publishes 57 search-indexable CVE pages: 26 human-reviewed stable guides
-and 31 AI-qualified pages that already name a vendor or GHSA fixed
+publishes 57 search-indexable CVE pages: 28 human-reviewed stable guides
+and 29 AI-qualified pages that already name a vendor or GHSA fixed
 release. Development drafts stay noindex so leftover version text cannot
 become a search or MCP floor.
 
 - [CVE-2026-9198: Langflow auto-login to code-validation RCE](/cve/CVE-2026-9198/)
+- [CVE-2026-35616: FortiClient EMS improper access control](/cve/CVE-2026-35616/)
 - [CVE-2026-72898: Metabase unauthenticated SQL injection](/cve/CVE-2026-72898/)
 - [CVE-2026-64849: MLflow unauthenticated webhook SSRF](/cve/CVE-2026-64849/)
 - [CVE-2026-63077: TeamCity unauthenticated agent-polling RCE](/cve/CVE-2026-63077/)
@@ -130,6 +131,7 @@ become a search or MCP floor.
 - [CVE-2025-11953: Metro4Shell React Native CLI RCE](/cve/CVE-2025-11953/)
 - [CVE-2025-62593: Ray dashboard jobs RCE](/cve/CVE-2025-62593/)
 - [CVE-2025-3248: Langflow unauthenticated RCE](/cve/CVE-2025-3248/)
+- [CVE-2022-26134: Confluence Server and Data Center OGNL RCE](/cve/CVE-2022-26134/)
 - [CVE-2024-23897: Jenkins CLI arbitrary file read](/cve/CVE-2024-23897/)
 - [CVE-2024-37079: VMware vCenter Server heap-overflow RCE](/cve/CVE-2024-37079/)
 - [CVE-2024-6387: OpenSSH regreSSHion race-condition RCE](/cve/CVE-2024-6387/)
