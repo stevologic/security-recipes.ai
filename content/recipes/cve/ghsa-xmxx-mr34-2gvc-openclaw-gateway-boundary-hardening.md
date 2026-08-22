@@ -1,39 +1,40 @@
 ---
-title: "GHSA-xmxx/GHSA-mr34/GHSA-2gvc - OpenClaw gateway boundary hardening"
-linkTitle: "GHSA OpenClaw gateway boundary"
-description: "High-severity OpenClaw gateway and agent-boundary cluster covering stale bearer auth after SecretRef rotation, webchat local media containment, and Matrix room command authorization. Upgrade to 2026.4.15+ and add boundary regression tests."
+title: "CVE-2026-43585: OpenClaw gateway boundary hardening"
+linkTitle: "CVE-2026-43585 OpenClaw gateway"
+description: "CVE-2026-43585 is OpenClaw stale gateway bearer auth. Upgrade to 2026.4.15+ for SecretRef, Matrix, and webchat floors."
 tool: "general"
 author: "Codex"
 team: "Security"
 maturity: "development"
 model: "GPT 5.5 Extra High reasoning"
-tags: ["ghsa", "openclaw", "agentic-ai", "mcp", "typescript", "npm", "authorization", "secret-rotation", "path-traversal", "high"]
+tags: ["cve", "ghsa", "openclaw", "agentic-ai", "mcp", "typescript", "npm", "authorization", "secret-rotation", "path-traversal", "high"]
 weight: 54
 date: 2026-05-08
+lastmod: 2026-08-21
+cve: "CVE-2026-43585"
 ghsa: "GHSA-xmxx-7p24-h892"
-known_as: ["GHSA-mr34-9552-qr95", "GHSA-2gvc-4f3c-2855", "OpenClaw gateway boundary hardening"]
+known_as: ["GHSA-mr34-9552-qr95", "GHSA-2gvc-4f3c-2855", "OpenClaw gateway boundary hardening", "CVE-2026-41389", "CVE-2026-44110"]
 kev: false
 severity: "high"
 ecosystem: "typescript/npm"
 disclosed: "2026-04-17"
+ai_enrichment_review_status: human-reviewed-development-draft
 ---
 
-OpenClaw `2026.4.15` fixed a set of high-severity boundary failures that map
-closely to agentic AI control-plane risk:
+OpenClaw `2026.4.15` is the GitHub-named floor for this gateway-boundary
+cluster. GitHub now tracks the three reviewed advisories as CVEs. Do not
+invent a later 2026.4.16 floor. This page stays a development draft because
+the affected windows differ. Do not prove exposure with live tokens or rooms.
 
-- Gateway HTTP and WebSocket handlers could keep accepting an old bearer token
-  after a SecretRef rotation because auth was resolved at startup instead of
-  per request.
-- Webchat media embedding could attempt local file or Windows UNC/network path
-  reads before enforcing configured local-root containment.
-- Matrix room control-command authorization could trust sender IDs learned from
-  a DM pairing store, allowing a DM-paired sender to cross into room command
-  authorization.
-
-The common remediation theme is to treat gateway auth, file media resolution,
-and chat-room command authority as live policy decisions. Cached secrets,
-ambient local filesystem access, and pairing-store shortcuts are not safe
-defaults for a production context layer.
+- **CVE-2026-43585 / GHSA-xmxx-7p24-h892** (GitHub critical): gateway HTTP and
+  WebSocket handlers could keep accepting an old bearer token after SecretRef
+  rotation because auth was resolved at startup.
+- **CVE-2026-41389 / GHSA-mr34-9552-qr95** (GitHub medium): webchat media
+  embedding could attempt local file or Windows UNC reads before enforcing
+  configured local-root containment. Affected `>=2026.4.7, <2026.4.15`.
+- **CVE-2026-44110 / GHSA-2gvc-4f3c-2855** (GitHub high): Matrix room
+  control-command authorization could trust sender IDs learned from a DM
+  pairing store. Affected `>2026.3.28, <2026.4.15`.
 
 ## When to use it
 
@@ -58,11 +59,11 @@ cases.
 ## Affected versions
 
 - **Bearer auth after SecretRef rotation:** `openclaw <2026.4.15`
-  (`GHSA-xmxx-7p24-h892`)
+  (`CVE-2026-43585` / `GHSA-xmxx-7p24-h892`)
 - **Webchat media local-root containment:** `openclaw >=2026.4.7, <2026.4.15`
-  (`GHSA-mr34-9552-qr95`)
+  (`CVE-2026-41389` / `GHSA-mr34-9552-qr95`)
 - **Matrix room control-command authorization:** `openclaw >2026.3.28,
-  <2026.4.15` (`GHSA-2gvc-4f3c-2855`)
+  <2026.4.15` (`CVE-2026-44110` / `GHSA-2gvc-4f3c-2855`)
 - **Fixed:** `openclaw 2026.4.15+`
 
 ## Indicator-of-exposure
@@ -250,6 +251,13 @@ exactly one output:
   room.
 - Logging sensitive media references or bearer-token values while adding tests.
 
+## Rollback and recovery
+
+Prefer forward recovery to another GitHub-named `openclaw` 2026.4.15+ release.
+If an operational rollback restores a build before `2026.4.15`, isolate
+Gateway HTTP/WebSocket, disable webchat local media, and stop Matrix room
+control commands until the named floor is restored.
+
 ## Related recipes
 
 - [Source code authz tenant boundary audit]({{< relref "/recipes/general/source-code-authz-tenant-boundary-audit" >}})
@@ -260,7 +268,10 @@ exactly one output:
 ## References
 
 - GitHub Advisory `GHSA-xmxx-7p24-h892`: <https://github.com/advisories/GHSA-xmxx-7p24-h892>
+- NVD `CVE-2026-43585`: <https://nvd.nist.gov/vuln/detail/CVE-2026-43585>
 - GitHub Advisory `GHSA-mr34-9552-qr95`: <https://github.com/advisories/GHSA-mr34-9552-qr95>
+- NVD `CVE-2026-41389`: <https://nvd.nist.gov/vuln/detail/CVE-2026-41389>
 - GitHub Advisory `GHSA-2gvc-4f3c-2855`: <https://github.com/advisories/GHSA-2gvc-4f3c-2855>
+- NVD `CVE-2026-44110`: <https://nvd.nist.gov/vuln/detail/CVE-2026-44110>
 - OpenClaw project: <https://github.com/openclaw/openclaw>
 

@@ -15822,6 +15822,70 @@ def _cve_override_triage(result: dict[str, Any], error: str) -> dict[str, Any]:
     return result
 
 
+_CVE_AI_GUIDANCE_LIST_LIMIT = 8
+_CVE_AI_GUIDANCE_ITEM_LIMIT = 600
+
+
+def _bounded_ai_guidance_text(value: object, limit: int = _CVE_AI_GUIDANCE_ITEM_LIMIT) -> str:
+    text = " ".join(str(value or "").split())
+    if len(text) <= limit:
+        return text
+    return text[: limit - 3].rstrip() + "..."
+
+
+def _bounded_ai_guidance_list(value: object) -> list[Any]:
+    if not isinstance(value, list):
+        return []
+    bounded: list[Any] = []
+    for raw_item in value[:_CVE_AI_GUIDANCE_LIST_LIMIT]:
+        if isinstance(raw_item, str):
+            text = _bounded_ai_guidance_text(raw_item)
+            if text:
+                bounded.append(text)
+            continue
+        if not isinstance(raw_item, dict):
+            continue
+        claim = _bounded_ai_guidance_text(raw_item.get("claim"))
+        kind = _bounded_ai_guidance_text(raw_item.get("kind"), 40)
+        source_url = _bounded_ai_guidance_text(raw_item.get("source_url"), 300)
+        if not (claim and kind and source_url):
+            continue
+        bounded.append({"claim": claim, "kind": kind, "source_url": source_url})
+    return bounded
+
+
+def _evidence_qualified_ai_guidance(source_record: dict[str, Any]) -> dict[str, Any] | None:
+    enrichment = source_record.get("ai_enrichment")
+    if not isinstance(enrichment, dict):
+        return None
+    if str(enrichment.get("status") or "").strip().lower() != "complete":
+        return None
+    if str(enrichment.get("recipe_specificity") or "").strip().lower() != "specific":
+        return None
+    guidance = {
+        "role": "evidence-qualified-guidance",
+        "not_a_stable_override": True,
+        "status": "complete",
+        "recipe_specificity": "specific",
+    }
+    business_risk = _bounded_ai_guidance_text(enrichment.get("business_risk"), 1200)
+    if business_risk:
+        guidance["business_risk"] = business_risk
+    remediation_steps = _bounded_ai_guidance_list(enrichment.get("remediation_steps"))
+    if remediation_steps:
+        guidance["remediation_steps"] = remediation_steps
+    verification_steps = _bounded_ai_guidance_list(enrichment.get("verification_steps"))
+    if verification_steps:
+        guidance["verification_steps"] = verification_steps
+    claim_evidence = _bounded_ai_guidance_list(enrichment.get("claim_evidence"))
+    if claim_evidence:
+        guidance["claim_evidence"] = claim_evidence
+    uncertainty = _bounded_ai_guidance_list(enrichment.get("uncertainty"))
+    if uncertainty:
+        guidance["uncertainty"] = uncertainty
+    return guidance
+
+
 async def _attach_authoritative_cve_recipe(
     result: dict[str, Any],
     recipe_index: RecipeIndex,
@@ -15853,11 +15917,15 @@ async def _attach_authoritative_cve_recipe(
         composed["role"] = "recommended"
         result["composed_recipe"] = composed
         result["authoritative_recipe"] = None
-        result["recommended_recipe"] = {
+        recommended_recipe: dict[str, Any] = {
             "kind": "composed",
             "primary_archetype_id": composed.get("primary_archetype_id") or composed.get("archetype_id"),
             "archetype_ids": composed.get("archetype_ids") or [composed.get("archetype_id")],
         }
+        guidance = _evidence_qualified_ai_guidance(source_record)
+        if guidance:
+            recommended_recipe["ai_enrichment"] = guidance
+        result["recommended_recipe"] = recommended_recipe
         _set_cve_agentic_authority(
             result,
             recommended_source="composed-agentic-plan",

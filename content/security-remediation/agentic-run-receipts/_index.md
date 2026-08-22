@@ -3,7 +3,7 @@ title: Agentic Run Receipts
 linkTitle: Agentic Run Receipts
 weight: 12
 date: 2026-05-02
-lastmod: 2026-07-23
+lastmod: 2026-08-21
 toc: true
 description: >
   Record scope, inputs, policy decisions, tool actions, tests, approvals, and
@@ -18,6 +18,8 @@ breadcrumb_parent: /agentic-security/
 behavior. They need portable proof that a specific run stayed inside its
 delegated authority.
 {{< /callout >}}
+
+Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) on August 21, 2026.
 
 ## The product bet
 
@@ -123,10 +125,10 @@ This feature follows current guidance:
 - [OWASP Top 10 for Agentic Applications 2026](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/)
   for agent goal hijack, tool misuse, identity abuse, context poisoning,
   cascading failures, and rogue-agent containment.
-- [MCP Authorization 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
+- [MCP Authorization 2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
   for resource indicators, audience-bound tokens, HTTPS, PKCE, and token
   validation.
-- [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices)
+- [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices)
   for confused-deputy prevention, token passthrough denial, SSRF, session
   safety, local server compromise controls, scope minimization, and audit
   trails.

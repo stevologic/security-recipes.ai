@@ -3,7 +3,7 @@ title: Cursor AI Vulnerability Remediation
 linkTitle: Cursor
 weight: 3
 date: 2026-04-21
-lastmod: 2026-07-21
+lastmod: 2026-08-21
 description: Use Cursor Security Agents, Agent, and Cloud Agents to find and remediate vulnerabilities with bounded context, tests, rollback, and reviewed pull requests.
 sidebar:
   open: true
@@ -41,11 +41,15 @@ For a detected secret or PII leak, use the
 
 Use [Cursor Security Agents](https://cursor.com/docs/security-agents) to
 produce the finding, then hand an accepted finding to a Cursor Agent or
-Cloud Agent for the code change.
+Cloud Agent for the code change. Rechecked against the live Security Agents
+docs on 2026-08-21: both agent types still run on Cloud Agents through
+[Automations](https://cursor.com/automations/from-cursor/security).
 
 1. Configure a **Security Reviewer** for pull-request or merge-request
    events, or a **Vulnerability Scanner** for scheduled scans of the
-   repository at rest. Add the relevant checks, repository instructions,
+   repository at rest, in
+   [Security Agents Automations](https://cursor.com/automations/from-cursor/security).
+   Add the relevant checks, repository instructions,
    and at least one tool or MCP.
 2. Review the reported code path, severity, and remediation guidance.
    Confirm the issue is reachable and not blocked by an existing control.
@@ -88,8 +92,8 @@ or team can do today without waiting on an enterprise rollout.
    [Project rules](https://cursor.com/docs/rules#project-rules).
 5. **Install MCP servers.** Wire up `.cursor/mcp.json` per
    [Cursor MCP](https://docs.cursor.com/context/mcp).
-6. **Configure Security Agents.** Use the
-   [Security Agents dashboard](https://cursor.com/docs/security-agents)
+6. **Configure Security Agents.** Use
+   [Security Agents in Automations](https://cursor.com/automations/from-cursor/security)
    to add a Security Reviewer, Vulnerability Scanner, or both.
 7. **Review privacy + data-handling.** See
    [Cursor security & privacy](https://docs.cursor.com/account/privacy).
@@ -98,6 +102,7 @@ or team can do today without waiting on an enterprise rollout.
 
 - [Cursor docs home](https://docs.cursor.com)
 - [Security Agents](https://cursor.com/docs/security-agents)
+- [Security Agents in Automations](https://cursor.com/automations/from-cursor/security)
 - [Cloud Agents](https://cursor.com/blog/cloud-agents)
 - [Project rules (`.cursor/rules/*.mdc`)](https://cursor.com/docs/rules#project-rules)
 - [Custom slash commands (`.cursor/commands/*.md`)](https://cursor.com/docs/cli/reference/slash-commands)

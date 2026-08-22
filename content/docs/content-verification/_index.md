@@ -3,7 +3,7 @@ title: Content Verification and SEO Quality Gates
 linkTitle: Content Verification
 weight: 33
 date: 2026-05-02
-lastmod: 2026-07-23
+lastmod: 2026-08-21
 description: Reproduce the source, artifact, catalog, link, structured-data, indexability, and duplicate-content gates used to publish Security Recipes.
 ---
 
@@ -22,6 +22,7 @@ rendered-site gates enforce.
 | Technical SEO | Every indexable page must have one unique title, description, self-canonical, H1, robots policy, and valid JSON-LD. Internal links, fragments, crawl reachability, depth, redirects, and sitemap parity are checked from rendered HTML. |
 | Duplicate-content control | Generated code-hygiene and compliance children are `noindex,follow` while they share a development template. A bounded five-word-shingle similarity gate fails if a materially duplicated child becomes indexable before its body is differentiated. |
 | Catalog and MCP integrity | The rolling CVE manifest, shards, exact lookup, search allowlist, remediation composition, read-only MCP schemas, and evidence provenance must validate together. |
+| CISA KEV authority | Recipe `kev` flags and KEV dates must match the live [CISA KEV JSON feed](https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json), not secondary blogs. Development CVE drafts stay `noindex` and are not attached to catalog shards. |
 | Build and performance | Static output, browser payloads, initial server-rendered content, lazy data loading, shared assets, and page-size budgets must stay within the checked limits. |
 
 The [visual guide](/how-to-use/) explains the publication gate from the reader's

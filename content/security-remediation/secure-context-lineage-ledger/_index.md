@@ -3,7 +3,7 @@ title: Secure Context Lineage Ledger
 linkTitle: Secure Context Lineage
 weight: 10
 date: 2026-05-04
-lastmod: 2026-07-13
+lastmod: 2026-08-21
 sidebar:
   exclude: true
 description: >
@@ -86,7 +86,9 @@ python3 scripts/evaluate_secure_context_lineage_decision.py \
 ```
 
 The local MCP server exposes the ledger through
-`recipes_secure_context_lineage_ledger` and exposes runtime lineage
+`recipes_secure_context_lineage_ledger`. Runtime lineage decisions stay
+with `scripts/evaluate_secure_context_lineage_decision.py`. The MCP tool
+returns the hashed ledger; it does not approve reuse by itself.
 
 ## Lineage stages
 
@@ -161,10 +163,10 @@ This feature follows current primary guidance:
 - [OWASP MCP Top 10](https://owasp.org/www-project-mcp-top-10/) for
   context injection, over-sharing, tool poisoning, telemetry gaps,
   shadow MCP servers, and insufficient authorization.
-- [MCP Authorization 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
+- [MCP Authorization 2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
   for resource indicators, token audience validation, PKCE, protected
   resource metadata, and token-passthrough denial.
-- [MCP Elicitation 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25/client/elicitation)
+- [MCP Elicitation 2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28/client/elicitation)
   for consent and sensitive URL-mode flows that should not expose
   credentials or third-party authorization secrets to the client.
 - [NIST AI RMF](https://www.nist.gov/itl/ai-risk-management-framework)

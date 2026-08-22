@@ -9,7 +9,7 @@ model: "Opus 4.7"
 tags: ["sca", "cve", "dependencies", "copilot", "cloud-agent", "issue-template"]
 weight: 10
 date: 2026-04-21
-lastmod: 2026-07-23
+lastmod: 2026-08-21
 ---
 
 A three-part bundle — a `.github/copilot-instructions.md`
@@ -211,6 +211,14 @@ Once the session starts, the GitHub Copilot cloud agent reads:
 It produces a draft PR on `copilot/<finding-id>` that either
 fixes the finding or posts a comment explaining why the fix was
 refused (major bump required, pre-release only, tests fail).
+
+## Verification
+
+- Rechecked 2026-08-21 against GitHub's current Copilot Autofix and
+  Copilot cloud agent ("Assign to Copilot") workflow.
+- Creating or labeling an issue still does not start the agent; an
+  authorized reviewer must assign the issue after validation.
+- One finding still produces one draft PR or a refusal comment.
 
 ## Output contract
 

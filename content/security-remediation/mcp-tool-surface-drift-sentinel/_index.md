@@ -3,7 +3,7 @@ title: MCP Tool Surface Drift Sentinel
 linkTitle: Tool Surface Drift
 weight: 8
 date: 2026-05-04
-lastmod: 2026-07-13
+lastmod: 2026-08-21
 sidebar:
   exclude: true
 description: >
@@ -118,13 +118,13 @@ prove this production tool list is the one we reviewed?"
 This follows current primary guidance and emerging agentic security
 practice:
 
-- [MCP Tools](https://modelcontextprotocol.io/specification/2025-11-25/server/tools)
+- [MCP Tools](https://modelcontextprotocol.io/specification/2026-07-28/server/tools)
   defines tool descriptions, schemas, annotations, structured output,
   and tool-list change notifications.
-- [MCP Security Best Practices](https://modelcontextprotocol.io/docs/tutorials/security/security_best_practices)
+- [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices)
   emphasizes confused-deputy, token-passthrough, SSRF, session, local
   server, and scope controls.
-- [MCP Authorization](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
+- [MCP Authorization](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
   anchors protected calls in resource binding, consent, and strict
   bearer-token handling.
 - [OWASP MCP Top 10](https://owasp.org/www-project-mcp-top-10/)

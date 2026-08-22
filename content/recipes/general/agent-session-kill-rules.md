@@ -9,6 +9,7 @@ model: "Opus 4.7"
 tags: ["runtime", "telemetry", "guardrail", "kill-switch", "monitor"]
 weight: 15
 date: 2026-04-25
+lastmod: 2026-08-21
 ---
 
 A tool-agnostic prompt that takes a workflow's run telemetry

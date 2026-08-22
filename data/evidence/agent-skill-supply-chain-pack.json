@@ -90,7 +90,7 @@
     "sales_motion": "Lead with open skill provenance and runtime decisions, then sell hosted skill inventory ingestion, registry transparency checks, semantic skill scanning, signed package admission, sandbox policies, and trust-center exports."
   },
   "failures": [],
-  "generated_at": "2026-05-03",
+  "generated_at": "2026-08-21",
   "intent": "Define an enterprise-ready supply-chain model for agentic skills, rules files, hooks, and tool bundles so SecurityRecipes can govern the behavior layer between model prompts and MCP tool execution. The model turns skill provenance, permissions, registry trust, version pinning, isolation, and runtime evidence into deterministic install, update, and run decisions.",
   "positioning": {
     "buyer": "AI Platform, Security Engineering, Product Security, AppSec, GRC, procurement security, vendor-risk, and acquisition diligence teams",
@@ -526,7 +526,7 @@
         "escalation": "security-incident-commander",
         "evidence_owner": "Security Incident Response"
       },
-      "package_hash": "sha256:3efe1833600b06eb9799dbff4412b58737d7c746c32cc3a491d43918a6aa557e",
+      "package_hash": "sha256:ae8051d4870b3976ad974091e5f68fe60beb0264c7db2245c4acd3c9524a0740",
       "permissions": {
         "data_access_classes": [
           "artifact_inventory",
@@ -714,7 +714,7 @@
         "escalation": "dependency-remediation-owner",
         "evidence_owner": "Security Engineering"
       },
-      "package_hash": "sha256:85af59f2b88548970a0aa20cd835f171ce97d7bc20907e7d2388c35eba0201c6",
+      "package_hash": "sha256:5450b69e80737586bf9df23a67f16faba8cd17048289586c57346f984af74871",
       "permissions": {
         "data_access_classes": [
           "public_advisory",
@@ -911,7 +911,7 @@
         "escalation": "agent-memory-owner",
         "evidence_owner": "Security Engineering"
       },
-      "package_hash": "sha256:ae71ffc16aad6b4f0cf370b2da8a03b0b3dd5ace6f21eff839717c964a8723fa",
+      "package_hash": "sha256:02703fc07dd5d5c4a508339a85cdaeebfe89e88779e5d7326e885b5ab7d8db3a",
       "permissions": {
         "data_access_classes": [
           "tenant_runtime_context",
@@ -1054,7 +1054,7 @@
         "escalation": "secure-context-owner",
         "evidence_owner": "Security Engineering"
       },
-      "package_hash": "sha256:ec264162ba5cbc74d5e9477f38c46e8be1881e853ad9c5562a92fb7aba1358d7",
+      "package_hash": "sha256:6358968084f17fc0cdba12097f7cf962524c66ac2d0de84ea04612e5bac2e2f8",
       "permissions": {
         "data_access_classes": [
           "public_guidance",
@@ -1197,11 +1197,11 @@
   "source_artifacts": {
     "agent_memory_boundary_pack": {
       "path": "data/evidence/agent-memory-boundary-pack.json",
-      "sha256": "3348aa5898b7244a80e69a16382dc579431f90923b5b6ca065498f0a14edabed"
+      "sha256": "4091492bb37db1c3e68a1c97df73dba971774c0cc1714793111fc54a4745acd0"
     },
     "agent_skill_supply_chain_model": {
       "path": "data/assurance/agent-skill-supply-chain-model.json",
-      "sha256": "0a5147a5ac943bcda7a991ff8e9b812f794be42be7020d73de66041bfe6d06e5"
+      "sha256": "2da00afe6fe2d9210b34097c62c8c8974e59cc8936d3e74bd6d4b221837bd837"
     },
     "mcp_connector_trust_pack": {
       "path": "data/evidence/mcp-connector-trust-pack.json",
@@ -1209,7 +1209,7 @@
     },
     "secure_context_trust_pack": {
       "path": "data/evidence/secure-context-trust-pack.json",
-      "sha256": "8cd4d68eb2f2bd832b02a2f0731560731d1690288fb17b4b7ebc6c5e122f5e3e"
+      "sha256": "11d09a9195f5e3af955d014259486cff7982e9e8c9058f5170a7385b05a875e8"
     },
     "workflow_manifest": {
       "path": "data/control-plane/workflow-manifests.json",
@@ -1234,6 +1234,12 @@
       "id": "owasp-mcp-top-10-2025",
       "name": "OWASP MCP Top 10",
       "url": "https://owasp.org/www-project-mcp-top-10/"
+    },
+    {
+      "coverage": "Current public MCP 2026-07-28 revision. OAuth 2.1, client metadata, protected resource metadata, resource indicators, token audience validation, PKCE, token handling, and trust policy expectations for protected MCP servers.",
+      "id": "mcp-authorization-2026-07-28",
+      "name": "Model Context Protocol Authorization Specification (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization"
     },
     {
       "coverage": "OAuth 2.1, client metadata, protected resource metadata, resource indicators, token audience validation, PKCE, token handling, and trust policy expectations for protected MCP servers.",

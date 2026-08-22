@@ -3,7 +3,7 @@ title: Cryptocurrency & Crypto Payments Security
 linkTitle: Crypto Payments Security
 weight: 9
 date: 2026-04-26
-lastmod: 2026-07-13
+lastmod: 2026-08-21
 sidebar:
   open: true
 description: >
@@ -17,6 +17,8 @@ description: >
 transaction can settle in seconds with no clawback path. The goal of
 this workflow is to stop high-blast-radius mistakes *before* signing,
 then produce auditable triage when automation cannot prove safety.
+Rechecked August 21, 2026: stop before signing when ownership, a
+named floor, or rollback cannot be proved.
 {{< /callout >}}
 
 ## What this workflow covers

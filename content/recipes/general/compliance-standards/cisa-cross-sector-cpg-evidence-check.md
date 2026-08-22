@@ -2,12 +2,12 @@
 title: "CISA Cross-Sector Cybersecurity Performance Goals Evidence Check"
 linkTitle: "CISA Cross-Sector CPGs"
 description: "Assess CISA Cross-Sector CPGs evidence readiness: verify applicability, map official requirements to artifacts, record gaps, and plan remediation."
-recipe_id: "compliance.cisa-cross-sector-cpg-1-0-1"
+recipe_id: "compliance.cisa-cross-sector-cpg-2-0"
 framework_id: "cisa-cross-sector-cpg"
 framework: "CISA Cross-Sector CPGs"
-framework_version: "1.0.1; CSF 2.0 update in progress"
-framework_status: "revision-in-progress"
-source_reviewed: "2026-07-12"
+framework_version: "2.0"
+framework_status: "final"
+source_reviewed: "2026-08-21"
 jurisdiction: ["united-states"]
 jurisdictions: ["united-states"]
 industry: ["critical-infrastructure", "cross-sector"]
@@ -26,7 +26,8 @@ noindex_follow: true
 model: "gpt-5-codex"
 tags: ["compliance", "cisa-cross-sector-cpg", "critical-infrastructure", "audit", "secure-defaults", "cross-sector"]
 weight: 450
-date: "2026-07-12"
+date: "2026-08-21"
+lastmod: "2026-08-21"
 severity: "info"
 ---
 
@@ -49,16 +50,16 @@ Use this recipe to produce a source-aware evidence-readiness assessment for **CI
 ## Framework basis
 
 - **Publisher:** Cybersecurity and Infrastructure Security Agency
-- **Version:** 1.0.1; CSF 2.0 update in progress
-- **Status:** `revision-in-progress`
-- **Sources reviewed:** 2026-07-12
+- **Version:** 2.0
+- **Status:** `final`
+- **Sources reviewed:** 2026-08-21
 - **Jurisdictions:** united-states
 - **Industries:** critical-infrastructure, cross-sector
 - **License boundary:** `public-domain`
 
-Critical infrastructure owners and operators prioritizing a voluntary baseline of high-impact cybersecurity practices while CISA updates the CPGs for CSF 2.0.
+Critical infrastructure owners and operators using the voluntary Cross-Sector CPG 2.0 baseline. CPG 2.0 is current and aligned to NIST CSF 2.0, including the GOVERN function. Keep 1.0.1 mappings only as a historical comparison. Sector-Specific Goals may add overlays and do not replace the cross-sector baseline.
 
-The authority is revising or transitioning this framework. Confirm the effective source set and dates before making a current-state claim.
+The cataloged version is final; still verify scope and any later official updates.
 
 Use the official publication as the authority and preserve its version and update identifiers in every finding.
 
@@ -77,15 +78,15 @@ Use this recipe when the organization has established that CISA Cross-Sector CPG
 
 Evidence domains for this framework:
 
-- asset and identity priorities: begin with prioritized asset and account inventories.
-- vulnerability and configuration management: begin with MFA and vulnerability evidence.
-- architecture, logging, and detection: begin with segmentation and logging records.
-- incident response, recovery, and supply chain: begin with exercise, backup, and supplier artifacts.
+- governance, accountability, and risk oversight: begin with cybersecurity oversight and risk-acceptance records.
+- asset, identity, and least-privilege priorities: begin with prioritized asset, account, and privilege inventories.
+- vulnerability, configuration, architecture, and detection: begin with MFA, vulnerability, segmentation, and logging evidence.
+- incident response, recovery, MSP, and supply-chain readiness: begin with exercise, backup, MSP, and supplier artifacts.
 
 ## The prompt
 
 ```markdown
-You are a compliance evidence-readiness analyst. Evaluate the supplied scope against CISA Cross-Sector CPGs (1.0.1; CSF 2.0 update in progress). The catalog status is revision-in-progress and the source review date is 2026-07-12.
+You are a compliance evidence-readiness analyst. Evaluate the supplied scope against CISA Cross-Sector CPGs (2.0). The catalog status is final and the source review date is 2026-08-21.
 
 Never claim certification or legal compliance. Never invent applicability, evidence, control operation, sampling results, or requirement text. Separate observed facts, organization assertions, and analyst inferences. Treat missing or inaccessible evidence as unknown, not as failure, unless the authoritative assessment method says otherwise.
 
@@ -94,7 +95,7 @@ Never claim certification or legal compliance. Never invent applicability, evide
 1. Record the exact official source, version, publication/update identifier, and effective date used.
 2. Record the organization, role, jurisdiction, industry, system/product boundary, review period, and decision owner.
 3. Confirm any selected level, profile, baseline, overlay, assessment type, or licensed requirement set.
-4. The authority is revising or transitioning this framework. Confirm the effective source set and dates before making a current-state claim.
+4. The cataloged version is final; still verify scope and any later official updates.
 5. Use the official publication as the authority and preserve its version and update identifiers in every finding.
 6. Stop and request a decision when applicability or the authoritative requirement set cannot be established.
 
@@ -106,17 +107,17 @@ For every supplied requirement identifier or official outcome in scope, record: 
 
 Review these domains without treating the labels as substitutes for authoritative requirements:
 
-1. asset and identity priorities
-2. vulnerability and configuration management
-3. architecture, logging, and detection
-4. incident response, recovery, and supply chain
+1. governance, accountability, and risk oversight
+2. asset, identity, and least-privilege priorities
+3. vulnerability, configuration, architecture, and detection
+4. incident response, recovery, MSP, and supply-chain readiness
 
 Start with these likely artifacts, then validate provenance and coverage:
 
-1. prioritized asset and account inventories
-2. MFA and vulnerability evidence
-3. segmentation and logging records
-4. exercise, backup, and supplier artifacts
+1. cybersecurity oversight and risk-acceptance records
+2. prioritized asset, account, and privilege inventories
+3. MFA, vulnerability, segmentation, and logging evidence
+4. exercise, backup, MSP, and supplier artifacts
 
 For every artifact record: artifact ID, source system, owner, collection time, review period, access path, integrity/provenance note, population covered, and requirement/outcome links. Prefer system exports and immutable records over screenshots or narrative attestations.
 

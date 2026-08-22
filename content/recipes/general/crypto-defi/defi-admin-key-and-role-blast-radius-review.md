@@ -9,6 +9,7 @@ model: "GPT-5.3-Codex"
 tags: ["defi", "access-control", "admin-key", "timelock", "governance"]
 weight: 28
 date: 2026-06-14
+lastmod: 2026-08-21
 ---
 
 Use this prompt to reduce the damage a compromised admin key, overbroad

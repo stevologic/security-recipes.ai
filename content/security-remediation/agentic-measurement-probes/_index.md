@@ -3,7 +3,7 @@ title: Agentic Measurement Probes
 linkTitle: Measurement Probes
 weight: 6
 date: 2026-05-02
-lastmod: 2026-07-13
+lastmod: 2026-08-21
 sidebar:
   exclude: true
 description: >
@@ -19,6 +19,8 @@ not only guidance. This pack turns SecurityRecipes controls into
 repeatable probes that can be consumed by AI platform reviews, MCP
 gateways, procurement security, and trust review diligence.
 {{< /callout >}}
+
+Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) on August 21, 2026.
 
 SecurityRecipes is positioned as **the secure context layer for
 agentic AI**. The Agentic Measurement Probe Pack makes that position
@@ -129,8 +131,8 @@ Inspect egress probes:
 - [NIST AI RMF Generative AI Profile](https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence)
 - [OWASP Top 10 for Agentic Applications 2026](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/)
 - [OWASP MCP Top 10](https://owasp.org/www-project-mcp-top-10/)
-- [MCP Authorization Specification](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
-- [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices)
+- [MCP Authorization Specification](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
+- [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices)
 - [CSA Capabilities-Based Risk Assessment](https://cloudsecurityalliance.org/press-releases/2025/11/13/cloud-security-alliance-introduces-new-tool-for-assessing-agentic-risk)
 
 ## See also

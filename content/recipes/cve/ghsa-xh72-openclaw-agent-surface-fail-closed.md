@@ -1,43 +1,44 @@
 ---
-title: "GHSA-xh72/GHSA-xmxx - OpenClaw agent-surface fail-closed bypasses"
-linkTitle: "GHSA OpenClaw agent surface"
-description: "Critical OpenClaw agent-surface vulnerabilities across Feishu webhook auth, gateway bearer-token rotation, Matrix room authorization, and webchat media file containment. Upgrade to 2026.4.15+, fail closed at every external agent input, and add trust-boundary regression tests."
+title: "CVE-2026-44109: OpenClaw Feishu fail-closed bypass"
+linkTitle: "CVE-2026-44109 OpenClaw Feishu"
+description: "CVE-2026-44109 is OpenClaw Feishu webhook fail-open. Upgrade to 2026.4.15+ and fail closed on missing encryptKey."
 tool: "general"
 author: "Codex"
 team: "Security"
 maturity: "development"
 model: "GPT 5.5 Extra High reasoning"
-tags: ["ghsa", "openclaw", "agentic-ai", "npm", "webhook", "authorization", "secret-rotation", "critical"]
+tags: ["cve", "ghsa", "openclaw", "agentic-ai", "npm", "webhook", "authorization", "secret-rotation", "critical"]
 weight: 59
 date: 2026-05-02
+lastmod: 2026-08-21
+cve: "CVE-2026-44109"
 ghsa: "GHSA-xh72-v6v9-mwhc"
-known_as: ["OpenClaw 2026.4.15 agent-surface hardening", "GHSA-xmxx-7p24-h892", "GHSA-2gvc-4f3c-2855", "GHSA-mr34-9552-qr95"]
+known_as: ["OpenClaw 2026.4.15 agent-surface hardening", "GHSA-xmxx-7p24-h892", "GHSA-2gvc-4f3c-2855", "GHSA-mr34-9552-qr95", "CVE-2026-43585", "CVE-2026-44110", "CVE-2026-41389"]
 kev: false
 severity: "critical"
 ecosystem: "typescript/npm"
 disclosed: "2026-04-17"
+ai_enrichment_review_status: human-reviewed-development-draft
 ---
 
-OpenClaw published a cluster of GitHub-reviewed High/Critical advisories around
-external agent inputs and runtime authorization boundaries. They matter because
-they sit exactly where agentic systems are most exposed: chat/webhook ingress,
-gateway bearer auth, chat-room command authorization, and tool-result media
-normalization.
+OpenClaw `2026.4.15` is the GitHub-named floor for this agent-surface cluster.
+GitHub now tracks the four reviewed advisories as CVEs. Do not invent a later
+2026.4.16 floor. This page stays a development draft because the affected
+windows differ. Do not prove exposure against live webhooks or rooms.
 
-The four advisories covered by this recipe are:
-
-- `GHSA-xh72-v6v9-mwhc` (Critical): Feishu webhook mode and card-action
-  callbacks could fail open when signing configuration or callback tokens were
-  missing or blank, allowing unauthenticated traffic to reach command dispatch.
-- `GHSA-xmxx-7p24-h892` (High): gateway HTTP and WebSocket handlers could keep
-  accepting an old bearer token after SecretRef rotation because auth was
-  resolved at server startup instead of per request.
-- `GHSA-2gvc-4f3c-2855` (High): Matrix room control-command authorization could
-  trust sender IDs learned from the DM pairing store, crossing the DM/room
-  command boundary.
-- `GHSA-mr34-9552-qr95` (High): webchat tool-result media handling could pass
-  local or UNC-style paths into host-side embedding before enforcing
-  `localRoots`, risking host file reads or Windows network credential exposure.
+- **CVE-2026-44109 / GHSA-xh72-v6v9-mwhc** (Critical): Feishu webhook mode and
+  card-action callbacks could fail open when `encryptKey` or callback tokens
+  were missing or blank, allowing unauthenticated traffic to reach command
+  dispatch.
+- **CVE-2026-43585 / GHSA-xmxx-7p24-h892** (GitHub critical): gateway HTTP and
+  WebSocket handlers could keep accepting an old bearer token after SecretRef
+  rotation because auth was resolved at startup.
+- **CVE-2026-44110 / GHSA-2gvc-4f3c-2855** (High): Matrix room control-command
+  authorization could trust sender IDs learned from the DM pairing store.
+  Affected `>2026.3.28, <2026.4.15`.
+- **CVE-2026-41389 / GHSA-mr34-9552-qr95** (GitHub medium): webchat tool-result
+  media handling could pass local or UNC-style paths into host-side embedding
+  before enforcing `localRoots`. Affected `>=2026.4.7, <2026.4.15`.
 
 ## When to use it
 
@@ -62,13 +63,13 @@ or stale.
 
 ## Affected versions
 
-- **OpenClaw Feishu webhook/card-action validation:**
+- **OpenClaw Feishu webhook/card-action validation (`CVE-2026-44109`):**
   `openclaw <2026.4.15`; fixed in `2026.4.15`.
-- **OpenClaw gateway bearer auth re-resolution:**
+- **OpenClaw gateway bearer auth re-resolution (`CVE-2026-43585`):**
   `openclaw <2026.4.15`; fixed in `2026.4.15`.
-- **OpenClaw Matrix room control-command authorization:**
+- **OpenClaw Matrix room control-command authorization (`CVE-2026-44110`):**
   `openclaw >2026.3.28, <2026.4.15`; fixed in `2026.4.15`.
-- **OpenClaw webchat media local-root containment:**
+- **OpenClaw webchat media local-root containment (`CVE-2026-41389`):**
   `openclaw >=2026.4.7, <2026.4.15`; fixed in `2026.4.15`.
 
 ## Indicator-of-exposure
@@ -267,6 +268,13 @@ GHSA-mr34-9552-qr95. Produce exactly one output:
 - Checking local-root containment after `stat`, preview generation, or media
   metadata probing has already touched the path.
 
+## Rollback and recovery
+
+Prefer forward recovery to another GitHub-named `openclaw` 2026.4.15+ release.
+If an operational rollback restores a build before `2026.4.15`, disable Feishu
+webhook mode, isolate Gateway HTTP/WebSocket, and stop Matrix room control
+commands until the named floor is restored.
+
 ## Related recipes
 
 - [Source code authz tenant boundary audit]({{< relref "/recipes/general/source-code-authz-tenant-boundary-audit" >}})
@@ -277,7 +285,11 @@ GHSA-mr34-9552-qr95. Produce exactly one output:
 ## References
 
 - GitHub Advisory `GHSA-xh72-v6v9-mwhc`: <https://github.com/advisories/GHSA-xh72-v6v9-mwhc>
+- NVD `CVE-2026-44109`: <https://nvd.nist.gov/vuln/detail/CVE-2026-44109>
 - GitHub Advisory `GHSA-xmxx-7p24-h892`: <https://github.com/advisories/GHSA-xmxx-7p24-h892>
+- NVD `CVE-2026-43585`: <https://nvd.nist.gov/vuln/detail/CVE-2026-43585>
 - GitHub Advisory `GHSA-2gvc-4f3c-2855`: <https://github.com/advisories/GHSA-2gvc-4f3c-2855>
+- NVD `CVE-2026-44110`: <https://nvd.nist.gov/vuln/detail/CVE-2026-44110>
 - GitHub Advisory `GHSA-mr34-9552-qr95`: <https://github.com/advisories/GHSA-mr34-9552-qr95>
+- NVD `CVE-2026-41389`: <https://nvd.nist.gov/vuln/detail/CVE-2026-41389>
 - OpenClaw project: <https://github.com/openclaw/openclaw>

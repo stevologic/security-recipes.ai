@@ -3,7 +3,7 @@ title: Agentic SOC Detection Pack
 linkTitle: SOC Detection Pack
 weight: 7
 date: 2026-05-05
-lastmod: 2026-07-23
+lastmod: 2026-08-21
 sidebar:
   exclude: true
 description: >
@@ -119,8 +119,8 @@ tenant environment.
 
 - [OpenTelemetry GenAI semantic conventions](https://opentelemetry.io/docs/specs/semconv/gen-ai/)
 - [OpenTelemetry MCP semantic conventions](https://opentelemetry.io/docs/specs/semconv/gen-ai/mcp/)
-- [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices)
-- [MCP Elicitation](https://modelcontextprotocol.io/specification/2025-06-18/client/elicitation)
+- [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices)
+- [MCP Elicitation](https://modelcontextprotocol.io/specification/2026-07-28/client/elicitation)
 - [OWASP MCP Top 10](https://owasp.org/www-project-mcp-top-10/)
 - [OWASP Top 10 for LLM Applications](https://owasp.org/www-project-top-10-for-large-language-model-applications)
 - [NIST AI RMF Generative AI Profile](https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence)

@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-05-04",
+  "last_reviewed": "2026-08-21",
   "intent": "Create a buyer-grade protocol conformance layer for SecurityRecipes so MCP, A2A, agent identity, prompt-injection, and standards drift are translated into generated evidence, deterministic runtime decisions, and MCP-readable diligence artifacts.",
   "positioning": {
     "buyer": "AI platform, product security, AppSec, GRC, procurement security, and acquisition diligence teams",
@@ -54,6 +54,15 @@
   },
   "source_references": [
     {
+      "id": "mcp-authorization-2026-07-28",
+      "name": "Model Context Protocol Authorization Specification (2026-07-28 current revision)",
+      "publisher": "Model Context Protocol",
+      "published": "2026-07-28",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization",
+      "source_class": "protocol_specification",
+      "why_it_matters": "Current public MCP 2026-07-28 revision. Protected MCP servers need OAuth 2.1 aligned authorization, protected-resource metadata, resource indicators, audience validation, PKCE, and token-passthrough denial before tools can safely receive agent authority."
+    },
+    {
       "id": "mcp-authorization-2025-11-25",
       "name": "Model Context Protocol Authorization Specification",
       "publisher": "Model Context Protocol",
@@ -61,6 +70,15 @@
       "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization",
       "source_class": "protocol_specification",
       "why_it_matters": "Protected MCP servers need OAuth 2.1 aligned authorization, protected-resource metadata, resource indicators, audience validation, PKCE, and token-passthrough denial before tools can safely receive agent authority."
+    },
+    {
+      "id": "mcp-client-id-metadata-2026-07-28",
+      "name": "MCP Authorization Client ID Metadata Document (2026-07-28 current revision)",
+      "publisher": "Model Context Protocol",
+      "published": "2026-07-28",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization",
+      "source_class": "protocol_specification",
+      "why_it_matters": "Current public MCP 2026-07-28 revision. Client ID metadata gives MCP clients a scalable alternative to static registration, but enterprise gateways still need to review redirect policy, client identity, and authorization-server trust before approval."
     },
     {
       "id": "mcp-client-id-metadata-2025-11-25",
@@ -79,6 +97,15 @@
       "url": "https://blog.modelcontextprotocol.io/posts/2026-03-16-tool-annotations/",
       "source_class": "protocol_guidance",
       "why_it_matters": "MCP tool annotations can help clients present risk-aware approval UI, but annotations are hints until a trusted server, gateway policy, and drift baseline make them enforceable."
+    },
+    {
+      "id": "mcp-spec-changelog-2026-07-28",
+      "name": "MCP Specification Changelog (2026-07-28 current revision)",
+      "publisher": "Model Context Protocol",
+      "published": "2026-07-28",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/changelog",
+      "source_class": "protocol_specification",
+      "why_it_matters": "Current public MCP 2026-07-28 revision. MCP is still changing quickly, so buyers need explicit evidence that resource metadata, authorization expectations, client metadata, and tool behavior are reviewed after spec revisions."
     },
     {
       "id": "mcp-spec-changelog-2025-11-25",
@@ -140,11 +167,15 @@
       "id": "mcp-authorization-2025-11-25",
       "title": "MCP Authorization Conformance",
       "current_versions": [
+        "2026-07-28",
         "2025-11-25"
       ],
       "source_ids": [
+        "mcp-authorization-2026-07-28",
         "mcp-authorization-2025-11-25",
+        "mcp-client-id-metadata-2026-07-28",
         "mcp-client-id-metadata-2025-11-25",
+        "mcp-spec-changelog-2026-07-28",
         "mcp-spec-changelog-2025-11-25"
       ],
       "commercial_value": "Turns MCP authorization drift into a premium gateway control: live metadata discovery, resource/audience checks, client metadata review, consent evidence, and signed runtime receipts.",

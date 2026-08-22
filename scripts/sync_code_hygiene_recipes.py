@@ -130,6 +130,7 @@ def render_recipe(
         f"tags: {yaml_list(tags)}",
         f"weight: {family_weight * 100 + item_weight}",
         f"date: {catalog['generated_date']}",
+        f"lastmod: {catalog['generated_date']}",
         f"reference_ids: {yaml_list(ref_ids)}",
         f"references_reviewed: {sources['reviewed_on']}",
         "---",
@@ -239,6 +240,7 @@ def render_root_index(catalog: dict[str, Any]) -> str:
             'linkTitle: "Code Hygiene"',
             'description: "Bounded audit and remediation recipes for code correctness, maintainability, lifecycle safety, and diagnostic debt across major ecosystems."',
             "weight: 22",
+            f"lastmod: {catalog['generated_date']}",
             "sidebar:",
             "  open: false",
             "---",
@@ -264,6 +266,7 @@ def render_family_index(
     family: dict[str, Any],
     weight: int,
     records: list[dict[str, Any]],
+    generated_date: str,
 ) -> str:
     family_records = [record for record in records if record["family"] == key]
     description = family_meta_description(family)
@@ -274,6 +277,7 @@ def render_family_index(
             f"linkTitle: {yaml_scalar(family['title'])}",
             f"description: {yaml_scalar(description)}",
             f"weight: {weight * 10}",
+            f"lastmod: {generated_date}",
             "sidebar:",
             "  open: false",
             "---",
@@ -347,6 +351,7 @@ def expected_outputs(catalog: dict[str, Any], sources: dict[str, Any]) -> dict[P
             family,
             family_weight,
             catalog["records"],
+            catalog["generated_date"],
         )
     item_counts: dict[str, int] = {}
     for record in catalog["records"]:

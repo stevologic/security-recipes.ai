@@ -9,6 +9,7 @@ model: "GPT-5.3-Codex"
 tags: ["defi", "smart-contract", "reentrancy", "callbacks", "invariants"]
 weight: 27
 date: 2026-06-14
+lastmod: 2026-08-21
 ---
 
 Use this prompt to harden DeFi contracts that make external calls,

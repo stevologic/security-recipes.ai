@@ -1,7 +1,7 @@
 ---
-title: "GHSA-3xx2/GHSA-47wq - Paperclip agent key tenant-boundary bypass"
-linkTitle: "GHSA Paperclip agent keys"
-description: "Critical Paperclip cross-tenant authorization bypass in agent API key routes. Upgrade to 2026.416.0+, require company access on key list/create/revoke, and rotate agent tokens if exposed."
+title: "GHSA-3xx2-mqjm-hg9x: Paperclip agent-key tenant bypass"
+linkTitle: "GHSA-3xx2 Paperclip agent keys"
+description: "GHSA-3xx2-mqjm-hg9x is Paperclip cross-tenant agent-key IDOR. Upgrade @paperclipai/server to 2026.416.0+ and rotate exposed agent tokens."
 tool: "general"
 author: "Codex"
 team: "Security"
@@ -10,23 +10,24 @@ model: "GPT 5.5 Extra High reasoning"
 tags: ["ghsa", "paperclip", "agentic-ai", "npm", "idor", "authorization", "multi-tenant", "critical"]
 weight: 46
 date: 2026-05-02
+lastmod: 2026-08-21
 ghsa: "GHSA-3xx2-mqjm-hg9x"
 known_as: ["Paperclip agent API key IDOR", "GHSA-47wq-cj9q-wpmp"]
 kev: false
 severity: "critical"
 ecosystem: "typescript/npm"
 disclosed: "2026-04-16"
+ai_enrichment_review_status: human-reviewed-development-draft
 ---
 
-Two critical Paperclip advisories describe the same tenant-boundary failure in
-agent API key routes. The `GET`, `POST`, and `DELETE` handlers for
-`/agents/:id/keys` accepted a board-type session but did not verify that the
-caller belonged to the company owning the target agent.
+GHSA-3xx2-mqjm-hg9x and GHSA-47wq-cj9q-wpmp describe the same tenant-boundary
+failure in Paperclip agent API key routes. The `GET`, `POST`, and `DELETE`
+handlers for `/agents/:id/keys` accepted a board-type session but did not
+verify that the caller belonged to the company owning the target agent.
 
-An authenticated board user could supply another company's agent UUID, list or
-revoke that agent's keys, and mint a new plaintext agent token bound to the
-victim tenant. For an agent platform, that is a full cross-tenant control-plane
-compromise.
+GitHub names **`@paperclipai/server` 2026.416.0** for both advisories. Do not
+invent a later 2026.417.0 floor. This page stays a development draft. Do not
+prove exposure by minting or using cross-tenant agent tokens.
 
 ## When to use it
 
@@ -211,6 +212,13 @@ GHSA-3xx2-mqjm-hg9x and GHSA-47wq-cj9q-wpmp. Produce exactly one output:
 - Revoking by key ID alone when key IDs are globally unique and guessable from
   logs or frontend state.
 - Logging plaintext `pcp_*` tokens in tests, audit events, or PR comments.
+
+## Rollback and recovery
+
+Prefer forward recovery to another GitHub-named `@paperclipai/server`
+2026.416.0+ release. If an operational rollback restores a build before
+`2026.416.0`, isolate agent-key routes and rotate any agent tokens minted
+while the tenant check was missing.
 
 ## Related recipes
 

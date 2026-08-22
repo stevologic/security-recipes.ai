@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-05-04",
+  "last_reviewed": "2026-08-21",
   "intent": "Turn current agentic AI and MCP security guidance into a repeatable severity, SLA, and runtime-decision layer for SecurityRecipes. The profile gives enterprise, platform, product-security, and acquisition reviewers a quantitative view of agentic risk without pretending that open reference evidence is the same as live customer telemetry.",
   "positioning": {
     "buyer": "AI Platform, Product Security, AppSec, IAM, GRC, AI governance, procurement security, and acquisition diligence teams",
@@ -145,6 +145,14 @@
       "why_it_matters": "NIST AI 600-1 provides the governance, mapping, measurement, and management framing enterprise buyers expect when AI risk scores become operational decisions."
     },
     {
+      "id": "mcp-authorization-2026-07-28",
+      "name": "Model Context Protocol Authorization Specification (2026-07-28 current revision)",
+      "publisher": "Model Context Protocol",
+      "published": "2026-07-28",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization",
+      "why_it_matters": "Current public MCP 2026-07-28 revision. The MCP authorization specification anchors resource indicators, audience binding, token handling, and scope minimization, which are decisive controls for scoring delegated tool authority."
+    },
+    {
       "id": "mcp-authorization-2025-11-25",
       "name": "Model Context Protocol Authorization Specification",
       "publisher": "Model Context Protocol",
@@ -157,8 +165,14 @@
     {
       "id": "agent_goal_hijack_context_poisoning",
       "title": "Agent Goal Hijack Through Poisoned Context",
-      "owasp_agentic_ids": ["ASI01", "ASI06"],
-      "owasp_mcp_ids": ["MCP06", "MCP10"],
+      "owasp_agentic_ids": [
+        "ASI01",
+        "ASI06"
+      ],
+      "owasp_mcp_ids": [
+        "MCP06",
+        "MCP10"
+      ],
       "aivss_vector": {
         "autonomy_exposure": 1.7,
         "authority_impact": 1.4,
@@ -168,7 +182,12 @@
         "control_confidence": 0.5,
         "business_materiality": 0.9
       },
-      "evidence_keys": ["context_poisoning_guard_pack", "secure_context_trust_pack", "agentic_posture_snapshot", "agentic_red_team_replay_harness"],
+      "evidence_keys": [
+        "context_poisoning_guard_pack",
+        "secure_context_trust_pack",
+        "agentic_posture_snapshot",
+        "agentic_red_team_replay_harness"
+      ],
       "owner": "Product Security",
       "recommended_controls": [
         "Demote retrieved context from instruction to cited evidence.",
@@ -181,8 +200,14 @@
     {
       "id": "mcp_tool_misuse_lethal_session",
       "title": "MCP Tool Misuse in a Lethal Session Combination",
-      "owasp_agentic_ids": ["ASI02"],
-      "owasp_mcp_ids": ["MCP02", "MCP05", "MCP08"],
+      "owasp_agentic_ids": [
+        "ASI02"
+      ],
+      "owasp_mcp_ids": [
+        "MCP02",
+        "MCP05",
+        "MCP08"
+      ],
       "aivss_vector": {
         "autonomy_exposure": 1.6,
         "authority_impact": 1.9,
@@ -192,7 +217,12 @@
         "control_confidence": 0.6,
         "business_materiality": 0.9
       },
-      "evidence_keys": ["mcp_tool_risk_contract", "mcp_authorization_conformance_pack", "agentic_exposure_graph", "agentic_action_runtime_pack"],
+      "evidence_keys": [
+        "mcp_tool_risk_contract",
+        "mcp_authorization_conformance_pack",
+        "agentic_exposure_graph",
+        "agentic_action_runtime_pack"
+      ],
       "owner": "AI Platform Security",
       "recommended_controls": [
         "Split sessions that combine private data, untrusted content, and exfiltration-capable write tools.",
@@ -205,8 +235,14 @@
     {
       "id": "identity_privilege_abuse",
       "title": "Identity and Privilege Abuse by an Agent",
-      "owasp_agentic_ids": ["ASI03"],
-      "owasp_mcp_ids": ["MCP01", "MCP02", "MCP07"],
+      "owasp_agentic_ids": [
+        "ASI03"
+      ],
+      "owasp_mcp_ids": [
+        "MCP01",
+        "MCP02",
+        "MCP07"
+      ],
       "aivss_vector": {
         "autonomy_exposure": 1.5,
         "authority_impact": 2.0,
@@ -216,7 +252,12 @@
         "control_confidence": 0.5,
         "business_materiality": 1.0
       },
-      "evidence_keys": ["agent_identity_delegation_ledger", "agentic_entitlement_review_pack", "mcp_authorization_conformance_pack", "agentic_approval_receipt_pack"],
+      "evidence_keys": [
+        "agent_identity_delegation_ledger",
+        "agentic_entitlement_review_pack",
+        "mcp_authorization_conformance_pack",
+        "agentic_approval_receipt_pack"
+      ],
       "owner": "IAM and Platform Security",
       "recommended_controls": [
         "Use per-workflow non-human identities with explicit denies.",
@@ -229,8 +270,14 @@
     {
       "id": "agentic_supply_chain_skill_compromise",
       "title": "Agentic Supply Chain or Skill Compromise",
-      "owasp_agentic_ids": ["ASI04"],
-      "owasp_mcp_ids": ["MCP03", "MCP04", "MCP09"],
+      "owasp_agentic_ids": [
+        "ASI04"
+      ],
+      "owasp_mcp_ids": [
+        "MCP03",
+        "MCP04",
+        "MCP09"
+      ],
       "aivss_vector": {
         "autonomy_exposure": 1.3,
         "authority_impact": 1.7,
@@ -240,7 +287,12 @@
         "control_confidence": 0.6,
         "business_materiality": 0.9
       },
-      "evidence_keys": ["agent_skill_supply_chain_pack", "mcp_tool_surface_drift_pack", "mcp_connector_intake_pack", "agentic_protocol_conformance_pack"],
+      "evidence_keys": [
+        "agent_skill_supply_chain_pack",
+        "mcp_tool_surface_drift_pack",
+        "mcp_connector_intake_pack",
+        "agentic_protocol_conformance_pack"
+      ],
       "owner": "Supply Chain Security",
       "recommended_controls": [
         "Pin skill, tool, and Agent Card hashes before execution.",
@@ -253,8 +305,12 @@
     {
       "id": "unexpected_code_execution",
       "title": "Unexpected Code Execution Through Tool or Skill Paths",
-      "owasp_agentic_ids": ["ASI05"],
-      "owasp_mcp_ids": ["MCP05"],
+      "owasp_agentic_ids": [
+        "ASI05"
+      ],
+      "owasp_mcp_ids": [
+        "MCP05"
+      ],
       "aivss_vector": {
         "autonomy_exposure": 1.4,
         "authority_impact": 2.0,
@@ -264,7 +320,12 @@
         "control_confidence": 0.4,
         "business_materiality": 1.0
       },
-      "evidence_keys": ["mcp_stdio_launch_boundary_pack", "agent_skill_supply_chain_pack", "agentic_action_runtime_pack", "agentic_catastrophic_risk_annex"],
+      "evidence_keys": [
+        "mcp_stdio_launch_boundary_pack",
+        "agent_skill_supply_chain_pack",
+        "agentic_action_runtime_pack",
+        "agentic_catastrophic_risk_annex"
+      ],
       "owner": "Runtime Security",
       "recommended_controls": [
         "Keep STDIO launch commands exact and sandboxed.",
@@ -277,8 +338,13 @@
     {
       "id": "insecure_inter_agent_handoff",
       "title": "Insecure Inter-Agent Handoff or Remote Agent Trust",
-      "owasp_agentic_ids": ["ASI07"],
-      "owasp_mcp_ids": ["MCP07", "MCP10"],
+      "owasp_agentic_ids": [
+        "ASI07"
+      ],
+      "owasp_mcp_ids": [
+        "MCP07",
+        "MCP10"
+      ],
       "aivss_vector": {
         "autonomy_exposure": 1.6,
         "authority_impact": 1.5,
@@ -288,7 +354,12 @@
         "control_confidence": 0.6,
         "business_materiality": 0.8
       },
-      "evidence_keys": ["agent_handoff_boundary_pack", "a2a_agent_card_trust_profile", "agentic_protocol_conformance_pack", "context_egress_boundary_pack"],
+      "evidence_keys": [
+        "agent_handoff_boundary_pack",
+        "a2a_agent_card_trust_profile",
+        "agentic_protocol_conformance_pack",
+        "context_egress_boundary_pack"
+      ],
       "owner": "AI Platform Architecture",
       "recommended_controls": [
         "Treat Agent Cards and handoff metadata as untrusted until signed, pinned, and policy-mapped.",
@@ -301,8 +372,12 @@
     {
       "id": "cascading_failure_runaway_agent",
       "title": "Cascading Failure or Runaway Agent Operation",
-      "owasp_agentic_ids": ["ASI08"],
-      "owasp_mcp_ids": ["MCP08"],
+      "owasp_agentic_ids": [
+        "ASI08"
+      ],
+      "owasp_mcp_ids": [
+        "MCP08"
+      ],
       "aivss_vector": {
         "autonomy_exposure": 1.8,
         "authority_impact": 1.4,
@@ -312,7 +387,12 @@
         "control_confidence": 0.6,
         "business_materiality": 0.8
       },
-      "evidence_keys": ["agentic_telemetry_contract", "agentic_incident_response_pack", "agentic_run_receipt_pack", "agentic_measurement_probe_pack"],
+      "evidence_keys": [
+        "agentic_telemetry_contract",
+        "agentic_incident_response_pack",
+        "agentic_run_receipt_pack",
+        "agentic_measurement_probe_pack"
+      ],
       "owner": "Security Operations",
       "recommended_controls": [
         "Define per-run budgets, loop limits, fan-out limits, and kill conditions.",
@@ -325,8 +405,13 @@
     {
       "id": "human_agent_trust_exploitation",
       "title": "Human-Agent Trust Exploitation or Approval Bypass",
-      "owasp_agentic_ids": ["ASI09"],
-      "owasp_mcp_ids": ["MCP06", "MCP08"],
+      "owasp_agentic_ids": [
+        "ASI09"
+      ],
+      "owasp_mcp_ids": [
+        "MCP06",
+        "MCP08"
+      ],
       "aivss_vector": {
         "autonomy_exposure": 1.2,
         "authority_impact": 1.5,
@@ -336,7 +421,12 @@
         "control_confidence": 0.6,
         "business_materiality": 0.8
       },
-      "evidence_keys": ["agentic_approval_receipt_pack", "agentic_action_runtime_pack", "agentic_red_team_drill_pack", "context_poisoning_guard_pack"],
+      "evidence_keys": [
+        "agentic_approval_receipt_pack",
+        "agentic_action_runtime_pack",
+        "agentic_red_team_drill_pack",
+        "context_poisoning_guard_pack"
+      ],
       "owner": "GRC and Security Engineering",
       "recommended_controls": [
         "Make approvals scoped, time-boxed, auditable, and bound to the exact action envelope.",
@@ -349,8 +439,12 @@
     {
       "id": "rogue_agent_shadow_mcp",
       "title": "Rogue Agent or Shadow MCP Server",
-      "owasp_agentic_ids": ["ASI10"],
-      "owasp_mcp_ids": ["MCP09"],
+      "owasp_agentic_ids": [
+        "ASI10"
+      ],
+      "owasp_mcp_ids": [
+        "MCP09"
+      ],
       "aivss_vector": {
         "autonomy_exposure": 1.5,
         "authority_impact": 1.8,
@@ -360,7 +454,12 @@
         "control_confidence": 0.5,
         "business_materiality": 0.9
       },
-      "evidence_keys": ["agentic_app_intake_pack", "mcp_connector_intake_pack", "agent_identity_delegation_ledger", "enterprise_trust_center_export"],
+      "evidence_keys": [
+        "agentic_app_intake_pack",
+        "mcp_connector_intake_pack",
+        "agent_identity_delegation_ledger",
+        "enterprise_trust_center_export"
+      ],
       "owner": "AI Governance",
       "recommended_controls": [
         "Require app intake for every agent host, MCP server, and connector before production use.",
@@ -376,19 +475,34 @@
       "id": "security-prioritization",
       "title": "Security Prioritization",
       "question": "Which agentic AI risks are critical or high, who owns them, what SLA applies, and which controls should be implemented first?",
-      "uses": ["risk_scores", "severity_summary", "remediation_queue", "source_artifacts"]
+      "uses": [
+        "risk_scores",
+        "severity_summary",
+        "remediation_queue",
+        "source_artifacts"
+      ]
     },
     {
       "id": "ai-platform-runtime",
       "title": "AI Platform Runtime Gate",
       "question": "What deterministic decision should a gateway or agent host return when a runtime event matches one of the scored agentic risk scenarios?",
-      "uses": ["decision_contract", "runtime_kill_signals", "risk_scores", "mcp_tools"]
+      "uses": [
+        "decision_contract",
+        "runtime_kill_signals",
+        "risk_scores",
+        "mcp_tools"
+      ]
     },
     {
       "id": "acquisition-diligence",
       "title": "Acquisition Diligence",
       "question": "Does SecurityRecipes translate emerging agentic-security standards into a productizable scoring layer with evidence, MCP tools, and hosted expansion wedges?",
-      "uses": ["positioning", "commercialization_path", "source_references", "hosted_mcp_wedges"]
+      "uses": [
+        "positioning",
+        "commercialization_path",
+        "source_references",
+        "hosted_mcp_wedges"
+      ]
     }
   ]
 }

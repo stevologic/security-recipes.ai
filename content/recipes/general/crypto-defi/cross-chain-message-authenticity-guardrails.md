@@ -9,6 +9,7 @@ model: "GPT-5.3-Codex"
 tags: ["defi", "bridge", "cross-chain", "message-authenticity", "replay"]
 weight: 31
 date: 2026-06-14
+lastmod: 2026-08-21
 ---
 
 Use this prompt to harden cross-chain message handlers against forged

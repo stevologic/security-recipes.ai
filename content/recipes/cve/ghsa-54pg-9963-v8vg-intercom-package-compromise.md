@@ -1,7 +1,7 @@
 ---
-title: "GHSA-54pg-9963-v8vg - Intercom client package compromise"
+title: "GHSA-54pg-9963-v8vg: Intercom client package compromise"
 linkTitle: "GHSA-54pg Intercom compromise"
-description: "Critical Intercom npm and Composer package compromise. Quarantine intercom-client 7.0.4 and intercom-php 5.0.2 installs, clear caches, verify lockfile provenance, and rotate exposed credentials."
+description: "GHSA-54pg-9963-v8vg is Intercom npm 7.0.4 compromise. Quarantine 7.0.4 and PHP 5.0.2, purge caches, and rotate secrets."
 tool: "general"
 author: "Codex"
 team: "Security"
@@ -10,24 +10,26 @@ model: "GPT 5.5 Extra High reasoning"
 tags: ["ghsa", "intercom", "npm", "composer", "supply-chain", "critical"]
 weight: 64
 date: 2026-05-10
+lastmod: 2026-08-21
 ghsa: "GHSA-54pg-9963-v8vg"
-known_as: ["Intercom client package compromise", "GHSA-gr3r-crp5-qrrm"]
+known_as: ["Intercom client package compromise", "GHSA-gr3r-crp5-qrrm", "GHSA-4594-wxqv-j3pm"]
 kev: false
 severity: "critical"
 ecosystem: "npm/composer"
 disclosed: "2026-05-07"
+ai_enrichment_review_status: human-reviewed-development-draft
 ---
 
-Intercom disclosed a supply-chain compromise affecting `intercom-client` on npm
-and `intercom/intercom-php` on Composer. The malicious versions were removed
-and safe versions restored, but any repository, CI runner, developer machine,
-or production build that installed the malicious artifacts during the exposure
-window should be treated as potentially credential-exposed.
+GHSA-54pg-9963-v8vg and GHSA-gr3r-crp5-qrrm cover the Mini Shai-Hulud
+Intercom compromise on **2026-04-30**. GitHub names `intercom-client` **7.0.4**
+and `intercom/intercom-php` **5.0.2** (malicious commit `e69bf4b3`) as the
+risky artifacts. GHAD still lists **`first_patched_version: null`**. Do not
+invent a 7.0.5 or 5.0.3 floor.
 
-This recipe covers both GitHub Security Advisories because production cleanup
-is the same shape: identify whether the bad package versions or commit hashes
-entered the environment, clear package caches, reinstall from clean artifacts,
-and rotate secrets that were reachable from affected build or runtime hosts.
+GitHub's named recovery is downgrade to `intercom-client` **7.0.3** or
+`intercom-php` **5.0.1**, or purge caches and reinstall the restored clean
+5.0.2 (`9371eba9`). This page stays a development draft. Do not run
+compromised lifecycle scripts to prove exposure.
 
 ## When to use it
 
@@ -213,6 +215,13 @@ GHSA-54pg-9963-v8vg (`intercom-client`) and GHSA-gr3r-crp5-qrrm
   during dependency install.
 - Treating restored package names as proof that existing cached artifacts are
   clean.
+
+## Rollback and recovery
+
+Prefer a purged-cache reinstall of GitHub-named clean artifacts (`7.0.3` or
+clean `5.0.2`). If an operational rollback restores npm `7.0.4` or PHP commit
+`e69bf4b3`, quarantine that artifact immediately and rotate secrets reachable
+from the affected install environment.
 
 ## Output contract
 

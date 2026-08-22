@@ -7,7 +7,7 @@ framework_id: "eu-cyber-resilience-act"
 framework: "EU Cyber Resilience Act"
 framework_version: "Regulation (EU) 2024/2847"
 framework_status: "phased-implementation"
-source_reviewed: "2026-07-12"
+source_reviewed: "2026-08-21"
 jurisdiction: ["european-union", "extraterritorial"]
 jurisdictions: ["european-union", "extraterritorial"]
 industry: ["products-with-digital-elements", "software", "hardware"]
@@ -26,7 +26,8 @@ noindex_follow: true
 model: "gpt-5-codex"
 tags: ["compliance", "eu-cyber-resilience-act", "product-security", "audit", "vulnerability-management", "products-with-digital-elements", "software"]
 weight: 340
-date: "2026-07-12"
+date: "2026-08-21"
+lastmod: "2026-08-21"
 severity: "info"
 ---
 
@@ -51,7 +52,7 @@ Use this recipe to produce a source-aware evidence-readiness assessment for **EU
 - **Publisher:** European Union
 - **Version:** Regulation (EU) 2024/2847
 - **Status:** `phased-implementation`
-- **Sources reviewed:** 2026-07-12
+- **Sources reviewed:** 2026-08-21
 - **Jurisdictions:** european-union, extraterritorial
 - **Industries:** products-with-digital-elements, software, hardware
 - **License boundary:** `official-text`
@@ -85,7 +86,7 @@ Evidence domains for this framework:
 ## The prompt
 
 ```markdown
-You are a compliance evidence-readiness analyst. Evaluate the supplied scope against EU Cyber Resilience Act (Regulation (EU) 2024/2847). The catalog status is phased-implementation and the source review date is 2026-07-12.
+You are a compliance evidence-readiness analyst. Evaluate the supplied scope against EU Cyber Resilience Act (Regulation (EU) 2024/2847). The catalog status is phased-implementation and the source review date is 2026-08-21.
 
 Never claim certification or legal compliance. Never invent applicability, evidence, control operation, sampling results, or requirement text. Separate observed facts, organization assertions, and analyst inferences. Treat missing or inaccessible evidence as unknown, not as failure, unless the authoritative assessment method says otherwise.
 

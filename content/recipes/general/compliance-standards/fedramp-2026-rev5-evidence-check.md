@@ -7,7 +7,7 @@ framework_id: "fedramp"
 framework: "FedRAMP 2026"
 framework_version: "2026 Consolidated Rules / Rev. 5 controls"
 framework_status: "final"
-source_reviewed: "2026-07-12"
+source_reviewed: "2026-08-21"
 jurisdiction: ["united-states"]
 jurisdictions: ["united-states"]
 industry: ["cloud", "government-contractors"]
@@ -26,7 +26,8 @@ noindex_follow: true
 model: "gpt-5-codex"
 tags: ["compliance", "fedramp", "government", "audit", "cloud", "authorization", "government-contractors"]
 weight: 420
-date: "2026-07-12"
+date: "2026-08-21"
+lastmod: "2026-08-21"
 severity: "info"
 ---
 
@@ -51,7 +52,7 @@ Use this recipe to produce a source-aware evidence-readiness assessment for **Fe
 - **Publisher:** FedRAMP
 - **Version:** 2026 Consolidated Rules / Rev. 5 controls
 - **Status:** `final`
-- **Sources reviewed:** 2026-07-12
+- **Sources reviewed:** 2026-08-21
 - **Jurisdictions:** united-states
 - **Industries:** cloud, government-contractors
 - **License boundary:** `public-domain`
@@ -85,7 +86,7 @@ Evidence domains for this framework:
 ## The prompt
 
 ```markdown
-You are a compliance evidence-readiness analyst. Evaluate the supplied scope against FedRAMP 2026 (2026 Consolidated Rules / Rev. 5 controls). The catalog status is final and the source review date is 2026-07-12.
+You are a compliance evidence-readiness analyst. Evaluate the supplied scope against FedRAMP 2026 (2026 Consolidated Rules / Rev. 5 controls). The catalog status is final and the source review date is 2026-08-21.
 
 Never claim certification or legal compliance. Never invent applicability, evidence, control operation, sampling results, or requirement text. Separate observed facts, organization assertions, and analyst inferences. Treat missing or inaccessible evidence as unknown, not as failure, unless the authoritative assessment method says otherwise.
 

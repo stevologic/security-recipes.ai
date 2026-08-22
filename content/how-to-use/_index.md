@@ -3,7 +3,7 @@ title: Visual Guide to Security Recipes
 linkTitle: Visual Guide
 weight: 3
 date: 2026-05-02
-lastmod: 2026-07-23
+lastmod: 2026-08-21
 toc: true
 sidebar:
   open: true
@@ -142,9 +142,13 @@ that pull request so the vulnerability evidence is not overstated.
 </figure>
 
 Use MCP when an agent needs structured recipe or CVE retrieval at runtime.
-Keep the baseline read-only. Connecting an organization-approved tool can add
-context, but it does not authorize edits, ticket changes, secret rotation,
-deployment, or any other external mutation.
+Keep the baseline read-only. Start with `recipes_cve_search` or
+`recipes_match_finding`, then `recipes_get` or `recipes_cve_get` for the
+bounded packet. Call `recipes_quality_report` when a recipe is missing
+inputs, selection guidance, an output contract, verification, or
+guardrails. Connecting an organization-approved tool can add context, but
+it does not authorize edits, ticket changes, secret rotation, deployment,
+or any other external mutation.
 
 ## What to read next
 

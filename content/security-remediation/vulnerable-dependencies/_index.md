@@ -3,7 +3,7 @@ title: Vulnerable Dependency Remediation
 linkTitle: Vulnerable Dependency Remediation
 weight: 2
 date: 2026-04-22
-lastmod: 2026-07-21
+lastmod: 2026-08-21
 sidebar:
   open: true
 description: >

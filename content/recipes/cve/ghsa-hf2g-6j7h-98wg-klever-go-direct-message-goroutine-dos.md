@@ -1,39 +1,34 @@
 ---
-title: "GHSA-hf2g-6j7h-98wg - Klever-Go direct-message goroutine DoS"
-linkTitle: "GHSA-hf2g Klever-Go direct message DoS"
-description: "High-severity Klever-Go libp2p direct-message denial of service. Upgrade to 1.7.18+, bound ingress goroutine creation before ProcessReceivedMessage, and test DirectSendID flood controls locally."
+title: "CVE-2026-52879: Klever-Go direct-message goroutine DoS"
+linkTitle: "CVE-2026-52879 Klever DM DoS"
+description: "CVE-2026-52879 is Klever-Go direct-message goroutine DoS. Upgrade github.com/klever-io/klever-go to 1.7.18+ and bound ingress goroutines."
 tool: "general"
 author: "Codex"
 team: "Security"
 maturity: "development"
 model: "GPT 5.5 Extra High reasoning"
-tags: ["ghsa", "klever-go", "go", "blockchain", "p2p", "libp2p", "direct-message", "goroutine", "denial-of-service", "resource-exhaustion", "high"]
+tags: ["cve", "ghsa", "klever-go", "go", "blockchain", "p2p", "libp2p", "direct-message", "goroutine", "denial-of-service", "resource-exhaustion", "high"]
 weight: 87
 date: 2026-06-07
+lastmod: 2026-08-21
+cve: "CVE-2026-52879"
 ghsa: "GHSA-hf2g-6j7h-98wg"
-known_as: ["Klever-Go direct-message goroutine DoS", "DirectSendID ingress throttling bypass"]
+known_as: ["Klever-Go direct-message goroutine DoS", "DirectSendID ingress throttling bypass", "GHSA-hf2g-6j7h-98wg"]
 kev: false
 severity: "high"
 ecosystem: "go/gomod"
 disclosed: "2026-06-02"
+ai_enrichment_review_status: human-reviewed-development-draft
 ---
 
-Klever-Go versions `1.7.14` through `1.7.17` can spawn an unbounded goroutine
-for each inbound libp2p direct message before message-processor antiflood
-logic makes an admission decision. A connected peer can send many well-formed
-direct-message envelopes with different sequence numbers, causing the node to
-allocate goroutines, stacks, and message references faster than processors can
-drain them.
+CVE-2026-52879 / GHSA-hf2g-6j7h-98wg covers `github.com/klever-io/klever-go`
+`1.7.14` through `1.7.17`. `directMessageHandler` can spawn a goroutine for
+each inbound libp2p direct message before processor antiflood makes an
+admission decision.
 
-This is distinct from Klever-Go P2P decompression, throttler-slot, and nil
-`RawData` advisories. The vulnerable surface is the direct-message ingress
-wrapper itself: `directMessageHandler` creates asynchronous work before the
-normal `ProcessReceivedMessage` path has a chance to reject or rate-limit it.
-Repositories that fork, build, deploy, or wrap Klever-Go nodes need to
-upgrade and prove inbound direct-message processing is bounded before any
-goroutine spawn.
-
-As of 2026-06-07, GitHub Advisory Database lists no CVE for this advisory.
+GitHub names **1.7.18**. Do not invent a later 1.7.19 floor. This page stays
+a development draft. Do not prove exposure by flooding live DirectSendID
+streams.
 
 ## When to use it
 
@@ -266,6 +261,12 @@ direct message before antiflood admission. Produce exactly one output:
 - Running stress tests against shared nodes or logging peer topology, node
   keys, private chain configuration, production addresses, or raw payloads.
 
+## Rollback and recovery
+
+Prefer forward recovery to another GitHub-named `klever-go` 1.7.18+ release.
+If an operational rollback restores 1.7.14 through 1.7.17, isolate libp2p
+direct-message ingress until the named floor is restored.
+
 ## Related recipes
 
 - [Klever-Go P2P nil RawData DoS]({{< relref "/recipes/cve/ghsa-rm5c-5x2p-48wr-klever-go-p2p-nil-rawdata-dos" >}})
@@ -275,4 +276,5 @@ direct message before antiflood admission. Produce exactly one output:
 ## References
 
 - GitHub Advisory Database: <https://github.com/advisories/GHSA-hf2g-6j7h-98wg>
+- NVD `CVE-2026-52879`: <https://nvd.nist.gov/vuln/detail/CVE-2026-52879>
 - Klever-Go 1.7.18 release: <https://github.com/klever-io/klever-go/releases/tag/v1.7.18>

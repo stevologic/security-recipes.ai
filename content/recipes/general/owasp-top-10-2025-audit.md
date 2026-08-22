@@ -9,7 +9,7 @@ model: "Opus 4.7"
 tags: ["owasp", "top-10", "audit", "hunt", "sast", "security-posture"]
 weight: 10
 date: 2026-04-22
-lastmod: 2026-07-23
+lastmod: 2026-08-21
 description: >
   Audit a repository against the current OWASP Top 10:2025 web application
   risks and return a prioritized, read-only report with file-level evidence.

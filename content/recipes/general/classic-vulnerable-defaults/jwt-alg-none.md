@@ -9,6 +9,7 @@ maturity: "development"
 model: "Opus 4.7"
 tags: ["jwt", "auth", "uplift", "mitigate"]
 weight: 25
+lastmod: 2026-08-21
 date: 2026-04-25
 ---
 
@@ -23,6 +24,16 @@ the public RSA key as the HMAC secret because the token says
 The robust shape is the same in both cases: never trust the
 `alg` field. Decide the expected algorithm on the verifier
 side and refuse anything else.
+
+## When to use it
+
+Use this recipe when a repository verifies JWTs and the verifier might honor
+the token `alg` field, accept `none`, or treat an RSA public key as an HMAC
+secret. Prefer it over a generic auth audit when the finding is algorithm
+confusion or a missing algorithms allowlist.
+
+Do not use it to weaken signature checks, accept attacker-chosen algorithms,
+or skip tests that prove legitimate tokens still verify.
 
 ## Pattern
 

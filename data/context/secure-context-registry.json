@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-05-03",
+  "last_reviewed": "2026-08-21",
   "intent": "Define the SecurityRecipes secure context layer as an auditable retrieval and provenance system: every recipe, workflow, policy, evidence pack, and MCP runtime surface that can be supplied to an agent is registered with an owner, trust tier, source hash, instruction-handling rule, freshness expectation, and poisoning-control contract.",
   "positioning": {
     "buyer": "AI Platform, Security Engineering, AppSec, Product Security, GRC, procurement security, vendor-risk, and acquisition diligence teams",
@@ -9,6 +9,12 @@
     "why_now": "Enterprise agents are moving from chat to action. The scarce control surface is no longer only prompt wording or model choice; it is whether the context supplied to agents is fresh, sourced, scoped, non-secret, and resistant to retrieved-instruction abuse."
   },
   "standards_alignment": [
+    {
+      "id": "mcp-authorization-2026-07-28",
+      "name": "Model Context Protocol Authorization Specification (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization",
+      "coverage": "Current public MCP 2026-07-28 revision. Resource indicators, token audience validation, PKCE, HTTPS, dynamic client registration, and forbidden token passthrough."
+    },
     {
       "id": "mcp-authorization-2025-11-25",
       "name": "Model Context Protocol Authorization Specification",

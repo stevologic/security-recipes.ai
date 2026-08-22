@@ -9,7 +9,7 @@ model: "Opus 4.7"
 tags: ["sde", "secrets", "pii", "dlp", "copilot", "cloud-agent", "issue-template"]
 weight: 20
 date: 2026-04-21
-lastmod: 2026-07-23
+lastmod: 2026-08-21
 ---
 
 A three-part bundle for the GitHub Copilot cloud agent — a

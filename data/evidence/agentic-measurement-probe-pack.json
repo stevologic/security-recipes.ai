@@ -12,7 +12,7 @@
     "sales_motion": "Lead with open measurement probes, then sell hosted trace ingestion, probe execution, eval replay, context signing, evidence retention, and trust-center exports."
   },
   "failures": [],
-  "generated_at": "2026-05-03",
+  "generated_at": "2026-08-21",
   "intent": "Define SecurityRecipes measurement probes for agentic AI workflows so the secure context layer can prove traceability, policy fit, runtime evidence, and adversarial readiness with machine-readable checks instead of static assurance claims.",
   "measurement_probe_summary": {
     "average_score": 100.0,
@@ -391,35 +391,35 @@
   "source_artifacts": {
     "agent_capability_risk_register": {
       "path": "data/evidence/agent-capability-risk-register.json",
-      "sha256": "b2aa614ad1adea72509cbe55d4c5816191412d7c4389fc0768fc58cb0f529b28"
+      "sha256": "712f0c7fa5332f75a6f1ed863838ce1b97a107b686ea1b266a15c153cfac3e45"
     },
     "agent_memory_boundary_pack": {
       "path": "data/evidence/agent-memory-boundary-pack.json",
-      "sha256": "3348aa5898b7244a80e69a16382dc579431f90923b5b6ca065498f0a14edabed"
+      "sha256": "4091492bb37db1c3e68a1c97df73dba971774c0cc1714793111fc54a4745acd0"
     },
     "agentic_readiness_scorecard": {
       "path": "data/evidence/agentic-readiness-scorecard.json",
-      "sha256": "93bc53ce3a5ff4d5ef492c9575cd87f21cef1353aea7f7b886f4b1e95a026add"
+      "sha256": "31b0dd4005584a6332a43c63784bd02ec107e02d0f522498a8600ae31f840258"
     },
     "agentic_red_team_drill_pack": {
       "path": "data/evidence/agentic-red-team-drill-pack.json",
-      "sha256": "54627e38d67b719c1b33f96e3fb76c5f771f8dbbd716a0f3fee7eccb35d0c145"
+      "sha256": "22a0221359415367f0c45c4090d1646eb8bc90447b496ec07499226acb0469f1"
     },
     "agentic_run_receipt_pack": {
       "path": "data/evidence/agentic-run-receipt-pack.json",
-      "sha256": "2ee0bee83bad9218bc3990096222d51c7e67bbb0512be9cb1643e530e94ef6c5"
+      "sha256": "ecb94dd50b5ad876b5534b2d290f6aacb72afdfee8391f6652bd230a95e63148"
     },
     "agentic_threat_radar": {
       "path": "data/evidence/agentic-threat-radar.json",
-      "sha256": "669d95c30b3b97b9121e72eaba8f88629c4e4061c973a7cb0895b23482a33713"
+      "sha256": "7fb000d5fd0691b51d2a7cb628f713787bd2c7a6e9953485074f1f32817620a9"
     },
     "context_egress_boundary_pack": {
       "path": "data/evidence/context-egress-boundary-pack.json",
-      "sha256": "3c78f13f12d1219cef79624e17e379aec25aa2725e63f3aa6ad97979518157f4"
+      "sha256": "14bc1f90e0e3e6c9fef5e52c5739a4320e0f4c389f6bbeaeca19b99a69240a7c"
     },
     "context_poisoning_guard_pack": {
       "path": "data/evidence/context-poisoning-guard-pack.json",
-      "sha256": "24c9d4b244048c356b7a66f014f9100ae9b2401fe7e432ffa2e018887d36ebb1"
+      "sha256": "cdaa44ade2d6c8816ffe5954c1b008fe3fdb3c720e39c3187ca565141b1b5e76"
     },
     "gateway_policy": {
       "path": "data/policy/mcp-gateway-policy.json",
@@ -427,15 +427,15 @@
     },
     "mcp_authorization_conformance": {
       "path": "data/evidence/mcp-authorization-conformance-pack.json",
-      "sha256": "5497501fefe0800fed1671535b5f70fe6ec78e81d90e1c87fd58d1707b35df36"
+      "sha256": "6f44c621fecc5341282d02f08857d7ef835c1d9475216970508bbb6401aedac6"
     },
     "profile": {
       "path": "data/assurance/agentic-measurement-probe-profile.json",
-      "sha256": "eddf3fcc6d835af16be4de1bf4124e63d578bd758259da6c3a65434361eda109"
+      "sha256": "63d202fa3c4da49eb607309573b684d7c9aacda8b9df50ebb7695f8685cf7ab8"
     },
     "secure_context_trust_pack": {
       "path": "data/evidence/secure-context-trust-pack.json",
-      "sha256": "8cd4d68eb2f2bd832b02a2f0731560731d1690288fb17b4b7ebc6c5e122f5e3e"
+      "sha256": "11d09a9195f5e3af955d014259486cff7982e9e8c9058f5170a7385b05a875e8"
     },
     "workflow_manifest": {
       "path": "data/control-plane/workflow-manifests.json",
@@ -472,6 +472,12 @@
       "id": "owasp-mcp-top-10-2025",
       "name": "OWASP Top 10 for Model Context Protocol",
       "url": "https://owasp.org/www-project-mcp-top-10/"
+    },
+    {
+      "coverage": "Current public MCP 2026-07-28 revision. Requires probes for audience-bound tokens, resource indicators, PKCE support, token lifetime, token-passthrough denial, and HTTPS transport assumptions.",
+      "id": "mcp-authorization-2026-07-28",
+      "name": "Model Context Protocol Authorization Specification (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization"
     },
     {
       "coverage": "Requires probes for audience-bound tokens, resource indicators, PKCE support, token lifetime, token-passthrough denial, and HTTPS transport assumptions.",
@@ -517,7 +523,7 @@
           "class_id": "context_integrity",
           "earned_weight": 12,
           "evidence": {
-            "context_package_hash": "d0b8e0392be467680a06276cbfc2106e6ef836cea5c6bf8d2c8ff6af87f6332d",
+            "context_package_hash": "14361f843f2efdac75bf18f7bd3499420283916240cd494966d5e3f89a054f42",
             "context_source_count": 8,
             "poisoning_source_result_count": 9
           },
@@ -818,7 +824,7 @@
               "critical": 2,
               "high": 3
             },
-            "source_reference_count": 20
+            "source_reference_count": 21
           },
           "evidence_inputs": [
             "agentic_threat_radar.threat_signals",
@@ -884,7 +890,7 @@
           "class_id": "context_integrity",
           "earned_weight": 12,
           "evidence": {
-            "context_package_hash": "02055280576f2d0d537999c450fd11e427b754c3bf1854c91c659f79657df33f",
+            "context_package_hash": "65c7d4558b3aea2d50cf0342e1b865827c4db765d1cde8f6abe59500c139ba12",
             "context_source_count": 8,
             "poisoning_source_result_count": 9
           },
@@ -1185,7 +1191,7 @@
               "critical": 2,
               "high": 3
             },
-            "source_reference_count": 20
+            "source_reference_count": 21
           },
           "evidence_inputs": [
             "agentic_threat_radar.threat_signals",
@@ -1251,7 +1257,7 @@
           "class_id": "context_integrity",
           "earned_weight": 12,
           "evidence": {
-            "context_package_hash": "306c3f910bae293ac37b478c6291f3d1439517081f2208175c25e9d43c8f6b4c",
+            "context_package_hash": "ab0c9a287fa599e155bbc97e1538822417543eb0dfe01cffbfd6d73f0226c84f",
             "context_source_count": 8,
             "poisoning_source_result_count": 9
           },
@@ -1552,7 +1558,7 @@
               "critical": 2,
               "high": 3
             },
-            "source_reference_count": 20
+            "source_reference_count": 21
           },
           "evidence_inputs": [
             "agentic_threat_radar.threat_signals",
@@ -1618,7 +1624,7 @@
           "class_id": "context_integrity",
           "earned_weight": 12,
           "evidence": {
-            "context_package_hash": "77f7a1507d4c390791da1b0ea46cf3117e0f4413861c8722edd9eb89f6099377",
+            "context_package_hash": "b38ac38cf94eba8daad27ac1c0c1c593a3908953317e7b4e1dd253c2c19cdf22",
             "context_source_count": 8,
             "poisoning_source_result_count": 9
           },
@@ -1919,7 +1925,7 @@
               "critical": 2,
               "high": 3
             },
-            "source_reference_count": 20
+            "source_reference_count": 21
           },
           "evidence_inputs": [
             "agentic_threat_radar.threat_signals",
@@ -1985,7 +1991,7 @@
           "class_id": "context_integrity",
           "earned_weight": 12,
           "evidence": {
-            "context_package_hash": "d68c53f46d34d093aacf5a7de0bcdcc1d7286cdfc4d1411c864919defc5c65bc",
+            "context_package_hash": "0da3a4da1cf09227fa79b6e591f93a0cafbd15782d828b93a324136fbb03b4e6",
             "context_source_count": 8,
             "poisoning_source_result_count": 9
           },
@@ -2286,7 +2292,7 @@
               "critical": 2,
               "high": 3
             },
-            "source_reference_count": 20
+            "source_reference_count": 21
           },
           "evidence_inputs": [
             "agentic_threat_radar.threat_signals",
@@ -2352,7 +2358,7 @@
           "class_id": "context_integrity",
           "earned_weight": 12,
           "evidence": {
-            "context_package_hash": "17775e4b2a87fe26432fdf620f2ce686304665c8f71853df305690f00106d8e3",
+            "context_package_hash": "a5b71f4d3ef414b0f6d8da57ed8b3745860ffc3609ef6cb05a86b7d23a18bdd4",
             "context_source_count": 8,
             "poisoning_source_result_count": 9
           },
@@ -2653,7 +2659,7 @@
               "critical": 2,
               "high": 3
             },
-            "source_reference_count": 20
+            "source_reference_count": 21
           },
           "evidence_inputs": [
             "agentic_threat_radar.threat_signals",
@@ -2719,7 +2725,7 @@
           "class_id": "context_integrity",
           "earned_weight": 12,
           "evidence": {
-            "context_package_hash": "d6ce663f2edd2bc67ed0ea2c823ad35d603740e86846b7ec75bbcd8f10babf73",
+            "context_package_hash": "59cae9a9ad81d99589b599bd2a5168d6eed8fe6ba36908125dba66840a6f8727",
             "context_source_count": 8,
             "poisoning_source_result_count": 9
           },
@@ -3020,7 +3026,7 @@
               "critical": 2,
               "high": 3
             },
-            "source_reference_count": 20
+            "source_reference_count": 21
           },
           "evidence_inputs": [
             "agentic_threat_radar.threat_signals",
@@ -3086,7 +3092,7 @@
           "class_id": "context_integrity",
           "earned_weight": 12,
           "evidence": {
-            "context_package_hash": "27cb9b7903a9a1c745bf06179f11ba736afccd4038d730e5bb509cfa5d9f44dd",
+            "context_package_hash": "eda31c3d88891618d0775438a927fed6076de8d42b7be450f903d25b5fb18cb0",
             "context_source_count": 8,
             "poisoning_source_result_count": 9
           },
@@ -3387,7 +3393,7 @@
               "critical": 2,
               "high": 3
             },
-            "source_reference_count": 20
+            "source_reference_count": 21
           },
           "evidence_inputs": [
             "agentic_threat_radar.threat_signals",

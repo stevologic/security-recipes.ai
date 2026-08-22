@@ -3,7 +3,7 @@ title: MCP Gateway Policy Pack
 linkTitle: Gateway Policy
 weight: 5
 date: 2026-05-02
-lastmod: 2026-07-23
+lastmod: 2026-08-21
 sidebar:
   exclude: true
 description: >
@@ -124,11 +124,11 @@ same artifact agents can retrieve and auditors can review.
 This feature is aligned with the controls serious AI security programs
 are already converging on:
 
-- [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices)
+- [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices)
   calls out MCP-specific attack paths such as confused deputy and token
   passthrough risk. A gateway policy pack keeps tool access scoped and
   auditable.
-- [MCP Authorization](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
+- [MCP Authorization](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
   requires token audience validation and explicit authorization handling
   for HTTP transports. The pack gives operators the workflow-level
   authorization context those checks need.

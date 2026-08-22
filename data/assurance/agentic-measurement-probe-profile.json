@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-05-03",
+  "last_reviewed": "2026-08-21",
   "intent": "Define SecurityRecipes measurement probes for agentic AI workflows so the secure context layer can prove traceability, policy fit, runtime evidence, and adversarial readiness with machine-readable checks instead of static assurance claims.",
   "positioning": {
     "buyer": "AI Platform, Security Engineering, Product Security, GRC, model risk, procurement security, and acquisition diligence teams",
@@ -38,6 +38,12 @@
       "name": "OWASP Top 10 for Model Context Protocol",
       "url": "https://owasp.org/www-project-mcp-top-10/",
       "coverage": "Covers MCP token exposure, scope creep, tool poisoning, command execution, auth gaps, missing telemetry, shadow servers, and context over-sharing."
+    },
+    {
+      "id": "mcp-authorization-2026-07-28",
+      "name": "Model Context Protocol Authorization Specification (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization",
+      "coverage": "Current public MCP 2026-07-28 revision. Requires probes for audience-bound tokens, resource indicators, PKCE support, token lifetime, token-passthrough denial, and HTTPS transport assumptions."
     },
     {
       "id": "mcp-authorization-2025-11-25",

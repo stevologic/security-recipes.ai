@@ -3,7 +3,7 @@ title: MCP Elicitation Boundary
 linkTitle: MCP Elicitation Boundary
 weight: 11
 date: 2026-05-04
-lastmod: 2026-08-13
+lastmod: 2026-08-21
 toc: true
 description: >
   Enforce MCP multi-round-trip form-mode and URL-mode elicitation boundaries
@@ -170,7 +170,7 @@ This feature follows current primary guidance:
 - [MCP Multi Round-Trip Requests 2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28/basic/patterns/mrtr)
   for the breaking replacement of server-initiated requests, opaque
   `requestState`, retry correlation, integrity checks, and replay protection.
-- [MCP Authorization 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
+- [MCP Authorization 2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
   for protected-resource metadata, resource indicators, audience-bound
   tokens, client identity metadata, and scope challenges.
 - [MCP Security Best Practices](https://modelcontextprotocol.io/docs/tutorials/security/security_best_practices)

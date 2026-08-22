@@ -11,6 +11,7 @@ tags: ["python", "yaml", "deserialization", "uplift", "mitigate"]
 cve_archetypes: ["unsafe_deserialization"]
 cve_workflow_role: "remediate"
 weight: 22
+lastmod: 2026-08-21
 date: 2026-04-25
 ---
 
@@ -20,6 +21,14 @@ default for over a decade. The default loader resolves
 arbitrary code execution on untrusted input. PyYAML 5.1 added a
 warning, 6.0 made the warning louder; the call shape is still
 out there in repos by the thousands.
+
+## When to use it
+
+Use this recipe when Python calls `yaml.load` without a safe Loader on data
+that is not fully trusted. Prefer it over CVE-2017-18342 when the issue is
+the local call site rather than a pinned PyYAML version.
+
+Do not use it to execute YAML tags or to load production secrets as a test.
 
 ## Pattern
 

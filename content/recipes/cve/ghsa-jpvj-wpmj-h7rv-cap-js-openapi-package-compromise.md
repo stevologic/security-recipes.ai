@@ -1,7 +1,7 @@
 ---
-title: "GHSA-jpvj-wpmj-h7rv - @cap-js/openapi package compromise"
+title: "GHSA-jpvj-wpmj-h7rv: @cap-js/openapi package compromise"
 linkTitle: "GHSA-jpvj @cap-js/openapi"
-description: "Critical malicious @cap-js/openapi 1.4.1 package compromise. Upgrade to 1.4.2+, purge caches and build artifacts, and rotate credentials reachable from affected SAP CAP dependency installs."
+description: "GHSA-jpvj-wpmj-h7rv is malicious @cap-js/openapi 1.4.1. Upgrade to 1.4.2+, purge caches, and rotate reachable credentials."
 tool: "general"
 author: "Codex"
 team: "Security"
@@ -10,24 +10,24 @@ model: "GPT 5.5 Extra High reasoning"
 tags: ["ghsa", "cap-js", "sap-cap", "openapi", "npm", "supply-chain", "malware", "credential-theft", "critical"]
 weight: 93
 date: 2026-06-09
+lastmod: 2026-08-21
 ghsa: "GHSA-jpvj-wpmj-h7rv"
 known_as: ["@cap-js/openapi package compromise"]
 kev: false
 severity: "critical"
 ecosystem: "npm/supply-chain"
 disclosed: "2026-05-19"
+ai_enrichment_review_status: human-reviewed-development-draft
 ---
 
-On 2026-05-19, a compromised `@cap-js/openapi@1.4.1` package was published.
-The advisory states that the malicious package harvested credentials and
-attempted self-propagation. Repositories that installed the compromised version
-must treat the affected runner, workstation, image, or package cache as
-potentially credential-exposed.
+GHSA-jpvj-wpmj-h7rv covers a compromised `@cap-js/openapi@1.4.1` publish on
+**2026-05-19**. GitHub says the malicious package harvested credentials and
+attempted self-propagation. Treat any runner, workstation, image, or cache
+that installed 1.4.1 as credential-exposed.
 
-This is not a normal vulnerable dependency bump. The right fix combines a clean
-upgrade to `@cap-js/openapi >=1.4.2`, package-cache quarantine, artifact
-rebuilds, and credential rotation for secrets reachable during dependency
-installation.
+GitHub names **`@cap-js/openapi` 1.4.2**. Do not invent a later 1.4.3 floor.
+This page stays a development draft. Do not execute the compromised package to
+prove exposure.
 
 ## When to use it
 
@@ -244,6 +244,12 @@ You are remediating GHSA-jpvj-wpmj-h7rv, the malicious
 - Running package lifecycle scripts during investigation.
 - Omitting operator actions for package mirrors and developer workstations that
   are outside repository control.
+
+## Rollback and recovery
+
+Prefer a clean `@cap-js/openapi` 1.4.2+ install from a purged cache. If an
+operational rollback restores 1.4.1, quarantine that artifact immediately and
+rotate secrets reachable from the affected install environment.
 
 ## Output contract
 

@@ -3,7 +3,7 @@ title: Secure Context Customer Proof Pack
 linkTitle: Customer Proof Pack
 weight: 15
 date: 2026-05-05
-lastmod: 2026-07-21
+lastmod: 2026-08-21
 sidebar:
   exclude: true
 description: >
@@ -19,6 +19,8 @@ evidence. The next credibility gap is customer proof: runtime events,
 receipts, MCP decisions, redacted telemetry, operational-impact metrics, and renewal
 signals that prove the secure context layer works in a real pilot.
 {{< /callout >}}
+
+Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) on August 21, 2026.
 
 SecurityRecipes is positioned as **The Secure Context Layer for Agentic
 AI**. The open project already shows the control model: secure context,
@@ -122,7 +124,7 @@ The profile is grounded in current primary sources:
 - [OWASP MCP Top 10](https://owasp.org/www-project-mcp-top-10/) for
   MCP-specific token, scope, tool, command, telemetry, shadow-server,
   and context risks.
-- [MCP Authorization](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
+- [MCP Authorization](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
   for resource indicators, token audience validation, PKCE, token
   handling, and scope minimization.
 - [OpenTelemetry MCP semantic conventions](https://opentelemetry.io/docs/specs/semconv/gen-ai/mcp/)

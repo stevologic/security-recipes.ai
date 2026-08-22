@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-05-02",
+  "last_reviewed": "2026-08-21",
   "intent": "Add a deterministic context-poisoning guard for the SecurityRecipes secure context layer: every registered source root is scanned for prompt-injection, tool-result-injection, approval-bypass, hidden-instruction, encoded-payload, and secret-exfiltration markers before it is treated as MCP-retrievable context.",
   "positioning": {
     "buyer": "AI Platform, Security Engineering, AppSec, Product Security, red teams, GRC, procurement security, and acquisition diligence teams",
@@ -32,6 +32,14 @@
       "published": "2025-02-17",
       "url": "https://genai.owasp.org/resource/agentic-ai-threats-and-mitigations/",
       "coverage": "Agentic systems require threat-model-based controls for autonomy, tool use, delegated authority, and retrieved context."
+    },
+    {
+      "id": "mcp-security-best-practices-2026-07-28",
+      "name": "Model Context Protocol Security Best Practices (2026-07-28 current revision)",
+      "publisher": "Model Context Protocol",
+      "published": "2026-07-28",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices",
+      "coverage": "Current public MCP 2026-07-28 revision. MCP implementations should minimize scope, prevent token passthrough, avoid confused-deputy behavior, and maintain auditability."
     },
     {
       "id": "mcp-security-best-practices",

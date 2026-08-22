@@ -3,7 +3,7 @@ title: Agentic Approval Receipt Pack
 linkTitle: Approval Receipts
 weight: 16
 date: 2026-05-04
-lastmod: 2026-07-13
+lastmod: 2026-08-21
 toc: true
 description: >
   Scope-bound approval receipts for agentic AI control planes, MCP tools,
@@ -19,6 +19,8 @@ machine-checkable evidence before an agent performs a privileged action.
 The receipt is bound to scope, workflow, run, identity, approver role,
 expiry, policy hash, and run evidence.
 {{< /callout >}}
+
+Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) on August 21, 2026.
 
 SecurityRecipes already has action envelopes, entitlement leases,
 run receipts, telemetry contracts, secure context lineage, MCP
@@ -160,9 +162,9 @@ work:
 
 - [OWASP Top 10 for Agentic Applications 2026](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/)
 - [OWASP Agentic Skills Top 10](https://owasp.org/www-project-agentic-skills-top-10/)
-- [Model Context Protocol Authorization Specification](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
+- [Model Context Protocol Authorization Specification](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
 - [Model Context Protocol Security Best Practices](https://modelcontextprotocol.io/docs/tutorials/security/security_best_practices)
-- [Model Context Protocol Elicitation Specification](https://modelcontextprotocol.io/specification/2025-11-25/client/elicitation)
+- [Model Context Protocol Elicitation Specification](https://modelcontextprotocol.io/specification/2026-07-28/client/elicitation)
 - [OpenAI Agents SDK Guardrails](https://openai.github.io/openai-agents-js/guides/guardrails/)
 - [NIST AI RMF Generative AI Profile](https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence)
 - [CSA AI Controls Matrix](https://cloudsecurityalliance.org/artifacts/ai-controls-matrix)

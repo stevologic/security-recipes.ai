@@ -1,7 +1,7 @@
 ---
-title: "GHSA-m99r-2hxc-cp3q - Flowise MCP security bypass RCE"
+title: "GHSA-m99r-2hxc-cp3q: Flowise MCP security bypass RCE"
 linkTitle: "GHSA-m99r Flowise MCP bypass"
-description: "High-severity Flowise Custom MCP security bypass that reopens command execution through docker build, npx --yes, and node local-file path bypasses. Upgrade flowise and flowise-components to 3.1.2+ and replace deny-list MCP command validation with an approved registry."
+description: "GHSA-m99r-2hxc-cp3q is Flowise Custom MCP command-execution bypass. Upgrade flowise and flowise-components to 3.1.2+ and replace deny-list MCP validation."
 tool: "general"
 author: "Codex"
 team: "Security"
@@ -10,16 +10,22 @@ model: "GPT 5.5 Extra High reasoning"
 tags: ["ghsa", "flowise", "mcp", "agentic-ai", "npm", "command-injection", "rce", "high"]
 weight: 65
 date: 2026-05-14
+lastmod: 2026-08-21
 ghsa: "GHSA-m99r-2hxc-cp3q"
 known_as: ["Flowise MCP security bypass", "Flowise Custom MCP incomplete fix"]
 kev: false
 severity: "high"
 ecosystem: "typescript/npm"
 disclosed: "2026-05-14"
+ai_enrichment_review_status: human-reviewed-development-draft
 ---
 
 Flowise and `flowise-components` versions `3.1.1` and earlier contain Custom
 MCP security bypasses that can still lead to server-side command execution.
+GitHub names **3.1.2** for both packages. Do not invent a later 3.1.3 floor.
+This page stays a development draft. Do not prove exposure with Custom MCP
+command configs.
+
 The important review lesson is that earlier Custom MCP command filtering was
 deny-list based and incomplete: attackers could reach dangerous behavior
 through `docker build`, the long `npx --yes` alias, or `node` arguments that
@@ -252,6 +258,12 @@ Produce exactly one output:
   or execute stdio MCP definitions.
 - Logging command arguments, MCP environment values, uploaded file contents,
   prompt content, or provider credentials while adding validation.
+
+## Rollback and recovery
+
+Prefer forward recovery to another GHSA-named Flowise 3.1.2+ release. If an
+operational rollback restores `flowise` or `flowise-components` 3.1.1 or
+earlier, disable Custom MCP stdio create, import, and test paths.
 
 ## Related recipes
 

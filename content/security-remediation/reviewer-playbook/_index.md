@@ -3,7 +3,7 @@ title: Reviewer Playbook
 linkTitle: Reviewer Playbook
 weight: 11
 date: 2026-04-22
-lastmod: 2026-07-21
+lastmod: 2026-08-21
 sidebar:
   open: true
 description: >

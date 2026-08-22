@@ -3,7 +3,7 @@ title: MCP Connector Trust Registry
 linkTitle: Connector Trust Registry
 weight: 8
 date: 2026-05-02
-lastmod: 2026-07-13
+lastmod: 2026-08-21
 sidebar:
   exclude: true
 description: >
@@ -97,11 +97,11 @@ protocol simulation.
 This feature follows current primary guidance rather than inventing a
 private taxonomy:
 
-- [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices)
+- [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices)
   names MCP-specific risks such as confused deputy, token passthrough,
   SSRF, session hijacking, local server compromise, and scope
   minimization.
-- [MCP Authorization](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
+- [MCP Authorization](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
   frames restricted MCP server access around authorization and resource
   owner consent.
 - [OWASP Top 10 for Agentic Applications](https://genai.owasp.org/2025/12/09/owasp-genai-security-project-releases-top-10-risks-and-mitigations-for-agentic-ai-security/)

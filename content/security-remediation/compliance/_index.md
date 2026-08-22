@@ -3,7 +3,7 @@ title: Compliance & Audit
 linkTitle: Compliance & Audit
 weight: 13
 date: 2026-04-22
-lastmod: 2026-07-21
+lastmod: 2026-08-21
 sidebar:
   open: true
 description: >
@@ -18,7 +18,9 @@ description: >
 vary by auditor. Use this page as a starting point for a
 conversation with your compliance and legal counterparts, not as
 a compliance guarantee. The control IDs below are illustrative —
-map them to your auditor's current framework version.
+map them to your auditor's current framework version. Rechecked
+August 21, 2026: invented version floors and leftover draft text
+are not audit evidence.
 {{< /callout >}}
 
 ## Why this page exists

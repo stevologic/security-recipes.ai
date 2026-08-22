@@ -9,6 +9,7 @@ model: "GPT-5.3-Codex"
 tags: ["crypto", "wallet", "payments", "policy", "transaction-signing"]
 weight: 21
 date: 2026-04-26
+lastmod: 2026-08-21
 ---
 
 Use this prompt to harden a hot-wallet signing pipeline so unsafe

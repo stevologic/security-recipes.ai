@@ -3,7 +3,7 @@ title: Agentic Threat Radar
 linkTitle: Agentic Threat Radar
 weight: 18
 date: 2026-05-02
-lastmod: 2026-07-13
+lastmod: 2026-08-21
 toc: true
 description: >
   Source-backed radar that maps current agentic AI and MCP security
@@ -33,9 +33,14 @@ guidance into a generated evidence pack:
   Pack, Context Poisoning Guard, MCP Gateway Policy, Agent Identity
   Ledger, Red-Team Drill Pack, Readiness Scorecard, Agentic System BOM,
   and this radar.
-- reviewer triggers that explain when an enterprise should care.
+- Reviewer triggers that explain when an enterprise should care.
 - Source roadmap actions that keep the open knowledge base aligned
   with a future hosted MCP/server business.
+- Rechecked against the public MCP specification
+  [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28)
+  on August 21, 2026. Invented version floors in leftover CVE drafts
+  remain a content-risk signal: treat them as untrusted context, not
+  a named fix.
 
 ## Generated artifact
 
@@ -86,7 +91,7 @@ new MCP servers or connector namespaces.
 quarterly agentic security review. If a source changes, regenerate the
 pack and review affected capabilities.
 
-**trust review diligence.** Use the generated pack to show that
+**Trust-review diligence.** Use the generated pack to show that
 SecurityRecipes is not only content. It is a machine-readable control
 story: sources, mapped risks, product surfaces, MCP tools, and roadmap
 actions.
@@ -133,8 +138,8 @@ The current anchors include:
 
 - [OWASP Top 10 for Agentic Applications](https://genai.owasp.org/2025/12/09/owasp-genai-security-project-releases-top-10-risks-and-mitigations-for-agentic-ai-security/)
 - [OWASP MCP Top 10](https://owasp.org/www-project-mcp-top-10/)
-- [MCP Authorization Specification](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
-- [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices)
+- [MCP Authorization Specification](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
+- [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices)
 - [Microsoft guidance on indirect prompt injection](https://learn.microsoft.com/en-us/security/zero-trust/sfi/defend-indirect-prompt-injection)
 - [OpenAI guidance on prompt injections](https://openai.com/index/prompt-injections)
 - [OpenAI Agent Builder safety guidance](https://platform.openai.com/docs/guides/agent-builder-safety)

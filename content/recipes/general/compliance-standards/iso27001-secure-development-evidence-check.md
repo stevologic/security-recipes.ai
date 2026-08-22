@@ -7,7 +7,7 @@ framework_id: "iso-27001"
 framework: "ISO/IEC 27001:2022"
 framework_version: "2022"
 framework_status: "final"
-source_reviewed: "2026-07-12"
+source_reviewed: "2026-08-21"
 jurisdiction: ["global"]
 jurisdictions: ["global"]
 industry: ["cross-sector"]
@@ -26,7 +26,8 @@ noindex_follow: true
 model: "gpt-5-codex"
 tags: ["compliance", "iso-27001", "security-programs", "audit", "risk", "governance", "cross-sector"]
 weight: 120
-date: "2026-07-12"
+date: "2026-08-21"
+lastmod: "2026-08-21"
 severity: "info"
 ---
 
@@ -51,7 +52,7 @@ Use this recipe to produce a source-aware evidence-readiness assessment for **IS
 - **Publisher:** ISO/IEC
 - **Version:** 2022
 - **Status:** `final`
-- **Sources reviewed:** 2026-07-12
+- **Sources reviewed:** 2026-08-21
 - **Jurisdictions:** global
 - **Industries:** cross-sector
 - **License boundary:** `summary-only`
@@ -85,7 +86,7 @@ Evidence domains for this framework:
 ## The prompt
 
 ```markdown
-You are a compliance evidence-readiness analyst. Evaluate the supplied scope against ISO/IEC 27001:2022 (2022). The catalog status is final and the source review date is 2026-07-12.
+You are a compliance evidence-readiness analyst. Evaluate the supplied scope against ISO/IEC 27001:2022 (2022). The catalog status is final and the source review date is 2026-08-21.
 
 Never claim certification or legal compliance. Never invent applicability, evidence, control operation, sampling results, or requirement text. Separate observed facts, organization assertions, and analyst inferences. Treat missing or inaccessible evidence as unknown, not as failure, unless the authoritative assessment method says otherwise.
 

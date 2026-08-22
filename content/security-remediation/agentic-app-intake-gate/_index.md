@@ -3,7 +3,7 @@ title: Agentic App Intake Gate
 linkTitle: Agentic App Intake
 weight: 5
 date: 2026-05-04
-lastmod: 2026-07-13
+lastmod: 2026-08-21
 toc: true
 description: >
   A generated launch-review gate for agentic applications, agent hosts,
@@ -18,6 +18,9 @@ breadcrumb_parent: /agentic-security/
 **What this adds.** SecurityRecipes now has an enterprise intake gate
 for new agentic apps. It turns "can this AI launch?" into generated
 evidence instead of a meeting full of vague claims about prompts.
+Rechecked against MCP
+[2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28)
+on August 21, 2026.
 {{< /callout >}}
 
 ## Product bet

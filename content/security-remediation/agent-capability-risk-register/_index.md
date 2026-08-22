@@ -3,7 +3,7 @@ title: Agent Capability Risk Register
 linkTitle: Capability Risk Register
 weight: 8
 date: 2026-05-02
-lastmod: 2026-07-23
+lastmod: 2026-08-21
 sidebar:
   exclude: true
 description: >
@@ -18,6 +18,8 @@ breadcrumb_parent: /agentic-security/
 capability is, how far a mistake can spread, and which controls reduce
 the residual risk before MCP access scales.
 {{< /callout >}}
+
+Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) on August 21, 2026.
 
 ## The product bet
 
@@ -90,7 +92,7 @@ This feature follows current primary guidance:
   token exposure, scope creep, tool poisoning, command execution,
   insufficient authorization, audit gaps, shadow MCP servers, and
   context over-sharing.
-- [Model Context Protocol Authorization](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
+- [Model Context Protocol Authorization](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
   for resource-bound tokens, audience validation, protected resource
   metadata, token handling, and PKCE expectations.
 - [NIST AI RMF Generative AI Profile](https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence)

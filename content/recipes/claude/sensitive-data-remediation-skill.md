@@ -9,6 +9,7 @@ model: "Opus 4.7"
 tags: ["sde", "secrets", "pii", "dlp", "skill", "claude"]
 weight: 20
 date: 2026-04-21
+lastmod: 2026-08-21
 ---
 
 A Claude Code **skill** that triages a sensitive-data-element (SDE)
@@ -206,6 +207,14 @@ reasoning trace.
 - **Never** commit a `.env` or `credentials.json` file, even to
   remove it — those need `git filter-repo` treatment, not a
   normal commit.
+
+## Verification
+
+- Rechecked 2026-08-21 against the current Claude Code skill layout.
+- Exposed secrets still stop at rotation plus `TRIAGE.md`; they do
+  not rewrite git history.
+- The skill still refuses to inline retrieved secret values into
+  logs or comments.
 
 ## Output contract
 

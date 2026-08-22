@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-05-03",
+  "last_reviewed": "2026-08-21",
   "intent": "Define an enterprise-ready supply-chain model for agentic skills, rules files, hooks, and tool bundles so SecurityRecipes can govern the behavior layer between model prompts and MCP tool execution. The model turns skill provenance, permissions, registry trust, version pinning, isolation, and runtime evidence into deterministic install, update, and run decisions.",
   "positioning": {
     "buyer": "AI Platform, Security Engineering, Product Security, AppSec, GRC, procurement security, vendor-risk, and acquisition diligence teams",
@@ -26,6 +26,12 @@
       "name": "OWASP MCP Top 10",
       "url": "https://owasp.org/www-project-mcp-top-10/",
       "coverage": "Token mismanagement, scope creep, tool poisoning, software supply-chain attacks, command execution, intent-flow subversion, insufficient authorization, audit gaps, shadow MCP servers, and context over-sharing."
+    },
+    {
+      "id": "mcp-authorization-2026-07-28",
+      "name": "Model Context Protocol Authorization Specification (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization",
+      "coverage": "Current public MCP 2026-07-28 revision. OAuth 2.1, client metadata, protected resource metadata, resource indicators, token audience validation, PKCE, token handling, and trust policy expectations for protected MCP servers."
     },
     {
       "id": "mcp-authorization-2025-11-25",

@@ -11,6 +11,7 @@ cve_archetypes: ["supply_chain_update_integrity"]
 cve_workflow_role: "contain"
 weight: 14
 date: 2026-04-25
+lastmod: 2026-08-21
 ---
 
 A tool-agnostic prompt that takes a "this package is malicious"
@@ -199,6 +200,13 @@ Append a single audit entry containing:
 - Out-of-band notification to the security incident channel
   fires whether the run succeeds or fails — quiet purges are
   the wrong default.
+
+## Verification
+
+- Every purged coordinate matches the advisory namespace and version or digest exactly.
+- A post-quarantine re-fetch is recorded for each registry and shows the artifact is no longer served.
+- The audit record includes the inverse restore command for every quarantine action.
+- Developer-machine steps stay in the drafted broadcast; no SSH or laptop action was taken.
 
 ## Guardrails
 

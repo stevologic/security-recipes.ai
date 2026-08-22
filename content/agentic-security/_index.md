@@ -3,7 +3,7 @@ title: "AI Agent Security: How to Secure AI Agent Systems"
 linkTitle: Agentic Security
 page_kind: collection
 weight: 4
-lastmod: 2026-07-23
+lastmod: 2026-08-21
 toc: true
 sidebar:
   open: false
@@ -26,7 +26,12 @@ secret, or repository-configuration finding, use
 Those are related workstreams, but they answer different questions and require
 different evidence.
 
-**Last updated July 23, 2026.** [Stephen M Abbott](/about/#stephen-m-abbott)
+**Last updated August 21, 2026.** Rechecked the public MCP specification
+[2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) and the
+[MCP integration page](/mcp-servers/) on that date; 2026-07-28 is the
+current protocol version.
+[2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25) remains
+a prior final revision. [Stephen M Abbott](/about/#stephen-m-abbott)
 maintains this guide with Security Recipes contributors in the public
 [source and revision history](https://github.com/stevologic/security-recipes.ai/blob/main/content/agentic-security/_index.md).
 See the [review methodology](/about/#editorial-principles) and
@@ -232,7 +237,7 @@ Use the source that is authoritative for the claim being made:
 - [OWASP Agentic Security Initiative](https://genai.owasp.org/initiatives/agentic-security-initiative/)
   provides community threat and control work for agentic systems. Validate its
   guidance against the deployed product and current source material.
-- [MCP authorization](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
+- [MCP authorization](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
   and [MCP security best practices](https://modelcontextprotocol.io/docs/tutorials/security/security_best_practices)
   govern MCP-specific boundaries such as authorization, token audience, and
   confused-deputy risks; they do not secure the rest of the agent application.

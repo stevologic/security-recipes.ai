@@ -3,6 +3,7 @@ title: "Go Code Hygiene"
 linkTitle: "Go"
 description: "Diagnostic, error, context, goroutine, channel, and shared-state hygiene. Choose bounded workflows with detection, tests, and stop conditions."
 weight: 60
+lastmod: 2026-08-21
 sidebar:
   open: false
 ---

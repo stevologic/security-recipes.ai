@@ -1,7 +1,7 @@
 ---
-title: "GHSA-rh99-wc69-c255 - Contrast CopyFile policy symlink subversion"
+title: "GHSA-rh99-wc69-c255: Contrast CopyFile policy symlink bypass"
 linkTitle: "GHSA-rh99 Contrast CopyFile"
-description: "High-severity Contrast/Kata agent policy gap where CopyFile verification can be subverted through symlinks. Upgrade Contrast to 1.19.1+, regenerate agent policies, and contain host-to-guest CopyFile trust."
+description: "GHSA-rh99-wc69-c255 is Contrast CopyFile symlink policy bypass. Upgrade Contrast to 1.19.1+ and regenerate Kata agent policies."
 tool: "general"
 author: "Codex"
 team: "Security"
@@ -10,31 +10,25 @@ model: "GPT 5.5 Extra High reasoning"
 tags: ["ghsa", "contrast", "kata-containers", "confidential-computing", "kubernetes", "symlink", "policy", "context-boundary", "high"]
 weight: 58
 date: 2026-05-03
+lastmod: 2026-08-21
 ghsa: "GHSA-rh99-wc69-c255"
-known_as: ["Contrast CopyFile policy symlink subversion", "Kata Containers CopyFile symlink"]
+known_as: ["Contrast CopyFile policy symlink subversion", "Kata Containers CopyFile symlink", "CVE-2026-41326"]
 kev: false
 severity: "high"
 ecosystem: "go/gomod"
 disclosed: "2026-04-30"
+ai_enrichment_review_status: human-reviewed-development-draft
 ---
 
-Contrast versions before `1.19.1` generated Kata agent policies whose
-`CopyFile` verification could be bypassed through symlinks. A malicious host
-process that can connect to the Kata agent VSOCK can issue `CopyFile` requests
-that write to arbitrary paths inside the guest root filesystem. That can
-overwrite security-sensitive files, change binaries that the workload later
-executes, or create a path to disclose sensitive workload data.
+GHSA-rh99-wc69-c255 covers Contrast versions before `1.19.1`. Generated Kata
+agent policies could let host-side `CopyFile` requests follow symlinks and
+write inside the guest root. GitHub names **Contrast 1.19.1**. Do not invent
+a later 1.19.2 floor.
 
-This matters for confidential container and secure context deployments because
-the host is explicitly outside the trusted computing base. A generated policy
-that allows host-provided file content to cross into the guest without a real
-resolved-path boundary breaks the same assumption SecurityRecipes expects from
-an MCP context layer: untrusted infrastructure can provide evidence or bytes,
-but must not be able to rewrite trusted execution state.
-
-The Contrast GitHub advisory has no assigned CVE at the time this recipe was
-written. The related upstream Kata Containers issue is
-`CVE-2026-41326` / `GHSA-q49m-57vm-c8cc`.
+The related upstream issue is **CVE-2026-41326 / GHSA-q49m-57vm-c8cc**. GHAD
+names a Kata Go pseudo-version, not a 3.29.0 release. Do not invent a Kata
+3.29.0 floor. This page stays a development draft. Do not prove exposure by
+writing into guest paths.
 
 ## When to use it
 
@@ -60,8 +54,9 @@ written. The related upstream Kata Containers issue is
 
 - **Vulnerable Contrast module:** `github.com/edgelesssys/contrast <1.19.1`
 - **Fixed Contrast module:** `github.com/edgelesssys/contrast 1.19.1+`
-- **Related upstream Kata issue:** Kata Containers `>=3.4.0, <3.29.0`
-- **Fixed upstream Kata version:** Kata Containers `3.29.0+`
+- **Related upstream Kata issue:** `CVE-2026-41326` / `GHSA-q49m-57vm-c8cc`
+- **GHAD-named Kata module:** `github.com/kata-containers/kata-containers`
+  before `0.0.0-20260422180503-1b9e49eb2763`; do not invent a 3.29.0 floor
 - **High-risk condition:** generated Kata agent policies permit `CopyFile`
   operations while a host-side process can reach the Kata agent VSOCK.
 
@@ -97,8 +92,8 @@ find . -iname "*policy*.rego" -o -iname "*initdata*" -o -iname "*contrast*"
 - Regenerate Kata agent policies, initdata, manifests, SBOMs, and deployment
   evidence with the fixed Contrast release. Do not assume upgrading the CLI
   protects workloads that still run old generated policy artifacts.
-- If this repository directly manages Kata Containers outside Contrast, upgrade
-  affected Kata runtimes to `3.29.0+`.
+- If this repository directly manages Kata Containers outside Contrast, recheck
+  GHAD-named Kata versions. Do not invent a 3.29.0 floor.
 - If immediate Contrast upgrade is blocked, apply the upstream policy-only
   Rego workaround through `contrast generate --policy` and document it as
   temporary containment until `1.19.1+` is deployed.
@@ -146,9 +141,8 @@ one output:
 2. Determine every resolved Contrast version. A target is vulnerable if it
    resolves to `github.com/edgelesssys/contrast <1.19.1` or uses a Contrast
    CLI/container/image before `1.19.1`.
-3. Determine whether this repository directly manages Kata Containers. A
-   direct Kata target is affected by the related upstream issue if it resolves
-   to `>=3.4.0, <3.29.0`.
+3. Determine whether this repository directly manages Kata Containers. Recheck
+   GHAD for `CVE-2026-41326`. Do not invent a 3.29.0 floor.
 4. Identify generated artifacts that must be refreshed, including committed
    policy bundles, initdata, rendered manifests, attestation reference values,
    SBOMs, deployment evidence, and docs that tell operators how to generate
@@ -163,17 +157,17 @@ one output:
    - Are old generated policies deployed after a dependency or CLI upgrade?
 6. If the repository does not own Contrast/Kata deployment or generated policy
    artifacts, stop with `TRIAGE.md` naming the files checked, the likely
-   runtime owner, the required Contrast fixed version `1.19.1+`, and the
-   related Kata fixed version `3.29.0+`.
+   runtime owner, the required Contrast fixed version `1.19.1+`, and a
+   GHAD-rechecked Kata version instead of an invented 3.29.0 floor.
 7. Upgrade controlled Contrast dependencies, CLIs, images, and deployment
    references to `1.19.1+`. Regenerate Go module state, binary checksums,
    container metadata, SBOMs, and dependency reports.
 8. Regenerate every controlled Kata agent policy, initdata artifact,
    attestation manifest, rendered Kubernetes manifest, and deployment evidence
    with the fixed Contrast toolchain.
-9. If direct Kata Containers are controlled here, upgrade to `3.29.0+` and
-   regenerate runtime class, node image, operator, or containerd/Kata
-   configuration artifacts.
+9. If direct Kata Containers are controlled here, upgrade only to a
+   GHAD-named Kata version and regenerate runtime class, node image,
+   operator, or containerd/Kata configuration artifacts.
 10. If the Contrast upgrade cannot land immediately, add temporary containment
     using the upstream policy-only Rego fix through `contrast generate --policy`,
     block or restrict host access to the Kata agent VSOCK where this repository
@@ -181,7 +175,7 @@ one output:
 11. Add safe verification:
     - version checks prove Contrast resolves to `1.19.1+`;
     - generated policy fixtures reject symlink-mediated `CopyFile` paths;
-    - direct Kata targets resolve to `3.29.0+` when applicable;
+    - direct Kata targets resolve to a GHAD-named version when applicable;
     - rendered deployment artifacts no longer contain stale vulnerable policy;
     - tests use synthetic temporary fixtures and do not contact production
       agents, CVMs, or host VSOCK endpoints.
@@ -226,7 +220,8 @@ one output:
   remains below `1.19.1`.
 - Every controlled generated Kata agent policy, initdata artifact, attestation
   manifest, and rendered deployment artifact was regenerated after the upgrade.
-- Direct Kata Containers targets, if present, resolve to `3.29.0+`.
+- Direct Kata Containers targets, if present, resolve to a GHAD-named
+  version rather than an invented 3.29.0 floor.
 - Tests or policy checks reject symlink-mediated `CopyFile` writes using only
   synthetic local fixtures.
 - Runtime containment addresses host access to the Kata agent VSOCK where this
@@ -260,6 +255,13 @@ one output:
 - Missing direct Kata Containers runtime pins because the repository uses
   RuntimeClass, node images, operator config, or containerd templates instead
   of Go modules.
+
+## Rollback and recovery
+
+Prefer forward recovery to another GitHub-named Contrast 1.19.1+ release and
+regenerated policies. If an operational rollback restores Contrast before
+`1.19.1`, isolate host VSOCK to the Kata agent until named Contrast policies
+are restored. Recheck GHAD before treating any Kata 3.x tag as a floor.
 
 ## Related recipes
 

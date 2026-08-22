@@ -95,7 +95,7 @@
     }
   },
   "failures": [],
-  "generated_at": "2026-05-03",
+  "generated_at": "2026-08-21",
   "intent": "Define a SecurityRecipes MCP tool-risk contract that turns MCP tool annotations, connector trust, authorization conformance, workflow scope, and runtime session context into deterministic allow, hold, deny, or kill decisions before an agent invokes a tool.",
   "positioning": {
     "buyer": "AI Platform, Product Security, MCP platform, AppSec, IAM, observability, procurement security, and enterprise architecture teams",
@@ -164,7 +164,7 @@
   "source_artifacts": {
     "mcp_authorization_conformance_pack": {
       "path": "data/evidence/mcp-authorization-conformance-pack.json",
-      "sha256": "5497501fefe0800fed1671535b5f70fe6ec78e81d90e1c87fd58d1707b35df36"
+      "sha256": "6f44c621fecc5341282d02f08857d7ef835c1d9475216970508bbb6401aedac6"
     },
     "mcp_connector_trust_pack": {
       "path": "data/evidence/mcp-connector-trust-pack.json",
@@ -176,7 +176,7 @@
     },
     "mcp_tool_risk_contract_profile": {
       "path": "data/assurance/mcp-tool-risk-contract-profile.json",
-      "sha256": "43a748b56f973ba07c537c8e8c399c74a9abfb850204342e9b2685bd77e9988a"
+      "sha256": "c76371b22e698afa0cae4f33f861b8ee276648a8390738bf70ebfb6ae7d91955"
     },
     "workflow_manifest": {
       "path": "data/control-plane/workflow-manifests.json",
@@ -184,6 +184,12 @@
     }
   },
   "standards_alignment": [
+    {
+      "coverage": "Current public MCP 2026-07-28 revision. Tool discovery, invocation, input and output schemas, human confirmation expectations, tool result validation, logging, and the requirement that clients treat annotations as untrusted unless they come from trusted servers.",
+      "id": "mcp-tools-2026-07-28",
+      "name": "Model Context Protocol Tools specification (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/server/tools"
+    },
     {
       "coverage": "Tool discovery, invocation, input and output schemas, human confirmation expectations, tool result validation, logging, and the requirement that clients treat annotations as untrusted unless they come from trusted servers.",
       "id": "mcp-tools-2025-11-25",
@@ -197,6 +203,12 @@
       "url": "https://blog.modelcontextprotocol.io/posts/2026-03-16-tool-annotations/"
     },
     {
+      "coverage": "Current public MCP 2026-07-28 revision. OAuth 2.1 resource servers, protected-resource metadata, resource indicators, audience-bound tokens, token validation, HTTPS, PKCE, and token-passthrough denial.",
+      "id": "mcp-authorization-2026-07-28",
+      "name": "Model Context Protocol Authorization specification (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization"
+    },
+    {
       "coverage": "OAuth 2.1 resource servers, protected-resource metadata, resource indicators, audience-bound tokens, token validation, HTTPS, PKCE, and token-passthrough denial.",
       "id": "mcp-authorization-2025-11-25",
       "name": "Model Context Protocol Authorization specification",
@@ -207,6 +219,12 @@
       "id": "mcp-security-best-practices",
       "name": "Model Context Protocol Security Best Practices",
       "url": "https://modelcontextprotocol.io/docs/tutorials/security/security_best_practices"
+    },
+    {
+      "coverage": "Current public MCP 2026-07-28 revision. Form and URL elicitation modes, user approval semantics, sensitive-information restrictions, URL-mode security, and explicit accept, decline, and cancel states.",
+      "id": "mcp-elicitation-2026-07-28",
+      "name": "Model Context Protocol Elicitation specification (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/client/elicitation"
     },
     {
       "coverage": "Form and URL elicitation modes, user approval semantics, sensitive-information restrictions, URL-mode security, and explicit accept, decline, and cancel states.",

@@ -11,6 +11,7 @@ tags: ["java", "deserialization", "uplift", "mitigate", "jep-290"]
 cve_archetypes: ["unsafe_deserialization"]
 cve_workflow_role: "remediate"
 weight: 23
+lastmod: 2026-08-21
 date: 2026-04-25
 ---
 
@@ -21,6 +22,16 @@ fields, and triggering `readObject` / `readResolve` /
 `finalize` on every class in the graph. The "gadget chains"
 that make this exploitable have been written and re-written
 since 2015; the CVE shelf is full.
+
+## When to use it
+
+Use this recipe when Java code deserializes untrusted bytes with
+`ObjectInputStream`, XMLDecoder, or similar polymorphic serializers. Prefer
+it when the finding is gadget-chain RCE risk rather than a generic SAST
+deserialization label with no reachable object stream.
+
+Do not use it to invent a gadget chain or to test against live untrusted
+payloads.
 
 ## Pattern
 

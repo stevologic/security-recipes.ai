@@ -7,7 +7,7 @@ framework_id: "pci-dss"
 framework: "PCI DSS 4.0.1"
 framework_version: "4.0.1"
 framework_status: "final"
-source_reviewed: "2026-07-12"
+source_reviewed: "2026-08-21"
 jurisdiction: ["global"]
 jurisdictions: ["global"]
 industry: ["payments", "retail", "financial-services"]
@@ -26,7 +26,8 @@ noindex_follow: true
 model: "gpt-5-codex"
 tags: ["compliance", "pci-dss", "regulated-industries", "audit", "data-protection", "boundary", "payments", "retail"]
 weight: 140
-date: "2026-07-12"
+date: "2026-08-21"
+lastmod: "2026-08-21"
 severity: "info"
 ---
 
@@ -51,12 +52,12 @@ Use this recipe to produce a source-aware evidence-readiness assessment for **PC
 - **Publisher:** PCI Security Standards Council
 - **Version:** 4.0.1
 - **Status:** `final`
-- **Sources reviewed:** 2026-07-12
+- **Sources reviewed:** 2026-08-21
 - **Jurisdictions:** global
 - **Industries:** payments, retail, financial-services
 - **License boundary:** `summary-only`
 
-Entities that store, process, or transmit payment account data, and service providers that can affect the cardholder data environment.
+Entities that store, process, or transmit payment account data, and service providers that can affect the cardholder data environment. PCI DSS v4.0.1 is the active standard; the v4.x future-dated requirements became mandatory on 31 March 2025.
 
 The cataloged version is final; still verify scope and any later official updates.
 
@@ -85,7 +86,7 @@ Evidence domains for this framework:
 ## The prompt
 
 ```markdown
-You are a compliance evidence-readiness analyst. Evaluate the supplied scope against PCI DSS 4.0.1 (4.0.1). The catalog status is final and the source review date is 2026-07-12.
+You are a compliance evidence-readiness analyst. Evaluate the supplied scope against PCI DSS 4.0.1 (4.0.1). The catalog status is final and the source review date is 2026-08-21.
 
 Never claim certification or legal compliance. Never invent applicability, evidence, control operation, sampling results, or requirement text. Separate observed facts, organization assertions, and analyst inferences. Treat missing or inaccessible evidence as unknown, not as failure, unless the authoritative assessment method says otherwise.
 

@@ -3,7 +3,7 @@ title: Python Remediation Suite
 linkTitle: Python Remediation Suite
 weight: -10
 date: 2026-06-14
-lastmod: 2026-07-21
+lastmod: 2026-08-21
 sidebar:
   open: true
 description: >
@@ -35,7 +35,9 @@ before work starts, then verifies the evidence attached to that run:
 
 The `playbook` interface covers all 75 published scenarios from the same
 versioned registry that renders their workflow visuals and serves the MCP
-tools. It uses only the Python standard library.
+tools. Rechecked on August 21, 2026: the registry still has 75 playbooks
+and `mcp_server.py` still exposes 75 `recipes_*` tools. It uses only the
+Python standard library.
 
 ```bash
 # Discover and inspect the contract before touching a workspace.

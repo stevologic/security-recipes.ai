@@ -11,6 +11,7 @@ tags: ["php", "deserialization", "uplift", "mitigate"]
 cve_archetypes: ["unsafe_deserialization"]
 cve_workflow_role: "remediate"
 weight: 28
+lastmod: 2026-08-21
 date: 2026-04-26
 ---
 
@@ -19,6 +20,15 @@ When attacker-controlled bytes hit `unserialize`, PHP can
 instantiate gadget objects and trigger magic methods such as
 `__wakeup` / `__destruct`. That's object-injection territory,
 with real-world RCE chains in common ecosystems.
+
+## When to use it
+
+Use this recipe when PHP `unserialize()` (or equivalent) processes data that
+can be influenced by an untrusted caller. Prefer it over a generic PHP audit
+when the call site is the finding.
+
+Do not use it to craft POP gadget chains or to deserialize production session
+blobs as a proof.
 
 ## Pattern
 

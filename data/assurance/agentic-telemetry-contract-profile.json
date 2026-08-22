@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-05-03",
+  "last_reviewed": "2026-08-21",
   "intent": "Define a vendor-neutral telemetry contract for SecurityRecipes so agentic AI and MCP runs can be reconstructed from OpenTelemetry-shaped traces without leaking secrets, raw tenant context, or unredacted tool payloads into observability systems.",
   "positioning": {
     "buyer": "AI Platform, Security Engineering, Detection Engineering, GRC, model risk, procurement security, and acquisition diligence teams",
@@ -22,10 +22,22 @@
       "coverage": "Anchors MCP spans, JSON-RPC request identifiers, method names, session ids, protocol versions, transport attributes, and trace-context propagation through params._meta."
     },
     {
+      "id": "mcp-authorization-2026-07-28",
+      "name": "Model Context Protocol Authorization Specification (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization",
+      "coverage": "Current public MCP 2026-07-28 revision. Requires protected resource metadata, OAuth resource indicators, token audience validation, PKCE, scope challenges, short-lived tokens, and token-passthrough denial evidence."
+    },
+    {
       "id": "mcp-authorization-2025-11-25",
       "name": "Model Context Protocol Authorization Specification",
       "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization",
       "coverage": "Requires protected resource metadata, OAuth resource indicators, token audience validation, PKCE, scope challenges, short-lived tokens, and token-passthrough denial evidence."
+    },
+    {
+      "id": "mcp-transports-2026-07-28",
+      "name": "Model Context Protocol Transports (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/transports",
+      "coverage": "Current public MCP 2026-07-28 revision. Covers stdio and Streamable HTTP transport requirements, Origin validation, localhost binding, authentication expectations, and session behavior that must appear in trace evidence."
     },
     {
       "id": "mcp-transports-2025-11-25",

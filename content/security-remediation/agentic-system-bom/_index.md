@@ -3,7 +3,7 @@ title: Agentic System BOM
 linkTitle: System BOM
 weight: 8
 date: 2026-05-02
-lastmod: 2026-07-23
+lastmod: 2026-08-21
 sidebar:
   exclude: true
 description: >
@@ -18,6 +18,8 @@ remediation faster when they can inspect the system like a supply chain:
 which agents exist, what they can touch, which MCP connectors they use,
 which policies constrain them, and which evidence proves current state.
 {{< /callout >}}
+
+Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) on August 21, 2026.
 
 ## The product bet
 
@@ -117,7 +119,7 @@ The BOM is mapped to current primary references:
 - [OWASP CycloneDX](https://owasp.org/www-project-cyclonedx/) for
   interoperable BOM thinking across software, services, ML, operations,
   vulnerabilities, and attestations.
-- [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices)
+- [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices)
   for scope minimization, confused-deputy prevention, token-passthrough
   avoidance, SSRF controls, session safety, and auditability.
 - [CSA AI Controls Matrix](https://cloudsecurityalliance.org/artifacts/ai-controls-matrix)

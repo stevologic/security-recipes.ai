@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-05-04",
+  "last_reviewed": "2026-08-21",
   "intent": "Define the SecurityRecipes model-provider routing gate: a deterministic policy layer that decides which model provider and model class may receive secure context for a governed agentic workflow, with explicit proof for data retention, residency, training exclusion, guardrails, telemetry, run receipts, and human approval before context crosses a frontier, local, or unsanctioned model boundary.",
   "positioning": {
     "buyer": "AI Platform, Product Security, GRC, privacy, procurement security, model risk, and acquisition diligence teams",
@@ -28,10 +28,22 @@
       "coverage": "The routing gate links model choice to skill governance, publisher verification, permission review, isolation, update drift, and runtime audit before behavior packages execute under agent authority."
     },
     {
+      "id": "mcp-authorization-2026-07-28",
+      "name": "Model Context Protocol Authorization (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization",
+      "coverage": "Current public MCP 2026-07-28 revision. Model routes require MCP resource binding, least-privilege scope selection, audience validation, HTTPS, PKCE, token validation, and no token passthrough before tool-backed context crosses the provider boundary."
+    },
+    {
       "id": "mcp-authorization-2025-11-25",
       "name": "Model Context Protocol Authorization",
       "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization",
       "coverage": "Model routes require MCP resource binding, least-privilege scope selection, audience validation, HTTPS, PKCE, token validation, and no token passthrough before tool-backed context crosses the provider boundary."
+    },
+    {
+      "id": "mcp-security-best-practices-2026-07-28",
+      "name": "Model Context Protocol Security Best Practices (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices",
+      "coverage": "Current public MCP 2026-07-28 revision. Routing evidence requires confused-deputy prevention, scope minimization, SSRF controls, session safety, audit trails, and explicit treatment of local and remote MCP server risk."
     },
     {
       "id": "mcp-security-best-practices",

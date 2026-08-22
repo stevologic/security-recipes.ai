@@ -13,6 +13,7 @@ cve_archetypes:
 cve_workflow_role: "audit"
 weight: 16
 date: 2026-06-06
+lastmod: 2026-08-21
 ---
 
 A source-code audit recipe for finding places where secrets, tokens,
@@ -225,6 +226,13 @@ Stop and escalate to the top of the report if:
 - Secret values are always redacted.
 - Potential incidents are separated from ordinary findings.
 - No code edits or credential validation.
+
+## Verification
+
+- Every secret or token reference is redacted; only file path and a redacted line pointer appear.
+- Potential incidents are listed separately from ordinary logging or config findings.
+- No external call was used to test whether a credential works.
+- Source maps, CI logs, prompt transcripts, and support bundles are treated as leak surfaces, not ignored.
 
 ## Guardrails
 

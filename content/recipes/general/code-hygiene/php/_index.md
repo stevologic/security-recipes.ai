@@ -3,6 +3,7 @@ title: "PHP Code Hygiene"
 linkTitle: "PHP"
 description: "Type, static-analysis, exception, stream, and resource hygiene. Choose bounded workflows with detection, tests, and stop conditions."
 weight: 100
+lastmod: 2026-08-21
 sidebar:
   open: false
 ---

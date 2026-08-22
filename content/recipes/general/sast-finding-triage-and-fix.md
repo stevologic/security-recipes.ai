@@ -25,6 +25,7 @@ cve_archetypes:
 cve_workflow_role: "remediate"
 weight: 12
 date: 2026-04-25
+lastmod: 2026-08-21
 ---
 
 A tool-agnostic prompt that takes a single SAST finding and
@@ -204,6 +205,13 @@ Pick exactly one:
 - Suppression PRs always include an explicit expiry; the workflow's
   expiry-sweep job re-fires findings whose suppressions have aged
   out.
+
+## Verification
+
+- The finding's rule ID, file, and line range match the current sandbox, not a stale report.
+- True-positive PRs include a test that fails on the old code and a clean re-scan of the patched files.
+- False-positive suppressions are line-scoped, justified from the data flow, and carry an expiry date.
+- Uncertain or out-of-scope cases stop at `TRIAGE.md` instead of inventing a new fix shape.
 
 ## Guardrails
 

@@ -3,7 +3,7 @@ title: Critical Infrastructure Secure Context Profile
 linkTitle: Critical Infrastructure Profile
 weight: 19
 date: 2026-05-05
-lastmod: 2026-07-23
+lastmod: 2026-08-21
 toc: true
 description: >
   Assess agentic AI and MCP readiness for critical infrastructure using sector
@@ -19,6 +19,8 @@ Secure Context Layer thesis. It turns current NIST, OWASP, CISA, and MCP
 guidance into generated evidence and a runtime evaluator before agents
 retrieve context or act near high-stakes systems.
 {{< /callout >}}
+
+Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) on August 21, 2026.
 
 SecurityRecipes is positioned as **The Secure Context Layer for Agentic
 AI**. That position is more credible if the project can answer the
@@ -178,7 +180,7 @@ Evaluate a critical-infrastructure read-only context request:
 - [NIST AI RMF Generative AI Profile](https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence)
 - [OWASP Top 10 for Agentic Applications 2026](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/)
 - [OWASP MCP Top 10](https://owasp.org/www-project-mcp-top-10/)
-- [MCP Authorization Specification](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
+- [MCP Authorization Specification](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
 - [MCP Security Best Practices](https://modelcontextprotocol.io/docs/tutorials/security/security_best_practices)
 - [CISA Secure by Design](https://www.cisa.gov/securebydesign)
 

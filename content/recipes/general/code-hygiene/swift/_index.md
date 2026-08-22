@@ -3,6 +3,7 @@ title: "Swift Code Hygiene"
 linkTitle: "Swift"
 description: "Diagnostic, force-unwrap, actor, Sendable, and task-lifecycle hygiene. Choose bounded workflows with detection, tests, and stop conditions."
 weight: 110
+lastmod: 2026-08-21
 sidebar:
   open: false
 ---

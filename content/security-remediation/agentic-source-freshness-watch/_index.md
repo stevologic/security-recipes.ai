@@ -3,7 +3,7 @@ title: Agentic Source Freshness Watch
 linkTitle: Source Freshness Watch
 weight: 19
 date: 2026-05-05
-lastmod: 2026-07-13
+lastmod: 2026-08-21
 toc: true
 description: >
   Generate source-freshness and standards-drift evidence across OWASP, NIST,
@@ -19,6 +19,8 @@ inspectable product claim. It tracks the primary sources that drive the
 SecurityRecipes evidence packs, checks when dependent packs were last
 reviewed, and exposes the result as generated JSON plus an MCP tool.
 {{< /callout >}}
+
+Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) on August 21, 2026.
 
 SecurityRecipes is positioned as **The Secure Context Layer for Agentic
 AI**. That category depends on trust: a reviewer needs to know not only
@@ -83,7 +85,7 @@ SecurityRecipes category claim:
 
 - [OWASP Top 10 for Agentic Applications](https://genai.owasp.org/2025/12/09/owasp-genai-security-project-releases-top-10-risks-and-mitigations-for-agentic-ai-security/)
 - [OWASP MCP Top 10](https://owasp.org/www-project-mcp-top-10/)
-- [MCP Authorization](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
+- [MCP Authorization](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
 - [NIST AI Agent Standards Initiative](https://www.nist.gov/artificial-intelligence/ai-agent-standards-initiative)
 - [NIST CAISI AI Agent Security RFI](https://www.nist.gov/news-events/news/2026/01/caisi-issues-request-information-about-securing-ai-agent-systems)
 - [OpenAI agent prompt-injection guidance](https://openai.com/index/designing-agents-to-resist-prompt-injection/)

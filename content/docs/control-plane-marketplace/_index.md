@@ -2,7 +2,7 @@
 title: "Control Plane Marketplace"
 description: "Input channels, output routes, report packs, and workflow templates for the client-side SecurityRecipes browser workbench."
 date: 2026-05-03
-lastmod: 2026-05-05
+lastmod: 2026-08-21
 sidebar:
   exclude: true
 tags:

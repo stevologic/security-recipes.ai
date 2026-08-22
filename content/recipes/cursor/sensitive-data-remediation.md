@@ -9,7 +9,7 @@ model: "Opus 4.7"
 tags: ["sde", "secrets", "pii", "dlp", "cursor", "rules", "commands"]
 weight: 20
 date: 2026-04-21
-lastmod: 2026-07-23
+lastmod: 2026-08-21
 ---
 
 A Cursor **project rule** + **custom slash command** pair for
@@ -215,6 +215,14 @@ abstract description. Never echo the value.
 Invoke from chat with `/remediate-sde WIZ-SECRET-42931 secret`.
 From Cursor Automations, the same command is wired to the
 `security:sde` label trigger.
+
+## Verification
+
+- Rechecked 2026-08-21 against Cursor project rules, slash commands,
+  and Automations triggers.
+- Exposed SDEs still stop at rotation plus `TRIAGE.md` and never
+  rewrite history or echo the literal.
+- The command still opens a draft PR only on the pre-exposure path.
 
 ## Output contract
 

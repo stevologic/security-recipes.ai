@@ -3,7 +3,7 @@ title: MCP Authorization Conformance
 linkTitle: MCP Authorization Conformance
 weight: 10
 date: 2026-05-02
-lastmod: 2026-07-13
+lastmod: 2026-08-21
 toc: true
 description: >
   Generate an MCP authorization conformance pack for resource-bound tokens,
@@ -135,11 +135,11 @@ binding, and audit evidence before promotion.
 
 This feature follows current primary guidance:
 
-- [Model Context Protocol Authorization](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
+- [Model Context Protocol Authorization](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
   for protected-resource metadata discovery, OAuth client ID metadata
   documents, resource indicators, audience-bound bearer tokens, HTTPS,
   PKCE, scope challenges, step-up authorization, and token validation.
-- [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices)
+- [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices)
   for confused-deputy prevention, token-passthrough avoidance, SSRF,
   session safety, scope minimization, and audit trails.
 - [OWASP Top 10 for Agentic Applications 2026](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/)

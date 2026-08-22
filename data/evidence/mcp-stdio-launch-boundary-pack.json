@@ -138,7 +138,7 @@
     "sales_motion": "Lead with open launch-boundary evidence, then sell hosted MCP client posture management, enterprise endpoint policy export, launch receipts, and continuous local-server recertification."
   },
   "failures": [],
-  "generated_at": "2026-05-03",
+  "generated_at": "2026-08-21",
   "intent": "Define the SecurityRecipes MCP STDIO launch boundary so local MCP server configuration is reviewed as code execution before an agent host starts a subprocess. The model gives enterprise AI platform teams a deterministic allow, hold, deny, or kill decision for command, package, sandbox, environment, network, filesystem, and approval risk.",
   "launch_boundaries": [
     {
@@ -673,14 +673,20 @@
     },
     "mcp_server": {
       "path": "mcp_server.py",
-      "sha256": "62dbc2884c2fe05ab58d7b7c8fce2e346af511627767c9f48ddc0418edcc4ede"
+      "sha256": "551e16a6424d7a753301ec379ba9c11a2fb86c10f4af972b8bb7c795a1498a9a"
     },
     "stdio_launch_boundary_model": {
       "path": "data/assurance/mcp-stdio-launch-boundary-model.json",
-      "sha256": "66c5cc217f50a02680842ff4556d4f5e6dfe43e0431e6fe2600bbb3034a38a17"
+      "sha256": "17fa42a40f1d1afc13b84b14b29d92b96b1228e47b4b24b55dbfa46759c0aa58"
     }
   },
   "standards_alignment": [
+    {
+      "coverage": "Current public MCP 2026-07-28 revision. Defines STDIO as client-launched subprocess communication over standard input and output, making launch configuration part of the security boundary.",
+      "id": "mcp-transports-2026-07-28",
+      "name": "Model Context Protocol Transports (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/transports"
+    },
     {
       "coverage": "Defines STDIO as client-launched subprocess communication over standard input and output, making launch configuration part of the security boundary.",
       "id": "mcp-transports-2025-11-25",
@@ -692,6 +698,12 @@
       "id": "mcp-security-best-practices",
       "name": "Model Context Protocol Security Best Practices",
       "url": "https://modelcontextprotocol.io/docs/tutorials/security/security_best_practices"
+    },
+    {
+      "coverage": "Current public MCP 2026-07-28 revision. Clarifies that HTTP authorization guidance does not apply to STDIO launches, which means credentials and local process execution need separate policy.",
+      "id": "mcp-authorization-2026-07-28",
+      "name": "Model Context Protocol Authorization (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization"
     },
     {
       "coverage": "Clarifies that HTTP authorization guidance does not apply to STDIO launches, which means credentials and local process execution need separate policy.",

@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-05-04",
+  "last_reviewed": "2026-08-21",
   "intent": "Define the SecurityRecipes approval receipt control for agentic AI: every human approval that unlocks a privileged agent action must be scope-bound, time-boxed, role-checked, separated from the requesting identity, linked to risk acceptance when needed, and sealed into a run receipt before the action is trusted.",
   "positioning": {
     "category": "Scope-bound approval receipts for agentic AI control planes",
@@ -22,6 +22,12 @@
       "coverage": "Requires approval receipts for behavior packages that request privileged permissions, shell or network execution, update authority, persistent memory, or cross-platform skill reuse."
     },
     {
+      "id": "mcp-authorization-2026-07-28",
+      "name": "Model Context Protocol Authorization Specification (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization",
+      "coverage": "Current public MCP 2026-07-28 revision. Binds approval to protected-resource metadata, resource indicators, token audience validation, PKCE, short-lived tokens, and forbidden token passthrough before MCP authority expands."
+    },
+    {
       "id": "mcp-authorization-2025-11-25",
       "name": "Model Context Protocol Authorization Specification",
       "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization",
@@ -32,6 +38,12 @@
       "name": "Model Context Protocol Security Best Practices",
       "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices",
       "coverage": "Adds approval receipt checks to confused-deputy prevention, local MCP server command review, scope minimization, session binding, SSRF controls, and auditability."
+    },
+    {
+      "id": "mcp-elicitation-2026-07-28",
+      "name": "Model Context Protocol Elicitation Specification (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/client/elicitation",
+      "coverage": "Current public MCP 2026-07-28 revision. Uses elicitation as a receipt source only for non-sensitive approval rationale and requires URL-mode or external systems for sensitive authentication or payment flows."
     },
     {
       "id": "mcp-elicitation-2025-11-25",
@@ -127,116 +139,226 @@
     {
       "id": "bounded-remediation-review",
       "title": "Bounded remediation review",
-      "action_class_ids": ["repo_branch_write", "external_context_egress"],
+      "action_class_ids": [
+        "repo_branch_write",
+        "external_context_egress"
+      ],
       "risk_tier": "medium",
       "minimum_approvers": 1,
-      "required_roles": ["security_reviewer", "service_owner"],
+      "required_roles": [
+        "security_reviewer",
+        "service_owner"
+      ],
       "role_policy": "at_least_one",
       "max_ttl_minutes": 1440,
       "requires_risk_acceptance": false,
       "requires_separation_of_duties": true,
-      "scope_binding_fields": ["workflow_id", "run_id", "identity_id", "action_class", "tenant_id", "mcp_namespaces", "changed_paths"],
+      "scope_binding_fields": [
+        "workflow_id",
+        "run_id",
+        "identity_id",
+        "action_class",
+        "tenant_id",
+        "mcp_namespaces",
+        "changed_paths"
+      ],
       "default_decision": "allow_scope_bound_approval",
       "commercial_value": "Makes normal remediation PR approval machine-readable without adding unnecessary friction."
     },
     {
       "id": "privileged-tool-step-up",
       "title": "Privileged tool or behavior-package step-up",
-      "action_class_ids": ["skill_or_tool_install", "persistent_memory_write", "remote_agent_delegation"],
+      "action_class_ids": [
+        "skill_or_tool_install",
+        "persistent_memory_write",
+        "remote_agent_delegation"
+      ],
       "risk_tier": "high",
       "minimum_approvers": 2,
-      "required_roles": ["security_owner", "platform_owner"],
+      "required_roles": [
+        "security_owner",
+        "platform_owner"
+      ],
       "role_policy": "all_required",
       "max_ttl_minutes": 480,
       "requires_risk_acceptance": false,
       "requires_separation_of_duties": true,
-      "scope_binding_fields": ["workflow_id", "run_id", "identity_id", "action_class", "tenant_id", "mcp_namespaces", "target_resource_id"],
+      "scope_binding_fields": [
+        "workflow_id",
+        "run_id",
+        "identity_id",
+        "action_class",
+        "tenant_id",
+        "mcp_namespaces",
+        "target_resource_id"
+      ],
       "default_decision": "hold_for_second_approver",
       "commercial_value": "Creates a hosted approval-check surface for new skills, remote agents, memory writes, and privileged MCP tools."
     },
     {
       "id": "identity-and-scope-change",
       "title": "Identity and MCP scope change",
-      "action_class_ids": ["identity_or_scope_change"],
+      "action_class_ids": [
+        "identity_or_scope_change"
+      ],
       "risk_tier": "high",
       "minimum_approvers": 2,
-      "required_roles": ["identity_owner", "security_owner"],
+      "required_roles": [
+        "identity_owner",
+        "security_owner"
+      ],
       "role_policy": "all_required",
       "max_ttl_minutes": 240,
       "requires_risk_acceptance": true,
       "requires_separation_of_duties": true,
-      "scope_binding_fields": ["workflow_id", "run_id", "identity_id", "action_class", "tenant_id", "old_scope_hash", "new_scope_hash"],
+      "scope_binding_fields": [
+        "workflow_id",
+        "run_id",
+        "identity_id",
+        "action_class",
+        "tenant_id",
+        "old_scope_hash",
+        "new_scope_hash"
+      ],
       "default_decision": "hold_for_risk_acceptance",
       "commercial_value": "Turns non-human identity expansion into a reviewable, revocable, evidence-bound event."
     },
     {
       "id": "production-or-release",
       "title": "Production deployment or release approval",
-      "action_class_ids": ["production_deployment"],
+      "action_class_ids": [
+        "production_deployment"
+      ],
       "risk_tier": "high",
       "minimum_approvers": 2,
-      "required_roles": ["service_owner", "security_owner"],
+      "required_roles": [
+        "service_owner",
+        "security_owner"
+      ],
       "role_policy": "all_required",
       "max_ttl_minutes": 240,
       "requires_risk_acceptance": true,
       "requires_separation_of_duties": true,
-      "scope_binding_fields": ["workflow_id", "run_id", "identity_id", "action_class", "tenant_id", "environment", "release_artifact_hash"],
+      "scope_binding_fields": [
+        "workflow_id",
+        "run_id",
+        "identity_id",
+        "action_class",
+        "tenant_id",
+        "environment",
+        "release_artifact_hash"
+      ],
       "default_decision": "hold_for_risk_acceptance",
       "commercial_value": "Lets a production MCP gateway prove release authority before an agent changes live systems."
     },
     {
       "id": "secret-and-data-boundary",
       "title": "Secret, regulated data, and egress boundary approval",
-      "action_class_ids": ["credential_or_secret_access"],
+      "action_class_ids": [
+        "credential_or_secret_access"
+      ],
       "risk_tier": "critical",
       "minimum_approvers": 2,
-      "required_roles": ["data_owner", "security_owner"],
+      "required_roles": [
+        "data_owner",
+        "security_owner"
+      ],
       "role_policy": "all_required",
       "max_ttl_minutes": 120,
       "requires_risk_acceptance": true,
       "requires_separation_of_duties": true,
-      "scope_binding_fields": ["workflow_id", "run_id", "identity_id", "action_class", "tenant_id", "data_class", "destination_class"],
+      "scope_binding_fields": [
+        "workflow_id",
+        "run_id",
+        "identity_id",
+        "action_class",
+        "tenant_id",
+        "data_class",
+        "destination_class"
+      ],
       "default_decision": "hold_for_risk_acceptance",
       "commercial_value": "Gives regulated buyers a deterministic hold point before context, secrets, or tenant data can cross a boundary."
     },
     {
       "id": "irreversible-or-funds",
       "title": "Irreversible transaction approval",
-      "action_class_ids": ["funds_or_irreversible_transaction"],
+      "action_class_ids": [
+        "funds_or_irreversible_transaction"
+      ],
       "risk_tier": "critical",
       "minimum_approvers": 2,
-      "required_roles": ["business_owner", "security_owner"],
+      "required_roles": [
+        "business_owner",
+        "security_owner"
+      ],
       "role_policy": "all_required",
       "max_ttl_minutes": 60,
       "requires_risk_acceptance": true,
       "requires_separation_of_duties": true,
-      "scope_binding_fields": ["workflow_id", "run_id", "identity_id", "action_class", "tenant_id", "simulation_hash", "transaction_policy_hash"],
+      "scope_binding_fields": [
+        "workflow_id",
+        "run_id",
+        "identity_id",
+        "action_class",
+        "tenant_id",
+        "simulation_hash",
+        "transaction_policy_hash"
+      ],
       "default_decision": "hold_for_risk_acceptance",
       "commercial_value": "Keeps high-consequence financial, blockchain, and irreversible workflows read-only until explicit two-key approval exists."
     },
     {
       "id": "quarantine-and-incident",
       "title": "Artifact quarantine and incident response approval",
-      "action_class_ids": ["artifact_or_registry_quarantine"],
+      "action_class_ids": [
+        "artifact_or_registry_quarantine"
+      ],
       "risk_tier": "high",
       "minimum_approvers": 2,
-      "required_roles": ["incident_commander", "supply_chain_security"],
+      "required_roles": [
+        "incident_commander",
+        "supply_chain_security"
+      ],
       "role_policy": "all_required",
       "max_ttl_minutes": 360,
       "requires_risk_acceptance": true,
       "requires_separation_of_duties": true,
-      "scope_binding_fields": ["workflow_id", "run_id", "identity_id", "action_class", "tenant_id", "artifact_hash", "rollback_plan_hash"],
+      "scope_binding_fields": [
+        "workflow_id",
+        "run_id",
+        "identity_id",
+        "action_class",
+        "tenant_id",
+        "artifact_hash",
+        "rollback_plan_hash"
+      ],
       "default_decision": "hold_for_risk_acceptance",
       "commercial_value": "Makes destructive quarantine actions inspectable and replayable for incident response and insurance-grade evidence."
     }
   ],
   "runtime_policy": {
-    "trusted_status_values": ["approved", "allow", "granted"],
+    "trusted_status_values": [
+      "approved",
+      "allow",
+      "granted"
+    ],
     "scope_hash_required": true,
     "expiry_required": true,
     "separation_of_duties_default": true,
-    "untrusted_sources": ["chat_transcript_only", "model_generated_claim", "unverified_comment", "unsigned_webhook"],
-    "trusted_sources": ["source_host_review", "change_management", "identity_governance", "mcp_elicitation_log", "incident_commander_record", "incident_command_system"],
+    "untrusted_sources": [
+      "chat_transcript_only",
+      "model_generated_claim",
+      "unverified_comment",
+      "unsigned_webhook"
+    ],
+    "trusted_sources": [
+      "source_host_review",
+      "change_management",
+      "identity_governance",
+      "mcp_elicitation_log",
+      "incident_commander_record",
+      "incident_command_system"
+    ],
     "kill_signal_indicators": [
       "approval_bypass_attempt",
       "approval_after_execution",

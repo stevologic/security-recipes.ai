@@ -3,7 +3,7 @@ title: Context Poisoning Guard
 linkTitle: Context Poisoning Guard
 weight: 10
 date: 2026-05-02
-lastmod: 2026-07-23
+lastmod: 2026-08-21
 toc: true
 description: >
   Scan retrieved context before agent use for prompt injection, provenance
@@ -36,7 +36,9 @@ The Context Poisoning Guard adds that inspection layer. It scans every
 registered context root from the Secure Context Registry and produces a
 generated evidence pack that says whether a source passes, contains only
 documented adversarial examples, should hold for review, or should be
-blocked until fixed.
+blocked until fixed. Leftover CVE drafts that invent a next version or
+copy unrelated floors are untrusted context: cite NVD or GHSA, and do
+not treat that text as a retrieval-approved floor.
 
 {{< playbook-workflow >}}
 
@@ -148,7 +150,7 @@ The guard follows current agentic AI and MCP security guidance:
 - [OWASP Agentic AI Threats and Mitigations](https://genai.owasp.org/resource/agentic-ai-threats-and-mitigations/)
   for agent threat models around autonomy, tools, delegation, and
   retrieved context.
-- [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices)
+- [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices)
   for scoped access, token-safety, confused-deputy prevention, and
   auditability.
 - [NIST AI RMF Generative AI Profile](https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence)

@@ -9,6 +9,7 @@ model: "Opus 4.7"
 tags: ["sde", "secrets", "pii", "dlp", "codex", "noninteractive", "ci"]
 weight: 20
 date: 2026-04-21
+lastmod: 2026-08-21
 ---
 
 A Codex CLI prompt for **headless SDE remediation** — hard-coded
@@ -247,6 +248,12 @@ GUARDRAILS
   runbook.
 - NEVER merge the PR you opened.
 ~~~
+
+## Verification
+
+- Rechecked 2026-08-21 against `codex exec --sandbox workspace-write --json`.
+- Exposed SDEs still stop at rotation plus `TRIAGE.md` and never rewrite history.
+- The prompt still forbids echoing the SDE literal into commits, logs, or shell output.
 
 ## Output contract
 

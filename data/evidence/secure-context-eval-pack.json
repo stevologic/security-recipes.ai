@@ -90,7 +90,7 @@
     ]
   },
   "failures": [],
-  "generated_at": "2026-05-03",
+  "generated_at": "2026-08-21",
   "intent": "Define a CI-ready secure-context evaluation harness for SecurityRecipes. Each scenario checks whether MCP-backed agents receive only registered, cited, attested, poisoning-scanned, and egress-safe context before they rely on it for agentic remediation.",
   "positioning": {
     "buyer": "AI Platform, Security Engineering, AppSec, GRC, procurement security, and acquisition diligence teams",
@@ -168,13 +168,13 @@
                 "workflow_prompt_context"
               ],
               "root": "content/recipes",
-              "source_hash": "ca502d57685e4871b7e688136608d4739f0e7943143f94e6bf0296e9aa379512",
+              "source_hash": "da8dc6f828712b7bff8436f8aa1bd5b8dda602aa6b0d466f37865c9f6d6b2ea2",
               "source_id": "recipes",
               "title": "Recipes",
               "trust_tier": "tier_1_curated_guidance"
             },
             "matched_workflow": {
-              "context_package_hash": "27cb9b7903a9a1c745bf06179f11ba736afccd4038d730e5bb509cfa5d9f44dd",
+              "context_package_hash": "eda31c3d88891618d0775438a927fed6076de8d42b7be450f903d25b5fb18cb0",
               "source_ids": [
                 "security-remediation-workflows",
                 "recipes",
@@ -200,10 +200,10 @@
           "check_id": "ctx-eval-vuln-dep-prompt-context:poisoning",
           "check_type": "context_poisoning_scan",
           "evidence": {
-            "actionable_finding_count": 28,
-            "finding_count": 53,
+            "actionable_finding_count": 29,
+            "finding_count": 61,
             "max_actionable_findings": 0,
-            "source_hash": "ca502d57685e4871b7e688136608d4739f0e7943143f94e6bf0296e9aa379512",
+            "source_hash": "da8dc6f828712b7bff8436f8aa1bd5b8dda602aa6b0d466f37865c9f6d6b2ea2",
             "source_id": "recipes"
           },
           "expected_decision": [
@@ -230,7 +230,7 @@
               "recipes"
             ],
             "source_hashes": {
-              "recipes": "ca502d57685e4871b7e688136608d4739f0e7943143f94e6bf0296e9aa379512"
+              "recipes": "da8dc6f828712b7bff8436f8aa1bd5b8dda602aa6b0d466f37865c9f6d6b2ea2"
             }
           },
           "expected_decision": "citations_and_hashes_required",
@@ -288,7 +288,7 @@
               "trust_tier": "tier_2_policy_context"
             },
             "matched_workflow": {
-              "context_package_hash": "d6ce663f2edd2bc67ed0ea2c823ad35d603740e86846b7ec75bbcd8f10babf73",
+              "context_package_hash": "59cae9a9ad81d99589b599bd2a5168d6eed8fe6ba36908125dba66840a6f8727",
               "source_ids": [
                 "security-remediation-workflows",
                 "recipes",
@@ -405,13 +405,13 @@
                 "tool_contract_context"
               ],
               "root": "mcp_server.py",
-              "source_hash": "1fe83ed992a3cf184ee9f3acbf94a92629ac057e29593966864ccfed35a1a216",
+              "source_hash": "2c02372ea473a4ee3dd9495a482bb7dde5c13ba33a15e8a9d940beb319661903",
               "source_id": "mcp-server-runtime",
               "title": "MCP Server Runtime Contract",
               "trust_tier": "tier_2_policy_context"
             },
             "matched_workflow": {
-              "context_package_hash": "27cb9b7903a9a1c745bf06179f11ba736afccd4038d730e5bb509cfa5d9f44dd",
+              "context_package_hash": "eda31c3d88891618d0775438a927fed6076de8d42b7be450f903d25b5fb18cb0",
               "source_ids": [
                 "security-remediation-workflows",
                 "recipes",
@@ -442,7 +442,7 @@
             "actionable_finding_count": 0,
             "finding_count": 0,
             "max_actionable_findings": 0,
-            "source_hash": "1fe83ed992a3cf184ee9f3acbf94a92629ac057e29593966864ccfed35a1a216",
+            "source_hash": "2c02372ea473a4ee3dd9495a482bb7dde5c13ba33a15e8a9d940beb319661903",
             "source_id": "mcp-server-runtime"
           },
           "expected_decision": [
@@ -467,7 +467,7 @@
               "mcp-server-runtime"
             ],
             "source_hashes": {
-              "mcp-server-runtime": "1fe83ed992a3cf184ee9f3acbf94a92629ac057e29593966864ccfed35a1a216"
+              "mcp-server-runtime": "2c02372ea473a4ee3dd9495a482bb7dde5c13ba33a15e8a9d940beb319661903"
             }
           },
           "expected_decision": "citations_and_hashes_required",
@@ -618,7 +618,7 @@
               "attestation_id": "wfctx-vulnerable-dependency-remediation",
               "decision": "allow_attested_workflow_context",
               "freshness_state": "declared_current",
-              "hash": "27cb9b7903a9a1c745bf06179f11ba736afccd4038d730e5bb509cfa5d9f44dd",
+              "hash": "eda31c3d88891618d0775438a927fed6076de8d42b7be450f903d25b5fb18cb0",
               "source_id": null,
               "status": "active",
               "subject_type": "workflow_context_package",
@@ -749,7 +749,7 @@
               "exposure": "public",
               "root": "content/recipes",
               "sensitivity": "public",
-              "source_hash": "ca502d57685e4871b7e688136608d4739f0e7943143f94e6bf0296e9aa379512",
+              "source_hash": "da8dc6f828712b7bff8436f8aa1bd5b8dda602aa6b0d466f37865c9f6d6b2ea2",
               "source_id": "recipes",
               "title": "Recipes",
               "trust_tier": "tier_1_curated_guidance"
@@ -765,10 +765,10 @@
           "check_id": "ctx-eval-approved-model-egress:poisoning",
           "check_type": "context_poisoning_scan",
           "evidence": {
-            "actionable_finding_count": 28,
-            "finding_count": 53,
+            "actionable_finding_count": 29,
+            "finding_count": 61,
             "max_actionable_findings": 0,
-            "source_hash": "ca502d57685e4871b7e688136608d4739f0e7943143f94e6bf0296e9aa379512",
+            "source_hash": "da8dc6f828712b7bff8436f8aa1bd5b8dda602aa6b0d466f37865c9f6d6b2ea2",
             "source_id": "recipes"
           },
           "expected_decision": [
@@ -795,7 +795,7 @@
               "recipes"
             ],
             "source_hashes": {
-              "recipes": "ca502d57685e4871b7e688136608d4739f0e7943143f94e6bf0296e9aa379512"
+              "recipes": "da8dc6f828712b7bff8436f8aa1bd5b8dda602aa6b0d466f37865c9f6d6b2ea2"
             }
           },
           "expected_decision": "citations_and_hashes_required",
@@ -848,13 +848,13 @@
                 "enterprise_onboarding_context"
               ],
               "root": "content/security-remediation",
-              "source_hash": "96ca8a5f84a801bea2e97e01a0e7d2742673245d5bdbec110e65bc2eba59983d",
+              "source_hash": "c3417fd9703efea4f91615bcc490ab583e9f8a4893016041eae7270ef23e644f",
               "source_id": "security-remediation-workflows",
               "title": "Security Remediation Workflow Docs",
               "trust_tier": "tier_1_curated_guidance"
             },
             "matched_workflow": {
-              "context_package_hash": "d0b8e0392be467680a06276cbfc2106e6ef836cea5c6bf8d2c8ff6af87f6332d",
+              "context_package_hash": "14361f843f2efdac75bf18f7bd3499420283916240cd494966d5e3f89a054f42",
               "source_ids": [
                 "security-remediation-workflows",
                 "recipes",
@@ -883,7 +883,7 @@
             "actionable_finding_count": 50,
             "finding_count": 71,
             "max_actionable_findings": 0,
-            "source_hash": "96ca8a5f84a801bea2e97e01a0e7d2742673245d5bdbec110e65bc2eba59983d",
+            "source_hash": "c3417fd9703efea4f91615bcc490ab583e9f8a4893016041eae7270ef23e644f",
             "source_id": "security-remediation-workflows"
           },
           "expected_decision": [
@@ -910,7 +910,7 @@
               "security-remediation-workflows"
             ],
             "source_hashes": {
-              "security-remediation-workflows": "96ca8a5f84a801bea2e97e01a0e7d2742673245d5bdbec110e65bc2eba59983d"
+              "security-remediation-workflows": "c3417fd9703efea4f91615bcc490ab583e9f8a4893016041eae7270ef23e644f"
             }
           },
           "expected_decision": "citations_and_hashes_required",
@@ -961,30 +961,36 @@
   "source_artifacts": {
     "agentic_threat_radar": {
       "path": "data/evidence/agentic-threat-radar.json",
-      "sha256": "669d95c30b3b97b9121e72eaba8f88629c4e4061c973a7cb0895b23482a33713"
+      "sha256": "7fb000d5fd0691b51d2a7cb628f713787bd2c7a6e9953485074f1f32817620a9"
     },
     "context_egress_boundary_pack": {
       "path": "data/evidence/context-egress-boundary-pack.json",
-      "sha256": "3c78f13f12d1219cef79624e17e379aec25aa2725e63f3aa6ad97979518157f4"
+      "sha256": "14bc1f90e0e3e6c9fef5e52c5739a4320e0f4c389f6bbeaeca19b99a69240a7c"
     },
     "context_poisoning_guard_pack": {
       "path": "data/evidence/context-poisoning-guard-pack.json",
-      "sha256": "24c9d4b244048c356b7a66f014f9100ae9b2401fe7e432ffa2e018887d36ebb1"
+      "sha256": "cdaa44ade2d6c8816ffe5954c1b008fe3fdb3c720e39c3187ca565141b1b5e76"
     },
     "secure_context_attestation_pack": {
       "path": "data/evidence/secure-context-attestation-pack.json",
-      "sha256": "f6d98b6b6ccc6ce4b4939d6bab41eaad41cc9b30e2785b7f1fc9098e7b7c3362"
+      "sha256": "bdec3ec235f44f3da20237fb92d929f484ba0d56dc4e640ff39a8d48fffd2cad"
     },
     "secure_context_eval_profile": {
       "path": "data/assurance/secure-context-eval-scenarios.json",
-      "sha256": "0b9506ca9a876b89137046226dce53b198100bde912a64ee395724c2beb59553"
+      "sha256": "91a7cb6738715668cc539f3f569c5fbdffb9bb22e8eeb3bd0cbfbb357a1ebe41"
     },
     "secure_context_trust_pack": {
       "path": "data/evidence/secure-context-trust-pack.json",
-      "sha256": "8cd4d68eb2f2bd832b02a2f0731560731d1690288fb17b4b7ebc6c5e122f5e3e"
+      "sha256": "11d09a9195f5e3af955d014259486cff7982e9e8c9058f5170a7385b05a875e8"
     }
   },
   "standards_alignment": [
+    {
+      "coverage": "Current public MCP 2026-07-28 revision. Resource indicators, audience validation, OAuth 2.1 security expectations, PKCE, HTTPS, token lifetime controls, and forbidden credential relay.",
+      "id": "mcp-authorization-2026-07-28",
+      "name": "Model Context Protocol Authorization Specification (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization"
+    },
     {
       "coverage": "Resource indicators, audience validation, OAuth 2.1 security expectations, PKCE, HTTPS, token lifetime controls, and forbidden credential relay.",
       "id": "mcp-authorization-2025-11-25",

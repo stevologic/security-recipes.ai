@@ -3,7 +3,7 @@ title: Automated Vulnerability Remediation Without AI Agents
 linkTitle: Automation
 weight: 11
 date: 2026-04-21
-lastmod: 2026-07-21
+lastmod: 2026-08-21
 toc: true
 sidebar:
   open: true

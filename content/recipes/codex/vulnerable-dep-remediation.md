@@ -9,6 +9,7 @@ model: "Opus 4.7"
 tags: ["sca", "cve", "dependencies", "codex", "noninteractive", "ci"]
 weight: 10
 date: 2026-04-21
+lastmod: 2026-08-21
 ---
 
 A Codex CLI prompt designed for **non-interactive, CI-driven** runs
@@ -256,6 +257,13 @@ GUARDRAILS
 - If MAX_MAJOR_BUMPS == 0 and the only fix is a major bump, you
   must triage. Do not rationalize the bump.
 ~~~
+
+## Verification
+
+- Rechecked 2026-08-21 against OpenAI's current non-interactive
+  `codex exec --sandbox workspace-write --json` form.
+- One finding still produces one commit and one PR, or `TRIAGE.md`.
+- The prompt still refuses major bumps when `MAX_MAJOR_BUMPS` is zero.
 
 ## Output contract
 

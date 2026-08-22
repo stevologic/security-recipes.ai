@@ -3,7 +3,7 @@ title: Recipe Routing Evals
 linkTitle: Recipe Routing Evals
 weight: 6
 date: 2026-05-02
-lastmod: 2026-07-13
+lastmod: 2026-08-21
 toc: true
 sidebar:
   open: true

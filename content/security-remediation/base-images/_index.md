@@ -3,7 +3,7 @@ title: Base Image & Container Layer Remediation
 linkTitle: Base Image & Container Layers
 weight: 4
 date: 2026-04-25
-lastmod: 2026-07-21
+lastmod: 2026-08-21
 sidebar:
   open: true
 description: >
@@ -43,6 +43,10 @@ patch tag (`3.19.1` → `3.19.2`) get auto-applied versus held for
 review? What about distroless? What about images where the team
 that owns the `FROM` line is different from the team that owns
 the running service?
+
+Never invent the next image tag. Use the vendor-supported digest
+or documented patch tag. If the advisory names no replacement
+image, write TRIAGE.md instead of guessing `n+1`.
 
 This workflow doesn't decide policy — it executes a policy the
 program has already declared, opens PRs against the affected

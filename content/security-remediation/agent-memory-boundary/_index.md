@@ -3,7 +3,7 @@ title: Agent Memory Boundary
 linkTitle: Agent Memory Boundary
 weight: 13
 date: 2026-05-02
-lastmod: 2026-07-23
+lastmod: 2026-08-21
 toc: true
 description: >
   Define memory classes, TTLs, provenance, rollback, and prohibited persistence
@@ -151,10 +151,10 @@ This feature follows current guidance:
 - [OWASP Agent Memory Guard](https://owasp.org/www-project-agent-memory-guard/)
   for memory poisoning, cryptographic baselines, declarative memory
   policies, snapshots, and rollback.
-- [MCP Authorization 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
+- [MCP Authorization 2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
   for resource indicators, token audience validation, PKCE, HTTPS, and
   token-passthrough denial.
-- [MCP Security Best Practices](https://modelcontextprotocol.io/docs/tutorials/security/security_best_practices)
+- [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices)
   for confused-deputy prevention, session safety, local server controls,
   and scope minimization.
 - [NIST AI RMF Critical Infrastructure concept note](https://www.nist.gov/programs-projects/concept-note-ai-rmf-profile-trustworthy-ai-critical-infrastructure)

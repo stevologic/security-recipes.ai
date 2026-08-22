@@ -3,7 +3,7 @@ title: MCP STDIO Launch Boundary
 linkTitle: MCP STDIO Launch Boundary
 weight: 8
 date: 2026-05-04
-lastmod: 2026-07-13
+lastmod: 2026-08-21
 sidebar:
   exclude: true
 description: >
@@ -118,14 +118,14 @@ python3 scripts/evaluate_mcp_stdio_launch_decision.py \
 
 This feature follows current primary guidance:
 
-- [MCP Transports](https://modelcontextprotocol.io/specification/2025-11-25/basic/transports)
+- [MCP Transports](https://modelcontextprotocol.io/specification/2026-07-28/basic/transports)
   defines STDIO as a client-launched subprocess and warns local HTTP
   transports to avoid DNS rebinding exposure.
-- [MCP Security Best Practices](https://modelcontextprotocol.io/docs/tutorials/security/security_best_practices)
+- [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices)
   covers local MCP server compromise, malicious startup commands,
   sandboxing, consent, filesystem control, network control, and scope
   minimization.
-- [MCP Authorization](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
+- [MCP Authorization](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
   says HTTP authorization guidance does not apply to STDIO; local
   credentials come from the environment, so environment policy matters.
 - [OpenAI Agents SDK MCP](https://openai.github.io/openai-agents-js/guides/mcp/)

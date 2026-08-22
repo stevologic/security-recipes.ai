@@ -3,7 +3,7 @@ title: MCP Connector Intake Scanner
 linkTitle: Connector Intake Scanner
 weight: 7
 date: 2026-05-02
-lastmod: 2026-07-13
+lastmod: 2026-08-21
 sidebar:
   exclude: true
 description: >
@@ -108,10 +108,10 @@ The initial candidates model three realistic enterprise intake outcomes:
 
 This feature follows current primary guidance:
 
-- [MCP Authorization](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
+- [MCP Authorization](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
   requires resource-aware authorization and strict token handling for
   HTTP-based transports.
-- [MCP Security Best Practices](https://modelcontextprotocol.io/docs/tutorials/security/security_best_practices)
+- [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices)
   calls out confused deputy risk, forbidden token passthrough, SSRF,
   session safety, local server compromise, and scope minimization.
 - [OWASP Top 10 for Agentic Applications 2026](https://genai.owasp.org/2025/12/09/owasp-genai-security-project-releases-top-10-risks-and-mitigations-for-agentic-ai-security/)
