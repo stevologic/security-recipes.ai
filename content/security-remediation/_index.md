@@ -112,13 +112,14 @@ below for a specific finding class.
 
 Use a CVE-specific recipe only when its product and affected-version evidence
 match the finding you are investigating. The [CVE Database](/cve-database/)
-publishes 57 search-indexable CVE pages: 28 human-reviewed stable guides
-and 29 AI-qualified pages that already name a vendor or GHSA fixed
+publishes 57 search-indexable CVE pages: 29 human-reviewed stable guides
+and 28 AI-qualified pages that already name a vendor or GHSA fixed
 release. Development drafts stay noindex so leftover version text cannot
 become a search or MCP floor.
 
 - [CVE-2026-9198: Langflow auto-login to code-validation RCE](/cve/CVE-2026-9198/)
 - [CVE-2026-35616: FortiClient EMS improper access control](/cve/CVE-2026-35616/)
+- [CVE-2026-48027: Nx Console 18.95.0 extension compromise](/cve/CVE-2026-48027/)
 - [CVE-2026-72898: Metabase unauthenticated SQL injection](/cve/CVE-2026-72898/)
 - [CVE-2026-64849: MLflow unauthenticated webhook SSRF](/cve/CVE-2026-64849/)
 - [CVE-2026-63077: TeamCity unauthenticated agent-polling RCE](/cve/CVE-2026-63077/)

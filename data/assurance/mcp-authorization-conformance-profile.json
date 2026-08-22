@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-05-02",
+  "last_reviewed": "2026-08-21",
   "intent": "Define the SecurityRecipes MCP authorization conformance model so agent hosts, MCP gateways, IAM teams, and enterprise buyers can verify latest MCP authorization requirements: resource-bound tokens, token audience validation, PKCE, protected-resource metadata discovery, client ID metadata documents, authoritative scope challenges, step-up authorization, token-passthrough denial, scope minimization, consent, session binding, and audit evidence before agents use MCP tools.",
   "positioning": {
     "buyer": "AI Platform, IAM, Product Security, GRC, procurement security, and enterprise architecture teams",
@@ -10,16 +10,28 @@
   },
   "standards_alignment": [
     {
-      "id": "mcp-authorization-2025-11-25",
+      "id": "mcp-authorization-2026-07-28",
       "name": "Model Context Protocol Authorization",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization",
+      "coverage": "Current public MCP authorization revision: OAuth authorization for HTTP MCP servers, resource indicators, protected-resource metadata discovery, authorization-server metadata discovery, OAuth client ID metadata documents, PKCE, HTTPS, bearer-token validation, token audience checks, scope challenges, and step-up authorization."
+    },
+    {
+      "id": "mcp-security-best-practices-2026-07-28",
+      "name": "Model Context Protocol Security Best Practices",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices",
+      "coverage": "Current public MCP security-best-practices revision: confused-deputy prevention, token-passthrough avoidance, SSRF controls, scope minimization, session safety, local-server hardening, and audit trails."
+    },
+    {
+      "id": "mcp-authorization-2025-11-25",
+      "name": "Model Context Protocol Authorization (2025-11-25 prior revision)",
       "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization",
-      "coverage": "OAuth authorization for HTTP MCP servers, resource indicators, protected-resource metadata discovery, authorization-server metadata discovery, OAuth client ID metadata documents, PKCE, HTTPS, bearer-token validation, token audience checks, scope challenges, and step-up authorization."
+      "coverage": "Prior final MCP authorization revision kept as a historical source ID. Do not treat 2025-11-25 as the current public specification."
     },
     {
       "id": "mcp-security-best-practices",
-      "name": "Model Context Protocol Security Best Practices",
+      "name": "Model Context Protocol Security Best Practices (2025-06-18 prior revision)",
       "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices",
-      "coverage": "Confused-deputy prevention, token-passthrough avoidance, SSRF controls, scope minimization, session safety, local-server hardening, and audit trails."
+      "coverage": "Prior MCP security-best-practices revision kept as a historical source ID. Prefer the 2026-07-28 revision for current controls."
     },
     {
       "id": "owasp-agentic-top-10-2026",

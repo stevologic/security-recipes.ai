@@ -91,7 +91,7 @@
       "current_reference": 16,
       "recent_signal": 14,
       "standing_reference": 5,
-      "undated_review_required": 4
+      "undated_review_required": 6
     },
     "newest_sources": [
       {
@@ -165,7 +165,7 @@
       "OWASP": 7,
       "OpenAI": 5,
       "OpenTelemetry": 1,
-      "Unknown": 4
+      "Unknown": 6
     },
     "source_class_counts": {
       "frontier_lab_guidance": 6,
@@ -178,11 +178,11 @@
       "observability_standard": 1,
       "protocol_guidance": 2,
       "protocol_specification": 5,
-      "unknown": 4,
+      "unknown": 6,
       "vendor_architecture_guidance": 1
     },
     "status": "source_freshness_ready",
-    "unique_source_reference_count": 39,
+    "unique_source_reference_count": 41,
     "watch_decision_counts": {
       "current": 9
     },
@@ -414,7 +414,7 @@
     },
     "mcp-authorization-conformance-profile": {
       "path": "data/assurance/mcp-authorization-conformance-profile.json",
-      "sha256": "3e05d6cca4a8deb1fef558a3b9116b88ce652e506f1e3d546915f78146d81e41"
+      "sha256": "829ee5a5b3696f9e1f0c7219a92362d852e9a739bcb8198ea44dadea0e851d26"
     },
     "mcp-risk-coverage-profile": {
       "path": "data/assurance/mcp-risk-coverage-profile.json",
@@ -1455,6 +1455,48 @@
     },
     {
       "freshness_class": "undated_review_required",
+      "id": "mcp-authorization-2026-07-28",
+      "name": "Model Context Protocol Authorization",
+      "published": null,
+      "published_age_days": null,
+      "published_date": null,
+      "publisher": "Unknown",
+      "publisher_family": "Unknown",
+      "referenced_by": [
+        {
+          "path": "data/assurance/mcp-authorization-conformance-profile.json",
+          "watched_source_id": "mcp-authorization-conformance-profile",
+          "watched_source_title": "MCP Authorization Conformance Profile"
+        }
+      ],
+      "source_class": "unknown",
+      "source_class_family": "unknown",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization",
+      "why_it_matters": "Current public MCP authorization revision: OAuth authorization for HTTP MCP servers, resource indicators, protected-resource metadata discovery, authorization-server metadata discovery, OAuth client ID metadata documents, PKCE, HTTPS, bearer-token validation, token audience checks, scope challenges, and step-up authorization."
+    },
+    {
+      "freshness_class": "undated_review_required",
+      "id": "mcp-security-best-practices-2026-07-28",
+      "name": "Model Context Protocol Security Best Practices",
+      "published": null,
+      "published_age_days": null,
+      "published_date": null,
+      "publisher": "Unknown",
+      "publisher_family": "Unknown",
+      "referenced_by": [
+        {
+          "path": "data/assurance/mcp-authorization-conformance-profile.json",
+          "watched_source_id": "mcp-authorization-conformance-profile",
+          "watched_source_title": "MCP Authorization Conformance Profile"
+        }
+      ],
+      "source_class": "unknown",
+      "source_class_family": "unknown",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices",
+      "why_it_matters": "Current public MCP security-best-practices revision: confused-deputy prevention, token-passthrough avoidance, SSRF controls, scope minimization, session safety, local-server hardening, and audit trails."
+    },
+    {
+      "freshness_class": "undated_review_required",
       "id": "nist-sp-800-61r3",
       "name": "NIST SP 800-61 Rev. 3 Incident Response Recommendations",
       "published": null,
@@ -1598,14 +1640,14 @@
       "business_criticality": "critical",
       "decision": "current",
       "id": "mcp-authorization-conformance-profile",
-      "last_reviewed": "2026-05-02",
+      "last_reviewed": "2026-08-21",
       "path": "data/assurance/mcp-authorization-conformance-profile.json",
-      "reference_count": 8,
+      "reference_count": 10,
       "reference_paths": [
         "standards_alignment"
       ],
       "review_cadence_days": 21,
-      "review_due_at": "2026-05-23",
+      "review_due_at": "2026-09-11",
       "title": "MCP Authorization Conformance Profile",
       "why": "MCP authorization, resource indicators, token audience, PKCE, and token-passthrough expectations are core hosted-MCP trust controls."
     },
