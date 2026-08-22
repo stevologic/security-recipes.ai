@@ -4,6 +4,7 @@ linkTitle: Prompt Sources
 page_kind: collection
 weight: 10
 toc: true
+lastmod: 2026-08-21
 sidebar:
   open: false
 description: >
@@ -76,9 +77,12 @@ implementation-oriented sources further down.
   GitHub organisation — look for `www-project-top-10-for-large-language-model-applications`
   and related repos.
 - **Caveat.** Top 10 lists shift year over year and differ by
-  domain. Always reference the year and project in any audit prompt
-  that cites them (for example, "OWASP Top 10 for LLM Applications
-  2025"), and keep your prompt's taxonomy references current.
+  domain. The GenAI / LLM Applications list is not the web
+  application Top 10. Rechecked August 21, 2026: [OWASP names
+  Top 10:2025 as the current web-application edition](https://owasp.org/Top10/2025/0x00_2025-Introduction/).
+  Always reference the year and project in any audit prompt
+  (for example, "OWASP Top 10 for LLM Applications 2025" or
+  "OWASP Top 10:2025"), and keep taxonomy references current.
 
 ### MITRE ATLAS
 
@@ -363,6 +367,7 @@ judge fit in under thirty seconds.
 ## See also
 
 - [Recipes]({{< relref "/recipes" >}}) — internal, community-curated prompts
+- [OWASP Top 10:2025 audit]({{< relref "/recipes/general/owasp-top-10-2025-audit" >}}) — current web-application Top 10 hunt prompt
 - [Fundamentals]({{< relref "/fundamentals" >}}) — plain-English primer on prompts, agents, and MCP
 - [Fundamentals → Emerging Patterns]({{< relref "/fundamentals/emerging-patterns" >}}) — what else is maturing in the agentic remediation space
 - [Automation]({{< relref "/automation" >}}) — deterministic tools that pair with these prompts
