@@ -800,17 +800,6 @@
       "source_id": "recipes"
     },
     {
-      "actionable": false,
-      "disposition": "defensive_control_language",
-      "line": 61,
-      "match": "- Tests never send a shared credential to an arbitrary MCP URL.",
-      "path": "content/recipes/cve/cve-2026-59207-n8n-is-an-open-source-workflow-automation-platform.md",
-      "risk_family": "secret_exposure",
-      "rule_id": "secret-exfiltration-request",
-      "severity": "critical",
-      "source_id": "recipes"
-    },
-    {
       "actionable": true,
       "disposition": "actionable_context_poisoning_risk",
       "line": 138,
@@ -1732,7 +1721,7 @@
       "agentic-assurance-models",
       "recipes"
     ],
-    "byte_count": 15545910,
+    "byte_count": 15546652,
     "decision_counts": {
       "allow_with_adversarial_examples": 1,
       "block_until_removed": 2,
@@ -1741,12 +1730,12 @@
     },
     "disposition_counts": {
       "actionable_context_poisoning_risk": 93,
-      "defensive_control_language": 36,
+      "defensive_control_language": 35,
       "documented_adversarial_example": 24
     },
     "failure_count": 0,
     "file_count": 3520,
-    "finding_count": 153,
+    "finding_count": 152,
     "held_source_count": 1,
     "held_sources": [
       "security-remediation-workflows"
@@ -1755,10 +1744,10 @@
       "approval_bypass": 44,
       "hidden_instruction": 59,
       "prompt_injection": 9,
-      "secret_exposure": 41
+      "secret_exposure": 40
     },
     "severity_counts": {
-      "critical": 50,
+      "critical": 49,
       "high": 44,
       "medium": 59
     },
@@ -2011,11 +2000,11 @@
       "decision": "block_until_removed",
       "disposition_counts": {
         "actionable_context_poisoning_risk": 29,
-        "defensive_control_language": 31,
+        "defensive_control_language": 30,
         "documented_adversarial_example": 1
       },
       "file_count": 3384,
-      "finding_count": 61,
+      "finding_count": 60,
       "owner": {
         "accountable_team": "SecurityRecipes Maintainers",
         "escalation": "recipes-review",
@@ -2046,14 +2035,14 @@
       "risk_family_counts": {
         "approval_bypass": 23,
         "prompt_injection": 4,
-        "secret_exposure": 34
+        "secret_exposure": 33
       },
       "root": "content/recipes",
       "severity_counts": {
-        "critical": 38,
+        "critical": 37,
         "high": 23
       },
-      "source_hash": "b9f84af5a5da09b7ef76ccee0df10ac09c7d31501487f2f9ef3fb08b1939b885",
+      "source_hash": "4f38101749e046b6bd4a78318a920426bcd8e75855136cad4f2b8e9c8c0d0814",
       "source_id": "recipes",
       "title": "Recipes",
       "trust_tier": "tier_1_curated_guidance"
