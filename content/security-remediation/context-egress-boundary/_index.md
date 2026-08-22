@@ -3,7 +3,7 @@ title: Context Egress Boundary
 linkTitle: Context Egress Boundary
 weight: 11
 date: 2026-05-02
-lastmod: 2026-07-23
+lastmod: 2026-08-21
 toc: true
 description: >
   Classify and enforce which context may leave each trust boundary, with
@@ -18,6 +18,8 @@ breadcrumb_parent: /agentic-security/
 only controls retrieval. Enterprise reviewers also need to know where
 context is allowed to go after retrieval.
 {{< /callout >}}
+
+Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) on August 21, 2026.
 
 ## The product bet
 
@@ -204,10 +206,10 @@ This feature follows current guidance:
 - [OpenAI Safety in building agents](https://platform.openai.com/docs/guides/agent-builder-safety)
   for structured outputs, tool approvals, guardrails, trace graders, and
   careful MCP tool calling.
-- [MCP Authorization 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
+- [MCP Authorization 2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
   for resource indicators, audience-bound tokens, HTTPS, PKCE, token
   validation, and no token passthrough.
-- [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices)
+- [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices)
   for confused-deputy prevention, token safety, scope minimization,
   SSRF controls, session safety, and auditability.
 - [OWASP MCP Top 10](https://owasp.org/www-project-mcp-top-10/)

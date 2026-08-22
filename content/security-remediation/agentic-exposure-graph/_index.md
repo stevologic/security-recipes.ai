@@ -3,7 +3,7 @@ title: Agentic Exposure Graph
 linkTitle: Exposure Graph
 weight: 18
 date: 2026-05-04
-lastmod: 2026-07-13
+lastmod: 2026-08-21
 toc: true
 description: >
   Generate a relationship graph ranking exposure across secure context, agent
@@ -19,6 +19,8 @@ breadcrumb_parent: /agentic-security/
 agentic AI: it shows how context, identity, tools, authorization, data
 boundaries, and evidence combine into action paths before agents act.
 {{< /callout >}}
+
+Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) on August 21, 2026.
 
 SecurityRecipes is positioned as **the secure context layer for
 agentic AI**, but secure context becomes valuable only when a reviewer can
@@ -157,7 +159,7 @@ Find paths for one MCP namespace:
 
 - [NIST AI Agent Standards Initiative](https://www.nist.gov/artificial-intelligence/ai-agent-standards-initiative)
 - [OWASP Top 10 for Agentic Applications 2026](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/)
-- [MCP Authorization Specification](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
+- [MCP Authorization Specification](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
 - [OWASP MCP Top 10](https://owasp.org/www-project-mcp-top-10/)
 - [CSA Securing the Agentic Control Plane](https://cloudsecurityalliance.org/blog/2026/03/20/2026-securing-the-agentic-control-plane)
 - [Agent2Agent Protocol Specification](https://a2a-protocol.org/latest/specification/)

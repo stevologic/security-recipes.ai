@@ -3,7 +3,7 @@ title: Secure Context Value Model
 linkTitle: Value Model
 weight: 12
 date: 2026-05-05
-lastmod: 2026-07-21
+lastmod: 2026-08-21
 sidebar:
   exclude: true
 description: >
@@ -20,6 +20,8 @@ hosted secure context layer. The value model explains the open moat, the
 hosted-ready proof paths, the reviewer segments, and the conservative operational-impact assumptions in
 one MCP-readable artifact.
 {{< /callout >}}
+
+Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) on August 21, 2026.
 
 SecurityRecipes is positioned as **The Secure Context Layer for Agentic
 AI**. The technical foundation is already in place: secure context
@@ -114,10 +116,10 @@ recipes_secure_context_value_model(question_id="what-is-acquirable")
 
 The profile is source-backed by current primary guidance:
 
-- [MCP 2025-11-25 key changes](https://modelcontextprotocol.io/specification/2025-11-25/changelog)
+- [MCP 2026-07-28 key changes](https://modelcontextprotocol.io/specification/2026-07-28/changelog)
   for protocol drift, incremental scope consent, URL elicitation, and
   task support.
-- [MCP Authorization](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
+- [MCP Authorization](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
   for resource indicators, audience validation, PKCE, and
   token-passthrough denial.
 - [NIST AI Agent Standards Initiative](https://www.nist.gov/artificial-intelligence/ai-agent-standards-initiative)

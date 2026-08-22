@@ -3,7 +3,7 @@ title: Secure Context Evals
 linkTitle: Secure Context Evals
 weight: 11
 date: 2026-05-02
-lastmod: 2026-07-23
+lastmod: 2026-08-21
 sidebar:
   exclude: true
 description: >
@@ -18,6 +18,8 @@ than provenance. It needs repeatable evals that prove context is
 registered, cited, attested, poisoning-scanned, and safe to hand to an
 agent before the agent relies on it.
 {{< /callout >}}
+
+Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) on August 21, 2026.
 
 SecurityRecipes is positioned as **The Secure Context Layer for Agentic
 AI**. The Secure Context Eval Pack turns that positioning into a
@@ -94,7 +96,7 @@ regression tracking, signed eval results, and trust-center exports.
 
 This layer follows current primary guidance and market movement:
 
-- [MCP Authorization Specification](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
+- [MCP Authorization Specification](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
   for resource indicators, audience validation, OAuth 2.1 security
   expectations, PKCE, HTTPS, and bounded token use.
 - [MCP Security Best Practices](https://modelcontextprotocol.io/docs/tutorials/security/security_best_practices)

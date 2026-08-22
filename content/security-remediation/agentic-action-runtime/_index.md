@@ -3,7 +3,7 @@ title: Agentic Action Runtime Pack
 linkTitle: Action Runtime Pack
 weight: 15
 date: 2026-05-04
-lastmod: 2026-07-13
+lastmod: 2026-08-21
 sidebar:
   exclude: true
 description: >
@@ -21,6 +21,8 @@ to another agent, writes memory, installs a skill, deploys to
 production, or touches irreversible systems, the host can ask for a
 deterministic allow, hold, deny, or kill decision.
 {{< /callout >}}
+
+Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) on August 21, 2026.
 
 ## The product bet
 
@@ -193,7 +195,7 @@ The pack is anchored in current primary guidance:
 - [MCP Security Best Practices](https://modelcontextprotocol.io/docs/tutorials/security/security_best_practices)
   for confused-deputy prevention, least privilege, command review,
   sandboxing, and local-server boundaries.
-- [MCP Authorization](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
+- [MCP Authorization](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
   for protected resource metadata, OAuth 2.1, resource indicators,
   audience validation, PKCE, and token handling.
 - [NIST AI RMF Generative AI Profile](https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence)

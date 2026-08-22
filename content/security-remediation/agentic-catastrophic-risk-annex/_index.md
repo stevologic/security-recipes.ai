@@ -3,7 +3,7 @@ title: Agentic Catastrophic Risk Annex
 linkTitle: Catastrophic Risk Annex
 weight: 18
 date: 2026-05-04
-lastmod: 2026-07-23
+lastmod: 2026-08-21
 toc: true
 description: >
   Evaluate severe agentic AI failure modes, escalation triggers, containment
@@ -19,6 +19,8 @@ normal readiness scorecard. It answers the board and reviewer question:
 "Which agent actions must be held, denied, or killed before a rare but
 severe failure becomes irreversible?"
 {{< /callout >}}
+
+Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) on August 21, 2026.
 
 SecurityRecipes already has workflow policy, MCP authorization,
 non-human identity, context trust, handoff boundaries, egress policy, run
@@ -192,7 +194,7 @@ Evaluate a high-impact action:
 - [CSA announces STAR for AI Catastrophic Risk Annex](https://cloudsecurityalliance.org/press-releases/2026/04/29/csai-foundation-announces-key-milestones-to-secure-the-agentic-control-plane)
 - [NIST AI Agent Standards Initiative](https://www.nist.gov/artificial-intelligence/ai-agent-standards-initiative)
 - [OWASP Top 10 for Agentic Applications 2026](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/)
-- [MCP Authorization Specification](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
+- [MCP Authorization Specification](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
 - [NIST AI RMF Generative AI Profile](https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence)
 
 ## See also

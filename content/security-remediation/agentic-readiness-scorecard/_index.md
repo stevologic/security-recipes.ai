@@ -3,7 +3,7 @@ title: Agentic Readiness Scorecard
 linkTitle: Readiness Scorecard
 weight: 7
 date: 2026-05-02
-lastmod: 2026-07-13
+lastmod: 2026-08-21
 sidebar:
   exclude: true
 description: >
@@ -19,6 +19,8 @@ maturity label. They need a decision surface: which agentic remediation
 workflows can scale now, which remain pilot-only, which require manual
 approval, and which are blocked by missing evidence.
 {{< /callout >}}
+
+Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) on August 21, 2026.
 
 ## The product bet
 
@@ -92,7 +94,7 @@ The scorecard is mapped to current primary references:
 - [OWASP Top 10 for Agentic Applications 2026](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/)
   for autonomous systems that plan, act, and make decisions across
   complex workflows.
-- [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices)
+- [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices)
   for confused-deputy, token-passthrough, SSRF, session, local-server,
   and scope-minimization risks.
 - [CISA Secure by Design](https://www.cisa.gov/securebydesign) for
