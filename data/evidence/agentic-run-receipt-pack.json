@@ -164,7 +164,7 @@
     "state": "untrusted_until_complete"
   },
   "failures": [],
-  "generated_at": "2026-05-02",
+  "generated_at": "2026-08-21",
   "intent": "Define the portable proof object SecurityRecipes expects for every governed agentic remediation run: a signed or attestable receipt that joins identity, context retrieval, context poisoning inspection, MCP tool decisions, context egress, human approval, verifier output, evidence retention, and revocation into one enterprise review artifact.",
   "positioning": {
     "buyer": "AI Platform, Security Engineering, GRC, IAM, procurement security, vendor-risk, incident response, and acquisition diligence teams",
@@ -262,31 +262,31 @@
     },
     "agentic_assurance_pack": {
       "path": "data/evidence/agentic-assurance-pack.json",
-      "sha256": "cf8d2bfe546aa1ff0ba13bcee1d3b9ad7268f8244eccba4645a479cbb35c38ff"
+      "sha256": "801aac5696a142583904551ddd1923aa42be79f5186917be3a4ea33f90751400"
     },
     "agentic_readiness_scorecard": {
       "path": "data/evidence/agentic-readiness-scorecard.json",
-      "sha256": "93bc53ce3a5ff4d5ef492c9575cd87f21cef1353aea7f7b886f4b1e95a026add"
+      "sha256": "31b0dd4005584a6332a43c63784bd02ec107e02d0f522498a8600ae31f840258"
     },
     "agentic_red_team_drill_pack": {
       "path": "data/evidence/agentic-red-team-drill-pack.json",
-      "sha256": "54627e38d67b719c1b33f96e3fb76c5f771f8dbbd716a0f3fee7eccb35d0c145"
+      "sha256": "22a0221359415367f0c45c4090d1646eb8bc90447b496ec07499226acb0469f1"
     },
     "agentic_run_receipt_profile": {
       "path": "data/assurance/agentic-run-receipt-profile.json",
-      "sha256": "64fa771c1647ff3d327631c573758caebd37d6a8b715fd80c4ea517585f6633e"
+      "sha256": "d5441066d0d42222c7e9faca82777b504aa144abe3e230806449447dbba03de8"
     },
     "agentic_system_bom": {
       "path": "data/evidence/agentic-system-bom.json",
-      "sha256": "360a4ae6e09a6105b9b215074e015237a24be414e5259d8dc291cf035efe0f2f"
+      "sha256": "da0b5bb6c43a6d8fbd58a9f5f7f16759c34a2bfd064a3e194fd95766015feb17"
     },
     "context_egress_boundary_pack": {
       "path": "data/evidence/context-egress-boundary-pack.json",
-      "sha256": "27a71617d1fa83de6bd7a004d3ee1a98bc7cb2bd618323471085b9c6ed43bbc5"
+      "sha256": "25caaaab8164b7231d87ab72350f8a9af89020db6acbf9808dc5476b71222890"
     },
     "context_poisoning_guard_pack": {
       "path": "data/evidence/context-poisoning-guard-pack.json",
-      "sha256": "50460d8bd5d0ba51adf4f719cbcd844d77817a266ee2737eb5dfd691da32de43"
+      "sha256": "f34b48ca3b25fc9e8998edd838ffa6691f91056879bb4b53dc6f09876c03fd82"
     },
     "mcp_gateway_policy": {
       "path": "data/policy/mcp-gateway-policy.json",
@@ -294,7 +294,7 @@
     },
     "secure_context_trust_pack": {
       "path": "data/evidence/secure-context-trust-pack.json",
-      "sha256": "d1ff009906ccb914193f15c285266fde5c371dcabe26ac8b5edf6202e07cc3c5"
+      "sha256": "412d560554a397ec464e242f81c40e0c942c6e1916a80f6b94f4e86f1f028676"
     },
     "workflow_manifest": {
       "path": "data/control-plane/workflow-manifests.json",
@@ -309,10 +309,22 @@
       "url": "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/"
     },
     {
+      "coverage": "Current public MCP 2026-07-28 revision. Receipts preserve authorization server, resource indicator, token audience, scope, consent, and MCP resource-server decision evidence without exposing raw tokens to the model.",
+      "id": "mcp-authorization-2026-07-28",
+      "name": "Model Context Protocol Authorization 2026-07-28",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization"
+    },
+    {
       "coverage": "Receipts preserve authorization server, resource indicator, token audience, scope, consent, and MCP resource-server decision evidence without exposing raw tokens to the model.",
       "id": "mcp-authorization-2025-11-25",
       "name": "Model Context Protocol Authorization 2025-06-18",
       "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization"
+    },
+    {
+      "coverage": "Current public MCP 2026-07-28 revision. Receipts make confused-deputy checks, token-passthrough denial, SSRF controls, session binding, local-server consent, scope minimization, and audit trails inspectable.",
+      "id": "mcp-security-best-practices-2026-07-28",
+      "name": "Model Context Protocol Security Best Practices (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices"
     },
     {
       "coverage": "Receipts make confused-deputy checks, token-passthrough denial, SSRF controls, session binding, local-server consent, scope minimization, and audit trails inspectable.",
@@ -374,7 +386,7 @@
         "SR-AI-10"
       ],
       "bom_component_id": "workflow::artifact-cache-quarantine",
-      "context_package_hash": "702f862b7433b7e9df262777023c6bf2a1c2bb36dae77901ccca0aa804d78b23",
+      "context_package_hash": "65b6f12ab0a5950da7b5a5e71f0d29883149e7e0f6257e26a150bb8b1ef9c2c3",
       "context_source_ids": [
         "security-remediation-workflows",
         "recipes",
@@ -635,7 +647,7 @@
         "SR-AI-10"
       ],
       "bom_component_id": "workflow::base-image-remediation",
-      "context_package_hash": "2a4effb03dd3d65a7772b81c45f70d96198d587a1460f6234bf848488214c58c",
+      "context_package_hash": "aded1e959d1427fea4df749f311b07a8fc1772b6a020d894a2ba0ce450a6450e",
       "context_source_ids": [
         "security-remediation-workflows",
         "recipes",
@@ -897,7 +909,7 @@
         "SR-AI-10"
       ],
       "bom_component_id": "workflow::classic-vulnerable-defaults",
-      "context_package_hash": "09fe2fed4afc71e68af294fcaf10cb2359aa6a0ff84bc563a7f447fc2a5cd591",
+      "context_package_hash": "f572823abc1aea28540dff3c709e669fad77d44e84cd0504436487170a0e55ec",
       "context_source_ids": [
         "security-remediation-workflows",
         "recipes",
@@ -1157,7 +1169,7 @@
         "SR-AI-10"
       ],
       "bom_component_id": "workflow::crypto-payment-security",
-      "context_package_hash": "68115471902a23759129bd216383a9ef9a6b248d224a5b8010ae2739dd585ec0",
+      "context_package_hash": "29be10602a5c9cfed82b4bd1995beee8b98b3415fd6ec77176e493d361deab85",
       "context_source_ids": [
         "security-remediation-workflows",
         "recipes",
@@ -1416,7 +1428,7 @@
         "SR-AI-10"
       ],
       "bom_component_id": "workflow::defi-blockchain-security",
-      "context_package_hash": "8fd27843328d6d39649bd4e9e4435247ab9106a4d594beae33587fb65713e8b7",
+      "context_package_hash": "147b1c4246d363c403b3659a2647979c764fca1baa573cdc842d8b5ba5beb096",
       "context_source_ids": [
         "security-remediation-workflows",
         "recipes",
@@ -1676,7 +1688,7 @@
         "SR-AI-10"
       ],
       "bom_component_id": "workflow::sast-finding-remediation",
-      "context_package_hash": "c5781a7f48900da937c521cea0e70d0e756bb0878c1c5419e05fba7bc75e6f3f",
+      "context_package_hash": "ab78bdf0d2ce8ba7c2097aa61f5682c3756f49e74f9302e404733912511c5ab3",
       "context_source_ids": [
         "security-remediation-workflows",
         "recipes",
@@ -1938,7 +1950,7 @@
         "SR-AI-10"
       ],
       "bom_component_id": "workflow::sensitive-data-remediation",
-      "context_package_hash": "1afb0e4a54efd32fe6c8a520ade4caf4a9598be29e8a4a3865caa88681e13e1c",
+      "context_package_hash": "90815ebf3d96c0dd9ff87acd934d028495a0ec1445881d92d56018bcc3ab34cb",
       "context_source_ids": [
         "security-remediation-workflows",
         "recipes",
@@ -2201,7 +2213,7 @@
         "SR-AI-10"
       ],
       "bom_component_id": "workflow::vulnerable-dependency-remediation",
-      "context_package_hash": "005577daa9f9ccf9ac9e0a0e559332dcb0ccbffc2f1018ca8ce8277f4265c53a",
+      "context_package_hash": "2e0341acf96461ab16cb5351bbd9e1abbd7759a25e463bcf68fd26807f10e62a",
       "context_source_ids": [
         "security-remediation-workflows",
         "recipes",

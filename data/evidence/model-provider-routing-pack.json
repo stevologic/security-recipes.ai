@@ -103,7 +103,7 @@
     ]
   },
   "failures": [],
-  "generated_at": "2026-05-04",
+  "generated_at": "2026-08-21",
   "intent": "Define the SecurityRecipes model-provider routing gate: a deterministic policy layer that decides which model provider and model class may receive secure context for a governed agentic workflow, with explicit proof for data retention, residency, training exclusion, guardrails, telemetry, run receipts, and human approval before context crosses a frontier, local, or unsanctioned model boundary.",
   "model_provider_routing_summary": {
     "decision_counts": {
@@ -405,7 +405,7 @@
     {
       "id": "profile",
       "path": "data/assurance/model-provider-routing-profile.json",
-      "sha256": "15cb00258f1db846780470d16df1da4c9709b226de117921bd2a2d3a919af50d"
+      "sha256": "029028c707a6d2b4d3e6f92846580a52163b77d04542874ad51d62ccb688565a"
     },
     {
       "id": "workflow_manifest",
@@ -415,17 +415,17 @@
     {
       "id": "context_egress_boundary_pack",
       "path": "data/evidence/context-egress-boundary-pack.json",
-      "sha256": "27a71617d1fa83de6bd7a004d3ee1a98bc7cb2bd618323471085b9c6ed43bbc5"
+      "sha256": "25caaaab8164b7231d87ab72350f8a9af89020db6acbf9808dc5476b71222890"
     },
     {
       "id": "agentic_telemetry_contract",
       "path": "data/evidence/agentic-telemetry-contract.json",
-      "sha256": "01a4b4c1a4c8d239e9bd997436601a1c4795ce9eb5e9c25c6469b7342c268d94"
+      "sha256": "611c22580b1a04d66eb66b74f9c63f9d9be058ba50f2252dd9f9552b03b0f004"
     },
     {
       "id": "agentic_run_receipt_pack",
       "path": "data/evidence/agentic-run-receipt-pack.json",
-      "sha256": "87f777fabf1fcf20e5e2167d9c403f242594191ad3a353575f81ce14e77f8ca1"
+      "sha256": "5317a01042d7afad88ce0fe7c444436327ea4ba4b23f8367c911f4fababd2be6"
     }
   ],
   "standards_alignment": [
@@ -448,10 +448,22 @@
       "url": "https://owasp.org/www-project-agentic-skills-top-10/"
     },
     {
+      "coverage": "Current public MCP 2026-07-28 revision. Model routes require MCP resource binding, least-privilege scope selection, audience validation, HTTPS, PKCE, token validation, and no token passthrough before tool-backed context crosses the provider boundary.",
+      "id": "mcp-authorization-2026-07-28",
+      "name": "Model Context Protocol Authorization (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization"
+    },
+    {
       "coverage": "Model routes require MCP resource binding, least-privilege scope selection, audience validation, HTTPS, PKCE, token validation, and no token passthrough before tool-backed context crosses the provider boundary.",
       "id": "mcp-authorization-2025-11-25",
       "name": "Model Context Protocol Authorization",
       "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization"
+    },
+    {
+      "coverage": "Current public MCP 2026-07-28 revision. Routing evidence requires confused-deputy prevention, scope minimization, SSRF controls, session safety, audit trails, and explicit treatment of local and remote MCP server risk.",
+      "id": "mcp-security-best-practices-2026-07-28",
+      "name": "Model Context Protocol Security Best Practices (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices"
     },
     {
       "coverage": "Routing evidence requires confused-deputy prevention, scope minimization, SSRF controls, session safety, audit trails, and explicit treatment of local and remote MCP server risk.",

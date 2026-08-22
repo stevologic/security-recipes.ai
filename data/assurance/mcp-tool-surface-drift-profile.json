@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-05-04",
+  "last_reviewed": "2026-08-21",
   "intent": "Fingerprint approved MCP tool descriptions, schemas, annotations, and capability metadata so agent hosts and MCP gateways can detect post-approval tool-surface drift before a changed tool is allowed to influence an agent run.",
   "positioning": {
     "buyer": "AI Platform, Product Security, IAM, GRC, enterprise architecture, and MCP gateway teams",
@@ -9,6 +9,12 @@
     "why_now": "MCP adoption makes tool descriptions and schemas part of the prompt and policy boundary. Enterprises need continuous drift detection because a connector that was safe at intake can become unsafe after a server update, registry compromise, annotation change, or capability expansion."
   },
   "standards_alignment": [
+    {
+      "id": "mcp-tools-2026-07-28",
+      "name": "Model Context Protocol Tools Specification (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/server/tools",
+      "coverage": "Current public MCP 2026-07-28 revision. Tool names, descriptions, input schemas, structured outputs, annotations, and tool-list change notifications that should be pinned and diff-reviewed before production use."
+    },
     {
       "id": "mcp-tools-2025-11-25",
       "name": "Model Context Protocol Tools Specification",
@@ -20,6 +26,12 @@
       "name": "Model Context Protocol Security Best Practices",
       "url": "https://modelcontextprotocol.io/docs/tutorials/security/security_best_practices",
       "coverage": "Confused deputy, token passthrough, SSRF, session hijacking, local server compromise, and scope minimization controls that become more important when tool surfaces change."
+    },
+    {
+      "id": "mcp-authorization-2026-07-28",
+      "name": "Model Context Protocol Authorization (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization",
+      "coverage": "Current public MCP 2026-07-28 revision. Resource binding, audience validation, consent, and strict bearer-token handling for protected MCP calls after connector or tool-scope drift."
     },
     {
       "id": "mcp-authorization-2025-11-25",

@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-05-03",
+  "last_reviewed": "2026-08-21",
   "intent": "Define the SecurityRecipes A2A Agent Card trust profile so remote agents can be discovered, scored, piloted, denied, or killed before they receive secure context or join an agent-to-agent workflow. The profile turns an A2A Agent Card into enterprise intake evidence for protocol identity, HTTPS interfaces, authentication, authorization scope, signing, skill risk, extended-card handling, and prompt-injection containment.",
   "positioning": {
     "buyer": "AI Platform, Product Security, AppSec, IAM, GRC, procurement security, model-risk, and acquisition diligence teams",
@@ -26,6 +26,12 @@
       "name": "Google Cloud A2A Enterprise Toolkit",
       "url": "https://cloud.google.com/blog/products/ai-machine-learning/agent2agent-protocol-is-getting-an-upgrade/",
       "coverage": "Enterprise A2A adoption signals including signed security cards, gRPC support, and developer tooling for building, deploying, evaluating, and selling A2A agents."
+    },
+    {
+      "id": "mcp-authorization-2026-07-28",
+      "name": "Model Context Protocol Authorization Specification (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization",
+      "coverage": "Current public MCP 2026-07-28 revision. Complements A2A by keeping tool access behind resource indicators, token audience validation, protected resource metadata, PKCE, and token-passthrough denial."
     },
     {
       "id": "mcp-authorization-2025-11-25",
@@ -260,29 +266,64 @@
       "id": "informational-read",
       "title": "Informational read",
       "risk_tier": "low",
-      "examples": ["search public recipes", "summarize public documentation", "return supported workflows"],
-      "required_controls": ["metadata_only_context", "audit_log"]
+      "examples": [
+        "search public recipes",
+        "summarize public documentation",
+        "return supported workflows"
+      ],
+      "required_controls": [
+        "metadata_only_context",
+        "audit_log"
+      ]
     },
     {
       "id": "tenant-data-read",
       "title": "Tenant data read",
       "risk_tier": "medium",
-      "examples": ["read redacted ticket summaries", "retrieve internal evidence summaries", "inspect scoped run receipts"],
-      "required_controls": ["tenant_boundary", "redaction_state", "dpa_or_private_context_policy", "audit_log"]
+      "examples": [
+        "read redacted ticket summaries",
+        "retrieve internal evidence summaries",
+        "inspect scoped run receipts"
+      ],
+      "required_controls": [
+        "tenant_boundary",
+        "redaction_state",
+        "dpa_or_private_context_policy",
+        "audit_log"
+      ]
     },
     {
       "id": "high-impact-write",
       "title": "High-impact write",
       "risk_tier": "high",
-      "examples": ["write ticket state", "open pull request", "publish a release", "change production configuration"],
-      "required_controls": ["gateway_enforced", "human_approval_for_high_impact", "run_receipt", "rollback_plan"]
+      "examples": [
+        "write ticket state",
+        "open pull request",
+        "publish a release",
+        "change production configuration"
+      ],
+      "required_controls": [
+        "gateway_enforced",
+        "human_approval_for_high_impact",
+        "run_receipt",
+        "rollback_plan"
+      ]
     },
     {
       "id": "prohibited-authority",
       "title": "Prohibited authority",
       "risk_tier": "prohibited",
-      "examples": ["move funds", "read private keys", "execute shell commands outside sandbox", "escalate identity permissions"],
-      "required_controls": ["hard_deny", "incident_evidence_required", "kill_session_on_attempt"]
+      "examples": [
+        "move funds",
+        "read private keys",
+        "execute shell commands outside sandbox",
+        "escalate identity permissions"
+      ],
+      "required_controls": [
+        "hard_deny",
+        "incident_evidence_required",
+        "kill_session_on_attempt"
+      ]
     }
   ],
   "sample_agent_cards": [

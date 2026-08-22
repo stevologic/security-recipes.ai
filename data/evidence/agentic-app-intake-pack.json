@@ -721,7 +721,7 @@
     ]
   },
   "failures": [],
-  "generated_at": "2026-05-03",
+  "generated_at": "2026-08-21",
   "intent": "Define a repeatable SecurityRecipes intake gate for new agentic applications, agent hosts, and enterprise MCP rollouts so AI platform, security architecture, GRC, procurement, and acquisition diligence teams can decide whether an agentic app can launch as open reference, guarded pilot, architecture review, or blocked high-impact autonomy.",
   "positioning": {
     "buyer": "AI Platform, Product Security, AppSec, IAM, GRC, procurement security, model-risk, vendor-risk, and acquisition diligence teams",
@@ -802,31 +802,31 @@
   "source_artifacts": {
     "agent_skill_supply_chain_pack": {
       "path": "data/evidence/agent-skill-supply-chain-pack.json",
-      "sha256": "1d9263a2bfac7a8834482f5449f121f6044d607dd2bb54522b20fcdaf29d9210"
+      "sha256": "2a3dc67855d6e08ecd4d2e4698bd0272a9e4ed64047f6d6fc90c69180f470a87"
     },
     "agentic_app_intake_profile": {
       "path": "data/assurance/agentic-app-intake-profile.json",
-      "sha256": "6585ad93cd1b248998be392d4a06cb3d83775181dfa42f31f68dc3ca042bc3d0"
+      "sha256": "42de52b863463e52e5afab1e6ab208c5cd114a15dc308dc4d160ef26b7ce80c1"
     },
     "agentic_incident_response_pack": {
       "path": "data/evidence/agentic-incident-response-pack.json",
-      "sha256": "d2a016a611057fe0cc4bee4f83afbd5310013464641757d23cb6839a86f0b51a"
+      "sha256": "b68b03d89dc39f6ddc9227b033bdf05c901a0fd70cb366d3e635a78fd416528b"
     },
     "agentic_posture_snapshot": {
       "path": "data/evidence/agentic-posture-snapshot.json",
-      "sha256": "33a1fdb796817096a9647bda32be4959758348f86b76029250e677c5dd819a06"
+      "sha256": "a78be72cdacdd00f54e1196aefa6be92bd8692da1133130dfc4b4b05333eac27"
     },
     "agentic_run_receipt_pack": {
       "path": "data/evidence/agentic-run-receipt-pack.json",
-      "sha256": "87f777fabf1fcf20e5e2167d9c403f242594191ad3a353575f81ce14e77f8ca1"
+      "sha256": "5317a01042d7afad88ce0fe7c444436327ea4ba4b23f8367c911f4fababd2be6"
     },
     "agentic_telemetry_contract": {
       "path": "data/evidence/agentic-telemetry-contract.json",
-      "sha256": "01a4b4c1a4c8d239e9bd997436601a1c4795ce9eb5e9c25c6469b7342c268d94"
+      "sha256": "611c22580b1a04d66eb66b74f9c63f9d9be058ba50f2252dd9f9552b03b0f004"
     },
     "context_egress_boundary_pack": {
       "path": "data/evidence/context-egress-boundary-pack.json",
-      "sha256": "27a71617d1fa83de6bd7a004d3ee1a98bc7cb2bd618323471085b9c6ed43bbc5"
+      "sha256": "25caaaab8164b7231d87ab72350f8a9af89020db6acbf9808dc5476b71222890"
     },
     "mcp_authorization_conformance_pack": {
       "path": "data/evidence/mcp-authorization-conformance-pack.json",
@@ -834,11 +834,11 @@
     },
     "mcp_tool_risk_contract": {
       "path": "data/evidence/mcp-tool-risk-contract.json",
-      "sha256": "48f1c9be52015fe050154afc5600313219d6663c252de82831f1b8dcb9c51410"
+      "sha256": "6f956faf05a898565e7c7388cfd4f501fcfe04d57ec063a9ab65f02525165b7f"
     },
     "secure_context_eval_pack": {
       "path": "data/evidence/secure-context-eval-pack.json",
-      "sha256": "c53582eda63bd84596578c4c46473711f8822ca094d6d9d61ab89293bf64f7c4"
+      "sha256": "de054adf101c7834390da70cdd579ec64dcb0ba87c80bcc6a8f4ee6609cd5976"
     },
     "workflow_manifest": {
       "path": "data/control-plane/workflow-manifests.json",
@@ -859,10 +859,22 @@
       "url": "https://owasp.org/www-project-agentic-skills-top-10/"
     },
     {
+      "coverage": "Current public MCP 2026-07-28 revision. OAuth 2.1 protected-resource metadata, resource indicators, audience-bound tokens, PKCE, HTTPS, token validation, and token theft controls for HTTP MCP servers.",
+      "id": "mcp-authorization-2026-07-28",
+      "name": "Model Context Protocol Authorization (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization"
+    },
+    {
       "coverage": "OAuth 2.1 protected-resource metadata, resource indicators, audience-bound tokens, PKCE, HTTPS, token validation, and token theft controls for HTTP MCP servers.",
       "id": "mcp-authorization-2025-11-25",
       "name": "Model Context Protocol Authorization",
       "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization"
+    },
+    {
+      "coverage": "Current public MCP 2026-07-28 revision. Confused-deputy prevention, token-passthrough denial, least-privilege scopes, SSRF controls, session safety, and audit trails for MCP implementations.",
+      "id": "mcp-security-best-practices-2026-07-28",
+      "name": "Model Context Protocol Security Best Practices (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices"
     },
     {
       "coverage": "Confused-deputy prevention, token-passthrough denial, least-privilege scopes, SSRF controls, session safety, and audit trails for MCP implementations.",

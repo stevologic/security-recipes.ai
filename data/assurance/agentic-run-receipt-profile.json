@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-05-02",
+  "last_reviewed": "2026-08-21",
   "intent": "Define the portable proof object SecurityRecipes expects for every governed agentic remediation run: a signed or attestable receipt that joins identity, context retrieval, context poisoning inspection, MCP tool decisions, context egress, human approval, verifier output, evidence retention, and revocation into one enterprise review artifact.",
   "positioning": {
     "buyer": "AI Platform, Security Engineering, GRC, IAM, procurement security, vendor-risk, incident response, and acquisition diligence teams",
@@ -16,10 +16,22 @@
       "coverage": "Run receipts provide concrete evidence for goal hijack, tool misuse, identity and privilege abuse, supply-chain drift, memory and context poisoning, cascading failures, trust exploitation, and rogue-agent containment."
     },
     {
+      "id": "mcp-authorization-2026-07-28",
+      "name": "Model Context Protocol Authorization 2026-07-28",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization",
+      "coverage": "Current public MCP 2026-07-28 revision. Receipts preserve authorization server, resource indicator, token audience, scope, consent, and MCP resource-server decision evidence without exposing raw tokens to the model."
+    },
+    {
       "id": "mcp-authorization-2025-11-25",
       "name": "Model Context Protocol Authorization 2025-06-18",
       "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization",
       "coverage": "Receipts preserve authorization server, resource indicator, token audience, scope, consent, and MCP resource-server decision evidence without exposing raw tokens to the model."
+    },
+    {
+      "id": "mcp-security-best-practices-2026-07-28",
+      "name": "Model Context Protocol Security Best Practices (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices",
+      "coverage": "Current public MCP 2026-07-28 revision. Receipts make confused-deputy checks, token-passthrough denial, SSRF controls, session binding, local-server consent, scope minimization, and audit trails inspectable."
     },
     {
       "id": "mcp-security-best-practices",

@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-05-04",
+  "last_reviewed": "2026-08-21",
   "intent": "Define a conservative acquisition and enterprise-value model for SecurityRecipes so the open corpus, generated evidence packs, and production MCP path can be evaluated as a credible secure context layer business rather than a documentation-only site.",
   "positioning": {
     "buyer": "AI platform leaders, product security, AppSec, GRC, procurement security, model-risk, VC, and acquisition diligence teams",
@@ -10,6 +10,15 @@
   },
   "source_references": [
     {
+      "id": "mcp-changelog-2026-07-28",
+      "name": "Model Context Protocol 2026-07-28 Key Changes",
+      "publisher": "Model Context Protocol",
+      "published": "2026-07-28",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/changelog",
+      "source_class": "protocol_specification",
+      "why_it_matters": "Current public MCP 2026-07-28 revision. MCP is still changing quickly, including authorization discovery, incremental scope consent, URL elicitation, task support, and metadata surfaces that create premium drift-monitoring opportunities."
+    },
+    {
       "id": "mcp-changelog-2025-11-25",
       "name": "Model Context Protocol 2025-11-25 Key Changes",
       "publisher": "Model Context Protocol",
@@ -17,6 +26,15 @@
       "url": "https://modelcontextprotocol.io/specification/2025-11-25/changelog",
       "source_class": "protocol_specification",
       "why_it_matters": "MCP is still changing quickly, including authorization discovery, incremental scope consent, URL elicitation, task support, and metadata surfaces that create premium drift-monitoring opportunities."
+    },
+    {
+      "id": "mcp-authorization-2026-07-28",
+      "name": "Model Context Protocol Authorization Specification (2026-07-28 current revision)",
+      "publisher": "Model Context Protocol",
+      "published": "2026-07-28",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization",
+      "source_class": "protocol_specification",
+      "why_it_matters": "Current public MCP 2026-07-28 revision. Protected MCP servers require resource indicators, audience validation, PKCE, short-lived tokens, and token-passthrough denial before agent authority can be trusted."
     },
     {
       "id": "mcp-authorization-2025-11-25",
@@ -119,8 +137,16 @@
       "id": "open-knowledge-distribution",
       "title": "Open Knowledge Distribution",
       "description": "Public recipes, CVE prompts, agent guidance, and standards-backed documentation create search demand, community contribution, and low-friction technical trust.",
-      "evidence_pack_keys": ["agentic_threat_radar", "agentic_standards_crosswalk"],
-      "mcp_tools": ["recipes_search", "recipes_get", "recipes_agentic_threat_radar", "recipes_agentic_standards_crosswalk"],
+      "evidence_pack_keys": [
+        "agentic_threat_radar",
+        "agentic_standards_crosswalk"
+      ],
+      "mcp_tools": [
+        "recipes_search",
+        "recipes_get",
+        "recipes_agentic_threat_radar",
+        "recipes_agentic_standards_crosswalk"
+      ],
       "premium_surface": "Private recipe packs, customer-specific secure context registries, and standards update streams.",
       "why_acquirer_cares": "The open corpus creates distribution and category authority while the paid layer can monetize private context and policy packaging."
     },
@@ -128,8 +154,16 @@
       "id": "production-mcp-control-plane",
       "title": "Production MCP Control Plane",
       "description": "The repo-shipped MCP server proves a read-only secure context layer, while the hosted path can add auth, metering, drift alerts, signed receipts, and customer policy enforcement.",
-      "evidence_pack_keys": ["enterprise_trust_center_export", "agentic_protocol_conformance_pack", "mcp_risk_coverage_pack"],
-      "mcp_tools": ["recipes_enterprise_trust_center_export", "recipes_agentic_protocol_conformance_pack", "recipes_mcp_risk_coverage_pack"],
+      "evidence_pack_keys": [
+        "enterprise_trust_center_export",
+        "agentic_protocol_conformance_pack",
+        "mcp_risk_coverage_pack"
+      ],
+      "mcp_tools": [
+        "recipes_enterprise_trust_center_export",
+        "recipes_agentic_protocol_conformance_pack",
+        "recipes_mcp_risk_coverage_pack"
+      ],
       "premium_surface": "Hosted MCP gateway, live tool-surface diffing, protected-resource metadata monitoring, and signed policy decisions.",
       "why_acquirer_cares": "MCP is becoming the agent integration layer; a security control plane that already speaks MCP can be embedded into model labs, AI platforms, or security products."
     },
@@ -137,8 +171,16 @@
       "id": "trust-center-evidence",
       "title": "Trust-Center Evidence",
       "description": "Generated evidence packs replace hand-written claims with hashes, readiness summaries, source artifacts, diligence questions, and MCP-readable exports.",
-      "evidence_pack_keys": ["enterprise_trust_center_export", "agentic_control_plane_blueprint", "agentic_readiness_scorecard"],
-      "mcp_tools": ["recipes_enterprise_trust_center_export", "recipes_agentic_control_plane_blueprint", "recipes_agentic_readiness_scorecard"],
+      "evidence_pack_keys": [
+        "enterprise_trust_center_export",
+        "agentic_control_plane_blueprint",
+        "agentic_readiness_scorecard"
+      ],
+      "mcp_tools": [
+        "recipes_enterprise_trust_center_export",
+        "recipes_agentic_control_plane_blueprint",
+        "recipes_agentic_readiness_scorecard"
+      ],
       "premium_surface": "Customer trust-center export API, private evidence ingestion, approval receipt exports, and procurement report generation.",
       "why_acquirer_cares": "Enterprise sales and acquisition diligence both accelerate when technical controls are packaged as inspectable evidence."
     },
@@ -146,8 +188,14 @@
       "id": "runtime-receipts-evals",
       "title": "Runtime Receipts and Evals",
       "description": "Run receipts, telemetry contracts, eval packs, measurement probes, and red-team drill artifacts give buyers a path from policy intent to runtime proof.",
-      "evidence_pack_keys": ["enterprise_trust_center_export", "agentic_readiness_scorecard"],
-      "mcp_tools": ["recipes_enterprise_trust_center_export", "recipes_agentic_readiness_scorecard"],
+      "evidence_pack_keys": [
+        "enterprise_trust_center_export",
+        "agentic_readiness_scorecard"
+      ],
+      "mcp_tools": [
+        "recipes_enterprise_trust_center_export",
+        "recipes_agentic_readiness_scorecard"
+      ],
       "premium_surface": "Run receipt retention, continuous eval replay, incident evidence vaulting, and SIEM/SOAR export.",
       "why_acquirer_cares": "A defensible agent security product must prove what happened during a run, not only what policy said should happen."
     },
@@ -155,8 +203,16 @@
       "id": "protocol-and-standards-drift",
       "title": "Protocol and Standards Drift",
       "description": "Agent protocols, MCP authorization, A2A, OWASP agentic risks, NIST agent standards, and frontier-lab guidance are changing fast enough to justify a continuous monitoring product.",
-      "evidence_pack_keys": ["agentic_protocol_conformance_pack", "agentic_standards_crosswalk", "agentic_threat_radar"],
-      "mcp_tools": ["recipes_agentic_protocol_conformance_pack", "recipes_agentic_standards_crosswalk", "recipes_agentic_threat_radar"],
+      "evidence_pack_keys": [
+        "agentic_protocol_conformance_pack",
+        "agentic_standards_crosswalk",
+        "agentic_threat_radar"
+      ],
+      "mcp_tools": [
+        "recipes_agentic_protocol_conformance_pack",
+        "recipes_agentic_standards_crosswalk",
+        "recipes_agentic_threat_radar"
+      ],
       "premium_surface": "Standards drift alerts, protocol conformance APIs, connector upgrade review, and buyer evidence refresh.",
       "why_acquirer_cares": "A moving standards surface creates recurring demand for packaged controls, evidence updates, and hosted monitoring."
     }
@@ -166,7 +222,11 @@
       "id": "frontier-model-lab",
       "title": "Frontier Model Lab",
       "buyer_trigger": "Needs enterprise customers to trust agents that retrieve context, call MCP tools, and delegate work across protocol boundaries.",
-      "primary_wedge_ids": ["production-mcp-control-plane", "runtime-receipts-evals", "protocol-and-standards-drift"],
+      "primary_wedge_ids": [
+        "production-mcp-control-plane",
+        "runtime-receipts-evals",
+        "protocol-and-standards-drift"
+      ],
       "proof_needed": "Hosted MCP conformance, context provenance, prompt-injection source-to-sink controls, and customer-visible run receipts.",
       "likely_objection": "The open repo is evidence-rich but not yet a hosted enforcement plane."
     },
@@ -174,7 +234,11 @@
       "id": "ai-platform-vendor",
       "title": "AI Platform Vendor",
       "buyer_trigger": "Wants a secure context and MCP governance layer without building all standards mapping, eval, and evidence packaging from scratch.",
-      "primary_wedge_ids": ["trust-center-evidence", "production-mcp-control-plane", "protocol-and-standards-drift"],
+      "primary_wedge_ids": [
+        "trust-center-evidence",
+        "production-mcp-control-plane",
+        "protocol-and-standards-drift"
+      ],
       "proof_needed": "Connector intake, tool-surface drift, authorization conformance, trust-center exports, and customer-specific policy mapping.",
       "likely_objection": "Needs productized tenant isolation, auth, metering, SLAs, and integration support."
     },
@@ -182,7 +246,11 @@
       "id": "security-platform-vendor",
       "title": "Security Platform Vendor",
       "buyer_trigger": "Needs agentic AI and MCP security coverage to extend AppSec, CNAPP, identity, or SOAR portfolios.",
-      "primary_wedge_ids": ["open-knowledge-distribution", "runtime-receipts-evals", "trust-center-evidence"],
+      "primary_wedge_ids": [
+        "open-knowledge-distribution",
+        "runtime-receipts-evals",
+        "trust-center-evidence"
+      ],
       "proof_needed": "Mappings to OWASP, NIST, MCP, identity, telemetry, incident response, and remediation workflow controls.",
       "likely_objection": "Needs live connectors to existing issue trackers, SIEMs, code hosts, and identity providers."
     },
@@ -190,7 +258,11 @@
       "id": "regulated-enterprise",
       "title": "Regulated Enterprise",
       "buyer_trigger": "Needs to approve agent pilots without letting agents inherit broad human authority, unmanaged context, or unaudited MCP tools.",
-      "primary_wedge_ids": ["trust-center-evidence", "runtime-receipts-evals", "production-mcp-control-plane"],
+      "primary_wedge_ids": [
+        "trust-center-evidence",
+        "runtime-receipts-evals",
+        "production-mcp-control-plane"
+      ],
       "proof_needed": "Design-partner pilot with policy decisions, approval receipts, redacted telemetry, and measurable remediation outcomes.",
       "likely_objection": "Needs private deployment, customer-specific evidence, and governance signoff before production use."
     }

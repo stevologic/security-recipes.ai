@@ -747,7 +747,7 @@
     "sales_motion": "Lead with open elicitation rules, then sell hosted MCP prompt and URL safety enforcement, customer domain allowlists, consent receipts, phishing telemetry, and connector setup flows."
   },
   "failures": [],
-  "generated_at": "2026-08-13",
+  "generated_at": "2026-08-21",
   "intent": "Define the SecurityRecipes MCP elicitation boundary so agent hosts, MCP clients, gateways, and enterprise buyers can decide when a server may ask a user for form input or direct the user to an external URL without leaking credentials, tokens, payment data, or prompt-injection-controlled context through the LLM, client, or intermediate MCP servers.",
   "positioning": {
     "buyer": "AI Platform, Product Security, IAM, Privacy, GRC, procurement security, and enterprise architecture teams",
@@ -815,11 +815,11 @@
   "source_artifacts": {
     "agentic_run_receipt_pack": {
       "path": "data/evidence/agentic-run-receipt-pack.json",
-      "sha256": "87f777fabf1fcf20e5e2167d9c403f242594191ad3a353575f81ce14e77f8ca1"
+      "sha256": "5317a01042d7afad88ce0fe7c444436327ea4ba4b23f8367c911f4fababd2be6"
     },
     "context_egress_boundary_pack": {
       "path": "data/evidence/context-egress-boundary-pack.json",
-      "sha256": "27a71617d1fa83de6bd7a004d3ee1a98bc7cb2bd618323471085b9c6ed43bbc5"
+      "sha256": "25caaaab8164b7231d87ab72350f8a9af89020db6acbf9808dc5476b71222890"
     },
     "mcp_authorization_conformance_pack": {
       "path": "data/evidence/mcp-authorization-conformance-pack.json",
@@ -827,7 +827,7 @@
     },
     "mcp_elicitation_boundary_profile": {
       "path": "data/assurance/mcp-elicitation-boundary-profile.json",
-      "sha256": "7318a3c2e9eabbd88ed197a1df1b58367d44f6fc78a4143241f7d956e43c545d"
+      "sha256": "4a7a94bc20daa6084458d25201193aa79b4f43ae978c105010bb73e89d7a0249"
     },
     "mcp_gateway_policy": {
       "path": "data/policy/mcp-gateway-policy.json",
@@ -835,7 +835,7 @@
     },
     "mcp_tool_risk_contract": {
       "path": "data/evidence/mcp-tool-risk-contract.json",
-      "sha256": "48f1c9be52015fe050154afc5600313219d6663c252de82831f1b8dcb9c51410"
+      "sha256": "6f956faf05a898565e7c7388cfd4f501fcfe04d57ec063a9ab65f02525165b7f"
     },
     "workflow_manifest": {
       "path": "data/control-plane/workflow-manifests.json",
@@ -940,10 +940,22 @@
       "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/patterns/mrtr"
     },
     {
+      "coverage": "Current public MCP 2026-07-28 revision. OAuth 2.1 alignment, protected resource metadata, resource indicators, audience-bound tokens, client identity metadata, scope challenges, and token-passthrough denial for protected MCP servers.",
+      "id": "mcp-authorization-2026-07-28",
+      "name": "Model Context Protocol Authorization (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization"
+    },
+    {
       "coverage": "OAuth 2.1 alignment, protected resource metadata, resource indicators, audience-bound tokens, client identity metadata, scope challenges, and token-passthrough denial for protected MCP servers.",
       "id": "mcp-authorization-2025-11-25",
       "name": "Model Context Protocol Authorization",
       "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization"
+    },
+    {
+      "coverage": "Current public MCP 2026-07-28 revision. Confused-deputy prevention, token passthrough avoidance, session safety, user consent, URL and SSRF controls, auditability, and least-privilege tool access.",
+      "id": "mcp-security-best-practices-2026-07-28",
+      "name": "MCP Security Best Practices (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/docs/tutorials/security/security_best_practices"
     },
     {
       "coverage": "Confused-deputy prevention, token passthrough avoidance, session safety, user consent, URL and SSRF controls, auditability, and least-privilege tool access.",

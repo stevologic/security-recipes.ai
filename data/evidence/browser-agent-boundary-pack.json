@@ -103,7 +103,7 @@
     "sales_motion": "Lead with a readable browser-agent safety gate, then sell hosted policy, dedicated workspace brokering, origin enforcement, prompt-injection telemetry, and signed browser run receipts."
   },
   "failures": [],
-  "generated_at": "2026-05-04",
+  "generated_at": "2026-08-21",
   "intent": "Define the SecurityRecipes browser-agent workspace boundary: a generated, machine-readable policy model for deciding when browser-based or desktop browser agents may inspect untrusted content, use logged-in sessions, hold credentials, navigate origins, fill forms, download files, call local services, or deliver outputs through external routes.",
   "positioning": {
     "buyer": "AI Platform, Product Security, Browser Platform, Security Engineering, SOC, GRC, procurement security, and agent-host teams",
@@ -160,26 +160,26 @@
     "agentic_action_runtime_pack": {
       "available": true,
       "path": "data/evidence/agentic-action-runtime-pack.json",
-      "sha256": "2ca1edaf2e3907be9335a262b69f744b47e04ae2e170e9f4b5633a52a477aa94"
+      "sha256": "2ffed80cae700626e77c031669f87d8cedba7d8fcb63b9cd23843f6b302e12a0"
     },
     "agentic_app_intake_pack": {
       "available": true,
       "path": "data/evidence/agentic-app-intake-pack.json",
-      "sha256": "043fbf32116a5a432f119309ef848f098e92bb16fb434f4a5b1886c1c6079583"
+      "sha256": "4f24c27827c620c9a912a78ce7674f60ff7ba445a47daa7aebafff0e40447933"
     },
     "agentic_incident_response_pack": {
       "available": true,
       "path": "data/evidence/agentic-incident-response-pack.json",
-      "sha256": "d2a016a611057fe0cc4bee4f83afbd5310013464641757d23cb6839a86f0b51a"
+      "sha256": "b68b03d89dc39f6ddc9227b033bdf05c901a0fd70cb366d3e635a78fd416528b"
     },
     "agentic_telemetry_contract": {
       "available": true,
       "path": "data/evidence/agentic-telemetry-contract.json",
-      "sha256": "01a4b4c1a4c8d239e9bd997436601a1c4795ce9eb5e9c25c6469b7342c268d94"
+      "sha256": "611c22580b1a04d66eb66b74f9c63f9d9be058ba50f2252dd9f9552b03b0f004"
     },
     "browser_agent_boundary_profile": {
       "path": "data/assurance/browser-agent-boundary-profile.json",
-      "sha256": "68e6aeed732eafea9f65f565d2d2dc9dd7652444b5fe95a2ab51df050778db3a"
+      "sha256": "9388223da63191897c7f55a1b03adf0d1e15cf5eb2cd4ae4d45760b2c65304fc"
     },
     "browser_agent_readme": {
       "available": false,
@@ -189,17 +189,17 @@
     "context_egress_boundary_pack": {
       "available": true,
       "path": "data/evidence/context-egress-boundary-pack.json",
-      "sha256": "27a71617d1fa83de6bd7a004d3ee1a98bc7cb2bd618323471085b9c6ed43bbc5"
+      "sha256": "25caaaab8164b7231d87ab72350f8a9af89020db6acbf9808dc5476b71222890"
     },
     "secure_context_trust_pack": {
       "available": true,
       "path": "data/evidence/secure-context-trust-pack.json",
-      "sha256": "d1ff009906ccb914193f15c285266fde5c371dcabe26ac8b5edf6202e07cc3c5"
+      "sha256": "412d560554a397ec464e242f81c40e0c942c6e1916a80f6b94f4e86f1f028676"
     },
     "threat_radar": {
       "available": true,
       "path": "data/evidence/agentic-threat-radar.json",
-      "sha256": "48a55c8b5173fd1fc9866b2f059c0bc3071b400dbdce2d11c80a09a4ab784d7a"
+      "sha256": "7696844f0c9274ec738b6d640bbd7b8db3c10124f5b2bb5afff0cb17e02c577d"
     }
   },
   "source_summaries": {
@@ -327,7 +327,7 @@
         "default_decision": "deny_unregistered_context",
         "failure_count": 0,
         "prohibited_data_class_count": 7,
-        "registered_byte_count": 17856553,
+        "registered_byte_count": 17855836,
         "registered_file_count": 3520,
         "risk_family_counts": {
           "context_poisoning": 8,
@@ -381,10 +381,10 @@
           "industry_guidance": 3,
           "industry_standard": 3,
           "protocol_guidance": 1,
-          "protocol_specification": 3,
+          "protocol_specification": 4,
           "vendor_architecture_guidance": 1
         },
-        "source_reference_count": 20,
+        "source_reference_count": 21,
         "top_signals": [
           {
             "id": "agent-protocol-handoff-boundaries",
@@ -456,6 +456,12 @@
       "id": "nist-ai-agent-standards-initiative-2026",
       "name": "NIST AI Agent Standards Initiative",
       "url": "https://www.nist.gov/artificial-intelligence/ai-agent-standards-initiative"
+    },
+    {
+      "coverage": "Current public MCP 2026-07-28 revision. Connects browser-agent tool handoffs to resource indicators, token audience binding, PKCE, short-lived tokens, secure token storage, and token-passthrough denial.",
+      "id": "mcp-authorization-2026-07-28",
+      "name": "Model Context Protocol Authorization Specification (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization"
     },
     {
       "coverage": "Connects browser-agent tool handoffs to resource indicators, token audience binding, PKCE, short-lived tokens, secure token storage, and token-passthrough denial.",

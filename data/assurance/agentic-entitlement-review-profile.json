@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-05-03",
+  "last_reviewed": "2026-08-21",
   "intent": "Define the SecurityRecipes agentic entitlement review pack: a machine-readable access-review and permission-lease layer that proves every non-human agent identity, MCP namespace, access mode, A2A handoff, and high-impact action has an owner, expiry, review cadence, step-up authorization expectation, and deterministic revocation decision before enterprise agents scale.",
   "positioning": {
     "buyer": "AI Platform, IAM, Security Engineering, Product Security, GRC, SOC, procurement security, model-risk, and acquisition diligence teams",
@@ -14,6 +14,12 @@
       "name": "OWASP Top 10 for Agentic Applications 2026",
       "url": "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/",
       "coverage": "Maps entitlement review to identity and privilege abuse, tool misuse, insecure inter-agent communication, agentic supply-chain risk, cascading failures, and rogue-agent containment."
+    },
+    {
+      "id": "mcp-authorization-2026-07-28",
+      "name": "Model Context Protocol Authorization Specification (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization",
+      "coverage": "Current public MCP 2026-07-28 revision. Applies protected resource metadata, OAuth 2.1, resource indicators, token audience binding, PKCE, scope challenges, and token-passthrough denial to each MCP entitlement."
     },
     {
       "id": "mcp-authorization-2025-11-25",
@@ -113,7 +119,9 @@
       "lease_ttl_days": 30,
       "review_cadence_days": 30,
       "requires_human_approval": false,
-      "applies_to_access_modes": ["read"],
+      "applies_to_access_modes": [
+        "read"
+      ],
       "required_evidence": [
         "identity_id",
         "workflow_id",
@@ -131,7 +139,10 @@
       "lease_ttl_days": 14,
       "review_cadence_days": 14,
       "requires_human_approval": false,
-      "applies_to_access_modes": ["write_branch", "write_ticket"],
+      "applies_to_access_modes": [
+        "write_branch",
+        "write_ticket"
+      ],
       "required_evidence": [
         "identity_id",
         "workflow_id",
@@ -150,7 +161,9 @@
       "lease_ttl_days": 7,
       "review_cadence_days": 7,
       "requires_human_approval": true,
-      "applies_to_access_modes": ["approval_required"],
+      "applies_to_access_modes": [
+        "approval_required"
+      ],
       "required_evidence": [
         "identity_id",
         "workflow_id",
@@ -170,7 +183,13 @@
       "lease_ttl_days": 0,
       "review_cadence_days": 1,
       "requires_human_approval": true,
-      "applies_to_access_modes": ["secret_store", "signing_material", "raw_token", "live_funds_movement", "unregistered_namespace"],
+      "applies_to_access_modes": [
+        "secret_store",
+        "signing_material",
+        "raw_token",
+        "live_funds_movement",
+        "unregistered_namespace"
+      ],
       "required_evidence": [
         "identity_id",
         "workflow_id",
@@ -183,9 +202,21 @@
   ],
   "runtime_policy": {
     "lease_binding": "Each runtime credential must bind identity_id, workflow_id, namespace, access mode, run_id, tenant_id, lease_id, expiry, and correlation_id.",
-    "review_status_values": ["current", "due", "overdue", "suspended"],
-    "lease_status_values": ["active", "missing", "expired", "revoked"],
-    "authorization_allow_prefixes": ["allow"],
+    "review_status_values": [
+      "current",
+      "due",
+      "overdue",
+      "suspended"
+    ],
+    "lease_status_values": [
+      "active",
+      "missing",
+      "expired",
+      "revoked"
+    ],
+    "authorization_allow_prefixes": [
+      "allow"
+    ],
     "step_up_required_for": [
       "approval_required namespace",
       "high-control identity",

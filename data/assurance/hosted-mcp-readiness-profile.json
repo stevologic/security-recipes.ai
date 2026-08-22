@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-05-04",
+  "last_reviewed": "2026-08-21",
   "intent": "Define the hosted MCP readiness plan for SecurityRecipes so the project can move from an open reference corpus and local read-only MCP server toward an enterprise-grade secure context service with tenant isolation, protected-resource authorization, private evidence ingestion, signed receipts, telemetry, metering, and buyer-ready rollout gates.",
   "positioning": {
     "buyer": "Frontier model labs, AI platform vendors, agent runtime teams, security platform vendors, regulated enterprises, VC diligence teams, and strategic acquirers",
@@ -11,6 +11,15 @@
   },
   "source_references": [
     {
+      "id": "mcp-basic-2026-07-28",
+      "name": "Model Context Protocol basic specification (2026-07-28 current revision)",
+      "publisher": "Model Context Protocol",
+      "published": "2026-07-28",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic",
+      "source_class": "protocol_specification",
+      "why_it_matters": "Current public MCP 2026-07-28 revision. The hosted plan must respect MCP's base protocol, lifecycle, resources, prompts, tools, client features, utilities, and transport separation instead of treating MCP as a generic REST wrapper."
+    },
+    {
       "id": "mcp-basic-2025-11-25",
       "name": "Model Context Protocol basic specification",
       "publisher": "Model Context Protocol",
@@ -20,6 +29,15 @@
       "why_it_matters": "The hosted plan must respect MCP's base protocol, lifecycle, resources, prompts, tools, client features, utilities, and transport separation instead of treating MCP as a generic REST wrapper."
     },
     {
+      "id": "mcp-authorization-2026-07-28",
+      "name": "Model Context Protocol Authorization (2026-07-28 current revision)",
+      "publisher": "Model Context Protocol",
+      "published": "2026-07-28",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization",
+      "source_class": "protocol_specification",
+      "why_it_matters": "Current public MCP 2026-07-28 revision. Protected hosted MCP must bind tokens to resources, validate token audiences, support protected-resource metadata, minimize scopes, handle step-up authorization, and reject token passthrough."
+    },
+    {
       "id": "mcp-authorization-2025-11-25",
       "name": "Model Context Protocol Authorization",
       "publisher": "Model Context Protocol",
@@ -27,6 +45,15 @@
       "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization",
       "source_class": "protocol_specification",
       "why_it_matters": "Protected hosted MCP must bind tokens to resources, validate token audiences, support protected-resource metadata, minimize scopes, handle step-up authorization, and reject token passthrough."
+    },
+    {
+      "id": "mcp-elicitation-2026-07-28",
+      "name": "Model Context Protocol Elicitation (2026-07-28 current revision)",
+      "publisher": "Model Context Protocol",
+      "published": "2026-07-28",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/client/elicitation",
+      "source_class": "protocol_specification",
+      "why_it_matters": "Current public MCP 2026-07-28 revision. Hosted MCP needs safe user interaction boundaries, especially URL-mode flows where sensitive credentials or third-party authorization must not pass through the MCP client."
     },
     {
       "id": "mcp-elicitation-2025-11-25",

@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-05-04",
+  "last_reviewed": "2026-08-21",
   "intent": "Define the external evidence contract for SecurityRecipes so open reference packs, hosted MCP runtime evidence, trust-center exports, and acquirer diligence packets can share one redacted, schema-backed, release-gated contract instead of ad hoc JSON blobs.",
   "positioning": {
     "buyer": "AI platform, frontier lab, security platform, regulated enterprise, VC diligence, and acquisition reviewers",
@@ -73,6 +73,15 @@
   },
   "source_references": [
     {
+      "id": "mcp-authorization-2026-07-28",
+      "name": "Model Context Protocol Authorization Specification (2026-07-28 current revision)",
+      "publisher": "Model Context Protocol",
+      "published": "2026-07-28",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization",
+      "source_class": "protocol_specification",
+      "why_it_matters": "Current public MCP 2026-07-28 revision. Hosted MCP evidence exports must prove protected-resource metadata, resource indicators, audience-bound tokens, client metadata, scope challenges, and token-passthrough denial before buyers trust policy decisions."
+    },
+    {
       "id": "mcp-authorization-2025-11-25",
       "name": "Model Context Protocol Authorization Specification",
       "publisher": "Model Context Protocol",
@@ -80,6 +89,15 @@
       "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization",
       "source_class": "protocol_specification",
       "why_it_matters": "Hosted MCP evidence exports must prove protected-resource metadata, resource indicators, audience-bound tokens, client metadata, scope challenges, and token-passthrough denial before buyers trust policy decisions."
+    },
+    {
+      "id": "mcp-elicitation-2026-07-28",
+      "name": "Model Context Protocol Elicitation Specification (2026-07-28 current revision)",
+      "publisher": "Model Context Protocol",
+      "published": "2026-07-28",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/client/elicitation",
+      "source_class": "protocol_specification",
+      "why_it_matters": "Current public MCP 2026-07-28 revision. URL-mode elicitation, form-mode limits, user review, consent, identity binding, and phishing controls are a new evidence surface for hosted MCP products."
     },
     {
       "id": "mcp-elicitation-2025-11-25",
@@ -91,6 +109,15 @@
       "why_it_matters": "URL-mode elicitation, form-mode limits, user review, consent, identity binding, and phishing controls are a new evidence surface for hosted MCP products."
     },
     {
+      "id": "mcp-tools-2026-07-28",
+      "name": "Model Context Protocol Tools Specification (2026-07-28 current revision)",
+      "publisher": "Model Context Protocol",
+      "published": "2026-07-28",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/server/tools",
+      "source_class": "protocol_specification",
+      "why_it_matters": "Current public MCP 2026-07-28 revision. Tool annotations, input schemas, output schemas, and execution metadata need trusted-source and drift evidence before they become policy inputs in an enterprise API."
+    },
+    {
       "id": "mcp-tools-2025-11-25",
       "name": "Model Context Protocol Tools Specification",
       "publisher": "Model Context Protocol",
@@ -98,6 +125,15 @@
       "url": "https://modelcontextprotocol.io/specification/2025-11-25/server/tools",
       "source_class": "protocol_specification",
       "why_it_matters": "Tool annotations, input schemas, output schemas, and execution metadata need trusted-source and drift evidence before they become policy inputs in an enterprise API."
+    },
+    {
+      "id": "mcp-transports-2026-07-28",
+      "name": "Model Context Protocol Transports Specification (2026-07-28 current revision)",
+      "publisher": "Model Context Protocol",
+      "published": "2026-07-28",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/transports",
+      "source_class": "protocol_specification",
+      "why_it_matters": "Current public MCP 2026-07-28 revision. Streamable HTTP, origin validation, localhost binding, and authentication expectations shape the hosted evidence API boundary and local reference server warnings."
     },
     {
       "id": "mcp-transports-2025-11-25",

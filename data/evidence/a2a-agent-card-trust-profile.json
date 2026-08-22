@@ -36,7 +36,7 @@
     "sales_motion": "Lead with open Agent Card evaluation, then sell hosted Agent Card monitoring, signature verification, allowlist drift detection, tenant policy exports, and A2A/MCP gateway enforcement."
   },
   "failures": [],
-  "generated_at": "2026-05-03",
+  "generated_at": "2026-08-21",
   "handoff_integration": {
     "a2a_protocol_surface": {
       "allowed_target_trust_tiers": [
@@ -302,15 +302,15 @@
   "source_artifacts": {
     "a2a_agent_card_trust_profile": {
       "path": "data/assurance/a2a-agent-card-trust-profile.json",
-      "sha256": "5bde86a0d05f49bf2cc985a58507073016629904d4a66b7673478d260a05c727"
+      "sha256": "5bce6abf568e90c755f11c1fac348390aed1a0d977481b87ba5139bd2da92300"
     },
     "agent_handoff_boundary_pack": {
       "path": "data/evidence/agent-handoff-boundary-pack.json",
-      "sha256": "07613315f336f1fbf95fb239b4307c66db12e90088af04a6b60fc3bf323d9691"
+      "sha256": "712b4a4360a0eec6af537d41a8281bb335f0d6d9efdb659a219ba957a2e996ea"
     },
     "agentic_threat_radar": {
       "path": "data/evidence/agentic-threat-radar.json",
-      "sha256": "48a55c8b5173fd1fc9866b2f059c0bc3071b400dbdce2d11c80a09a4ab784d7a"
+      "sha256": "7696844f0c9274ec738b6d640bbd7b8db3c10124f5b2bb5afff0cb17e02c577d"
     }
   },
   "standards_alignment": [
@@ -331,6 +331,12 @@
       "id": "google-cloud-a2a-toolkit-2025",
       "name": "Google Cloud A2A Enterprise Toolkit",
       "url": "https://cloud.google.com/blog/products/ai-machine-learning/agent2agent-protocol-is-getting-an-upgrade/"
+    },
+    {
+      "coverage": "Current public MCP 2026-07-28 revision. Complements A2A by keeping tool access behind resource indicators, token audience validation, protected resource metadata, PKCE, and token-passthrough denial.",
+      "id": "mcp-authorization-2026-07-28",
+      "name": "Model Context Protocol Authorization Specification (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization"
     },
     {
       "coverage": "Complements A2A by keeping tool access behind resource indicators, token audience validation, protected resource metadata, PKCE, and token-passthrough denial.",

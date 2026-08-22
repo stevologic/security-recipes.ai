@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-05-03",
+  "last_reviewed": "2026-08-21",
   "intent": "Define the SecurityRecipes MCP STDIO launch boundary so local MCP server configuration is reviewed as code execution before an agent host starts a subprocess. The model gives enterprise AI platform teams a deterministic allow, hold, deny, or kill decision for command, package, sandbox, environment, network, filesystem, and approval risk.",
   "positioning": {
     "buyer": "AI Platform, Product Security, Endpoint Security, IAM, GRC, and enterprise developer platform teams",
@@ -9,6 +9,12 @@
     "why_now": "MCP adoption has made local tools easy to add, but STDIO launches are subprocess execution requests. Enterprises need a launch boundary that is just as explicit as remote MCP authorization, especially as agents, skills, and local MCP servers become part of the production control plane."
   },
   "standards_alignment": [
+    {
+      "id": "mcp-transports-2026-07-28",
+      "name": "Model Context Protocol Transports (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/transports",
+      "coverage": "Current public MCP 2026-07-28 revision. Defines STDIO as client-launched subprocess communication over standard input and output, making launch configuration part of the security boundary."
+    },
     {
       "id": "mcp-transports-2025-11-25",
       "name": "Model Context Protocol Transports",
@@ -20,6 +26,12 @@
       "name": "Model Context Protocol Security Best Practices",
       "url": "https://modelcontextprotocol.io/docs/tutorials/security/security_best_practices",
       "coverage": "Calls out local MCP server compromise, startup command abuse, sandboxing, consent, filesystem controls, network controls, and scope minimization."
+    },
+    {
+      "id": "mcp-authorization-2026-07-28",
+      "name": "Model Context Protocol Authorization (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization",
+      "coverage": "Current public MCP 2026-07-28 revision. Clarifies that HTTP authorization guidance does not apply to STDIO launches, which means credentials and local process execution need separate policy."
     },
     {
       "id": "mcp-authorization-2025-11-25",

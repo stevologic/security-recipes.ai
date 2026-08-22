@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-05-02",
+  "last_reviewed": "2026-08-21",
   "intent": "Define the SecurityRecipes context egress boundary for agentic AI and MCP systems: every data class, destination class, workflow namespace, source trust tier, redaction requirement, residency constraint, and secret-egress kill rule is expressed as machine-readable policy before context leaves a tenant, model, MCP server, or observability boundary.",
   "positioning": {
     "buyer": "AI Platform, Security Engineering, Product Security, Privacy Engineering, GRC, procurement security, vendor-risk, and acquisition diligence teams",
@@ -24,6 +24,14 @@
       "published": "2026",
       "url": "https://platform.openai.com/docs/guides/agent-builder-safety",
       "coverage": "Agent workflows should use structured outputs, tool approvals, guardrails, trace graders, and careful MCP tool calling to limit prompt injection and unintended behavior."
+    },
+    {
+      "id": "mcp-authorization-2026-07-28",
+      "name": "Model Context Protocol Authorization Specification (2026-07-28 current revision)",
+      "publisher": "Model Context Protocol",
+      "published": "2026-07-28",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization",
+      "coverage": "Current public MCP 2026-07-28 revision. MCP clients and servers must use resource indicators, audience-bound tokens, HTTPS, PKCE, token validation, and no token passthrough."
     },
     {
       "id": "mcp-authorization-2025-11-25",

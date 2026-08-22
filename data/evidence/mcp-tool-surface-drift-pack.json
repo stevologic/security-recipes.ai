@@ -113,7 +113,7 @@
     "sales_motion": "Lead with open drift fingerprints and the evaluator, then sell hosted live tool-list monitoring, signed baselines, fleet drift alerts, approval workflows, and tenant-specific MCP gateway enforcement."
   },
   "failures": [],
-  "generated_at": "2026-05-04",
+  "generated_at": "2026-08-21",
   "intent": "Fingerprint approved MCP tool descriptions, schemas, annotations, and capability metadata so agent hosts and MCP gateways can detect post-approval tool-surface drift before a changed tool is allowed to influence an agent run.",
   "positioning": {
     "buyer": "AI Platform, Product Security, IAM, GRC, enterprise architecture, and MCP gateway teams",
@@ -212,14 +212,20 @@
     },
     "mcp_tool_risk_contract": {
       "path": "data/evidence/mcp-tool-risk-contract.json",
-      "sha256": "48f1c9be52015fe050154afc5600313219d6663c252de82831f1b8dcb9c51410"
+      "sha256": "6f956faf05a898565e7c7388cfd4f501fcfe04d57ec063a9ab65f02525165b7f"
     },
     "mcp_tool_surface_drift_profile": {
       "path": "data/assurance/mcp-tool-surface-drift-profile.json",
-      "sha256": "4b495c626741461057e276c8a0df95ddb36049eee01334d84f7a2ab142a68425"
+      "sha256": "1b8546901763d841b4ca01cc007bc556dba57489af12b0b4016c9368246b1522"
     }
   },
   "standards_alignment": [
+    {
+      "coverage": "Current public MCP 2026-07-28 revision. Tool names, descriptions, input schemas, structured outputs, annotations, and tool-list change notifications that should be pinned and diff-reviewed before production use.",
+      "id": "mcp-tools-2026-07-28",
+      "name": "Model Context Protocol Tools Specification (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/server/tools"
+    },
     {
       "coverage": "Tool names, descriptions, input schemas, structured outputs, annotations, and tool-list change notifications that should be pinned and diff-reviewed before production use.",
       "id": "mcp-tools-2025-11-25",
@@ -231,6 +237,12 @@
       "id": "mcp-security-best-practices",
       "name": "Model Context Protocol Security Best Practices",
       "url": "https://modelcontextprotocol.io/docs/tutorials/security/security_best_practices"
+    },
+    {
+      "coverage": "Current public MCP 2026-07-28 revision. Resource binding, audience validation, consent, and strict bearer-token handling for protected MCP calls after connector or tool-scope drift.",
+      "id": "mcp-authorization-2026-07-28",
+      "name": "Model Context Protocol Authorization (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization"
     },
     {
       "coverage": "Resource binding, audience validation, consent, and strict bearer-token handling for protected MCP calls after connector or tool-scope drift.",
