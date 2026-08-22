@@ -461,17 +461,6 @@
     {
       "actionable": true,
       "disposition": "actionable_context_poisoning_risk",
-      "line": 30,
-      "match": "...Devolutions Server 2026.2.9.0 allows an attacker with valid user credentials to bypass the MFA Required policy and authenticate without completing multi-factor authentication.",
-      "path": "content/recipes/cve/cve-2026-14536-improper-enforcement-of-a-mandatory-multi-factor-authentication-policy-in-devolutions-server-2026-2-9-0-allows.md",
-      "risk_family": "approval_bypass",
-      "rule_id": "approval-bypass-request",
-      "severity": "high",
-      "source_id": "recipes"
-    },
-    {
-      "actionable": true,
-      "disposition": "actionable_context_poisoning_risk",
       "line": 48,
       "match": "- Until patched, disable the review-image upload path or the Pro companion plugin.",
       "path": "content/recipes/cve/cve-2026-15158-the-blocksy-companion-plugin-for-wordpress-is-vulnerable-to-arbitrary-file-upload-in-all-versions-up-to-and-i.md",
@@ -1737,13 +1726,13 @@
   ],
   "generated_at": "2026-05-02",
   "guard_summary": {
-    "actionable_finding_count": 96,
+    "actionable_finding_count": 95,
     "blocking_source_count": 2,
     "blocking_sources": [
       "agentic-assurance-models",
       "recipes"
     ],
-    "byte_count": 19433315,
+    "byte_count": 18584547,
     "decision_counts": {
       "allow_with_adversarial_examples": 1,
       "block_until_removed": 2,
@@ -1751,26 +1740,26 @@
       "pass": 5
     },
     "disposition_counts": {
-      "actionable_context_poisoning_risk": 96,
+      "actionable_context_poisoning_risk": 95,
       "defensive_control_language": 34,
       "documented_adversarial_example": 24
     },
     "failure_count": 0,
     "file_count": 3520,
-    "finding_count": 154,
+    "finding_count": 153,
     "held_source_count": 1,
     "held_sources": [
       "security-remediation-workflows"
     ],
     "risk_family_counts": {
-      "approval_bypass": 46,
+      "approval_bypass": 45,
       "hidden_instruction": 59,
       "prompt_injection": 10,
       "secret_exposure": 39
     },
     "severity_counts": {
       "critical": 49,
-      "high": 46,
+      "high": 45,
       "medium": 59
     },
     "source_count": 9
@@ -2018,15 +2007,15 @@
       "trust_tier": "tier_2_policy_context"
     },
     {
-      "actionable_finding_count": 32,
+      "actionable_finding_count": 31,
       "decision": "block_until_removed",
       "disposition_counts": {
-        "actionable_context_poisoning_risk": 32,
+        "actionable_context_poisoning_risk": 31,
         "defensive_control_language": 29,
         "documented_adversarial_example": 1
       },
       "file_count": 3384,
-      "finding_count": 62,
+      "finding_count": 61,
       "owner": {
         "accountable_team": "SecurityRecipes Maintainers",
         "escalation": "recipes-review",
@@ -2055,16 +2044,16 @@
         "content/recipes/cve/ai-enrichment-cve-2022-47966.md"
       ],
       "risk_family_counts": {
-        "approval_bypass": 25,
+        "approval_bypass": 24,
         "prompt_injection": 5,
         "secret_exposure": 32
       },
       "root": "content/recipes",
       "severity_counts": {
         "critical": 37,
-        "high": 25
+        "high": 24
       },
-      "source_hash": "9ad78640052122b188dc1c56aa9464ac0280f635cc01a255ac35a505a2450d0c",
+      "source_hash": "870b8e8b091cab8417d28f3f9fe07e5164f303629406dd4f1134bcc402fcd92a",
       "source_id": "recipes",
       "title": "Recipes",
       "trust_tier": "tier_1_curated_guidance"
