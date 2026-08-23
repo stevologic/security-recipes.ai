@@ -13,6 +13,11 @@ description: >
 This catalog groups reusable prompts for **crypto payments** and
 **DeFi blockchain security**. The recipes are tool-agnostic and are
 intended for bounded, auditable workflows with human approval.
+Rechecked August 23, 2026: leftover CVE dumps stay **development /
+noindex**. Do not invent a protocol upgrade target or a named
+floor from leftover dump version text. Frontmatter `model` strings
+such as `GPT-5.3-Codex` are recipe metadata, not prompt pins. Do
+not emit a signed transaction from an agent run.
 
 ## Crypto payment recipes
 

@@ -14,6 +14,10 @@ lastmod: 2026-08-21
 
 Use this prompt to harden ERC-4626 vaults and vault-like share systems
 against first-depositor inflation, donation attacks, and unsafe rounding.
+The `model: "GPT-5.3-Codex"` frontmatter field is recipe metadata, not
+a prompt pin. Rechecked August 23, 2026: leftover CVE dumps stay
+**development / noindex**. Do not invent a vault upgrade target or a
+named floor from leftover dump version text.
 
 ## When to use it
 
@@ -37,7 +41,7 @@ against first-depositor inflation, donation attacks, and unsafe rounding.
 
 ## Research basis
 
-- [OpenZeppelin ERC-4626 documentation](https://docs.openzeppelin.com/contracts/4.x/erc4626) explains how direct asset donations can shift the exchange rate and cause small deposits to mint zero or too few shares.
+- [OpenZeppelin ERC-4626 documentation](https://docs.openzeppelin.com/contracts/5.x/erc4626) is the current Contracts 5.x guide. It still explains how direct asset donations can shift the exchange rate and cause small deposits to mint zero or too few shares. Do not keep citing the 4.x URL as current.
 - [OpenZeppelin: A novel defense against ERC4626 inflation attacks](https://www.openzeppelin.com/news/a-novel-defense-against-erc4626-inflation-attacks) compares mitigations such as routers, internal asset accounting, virtual shares/assets, and dead shares.
 - [OWASP SC07: Arithmetic Errors](https://scs.owasp.org/sctop10/SC07-ArithmeticErrors/) recommends documenting rounding behavior and proving repeated interactions cannot create free value.
 
