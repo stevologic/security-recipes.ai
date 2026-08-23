@@ -682,7 +682,7 @@ The runtime stays honest to the current Azure DevOps platform posture:
 
 - organization, project, repository, and token values stay in browser storage until the operator clears them
 - [Microsoft's current REST guidance](https://learn.microsoft.com/en-us/azure/devops/integrate/get-started/rest/samples?view=azure-devops) recommends Microsoft Entra tokens for production while still allowing PAT-backed script access, which fits the BYO-token browser model
-- Microsoft's [public-project retirement guidance](https://learn.microsoft.com/en-us/azure/devops/organizations/projects/public-projects-retirement?view=azure-devops), last updated May 1, 2026, says public projects are retired and remaining public projects convert to private in 2027, so SecurityRecipes treats Azure DevOps as an authenticated enterprise source rather than an anonymous repository feed
+- Microsoft's [public-project retirement guidance](https://learn.microsoft.com/en-us/azure/devops/organizations/projects/public-projects-retirement?view=azure-devops) (`ms.date` **2026-04-30**, `updated_at` **2026-05-18**) still says public projects are retired and remaining public projects convert to private in 2027, so SecurityRecipes treats Azure DevOps as an authenticated enterprise source rather than an anonymous repository feed
 
 ## Live normalized scan bundle export
 

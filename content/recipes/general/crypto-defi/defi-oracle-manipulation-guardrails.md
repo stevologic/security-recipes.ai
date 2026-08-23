@@ -14,6 +14,13 @@ lastmod: 2026-08-21
 
 Use this prompt to add and verify protections against oracle-based
 price manipulation in DeFi execution paths.
+The `model: "GPT-5.3-Codex"` frontmatter field is recipe metadata, not
+a prompt pin. Rechecked August 23, 2026: leftover CVE dumps stay
+**development / noindex**. Do not invent an oracle or protocol
+upgrade target or a named floor from leftover dump version text.
+OWASP [SC03:2026 Price Oracle Manipulation](https://scs.owasp.org/sctop10/)
+is still current on the Smart Contract Top 10. That list is not the
+retired OWASP web Top 10:2026.
 
 ## When to use it
 

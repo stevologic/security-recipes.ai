@@ -18,6 +18,13 @@ and a repository policy — that shapes Copilot into a careful
 SDE remediator: pre-exposure findings get a minimal code fix in
 a draft PR; exposed findings get a structured triage issue and
 no code edits at all.
+Rechecked August 23, 2026: leftover CVE dumps stay **development /
+noindex**. Do not invent a named floor. Dependabot-to-agent
+assignment is generally available and still requires GitHub Code
+Security plus a Copilot plan with coding-agent access. That is
+not this SDE workflow. The Copilot issue-assignment and
+agent-tasks APIs remain **public preview**. Frontmatter `model`
+strings stay metadata, not prompt pins.
 
 ## What this prompt does
 
