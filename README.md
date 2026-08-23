@@ -436,6 +436,14 @@ additional requests; it is not needed for the daily deterministic queue. A
 manual run on a non-default branch uploads its enrichment cache, ownership
 ledger, and generated drafts as a short-lived workflow artifact for review.
 
+`.github/workflows/leftover-review.yml` runs every day at `13:17 UTC` and
+live-verifies leftover-gold CVE leftovers against GitHub Advisories and NVD.
+Leftover-gold criticals and highs drain first. After those close, each run
+reviews up to 100 leftover-gold medium and low pages, records completed IDs
+in `data/cve/leftover-review-state.json`, and opens a labeled auto-merge PR.
+The job no-ops when `OPENAI_API_KEY` is missing or the leftover-gold queue is
+empty.
+
 The runtime paths are deliberately bounded for catalog-scale traffic:
 
 - the hub bootstraps from the compact runtime summary, exact lookups transfer

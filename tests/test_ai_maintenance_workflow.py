@@ -22,6 +22,7 @@ class AiMaintenanceWorkflowTests(unittest.TestCase):
             "- Build",
             "- CVE catalog sync",
             "- Content refresh",
+            "- Leftover review",
             "- Production watchdog",
             "- CVE catalog validation",
             "- Automation shepherd",
