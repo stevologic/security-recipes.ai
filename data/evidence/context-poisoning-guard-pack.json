@@ -855,6 +855,17 @@
       "source_id": "recipes"
     },
     {
+      "actionable": false,
+      "disposition": "defensive_control_language",
+      "line": 71,
+      "match": "- Tests never replay leftover dump companion token prose.",
+      "path": "content/recipes/cve/cve-2026-55844-home-assistant-is-open-source-home-automation-software-that-puts-local-control-and-privacy-first.md",
+      "risk_family": "secret_exposure",
+      "rule_id": "secret-exfiltration-request",
+      "severity": "critical",
+      "source_id": "recipes"
+    },
+    {
       "actionable": true,
       "disposition": "actionable_context_poisoning_risk",
       "line": 140,
@@ -1787,7 +1798,7 @@
       "agentic-assurance-models",
       "recipes"
     ],
-    "byte_count": 14809459,
+    "byte_count": 14814669,
     "decision_counts": {
       "allow_with_adversarial_examples": 1,
       "block_until_removed": 2,
@@ -1796,12 +1807,12 @@
     },
     "disposition_counts": {
       "actionable_context_poisoning_risk": 95,
-      "defensive_control_language": 39,
+      "defensive_control_language": 40,
       "documented_adversarial_example": 24
     },
     "failure_count": 0,
     "file_count": 3520,
-    "finding_count": 158,
+    "finding_count": 159,
     "held_source_count": 1,
     "held_sources": [
       "security-remediation-workflows"
@@ -1810,10 +1821,10 @@
       "approval_bypass": 46,
       "hidden_instruction": 59,
       "prompt_injection": 9,
-      "secret_exposure": 44
+      "secret_exposure": 45
     },
     "severity_counts": {
-      "critical": 53,
+      "critical": 54,
       "high": 46,
       "medium": 59
     },
@@ -2066,11 +2077,11 @@
       "decision": "block_until_removed",
       "disposition_counts": {
         "actionable_context_poisoning_risk": 31,
-        "defensive_control_language": 34,
+        "defensive_control_language": 35,
         "documented_adversarial_example": 1
       },
       "file_count": 3384,
-      "finding_count": 66,
+      "finding_count": 67,
       "owner": {
         "accountable_team": "SecurityRecipes Maintainers",
         "escalation": "recipes-review",
@@ -2101,14 +2112,14 @@
       "risk_family_counts": {
         "approval_bypass": 25,
         "prompt_injection": 4,
-        "secret_exposure": 37
+        "secret_exposure": 38
       },
       "root": "content/recipes",
       "severity_counts": {
-        "critical": 41,
+        "critical": 42,
         "high": 25
       },
-      "source_hash": "ae831756317ed5cec3889db754cfddd039bdf0f66495f8943376966adcd7aeaf",
+      "source_hash": "996ec71a36fab19d6ee750fb78a8417b1f9ac2a1a99bc813e8c5a6d70adc6b05",
       "source_id": "recipes",
       "title": "Recipes",
       "trust_tier": "tier_1_curated_guidance"
