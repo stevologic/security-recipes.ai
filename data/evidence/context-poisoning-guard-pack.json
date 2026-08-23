@@ -811,6 +811,17 @@
       "source_id": "recipes"
     },
     {
+      "actionable": false,
+      "disposition": "defensive_control_language",
+      "line": 81,
+      "match": "- Tests never replay leftover dump credential-cache prose as a proof.",
+      "path": "content/recipes/cve/cve-2026-50170-angular-is-a-development-platform-for-building-mobile-and-desktop-web-applications-using-typescript-javascript.md",
+      "risk_family": "secret_exposure",
+      "rule_id": "secret-exfiltration-request",
+      "severity": "critical",
+      "source_id": "recipes"
+    },
+    {
       "actionable": true,
       "disposition": "actionable_context_poisoning_risk",
       "line": 140,
@@ -1743,7 +1754,7 @@
       "agentic-assurance-models",
       "recipes"
     ],
-    "byte_count": 14772754,
+    "byte_count": 14778902,
     "decision_counts": {
       "allow_with_adversarial_examples": 1,
       "block_until_removed": 2,
@@ -1752,12 +1763,12 @@
     },
     "disposition_counts": {
       "actionable_context_poisoning_risk": 93,
-      "defensive_control_language": 37,
+      "defensive_control_language": 38,
       "documented_adversarial_example": 24
     },
     "failure_count": 0,
     "file_count": 3520,
-    "finding_count": 154,
+    "finding_count": 155,
     "held_source_count": 1,
     "held_sources": [
       "security-remediation-workflows"
@@ -1766,10 +1777,10 @@
       "approval_bypass": 46,
       "hidden_instruction": 59,
       "prompt_injection": 9,
-      "secret_exposure": 40
+      "secret_exposure": 41
     },
     "severity_counts": {
-      "critical": 49,
+      "critical": 50,
       "high": 46,
       "medium": 59
     },
@@ -2022,11 +2033,11 @@
       "decision": "block_until_removed",
       "disposition_counts": {
         "actionable_context_poisoning_risk": 29,
-        "defensive_control_language": 32,
+        "defensive_control_language": 33,
         "documented_adversarial_example": 1
       },
       "file_count": 3384,
-      "finding_count": 62,
+      "finding_count": 63,
       "owner": {
         "accountable_team": "SecurityRecipes Maintainers",
         "escalation": "recipes-review",
@@ -2057,14 +2068,14 @@
       "risk_family_counts": {
         "approval_bypass": 25,
         "prompt_injection": 4,
-        "secret_exposure": 33
+        "secret_exposure": 34
       },
       "root": "content/recipes",
       "severity_counts": {
-        "critical": 37,
+        "critical": 38,
         "high": 25
       },
-      "source_hash": "4a4168d817bcbf9453ffd076a7436768a028a62837d6ffcc0fcb03be6b1aedb1",
+      "source_hash": "1cdf1a1dbb5eb34418742de5a826e5e1f92177bf2eb1793495161d9638764a33",
       "source_id": "recipes",
       "title": "Recipes",
       "trust_tier": "tier_1_curated_guidance"
