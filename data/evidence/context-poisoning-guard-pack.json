@@ -426,17 +426,6 @@
       "source_id": "recipes"
     },
     {
-      "actionable": false,
-      "disposition": "defensive_control_language",
-      "line": 25,
-      "match": "Do not prove exposure with leftover dump LoLLMs secret-key prose.",
-      "path": "content/recipes/cve/cve-2026-1114-lollms-is-vulnerable-to-improper-access-control-through-weak-secret-key.md",
-      "risk_family": "secret_exposure",
-      "rule_id": "secret-exfiltration-request",
-      "severity": "critical",
-      "source_id": "recipes"
-    },
-    {
       "actionable": true,
       "disposition": "actionable_context_poisoning_risk",
       "line": 81,
@@ -1721,7 +1710,7 @@
       "agentic-assurance-models",
       "recipes"
     ],
-    "byte_count": 14684177,
+    "byte_count": 14685983,
     "decision_counts": {
       "allow_with_adversarial_examples": 1,
       "block_until_removed": 2,
@@ -1730,12 +1719,12 @@
     },
     "disposition_counts": {
       "actionable_context_poisoning_risk": 92,
-      "defensive_control_language": 36,
+      "defensive_control_language": 35,
       "documented_adversarial_example": 24
     },
     "failure_count": 0,
     "file_count": 3520,
-    "finding_count": 152,
+    "finding_count": 151,
     "held_source_count": 1,
     "held_sources": [
       "security-remediation-workflows"
@@ -1744,10 +1733,10 @@
       "approval_bypass": 45,
       "hidden_instruction": 59,
       "prompt_injection": 9,
-      "secret_exposure": 39
+      "secret_exposure": 38
     },
     "severity_counts": {
-      "critical": 48,
+      "critical": 47,
       "high": 45,
       "medium": 59
     },
@@ -2000,11 +1989,11 @@
       "decision": "block_until_removed",
       "disposition_counts": {
         "actionable_context_poisoning_risk": 28,
-        "defensive_control_language": 31,
+        "defensive_control_language": 30,
         "documented_adversarial_example": 1
       },
       "file_count": 3384,
-      "finding_count": 60,
+      "finding_count": 59,
       "owner": {
         "accountable_team": "SecurityRecipes Maintainers",
         "escalation": "recipes-review",
@@ -2035,14 +2024,14 @@
       "risk_family_counts": {
         "approval_bypass": 24,
         "prompt_injection": 4,
-        "secret_exposure": 32
+        "secret_exposure": 31
       },
       "root": "content/recipes",
       "severity_counts": {
-        "critical": 36,
+        "critical": 35,
         "high": 24
       },
-      "source_hash": "1b0fdbc3a96efda12800eb0ccca66d9567d6dae32bf71c614c2319e6747d502a",
+      "source_hash": "cc48d0a4a4e17100ee5294369506ae19a90d439bed200c4ff2b986a1b05c50bd",
       "source_id": "recipes",
       "title": "Recipes",
       "trust_tier": "tier_1_curated_guidance"
