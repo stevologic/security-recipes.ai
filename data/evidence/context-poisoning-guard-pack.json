@@ -811,6 +811,17 @@
       "source_id": "recipes"
     },
     {
+      "actionable": false,
+      "disposition": "defensive_control_language",
+      "line": 68,
+      "match": "- Tests never bypass the same-origin policy.",
+      "path": "content/recipes/cve/cve-2026-8948-same-origin-policy-bypass-in-the-dom-networking-component.md",
+      "risk_family": "approval_bypass",
+      "rule_id": "approval-bypass-request",
+      "severity": "high",
+      "source_id": "recipes"
+    },
+    {
       "actionable": true,
       "disposition": "actionable_context_poisoning_risk",
       "line": 64,
@@ -1721,7 +1732,7 @@
       "agentic-assurance-models",
       "recipes"
     ],
-    "byte_count": 15254736,
+    "byte_count": 15238998,
     "decision_counts": {
       "allow_with_adversarial_examples": 1,
       "block_until_removed": 2,
@@ -1730,25 +1741,25 @@
     },
     "disposition_counts": {
       "actionable_context_poisoning_risk": 93,
-      "defensive_control_language": 35,
+      "defensive_control_language": 36,
       "documented_adversarial_example": 24
     },
     "failure_count": 0,
     "file_count": 3520,
-    "finding_count": 152,
+    "finding_count": 153,
     "held_source_count": 1,
     "held_sources": [
       "security-remediation-workflows"
     ],
     "risk_family_counts": {
-      "approval_bypass": 44,
+      "approval_bypass": 45,
       "hidden_instruction": 59,
       "prompt_injection": 9,
       "secret_exposure": 40
     },
     "severity_counts": {
       "critical": 49,
-      "high": 44,
+      "high": 45,
       "medium": 59
     },
     "source_count": 9
@@ -2000,11 +2011,11 @@
       "decision": "block_until_removed",
       "disposition_counts": {
         "actionable_context_poisoning_risk": 29,
-        "defensive_control_language": 30,
+        "defensive_control_language": 31,
         "documented_adversarial_example": 1
       },
       "file_count": 3384,
-      "finding_count": 60,
+      "finding_count": 61,
       "owner": {
         "accountable_team": "SecurityRecipes Maintainers",
         "escalation": "recipes-review",
@@ -2033,16 +2044,16 @@
         "content/recipes/cve/ai-enrichment-cve-2022-47966.md"
       ],
       "risk_family_counts": {
-        "approval_bypass": 23,
+        "approval_bypass": 24,
         "prompt_injection": 4,
         "secret_exposure": 33
       },
       "root": "content/recipes",
       "severity_counts": {
         "critical": 37,
-        "high": 23
+        "high": 24
       },
-      "source_hash": "20c0cb8d1c382b77eb0c2503cbebe362123edb1f095ed042944789caf125e060",
+      "source_hash": "4a0967fe010dc15724c7e9fbcf332312af913ff026d47fd1e4c32aa552ea455d",
       "source_id": "recipes",
       "title": "Recipes",
       "trust_tier": "tier_1_curated_guidance"
