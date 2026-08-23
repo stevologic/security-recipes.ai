@@ -824,6 +824,28 @@
     {
       "actionable": true,
       "disposition": "actionable_context_poisoning_risk",
+      "line": 46,
+      "match": "dump OpenProject token prose.",
+      "path": "content/recipes/cve/cve-2026-52783-openproject-is-open-source-web-based-project-management-software.md",
+      "risk_family": "secret_exposure",
+      "rule_id": "secret-exfiltration-request",
+      "severity": "critical",
+      "source_id": "recipes"
+    },
+    {
+      "actionable": false,
+      "disposition": "defensive_control_language",
+      "line": 74,
+      "match": "- Tests never replay leftover dump OpenProject token prose.",
+      "path": "content/recipes/cve/cve-2026-52783-openproject-is-open-source-web-based-project-management-software.md",
+      "risk_family": "secret_exposure",
+      "rule_id": "secret-exfiltration-request",
+      "severity": "critical",
+      "source_id": "recipes"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
       "line": 140,
       "match": "bypass URL path policy checks. Produce exactly one output:",
       "path": "content/recipes/cve/cve-2026-6321-fast-uri-percent-encoded-path-traversal.md",
@@ -1748,13 +1770,13 @@
   ],
   "generated_at": "2026-08-21",
   "guard_summary": {
-    "actionable_finding_count": 93,
+    "actionable_finding_count": 94,
     "blocking_source_count": 2,
     "blocking_sources": [
       "agentic-assurance-models",
       "recipes"
     ],
-    "byte_count": 14783659,
+    "byte_count": 14788594,
     "decision_counts": {
       "allow_with_adversarial_examples": 1,
       "block_until_removed": 2,
@@ -1762,13 +1784,13 @@
       "pass": 5
     },
     "disposition_counts": {
-      "actionable_context_poisoning_risk": 93,
-      "defensive_control_language": 38,
+      "actionable_context_poisoning_risk": 94,
+      "defensive_control_language": 39,
       "documented_adversarial_example": 24
     },
     "failure_count": 0,
     "file_count": 3520,
-    "finding_count": 155,
+    "finding_count": 157,
     "held_source_count": 1,
     "held_sources": [
       "security-remediation-workflows"
@@ -1777,10 +1799,10 @@
       "approval_bypass": 46,
       "hidden_instruction": 59,
       "prompt_injection": 9,
-      "secret_exposure": 41
+      "secret_exposure": 43
     },
     "severity_counts": {
-      "critical": 50,
+      "critical": 52,
       "high": 46,
       "medium": 59
     },
@@ -2029,15 +2051,15 @@
       "trust_tier": "tier_2_policy_context"
     },
     {
-      "actionable_finding_count": 29,
+      "actionable_finding_count": 30,
       "decision": "block_until_removed",
       "disposition_counts": {
-        "actionable_context_poisoning_risk": 29,
-        "defensive_control_language": 33,
+        "actionable_context_poisoning_risk": 30,
+        "defensive_control_language": 34,
         "documented_adversarial_example": 1
       },
       "file_count": 3384,
-      "finding_count": 63,
+      "finding_count": 65,
       "owner": {
         "accountable_team": "SecurityRecipes Maintainers",
         "escalation": "recipes-review",
@@ -2068,14 +2090,14 @@
       "risk_family_counts": {
         "approval_bypass": 25,
         "prompt_injection": 4,
-        "secret_exposure": 34
+        "secret_exposure": 36
       },
       "root": "content/recipes",
       "severity_counts": {
-        "critical": 38,
+        "critical": 40,
         "high": 25
       },
-      "source_hash": "c0c104735ce049a1a3f44d601958223e3ac960b854c074bc4624b517d52e2eda",
+      "source_hash": "1b8d10e5f8991a83e3ddb892e29e8d31255235ce78e9b51e183dacb411cc0a48",
       "source_id": "recipes",
       "title": "Recipes",
       "trust_tier": "tier_1_curated_guidance"
