@@ -516,6 +516,17 @@
     {
       "actionable": false,
       "disposition": "defensive_control_language",
+      "line": 64,
+      "match": "- Tests never replay leftover dump Bearer-token template prose.",
+      "path": "content/recipes/cve/cve-2026-28229-argo-workflows-is-an-open-source-container-native-workflow-engine-for-orchestrating-parallel-jobs-on-kubernete.md",
+      "risk_family": "secret_exposure",
+      "rule_id": "secret-exfiltration-request",
+      "severity": "critical",
+      "source_id": "recipes"
+    },
+    {
+      "actionable": false,
+      "disposition": "defensive_control_language",
       "line": 168,
       "match": "- Do not print secrets, package payloads, `.env` files, CI secret values,",
       "path": "content/recipes/cve/cve-2026-34841-bruno-cli-axios-supply-chain-rat.md",
@@ -1710,7 +1721,7 @@
       "agentic-assurance-models",
       "recipes"
     ],
-    "byte_count": 14708434,
+    "byte_count": 14711655,
     "decision_counts": {
       "allow_with_adversarial_examples": 1,
       "block_until_removed": 2,
@@ -1719,12 +1730,12 @@
     },
     "disposition_counts": {
       "actionable_context_poisoning_risk": 92,
-      "defensive_control_language": 35,
+      "defensive_control_language": 36,
       "documented_adversarial_example": 24
     },
     "failure_count": 0,
     "file_count": 3520,
-    "finding_count": 151,
+    "finding_count": 152,
     "held_source_count": 1,
     "held_sources": [
       "security-remediation-workflows"
@@ -1733,10 +1744,10 @@
       "approval_bypass": 45,
       "hidden_instruction": 59,
       "prompt_injection": 9,
-      "secret_exposure": 38
+      "secret_exposure": 39
     },
     "severity_counts": {
-      "critical": 47,
+      "critical": 48,
       "high": 45,
       "medium": 59
     },
@@ -1989,11 +2000,11 @@
       "decision": "block_until_removed",
       "disposition_counts": {
         "actionable_context_poisoning_risk": 28,
-        "defensive_control_language": 30,
+        "defensive_control_language": 31,
         "documented_adversarial_example": 1
       },
       "file_count": 3384,
-      "finding_count": 59,
+      "finding_count": 60,
       "owner": {
         "accountable_team": "SecurityRecipes Maintainers",
         "escalation": "recipes-review",
@@ -2024,14 +2035,14 @@
       "risk_family_counts": {
         "approval_bypass": 24,
         "prompt_injection": 4,
-        "secret_exposure": 31
+        "secret_exposure": 32
       },
       "root": "content/recipes",
       "severity_counts": {
-        "critical": 35,
+        "critical": 36,
         "high": 24
       },
-      "source_hash": "55eb7762dc8d9019b007752307f92e501baae27be33a932ac38423a098626606",
+      "source_hash": "dd5f9759118c0ee1490029178bd6e1fffe41686e3c9d4b1e74d0b0d61ffe2a9c",
       "source_id": "recipes",
       "title": "Recipes",
       "trust_tier": "tier_1_curated_guidance"
