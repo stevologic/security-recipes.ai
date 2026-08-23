@@ -32,7 +32,19 @@ security, GRC, and reviewers can inspect.
 The **Hosted MCP Readiness Pack** makes that path concrete. It names the
 controls that are already reference-ready, the controls that need
 design-partner runtime evidence, and the controls that block production
-hosted claims until a tenant-safe service exists.
+hosted claims until a tenant-safe service exists. Rechecked August 23,
+2026: MCP
+[2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28)
+is still current and **stateless**. There is no negotiation handshake.
+Each request carries protocol version and capabilities. Servers
+**MUST** implement
+[`server/discover`](https://modelcontextprotocol.io/specification/2026-07-28/server/discover).
+Session binding and kill-session language here is OAuth/token-to-run
+binding and a host-session kill switch, not `Mcp-Session-Id`. Streamable
+HTTP revisions through
+[2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25)
+could assign that header; 2026-07-28 ignores it and does not mint
+session IDs.
 
 ## What was added
 

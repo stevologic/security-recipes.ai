@@ -39,7 +39,19 @@ enough if MCP authorization is loose. A production reviewer will ask:
 
 The MCP Authorization Conformance pack answers those questions in a
 machine-readable artifact and exposes a runtime evaluator for pre-call
-authorization decisions.
+authorization decisions. Rechecked August 23, 2026: MCP
+[2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28)
+is still current and **stateless**. There is no negotiation handshake.
+Each request carries protocol version and capabilities. Servers
+**MUST** implement
+[`server/discover`](https://modelcontextprotocol.io/specification/2026-07-28/server/discover).
+`--session-id` and `kill_session` here are local run identifiers and
+host-session kill switches, not `Mcp-Session-Id`. Session binding in
+this pack means OAuth and token-to-run binding. Streamable HTTP
+revisions through
+[2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25)
+could assign that header; 2026-07-28 ignores it and does not mint
+session IDs.
 
 {{< playbook-workflow >}}
 

@@ -34,9 +34,18 @@ The **MCP and Agentic Skills Risk Coverage Pack** maps those two layers
 to existing SecurityRecipes artifacts. It is designed for platform teams,
 procurement reviewers, GRC, reviewers, and reviewers who need to know
 whether the project tracks the newest risks without reading the whole
-site. Rechecked against the public MCP specification
+site. Rechecked August 23, 2026: MCP
 [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28)
-on August 21, 2026.
+is still current and **stateless**. Servers **MUST** implement
+[`server/discover`](https://modelcontextprotocol.io/specification/2026-07-28/server/discover).
+OWASP [MCP Top 10](https://owasp.org/www-project-mcp-top-10/) remains
+**beta / v0.1** with IDs MCP01–MCP10:2025; the project is in Phase 3
+pilot testing, with the next planned release in October 2026. OWASP
+[Agentic Skills Top 10](https://owasp.org/www-project-agentic-skills-top-10/)
+remains a **public-review v1** draft. The generated pack still uses
+source-reference id `mcp-security-best-practices-2025` for the
+2025-06-18 prior revision. That is a pack source id, not a current-spec
+claim.
 
 ## Generated artifact
 
