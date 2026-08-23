@@ -27,7 +27,11 @@ sinks: SQL, shell, template rendering, SSRF, deserialization, file paths,
 regular expressions, dynamic evaluation, and LLM/tool-call boundaries.
 
 This is a read-only hunt prompt. It produces evidence-backed findings and
-safe remediation recommendations, but it does not patch code.
+safe remediation recommendations, but it does not patch code. The
+`model: "gpt-5-codex"` frontmatter field is recipe metadata, not a
+prompt pin. Rechecked August 23, 2026: leftover CVE dumps stay
+**development / noindex**. Do not invent exploits or a named floor
+from leftover dump version text. Mark unknown sinks unknown.
 
 ## What this prompt does
 

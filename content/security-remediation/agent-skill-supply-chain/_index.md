@@ -19,13 +19,27 @@ before those calls. This pack governs that behavior layer as a software
 supply chain.
 {{< /callout >}}
 
+Rechecked August 23, 2026: skills are the portable
+[agentskills.io](https://agentskills.io) shape used by Claude Code,
+Codex, Cursor, Hermes, and others — not a Claude-only package. OWASP
+[MCP Top 10](https://owasp.org/www-project-mcp-top-10/) remains
+**beta / v0.1** (Phase 3 pilot testing; next planned release
+**October 2026**). OWASP
+[Agentic Skills Top 10](https://owasp.org/www-project-agentic-skills-top-10/)
+remains a **public-review v1** draft. Do not claim v1.0 is final.
+`kill_session_on_malicious_skill_signal` is a host-session kill
+switch, not `Mcp-Session-Id`. MCP
+[2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28)
+is still current and **stateless**.
+
 ## The product bet
 
 SecurityRecipes is positioned as **the secure context layer for agentic
 AI**. That layer is incomplete if it only validates prompts, context, and
 MCP tools. Enterprise agent hosts now load reusable behavior packages:
 Claude skills, Cursor and Codex rules, VS Code extensions, Devin
-knowledge, hooks, local helper scripts, and marketplace tool bundles.
+knowledge, Hermes skills, OpenClaw workspace files, hooks, local
+helper scripts, and marketplace tool bundles.
 
 Those packages can quietly combine three dangerous ingredients:
 
