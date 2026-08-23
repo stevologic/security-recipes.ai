@@ -33,7 +33,11 @@ Use the site to answer four questions:
 
 That is the whole shape. The repository includes helper scripts and an optional
 read-only MCP server, but the primary artifact is the content: recipes,
-prompts, setup guides, and review patterns.
+prompts, setup guides, and review patterns. Rechecked August 23, 2026: MCP
+[2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28)
+is still current and **stateless**. There is no negotiation handshake.
+Servers **MUST** implement
+[`server/discover`](https://modelcontextprotocol.io/specification/2026-07-28/server/discover).
 
 ## Core surfaces
 

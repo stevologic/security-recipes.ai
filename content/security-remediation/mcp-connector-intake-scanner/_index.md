@@ -19,6 +19,18 @@ reviewable admission decision before it becomes a trusted enterprise
 connector.
 {{< /callout >}}
 
+Rechecked August 23, 2026: MCP
+[2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28)
+is still current and **stateless**. There is no negotiation handshake.
+Each request carries protocol version and capabilities. Servers
+**MUST** implement
+[`server/discover`](https://modelcontextprotocol.io/specification/2026-07-28/server/discover).
+`kill_session` here is a host-session kill switch, not `Mcp-Session-Id`.
+Streamable HTTP revisions through
+[2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25)
+could assign that header; 2026-07-28 ignores it and does not mint
+session IDs.
+
 ## The product bet
 
 SecurityRecipes should not only document safe connectors after approval.

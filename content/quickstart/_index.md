@@ -92,7 +92,11 @@ match your repo:
 If you use the Security Recipes MCP server, start with `recipes_search` or
 `recipes_match_finding`, then `recipes_get` or `recipes_cve_get`. Call
 `recipes_quality_report` only when you are choosing which recipe is ready
-enough to automate.
+enough to automate. Rechecked August 23, 2026: MCP
+[2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28)
+is still current and **stateless**. Servers **MUST** implement
+[`server/discover`](https://modelcontextprotocol.io/specification/2026-07-28/server/discover).
+The optional server in this repository stays read-only.
 
 Good first connectors are read-only:
 
