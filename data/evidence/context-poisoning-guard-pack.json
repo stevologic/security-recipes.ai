@@ -692,17 +692,6 @@
     {
       "actionable": true,
       "disposition": "actionable_context_poisoning_risk",
-      "line": 23,
-      "match": "Vault can forward a Vault token to an auth plugin when the Authorization header is passed through. GHSA-72gw-fm...",
-      "path": "content/recipes/cve/cve-2026-4525-if-a-vault-auth-mount-is-configured-to-pass-through-the-authorization-header-and-the-authorization-header.md",
-      "risk_family": "secret_exposure",
-      "rule_id": "secret-exfiltration-request",
-      "severity": "critical",
-      "source_id": "recipes"
-    },
-    {
-      "actionable": true,
-      "disposition": "actionable_context_poisoning_risk",
       "line": 149,
       "match": "exec requests to live services, print secret-bearing configuration values, or",
       "path": "content/recipes/cve/cve-2026-45505-apache-activemq-jolokia-discovery-wrapper-bypass.md",
@@ -1726,13 +1715,13 @@
   ],
   "generated_at": "2026-08-21",
   "guard_summary": {
-    "actionable_finding_count": 93,
+    "actionable_finding_count": 92,
     "blocking_source_count": 2,
     "blocking_sources": [
       "agentic-assurance-models",
       "recipes"
     ],
-    "byte_count": 14674486,
+    "byte_count": 14677834,
     "decision_counts": {
       "allow_with_adversarial_examples": 1,
       "block_until_removed": 2,
@@ -1740,13 +1729,13 @@
       "pass": 5
     },
     "disposition_counts": {
-      "actionable_context_poisoning_risk": 93,
+      "actionable_context_poisoning_risk": 92,
       "defensive_control_language": 36,
       "documented_adversarial_example": 24
     },
     "failure_count": 0,
     "file_count": 3520,
-    "finding_count": 153,
+    "finding_count": 152,
     "held_source_count": 1,
     "held_sources": [
       "security-remediation-workflows"
@@ -1755,10 +1744,10 @@
       "approval_bypass": 45,
       "hidden_instruction": 59,
       "prompt_injection": 9,
-      "secret_exposure": 40
+      "secret_exposure": 39
     },
     "severity_counts": {
-      "critical": 49,
+      "critical": 48,
       "high": 45,
       "medium": 59
     },
@@ -2007,15 +1996,15 @@
       "trust_tier": "tier_2_policy_context"
     },
     {
-      "actionable_finding_count": 29,
+      "actionable_finding_count": 28,
       "decision": "block_until_removed",
       "disposition_counts": {
-        "actionable_context_poisoning_risk": 29,
+        "actionable_context_poisoning_risk": 28,
         "defensive_control_language": 31,
         "documented_adversarial_example": 1
       },
       "file_count": 3384,
-      "finding_count": 61,
+      "finding_count": 60,
       "owner": {
         "accountable_team": "SecurityRecipes Maintainers",
         "escalation": "recipes-review",
@@ -2046,14 +2035,14 @@
       "risk_family_counts": {
         "approval_bypass": 24,
         "prompt_injection": 4,
-        "secret_exposure": 33
+        "secret_exposure": 32
       },
       "root": "content/recipes",
       "severity_counts": {
-        "critical": 37,
+        "critical": 36,
         "high": 24
       },
-      "source_hash": "2912c279ff0201d5babe87ed975773388a8de1b70741f05d6b314049e985105b",
+      "source_hash": "8a8349043739a3fe9f2e129045c5bc96630a8c470a87745e1f932311622d9143",
       "source_id": "recipes",
       "title": "Recipes",
       "trust_tier": "tier_1_curated_guidance"
