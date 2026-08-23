@@ -363,7 +363,7 @@ jobs:
       contents: read
       pull-requests: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Build sandbox
         run: docker build -f ci/codex-sandbox.Dockerfile -t codex-sandbox .
       - name: Fetch open findings
@@ -396,7 +396,7 @@ jobs:
       issues: write
       pull-requests: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: docker build -f ci/codex-sandbox.Dockerfile -t codex-sandbox .
       - run: echo "${{ github.event.issue.number }}" > queue.txt
       - run: |
@@ -428,7 +428,7 @@ jobs:
       pull-requests: write
       security-events: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: docker build -f ci/codex-sandbox.Dockerfile -t codex-sandbox .
       - run: echo "${{ github.event.alert.number }}" > queue.txt
       - run: |

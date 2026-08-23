@@ -10,7 +10,7 @@ jobs:
   security-health:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: stevologic/security-recipes.ai/actions/security-health@main
         with:
           provider: openai            # anthropic | openai | xai | ollama
@@ -28,7 +28,7 @@ jobs:
 | `check-supply-chain` | on | [Supply chain build integrity audit](https://security-recipes.ai/recipes/general/source-code-supply-chain-build-integrity-audit/) |
 | `check-authz` | off | [Authorization and tenant boundary audit](https://security-recipes.ai/recipes/general/source-code-authz-tenant-boundary-audit/) |
 | `check-containers` | off | [Base image hygiene](https://security-recipes.ai/recipes/general/base-image-bump/) |
-| `check-owasp` | off | [OWASP Top 10 audit](https://security-recipes.ai/recipes/general/owasp-top-10-2026-audit/) |
+| `check-owasp` | off | [OWASP Top 10 audit](https://security-recipes.ai/recipes/general/owasp-top-10-2025-audit/) |
 | `check-cve-exposure` | off | [CVE intelligence intake gate](https://security-recipes.ai/recipes/general/cve-intelligence-intake-gate/) |
 | `check-compliance` | off | [Compliance standards](https://security-recipes.ai/recipes/general/compliance-standards/) |
 

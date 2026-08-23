@@ -146,9 +146,14 @@ Keep the baseline read-only. Start with `recipes_cve_search` or
 `recipes_match_finding`, then `recipes_get` or `recipes_cve_get` for the
 bounded packet. Call `recipes_quality_report` when a recipe is missing
 inputs, selection guidance, an output contract, verification, or
-guardrails. Connecting an organization-approved tool can add context, but
-it does not authorize edits, ticket changes, secret rotation, deployment,
-or any other external mutation.
+guardrails. Development leftover CVE dumps stay noindex and are not
+catalog floors. `recipes_cve_get` must not invent a fixed version when
+live GHAD is **404**, `vulnerabilities` are empty, or NVD has **no row**.
+Rechecked August 23, 2026: MCP
+[2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) is
+still current and **stateless**. Connecting an organization-approved tool
+can add context, but it does not authorize edits, ticket changes, secret
+rotation, deployment, or any other external mutation.
 
 ## What to read next
 
