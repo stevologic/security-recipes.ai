@@ -48,6 +48,15 @@ assume you already have.
   When-to-use, Inputs, Output contract, and Related headings so humans, search
   snippets, and the [MCP integration](/mcp-servers/) can score a packet before
   an agent uses it.
+- Rechecked August 23, 2026: MCP
+  [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28)
+  is still current and **stateless**. There is no `initialize`
+  handshake. Servers **MUST** implement
+  [`server/discover`](https://modelcontextprotocol.io/specification/2026-07-28/server/discover).
+  This repo's optional upstream bridge still defaults to protocol
+  **2025-06-18** and still sends `initialize`. That is a compatibility
+  default, not a current-spec claim. Do not invent a CVE floor.
+  Leftover CVE dumps stay development / noindex.
 
 ## What is an agent?
 
@@ -277,7 +286,11 @@ data and tools to an agent through a narrow, typed, scoped
 interface. An MCP server sits between the agent and your source of
 truth — your finding system, your ticket tracker, your runbook
 store, your CI — and offers a small set of well-named functions
-the agent is allowed to call.
+the agent is allowed to call. The current public specification is
+[2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28).
+That revision is **stateless**: there is no negotiation handshake,
+and servers **MUST** implement
+[`server/discover`](https://modelcontextprotocol.io/specification/2026-07-28/server/discover).
 
 ```mermaid
 flowchart LR
@@ -475,9 +488,10 @@ space.
   `CLAUDE.md` (Claude), `AGENTS.md` (Codex), `.github/copilot-instructions.md`
   (Copilot), `.cursor/rules/*.mdc` (Cursor), Knowledge entries
   (Devin).
-- **Skill** — A Claude-specific packaged workflow. A folder with a
-  `SKILL.md` and any helper scripts the workflow needs. Invoked by
-  name.
+- **Skill** — A portable packaged workflow, usually a folder with a
+  `SKILL.md` plus helper files. Claude Code, Codex, Cursor, Hermes,
+  and others reuse the [agentskills.io](https://agentskills.io)
+  shape. Invoked by name.
 - **Slash command** — A reusable inline prompt invoked with
   `/<name>`, supported by Claude and Cursor.
 - **Hook** — A `PreToolUse` or `PostToolUse` script that runs

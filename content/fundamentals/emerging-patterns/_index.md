@@ -343,12 +343,13 @@ flowchart LR
   any untrusted string reaching an eval boundary.
 - **Representative tooling.** Anthropic's
   [programmatic tool calling](https://platform.claude.com/docs/en/agents-and-tools/tool-use/programmatic-tool-calling)
-  (GA on Claude API; Sonnet 4.5+, Opus 4.5+), self-hosted
-  sandboxed equivalents, and client-side direct-execution for
-  trusted-environment cases. On agentic benchmarks like
-  BrowseComp and DeepSearchQA, programmatic tool calling has
-  been the single most reported unlock for multi-step agent
-  performance.
+  (GA on Claude API; official docs now list Claude 5 and later
+  4.5-class models — do not pin a model name in prompts),
+  self-hosted sandboxed equivalents, and client-side
+  direct-execution for trusted-environment cases. On agentic
+  benchmarks like BrowseComp and DeepSearchQA, programmatic tool
+  calling has been the single most reported unlock for multi-step
+  agent performance.
 
 ### Elicitation: structured input from the user
 
@@ -378,50 +379,55 @@ flowchart LR
   spec. Do not treat the older `elicitation/create` shape from
   2025-11-25 as current.
 
-### MCP tasks primitive for long-running work
+### MCP tasks extension for long-running work
 
-- **What it is.** An MCP primitive in the current 2026-07-28 spec for
-  work that outlives a single request/response cycle. The agent
-  submits a task; the server returns a task handle; the agent
-  (or an orchestrator queue) polls or receives callbacks as
-  state evolves. Designed for CI runs, long test suites, staged
-  rollouts, and anything measured in minutes-to-hours.
+- **What it is.** A versioned MCP **extension** in the
+  [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28)
+  framework, not a core protocol primitive. Long-running work
+  returns a task handle; the client drives it with `tasks/get`,
+  `tasks/update`, and `tasks/cancel`. Designed for CI runs, long
+  test suites, staged rollouts, and anything measured in
+  minutes-to-hours.
 - **Why it matters.** The dominant 2024–2025 workaround was
   "agent holds connection open and retries" or "orchestrator
   queues its own tasks and polls each server in a bespoke way."
-  The tasks primitive formalises the pattern into the protocol,
-  so both sides of the connection agree on the lifecycle.
+  The tasks extension formalises the pattern so both sides agree
+  on the lifecycle without putting session state in the
+  transport.
 - **Watch for.** A single user intent can fan out into a tree
   of tasks across several servers. Plan for a correlation ID
   that spans the tree — otherwise your audit trail fragments
-  and postmortems get painful.
-- **Representative tooling.** The current 2026-07-28 MCP spec's
+  and postmortems get painful. Do not treat a task handle as
+  `Mcp-Session-Id`. 2026-07-28 is **stateless**.
+- **Representative tooling.** The current 2026-07-28 MCP
   [tasks](https://modelcontextprotocol.io/specification/2026-07-28/basic/utilities/tasks)
-  primitive; MCP SDKs as they adopt it;
+  extension; MCP SDKs as they adopt it;
   orchestrator queues (LangGraph, Temporal, Inngest, internal
   queues) that expose MCP-task-shaped work items.
 
-### MCP applications
+### MCP Apps
 
-- **What it is.** A packaging shape on the 2026 MCP roadmap:
-  server + tools + UI + skills delivered as one "application"
-  the agent can embed or hand off to. Concretely, this looks
-  like "the SCA vendor ships an MCP application that owns the
-  scanning + reproduction UX, and your agent composes it
-  rather than re-implementing it."
-- **Why it matters.** Moves the vendor boundary up a level. A
-  reference remediation pipeline becomes "agent orchestrates a
-  small set of MCP applications," not "agent + ten
-  point-integrations each with their own quirks."
-- **Watch for.** Gateway design has to accommodate
-  multiple co-resident applications, not just a tool-name fan-
-  out. Identity and audit needs to pass through the
-  application boundary; you don't want an application to become
-  a new un-audited layer.
-- **Representative shape.** The MCP applications primitive
-  landing in early 2026. Expect SCA, SAST, DAST, ticketing,
-  and code-hosting vendors to ship applications rather than
-  one-off tool surfaces.
+- **What it is.** **[MCP Apps](https://modelcontextprotocol.io/extensions/apps/overview)**
+  is a shipped 2026-07-28 **extension**, not a 2026 roadmap item.
+  Servers return interactive HTML UIs (forms, dashboards, viewers)
+  that hosts render in a sandboxed iframe. That is server-rendered
+  UI inside the conversation, not a generic "server + tools +
+  skills package."
+- **Why it matters.** A remediation host can show a reviewer a
+  typed form, a finding dashboard, or a rollout checklist without
+  sending the operator to a separate web app. Host support varies;
+  Claude, Claude Desktop, VS Code GitHub Copilot, and others are
+  listed on the official client matrix.
+- **Watch for.** The iframe is sandboxed, but UI-initiated
+  `tools/call` still needs the same consent and audit path as a
+  direct tool call. Gateway design has to accommodate
+  co-resident apps, not just a tool-name fan-out.
+- **Representative shape.** Official
+  [MCP Apps](https://modelcontextprotocol.io/extensions/apps/overview)
+  docs and the
+  [ext-apps](https://apps.extensions.modelcontextprotocol.io)
+  specification. Do not keep calling this a roadmap primitive
+  landing in early 2026.
 
 ---
 

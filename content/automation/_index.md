@@ -20,6 +20,13 @@ flows earn their keep on the problems these tools can't touch —
 not the ones they already handle.
 {{< /callout >}}
 
+Rechecked August 23, 2026: a deterministic bump still needs a
+named floor from live GHAD, NVD, or vendor text. Leftover CVE
+dumps stay **development / noindex**. Do not invent the next tag.
+If live GHAD is **404**, `vulnerabilities` are empty, or NVD has
+**no row**, stop for triage instead of letting `npm audit fix` or
+Dependabot guess the version.
+
 ## When automation beats agents
 
 A dependency bump that a lockfile resolver can produce byte-for-byte is
