@@ -30,7 +30,9 @@ The **Agentic Protocol Conformance Pack** turns fast-moving protocol and
 agent-security guidance into a generated artifact that a platform team,
 or procurement reviewer can inspect through MCP. Rechecked against MCP
 [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28)
-on August 21, 2026.
+on August 23, 2026. `--protocol-id mcp-authorization-2025-11-25` is
+the existing pack id. It is not a 2026 protocol-profile clone and not
+a claim that 2025-11-25 is still the current MCP specification.
 
 ## What was added
 

@@ -19,7 +19,7 @@ complete enough to reconstruct a run and safe enough not to become a new
 secret, prompt, or tenant-data sink.
 {{< /callout >}}
 
-Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) on August 21, 2026.
+Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) on August 23, 2026. That revision retired `initialize` and `Mcp-Session-Id`. The pack still **requires** `mcp.session.id` so 2025-11-25 clients and stored receipts stay evaluable. A missing session id is a compatibility hold, not proof that the current specification still issues session ids.
 
 Agentic AI security is moving from "did the model answer correctly?" to
 "can we prove what context, tool, identity, policy, approval, egress
@@ -65,7 +65,7 @@ python3 scripts/evaluate_agentic_telemetry_event.py \
   --attribute telemetry.redaction_state=metadata_only \
   --attribute gen_ai.operation.name=execute_tool \
   --attribute gen_ai.tool.name=repo.contents.patch \
-  --attribute mcp.protocol.version=2025-11-25 \
+  --attribute mcp.protocol.version=2026-07-28 \
   --attribute mcp.session.id=session-ci \
   --attribute mcp.method.name=tools/call \
   --attribute jsonrpc.request.id=req-ci \

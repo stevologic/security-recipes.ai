@@ -30,9 +30,15 @@ command-executing MCP tools as a separate security review.
 
 Last reviewed against the public MCP specification
 [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) and this
-repository's `mcp_server.py` implementation on **August 21, 2026**.
-[2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25) remains
-a prior final revision.
+repository's `mcp_server.py` implementation on **August 21, 2026**. Rechecked
+August 23, 2026: 2026-07-28 is still current and **stateless**. There is no
+`initialize` handshake. Each request carries protocol version, client
+identity, and capabilities. Streamable HTTP revisions through
+[2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25) could
+assign `Mcp-Session-Id`; this revision ignores that header and does not mint
+session IDs. 2025-11-25 remains a prior final revision. The existing
+protocol-conformance profile id remains `mcp-authorization-2025-11-25`. That
+is a pack id, not a claim that 2025-11-25 is still the current specification.
 
 ## MCP in one minute
 
