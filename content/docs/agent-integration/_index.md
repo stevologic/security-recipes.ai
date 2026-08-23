@@ -62,7 +62,11 @@ commands.
 
 Expose the recipe index through an MCP server so the agent can search and
 retrieve guidance at run time. The optional server in this repository is
-read-only and suitable for that role.
+read-only and suitable for that role. Rechecked August 23, 2026: MCP
+[2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) is
+still current and **stateless**. Development leftover CVE dumps stay
+noindex and are not catalog floors. Do not invent a fixed version when
+live GHAD is **404**, `vulnerabilities` are empty, or NVD has **no row**.
 
 Use this when a team wants agents to ask questions such as:
 

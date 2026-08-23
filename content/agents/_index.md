@@ -28,7 +28,8 @@ For the end-to-end method, return to
 [AI vulnerability remediation playbooks]({{< relref "/security-remediation" >}}).
 
 **Last updated August 21, 2026.** Capabilities and documentation were verified
-against the linked primary sources.
+against the linked primary sources. Rechecked August 23, 2026 against the
+same official pages.
 [Stephen M Abbott](/about/#stephen-m-abbott) maintains this workflow-fit
 comparison with Security Recipes contributors in the public
 [source and revision history](https://github.com/stevologic/security-recipes.ai/blob/main/content/agents/_index.md).
@@ -84,8 +85,11 @@ Codex supports local and cloud repository work, while Codex Security provides
 dedicated finding discovery, validation, triage, and fix workflows. Cloud agent
 tasks run in isolated environments and start with network access disabled during
 the agent phase unless the environment is configured otherwise. The security
-plugin and cloud environment require separate setup; Codex Security cloud is a
-research preview. Read the official documentation for
+plugin and cloud environment require separate setup. Official
+[Codex Security cloud setup](https://learn.chatgpt.com/docs/security/setup)
+now documents a scan-to-PR path for connected GitHub repositories. Plugin
+docs recommend `gpt-5.6-sol` with `xhigh` reasoning for scan quality; do
+not pin that model name in prompts. Read the official documentation for
 [fixing accepted findings](https://learn.chatgpt.com/docs/security/plugin/fix-findings),
 [`AGENTS.md`](https://learn.chatgpt.com/docs/agent-configuration/agents-md),
 [cloud environments](https://learn.chatgpt.com/docs/environments/cloud-environment),
@@ -95,13 +99,15 @@ and [approvals and security](https://learn.chatgpt.com/docs/agent-approvals-secu
 
 The [Claude Security plugin](https://code.claude.com/docs/en/claude-security)
 for Claude Code (`/plugin install claude-security@claude-plugins-official`,
-Claude Code v2.1.154+) runs `/claude-security` scans and writes timestamped
-Markdown and JSONL findings. Suggested patches land in the report folder;
-Anthropic's docs state they are never applied automatically. The managed
-[Claude Security](https://claude.com/product/claude-security) product is a
-separate Enterprise public beta that scans on Claude Mythos 5. Full plugin
-scans need Python and Git, may consume substantial time or usage, and can
-miss findings; keep an independent review and test gate. See
+Claude Code v2.1.154+) still runs `/claude-security` scans and writes
+timestamped Markdown and JSONL findings. Suggested patches land in the
+report folder; Anthropic's docs still state they are never applied
+automatically. The managed
+[Claude Security](https://claude.com/product/claude-security) product is
+still a separate Enterprise public beta that scans on Claude Mythos 5.
+Full plugin scans need Python 3.9.6+ and Git, may consume substantial
+time or usage, and can miss findings; keep an independent review and test
+gate. See
 [Claude Security plugin](https://code.claude.com/docs/en/claude-security),
 [managed Claude Security](https://claude.com/product/claude-security),
 [security guidance](https://code.claude.com/docs/en/security-guidance),
@@ -112,9 +118,10 @@ miss findings; keep an independent review and test gate. See
 
 Cursor supports local repository work and autonomous Cloud Agents that return
 reviewable changes. Its documented automations include dependency-vulnerability
-remediation; Security Review adds PR and scheduled scanning for eligible Teams
-and Enterprise plans. Security Review is beta, and agent rules are guidance,
-not a standalone security boundary. See the official
+remediation; Security Agents add PR and scheduled scanning on Cloud Agents
+billed from the team usage pool. Current Security Agents docs no longer
+label that feature beta. Agent rules are guidance, not a standalone
+security boundary. See the official
 [Rules documentation](https://cursor.com/docs/rules),
 [CLI modes and approvals](https://cursor.com/docs/cli/using),
 [Cloud Agents](https://cursor.com/changelog/cloud-in-agents-window),
