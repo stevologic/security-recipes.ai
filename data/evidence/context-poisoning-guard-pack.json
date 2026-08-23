@@ -855,6 +855,28 @@
       "source_id": "recipes"
     },
     {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 44,
+      "match": "dump n8n webhook token prose.",
+      "path": "content/recipes/cve/cve-2026-54308-n8n-is-an-open-source-workflow-automation-platform.md",
+      "risk_family": "secret_exposure",
+      "rule_id": "secret-exfiltration-request",
+      "severity": "critical",
+      "source_id": "recipes"
+    },
+    {
+      "actionable": false,
+      "disposition": "defensive_control_language",
+      "line": 72,
+      "match": "- Tests never replay leftover dump n8n webhook token prose.",
+      "path": "content/recipes/cve/cve-2026-54308-n8n-is-an-open-source-workflow-automation-platform.md",
+      "risk_family": "secret_exposure",
+      "rule_id": "secret-exfiltration-request",
+      "severity": "critical",
+      "source_id": "recipes"
+    },
+    {
       "actionable": false,
       "disposition": "defensive_control_language",
       "line": 71,
@@ -1792,13 +1814,13 @@
   ],
   "generated_at": "2026-08-21",
   "guard_summary": {
-    "actionable_finding_count": 95,
+    "actionable_finding_count": 96,
     "blocking_source_count": 2,
     "blocking_sources": [
       "agentic-assurance-models",
       "recipes"
     ],
-    "byte_count": 14830592,
+    "byte_count": 14835171,
     "decision_counts": {
       "allow_with_adversarial_examples": 1,
       "block_until_removed": 2,
@@ -1806,13 +1828,13 @@
       "pass": 5
     },
     "disposition_counts": {
-      "actionable_context_poisoning_risk": 95,
-      "defensive_control_language": 40,
+      "actionable_context_poisoning_risk": 96,
+      "defensive_control_language": 41,
       "documented_adversarial_example": 24
     },
     "failure_count": 0,
     "file_count": 3520,
-    "finding_count": 159,
+    "finding_count": 161,
     "held_source_count": 1,
     "held_sources": [
       "security-remediation-workflows"
@@ -1821,10 +1843,10 @@
       "approval_bypass": 46,
       "hidden_instruction": 59,
       "prompt_injection": 9,
-      "secret_exposure": 45
+      "secret_exposure": 47
     },
     "severity_counts": {
-      "critical": 54,
+      "critical": 56,
       "high": 46,
       "medium": 59
     },
@@ -2073,15 +2095,15 @@
       "trust_tier": "tier_2_policy_context"
     },
     {
-      "actionable_finding_count": 31,
+      "actionable_finding_count": 32,
       "decision": "block_until_removed",
       "disposition_counts": {
-        "actionable_context_poisoning_risk": 31,
-        "defensive_control_language": 35,
+        "actionable_context_poisoning_risk": 32,
+        "defensive_control_language": 36,
         "documented_adversarial_example": 1
       },
       "file_count": 3384,
-      "finding_count": 67,
+      "finding_count": 69,
       "owner": {
         "accountable_team": "SecurityRecipes Maintainers",
         "escalation": "recipes-review",
@@ -2112,14 +2134,14 @@
       "risk_family_counts": {
         "approval_bypass": 25,
         "prompt_injection": 4,
-        "secret_exposure": 38
+        "secret_exposure": 40
       },
       "root": "content/recipes",
       "severity_counts": {
-        "critical": 42,
+        "critical": 44,
         "high": 25
       },
-      "source_hash": "1c63ef88f9cd0a978ea9fbdbcbe2993994325d19c6dea126448c2f5941225150",
+      "source_hash": "15dc32a971d97f19bdf044c150a621c17afade42664aeb5910c05416abd08cbf",
       "source_id": "recipes",
       "title": "Recipes",
       "trust_tier": "tier_1_curated_guidance"
