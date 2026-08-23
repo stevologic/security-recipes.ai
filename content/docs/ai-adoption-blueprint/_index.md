@@ -34,6 +34,17 @@ and blast-radius control. Both groups should be able to use the same
 recipes without needing to become AI platform specialists first.
 {{< /callout >}}
 
+Rechecked August 23, 2026: MCP
+[2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28)
+is still current and **stateless**. Servers **MUST** implement
+[`server/discover`](https://modelcontextprotocol.io/specification/2026-07-28/server/discover).
+This repo's optional FastMCP recipe server stays read-only. The optional
+upstream bridge still defaults to protocol **2025-06-18**, still sends
+`initialize`, and still stores `Mcp-Session-Id` for legacy Streamable
+HTTP. That is a compatibility default, not a current-spec claim. Do not
+invent a CVE floor when live GHAD is 404, `vulnerabilities` are empty,
+or NVD has no row. Leftover CVE dumps stay development / noindex.
+
 ## The operating idea
 
 Agentic security succeeds when four pieces are present:

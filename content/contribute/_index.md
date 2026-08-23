@@ -338,9 +338,13 @@ ecosystem: "language/package-manager"
 disclosed: "YYYY-MM-DD"
 ```
 
-A good CVE recipe prompt explains the affected versions, the
-indicator-of-exposure, the remediation strategy, stop conditions, and
-the exact verification steps a reviewer can run.
+A good CVE recipe prompt explains the indicator-of-exposure, the
+remediation strategy, stop conditions, and the exact verification steps
+a reviewer can run. Name affected or fixed versions only when live GHAD,
+NVD, or vendor text still publishes them. Do not invent a floor. Live
+GitHub Advisory pages can **404**, GHSA `vulnerabilities` can be empty,
+and NVD can return **no row**. Leftover CVE dumps stay **development /
+noindex** and are not catalog overrides.
 
 ### What does _not_ belong
 
@@ -417,9 +421,10 @@ This repository is **public community-driven**. Before opening a PR:
 
 If you spot a security issue in the repo itself (leaked token in
 history, live secret in a config), **do not open a public issue**.
-Email `security@<your-org>.com` and we'll triage privately.
+Use the repository's
+[private security advisory channel](https://github.com/stevologic/security-recipes.ai/security/advisories/new).
 
 ## License
 
 By contributing, you agree that your contributions will be licensed
-under the MIT License — the same terms as the rest of the project.
+under the Apache License 2.0 — the same terms as the rest of the project.

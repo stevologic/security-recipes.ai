@@ -39,7 +39,13 @@ provide the public source and review trail for his work on the project.
    as a source fact.
 2. **Do not invent certainty.** Missing fixed versions, unclear ownership,
    incomplete affected ranges, and unverified deployment state remain unknown.
-   A recipe must stop or route to triage instead of filling those gaps.
+   A recipe must stop or route to triage instead of filling those gaps. A
+   named floor is only usable when live GHAD, NVD, or vendor text still
+   publishes it. Live GitHub Advisory pages can **404**, GHSA
+   `vulnerabilities` can be empty, `first_patched_version` can be null, and
+   NVD can return **no row**. Do not write “GHAD names” or “per GHSA” in
+   those states. Leftover CVE dumps stay **development / noindex** and are
+   not catalog overrides.
 3. **Prefer primary evidence.** Vendor advisories, release notes, maintained
    security advisories, NVD records, CISA KEV entries, and official registries
    take precedence over secondary summaries.
@@ -74,7 +80,9 @@ Each record is labeled by what supports it:
   with insufficient evidence is withheld rather than promoted into a claim.
 - **Stable reviewed recipes** contain product-specific exposure, containment,
   remediation, verification, rollback, and source history reviewed through the
-  repository workflow.
+  repository workflow. A leftover-titled development dump is not a stable
+  recipe. Do not promote it, invent a next-tag floor, or treat guessed
+  version text as a named fix.
 
 ## How AI is used
 

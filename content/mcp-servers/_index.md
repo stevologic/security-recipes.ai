@@ -40,6 +40,15 @@ session IDs. 2025-11-25 remains a prior final revision. The existing
 protocol-conformance profile id remains `mcp-authorization-2025-11-25`. That
 is a pack id, not a claim that 2025-11-25 is still the current specification.
 
+This repo's optional FastMCP recipe server stays read-only. The optional
+upstream bridge in `mcp_server.py` still defaults
+`RECIPES_MCP_PROTOCOL_VERSION` to **2025-06-18**, still sends an
+`initialize` handshake, and still stores `Mcp-Session-Id` for legacy
+Streamable HTTP. That is a **compatibility default**, not a current-spec
+claim. Do not change the default to 2026-07-28 without implementing
+[`server/discover`](https://modelcontextprotocol.io/specification/2026-07-28/server/discover)
+and dropping `initialize`.
+
 ## MCP in one minute
 
 The [Model Context Protocol](https://modelcontextprotocol.io/docs/getting-started/intro)
@@ -377,6 +386,10 @@ Keep credentials out of the TOML file. Put secrets in environment variables.
 
 No upstream MCP servers are configured by default. That keeps the public/site
 deployment from holding customer credentials or spending third-party tokens.
+When you do add an upstream, this repo's optional bridge is still a **legacy
+dual-era client**: it defaults to protocol **2025-06-18**, sends `initialize`,
+and stores `Mcp-Session-Id`. That matches older Streamable HTTP servers. It
+is not a 2026-07-28 client.
 
 For a business deployment, add one `[[upstream_mcp_servers]]` entry per approved
 HTTP or Streamable HTTP endpoint:
