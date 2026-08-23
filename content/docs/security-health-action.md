@@ -45,7 +45,7 @@ Each check is a boolean toggle grounded in a published recipe:
 | `check-supply-chain` | on | [Supply chain build integrity audit](/recipes/general/source-code-supply-chain-build-integrity-audit/) |
 | `check-authz` | off | [Authorization and tenant boundary audit](/recipes/general/source-code-authz-tenant-boundary-audit/) |
 | `check-containers` | off | [Base image hygiene](/recipes/general/base-image-bump/) |
-| `check-owasp` | off | [OWASP Top 10 audit](/recipes/general/owasp-top-10-2026-audit/) |
+| `check-owasp` | off | [OWASP Top 10 audit](/recipes/general/owasp-top-10-2025-audit/) |
 | `check-cve-exposure` | off | [CVE intelligence intake gate](/recipes/general/cve-intelligence-intake-gate/) |
 | `check-compliance` | off | [Compliance standards](/recipes/general/compliance-standards/) |
 
