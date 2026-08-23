@@ -536,6 +536,17 @@
       "source_id": "recipes"
     },
     {
+      "actionable": false,
+      "disposition": "defensive_control_language",
+      "line": 64,
+      "match": "- Tests never replay leftover dump JOSE token prose.",
+      "path": "content/recipes/cve/cve-2026-34986-go-jose-provides-an-implementation-of-the-javascript-object-signing-and-encryption-set-of-standards-in-go-inc.md",
+      "risk_family": "secret_exposure",
+      "rule_id": "secret-exfiltration-request",
+      "severity": "critical",
+      "source_id": "recipes"
+    },
+    {
       "actionable": true,
       "disposition": "actionable_context_poisoning_risk",
       "line": 171,
@@ -1721,7 +1732,7 @@
       "agentic-assurance-models",
       "recipes"
     ],
-    "byte_count": 14726507,
+    "byte_count": 14728397,
     "decision_counts": {
       "allow_with_adversarial_examples": 1,
       "block_until_removed": 2,
@@ -1730,12 +1741,12 @@
     },
     "disposition_counts": {
       "actionable_context_poisoning_risk": 92,
-      "defensive_control_language": 36,
+      "defensive_control_language": 37,
       "documented_adversarial_example": 24
     },
     "failure_count": 0,
     "file_count": 3520,
-    "finding_count": 152,
+    "finding_count": 153,
     "held_source_count": 1,
     "held_sources": [
       "security-remediation-workflows"
@@ -1744,10 +1755,10 @@
       "approval_bypass": 45,
       "hidden_instruction": 59,
       "prompt_injection": 9,
-      "secret_exposure": 39
+      "secret_exposure": 40
     },
     "severity_counts": {
-      "critical": 48,
+      "critical": 49,
       "high": 45,
       "medium": 59
     },
@@ -2000,11 +2011,11 @@
       "decision": "block_until_removed",
       "disposition_counts": {
         "actionable_context_poisoning_risk": 28,
-        "defensive_control_language": 31,
+        "defensive_control_language": 32,
         "documented_adversarial_example": 1
       },
       "file_count": 3384,
-      "finding_count": 60,
+      "finding_count": 61,
       "owner": {
         "accountable_team": "SecurityRecipes Maintainers",
         "escalation": "recipes-review",
@@ -2035,14 +2046,14 @@
       "risk_family_counts": {
         "approval_bypass": 24,
         "prompt_injection": 4,
-        "secret_exposure": 32
+        "secret_exposure": 33
       },
       "root": "content/recipes",
       "severity_counts": {
-        "critical": 36,
+        "critical": 37,
         "high": 24
       },
-      "source_hash": "3f919477492ea3f5ea4d30e035a38d6c11e954a562716197c81d7dd36f224bf7",
+      "source_hash": "f078d52e8fd11f0c5cf3af7e125e36995f6746b24059bfd1208f69ba04e4aa21",
       "source_id": "recipes",
       "title": "Recipes",
       "trust_tier": "tier_1_curated_guidance"
