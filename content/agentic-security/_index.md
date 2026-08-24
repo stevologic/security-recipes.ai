@@ -28,8 +28,10 @@ different evidence.
 
 **Last updated August 21, 2026.** Rechecked the public MCP specification
 [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) and the
-[MCP integration page](/mcp-servers/) on that date; 2026-07-28 is the
-current protocol version.
+[MCP integration page](/mcp-servers/) on August 23, 2026; 2026-07-28 is
+still the current protocol version. That revision is **stateless**. Session
+ids are a prior-revision Streamable HTTP field, not a current-spec
+requirement.
 [2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25) remains
 a prior final revision. [Stephen M Abbott](/about/#stephen-m-abbott)
 maintains this guide with Security Recipes contributors in the public

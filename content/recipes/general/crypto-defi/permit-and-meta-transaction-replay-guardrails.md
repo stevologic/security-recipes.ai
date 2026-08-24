@@ -14,6 +14,10 @@ lastmod: 2026-08-21
 
 Use this prompt to prevent signature replay across chains, contracts,
 forks, functions, and repeated permit or meta-transaction execution.
+The `model: "GPT-5.3-Codex"` frontmatter field is recipe metadata, not
+a prompt pin. Rechecked August 23, 2026: leftover CVE dumps stay
+**development / noindex**. Do not invent a permit or meta-transaction
+upgrade target or a named floor from leftover dump version text.
 
 ## When to use it
 

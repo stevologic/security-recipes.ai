@@ -40,7 +40,9 @@ For a sensitive-data finding, use the
 ## Remediate a vulnerability with Devin
 
 Use [Security Swarm](https://docs.devin.ai/work-with-devin/security-swarm)
-for Devin's native finding-to-pull-request workflow.
+for Devin's native finding-to-pull-request workflow. Rechecked August 23,
+2026: interactive first scans, finding review, and **Assign to Devin**
+still match the live docs. A risky pattern remains a lead, not proof.
 
 1. Open **Security**, start a scan for the affected repository, and keep
    interactive mode on for the first run. Review the proposed threat model

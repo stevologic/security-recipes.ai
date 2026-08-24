@@ -14,6 +14,13 @@ lastmod: 2026-08-21
 
 Use this prompt to reduce the damage a compromised admin key, overbroad
 role, or rushed governance action can cause in a DeFi protocol.
+The `model: "GPT-5.3-Codex"` frontmatter field is recipe metadata, not
+a prompt pin. Rechecked August 23, 2026: leftover CVE dumps stay
+**development / noindex**. Do not invent a governance or upgrade
+target or a named floor from leftover dump version text. OWASP
+[Smart Contract Top 10 : 2026](https://scs.owasp.org/sctop10/) is
+still current and **forward-looking**. It is a different project
+from the retired OWASP web Top 10:2026 pages.
 
 ## When to use it
 
@@ -47,7 +54,7 @@ are genuinely required to stop active loss.
 
 ## Research basis
 
-- [OWASP Smart Contract Top 10 2026](https://scs.owasp.org/sctop10/) ranks access control and business logic issues among the top smart-contract risk categories.
+- [OWASP Smart Contract Top 10 : 2026](https://scs.owasp.org/sctop10/) still ranks [SC01:2026 Access Control](https://scs.owasp.org/sctop10/) and [SC02:2026 Business Logic](https://scs.owasp.org/sctop10/) as the top two smart-contract risk categories. The 2026 list is forward-looking from 2025 incident data. Do not treat it as the retired OWASP web Top 10:2026.
 - [Trail of Bits: Maturing your smart contracts beyond private key risk](https://blog.trailofbits.com/2025/06/25/maturing-your-smart-contracts-beyond-private-key-risk/) recommends least privilege, multisigs, timelocks, and design-stage access control maturity for privileged DeFi functions.
 
 ## Use when

@@ -23,7 +23,10 @@ code review sessions where the question is not "is there login?" but
 "can the wrong authenticated principal reach the wrong object?"
 
 The output is a finding report. The agent should not patch code during
-this run.
+this run. The `model: "gpt-5-codex"` frontmatter field is recipe
+metadata, not a prompt pin. Rechecked August 23, 2026: leftover CVE
+dumps stay **development / noindex**. A leftover dump is not proof
+that a tenant or object-ownership boundary is safe or fixed.
 
 ## What this prompt does
 

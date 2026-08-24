@@ -21,7 +21,12 @@ and release provenance.
 This is not a dependency scanner. It complements SCA by reviewing the
 source-controlled build decisions that scanners often cannot reason
 about: unpinned actions, install scripts, custom package mirrors, build
-secrets, generated code, and release mutation paths.
+secrets, generated code, and release mutation paths. The
+`model: "gpt-5-codex"` frontmatter field is recipe metadata, not a
+prompt pin. Rechecked August 23, 2026: leftover CVE dumps stay
+**development / noindex**. Do not invent a named floor from leftover
+dump version text. This repository's workflows pin
+`actions/checkout@v7`; do not restore `v5` as current.
 
 ## What this prompt does
 

@@ -42,8 +42,12 @@ For a detected secret or PII leak, use the
 Use [Cursor Security Agents](https://cursor.com/docs/security-agents) to
 produce the finding, then hand an accepted finding to a Cursor Agent or
 Cloud Agent for the code change. Rechecked against the live Security Agents
-docs on 2026-08-21: both agent types still run on Cloud Agents through
+docs on August 23, 2026: both agent types still run on Cloud Agents through
 [Automations](https://cursor.com/automations/from-cursor/security).
+`/review-security` is still documented for Cursor 3.7+. Current Security
+Agents docs no longer label the feature beta; they describe team-usage
+billing. The [April 30, 2026 product update](https://cursor.com/changelog/04-30-26)
+is the launch note that called Security Review a Teams and Enterprise beta.
 
 1. Configure a **Security Reviewer** for pull-request or merge-request
    events, or a **Vulnerability Scanner** for scheduled scans of the
@@ -62,13 +66,14 @@ docs on 2026-08-21: both agent types still run on Cloud Agents through
 
 Security Reviewer covers changed code; Vulnerability Scanner searches for
 risk already present in the codebase. Both run on Cloud Agents through
-Cursor Automations. Security Review is currently beta for Teams and
-Enterprise; see the [official product update](https://cursor.com/changelog/04-30-26).
+Cursor Automations and are billed from the team usage pool. See the
+[official product update](https://cursor.com/changelog/04-30-26) for the
+Teams and Enterprise launch note.
 
 ## Prerequisites
 
-- Cursor **Teams** or **Enterprise** access for Security Review
-- Security Agents configured for the repository in the Cursor dashboard
+- Cursor team usage access for Security Agents, which run on Cloud Agents
+- Security Agents configured for the repository in Cursor Automations
 - At least one approved tool or MCP available to each Security Agent
 - A repo with at least one reproducible test command
 - The relevant source-host integration connected to the Cursor workspace
@@ -79,9 +84,10 @@ The public path to getting Cursor — what any individual engineer
 or team can do today without waiting on an enterprise rollout.
 
 1. **Pick a plan.** Cursor's individual plans can evaluate local
-   Agent workflows, rules, custom commands, and MCP. Security Review
-   is currently beta for **Teams** and **Enterprise**.
-   See [Cursor plan documentation](https://docs.cursor.com/account/pricing).
+   Agent workflows, rules, custom commands, and MCP. Security Agents
+   are billed at the team usage level and require Cloud Agents. See
+   [Cursor plan documentation](https://docs.cursor.com/account/pricing)
+   and the [April 30, 2026 launch note](https://cursor.com/changelog/04-30-26).
 2. **Install the editor.** Download Cursor from
    [cursor.com](https://cursor.com/) and sign in.
 3. **Connect your source host.** Link GitHub / GitLab /

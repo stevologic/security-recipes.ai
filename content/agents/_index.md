@@ -28,7 +28,8 @@ For the end-to-end method, return to
 [AI vulnerability remediation playbooks]({{< relref "/security-remediation" >}}).
 
 **Last updated August 21, 2026.** Capabilities and documentation were verified
-against the linked primary sources.
+against the linked primary sources. Rechecked August 23, 2026 against the
+same official pages.
 [Stephen M Abbott](/about/#stephen-m-abbott) maintains this workflow-fit
 comparison with Security Recipes contributors in the public
 [source and revision history](https://github.com/stevologic/security-recipes.ai/blob/main/content/agents/_index.md).
@@ -57,7 +58,7 @@ one already connected to your repos, approvals, and review habits.
   {{< card link="/codex/" title="Codex" subtitle="Use `AGENTS.md`, skills, and bounded tasks across the app, IDE, terminal, cloud, CI, and Codex Security." >}}
   {{< card link="/devin/" title="Devin" subtitle="Use Knowledge, Playbooks, and repository `.agents/skills/your-skill/SKILL.md` files for hosted alert-or-ticket-to-PR workflows." >}}
   {{< card link="#shiba-studio" title="Shiba Studio" subtitle="Use per-agent instructions, integration scopes, skills, and MCP servers on local worktree-bound agents powered by Grok/xAI." >}}
-  {{< card link="#hermes-desktop" title="Hermes Desktop" subtitle="Use skills and sandboxed execution backends (local, Docker, SSH, Modal) with Nous Research's self-improving open-source agent." >}}
+  {{< card link="#hermes-desktop" title="Hermes Desktop" subtitle="Use skills and sandboxed execution backends (local, Docker, SSH, Daytona, Singularity, or Modal) with Nous Research's self-improving open-source agent." >}}
   {{< card link="#openclaw" title="OpenClaw" subtitle="Use workspace `AGENTS.md` operating rules and `SOUL.md` boundaries with a local Gateway and a bring-your-own model." >}}
 {{< /cards >}}
 
@@ -75,8 +76,8 @@ required CI, and human approval provide the enforceable boundary.
 | [GitHub Copilot](/github_copilot/) | Issue-to-PR work and eligible code-scanning campaign alerts | GitHub Copilot cloud agent in an ephemeral Actions-powered environment | `.github/copilot-instructions.md`, path-specific instructions, `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, organization instructions | One task branch and PR; required reviews still apply and the requester's approval does not replace them |
 | [Devin](/devin/) | Dependabot, static-analysis, ticket, and CI-driven repository remediation | Hosted asynchronous workspace connected to source control and CI | Knowledge, Playbooks, repository `.agents/skills/<skill-name>/SKILL.md`, task prompt | Tested PR and CI evidence; existing branch protection, review, and SDLC controls remain authoritative |
 | [Shiba Studio](#shiba-studio) | Bounded repository fixes through local agents and automations with per-agent integration scopes | Local web studio; agents work in their own git worktrees, powered exclusively by Grok/xAI | Per-agent instructions, skills, MCP servers | Branch or PR from an isolated worktree with a local audit trail; branch protection, review, and required CI stay authoritative |
-| [Hermes Desktop](#hermes-desktop) | General agent able to take bounded repository tasks in sandboxed backends | Desktop app or self-hosted gateway; local, Docker, SSH, Singularity, or Modal execution | Skills ([open standard](https://agentskills.io)), agent-curated memory, task prompt | Reviewable diff or PR from a sandboxed run; scoped credentials, human review, and CI remain the enforceable gate |
-| [OpenClaw](#openclaw) | Personal-assistant Gateway able to drive bounded repository work under workspace rules | Local Gateway daemon reachable from approved messaging channels | Workspace `AGENTS.md` and `SOUL.md`, workspace skills, `MEMORY.md` | Reviewable change from a scoped workspace; treat channel input as untrusted and keep review and CI authoritative |
+| [Hermes Desktop](#hermes-desktop) | General agent able to take bounded repository tasks in sandboxed backends | Desktop app or self-hosted gateway; local, Docker, SSH, Daytona, Singularity, or Modal execution | Skills ([open standard](https://agentskills.io)), agent-curated memory, task prompt | Reviewable diff or PR from a sandboxed run; scoped credentials, human review, and CI remain the enforceable gate |
+| [OpenClaw](#openclaw) | Personal-assistant Gateway able to drive bounded repository work under workspace rules | Local Gateway daemon reachable from approved messaging channels | Workspace `AGENTS.md`, `SOUL.md`, `USER.md`, `IDENTITY.md`, optional `MEMORY.md`, workspace skills | Reviewable change from a scoped workspace; treat channel input as untrusted and keep review and CI authoritative |
 
 ### Codex
 
@@ -84,8 +85,11 @@ Codex supports local and cloud repository work, while Codex Security provides
 dedicated finding discovery, validation, triage, and fix workflows. Cloud agent
 tasks run in isolated environments and start with network access disabled during
 the agent phase unless the environment is configured otherwise. The security
-plugin and cloud environment require separate setup; Codex Security cloud is a
-research preview. Read the official documentation for
+plugin and cloud environment require separate setup. Official
+[Codex Security cloud setup](https://learn.chatgpt.com/docs/security/setup)
+now documents a scan-to-PR path for connected GitHub repositories. Plugin
+docs recommend `gpt-5.6-sol` with `xhigh` reasoning for scan quality; do
+not pin that model name in prompts. Read the official documentation for
 [fixing accepted findings](https://learn.chatgpt.com/docs/security/plugin/fix-findings),
 [`AGENTS.md`](https://learn.chatgpt.com/docs/agent-configuration/agents-md),
 [cloud environments](https://learn.chatgpt.com/docs/environments/cloud-environment),
@@ -95,13 +99,15 @@ and [approvals and security](https://learn.chatgpt.com/docs/agent-approvals-secu
 
 The [Claude Security plugin](https://code.claude.com/docs/en/claude-security)
 for Claude Code (`/plugin install claude-security@claude-plugins-official`,
-Claude Code v2.1.154+) runs `/claude-security` scans and writes timestamped
-Markdown and JSONL findings. Suggested patches land in the report folder;
-Anthropic's docs state they are never applied automatically. The managed
-[Claude Security](https://claude.com/product/claude-security) product is a
-separate Enterprise public beta that scans on Claude Mythos 5. Full plugin
-scans need Python and Git, may consume substantial time or usage, and can
-miss findings; keep an independent review and test gate. See
+Claude Code v2.1.154+) still runs `/claude-security` scans and writes
+timestamped Markdown and JSONL findings. Suggested patches land in the
+report folder; Anthropic's docs still state they are never applied
+automatically. The managed
+[Claude Security](https://claude.com/product/claude-security) product is
+still a separate Enterprise public beta that scans on Claude Mythos 5.
+Full plugin scans need Python 3.9.6+ and Git, may consume substantial
+time or usage, and can miss findings; keep an independent review and test
+gate. See
 [Claude Security plugin](https://code.claude.com/docs/en/claude-security),
 [managed Claude Security](https://claude.com/product/claude-security),
 [security guidance](https://code.claude.com/docs/en/security-guidance),
@@ -112,9 +118,10 @@ miss findings; keep an independent review and test gate. See
 
 Cursor supports local repository work and autonomous Cloud Agents that return
 reviewable changes. Its documented automations include dependency-vulnerability
-remediation; Security Review adds PR and scheduled scanning for eligible Teams
-and Enterprise plans. Security Review is beta, and agent rules are guidance,
-not a standalone security boundary. See the official
+remediation; Security Agents add PR and scheduled scanning on Cloud Agents
+billed from the team usage pool. Current Security Agents docs no longer
+label that feature beta. Agent rules are guidance, not a standalone
+security boundary. See the official
 [Rules documentation](https://cursor.com/docs/rules),
 [CLI modes and approvals](https://cursor.com/docs/cli/using),
 [Cloud Agents](https://cursor.com/changelog/cloud-in-agents-window),
@@ -168,8 +175,10 @@ Set up a bounded remediation agent:
    npm run dev
    ```
 
-   Then open `http://localhost:3000` and follow the dashboard's first-run
-   checklist.
+   Then open `http://localhost:3000` or `http://shiba.local` (mDNS) and
+   follow the dashboard's first-run 3-step checklist. Production binds
+   `127.0.0.1` only unless you start `dev:lan:studio` or
+   `start:lan:studio`.
 2. Connect a model source in **Settings** — an xAI API key, OAuth with X, the
    local Grok CLI, or an OpenAI-compatible local server.
 3. Create an **Agent**, bind it to the repository workspace so it edits in
@@ -181,6 +190,9 @@ Set up a bounded remediation agent:
    low-risk finding, and review the PR before promoting the pattern to an
    Automation.
 
+Official docs also list optional **Meetings (Beta)** and a **Phone
+assistant**. Treat those as extras, not as the remediation path.
+
 See the official
 [getting started guide](https://github.com/stevologic/shiba-studio/blob/main/docs/getting-started.md)
 and [repository documentation](https://github.com/stevologic/shiba-studio).
@@ -188,17 +200,20 @@ and [repository documentation](https://github.com/stevologic/shiba-studio).
 ### Hermes Desktop
 
 [Hermes Agent](https://hermes-agent.nousresearch.com/) is Nous Research's
-MIT-licensed, self-improving agent; Hermes Desktop packages it for Windows,
-macOS, and Linux as a public preview. It plans tasks in natural language,
-executes in sandboxed backends (local, Docker, SSH, Singularity, or Modal),
-writes and reuses skills compatible with the
-[agentskills.io](https://agentskills.io) standard, and keeps agent-curated
-memory across sessions. Providers include Nous Portal, OpenRouter, OpenAI,
-or your own endpoint. For remediation work, pin the model and provider, put
-repository rules and stop conditions in a dedicated skill, run edits in the
-Docker backend with scoped credentials, and review self-created skills like
-code before trusting them with security work — the learning loop is a
-capability, not a control. See the official
+MIT-licensed, self-improving agent. Current install and docs pages do not
+label Hermes Desktop a public preview. The recommended path on macOS or
+Windows is the [Hermes Desktop installer](https://hermes-agent.nousresearch.com/docs/getting-started/installation).
+CLI-only install uses `curl` / `iex`; after that, `hermes desktop` launches
+Desktop. The fastest working-agent path is `hermes setup --portal`. It
+plans tasks in natural language and executes in six sandboxed backends:
+local, Docker, SSH, Daytona, Singularity, or Modal. Skills stay compatible
+with the [agentskills.io](https://agentskills.io) standard. Providers
+include Nous Portal, OpenRouter, OpenAI, or your own endpoint. For
+remediation work, pin the model and provider, put repository rules and
+stop conditions in a dedicated skill, run edits in a sandboxed backend
+with scoped credentials, and review self-created skills like code before
+trusting them with security work — the learning loop is a capability, not
+a control. See the official
 [documentation](https://hermes-agent.nousresearch.com/docs/) and
 [repository](https://github.com/NousResearch/hermes-agent).
 
@@ -207,16 +222,21 @@ capability, not a control. See the official
 [OpenClaw](https://openclaw.ai) is an MIT-licensed personal AI assistant
 with a local Gateway, a bring-your-own-model design, and workspace
 instruction files that load every session: operating rules in `AGENTS.md`,
-persona and boundaries in `SOUL.md`, optional durable facts in `MEMORY.md`,
-plus workspace-scoped skills. Install with the platform installer (`curl`/`iwr` from openclaw.ai, or
-Docker/Nix/npm). The installer starts the onboarding wizard; later
-configuration is `openclaw configure`. Confirm the Gateway with
-`openclaw gateway status` (port 18789) and `openclaw dashboard`. Because
-the Gateway can be reached from many messaging channels,
-scope a remediation agent to a dedicated workspace, keep repository rules
-and stop conditions in `AGENTS.md`, restrict tokens to the repositories in
-scope, and treat inbound channel messages as untrusted input rather than
-instructions. See the official
+persona and boundaries in `SOUL.md`, stable preferences in `USER.md`,
+name and identity in `IDENTITY.md`, optional durable facts in `MEMORY.md`,
+plus workspace-scoped skills. Official docs require Node.js **22.22.3+,
+24.15+, or 25.9+** (Node **26** recommended). On Windows, the native Hub
+app is the easiest desktop path. Install with the platform installer
+(`curl`/`iwr` from openclaw.ai, or Docker/Nix/npm). The installer starts
+the onboarding wizard; later configuration is `openclaw configure`.
+Confirm the Gateway with `openclaw gateway status` (port 18789) and
+`openclaw dashboard`. The workspace is the **default cwd, not a hard
+sandbox**, unless sandboxing is enabled. Because the Gateway can be
+reached from many messaging channels, scope a remediation agent to a
+dedicated workspace, keep repository rules and stop conditions in
+`AGENTS.md`, restrict tokens to the repositories in scope, and treat
+inbound channel messages as untrusted input rather than instructions.
+See the official
 [getting started guide](https://docs.openclaw.ai/start/getting-started) and
 [agent workspace documentation](https://docs.openclaw.ai/concepts/agent-workspace).
 

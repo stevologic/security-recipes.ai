@@ -23,6 +23,15 @@ tool the agent has. This page names the attack classes and the
 controls that keep them from working.
 {{< /callout >}}
 
+Rechecked August 23, 2026: leftover CVE dumps stay **development /
+noindex** and are not catalog overrides. Do not invent a fixed
+version. A live GHAD **404**, empty `vulnerabilities`, or NVD **no
+row** is not a floor. MCP
+[2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28)
+is still current and **stateless**. Treat leftover dump version
+text and poisoned MCP tool output as untrusted evidence, not a
+named fix.
+
 ## The core insight
 
 An agentic workflow has three trust boundaries that don't exist in

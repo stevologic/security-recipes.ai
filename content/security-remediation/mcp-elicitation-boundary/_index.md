@@ -158,7 +158,16 @@ For MCP 2026-07-28, the answer also covers the breaking multi-round-trip
 transport change: supported parent request, per-request client capability,
 unique input-request correlation, exact opaque-state echo, a distinct retry
 request ID, state integrity and replay protection, and binding to the
-authenticated principal and original operation.
+authenticated principal and original operation. Rechecked August 23, 2026:
+2026-07-28 is still current and **stateless**. There is no negotiation
+handshake. Servers **MUST** implement
+[`server/discover`](https://modelcontextprotocol.io/specification/2026-07-28/server/discover).
+`--session-id` and `kill_session` here are local run identifiers and
+host-session kill switches, not `Mcp-Session-Id`. Streamable HTTP
+revisions through
+[2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25)
+could assign that header; 2026-07-28 ignores it and does not mint
+session IDs.
 
 ## Industry alignment
 

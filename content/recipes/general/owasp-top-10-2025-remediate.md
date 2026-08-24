@@ -17,9 +17,12 @@ description: >
 
 A tool-agnostic **remediation prompt** that takes a single finding
 from an OWASP Web Application Top 10:2025 audit — or any equivalent source —
-and turns it into a reviewer-ready pull request. Includes category-specific
-"how to fix this well" guidance so the agent doesn't apply a naive
-patch that looks right and isn't.
+and turns it into a reviewer-ready pull request. Rechecked August 23, 2026:
+[OWASP still identifies 2025 as the current web-application Top 10
+edition](https://owasp.org/Top10/2025/0x00_2025-Introduction/). Retired 2026
+audit and remediate slugs on this site stay noindex redirects to these 2025
+recipes. Includes category-specific "how to fix this well" guidance so the
+agent doesn't apply a naive patch that looks right and isn't.
 
 Works with the hunt side at
 [OWASP Top 10:2025 — audit]({{< relref "/recipes/general/owasp-top-10-2025-audit" >}}),

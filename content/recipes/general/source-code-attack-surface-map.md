@@ -18,7 +18,12 @@ happen, and which trust boundaries deserve deeper review.
 
 Use this before focused audits like authz, injection, secrets, or
 supply-chain review. The output is an inventory and prioritised audit
-plan, not a vulnerability report and not a code change.
+plan, not a vulnerability report and not a code change. The
+`model: "gpt-5-codex"` frontmatter field is recipe metadata, not a
+prompt pin. Rechecked August 23, 2026: leftover CVE dumps stay
+**development / noindex**. Do not invent a floor from a leftover
+dump, a guessed next tag, or an empty GHAD advisory. Mark unknown
+versions unknown.
 
 ## What this prompt does
 

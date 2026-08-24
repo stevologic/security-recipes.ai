@@ -37,7 +37,12 @@ or out-of-scope).
 Designed to slot into the
 [SAST Finding Remediation]({{< relref "/security-remediation/sast-findings" >}})
 workflow, where the SAST scanner is the source of truth and
-the agent is bounded to a named catalogue of fix shapes.
+the agent is bounded to a named catalogue of fix shapes. The
+`model: "Opus 4.7"` frontmatter field is recipe metadata, not a
+prompt pin. Rechecked August 23, 2026: leftover CVE dumps stay
+**development / noindex**. Do not import leftover dump version
+text or a guessed next tag as the SAST fix. The scanner rule,
+source, and sink remain the finding identity.
 
 ## What this prompt does
 

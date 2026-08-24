@@ -15,7 +15,15 @@ turns this site's guidance into a CI gate. It connects to the hosted
 [Security Recipes MCP server]({{< relref "/mcp-servers" >}}) for recipe
 context, evaluates bounded repository evidence with the model you choose, and
 reports every check — including the ones you have not enabled — in the job
-summary, so remaining coverage is always visible.
+summary, so remaining coverage is always visible. Rechecked August 23, 2026:
+this repository's workflows pin
+`actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1` (**v7.0.1**).
+The example below uses the current major tag `v7`. `v5` is still published
+and is not the current major. `check-owasp` still grounds in the current
+[OWASP Top 10:2025 audit](/recipes/general/owasp-top-10-2025-audit/). The
+hosted MCP endpoint is Streamable HTTP. MCP
+[2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) is
+stateless.
 
 ## Quick start
 
@@ -28,7 +36,7 @@ jobs:
   security-health:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: stevologic/security-recipes.ai/actions/security-health@main
         with:
           provider: openai              # anthropic | openai | xai | ollama
@@ -45,7 +53,7 @@ Each check is a boolean toggle grounded in a published recipe:
 | `check-supply-chain` | on | [Supply chain build integrity audit](/recipes/general/source-code-supply-chain-build-integrity-audit/) |
 | `check-authz` | off | [Authorization and tenant boundary audit](/recipes/general/source-code-authz-tenant-boundary-audit/) |
 | `check-containers` | off | [Base image hygiene](/recipes/general/base-image-bump/) |
-| `check-owasp` | off | [OWASP Top 10 audit](/recipes/general/owasp-top-10-2026-audit/) |
+| `check-owasp` | off | [OWASP Top 10 audit](/recipes/general/owasp-top-10-2025-audit/) |
 | `check-cve-exposure` | off | [CVE intelligence intake gate](/recipes/general/cve-intelligence-intake-gate/) |
 | `check-compliance` | off | [Compliance standards](/recipes/general/compliance-standards/) |
 

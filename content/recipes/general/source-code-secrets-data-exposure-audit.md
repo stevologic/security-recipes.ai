@@ -22,7 +22,10 @@ logs, telemetry, prompts, artifacts, exports, caches, or browser state.
 
 This recipe is read-only. It reports exposure paths and containment
 recommendations; it does not rotate secrets or patch code during the
-audit pass.
+audit pass. The `model: "gpt-5-codex"` frontmatter field is recipe
+metadata, not a prompt pin. Rechecked August 23, 2026: leftover CVE
+dumps stay **development / noindex**. Do not treat leftover dump
+version text as a rotation or containment floor.
 
 ## What this prompt does
 

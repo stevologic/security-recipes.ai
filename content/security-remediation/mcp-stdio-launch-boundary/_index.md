@@ -21,6 +21,17 @@ boundary gives that moment the same policy discipline as remote MCP
 authorization.
 {{< /callout >}}
 
+Rechecked August 23, 2026: MCP
+[2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28)
+is still current and **stateless**. There is no negotiation handshake.
+Each request carries protocol version and capabilities. Servers
+**MUST** implement
+[`server/discover`](https://modelcontextprotocol.io/specification/2026-07-28/server/discover).
+STDIO remains newline-delimited JSON-RPC over a client-launched
+subprocess. Dual-era clients **SHOULD** send `server/discover` first
+before falling back to legacy `initialize`. `kill_session` here is a
+host-session kill switch, not `Mcp-Session-Id`.
+
 ## The product bet
 
 SecurityRecipes is positioned as the secure context layer for agentic AI.

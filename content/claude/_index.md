@@ -40,10 +40,13 @@ For a detected secret or PII leak, use the
 ## Remediate a vulnerability with Claude
 
 [Claude Security](https://claude.com/product/claude-security) is
-Anthropic's native scan-to-patch workflow. Rechecked against the live product
-page on 2026-08-21: it remains a public beta for Claude Enterprise, scans run
-on Claude Mythos 5, and the Claude Security plugin for Claude Code is separately
-in beta. The ordinary Claude Code workflow below remains available separately.
+Anthropic's native scan-to-patch workflow. Rechecked against the live
+product page on August 23, 2026: it remains a public beta for Claude
+Enterprise, scans run on Claude Mythos 5, and the Claude Security plugin
+for Claude Code remains separately in beta and still requires Claude Code
+v2.1.154+. Anthropic still documents that plugin patches are never applied
+automatically. The ordinary Claude Code workflow below remains available
+separately.
 
 1. In [Claude.ai](https://claude.ai/), open **Security**, select the GitHub repository, branch,
    and, when useful, a narrower directory, then run the scan.
@@ -482,7 +485,7 @@ jobs:
     if: github.event.label.name == 'claude-remediate'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -510,7 +513,7 @@ jobs:
       contains(github.event.comment.body, '/claude remediate')
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with: { node-version: 20 }
       - run: npm install @anthropic-ai/claude-agent-sdk
@@ -554,7 +557,7 @@ jobs:
   sweep:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}

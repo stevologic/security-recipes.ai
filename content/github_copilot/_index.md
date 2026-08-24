@@ -58,9 +58,11 @@ unless your tracking policy requires one.
    third-party findings, then merge through the normal review process.
 
 See GitHub's [alert-resolution workflow](https://docs.github.com/en/code-security/how-tos/manage-security-alerts/manage-code-scanning-alerts/resolve-alerts).
-One-step Copilot Autofix does not require a Copilot subscription for an
-eligible repository; agentic autofix uses Copilot cloud agent and consumes
-the applicable agent credits.
+Rechecked August 23, 2026: one-step Copilot Autofix still does not require
+a Copilot subscription for an eligible repository. GitHub still documents
+Autofix as using OpenAI GPT-5.3-Codex. Do not pin that model name in
+prompts. Agentic autofix is still a public preview; it uses Copilot cloud
+agent and consumes the applicable AI credits.
 
 ## Prerequisites
 
@@ -320,8 +322,8 @@ What **evolves** (expected to change, often):
   finding class.
 - **Model.** Copilot's underlying model rolls forward inside the
   product — you inherit upgrades without touching the pipeline.
-  Rechecked 2026-08-21: GitHub documents Copilot Autofix as using
-  OpenAI GPT-5.3-Codex. Do not pin that name in prompts; it will
+  Rechecked August 23, 2026: GitHub still documents Copilot Autofix as
+  using OpenAI GPT-5.3-Codex. Do not pin that name in prompts; it will
   move again.
 - **Tools.** New CI checks (SAST, SCA, license scanning) get
   wired into branch protections over time, tightening the

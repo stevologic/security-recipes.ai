@@ -9,7 +9,7 @@ model: "Opus 4.7"
 tags: ["sde", "secrets", "pii", "dlp", "codex", "noninteractive", "ci"]
 weight: 20
 date: 2026-04-21
-lastmod: 2026-08-21
+lastmod: 2026-08-23
 ---
 
 A Codex CLI prompt for **headless SDE remediation** — hard-coded
@@ -78,7 +78,7 @@ machine-readable JSON result for `--json` consumers.
 Invoke as:
 
 ```bash
-codex exec --sandbox workspace-write --model gpt-5.3-codex --json \
+codex exec --sandbox workspace-write --json \
   "$(envsubst < prompts/remediate-sde.md)" \
   > "/tmp/codex-${FINDING_ID}.jsonl"
 ```
@@ -251,7 +251,8 @@ GUARDRAILS
 
 ## Verification
 
-- Rechecked 2026-08-21 against `codex exec --sandbox workspace-write --json`.
+- Rechecked 2026-08-23 against `codex exec --sandbox workspace-write --json`.
+  Do not pin `gpt-5.3-codex` or `gpt-5.6-sol` in the invoke command.
 - Exposed SDEs still stop at rotation plus `TRIAGE.md` and never rewrite history.
 - The prompt still forbids echoing the SDE literal into commits, logs, or shell output.
 
@@ -296,6 +297,8 @@ disable scanner rules, or merge its own PR.
 
 ## Changelog
 
+- 2026-08-23 — Drop the leftover `--model gpt-5.3-codex` pin. Official
+  invoke form stays `codex exec --sandbox workspace-write --json`.
 - 2026-04-21 — v1, first published. Handles secret / token /
   pii / pci / phi classes. History rewrite path deliberately
   deferred to rotation runbook.

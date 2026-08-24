@@ -14,6 +14,14 @@ lastmod: 2026-08-21
 
 Use this prompt to harden DeFi contracts that make external calls,
 transfer tokens, or rely on callback-capable standards.
+The `model: "GPT-5.3-Codex"` frontmatter field is recipe metadata, not
+a prompt pin. Rechecked August 23, 2026: leftover CVE dumps stay
+**development / noindex**. Do not invent a contract upgrade target
+or a named floor from leftover dump version text. OWASP
+[SC08:2026](https://scs.owasp.org/sctop10/SC08-ReentrancyAttacks/)
+and [SC06:2026](https://scs.owasp.org/sctop10/SC06-UncheckedExternalCalls/)
+still match the current Smart Contract Top 10. That list is not the
+retired OWASP web Top 10:2026.
 
 ## When to use it
 
@@ -46,8 +54,9 @@ when the same accounting can be reached through another public path.
 
 ## Research basis
 
-- [OWASP SC08: Reentrancy Attacks](https://scs.owasp.org/sctop10/SC08-ReentrancyAttacks/) highlights stale-state exploits caused by external calls that can re-enter before the original invocation is complete.
-- [OWASP SC06: Unchecked External Calls](https://scs.owasp.org/sctop10/SC06-UncheckedExternalCalls/) recommends treating external calls as untrusted, checking return values, and favoring pull-based flows.
+- [OWASP SC08:2026 Reentrancy Attacks](https://scs.owasp.org/sctop10/SC08-ReentrancyAttacks/) still highlights stale-state exploits caused by external calls that can re-enter before the original invocation is complete.
+- [OWASP SC06:2026 Unchecked External Calls](https://scs.owasp.org/sctop10/SC06-UncheckedExternalCalls/) still recommends treating external calls as untrusted, checking return values, and favoring pull-based flows.
+- Current OpenZeppelin Contracts **5.x** imports [`ReentrancyGuard`](https://docs.openzeppelin.com/contracts/5.x/api/utils#ReentrancyGuard) from `@openzeppelin/contracts/utils/ReentrancyGuard.sol`. The SCS SC08 example still shows the 4.x `security/ReentrancyGuard.sol` path. Do not keep that older import as current. OpenZeppelin 5.x also marks the storage-based guard **deprecated** in favor of `ReentrancyGuardTransient` for v6.
 
 ## Use when
 

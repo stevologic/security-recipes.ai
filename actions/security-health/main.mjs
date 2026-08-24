@@ -79,8 +79,8 @@ export const CHECKS = [
     input: 'check-owasp',
     label: 'OWASP Top 10 audit',
     defaultEnabled: false,
-    recipeQuery: 'OWASP top 10 2026 audit',
-    page: `${SITE}/recipes/general/owasp-top-10-2026-audit/`,
+    recipeQuery: 'OWASP top 10 2025 audit',
+    page: `${SITE}/recipes/general/owasp-top-10-2025-audit/`,
     evidence: 'source',
   },
   {

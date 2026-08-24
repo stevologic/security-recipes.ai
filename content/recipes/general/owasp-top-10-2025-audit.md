@@ -17,9 +17,12 @@ description: >
 
 A tool-agnostic **hunt prompt** that walks an agent through a structured
 audit of a repository against every category in the OWASP Web Application
-Top 10:2025. [OWASP identifies 2025 as the current web-application Top 10
-edition](https://owasp.org/Top10/2025/0x00_2025-Introduction/). The output is a prioritised report with file-level pointers
-and concrete remediation recommendations — not a fix.
+Top 10:2025. Rechecked August 23, 2026: [OWASP still identifies 2025 as
+the current web-application Top 10
+edition](https://owasp.org/Top10/2025/0x00_2025-Introduction/). Retired
+2026 audit and remediate slugs on this site stay noindex redirects to
+these 2025 recipes. The output is a prioritised report with file-level
+pointers and concrete remediation recommendations — not a fix.
 
 Pair this with the companion remediate prompt,
 [OWASP Top 10:2025 — remediate]({{< relref "/recipes/general/owasp-top-10-2025-remediate" >}}),

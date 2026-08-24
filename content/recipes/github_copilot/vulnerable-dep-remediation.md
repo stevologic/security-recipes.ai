@@ -18,6 +18,14 @@ finding is validated. Together they shape
 the GitHub Copilot cloud agent into a narrow, reviewable dependency
 remediator: one finding per issue, one draft PR per issue, no
 auto-merge.
+Rechecked August 23, 2026: leftover CVE dumps stay **development /
+noindex**. Do not invent a named floor. Dependabot-to-agent
+assignment is generally available for Copilot, Claude, and Codex
+and still requires GitHub Code Security plus a Copilot plan with
+coding-agent access. That is not the same as one-step Autofix.
+The Copilot issue-assignment and agent-tasks APIs remain **public
+preview**. Frontmatter `model` strings stay metadata, not prompt
+pins.
 
 ## What this prompt does
 

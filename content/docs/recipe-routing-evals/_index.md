@@ -19,6 +19,18 @@ load-bearing question in agentic remediation: when a finding lands,
 does the system route the agent to the right recipe?
 {{< /callout >}}
 
+Rechecked August 23, 2026: leftover CVE dumps stay **development /
+noindex**. They are not catalog overrides and must not win a production
+routing eval. Do not invent a fixed version. A named floor is only
+usable when live GHAD, NVD, or vendor text still publishes it. Live
+GitHub Advisory pages can **404**, GHSA `vulnerabilities` can be empty,
+and NVD can return **no row**. MCP
+[2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28)
+is still current and **stateless**. This repo's optional upstream
+bridge still defaults `RECIPES_MCP_PROTOCOL_VERSION` to **2025-06-18**
+and still sends `initialize`. That is a compatibility default, not a
+current-spec claim.
+
 ## Why this matters
 
 SecurityRecipes is only useful in production if retrieval is reliable.

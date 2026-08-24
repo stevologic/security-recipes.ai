@@ -30,9 +30,24 @@ command-executing MCP tools as a separate security review.
 
 Last reviewed against the public MCP specification
 [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) and this
-repository's `mcp_server.py` implementation on **August 21, 2026**.
-[2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25) remains
-a prior final revision.
+repository's `mcp_server.py` implementation on **August 21, 2026**. Rechecked
+August 23, 2026: 2026-07-28 is still current and **stateless**. There is no
+`initialize` handshake. Each request carries protocol version, client
+identity, and capabilities. Streamable HTTP revisions through
+[2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25) could
+assign `Mcp-Session-Id`; this revision ignores that header and does not mint
+session IDs. 2025-11-25 remains a prior final revision. The existing
+protocol-conformance profile id remains `mcp-authorization-2025-11-25`. That
+is a pack id, not a claim that 2025-11-25 is still the current specification.
+
+This repo's optional FastMCP recipe server stays read-only. The optional
+upstream bridge in `mcp_server.py` still defaults
+`RECIPES_MCP_PROTOCOL_VERSION` to **2025-06-18**, still sends an
+`initialize` handshake, and still stores `Mcp-Session-Id` for legacy
+Streamable HTTP. That is a **compatibility default**, not a current-spec
+claim. Do not change the default to 2026-07-28 without implementing
+[`server/discover`](https://modelcontextprotocol.io/specification/2026-07-28/server/discover)
+and dropping `initialize`.
 
 ## MCP in one minute
 
@@ -371,6 +386,10 @@ Keep credentials out of the TOML file. Put secrets in environment variables.
 
 No upstream MCP servers are configured by default. That keeps the public/site
 deployment from holding customer credentials or spending third-party tokens.
+When you do add an upstream, this repo's optional bridge is still a **legacy
+dual-era client**: it defaults to protocol **2025-06-18**, sends `initialize`,
+and stores `Mcp-Session-Id`. That matches older Streamable HTTP servers. It
+is not a 2026-07-28 client.
 
 For a business deployment, add one `[[upstream_mcp_servers]]` entry per approved
 HTTP or Streamable HTTP endpoint:

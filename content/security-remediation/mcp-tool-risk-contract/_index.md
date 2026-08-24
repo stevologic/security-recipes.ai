@@ -25,7 +25,18 @@ MCP tools can now declare behavior with annotations such as
 `openWorldHint`. That is valuable, but the MCP specification is clear:
 clients must treat annotations as untrusted unless they come from a
 trusted server. The MCP Tool Risk Contract turns that reality into a
-reviewer-ready control surface.
+reviewer-ready control surface. Rechecked August 23, 2026: MCP
+[2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28)
+is still current and **stateless**. There is no negotiation handshake.
+Each request carries protocol version and capabilities. Servers
+**MUST** implement
+[`server/discover`](https://modelcontextprotocol.io/specification/2026-07-28/server/discover).
+`--session-id` and `kill_session` here are local run identifiers and
+host-session kill switches, not `Mcp-Session-Id`. Streamable HTTP
+revisions through
+[2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25)
+could assign that header; 2026-07-28 ignores it and does not mint
+session IDs.
 
 The core policy is simple: before a tool call runs, decide whether the
 session has private data, untrusted content, and an external or

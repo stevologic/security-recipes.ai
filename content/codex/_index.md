@@ -55,9 +55,13 @@ in the Codex app or CLI, then start a new chat for the repository.
    merge only through the normal code-review process.
 
 Use `$codex-security:security-scan` when the task is vulnerability
-discovery rather than remediation of a known finding. Connected GitHub
+discovery rather than remediation of a known finding. Rechecked August 23,
+2026: official plugin docs recommend `gpt-5.6-sol` with `xhigh` reasoning
+for scan quality. Do not pin that model name in prompts. Connected GitHub
 repositories can use [Codex Security cloud](https://learn.chatgpt.com/docs/security/setup)
-for the same finding-to-patch workflow with an editable threat model.
+for the same finding-to-patch workflow with an editable threat model. That
+setup page now documents a scan-to-PR path; it does not label the product
+a research preview.
 
 ## Prerequisites
 
@@ -363,7 +367,7 @@ jobs:
       contents: read
       pull-requests: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Build sandbox
         run: docker build -f ci/codex-sandbox.Dockerfile -t codex-sandbox .
       - name: Fetch open findings
@@ -396,7 +400,7 @@ jobs:
       issues: write
       pull-requests: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: docker build -f ci/codex-sandbox.Dockerfile -t codex-sandbox .
       - run: echo "${{ github.event.issue.number }}" > queue.txt
       - run: |
@@ -428,7 +432,7 @@ jobs:
       pull-requests: write
       security-events: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: docker build -f ci/codex-sandbox.Dockerfile -t codex-sandbox .
       - run: echo "${{ github.event.alert.number }}" > queue.txt
       - run: |

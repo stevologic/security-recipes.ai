@@ -20,7 +20,7 @@ MCP gateways, and reviewers know exactly which source hashes are safe to
 consume.
 {{< /callout >}}
 
-Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) on August 21, 2026.
+Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) on August 23, 2026. That revision is still current and **stateless**. There is no negotiation handshake. Servers **MUST** implement [`server/discover`](https://modelcontextprotocol.io/specification/2026-07-28/server/discover). `kill_session` here is a host-session kill switch, not `Mcp-Session-Id`. Streamable HTTP revisions through [2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25) could assign that header; 2026-07-28 ignores it and does not mint session IDs.
 
 ## Why This Matters
 

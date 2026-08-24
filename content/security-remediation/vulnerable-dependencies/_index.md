@@ -18,6 +18,16 @@ code vulnerabilities (SAST) go through a separate workflow because
 the fix shape is wildly different.
 {{< /callout >}}
 
+Rechecked August 23, 2026: do not invent a fixed version. A named
+floor is only usable when live GHAD, NVD, or vendor text still
+publishes it. Live GitHub Advisory pages can **404**, GHSA
+`vulnerabilities` can be empty, and NVD can return **no row**.
+Leftover CVE dumps stay **development / noindex** and are not
+catalog overrides. Platform-assigned Dependabot-to-agent work is
+generally available for Copilot, Claude, and Codex, and still
+requires GitHub Code Security plus a Copilot plan with coding-agent
+access. That is not the same as one-step Autofix.
+
 ## What problem this solves
 
 A typical mid-sized repo sees 5–20 new dependency advisories per
@@ -79,7 +89,8 @@ answer, not two.
 
 The classifier hands a finding to the agent only when:
 
-- The advisory specifies a fix version (not "no fix yet").
+- The advisory specifies a live named floor (not "no fix yet,"
+  leftover dump version text, or a guessed next tag).
 - The affected package is present in the repo's lockfile.
 - The patched version does **not** cross a major-version boundary
   on a direct dependency. Major bumps require a human.
