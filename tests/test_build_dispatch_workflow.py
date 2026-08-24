@@ -38,7 +38,7 @@ class BuildDispatchWorkflowTests(unittest.TestCase):
         self.assertIn('docker push "${IMAGE_PREFIX}-site:${IMAGE_TAG}"', publish_job)
         self.assertIn('docker push "${IMAGE_PREFIX}-mcp:${IMAGE_TAG}"', publish_job)
         self.assertIn("branches: [main, development]", self.workflow)
-        self.assertIn('BASE_URL="https://dev.security-recipes.ai/"', self.workflow)
+        self.assertNotIn('BASE_URL="https://dev.security-recipes.ai/"', self.workflow)
 
 
 if __name__ == "__main__":

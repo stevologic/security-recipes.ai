@@ -100,9 +100,7 @@ jobs:
       - name: Compute production baseURL
         id: site
         run: |
-          if [ "${GITHUB_REF}" = "refs/heads/development" ]; then
-            BASE_URL="https://dev.security-recipes.ai/"
-          elif [ -s "static/CNAME" ]; then
+          if [ -s "static/CNAME" ]; then
             HOST="$(grep -v '^[[:space:]]*$' static/CNAME | head -n1 | tr -d '[:space:]')"
             BASE_URL="https://${HOST}/"
           else
@@ -350,15 +348,15 @@ jobs:
       - name: Compute production baseURL
         id: site
         run: |
-          if [ "${GITHUB_REF}" = "refs/heads/development" ]; then
-            BASE_URL="https://dev.security-recipes.ai/"
-            IMAGE_TAG="${GITHUB_SHA}-development"
-          elif [ -s "static/CNAME" ]; then
+          if [ -s "static/CNAME" ]; then
             HOST="$(grep -v '^[[:space:]]*$' static/CNAME | head -n1 | tr -d '[:space:]')"
             BASE_URL="https://${HOST}/"
-            IMAGE_TAG="${GITHUB_SHA}"
           else
             BASE_URL="https://security-recipes.ai/"
+          fi
+          if [ "${GITHUB_REF}" = "refs/heads/development" ]; then
+            IMAGE_TAG="${GITHUB_SHA}-development"
+          else
             IMAGE_TAG="${GITHUB_SHA}"
           fi
           echo "base_url=${BASE_URL}" >> "$GITHUB_OUTPUT"
