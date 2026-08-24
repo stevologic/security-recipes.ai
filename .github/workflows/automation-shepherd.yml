@@ -79,6 +79,43 @@ jobs:
             --field "request_id=shepherd-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           echo "Dispatched the missing Build for merged main revision ${MAIN_SHA}."
 
+      - name: Reconcile the development branch Build
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          if ! DEV_SHA="$(gh api \
+            "repos/${GITHUB_REPOSITORY}/git/ref/heads/development" \
+            --jq '.object.sha' 2>/dev/null)"; then
+            echo "No development branch yet; skipping the staging Build reconcile."
+            exit 0
+          fi
+          RUNS_JSON="$(gh api \
+            "repos/${GITHUB_REPOSITORY}/actions/runs?head_sha=${DEV_SHA}&per_page=50" \
+            --jq '[.workflow_runs[]
+              | select(.path == ".github/workflows/build.yml")
+              | select(.head_branch == "development")
+              | {status, conclusion}]')"
+          HEALTHY_RUNS="$(jq '[.[] | select(.conclusion == "success"
+            or .status == "queued"
+            or .status == "in_progress")] | length' <<<"$RUNS_JSON")"
+          if [ "$HEALTHY_RUNS" -gt 0 ]; then
+            echo "Development revision ${DEV_SHA} already has a Build."
+            exit 0
+          fi
+          TOTAL_RUNS="$(jq 'length' <<<"$RUNS_JSON")"
+          if [ "$TOTAL_RUNS" -ge 2 ]; then
+            echo "::warning::Development revision ${DEV_SHA} failed ${TOTAL_RUNS} Build attempts; leaving it to AI maintenance."
+            exit 0
+          fi
+
+          gh workflow run build.yml \
+            --ref development \
+            --field "expected_sha=${DEV_SHA}" \
+            --field "request_id=shepherd-development-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          echo "Dispatched the missing Build for development revision ${DEV_SHA}."
+
       - name: Shepherd auto-merge pull requests
         shell: bash
         env:

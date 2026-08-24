@@ -8,7 +8,7 @@ run-name: >-
 
 on:
   push:
-    branches: [main]
+    branches: [main, development]
   pull_request:
   workflow_dispatch:
     inputs:
@@ -100,7 +100,9 @@ jobs:
       - name: Compute production baseURL
         id: site
         run: |
-          if [ -s "static/CNAME" ]; then
+          if [ "${GITHUB_REF}" = "refs/heads/development" ]; then
+            BASE_URL="https://dev.security-recipes.ai/"
+          elif [ -s "static/CNAME" ]; then
             HOST="$(grep -v '^[[:space:]]*$' static/CNAME | head -n1 | tr -d '[:space:]')"
             BASE_URL="https://${HOST}/"
           else
@@ -348,36 +350,44 @@ jobs:
       - name: Compute production baseURL
         id: site
         run: |
-          if [ -s "static/CNAME" ]; then
+          if [ "${GITHUB_REF}" = "refs/heads/development" ]; then
+            BASE_URL="https://dev.security-recipes.ai/"
+            IMAGE_TAG="${GITHUB_SHA}-development"
+          elif [ -s "static/CNAME" ]; then
             HOST="$(grep -v '^[[:space:]]*$' static/CNAME | head -n1 | tr -d '[:space:]')"
             BASE_URL="https://${HOST}/"
+            IMAGE_TAG="${GITHUB_SHA}"
           else
             BASE_URL="https://security-recipes.ai/"
+            IMAGE_TAG="${GITHUB_SHA}"
           fi
           echo "base_url=${BASE_URL}" >> "$GITHUB_OUTPUT"
+          echo "image_tag=${IMAGE_TAG}" >> "$GITHUB_OUTPUT"
 
       - name: Build immutable deployment images
         env:
           SECURITY_RECIPES_BASE_URL: ${{ steps.site.outputs.base_url }}
           SECURITY_RECIPES_REPO_URL: "https://github.com/${{ github.repository }}"
+          IMAGE_TAG: ${{ steps.site.outputs.image_tag }}
         run: |
           IMAGE_PREFIX="ghcr.io/${GITHUB_REPOSITORY,,}"
           docker build \
             --build-arg "BASE_URL=${SECURITY_RECIPES_BASE_URL}" \
             --build-arg "REPO_URL=${SECURITY_RECIPES_REPO_URL}" \
             --build-arg "REVISION=${GITHUB_SHA}" \
-            --tag "${IMAGE_PREFIX}-site:${GITHUB_SHA}" .
+            --tag "${IMAGE_PREFIX}-site:${IMAGE_TAG}" .
           docker build \
             --file Dockerfile.mcp-server \
             --build-arg "REVISION=${GITHUB_SHA}" \
-            --tag "${IMAGE_PREFIX}-mcp:${GITHUB_SHA}" .
+            --tag "${IMAGE_PREFIX}-mcp:${IMAGE_TAG}" .
 
       - name: Publish immutable deployment images
         env:
           GHCR_TOKEN: ${{ github.token }}
+          IMAGE_TAG: ${{ steps.site.outputs.image_tag }}
         run: |
           IMAGE_PREFIX="ghcr.io/${GITHUB_REPOSITORY,,}"
           printf '%s' "${GHCR_TOKEN}" |
             docker login ghcr.io --username "${GITHUB_ACTOR}" --password-stdin
-          docker push "${IMAGE_PREFIX}-site:${GITHUB_SHA}"
-          docker push "${IMAGE_PREFIX}-mcp:${GITHUB_SHA}"
+          docker push "${IMAGE_PREFIX}-site:${IMAGE_TAG}"
+          docker push "${IMAGE_PREFIX}-mcp:${IMAGE_TAG}"

@@ -476,12 +476,13 @@ SECURITY_RECIPES_DOMAIN=${DOMAIN}
 SECURITY_RECIPES_REPO_URL=${REPO_URL%.git}
 SECURITY_RECIPES_HTTP_PORT=${APP_BIND}
 SECURITY_RECIPES_GREEN_HTTP_PORT=${APP_GREEN_BIND}
+SECURITY_RECIPES_DEV_HTTP_PORT=${APP_BIND%:*}:$(( ${APP_BIND##*:} + 2 ))
 SECURITY_RECIPES_LOG_MAX_SIZE=10m
 SECURITY_RECIPES_LOG_MAX_FILES=5
 SECURITY_RECIPES_TRAFFIC_LOGS_SOURCE=${CADDY_LOG_DIR}
 
 RECIPES_MCP_SOURCE_INDEX_URL=https://${DOMAIN}/api/recipes-index.json
-RECIPES_MCP_ALLOWED_SOURCE_HOSTS=security-recipes,security-recipes-green,${DOMAIN}
+RECIPES_MCP_ALLOWED_SOURCE_HOSTS=security-recipes,security-recipes-green,security-recipes-dev,${DOMAIN},dev.${DOMAIN}
 RECIPES_MCP_PUBLIC_BASE_URL=https://${DOMAIN}/mcp
 RECIPES_MCP_LOG_LEVEL=info
 RECIPES_MCP_EAGER_REFRESH=false
@@ -573,6 +574,18 @@ ${DOMAIN} {
 www.${DOMAIN} {
 	redir https://${DOMAIN}{uri} permanent
 }
+
+# Staging hostname served from origin/development.
+dev.${DOMAIN} {
+	encode zstd gzip
+	header X-Robots-Tag "noindex, nofollow, noarchive"
+	reverse_proxy {\$SECURITY_RECIPES_DEV_UPSTREAM:http://${host}:$(( port + 2 ))} {
+		health_uri /
+		health_interval 5s
+		health_timeout 2s
+		health_status 200
+	}
+}
 EOF
   } >"${CADDYFILE}"
 
@@ -641,6 +654,8 @@ DEPLOY_MIN_FREE_MB=2048
 DEPLOY_MIN_AVAILABLE_MEMORY_MB=256
 DEPLOY_SITE_IMAGE_REPOSITORY=ghcr.io/stevologic/security-recipes.ai-site
 DEPLOY_MCP_IMAGE_REPOSITORY=ghcr.io/stevologic/security-recipes.ai-mcp
+DEPLOY_DEVELOPMENT_BRANCH=development
+DEPLOY_DEVELOPMENT_IMAGE_SUFFIX=-development
 # Optional when Docker storage is on a non-default filesystem.
 DEPLOY_DISK_PATH=
 DEPLOY_BUILD_CACHE_MAX_AGE=168h

@@ -713,7 +713,9 @@ docker-compose version
 ```
 
 Production deploys pull commit-addressed site and MCP images published by the
-required GitHub Actions `Build` workflow. The Droplet does not run Node,
+required GitHub Actions `Build` workflow on `main` and serve them at
+`https://security-recipes.ai/`. The same timer also deploys `development`
+images to `https://dev.security-recipes.ai/`. The Droplet does not run Node,
 Eleventy, pip, or Docker image builds during a deploy, which keeps deployment
 within a 1 CPU / 2 GB memory envelope.
 

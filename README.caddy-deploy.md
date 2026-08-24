@@ -101,6 +101,14 @@ do not respond to slow recrawling by publishing thin or duplicate CVE pages.
 
 ## Staying up to date: deploy.sh on a managed timer
 
+The same droplet also serves the `development` branch at
+`https://dev.security-recipes.ai/`. Add a DigitalOcean A record for
+`dev.security-recipes.ai` pointing at the production droplet
+(`64.227.98.210`) so Caddy can obtain the staging certificate. After that,
+`deploy.sh` keeps pulling `:SHA-development` images whenever
+`origin/development` advances. Staging is a single extra nginx slot that
+shares the live MCP process; it is `noindex` at the edge.
+
 [deploy.sh](deploy.sh) keeps the droplet tracking `main` without downtime:
 
 - fetches `origin/main` and exits quietly when the commit recorded in
