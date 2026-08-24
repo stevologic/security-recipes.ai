@@ -28,6 +28,7 @@ class LeftoverReviewWorkflowTests(unittest.TestCase):
             "data/cve/leftover-review-state.json",
             "never invent +1 versions",
             "live GHAD 404",
+            "set lastmod to today's UTC date (the review",
         ):
             self.assertIn(required, self.workflow)
 
