@@ -90,9 +90,10 @@ export GIT_SSH_COMMAND="${GIT_SSH_COMMAND:-ssh -o BatchMode=yes}"
 #   DEPLOY_HEARTBEAT_TIMEOUT  Heartbeat request timeout. Default: 10
 #   GH_TOKEN or GITHUB_TOKEN  Optional for public repos; recommended for API rate limits.
 #   DIGITALOCEAN_ACCESS_TOKEN Optional. When present (or found in
-#                           /etc/security-recipes/deploy.env or doctl
-#                           config), deploy.sh creates or repairs the
-#                           DigitalOcean A record for the staging hostname.
+#                           /etc/security-recipes/deploy.env, doctl
+#                           config, or an authenticated doctl client),
+#                           deploy.sh creates or repairs the DigitalOcean
+#                           A record for the staging hostname.
 # ============================================================================
 
 # DEPLOY_REPO_DIR overrides the checkout to operate on (useful for testing or
@@ -908,7 +909,7 @@ ensure_staging_dns_record() {
     return 0
   fi
   if [[ "${status}" -eq 2 ]]; then
-    log "Staging DNS skipped: no DigitalOcean API token is present on this host."
+    log "Staging DNS skipped: no DigitalOcean API token or authenticated doctl client is present on this host."
     return 0
   fi
   log "Staging DNS repair failed (exit ${status}); production deploy continues. ${output}"
