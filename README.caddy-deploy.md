@@ -106,8 +106,8 @@ The same droplet also serves the `development` branch at
 `dev.security-recipes.ai` pointing at the production droplet
 (`64.227.98.210`) so Caddy can obtain the staging certificate. If a
 `DIGITALOCEAN_ACCESS_TOKEN` is available, `python scripts/upsert_dev_dns_record.py`
-or the `Dev DNS record` workflow_dispatch job will create or repair that
-record. After DNS exists, `deploy.sh` keeps pulling `:SHA-development`
+or the `Dev DNS record` workflow will create or repair that record on
+dispatch or a same-repo pull request. After DNS exists, `deploy.sh` keeps pulling `:SHA-development`
 images whenever `origin/development` advances. Staging is a single extra
 nginx slot that shares the live MCP process; it is `noindex` at the edge.
 
