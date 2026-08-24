@@ -31,12 +31,15 @@ class BuildDispatchWorkflowTests(unittest.TestCase):
         self.assertIn("format('build-{0}', github.ref)", self.workflow)
 
     def test_dispatched_build_still_publishes_immutable_images(self) -> None:
+        self.assertNotIn("fetch-depth: 0", self.workflow)
+        self.assertNotIn("submodules: recursive", self.workflow)
+        build_job = self.workflow.split("\n  build:\n", 1)[1].split("\n  publish:\n", 1)[0]
+        self.assertIn("timeout-minutes: 30", build_job)
+        self.assertIn("fetch-depth: 1", build_job)
         publish_job = self.workflow.split("\n  publish:\n", 1)[1]
         self.assertIn("if: github.event_name != 'pull_request'", publish_job)
         self.assertIn("timeout-minutes: 30", publish_job)
         self.assertIn("fetch-depth: 1", publish_job)
-        self.assertNotIn("fetch-depth: 0", publish_job)
-        self.assertNotIn("submodules: recursive", publish_job)
         self.assertIn('IMAGE_TAG="${GITHUB_SHA}-development"', publish_job)
         self.assertIn('IMAGE_TAG="${GITHUB_SHA}"', publish_job)
         self.assertIn('docker push "${IMAGE_PREFIX}-site:${IMAGE_TAG}"', publish_job)
