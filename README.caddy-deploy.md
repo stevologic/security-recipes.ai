@@ -106,7 +106,8 @@ The same droplet also serves the `development` branch at
 `dev.security-recipes.ai` pointing at the production droplet
 (`64.227.98.210`) so Caddy can obtain the staging certificate. If a
 `DIGITALOCEAN_ACCESS_TOKEN` is available in GitHub Actions or on the
-droplet (`/etc/security-recipes/deploy.env` or doctl config),
+droplet (`/etc/security-recipes/deploy.env`, doctl config, or an
+authenticated `doctl` client),
 `deploy.sh`, `python scripts/upsert_dev_dns_record.py`, or the
 `Dev DNS record` workflow will create or repair that record. After DNS
 exists, `deploy.sh` keeps pulling `:SHA-development`

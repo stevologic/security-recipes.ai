@@ -207,7 +207,7 @@ class DeployScriptStaticTests(unittest.TestCase):
         self.assertIn("deploy_development_track", deploy)
         self.assertIn('DEV_SERVICE="security-recipes-dev"', deploy)
         self.assertIn('python3 "${helper}"', deploy)
-        self.assertIn("Staging DNS skipped: no DigitalOcean API token", deploy)
+        self.assertIn("Staging DNS skipped: no DigitalOcean API token or authenticated doctl", deploy)
         runtime = deploy[deploy.index("ensure_traffic_report_runtime() {") :]
         self.assertLess(
             runtime.index("ensure_staging_dns_record"),

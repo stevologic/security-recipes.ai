@@ -50,8 +50,9 @@ production droplet pulls and applies the main-branch `:SHA` images to
 pulls `:SHA-development` images for `origin/development` into the staging
 slot served at `dev.security-recipes.ai`. That hostname needs a DigitalOcean
 A record at the droplet (`64.227.98.210`). `deploy.sh` creates or repairs
-that record from a token in `/etc/security-recipes/deploy.env` or doctl
-config; `scripts/upsert_dev_dns_record.py` and the Dev DNS record workflow
+that record from a token in `/etc/security-recipes/deploy.env`, doctl
+config, or an already-authenticated `doctl` client;
+`scripts/upsert_dev_dns_record.py` and the Dev DNS record workflow
 do the same when `DIGITALOCEAN_ACCESS_TOKEN` is present in GitHub Actions.
 The watchdog's `revision` probe
 confirms the production handoff landed. Never put `secrets` in a workflow
