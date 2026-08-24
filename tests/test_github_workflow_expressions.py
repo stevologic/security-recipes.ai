@@ -46,10 +46,14 @@ class GitHubWorkflowExpressionTests(unittest.TestCase):
         self.assertIn("pull_request:", workflow)
         self.assertNotIn("push:", workflow)
         self.assertIn("python scripts/upsert_dev_dns_record.py", workflow)
+        self.assertIn("scripts/upsert_dev_dns_from_host.py", workflow)
         self.assertIn("if: steps.auth.outputs.configured == 'true'", workflow)
+        self.assertIn("id: ssh", workflow)
         self.assertNotIn("if: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN", workflow)
         self.assertIn("DIGITALOCEAN_TOKEN: ${{ secrets.DIGITALOCEAN_TOKEN }}", workflow)
+        self.assertIn("DROPLET_SSH_KEY: ${{ secrets.DROPLET_SSH_KEY }}", workflow)
         self.assertIn("No DigitalOcean API token secret is configured", workflow)
+        self.assertIn("No droplet SSH private-key secret is configured", workflow)
 
 
 if __name__ == "__main__":

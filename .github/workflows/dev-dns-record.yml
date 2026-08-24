@@ -29,39 +29,106 @@ jobs:
         env:
           DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
           DIGITALOCEAN_TOKEN: ${{ secrets.DIGITALOCEAN_TOKEN }}
+          DIGITALOCEAN_API_TOKEN: ${{ secrets.DIGITALOCEAN_API_TOKEN }}
+          DIGITALOCEAN_API_KEY: ${{ secrets.DIGITALOCEAN_API_KEY }}
           DO_TOKEN: ${{ secrets.DO_TOKEN }}
           DO_API_TOKEN: ${{ secrets.DO_API_TOKEN }}
+          DO_ACCESS_TOKEN: ${{ secrets.DO_ACCESS_TOKEN }}
+          DO_API_KEY: ${{ secrets.DO_API_KEY }}
         shell: bash
         run: |
-          token="${DIGITALOCEAN_ACCESS_TOKEN:-${DIGITALOCEAN_TOKEN:-${DO_TOKEN:-$DO_API_TOKEN}}}"
+          token="${DIGITALOCEAN_ACCESS_TOKEN:-${DIGITALOCEAN_TOKEN:-${DIGITALOCEAN_API_TOKEN:-${DIGITALOCEAN_API_KEY:-${DO_TOKEN:-${DO_API_TOKEN:-${DO_ACCESS_TOKEN:-$DO_API_KEY}}}}}}}"
           if [ -n "$token" ]; then
             echo "configured=true" >> "$GITHUB_OUTPUT"
             echo "::add-mask::$token"
           else
             echo "configured=false" >> "$GITHUB_OUTPUT"
-            if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
-              echo "::error::No DigitalOcean API token secret is configured; add DIGITALOCEAN_ACCESS_TOKEN and re-run this workflow."
-              exit 1
-            fi
-            echo "::notice::No DigitalOcean API token secret is configured; skipping the staging A-record upsert."
+            echo "::notice::No DigitalOcean API token secret is configured on the Actions secret names this job reads."
+          fi
+
+      - name: Detect droplet SSH key
+        id: ssh
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          DROPLET_SSH_KEY: ${{ secrets.DROPLET_SSH_KEY }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DO_SSH_PRIVATE_KEY: ${{ secrets.DO_SSH_PRIVATE_KEY }}
+          SECURITY_RECIPES_SSH_KEY: ${{ secrets.SECURITY_RECIPES_SSH_KEY }}
+          HOST_SSH_PRIVATE_KEY: ${{ secrets.HOST_SSH_PRIVATE_KEY }}
+        shell: bash
+        run: |
+          key="${SSH_PRIVATE_KEY:-${DROPLET_SSH_KEY:-${DEPLOY_SSH_KEY:-${DO_SSH_PRIVATE_KEY:-${SECURITY_RECIPES_SSH_KEY:-$HOST_SSH_PRIVATE_KEY}}}}}"
+          if [ -n "$key" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::No droplet SSH private-key secret is configured on the Actions secret names this job reads."
           fi
 
       - name: Checkout source
-        if: steps.auth.outputs.configured == 'true'
+        if: steps.auth.outputs.configured == 'true' || steps.ssh.outputs.configured == 'true'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
-      - name: Upsert the staging A record
+      - name: Upsert the staging A record with an API token
         if: steps.auth.outputs.configured == 'true'
         env:
           DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
           DIGITALOCEAN_TOKEN: ${{ secrets.DIGITALOCEAN_TOKEN }}
+          DIGITALOCEAN_API_TOKEN: ${{ secrets.DIGITALOCEAN_API_TOKEN }}
+          DIGITALOCEAN_API_KEY: ${{ secrets.DIGITALOCEAN_API_KEY }}
           DO_TOKEN: ${{ secrets.DO_TOKEN }}
           DO_API_TOKEN: ${{ secrets.DO_API_TOKEN }}
+          DO_ACCESS_TOKEN: ${{ secrets.DO_ACCESS_TOKEN }}
+          DO_API_KEY: ${{ secrets.DO_API_KEY }}
         shell: bash
         run: |
           if [ -z "$DIGITALOCEAN_ACCESS_TOKEN" ]; then
-            export DIGITALOCEAN_ACCESS_TOKEN="${DIGITALOCEAN_TOKEN:-${DO_TOKEN:-$DO_API_TOKEN}}"
+            export DIGITALOCEAN_ACCESS_TOKEN="${DIGITALOCEAN_TOKEN:-${DIGITALOCEAN_API_TOKEN:-${DIGITALOCEAN_API_KEY:-${DO_TOKEN:-${DO_API_TOKEN:-${DO_ACCESS_TOKEN:-$DO_API_KEY}}}}}}"
           fi
           python scripts/upsert_dev_dns_record.py
+
+      - name: Upsert the staging A record from the droplet
+        if: steps.ssh.outputs.configured == 'true' && steps.auth.outputs.configured != 'true'
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          DROPLET_SSH_KEY: ${{ secrets.DROPLET_SSH_KEY }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DO_SSH_PRIVATE_KEY: ${{ secrets.DO_SSH_PRIVATE_KEY }}
+          SECURITY_RECIPES_SSH_KEY: ${{ secrets.SECURITY_RECIPES_SSH_KEY }}
+          HOST_SSH_PRIVATE_KEY: ${{ secrets.HOST_SSH_PRIVATE_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          key="${SSH_PRIVATE_KEY:-${DROPLET_SSH_KEY:-${DEPLOY_SSH_KEY:-${DO_SSH_PRIVATE_KEY:-${SECURITY_RECIPES_SSH_KEY:-$HOST_SSH_PRIVATE_KEY}}}}}"
+          umask 077
+          mkdir -p "$HOME/.ssh"
+          printf '%s\n' "$key" > "$HOME/.ssh/id_do"
+          chmod 600 "$HOME/.ssh/id_do"
+          ssh-keyscan -T 8 64.227.98.210 >> "$HOME/.ssh/known_hosts"
+          user=""
+          for candidate in root ubuntu debian; do
+            if ssh -i "$HOME/.ssh/id_do" -o BatchMode=yes -o ConnectTimeout=8 \
+              "${candidate}@64.227.98.210" true; then
+              user="$candidate"
+              break
+            fi
+          done
+          if [ -z "$user" ]; then
+            echo "::error::An SSH key secret is present but it does not authenticate to the droplet."
+            exit 1
+          fi
+          scp -i "$HOME/.ssh/id_do" \
+            scripts/upsert_dev_dns_record.py \
+            scripts/upsert_dev_dns_from_host.py \
+            "${user}@64.227.98.210:/tmp/"
+          ssh -i "$HOME/.ssh/id_do" -o BatchMode=yes "${user}@64.227.98.210" \
+            python3 /tmp/upsert_dev_dns_from_host.py
+
+      - name: Fail explicit dispatch when no credential path exists
+        if: github.event_name == 'workflow_dispatch' && steps.auth.outputs.configured != 'true' && steps.ssh.outputs.configured != 'true'
+        shell: bash
+        run: |
+          echo "::error::Add DIGITALOCEAN_ACCESS_TOKEN or a droplet SSH key secret, then re-run this workflow."
+          exit 1
