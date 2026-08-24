@@ -9,7 +9,7 @@ model: "Opus 4.7"
 tags: ["sca", "cve", "dependencies", "codex", "noninteractive", "ci"]
 weight: 10
 date: 2026-04-21
-lastmod: 2026-08-21
+lastmod: 2026-08-23
 ---
 
 A Codex CLI prompt designed for **non-interactive, CI-driven** runs
@@ -82,7 +82,7 @@ surfaces it.
 Invoke as:
 
 ```bash
-codex exec --sandbox workspace-write --model gpt-5.3-codex --json \
+codex exec --sandbox workspace-write --json \
   "$(envsubst < prompts/remediate-dep.md)" \
   > "/tmp/codex-${FINDING_ID}.jsonl"
 ```
@@ -260,8 +260,9 @@ GUARDRAILS
 
 ## Verification
 
-- Rechecked 2026-08-21 against OpenAI's current non-interactive
-  `codex exec --sandbox workspace-write --json` form.
+- Rechecked 2026-08-23 against OpenAI's current non-interactive
+  `codex exec --sandbox workspace-write --json` form. Do not pin
+  `gpt-5.3-codex` or `gpt-5.6-sol` in the invoke command.
 - One finding still produces one commit and one PR, or `TRIAGE.md`.
 - The prompt still refuses major bumps when `MAX_MAJOR_BUMPS` is zero.
 
@@ -309,6 +310,8 @@ PR, or rationalize a major bump when `MAX_MAJOR_BUMPS` is zero.
 
 ## Changelog
 
+- 2026-08-23 — Drop the leftover `--model gpt-5.3-codex` pin. Official
+  invoke form stays `codex exec --sandbox workspace-write --json`.
 - 2026-04-21 — v1, first published. Shaped for `codex exec
   --sandbox workspace-write --json`. Handles Node / Python / Go / Rust / Ruby;
   monorepo + Maven handling deferred to v2.
