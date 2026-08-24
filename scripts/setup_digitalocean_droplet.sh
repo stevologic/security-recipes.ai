@@ -656,6 +656,9 @@ DEPLOY_SITE_IMAGE_REPOSITORY=ghcr.io/stevologic/security-recipes.ai-site
 DEPLOY_MCP_IMAGE_REPOSITORY=ghcr.io/stevologic/security-recipes.ai-mcp
 DEPLOY_DEVELOPMENT_BRANCH=development
 DEPLOY_DEVELOPMENT_IMAGE_SUFFIX=-development
+# Optional. deploy.sh creates or repairs the DigitalOcean A record for
+# dev.<apex-domain> when this token is set.
+DIGITALOCEAN_ACCESS_TOKEN=
 # Optional when Docker storage is on a non-default filesystem.
 DEPLOY_DISK_PATH=
 DEPLOY_BUILD_CACHE_MAX_AGE=168h
@@ -670,6 +673,8 @@ EOF
     printf '%s\n' "DEPLOY_SITE_IMAGE_REPOSITORY=${SITE_IMAGE_REPOSITORY}" >>"${DEPLOY_ENV_FILE}"
   grep -q '^DEPLOY_MCP_IMAGE_REPOSITORY=' "${DEPLOY_ENV_FILE}" ||
     printf '%s\n' "DEPLOY_MCP_IMAGE_REPOSITORY=${MCP_IMAGE_REPOSITORY}" >>"${DEPLOY_ENV_FILE}"
+  grep -q '^DIGITALOCEAN_ACCESS_TOKEN=' "${DEPLOY_ENV_FILE}" ||
+    printf '%s\n' "DIGITALOCEAN_ACCESS_TOKEN=" >>"${DEPLOY_ENV_FILE}"
   chown root:root "${DEPLOY_ENV_FILE}"
   chmod 0600 "${DEPLOY_ENV_FILE}"
 
