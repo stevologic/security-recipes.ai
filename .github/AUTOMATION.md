@@ -18,6 +18,7 @@ access token is required.
 | Dependabot auto-merge (`dependabot-automerge.yml`) | Dependabot PRs | Arms auto-merge for verified patch/minor bumps |
 | AI maintenance (`ai-maintenance.yml`) | failure of the workflows above | Codex investigates, fixes the root cause, and opens an auto-merge PR (or documents infra failures on the health issue) |
 | AI issue maintenance (`ai-issue-maintenance.yml`) | owner-authored issue events + twice-daily sweep | Codex triages open issues filed by the owner or the automation: fixes via auto-merge PRs with `Closes #n`, closes resolved reports, labels worked issues `automation:ai-triaged` |
+| Dev DNS record (`dev-dns-record.yml`) | dispatch only | Creates or repairs the DigitalOcean A record for `dev.security-recipes.ai` |
 
 ## Why the shepherd exists
 
@@ -47,13 +48,19 @@ CI publishes immutable images tagged with the exact commit SHA to GHCR. The
 production droplet pulls and applies the main-branch `:SHA` images to
 `security-recipes.ai` on a 15-minute `deploy.sh` cron. The same cron also
 pulls `:SHA-development` images for `origin/development` into the staging
-slot served at `dev.security-recipes.ai`. The watchdog's `revision` probe
-confirms the production handoff landed.
+slot served at `dev.security-recipes.ai`. That hostname needs a DigitalOcean
+A record at the droplet (`64.227.98.210`); `scripts/upsert_dev_dns_record.py`
+and the dispatch-only Dev DNS record workflow create it when
+`DIGITALOCEAN_ACCESS_TOKEN` is present. The watchdog's `revision` probe
+confirms the production handoff landed. Never put `secrets` in a workflow
+`if:` expression: GitHub records a zero-job push failure for the file and
+`deploy.sh` will refuse the SHA.
 
 ## Required configuration
 
 | Item | Kind | Status | Purpose |
 | --- | --- | --- | --- |
 | `OPENAI_API_KEY` | secret | configured | CVE enrichment and recipe drafts, daily leftover-gold review, daily non-CVE content refresh, and Codex-powered AI maintenance (which no-ops with a notice if the secret is removed) |
+| `DIGITALOCEAN_ACCESS_TOKEN` | secret | optional | Lets the dispatch-only Dev DNS record workflow create `dev.security-recipes.ai` |
 | `CVE_AUTO_MERGE_ENABLED` | variable | `true` | Lets the catalog sync merge its own PR |
 | `CVE_AUTOMATION_APP_CLIENT_ID` / `CVE_AUTOMATION_APP_PRIVATE_KEY` | variable / secret | optional | A dedicated GitHub App; when configured, its pushes trigger normal CI events and the dispatch workarounds above become unnecessary |

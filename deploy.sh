@@ -493,6 +493,31 @@ wait_for_ci() {
           ' <<< "${event_response}"
         )"
       fi
+      # An invalid workflow file produces a completed failure whose .name is the
+      # file path, with no jobs. GitHub records that on every push even when
+      # the file is not a push workflow. Those runs are not real CI.
+      invalid_workflow_runs="$(
+        jq -r '
+          [
+            .workflow_runs[]
+            | select(.name == .path)
+            | "\(.path): \(.conclusion // "unknown") \(.html_url)"
+          ]
+          | join("\n")
+        ' <<< "${event_response}"
+      )"
+      if [[ -n "${invalid_workflow_runs}" ]]; then
+        log "Ignoring invalid workflow-file run(s) that never started jobs:"
+        while IFS= read -r invalid_run; do
+          log "  ${invalid_run}"
+        done <<< "${invalid_workflow_runs}"
+        event_response="$(
+          jq '
+            .workflow_runs = [.workflow_runs[] | select(.name != .path)]
+            | .total_count = (.workflow_runs | length)
+          ' <<< "${event_response}"
+        )"
+      fi
       response="$(
         jq -cn \
           --argjson accumulated "${response}" \

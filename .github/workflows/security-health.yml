@@ -30,11 +30,27 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Detect OpenAI credentials
+        id: auth
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        shell: bash
+        run: |
+          if [ -n "$OPENAI_API_KEY" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::OPENAI_API_KEY is not configured; the health check is skipped until the repository secret is added."
+          fi
+
       - name: Run the Security Recipes health check
         # Repository and fork pull requests do not receive Actions secrets.
         # Do not turn an unavailable optional LLM credential into a broken
         # application build; scheduled and trusted runs still exercise it.
-        if: ${{ secrets.OPENAI_API_KEY != '' }}
+        # Never put `secrets` in `if:` — GitHub rejects that named-value while
+        # validating the file on push, records a zero-job failure named after
+        # the workflow path, and deploy.sh then refuses the SHA.
+        if: steps.auth.outputs.configured == 'true'
         uses: ./actions/security-health
         with:
           provider: openai
