@@ -76,6 +76,9 @@ class DeployScriptStaticTests(unittest.TestCase):
         self.assertIn('--data-urlencode "head_sha=${sha}"', source)
         self.assertIn('--data-urlencode "event=${event}"', source)
         self.assertIn('REQUIRED_WORKFLOWS="${DEPLOY_REQUIRED_WORKFLOWS:-Build}"', source)
+        self.assertIn('DEVELOPMENT_BRANCH="${DEPLOY_DEVELOPMENT_BRANCH-development}"', source)
+        self.assertIn('DEVELOPMENT_IMAGE_SUFFIX="${DEPLOY_DEVELOPMENT_IMAGE_SUFFIX--development}"', source)
+        self.assertIn('--data-urlencode "branch=${branch}"', source)
         self.assertIn("for event in push dynamic workflow_dispatch; do", source)
         self.assertIn('workflow_file="build.yml"', source)
         self.assertIn('expected_title_prefix="CVE catalog Build ${sha} "', source)
@@ -108,6 +111,9 @@ class DeployScriptStaticTests(unittest.TestCase):
         self.assertIn("SECURITY_RECIPES_GREEN_IMAGE", compose)
         self.assertIn("SECURITY_RECIPES_HTTP_PORT:-127.0.0.1:8080", compose)
         self.assertIn("SECURITY_RECIPES_GREEN_HTTP_PORT:-127.0.0.1:8081", compose)
+        self.assertIn("security-recipes-dev:", compose)
+        self.assertIn("SECURITY_RECIPES_DEV_IMAGE", compose)
+        self.assertIn("SECURITY_RECIPES_DEV_HTTP_PORT:-127.0.0.1:8082", compose)
         self.assertIn('"80:80"', compose)
         self.assertIn('"443:443"', compose)
         self.assertIn(
@@ -190,6 +196,13 @@ class DeployScriptStaticTests(unittest.TestCase):
         self.assertIn('"www.${domain} {"', deploy)
         self.assertIn('"redir https://${domain}{uri} permanent"', deploy)
         self.assertIn("validate_public_www_redirect", deploy)
+        self.assertIn("dev.{$SECURITY_RECIPES_DOMAIN:security-recipes.ai} {", caddy)
+        self.assertIn("X-Robots-Tag", caddy)
+        self.assertIn("security-recipes-dev:80", caddy)
+        self.assertIn("dev.${DOMAIN} {", setup)
+        self.assertIn("prepare_host_caddy_dev_site", deploy)
+        self.assertIn("deploy_development_track", deploy)
+        self.assertIn('DEV_SERVICE="security-recipes-dev"', deploy)
         self.assertIn("--proto '=https' --proto-redir '=https'", deploy)
         self.assertIn('--resolve "www.${domain}:${port}:127.0.0.1"', deploy)
         self.assertIn("--write-out '%{url_effective}'", deploy)
@@ -639,6 +652,7 @@ class DeployScriptIntegrationTests(unittest.TestCase):
             "services:\n"
             "  security-recipes: {}\n"
             "  security-recipes-green: {}\n"
+            "  security-recipes-dev: {}\n"
             "  caddy: {}\n"
             "  traffic-report: {}\n"
             "  mcp-server: {}\n"
@@ -674,6 +688,9 @@ class DeployScriptIntegrationTests(unittest.TestCase):
         self.green_revision = self.repo / "green-revision"
         self.blue_health = self.repo / "blue-health"
         self.green_health = self.repo / "green-health"
+        self.dev_revision = self.repo / "dev-revision"
+        self.dev_health = self.repo / "dev-health"
+        self.development_sha = self.repo / "development-sha"
         self.proxy_active = self.repo / "proxy-active"
         self.proxy_fallback = self.repo / "proxy-fallback"
         self.mcp_blue_image = self.repo / "mcp-blue-image"
@@ -692,6 +709,8 @@ class DeployScriptIntegrationTests(unittest.TestCase):
         self.green_revision.write_text("a" * 40, encoding="utf-8")
         self.blue_health.write_text("1", encoding="utf-8")
         self.green_health.write_text("1", encoding="utf-8")
+        self.dev_revision.write_text("", encoding="utf-8")
+        self.dev_health.write_text("0", encoding="utf-8")
         self.proxy_active.write_text("security-recipes", encoding="utf-8")
         self.proxy_fallback.write_text("security-recipes-green", encoding="utf-8")
         self.mcp_blue_image.write_text(
@@ -733,6 +752,17 @@ case "${1:-}" in
     exit 0
     ;;
   rev-parse)
+    if [[ "$*" == *development* ]]; then
+      if [[ -n "${FAKE_DEVELOPMENT_SHA:-}" && -s "${FAKE_DEVELOPMENT_SHA}" ]]; then
+        if [[ "${2:-}" == "--short=12" ]]; then
+          cut -c1-12 "$FAKE_DEVELOPMENT_SHA"
+        else
+          cat "$FAKE_DEVELOPMENT_SHA"
+        fi
+        exit 0
+      fi
+      exit 128
+    fi
     if [[ "${2:-}" == "--short=12" ]]; then
       cut -c1-12 "$FAKE_CURRENT_SHA"
     elif [[ "${2:-}" == "HEAD" ]]; then
@@ -779,6 +809,9 @@ if [[ "${1:-}" == "inspect" ]]; then
       cat "$FAKE_CURRENT_SHA"
     elif [[ "$target" == *"security-recipes.ai-mcp:"* ]]; then
       printf '%s\n' "${target##*:}"
+    elif [[ "$target" == *"-development" ]]; then
+      revision="${target##*:}"
+      printf '%s\n' "${revision%-development}"
     else
       cat "$FAKE_TARGET_SHA"
     fi
@@ -846,6 +879,9 @@ case "${1:-}" in
       security-recipes-green)
         printf '%s\n' 'green-id'
         ;;
+      security-recipes-dev)
+        printf '%s\n' 'dev-id'
+        ;;
       security-recipes)
         printf '%s\n' 'blue-id'
         ;;
@@ -856,6 +892,7 @@ case "${1:-}" in
     case "${2:-}" in
       security-recipes) printf '%s\n' '127.0.0.1:18080' ;;
       security-recipes-green) printf '%s\n' '127.0.0.1:18081' ;;
+      security-recipes-dev) printf '%s\n' '127.0.0.1:18082' ;;
       *) exit 1 ;;
     esac
     exit 0
@@ -893,7 +930,7 @@ case "${1:-}" in
         printf 'edge recreated\n' >> "$FAKE_OUTAGE"
         exit 9
         ;;
-      security-recipes|security-recipes-green)
+      security-recipes|security-recipes-green|security-recipes-dev)
         active="$(cat "$FAKE_PROXY_ACTIVE")"
         fallback="$(cat "$FAKE_PROXY_FALLBACK")"
         if [[ "$service" == "$active" || "$service" == "$fallback" ]]; then
@@ -908,10 +945,13 @@ case "${1:-}" in
           [[ "${SECURITY_RECIPES_BLUE_MCP_UPSTREAM:-}" == "mcp-server-blue" ]] || exit 13
           printf '%s' "$revision" > "$FAKE_BLUE_REVISION"
           printf '%s' "${FAKE_CANDIDATE_HEALTH:-1}" > "$FAKE_BLUE_HEALTH"
-        else
+        elif [[ "$service" == "security-recipes-green" ]]; then
           [[ "${SECURITY_RECIPES_GREEN_MCP_UPSTREAM:-}" == "mcp-server-green" ]] || exit 13
           printf '%s' "$revision" > "$FAKE_GREEN_REVISION"
           printf '%s' "${FAKE_CANDIDATE_HEALTH:-1}" > "$FAKE_GREEN_HEALTH"
+        else
+          printf '%s' "$revision" > "$FAKE_DEV_REVISION"
+          printf '%s' "${FAKE_CANDIDATE_HEALTH:-1}" > "$FAKE_DEV_HEALTH"
         fi
         ;;
       mcp-server-blue|mcp-server-green)
@@ -1124,6 +1164,10 @@ case "$url" in
     serve_slot "$FAKE_GREEN_HEALTH" "$FAKE_GREEN_REVISION" \
       "$FAKE_MCP_GREEN_HEALTH" "$FAKE_MCP_GREEN_REVISION" "security-recipes-green"
     ;;
+  http://127.0.0.1:18082/*)
+    serve_slot "$FAKE_DEV_HEALTH" "$FAKE_DEV_REVISION" \
+      "$FAKE_MCP_BLUE_HEALTH" "$FAKE_MCP_BLUE_REVISION" "security-recipes-dev"
+    ;;
   http://proxy.test/*)
     active="$(cat "$FAKE_PROXY_ACTIVE")"
     if [[ "$active" == "security-recipes" ]]; then
@@ -1248,6 +1292,9 @@ exit 0
                 "FAKE_GREEN_REVISION": str(self.green_revision),
                 "FAKE_BLUE_HEALTH": str(self.blue_health),
                 "FAKE_GREEN_HEALTH": str(self.green_health),
+                "FAKE_DEV_REVISION": str(self.dev_revision),
+                "FAKE_DEV_HEALTH": str(self.dev_health),
+                "FAKE_DEVELOPMENT_SHA": str(self.development_sha),
                 "FAKE_PROXY_ACTIVE": str(self.proxy_active),
                 "FAKE_PROXY_FALLBACK": str(self.proxy_fallback),
                 "FAKE_MCP_BLUE_IMAGE": str(self.mcp_blue_image),
@@ -1517,6 +1564,60 @@ exit 0
         self.assertFalse(any("compose build" in command for command in commands))
         self.assertFalse(any("compose up" in command for command in commands))
         self.assertFalse(any("compose exec" in command for command in commands))
+        self.assert_no_outage()
+
+    def test_unchanged_production_still_refreshes_the_development_slot(self) -> None:
+        self.target_sha.write_text("a" * 40)
+        self.development_sha.write_text("d" * 40, encoding="utf-8")
+        self.ci_response.write_text(
+            json.dumps(
+                {
+                    "total_count": 2,
+                    "workflow_runs": [
+                        {
+                            "id": 11,
+                            "run_attempt": 1,
+                            "name": "Build",
+                            "head_branch": "development",
+                            "head_sha": "d" * 40,
+                            "event": "push",
+                            "path": ".github/workflows/build.yml",
+                            "status": "completed",
+                            "conclusion": "success",
+                            "html_url": "https://github.test/runs/11",
+                        },
+                        {
+                            "id": 12,
+                            "run_attempt": 1,
+                            "name": "CodeQL",
+                            "head_branch": "development",
+                            "head_sha": "d" * 40,
+                            "event": "dynamic",
+                            "path": "dynamic/github-code-scanning/codeql",
+                            "status": "completed",
+                            "conclusion": "success",
+                            "html_url": "https://github.test/runs/12",
+                        },
+                    ],
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        result = self.run_deploy()
+
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("Development site is serving", result.stdout)
+        self.assertEqual(self.dev_revision.read_text(), "d" * 40)
+        commands = self.commands()
+        self.assertTrue(
+            any(
+                "compose up -d --no-deps --force-recreate --no-build --pull never" in command
+                and command.endswith("security-recipes-dev")
+                for command in commands
+            )
+        )
+        self.assertFalse(any(command.endswith(" security-recipes") for command in commands if "compose up" in command))
         self.assert_no_outage()
 
     def test_unchanged_release_repairs_a_missing_traffic_report(self) -> None:

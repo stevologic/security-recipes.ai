@@ -51,3 +51,28 @@
 www.{$SECURITY_RECIPES_DOMAIN:security-recipes.ai} {
 	redir https://{$SECURITY_RECIPES_DOMAIN:security-recipes.ai}{uri} permanent
 }
+
+# Staging track served from the `development` branch. Keep it on this droplet
+# as a single slot so production blue/green memory headroom is preserved.
+dev.{$SECURITY_RECIPES_DOMAIN:security-recipes.ai} {
+	encode zstd gzip
+
+	header {
+		X-Robots-Tag "noindex, nofollow, noarchive"
+	}
+
+	reverse_proxy {$SECURITY_RECIPES_DEV_UPSTREAM:security-recipes-dev:80} {
+		lb_policy first
+		health_uri /
+		health_interval 5s
+		health_timeout 2s
+		health_status 200
+		health_fails 1
+		health_passes 2
+		fail_duration 30s
+		max_fails 1
+		unhealthy_status 5xx
+		lb_try_duration 5s
+		lb_try_interval 100ms
+	}
+}

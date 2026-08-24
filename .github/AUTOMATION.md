@@ -8,7 +8,7 @@ access token is required.
 
 | Workflow | Trigger | Responsibility |
 | --- | --- | --- |
-| Build (`build.yml`) | push to main, PRs, dispatch | Full test/build/image gate; publishes immutable deploy images on non-PR runs |
+| Build (`build.yml`) | push to main or development, PRs, dispatch | Full test/build/image gate; publishes immutable deploy images on non-PR runs (`:SHA` for main, `:SHA-development` for staging) |
 | CVE catalog sync (`cve-catalog-sync.yml`) | daily 09:23 UTC | Refreshes the rolling ten-year CVE catalog, runs OpenAI enrichment and recipe drafts, opens/merges its own PR through exact-SHA validation |
 | Content refresh (`content-refresh.yml`) | daily 11:47 UTC | Researches one source-backed opportunity across reviewed remediation workflows, executable playbooks, or non-CVE recipes and submits a validated auto-merge PR when a substantive update is warranted |
 | Leftover review (`leftover-review.yml`) | daily 13:17 UTC | Live-verifies leftover-gold CVE leftovers against GHAD/NVD; leftover-gold criticals and highs drain first, then each run reviews up to 100 leftover-gold medium and low pages and submits a validated auto-merge PR |
@@ -43,9 +43,12 @@ change: auto-merge armed, `build` proven on the exact head, branch current.
 
 ## Deployment
 
-CI publishes immutable images tagged with the exact main SHA to GHCR. The
-production droplet pulls and applies them on a 15-minute `deploy.sh` cron;
-the watchdog's `revision` probe confirms the handoff landed.
+CI publishes immutable images tagged with the exact commit SHA to GHCR. The
+production droplet pulls and applies the main-branch `:SHA` images to
+`security-recipes.ai` on a 15-minute `deploy.sh` cron. The same cron also
+pulls `:SHA-development` images for `origin/development` into the staging
+slot served at `dev.security-recipes.ai`. The watchdog's `revision` probe
+confirms the production handoff landed.
 
 ## Required configuration
 

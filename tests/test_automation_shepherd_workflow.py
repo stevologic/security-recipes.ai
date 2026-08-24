@@ -37,6 +37,17 @@ class AutomationShepherdWorkflowTests(unittest.TestCase):
         self.assertIn('[ "$TOTAL_RUNS" -ge 2 ]', reconcile)
         self.assertIn("leaving it to AI maintenance", reconcile)
 
+    def test_reconciles_unbuilt_development_revisions(self) -> None:
+        reconcile = self.workflow.split(
+            "- name: Reconcile the development branch Build", 1
+        )[1]
+        reconcile = reconcile.split("- name: Shepherd auto-merge pull requests", 1)[0]
+
+        self.assertIn("git/ref/heads/development", reconcile)
+        self.assertIn('.head_branch == "development"', reconcile)
+        self.assertIn("--ref development", reconcile)
+        self.assertIn('--field "expected_sha=${DEV_SHA}"', reconcile)
+
     def test_shepherds_only_same_repo_auto_merge_prs(self) -> None:
         shepherd = self.workflow.split("- name: Shepherd auto-merge pull requests", 1)[1]
 
@@ -79,7 +90,7 @@ class AutomationShepherdWorkflowTests(unittest.TestCase):
         # needs an explicit repository context.
         self.assertEqual(
             self.workflow.count("GH_REPO: ${{ github.repository }}"),
-            2,
+            3,
         )
 
     def test_actions_are_pinned_to_full_commit_shas(self) -> None:

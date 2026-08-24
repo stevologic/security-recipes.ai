@@ -46,6 +46,13 @@ export GIT_SSH_COMMAND="${GIT_SSH_COMMAND:-ssh -o BatchMode=yes}"
 #                      holding the lock (see DEPLOY_ALLOW_TAKEOVER).
 #   DEPLOY_PATH        Complete executable search path. Default: current PATH + Ubuntu paths
 #   DEPLOY_BRANCH      Branch to track.               Default: main
+#   DEPLOY_DEVELOPMENT_BRANCH
+#                      Staging branch for
+#                      https://dev.<apex-domain>/.    Default: development
+#                      Set empty to disable the track.
+#   DEPLOY_DEVELOPMENT_IMAGE_SUFFIX
+#                      Immutable GHCR tag suffix for
+#                      development images.            Default: -development
 #   DEPLOY_REMOTE      Git remote to fetch.           Default: origin
 #   DEPLOY_GIT_TIMEOUT Seconds allowed for git fetch. Default: 120
 #   DEPLOY_HEALTH_TIMEOUT  Seconds to wait for health. Default: 90
@@ -89,6 +96,8 @@ export GIT_SSH_COMMAND="${GIT_SSH_COMMAND:-ssh -o BatchMode=yes}"
 # directory this script lives in.
 REPO_DIR="${DEPLOY_REPO_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
 BRANCH="${DEPLOY_BRANCH:-main}"
+DEVELOPMENT_BRANCH="${DEPLOY_DEVELOPMENT_BRANCH-development}"
+DEVELOPMENT_IMAGE_SUFFIX="${DEPLOY_DEVELOPMENT_IMAGE_SUFFIX--development}"
 REMOTE="${DEPLOY_REMOTE:-origin}"
 GIT_TIMEOUT="${DEPLOY_GIT_TIMEOUT:-120}"
 HEALTH_TIMEOUT="${DEPLOY_HEALTH_TIMEOUT:-90}"
@@ -103,6 +112,7 @@ SITE_IMAGE_REPOSITORY="${DEPLOY_SITE_IMAGE_REPOSITORY:-ghcr.io/stevologic/securi
 MCP_IMAGE_REPOSITORY="${DEPLOY_MCP_IMAGE_REPOSITORY:-ghcr.io/stevologic/security-recipes.ai-mcp}"
 BLUE_SERVICE="security-recipes"
 GREEN_SERVICE="security-recipes-green"
+DEV_SERVICE="security-recipes-dev"
 STATE_FILE="${DEPLOY_STATE_FILE:-${REPO_DIR}/.git/deploy-state}"
 GITHUB_API_URL="${DEPLOY_GITHUB_API_URL:-https://api.github.com}"
 GITHUB_REPOSITORY="${DEPLOY_GITHUB_REPOSITORY:-}"
@@ -170,6 +180,14 @@ fi
   die "DEPLOY_SITE_IMAGE_REPOSITORY contains unsupported characters."
 [[ "${MCP_IMAGE_REPOSITORY}" =~ ^[A-Za-z0-9][A-Za-z0-9._:/-]*$ ]] ||
   die "DEPLOY_MCP_IMAGE_REPOSITORY contains unsupported characters."
+if [[ -n "${DEVELOPMENT_BRANCH}" ]]; then
+  [[ "${DEVELOPMENT_BRANCH}" =~ ^[A-Za-z0-9][A-Za-z0-9._/-]*$ ]] ||
+    die "DEPLOY_DEVELOPMENT_BRANCH contains unsupported characters."
+fi
+if [[ -n "${DEVELOPMENT_IMAGE_SUFFIX}" ]]; then
+  [[ "${DEVELOPMENT_IMAGE_SUFFIX}" =~ ^-[A-Za-z0-9][A-Za-z0-9._-]*$ ]] ||
+    die "DEPLOY_DEVELOPMENT_IMAGE_SUFFIX must start with a hyphen."
+fi
 
 # --- single-instance guard (flock on Linux, mkdir fallback elsewhere) -------
 LOCK_PID_FILE="${LOCK_FILE}.pid"
@@ -279,8 +297,9 @@ command -v timeout >/dev/null 2>&1 || die "GNU timeout is required (provided by 
 docker compose version >/dev/null 2>&1 || die "Docker Compose v2 is required (scripts/install_docker_compose_v2.sh)."
 
 fetch_branch() {
+  local branch="${1:-${BRANCH}}"
   timeout --kill-after=10s "${GIT_TIMEOUT}s" \
-    git fetch --prune "${REMOTE}" "${BRANCH}"
+    git fetch --prune "${REMOTE}" "${branch}"
 }
 
 github_repository() {
@@ -322,6 +341,7 @@ github_workflow_runs() {
   local sha="$2"
   local event="$3"
   local workflow_file="${4:-}"
+  local branch="${5:-${BRANCH}}"
   local token="${GH_TOKEN:-${GITHUB_TOKEN:-}}"
   local runs_url="${GITHUB_API_URL%/}/repos/${repository}/actions/runs"
   if [[ -n "${workflow_file}" ]]; then
@@ -339,7 +359,7 @@ github_workflow_runs() {
     -H "Accept: application/vnd.github+json"
     -H "X-GitHub-Api-Version: 2022-11-28"
     --get "${runs_url}"
-    --data-urlencode "branch=${BRANCH}"
+    --data-urlencode "branch=${branch}"
     --data-urlencode "head_sha=${sha}"
     --data-urlencode "event=${event}"
     --data-urlencode "per_page=100"
@@ -357,6 +377,7 @@ github_workflow_runs() {
 wait_for_ci() {
   local repository="$1"
   local sha="$2"
+  local branch="${3:-${BRANCH}}"
   local deadline=$(( $(date +%s) + CI_TIMEOUT ))
   local response event_response failures pending pending_names count missing signature now
   local stable_since=0
@@ -376,7 +397,7 @@ wait_for_ci() {
   }
 
   IFS=',' read -r -a required_workflows <<< "${REQUIRED_WORKFLOWS}"
-  log "Waiting for push/default-CodeQL/dispatched-Build GitHub Actions on ${repository}@${sha:0:12} (timeout ${CI_TIMEOUT}s)."
+  log "Waiting for push/default-CodeQL/dispatched-Build GitHub Actions on ${repository}@${sha:0:12} (${branch}, timeout ${CI_TIMEOUT}s)."
 
   while true; do
     response='{"total_count":0,"workflow_runs":[]}'
@@ -391,7 +412,7 @@ wait_for_ci() {
         expected_title_prefix="CVE catalog Build ${sha} "
         expected_path=".github/workflows/build.yml"
       fi
-      if ! event_response="$(github_workflow_runs "${repository}" "${sha}" "${event}" "${workflow_file}")"; then
+      if ! event_response="$(github_workflow_runs "${repository}" "${sha}" "${event}" "${workflow_file}" "${branch}")"; then
         log "ERROR: GitHub Actions ${event} query failed. Set GH_TOKEN for private repositories or higher API limits."
         return 1
       fi
@@ -416,7 +437,7 @@ wait_for_ci() {
       event_mismatched="$(
         jq -r \
           --arg sha "${sha}" \
-          --arg branch "${BRANCH}" \
+          --arg branch "${branch}" \
           --arg event "${event}" \
           --arg path "${expected_path}" '
           [
@@ -432,7 +453,7 @@ wait_for_ci() {
         ' <<< "${event_response}"
       )"
       if (( event_mismatched > 0 )); then
-        log "ERROR: GitHub returned workflow runs outside ${event}:${BRANCH}@${sha}; refusing to deploy."
+        log "ERROR: GitHub returned workflow runs outside ${event}:${branch}@${sha}; refusing to deploy."
         return 1
       fi
       if [[ "${event}" == "dynamic" ]]; then
@@ -836,6 +857,67 @@ prepare_host_caddy_www_redirect() {
   TRAFFIC_CADDY_CONFIG_CHANGED="true"
 }
 
+prepare_host_caddy_dev_site() {
+  [[ "${PROXY_KIND}" == "host" ]] || return 0
+
+  local base_url domain temp_file bind host port
+  domain="$(env_file_value SECURITY_RECIPES_DOMAIN 2>/dev/null || true)"
+  if [[ -z "${domain}" ]]; then
+    base_url="$(env_file_value SECURITY_RECIPES_BASE_URL 2>/dev/null || true)"
+    domain="${base_url#http://}"
+    domain="${domain#https://}"
+    domain="${domain%%/*}"
+    domain="${domain%%:*}"
+  fi
+  if [[ ! "${domain}" =~ ^[A-Za-z0-9][A-Za-z0-9.-]*[A-Za-z0-9]$ ]] ||
+     [[ "${domain}" != *.* ]] || [[ "${domain}" == www.* ]]; then
+    log "ERROR: Cannot derive a safe apex domain for the managed host Caddy development site."
+    return 1
+  fi
+  if grep -Fq "dev.${domain} {" "${HOST_CADDYFILE}"; then
+    return 0
+  fi
+  grep -q "Managed by security-recipes.ai setup script" "${HOST_CADDYFILE}" || {
+    log "ERROR: Refusing to add the development site to an unmanaged host Caddyfile."
+    return 1
+  }
+  bind="$(configured_slot_bind "${DEV_SERVICE}")" || bind="127.0.0.1:8082"
+  host="${bind%:*}"
+  port="${bind##*:}"
+
+  temp_file="$(mktemp "${HOST_CADDYFILE}.dev.XXXXXX")" || return 1
+  cp "${HOST_CADDYFILE}" "${temp_file}" || {
+    rm -f "${temp_file}"
+    return 1
+  }
+  cat >> "${temp_file}" <<EOF
+
+# Staging hostname served from origin/development.
+dev.${domain} {
+	encode zstd gzip
+	header X-Robots-Tag "noindex, nofollow, noarchive"
+	reverse_proxy {\$SECURITY_RECIPES_DEV_UPSTREAM:${host}:${port}} {
+		health_uri /
+		health_interval 5s
+		health_timeout 2s
+		health_status 200
+	}
+}
+EOF
+  if ! caddy validate --config "${temp_file}" --adapter caddyfile; then
+    rm -f "${temp_file}"
+    log "ERROR: Caddy rejected the managed development hostname."
+    return 1
+  fi
+  install -o root -g root -m 0644 "${temp_file}" "${HOST_CADDYFILE}" || {
+    rm -f "${temp_file}"
+    return 1
+  }
+  rm -f "${temp_file}"
+  log "Prepared host Caddy to serve https://dev.${domain}/ from ${host}:${port}."
+  TRAFFIC_CADDY_CONFIG_CHANGED="true"
+}
+
 ensure_caddy_404_ban() {
   # Host Fail2Ban remains owned by the droplet setup/installer. deploy.sh only
   # manages the explicitly opted-in Compose service, so a host without the
@@ -916,6 +998,7 @@ traffic_report_is_healthy() {
 ensure_traffic_report_runtime() {
   prepare_traffic_report_source || return 1
   prepare_host_caddy_www_redirect || return 1
+  prepare_host_caddy_dev_site || return 1
 
   if [[ "${TRAFFIC_CADDY_CONFIG_CHANGED}" == "true" ]]; then
     log "Activating the managed host Caddy configuration without changing the active route."
@@ -949,6 +1032,9 @@ configured_slot_bind() {
       ;;
     "${GREEN_SERVICE}")
       bind="$(env_file_value SECURITY_RECIPES_GREEN_HTTP_PORT 2>/dev/null || printf '127.0.0.1:8081')"
+      ;;
+    "${DEV_SERVICE}")
+      bind="$(env_file_value SECURITY_RECIPES_DEV_HTTP_PORT 2>/dev/null || printf '127.0.0.1:8082')"
       ;;
     *)
       return 1
@@ -1562,6 +1648,12 @@ run_slot_compose() {
       SECURITY_RECIPES_IMAGE_REVISION="${revision}" \
         docker compose "$@"
       ;;
+    "${DEV_SERVICE}")
+      SECURITY_RECIPES_DEV_IMAGE="${image}" \
+      SECURITY_RECIPES_DEV_MCP_UPSTREAM="mcp-server" \
+      SECURITY_RECIPES_IMAGE_REVISION="${revision}" \
+        docker compose "$@"
+      ;;
     *)
       return 1
       ;;
@@ -1623,19 +1715,23 @@ refresh_non_site_images() {
 }
 
 cleanup_site_images() {
-  local blue_id green_id blue_ref green_ref ref
+  local blue_id green_id dev_id blue_ref green_ref dev_ref ref
   blue_id="$(docker compose ps -q "${BLUE_SERVICE}" 2>/dev/null || true)"
   green_id="$(docker compose ps -q "${GREEN_SERVICE}" 2>/dev/null || true)"
+  dev_id="$(docker compose ps -q "${DEV_SERVICE}" 2>/dev/null || true)"
   blue_ref=""
   green_ref=""
+  dev_ref=""
   [[ -z "${blue_id}" ]] ||
     blue_ref="$(docker inspect --format '{{.Config.Image}}' "${blue_id}" 2>/dev/null || true)"
   [[ -z "${green_id}" ]] ||
     green_ref="$(docker inspect --format '{{.Config.Image}}' "${green_id}" 2>/dev/null || true)"
+  [[ -z "${dev_id}" ]] ||
+    dev_ref="$(docker inspect --format '{{.Config.Image}}' "${dev_id}" 2>/dev/null || true)"
 
   while IFS= read -r ref; do
     [[ -n "${ref}" ]] || continue
-    if [[ "${ref}" != "${blue_ref}" && "${ref}" != "${green_ref}" ]]; then
+    if [[ "${ref}" != "${blue_ref}" && "${ref}" != "${green_ref}" && "${ref}" != "${dev_ref}" ]]; then
       docker image rm "${ref}" >/dev/null 2>&1 || true
     fi
   done < <(
@@ -1926,6 +2022,86 @@ fail_deployment() {
 }
 
 # All work happens inside main(): when this script targets its own checkout,
+start_development_slot() {
+  local service="$1"
+  local image="$2"
+  local revision="$3"
+
+  log "Starting staging slot ${service} from ${image}."
+  run_slot_compose "${service}" "${image}" "${revision}" \
+    up -d --no-deps --force-recreate --no-build --pull never \
+      --wait --wait-timeout "${HEALTH_TIMEOUT}" "${service}" || return 1
+  wait_for_slot_revision "${service}" "${revision}"
+}
+
+deploy_development_track() {
+  local branch="${DEVELOPMENT_BRANCH}"
+  local target confirmed image repository
+
+  [[ -n "${branch}" ]] || return 0
+  [[ "${branch}" != "${BRANCH}" ]] || {
+    log "Development track skipped: DEPLOY_DEVELOPMENT_BRANCH matches DEPLOY_BRANCH."
+    return 0
+  }
+
+  if ! fetch_branch "${branch}"; then
+    log "Development track skipped: ${REMOTE}/${branch} could not be fetched."
+    return 0
+  fi
+  if ! git rev-parse --verify --quiet "${REMOTE}/${branch}^{commit}" >/dev/null; then
+    log "Development track skipped: ${REMOTE}/${branch} does not exist."
+    return 0
+  fi
+
+  target="$(git rev-parse "${REMOTE}/${branch}")"
+  if [[ ! "${target}" =~ ^[0-9a-f]{40}$ ]]; then
+    log "ERROR: ${REMOTE}/${branch} did not resolve to a commit."
+    return 1
+  fi
+  if [[ "${FORCE}" != "true" ]] && slot_serves_revision "${DEV_SERVICE}" "${target}"; then
+    log "Development site already serving ${target:0:12}."
+    return 0
+  fi
+
+  if [[ -z "${REPOSITORY}" ]]; then
+    repository="$(github_repository)" || {
+      log "Development track skipped: GitHub repository could not be determined."
+      return 0
+    }
+  else
+    repository="${REPOSITORY}"
+  fi
+  if ! wait_for_ci "${repository}" "${target}" "${branch}"; then
+    log "Development track skipped: CI for ${branch}@${target:0:12} is not green yet."
+    return 0
+  fi
+  if ! fetch_branch "${branch}"; then
+    log "Development track skipped: post-CI fetch of ${REMOTE}/${branch} failed."
+    return 0
+  fi
+  confirmed="$(git rev-parse "${REMOTE}/${branch}")"
+  if [[ "${confirmed}" != "${target}" ]]; then
+    log "Development track skipped: ${REMOTE}/${branch} advanced to ${confirmed:0:12} while CI ran."
+    return 0
+  fi
+
+  image="${SITE_IMAGE_REPOSITORY}:${target}${DEVELOPMENT_IMAGE_SUFFIX}"
+  if ! pull_candidate "${DEV_SERVICE}" "${image}" "${target}"; then
+    log "Development track skipped: ${image} is not available yet."
+    return 0
+  fi
+  prepare_host_caddy_dev_site || return 1
+  if [[ "${TRAFFIC_CADDY_CONFIG_CHANGED}" == "true" ]]; then
+    switch_proxy "${ACTIVE_SERVICE}" "${FALLBACK_SERVICE}" || return 1
+    TRAFFIC_CADDY_CONFIG_CHANGED="false"
+  fi
+  start_development_slot "${DEV_SERVICE}" "${image}" "${target}" || {
+    log "ERROR: The development slot did not become revision-verified."
+    return 1
+  }
+  log "Development site is serving ${target:0:12} at the staging hostname."
+}
+
 # the git reset below can rewrite deploy.sh itself mid-run, and bash reads
 # scripts lazily — a function body is fully parsed before it executes, so the
 # running process is immune to the file changing under it.
@@ -1973,6 +2149,8 @@ main() {
       log "Already serving ${TARGET:0:12} from ${ACTIVE_SERVICE}; nothing to do."
       validate_catalog_freshness ||
         die "The deployed revision is healthy, but its live CVE catalog freshness check failed."
+      deploy_development_track ||
+        die "Production is healthy, but the development track failed after image pull."
       send_success_heartbeat
       exit 0
     fi
@@ -2185,6 +2363,8 @@ main() {
   else
     log "Deploy complete: ${TARGET:0:12} is active on ${ACTIVE_SERVICE}; no unverified fallback was admitted."
   fi
+  deploy_development_track ||
+    die "Production is live, but the development track failed after image pull."
   send_success_heartbeat
 }
 
