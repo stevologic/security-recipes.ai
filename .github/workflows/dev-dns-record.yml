@@ -1,0 +1,49 @@
+name: Dev DNS record
+
+# Operator helper: create or repair the DigitalOcean A record that makes
+# https://dev.security-recipes.ai/ resolve to the production droplet.
+# Dispatch only so a missing token cannot strand deploy.sh.
+
+on:
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: dev-dns-record
+  cancel-in-progress: false
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
+jobs:
+  upsert:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Detect DigitalOcean credentials
+        id: auth
+        env:
+          DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+        shell: bash
+        run: |
+          if [ -n "$DIGITALOCEAN_ACCESS_TOKEN" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::error::DIGITALOCEAN_ACCESS_TOKEN is not configured; add the secret and re-run this workflow."
+            exit 1
+          fi
+
+      - name: Checkout source
+        if: steps.auth.outputs.configured == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Upsert the staging A record
+        if: steps.auth.outputs.configured == 'true'
+        env:
+          DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+        shell: bash
+        run: python scripts/upsert_dev_dns_record.py

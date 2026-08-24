@@ -84,6 +84,8 @@ class DeployScriptStaticTests(unittest.TestCase):
         self.assertIn('expected_title_prefix="CVE catalog Build ${sha} "', source)
         self.assertIn('select(.path == "dynamic/github-code-scanning/codeql")', source)
         self.assertIn('select(.name != "Scheduled")', source)
+        self.assertIn("select(.name != .path)", source)
+        self.assertIn("Ignoring invalid workflow-file run(s)", source)
         # run-name masks .name, so workflow identity must come from .path.
         self.assertIn('--arg path "${expected_path}"', source)
         self.assertIn('expected_path=".github/workflows/build.yml"', source)
@@ -2147,6 +2149,61 @@ printf 'fake 10000000 9999000 %s 99%% /\n' "${FAKE_FREE_KB:-1024}"
 
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertNotIn("Scheduled: failure", result.stdout)
+
+    def test_invalid_workflow_file_push_failure_does_not_block_the_release(self) -> None:
+        # GitHub records a zero-job failure named after the workflow path when
+        # a YAML file is invalid. That is not a real push check.
+        self.workflow_response()
+        payload = json.loads(self.ci_response.read_text())
+        payload["workflow_runs"].append(
+            {
+                "id": 8,
+                "run_attempt": 1,
+                "name": ".github/workflows/security-health.yml",
+                "head_branch": "main",
+                "head_sha": "b" * 40,
+                "event": "push",
+                "path": ".github/workflows/security-health.yml",
+                "status": "completed",
+                "conclusion": "failure",
+                "html_url": "https://github.test/runs/8",
+            }
+        )
+        self.ci_response.write_text(json.dumps(payload))
+
+        result = self.run_deploy()
+
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("Ignoring invalid workflow-file run(s)", result.stdout)
+        self.assertNotIn(
+            "GitHub Actions rejected",
+            result.stdout,
+        )
+
+    def test_failed_push_workflow_still_blocks_the_release(self) -> None:
+        self.workflow_response()
+        payload = json.loads(self.ci_response.read_text())
+        payload["workflow_runs"].append(
+            {
+                "id": 9,
+                "run_attempt": 1,
+                "name": "Search indexing",
+                "head_branch": "main",
+                "head_sha": "b" * 40,
+                "event": "push",
+                "path": ".github/workflows/search-indexing.yml",
+                "status": "completed",
+                "conclusion": "failure",
+                "html_url": "https://github.test/runs/9",
+            }
+        )
+        self.ci_response.write_text(json.dumps(payload))
+
+        result = self.run_deploy()
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("Search indexing: failure", result.stdout)
+        self.assertFalse(any("compose up" in command for command in self.commands()))
 
     def test_failed_dynamic_codeql_stops_before_candidate_mutation(self) -> None:
         self.workflow_response()
