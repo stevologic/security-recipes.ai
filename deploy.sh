@@ -89,6 +89,10 @@ export GIT_SSH_COMMAND="${GIT_SSH_COMMAND:-ssh -o BatchMode=yes}"
 #   DEPLOY_SUCCESS_HEARTBEAT_URL  Optional dead-man success ping URL.
 #   DEPLOY_HEARTBEAT_TIMEOUT  Heartbeat request timeout. Default: 10
 #   GH_TOKEN or GITHUB_TOKEN  Optional for public repos; recommended for API rate limits.
+#   DIGITALOCEAN_ACCESS_TOKEN Optional. When present (or found in
+#                           /etc/security-recipes/deploy.env or doctl
+#                           config), deploy.sh creates or repairs the
+#                           DigitalOcean A record for the staging hostname.
 # ============================================================================
 
 # DEPLOY_REPO_DIR overrides the checkout to operate on (useful for testing or
@@ -882,6 +886,35 @@ prepare_host_caddy_www_redirect() {
   TRAFFIC_CADDY_CONFIG_CHANGED="true"
 }
 
+ensure_staging_dns_record() {
+  local helper updater output status
+  helper="${REPO_DIR}/scripts/upsert_dev_dns_from_host.py"
+  updater="${REPO_DIR}/scripts/upsert_dev_dns_record.py"
+  if [[ ! -f "${helper}" || ! -f "${updater}" ]]; then
+    log "Staging DNS helper is not in this checkout; skipping A-record repair."
+    return 0
+  fi
+  if ! command -v python3 >/dev/null 2>&1; then
+    log "python3 is not available; skipping staging A-record repair."
+    return 0
+  fi
+
+  set +e
+  output="$(python3 "${helper}" 2>&1)"
+  status="$?"
+  set -e
+  if [[ "${status}" -eq 0 ]]; then
+    log "Staging DNS: ${output}"
+    return 0
+  fi
+  if [[ "${status}" -eq 2 ]]; then
+    log "Staging DNS skipped: no DigitalOcean API token is present on this host."
+    return 0
+  fi
+  log "Staging DNS repair failed (exit ${status}); production deploy continues. ${output}"
+  return 0
+}
+
 prepare_host_caddy_dev_site() {
   [[ "${PROXY_KIND}" == "host" ]] || return 0
 
@@ -1023,6 +1056,7 @@ traffic_report_is_healthy() {
 ensure_traffic_report_runtime() {
   prepare_traffic_report_source || return 1
   prepare_host_caddy_www_redirect || return 1
+  ensure_staging_dns_record
   prepare_host_caddy_dev_site || return 1
 
   if [[ "${TRAFFIC_CADDY_CONFIG_CHANGED}" == "true" ]]; then
@@ -2068,6 +2102,8 @@ deploy_development_track() {
     log "Development track skipped: DEPLOY_DEVELOPMENT_BRANCH matches DEPLOY_BRANCH."
     return 0
   }
+
+  ensure_staging_dns_record
 
   if ! fetch_branch "${branch}"; then
     log "Development track skipped: ${REMOTE}/${branch} could not be fetched."

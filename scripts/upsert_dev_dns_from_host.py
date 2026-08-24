@@ -20,7 +20,9 @@ SEARCH_PATHS = (
     Path("/etc/security-recipes/deploy.env"),
     Path("/etc/security-recipes/do.env"),
     Path("/root/.config/doctl/config.yaml"),
+    Path("/root/.doctlcfg"),
     Path.home() / ".config/doctl/config.yaml",
+    Path.home() / ".doctlcfg",
     Path("/opt/security-recipes.ai/.env"),
 )
 

@@ -203,8 +203,17 @@ class DeployScriptStaticTests(unittest.TestCase):
         self.assertIn("security-recipes-dev:80", caddy)
         self.assertIn("dev.${DOMAIN} {", setup)
         self.assertIn("prepare_host_caddy_dev_site", deploy)
+        self.assertIn("ensure_staging_dns_record", deploy)
         self.assertIn("deploy_development_track", deploy)
         self.assertIn('DEV_SERVICE="security-recipes-dev"', deploy)
+        self.assertIn('python3 "${helper}"', deploy)
+        self.assertIn("Staging DNS skipped: no DigitalOcean API token", deploy)
+        runtime = deploy[deploy.index("ensure_traffic_report_runtime() {") :]
+        self.assertLess(
+            runtime.index("ensure_staging_dns_record"),
+            runtime.index("prepare_host_caddy_dev_site || return 1"),
+        )
+        self.assertIn("DIGITALOCEAN_ACCESS_TOKEN=", setup)
         self.assertIn("--proto '=https' --proto-redir '=https'", deploy)
         self.assertIn('--resolve "www.${domain}:${port}:127.0.0.1"', deploy)
         self.assertIn("--write-out '%{url_effective}'", deploy)
