@@ -54,6 +54,9 @@ that record from a token in `/etc/security-recipes/deploy.env`, doctl
 config, or an already-authenticated `doctl` client;
 `scripts/upsert_dev_dns_record.py` and the Dev DNS record workflow
 do the same when `DIGITALOCEAN_ACCESS_TOKEN` is present in GitHub Actions.
+Caddy obtains the staging certificate on config load/reload, not on each
+handshake. After `dev.<apex>` resolves to the droplet, `deploy.sh`
+reloads Caddy when HTTPS still has no cert so ACME can retry.
 The watchdog's `revision` probe
 confirms the production handoff landed. Never put `secrets` in a workflow
 `if:` expression: GitHub records a zero-job push failure for the file and

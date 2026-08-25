@@ -204,6 +204,8 @@ class DeployScriptStaticTests(unittest.TestCase):
         self.assertIn("dev.${DOMAIN} {", setup)
         self.assertIn("prepare_host_caddy_dev_site", deploy)
         self.assertIn("ensure_staging_dns_record", deploy)
+        self.assertIn("ensure_staging_tls", deploy)
+        self.assertIn("staging_site_domain", deploy)
         self.assertIn("deploy_development_track", deploy)
         self.assertIn('DEV_SERVICE="security-recipes-dev"', deploy)
         self.assertIn('python3 "${helper}"', deploy)
@@ -212,6 +214,18 @@ class DeployScriptStaticTests(unittest.TestCase):
         self.assertLess(
             runtime.index("ensure_staging_dns_record"),
             runtime.index("prepare_host_caddy_dev_site || return 1"),
+        )
+        self.assertLess(
+            runtime.index("prepare_host_caddy_dev_site || return 1"),
+            runtime.index("ensure_staging_tls"),
+        )
+        self.assertLess(
+            runtime.index("ensure_staging_tls"),
+            runtime.index('if [[ "${TRAFFIC_CADDY_CONFIG_CHANGED}" == "true" ]]; then'),
+        )
+        self.assertIn(
+            "dev.${domain} resolves to ${staging_ip} but HTTPS has no certificate yet; reloading Caddy so ACME can retry.",
+            deploy,
         )
         self.assertIn("DIGITALOCEAN_ACCESS_TOKEN=", setup)
         self.assertIn("--proto '=https' --proto-redir '=https'", deploy)
