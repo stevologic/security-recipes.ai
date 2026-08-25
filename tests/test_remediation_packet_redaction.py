@@ -28,6 +28,7 @@ from tools.security_recipes_remediation.suite import (
 from tools.security_recipes_remediation.webapp import (
     MAX_DASHBOARD_REQUEST_BYTES,
     build_dashboard_plan,
+    default_dashboard_config,
     load_dashboard_config,
     save_dashboard_config,
     sanitize_dashboard_config,
@@ -355,6 +356,15 @@ class RemediationPacketRedactionTests(unittest.TestCase):
         self.assertNotIn("dashboard-secret", stored_text)
         self.assertNotIn("dashboard-api-token", stored_text)
         self.assertEqual(load_dashboard_config(self.root)["finding_input"], "")
+
+    def test_dashboard_llm_defaults_target_xai(self) -> None:
+        config = default_dashboard_config()
+        llm = config["llm_config"]
+        self.assertEqual(llm["endpoint"], "https://api.x.ai/v1/chat/completions")
+        self.assertEqual(llm["model"], "grok-4.6")
+        self.assertEqual(llm["api_key_env"], "XAI_API_KEY")
+        sanitized = sanitize_dashboard_config({})
+        self.assertEqual(sanitized["llm_config"]["api_key_env"], "XAI_API_KEY")
 
     def test_legacy_dashboard_state_is_scrubbed_on_first_load(self) -> None:
         legacy_marker = "legacy-dashboard-marker"

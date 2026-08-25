@@ -152,18 +152,18 @@ test('evidence collection finds this repository manifests deterministically', as
   assert.match(pipeline, /--- \.github\/workflows\//u);
 });
 
-test('this repository runs the action on the existing OpenAI key', () => {
+test('this repository runs the action on the existing xAI key', () => {
   const workflow = yaml.load(fs.readFileSync(workflowPath, 'utf8'));
   const steps = workflow.jobs['security-health'].steps;
   const authStep = steps.find((step) => step.id === 'auth');
   const actionStep = steps.find((step) => step.uses === './actions/security-health');
 
   assert.ok(authStep, 'detect credentials before invoking the local action');
-  assert.equal(authStep.env.OPENAI_API_KEY, '${{ secrets.OPENAI_API_KEY }}');
+  assert.equal(authStep.env.XAI_API_KEY, '${{ secrets.XAI_API_KEY }}');
   assert.ok(actionStep, 'the repo workflow must consume the local action');
   assert.equal(actionStep.if, "steps.auth.outputs.configured == 'true'");
-  assert.equal(actionStep.with.provider, 'openai');
-  assert.equal(actionStep.with['api-key'], '${{ secrets.OPENAI_API_KEY }}');
+  assert.equal(actionStep.with.provider, 'xai');
+  assert.equal(actionStep.with['api-key'], '${{ secrets.XAI_API_KEY }}');
   assert.equal(actionStep.with.model, undefined, 'the model must default to the lowest available');
   const trigger = workflow.on || workflow.true;
   assert.ok(trigger.pull_request !== undefined);

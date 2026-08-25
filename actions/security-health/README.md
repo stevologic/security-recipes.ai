@@ -13,8 +13,8 @@ jobs:
       - uses: actions/checkout@v7
       - uses: stevologic/security-recipes.ai/actions/security-health@main
         with:
-          provider: openai            # anthropic | openai | xai | ollama
-          api-key: ${{ secrets.OPENAI_API_KEY }}
+          provider: xai                # anthropic | openai | xai | ollama
+          api-key: ${{ secrets.XAI_API_KEY }}
           check-containers: true      # opt in beyond the defaults
 ```
 

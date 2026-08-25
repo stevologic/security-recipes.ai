@@ -357,19 +357,19 @@ def enrichment_health(sync_report: dict[str, Any]) -> dict[str, Any]:
     warnings: list[str] = []
     if provider_error == "insufficient_quota":
         alerts.append(
-            "OpenAI quota or credits are exhausted; add billing credits to resume enrichment."
+            "xAI quota or credits are exhausted; add billing credits to resume enrichment."
         )
     elif provider_error == "invalid_key":
         alerts.append(
-            "OpenAI rejected the API key; replace the OPENAI_API_KEY repository secret."
+            "xAI rejected the API key; replace the XAI_API_KEY repository secret."
         )
     elif provider_error:
         alerts.append(
-            f"OpenAI enrichment stopped after a provider error ({provider_error})."
+            f"xAI enrichment stopped after a provider error ({provider_error})."
         )
     elif not api_enabled:
         alerts.append(
-            "OpenAI enrichment was not enabled; verify the OPENAI_API_KEY repository secret."
+            "xAI enrichment was not enabled; verify the XAI_API_KEY repository secret."
         )
     selected = int(metrics["selected"])
     generated = int(metrics["generated"])

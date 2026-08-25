@@ -42,28 +42,28 @@ from urllib.request import Request, urlopen
 
 try:
     from scripts.cve_ai_enrichment import (
-        DEFAULT_MODEL as DEFAULT_OPENAI_MODEL,
+        DEFAULT_MODEL as DEFAULT_XAI_MODEL,
         DEFAULT_REQUEST_LIMIT as DEFAULT_AI_ENRICHMENT_LIMIT,
         MAX_REQUEST_LIMIT as MAX_AI_ENRICHMENT_LIMIT,
         EnrichmentCache,
-        OpenAIEnricher,
+        XAIEnricher,
         canonical_priority_cve_ids,
         enrichment_errors,
-        probe_openai_credentials,
+        probe_xai_credentials,
         recipe_ready,
     )
     from scripts.cve_ai_recipe import GeneratedRecipeManager
     from scripts.cve_text_quality import clean_catalog_text
 except ModuleNotFoundError:  # Direct ``python scripts/sync_cve_catalog.py`` execution.
     from cve_ai_enrichment import (  # type: ignore[no-redef]
-        DEFAULT_MODEL as DEFAULT_OPENAI_MODEL,
+        DEFAULT_MODEL as DEFAULT_XAI_MODEL,
         DEFAULT_REQUEST_LIMIT as DEFAULT_AI_ENRICHMENT_LIMIT,
         MAX_REQUEST_LIMIT as MAX_AI_ENRICHMENT_LIMIT,
         EnrichmentCache,
-        OpenAIEnricher,
+        XAIEnricher,
         canonical_priority_cve_ids,
         enrichment_errors,
-        probe_openai_credentials,
+        probe_xai_credentials,
         recipe_ready,
     )
     from cve_ai_recipe import GeneratedRecipeManager  # type: ignore[no-redef]
@@ -3072,23 +3072,24 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
     parser.add_argument("--cache-dir", type=Path, default=DEFAULT_CACHE_DIR)
     parser.add_argument(
-        "--openai-model",
-        default=os.environ.get("OPENAI_MODEL", DEFAULT_OPENAI_MODEL),
-        help="Responses API model for optional evidence-constrained enrichment.",
+        "--xai-model",
+        dest="xai_model",
+        default=os.environ.get("XAI_MODEL", DEFAULT_XAI_MODEL),
+        help="xAI Responses API model for optional evidence-constrained enrichment.",
     )
     parser.add_argument(
         "--ai-enrichment-limit",
         type=parse_ai_enrichment_limit,
-        default=os.environ.get("OPENAI_ENRICHMENT_LIMIT", str(DEFAULT_AI_ENRICHMENT_LIMIT)),
+        default=os.environ.get("XAI_ENRICHMENT_LIMIT", str(DEFAULT_AI_ENRICHMENT_LIMIT)),
         help=(
-            "Maximum new/source-changed CVEs enriched per run when OPENAI_API_KEY is set "
+            "Maximum new/source-changed CVEs enriched per run when XAI_API_KEY is set "
             f"(0-{MAX_AI_ENRICHMENT_LIMIT})."
         ),
     )
     parser.add_argument(
         "--disable-ai-enrichment",
         action="store_true",
-        help="Attach valid cached enrichments but make no OpenAI requests.",
+        help="Attach valid cached enrichments but make no xAI requests.",
     )
     parser.add_argument("--offline", action="store_true", help="Use only cached NVD and KEV inputs.")
     parser.add_argument("--dry-run", action="store_true", help="Fetch and validate sources without writing catalog files.")
@@ -3210,38 +3211,38 @@ def main(argv: list[str] | None = None) -> int:
     kev_data, kev_payload = cache_kev(cache_dir, offline=args.offline)
     kev_map = kev_by_cve(kev_data)
     enrichment_cache = EnrichmentCache.load(enrichment_cache_path)
-    openai_key = os.environ.get("OPENAI_API_KEY", "").strip()
-    openai_client: OpenAIEnricher | None = None
+    xai_key = os.environ.get("XAI_API_KEY", "").strip()
+    xai_client: XAIEnricher | None = None
     intended_ai = bool(
-        openai_key
+        xai_key
         and not args.disable_ai_enrichment
         and not args.offline
         and not args.dry_run
     )
     provider_error: str | None = None
     if intended_ai:
-        openai_client = OpenAIEnricher(openai_key, model=args.openai_model)
-        credential_status = probe_openai_credentials(
-            openai_key,
-            model=openai_client.model,
-            opener=openai_client.opener,
+        xai_client = XAIEnricher(xai_key, model=args.xai_model)
+        credential_status = probe_xai_credentials(
+            xai_key,
+            model=xai_client.model,
+            opener=xai_client.opener,
         )
         if not credential_status.usable:
             provider_error = credential_status.reason
-            openai_client = None
+            xai_client = None
             print(
-                f"Optional OpenAI enrichment is inactive ({credential_status.reason}); "
+                f"Optional xAI enrichment is inactive ({credential_status.reason}); "
                 "source sync and valid cached enrichments will continue.",
                 flush=True,
             )
         else:
             print(
-                f"Optional OpenAI enrichment enabled with model {openai_client.model!r} "
+                f"Optional xAI enrichment enabled with model {xai_client.model!r} "
                 f"and limit {args.ai_enrichment_limit}.",
                 flush=True,
             )
-    elif not openai_key:
-        print("OPENAI_API_KEY is not set; source sync and valid cached enrichments will continue.", flush=True)
+    elif not xai_key:
+        print("XAI_API_KEY is not set; source sync and valid cached enrichments will continue.", flush=True)
     else:
         disabled_reason = (
             "--disable-ai-enrichment"
@@ -3250,7 +3251,7 @@ def main(argv: list[str] | None = None) -> int:
             if args.offline
             else "dry-run mode"
         )
-        print(f"Optional OpenAI requests are disabled by {disabled_reason}.", flush=True)
+        print(f"Optional xAI requests are disabled by {disabled_reason}.", flush=True)
 
     feed_sources: list[dict[str, Any]] = []
     with tempfile.TemporaryDirectory(prefix="normalized-cve-records-", dir=cache_dir) as spool_tmp:
@@ -3310,13 +3311,13 @@ def main(argv: list[str] | None = None) -> int:
 
         enrichment_cache.select_candidates(
             output_records(),
-            limit=args.ai_enrichment_limit if openai_client is not None else 0,
+            limit=args.ai_enrichment_limit if xai_client is not None else 0,
             priority_cve_ids=args.priority_cve_ids,
         )
         effective_existing = {cve: list(recipes) for cve, recipes in existing.items()}
 
         def recipe_records() -> Iterator[dict[str, Any]]:
-            enriched_records = enrichment_cache.apply(output_records(), client=openai_client)
+            enriched_records = enrichment_cache.apply(output_records(), client=xai_client)
             for record in enriched_records:
                 draft = generated_recipes.consider(record, archetypes=archetypes)
                 if draft is not None:

@@ -377,16 +377,18 @@ that the returned merge SHA is still current `main`, then dispatches the real
 only those CVE-qualified Build dispatches, so scheduled monitors and unrelated
 manual workflows cannot deadlock or satisfy a release.
 
-The source sync does not require a secret. To additionally enrich bounded,
-high-priority records from the deterministic evidence queue, add an Actions
-secret named `OPENAI_API_KEY`:
+The source sync does not require a secret. Leftover-gold review, content
+refresh, AI maintenance, AI issue maintenance, and this repository's
+security-health action also use Grok. Add one Actions secret named
+`XAI_API_KEY` (the official xAI environment variable; do not use
+`GROK_API_KEY`):
 
 ```bash
-gh secret set OPENAI_API_KEY --repo stevologic/security-recipes.ai
+gh secret set XAI_API_KEY --repo stevologic/security-recipes.ai
 ```
 
-The workflow defaults to the cost-sensitive `gpt-5.6-luna` Responses API model
-and at most 20 new or source-changed records per run. The scheduled queue is
+The workflow defaults to xAI's `grok-4.6` Responses API model and at most 20
+new or source-changed records per run. The scheduled queue is
 derived from the tracked NVD/CISA catalog: a candidate must have a valid tagged
 vendor advisory, patch, release-note, or mitigation URL. Source-complete records
 remain eligible because they still need a sourced remediation synthesis; within
@@ -397,8 +399,8 @@ Both the model and limit can be changed with optional Actions variables; the
 enrichment limit is hard-bounded from 0 to 50:
 
 ```bash
-gh variable set OPENAI_MODEL --body "gpt-5.6-luna" --repo stevologic/security-recipes.ai
-gh variable set OPENAI_ENRICHMENT_LIMIT --body "20" --repo stevologic/security-recipes.ai
+gh variable set XAI_MODEL --body "grok-4.6" --repo stevologic/security-recipes.ai
+gh variable set XAI_ENRICHMENT_LIMIT --body "20" --repo stevologic/security-recipes.ai
 ```
 
 AI output is supplemental and explicitly labeled. It uses strict structured
@@ -441,8 +443,8 @@ live-verifies leftover-gold CVE leftovers against GitHub Advisories and NVD.
 Leftover-gold criticals and highs drain first. After those close, each run
 reviews up to 100 leftover-gold medium and low pages, records completed IDs
 in `data/cve/leftover-review-state.json`, and opens a labeled auto-merge PR.
-The job no-ops when `OPENAI_API_KEY` is missing or the leftover-gold queue is
-empty.
+The leftover-review job uses the Grok Build CLI with `XAI_API_KEY` and
+no-ops when that secret is missing or the leftover-gold queue is empty.
 
 The runtime paths are deliberately bounded for catalog-scale traffic:
 

@@ -213,9 +213,9 @@ def default_dashboard_config() -> dict[str, Any]:
         "max_recipes": 6,
         "finding_input": "",
         "llm_config": {
-            "endpoint": "https://api.openai.com/v1/chat/completions",
-            "model": "gpt-5.5",
-            "api_key_env": "OPENAI_API_KEY",
+            "endpoint": "https://api.x.ai/v1/chat/completions",
+            "model": "grok-4.6",
+            "api_key_env": "XAI_API_KEY",
             "temperature": 0.2,
             "timeout": 30,
         },
@@ -262,7 +262,7 @@ def sanitize_dashboard_config(payload: dict[str, Any]) -> dict[str, Any]:
         "llm_config": {
             "endpoint": str(llm_config.get("endpoint") or "").strip(),
             "model": str(llm_config.get("model") or "").strip(),
-            "api_key_env": str(llm_config.get("api_key_env") or "OPENAI_API_KEY").strip(),
+            "api_key_env": str(llm_config.get("api_key_env") or "XAI_API_KEY").strip(),
             "temperature": float(llm_config.get("temperature", 0.2)),
             "timeout": int(llm_config.get("timeout", 30)),
         },
