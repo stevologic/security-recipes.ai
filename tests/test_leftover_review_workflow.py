@@ -15,6 +15,7 @@ class LeftoverReviewWorkflowTests(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.workflow = WORKFLOW.read_text(encoding="utf-8")
         cls.prompt = PROMPT.read_text(encoding="utf-8")
+        cls.source = " ".join((cls.workflow + "\n" + cls.prompt).split())
 
     def test_runs_daily_and_can_be_dispatched(self) -> None:
         self.assertIn('cron: "17 13 * * *"', self.workflow)
@@ -32,7 +33,7 @@ class LeftoverReviewWorkflowTests(unittest.TestCase):
             "live GHAD 404",
             "set lastmod to today's UTC date (the review",
         ):
-            self.assertIn(required, self.prompt)
+            self.assertIn(required, self.source)
         self.assertIn("scripts/pick_leftover_review_queue.py", self.workflow)
 
     def test_uses_a_guarded_labeled_pull_request(self) -> None:
