@@ -40,27 +40,28 @@ class CveSyncWorkflowTests(unittest.TestCase):
         self.assertIn("comma or space separated", dispatch)
         self.assertIn("PRIORITY_CVE_IDS: ${{ inputs.priority_cve_ids || '' }}", sync_step)
         self.assertIn('--priority-cve-ids "$PRIORITY_CVE_IDS"', sync_step)
-        self.assertIn("OPENAI_ENRICHMENT_LIMIT", self.workflow)
+        self.assertIn("XAI_ENRICHMENT_LIMIT", self.workflow)
 
-    def test_openai_secret_is_optional_and_never_printed(self) -> None:
+    def test_xai_secret_is_optional_and_never_printed(self) -> None:
         sync_step = self.step(
             "Synchronize and optionally enrich exact rolling ten-year catalog"
         )
         self.assertIn(
-            "OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}", sync_step
+            "XAI_API_KEY: ${{ secrets.XAI_API_KEY }}", sync_step
         )
         self.assertEqual(
-            self.workflow.count("OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}"), 1
+            self.workflow.count("XAI_API_KEY: ${{ secrets.XAI_API_KEY }}"), 1
         )
-        self.assertNotIn("OPENAI_API_KEY", self.workflow.split("steps:", 1)[0])
+        self.assertNotIn("XAI_API_KEY", self.workflow.split("steps:", 1)[0])
+        self.assertNotIn("OPENAI_API_KEY", self.workflow)
         self.assertIn(
-            "New OpenAI requests skipped; valid cached enrichments retained",
+            "New xAI requests skipped; valid cached enrichments retained",
             self.workflow,
         )
         self.assertNotRegex(self.workflow, r"\bsk-[A-Za-z0-9_-]{12,}")
-        self.assertNotIn('echo "$OPENAI_API_KEY"', self.workflow)
-        self.assertNotIn("print(os.environ['OPENAI_API_KEY'])", self.workflow)
-        self.assertNotIn('print(os.environ["OPENAI_API_KEY"])', self.workflow)
+        self.assertNotIn('echo "$XAI_API_KEY"', self.workflow)
+        self.assertNotIn("print(os.environ['XAI_API_KEY'])", self.workflow)
+        self.assertNotIn('print(os.environ["XAI_API_KEY"])', self.workflow)
 
     def test_dependencies_are_installed_before_unit_tests(self) -> None:
         install = "python -m pip install -r requirements-dev.txt"

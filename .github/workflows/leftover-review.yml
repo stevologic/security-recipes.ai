@@ -28,6 +28,8 @@ jobs:
       issues: write
       pull-requests: write
     steps:
+      # openai/codex-action cannot consume an xAI key. CVE enrichment uses
+      # XAI_API_KEY; this Codex job stays on OPENAI_API_KEY.
       - name: Detect OpenAI credentials
         id: auth
         env:

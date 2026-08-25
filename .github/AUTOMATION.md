@@ -9,7 +9,7 @@ access token is required.
 | Workflow | Trigger | Responsibility |
 | --- | --- | --- |
 | Build (`build.yml`) | push to main or development, PRs, dispatch | Full test/build/image gate; publishes immutable deploy images on non-PR runs (`:SHA` for main, `:SHA-development` for staging) |
-| CVE catalog sync (`cve-catalog-sync.yml`) | daily 09:23 UTC | Refreshes the rolling ten-year CVE catalog, runs OpenAI enrichment and recipe drafts, opens/merges its own PR through exact-SHA validation |
+| CVE catalog sync (`cve-catalog-sync.yml`) | daily 09:23 UTC | Refreshes the rolling ten-year CVE catalog, runs xAI/Grok enrichment and recipe drafts, opens/merges its own PR through exact-SHA validation |
 | Content refresh (`content-refresh.yml`) | daily 11:47 UTC | Researches one source-backed opportunity across reviewed remediation workflows, executable playbooks, or non-CVE recipes and submits a validated auto-merge PR when a substantive update is warranted |
 | Leftover review (`leftover-review.yml`) | daily 13:17 UTC | Live-verifies leftover-gold CVE leftovers against GHAD/NVD; leftover-gold criticals and highs drain first, then each run reviews up to 100 leftover-gold medium and low pages and submits a validated auto-merge PR |
 | CVE catalog validation (`cve-catalog-validate.yml`) | dispatch only | Runs the build-equivalent suite against one exact SHA and publishes the required `build` status for it |
@@ -66,7 +66,8 @@ confirms the production handoff landed. Never put `secrets` in a workflow
 
 | Item | Kind | Status | Purpose |
 | --- | --- | --- | --- |
-| `OPENAI_API_KEY` | secret | configured | CVE enrichment and recipe drafts, daily leftover-gold review, daily non-CVE content refresh, and Codex-powered AI maintenance (which no-ops with a notice if the secret is removed) |
+| `XAI_API_KEY` | secret | must be added | CVE enrichment and recipe drafts, plus this repository's security-health action (Grok/xAI). Official xAI and this repo's existing `xai` provider both use this name. |
+| `OPENAI_API_KEY` | secret | still required for Codex | Daily leftover-gold review, daily non-CVE content refresh, and Codex-powered AI maintenance. Those jobs invoke `openai/codex-action`, which cannot consume an xAI key. Do not delete this secret until those workflows are replaced. |
 | `DIGITALOCEAN_ACCESS_TOKEN` | secret or droplet `deploy.env` | optional | Lets deploy.sh and the Dev DNS record workflow create `dev.security-recipes.ai` |
 | `CVE_AUTO_MERGE_ENABLED` | variable | `true` | Lets the catalog sync merge its own PR |
 | `CVE_AUTOMATION_APP_CLIENT_ID` / `CVE_AUTOMATION_APP_PRIVATE_KEY` | variable / secret | optional | A dedicated GitHub App; when configured, its pushes trigger normal CI events and the dispatch workarounds above become unnecessary |

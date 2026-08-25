@@ -32,13 +32,13 @@ class GitHubWorkflowExpressionTests(unittest.TestCase):
             f"instead: {offenders}",
         )
 
-    def test_security_health_detects_openai_key_without_secrets_if(self) -> None:
+    def test_security_health_detects_xai_key_without_secrets_if(self) -> None:
         workflow = (WORKFLOWS / "security-health.yml").read_text(encoding="utf-8")
         self.assertIn("id: auth", workflow)
-        self.assertIn("OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}", workflow)
+        self.assertIn("XAI_API_KEY: ${{ secrets.XAI_API_KEY }}", workflow)
         self.assertIn("if: steps.auth.outputs.configured == 'true'", workflow)
-        self.assertNotIn("if: ${{ secrets.OPENAI_API_KEY", workflow)
-        self.assertNotIn("if: secrets.OPENAI_API_KEY", workflow)
+        self.assertNotIn("if: ${{ secrets.XAI_API_KEY", workflow)
+        self.assertNotIn("if: secrets.XAI_API_KEY", workflow)
 
     def test_dev_dns_workflow_runs_on_pull_request_without_push(self) -> None:
         workflow = (WORKFLOWS / "dev-dns-record.yml").read_text(encoding="utf-8")

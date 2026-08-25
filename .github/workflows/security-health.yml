@@ -2,7 +2,7 @@ name: Security health
 
 # This repository consumes its own published action: an LLM check grounded
 # in the hosted security-recipes.ai MCP context, running on the existing
-# OpenAI key with the model auto-selected to the lowest available.
+# xAI/Grok key with the model auto-selected to the lowest available.
 
 on:
   pull_request:
@@ -30,17 +30,17 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Detect OpenAI credentials
+      - name: Detect xAI credentials
         id: auth
         env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
         shell: bash
         run: |
-          if [ -n "$OPENAI_API_KEY" ]; then
+          if [ -n "$XAI_API_KEY" ]; then
             echo "configured=true" >> "$GITHUB_OUTPUT"
           else
             echo "configured=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::OPENAI_API_KEY is not configured; the health check is skipped until the repository secret is added."
+            echo "::notice::XAI_API_KEY is not configured; the health check is skipped until the repository secret is added."
           fi
 
       - name: Run the Security Recipes health check
@@ -53,8 +53,8 @@ jobs:
         if: steps.auth.outputs.configured == 'true'
         uses: ./actions/security-health
         with:
-          provider: openai
-          api-key: ${{ secrets.OPENAI_API_KEY }}
+          provider: xai
+          api-key: ${{ secrets.XAI_API_KEY }}
           check-containers: "true"
           check-cve-exposure: "true"
           # Verdicts guide review; the build gate stays the required check,

@@ -142,13 +142,13 @@ class CatalogUpdateGuardTests(unittest.TestCase):
         self.assertFalse(report["enrichment"]["healthy"])
         self.assertGreaterEqual(len(report["enrichment"]["alerts"]), 2)
 
-    def test_missing_openai_key_is_explicitly_unhealthy(self) -> None:
+    def test_missing_xai_key_is_explicitly_unhealthy(self) -> None:
         health = catalog_guard.enrichment_health(
             sync_report(api_enabled=False, selected=0, generated=0)
         )
 
         self.assertFalse(health["healthy"])
-        self.assertIn("OPENAI_API_KEY", health["alerts"][0])
+        self.assertIn("XAI_API_KEY", health["alerts"][0])
 
     def test_exhausted_quota_is_explicit_and_does_not_blame_the_time_budget(self) -> None:
         health = catalog_guard.enrichment_health(

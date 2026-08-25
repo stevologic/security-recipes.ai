@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
-"""Classify whether OPENAI_API_KEY can serve billed automation requests.
+"""Classify whether OPENAI_API_KEY can serve Codex-backed automation.
 
-Codex-backed workflows and optional CVE enrichment share one repository secret.
-A present key is not enough: an exhausted or rejected key still starts those
-jobs, fails in about a minute, and then fans out into AI maintenance. This
-probe treats those unusable keys like a missing secret so the jobs stay
-inactive instead of failing.
+Leftover review, content refresh, and AI maintenance still invoke
+``openai/codex-action``, which cannot consume an xAI key. CVE enrichment and
+the security-health action use ``XAI_API_KEY`` instead. A present OpenAI key
+is not enough: an exhausted or rejected key still starts Codex jobs, fails in
+about a minute, and then fans out into AI maintenance. This probe treats those
+unusable keys like a missing secret so the jobs stay inactive instead of
+failing.
 """
 
 from __future__ import annotations

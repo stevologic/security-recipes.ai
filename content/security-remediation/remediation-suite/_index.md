@@ -105,7 +105,7 @@ Run it:
 ```bash
 docker run --rm -p 8787:8787 \
   -v "$(pwd)/tmp/remediation-suite-ui:/data" \
-  -e OPENAI_API_KEY="$OPENAI_API_KEY" \
+  -e XAI_API_KEY="$XAI_API_KEY" \
   security-recipes-suite-ui
 ```
 
@@ -125,7 +125,7 @@ Useful runtime environment variables:
 | `SECURITY_RECIPES_DASHBOARD_HOST` | Bind host for the web server. |
 | `SECURITY_RECIPES_DASHBOARD_PORT` | Port exposed by the UI, default `8787`. |
 | `SECURITY_RECIPES_DASHBOARD_STATE_DIR` | Directory for persisted non-secret dashboard configuration. |
-| `OPENAI_API_KEY` | Example API key used when the UI is set to `llm-mode call` with `OPENAI_API_KEY` as the configured env var. |
+| `XAI_API_KEY` | Example API key used when the UI is set to `llm-mode call` with `XAI_API_KEY` as the configured env var. |
 
 Health endpoint:
 
@@ -230,15 +230,15 @@ LLM assist is opt-in and has three modes:
 | --- | --- |
 | `off` | No model prompt or call is attached. |
 | `prompt` | The packet includes the domain-specific prompt for another agent to use. |
-| `call` | The suite calls an OpenAI-compatible chat completions endpoint using an API key from the configured environment variable. |
+| `call` | The suite calls an OpenAI-compatible chat completions endpoint (default: xAI) using an API key from the configured environment variable. |
 
 Example config:
 
 ```json
 {
-  "endpoint": "https://api.openai.com/v1/chat/completions",
-  "model": "gpt-5.5",
-  "api_key_env": "OPENAI_API_KEY",
+  "endpoint": "https://api.x.ai/v1/chat/completions",
+  "model": "grok-4.6",
+  "api_key_env": "XAI_API_KEY",
   "temperature": 0.2,
   "timeout": 30
 }

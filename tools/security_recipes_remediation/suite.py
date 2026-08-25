@@ -842,7 +842,7 @@ def build_llm_assist(
 
     endpoint = str(config.get("endpoint") or "").strip()
     model = str(config.get("model") or "").strip()
-    api_key_env = str(config.get("api_key_env") or "OPENAI_API_KEY").strip()
+    api_key_env = str(config.get("api_key_env") or "XAI_API_KEY").strip()
     api_key = os.environ.get(api_key_env, "")
     if not endpoint or not model or not api_key:
         shaped["error"] = "llm call requested but endpoint, model, or api key env is missing"
