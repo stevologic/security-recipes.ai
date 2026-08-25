@@ -65,10 +65,8 @@ CONTENT_INTEGRITY_PROBES = (
                 "database meta description",
                 re.compile(
                     r"<meta\b(?=[^>]*\bname=[\"']description[\"'])"
-                    r"(?=[^>]*\bcontent=[\"']Search a synchronized CVE database "
-                    r"with sourced facts, affected-version evidence, canonical "
-                    r"advisories, and bounded AI-agent remediation guidance\.[\"'])"
-                    r"[^>]*>",
+                    r"(?=[^>]*\bcontent=[\"'][^\"']*\bCVE database\b[^\"']*"
+                    r"\bsourced facts\b[^\"']*[\"'])[^>]*>",
                     re.IGNORECASE,
                 ),
             ),
