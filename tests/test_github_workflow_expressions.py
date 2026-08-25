@@ -44,6 +44,12 @@ class GitHubWorkflowExpressionTests(unittest.TestCase):
         workflow = (WORKFLOWS / "dev-dns-record.yml").read_text(encoding="utf-8")
         self.assertIn("workflow_dispatch:", workflow)
         self.assertIn("pull_request:", workflow)
+        self.assertIn("workflow_run:", workflow)
+        self.assertIn("workflows: [Build]", workflow)
+        self.assertIn(
+            "github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'",
+            workflow,
+        )
         self.assertNotIn("push:", workflow)
         self.assertIn("python scripts/upsert_dev_dns_record.py", workflow)
         self.assertIn("scripts/upsert_dev_dns_from_host.py", workflow)
