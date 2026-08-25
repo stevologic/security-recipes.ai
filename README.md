@@ -377,9 +377,10 @@ that the returned merge SHA is still current `main`, then dispatches the real
 only those CVE-qualified Build dispatches, so scheduled monitors and unrelated
 manual workflows cannot deadlock or satisfy a release.
 
-The source sync does not require a secret. To additionally enrich bounded,
-high-priority records from the deterministic evidence queue, add an Actions
-secret named `XAI_API_KEY` (the official xAI environment variable; do not use
+The source sync does not require a secret. Leftover-gold review, content
+refresh, AI maintenance, AI issue maintenance, and this repository's
+security-health action also use Grok. Add one Actions secret named
+`XAI_API_KEY` (the official xAI environment variable; do not use
 `GROK_API_KEY`):
 
 ```bash
@@ -442,8 +443,8 @@ live-verifies leftover-gold CVE leftovers against GitHub Advisories and NVD.
 Leftover-gold criticals and highs drain first. After those close, each run
 reviews up to 100 leftover-gold medium and low pages, records completed IDs
 in `data/cve/leftover-review-state.json`, and opens a labeled auto-merge PR.
-The leftover-review job still uses OpenAI Codex (`openai/codex-action`) and
-no-ops when `OPENAI_API_KEY` is missing or the leftover-gold queue is empty.
+The leftover-review job uses the Grok Build CLI with `XAI_API_KEY` and
+no-ops when that secret is missing or the leftover-gold queue is empty.
 
 The runtime paths are deliberately bounded for catalog-scale traffic:
 

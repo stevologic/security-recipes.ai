@@ -1,9 +1,11 @@
 name: AI maintenance
 
-# Unattended repair layer: when automation-critical workflows fail, Codex
+# Unattended repair layer: when automation-critical workflows fail, Grok
 # investigates the failure, fixes root causes in a branch, and opens an
 # auto-merge PR that the Automation shepherd validates and lands. It never
 # pushes to main directly and never merges its own work.
+# The same prompt is the Cursor Automation playbook in
+# .github/prompts/ai-maintenance.md.
 
 on:
   workflow_run:
@@ -50,19 +52,17 @@ jobs:
       issues: write
       pull-requests: write
     steps:
-      # openai/codex-action cannot consume an xAI key. CVE enrichment uses
-      # XAI_API_KEY; this Codex job stays on OPENAI_API_KEY.
-      - name: Detect OpenAI credentials
+      - name: Detect xAI credentials
         id: auth
         env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
         shell: bash
         run: |
-          if [ -n "$OPENAI_API_KEY" ]; then
+          if [ -n "$XAI_API_KEY" ]; then
             echo "configured=true" >> "$GITHUB_OUTPUT"
           else
             echo "configured=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::OPENAI_API_KEY is not configured; AI maintenance is inactive until the repository secret is added."
+            echo "::notice::XAI_API_KEY is not configured; AI maintenance is inactive until the repository secret is added."
           fi
 
       - name: Checkout default branch
@@ -72,60 +72,29 @@ jobs:
           ref: ${{ github.event.repository.default_branch }}
           fetch-depth: 0
 
-      - name: Verify OpenAI credentials are usable
-        id: openai
+      - name: Verify xAI credentials are usable
+        id: xai
         if: steps.auth.outputs.configured == 'true'
         env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
+          XAI_MODEL: ${{ vars.XAI_MODEL || 'grok-4.6' }}
         shell: bash
-        run: python scripts/check_openai_credentials.py --github-output "$GITHUB_OUTPUT"
+        run: python scripts/check_xai_credentials.py --github-output "$GITHUB_OUTPUT"
+
+      - name: Install Grok CLI
+        if: steps.xai.outputs.usable == 'true'
+        shell: bash
+        run: bash scripts/install_grok_cli.sh
 
       - name: Investigate and repair the failed automation
-        if: steps.openai.outputs.usable == 'true'
-        uses: openai/codex-action@86365089eb2b84e0a8fb0717b304f8bdcb13b20e # v1.12
+        if: steps.xai.outputs.usable == 'true'
         env:
+          XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
+          XAI_MODEL: ${{ vars.XAI_MODEL || 'grok-4.6' }}
           GH_TOKEN: ${{ github.token }}
-        with:
-          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
-          # Writes stay confined to the checkout; network stays on so the
-          # agent can query gh and push its fix branch.
-          sandbox: workspace-write
-          codex-args: '["-c","sandbox_workspace_write.network_access=true"]'
-          prompt: |
-            You are the unattended maintenance engineer for this repository.
-            The workflow "${{ github.event.workflow_run.name }}" concluded
-            FAILURE on branch "${{ github.event.workflow_run.head_branch }}".
-            Failed run: ${{ github.event.workflow_run.html_url }}
-            (run id ${{ github.event.workflow_run.id }}).
-
-            Work the failure end to end:
-            1. Inspect it with
-               `gh run view ${{ github.event.workflow_run.id }} --log-failed`
-               and related recent runs of the same workflow.
-            2. Reproduce locally when practical (python -m unittest ...,
-               node --test tests/..., npm run build).
-            3. Root-cause it and prefer the smallest durable fix. When a test
-               pins volatile catalog data, convert it to assert the governing
-               policy instead (see the editorial lastmod test in
-               tests/test_cve_landing.py for the established pattern).
-            4. If a repository change fixes it: create a branch named
-               automation/ai-fix-<short-topic>, commit with a clear message,
-               push it, open a PR to main that explains root cause, fix, and
-               verification, then enable auto-merge with
-               `gh pr merge --auto --squash <pr-number>`. The Automation
-               shepherd workflow attaches the required build validation and
-               GitHub completes the merge; never merge directly and never
-               push to main.
-            5. If the failure is outside the repository (production droplet,
-               external feeds, registry outages), comment your diagnosis on
-               the open issue labeled automation:production-health, or create
-               that issue if none is open, instead of opening a PR.
-            6. If an open automation/ai-fix-* PR already covers the same root
-               cause, push improvements to that PR instead of opening a
-               duplicate.
-
-            Constraints: never force-push, never weaken or skip checks and
-            tests to make them pass, never edit unrelated code, and if the
-            root cause remains genuinely unclear after investigation, record
-            your findings on the automation:production-health issue rather
-            than guessing at a fix.
+          FAILED_WORKFLOW_NAME: ${{ github.event.workflow_run.name }}
+          FAILED_WORKFLOW_BRANCH: ${{ github.event.workflow_run.head_branch }}
+          FAILED_WORKFLOW_URL: ${{ github.event.workflow_run.html_url }}
+          FAILED_WORKFLOW_RUN_ID: ${{ github.event.workflow_run.id }}
+        shell: bash
+        run: python scripts/run_grok_agent.py --prompt-file .github/prompts/ai-maintenance.md

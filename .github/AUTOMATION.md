@@ -16,9 +16,58 @@ access token is required.
 | Production watchdog (`production-watchdog.yml`) | every 30 min | Probes the live site, catalog freshness, revision, and TLS; maintains the health issue; self-heals unbuilt revisions and stale catalogs |
 | Automation shepherd (`automation-shepherd.yml`) | every 30 min | Dispatches missing main Builds after token-authored merges, updates stale auto-merge PR branches, and attaches missing build validations |
 | Dependabot auto-merge (`dependabot-automerge.yml`) | Dependabot PRs | Arms auto-merge for verified patch/minor bumps |
-| AI maintenance (`ai-maintenance.yml`) | failure of the workflows above | Codex investigates, fixes the root cause, and opens an auto-merge PR (or documents infra failures on the health issue) |
-| AI issue maintenance (`ai-issue-maintenance.yml`) | owner-authored issue events + twice-daily sweep | Codex triages open issues filed by the owner or the automation: fixes via auto-merge PRs with `Closes #n`, closes resolved reports, labels worked issues `automation:ai-triaged` |
+| AI maintenance (`ai-maintenance.yml`) | failure of the workflows above | Grok investigates, fixes the root cause, and opens an auto-merge PR (or documents infra failures on the health issue). Same prompt is the Cursor Automation playbook |
+| AI issue maintenance (`ai-issue-maintenance.yml`) | owner-authored issue events + twice-daily sweep | Grok triages open issues filed by the owner or the automation: fixes via auto-merge PRs with `Closes #n`, closes resolved reports, labels worked issues `automation:ai-triaged`. Same prompt is the Cursor Automation playbook |
 | Dev DNS record (`dev-dns-record.yml`) | dispatch, pull requests to main, and successful Build runs on main/development | Creates or repairs the DigitalOcean A record for `dev.security-recipes.ai` |
+
+## Intelligence
+
+GitHub Actions is the clock and host. Grok is the only billed brain.
+`XAI_API_KEY` is the only Actions secret those jobs read.
+
+| Job | Host | Brain |
+| --- | --- | --- |
+| CVE catalog enrichment | Actions (`cve-catalog-sync.yml`) | xAI Responses API (`grok-4.6`) |
+| Security health | Actions (`security-health.yml`) | xAI/Grok |
+| Leftover review | Actions (`leftover-review.yml`) | Grok Build CLI |
+| Content refresh | Actions (`content-refresh.yml`) | Grok Build CLI |
+| AI maintenance | Actions (`ai-maintenance.yml`), optional Cursor Automation | Grok Build CLI / Cursor Grok model |
+| AI issue maintenance | Actions (`ai-issue-maintenance.yml`), optional Cursor Automation | Grok Build CLI / Cursor Grok model |
+
+Scheduled, bounded jobs stay in Actions because that is the cheaper
+token path. Event-driven repair and issue triage already have precise
+GitHub triggers in Actions; they use the same checked-in prompts as
+Cursor Automations so a full cloud agent can take those two jobs later
+without rewriting the instructions.
+
+Prompts live in `.github/prompts/`. The Grok CLI installer is pinned in
+`scripts/install_grok_cli.sh` (`GROK_CLI_VERSION`, currently `1.0.5`).
+Headless runs go through `scripts/run_grok_agent.py`.
+
+## Cursor Automations
+
+Cursor Automations cannot be registered from the repository; create them
+at [cursor.com/automations](https://cursor.com/automations) or with the
+`/automate` skill. Use model **Grok 4.6** (or newer Grok when Cursor
+lists it). Attach this repository. Enable pull-request creation.
+
+Create these two if you want a full cloud agent on the event-driven
+jobs:
+
+| Automation | Trigger | Prompt | Notes |
+| --- | --- | --- | --- |
+| AI maintenance | GitHub **Workflow run completed**, only failures of Build, CVE catalog sync, Content refresh, Leftover review, Production watchdog, CVE catalog validation, Automation shepherd, AI issue maintenance, and Search indexing, on `main`, `automation/*`, or `dependabot/*` | `.github/prompts/ai-maintenance.md` | The agent reads `FAILED_WORKFLOW_*` when those env vars exist; otherwise it inspects the newest matching failed run |
+| AI issue maintenance | GitHub **Issue opened/reopened** for `stevologic` or `github-actions`, plus a twice-daily schedule at `41 4,16 * * *` | `.github/prompts/ai-issue-maintenance.md` | Work at most three untriaged owner/automation issues; never close `automation:production-health` or `automation:cve-enrichment-health` |
+
+Do not also create Cursor Automations for leftover review or content
+refresh. Those are daily bounded queues and should stay on the Grok CLI
+in Actions.
+
+After both Cursor Automations are live and you have seen them open a
+correct repair or triage PR, disable the `AI maintenance` and
+`AI issue maintenance` GitHub Actions workflows in the Actions UI so
+the two brains do not open duplicate PRs. Leave leftover review,
+content refresh, CVE sync, and security-health on Actions.
 
 ## Why the shepherd exists
 
@@ -66,8 +115,9 @@ confirms the production handoff landed. Never put `secrets` in a workflow
 
 | Item | Kind | Status | Purpose |
 | --- | --- | --- | --- |
-| `XAI_API_KEY` | secret | must be added | CVE enrichment and recipe drafts, plus this repository's security-health action (Grok/xAI). Official xAI and this repo's existing `xai` provider both use this name. |
-| `OPENAI_API_KEY` | secret | still required for Codex | Daily leftover-gold review, daily non-CVE content refresh, and Codex-powered AI maintenance. Those jobs invoke `openai/codex-action`, which cannot consume an xAI key. Do not delete this secret until those workflows are replaced. |
+| `XAI_API_KEY` | secret | must be added | The only billed-AI secret. CVE enrichment and recipe drafts, this repository's security-health action, leftover-gold review, content refresh, AI maintenance, and AI issue maintenance all use Grok through this name. Official xAI and this repo's existing `xai` provider both use it. |
+| `XAI_MODEL` | variable | optional, defaults to `grok-4.6` | Model id for enrichment, Grok CLI jobs, and the remediations suite. Bump when xAI publishes a newer coding model. |
+| `OPENAI_API_KEY` | secret | unused by first-party workflows | Safe to remove from GitHub Actions after this change lands. Public Codex recipes on the site are reader documentation, not CI. |
 | `DIGITALOCEAN_ACCESS_TOKEN` | secret or droplet `deploy.env` | optional | Lets deploy.sh and the Dev DNS record workflow create `dev.security-recipes.ai` |
 | `CVE_AUTO_MERGE_ENABLED` | variable | `true` | Lets the catalog sync merge its own PR |
 | `CVE_AUTOMATION_APP_CLIENT_ID` / `CVE_AUTOMATION_APP_PRIVATE_KEY` | variable / secret | optional | A dedicated GitHub App; when configured, its pushes trigger normal CI events and the dispatch workarounds above become unnecessary |

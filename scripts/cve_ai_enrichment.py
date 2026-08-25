@@ -284,7 +284,7 @@ def probe_openai_credentials(
     opener: Callable[..., Any] | None = None,
     timeout: int = 30,
 ) -> ProviderCredentialStatus:
-    """Classify whether an OpenAI key can still serve Codex-backed workflows."""
+    """Classify whether an OpenAI key can still serve billed OpenAI requests."""
 
     return probe_provider_credentials(
         api_key,

@@ -7,12 +7,14 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 WORKFLOW = ROOT / ".github" / "workflows" / "leftover-review.yml"
+PROMPT = ROOT / ".github" / "prompts" / "leftover-review.md"
 
 
 class LeftoverReviewWorkflowTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.workflow = WORKFLOW.read_text(encoding="utf-8")
+        cls.prompt = PROMPT.read_text(encoding="utf-8")
 
     def test_runs_daily_and_can_be_dispatched(self) -> None:
         self.assertIn('cron: "17 13 * * *"', self.workflow)
@@ -30,7 +32,8 @@ class LeftoverReviewWorkflowTests(unittest.TestCase):
             "live GHAD 404",
             "set lastmod to today's UTC date (the review",
         ):
-            self.assertIn(required, self.workflow)
+            self.assertIn(required, self.prompt)
+        self.assertIn("scripts/pick_leftover_review_queue.py", self.workflow)
 
     def test_uses_a_guarded_labeled_pull_request(self) -> None:
         for delivery_rule in (
@@ -40,21 +43,23 @@ class LeftoverReviewWorkflowTests(unittest.TestCase):
             "Never push directly to main or merge directly",
             "never force-push",
         ):
-            self.assertIn(delivery_rule, self.workflow)
+            self.assertIn(delivery_rule, self.prompt)
 
-    def test_missing_or_unusable_openai_key_is_a_safe_noop(self) -> None:
-        self.assertIn("secrets.OPENAI_API_KEY", self.workflow)
+    def test_missing_or_unusable_xai_key_is_a_safe_noop(self) -> None:
+        self.assertIn("secrets.XAI_API_KEY", self.workflow)
+        self.assertNotIn("OPENAI_API_KEY", self.workflow)
         self.assertIn("daily leftover review is inactive", self.workflow)
         self.assertIn("if: steps.auth.outputs.configured == 'true'", self.workflow)
-        self.assertIn("scripts/check_openai_credentials.py", self.workflow)
-        self.assertIn("if: steps.openai.outputs.usable == 'true'", self.workflow)
+        self.assertIn("scripts/check_xai_credentials.py", self.workflow)
+        self.assertIn("if: steps.xai.outputs.usable == 'true'", self.workflow)
 
-    def test_empty_queue_skips_codex(self) -> None:
+    def test_empty_queue_skips_grok(self) -> None:
         self.assertIn("steps.queue.outputs.selected != '0'", self.workflow)
+        self.assertIn("scripts/run_grok_agent.py --prompt-file .github/prompts/leftover-review.md", self.workflow)
 
     def test_actions_are_pinned_to_full_commit_shas(self) -> None:
         references = re.findall(r"(?m)^\s*uses:\s*([^#\s]+)", self.workflow)
-        self.assertEqual(len(references), 2)
+        self.assertEqual(len(references), 1)
         for reference in references:
             with self.subTest(reference=reference):
                 self.assertRegex(reference, r"^[^@\s]+@[0-9a-f]{40}$")

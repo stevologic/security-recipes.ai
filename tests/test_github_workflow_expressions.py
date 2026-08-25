@@ -32,6 +32,19 @@ class GitHubWorkflowExpressionTests(unittest.TestCase):
             f"instead: {offenders}",
         )
 
+    def test_no_first_party_workflow_uses_openai_or_codex(self) -> None:
+        offenders: list[str] = []
+        for path in sorted(WORKFLOWS.glob("*.yml")):
+            text = path.read_text(encoding="utf-8")
+            if "openai/codex-action" in text or "OPENAI_API_KEY" in text:
+                offenders.append(path.name)
+        self.assertEqual(
+            offenders,
+            [],
+            "first-party automation must use XAI_API_KEY / Grok, not Codex: "
+            f"{offenders}",
+        )
+
     def test_security_health_detects_xai_key_without_secrets_if(self) -> None:
         workflow = (WORKFLOWS / "security-health.yml").read_text(encoding="utf-8")
         self.assertIn("id: auth", workflow)

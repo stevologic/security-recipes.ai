@@ -7,12 +7,14 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 WORKFLOW = ROOT / ".github" / "workflows" / "ai-maintenance.yml"
+PROMPT = ROOT / ".github" / "prompts" / "ai-maintenance.md"
 
 
 class AiMaintenanceWorkflowTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.workflow = WORKFLOW.read_text(encoding="utf-8")
+        cls.prompt = PROMPT.read_text(encoding="utf-8")
 
     def test_triggers_only_on_failed_automation_workflow_runs(self) -> None:
         self.assertIn("workflow_run:", self.workflow)
@@ -39,27 +41,32 @@ class AiMaintenanceWorkflowTests(unittest.TestCase):
                 self.assertIn(branch_guard, self.workflow)
 
     def test_missing_or_unusable_api_key_disables_ai_repair_gracefully(self) -> None:
-        self.assertIn("OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}", self.workflow)
-        self.assertIn("openai-api-key: ${{ secrets.OPENAI_API_KEY }}", self.workflow)
+        self.assertIn("XAI_API_KEY: ${{ secrets.XAI_API_KEY }}", self.workflow)
+        self.assertNotIn("OPENAI_API_KEY", self.workflow)
         self.assertIn("configured=false", self.workflow)
         self.assertIn(
             "AI maintenance is inactive until the repository secret is added",
             self.workflow,
         )
-        self.assertIn("scripts/check_openai_credentials.py", self.workflow)
-        self.assertIn("if: steps.openai.outputs.usable == 'true'", self.workflow)
+        self.assertIn("scripts/check_xai_credentials.py", self.workflow)
+        self.assertIn("if: steps.xai.outputs.usable == 'true'", self.workflow)
         self.assertGreaterEqual(
             self.workflow.count("if: steps.auth.outputs.configured == 'true'"),
             2,
         )
 
     def test_repair_prompt_routes_delivery_through_the_shepherd(self) -> None:
-        self.assertIn("automation/ai-fix-", self.workflow)
-        self.assertIn("gh pr merge --auto --squash", self.workflow)
-        self.assertIn("never merge directly", self.workflow)
-        self.assertIn("automation:production-health", self.workflow)
-        self.assertIn("never force-push", self.workflow)
-        self.assertIn("never weaken or skip checks", self.workflow)
+        self.assertIn("automation/ai-fix-", self.prompt)
+        self.assertIn("gh pr merge --auto --squash", self.prompt)
+        self.assertIn("never merge directly", self.prompt)
+        self.assertIn("automation:production-health", self.prompt)
+        self.assertIn("never force-push", self.prompt)
+        self.assertIn("never weaken or skip checks", self.prompt)
+        self.assertIn("FAILED_WORKFLOW_RUN_ID", self.prompt)
+        self.assertIn(
+            "scripts/run_grok_agent.py --prompt-file .github/prompts/ai-maintenance.md",
+            self.workflow,
+        )
 
     def test_each_failed_run_gets_its_own_repair_slot(self) -> None:
         # A shared concurrency group let GitHub cancel queued investigations
@@ -79,7 +86,7 @@ class AiMaintenanceWorkflowTests(unittest.TestCase):
     def test_actions_are_pinned_to_full_commit_shas(self) -> None:
         references = re.findall(r"(?m)^\s*uses:\s*([^#\s]+)", self.workflow)
 
-        self.assertEqual(len(references), 2)
+        self.assertEqual(len(references), 1)
         for reference in references:
             with self.subTest(reference=reference):
                 self.assertRegex(reference, r"^[^@\s]+@[0-9a-f]{40}$")
