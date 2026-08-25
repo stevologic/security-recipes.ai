@@ -977,7 +977,7 @@ EOF
   TRAFFIC_CADDY_CONFIG_CHANGED="true"
 }
 
-staging_site_domain() {
+staging_apex_hostname() {
   local base_url domain
   domain="$(env_file_value SECURITY_RECIPES_DOMAIN 2>/dev/null || true)"
   if [[ -z "${domain}" ]]; then
@@ -1001,7 +1001,7 @@ ensure_staging_tls() {
   [[ "${PROXY_KIND}" == "host" ]] || return 0
 
   local domain apex_ip staging_ip
-  domain="$(staging_site_domain 2>/dev/null || true)"
+  domain="$(staging_apex_hostname 2>/dev/null || true)"
   if [[ -z "${domain}" ]]; then
     log "Cannot derive the staging hostname; skipping ACME retry."
     return 0
