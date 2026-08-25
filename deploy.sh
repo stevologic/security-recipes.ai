@@ -977,6 +977,58 @@ EOF
   TRAFFIC_CADDY_CONFIG_CHANGED="true"
 }
 
+staging_apex_hostname() {
+  local base_url domain
+  domain="$(env_file_value SECURITY_RECIPES_DOMAIN 2>/dev/null || true)"
+  if [[ -z "${domain}" ]]; then
+    base_url="$(env_file_value SECURITY_RECIPES_BASE_URL 2>/dev/null || true)"
+    domain="${base_url#http://}"
+    domain="${domain#https://}"
+    domain="${domain%%/*}"
+    domain="${domain%%:*}"
+  fi
+  if [[ ! "${domain}" =~ ^[A-Za-z0-9][A-Za-z0-9.-]*[A-Za-z0-9]$ ]] ||
+     [[ "${domain}" != *.* ]] || [[ "${domain}" == www.* ]]; then
+    return 1
+  fi
+  printf '%s' "${domain}"
+}
+
+# Caddy obtains certificates when it loads or reloads config, not on each
+# handshake. If the staging A record appears after the vhost was added (or
+# was created outside this host), reload so ACME can retry.
+ensure_staging_tls() {
+  [[ "${PROXY_KIND}" == "host" ]] || return 0
+
+  local domain apex_ip staging_ip
+  domain="$(staging_apex_hostname 2>/dev/null || true)"
+  if [[ -z "${domain}" ]]; then
+    log "Cannot derive the staging hostname; skipping ACME retry."
+    return 0
+  fi
+
+  staging_ip="$(getent ahostsv4 "dev.${domain}" 2>/dev/null | awk 'NR==1 { print $1 }')"
+  apex_ip="$(getent ahostsv4 "${domain}" 2>/dev/null | awk 'NR==1 { print $1 }')"
+  if [[ -z "${staging_ip}" ]]; then
+    log "dev.${domain} does not resolve yet; Caddy will retry ACME after the A record exists and this job reloads it."
+    return 0
+  fi
+  if [[ -n "${apex_ip}" && "${staging_ip}" != "${apex_ip}" ]]; then
+    log "dev.${domain} resolves to ${staging_ip}, not the apex ${apex_ip}; skipping ACME retry."
+    return 0
+  fi
+
+  if curl -fsS --max-time 20 --proto '=https' --proto-redir '=https' \
+      "https://dev.${domain}/.well-known/deploy-revision" >/dev/null; then
+    log "Staging HTTPS for dev.${domain} already presents a certificate."
+    return 0
+  fi
+
+  log "dev.${domain} resolves to ${staging_ip} but HTTPS has no certificate yet; reloading Caddy so ACME can retry."
+  TRAFFIC_CADDY_CONFIG_CHANGED="true"
+  return 0
+}
+
 ensure_caddy_404_ban() {
   # Host Fail2Ban remains owned by the droplet setup/installer. deploy.sh only
   # manages the explicitly opted-in Compose service, so a host without the
@@ -1059,6 +1111,7 @@ ensure_traffic_report_runtime() {
   prepare_host_caddy_www_redirect || return 1
   ensure_staging_dns_record
   prepare_host_caddy_dev_site || return 1
+  ensure_staging_tls
 
   if [[ "${TRAFFIC_CADDY_CONFIG_CHANGED}" == "true" ]]; then
     log "Activating the managed host Caddy configuration without changing the active route."
@@ -2153,6 +2206,7 @@ deploy_development_track() {
     return 0
   fi
   prepare_host_caddy_dev_site || return 1
+  ensure_staging_tls
   if [[ "${TRAFFIC_CADDY_CONFIG_CHANGED}" == "true" ]]; then
     switch_proxy "${ACTIVE_SERVICE}" "${FALLBACK_SERVICE}" || return 1
     TRAFFIC_CADDY_CONFIG_CHANGED="false"

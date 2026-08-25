@@ -64,7 +64,7 @@ class DeployScriptStaticTests(unittest.TestCase):
 
     def test_ci_gate_precedes_checkout_and_candidate_pull(self) -> None:
         source = DEPLOY_SCRIPT.read_text(encoding="utf-8")
-        main = source[source.index("main() {") :]
+        main = source[source.index("\nmain() {") :]
 
         self.assertIn("export GIT_TERMINAL_PROMPT=0", source)
         self.assertIn('GIT_SSH_COMMAND="${GIT_SSH_COMMAND:-ssh -o BatchMode=yes}"', source)
@@ -204,6 +204,8 @@ class DeployScriptStaticTests(unittest.TestCase):
         self.assertIn("dev.${DOMAIN} {", setup)
         self.assertIn("prepare_host_caddy_dev_site", deploy)
         self.assertIn("ensure_staging_dns_record", deploy)
+        self.assertIn("ensure_staging_tls", deploy)
+        self.assertIn("staging_apex_hostname", deploy)
         self.assertIn("deploy_development_track", deploy)
         self.assertIn('DEV_SERVICE="security-recipes-dev"', deploy)
         self.assertIn('python3 "${helper}"', deploy)
@@ -212,6 +214,18 @@ class DeployScriptStaticTests(unittest.TestCase):
         self.assertLess(
             runtime.index("ensure_staging_dns_record"),
             runtime.index("prepare_host_caddy_dev_site || return 1"),
+        )
+        self.assertLess(
+            runtime.index("prepare_host_caddy_dev_site || return 1"),
+            runtime.index("ensure_staging_tls"),
+        )
+        self.assertLess(
+            runtime.index("ensure_staging_tls"),
+            runtime.index('if [[ "${TRAFFIC_CADDY_CONFIG_CHANGED}" == "true" ]]; then'),
+        )
+        self.assertIn(
+            "dev.${domain} resolves to ${staging_ip} but HTTPS has no certificate yet; reloading Caddy so ACME can retry.",
+            deploy,
         )
         self.assertIn("DIGITALOCEAN_ACCESS_TOKEN=", setup)
         self.assertIn("--proto '=https' --proto-redir '=https'", deploy)
@@ -446,7 +460,7 @@ class DeployScriptStaticTests(unittest.TestCase):
 
     def test_deploy_has_resource_freshness_and_success_heartbeat_guards(self) -> None:
         source = DEPLOY_SCRIPT.read_text(encoding="utf-8")
-        main = source[source.index("main() {") :]
+        main = source[source.index("\nmain() {") :]
 
         self.assertIn('MIN_FREE_MB="${DEPLOY_MIN_FREE_MB:-2048}"', source)
         self.assertIn(
@@ -540,7 +554,7 @@ class DeployScriptStaticTests(unittest.TestCase):
 
     def test_candidate_is_verified_by_exact_revision_before_cutover(self) -> None:
         source = DEPLOY_SCRIPT.read_text(encoding="utf-8")
-        main = source[source.index("main() {") :]
+        main = source[source.index("\nmain() {") :]
         dockerfile = DOCKERFILE.read_text(encoding="utf-8")
 
         self.assertIn("public/.well-known/deploy-revision", dockerfile)
@@ -581,7 +595,7 @@ class DeployScriptStaticTests(unittest.TestCase):
 
     def test_mcp_and_cve_contract_are_inside_the_deployment_rollback_boundary(self) -> None:
         source = DEPLOY_SCRIPT.read_text(encoding="utf-8")
-        main = source[source.index("main() {") :]
+        main = source[source.index("\nmain() {") :]
         mcp_dockerfile = MCP_DOCKERFILE.read_text(encoding="utf-8")
 
         self.assertIn("/cve/CVE-2024-3400/", mcp_dockerfile)
