@@ -323,9 +323,9 @@ Sitemap: https://security-recipes.ai/sitemap.xml
             "https://security-recipes.ai/cve-database/": (
                 b"<!doctype html><html><head>"
                 b"<title>CVE Database | Security Recipes</title>"
-                b'<meta name="description" content="Search a synchronized CVE database '
-                b"with sourced facts, affected-version evidence, canonical advisories, "
-                b'and bounded AI-agent remediation guidance.">'
+                b'<meta name="description" content="Search a synchronized NVD and CISA '
+                b"KEV CVE database with sourced facts, affected-version evidence, "
+                b'canonical advisories, and bounded AI remediation.">'
                 b'<meta name="robots" content="index,follow,max-image-preview:large">'
                 b'<link rel="canonical" href="https://security-recipes.ai/'
                 b'cve-database/">'
@@ -847,9 +847,9 @@ Disallow: /traffic/
         page_without_dataset = (
             b"<!doctype html><html><head>"
             b"<title>CVE Database | Security Recipes</title>"
-            b'<meta name="description" content="Search a synchronized CVE database '
-            b"with sourced facts, affected-version evidence, canonical advisories, "
-            b'and bounded AI-agent remediation guidance.">'
+            b'<meta name="description" content="Search a synchronized NVD and CISA '
+            b"KEV CVE database with sourced facts, affected-version evidence, "
+            b'canonical advisories, and bounded AI remediation.">'
             b'<meta name="robots" content="index,follow,max-image-preview:large">'
             b'<link rel="canonical" href="https://security-recipes.ai/cve-database/">'
             b'</head><body><h1 id="cve-database-heading">CVE Database</h1></body></html>'
@@ -874,9 +874,9 @@ Disallow: /traffic/
         page_without_qualified_links = (
             b"<!doctype html><html><head>"
             b"<title>CVE Database | Security Recipes</title>"
-            b'<meta name="description" content="Search a synchronized CVE database '
-            b"with sourced facts, affected-version evidence, canonical advisories, "
-            b'and bounded AI-agent remediation guidance.">'
+            b'<meta name="description" content="Search a synchronized NVD and CISA '
+            b"KEV CVE database with sourced facts, affected-version evidence, "
+            b'canonical advisories, and bounded AI remediation.">'
             b'<meta name="robots" content="index,follow,max-image-preview:large">'
             b'<link rel="canonical" href="https://security-recipes.ai/cve-database/">'
             b'<script type="application/ld+json">{"@context":"https://schema.org",'
@@ -923,6 +923,29 @@ Disallow: /traffic/
         self.assertEqual([check["name"] for check in failed], ["content_integrity"])
         self.assertIn("AI agent comparison", failed[0]["message"])
         self.assertIn("expected primary heading", failed[0]["message"])
+
+    def test_cve_database_watchdog_contract_matches_source_description(self) -> None:
+        source = (
+            Path(__file__).resolve().parents[1]
+            / "content"
+            / "cve-database"
+            / "_index.md"
+        ).read_text(encoding="utf-8")
+        probe = next(
+            item
+            for item in production.CONTENT_INTEGRITY_PROBES
+            if item[0] == "CVE database"
+        )
+        required = dict(probe[3])
+        description_lines = source.split("description: >", 1)[1].split("keywords:", 1)[0]
+        description = " ".join(
+            line.strip() for line in description_lines.splitlines() if line.strip()
+        )
+
+        self.assertRegex(
+            f'<meta name="description" content="{description}">',
+            required["database meta description"],
+        )
 
     def test_agents_watchdog_contract_matches_source_title(self) -> None:
         source = (
