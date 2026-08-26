@@ -550,6 +550,78 @@ Sitemap: https://security-recipes.ai/sitemap.xml
         self.assertTrue(report["healthy"])
         self.assertEqual(report["warning_count"], 1)
 
+    def _previous_cve_landing_html(self) -> bytes:
+        cve_id = production.DEFAULT_CVE_PROBE_ID
+        cve_url = f"https://security-recipes.ai/cve/{cve_id}/"
+        return f"""<!doctype html><html><head>
+<title>{cve_id}: PAN-OS command injection</title>
+<meta name="description" content="Fix {cve_id} with source-backed PAN-OS remediation guidance.">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<link rel="canonical" href="{cve_url}">
+<link rel="stylesheet" href="/css/cve-detail.css">
+<script type="application/ld+json">{{"@context":"https://schema.org","@type":"Article","additionalType":"https://schema.org/TechArticle"}}</script>
+</head><body class="sr-docs-body sr-cve-detail-page" data-cve-detail-page="true">
+<nav class="sr-breadcrumbs" aria-label="Breadcrumb"><a href="/cve-database/">CVE Database</a></nav>
+<h1 class="sr-page-title">{cve_id}: PAN-OS command injection</h1>
+<div data-cve-initial-id="{cve_id}"></div></body></html>""".encode()
+
+    def test_previous_cve_landing_contract_is_accepted_during_revision_grace(
+        self,
+    ) -> None:
+        report = production.run_probes(
+            base_url="https://security-recipes.ai",
+            expected_revision=self.SHA,
+            expected_commit_time=self.NOW - timedelta(minutes=10),
+            now=self.NOW,
+            opener=self.opener(
+                revision="b" * 40,
+                cve_html=self._previous_cve_landing_html(),
+            ),
+            certificate_expiry=self.certificate,
+        )
+
+        self.assertTrue(report["healthy"])
+        checks = {check["name"]: check for check in report["checks"]}
+        self.assertTrue(checks["cve_landing"]["ok"])
+        self.assertTrue(checks["cve_landing"]["warning"])
+        self.assertIn("previous landing contract", checks["cve_landing"]["message"])
+        self.assertTrue(checks["revision"]["ok"])
+        self.assertTrue(checks["revision"]["warning"])
+
+    def test_previous_cve_landing_contract_fails_once_revision_matches(self) -> None:
+        report = production.run_probes(
+            base_url="https://security-recipes.ai",
+            expected_revision=self.SHA,
+            expected_commit_time=self.NOW - timedelta(minutes=10),
+            now=self.NOW,
+            opener=self.opener(cve_html=self._previous_cve_landing_html()),
+            certificate_expiry=self.certificate,
+        )
+
+        self.assertFalse(report["healthy"])
+        failed = [check for check in report["checks"] if not check["ok"]]
+        self.assertEqual([check["name"] for check in failed], ["cve_landing"])
+        self.assertIn("server-rendered CVE identity", failed[0]["message"])
+        self.assertIn("flat remediation authority", failed[0]["message"])
+        self.assertIn("AI implementation handoff", failed[0]["message"])
+
+    def test_previous_cve_landing_contract_fails_after_revision_grace(self) -> None:
+        report = production.run_probes(
+            base_url="https://security-recipes.ai",
+            expected_revision=self.SHA,
+            expected_commit_time=self.NOW - timedelta(hours=2),
+            now=self.NOW,
+            opener=self.opener(
+                revision="b" * 40,
+                cve_html=self._previous_cve_landing_html(),
+            ),
+            certificate_expiry=self.certificate,
+        )
+
+        self.assertFalse(report["healthy"])
+        failed = {check["name"] for check in report["checks"] if not check["ok"]}
+        self.assertEqual(failed, {"cve_landing", "revision"})
+
     def test_stale_catalog_and_stuck_revision_fail(self) -> None:
         report = production.run_probes(
             base_url="https://security-recipes.ai",

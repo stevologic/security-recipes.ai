@@ -367,6 +367,23 @@ def _same_origin(candidate: str, base: Any) -> bool:
     )
 
 
+def _revision_in_deployment_grace(
+    *,
+    deployed_revision: str,
+    expected_revision: str,
+    expected_commit_time: datetime,
+    current: datetime,
+    revision_grace_minutes: float,
+) -> bool:
+    """True when production still serves an older SHA inside the deploy window."""
+    if not SHA_RE.fullmatch(deployed_revision):
+        return False
+    if deployed_revision == expected_revision.lower():
+        return False
+    head_age = current - expected_commit_time.astimezone(timezone.utc)
+    return head_age <= timedelta(minutes=revision_grace_minutes)
+
+
 def _validate_content_integrity(
     label: str,
     payload: bytes,
@@ -829,6 +846,27 @@ def run_probes(
     except Exception as exc:  # noqa: BLE001 - every probe must become a report.
         checks.append(Check("sitemap", False, f"Sitemap probe failed: {exc}"))
 
+    revision_url = urljoin(normalized_base, ".well-known/deploy-revision")
+    deployed_revision = ""
+    revision_error: Exception | None = None
+    try:
+        payload, _, _, _ = _request(
+            revision_url, timeout=timeout, opener=opener
+        )
+        deployed_revision = payload.decode("ascii").strip().lower()
+        if not SHA_RE.fullmatch(deployed_revision):
+            raise ValueError("revision marker is not a full lowercase Git SHA")
+    except Exception as exc:  # noqa: BLE001 - the revision check reports this.
+        revision_error = exc
+        deployed_revision = ""
+    revision_in_grace = _revision_in_deployment_grace(
+        deployed_revision=deployed_revision,
+        expected_revision=expected_revision,
+        expected_commit_time=expected_commit_time,
+        current=current,
+        revision_grace_minutes=revision_grace_minutes,
+    )
+
     cve_url = urljoin(normalized_base, f"cve/{cve_probe_id}/")
     try:
         payload, content_type, final_url, _ = _request(
@@ -839,6 +877,13 @@ def run_probes(
         if final_url != cve_url:
             raise ValueError(f"unexpected canonical CVE redirect to {final_url}")
         page = payload.decode("utf-8")
+        current_identity = f'data-cve-id="{cve_probe_id}"'
+        previous_identity = f'data-cve-initial-id="{cve_probe_id}"'
+        using_previous_landing = (
+            revision_in_grace
+            and previous_identity in page
+            and current_identity not in page
+        )
         required_fragments = {
             "title": f"<title>{cve_probe_id}",
             "meta description": '<meta name="description" content="',
@@ -846,9 +891,6 @@ def run_probes(
             "indexable robots": '<meta name="robots" content="index,follow',
             "Article JSON-LD": '"@type":"Article"',
             "TechArticle semantics": '"additionalType":"https://schema.org/TechArticle"',
-            "server-rendered CVE identity": f'data-cve-id="{cve_probe_id}"',
-            "flat remediation authority": 'id="remediation-authority-heading"',
-            "AI implementation handoff": 'id="use-ai-heading"',
             "CVE detail stylesheet": '<link rel="stylesheet" href="/css/cve-detail.css">',
             "site-themed CVE body": '<body class="sr-docs-body sr-cve-detail-page"',
             "CVE database breadcrumb": '<a href="/cve-database/">CVE Database</a>',
@@ -856,6 +898,14 @@ def run_probes(
                 f'<h1 class="sr-page-title">{cve_probe_id}:'
             ),
         }
+        if using_previous_landing:
+            required_fragments["server-rendered CVE identity"] = previous_identity
+        else:
+            required_fragments["server-rendered CVE identity"] = current_identity
+            required_fragments["flat remediation authority"] = (
+                'id="remediation-authority-heading"'
+            )
+            required_fragments["AI implementation handoff"] = 'id="use-ai-heading"'
         missing = [
             label for label, fragment in required_fragments.items() if fragment not in page
         ]
@@ -863,13 +913,24 @@ def run_probes(
             raise ValueError(f"missing {', '.join(missing)}")
         if "noindex" in _robots_meta_directives(page):
             raise ValueError("canonical CVE page is marked noindex")
-        checks.append(
-            Check(
-                "cve_landing",
-                True,
-                f"{cve_probe_id} returned an indexable, server-rendered TechArticle.",
+        if using_previous_landing:
+            checks.append(
+                Check(
+                    "cve_landing",
+                    True,
+                    f"{cve_probe_id} still serves the previous landing contract "
+                    "during the deployment grace period.",
+                    warning=True,
+                )
             )
-        )
+        else:
+            checks.append(
+                Check(
+                    "cve_landing",
+                    True,
+                    f"{cve_probe_id} returned an indexable, server-rendered TechArticle.",
+                )
+            )
     except Exception as exc:  # noqa: BLE001 - every probe must become a report.
         checks.append(Check("cve_landing", False, f"CVE landing probe failed: {exc}"))
 
@@ -941,13 +1002,9 @@ def run_probes(
             )
         )
 
-    revision_url = urljoin(normalized_base, ".well-known/deploy-revision")
-    deployed_revision = ""
     try:
-        payload, _, _, _ = _request(revision_url, timeout=timeout, opener=opener)
-        deployed_revision = payload.decode("ascii").strip().lower()
-        if not SHA_RE.fullmatch(deployed_revision):
-            raise ValueError("revision marker is not a full lowercase Git SHA")
+        if revision_error is not None:
+            raise revision_error
         if deployed_revision == expected_revision.lower():
             checks.append(
                 Check(
@@ -957,12 +1014,11 @@ def run_probes(
                 )
             )
         else:
-            head_age = current - expected_commit_time.astimezone(timezone.utc)
             message = (
                 f"Production serves {deployed_revision[:12]}, while main is "
                 f"{expected_revision[:12]}."
             )
-            if head_age <= timedelta(minutes=revision_grace_minutes):
+            if revision_in_grace:
                 checks.append(
                     Check(
                         "revision",
