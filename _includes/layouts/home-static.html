@@ -31,7 +31,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-180x180.png">
 <link rel="manifest" href="/site.webmanifest">
 <link rel="stylesheet" href="/css/footer-donations.css">
-<link rel="stylesheet" href="/css/home-observatory.css?v=20260718">
+<link rel="stylesheet" href="/css/home-observatory.css?v=20260826">
 <style>
   html { background-color: #000; }
 
@@ -563,6 +563,36 @@
       </div>
     </section>
 
+    <section class="mcp-connect" id="mcp-connect" aria-labelledby="mcp-connect-heading" data-home-mcp-connect>
+      <div class="site-shell mcp-connect__inner">
+        <div class="mcp-connect__copy">
+          <p class="section-kicker">Hosted Streamable HTTP</p>
+          <h2 id="mcp-connect-heading">There is an MCP server.</h2>
+          <p>Read-only recipes, a CVE catalog, and playbook start plans for MCP-compatible agents.</p>
+          <div class="mcp-connect__url">
+            <code data-home-mcp-source="url">https://security-recipes.ai/mcp</code>
+            <button type="button" class="mcp-connect__copy-btn" data-home-mcp-copy="url">Copy URL</button>
+          </div>
+          <a class="mcp-connect__more" href="/mcp-servers/">Docker, stdio, and the rest <span class="button-arrow" aria-hidden="true">&rarr;</span></a>
+        </div>
+        <aside class="mcp-connect__snippet" aria-label="MCP client JSON">
+          <div class="mcp-connect__snippet-head">
+            <span>MCP client JSON</span>
+            <button type="button" class="mcp-connect__copy-btn" data-home-mcp-copy="json">Copy JSON</button>
+          </div>
+          <pre><code data-home-mcp-source="json">{
+  "mcpServers": {
+    "security-recipes": {
+      "transport": "streamable-http",
+      "url": "https://security-recipes.ai/mcp"
+    }
+  }
+}</code></pre>
+        </aside>
+        <p class="mcp-connect__status" data-home-mcp-status aria-live="polite"></p>
+      </div>
+    </section>
+
     <section class="metric-rail" aria-label="Current product scale">
       <div class="site-shell metric-rail__inner">
         <div class="metric-item">
@@ -789,6 +819,7 @@
 
   <script>window.__SITE_BASE_PREFIX = "/";</script>
   <script src="/js/home-signal-background.js?v=20260718" defer></script>
+  <script src="/js/home-mcp-connect.js?v=20260826" defer></script>
   <script src="/js/cve-ticker.js" defer></script>
   <script src="/js/docs-search.js" defer></script>
 </body>

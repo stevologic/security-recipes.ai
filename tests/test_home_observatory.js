@@ -48,6 +48,49 @@ test("homepage research console keeps a complete heading outline", () => {
   assert.ok(findingAt > headingAt, "finding H3 must follow the console H2");
 });
 
+test("homepage features the hosted MCP connect endpoint before the metric rail", () => {
+  const template = source("_includes/layouts/home-static.html");
+  const css = source("assets/css/home-observatory.css");
+  const heroAt = template.indexOf('<section class="observatory-hero"');
+  const connectAt = template.indexOf('id="mcp-connect"');
+  const metricsAt = template.indexOf('class="metric-rail"');
+  const philosophyAt = template.indexOf("MCP is context, not authority.");
+  const connectBlock = template.slice(connectAt, metricsAt);
+
+  assert.notEqual(heroAt, -1, "homepage must keep the observatory hero");
+  assert.notEqual(connectAt, -1, "homepage must feature an MCP connect block");
+  assert.ok(connectAt > heroAt, "MCP connect must follow the hero");
+  assert.ok(
+    connectAt < metricsAt,
+    "MCP connect must sit immediately after the hero, not below the metric rail",
+  );
+  assert.ok(
+    philosophyAt > metricsAt,
+    "the later philosophy line may remain, but it is not the featured MCP mention",
+  );
+
+  assert.match(template, /There is an MCP server\./);
+  assert.match(
+    template,
+    /Read-only recipes, a CVE catalog, and playbook start plans for MCP-compatible agents\./,
+  );
+  assert.match(template, /data-home-mcp-source="url">https:\/\/security-recipes\.ai\/mcp</);
+  assert.match(template, /"transport": "streamable-http"/);
+  assert.match(template, /"security-recipes"/);
+  assert.match(
+    template,
+    /<a class="mcp-connect__more" href="\/mcp-servers\/">Docker, stdio, and the rest/,
+  );
+  assert.match(template, /src="\/js\/home-mcp-connect\.js\?v=20260826"/);
+  assert.match(css, /\.mcp-connect\s*\{/);
+  assert.match(css, /\.mcp-connect__url code\s*\{[^}]*user-select:\s*all;/s);
+
+  assert.doesNotMatch(
+    connectBlock,
+    /unlock agentic|auto-fix|hosted chat|ticket writer|command runner/i,
+  );
+});
+
 test("homepage action links point to local, reviewable product surfaces", () => {
   const template = source("_includes/layouts/home-static.html");
   const expectedLinks = [
