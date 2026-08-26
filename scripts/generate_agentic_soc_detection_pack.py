@@ -29,6 +29,8 @@ DEFAULT_OUTPUT = Path("data/evidence/agentic-soc-detection-pack.json")
 
 REQUIRED_RULE_IDS = {
     "mcp-token-passthrough-or-audience-mismatch",
+    "mcp-state-handle-hijacking",
+    "mcp-elicitation-or-request-state-abuse",
     "mcp-tool-surface-drift-critical",
     "context-poisoning-retrieval",
     "secret-or-cross-tenant-telemetry",
@@ -399,6 +401,8 @@ def rule_ids_for_workflow(workflow: dict[str, Any], rules: list[dict[str, Any]])
         output.update(
             {
                 "mcp-token-passthrough-or-audience-mismatch",
+                "mcp-state-handle-hijacking",
+                "mcp-elicitation-or-request-state-abuse",
                 "mcp-tool-surface-drift-critical",
                 "shadow-mcp-server-or-unknown-connector",
             }
@@ -517,6 +521,10 @@ def build_pack(
             {
                 "risk": "Agentic attack chains evolve quickly as MCP servers, browser agents, and model capabilities change.",
                 "treatment": "Regenerate the pack after source-freshness or threat-radar changes and replay red-team fixtures before rollout."
+            },
+            {
+                "risk": "MCP 2026-07-28 removed protocol sessions; collectors that still key detections only on mcp.session.id or mcp.initialize will miss state-handle hijacking and unregistered server/discover traffic.",
+                "treatment": "Prefer request-bound identity, protocol version, handle-to-principal binding, and server/discover evidence over protocol session IDs."
             }
         ],
         "schema_version": PACK_SCHEMA_VERSION,
