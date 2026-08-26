@@ -1175,6 +1175,154 @@ html[data-signal-background-ready="true"] .site-ambient {
   letter-spacing: 0.08em;
 }
 
+/* Hosted MCP connect */
+.mcp-connect {
+  position: relative;
+  z-index: 2;
+  padding: clamp(28px, 3.4vw, 42px) 0;
+  border-top: 1px solid rgba(151, 215, 206, 0.16);
+  background:
+    radial-gradient(circle at 18% 20%, rgba(45, 212, 191, 0.07), transparent 36%),
+    linear-gradient(180deg, rgba(3, 14, 13, 0.92), rgba(2, 8, 8, 0.88));
+}
+
+.mcp-connect__inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(280px, 0.95fr);
+  align-items: start;
+  gap: clamp(22px, 4vw, 48px);
+}
+
+.mcp-connect__copy h2 {
+  margin: 10px 0 0;
+  color: #f4f7f6;
+  font-size: clamp(1.55rem, 2.6vw, 2.15rem);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1.12;
+}
+
+.mcp-connect__copy > p:not(.section-kicker) {
+  max-width: 38rem;
+  margin: 12px 0 0;
+  color: var(--home-muted);
+  font-size: 0.98rem;
+  line-height: 1.6;
+}
+
+.mcp-connect__url {
+  display: flex;
+  align-items: stretch;
+  min-width: 0;
+  margin-top: 22px;
+  overflow: hidden;
+  border: 1px solid rgba(45, 212, 191, 0.3);
+  border-radius: 7px;
+  background: rgba(0, 0, 0, 0.32);
+}
+
+.mcp-connect__url code {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 12px 14px;
+  overflow-x: auto;
+  color: #e4fffb;
+  font-family: var(--home-font-mono);
+  font-size: 0.82rem;
+  line-height: 1.4;
+  user-select: all;
+}
+
+.mcp-connect__copy-btn {
+  flex: 0 0 auto;
+  min-height: 32px;
+  padding: 0 12px;
+  border: 1px solid rgba(45, 212, 191, 0.28);
+  border-radius: 6px;
+  color: var(--home-teal-bright);
+  background: rgba(45, 212, 191, 0.06);
+  font-family: var(--home-font-mono);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.mcp-connect__url .mcp-connect__copy-btn {
+  border: 0;
+  border-left: 1px solid rgba(45, 212, 191, 0.22);
+  border-radius: 0;
+}
+
+.mcp-connect__copy-btn:hover,
+.mcp-connect__copy-btn:focus-visible {
+  color: #c2fff7;
+  background: rgba(45, 212, 191, 0.12);
+}
+
+.mcp-connect__more {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 16px;
+  color: var(--home-teal-bright);
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.mcp-connect__more:hover,
+.mcp-connect__more:focus-visible {
+  color: #c2fff7;
+}
+
+.mcp-connect__snippet {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--home-border-strong);
+  border-radius: 8px;
+  background: rgba(4, 15, 14, 0.78);
+  box-shadow: var(--home-shadow);
+}
+
+.mcp-connect__snippet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 44px;
+  padding: 0 12px 0 16px;
+  gap: 12px;
+  border-bottom: 1px solid var(--home-border);
+  color: #dbe4e2;
+  font-family: var(--home-font-mono);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.mcp-connect__snippet pre {
+  margin: 0;
+  padding: 14px 16px 16px;
+  overflow-x: auto;
+  color: #c9d6d2;
+  font-family: var(--home-font-mono);
+  font-size: 0.72rem;
+  line-height: 1.55;
+}
+
+.mcp-connect__snippet code {
+  user-select: all;
+}
+
+.mcp-connect__status {
+  grid-column: 1 / -1;
+  min-height: 1.2rem;
+  margin: 0;
+  color: #86efac;
+  font-family: var(--home-font-mono);
+  font-size: 0.72rem;
+}
+
 /* Metrics */
 .metric-rail {
   position: relative;
@@ -2205,7 +2353,8 @@ a.adoption-card:focus-visible {
   }
 
   .trust-layout,
-  .integration-layout {
+  .integration-layout,
+  .mcp-connect__inner {
     grid-template-columns: 1fr;
   }
 
@@ -2349,6 +2498,21 @@ a.adoption-card:focus-visible {
   .button--text {
     justify-content: flex-start;
     width: max-content;
+  }
+
+  .mcp-connect__url {
+    flex-wrap: wrap;
+  }
+
+  .mcp-connect__url code {
+    flex-basis: 100%;
+  }
+
+  .mcp-connect__url .mcp-connect__copy-btn {
+    width: 100%;
+    min-height: 40px;
+    border-left: 0;
+    border-top: 1px solid rgba(45, 212, 191, 0.22);
   }
 
   .hero-trust {
@@ -2633,7 +2797,10 @@ a.adoption-card:focus-visible {
   .trust-card,
   .adoption-card,
   .context-stack,
-  .final-cta {
+  .final-cta,
+  .mcp-connect__url,
+  .mcp-connect__snippet,
+  .mcp-connect__copy-btn {
     border-color: CanvasText;
   }
 }

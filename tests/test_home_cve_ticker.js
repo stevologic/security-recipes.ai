@@ -95,7 +95,11 @@ test('homepage ticker is semantic, bounded, and explicitly motion-safe', () => {
   assert.match(source, /animation:\s*latest-cves-scroll 90s linear infinite;/);
   assert.match(source, /\.cve-ticker__item\s*\{[^}]*display:\s*grid;[^}]*grid-template-rows:\s*auto auto;/);
   assert.match(source, /\.cve-ticker__date::before\s*\{[^}]*content:\s*"Published ";/);
-  assert.doesNotMatch(source, /aria-live=/);
+  const tickerStart = source.indexOf('<aside class="cve-ticker"');
+  const tickerEnd = source.indexOf('</aside>', tickerStart);
+  assert.notEqual(tickerStart, -1);
+  assert.ok(tickerEnd > tickerStart);
+  assert.doesNotMatch(source.slice(tickerStart, tickerEnd), /aria-live=/);
   assert.doesNotMatch(source, /browser-index\.json/);
   assert.match(source, /@media \(prefers-reduced-motion: reduce\)[\s\S]*?\.cve-ticker__track\s*\{[\s\S]*?animation: none !important;/);
   assert.match(source, /<script src="\/js\/cve-ticker\.js" defer><\/script>/);
