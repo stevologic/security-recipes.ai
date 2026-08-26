@@ -155,6 +155,7 @@ def validate_landing_page_contract(
         required_ids = {
             "overview-heading",
             "products-heading",
+            "detection-triage-heading",
             "remediation-authority-heading",
             "use-ai-heading",
             "sources-heading",
@@ -173,6 +174,11 @@ def validate_landing_page_contract(
             or 'id="complete-record"' in document
         ):
             raise ValueError(f"{cve_id} contains nested or deferred record UI")
+        if (
+            "Choose an AI remediation playbook" in document
+            or "/security-remediation/recipe-recommender/" in document
+        ):
+            raise ValueError(f"{cve_id} contains deprecated recipe recommender UI")
 
     structured_objects: list[Any] = []
     for source in parser.structured_data:

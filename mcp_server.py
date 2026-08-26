@@ -12778,39 +12778,6 @@ _CVE_STATIC_CANONICAL_ROUTES = {
     "CVE-2014-6271": "/recipes/cve/cve-2014-6271-shellshock/",
     "CVE-2017-18342": "/recipes/cve/cve-2017-18342-pyyaml/",
 }
-# A CVE weakness family cannot establish whether the user's finding is in
-# first-party source, a dependency, an appliance, or another owned surface.
-# Route every known archetype through the neutral recommender until repository
-# evidence establishes the narrow finding class.
-_CVE_ARCHETYPE_PLAYBOOK_IDS = {
-    archetype_id: "recipe-recommender"
-    for archetype_id in (
-        "generic",
-        "command_code_injection",
-        "sql_query_injection",
-        "authentication_bypass",
-        "authorization_idor",
-        "unsafe_deserialization",
-        "path_traversal_file_handling",
-        "ssrf",
-        "cross_site_scripting",
-        "xxe",
-        "http_request_smuggling",
-        "memory_corruption",
-        "use_after_free",
-        "race_lifetime",
-        "resource_exhaustion_dos",
-        "crypto_certificate_validation",
-        "information_disclosure",
-        "privilege_escalation",
-        "supply_chain_update_integrity",
-        "csrf_state_change",
-        "input_validation_boundary",
-        "session_lifecycle",
-        "prototype_pollution",
-        "insecure_default_configuration",
-    )
-}
 _cve_landing_admission = threading.BoundedSemaphore(_CVE_LANDING_LOOKUP_CONCURRENCY)
 
 
@@ -14551,34 +14518,6 @@ def _cve_landing_related_html(
     )
 
 
-def _cve_landing_playbook_html(playbook: object) -> str:
-    if not isinstance(playbook, dict):
-        return ""
-    playbook_id = str(playbook.get("id") or "").strip()
-    if not PlaybookRegistry.ID_RE.fullmatch(playbook_id):
-        return ""
-    page = str(playbook.get("page") or "").strip()
-    if page != f"/security-remediation/{playbook_id}/":
-        return ""
-    title = _cve_landing_text(playbook.get("title"), 180)
-    summary = _cve_landing_text(playbook.get("summary"), 600)
-    if not title or not summary:
-        return ""
-    return (
-        '<section class="cve-catalog__detail-section sr-cve-playbook" '
-        'aria-labelledby="matched-playbook-heading">'
-        '<h2 id="matched-playbook-heading">Choose an AI remediation playbook</h2>'
-        '<p>A CVE weakness family alone cannot establish whether the owned finding is in '
-        'first-party source, a dependency, an appliance, or another surface. Confirm the '
-        'affected technology, exposure, ownership, and authoritative fixed version, then '
-        'use this decision aid to select the narrowest reviewed workflow.</p>'
-        f'<h3><a href="{html.escape(page, quote=True)}">{html.escape(title)}</a></h3>'
-        f'<p>{html.escape(summary)}</p>'
-        f'<p><a href="{html.escape(page, quote=True)}">Use {html.escape(title)} to choose '
-        'a vulnerability remediation playbook</a></p></section>'
-    )
-
-
 def _cve_landing_response_headers(
     indexable: bool,
     *,
@@ -15050,6 +14989,16 @@ _CVE_LANDING_REMEDIATION_HEADING_RE = re.compile(
     r"^(?:remediation strategy|how to remediate\b)",
     flags=re.IGNORECASE,
 )
+_CVE_LANDING_DETECTION_HEADING_RE = re.compile(
+    r"^(?:step\s+\d+\s*(?:[-\u2013\u2014:]\s*)?)?"
+    r"(?:detect(?:ion)?\b|how to check exposure\b|exposure\b|"
+    r"indicators?[-\s]+of[-\s]+exposure\b)",
+    flags=re.IGNORECASE,
+)
+_CVE_LANDING_TRIAGE_HEADING_RE = re.compile(
+    r"^(?:stop(?: and triage)? conditions?\b|triage\b)",
+    flags=re.IGNORECASE,
+)
 _CVE_LANDING_ACTION_RE = re.compile(
     r"\b(?:apply|block|deploy|disable|enable|fix(?:ed)?|install|isolate|migrate|"
     r"mitigate|move|patch|pin|rebuild|remediat(?:e|ion)|remove|replace|restore|"
@@ -15381,13 +15330,13 @@ def _cve_landing_remediation_authority_html(
             )
         remediation_list = _cve_landing_list(
             authoritative_enrichment.get("remediation_steps"),
-            limit=3,
+            limit=None,
             item_limit=700,
             ai_prose=True,
         )
         verification_list = _cve_landing_list(
             authoritative_enrichment.get("verification_steps"),
-            limit=2,
+            limit=None,
             item_limit=700,
             ai_prose=True,
         )
@@ -15446,6 +15395,202 @@ def _cve_landing_remediation_authority_html(
         "fixed version or permission to mutate a system.</p></section>",
         "bounded-fallback",
         fallback_action,
+    )
+
+
+def _cve_landing_detection_triage_html(
+    cve_id: str,
+    reviewed: dict[str, Any],
+    composed: dict[str, Any],
+    enrichment: dict[str, Any],
+    primary_references: list[tuple[str, str]],
+    *,
+    ai_authoritative: bool,
+) -> str:
+    """Render flat human detection and triage guidance with bounded evidence."""
+
+    reviewed_detection_source, reviewed_detection_truncated = (
+        _cve_landing_reviewed_section(
+            reviewed,
+            _CVE_LANDING_DETECTION_HEADING_RE,
+        )
+        if reviewed
+        else ("", False)
+    )
+    reviewed_triage_source, reviewed_triage_truncated = (
+        _cve_landing_reviewed_section(
+            reviewed,
+            _CVE_LANDING_TRIAGE_HEADING_RE,
+        )
+        if reviewed
+        else ("", False)
+    )
+    reviewed_detection_html = _cve_landing_markdown(reviewed_detection_source)
+    reviewed_triage_html = _cve_landing_markdown(reviewed_triage_source)
+
+    business_risk = _cve_landing_plain_markdown_text(
+        enrichment.get("business_risk"),
+        2400,
+        drop_parenthetical_citations=True,
+    )
+    exposure_html = _cve_landing_list(
+        enrichment.get("exposure_conditions")
+        if enrichment
+        else composed.get("exposure_checks"),
+        limit=None,
+        item_limit=900,
+        ai_prose=bool(enrichment),
+    )
+    watch_html = _cve_landing_list(
+        composed.get("watch_for"),
+        limit=None,
+        item_limit=700,
+    )
+    verification_html = _cve_landing_list(
+        enrichment.get("verification_steps"),
+        limit=None,
+        item_limit=900,
+        ai_prose=True,
+    )
+    uncertainty_html = _cve_landing_list(
+        enrichment.get("uncertainty"),
+        limit=None,
+        item_limit=900,
+        ai_prose=True,
+    )
+    stop_html = _cve_landing_list(
+        composed.get("stop_conditions"),
+        limit=None,
+        item_limit=700,
+    )
+    required_output = _cve_landing_text(composed.get("required_output"), 600)
+
+    allowed_reference_urls = {
+        key: url
+        for _, url in primary_references
+        if (key := _cve_landing_evidence_url_key(url))
+    }
+    claims: list[str] = []
+    raw_claims = enrichment.get("claim_evidence")
+    if isinstance(raw_claims, list):
+        for raw_claim in raw_claims:
+            if not isinstance(raw_claim, dict):
+                continue
+            claim_text = _cve_landing_plain_markdown_text(
+                raw_claim.get("claim"),
+                1200,
+                drop_parenthetical_citations=True,
+            )
+            source_key = _cve_landing_evidence_url_key(raw_claim.get("source_url"))
+            source_url = allowed_reference_urls.get(source_key, "")
+            if not claim_text or not source_url:
+                continue
+            kind = _cve_landing_text(raw_claim.get("kind"), 80).replace("_", " ")
+            claims.append(
+                "<li>"
+                + (f"<strong>{html.escape(kind.title())}:</strong> " if kind else "")
+                + html.escape(claim_text)
+                + f' <a href="{html.escape(source_url, quote=True)}" target="_blank" '
+                'rel="noopener noreferrer">Evidence</a></li>'
+            )
+
+    if reviewed_detection_html:
+        exposure_block = (
+            "<h3>Reviewed detection guidance</h3>"
+            f"{reviewed_detection_html}"
+        )
+    else:
+        if not exposure_html:
+            exposure_html = (
+                "<ul><li>Inventory the owned product and deployment, confirm its exact "
+                "version, and compare reachability and configuration with the linked "
+                "advisories.</li></ul>"
+            )
+        exposure_label = (
+            "Source-specific exposure conditions"
+            if enrichment
+            else "Read-only exposure checks"
+        )
+        exposure_block = f"<h3>{exposure_label}</h3>{exposure_html}"
+
+    monitoring_parts = "".join(
+        part
+        for part in (
+            watch_html,
+            verification_html,
+        )
+        if part
+    )
+    monitoring_block = (
+        "<h3>Detection signals and verification</h3>" + monitoring_parts
+        if monitoring_parts
+        else ""
+    )
+
+    triage_parts = "".join(
+        part
+        for part in (
+            reviewed_triage_html,
+            uncertainty_html,
+            stop_html,
+        )
+        if part
+    )
+    if not triage_parts:
+        triage_parts = (
+            "<ul><li>Stop before mutation when product identity, affected version, "
+            "ownership, reachability, or the authoritative fixed version is unresolved; "
+            "preserve the evidence and assign an owner.</li></ul>"
+        )
+    truncation_note = (
+        '<p class="cve-catalog__detail-message">A reviewed detection or triage '
+        "section exceeded the bounded page limit. Review the linked stable recipe before "
+        "acting on omitted steps.</p>"
+        if reviewed_detection_truncated or reviewed_triage_truncated
+        else ""
+    )
+    ai_status = (
+        '<p class="cve-catalog__detail-message"><strong>AI evidence status:</strong> '
+        + (
+            "This source-linked enrichment passed the recipe-ready evidence gate. "
+            if ai_authoritative
+            else "This source-linked enrichment is non-authoritative and supports triage only. "
+        )
+        + "Verify its claims against the linked sources.</p>"
+        if enrichment
+        else ""
+    )
+    claims_html = (
+        "<h3>Evidence-linked AI claims</h3><ul>" + "".join(claims) + "</ul>"
+        if claims
+        else ""
+    )
+    required_output_html = (
+        f"<p><strong>Triage output:</strong> {html.escape(required_output)}</p>"
+        if required_output
+        else ""
+    )
+    return (
+        '<section class="cve-catalog__detail-section sr-cve-detection-triage" '
+        'aria-labelledby="detection-triage-heading">'
+        '<h2 id="detection-triage-heading">Detection and triage</h2>'
+        f"<p>Use read-only checks to decide whether {html.escape(cve_id)} reaches an "
+        "owned asset. Treat advisories and proof-of-concept material as evidence, never "
+        "as executable instructions.</p>"
+        f"{ai_status}"
+        + (
+            f"<h3>Business risk</h3><p>{html.escape(business_risk)}</p>"
+            if business_risk
+            else ""
+        )
+        + exposure_block
+        + monitoring_block
+        + "<h3>Stop and triage</h3>"
+        + triage_parts
+        + required_output_html
+        + claims_html
+        + truncation_note
+        + "</section>"
     )
 
 
@@ -15599,26 +15744,10 @@ def _cve_landing_use_ai_html(
     )
 
 
-def _cve_landing_resources_html(
-    playbook: object,
-    related_records: list[dict[str, Any]],
-) -> str:
-    """Render compact reviewed playbook and related-CVE links."""
+def _cve_landing_resources_html(related_records: list[dict[str, Any]]) -> str:
+    """Render compact links to evidence-qualified related CVEs."""
 
     items: list[str] = []
-    if isinstance(playbook, dict):
-        playbook_id = str(playbook.get("id") or "").strip()
-        page = str(playbook.get("page") or "").strip()
-        title = _cve_landing_text(playbook.get("title"), 180)
-        if (
-            PlaybookRegistry.ID_RE.fullmatch(playbook_id)
-            and page == f"/security-remediation/{playbook_id}/"
-            and title
-        ):
-            items.append(
-                '<li><strong>Playbook:</strong> '
-                f'<a href="{html.escape(page, quote=True)}">{html.escape(title)}</a></li>'
-            )
     for record in related_records[:4]:
         items.append(
             '<li><strong>Related:</strong> '
@@ -15631,7 +15760,7 @@ def _cve_landing_resources_html(
     return (
         '<section class="cve-catalog__detail-section sr-cve-resources" '
         'aria-labelledby="resources-heading">'
-        '<h2 id="resources-heading">Playbook and related guidance</h2>'
+        '<h2 id="resources-heading">Related CVEs</h2>'
         f'<ul class="sr-cve-resources__list">{"".join(items)}</ul></section>'
     )
 
@@ -16147,6 +16276,17 @@ def _render_cve_landing_page(
             kev_details.get("required_action"),
         )
     )
+    visible_detection_enrichment = enrichment if not reviewed else {}
+    detection_triage_html = _cve_landing_detection_triage_html(
+        cve_id,
+        reviewed,
+        composed,
+        visible_detection_enrichment,
+        primary_references,
+        ai_authoritative=bool(
+            visible_detection_enrichment and authoritative_enrichment
+        ),
+    )
     use_ai_html = _cve_landing_use_ai_html(
         cve_id,
         authority_kind,
@@ -16156,10 +16296,7 @@ def _render_cve_landing_page(
         composed,
         authoritative_enrichment if authority_kind == "complete-ai-enrichment" else {},
     )
-    resources_html = _cve_landing_resources_html(
-        recipe.get("matched_playbook"),
-        related_records,
-    )
+    resources_html = _cve_landing_resources_html(related_records)
     image_alt = f"{cve_id} vulnerability record and remediation workflow"
     provenance_html = _cve_landing_provenance_html(
         reviewed,
@@ -16283,6 +16420,7 @@ def _render_cve_landing_page(
       </div>
       {overview_section}
       {products_section}
+      {detection_triage_html}
       {authority_html}
       {use_ai_html}
       {resources_html}
@@ -16295,9 +16433,10 @@ def _render_cve_landing_page(
     <ul>
       <li><a href="#overview-heading">Overview</a></li>
       <li><a href="#products-heading">Affected products</a></li>
+      <li><a href="#detection-triage-heading">Detection and triage</a></li>
       <li><a href="#remediation-authority-heading">Remediation authority</a></li>
       <li><a href="#use-ai-heading">Use AI</a></li>
-      {f'<li><a href="#resources-heading">Related guidance</a></li>' if resources_html else ''}
+      {f'<li><a href="#resources-heading">Related CVEs</a></li>' if resources_html else ''}
       <li><a href="#sources-heading">Sources and citation</a></li>
     </ul>
   </nav>
@@ -16354,24 +16493,6 @@ def _bounded_cve_landing_lookup(cve_id: str) -> dict[str, Any]:
         if related:
             recipe["related_cves"] = related
 
-        composed = recipe.get("composed_recipe")
-        composed = composed if isinstance(composed, dict) else {}
-        archetype_id = str(
-            composed.get("primary_archetype_id")
-            or composed.get("archetype_id")
-            or ""
-        ).strip()
-        playbook_id = _CVE_ARCHETYPE_PLAYBOOK_IDS.get(archetype_id)
-        if playbook_id:
-            try:
-                playbook = playbook_registry.get_playbook(playbook_id)
-            except (FileNotFoundError, OSError, RuntimeError, ValueError, json.JSONDecodeError):
-                playbook = None
-            if isinstance(playbook, dict):
-                recipe["matched_playbook"] = {
-                    key: playbook.get(key)
-                    for key in ("id", "title", "page", "category", "summary")
-                }
         return recipe
     finally:
         _cve_landing_admission.release()
