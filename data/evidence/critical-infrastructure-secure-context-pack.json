@@ -468,7 +468,7 @@
       "path": "data/evidence/agentic-catastrophic-risk-annex.json",
       "proof_role": "High-impact action classes, severe scenarios, default decisions, approval evidence, risk acceptance, and runtime kill signals.",
       "schema_version": "1.0",
-      "sha256": "09c0df19cbb1bfe7ae9f5961dbee1add81f0de36123d46793293af07564b8f3f",
+      "sha256": "6a09e1dd9232dd5931f0a74dda96a145fafbed05929a37cb96596f27470f1a86",
       "status": "ready",
       "summary": {
         "key": "annex_summary",
@@ -509,7 +509,7 @@
       "path": "data/evidence/agentic-action-runtime-pack.json",
       "proof_role": "Action classes, workflow envelopes, approval requirements, runtime kill signals, and deterministic allow, hold, deny, or kill decisions.",
       "schema_version": "1.0",
-      "sha256": "84055ee6b708416b4bb2b4c470ea7dbe7bf0242d7ed78786a42e48c4333e50bb",
+      "sha256": "1de990acc43e4761d012e57b411fa85724577e83086462b3b673c63e82c0d53b",
       "status": "ready",
       "summary": {
         "key": "action_runtime_summary",
@@ -540,7 +540,7 @@
       "path": "data/evidence/agentic-approval-receipt-pack.json",
       "proof_role": "Scope-bound approval profiles, expiry, separation of duties, reviewer roles, and approval-bypass kill signals.",
       "schema_version": "1.0",
-      "sha256": "90d81e95f9574dc291fec9ea48234884ed1c411b62ecd4e03e9171b5b54b4fb0",
+      "sha256": "ea1788843197ad991cc23a03c26c8665fc786b099b8870ac70a9a58fb8f55392",
       "status": "ready",
       "summary": {
         "key": "approval_receipt_summary",
@@ -613,7 +613,7 @@
       "path": "data/evidence/agentic-incident-response-pack.json",
       "proof_role": "Incident classes, containment phases, forensic evidence, replay gates, and response decisions for agentic and MCP failures.",
       "schema_version": "1.0",
-      "sha256": "55330bca86acbc91a3be29ad25a098b0b982a0e8a88303d8116c8e7fef70f926",
+      "sha256": "9c859efd5a8d80d3c2a11c52fabdfa45d276d0e106f7de840e04ac98ddb47098",
       "status": "ready",
       "summary": {
         "key": "incident_response_summary",
@@ -645,21 +645,21 @@
       "path": "data/evidence/agentic-soc-detection-pack.json",
       "proof_role": "SIEM-ready detections, query templates, alert decisions, and runtime evaluation for MCP and agent telemetry.",
       "schema_version": "1.0",
-      "sha256": "ccd57cd228d874b42f0957b3c5d4d90fd745228709448c1eea892357948c1b5d",
+      "sha256": "02cf833a6801717f1010b3e799733a71ece4b8d79a6907401b0005077fdcfcef",
       "status": "ready",
       "summary": {
         "key": "detection_summary",
         "value": {
           "decision_counts": {
-            "soc_critical_kill_session": 3,
+            "soc_critical_kill_session": 5,
             "soc_high_escalate": 5,
             "soc_medium_investigate": 2
           },
           "failure_count": 0,
-          "max_rules_per_workflow": 9,
-          "rule_count": 10,
+          "max_rules_per_workflow": 11,
+          "rule_count": 12,
           "severity_counts": {
-            "critical": 3,
+            "critical": 5,
             "high": 5,
             "medium": 2
           },
@@ -679,7 +679,7 @@
       "path": "data/evidence/agentic-telemetry-contract.json",
       "proof_role": "OpenTelemetry-aligned fields for agent, model, MCP, context, policy, egress, approval, verifier, incident, redaction, and receipt evidence.",
       "schema_version": "1.0",
-      "sha256": "32c6cd3ec5266e16dfbcff74bb7b3980b15a44370e55db953cc2d7152df872f9",
+      "sha256": "a86a5989f56fb7527921a037ccb80d6f1e33df86b41a50c3e4e386a54c1c4991",
       "status": "ready",
       "summary": {
         "key": "telemetry_summary",
@@ -811,7 +811,7 @@
       "path": "data/evidence/secure-context-trust-pack.json",
       "proof_role": "Trusted source registry, context package hashes, retrieval policy, and workflow-safe context decisions.",
       "schema_version": "1.0",
-      "sha256": "6f02ba7455e99c5c6d4fa4e98cd98b6197d1585a596e591b539754bc6ac84d6a",
+      "sha256": "7607df514142944f8bd054750ebe16180220d0400d999b0a7f7648f64eb95b24",
       "status": "ready",
       "summary": {
         "key": "context_trust_summary",
@@ -824,7 +824,7 @@
           "default_decision": "deny_unregistered_context",
           "failure_count": 0,
           "prohibited_data_class_count": 7,
-          "registered_byte_count": 14933799,
+          "registered_byte_count": 14942293,
           "registered_file_count": 3520,
           "risk_family_counts": {
             "context_poisoning": 8,
@@ -863,7 +863,7 @@
       "path": "data/evidence/secure-context-lineage-ledger.json",
       "proof_role": "Source-to-run lineage across attestation, poisoning, retrieval, model route, egress, handoff, telemetry, and receipts.",
       "schema_version": "1.0",
-      "sha256": "05d8e52455b53f03359d4e016ec8bdccebb1174ae541632e4c3d51e7dd78957e",
+      "sha256": "c4f07dddd57d1f9951239c65f59564b285d91c8a3157a74345b549d9d2e483be",
       "status": "ready",
       "summary": {
         "key": "lineage_summary",
@@ -899,7 +899,7 @@
       "path": "data/evidence/context-egress-boundary-pack.json",
       "proof_role": "Data-class, destination, tenant, model, telemetry, DPA, zero-data-retention, and secret-egress decisions.",
       "schema_version": "1.0",
-      "sha256": "2c74374e15e2d89b43e69084649611dfaa828e8013326df0c6ce3306b2a27378",
+      "sha256": "0871c984bc5b51c1f9f197bbe8217d39a38ab0c3a32aef9a4c49f0550613c1a1",
       "status": "ready",
       "summary": {
         "key": "egress_boundary_summary",
@@ -996,7 +996,7 @@
       "path": "data/evidence/agentic-entitlement-review-pack.json",
       "proof_role": "Expiring leases, review cadence, step-up authorization, and runtime entitlement decisions for agent identities and MCP scopes.",
       "schema_version": "1.0",
-      "sha256": "f6299ae0a6f33535e0f3b3e22169cd5f9312ffa281a1ae86e9cb7930d6356950",
+      "sha256": "0ea043e5f2d1908d43105c080829bd885c9adcc5c4e0f39cf339ddc019d8aaf8",
       "status": "ready",
       "summary": {
         "key": "entitlement_review_summary",
@@ -1158,7 +1158,7 @@
       "path": "data/evidence/agentic-standards-crosswalk.json",
       "proof_role": "Standards-to-evidence map across OWASP, NIST, CSA, MCP, OpenAI, Anthropic, and A2A security guidance.",
       "schema_version": "1.0",
-      "sha256": "3917e3a11eff42664f78d533ca766d8e6be7833cd49a0566870460a5a3cddf82",
+      "sha256": "07ae21cb0b0c481ab90521f4b925d959f6996402e3ec08e29d896d2b6d6f680b",
       "status": "ready",
       "summary": {
         "key": "crosswalk_summary",
@@ -1763,17 +1763,17 @@
       {
         "id": "agentic-catastrophic-risk-annex",
         "path": "data/evidence/agentic-catastrophic-risk-annex.json",
-        "sha256": "09c0df19cbb1bfe7ae9f5961dbee1add81f0de36123d46793293af07564b8f3f"
+        "sha256": "6a09e1dd9232dd5931f0a74dda96a145fafbed05929a37cb96596f27470f1a86"
       },
       {
         "id": "agentic-action-runtime-pack",
         "path": "data/evidence/agentic-action-runtime-pack.json",
-        "sha256": "84055ee6b708416b4bb2b4c470ea7dbe7bf0242d7ed78786a42e48c4333e50bb"
+        "sha256": "1de990acc43e4761d012e57b411fa85724577e83086462b3b673c63e82c0d53b"
       },
       {
         "id": "agentic-approval-receipt-pack",
         "path": "data/evidence/agentic-approval-receipt-pack.json",
-        "sha256": "90d81e95f9574dc291fec9ea48234884ed1c411b62ecd4e03e9171b5b54b4fb0"
+        "sha256": "ea1788843197ad991cc23a03c26c8665fc786b099b8870ac70a9a58fb8f55392"
       },
       {
         "id": "agentic-readiness-scorecard",
@@ -1783,17 +1783,17 @@
       {
         "id": "agentic-incident-response-pack",
         "path": "data/evidence/agentic-incident-response-pack.json",
-        "sha256": "55330bca86acbc91a3be29ad25a098b0b982a0e8a88303d8116c8e7fef70f926"
+        "sha256": "9c859efd5a8d80d3c2a11c52fabdfa45d276d0e106f7de840e04ac98ddb47098"
       },
       {
         "id": "agentic-soc-detection-pack",
         "path": "data/evidence/agentic-soc-detection-pack.json",
-        "sha256": "ccd57cd228d874b42f0957b3c5d4d90fd745228709448c1eea892357948c1b5d"
+        "sha256": "02cf833a6801717f1010b3e799733a71ece4b8d79a6907401b0005077fdcfcef"
       },
       {
         "id": "agentic-telemetry-contract",
         "path": "data/evidence/agentic-telemetry-contract.json",
-        "sha256": "32c6cd3ec5266e16dfbcff74bb7b3980b15a44370e55db953cc2d7152df872f9"
+        "sha256": "a86a5989f56fb7527921a037ccb80d6f1e33df86b41a50c3e4e386a54c1c4991"
       },
       {
         "id": "mcp-authorization-conformance",
@@ -1813,17 +1813,17 @@
       {
         "id": "secure-context-trust-pack",
         "path": "data/evidence/secure-context-trust-pack.json",
-        "sha256": "6f02ba7455e99c5c6d4fa4e98cd98b6197d1585a596e591b539754bc6ac84d6a"
+        "sha256": "7607df514142944f8bd054750ebe16180220d0400d999b0a7f7648f64eb95b24"
       },
       {
         "id": "secure-context-lineage-ledger",
         "path": "data/evidence/secure-context-lineage-ledger.json",
-        "sha256": "05d8e52455b53f03359d4e016ec8bdccebb1174ae541632e4c3d51e7dd78957e"
+        "sha256": "c4f07dddd57d1f9951239c65f59564b285d91c8a3157a74345b549d9d2e483be"
       },
       {
         "id": "context-egress-boundary-pack",
         "path": "data/evidence/context-egress-boundary-pack.json",
-        "sha256": "2c74374e15e2d89b43e69084649611dfaa828e8013326df0c6ce3306b2a27378"
+        "sha256": "0871c984bc5b51c1f9f197bbe8217d39a38ab0c3a32aef9a4c49f0550613c1a1"
       },
       {
         "id": "agent-identity-ledger",
@@ -1833,7 +1833,7 @@
       {
         "id": "agentic-entitlement-review-pack",
         "path": "data/evidence/agentic-entitlement-review-pack.json",
-        "sha256": "f6299ae0a6f33535e0f3b3e22169cd5f9312ffa281a1ae86e9cb7930d6356950"
+        "sha256": "0ea043e5f2d1908d43105c080829bd885c9adcc5c4e0f39cf339ddc019d8aaf8"
       },
       {
         "id": "agentic-source-freshness-watch",
@@ -1843,7 +1843,7 @@
       {
         "id": "agentic-standards-crosswalk",
         "path": "data/evidence/agentic-standards-crosswalk.json",
-        "sha256": "3917e3a11eff42664f78d533ca766d8e6be7833cd49a0566870460a5a3cddf82"
+        "sha256": "07ae21cb0b0c481ab90521f4b925d959f6996402e3ec08e29d896d2b6d6f680b"
       }
     ]
   },

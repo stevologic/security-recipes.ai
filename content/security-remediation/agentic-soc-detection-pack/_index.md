@@ -3,7 +3,7 @@ title: Agentic SOC Detection Pack
 linkTitle: SOC Detection Pack
 weight: 7
 date: 2026-05-05
-lastmod: 2026-08-21
+lastmod: 2026-08-26
 sidebar:
   exclude: true
 description: >
@@ -26,10 +26,20 @@ events, tuned detections, escalation decisions, replay validation, and
 alert evidence that a SOC can route into existing workflows.
 
 The Agentic SOC Detection Pack makes that concrete. It packages
-metadata-only detection rules for token passthrough, tool-surface drift,
+metadata-only detection rules for token passthrough, state-handle
+hijacking, elicitation and requestState abuse, tool-surface drift,
 context poisoning, unsafe telemetry, approval bypass, browser-agent
-egress, runaway loops, shadow MCP servers, stale standards, and red-team
-replay regressions.
+egress, runaway loops, shadow MCP servers advertised through
+`server/discover`, stale standards, and red-team replay regressions.
+
+MCP [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28)
+removed protocol-level sessions and the `initialize` handshake. Servers
+that need cross-request state mint explicit handles and **MUST NOT**
+treat possession of a handle as authentication. Elicitation now arrives
+inside `InputRequiredResult`, not as a standalone server-initiated
+request. This pack therefore keys MCP detections on request-bound
+identity, protocol version, handle-to-principal binding, and
+`server/discover` rather than `mcp.session.id` or `mcp.initialize`.
 
 ## Generated artifact
 
@@ -72,6 +82,52 @@ python3 scripts/evaluate_agentic_soc_detection_event.py \
   --expect-decision soc_critical_kill_session
 ```
 
+Evaluate an unbound MCP state handle:
+
+```bash
+python3 scripts/evaluate_agentic_soc_detection_event.py \
+  --workflow-id vulnerable-dependency-remediation \
+  --event-class mcp.tools.call \
+  --attribute service.name=security-recipes-mcp \
+  --attribute deployment.environment=production \
+  --attribute trace_id=trace-ci \
+  --attribute span_id=span-ci \
+  --attribute workflow_id=vulnerable-dependency-remediation \
+  --attribute run_id=run-ci \
+  --attribute agent_id=sr-agent::vuln-deps::codex \
+  --attribute identity_id=sr-agent::vuln-deps::codex \
+  --attribute tenant_id=tenant-ci \
+  --attribute correlation_id=ci-correlation \
+  --attribute receipt_id=sr-run-receipt::vulnerable-dependency-remediation \
+  --attribute telemetry.redaction_state=metadata_only \
+  --attribute mcp.state_handle.unbound=true \
+  --attribute authorization.decision=kill_state_handle_hijack \
+  --expect-decision soc_critical_kill_session
+```
+
+Evaluate a replayed elicitation `requestState`:
+
+```bash
+python3 scripts/evaluate_agentic_soc_detection_event.py \
+  --workflow-id vulnerable-dependency-remediation \
+  --event-class mcp.elicitation \
+  --attribute service.name=security-recipes-mcp \
+  --attribute deployment.environment=production \
+  --attribute trace_id=trace-ci \
+  --attribute span_id=span-ci \
+  --attribute workflow_id=vulnerable-dependency-remediation \
+  --attribute run_id=run-ci \
+  --attribute agent_id=sr-agent::vuln-deps::codex \
+  --attribute identity_id=sr-agent::vuln-deps::codex \
+  --attribute tenant_id=tenant-ci \
+  --attribute correlation_id=ci-correlation \
+  --attribute receipt_id=sr-run-receipt::vulnerable-dependency-remediation \
+  --attribute telemetry.redaction_state=metadata_only \
+  --attribute request_state.integrity=replayed \
+  --attribute policy.decision=kill_session_on_elicitation_abuse \
+  --expect-decision soc_critical_kill_session
+```
+
 {{< playbook-workflow >}}
 
 ## Detection rules
@@ -79,13 +135,15 @@ python3 scripts/evaluate_agentic_soc_detection_event.py \
 | Rule | SOC decision | Why it matters |
 | --- | --- | --- |
 | MCP token passthrough or audience mismatch | `soc_critical_kill_session` | Stops confused-deputy and token-forwarding failures before an MCP server becomes an exfiltration proxy. |
+| MCP state handle used without principal binding | `soc_critical_kill_session` | Detects guessed, stolen, or unbound server-minted handles after protocol sessions were removed. |
+| MCP elicitation or requestState integrity abuse | `soc_critical_kill_session` | Catches sensitive form prompts, untrusted URL-mode elicitation, and replayed or unbound `requestState`. |
 | Critical MCP tool surface drift | `soc_high_escalate` | Catches changed tool descriptions, schemas, or fingerprints before agents trust a poisoned capability. |
 | Context poisoning reached retrieval | `soc_critical_kill_session` | Treats retrieved prompt injection as an operational incident, not a model-quality issue. |
 | Secret or cross-tenant telemetry | `soc_critical_kill_session` | Prevents observability systems from becoming a prompt, token, or tenant-data sink. |
 | High-impact action without approval receipt | `soc_high_escalate` | Makes excessive agency visible to the SOC when approval evidence is missing, expired, or bypassed. |
 | Browser agent URL or form exfiltration | `soc_high_escalate` | Detects agentic browser flows that send sensitive context through URLs, forms, or external destinations. |
 | Unbounded agent loop or cost runaway | `soc_medium_investigate` | Converts denial-of-wallet and runaway planning loops into measurable budget alerts. |
-| Shadow MCP server or unknown connector | `soc_high_escalate` | Flags unregistered servers before a local or remote MCP connector gains trust by convenience. |
+| Shadow MCP server or unknown connector | `soc_high_escalate` | Flags unregistered servers seen on `server/discover`, tool listing, or tool calls before they gain trust by convenience. |
 | Source freshness or standard drift | `soc_medium_investigate` | Keeps rules tied to current MCP, OWASP, NIST, and frontier-lab guidance instead of stale assumptions. |
 | Red-team replay regression | `soc_high_escalate` | Blocks releases and connector promotions when known adversarial fixtures start passing unexpectedly. |
 
@@ -121,6 +179,7 @@ tenant environment.
 - [OpenTelemetry MCP semantic conventions](https://opentelemetry.io/docs/specs/semconv/gen-ai/mcp/)
 - [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices)
 - [MCP Elicitation](https://modelcontextprotocol.io/specification/2026-07-28/client/elicitation)
+- [MCP 2026-07-28 changelog](https://modelcontextprotocol.io/specification/2026-07-28/changelog)
 - [OWASP MCP Top 10](https://owasp.org/www-project-mcp-top-10/)
 - [OWASP Top 10 for LLM Applications](https://owasp.org/www-project-top-10-for-large-language-model-applications)
 - [NIST AI RMF Generative AI Profile](https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence)
@@ -134,4 +193,5 @@ tenant environment.
 - [Agentic Incident Response Pack]({{< relref "/security-remediation/agentic-incident-response-pack" >}})
 - [Agentic Red-Team Replay Harness]({{< relref "/security-remediation/agentic-red-team-replay-harness" >}})
 - [MCP Authorization Conformance]({{< relref "/security-remediation/mcp-authorization-conformance" >}})
+- [MCP Elicitation Boundary]({{< relref "/security-remediation/mcp-elicitation-boundary" >}})
 - [Context Egress Boundary]({{< relref "/security-remediation/context-egress-boundary" >}})
