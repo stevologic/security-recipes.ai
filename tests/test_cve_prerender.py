@@ -237,8 +237,10 @@ class CvePrerenderTests(unittest.TestCase):
 
         self.assertIn("node scripts/check_build_prerequisites.js", package)
         self.assertIn("python scripts/materialize_cve_pages.py", package)
+        self.assertIn("node scripts/copy_cve_catalog.js", package)
         self.assertIn("COPY mcp_server.py ./", dockerfile)
         self.assertIn("scripts/materialize_cve_pages.py", dockerfile)
+        self.assertIn("scripts/copy_cve_catalog.js", dockerfile)
         self.assertIn("scripts/cve_search_runtime.py", dockerfile)
         self.assertIn("scripts/cve_text_quality.py", dockerfile)
         self.assertIn(
@@ -275,6 +277,33 @@ class CvePrerenderTests(unittest.TestCase):
             encoding="utf-8"
         )
 
+        record_marker = (
+            'location ~ "^/api/cve-catalog/records/'
+            'CVE-[0-9]{4}-[0-9]{4,}$" {'
+        )
+        self.assertEqual(nginx.count(record_marker), 1)
+        record_location = nginx.split(record_marker, 1)[1].split("\n    }", 1)[0]
+        self.assertIn(
+            "limit_req zone=cve_catalog_record burst=40 nodelay;",
+            record_location,
+        )
+        self.assertIn("proxy_intercept_errors on;", record_location)
+        self.assertIn("proxy_connect_timeout 3s;", record_location)
+        self.assertIn("proxy_send_timeout 5s;", record_location)
+        self.assertIn("proxy_read_timeout 10s;", record_location)
+        self.assertIn('proxy_set_header Authorization "";', record_location)
+        self.assertIn('proxy_set_header Cookie "";', record_location)
+        self.assertIn(
+            "proxy_pass $cve_catalog_record_api$request_uri;",
+            record_location,
+        )
+        self.assertIn("location @cve_catalog_record_rate_limited", nginx)
+        self.assertIn(
+            "error_page 500 502 503 504 = @cve_catalog_record_unavailable;",
+            record_location,
+        )
+        self.assertIn("location @cve_catalog_record_unavailable", nginx)
+
         self.assertEqual(
             nginx.count("location = /api/cve-catalog/search {"),
             1,
@@ -284,11 +313,17 @@ class CvePrerenderTests(unittest.TestCase):
             "zone=cve_catalog_search:10m rate=10r/s;",
             nginx,
         )
+        self.assertIn(
+            "limit_req_zone $cve_catalog_search_limit_key "
+            "zone=cve_catalog_record:10m rate=20r/s;",
+            nginx,
+        )
         search_location = nginx.split(
             "location = /api/cve-catalog/search {",
             1,
         )[1].split("\n    }", 1)[0]
         self.assertIn("limit_req zone=cve_catalog_search burst=20 nodelay;", search_location)
+        self.assertIn("proxy_intercept_errors on;", search_location)
         self.assertIn("proxy_connect_timeout 3s;", search_location)
         self.assertIn("proxy_send_timeout 5s;", search_location)
         self.assertIn("proxy_read_timeout 5s;", search_location)
@@ -313,6 +348,10 @@ class CvePrerenderTests(unittest.TestCase):
         self.assertIn(
             "location ~ ^/api/cve-catalog/(?:shards/.+\\.jsonl\\.gz|browser-index\\.json\\.gz|",
             nginx,
+        )
+        self.assertLess(
+            nginx.index(record_marker),
+            nginx.index("location = /api/cve-catalog/manifest.json {"),
         )
         self.assertLess(
             nginx.index("location = /api/cve-catalog/search {"),

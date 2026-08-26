@@ -41,6 +41,26 @@ def public_search_request(query_string: str) -> mcp_server.Request:
     )
 
 
+def public_record_request(cve_id: str, query_string: str) -> mcp_server.Request:
+    path = f"/api/cve-catalog/records/{cve_id}"
+    return mcp_server.Request(
+        {
+            "type": "http",
+            "asgi": {"version": "3.0"},
+            "http_version": "1.1",
+            "method": "GET",
+            "scheme": "https",
+            "path": path,
+            "raw_path": path.encode("ascii"),
+            "path_params": {"cve_id": cve_id},
+            "query_string": query_string.encode("ascii"),
+            "headers": [],
+            "client": ("127.0.0.1", 12345),
+            "server": ("testserver", 443),
+        }
+    )
+
+
 AGENTIC_PHASES = (
     ("discover", "exposure_checks", "inspect", False, False, "none", "triage"),
     ("assess", "watch_for", "assess", False, False, "none", "triage"),
@@ -1454,6 +1474,35 @@ class CVERecipeCompositionTests(unittest.TestCase):
         self.assertEqual(len(catalog._shard_cache), 1)
         self.assertLessEqual(catalog._shard_cache_bytes, catalog.SHARD_CACHE_MAX_BYTES)
 
+    def test_get_record_is_revision_pinned_and_returns_an_isolated_copy(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            catalog_dir = Path(tmpdir)
+            write_synthetic_catalog(catalog_dir)
+            catalog = CVERecipeCatalog(str(catalog_dir))
+            revision = catalog.active_revision()
+
+            record = catalog.get_record(
+                "cve-2021-44228",
+                expected_revision=revision,
+            )
+            self.assertIsNotNone(record)
+            assert record is not None
+            self.assertEqual(record["cve"], "CVE-2021-44228")
+            record["title"] = "mutated caller copy"
+            self.assertNotEqual(
+                catalog.get_record(
+                    "CVE-2021-44228",
+                    expected_revision=revision,
+                )["title"],
+                "mutated caller copy",
+            )
+
+            with self.assertRaises(mcp_server._CVECatalogRevisionMismatchError):
+                catalog.get_record(
+                    "CVE-2021-44228",
+                    expected_revision="f" * 64,
+                )
+
     def test_shard_integrity_failure_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             catalog_dir = Path(tmpdir)
@@ -1475,6 +1524,228 @@ class CVERecipeCompositionTests(unittest.TestCase):
 
             with self.assertRaisesRegex(ValueError, "archetype integrity"):
                 catalog.get_recipe("CVE-2021-44228")
+
+
+class CVEPublicRecordRouteTests(unittest.IsolatedAsyncioTestCase):
+    class CapturingCatalog:
+        def __init__(self, record: dict[str, object] | None) -> None:
+            self.record = record
+            self.calls: list[tuple[str, str | None]] = []
+
+        def get_record(
+            self,
+            cve_id: str,
+            *,
+            expected_revision: str | None = None,
+        ) -> dict[str, object] | None:
+            self.calls.append((cve_id, expected_revision))
+            return deepcopy(self.record)
+
+    async def test_fastmcp_registers_read_only_public_record_route(self) -> None:
+        routes = {
+            route.path: set(route.methods or ())
+            for route in mcp_server.mcp._additional_http_routes
+        }
+
+        self.assertIn("/api/cve-catalog/records/{cve_id}", routes)
+        self.assertEqual(
+            routes["/api/cve-catalog/records/{cve_id}"],
+            {"GET", "HEAD"},
+        )
+
+    async def test_valid_record_response_is_revision_pinned_bounded_and_cacheable(self) -> None:
+        catalog = self.CapturingCatalog(
+            {
+                "cve": "CVE-2021-44228",
+                "title": "Apache Log4j remote code execution",
+            }
+        )
+        request = public_record_request(
+            "cve-2021-44228",
+            f"revision={SYNTHETIC_REVISION}",
+        )
+
+        with patch.object(mcp_server, "cve_catalog", catalog):
+            response = await mcp_server.cve_catalog_record(request)
+
+        payload = json.loads(response.body)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            payload,
+            {
+                "schema_version": 1,
+                "revision": SYNTHETIC_REVISION,
+                "record": catalog.record,
+            },
+        )
+        self.assertEqual(
+            catalog.calls,
+            [("CVE-2021-44228", SYNTHETIC_REVISION)],
+        )
+        self.assertIn("max-age=300", response.headers["cache-control"])
+        self.assertEqual(response.headers["x-cve-record-backend"], "verified-shard")
+        self.assertEqual(
+            response.headers["x-cve-catalog-revision"],
+            SYNTHETIC_REVISION,
+        )
+        self.assertEqual(
+            response.headers["x-robots-tag"],
+            "noindex, nofollow, noarchive",
+        )
+
+    async def test_invalid_record_requests_fail_before_catalog_access(self) -> None:
+        catalog = self.CapturingCatalog({"cve": "CVE-2021-44228"})
+        cases = (
+            ("not-a-cve", f"revision={SYNTHETIC_REVISION}"),
+            ("CVE-2021-44228", ""),
+            ("CVE-2021-44228", "revision=short"),
+            (
+                "CVE-2021-44228",
+                f"revision={SYNTHETIC_REVISION}&revision={SYNTHETIC_REVISION}",
+            ),
+            ("CVE-2021-44228", f"revision={SYNTHETIC_REVISION}&q=ignored"),
+        )
+        for cve_id, query in cases:
+            with self.subTest(cve_id=cve_id, query=query), patch.object(
+                mcp_server,
+                "cve_catalog",
+                catalog,
+            ):
+                response = await mcp_server.cve_catalog_record(
+                    public_record_request(cve_id, query)
+                )
+                self.assertEqual(response.status_code, 400)
+        self.assertEqual(catalog.calls, [])
+
+    async def test_missing_mismatched_and_oversized_records_fail_closed(self) -> None:
+        missing = self.CapturingCatalog(None)
+        request = public_record_request(
+            "CVE-2021-44228",
+            f"revision={SYNTHETIC_REVISION}",
+        )
+        with patch.object(mcp_server, "cve_catalog", missing):
+            response = await mcp_server.cve_catalog_record(request)
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(json.loads(response.body)["error"], "record_not_found")
+
+        class MismatchedCatalog:
+            def get_record(self, *_: object, **__: object) -> None:
+                raise mcp_server._CVECatalogRevisionMismatchError(
+                    SYNTHETIC_REVISION,
+                    "b" * 64,
+                )
+
+        with patch.object(mcp_server, "cve_catalog", MismatchedCatalog()):
+            response = await mcp_server.cve_catalog_record(request)
+        self.assertEqual(response.status_code, 409)
+        self.assertEqual(
+            json.loads(response.body)["error"],
+            "catalog_revision_mismatch",
+        )
+
+        oversized = self.CapturingCatalog(
+            {"cve": "CVE-2021-44228", "summary": "x" * 1024}
+        )
+        with (
+            patch.object(mcp_server, "cve_catalog", oversized),
+            patch.object(mcp_server, "_CVE_PUBLIC_RECORD_MAX_BYTES", 128),
+        ):
+            response = await mcp_server.cve_catalog_record(request)
+        self.assertEqual(response.status_code, 503)
+        self.assertEqual(json.loads(response.body)["error"], "record_too_large")
+
+    async def test_busy_timeout_and_unavailable_record_work_are_bounded(self) -> None:
+        request = public_record_request(
+            "CVE-2021-44228",
+            f"revision={SYNTHETIC_REVISION}",
+        )
+        with patch.object(
+            mcp_server,
+            "_submit_cve_record",
+            side_effect=mcp_server._CVERecordBusyError("busy"),
+        ):
+            busy_response = await mcp_server.cve_catalog_record(request)
+        self.assertEqual(busy_response.status_code, 429)
+        self.assertEqual(json.loads(busy_response.body)["error"], "record_busy")
+        self.assertEqual(busy_response.headers["retry-after"], "2")
+
+        pending: concurrent.futures.Future[object] = concurrent.futures.Future()
+        with (
+            patch.object(mcp_server, "_submit_cve_record", return_value=pending),
+            patch.object(mcp_server, "_CVE_PUBLIC_RECORD_TIMEOUT_SECONDS", 0.001),
+        ):
+            timeout_response = await mcp_server.cve_catalog_record(request)
+        self.assertEqual(timeout_response.status_code, 503)
+        self.assertEqual(json.loads(timeout_response.body)["error"], "record_timeout")
+
+        unavailable: concurrent.futures.Future[object] = concurrent.futures.Future()
+        unavailable.set_exception(OSError("catalog unavailable"))
+        with patch.object(
+            mcp_server,
+            "_submit_cve_record",
+            return_value=unavailable,
+        ):
+            unavailable_response = await mcp_server.cve_catalog_record(request)
+        self.assertEqual(unavailable_response.status_code, 503)
+        self.assertEqual(
+            json.loads(unavailable_response.body)["error"],
+            "record_unavailable",
+        )
+
+    async def test_slow_public_record_lookup_cannot_starve_shared_executor(self) -> None:
+        started = threading.Event()
+        release = threading.Event()
+
+        class SlowCatalog(self.CapturingCatalog):
+            def get_record(
+                self,
+                cve_id: str,
+                *,
+                expected_revision: str | None = None,
+            ) -> dict[str, object] | None:
+                started.set()
+                release.wait(timeout=2)
+                return super().get_record(
+                    cve_id,
+                    expected_revision=expected_revision,
+                )
+
+        executor = concurrent.futures.ThreadPoolExecutor(
+            max_workers=1,
+            thread_name_prefix="test-cve-record",
+        )
+        catalog = SlowCatalog({"cve": "CVE-2021-44228"})
+        request = public_record_request(
+            "CVE-2021-44228",
+            f"revision={SYNTHETIC_REVISION}",
+        )
+        try:
+            with (
+                patch.object(mcp_server, "cve_catalog", catalog),
+                patch.object(mcp_server, "cve_record_executor", executor),
+                patch.object(
+                    mcp_server,
+                    "cve_record_admission",
+                    threading.BoundedSemaphore(value=2),
+                ),
+            ):
+                slow_response = asyncio.create_task(mcp_server.cve_catalog_record(request))
+                for _ in range(100):
+                    if started.is_set():
+                        break
+                    await asyncio.sleep(0.005)
+                self.assertTrue(started.is_set())
+                shared_result = await asyncio.wait_for(
+                    asyncio.to_thread(lambda: "shared-executor-responsive"),
+                    timeout=0.5,
+                )
+                self.assertEqual(shared_result, "shared-executor-responsive")
+                release.set()
+                response = await slow_response
+                self.assertEqual(response.status_code, 200)
+        finally:
+            release.set()
+            executor.shutdown(wait=True, cancel_futures=True)
 
 
 class CVEPublicSearchRouteTests(unittest.IsolatedAsyncioTestCase):

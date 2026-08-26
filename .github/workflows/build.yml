@@ -316,6 +316,31 @@ jobs:
           )
           PY
 
+          # Prove current browsers can fetch one revision-pinned source record
+          # without learning or downloading the static shard namespace.
+          record_response="${RUNNER_TEMP}/site-cve-record-CVE-2024-3400.json"
+          record_headers="${RUNNER_TEMP}/site-cve-record-CVE-2024-3400.headers"
+          curl --fail --silent --show-error --max-time 10 \
+            --dump-header "${record_headers}" \
+            "http://127.0.0.1:${site_port}/api/cve-catalog/records/CVE-2024-3400?revision=${catalog_revision}" \
+            --output "${record_response}"
+          test "$(stat -c '%s' "${record_response}")" -le 524288
+          grep -Eqi '^X-Robots-Tag: noindex' "${record_headers}"
+          grep -Eqi '^X-CVE-Record-Backend:[[:space:]]*verified-shard[[:space:]]*$' "${record_headers}"
+          grep -Eqi "^X-CVE-Catalog-Revision:[[:space:]]*${catalog_revision}[[:space:]]*$" "${record_headers}"
+          grep -Eqi '^Cache-Control:[[:space:]]*public,[[:space:]]*max-age=300,[[:space:]]*stale-while-revalidate=3600[[:space:]]*$' "${record_headers}"
+          python3 - "${record_response}" "${catalog_revision}" <<'PY'
+          import json
+          import sys
+
+          payload = json.load(open(sys.argv[1], encoding="utf-8"))
+          assert payload["schema_version"] == 1
+          assert payload["revision"] == sys.argv[2]
+          assert payload["record"]["cve"] == "CVE-2024-3400"
+          assert isinstance(payload["record"].get("summary"), str)
+          assert payload["record"].get("ai_enrichment") or payload["record"].get("markdown")
+          PY
+
           # Select an in-catalog record that was deliberately excluded from the
           # qualified static surface, then prove nginx reaches the healthy MCP
           # fallback and preserves the noindex contract.

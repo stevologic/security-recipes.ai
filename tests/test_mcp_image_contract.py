@@ -115,6 +115,22 @@ class MCPImageContractTests(unittest.TestCase):
         broad_search = self.workflow.index("/api/cve-catalog/search?q=remote%20code%20execution")
         self.assertLess(mcp_healthy, broad_search)
 
+    def test_build_exercises_revision_pinned_exact_record_api_through_site(self) -> None:
+        self.assertIn(
+            "/api/cve-catalog/records/CVE-2024-3400?revision=${catalog_revision}",
+            self.workflow,
+        )
+        self.assertIn('payload["record"]["cve"] == "CVE-2024-3400"', self.workflow)
+        self.assertIn(
+            "^X-CVE-Record-Backend:[[:space:]]*verified-shard[[:space:]]*$",
+            self.workflow,
+        )
+        mcp_healthy = self.workflow.index('if [ "${mcp_health}" != "healthy" ]')
+        record_lookup = self.workflow.index(
+            "/api/cve-catalog/records/CVE-2024-3400?revision=${catalog_revision}"
+        )
+        self.assertLess(mcp_healthy, record_lookup)
+
     def test_build_validates_the_rendered_site_config_and_static_cve_offline(self) -> None:
         self.assertIn('docker network create "${smoke_network}"', self.workflow)
         self.assertIn('--env "MCP_UPSTREAM=${mcp_name}"', self.workflow)

@@ -26,6 +26,9 @@ from urllib.parse import urlparse
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT_ROOT = ROOT / "public"
 DEFAULT_CATALOG_ROOT = ROOT / "static" / "api" / "cve-catalog"
+BUILD_CATALOG_ROOT = Path(
+    os.environ.get("SECURITY_RECIPES_CVE_CATALOG_ROOT") or DEFAULT_CATALOG_ROOT
+).resolve()
 DEFAULT_PUBLIC_BASE_URL = "https://security-recipes.ai/"
 CANONICAL_CVE_ID = re.compile(r"CVE-[0-9]{4}-[0-9]{4,}")
 CVE_LIKE_OUTPUT_DIRECTORY = re.compile(
@@ -39,7 +42,7 @@ if str(ROOT) not in sys.path:
 import mcp_server  # noqa: E402  (repository root must be importable first)
 
 
-BUILD_CVE_CATALOG = mcp_server.CVERecipeCatalog(str(DEFAULT_CATALOG_ROOT))
+BUILD_CVE_CATALOG = mcp_server.CVERecipeCatalog(str(BUILD_CATALOG_ROOT))
 BUILD_PLAYBOOK_REGISTRY = mcp_server.PlaybookRegistry(
     str(ROOT / "data" / "remediation_suite" / "playbooks.json")
 )
@@ -223,7 +226,7 @@ def validate_landing_page_contract(
 def load_search_indexable_cve_ids() -> tuple[str, ...]:
     """Load the manifest-verified, evidence-qualified CVE identity set."""
 
-    search_index_path = DEFAULT_CATALOG_ROOT / "search-indexable.json"
+    search_index_path = BUILD_CATALOG_ROOT / "search-indexable.json"
     payload = json.loads(search_index_path.read_text(encoding="utf-8"))
     records = payload.get("records")
     if not isinstance(records, list):

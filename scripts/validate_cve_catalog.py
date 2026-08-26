@@ -54,6 +54,11 @@ SEARCH_API_RUNTIME = {
     "max_query_length": 120,
     "max_results": 100,
 }
+RECORD_API_RUNTIME = {
+    "schema_version": 1,
+    "path": "records/{cve}",
+    "max_response_bytes": 512 * 1024,
+}
 MAX_STABLE_MARKDOWN_BYTES = 256 * 1024
 MAX_FRONTMATTER_TITLE_CHARS = 200
 MAX_FRONTMATTER_DESCRIPTION_CHARS = 500
@@ -1322,6 +1327,7 @@ def validate_runtime_summary(
         "by_publication_year": manifest.get("by_publication_year"),
         "ai_enrichment_models": manifest.get("ai_enrichment_models"),
         "search_api": SEARCH_API_RUNTIME,
+        "record_api": RECORD_API_RUNTIME,
         "browser_index": manifest.get("browser_index"),
         "archetypes": manifest.get("archetypes_asset"),
         "shard_set_sha256": manifest.get("shard_set_sha256"),
