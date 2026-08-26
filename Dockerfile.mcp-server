@@ -33,6 +33,8 @@ RUN cp /app/mcp-server.toml.example /app/mcp-server.toml
 # Server code, then data last: evidence packs churn with recipe ingests and
 # should invalidate as few layers as possible.
 COPY mcp_server.py /app/mcp_server.py
+COPY tools/__init__.py /app/tools/__init__.py
+COPY tools/recipe_chat /app/tools/recipe_chat
 COPY scripts/cve_text_quality.py /app/scripts/cve_text_quality.py
 COPY scripts/build_cve_search_db.py /app/scripts/build_cve_search_db.py
 COPY scripts/cve_search_runtime.py /app/scripts/cve_search_runtime.py
