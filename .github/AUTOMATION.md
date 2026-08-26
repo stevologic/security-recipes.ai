@@ -115,7 +115,10 @@ confirms the production handoff landed. Never put `secrets` in a workflow
 
 | Item | Kind | Status | Purpose |
 | --- | --- | --- | --- |
-| `XAI_API_KEY` | secret | must be added | The only billed-AI secret. CVE enrichment and recipe drafts, this repository's security-health action, leftover-gold review, content refresh, AI maintenance, and AI issue maintenance all use Grok through this name. Official xAI and this repo's existing `xai` provider both use it. |
+| `XAI_API_KEY` | secret | must be added | The only billed-AI secret. CVE enrichment and recipe drafts, this repository's security-health action, leftover-gold review, content refresh, AI maintenance, AI issue maintenance, and optional droplet Recipe chat all use Grok through this name. Official xAI and this repo's existing `xai` provider both use it. On the droplet this is a Compose env value, not an Actions-only secret. |
+| `STRIPE_SECRET_KEY` | droplet `.env` | optional | Recipe chat Checkout. Development/dev.security-recipes.ai must use a Stripe *test* key (`sk_test_` / `rk_test_`). Do not put live keys on development. |
+| `STRIPE_WEBHOOK_SECRET` | droplet `.env` | optional | Recipe chat Checkout webhook (`whsec_…` from the Stripe Dashboard; test-mode secret on development). |
+| `STRIPE_PUBLISHABLE_KEY` | droplet `.env` | optional | Publishable key paired with `STRIPE_SECRET_KEY`. Use the test publishable key on development. |
 | `XAI_MODEL` | variable | optional, defaults to `grok-4.6` | Model id for enrichment, Grok CLI jobs, and the remediations suite. Bump when xAI publishes a newer coding model. |
 | `OPENAI_API_KEY` | secret | unused by first-party workflows | Safe to remove from GitHub Actions after this change lands. Public Codex recipes on the site are reader documentation, not CI. |
 | `DIGITALOCEAN_ACCESS_TOKEN` | secret or droplet `deploy.env` | optional | Lets deploy.sh and the Dev DNS record workflow create `dev.security-recipes.ai` |

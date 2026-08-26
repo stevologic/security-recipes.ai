@@ -248,7 +248,8 @@ Recommended operating model:
 The site is a guidebook for remediation work: recipes, prompts, agent setup,
 MCP/API integration notes, and review patterns. Runtime automation belongs in
 the user's approved agent host, CI system, ticketing workflow, or scanner
-platform rather than a site-hosted chatbot.
+platform rather than an autofix or scanner. An optional same-origin
+Recipe chat can answer from published pages when `XAI_API_KEY` is set.
 
 Python tools in `scripts/`, `tools/`, and `mcp_server.py` support maintainers
 and self-hosters with playbook execution packets, evidence verification,
@@ -608,7 +609,20 @@ Default routes:
 site: http://127.0.0.1:8080/
 agent recipe feed: /api/recipes.json
 MCP endpoint: /mcp
+Recipe chat (off without XAI_API_KEY): /api/chat/status
 ```
+
+Recipe chat is a same-origin route on the existing MCP container, proxied
+by the site nginx. It answers from published recipes, CVE pages, playbooks,
+and MCP/agent docs. It is not a scanner, autofix, or deployer. The composer
+stays hidden until `XAI_API_KEY` is present in the MCP environment.
+
+Pricing is locked: 6 free messages per visitor per rolling 24 hours, then
+$5 for 100 messages valid 30 days. Stripe env names are `STRIPE_SECRET_KEY`,
+`STRIPE_WEBHOOK_SECRET`, and `STRIPE_PUBLISHABLE_KEY`. Do not invent values.
+`dev.security-recipes.ai` must use Stripe test keys only. Cost basis for
+docs: grok-4.6 is $2/1M input and $6/1M output; a grounded turn is about
+1–3¢.
 
 The Compose stack keeps the public site and its dynamic CVE/MCP renderer in
 matching blue/green pairs:

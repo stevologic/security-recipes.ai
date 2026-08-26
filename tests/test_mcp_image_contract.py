@@ -103,6 +103,8 @@ class MCPImageContractTests(unittest.TestCase):
             "/api/cve-catalog/search?q=remote%20code%20execution&revision=${catalog_revision}&limit=5",
             self.workflow,
         )
+        self.assertIn("/api/chat/status", self.workflow)
+        self.assertIn('assert payload["enabled"] is False', self.workflow)
         self.assertIn('payload["schema_version"] == 1', self.workflow)
         self.assertIn('payload["revision"] == sys.argv[2]', self.workflow)
         self.assertIn('1 <= len(payload["results"]) <= 5', self.workflow)
