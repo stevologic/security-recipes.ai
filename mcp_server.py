@@ -15076,6 +15076,50 @@ _CVE_LANDING_ACTION_RE = re.compile(
 )
 
 
+def _cve_landing_markdown_headings(source: str) -> list[tuple[int, str, int, int]]:
+    """Return ATX headings outside fenced code with absolute source offsets."""
+
+    headings: list[tuple[int, str, int, int]] = []
+    fence_char = ""
+    fence_length = 0
+    offset = 0
+    for raw_line in source.splitlines(keepends=True):
+        line = raw_line.rstrip("\r\n")
+        if fence_char:
+            closing = re.match(r"^[ \t]{0,3}(?P<fence>`{3,}|~{3,})[ \t]*$", line)
+            if closing:
+                fence = closing.group("fence")
+                if fence[0] == fence_char and len(fence) >= fence_length:
+                    fence_char = ""
+                    fence_length = 0
+            offset += len(raw_line)
+            continue
+
+        opening = re.match(r"^[ \t]{0,3}(?P<fence>`{3,}|~{3,})(?:.*)$", line)
+        if opening:
+            fence = opening.group("fence")
+            fence_char = fence[0]
+            fence_length = len(fence)
+            offset += len(raw_line)
+            continue
+
+        heading = re.match(
+            r"^(?P<marks>#{1,6})[ \t]+(?P<title>.+?)\s*#*\s*$",
+            line,
+        )
+        if heading:
+            headings.append(
+                (
+                    len(heading.group("marks")),
+                    heading.group("title"),
+                    offset + heading.start(),
+                    offset + heading.end(),
+                )
+            )
+        offset += len(raw_line)
+    return headings
+
+
 def _cve_landing_reviewed_section(
     reviewed: dict[str, Any],
     heading_pattern: re.Pattern[str],
@@ -15083,24 +15127,17 @@ def _cve_landing_reviewed_section(
     """Return one complete bounded Markdown section and whether it was clipped."""
 
     source = str(reviewed.get("content_markdown") or "")
-    headings = list(
-        re.finditer(
-            r"^(?P<marks>#{1,6})[ \t]+(?P<title>.+?)\s*#*\s*$",
-            source,
-            flags=re.MULTILINE,
-        )
-    )
-    for index, heading in enumerate(headings):
-        title = _cve_landing_plain_markdown_text(heading.group("title"), 240)
+    headings = _cve_landing_markdown_headings(source)
+    for index, (level, raw_title, _start, heading_end) in enumerate(headings):
+        title = _cve_landing_plain_markdown_text(raw_title, 240)
         if not heading_pattern.match(title):
             continue
-        level = len(heading.group("marks"))
         end = len(source)
-        for following in headings[index + 1 :]:
-            if len(following.group("marks")) <= level:
-                end = following.start()
+        for following_level, _title, following_start, _end in headings[index + 1 :]:
+            if following_level <= level:
+                end = following_start
                 break
-        section = source[heading.end() : end].strip()
+        section = source[heading_end:end].strip()
         if len(section) <= _CVE_LANDING_REVIEWED_SECTION_LIMIT:
             return section, False
 

@@ -47,8 +47,9 @@ flowchart TB
 
     MAIN["main"]
     BUILD["build.yml on push"]
-    E11["eleventy --quiet"]
+    E11["eleventy --quiet<br/>catalog excluded from graph"]
     MAT["scripts/materialize_cve_pages.py"]
+    COPY["scripts/copy_cve_catalog.js<br/>validated one-pass copy"]
     IMG["GHCR site + MCP images"]
     DEP["deploy.sh every 15 min"]
     LIVE["Caddy blue/green"]
@@ -75,7 +76,8 @@ flowchart TB
     MAIN --> BUILD
     BUILD --> E11
     E11 --> MAT
-    MAT --> IMG
+    MAT --> COPY
+    COPY --> IMG
     IMG --> DEP
     DEP --> LIVE
     LIVE --> IDX
@@ -184,10 +186,18 @@ The leftover-review prompt then requires
 | `/cve/<ID>/index.html` for qualified IDs | `scripts/materialize_cve_pages.py` after Eleventy | No |
 | MCP SQLite FTS | `scripts/build_cve_search_db.py` inside `Dockerfile.mcp-server` | No |
 
-Eleventy copies `static/` through to the output, so the committed catalog is
-what `/api/cve-catalog/` serves. `eleventy --serve` does **not** run the CVE
-materializer. A fresh checkout without `npm run build` has no
-`public/cve/<ID>/` files even though `/cve-database/` and the JSON feeds work.
+Most of `static/` still uses Eleventy passthrough copy, but
+`static/api/cve-catalog/` is deliberately excluded from Eleventy's input and
+passthrough graphs. After page materialization,
+`scripts/copy_cve_catalog.js` validates the manifest-owned physical file set
+and copies that catalog exactly once to `public/api/cve-catalog/`. This keeps a
+large catalog from multiplying Eleventy dependency and copy work while serving
+the same committed bytes at `/api/cve-catalog/`.
+
+`eleventy --serve` does **not** run the CVE materializer or the post-build
+catalog copy. A fresh checkout without `npm run build` has no
+`public/cve/<ID>/` files and no copied `public/api/cve-catalog/`, although
+Eleventy can still render the `/cve-database/` shell.
 
 ## Which CVE URLs are indexable
 
@@ -228,7 +238,9 @@ a SHA-pinned dispatch from catalog automation.
    `sitemap.xml` index, `sitemaps/pages.xml`, `sitemaps/cves-*.xml`
 2. `python scripts/materialize_cve_pages.py` — same MCP landing-page renderer
    the runtime fallback uses, written to `public/cve/<ID>/`
-3. `node scripts/prepare_static_assets.js`
+3. `node scripts/copy_cve_catalog.js` — validate and copy the catalog outside
+   Eleventy's graph
+4. `node scripts/prepare_static_assets.js`
 
 Feeds Eleventy emits include `/api/recipes-index.json` (MCP recipe bodies) and
 `/api/recipes.json`. The body-less `/recipes-index.json` is the in-browser
@@ -241,6 +253,17 @@ On non-PR runs the workflow smoke-tests the Docker images, then the
 - `ghcr.io/stevologic/security-recipes.ai-mcp:<sha>`
 
 `development` images get a `-development` suffix.
+
+The expensive scale proof is intentionally separate from ordinary PR CI.
+`cve-scale-gate.yml` runs monthly or manually with 500,000 real synthetic
+records through the production build path, SQLite creation and required query
+classes, revision-pinned exact lookup, output-size and memory budgets, and
+49,000-URL sitemap partitioning. `scripts/cve_catalog_release.py` can also
+package, validate, and atomically hydrate a deterministic content-addressed
+catalog release. That is the local immutable-release primitive; production
+still builds from the catalog committed with the selected SHA, so signed
+descriptor publication and object-storage distribution remain future deploy
+work rather than an undocumented dependency.
 
 ## Deploy
 
@@ -264,10 +287,13 @@ After cutover it checks:
 
 ## What humans and MCP see
 
-**Browser.** Eleventy pages from `content/`. `/cve-database/` searches the
-committed catalog (browser index plus the revision-pinned SQLite search
-route). Qualified CVEs are static files in the site image. Everything else in
-scope is the MCP fallback page.
+**Browser.** Eleventy pages come from `content/`. `/cve-database/` uses the
+small runtime summary and the revision-pinned SQLite search route instead of
+loading every shard. Exact record reads use the same-origin
+`/api/cve-catalog/records/<CVE-ID>` route advertised by `record_api`, with the
+catalog revision required on every request; older runtime summaries retain a
+bounded shard fallback for compatibility. Qualified CVEs are static files in
+the site image. Everything else in scope is the MCP fallback page.
 
 **MCP.** The paired MCP image is built from the **same commit**. It bakes
 `static/api/cve-catalog` and builds `/app/runtime/cve-search.sqlite3` from
@@ -277,6 +303,12 @@ SQLite file. Recipe tools do **not** read a second recipe store: they fetch
 (`RECIPES_MCP_SOURCE_INDEX_URL`, default
 `http://security-recipes/api/recipes-index.json` in Compose). Evidence packs
 are the committed `data/` files copied into the MCP image.
+
+The public exact-record and search routes enforce revision matching, response
+and concurrency bounds, same-origin request handling, and short-lived caching.
+They return catalog facts; the MCP recipe tools continue to provide the
+human-readable remediation, detection/triage guidance, verification steps,
+and agentic change plan from the paired revision.
 
 Local MCP against a laptop build needs a served index and
 `RECIPES_MCP_ALLOWED_SOURCE_HOSTS=localhost`. A bare `GET /mcp` returns 406;
