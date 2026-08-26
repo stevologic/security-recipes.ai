@@ -169,8 +169,8 @@ opens `automation/content-refresh-*` and labels it
 `daily_limit` in `data/cve/leftover-review-state.json` (currently 100).
 The Grok pass live-checks GHAD and NVD and **rewrites those files in place**.
 It must not promote them to `maturity: stable` without a verified named floor.
-After edits it runs `scripts/sync_cve_catalog.py --markdown-only`. Those pages
-stay development.
+The leftover-review prompt then requires
+`scripts/sync_cve_catalog.py --markdown-only`. Those pages stay development.
 
 ## Committed vs generated at build
 
