@@ -44,6 +44,7 @@ test('forced manifest refresh bypasses a stale browser cache', () => {
 
 test('broad search requires valid metadata and stale recovery has one automatic refresh', () => {
   assert.equal(controller.catalogSearchMode(null), 'metadata-unavailable');
+  assert.equal(controller.catalogSearchMode({}), 'metadata-unavailable');
   assert.equal(controller.catalogSearchMode({ browser_index: {} }), 'legacy-worker');
   assert.equal(controller.catalogSearchMode({ search_api: { path: 'search' } }), 'api');
   assert.equal(controller.canAutoRefreshStaleRevision(0), true);
@@ -193,6 +194,77 @@ function agenticManifestMetadata() {
     phases: 7,
     ecosystems: 11,
     target_hints: 93
+  };
+}
+
+function runtimeSummaryMetadata(searchMetadata = {}) {
+  return {
+    schema_version: 2,
+    totals: {
+      catalog_records: 264423,
+      in_scope_kev: 1278,
+      coverage_percent: 100,
+      agentic_coverage_percent: 100,
+      stable_markdown_overrides: 6
+    },
+    by_severity: { critical: 40982, high: 111353, medium: 112088 },
+    scope: { published_start: '2016-07-12', published_end: '2026-07-12' },
+    by_publication_year: { 2025: 100, 2026: 200 },
+    archetypes: {
+      path: 'archetypes.json',
+      sha256: 'b'.repeat(64),
+      bytes: 50000,
+      agentic_contract: agenticManifestMetadata()
+    },
+    shard_set_sha256: 'c'.repeat(64),
+    ...searchMetadata
+  };
+}
+
+function browserIndexManifestMetadata() {
+  return {
+    path: 'browser-index.json.gz',
+    sha256: 'a'.repeat(64),
+    bytes: 3303059,
+    uncompressed_bytes: 19313638,
+    records: 264423
+  };
+}
+
+function searchApiManifestMetadata() {
+  return {
+    schema_version: 1,
+    path: 'search',
+    max_query_length: 120,
+    max_results: 100
+  };
+}
+
+function recordApiManifestMetadata() {
+  return {
+    schema_version: 1,
+    path: 'records/{cve}',
+    max_response_bytes: 524288
+  };
+}
+
+function byteStreamBody(chunks, onCancel) {
+  let index = 0;
+  return {
+    getReader() {
+      return {
+        read() {
+          if (index >= chunks.length) return Promise.resolve({ done: true, value: undefined });
+          const value = chunks[index];
+          index += 1;
+          return Promise.resolve({ done: false, value });
+        },
+        cancel(reason) {
+          const cancellation = onCancel ? onCancel(reason) : undefined;
+          return cancellation === undefined ? Promise.resolve() : cancellation;
+        }
+      };
+    }
   };
 }
 
@@ -564,40 +636,12 @@ test('archetype validation fails closed when rollback or executable phase metada
   assert.throws(() => controller.validateArchetypes(vendorSourceEdit), /ecosystem target hint/);
 });
 
-test('runtime summary metadata produces coverage without loading the browser index', () => {
-  const manifest = controller.validateManifest({
-    schema_version: 2,
-    totals: {
-      catalog_records: 264423,
-      in_scope_kev: 1278,
-      coverage_percent: 100,
-      agentic_coverage_percent: 100,
-      stable_markdown_overrides: 6
-    },
-    by_severity: { critical: 40982, high: 111353, medium: 112088 },
-    scope: { published_start: '2016-07-12', published_end: '2026-07-12' },
-    by_publication_year: { 2025: 100, 2026: 200 },
-    browser_index: {
-      path: 'browser-index.json.gz',
-      sha256: 'a'.repeat(64),
-      bytes: 3303059,
-      uncompressed_bytes: 19313638,
-      records: 264423
-    },
-    archetypes: {
-      path: 'archetypes.json',
-      sha256: 'b'.repeat(64),
-      bytes: 50000,
-      agentic_contract: agenticManifestMetadata()
-    },
-    search_api: {
-      schema_version: 1,
-      path: 'search',
-      max_query_length: 120,
-      max_results: 100
-    },
-    shard_set_sha256: 'c'.repeat(64)
-  });
+test('API-only runtime summary is valid without browser index metadata', () => {
+  const manifest = controller.validateManifest(runtimeSummaryMetadata({
+    search_api: searchApiManifestMetadata()
+  }));
+  assert.equal(controller.catalogSearchMode(manifest), 'api');
+  assert.equal(manifest.browser_index, undefined);
   const summary = controller.manifestCoverageText(manifest);
   assert.match(summary, /264,423 medium\/high\/critical CVEs/);
   assert.match(summary, /40,982 critical/);
@@ -605,6 +649,206 @@ test('runtime summary metadata produces coverage without loading the browser ind
   assert.match(summary, /1,278 CISA KEV/);
   assert.match(summary, /100% composed-recipe coverage/);
   assert.match(summary, /100% agentic mitigation\/remediation coverage/);
+});
+
+test('legacy-only runtime summary preserves the browser worker fallback', () => {
+  const manifest = controller.validateManifest(runtimeSummaryMetadata({
+    browser_index: browserIndexManifestMetadata()
+  }));
+  assert.equal(controller.catalogSearchMode(manifest), 'legacy-worker');
+  assert.equal(controller.fullRecordLookupMode(manifest), 'shard');
+  assert.equal(controller.shardPathForCve('CVE-2024-3400'), 'shards/2024/0003.jsonl.gz');
+  assert.equal(manifest.search_api, undefined);
+});
+
+test('runtime summary without an API or browser index is invalid', () => {
+  assert.throws(
+    () => controller.validateManifest(runtimeSummaryMetadata()),
+    /requires search API or browser index metadata/
+  );
+});
+
+test('record API descriptor is optional but must match its exact bounded contract', () => {
+  const withoutRecordApi = runtimeSummaryMetadata({
+    search_api: searchApiManifestMetadata()
+  });
+  assert.equal(controller.validateManifest(withoutRecordApi), withoutRecordApi);
+
+  const withRecordApi = runtimeSummaryMetadata({
+    search_api: searchApiManifestMetadata(),
+    record_api: recordApiManifestMetadata()
+  });
+  assert.equal(controller.validateManifest(withRecordApi), withRecordApi);
+
+  for (const record_api of [
+    { ...recordApiManifestMetadata(), schema_version: 2 },
+    { ...recordApiManifestMetadata(), path: '../records/{cve}' },
+    { ...recordApiManifestMetadata(), path: 'records/{id}' },
+    { ...recordApiManifestMetadata(), max_response_bytes: 524287 },
+    { ...recordApiManifestMetadata(), max_response_bytes: '524288' },
+    null
+  ]) {
+    assert.throws(
+      () => controller.validateManifest({ ...withRecordApi, record_api }),
+      /record API metadata/
+    );
+  }
+});
+
+test('record API is preferred and pins the canonical ID to the catalog revision', async () => {
+  const manifest = controller.validateManifest(runtimeSummaryMetadata({
+    search_api: searchApiManifestMetadata(),
+    record_api: recordApiManifestMetadata()
+  }));
+  const base = new URL('https://security-recipes.test/api/cve-catalog/');
+  const expectedUrl = new URL(
+    `records/CVE-2024-3400?revision=${manifest.shard_set_sha256}`,
+    base
+  ).toString();
+  const expectedRecord = { cve: 'CVE-2024-3400', title: 'Canonical record' };
+  let request;
+
+  const record = await controller.fetchRecordApi((url, options) => {
+    request = { url, options };
+    const body = JSON.stringify({
+      schema_version: 1,
+      revision: manifest.shard_set_sha256,
+      record: expectedRecord
+    });
+    const encoded = new TextEncoder().encode(body);
+    const midpoint = Math.floor(encoded.byteLength / 2);
+    return Promise.resolve({
+      ok: true,
+      status: 200,
+      url,
+      headers: { get: (name) => name.toLowerCase() === 'content-length' ? String(encoded.byteLength) : null },
+      body: byteStreamBody([encoded.slice(0, midpoint), encoded.slice(midpoint)]),
+      text: () => Promise.reject(new Error('the streaming reader must be preferred'))
+    });
+  }, base, manifest.record_api, 'CVE-2024-3400', manifest.shard_set_sha256);
+
+  assert.equal(controller.fullRecordLookupMode(manifest), 'record-api');
+  assert.equal(request.url, expectedUrl);
+  assert.equal(request.options.credentials, 'same-origin');
+  assert.equal(request.options.headers.Accept, 'application/json');
+  assert.deepEqual(record, expectedRecord);
+  assert.equal(
+    controller.fullRecordCacheKey('cve-2024-3400', manifest.shard_set_sha256),
+    `${manifest.shard_set_sha256}:CVE-2024-3400`
+  );
+  assert.notEqual(
+    controller.fullRecordCacheKey('CVE-2024-3400', 'd'.repeat(64)),
+    controller.fullRecordCacheKey('CVE-2024-3400', manifest.shard_set_sha256),
+    'full records from different catalog revisions must not share an LRU entry'
+  );
+});
+
+test('record API rejects malformed, redirected, mismatched, and oversized responses', async () => {
+  const revision = 'c'.repeat(64);
+  const valid = {
+    schema_version: 1,
+    revision,
+    record: { cve: 'CVE-2024-3400', title: 'Canonical record' }
+  };
+  assert.throws(
+    () => controller.validateRecordApiResponse({ ...valid, schema_version: 2 }, 'CVE-2024-3400', revision),
+    /record response is invalid/
+  );
+  assert.throws(
+    () => controller.validateRecordApiResponse({ ...valid, revision: 'd'.repeat(64) }, 'CVE-2024-3400', revision),
+    /record response is invalid/
+  );
+  assert.throws(
+    () => controller.validateRecordApiResponse({ ...valid, record: { cve: 'CVE-2024-34000' } }, 'CVE-2024-3400', revision),
+    /record response is invalid/
+  );
+
+  const base = new URL('https://security-recipes.test/api/cve-catalog/');
+  const metadata = recordApiManifestMetadata();
+  await assert.rejects(
+    controller.fetchRecordApi((url) => Promise.resolve({
+      ok: true,
+      status: 200,
+      url: url.replace('security-recipes.test', 'redirect.test'),
+      headers: { get: () => null },
+      text: () => Promise.resolve(JSON.stringify(valid))
+    }), base, metadata, 'CVE-2024-3400', revision),
+    (error) => error.catalogCode === 'record-api-redirect'
+  );
+
+  await assert.rejects(
+    controller.fetchRecordApi((url) => Promise.resolve({
+      ok: false,
+      status: 409,
+      url,
+      headers: { get: () => null },
+      text: () => Promise.resolve('{}')
+    }), base, metadata, 'CVE-2024-3400', revision),
+    (error) => error.catalogCode === 'record-api-stale' && error.staleRevision === revision
+  );
+
+  let bodyRead = false;
+  await assert.rejects(
+    controller.boundedRecordApiText({
+      headers: { get: () => String(controller.MAX_RECORD_API_RESPONSE_BYTES + 1) },
+      text: () => {
+        bodyRead = true;
+        return Promise.resolve('{}');
+      }
+    }, controller.MAX_RECORD_API_RESPONSE_BYTES),
+    (error) => error.catalogCode === 'record-response-too-large'
+  );
+  assert.equal(bodyRead, false, 'an oversized Content-Length must stop before the body is read');
+
+  let streamCancelled = false;
+  await assert.rejects(
+    controller.boundedRecordApiText({
+      headers: { get: () => null },
+      body: byteStreamBody([
+        new Uint8Array(controller.MAX_RECORD_API_RESPONSE_BYTES),
+        new Uint8Array(1)
+      ], () => {
+        streamCancelled = true;
+      }),
+      text: () => Promise.reject(new Error('the streaming reader must be preferred'))
+    }, controller.MAX_RECORD_API_RESPONSE_BYTES),
+    (error) => error.catalogCode === 'record-response-too-large'
+  );
+  assert.equal(streamCancelled, true, 'an oversized stream must be cancelled at the first excess byte');
+
+  let neverSettlingCancelCalled = false;
+  await assert.rejects(
+    controller.boundedRecordApiText({
+      headers: { get: () => null },
+      body: byteStreamBody([
+        new Uint8Array(controller.MAX_RECORD_API_RESPONSE_BYTES),
+        new Uint8Array(1)
+      ], () => {
+        neverSettlingCancelCalled = true;
+        return new Promise(() => {});
+      }),
+      text: () => Promise.reject(new Error('the streaming reader must be preferred'))
+    }, controller.MAX_RECORD_API_RESPONSE_BYTES),
+    (error) => error.catalogCode === 'record-response-too-large'
+  );
+  assert.equal(
+    neverSettlingCancelCalled,
+    true,
+    'overflow rejection must not wait for stream cancellation to settle'
+  );
+
+  let fallbackBodyRead = false;
+  await assert.rejects(
+    controller.boundedRecordApiText({
+      headers: { get: () => null },
+      text: () => {
+        fallbackBodyRead = true;
+        return Promise.resolve('unbounded fallback');
+      }
+    }, controller.MAX_RECORD_API_RESPONSE_BYTES),
+    (error) => error.catalogCode === 'invalid-record-response'
+  );
+  assert.equal(fallbackBodyRead, false, 'a non-streaming response must fail before reading its body');
 });
 
 test('qualified CVE routes come only from the server-rendered search allowlist', () => {
@@ -1073,6 +1317,11 @@ test('controller never parses the full index and feed Markdown is never injected
     controllerSource,
     /response\.status === 409[\s\S]*?'search-api-stale'[\s\S]*?canAutoRefreshStaleRevision\(revisionRefreshes\)[\s\S]*?loadManifest\(true\)[\s\S]*?manifest\.shard_set_sha256 === error\.staleRevision[\s\S]*?runSearch\(revisionRefreshes \+ 1\)/,
     'a revision mismatch spends one automatic refresh token before requiring a user retry'
+  );
+  assert.match(
+    controllerSource,
+    /'record-api-stale'[\s\S]*?canAutoRefreshStaleRevision\(revisionRefreshes\)[\s\S]*?loadManifest\(true\)[\s\S]*?manifest\.shard_set_sha256 === error\.staleRevision[\s\S]*?runSearch\(revisionRefreshes \+ 1\)/,
+    'an exact-record revision mismatch also spends one automatic refresh token before requiring a user retry'
   );
   assert.match(
     controllerSource,

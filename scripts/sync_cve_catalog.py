@@ -103,6 +103,11 @@ SEARCH_API_RUNTIME = {
     "max_query_length": 120,
     "max_results": 100,
 }
+RECORD_API_RUNTIME = {
+    "schema_version": 1,
+    "path": "records/{cve}",
+    "max_response_bytes": 512 * 1024,
+}
 MAX_STABLE_MARKDOWN_BYTES = 256 * 1024
 ARCHETYPE_LIST_FIELDS = (
     "exposure_checks",
@@ -2564,6 +2569,7 @@ def build_outputs(
         "by_publication_year": manifest["by_publication_year"],
         "ai_enrichment_models": manifest["ai_enrichment_models"],
         "search_api": SEARCH_API_RUNTIME,
+        "record_api": RECORD_API_RUNTIME,
         "browser_index": browser_manifest,
         "archetypes": archetypes_manifest,
         "shard_set_sha256": shard_set_sha256,
@@ -3143,6 +3149,7 @@ def rebuild_search_index(output_dir: Path, *, dry_run: bool = False) -> dict[str
         "by_publication_year": manifest.get("by_publication_year"),
         "ai_enrichment_models": manifest.get("ai_enrichment_models"),
         "search_api": SEARCH_API_RUNTIME,
+        "record_api": RECORD_API_RUNTIME,
         "browser_index": manifest.get("browser_index"),
         "archetypes": manifest.get("archetypes_asset"),
         "shard_set_sha256": manifest.get("shard_set_sha256"),

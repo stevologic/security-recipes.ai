@@ -308,12 +308,15 @@ The complete CVE catalog is also available without MCP:
   rate-limited at nginx, and returns at most 100 previews. The production MCP
   image serves it from a read-only SQLite FTS database built and whole-file
   verified against the same manifest. Focus alone and an incomplete
-  `CVE-YYYY-NNNN` identifier make no search request; a complete identifier goes
-  directly to its deterministic shard.
+  `CVE-YYYY-NNNN` identifier make no search request.
+- `/api/cve-catalog/records/{cve}` is the bounded, same-origin exact-record
+  endpoint. Every request pins the shard-set revision, and the MCP service
+  verifies and opens only the one deterministic shard containing that CVE.
+  Current browsers use this endpoint instead of learning the shard namespace.
 - `/api/cve-catalog/browser-index.json.gz` remains for one compatibility
-  release when an older runtime summary does not declare the API. Current
-  browsers do not download it when the API is declared, so visitors no longer
-  pay the complete-corpus transfer or memory cost.
+  window when an older runtime summary does not declare the search and record
+  APIs. Current browsers do not download it when the APIs are declared, so
+  visitors no longer pay the complete-corpus transfer or memory cost.
 - Canonical CVE pages server-render their overview, affected-version evidence,
   selected remediation authority, AI implementation and verification handoff,
   sources, provenance, citation, and schema. They do not embed or hydrate the
@@ -473,17 +476,18 @@ no-ops when that secret is missing or the leftover-gold queue is empty.
 
 The runtime paths are deliberately bounded for catalog-scale traffic:
 
-- the hub bootstraps from the compact runtime summary, exact lookups transfer
-  one integrity-hashed shard, and title/product/vendor/filter search calls the
-  revision-pinned same-origin API only after explicit search intent;
+- the hub bootstraps from the compact runtime summary, exact lookups call the
+  revision-pinned same-origin record API, and title/product/vendor/filter
+  search calls the search API only after explicit search intent;
 - broad search returns at most 100 previews from immutable read-only SQLite,
   has a three-second HTTP boundary, and never decodes the complete catalog in
   a visitor process or on the browser main thread;
-- MCP metadata and exact retrieval remain shard-only; non-exact text search
-  uses the same manifest-pinned SQLite database behind a dedicated executor,
-  bounded admission queue, query deadlines, and nginx rate limit;
-- immutable browser cache keys come from the actual browser-index, archetype,
-  and shard-set hashes rather than an upstream timestamp.
+- the exact-record service verifies and opens one shard per request; MCP exact
+  retrieval uses the same shard-only path, while non-exact text search uses the
+  manifest-pinned SQLite database behind a dedicated executor, bounded
+  admission queue, query deadlines, and nginx rate limit;
+- immutable browser cache keys come from the declared record/search contract,
+  archetype hash, and shard-set revision rather than an upstream timestamp.
 
 The implemented build boundary, exact-shard delivery model, evidence-gated SEO
 policy, SQLite search runtime, and remaining artifact-publication migration are documented in
@@ -558,7 +562,20 @@ http://localhost:8080
 `npm run serve` watches for changes and rebuilds incrementally. A one-off
 production build is `npm run build` (output lands in `public/`). The build
 performs a Python/dependency preflight before deleting an existing output and
-then uses the same CVE renderer as the MCP runtime.
+then uses the same CVE renderer as the MCP runtime. Eleventy deliberately does
+not passthrough-copy `static/api/cve-catalog/`: after page materialization, a
+bounded post-build step rejects links, orphan files, unsafe paths, and
+manifest byte/hash mismatches before installing that catalog subtree. Static
+assets outside the catalog, including root dotfiles, retain normal passthrough
+behavior.
+
+For an isolated catalog build, set
+`SECURITY_RECIPES_CVE_CATALOG_ROOT` to its absolute publication directory.
+Eleventy data, qualified-page materialization, and the validated catalog copy
+all use that same root. `npm run serve` does not rerun the materializer or
+catalog copy, so run `npm run build` once first when you need canonical
+`/cve/<ID>/` pages and the catalog API tree in the development server; later
+incremental rebuilds retain those post-build outputs.
 
 ## Docker Compose
 

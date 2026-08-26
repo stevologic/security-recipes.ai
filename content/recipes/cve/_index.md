@@ -47,10 +47,11 @@ artifacts for companies and agents. The partition manifest points to compressed
 publication-year indexes; those indexes map every in-scope CVE to an
 integrity-hashed full-record shard. The interactive browser uses a separate
 compact [runtime summary](/api/cve-catalog/runtime-summary.json) for its initial
-coverage and content-version metadata, then loads the compressed
-[worker search index](/api/cve-catalog/browser-index.json.gz) only for a title
-or filter search. The worker index covers every in-scope record and is decoded
-off the page's main thread; a browser page never parses the machine partitions.
+coverage, content-version metadata, and revision-pinned search and exact-record
+API contracts. It queries the bounded server-side search index only after
+explicit search intent and retrieves an exact CVE through the record API. A
+browser page never parses the machine partitions or downloads the complete
+catalog.
 
 Agents have the same catalog coverage through the dedicated MCP tools.
 `recipes_cve_search` searches the in-scope Medium/High/Critical index, while
@@ -211,12 +212,13 @@ Start with the exact CVE ID in the complete catalog:
 
 ## Complete CVE catalog
 
-Search every in-scope record. Exact CVE lookups fetch one derived compressed
-shard. Title and filter searches run against a smaller compressed index in a
-Web Worker, outside the page's main thread. Expanding a result fetches its full
-source record and all applicable remediation archetypes from one shard, then
-expands the shared agentic contract into ordered code/file actions. The seven
-phase groups are collapsible so a detailed plan remains navigable.
+Search every in-scope record through the bounded server-side index. Exact CVE
+lookups use the revision-pinned record API, whose server verifies and opens one
+derived shard without exposing that storage layout to the browser. Selecting a
+result returns the full source record, applicable remediation archetypes, and
+the shared agentic contract with ordered code/file actions. The complete-corpus
+worker asset and direct shard fetch remain only for compatibility with older
+cached runtime summaries.
 
 <div data-cve-catalog data-cve-catalog-base="/api/cve-catalog/"></div>
 

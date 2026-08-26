@@ -25,6 +25,17 @@ const CONTENT = path.resolve("content/recipes/cve");
 const PLAYBOOK_CONTENT = path.resolve("content/security-remediation");
 const MiB = 1024 * 1024;
 const KiB = 1024;
+const SEARCH_API_CONTRACT = Object.freeze({
+  schema_version: 1,
+  path: "search",
+  max_query_length: 120,
+  max_results: 100,
+});
+const RECORD_API_CONTRACT = Object.freeze({
+  schema_version: 1,
+  path: "records/{cve}",
+  max_response_bytes: 512 * KiB,
+});
 const failures = [];
 const indexableTitles = new Map();
 const indexableDescriptions = new Map();
@@ -99,6 +110,17 @@ function readJson(file) {
     fail(`invalid JSON in ${file}: ${error.message}`);
     return null;
   }
+}
+
+function exactlyMatchesContract(value, expected) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const actualKeys = Object.keys(value).sort();
+  const expectedKeys = Object.keys(expected).sort();
+  return (
+    actualKeys.length === expectedKeys.length &&
+    actualKeys.every((key, index) => key === expectedKeys[index]) &&
+    expectedKeys.every((key) => value[key] === expected[key])
+  );
 }
 
 function sha256(file) {
@@ -863,7 +885,23 @@ if (cveArchiveHtml.length > 750) {
 }
 budget("CVE archive HTML", cveArchiveHtmlBytes, 120 * MiB);
 budget("largest CVE archive page", largestCveArchiveHtml, 512 * KiB);
-budget("CVE browser index", size("api/cve-catalog/browser-index.json.gz"), 8 * MiB);
+const runtimeSummary = readJson("api/cve-catalog/runtime-summary.json");
+const hasBoundedCatalogApis =
+  runtimeSummary?.schema_version === 2 &&
+  exactlyMatchesContract(runtimeSummary.search_api, SEARCH_API_CONTRACT) &&
+  exactlyMatchesContract(runtimeSummary.record_api, RECORD_API_CONTRACT);
+// One rollback window retains the complete browser index. API-capable clients
+// never request it, so a 500k projection may use the documented compatibility
+// ceiling; legacy/no-API output retains the original transfer budget.
+const browserIndexBudget = hasBoundedCatalogApis ? 16 * MiB : 8 * MiB;
+budget("CVE browser index", size("api/cve-catalog/browser-index.json.gz"), browserIndexBudget);
+if (hasBoundedCatalogApis) {
+  for (const [route, html] of htmlOutputs) {
+    if (/browser-index\.json\.gz/i.test(html)) {
+      fail(`API-capable HTML eagerly references the compatibility browser index: ${route}`);
+    }
+  }
+}
 budget("CVE complete index manifest", size("api/cve-catalog/index.json"), 1 * MiB);
 budget("CVE runtime summary", size("api/cve-catalog/runtime-summary.json"), 8 * KiB);
 budget("CVE manifest", size("api/cve-catalog/manifest.json"), 256 * KiB);

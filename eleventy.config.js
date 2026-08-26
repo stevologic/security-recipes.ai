@@ -34,7 +34,11 @@ const { isDiscoveryPage, canonicalUrlForPage } = contentIndex;
 const CVE_SITEMAP_URL_LIMIT = 49_000;
 const CVE_ARCHIVE_PAGE_SIZE = 500;
 const CANONICAL_CVE_ID = /^CVE-\d{4}-\d{4,}$/;
-const CVE_CATALOG_ROOT = path.join(__dirname, "static", "api", "cve-catalog");
+const DEFAULT_CVE_CATALOG_ROOT = path.join(__dirname, "static", "api", "cve-catalog");
+const CVE_CATALOG_ROOT = path.resolve(
+  String(process.env.SECURITY_RECIPES_CVE_CATALOG_ROOT || "").trim() ||
+    DEFAULT_CVE_CATALOG_ROOT,
+);
 const GENERATED_TAG_PAGE_SEO = Object.freeze({
   noindex: true,
   noindex_follow: true,
@@ -54,6 +58,29 @@ const AI_CRAWLER_USER_AGENTS = Object.freeze([
   "cohere-ai",
   "CCBot",
 ]);
+
+// Keep the large catalog outside Eleventy's passthrough graph. It is copied
+// from its validated publication root after Eleventy and the qualified-page
+// materializer finish. Register every other static entry explicitly so root
+// dotfiles (notably .nojekyll) retain the same passthrough behavior.
+function addStaticPassthroughCopies(eleventyConfig) {
+  const staticRoot = path.join(__dirname, "static");
+  for (const entry of fs.readdirSync(staticRoot, { withFileTypes: true })) {
+    if (entry.name === "api") {
+      const apiRoot = path.join(staticRoot, entry.name);
+      for (const apiEntry of fs.readdirSync(apiRoot, { withFileTypes: true })) {
+        if (apiEntry.name === "cve-catalog") continue;
+        eleventyConfig.addPassthroughCopy({
+          [`static/api/${apiEntry.name}`]: `api/${apiEntry.name}`,
+        });
+      }
+      continue;
+    }
+    eleventyConfig.addPassthroughCopy({
+      [`static/${entry.name}`]: entry.name,
+    });
+  }
+}
 
 function robotsGroup(userAgent) {
   return [
@@ -775,7 +802,7 @@ module.exports = function (eleventyConfig) {
   eleventyConfig.markdownTemplateEngine = false;
 
   // ---------- static assets ----------
-  eleventyConfig.addPassthroughCopy({ static: "/" });
+  addStaticPassthroughCopies(eleventyConfig);
   eleventyConfig.addPassthroughCopy({ "assets/js": "js" });
   eleventyConfig.addPassthroughCopy({ "assets/css": "css" });
 
@@ -1228,4 +1255,9 @@ module.exports.robotsPolicy = {
 
 module.exports.toc = {
   extractTocEntries,
+};
+
+module.exports.catalogBuildBoundary = {
+  catalogRoot: CVE_CATALOG_ROOT,
+  addStaticPassthroughCopies,
 };

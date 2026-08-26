@@ -1710,6 +1710,8 @@ class CveLandingRenderTests(unittest.TestCase):
         ).strip()
         self.assertIn("Run the evidence-preservation gate before reboot", pan_os_text)
         self.assertIn("enhanced factory reset (EFR)", pan_os_text)
+        self.assertNotIn("~~~", pan_os_page)
+        self.assertNotIn("TRIAGE.md stop conditions", pan_os_text)
         self.assertNotIn(
             "Vulnerabilities catalog from Palo Alto Networks due date of",
             pan_os_text,

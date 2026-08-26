@@ -3995,6 +3995,45 @@ class CVERecipeCatalog:
         )
         return composed
 
+    def get_record(
+        self,
+        cve: str,
+        *,
+        expected_revision: str | None = None,
+    ) -> dict[str, Any] | None:
+        """Return one verified source record pinned to an optional catalog revision."""
+
+        cve_id = str(cve or "").strip().upper()
+        if not self.CVE_RE.fullmatch(cve_id):
+            raise ValueError("cve must use the canonical CVE-YYYY-NNNN form")
+        revision_key = None
+        if expected_revision is not None:
+            revision_key = str(expected_revision).strip().lower()
+            if not re.fullmatch(r"[0-9a-f]{64}", revision_key):
+                raise ValueError("expected_revision must be a 64-character SHA-256")
+
+        while True:
+            self._load_core()
+            with self._core_lock:
+                core_signature = self._core_signature
+                active_revision = self._manifest_revision(self._manifest)
+                if revision_key is not None and active_revision != revision_key:
+                    raise _CVECatalogRevisionMismatchError(
+                        revision_key,
+                        active_revision,
+                    )
+            record = self._full_record(cve_id)
+            with self._core_lock:
+                if self._core_signature != core_signature:
+                    continue
+                active_revision = self._manifest_revision(self._manifest)
+                if revision_key is not None and active_revision != revision_key:
+                    raise _CVECatalogRevisionMismatchError(
+                        revision_key,
+                        active_revision,
+                    )
+                return deepcopy(record) if record is not None else None
+
     def get_recipe(self, cve: str) -> dict[str, Any]:
         cve_id = str(cve or "").strip().upper()
         if not self.CVE_RE.fullmatch(cve_id):
@@ -12673,6 +12712,12 @@ public_mcp_server_catalog = PublicMCPServerCatalog(config.public_mcp_server_cata
 # and unrelated MCP tools.
 cve_text_search_executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="cve-text-search")
 cve_text_search_admission = threading.BoundedSemaphore(value=8)
+# Public exact-record lookups are cheap and shard-bounded, but cold reads still
+# hash and decompress data. Isolate them from asyncio's shared executor and cap
+# both active and queued work so abusive traffic cannot starve unrelated MCP
+# tools after an nginx request has already timed out.
+cve_record_executor = ThreadPoolExecutor(max_workers=4, thread_name_prefix="cve-record")
+cve_record_admission = threading.BoundedSemaphore(value=16)
 
 _CVE_PUBLIC_SEARCH_ALLOWED_PARAMS = frozenset(
     {"q", "severity", "year", "kev", "limit", "revision"}
@@ -12684,6 +12729,9 @@ _CVE_PUBLIC_SEARCH_RETRY_AFTER_SECONDS = 2
 _CVE_PUBLIC_SEARCH_CACHE_CONTROL = (
     "public, max-age=300, stale-while-revalidate=3600"
 )
+_CVE_PUBLIC_RECORD_ALLOWED_PARAMS = frozenset({"revision"})
+_CVE_PUBLIC_RECORD_MAX_BYTES = 512 * 1024
+_CVE_PUBLIC_RECORD_TIMEOUT_SECONDS = 8
 
 
 class _CVETextSearchBusyError(RuntimeError):
@@ -12705,6 +12753,27 @@ def _submit_cve_text_search(search_call: Any) -> Any:
         lambda _, acquired_admission=admission: acquired_admission.release()
     )
     return concurrent_search
+
+
+class _CVERecordBusyError(RuntimeError):
+    """Raised when the bounded exact-record admission queue is full."""
+
+
+def _submit_cve_record(record_call: Any) -> Any:
+    """Submit one exact lookup to its isolated executor with bounded admission."""
+
+    admission = cve_record_admission
+    if not admission.acquire(blocking=False):
+        raise _CVERecordBusyError("the CVE exact-record queue is full")
+    try:
+        concurrent_record = cve_record_executor.submit(record_call)
+    except Exception:
+        admission.release()
+        raise
+    concurrent_record.add_done_callback(
+        lambda _, acquired_admission=admission: acquired_admission.release()
+    )
+    return concurrent_record
 
 
 control_plane = WorkflowControlPlane(config.control_plane_manifest_path)
@@ -15007,6 +15076,50 @@ _CVE_LANDING_ACTION_RE = re.compile(
 )
 
 
+def _cve_landing_markdown_headings(source: str) -> list[tuple[int, str, int, int]]:
+    """Return ATX headings outside fenced code with absolute source offsets."""
+
+    headings: list[tuple[int, str, int, int]] = []
+    fence_char = ""
+    fence_length = 0
+    offset = 0
+    for raw_line in source.splitlines(keepends=True):
+        line = raw_line.rstrip("\r\n")
+        if fence_char:
+            closing = re.match(r"^[ \t]{0,3}(?P<fence>`{3,}|~{3,})[ \t]*$", line)
+            if closing:
+                fence = closing.group("fence")
+                if fence[0] == fence_char and len(fence) >= fence_length:
+                    fence_char = ""
+                    fence_length = 0
+            offset += len(raw_line)
+            continue
+
+        opening = re.match(r"^[ \t]{0,3}(?P<fence>`{3,}|~{3,})(?:.*)$", line)
+        if opening:
+            fence = opening.group("fence")
+            fence_char = fence[0]
+            fence_length = len(fence)
+            offset += len(raw_line)
+            continue
+
+        heading = re.match(
+            r"^(?P<marks>#{1,6})[ \t]+(?P<title>.+?)\s*#*\s*$",
+            line,
+        )
+        if heading:
+            headings.append(
+                (
+                    len(heading.group("marks")),
+                    heading.group("title"),
+                    offset + heading.start(),
+                    offset + heading.end(),
+                )
+            )
+        offset += len(raw_line)
+    return headings
+
+
 def _cve_landing_reviewed_section(
     reviewed: dict[str, Any],
     heading_pattern: re.Pattern[str],
@@ -15014,24 +15127,17 @@ def _cve_landing_reviewed_section(
     """Return one complete bounded Markdown section and whether it was clipped."""
 
     source = str(reviewed.get("content_markdown") or "")
-    headings = list(
-        re.finditer(
-            r"^(?P<marks>#{1,6})[ \t]+(?P<title>.+?)\s*#*\s*$",
-            source,
-            flags=re.MULTILINE,
-        )
-    )
-    for index, heading in enumerate(headings):
-        title = _cve_landing_plain_markdown_text(heading.group("title"), 240)
+    headings = _cve_landing_markdown_headings(source)
+    for index, (level, raw_title, _start, heading_end) in enumerate(headings):
+        title = _cve_landing_plain_markdown_text(raw_title, 240)
         if not heading_pattern.match(title):
             continue
-        level = len(heading.group("marks"))
         end = len(source)
-        for following in headings[index + 1 :]:
-            if len(following.group("marks")) <= level:
-                end = following.start()
+        for following_level, _title, following_start, _end in headings[index + 1 :]:
+            if following_level <= level:
+                end = following_start
                 break
-        section = source[heading.end() : end].strip()
+        section = source[heading_end:end].strip()
         if len(section) <= _CVE_LANDING_REVIEWED_SECTION_LIMIT:
             return section, False
 
@@ -16541,6 +16647,43 @@ def _cve_public_search_error(
     )
 
 
+def _cve_public_record_error(
+    *,
+    status_code: int,
+    error: str,
+    message: str,
+    retry_after: int | None = None,
+) -> JSONResponse:
+    return JSONResponse(
+        {
+            "schema_version": 1,
+            "error": error,
+            "message": message,
+        },
+        status_code=status_code,
+        headers=_cve_public_search_headers(
+            cacheable=False,
+            retry_after=retry_after,
+        ),
+    )
+
+
+def _parse_cve_public_record_revision(request: Request) -> str:
+    values: dict[str, str] = {}
+    for key, value in request.query_params.multi_items():
+        if key not in _CVE_PUBLIC_RECORD_ALLOWED_PARAMS:
+            raise _CVEQueryError("Only revision is supported.")
+        if key in values:
+            raise _CVEQueryError("Query parameter 'revision' may appear only once.")
+        values[key] = value
+    if "revision" not in values:
+        raise _CVEQueryError("revision is required.")
+    revision = values["revision"].strip().lower()
+    if not re.fullmatch(r"[0-9a-f]{64}", revision):
+        raise _CVEQueryError("revision must be a lowercase 64-character SHA-256.")
+    return revision
+
+
 def _parse_cve_public_search_params(request: Request) -> dict[str, Any]:
     values: dict[str, str] = {}
     for key, value in request.query_params.multi_items():
@@ -16603,6 +16746,111 @@ def _parse_cve_public_search_params(request: Request) -> dict[str, Any]:
         "limit": limit,
         "revision": revision,
     }
+
+
+@mcp.custom_route(
+    "/api/cve-catalog/records/{cve_id}",
+    methods=["GET"],
+    name="cve-catalog-record",
+    include_in_schema=False,
+)
+async def cve_catalog_record(request: Request) -> Response:
+    """Serve one revision-pinned source record without exposing shard storage."""
+
+    cve_id = str(request.path_params.get("cve_id") or "").strip().upper()
+    if not CVERecipeCatalog.CVE_RE.fullmatch(cve_id):
+        return _cve_public_record_error(
+            status_code=400,
+            error="invalid_cve",
+            message="cve_id must use the canonical CVE-YYYY-NNNN form.",
+        )
+    try:
+        revision = _parse_cve_public_record_revision(request)
+    except _CVEQueryError as exc:
+        return _cve_public_record_error(
+            status_code=400,
+            error="invalid_request",
+            message=str(exc),
+        )
+
+    record_call = partial(
+        cve_catalog.get_record,
+        cve_id,
+        expected_revision=revision,
+    )
+    try:
+        concurrent_record = _submit_cve_record(record_call)
+    except _CVERecordBusyError:
+        return _cve_public_record_error(
+            status_code=429,
+            error="record_busy",
+            message="CVE record lookup is busy. Retry shortly.",
+            retry_after=_CVE_PUBLIC_SEARCH_RETRY_AFTER_SECONDS,
+        )
+    except Exception:
+        return _cve_public_record_error(
+            status_code=503,
+            error="record_unavailable",
+            message="The CVE record is temporarily unavailable.",
+            retry_after=_CVE_PUBLIC_SEARCH_RETRY_AFTER_SECONDS,
+        )
+
+    try:
+        record = await asyncio.wait_for(
+            asyncio.wrap_future(concurrent_record),
+            timeout=_CVE_PUBLIC_RECORD_TIMEOUT_SECONDS,
+        )
+    except _CVECatalogRevisionMismatchError:
+        return _cve_public_record_error(
+            status_code=409,
+            error="catalog_revision_mismatch",
+            message="The catalog changed. Refresh its manifest and retry this lookup.",
+        )
+    except TimeoutError:
+        concurrent_record.cancel()
+        return _cve_public_record_error(
+            status_code=503,
+            error="record_timeout",
+            message="CVE record lookup exceeded its bounded runtime. Retry shortly.",
+            retry_after=_CVE_PUBLIC_SEARCH_RETRY_AFTER_SECONDS,
+        )
+    except (FileNotFoundError, OSError, RuntimeError, ValueError, json.JSONDecodeError):
+        return _cve_public_record_error(
+            status_code=503,
+            error="record_unavailable",
+            message="The CVE record is temporarily unavailable.",
+            retry_after=_CVE_PUBLIC_SEARCH_RETRY_AFTER_SECONDS,
+        )
+
+    if record is None:
+        return _cve_public_record_error(
+            status_code=404,
+            error="record_not_found",
+            message="No record exists for this CVE in the active catalog.",
+        )
+    response_payload = json.dumps(
+        {
+            "schema_version": 1,
+            "revision": revision,
+            "record": record,
+        },
+        ensure_ascii=False,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    if len(response_payload) > _CVE_PUBLIC_RECORD_MAX_BYTES:
+        return _cve_public_record_error(
+            status_code=503,
+            error="record_too_large",
+            message="The CVE record exceeds the bounded public response contract.",
+        )
+    response_headers = _cve_public_search_headers(cacheable=True)
+    response_headers["X-CVE-Record-Backend"] = "verified-shard"
+    response_headers["X-CVE-Catalog-Revision"] = revision
+    return Response(
+        response_payload,
+        media_type="application/json",
+        headers=response_headers,
+    )
 
 
 @mcp.custom_route(

@@ -2382,6 +2382,7 @@ class SyncCveCatalogTests(unittest.TestCase):
         self.assertEqual(runtime_summary["totals"], manifest_a["totals"])
         self.assertEqual(runtime_summary["by_severity"], manifest_a["by_severity"])
         self.assertEqual(runtime_summary["search_api"], catalog.SEARCH_API_RUNTIME)
+        self.assertEqual(runtime_summary["record_api"], catalog.RECORD_API_RUNTIME)
         self.assertEqual(runtime_summary["browser_index"], browser_manifest)
         self.assertEqual(runtime_summary["archetypes"], manifest_a["archetypes_asset"])
         self.assertEqual(runtime_summary["shard_set_sha256"], manifest_a["shard_set_sha256"])
