@@ -24,6 +24,7 @@ x-security-recipes-mcp-runtime: &security-recipes-mcp-runtime
     RECIPES_MCP_HOST: "0.0.0.0"
     RECIPES_MCP_PORT: "80"
     RECIPES_MCP_PATH: "/mcp"
+    RECIPES_MCP_REQUIRE_CVE_SEARCH_DATABASE: "true"
     RECIPES_MCP_SOURCE_INDEX_URL: "${RECIPES_MCP_SOURCE_INDEX_URL:-http://security-recipes/api/recipes-index.json}"
     RECIPES_MCP_ALLOWED_SOURCE_HOSTS: "${RECIPES_MCP_ALLOWED_SOURCE_HOSTS:-caddy,security-recipes,security-recipes-green,security-recipes-dev,mcp-server,mcp-server-blue,mcp-server-green,security-recipes.ai,dev.security-recipes.ai}"
     RECIPES_MCP_PUBLIC_BASE_URL: "${RECIPES_MCP_PUBLIC_BASE_URL:-https://security-recipes.ai/mcp}"
@@ -31,8 +32,8 @@ x-security-recipes-mcp-runtime: &security-recipes-mcp-runtime
     RECIPES_MCP_PLAYBOOK_REGISTRY_PATH: "${RECIPES_MCP_PLAYBOOK_REGISTRY_PATH:-/app/data/remediation_suite/playbooks.json}"
     RECIPES_MCP_LOG_LEVEL: "${RECIPES_MCP_LOG_LEVEL:-info}"
     RECIPES_MCP_EAGER_REFRESH: "${RECIPES_MCP_EAGER_REFRESH:-false}"
-    # Keep the compact text index lazy on memory-constrained hosts. Exact CVE
-    # lookups remain shard-only; operators can opt into eager warming.
+    # The production image uses manifest-pinned SQLite. This controls only the
+    # legacy local fallback when an operator deliberately removes the DB path.
     RECIPES_MCP_EAGER_CVE_SEARCH: "${RECIPES_MCP_EAGER_CVE_SEARCH:-false}"
   expose:
     - "80"

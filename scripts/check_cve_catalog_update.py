@@ -344,7 +344,15 @@ def enrichment_health(sync_report: dict[str, Any]) -> dict[str, Any]:
 
     metrics = {
         key: _integer(raw, key) or 0
-        for key in ("eligible", "cached", "selected", "generated", "failed")
+        for key in (
+            "eligible",
+            "cached",
+            "refresh_due",
+            "refresh_forced",
+            "selected",
+            "generated",
+            "failed",
+        )
     }
     api_enabled = raw.get("api_enabled") is True
     metrics["api_enabled"] = api_enabled
@@ -485,7 +493,9 @@ def markdown_report(report: dict[str, Any]) -> str:
                 f"{metrics.get('generated', 0)} generated, "
                 f"{metrics.get('failed', 0)} failed; "
                 f"{metrics.get('unprocessed', 0)} unprocessed; "
-                f"{metrics.get('cached', 0)} cached"
+                f"{metrics.get('cached', 0)} cached; "
+                f"{metrics.get('refresh_due', 0)} refresh-due, "
+                f"{metrics.get('refresh_forced', 0)} manually prioritized"
             )
         for alert in enrichment.get("alerts") or []:
             lines.append(f"- Alert: {alert}")

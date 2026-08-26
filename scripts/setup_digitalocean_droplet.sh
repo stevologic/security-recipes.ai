@@ -562,7 +562,8 @@ ${DOMAIN} {
 		health_passes 2
 		fail_duration 30s
 		max_fails 1
-		unhealthy_status 5xx
+		# Do not treat bounded application 5xx responses as a slot failure;
+		# transport errors and active root health checks still drive failover.
 		lb_try_duration 5s
 		lb_try_interval 100ms
 		stream_close_delay 5m

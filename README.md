@@ -303,10 +303,17 @@ The complete CVE catalog is also available without MCP:
   publication-year partitions under `/api/cve-catalog/indexes/`. Offline
   consumers can fetch only the years they need; neither a browser page load
   nor an exact MCP lookup parses those partitions.
-- `/api/cve-catalog/browser-index.json.gz` is the smaller dictionary-encoded
-  index searched off the browser's main thread. The CVE database defers this
-  download until a visitor focuses, filters, submits, or otherwise starts a
-  search; the initial page keeps its server-rendered, evidence-qualified list.
+- `/api/cve-catalog/search` is the bounded, same-origin broad-search endpoint.
+  It is pinned to the shard-set revision declared by `runtime-summary.json`,
+  rate-limited at nginx, and returns at most 100 previews. The production MCP
+  image serves it from a read-only SQLite FTS database built and whole-file
+  verified against the same manifest. Focus alone and an incomplete
+  `CVE-YYYY-NNNN` identifier make no search request; a complete identifier goes
+  directly to its deterministic shard.
+- `/api/cve-catalog/browser-index.json.gz` remains for one compatibility
+  release when an older runtime summary does not declare the API. Current
+  browsers do not download it when the API is declared, so visitors no longer
+  pay the complete-corpus transfer or memory cost.
 - Canonical CVE pages server-render their overview, affected-version evidence,
   selected remediation authority, AI implementation and verification handoff,
   sources, provenance, citation, and schema. They do not embed or hydrate the
@@ -315,10 +322,11 @@ The complete CVE catalog is also available without MCP:
 - `/api/cve-catalog/search-indexable.json` is the compact, integrity-hashed
   allowlist for canonical CVE pages, related-CVE links, and search discovery.
   Its policy accepts only reviewed stable Markdown or complete AI enrichment
-  that passes the deterministic recipe-ready evidence contract. Browser
-  results link internally only when the CVE has a route in this allowlist;
-  other results retain their official CVE.org source link without advertising
-  a deliberately non-indexable local page.
+  that passes the deterministic recipe-ready evidence contract. Every browser
+  result links to its local `/cve/<ID>/` record. Allowlisted records are
+  materialized as indexable static pages; all other records use the bounded
+  runtime renderer with `noindex,follow` and retain their official CVE.org
+  source in the record.
 - `/api/cve-catalog/archetypes.json` contains the reviewed remediation
   contracts used to compose a conservative recipe for every catalog record.
   It also contains the versioned agentic action schema and ecosystem-specific
@@ -348,9 +356,9 @@ Production can retain a legacy recipe URL as a redirect to the canonical CVE
 route through nginx and the MCP-backed landing service. Use the dedicated
 catalog or `recipes_cve_*` MCP tools for complete discovery.
 
-The browser's exact-ID path and compressed worker index both cover every
-in-scope Medium, High, and Critical record declared by the manifest. The MCP
-server exposes the same coverage through `recipes_cve_search`; a successful
+The browser's exact-ID path and revision-pinned search API cover every in-scope
+Medium, High, and Critical record declared by the manifest. The MCP server
+exposes the same SQLite-backed coverage through `recipes_cve_search`; a successful
 `recipes_cve_get` returns the normalized source record, source identifiers and
 references, applicable archetypes, composed remediation contract, and a
 self-contained `agentic_change_plan`. The plan expands each mitigation and
@@ -416,9 +424,22 @@ verification evidence tied to the exact URL of a tagged trusted advisory
 reference. Every required claim must independently meet that rule, and every
 generated recipe requires a cited, concrete fixed-version claim.
 
+Cached enrichment is re-evaluated instead of becoming permanent: recipe-ready
+entries become refresh candidates after 30 days, KEV entries after 60 days,
+and other complete/not-specific or insufficient-evidence entries after 180
+days. A manually prioritized CVE forces a refresh inside the existing request
+cap. The last valid cached result stays attached if that refresh fails; an
+invalid source fingerprint remains fail-closed. The synchronization report and
+automation-health summary expose refresh-due and manually prioritized counts.
+
 Eligible drafts are written as `maturity: development` files named
 `content/recipes/cve/ai-enrichment-cve-*.md`. They stay outside generic recipe
-discovery and never override the composed catalog recipe. The ownership ledger
+discovery and never override a stable reviewed recipe. A human reviewer can
+set `ai_enrichment_review_status: human-reviewed-development-draft` to withhold
+an otherwise evidence-ready enrichment from public remediation authority, or
+`ai_enrichment_review_status: approved-for-ai-authority` to approve that use.
+Unannotated generator-owned drafts retain the automated evidence gate, while
+stable Markdown always wins. The ownership ledger
 in `data/cve/ai-generated-recipes.json` records each generated file hash;
 automation may refresh or remove only an untouched hash-matching draft. A human
 edit, or any existing human development/stable recipe for the same CVE, makes
@@ -453,28 +474,28 @@ no-ops when that secret is missing or the leftover-gold queue is empty.
 The runtime paths are deliberately bounded for catalog-scale traffic:
 
 - the hub bootstraps from the compact runtime summary, exact lookups transfer
-  one integrity-hashed shard, and title/filter search loads the compressed
-  worker index only on demand;
-- the worker returns at most 100 previews, yields cooperatively, and uses
-  bounded record/title caches instead of rendering or decoding the full
-  catalog on the main thread;
+  one integrity-hashed shard, and title/product/vendor/filter search calls the
+  revision-pinned same-origin API only after explicit search intent;
+- broad search returns at most 100 previews from immutable read-only SQLite,
+  has a three-second HTTP boundary, and never decodes the complete catalog in
+  a visitor process or on the browser main thread;
 - MCP metadata and exact retrieval remain shard-only; non-exact text search
-  lazily loads a compact shared index behind admission control, candidate
-  limits, and bounded query/shard caches;
+  uses the same manifest-pinned SQLite database behind a dedicated executor,
+  bounded admission queue, query deadlines, and nginx rate limit;
 - immutable browser cache keys come from the actual browser-index, archetype,
   and shard-set hashes rather than an upstream timestamp.
 
 The implemented build boundary, exact-shard delivery model, evidence-gated SEO
-policy, and remaining browser-search/artifact migration are documented in
+policy, SQLite search runtime, and remaining artifact-publication migration are documented in
 [CVE scale architecture](docs/cve-scale-architecture.md).
 
-The bundled production Compose service defaults
-`RECIPES_MCP_EAGER_CVE_SEARCH=false`, leaving the shared text index lazy so a
-1 CPU / 2 GB host keeps predictable startup and memory headroom. Set it to
-`true` when the host has measured capacity and the first title/ecosystem query
-must avoid the cold-start cost. For sustained novel-search traffic, run
-multiple MCP instances behind a session-aware load balancer; exact lookups
-remain isolated from the bounded text-search worker and queue.
+The production image builds the SQLite artifact once in its cached image layer,
+records its independent SHA-256 sidecar, and validates schema, catalog revision,
+record count, manifest digest, file digest, and representative FTS postings at
+startup. `RECIPES_MCP_EAGER_CVE_SEARCH` now applies only to the legacy local
+fallback when no SQLite path is configured. For sustained search traffic, run
+multiple paired MCP instances; exact shard reads remain isolated from the
+bounded text-search executor and queue.
 
 Run `npm run icons` after changing the site mark. It regenerates the opaque
 Apple touch icon and the 192/512/maskable installed-app assets checked by the

@@ -20,6 +20,25 @@ from mcp_server import CVERecipeCatalog
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CATALOG_PATH = REPO_ROOT / "static" / "api" / "cve-catalog"
+SYNTHETIC_REVISION = "a" * 64
+
+
+def public_search_request(query_string: str) -> mcp_server.Request:
+    return mcp_server.Request(
+        {
+            "type": "http",
+            "asgi": {"version": "3.0"},
+            "http_version": "1.1",
+            "method": "GET",
+            "scheme": "https",
+            "path": "/api/cve-catalog/search",
+            "raw_path": b"/api/cve-catalog/search",
+            "query_string": query_string.encode("ascii"),
+            "headers": [],
+            "client": ("127.0.0.1", 12345),
+            "server": ("testserver", 443),
+        }
+    )
 
 
 AGENTIC_PHASES = (
@@ -468,6 +487,7 @@ def write_synthetic_catalog(catalog_dir: Path) -> None:
     (catalog_dir / "browser-index.json.gz").write_bytes(browser_compressed)
     manifest = {
         "schema_version": 2,
+        "shard_set_sha256": SYNTHETIC_REVISION,
         "scope": {},
         "totals": {"catalog_records": 3},
         "archetypes_asset": {
@@ -591,6 +611,47 @@ class CVERecipeCatalogTests(unittest.TestCase):
         self.assertGreaterEqual(totals["in_scope_kev"], 1_200)
         self.assertNotIn("shard_manifest", info["manifest"])
 
+    def test_blank_example_config_cannot_disable_environment_search_database(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            config_path = Path(tmpdir) / "mcp-server.toml"
+            config_path.write_text('cve_search_db_path = ""\n', encoding="utf-8")
+            expected = str(Path(tmpdir) / "runtime-search.sqlite3")
+            with patch.dict(
+                mcp_server.os.environ,
+                {"RECIPES_MCP_CVE_SEARCH_DB_PATH": expected},
+            ):
+                loaded = mcp_server.load_config(str(config_path))
+
+            self.assertEqual(loaded.cve_search_db_path, expected)
+
+    def test_production_environment_requires_search_database(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            config_path = Path(tmpdir) / "mcp-server.toml"
+            config_path.write_text(
+                'cve_search_db_path = ""\nrequire_cve_search_database = false\n',
+                encoding="utf-8",
+            )
+            with patch.dict(
+                mcp_server.os.environ,
+                {"RECIPES_MCP_REQUIRE_CVE_SEARCH_DATABASE": "true"},
+            ):
+                loaded = mcp_server.load_config(str(config_path))
+
+            self.assertTrue(loaded.require_cve_search_database)
+            with self.assertRaisesRegex(ValueError, "database is required"):
+                CVERecipeCatalog(
+                    str(CATALOG_PATH),
+                    require_search_database=loaded.require_cve_search_database,
+                )
+
+    def test_required_search_database_environment_is_strict_boolean(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir, patch.dict(
+            mcp_server.os.environ,
+            {"RECIPES_MCP_REQUIRE_CVE_SEARCH_DATABASE": "sometimes"},
+        ):
+            with self.assertRaisesRegex(ValueError, "must be a boolean"):
+                mcp_server.load_config(str(Path(tmpdir) / "missing.toml"))
+
     def test_exact_search_and_recipe_cover_previously_missing_critical_kev(self) -> None:
         results = self.catalog.search("CVE-2024-3400", limit=1)
 
@@ -689,6 +750,281 @@ class CVERecipeCatalogTests(unittest.TestCase):
         for partial in ("CVE-2024-3", "CVE-2024-34", "CVE-2024-340"):
             with self.subTest(partial=partial), self.assertRaisesRegex(ValueError, "canonical"):
                 self.catalog.get_recipe(partial)
+
+    def test_browse_is_newest_first_bounded_and_reports_total_matches(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            catalog_dir = Path(tmpdir)
+            write_synthetic_catalog(catalog_dir)
+            catalog = CVERecipeCatalog(str(catalog_dir))
+
+            first_page, total_matches = catalog.search_page(
+                "",
+                limit=2,
+                expected_revision=SYNTHETIC_REVISION,
+            )
+            cached_page, cached_total = catalog.search_page(
+                "",
+                limit=2,
+                expected_revision=SYNTHETIC_REVISION,
+            )
+            filtered_browse = catalog.browse(
+                severity="medium",
+                published_year=2021,
+                kev=False,
+                limit=10,
+            )
+
+            self.assertEqual(
+                [record["cve"] for record in first_page],
+                ["CVE-2021-44230", "CVE-2021-44229"],
+            )
+            self.assertEqual(total_matches, 3)
+            self.assertEqual(cached_page, first_page)
+            self.assertEqual(cached_total, total_matches)
+            self.assertEqual(
+                [record["cve"] for record in filtered_browse],
+                ["CVE-2021-44229"],
+            )
+
+    def test_configured_sqlite_runtime_preempts_legacy_browser_index(self) -> None:
+        class StubSearchRuntime:
+            record_count = 3
+
+            def __init__(self) -> None:
+                self.calls: list[dict[str, object]] = []
+
+            def search(self, query: str, **kwargs: object) -> dict[str, object]:
+                self.calls.append({"query": query, **kwargs})
+                return {
+                    "results": [
+                        {
+                            "cve": "CVE-2021-44228",
+                            "title": "Apache Log4j remote code execution",
+                            "severity": "critical",
+                            "score": 10.0,
+                            "published": "2021-12-10",
+                            "ecosystem": "java/maven",
+                            "kev": True,
+                            "archetype": "command_code_injection",
+                            "archetypes": ["command_code_injection"],
+                            "has_markdown": False,
+                            "shard": "shards/2021/0044.jsonl.gz",
+                        }
+                    ],
+                    "total_matches": 1,
+                    "truncated": False,
+                }
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            catalog_dir = Path(tmpdir)
+            write_synthetic_catalog(catalog_dir)
+            manifest_payload = (catalog_dir / "manifest.json").read_bytes()
+            database_path = catalog_dir / "runtime-search.sqlite3"
+            database_path.write_bytes(b"stub sqlite artifact")
+            database_sha256 = hashlib.sha256(database_path.read_bytes()).hexdigest()
+            Path(f"{database_path}.metadata.json").write_text(
+                json.dumps(
+                    {
+                        "bytes": database_path.stat().st_size,
+                        "database_sha256": database_sha256,
+                        "manifest_sha256": hashlib.sha256(manifest_payload).hexdigest(),
+                        "records": 3,
+                        "shard_set_sha256": SYNTHETIC_REVISION,
+                        "shards": 1,
+                    }
+                ),
+                encoding="utf-8",
+            )
+            runtime = StubSearchRuntime()
+            with patch("mcp_server.CVESearchRuntime", return_value=runtime) as runtime_constructor:
+                catalog = CVERecipeCatalog(
+                    str(catalog_dir),
+                    search_database_path=str(database_path),
+                )
+            with patch.object(
+                catalog,
+                "_load_search",
+                side_effect=AssertionError("legacy browser index must not load"),
+            ):
+                results, total_matches = catalog.search_page(
+                    "log4j",
+                    severity="critical",
+                    kev=True,
+                    limit=100,
+                    expected_revision=SYNTHETIC_REVISION,
+                )
+
+            runtime_constructor.assert_called_once_with(
+                str(database_path),
+                expected_revision=SYNTHETIC_REVISION,
+                expected_record_count=3,
+                expected_manifest_sha256=hashlib.sha256(manifest_payload).hexdigest(),
+                expected_database_sha256=database_sha256,
+                query_timeout_seconds=0.75,
+            )
+            self.assertEqual([record["cve"] for record in results], ["CVE-2021-44228"])
+            self.assertEqual(total_matches, 1)
+            self.assertEqual(
+                runtime.calls,
+                [
+                    {
+                        "query": "log4j",
+                        "severity": "critical",
+                        "published_year": None,
+                        "kev": True,
+                        "limit": 100,
+                    }
+                ],
+            )
+
+    def test_same_manifest_database_replacement_reloads_runtime(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            catalog_dir = Path(tmpdir)
+            write_synthetic_catalog(catalog_dir)
+            manifest_payload = (catalog_dir / "manifest.json").read_bytes()
+            database_path = catalog_dir / "runtime-search.sqlite3"
+            database_path.write_bytes(b"first database generation")
+            metadata_path = Path(f"{database_path}.metadata.json")
+
+            def write_metadata() -> None:
+                metadata_path.write_text(
+                    json.dumps(
+                        {
+                            "bytes": database_path.stat().st_size,
+                            "database_sha256": hashlib.sha256(
+                                database_path.read_bytes()
+                            ).hexdigest(),
+                            "manifest_sha256": hashlib.sha256(
+                                manifest_payload
+                            ).hexdigest(),
+                            "records": 3,
+                            "shard_set_sha256": SYNTHETIC_REVISION,
+                            "shards": 1,
+                        }
+                    ),
+                    encoding="utf-8",
+                )
+
+            write_metadata()
+            first_runtime = object()
+            second_runtime = object()
+            with patch(
+                "mcp_server.CVESearchRuntime",
+                side_effect=[first_runtime, second_runtime],
+            ) as runtime_constructor:
+                catalog = CVERecipeCatalog(
+                    str(catalog_dir),
+                    search_database_path=str(database_path),
+                )
+                self.assertIs(catalog._search_runtime, first_runtime)
+
+                database_path.write_bytes(b"second, repaired database generation")
+                write_metadata()
+                catalog._next_core_check = 0.0
+                self.assertEqual(catalog.search_backend(), "sqlite")
+
+            self.assertEqual(runtime_constructor.call_count, 2)
+            self.assertIs(catalog._search_runtime, second_runtime)
+
+    def test_public_search_page_can_return_more_than_legacy_mcp_cap(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            catalog_dir = Path(tmpdir)
+            write_synthetic_catalog(catalog_dir)
+            browser_path = catalog_dir / "browser-index.json.gz"
+            browser = json.loads(gzip.decompress(browser_path.read_bytes()))
+            template = browser["records"][0]
+            browser["records"] = []
+            for index in range(60):
+                row = list(template)
+                row[0] = f"CVE-2022-{10_000 + index}"
+                row[1] = f"Synthetic catalog record {index}"
+                row[4] = "2022-01-01"
+                browser["records"].append(row)
+            browser_payload = json.dumps(
+                browser,
+                separators=(",", ":"),
+            ).encode("utf-8")
+            browser_compressed = gzip.compress(browser_payload, mtime=0)
+            browser_path.write_bytes(browser_compressed)
+            manifest_path = catalog_dir / "manifest.json"
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            manifest["browser_index"].update(
+                {
+                    "records": 60,
+                    "bytes": len(browser_compressed),
+                    "uncompressed_bytes": len(browser_payload),
+                    "sha256": hashlib.sha256(browser_compressed).hexdigest(),
+                }
+            )
+            manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+            catalog = CVERecipeCatalog(str(catalog_dir))
+
+            public_results, total_matches = catalog.search_page(
+                "Synthetic",
+                limit=100,
+            )
+            legacy_results = catalog.search("Synthetic", limit=100)
+
+            self.assertEqual(total_matches, 60)
+            self.assertEqual(len(public_results), 60)
+            self.assertGreater(len(public_results), 50)
+            self.assertEqual(len(legacy_results), 50)
+
+    def test_catalog_supports_positive_negative_and_unfiltered_kev_queries(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            catalog_dir = Path(tmpdir)
+            write_synthetic_catalog(catalog_dir)
+            catalog = CVERecipeCatalog(str(catalog_dir))
+
+            negative_results, negative_total = catalog.search_page(
+                "Apache Log4j",
+                published_year=2021,
+                kev=False,
+                limit=10,
+            )
+            unfiltered_results, unfiltered_total = catalog.search_page(
+                "Apache Log4j",
+                kev=None,
+                limit=10,
+            )
+            compatible_mcp_results = catalog.search(
+                "Apache Log4j",
+                kev_only=True,
+                limit=10,
+            )
+
+            self.assertEqual(
+                [record["cve"] for record in negative_results],
+                ["CVE-2021-44229"],
+            )
+            self.assertEqual(negative_total, 1)
+            self.assertEqual(unfiltered_total, 2)
+            self.assertEqual(
+                {record["cve"] for record in unfiltered_results},
+                {"CVE-2021-44228", "CVE-2021-44229"},
+            )
+            self.assertEqual(
+                [record["cve"] for record in compatible_mcp_results],
+                ["CVE-2021-44228"],
+            )
+
+    def test_revision_pinned_search_rejects_a_stale_catalog_generation(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            catalog_dir = Path(tmpdir)
+            write_synthetic_catalog(catalog_dir)
+            catalog = CVERecipeCatalog(str(catalog_dir))
+
+            with (
+                patch.object(
+                    catalog,
+                    "_load_search",
+                    side_effect=AssertionError(
+                        "stale revisions must fail before loading broad search"
+                    ),
+                ),
+                self.assertRaises(mcp_server._CVECatalogRevisionMismatchError),
+            ):
+                catalog.search_page("Apache", expected_revision="b" * 64)
 
     def test_exact_lookup_timing_does_not_scale_with_full_catalog_scan(self) -> None:
         catalog = CVERecipeCatalog(str(CATALOG_PATH))
@@ -1139,6 +1475,262 @@ class CVERecipeCompositionTests(unittest.TestCase):
 
             with self.assertRaisesRegex(ValueError, "archetype integrity"):
                 catalog.get_recipe("CVE-2021-44228")
+
+
+class CVEPublicSearchRouteTests(unittest.IsolatedAsyncioTestCase):
+    class CapturingCatalog:
+        def __init__(
+            self,
+            results: list[dict[str, object]] | None = None,
+            total_matches: int = 0,
+        ) -> None:
+            self.results = results or []
+            self.total_matches = total_matches
+            self.calls: list[tuple[str, dict[str, object]]] = []
+
+        def search_page(
+            self,
+            query: str,
+            **kwargs: object,
+        ) -> tuple[list[dict[str, object]], int]:
+            self.calls.append((query, kwargs))
+            return deepcopy(self.results), self.total_matches
+
+        def search_backend(self) -> str:
+            return "sqlite"
+
+    async def test_fastmcp_registers_read_only_public_search_route(self) -> None:
+        routes = {
+            route.path: set(route.methods or ())
+            for route in mcp_server.mcp._additional_http_routes
+        }
+
+        self.assertIn("/api/cve-catalog/search", routes)
+        self.assertEqual(routes["/api/cve-catalog/search"], {"GET", "HEAD"})
+
+    async def test_valid_text_search_has_stable_schema_headers_and_truncation(self) -> None:
+        catalog = self.CapturingCatalog(
+            [{"cve": "CVE-2021-44228", "severity": "critical", "kev": True}],
+            total_matches=3,
+        )
+        request = public_search_request(
+            "q=Apache+Log4j&severity=critical&year=2021&kev=yes&limit=1"
+            f"&revision={SYNTHETIC_REVISION}"
+        )
+
+        with patch.object(mcp_server, "cve_catalog", catalog):
+            response = await mcp_server.cve_catalog_search(request)
+
+        payload = json.loads(response.body)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            set(payload),
+            {
+                "schema_version",
+                "revision",
+                "query",
+                "total_matches",
+                "results",
+                "truncated",
+            },
+        )
+        self.assertEqual(payload["schema_version"], 1)
+        self.assertEqual(payload["revision"], SYNTHETIC_REVISION)
+        self.assertEqual(payload["query"], "Apache Log4j")
+        self.assertEqual(payload["total_matches"], 3)
+        self.assertTrue(payload["truncated"])
+        self.assertIn("max-age=300", response.headers["cache-control"])
+        self.assertEqual(
+            response.headers["x-robots-tag"],
+            "noindex, nofollow, noarchive",
+        )
+        self.assertEqual(response.headers["x-content-type-options"], "nosniff")
+        self.assertEqual(response.headers["x-cve-search-backend"], "sqlite")
+        query, kwargs = catalog.calls[0]
+        self.assertEqual(query, "Apache Log4j")
+        self.assertEqual(kwargs["severity"], "critical")
+        self.assertEqual(kwargs["published_year"], 2021)
+        self.assertIs(kwargs["kev"], True)
+        self.assertEqual(kwargs["limit"], 1)
+        self.assertEqual(kwargs["expected_revision"], SYNTHETIC_REVISION)
+
+    async def test_blank_query_browses_with_negative_kev_filter(self) -> None:
+        catalog = self.CapturingCatalog(
+            [{"cve": "CVE-2021-44229", "severity": "medium", "kev": False}],
+            total_matches=1,
+        )
+        request = public_search_request(
+            "q=&severity=medium&year=2021&kev=no&limit=1"
+            f"&revision={SYNTHETIC_REVISION}"
+        )
+
+        with patch.object(mcp_server, "cve_catalog", catalog):
+            response = await mcp_server.cve_catalog_search(request)
+
+        payload = json.loads(response.body)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(payload["query"], "")
+        self.assertFalse(payload["truncated"])
+        query, kwargs = catalog.calls[0]
+        self.assertEqual(query, "")
+        self.assertEqual(kwargs["severity"], "medium")
+        self.assertEqual(kwargs["published_year"], 2021)
+        self.assertIs(kwargs["kev"], False)
+
+    async def test_query_parameters_are_allowlisted_singular_and_bounded(self) -> None:
+        invalid_queries = (
+            f"unknown=x&revision={SYNTHETIC_REVISION}",
+            f"q=one&q=two&revision={SYNTHETIC_REVISION}",
+            f"severity=low&revision={SYNTHETIC_REVISION}",
+            f"year=1998&revision={SYNTHETIC_REVISION}",
+            f"kev=true&revision={SYNTHETIC_REVISION}",
+            f"limit=0&revision={SYNTHETIC_REVISION}",
+            f"limit=101&revision={SYNTHETIC_REVISION}",
+            "q=missing-revision",
+            "revision=short",
+            f"q=line%0Abreak&revision={SYNTHETIC_REVISION}",
+        )
+        catalog = self.CapturingCatalog()
+
+        with patch.object(mcp_server, "cve_catalog", catalog):
+            for query_string in invalid_queries:
+                with self.subTest(query_string=query_string):
+                    response = await mcp_server.cve_catalog_search(
+                        public_search_request(query_string)
+                    )
+                    payload = json.loads(response.body)
+                    self.assertEqual(response.status_code, 400)
+                    self.assertEqual(
+                        set(payload),
+                        {"schema_version", "error", "message"},
+                    )
+                    self.assertEqual(payload["schema_version"], 1)
+                    self.assertEqual(payload["error"], "invalid_request")
+                    self.assertTrue(payload["message"])
+                    self.assertEqual(response.headers["cache-control"], "no-store")
+                    self.assertIn("noindex", response.headers["x-robots-tag"])
+
+        self.assertFalse(catalog.calls)
+
+    async def test_busy_timeout_unavailable_and_revision_errors_are_shaped(self) -> None:
+        request = public_search_request(f"q=Apache&revision={SYNTHETIC_REVISION}")
+        cases: list[tuple[object, int, str]] = [
+            (mcp_server._CVETextSearchBusyError("busy"), 429, "search_busy"),
+        ]
+        for exception, status_code, error in cases:
+            with (
+                self.subTest(error=error),
+                patch.object(
+                    mcp_server,
+                    "_submit_cve_text_search",
+                    side_effect=exception,
+                ),
+            ):
+                response = await mcp_server.cve_catalog_search(request)
+                payload = json.loads(response.body)
+                self.assertEqual(response.status_code, status_code)
+                self.assertEqual(payload["error"], error)
+                self.assertEqual(response.headers["retry-after"], "2")
+
+        pending: concurrent.futures.Future[object] = concurrent.futures.Future()
+        with (
+            patch.object(mcp_server, "_submit_cve_text_search", return_value=pending),
+            patch.object(mcp_server, "_CVE_PUBLIC_SEARCH_TIMEOUT_SECONDS", 0.001),
+        ):
+            timeout_response = await mcp_server.cve_catalog_search(request)
+        self.assertEqual(timeout_response.status_code, 503)
+        self.assertEqual(json.loads(timeout_response.body)["error"], "search_timeout")
+
+        unavailable: concurrent.futures.Future[object] = concurrent.futures.Future()
+        unavailable.set_exception(OSError("catalog unavailable"))
+        with patch.object(
+            mcp_server,
+            "_submit_cve_text_search",
+            return_value=unavailable,
+        ):
+            unavailable_response = await mcp_server.cve_catalog_search(request)
+        self.assertEqual(unavailable_response.status_code, 503)
+        self.assertEqual(
+            json.loads(unavailable_response.body)["error"],
+            "search_unavailable",
+        )
+
+        mismatch: concurrent.futures.Future[object] = concurrent.futures.Future()
+        mismatch.set_exception(
+            mcp_server._CVECatalogRevisionMismatchError(
+                SYNTHETIC_REVISION,
+                "b" * 64,
+            )
+        )
+        with patch.object(
+            mcp_server,
+            "_submit_cve_text_search",
+            return_value=mismatch,
+        ):
+            mismatch_response = await mcp_server.cve_catalog_search(request)
+        self.assertEqual(mismatch_response.status_code, 409)
+        self.assertEqual(
+            json.loads(mismatch_response.body)["error"],
+            "catalog_revision_mismatch",
+        )
+        self.assertNotIn("retry-after", mismatch_response.headers)
+
+    async def test_slow_http_search_cannot_starve_exact_mcp_lookup(self) -> None:
+        started = threading.Event()
+        release = threading.Event()
+
+        class SlowCatalog(self.CapturingCatalog):
+            def search_page(
+                self,
+                query: str,
+                **kwargs: object,
+            ) -> tuple[list[dict[str, object]], int]:
+                self.calls.append((query, kwargs))
+                started.set()
+                release.wait(timeout=2)
+                return [{"cve": "CVE-2021-44228"}], 1
+
+            def search(self, query: str, **_: object) -> list[dict[str, object]]:
+                return [{"cve": query.upper()}]
+
+        catalog = SlowCatalog()
+        executor = concurrent.futures.ThreadPoolExecutor(
+            max_workers=1,
+            thread_name_prefix="test-cve-http-search",
+        )
+        try:
+            with (
+                patch.object(mcp_server, "cve_catalog", catalog),
+                patch.object(mcp_server, "cve_text_search_executor", executor),
+                patch.object(
+                    mcp_server,
+                    "cve_text_search_admission",
+                    threading.BoundedSemaphore(value=2),
+                ),
+            ):
+                slow_response = asyncio.create_task(
+                    mcp_server.cve_catalog_search(
+                        public_search_request(
+                            f"q=slow&revision={SYNTHETIC_REVISION}"
+                        )
+                    )
+                )
+                for _ in range(100):
+                    if started.is_set():
+                        break
+                    await asyncio.sleep(0.005)
+                self.assertTrue(started.is_set())
+                exact = await asyncio.wait_for(
+                    mcp_server.recipes_cve_search("CVE-2024-3400"),
+                    timeout=0.5,
+                )
+                self.assertEqual(exact["count"], 1)
+                release.set()
+                response = await slow_response
+                self.assertEqual(response.status_code, 200)
+        finally:
+            release.set()
+            executor.shutdown(wait=True, cancel_futures=True)
 
 
 class CVERecipeToolTests(unittest.TestCase):

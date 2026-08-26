@@ -14,6 +14,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     RECIPES_MCP_HOST=0.0.0.0 \
     RECIPES_MCP_PORT=80 \
     RECIPES_MCP_PATH=/mcp \
+    RECIPES_MCP_CVE_SEARCH_DB_PATH=/app/runtime/cve-search.sqlite3 \
+    RECIPES_MCP_REQUIRE_CVE_SEARCH_DATABASE=true \
     RECIPES_PUBLIC_SITE_BASE_URL=https://security-recipes.ai/
 
 WORKDIR /app
@@ -32,8 +34,16 @@ RUN cp /app/mcp-server.toml.example /app/mcp-server.toml
 # should invalidate as few layers as possible.
 COPY mcp_server.py /app/mcp_server.py
 COPY scripts/cve_text_quality.py /app/scripts/cve_text_quality.py
+COPY scripts/build_cve_search_db.py /app/scripts/build_cve_search_db.py
+COPY scripts/cve_search_runtime.py /app/scripts/cve_search_runtime.py
 COPY data /app/data
 COPY static/api/cve-catalog /app/static/api/cve-catalog
+
+RUN mkdir -p /app/runtime && \
+    python /app/scripts/build_cve_search_db.py \
+    --catalog /app/static/api/cve-catalog \
+    --output /app/runtime/cve-search.sqlite3 \
+    --metadata-output /app/runtime/cve-search.sqlite3.metadata.json
 
 EXPOSE 80
 

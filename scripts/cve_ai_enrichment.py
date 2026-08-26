@@ -15,7 +15,7 @@ import os
 import re
 import sys
 import time
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from dataclasses import dataclass
 from typing import Any, Callable, Iterable, Iterator
@@ -38,6 +38,9 @@ DEFAULT_REQUEST_ATTEMPTS = 2
 DEFAULT_REQUEST_TIMEOUT = 60
 MAX_CONSECUTIVE_FAILURES = 3
 MAX_ENRICHMENT_SECONDS = 15 * 60
+RECIPE_READY_REFRESH_DAYS = 30
+KEV_REFRESH_DAYS = 60
+OTHER_REFRESH_DAYS = 180
 MAX_RESPONSE_BYTES = 2 * 1024 * 1024
 MAX_ERROR_BODY_BYTES = 4096
 QUOTA_ERROR_MARKERS = (
@@ -72,9 +75,34 @@ VERSION_IDENTIFIER_RE = re.compile(
     r"\b(?:(?:version|release|build)\s+v?\d[0-9A-Za-z._+-]*|v?\d+\.\d+(?:\.\d+)*(?:[-+][0-9A-Za-z.-]+)?)\b",
     re.IGNORECASE,
 )
-UNSAFE_RECIPE_TEXT_RE = re.compile(
-    r"```|\{\{[<%]|<\s*script\b|\b(?:curl|wget|powershell|invoke-webrequest|bash\s+-c|sh\s+-c|rm\s+-rf|(?:nc|ncat)\s+-e)\b",
+POSITIVE_FIXED_VERSION_RE = re.compile(
+    r"\b(?:fix(?:ed|es|ing)?|patch(?:ed|es|ing)?|unaffected|non[-\s]?affected|"
+    r"resolved?|remediat(?:ed|es|ing|ion)|correct(?:ed|s|ive)|upgrade(?:d|s|ing)?)\b"
+    r"|\b(?:not|no\s+longer)\s+affected\b",
     re.IGNORECASE,
+)
+NEGATED_FIXED_VERSION_RE = re.compile(
+    r"\b(?:no|not|never|without)\b(?:\W+\w+){0,5}\W+"
+    r"(?:fix(?:ed|es|ing)?|patch(?:ed|es|ing)?|unaffected|resolved?|"
+    r"remediat(?:ed|es|ing|ion)|upgrade(?:d|s|ing)?)\b"
+    r"|\b(?:fix(?:ed|es|ing)?|patch(?:ed|es|ing)?|resolution|upgrade(?:d|s|ing)?)\b"
+    r"[^\r\n]{0,120}\b(?:not\s+(?:available|established|known|released|provided|confirmed)"
+    r"|unavailable|unknown|unconfirmed)\b",
+    re.IGNORECASE,
+)
+UNSAFE_RECIPE_TEXT_RE = re.compile(
+    r"```|\{\{[<%]|<\s*script\b|\b(?:curl|wget|invoke-webrequest|bash\s+-c|sh\s+-c|"
+    r"rm\s+-rf|(?:nc|ncat)\s+-e)\b|\b(?:run|launch|invoke|use|open|start)\s+"
+    r"(?:windows\s+)?powershell\b|\bpowershell(?:\.exe)?\b(?=\s*(?:[-/]|[:>]\s*[a-z]+-|[a-z]+-))",
+    re.IGNORECASE,
+)
+UNSAFE_STEP_TECHNOLOGY_RE = re.compile(r"\bpowershell(?:\.exe)?\b", re.IGNORECASE)
+ACTION_TEXT_FIELDS = (
+    "business_risk",
+    "exposure_conditions",
+    "remediation_steps",
+    "verification_steps",
+    "uncertainty",
 )
 CP1252_CONTINUATION_CHARS = frozenset(
     chr(codepoint) for codepoint in range(0x80, 0xC0)
@@ -489,6 +517,17 @@ def trusted_recipe_claims(
     ]
 
 
+def positive_fixed_version_claim(value: object) -> bool:
+    """Require a concrete version plus affirmative, non-negated fix semantics."""
+
+    claim = normalize_text(value)
+    return bool(
+        VERSION_IDENTIFIER_RE.search(claim)
+        and POSITIVE_FIXED_VERSION_RE.search(claim)
+        and not NEGATED_FIXED_VERSION_RE.search(claim)
+    )
+
+
 def recipe_evidence_gaps(entry: object, record: dict[str, Any]) -> list[str]:
     """Return deterministic reasons an enrichment cannot become a specific draft."""
     if not isinstance(entry, dict):
@@ -508,7 +547,7 @@ def recipe_evidence_gaps(entry: object, record: dict[str, Any]) -> list[str]:
     fixed_version_claims = [
         claim["claim"] for claim in claims if claim["kind"] == "fixed_version"
     ]
-    if not any(VERSION_IDENTIFIER_RE.search(claim) for claim in fixed_version_claims):
+    if not any(positive_fixed_version_claim(claim) for claim in fixed_version_claims):
         gaps.append("missing_concrete_trusted_fixed_version_claim")
     if any(UNSAFE_RECIPE_TEXT_RE.search(claim["claim"]) for claim in claims):
         gaps.append("claim_contains_executable_or_active_content")
@@ -715,13 +754,46 @@ def enrichment_priority(
     )
 
 
-def _valid_generated_at(value: object) -> bool:
+def _generated_at_datetime(value: object) -> datetime | None:
     text = str(value or "")
     try:
-        datetime.fromisoformat(text.replace("Z", "+00:00"))
+        parsed = datetime.fromisoformat(text.replace("Z", "+00:00"))
     except ValueError:
-        return False
-    return bool(text.endswith("Z") or "+" in text[10:])
+        return None
+    if not (text.endswith("Z") or "+" in text[10:]):
+        return None
+    if parsed.tzinfo is None or parsed.utcoffset() is None:
+        return None
+    return parsed.astimezone(timezone.utc)
+
+
+def _valid_generated_at(value: object) -> bool:
+    return _generated_at_datetime(value) is not None
+
+
+def _refresh_as_of(value: datetime | None) -> datetime:
+    current = value or utc_now()
+    if current.tzinfo is None or current.utcoffset() is None:
+        raise ValueError("AI enrichment refresh as_of must be timezone-aware")
+    return current.astimezone(timezone.utc).replace(microsecond=0)
+
+
+def _refresh_interval(entry: dict[str, Any], record: dict[str, Any]) -> timedelta:
+    if recipe_ready(entry, record):
+        return timedelta(days=RECIPE_READY_REFRESH_DAYS)
+    if record.get("kev") is True:
+        return timedelta(days=KEV_REFRESH_DAYS)
+    return timedelta(days=OTHER_REFRESH_DAYS)
+
+
+def _refresh_is_due(
+    entry: dict[str, Any],
+    record: dict[str, Any],
+    *,
+    as_of: datetime,
+) -> bool:
+    generated_at = _generated_at_datetime(entry.get("generated_at"))
+    return generated_at is not None and as_of >= generated_at + _refresh_interval(entry, record)
 
 
 def enrichment_errors(entry: object, record: dict[str, Any]) -> list[str]:
@@ -753,6 +825,17 @@ def enrichment_errors(entry: object, record: dict[str, Any]) -> list[str]:
         values = entry.get(field)
         if not isinstance(values, list) or values != unique_strings(values):
             errors.append(f"ai_enrichment {field} is invalid or unbounded")
+    for field in ACTION_TEXT_FIELDS:
+        raw_values = entry.get(field)
+        values = raw_values if isinstance(raw_values, list) else [raw_values]
+        normalized_values = [normalize_text(value) for value in values]
+        unsafe = any(UNSAFE_RECIPE_TEXT_RE.search(value) for value in normalized_values)
+        if field in {"remediation_steps", "verification_steps"}:
+            unsafe = unsafe or any(
+                UNSAFE_STEP_TECHNOLOGY_RE.search(value) for value in normalized_values
+            )
+        if unsafe:
+            errors.append(f"ai_enrichment {field} contains executable or active content")
     if status == "complete":
         for field in ("exposure_conditions", "remediation_steps", "verification_steps"):
             if not entry.get(field):
@@ -1082,6 +1165,8 @@ class EnrichmentCache:
         self.stats: dict[str, int] = {
             "eligible": 0,
             "cached": 0,
+            "refresh_due": 0,
+            "refresh_forced": 0,
             "selected": 0,
             "generated": 0,
             "failed": 0,
@@ -1109,8 +1194,10 @@ class EnrichmentCache:
         *,
         limit: int,
         priority_cve_ids: Iterable[str] = (),
+        as_of: datetime | None = None,
     ) -> None:
         priority_order = canonical_priority_cve_ids(priority_cve_ids)
+        refresh_as_of = _refresh_as_of(as_of)
         previous = self.entries
         self.entries = {}
         self.selected = {}
@@ -1119,6 +1206,8 @@ class EnrichmentCache:
         self.stats = {
             "eligible": 0,
             "cached": 0,
+            "refresh_due": 0,
+            "refresh_forced": 0,
             "selected": 0,
             "generated": 0,
             "failed": 0,
@@ -1141,8 +1230,32 @@ class EnrichmentCache:
             cached = previous.get(cve)
             automatable = record.get("recipe_kind") != "markdown-override"
             if automatable and cached and not enrichment_errors(cached, record):
+                # Preserve the last valid result before scheduling a refresh. A
+                # provider failure, exhausted budget, or keyless run therefore
+                # leaves the verified cached enrichment attached.
                 self.entries[cve] = cached
                 self.stats["cached"] += 1
+                refresh_due = _refresh_is_due(cached, record, as_of=refresh_as_of)
+                refresh_forced = cve in priority_set
+                if not refresh_due and not refresh_forced:
+                    continue
+                self.stats["refresh_due"] += int(refresh_due)
+                self.stats["refresh_forced"] += int(refresh_forced)
+                self.stats["eligible"] += 1
+                if maximum == 0:
+                    continue
+                if refresh_forced:
+                    priority_candidates[cve] = tuple(gaps)
+                    priority_records[cve] = dict(record)
+                    continue
+                candidate = (enrichment_priority(record, gaps), cve, tuple(gaps))
+                if len(heap) < maximum:
+                    heapq.heappush(heap, candidate)
+                    ranked_records[cve] = dict(record)
+                elif candidate > heap[0]:
+                    replaced = heapq.heapreplace(heap, candidate)
+                    ranked_records.pop(replaced[1], None)
+                    ranked_records[cve] = dict(record)
                 continue
             priority_eligible = cve in priority_set and automatable
             scheduled_eligible = eligible_for_scheduled_enrichment(record)

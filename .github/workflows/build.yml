@@ -151,15 +151,21 @@ jobs:
           SECURITY_RECIPES_BASE_URL: ${{ steps.site.outputs.base_url }}
           SECURITY_RECIPES_REPO_URL: "https://github.com/${{ github.repository }}"
         run: |
+          docker buildx create --name security-recipes-ci --driver docker-container --use
+          docker buildx inspect --bootstrap
           IMAGE_PREFIX="ghcr.io/${GITHUB_REPOSITORY,,}"
           SITE_IMAGE="${IMAGE_PREFIX}-site:${GITHUB_SHA}"
           MCP_IMAGE="${IMAGE_PREFIX}-mcp:${GITHUB_SHA}"
-          docker build \
+          docker buildx build --load \
+            --cache-from "type=gha,scope=security-recipes-site" \
+            --cache-to "type=gha,scope=security-recipes-site,mode=max" \
             --build-arg "BASE_URL=${SECURITY_RECIPES_BASE_URL}" \
             --build-arg "REPO_URL=${SECURITY_RECIPES_REPO_URL}" \
             --build-arg "REVISION=${GITHUB_SHA}" \
             --tag "${SITE_IMAGE}" .
-          docker build \
+          docker buildx build --load \
+            --cache-from "type=gha,scope=security-recipes-mcp" \
+            --cache-to "type=gha,scope=security-recipes-mcp,mode=max" \
             --file Dockerfile.mcp-server \
             --build-arg "REVISION=${GITHUB_SHA}" \
             --tag "${MCP_IMAGE}" .
@@ -279,6 +285,37 @@ jobs:
           grep -Fq '"@type":"Article"' "${mcp_response}"
           grep -Fq '"additionalType":"https://schema.org/TechArticle"' "${mcp_response}"
 
+          # Exercise broad search through the deployed same-origin nginx route.
+          # This is intentionally not an exact CVE query: it proves the MCP
+          # image opened the manifest-pinned SQLite FTS artifact.
+          catalog_revision="$(python3 -c 'import json; print(json.load(open("static/api/cve-catalog/manifest.json", encoding="utf-8"))["shard_set_sha256"])')"
+          search_response="${RUNNER_TEMP}/site-cve-search.json"
+          search_headers="${RUNNER_TEMP}/site-cve-search.headers"
+          curl --fail --silent --show-error --max-time 10 \
+            --dump-header "${search_headers}" \
+            "http://127.0.0.1:${site_port}/api/cve-catalog/search?q=remote%20code%20execution&revision=${catalog_revision}&limit=5" \
+            --output "${search_response}"
+          grep -Eqi '^X-Robots-Tag: noindex' "${search_headers}"
+          grep -Eqi '^X-CVE-Search-Backend:[[:space:]]*sqlite[[:space:]]*$' "${search_headers}"
+          python3 - "${search_response}" "${catalog_revision}" <<'PY'
+          import json
+          import sys
+
+          payload = json.load(open(sys.argv[1], encoding="utf-8"))
+          assert payload["schema_version"] == 1
+          assert payload["revision"] == sys.argv[2]
+          assert payload["query"] == "remote code execution"
+          assert isinstance(payload["total_matches"], int)
+          assert 1 <= len(payload["results"]) <= 5
+          assert payload["total_matches"] >= len(payload["results"])
+          assert payload["truncated"] is (payload["total_matches"] > len(payload["results"]))
+          assert all(
+              isinstance(row.get("has_markdown"), bool)
+              and str(row.get("shard", "")).startswith("shards/")
+              for row in payload["results"]
+          )
+          PY
+
           # Select an in-catalog record that was deliberately excluded from the
           # qualified static surface, then prove nginx reaches the healthy MCP
           # fallback and preserves the noindex contract.
@@ -338,6 +375,43 @@ jobs:
           fi
           grep -Fqi "location: ${expected_canonical}" "${lowercase_headers}"
 
+      - name: Package verified deployment images
+        if: github.event_name != 'pull_request'
+        env:
+          IMAGE_ARCHIVE_DIR: ${{ runner.temp }}/verified-deployment-images
+        run: |
+          set -euo pipefail
+          mkdir -p "${IMAGE_ARCHIVE_DIR}"
+          IMAGE_PREFIX="ghcr.io/${GITHUB_REPOSITORY,,}"
+          SITE_IMAGE="${IMAGE_PREFIX}-site:${GITHUB_SHA}"
+          MCP_IMAGE="${IMAGE_PREFIX}-mcp:${GITHUB_SHA}"
+          site_id="$(docker image inspect --format '{{.Id}}' "${SITE_IMAGE}")"
+          mcp_id="$(docker image inspect --format '{{.Id}}' "${MCP_IMAGE}")"
+
+          docker save "${SITE_IMAGE}" "${MCP_IMAGE}" |
+            gzip -1 > "${IMAGE_ARCHIVE_DIR}/images.tar.gz"
+          test -s "${IMAGE_ARCHIVE_DIR}/images.tar.gz"
+          (
+            cd "${IMAGE_ARCHIVE_DIR}"
+            sha256sum images.tar.gz > images.tar.gz.sha256
+          )
+          {
+            printf 'site_image=%s\n' "${SITE_IMAGE}"
+            printf 'site_id=%s\n' "${site_id}"
+            printf 'mcp_image=%s\n' "${MCP_IMAGE}"
+            printf 'mcp_id=%s\n' "${mcp_id}"
+          } > "${IMAGE_ARCHIVE_DIR}/image-identities.env"
+
+      - name: Upload verified deployment images
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: verified-deployment-images-${{ github.sha }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/verified-deployment-images
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 0
+
   publish:
     if: github.event_name != 'pull_request'
     needs: build
@@ -347,53 +421,80 @@ jobs:
       contents: read
       packages: write
     steps:
-      - name: Checkout source
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Download verified deployment images
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
-          persist-credentials: false
-          fetch-depth: 1
+          name: verified-deployment-images-${{ github.sha }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/verified-deployment-images
 
-      - name: Compute production baseURL
-        id: site
+      - name: Verify and load deployment images
+        env:
+          IMAGE_ARCHIVE_DIR: ${{ runner.temp }}/verified-deployment-images
         run: |
-          if [ -s "static/CNAME" ]; then
-            HOST="$(grep -v '^[[:space:]]*$' static/CNAME | head -n1 | tr -d '[:space:]')"
-            BASE_URL="https://${HOST}/"
-          else
-            BASE_URL="https://security-recipes.ai/"
+          set -euo pipefail
+          IMAGE_PREFIX="ghcr.io/${GITHUB_REPOSITORY,,}"
+          SITE_IMAGE="${IMAGE_PREFIX}-site:${GITHUB_SHA}"
+          MCP_IMAGE="${IMAGE_PREFIX}-mcp:${GITHUB_SHA}"
+          identity_file="${IMAGE_ARCHIVE_DIR}/image-identities.env"
+
+          if [ "$(wc -l < "${identity_file}" | tr -d '[:space:]')" != "4" ] ||
+            [ "$(grep -Ec '^(site_image|site_id|mcp_image|mcp_id)=' "${identity_file}")" != "4" ]; then
+            echo "Verified image identity manifest has an unexpected shape." >&2
+            exit 1
           fi
+          recorded_site_image="$(sed -n 's/^site_image=//p' "${identity_file}")"
+          recorded_site_id="$(sed -n 's/^site_id=//p' "${identity_file}")"
+          recorded_mcp_image="$(sed -n 's/^mcp_image=//p' "${identity_file}")"
+          recorded_mcp_id="$(sed -n 's/^mcp_id=//p' "${identity_file}")"
+          if [ "${recorded_site_image}" != "${SITE_IMAGE}" ] ||
+            [ "${recorded_mcp_image}" != "${MCP_IMAGE}" ]; then
+            echo "Verified image references do not match this workflow revision." >&2
+            exit 1
+          fi
+          if [[ ! "${recorded_site_id}" =~ ^sha256:[0-9a-f]{64}$ ]] ||
+            [[ ! "${recorded_mcp_id}" =~ ^sha256:[0-9a-f]{64}$ ]]; then
+            echo "Verified image identity manifest contains an invalid image ID." >&2
+            exit 1
+          fi
+          (
+            cd "${IMAGE_ARCHIVE_DIR}"
+            sha256sum --check --strict images.tar.gz.sha256
+            gzip --decompress --stdout images.tar.gz | docker load
+          )
+          loaded_site_id="$(docker image inspect --format '{{.Id}}' "${SITE_IMAGE}")"
+          loaded_mcp_id="$(docker image inspect --format '{{.Id}}' "${MCP_IMAGE}")"
+          if [ "${loaded_site_id}" != "${recorded_site_id}" ] ||
+            [ "${loaded_mcp_id}" != "${recorded_mcp_id}" ]; then
+            echo "Loaded deployment image IDs differ from the smoke-tested images." >&2
+            exit 1
+          fi
+
+      - name: Compute immutable image tag
+        id: image
+        run: |
           if [ "${GITHUB_REF}" = "refs/heads/development" ]; then
             IMAGE_TAG="${GITHUB_SHA}-development"
           else
             IMAGE_TAG="${GITHUB_SHA}"
           fi
-          echo "base_url=${BASE_URL}" >> "$GITHUB_OUTPUT"
           echo "image_tag=${IMAGE_TAG}" >> "$GITHUB_OUTPUT"
-
-      - name: Build immutable deployment images
-        env:
-          SECURITY_RECIPES_BASE_URL: ${{ steps.site.outputs.base_url }}
-          SECURITY_RECIPES_REPO_URL: "https://github.com/${{ github.repository }}"
-          IMAGE_TAG: ${{ steps.site.outputs.image_tag }}
-        run: |
-          IMAGE_PREFIX="ghcr.io/${GITHUB_REPOSITORY,,}"
-          docker build \
-            --build-arg "BASE_URL=${SECURITY_RECIPES_BASE_URL}" \
-            --build-arg "REPO_URL=${SECURITY_RECIPES_REPO_URL}" \
-            --build-arg "REVISION=${GITHUB_SHA}" \
-            --tag "${IMAGE_PREFIX}-site:${IMAGE_TAG}" .
-          docker build \
-            --file Dockerfile.mcp-server \
-            --build-arg "REVISION=${GITHUB_SHA}" \
-            --tag "${IMAGE_PREFIX}-mcp:${IMAGE_TAG}" .
 
       - name: Publish immutable deployment images
         env:
           GHCR_TOKEN: ${{ github.token }}
-          IMAGE_TAG: ${{ steps.site.outputs.image_tag }}
+          IMAGE_TAG: ${{ steps.image.outputs.image_tag }}
         run: |
+          set -euo pipefail
           IMAGE_PREFIX="ghcr.io/${GITHUB_REPOSITORY,,}"
+          SITE_SOURCE_IMAGE="${IMAGE_PREFIX}-site:${GITHUB_SHA}"
+          MCP_SOURCE_IMAGE="${IMAGE_PREFIX}-mcp:${GITHUB_SHA}"
+          SITE_TARGET_IMAGE="${IMAGE_PREFIX}-site:${IMAGE_TAG}"
+          MCP_TARGET_IMAGE="${IMAGE_PREFIX}-mcp:${IMAGE_TAG}"
+          if [ "${IMAGE_TAG}" != "${GITHUB_SHA}" ]; then
+            docker tag "${SITE_SOURCE_IMAGE}" "${SITE_TARGET_IMAGE}"
+            docker tag "${MCP_SOURCE_IMAGE}" "${MCP_TARGET_IMAGE}"
+          fi
           printf '%s' "${GHCR_TOKEN}" |
             docker login ghcr.io --username "${GITHUB_ACTOR}" --password-stdin
-          docker push "${IMAGE_PREFIX}-site:${IMAGE_TAG}"
-          docker push "${IMAGE_PREFIX}-mcp:${IMAGE_TAG}"
+          docker push "${SITE_TARGET_IMAGE}"
+          docker push "${MCP_TARGET_IMAGE}"

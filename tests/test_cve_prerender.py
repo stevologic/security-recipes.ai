@@ -219,9 +219,14 @@ class CvePrerenderTests(unittest.TestCase):
         self.assertIn("python scripts/materialize_cve_pages.py", package)
         self.assertIn("COPY mcp_server.py ./", dockerfile)
         self.assertIn("scripts/materialize_cve_pages.py", dockerfile)
+        self.assertIn("scripts/cve_search_runtime.py", dockerfile)
         self.assertIn("scripts/cve_text_quality.py", dockerfile)
         self.assertIn(
             "COPY scripts/cve_text_quality.py /app/scripts/cve_text_quality.py",
+            mcp_dockerfile,
+        )
+        self.assertIn(
+            "COPY scripts/cve_search_runtime.py /app/scripts/cve_search_runtime.py",
             mcp_dockerfile,
         )
         package_copy = "COPY package.json package-lock.json ./"
@@ -244,6 +249,55 @@ class CvePrerenderTests(unittest.TestCase):
         self.assertIn("error_page 418 = @cve_landing_runtime;", nginx)
         self.assertIn("location @cve_landing_runtime", nginx)
         self.assertIn("proxy_pass $cve_landing_api$uri;", nginx)
+
+    def test_nginx_isolates_exact_public_search_from_static_catalog_assets(self) -> None:
+        nginx = (ROOT / "docker" / "nginx" / "default.conf").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertEqual(
+            nginx.count("location = /api/cve-catalog/search {"),
+            1,
+        )
+        self.assertIn(
+            "limit_req_zone $cve_catalog_search_limit_key "
+            "zone=cve_catalog_search:10m rate=10r/s;",
+            nginx,
+        )
+        search_location = nginx.split(
+            "location = /api/cve-catalog/search {",
+            1,
+        )[1].split("\n    }", 1)[0]
+        self.assertIn("limit_req zone=cve_catalog_search burst=20 nodelay;", search_location)
+        self.assertIn("proxy_connect_timeout 3s;", search_location)
+        self.assertIn("proxy_send_timeout 5s;", search_location)
+        self.assertIn("proxy_read_timeout 5s;", search_location)
+        self.assertIn('proxy_set_header Authorization "";', search_location)
+        self.assertIn('proxy_set_header Cookie "";', search_location)
+        self.assertIn(
+            "proxy_pass $cve_catalog_search_api$request_uri;",
+            search_location,
+        )
+        self.assertIn("location @cve_catalog_search_rate_limited", nginx)
+        self.assertIn(
+            "error_page 500 502 503 504 = @cve_catalog_search_unavailable;",
+            search_location,
+        )
+        self.assertIn("location @cve_catalog_search_unavailable", nginx)
+        self.assertIn('add_header X-Robots-Tag "noindex, nofollow, noarchive" always;', nginx)
+        self.assertIn(
+            "location = /api/cve-catalog/manifest.json {\n"
+            "        try_files $uri =404;",
+            nginx,
+        )
+        self.assertIn(
+            "location ~ ^/api/cve-catalog/(?:shards/.+\\.jsonl\\.gz|browser-index\\.json\\.gz|",
+            nginx,
+        )
+        self.assertLess(
+            nginx.index("location = /api/cve-catalog/search {"),
+            nginx.index("location = /api/cve-catalog/manifest.json {"),
+        )
 
 
 if __name__ == "__main__":

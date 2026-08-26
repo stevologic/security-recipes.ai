@@ -97,6 +97,12 @@ BROWSER_INDEX_FIELDS = [
     "archetype_indexes",
     "has_markdown",
 ]
+SEARCH_API_RUNTIME = {
+    "schema_version": 1,
+    "path": "search",
+    "max_query_length": 120,
+    "max_results": 100,
+}
 MAX_STABLE_MARKDOWN_BYTES = 256 * 1024
 ARCHETYPE_LIST_FIELDS = (
     "exposure_checks",
@@ -272,12 +278,24 @@ FRONTMATTER_AUTHOR_RE = re.compile(r'^author:\s*(.+?)\s*$', re.MULTILINE | re.I)
 FRONTMATTER_DATE_RE = re.compile(r'^date:\s*(.+?)\s*$', re.MULTILINE | re.I)
 FRONTMATTER_LASTMOD_RE = re.compile(r'^lastmod:\s*(.+?)\s*$', re.MULTILINE | re.I)
 FRONTMATTER_MODEL_RE = re.compile(r'^model:\s*(.+?)\s*$', re.MULTILINE | re.I)
+FRONTMATTER_AI_ENRICHMENT_REVIEW_STATUS_RE = re.compile(
+    r'^ai_enrichment_review_status:\s*(.+?)\s*$', re.MULTILINE | re.I
+)
 FRONTMATTER_SEVERITY_RE = re.compile(r'^severity:\s*(.+?)\s*$', re.MULTILINE | re.I)
 FRONTMATTER_KEV_RE = re.compile(r'^kev:\s*(.+?)\s*$', re.MULTILINE | re.I)
 MAX_FRONTMATTER_TITLE_CHARS = 200
 MAX_FRONTMATTER_DESCRIPTION_CHARS = 500
 MAX_FRONTMATTER_AUTHOR_CHARS = 120
 MAX_FRONTMATTER_MODEL_CHARS = 120
+MAX_FRONTMATTER_AI_ENRICHMENT_REVIEW_STATUS_CHARS = 64
+AI_ENRICHMENT_REVIEW_STATUS_HUMAN_DRAFT = "human-reviewed-development-draft"
+AI_ENRICHMENT_REVIEW_STATUS_APPROVED = "approved-for-ai-authority"
+AI_ENRICHMENT_REVIEW_STATUSES = frozenset(
+    {
+        AI_ENRICHMENT_REVIEW_STATUS_HUMAN_DRAFT,
+        AI_ENRICHMENT_REVIEW_STATUS_APPROVED,
+    }
+)
 
 
 @dataclass(frozen=True)
@@ -302,6 +320,7 @@ class ExistingRecipe:
     date: str = ""
     lastmod: str = ""
     model: str = ""
+    ai_enrichment_review_status: str = ""
     severity: str = ""
     kev: bool | None = None
 
@@ -1805,6 +1824,21 @@ def markdown_inventory(content_dir: Path) -> dict[str, list[ExistingRecipe]]:
             path=path,
             limit=MAX_FRONTMATTER_MODEL_CHARS,
         )
+        ai_enrichment_review_status = bounded_frontmatter_scalar(
+            body,
+            FRONTMATTER_AI_ENRICHMENT_REVIEW_STATUS_RE,
+            field="ai_enrichment_review_status",
+            path=path,
+            limit=MAX_FRONTMATTER_AI_ENRICHMENT_REVIEW_STATUS_CHARS,
+        ).casefold()
+        if (
+            ai_enrichment_review_status
+            and ai_enrichment_review_status not in AI_ENRICHMENT_REVIEW_STATUSES
+        ):
+            raise ValueError(
+                "frontmatter ai_enrichment_review_status must be one of "
+                f"{sorted(AI_ENRICHMENT_REVIEW_STATUSES)}: {path}"
+            )
         severity = frontmatter_scalar(body, FRONTMATTER_SEVERITY_RE).casefold()
         if severity and severity not in SEVERITY_RANK:
             raise ValueError(
@@ -1834,6 +1868,7 @@ def markdown_inventory(content_dir: Path) -> dict[str, list[ExistingRecipe]]:
                 date=published_date,
                 lastmod=lastmod,
                 model=model,
+                ai_enrichment_review_status=ai_enrichment_review_status,
                 severity=severity,
                 kev=kev,
             )
@@ -1848,7 +1883,14 @@ def serialize_markdown_recipe(recipe: ExistingRecipe) -> dict[str, str]:
         "maturity": recipe.maturity,
         "title": recipe.title,
     }
-    for field in ("description", "author", "date", "lastmod", "model"):
+    for field in (
+        "description",
+        "author",
+        "date",
+        "lastmod",
+        "model",
+        "ai_enrichment_review_status",
+    ):
         value = getattr(recipe, field)
         if value:
             result[field] = value
@@ -2060,7 +2102,30 @@ def is_record_search_indexable(record: dict[str, Any]) -> bool:
 
     if record.get("recipe_kind") == "markdown-override":
         return True
-    return recipe_ready(record.get("ai_enrichment"), record)
+    return ai_enrichment_ready_for_authority(record)
+
+
+def ai_enrichment_human_review_blocked(record: dict[str, Any]) -> bool:
+    """Return whether development Markdown explicitly withholds AI authority."""
+
+    markdown = record.get("markdown")
+    if not isinstance(markdown, list):
+        return False
+    return any(
+        isinstance(entry, dict)
+        and str(entry.get("maturity") or "").strip().casefold() == "development"
+        and str(entry.get("ai_enrichment_review_status") or "").strip().casefold()
+        == AI_ENRICHMENT_REVIEW_STATUS_HUMAN_DRAFT
+        for entry in markdown
+    )
+
+
+def ai_enrichment_ready_for_authority(record: dict[str, Any]) -> bool:
+    """Apply both the deterministic evidence gate and explicit human review state."""
+
+    return recipe_ready(
+        record.get("ai_enrichment"), record
+    ) and not ai_enrichment_human_review_blocked(record)
 
 
 def search_index_record(record: dict[str, Any]) -> dict[str, Any]:
@@ -2240,7 +2305,12 @@ def build_outputs(
     markdown_pages = 0
     ai_enriched = 0
     ai_enrichment_complete = 0
+    ai_enrichment_specific = 0
+    ai_enrichment_evidence_ready = 0
+    ai_enrichment_recipe_ready = 0
+    ai_enrichment_human_review_blocked_count = 0
     ai_enrichment_insufficient = 0
+    ai_enrichment_withheld = 0
     ai_enrichment_models: dict[str, int] = {}
     search_indexable_records: list[dict[str, Any]] = []
     valid_ids = valid_archetype_ids(archetypes)
@@ -2299,7 +2369,19 @@ def build_outputs(
                 if isinstance(enrichment, dict):
                     ai_enriched += 1
                     ai_enrichment_complete += int(enrichment.get("status") == "complete")
+                    ai_enrichment_specific += int(
+                        enrichment.get("recipe_specificity") == "specific"
+                    )
                     ai_enrichment_insufficient += int(enrichment.get("status") == "insufficient_evidence")
+                    evidence_ready = recipe_ready(enrichment, record)
+                    human_review_blocked = (
+                        evidence_ready and ai_enrichment_human_review_blocked(record)
+                    )
+                    authority_ready = evidence_ready and not human_review_blocked
+                    ai_enrichment_evidence_ready += int(evidence_ready)
+                    ai_enrichment_recipe_ready += int(authority_ready)
+                    ai_enrichment_human_review_blocked_count += int(human_review_blocked)
+                    ai_enrichment_withheld += int(not authority_ready)
                     model = str(enrichment.get("model") or "").strip()
                     if model:
                         ai_enrichment_models[model] = ai_enrichment_models.get(model, 0) + 1
@@ -2414,7 +2496,7 @@ def build_outputs(
             "recipe_policy": (
                 "Every record composes with vetted remediation archetypes. Search indexing is limited "
                 "to stable reviewed Markdown or AI enrichment that passes the deterministic recipe-ready "
-                "evidence contract."
+                "evidence contract and is not explicitly withheld by development review."
             ),
         },
         "totals": {
@@ -2429,7 +2511,12 @@ def build_outputs(
             "stable_markdown_overrides": authoritative_markdown,
             "ai_enriched_records": ai_enriched,
             "ai_enrichment_complete": ai_enrichment_complete,
+            "ai_enrichment_specific": ai_enrichment_specific,
+            "ai_enrichment_evidence_ready": ai_enrichment_evidence_ready,
+            "ai_enrichment_recipe_ready": ai_enrichment_recipe_ready,
+            "ai_enrichment_human_review_blocked": ai_enrichment_human_review_blocked_count,
             "ai_enrichment_insufficient_evidence": ai_enrichment_insufficient,
+            "ai_enrichment_withheld": ai_enrichment_withheld,
             "search_indexable_records": len(search_indexable_records),
             "in_scope_kev": in_scope_kev,
             "shards": len(shard_manifest),
@@ -2476,6 +2563,7 @@ def build_outputs(
         "by_severity": manifest["by_severity"],
         "by_publication_year": manifest["by_publication_year"],
         "ai_enrichment_models": manifest["ai_enrichment_models"],
+        "search_api": SEARCH_API_RUNTIME,
         "browser_index": browser_manifest,
         "archetypes": archetypes_manifest,
         "shard_set_sha256": shard_set_sha256,
@@ -2923,6 +3011,15 @@ def rebuild_search_index(output_dir: Path, *, dry_run: bool = False) -> dict[str
 
     qualified_records: list[dict[str, Any]] = []
     seen_ids: set[str] = set()
+    ai_enriched = 0
+    ai_enrichment_complete = 0
+    ai_enrichment_specific = 0
+    ai_enrichment_evidence_ready = 0
+    ai_enrichment_recipe_ready = 0
+    ai_enrichment_human_review_blocked_count = 0
+    ai_enrichment_insufficient = 0
+    ai_enrichment_withheld = 0
+    ai_enrichment_models: dict[str, int] = {}
     for entry in raw_entries:
         if not isinstance(entry, dict):
             raise ValueError("CVE catalog manifest contains an invalid shard entry")
@@ -2963,6 +3060,28 @@ def rebuild_search_index(output_dir: Path, *, dry_run: bool = False) -> dict[str
             if not re.fullmatch(r"CVE-\d{4}-\d{4,}", cve) or cve in seen_ids:
                 raise ValueError(f"CVE catalog shard contains an invalid identity: {cve!r}")
             seen_ids.add(cve)
+            enrichment = record.get("ai_enrichment")
+            if isinstance(enrichment, dict):
+                ai_enriched += 1
+                ai_enrichment_complete += int(enrichment.get("status") == "complete")
+                ai_enrichment_specific += int(
+                    enrichment.get("recipe_specificity") == "specific"
+                )
+                ai_enrichment_insufficient += int(
+                    enrichment.get("status") == "insufficient_evidence"
+                )
+                evidence_ready = recipe_ready(enrichment, record)
+                human_review_blocked = (
+                    evidence_ready and ai_enrichment_human_review_blocked(record)
+                )
+                authority_ready = evidence_ready and not human_review_blocked
+                ai_enrichment_evidence_ready += int(evidence_ready)
+                ai_enrichment_recipe_ready += int(authority_ready)
+                ai_enrichment_human_review_blocked_count += int(human_review_blocked)
+                ai_enrichment_withheld += int(not authority_ready)
+                model = str(enrichment.get("model") or "").strip()
+                if model:
+                    ai_enrichment_models[model] = ai_enrichment_models.get(model, 0) + 1
             if is_record_search_indexable(record):
                 qualified_records.append(search_index_record(record))
 
@@ -2987,15 +3106,30 @@ def rebuild_search_index(output_dir: Path, *, dry_run: bool = False) -> dict[str
         "bytes": len(search_payload),
     }
     totals = dict(manifest.get("totals") or {})
-    totals["search_indexable_records"] = len(qualified_records)
+    totals.update(
+        {
+            "ai_enriched_records": ai_enriched,
+            "ai_enrichment_complete": ai_enrichment_complete,
+            "ai_enrichment_specific": ai_enrichment_specific,
+            "ai_enrichment_evidence_ready": ai_enrichment_evidence_ready,
+            "ai_enrichment_recipe_ready": ai_enrichment_recipe_ready,
+            "ai_enrichment_human_review_blocked": (
+                ai_enrichment_human_review_blocked_count
+            ),
+            "ai_enrichment_insufficient_evidence": ai_enrichment_insufficient,
+            "ai_enrichment_withheld": ai_enrichment_withheld,
+            "search_indexable_records": len(qualified_records),
+        }
+    )
     manifest["totals"] = totals
+    manifest["ai_enrichment_models"] = dict(sorted(ai_enrichment_models.items()))
     manifest["search_index"] = search_manifest
     scope = manifest.get("scope")
     if isinstance(scope, dict):
         scope["recipe_policy"] = (
             "Every record composes with vetted remediation archetypes. Search indexing is limited "
             "to stable reviewed Markdown or AI enrichment that passes the deterministic recipe-ready "
-            "evidence contract."
+            "evidence contract and is not explicitly withheld by development review."
         )
     runtime_summary = {
         "schema_version": 2,
@@ -3008,6 +3142,7 @@ def rebuild_search_index(output_dir: Path, *, dry_run: bool = False) -> dict[str
         "by_severity": manifest.get("by_severity"),
         "by_publication_year": manifest.get("by_publication_year"),
         "ai_enrichment_models": manifest.get("ai_enrichment_models"),
+        "search_api": SEARCH_API_RUNTIME,
         "browser_index": manifest.get("browser_index"),
         "archetypes": manifest.get("archetypes_asset"),
         "shard_set_sha256": manifest.get("shard_set_sha256"),

@@ -481,8 +481,19 @@ class DeployScriptStaticTests(unittest.TestCase):
         self.assertIn("docker builder prune --help", source)
         self.assertIn("--reserved-space", source)
         self.assertIn("--keep-storage", source)
-        self.assertIn('blue_ref="$(docker inspect', source)
-        self.assertIn('green_ref="$(docker inspect', source)
+        self.assertIn("cleanup_tagged_images() {", source)
+        self.assertIn("docker inspect --format '{{.Config.Image}}'", source)
+        self.assertIn("docker inspect --format '{{.Image}}'", source)
+        self.assertIn(
+            'cleanup_tagged_images "${MCP_IMAGE_REPOSITORY}"', source
+        )
+        disk_guard = source[
+            source.index("ensure_disk_headroom() {") : source.index(
+                "ensure_memory_headroom() {"
+            )
+        ]
+        self.assertIn("cleanup_mcp_images", disk_guard)
+        self.assertIn("cleanup_mcp_images", main)
         self.assertIn("validate_catalog_freshness", source)
         self.assertIn("catalog_updated_at", source)
         self.assertIn("send_success_heartbeat", source)
@@ -529,6 +540,7 @@ class DeployScriptStaticTests(unittest.TestCase):
             self.assertIn("lb_policy first", source)
             self.assertIn("health_uri /", source)
             self.assertIn("fail_duration 30s", source)
+            self.assertNotIn("unhealthy_status 5xx", source)
         self.assertIn("./docker/caddy:/etc/caddy:ro", COMPOSE_FILE.read_text())
         self.assertIn("ExecStart=/usr/bin/caddy run --environ --resume", setup)
         self.assertIn("ExecReload=", setup)
@@ -857,9 +869,22 @@ if [[ "${1:-}" == "inspect" ]]; then
     esac
     exit 0
   fi
+  if [[ "$*" == *"{{.Image}}"* ]]; then
+    case "${@: -1}" in
+      blue-id) printf '%s\n' 'sha256:site-blue' ;;
+      green-id) printf '%s\n' 'sha256:site-green' ;;
+      dev-id) printf '%s\n' 'sha256:site-dev' ;;
+      legacy-mcp-id) printf '%s\n' 'sha256:mcp-legacy' ;;
+      mcp-blue-id) printf '%s\n' 'sha256:mcp-blue' ;;
+      mcp-green-id) printf '%s\n' 'sha256:mcp-green' ;;
+    esac
+    exit 0
+  fi
   case "${@: -1}" in
     blue-id) printf '%s\n' "${FAKE_BLUE_IMAGE:-legacy-blue}" ;;
     green-id) printf '%s\n' "${FAKE_GREEN_IMAGE:-legacy-green}" ;;
+    dev-id) printf '%s\n' "${FAKE_DEV_IMAGE:-legacy-dev}" ;;
+    legacy-mcp-id) printf '%s\n' "${FAKE_LEGACY_MCP_IMAGE:-ghcr.io/stevologic/security-recipes.ai-mcp:legacy}" ;;
     mcp-blue-id) cat "$FAKE_MCP_BLUE_IMAGE" ;;
     mcp-green-id) cat "$FAKE_MCP_GREEN_IMAGE" ;;
   esac
@@ -867,6 +892,9 @@ if [[ "${1:-}" == "inspect" ]]; then
 fi
 
 if [[ "${1:-}" == "image" ]]; then
+  if [[ "${2:-}" == "ls" && "$*" == *"security-recipes.ai-mcp"* ]]; then
+    printf '%s' "${FAKE_MCP_IMAGE_INVENTORY:-}"
+  fi
   exit 0
 fi
 
@@ -1435,6 +1463,74 @@ exit 0
         )
         self.assertFalse(any(command.endswith(" caddy") and "compose up" in command for command in commands))
 
+    def test_post_deploy_cleanup_preserves_all_running_image_refs_and_ids(
+        self,
+    ) -> None:
+        self.workflow_response()
+        repository = "ghcr.io/stevologic/security-recipes.ai-mcp"
+        inventory = "\n".join(
+            (
+                f"{repository}:{'a' * 40} sha256:mcp-blue",
+                f"{repository}:{'b' * 40} sha256:mcp-green",
+                f"{repository}:legacy sha256:mcp-legacy",
+                f"{repository}:mcp-blue-alias sha256:mcp-blue",
+                f"{repository}:mcp-green-alias sha256:mcp-green",
+                f"{repository}:mcp-legacy-alias sha256:mcp-legacy",
+                f"{repository}:site-blue-live sha256:site-blue",
+                f"{repository}:site-blue-alias sha256:site-blue",
+                f"{repository}:site-green-live sha256:site-green",
+                f"{repository}:site-green-alias sha256:site-green",
+                f"{repository}:site-dev-live sha256:site-dev",
+                f"{repository}:site-dev-alias sha256:site-dev",
+                f"{repository}:<none> sha256:dangling",
+                f"{repository}:old sha256:old",
+            )
+        )
+
+        result = self.run_deploy(
+            FAKE_BLUE_IMAGE=f"{repository}:site-blue-live",
+            FAKE_GREEN_IMAGE=f"{repository}:site-green-live",
+            FAKE_DEV_IMAGE=f"{repository}:site-dev-live",
+            FAKE_MCP_IMAGE_INVENTORY=f"{inventory}\n",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        commands = self.commands()
+        self.assertTrue(
+            any(
+                command.startswith(
+                    f"docker image ls --no-trunc {repository} --format"
+                )
+                for command in commands
+            )
+        )
+        self.assertEqual(
+            [command for command in commands if command.startswith("docker image rm ")],
+            [f"docker image rm {repository}:old"],
+        )
+        self.assert_no_outage()
+
+    def test_post_deploy_cleanup_fails_closed_when_live_image_is_unknown(
+        self,
+    ) -> None:
+        self.workflow_response()
+        repository = "ghcr.io/stevologic/security-recipes.ai-mcp"
+
+        result = self.run_deploy(
+            FAKE_DOCKER_FAIL_MATCH="{{.Image}} dev-id",
+            FAKE_MCP_IMAGE_INVENTORY=f"{repository}:old sha256:old\n",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("skipping", result.stdout)
+        self.assertFalse(
+            any(
+                command.startswith("docker image rm ")
+                for command in self.commands()
+            )
+        )
+        self.assert_no_outage()
+
     def test_traffic_report_failure_stops_before_site_mutation(self) -> None:
         self.workflow_response()
 
@@ -1790,13 +1886,18 @@ printf 'fake 10000000 9999000 %s 99%% /\n' "${FAKE_FREE_KB:-1024}"
         )
         self.workflow_response()
 
-        result = self.run_deploy(FAKE_FREE_KB="1024")
+        repository = "ghcr.io/stevologic/security-recipes.ai-mcp"
+        result = self.run_deploy(
+            FAKE_FREE_KB="1024",
+            FAKE_MCP_IMAGE_INVENTORY=f"{repository}:old sha256:old\n",
+        )
 
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("Insufficient safe disk headroom", result.stdout)
         self.assertTrue(
             any("docker builder prune --force" in command for command in self.commands())
         )
+        self.assertIn(f"docker image rm {repository}:old", self.commands())
         self.assertFalse(any("compose build" in command for command in self.commands()))
         self.assertFalse(any("compose up" in command for command in self.commands()))
         self.assert_no_outage()
