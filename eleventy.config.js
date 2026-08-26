@@ -68,6 +68,7 @@ function renderRobotsTxt() {
   return [
     `# robots.txt for ${site.title}`,
     `# Generated at build time.`,
+    `# IndexNow key: /f29595c66bedf646c3922ccc510c7e62.txt`,
     ``,
     ...robotsGroup("*"),
     `# AI / LLM crawlers — explicitly allowed outside the shared exclusions.`,
