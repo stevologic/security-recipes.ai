@@ -88,6 +88,10 @@ class CvePrerenderTests(unittest.TestCase):
                 "flat CVE sections",
             ),
             (
+                document.replace('id="detection-triage-heading"', "", 1),
+                "flat CVE sections",
+            ),
+            (
                 document.replace('id="use-ai-heading"', "", 1),
                 "flat CVE sections",
             ),
@@ -108,6 +112,22 @@ class CvePrerenderTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, message):
                     prerender.validate_landing_page_contract(
                         broken_document,
+                        cve_id=cve_id,
+                        canonical_url=canonical_url,
+                        require_remediation_summary=True,
+                    )
+
+        for recommender_ui in (
+            "<h2>Choose an AI remediation playbook</h2>",
+            '<a href="/security-remediation/recipe-recommender/">Recipe Recommender</a>',
+        ):
+            with self.subTest(recommender_ui=recommender_ui):
+                with self.assertRaisesRegex(ValueError, "recipe recommender UI"):
+                    prerender.validate_landing_page_contract(
+                        document.replace(
+                            "</article>",
+                            f"{recommender_ui}</article>",
+                        ),
                         cve_id=cve_id,
                         canonical_url=canonical_url,
                         require_remediation_summary=True,
