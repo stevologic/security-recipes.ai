@@ -2,7 +2,7 @@
 title: "Security Recipes Documentation: Playbooks, Agents, and MCP"
 linkTitle: Docs
 weight: 6
-lastmod: 2026-08-21
+lastmod: 2026-08-26
 toc: true
 sidebar:
   open: true
@@ -50,6 +50,7 @@ Servers **MUST** implement
   {{< card link="/mcp-servers/" title="MCP Integration" subtitle="How to connect public and internal security context as scoped, read-only agent input." >}}
   {{< card link="/docs/agent-integration/" title="Agent Consumption" subtitle="Patterns for direct fetch, vendored snapshots, MCP connectors, and CI injection." >}}
   {{< card link="/docs/cve-intelligence-intake/" title="CVE Intake" subtitle="Route advisory signals into remediation, containment, suppression, triage, or rejection." >}}
+  {{< card link="/docs/site-data-pipeline/" title="Site Data Pipeline" subtitle="How NVD, CISA KEV, recipes, and catalog sync become pages, sitemaps, MCP, and a deploy." >}}
   {{< card link="/docs/control-plane-marketplace/" title="Control Plane Marketplace" subtitle="Review the browser workbench's input channels, output routes, report packs, and workflow templates." >}}
   {{< card link="/docs/ai-adoption-blueprint/" title="AI Adoption Blueprint" subtitle="A staged rollout path for small teams and governed enterprise programs." >}}
   {{< card link="/docs/recipe-routing-evals/" title="Recipe Routing Evals" subtitle="Golden-set tests that verify search and dispatch choose the intended recipe." >}}
