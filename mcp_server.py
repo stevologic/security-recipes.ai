@@ -16340,6 +16340,10 @@ def _render_cve_landing_page(
         + article_time_meta
     )
 
+    # The legacy identity attribute is an inert predecessor-deployer bridge.
+    # Revisions through 9e641af6 validate it before they can install a newer
+    # deploy.sh; keep it alongside the current identity until production has
+    # successfully crossed that compatibility boundary.
     return f"""<!doctype html>
 <html lang="en" class="dark" data-site-signal-background="true">
 <head>
@@ -16410,7 +16414,7 @@ def _render_cve_landing_page(
       <a href="/cve-database/">CVE Database</a><span aria-hidden="true">/</span>
       <span aria-current="page">{html.escape(cve_id)}</span>
     </nav>
-    <article class="content cve-catalog cve-landing sr-cve-detail-content" data-cve-id="{html.escape(cve_id, quote=True)}">
+    <article class="content cve-catalog cve-landing sr-cve-detail-content" data-cve-id="{html.escape(cve_id, quote=True)}" data-cve-initial-id="{html.escape(cve_id, quote=True)}">
       <p class="cve-catalog__eyebrow">CVE intelligence and bounded remediation</p>
       <h1 class="sr-page-title">{html.escape(headline)}</h1>
       <div class="cve-catalog__badges" aria-label="CVE priority">

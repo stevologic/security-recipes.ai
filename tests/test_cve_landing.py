@@ -275,6 +275,9 @@ class CveLandingRenderTests(unittest.TestCase):
             page,
         )
         self.assertIn('data-cve-id="CVE-2024-3400"', page)
+        # The live 9e641af6 deployer requires this inert predecessor marker
+        # before it can install a page and deployer using data-cve-id.
+        self.assertIn('data-cve-initial-id="CVE-2024-3400"', page)
         self.assertIn('data-site-signal-background="true"', page)
         self.assertIn('class="sr-docs-body sr-cve-detail-page"', page)
         self.assertIn(
