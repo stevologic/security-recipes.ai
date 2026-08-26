@@ -1,12 +1,12 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-05-04",
+  "last_reviewed": "2026-08-26",
   "intent": "Define a vendor-neutral SOC detection profile for agentic AI and MCP systems so SecurityRecipes can turn secure-context telemetry, policy decisions, incident classes, red-team replay, and threat-radar signals into SIEM-ready detections without requiring raw prompt or tool payload collection.",
   "positioning": {
     "buyer": "Detection Engineering, AI Platform, Security Operations, Security Engineering, GRC, and acquisition diligence teams",
     "category": "Agentic AI SOC detection and secure-context signal pack",
     "enterprise_promise": "SecurityRecipes makes agentic AI observable in the systems enterprises already run: each detection maps to trace fields, MCP policy evidence, run receipts, incident response, and SOC-ready queries.",
-    "why_now": "Agentic AI has moved from chat to tool-using systems with identities, MCP servers, browser sessions, external egress, and non-human approvals. Security teams need detections they can deploy before autonomous agents become an unmanaged production blind spot."
+    "why_now": "MCP 2026-07-28 removed protocol-level sessions and the initialize handshake. Servers now mint explicit state handles, advertise themselves through server/discover, and deliver elicitation inside InputRequiredResult. SOC detections that still key on mcp.session.id, mcp.initialize, or standalone elicitation IDs will miss state-handle hijacking, requestState replay, and untrusted URL-mode prompts."
   },
   "standards_alignment": [
     {
@@ -19,19 +19,37 @@
       "id": "opentelemetry-mcp-semconv",
       "name": "OpenTelemetry Semantic Conventions for Model Context Protocol",
       "url": "https://opentelemetry.io/docs/specs/semconv/gen-ai/mcp/",
-      "coverage": "Anchors MCP JSON-RPC request ids, method names, tool calls, protocol version, session ids, and transport evidence used by detection rules."
+      "coverage": "Anchors MCP JSON-RPC request ids, method names, tool calls, protocol version, and transport evidence. mcp.session.id remains an optional collector field when present; it is not protocol-authoritative after MCP 2026-07-28 removed protocol-level sessions."
+    },
+    {
+      "id": "mcp-security-best-practices-2026-07-28",
+      "name": "Model Context Protocol Security Best Practices (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices",
+      "coverage": "Current public MCP revision. Maps confused deputy, token passthrough, SSRF including Client ID Metadata Document fetches, state handle hijacking, local server compromise, OAuth URL validation, mix-up attacks, and scope minimization into deployable SOC detections."
     },
     {
       "id": "mcp-security-best-practices-2025-06-18",
-      "name": "Model Context Protocol Security Best Practices",
+      "name": "Model Context Protocol Security Best Practices (2025-06-18 prior revision)",
       "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices",
-      "coverage": "Maps confused deputy, token passthrough, SSRF, session hijacking, local server compromise, and scope minimization guidance into deployable SOC detections."
+      "coverage": "Prior MCP security-best-practices revision kept as a historical source ID. Session-hijacking guidance applies only to 2025-11-25 and earlier protocol versions; prefer the 2026-07-28 state-handle controls."
+    },
+    {
+      "id": "mcp-elicitation-2026-07-28",
+      "name": "Model Context Protocol Elicitation (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/client/elicitation",
+      "coverage": "Current public MCP revision. Form-mode and URL-mode elicitation delivered through InputRequiredResult, opaque requestState on retry, sensitive-data restrictions, URL safety, identity binding, and separation of external OAuth from MCP authorization."
     },
     {
       "id": "mcp-elicitation-2025-06-18",
-      "name": "Model Context Protocol Elicitation",
+      "name": "Model Context Protocol Elicitation (2025-06-18 prior revision)",
       "url": "https://modelcontextprotocol.io/specification/2025-06-18/client/elicitation",
-      "coverage": "Covers server-initiated user input requests, sensitive information restrictions, user approval, rate limiting, and clear requesting-server display."
+      "coverage": "Prior elicitation revision kept as a historical source ID. Server-initiated elicitation IDs and completion notifications were removed; do not treat them as current detection keys."
+    },
+    {
+      "id": "mcp-changelog-2026-07-28",
+      "name": "Model Context Protocol 2026-07-28 Changelog",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/changelog",
+      "coverage": "Records removal of protocol sessions, the initialize handshake, and elicitationId completion notifications, plus the required server/discover RPC and Multi Round-Trip Requests pattern that SOC event classes must follow."
     },
     {
       "id": "owasp-mcp-top-10",
@@ -72,7 +90,7 @@
   ],
   "detection_contract": {
     "default_state": "soc_untrusted_until_trace_contract_ready",
-    "minimum_detection_rules": 9,
+    "minimum_detection_rules": 11,
     "minimum_retention_days": 400,
     "required_source_packs": [
       "workflow_manifest",
@@ -142,7 +160,8 @@
       ],
       "required_attributes": [
         "mcp.method.name",
-        "mcp.session.id",
+        "mcp.protocol.version",
+        "identity_id",
         "authorization.decision",
         "authorization.audience",
         "authorization.resource",
@@ -178,6 +197,110 @@
         }
       ],
       "response_playbook": "Kill the agent session, revoke delegated credentials, preserve the run receipt, and open an MCP authorization incident.",
+      "siem_window": "5m"
+    },
+    {
+      "id": "mcp-state-handle-hijacking",
+      "title": "MCP state handle used without principal binding",
+      "severity": "critical",
+      "decision": "soc_critical_kill_session",
+      "event_classes": [
+        "mcp.tools.call",
+        "policy.decision"
+      ],
+      "mapped_risks": [
+        "MCP state handle hijacking",
+        "Possession of a handle treated as authentication",
+        "Cross-principal replay of server-minted state"
+      ],
+      "required_attributes": [
+        "mcp.method.name",
+        "mcp.protocol.version",
+        "identity_id",
+        "mcp.state_handle.bound_principal",
+        "authorization.decision",
+        "policy.decision"
+      ],
+      "all_match_conditions": [],
+      "any_match_conditions": [
+        {
+          "field": "mcp.state_handle.unbound",
+          "operator": "bool_true"
+        },
+        {
+          "field": "mcp.state_handle.principal_mismatch",
+          "operator": "bool_true"
+        },
+        {
+          "field": "mcp.state_handle.guessable",
+          "operator": "bool_true"
+        },
+        {
+          "field": "authorization.decision",
+          "operator": "in",
+          "value": [
+            "deny_unbound_state_handle",
+            "kill_state_handle_hijack",
+            "deny_state_handle_principal_mismatch"
+          ]
+        }
+      ],
+      "response_playbook": "Kill the agent session, revoke the unbound or mismatched handle, preserve the run receipt, and require the MCP server to bind future handles to the verified token subject rather than treat handle possession as authentication.",
+      "siem_window": "5m"
+    },
+    {
+      "id": "mcp-elicitation-or-request-state-abuse",
+      "title": "MCP elicitation or requestState integrity abuse",
+      "severity": "critical",
+      "decision": "soc_critical_kill_session",
+      "event_classes": [
+        "mcp.elicitation",
+        "mcp.tools.call",
+        "policy.decision"
+      ],
+      "mapped_risks": [
+        "Sensitive form-mode elicitation",
+        "Untrusted URL-mode elicitation",
+        "requestState integrity failure or replay"
+      ],
+      "required_attributes": [
+        "mcp.method.name",
+        "elicitation.mode",
+        "request_state.integrity",
+        "identity_id",
+        "policy.decision"
+      ],
+      "all_match_conditions": [],
+      "any_match_conditions": [
+        {
+          "field": "elicitation.sensitive_form_requested",
+          "operator": "bool_true"
+        },
+        {
+          "field": "elicitation.url_untrusted",
+          "operator": "bool_true"
+        },
+        {
+          "field": "request_state.integrity",
+          "operator": "in",
+          "value": [
+            "failed",
+            "replayed",
+            "unbound",
+            "expired"
+          ]
+        },
+        {
+          "field": "policy.decision",
+          "operator": "in",
+          "value": [
+            "deny_sensitive_form_elicitation",
+            "deny_untrusted_elicitation_url",
+            "kill_session_on_elicitation_abuse"
+          ]
+        }
+      ],
+      "response_playbook": "Kill the session, preserve elicitation correlation evidence without form secrets or URL tokens, and require InputRequiredResult plus integrity-checked requestState bound to the original request and principal before any retry.",
       "siem_window": "5m"
     },
     {
@@ -487,7 +610,7 @@
       "severity": "high",
       "decision": "soc_high_escalate",
       "event_classes": [
-        "mcp.initialize",
+        "mcp.server.discover",
         "mcp.tools.list_changed",
         "mcp.tools.call"
       ],
@@ -641,6 +764,7 @@
       "Which agentic and MCP events should the SOC alert on first?",
       "Which telemetry fields are required before an alert is actionable?",
       "Which detections force kill-session, escalation, investigation, or no-alert decisions?",
+      "How do alerts detect state-handle hijacking and elicitation requestState abuse after MCP became stateless?",
       "How do alerts tie back to run receipts, policy decisions, context packages, incidents, and replay evidence?",
       "Which SIEM query shape should Splunk, Sentinel, and Chronicle users start with?"
     ],
