@@ -60,6 +60,7 @@ def sample_recipe(cve: str = "CVE-2024-3400") -> dict[str, object]:
             "source_identifier": "security@example.test",
             "status": "Analyzed",
             "quality": "curated",
+            "recipe_kind": "markdown-override",
             "references": [
                 {
                     "url": f"https://vendor.example.test/advisories/{cve}",
@@ -297,30 +298,20 @@ class CveLandingRenderTests(unittest.TestCase):
             'content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">',
             page,
         )
-        self.assertIn('data-cve-initial-id="CVE-2024-3400"', page)
-        self.assertIn('data-cve-catalog-base="/api/cve-catalog/"', page)
+        self.assertIn('data-cve-id="CVE-2024-3400"', page)
         self.assertIn('data-site-signal-background="true"', page)
         self.assertIn('class="sr-docs-body sr-cve-detail-page"', page)
-        self.assertIn('class="content cve-catalog cve-landing sr-cve-detail-content"', page)
+        self.assertIn(
+            'class="content cve-catalog cve-landing sr-cve-detail-content"',
+            page,
+        )
         self.assertIn('<link rel="stylesheet" href="/css/cve-detail.css">', page)
         self.assertIn('<script src="/js/signal-background.js" defer></script>', page)
-        self.assertIn('<script src="/js/cve-record-loader.js" defer></script>', page)
         self.assertIn('<link rel="stylesheet" href="/css/cve-catalog.css">', page)
+        self.assertNotIn("cve-record-loader", page)
         self.assertNotIn('<script src="/js/cve-catalog.js"', page)
-        self.assertNotIn("hydrateExactCve", page)
-        self.assertIn(
-            '<button class="sr-cve-record-loader__button" type="button" '
-            'data-cve-record-activate aria-controls="complete-record-view" '
-            'aria-describedby="complete-record-status" aria-expanded="false">'
-            'Load complete machine-readable record</button>',
-            page,
-        )
-        self.assertIn(
-            'data-cve-catalog data-cve-catalog-deferred '
-            'data-cve-catalog-base="/api/cve-catalog/" '
-            'data-cve-initial-id="CVE-2024-3400" hidden',
-            page,
-        )
+        self.assertNotIn("complete-record", page)
+        self.assertNotIn("<details", page)
         self.assertIn('<meta name="theme-color" content="#020405">', page)
         self.assertIn('<meta property="og:image:type" content="image/png">', page)
         self.assertIn('<meta property="og:image:width" content="1727">', page)
@@ -351,10 +342,8 @@ class CveLandingRenderTests(unittest.TestCase):
         assert description_match is not None
         description = unescape(description_match.group(1))
         self.assertLessEqual(len(description), 165)
-        self.assertNotIn("Verification steps and sources are included.", description)
-        self.assertNotIn(" AI remediation:", description)
-        self.assertIn("Upgrade Widget", description)
-        self.assertIn("2.0.0", description)
+        self.assertIn("Use the fixed release and preserve evidence", description)
+        self.assertNotIn("Upgrade Widget", description)
         self.assertNotIn("\u2026", description)
         self.assertNotIn("alert", description)
         h1_match = re.search(r'<h1 class="sr-page-title">(.*?)</h1>', page)
@@ -364,76 +353,52 @@ class CveLandingRenderTests(unittest.TestCase):
             unescape(h1_match.group(1)),
             unescape(title_match.group(1)),
         )
-        self.assertIn("Complete CVE record and remediation plan", page)
-        self.assertIn('<h2 id="remediation-summary-heading">Remediation summary</h2>', page)
-        self.assertIn("<dt>Recommended action</dt>", page)
-        self.assertIn("Upgrade Widget to the vendor-fixed release 2.0.0", page)
+        for heading_id, label in (
+            ("overview-heading", "Overview"),
+            ("products-heading", "Affected products and version ranges"),
+            ("remediation-authority-heading", "Remediation authority"),
+            ("use-ai-heading", "Use AI to implement and verify"),
+            ("sources-heading", "Sources, provenance, and citation"),
+        ):
+            with self.subTest(heading_id=heading_id):
+                self.assertEqual(page.count(f'id="{heading_id}"'), 1)
+                self.assertIn(label, page)
+        self.assertEqual(page.count("data-remediation-authority="), 1)
+        self.assertIn('data-remediation-authority="stable-reviewed"', page)
+        self.assertIn("Stable reviewed recipe", page)
+        self.assertIn("Use the fixed release and preserve evidence", page)
+        self.assertIn("sole remediation authority", page)
         self.assertIn("9 NVD CPE configuration matches", page)
-        self.assertIn("Known exploited (CISA KEV); Critical severity; CVSS 9.8", page)
         self.assertIn(
             '<time datetime="2026-07-17T07:02:25Z">2026-07-17</time>',
             page,
         )
-        self.assertIn("What is CVE-2024-3400?", page)
-        self.assertIn("Known exploitation and required action", page)
-        self.assertIn("Example Widget Command Injection Vulnerability", page)
+        self.assertIn("Known exploited", page)
         self.assertIn("2024-04-19", page)
-        self.assertIn("Apply mitigations per vendor instructions", page)
         self.assertIn("Known ransomware use", page)
-        self.assertIn("Open this CVE in the CISA KEV Catalog", page)
-        self.assertIn('href="#known-exploitation-heading"', page)
-        self.assertIn("Bounded remediation workflow", page)
-        self.assertIn("How to check exposure for CVE-2024-3400", page)
-        self.assertIn("Temporary containment", page)
-        self.assertIn("How to remediate CVE-2024-3400", page)
-        self.assertIn("How to verify the remediation", page)
-        self.assertIn("Restore the recorded prior artifact", page)
-        self.assertIn("Stop when repository ownership is unclear", page)
-        self.assertNotIn("Alternate encodings and indirect execution wrappers", page)
-        self.assertIn("Return a reviewed patch or a TRIAGE.md blocker record", page)
-        self.assertIn("Guidance does not grant production mutation authority", page)
-        self.assertIn("AI agent plan summary", page)
-        self.assertNotIn("<h3>Action phases</h3>", page)
-        self.assertIn("<strong>Objective:</strong>", page)
-        self.assertIn("Mutation authority", page)
-        self.assertNotIn("Repository discovery hints", page)
-        self.assertNotIn("Phase instructions", page)
-        self.assertNotIn("Evidence required", page)
-        self.assertNotIn("affected-surface-inventory", page)
-        self.assertNotIn("dependency_manifest", page)
-        self.assertIn("&lt;reviewer-ready&gt;", page)
-        self.assertNotIn("&lt;unsafe-glob&gt;", page)
-        self.assertNotIn("Command &lt;injection&gt;", page)
-        self.assertNotIn("Command <injection>", page)
-        self.assertIn('href="/agents/">AI agents for vulnerability remediation</a>', page)
-        self.assertIn('href="#complete-record">complete machine-readable plan</a>', page)
-        plan_match = re.search(
-            r'<section class="cve-catalog__detail-section cve-catalog__agent-plan".*?</section>',
-            page,
-            flags=re.DOTALL,
-        )
-        self.assertIsNotNone(plan_match)
-        assert plan_match is not None
-        plan_text = unescape(re.sub(r"<[^>]+>", " ", plan_match.group(0)))
-        self.assertLessEqual(
-            len(re.findall(r"\b[\w'-]+\b", plan_text)),
-            80,
-            "the agent-plan handoff must stay compact; details belong in the complete record",
-        )
+        self.assertNotIn("Apply mitigations per vendor instructions", page)
+
+        self.assertIn("<strong>Inspect:</strong>", page)
+        self.assertIn("<strong>Change:</strong>", page)
+        self.assertIn("<strong>Approval:</strong>", page)
+        self.assertIn("<strong>Test:</strong>", page)
+        self.assertIn("<strong>Rollback:</strong>", page)
+        self.assertIn("Copyable agent prompt", page)
+        self.assertIn("Implement and verify remediation for CVE-2024-3400", page)
+        self.assertIn("do not apply it yet", page)
+        self.assertIn("does not grant write or production authority", page)
         self.assertIn(
-            "concise human workflow are available above. This view adds the normalized "
-            "source payload and complete machine-readable action contract.",
+            "use the approved system-image, package, configuration, or failover "
+            "recovery procedure",
             page,
         )
+        self.assertIn("Never automatically downgrade into an affected version", page)
+        self.assertNotIn("Restore the recorded prior artifact", page)
+        self.assertNotIn("&lt;unsafe-glob&gt;", page)
         self.assertIn("Example Vendor / Widget", page)
         self.assertIn("NVD CPE exact-version criterion: 1.2.3.", page)
         self.assertIn("derived from NVD CPE configuration matches", page)
         self.assertIn("not vendor-authored affected-version statements", page)
-        self.assertIn("Stable, source-backed guidance", page)
-        self.assertIn("<h2>Reviewed product workflow</h2>", page)
-        self.assertIn("<strong>fixed release</strong>", page)
-        self.assertIn('href="https://vendor.example.test/fixed"', page)
-        self.assertIn('href="/cve/CVE-2023-22515/"', page)
         self.assertIn(
             'href="https://github.com/stevologic/security-recipes.ai/blob/main/'
             'content/recipes/cve/cve-2024-3400-reviewed.md"',
@@ -442,20 +407,15 @@ class CveLandingRenderTests(unittest.TestCase):
         self.assertNotIn("attacker.example.test", page)
         self.assertNotIn("javascript:", page)
         self.assertNotIn("<script>window.evil", page)
-        self.assertIn("&lt;script&gt;window.evil = true&lt;/script&gt;", page)
+        self.assertNotIn("window.evil", page)
         self.assertNotIn('</title><script>alert("title")</script>', page)
         self.assertIn(
             "Widget &lt;/title&gt;&lt;script&gt;alert(&quot;title&quot;)&lt;/script&gt;",
             page,
         )
-        self.assertIn("AI-assisted evidence synthesis", page)
-        self.assertIn("Successful exploitation can expose protected records", page)
-        self.assertIn("Source-specific exposure conditions", page)
-        self.assertIn("The vendor identifies 2.0.0 as fixed", page)
-        self.assertIn("test-model", page)
-        self.assertIn("2026-07-17T07:03:00Z", page)
-        self.assertIn("AI-generated, source-linked guidance", page)
-        self.assertIn('<h2 id="cite-record-heading">Cite this CVE record</h2>', page)
+        self.assertNotIn("Successful exploitation can expose protected records", page)
+        self.assertNotIn("Source-specific exposure conditions", page)
+        self.assertIn('<h3 id="cite-record-heading">Citation</h3>', page)
         self.assertIn(
             'href="https://security-recipes.example/base/cve/CVE-2024-3400/"',
             page,
@@ -464,8 +424,8 @@ class CveLandingRenderTests(unittest.TestCase):
             'href="/api/cve-catalog/shards/2024/0003.jsonl.gz"',
             page,
         )
-        self.assertIn('href="#remediation-summary-heading"', page)
-        self.assertIn('href="#cite-record-heading"', page)
+        self.assertIn('href="#remediation-authority-heading"', page)
+        self.assertIn('href="#sources-heading"', page)
 
         match = re.search(
             r'<script type="application/ld\+json">(.*?)</script>',
@@ -594,8 +554,8 @@ class CveLandingRenderTests(unittest.TestCase):
         self.assertNotIn("<details", agent_html)
         self.assertIn("<strong>Objective:</strong>", agent_html)
         self.assertIn("<strong>Mutation authority:</strong>", agent_html)
-        self.assertIn('href="#complete-record"', workflow_html)
-        self.assertIn('href="#complete-record"', agent_html)
+        self.assertIn('href="#sources-heading"', workflow_html)
+        self.assertIn('href="#use-ai-heading"', agent_html)
 
         agent_text = unescape(re.sub(r"<[^>]+>", " ", agent_html))
         agent_words = re.findall(r"[A-Za-z0-9][A-Za-z0-9'-]*", agent_text)
@@ -693,11 +653,10 @@ class CveLandingRenderTests(unittest.TestCase):
             "https://security-recipes.example/base/",
         )
 
-        self.assertIn("Choose an AI remediation playbook", page)
+        self.assertIn("Playbook and related guidance", page)
         self.assertIn('href="/security-remediation/recipe-recommender/"', page)
-        self.assertIn("Use Recipe Recommender to choose a vulnerability remediation playbook", page)
-        self.assertNotIn("Best-fit", page)
-        self.assertIn("Related CVEs with qualified remediation guidance", page)
+        self.assertIn("<strong>Playbook:</strong>", page)
+        self.assertIn("<strong>Related:</strong>", page)
         self.assertIn('href="/cve/CVE-2021-44228/"', page)
         self.assertIn(
             'href="/recipes/cve/cve-2017-18342-pyyaml/"',
@@ -711,16 +670,15 @@ class CveLandingRenderTests(unittest.TestCase):
         self.assertNotIn("The current record must be excluded", page)
         self.assertIn("Log4j &lt;script&gt;related&lt;/script&gt; injection", page)
         self.assertIn(
-            "Related by same primary product: Apache &lt;script&gt; / Log4j",
+            "same primary product: Apache &lt;script&gt; / Log4j",
             page,
         )
-        self.assertIn("Related by shared specific weakness: CWE-502", page)
+        self.assertIn("shared specific weakness: CWE-502", page)
         self.assertNotIn("javascript:alert(1)", page)
         self.assertNotIn("Unqualified guidance must fail closed", page)
         self.assertNotIn("Generic evidence must fail closed", page)
         self.assertNotIn("Untyped evidence must fail closed", page)
-        self.assertIn('href="#matched-playbook-heading"', page)
-        self.assertIn('href="#related-cves-heading"', page)
+        self.assertIn('href="#resources-heading"', page)
 
         match = re.search(
             r'<script type="application/ld\+json">(.*?)</script>',
@@ -859,7 +817,7 @@ class CveLandingRenderTests(unittest.TestCase):
 
         page = mcp_server._render_cve_landing_page(recipe)
 
-        self.assertIn('<h2 id="cite-record-heading">Cite this CVE record</h2>', page)
+        self.assertIn('<h3 id="cite-record-heading">Citation</h3>', page)
         self.assertNotIn("../../private.jsonl.gz", page)
         self.assertNotIn("Download the machine-readable source shard", page)
 
@@ -919,7 +877,8 @@ class CveLandingRenderTests(unittest.TestCase):
         )
         self.assertIn('<meta name="robots" content="noindex,follow">', page)
         self.assertIn('<meta name="googlebot" content="noindex,follow">', page)
-        self.assertIn('data-cve-initial-id="CVE-2024-3400"', page)
+        self.assertIn('data-cve-id="CVE-2024-3400"', page)
+        self.assertIn('data-remediation-authority="bounded-fallback"', page)
 
     def test_stable_markdown_page_is_indexable_without_ai_enrichment(self) -> None:
         recipe = generic_recipe()
@@ -934,6 +893,58 @@ class CveLandingRenderTests(unittest.TestCase):
             'content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">',
             page,
         )
+
+    def test_complete_but_nonspecific_ai_is_a_provenanced_bounded_fallback(self) -> None:
+        recipe = mcp_server._bounded_cve_landing_lookup("CVE-2010-5330")
+        source = recipe["source_record"]
+        assert isinstance(source, dict)
+        enrichment = source["ai_enrichment"]
+        assert isinstance(enrichment, dict)
+        self.assertEqual(enrichment.get("status"), "complete")
+        self.assertEqual(enrichment.get("recipe_specificity"), "not_specific")
+        self.assertEqual(mcp_server._cve_landing_search_qualification(source), "")
+
+        page = mcp_server._render_cve_landing_page(recipe)
+
+        self.assertIn('data-remediation-authority="bounded-fallback"', page)
+        self.assertNotIn('data-remediation-authority="complete-ai-enrichment"', page)
+        self.assertIn("Non-authoritative AI evaluation", page)
+        self.assertIn(
+            "did not establish a product-specific remediation recipe",
+            page,
+        )
+        self.assertIn("model gpt-5.6-luna", page)
+        self.assertIn("generated 2026-07-29", page)
+        self.assertIn("Use it only to inform triage", page)
+
+    def test_human_review_blocked_ai_names_the_non_authoritative_reason(self) -> None:
+        recipe = generic_recipe("CVE-2099-99001")
+        source = recipe["source_record"]
+        assert isinstance(source, dict)
+        source["ai_enrichment"] = deepcopy(
+            sample_recipe()["source_record"]["ai_enrichment"]
+        )
+        source["recipe_kind"] = "markdown-draft"
+        source["markdown"] = [
+            {
+                "cve": "CVE-2099-99001",
+                "maturity": "development",
+                "ai_enrichment_review_status": "human-reviewed-development-draft",
+            }
+        ]
+
+        with patch.object(mcp_server.cve_catalog, "is_search_indexable", return_value=True):
+            page = mcp_server._render_cve_landing_page(recipe)
+
+        self.assertIn('data-remediation-authority="bounded-fallback"', page)
+        self.assertNotIn('data-remediation-authority="complete-ai-enrichment"', page)
+        self.assertIn("Non-authoritative AI evaluation", page)
+        self.assertIn(
+            "development-stage human review explicitly withholds",
+            page,
+        )
+        self.assertIn("model test-model", page)
+        self.assertIn("generated 2026-07-17", page)
 
     def test_structured_affected_data_renders_ranges_and_status_transitions(self) -> None:
         recipe = sample_recipe("CVE-2026-14956")
@@ -982,27 +993,18 @@ class CveLandingRenderTests(unittest.TestCase):
 
         page = mcp_server._render_cve_landing_page(recipe)
 
-        self.assertIn("Stable, source-backed guidance", page)
+        self.assertIn('data-remediation-authority="stable-reviewed"', page)
         self.assertIn(
             '<meta name="description" content="Critical, unauthenticated Bricksforge '
             "privilege escalation (CVSS 9.8). Check public User Registration forms. "
             'Upgrade WordPress sites to Bricksforge 3.1.8.7 or later.">',
             page,
         )
-        self.assertRegex(
-            page,
-            r"<dt>Recommended action</dt><dd>[^<]*Upgrade WordPress sites to "
-            r"Bricksforge 3\.1\.8\.7 or later",
-        )
+        self.assertIn("Upgrade WordPress sites to Bricksforge 3.1.8.7 or later", page)
         self.assertNotIn("No browser-safe affected-product rows", page)
-        for heading in (
-            "How to check exposure for CVE-2026-14956",
-            "Temporary containment",
-            "How to remediate CVE-2026-14956",
-            "How to verify the remediation",
-        ):
-            with self.subTest(heading=heading):
-                self.assertEqual(page.count(heading), 1)
+        self.assertEqual(page.count('id="remediation-authority-heading"'), 1)
+        self.assertEqual(page.count('id="use-ai-heading"'), 1)
+        self.assertNotIn("<details", page)
 
     def test_reviewed_version_evidence_fills_an_empty_product_table(self) -> None:
         """Cover the empty-products branch without assuming upstream stays empty.
@@ -1023,7 +1025,7 @@ class CveLandingRenderTests(unittest.TestCase):
         page = mcp_server._render_cve_landing_page(recipe)
 
         self.assertIn(
-            "The stable source-backed recipe above contains product-specific version evidence "
+            "The stable reviewed recipe contains product-specific version evidence "
             "and upgrade guidance.",
             page,
         )
@@ -1048,7 +1050,7 @@ class CveLandingRenderTests(unittest.TestCase):
 
         self.assertIn("bricksforge", page.lower())
         self.assertNotIn(
-            "The stable source-backed recipe above contains product-specific version evidence",
+            "The stable reviewed recipe contains product-specific version evidence",
             page,
         )
         self.assertNotIn("No browser-safe affected-product rows", page)
@@ -1092,28 +1094,86 @@ class CveLandingRenderTests(unittest.TestCase):
         source["product_match_count"] = 7
 
         page = mcp_server._render_cve_landing_page(recipe)
+        products_match = re.search(
+            r'<section class="cve-catalog__detail-section" '
+            r'aria-labelledby="products-heading">(.*?)</section>',
+            page,
+            flags=re.DOTALL,
+        )
+        self.assertIsNotNone(products_match)
+        assert products_match is not None
+        products_html = products_match.group(1)
 
-        self.assertEqual(page.count("Example &lt;Vendor&gt; / Bounded Widget"), 1)
+        self.assertEqual(products_html.count("Example &lt;Vendor&gt; / Bounded Widget"), 1)
         self.assertIn(
             "NVD CPE configured version bounds: &gt;= 2.0.0 and &gt; 1.9.9 "
             "and &lt;= 2.4.0 and &lt; 2.4.1.",
-            page,
+            products_html,
         )
-        self.assertIn("NVD CPE exact-version criterion: 3.7.2.", page)
-        self.assertNotIn("NVD CPE exact-version criterion: *", page)
+        self.assertIn("NVD CPE exact-version criterion: 3.7.2.", products_html)
+        self.assertNotIn("NVD CPE exact-version criterion: *", products_html)
         self.assertIn(
             "This NVD CPE match has no exact or bounded version; do not read it "
             "as proof that every version is affected.",
-            page,
+            products_html,
         )
-        self.assertIn("derived from NVD CPE configuration matches", page)
-        self.assertIn("not vendor-authored affected-version statements", page)
-        self.assertIn("Confirm the exact affected and fixed versions", page)
+        self.assertIn("derived from NVD CPE configuration matches", products_html)
+        self.assertIn("not vendor-authored affected-version statements", products_html)
+        self.assertIn("Confirm the exact affected and fixed versions", products_html)
         self.assertIn(
             "Showing 3 representative product identities from 7 NVD CPE "
             "configuration matches.",
-            page,
+            products_html,
         )
+
+    def test_placeholder_products_and_versions_fall_back_to_cpe_identity(self) -> None:
+        recipe = generic_recipe("CVE-2099-99002")
+        source = recipe["source_record"]
+        assert isinstance(source, dict)
+        source["affected_data"] = [
+            {
+                "vendor": "n/a",
+                "product": "unknown",
+                "default_status": "affected",
+                "versions": [
+                    {
+                        "version": "unspecified",
+                        "less_than": "n/a",
+                        "status": "affected",
+                    }
+                ],
+            }
+        ]
+        source["products"] = [
+            {
+                "vendor": "Acme",
+                "product": "WidgetOS",
+                "version": "*",
+                "version_start_including": "1.0.0",
+                "version_end_excluding": "2.0.0",
+            }
+        ]
+        source["product_match_count"] = 1
+
+        page = mcp_server._render_cve_landing_page(recipe)
+        products_match = re.search(
+            r'aria-labelledby="products-heading">(.*?)</section>',
+            page,
+            flags=re.DOTALL,
+        )
+        self.assertIsNotNone(products_match)
+        assert products_match is not None
+        products_text = unescape(re.sub(r"<[^>]+>", " ", products_match.group(1)))
+
+        self.assertIn("Acme / WidgetOS", products_text)
+        self.assertIn(">= 1.0.0 and < 2.0.0", products_text)
+        self.assertIn("derived from NVD CPE configuration matches", products_text)
+        self.assertNotRegex(
+            products_text,
+            r"(?i)\b(?:n/a|unknown|unspecified)\b",
+        )
+        self.assertIn("Inventory every owned instance of Acme / WidgetOS", page)
+        self.assertNotIn("Inventory every owned instance of n/a", page)
 
     def test_incomplete_ai_enrichment_is_not_rendered(self) -> None:
         recipe = sample_recipe()
@@ -1130,18 +1190,68 @@ class CveLandingRenderTests(unittest.TestCase):
         self.assertNotIn("UNVERIFIED SENTINEL CLAIM", page)
 
     def test_ai_enrichment_flattens_markdown_citations_but_keeps_structured_sources(self) -> None:
-        recipe = mcp_server._bounded_cve_landing_lookup("CVE-2024-23897")
+        recipe = mcp_server._bounded_cve_landing_lookup("CVE-2025-64446")
 
         page = mcp_server._render_cve_landing_page(recipe)
 
-        self.assertIn("AI-assisted evidence synthesis", page)
-        self.assertIn("Claim-to-source evidence", page)
+        self.assertIn('data-remediation-authority="complete-ai-enrichment"', page)
+        self.assertIn("Complete source-linked AI enrichment", page)
+        self.assertIn("Upgrade FortiWeb 7.0 deployments to 7.0.12 or later", page)
+        self.assertIn("<strong>Verify</strong>", page)
         self.assertIn(
-            'href="https://www.jenkins.io/security/advisory/2024-01-24/"',
+            'href="https://fortiguard.fortinet.com/psirt/FG-IR-25-910"',
             page,
         )
         self.assertNotIn("](", page)
         self.assertNotIn("utm_source=openai", page)
+
+    def test_ai_handoff_uses_deployment_aware_non_downgrade_recovery(self) -> None:
+        fixtures = (
+            (
+                {"ecosystem": "javascript/npm"},
+                ["@tanstack / react-router"],
+                "captured lockfile, package, image, and data backup",
+            ),
+            (
+                {"ecosystem": "operating-system"},
+                ["paloaltonetworks / pan-os"],
+                "vendor recovery, configuration-backup, or HA failover procedure",
+            ),
+            (
+                {"ecosystem": "software/application"},
+                ["Atlassian / Jira Server"],
+                "application, database, configuration, or deployment-artifact recovery",
+            ),
+        )
+        for source, products, expected in fixtures:
+            with self.subTest(source=source, products=products):
+                recovery = mcp_server._cve_landing_recovery_guidance(source, products)
+                self.assertIn(expected, recovery)
+                self.assertIn(
+                    "Never automatically downgrade into an affected version",
+                    recovery,
+                )
+                self.assertIn("if no known-safe recovery target exists", recovery)
+
+        recipe = generic_recipe("CVE-2099-99003")
+        source = recipe["source_record"]
+        composed = recipe["composed_recipe"]
+        assert isinstance(source, dict)
+        assert isinstance(composed, dict)
+        source["ecosystem"] = "javascript/npm"
+        source["products"] = [
+            {"vendor": "@tanstack", "product": "react-router", "version": "*"}
+        ]
+        composed["rollback_steps"] = [
+            "ROLL BACK TO AN UNVERIFIED PRIOR RELEASE SENTINEL"
+        ]
+
+        page = mcp_server._render_cve_landing_page(recipe)
+
+        self.assertIn("captured lockfile, package, image, and data backup", page)
+        self.assertIn("Never automatically downgrade into an affected version", page)
+        self.assertNotIn("UNVERIFIED PRIOR RELEASE SENTINEL", page)
+        self.assertNotIn("vendor recovery, configuration-backup", page)
 
     def test_primary_references_filter_raw_nvd_links_and_match_schema(self) -> None:
         recipe = sample_recipe()
@@ -1188,7 +1298,7 @@ class CveLandingRenderTests(unittest.TestCase):
 
         sources_match = re.search(
             r'<h2 id="sources-heading">.*?<ul class="cve-catalog__references">'
-            r"(.*?)</ul></section>",
+            r"(.*?)</ul>",
             page,
             flags=re.DOTALL,
         )
@@ -1230,7 +1340,7 @@ class CveLandingRenderTests(unittest.TestCase):
         )
         sources_match = re.search(
             r'<h2 id="sources-heading">.*?<ul class="cve-catalog__references">'
-            r"(.*?)</ul></section>",
+            r"(.*?)</ul>",
             page,
             flags=re.DOTALL,
         )
@@ -1386,10 +1496,21 @@ class CveLandingRenderTests(unittest.TestCase):
                 title = unescape(title_match.group(1))
                 description = unescape(description_match.group(1))
                 self.assertEqual(title, expected_title)
-                self.assertEqual(
-                    description,
-                    shared_metadata["records"][cve_id]["description"],
-                )
+                qualification = mcp_server.cve_catalog.search_qualification(cve_id)
+                if qualification in {"stable_markdown", "recipe_ready_ai"}:
+                    self.assertEqual(
+                        description,
+                        shared_metadata["records"][cve_id]["description"],
+                    )
+                else:
+                    self.assertNotEqual(
+                        description,
+                        shared_metadata["records"][cve_id]["description"],
+                    )
+                    self.assertNotRegex(
+                        description,
+                        r"(?i)\b(?:apply|install|migrate|patch|update|upgrade)\b",
+                    )
                 graph_match = re.search(
                     r'<script type="application/ld\+json">(.*?)</script>',
                     page,
@@ -1430,8 +1551,14 @@ class CveLandingRenderTests(unittest.TestCase):
                     article["dateModified"],
                 )
                 self.assertIn(f'<h1 class="sr-page-title">{expected_title}</h1>', page)
-                for fragment in expected_description_fragments:
-                    self.assertIn(fragment, description)
+                if qualification in {"stable_markdown", "recipe_ready_ai"}:
+                    for fragment in expected_description_fragments:
+                        self.assertIn(fragment, description)
+                else:
+                    self.assertIn(
+                        'data-remediation-authority="bounded-fallback"',
+                        page,
+                    )
                 self.assertLessEqual(len(title), 70)
                 self.assertLessEqual(len(description), 165)
                 self.assertNotIn("Verification steps and sources are included.", description)
@@ -1485,6 +1612,86 @@ class CveLandingRenderTests(unittest.TestCase):
                 self.assertEqual(description, expected)
                 self.assertLessEqual(len(description), 165)
                 self.assertRegex(description, r"\bUpgrade\b")
+
+    def test_stable_reviewed_corpus_renders_full_strategy_and_complete_block_action(
+        self,
+    ) -> None:
+        allowlist = json.loads(
+            (ROOT / "static" / "api" / "cve-catalog" / "search-indexable.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        records = [
+            record
+            for record in allowlist.get("records", [])
+            if record.get("qualification") == "stable_markdown"
+        ]
+        self.assertGreaterEqual(len(records), 30)
+
+        for record in records:
+            cve_id = record["cve"]
+            with self.subTest(cve_id=cve_id):
+                recipe = mcp_server._bounded_cve_landing_lookup(cve_id)
+                reviewed = mcp_server._cve_landing_stable_override(
+                    cve_id,
+                    recipe.get("composed_recipe") or {},
+                )
+                remediation, clipped = mcp_server._cve_landing_reviewed_section(
+                    reviewed,
+                    mcp_server._CVE_LANDING_REMEDIATION_HEADING_RE,
+                )
+                blocks = mcp_server._cve_landing_markdown_blocks(remediation)
+                action = mcp_server._cve_landing_reviewed_action(reviewed)
+                complete_block_actions = {
+                    bounded
+                    for block in blocks
+                    if (bounded := mcp_server._cve_landing_complete_action(block))
+                }
+
+                self.assertTrue(remediation)
+                self.assertFalse(clipped)
+                self.assertTrue(blocks)
+                self.assertIn(action, complete_block_actions)
+                self.assertLessEqual(len(action), 1200)
+                self.assertRegex(action, r"[.!?]$")
+                self.assertNotRegex(action, r"(?:\u2026|:)$")
+
+                page = mcp_server._render_cve_landing_page(recipe)
+                page_text = re.sub(
+                    r"\s+",
+                    " ",
+                    unescape(re.sub(r"<[^>]+>", " ", page)),
+                ).strip()
+                self.assertLess(len(page.encode("utf-8")), 100_000)
+                self.assertIn('data-remediation-authority="stable-reviewed"', page)
+                self.assertIn("Reviewed remediation strategy", page)
+                self.assertIn(re.sub(r"\s+", " ", blocks[0]).strip(), page_text)
+                self.assertIn(re.sub(r"\s+", " ", blocks[-1]).strip(), page_text)
+                self.assertGreaterEqual(page_text.count(action), 2)
+
+        pan_os_page = mcp_server._render_cve_landing_page(
+            mcp_server._bounded_cve_landing_lookup("CVE-2024-3400")
+        )
+        pan_os_text = re.sub(
+            r"\s+",
+            " ",
+            unescape(re.sub(r"<[^>]+>", " ", pan_os_page)),
+        ).strip()
+        self.assertIn("Run the evidence-preservation gate before reboot", pan_os_text)
+        self.assertIn("enhanced factory reset (EFR)", pan_os_text)
+        self.assertNotIn(
+            "Vulnerabilities catalog from Palo Alto Networks due date of",
+            pan_os_text,
+        )
+        pyyaml_recipe = mcp_server._bounded_cve_landing_lookup("CVE-2017-18342")
+        pyyaml_reviewed = mcp_server._cve_landing_stable_override(
+            "CVE-2017-18342",
+            pyyaml_recipe.get("composed_recipe") or {},
+        )
+        self.assertRegex(
+            mcp_server._cve_landing_reviewed_action(pyyaml_reviewed),
+            r"^Pin PyYAML to",
+        )
 
     def test_qualified_description_uses_only_source_linked_fixed_version_claims(self) -> None:
         enrichment = {
@@ -1846,7 +2053,16 @@ class CveLandingRenderTests(unittest.TestCase):
             for record in allowlist.get("records", [])
             if record.get("qualification") == "recipe_ready_ai"
         ]
-        self.assertGreaterEqual(len(records), 16)
+        manifest = json.loads(
+            (ROOT / "static" / "api" / "cve-catalog" / "manifest.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        self.assertEqual(
+            len(records),
+            manifest["totals"]["ai_enrichment_recipe_ready"],
+        )
+        self.assertGreaterEqual(len(records), 1)
 
         for record in records:
             cve_id = record["cve"]
@@ -1874,13 +2090,17 @@ class CveLandingRenderTests(unittest.TestCase):
                     r"\b(?:and|or|as|at|by|for|from|in|of|on|the|to|were)\.$",
                 )
                 self.assertNotRegex(description, r"\bto version\.$")
+                self.assertIn(
+                    'data-remediation-authority="complete-ai-enrichment"',
+                    page,
+                )
                 self.assertRegex(
-                    description,
+                    page,
                     r"(?i)\b(?:apply|fix(?:ed|es)|migrate|patch|update|upgrade)\b",
                 )
 
-    def test_multi_branch_ai_search_snippets_are_scope_complete(self) -> None:
-        fixtures = {
+    def test_ai_authority_respects_human_review_while_approved_branches_stay_complete(self) -> None:
+        withheld = {
             "CVE-2024-23897": ("every affected software branch",),
             "CVE-2024-37079": ("8.0 U2d", "8.0 U1e", "7.0 U3r"),
             "CVE-2024-47575": (
@@ -1899,7 +2119,6 @@ class CveLandingRenderTests(unittest.TestCase):
                 "11.38.25",
                 "SP38-CU25-438",
             ),
-            "CVE-2025-64446": ("every affected software branch",),
             "CVE-2026-20182": (
                 "each component",
                 "fixed release for its branch",
@@ -1912,22 +2131,41 @@ class CveLandingRenderTests(unittest.TestCase):
             ),
         }
 
-        for cve_id, expected_fragments in fixtures.items():
+        for cve_id in withheld:
             with self.subTest(cve_id=cve_id):
                 page = mcp_server._render_cve_landing_page(
                     mcp_server.cve_catalog.get_recipe(cve_id)
                 )
-                match = re.search(
+                self.assertIn(
+                    'data-remediation-authority="bounded-fallback"',
+                    page,
+                )
+                self.assertIn("Non-authoritative AI evaluation", page)
+                self.assertNotIn(
+                    'data-remediation-authority="complete-ai-enrichment"',
+                    page,
+                )
+                description_match = re.search(
                     r'<meta name="description" content="([^"]+)">',
                     page,
                 )
-                self.assertIsNotNone(match)
-                assert match is not None
-                description = unescape(match.group(1))
-                for fragment in expected_fragments:
-                    self.assertIn(fragment, description)
-                self.assertLessEqual(len(description), 165)
-                self.assertNotIn("Verification steps and sources are included.", description)
+                self.assertIsNotNone(description_match)
+                assert description_match is not None
+                self.assertNotRegex(
+                    unescape(description_match.group(1)),
+                    r"(?i)\b(?:apply|install|migrate|patch|update|upgrade)\b",
+                )
+
+        approved_page = mcp_server._render_cve_landing_page(
+            mcp_server.cve_catalog.get_recipe("CVE-2025-64446")
+        )
+        self.assertIn(
+            'data-remediation-authority="complete-ai-enrichment"',
+            approved_page,
+        )
+        approved_text = unescape(re.sub(r"<[^>]+>", " ", approved_page))
+        for fragment in ("7.0.12", "7.2.12", "7.4.10", "7.6.5", "8.0.2"):
+            self.assertIn(fragment, approved_text)
 
     def test_all_qualified_pages_publish_primary_sources_and_complete_actions(self) -> None:
         allowlist = json.loads(
@@ -1935,14 +2173,13 @@ class CveLandingRenderTests(unittest.TestCase):
                 encoding="utf-8"
             )
         )
-        weak_multi_branch_ids = {
+        human_review_blocked_ids = {
             "CVE-2024-23897",
             "CVE-2024-37079",
             "CVE-2024-47575",
             "CVE-2025-20281",
             "CVE-2025-20337",
             "CVE-2025-34028",
-            "CVE-2025-64446",
             "CVE-2026-1731",
             "CVE-2026-20045",
             "CVE-2026-20182",
@@ -1952,7 +2189,8 @@ class CveLandingRenderTests(unittest.TestCase):
             for record in allowlist.get("records", [])
             if record.get("qualification") == "recipe_ready_ai"
         }
-        self.assertTrue(weak_multi_branch_ids <= ai_ids)
+        self.assertEqual(ai_ids, {"CVE-2025-55182", "CVE-2025-64446"})
+        self.assertTrue(human_review_blocked_ids.isdisjoint(ai_ids))
 
         for record in allowlist.get("records", []):
             cve_id = record["cve"]
@@ -1975,7 +2213,7 @@ class CveLandingRenderTests(unittest.TestCase):
                 citations = article["citation"]
                 sources_match = re.search(
                     r'<h2 id="sources-heading">.*?'
-                    r'<ul class="cve-catalog__references">(.*?)</ul></section>',
+                    r'<ul class="cve-catalog__references">(.*?)</ul>',
                     page,
                     flags=re.DOTALL,
                 )
@@ -2020,7 +2258,8 @@ class CveLandingRenderTests(unittest.TestCase):
                 required_tokens = mcp_server._cve_landing_version_tokens(claim)
                 self.assertTrue(required_tokens)
                 action_match = re.search(
-                    r"<dt>Recommended action</dt><dd>(.*?)</dd>",
+                    r'data-remediation-authority="complete-ai-enrichment".*?'
+                    r"<p><strong>Primary action:</strong> (.*?)</p>",
                     page,
                     flags=re.DOTALL,
                 )
@@ -2045,31 +2284,16 @@ class CveLandingRenderTests(unittest.TestCase):
                             action.casefold(),
                         )
 
-    def test_cisco_multi_product_fixed_versions_stay_product_complete(self) -> None:
+    def test_human_blocked_cisco_multi_product_draft_is_not_authority(self) -> None:
         page = mcp_server._render_cve_landing_page(
             mcp_server._bounded_cve_landing_lookup("CVE-2026-20045")
         )
-        action_match = re.search(
-            r"<dt>Recommended action</dt><dd>(.*?)</dd>",
-            page,
-            flags=re.DOTALL,
-        )
-        self.assertIsNotNone(action_match)
-        assert action_match is not None
-        action = unescape(re.sub(r"<[^>]+>", " ", action_match.group(1)))
-        self.assertIn("Unified CM", action)
-        self.assertIn("Unity Connection", action)
-        self.assertIn("Webex Calling Dedicated Instance", action)
-        self.assertIn("14SU5", action)
-        self.assertIn("15SU4", action)
-        self.assertIn("12.5", action)
-        description_match = re.search(
-            r'<meta name="description" content="([^"]+)">',
+        self.assertIn('data-remediation-authority="bounded-fallback"', page)
+        self.assertIn("Non-authoritative AI evaluation", page)
+        self.assertNotIn(
+            'data-remediation-authority="complete-ai-enrichment"',
             page,
         )
-        self.assertIsNotNone(description_match)
-        assert description_match is not None
-        self.assertNotIn("Upgrade Unity Connection", description_match.group(1))
 
     def test_modular_max_serve_reviewed_metadata_matches_catalog_facts(self) -> None:
         expected_description = (
@@ -2086,10 +2310,14 @@ class CveLandingRenderTests(unittest.TestCase):
         )
         self.assertIn("cve-catalog__badge--severity-high\">High</span>", page)
         self.assertIn("cve-catalog__badge--score\">CVSS 8.4</span>", page)
+        self.assertIn("Reviewed remediation strategy", page)
+        self.assertIn("Upgrade</strong> to <code>modular&gt;=25.6.0</code> everywhere", page)
         self.assertIn(
-            f"<dt>Recommended action</dt><dd>{expected_description}</dd>",
+            "Disable</strong> <code>--experimental-enable-kvcache-agent</code>",
             page,
         )
+        self.assertIn("Review runtime logs", page)
+        self.assertIn('data-remediation-authority="stable-reviewed"', page)
         graph_match = re.search(
             r'<script type="application/ld\+json">(.*?)</script>',
             page,
@@ -2312,18 +2540,12 @@ class CveLandingRenderTests(unittest.TestCase):
 
         apache = related("CVE-2021-41773")
         self.assertNotIn("CVE-2017-18342", apache)
-        self.assertEqual(
-            apache["CVE-2021-42013"]["type"],
-            "same_primary_product",
-        )
+        self.assertNotIn("CVE-2021-42013", apache)
         apache_incomplete_fix = related("CVE-2021-42013")
         self.assertNotIn("CVE-2017-18342", apache_incomplete_fix)
 
         cisco = related("CVE-2025-20281")
-        self.assertEqual(
-            cisco["CVE-2025-20337"]["type"],
-            "same_primary_product",
-        )
+        self.assertNotIn("CVE-2025-20337", cisco)
 
         sql_injection = related("CVE-2023-34362")
         self.assertEqual(
@@ -2332,7 +2554,6 @@ class CveLandingRenderTests(unittest.TestCase):
         )
 
         realtek = related("CVE-2021-35395")
-        self.assertTrue(realtek)
         self.assertTrue(
             all(
                 evidence["type"] == "same_remediation_pattern"
@@ -2349,27 +2570,13 @@ class CveLandingRenderTests(unittest.TestCase):
             "Palo Alto Networks PAN-OS Command Injection Vulnerability",
             page,
         )
-        self.assertIn(
-            "Apply mitigations per vendor instructions as they become available.",
-            page,
-        )
+        self.assertIn("Known exploited", page)
         self.assertIn("2024-04-19", page)
-        self.assertIn(
-            "https://www.cisa.gov/sites/default/files/feeds/"
-            "known_exploited_vulnerabilities.json",
-            page,
-        )
-        self.assertIn("Choose an AI remediation playbook", page)
+        self.assertIn('data-remediation-authority="stable-reviewed"', page)
+        self.assertNotIn("Apply mitigations per vendor instructions", page)
+        self.assertIn("Playbook and related guidance", page)
         self.assertIn('href="/security-remediation/recipe-recommender/"', page)
-        self.assertNotIn("Best-fit", page)
-        self.assertIn("Related CVEs with qualified remediation guidance", page)
-        related = recipe.get("related_cves")
-        self.assertIsInstance(related, list)
-        assert isinstance(related, list)
-        self.assertGreaterEqual(len(related), 1)
-        self.assertLessEqual(len(related), 6)
-        self.assertNotIn("CVE-2024-3400", {record["cve"] for record in related})
-        self.assertTrue(all(record.get("relationship") for record in related))
+        self.assertNotIn("<details", page)
 
     def test_word_boundary_truncation_does_not_cut_the_final_word(self) -> None:
         value = "alpha beta gamma delta epsilon"
@@ -2535,7 +2742,9 @@ class CveLandingRouteTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(response.headers["cache-control"], mcp_server._CVE_LANDING_CACHE_CONTROL)
         self.assertIn("index, follow", response.headers["x-robots-tag"])
         self.assertIn("nosniff", response.headers["x-content-type-options"])
-        self.assertIn(b'data-cve-initial-id="CVE-2024-3400"', response.body)
+        self.assertIn(b'data-cve-id="CVE-2024-3400"', response.body)
+        self.assertIn(b'id="remediation-authority-heading"', response.body)
+        self.assertIn(b'id="use-ai-heading"', response.body)
         lookup.assert_awaited_once_with(
             mcp_server._bounded_cve_landing_lookup,
             "CVE-2024-3400",

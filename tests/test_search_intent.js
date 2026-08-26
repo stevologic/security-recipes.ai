@@ -96,9 +96,9 @@ test("every agent-security control links from its hub and declares that breadcru
 
 test("reviewed historical CVE guides preserve explicit rollback and recovery boundaries", () => {
   const guides = [
-    ["content/recipes/cve/cve-2014-0160-heartbleed.md", /Do not restore an affected OpenSSL release/iu],
-    ["content/recipes/cve/cve-2014-6271-shellshock.md", /Never roll back to a Bash package/iu],
-    ["content/recipes/cve/cve-2017-18342-pyyaml.md", /Do not restore an unsafe `yaml\.load` path/iu],
+    ["content/recipes/cve/historical/cve-2014-0160-heartbleed.md", /Do not restore an affected OpenSSL release/iu],
+    ["content/recipes/cve/historical/cve-2014-6271-shellshock.md", /Never roll back to a Bash package/iu],
+    ["content/recipes/cve/historical/cve-2017-18342-pyyaml.md", /Do not restore an unsafe `yaml\.load` path/iu],
   ];
 
   for (const [relativePath, recoveryBoundary] of guides) {

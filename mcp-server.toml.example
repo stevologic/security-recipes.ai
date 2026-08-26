@@ -10,6 +10,16 @@ source_index_url = "https://security-recipes.ai/api/recipes-index.json"
 # the same path so exact-CVE lookups stay local and do not depend on NVD uptime.
 cve_catalog_path = "./static/api/cve-catalog"
 
+# Optional immutable SQLite FTS database built from the same manifest and
+# shards. Production images configure this automatically; leave blank for the
+# bounded legacy development fallback.
+cve_search_db_path = ""
+
+# Fail closed when the SQLite artifact is absent. Production images force this
+# true through RECIPES_MCP_REQUIRE_CVE_SEARCH_DATABASE; source checkouts keep
+# the compatibility index available unless an operator opts in here.
+require_cve_search_database = false
+
 # Agent-ready workflow registry shared with the playbook pages and Python suite.
 # These MCP tools are planning-only: recipes_playbooks_list,
 # recipes_playbook_get, and recipes_playbook_plan.

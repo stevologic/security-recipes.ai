@@ -69,6 +69,7 @@ class LandingPageContractParser(HTMLParser):
         self.robots: list[str] = []
         self.h1_count = 0
         self.element_ids: set[str] = set()
+        self.element_id_counts: dict[str, int] = {}
         self.time_datetimes: set[str] = set()
         self.structured_data: list[str] = []
         self._json_ld_buffer: list[str] | None = None
@@ -82,6 +83,9 @@ class LandingPageContractParser(HTMLParser):
         lower_tag = tag.lower()
         if attributes.get("id"):
             self.element_ids.add(attributes["id"])
+            self.element_id_counts[attributes["id"]] = (
+                self.element_id_counts.get(attributes["id"], 0) + 1
+            )
         if lower_tag == "time" and attributes.get("datetime"):
             self.time_datetimes.add(attributes["datetime"])
         if lower_tag == "link" and attributes.get("rel", "").lower() == "canonical":
@@ -148,12 +152,27 @@ def validate_landing_page_contract(
     if parser.h1_count != 1:
         raise ValueError(f"{cve_id} must have exactly one H1, found {parser.h1_count}")
     if require_remediation_summary:
-        required_ids = {"remediation-summary-heading", "cite-record-heading"}
+        required_ids = {
+            "overview-heading",
+            "products-heading",
+            "remediation-authority-heading",
+            "use-ai-heading",
+            "sources-heading",
+            "cite-record-heading",
+        }
         missing_ids = sorted(required_ids - parser.element_ids)
         if missing_ids:
             raise ValueError(
-                f"{cve_id} is missing required remediation data sections: {missing_ids}"
+                f"{cve_id} is missing required flat CVE sections: {missing_ids}"
             )
+        if parser.element_id_counts.get("remediation-authority-heading") != 1:
+            raise ValueError(f"{cve_id} must expose exactly one remediation authority")
+        if (
+            re.search(r"<details\b", document, flags=re.IGNORECASE)
+            or "data-cve-record-loader" in document
+            or 'id="complete-record"' in document
+        ):
+            raise ValueError(f"{cve_id} contains nested or deferred record UI")
 
     structured_objects: list[Any] = []
     for source in parser.structured_data:

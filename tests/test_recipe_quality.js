@@ -34,7 +34,12 @@ test("discovery recipes in the agent feed stay world-class", () => {
     .map((recipe) => `${recipe.slug}:${recipe.quality.score}`);
 
   assert.equal(feed.recipe_count, feed.recipes.length);
-  assert.ok(feed.recipe_count >= 177, "the MCP discovery surface must remain complete");
+  assert.ok(feed.recipe_count >= 150, "the authored MCP discovery surface must remain complete");
+  assert.equal(
+    feed.categories.find((category) => category.slug === "cve")?.count,
+    3,
+    "only rendered historical CVEs belong in the generic recipe feed",
+  );
   assert.deepEqual(gaps, [], "recipes_quality_report gaps must be empty on the local feed");
 });
 

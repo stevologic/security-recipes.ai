@@ -17,7 +17,7 @@ ROBOTS = (
     '<meta name="robots" content="index,follow,max-image-preview:large,'
     'max-snippet:-1,max-video-preview:-1">'
 )
-IDENTITY = 'data-cve-initial-id="CVE-2024-3400"'
+IDENTITY = 'data-cve-id="CVE-2024-3400"'
 ARTICLE_TYPE = '"@type":"Article"'
 ARTICLE_SEMANTICS = '"additionalType":"https://schema.org/TechArticle"'
 
@@ -48,6 +48,20 @@ class MCPImageContractTests(unittest.TestCase):
         for marker in (ROBOTS, IDENTITY, ARTICLE_TYPE, ARTICLE_SEMANTICS):
             with self.subTest(marker=marker):
                 self.assertIn(marker.replace('"', '\\"'), healthcheck)
+
+    def test_production_image_requires_the_manifest_pinned_search_database(self) -> None:
+        self.assertIn(
+            "RECIPES_MCP_CVE_SEARCH_DB_PATH=/app/runtime/cve-search.sqlite3",
+            self.dockerfile,
+        )
+        self.assertIn(
+            "RECIPES_MCP_REQUIRE_CVE_SEARCH_DATABASE=true",
+            self.dockerfile,
+        )
+        self.assertIn(
+            "--metadata-output /app/runtime/cve-search.sqlite3.metadata.json",
+            self.dockerfile,
+        )
 
     def test_build_starts_image_and_waits_for_docker_health(self) -> None:
         self.assertIn(
@@ -83,6 +97,23 @@ class MCPImageContractTests(unittest.TestCase):
         for marker in (ROBOTS, IDENTITY, ARTICLE_TYPE, ARTICLE_SEMANTICS):
             with self.subTest(marker=marker):
                 self.assertIn(marker, self.workflow)
+
+    def test_build_exercises_revision_pinned_sqlite_search_through_site(self) -> None:
+        self.assertIn(
+            "/api/cve-catalog/search?q=remote%20code%20execution&revision=${catalog_revision}&limit=5",
+            self.workflow,
+        )
+        self.assertIn('payload["schema_version"] == 1', self.workflow)
+        self.assertIn('payload["revision"] == sys.argv[2]', self.workflow)
+        self.assertIn('1 <= len(payload["results"]) <= 5', self.workflow)
+        self.assertIn("X-Robots-Tag: noindex", self.workflow)
+        self.assertIn(
+            "^X-CVE-Search-Backend:[[:space:]]*sqlite[[:space:]]*$",
+            self.workflow,
+        )
+        mcp_healthy = self.workflow.index('if [ "${mcp_health}" != "healthy" ]')
+        broad_search = self.workflow.index("/api/cve-catalog/search?q=remote%20code%20execution")
+        self.assertLess(mcp_healthy, broad_search)
 
     def test_build_validates_the_rendered_site_config_and_static_cve_offline(self) -> None:
         self.assertIn('docker network create "${smoke_network}"', self.workflow)

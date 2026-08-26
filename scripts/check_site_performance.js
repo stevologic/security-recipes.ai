@@ -1034,9 +1034,8 @@ for (const feed of [
   }
 }
 
-const cveSources = fs.readdirSync(CONTENT)
-  .filter((name) => name.endsWith(".md") && name !== "_index.md")
-  .map((name) => path.join(CONTENT, name));
+const cveSources = walk(CONTENT)
+  .filter((file) => file.endsWith(".md") && path.basename(file) !== "_index.md");
 const stableOverrides = [];
 const draftOverrides = [];
 for (const file of cveSources) {
@@ -1202,7 +1201,10 @@ for (const [label, items] of compatibleSurfaces) {
     if (!bySource.has(item.source_file)) bySource.set(item.source_file, []);
     bySource.get(item.source_file).push(item);
   }
-  for (const override of stableOverrides) {
+  // Generic content feeds contain only the small set of Eleventy-rendered
+  // historical recipes. Canonical reviewed Markdown is catalog input and is
+  // published through the qualified CVE archive/feed instead.
+  for (const override of historicalStableOverrides) {
     const matches = bySource.get(override.sourceFile) || [];
     if (matches.length !== 1) {
       fail(
@@ -1223,6 +1225,11 @@ for (const [label, items] of compatibleSurfaces) {
     }
     if (absolutePath !== override.expectedRoute) {
       fail(`${label} has a non-canonical absolute URL for ${override.sourceFile}`);
+    }
+  }
+  for (const override of canonicalStableOverrides) {
+    if (bySource.has(override.sourceFile)) {
+      fail(`${label} exposes catalog-owned stable CVE source ${override.sourceFile}`);
     }
   }
   for (const override of draftOverrides) {

@@ -260,6 +260,42 @@ def build_catalog_outputs(
     )
 
 
+def recipe_ready_enrichment(
+    record: dict[str, Any], *, model: str = "test-model"
+) -> dict[str, Any]:
+    source_url = record["references"][0]["url"]
+    claims = [
+        {
+            "kind": kind,
+            "claim": claim,
+            "source_url": source_url,
+        }
+        for kind, claim in (
+            ("affected_product", "The vendor product is affected."),
+            ("exposure", "The affected service must be reachable."),
+            ("remediation", "Install the vendor-supported security update."),
+            ("verification", "Confirm the updated release is deployed."),
+            ("fixed_version", "Version 2.0.1 contains the vendor fix."),
+        )
+    ]
+    return ai.build_enrichment_entry(
+        record,
+        {
+            "status": "complete",
+            "business_risk": "An exposed vulnerable service could be compromised.",
+            "exposure_conditions": ["The affected service is reachable."],
+            "remediation_steps": ["Install the vendor-supported fixed release."],
+            "verification_steps": ["Confirm version 2.0.1 is deployed."],
+            "uncertainty": [],
+            "recipe_specificity": "specific",
+            "claim_evidence": claims,
+            "source_urls": [source_url],
+        },
+        model=model,
+        retrieved_source_urls=[source_url],
+    )
+
+
 def output_index_records(outputs: dict[Path, bytes]) -> list[dict[str, Any]]:
     records: list[dict[str, Any]] = []
     for path, payload in sorted(outputs.items()):
@@ -584,7 +620,12 @@ class SyncCveCatalogTests(unittest.TestCase):
         )
         self.assertEqual(manifest["totals"]["ai_enriched_records"], 1)
         self.assertEqual(manifest["totals"]["ai_enrichment_complete"], 1)
+        self.assertEqual(manifest["totals"]["ai_enrichment_specific"], 0)
+        self.assertEqual(manifest["totals"]["ai_enrichment_evidence_ready"], 0)
+        self.assertEqual(manifest["totals"]["ai_enrichment_recipe_ready"], 0)
+        self.assertEqual(manifest["totals"]["ai_enrichment_human_review_blocked"], 0)
         self.assertEqual(manifest["totals"]["ai_enrichment_insufficient_evidence"], 0)
+        self.assertEqual(manifest["totals"]["ai_enrichment_withheld"], 1)
         self.assertEqual(manifest["ai_enrichment_models"], {"test-model": 1})
         runtime_summary = json.loads(outputs[Path("runtime-summary.json")])
         self.assertEqual(runtime_summary["ai_enrichment_models"], {"test-model": 1})
@@ -609,43 +650,16 @@ class SyncCveCatalogTests(unittest.TestCase):
         self.assertTrue(validation["ok"], validation["failures"])
         self.assertEqual(validation["ai_enrichment"]["records"], 1)
         self.assertEqual(validation["ai_enrichment"]["complete"], 1)
+        self.assertEqual(validation["ai_enrichment"]["specific"], 0)
+        self.assertEqual(validation["ai_enrichment"]["recipe_ready"], 0)
+        self.assertEqual(validation["ai_enrichment"]["withheld"], 1)
         self.assertEqual(validation["search_indexable_records"], 0)
 
     def test_search_index_contains_only_recipe_ready_ai_records(self) -> None:
         record = normalize(nvd_record("CVE-2024-4321"))
         self.assertIsNotNone(record)
         assert record is not None
-        source_url = record["references"][0]["url"]
-        claims = [
-            {
-                "kind": kind,
-                "claim": claim,
-                "source_url": source_url,
-            }
-            for kind, claim in (
-                ("affected_product", "The vendor product is affected."),
-                ("exposure", "The affected service must be reachable."),
-                ("remediation", "Install the vendor-supported security update."),
-                ("verification", "Confirm the updated release is deployed."),
-                ("fixed_version", "Version 2.0.1 contains the vendor fix."),
-            )
-        ]
-        record["ai_enrichment"] = ai.build_enrichment_entry(
-            record,
-            {
-                "status": "complete",
-                "business_risk": "An exposed vulnerable service could be compromised.",
-                "exposure_conditions": ["The affected service is reachable."],
-                "remediation_steps": ["Install the vendor-supported fixed release."],
-                "verification_steps": ["Confirm version 2.0.1 is deployed."],
-                "uncertainty": [],
-                "recipe_specificity": "specific",
-                "claim_evidence": claims,
-                "source_urls": [source_url],
-            },
-            model="test-model",
-            retrieved_source_urls=[source_url],
-        )
+        record["ai_enrichment"] = recipe_ready_enrichment(record)
 
         outputs, manifest = catalog.build_outputs(
             [record],
@@ -672,6 +686,143 @@ class SyncCveCatalogTests(unittest.TestCase):
         self.assertEqual(search_index["policy"], "stable-markdown-or-recipe-ready-v1")
         self.assertEqual(manifest["search_index"]["records"], 1)
         self.assertEqual(manifest["totals"]["search_indexable_records"], 1)
+        self.assertEqual(manifest["totals"]["ai_enrichment_specific"], 1)
+        self.assertEqual(manifest["totals"]["ai_enrichment_evidence_ready"], 1)
+        self.assertEqual(manifest["totals"]["ai_enrichment_recipe_ready"], 1)
+        self.assertEqual(manifest["totals"]["ai_enrichment_human_review_blocked"], 0)
+        self.assertEqual(manifest["totals"]["ai_enrichment_withheld"], 0)
+
+    def test_human_reviewed_development_draft_withholds_recipe_ready_ai(self) -> None:
+        cve_id = "CVE-2024-4321"
+        content_parent = catalog.ROOT / "content" / "recipes" / "cve"
+        with (
+            tempfile.TemporaryDirectory(
+                prefix=".test-ai-review-status-", dir=content_parent
+            ) as content_tmp,
+            tempfile.TemporaryDirectory(
+                prefix="test-ai-review-output-", dir=catalog.ROOT
+            ) as output_tmp,
+        ):
+            content_dir = Path(content_tmp)
+            recipe_path = content_dir / "reviewed-development.md"
+            recipe_path.write_text(
+                "---\n"
+                f'title: "{cve_id} reviewed development draft"\n'
+                f'cve: "{cve_id}"\n'
+                'known_as: "Synthetic reviewed development draft"\n'
+                "kev: false\n"
+                "severity: high\n"
+                'ecosystem: "test/application"\n'
+                'disclosed: "2024-05-06"\n'
+                'maturity: "development"\n'
+                "ai_enrichment_review_status: human-reviewed-development-draft\n"
+                "---\n\n"
+                "Human-reviewed development notes.\n",
+                encoding="utf-8",
+            )
+            inventory = catalog.markdown_inventory(content_dir)
+            record = normalize(nvd_record(cve_id), existing=inventory)
+            self.assertIsNotNone(record)
+            assert record is not None
+            record["ai_enrichment"] = recipe_ready_enrichment(record)
+
+            self.assertEqual(
+                record["markdown"][0]["ai_enrichment_review_status"],
+                catalog.AI_ENRICHMENT_REVIEW_STATUS_HUMAN_DRAFT,
+            )
+            self.assertTrue(catalog.ai_enrichment_human_review_blocked(record))
+            self.assertFalse(catalog.is_record_search_indexable(record))
+
+            approved = deepcopy(record)
+            approved["markdown"][0]["ai_enrichment_review_status"] = (
+                catalog.AI_ENRICHMENT_REVIEW_STATUS_APPROVED
+            )
+            self.assertTrue(catalog.is_record_search_indexable(approved))
+
+            generated = deepcopy(record)
+            generated["markdown"][0].pop("ai_enrichment_review_status")
+            self.assertTrue(catalog.is_record_search_indexable(generated))
+
+            stable = deepcopy(record)
+            catalog.apply_markdown_inventory(
+                stable,
+                [
+                    catalog.ExistingRecipe(
+                        cve=cve_id,
+                        path="content/recipes/cve/reviewed-stable.md",
+                        maturity="stable",
+                        title=f"{cve_id} reviewed stable recipe",
+                        content_markdown="Reviewed stable remediation.",
+                        severity="high",
+                        kev=False,
+                    )
+                ],
+            )
+            self.assertNotIn("ai_enrichment", stable)
+            self.assertTrue(catalog.is_record_search_indexable(stable))
+
+            outputs, manifest = catalog.build_outputs(
+                [record],
+                start_date=START_DATE,
+                end_date=END_DATE,
+                feed_sources=complete_feed_sources(1),
+                kev_data={
+                    "catalogVersion": "2026.07.01",
+                    "dateReleased": "2026-07-02T00:00:00Z",
+                    "vulnerabilities": [],
+                },
+                kev_payload=b'{"vulnerabilities":[]}\n',
+                archetypes=archetype_payload(),
+                existing=inventory,
+            )
+            totals = manifest["totals"]
+            self.assertEqual(totals["ai_enrichment_complete"], 1)
+            self.assertEqual(totals["ai_enrichment_specific"], 1)
+            self.assertEqual(totals["ai_enrichment_evidence_ready"], 1)
+            self.assertEqual(totals["ai_enrichment_recipe_ready"], 0)
+            self.assertEqual(totals["ai_enrichment_human_review_blocked"], 1)
+            self.assertEqual(totals["ai_enrichment_insufficient_evidence"], 0)
+            self.assertEqual(totals["ai_enrichment_withheld"], 1)
+            self.assertEqual(totals["search_indexable_records"], 0)
+            runtime = json.loads(outputs[Path("runtime-summary.json")])
+            self.assertEqual(runtime["totals"], totals)
+            self.assertEqual(
+                json.loads(outputs[Path("search-indexable.json")])["records"], []
+            )
+
+            output_dir = Path(output_tmp) / "catalog"
+            catalog.write_outputs(output_dir, outputs)
+            manifest_path = output_dir / "manifest.json"
+            stale_manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            for field in (
+                "ai_enriched_records",
+                "ai_enrichment_complete",
+                "ai_enrichment_specific",
+                "ai_enrichment_evidence_ready",
+                "ai_enrichment_recipe_ready",
+                "ai_enrichment_human_review_blocked",
+                "ai_enrichment_insufficient_evidence",
+                "ai_enrichment_withheld",
+                "search_indexable_records",
+            ):
+                stale_manifest["totals"][field] = 99
+            stale_manifest["ai_enrichment_models"] = {"stale-model": 99}
+            manifest_path.write_text(json.dumps(stale_manifest), encoding="utf-8")
+
+            rebuilt = catalog.rebuild_search_index(output_dir)
+            self.assertEqual(rebuilt["search_indexable_records"], 0)
+            refreshed_manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            self.assertEqual(refreshed_manifest["totals"], totals)
+            self.assertEqual(refreshed_manifest["ai_enrichment_models"], {"test-model": 1})
+            validation = validator.validate(output_dir, content_dir)
+
+        self.assertTrue(validation["ok"], validation["failures"])
+        self.assertEqual(validation["ai_enrichment"]["specific"], 1)
+        self.assertEqual(validation["ai_enrichment"]["evidence_ready"], 1)
+        self.assertEqual(validation["ai_enrichment"]["recipe_ready"], 0)
+        self.assertEqual(validation["ai_enrichment"]["human_review_blocked"], 1)
+        self.assertEqual(validation["ai_enrichment"]["withheld"], 1)
+        self.assertEqual(validation["search_indexable_records"], 0)
 
     def test_cvss_score_four_is_medium_and_below_four_is_excluded(self) -> None:
         for version in ("2.0", "3.1", "4.0"):
@@ -1341,7 +1492,9 @@ class SyncCveCatalogTests(unittest.TestCase):
                 "Body mentions CVE-2025-9999, which must not become inventory.\n",
                 encoding="utf-8",
             )
-            (content_dir / "b.md").write_text(
+            historical_dir = content_dir / "historical"
+            historical_dir.mkdir()
+            (historical_dir / "b.md").write_text(
                 "---\n"
                 'title: "Duplicate"\n'
                 "cve: CVE-2024-1111\n"
@@ -1481,6 +1634,10 @@ class SyncCveCatalogTests(unittest.TestCase):
             ("description", catalog.MAX_FRONTMATTER_DESCRIPTION_CHARS),
             ("author", catalog.MAX_FRONTMATTER_AUTHOR_CHARS),
             ("model", catalog.MAX_FRONTMATTER_MODEL_CHARS),
+            (
+                "ai_enrichment_review_status",
+                catalog.MAX_FRONTMATTER_AI_ENRICHMENT_REVIEW_STATUS_CHARS,
+            ),
         )
         with tempfile.TemporaryDirectory(prefix="test-cve-metadata-bounds-", dir=catalog.ROOT) as tmpdir:
             content_dir = Path(tmpdir)
@@ -1492,6 +1649,9 @@ class SyncCveCatalogTests(unittest.TestCase):
                         "description": "Reviewed guidance.",
                         "author": "Security Recipes",
                         "model": "GPT-5",
+                        "ai_enrichment_review_status": (
+                            catalog.AI_ENRICHMENT_REVIEW_STATUS_APPROVED
+                        ),
                     }
                     metadata[field] = "x" * (limit + 1)
                     recipe_path.write_text(
@@ -1501,6 +1661,8 @@ class SyncCveCatalogTests(unittest.TestCase):
                         'cve: "CVE-2024-1111"\n'
                         f'author: "{metadata["author"]}"\n'
                         f'model: "{metadata["model"]}"\n'
+                        "ai_enrichment_review_status: "
+                        f'"{metadata["ai_enrichment_review_status"]}"\n'
                         'maturity: "stable"\n'
                         "---\n\n"
                         "Reviewed body.\n",
@@ -1511,6 +1673,52 @@ class SyncCveCatalogTests(unittest.TestCase):
                         rf"frontmatter {field} exceeds {limit} characters",
                     ):
                         catalog.markdown_inventory(content_dir)
+
+    def test_markdown_metadata_rejects_unknown_ai_review_status(self) -> None:
+        with tempfile.TemporaryDirectory(
+            prefix="test-cve-ai-review-status-", dir=catalog.ROOT
+        ) as tmpdir:
+            content_dir = Path(tmpdir)
+            (content_dir / "invalid.md").write_text(
+                "---\n"
+                'title: "Invalid AI review status"\n'
+                'cve: "CVE-2024-1111"\n'
+                'maturity: "development"\n'
+                'ai_enrichment_review_status: "looks-good-to-me"\n'
+                "---\n",
+                encoding="utf-8",
+            )
+
+            with self.assertRaisesRegex(
+                ValueError, "frontmatter ai_enrichment_review_status must be one of"
+            ):
+                catalog.markdown_inventory(content_dir)
+
+    def test_markdown_metadata_normalizes_approved_ai_review_status(self) -> None:
+        with tempfile.TemporaryDirectory(
+            prefix="test-cve-ai-review-status-", dir=catalog.ROOT
+        ) as tmpdir:
+            content_dir = Path(tmpdir)
+            (content_dir / "approved.md").write_text(
+                "---\n"
+                'title: "Approved AI authority"\n'
+                'cve: "CVE-2024-1111"\n'
+                'maturity: "development"\n'
+                'ai_enrichment_review_status: "APPROVED-FOR-AI-AUTHORITY"\n'
+                "---\n",
+                encoding="utf-8",
+            )
+
+            recipe = catalog.markdown_inventory(content_dir)["CVE-2024-1111"][0]
+
+        self.assertEqual(
+            recipe.ai_enrichment_review_status,
+            catalog.AI_ENRICHMENT_REVIEW_STATUS_APPROVED,
+        )
+        self.assertEqual(
+            catalog.serialize_markdown_recipe(recipe)["ai_enrichment_review_status"],
+            catalog.AI_ENRICHMENT_REVIEW_STATUS_APPROVED,
+        )
 
     def test_markdown_serialization_omits_absent_optional_metadata(self) -> None:
         recipe = catalog.ExistingRecipe(
@@ -1542,6 +1750,7 @@ class SyncCveCatalogTests(unittest.TestCase):
                 "path": "content/recipes/cve/cve-2024-1234.md",
                 "maturity": "stable",
                 "title": "Reviewed CVE-2024-1234",
+                "description": "Apply the reviewed remediation and verify the result.",
                 "date": "2026-07-18",
                 "lastmod": "2026-07-21",
                 "content_markdown": "Reviewed body.",
@@ -1550,8 +1759,16 @@ class SyncCveCatalogTests(unittest.TestCase):
         record["last_modified"] = "2026-07-22T12:30:00Z"
 
         compact = catalog.compact_index_record(record, catalog.cve_shard(record))
+        search_compact = catalog.search_index_record(record)
 
         self.assertEqual(compact["page_lastmod"], "2026-07-22")
+        self.assertEqual(search_compact["page_title"], "Reviewed CVE-2024-1234")
+        self.assertEqual(
+            search_compact["page_description"],
+            "Apply the reviewed remediation and verify the result.",
+        )
+        self.assertEqual(search_compact["page_lastmod"], "2026-07-22")
+        self.assertEqual(search_compact, validator.projected_search_index_record(record))
         self.assertEqual(validator.projected_page_lastmod(record), "2026-07-22")
 
         record["recipe_kind"] = "composed"
@@ -1562,12 +1779,16 @@ class SyncCveCatalogTests(unittest.TestCase):
             "generated_at": "2026-07-21T08:00:00Z",
         }
         compact = catalog.compact_index_record(record, catalog.cve_shard(record))
+        search_compact = catalog.search_index_record(record)
         self.assertEqual(compact["page_lastmod"], "2026-07-21")
+        self.assertEqual(search_compact["page_lastmod"], "2026-07-21")
         self.assertEqual(validator.projected_page_lastmod(record), "2026-07-21")
 
         record["ai_enrichment"]["status"] = "insufficient_evidence"
         compact = catalog.compact_index_record(record, catalog.cve_shard(record))
+        search_compact = catalog.search_index_record(record)
         self.assertNotIn("page_lastmod", compact)
+        self.assertNotIn("page_lastmod", search_compact)
 
     def test_only_stable_markdown_is_embedded_and_advertised_as_an_override(self) -> None:
         with tempfile.TemporaryDirectory(prefix="test-cve-overrides-", dir=catalog.ROOT) as tmpdir:
@@ -2160,6 +2381,7 @@ class SyncCveCatalogTests(unittest.TestCase):
         runtime_summary = json.loads(runtime_payload)
         self.assertEqual(runtime_summary["totals"], manifest_a["totals"])
         self.assertEqual(runtime_summary["by_severity"], manifest_a["by_severity"])
+        self.assertEqual(runtime_summary["search_api"], catalog.SEARCH_API_RUNTIME)
         self.assertEqual(runtime_summary["browser_index"], browser_manifest)
         self.assertEqual(runtime_summary["archetypes"], manifest_a["archetypes_asset"])
         self.assertEqual(runtime_summary["shard_set_sha256"], manifest_a["shard_set_sha256"])

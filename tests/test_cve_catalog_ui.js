@@ -37,6 +37,40 @@ test('catalog display text preserves already-correct Unicode', () => {
   assert.equal(controller.cleanCatalogText(source), source);
 });
 
+test('forced manifest refresh bypasses a stale browser cache', () => {
+  assert.equal(controller.manifestFetchCacheMode(false), 'default');
+  assert.equal(controller.manifestFetchCacheMode(true), 'reload');
+});
+
+test('broad search requires valid metadata and stale recovery has one automatic refresh', () => {
+  assert.equal(controller.catalogSearchMode(null), 'metadata-unavailable');
+  assert.equal(controller.catalogSearchMode({ browser_index: {} }), 'legacy-worker');
+  assert.equal(controller.catalogSearchMode({ search_api: { path: 'search' } }), 'api');
+  assert.equal(controller.canAutoRefreshStaleRevision(0), true);
+  assert.equal(controller.canAutoRefreshStaleRevision(1), false);
+  assert.equal(controller.canAutoRefreshStaleRevision(2), false);
+  assert.equal(controller.canAutoRefreshStaleRevision(undefined), false);
+});
+
+test('facet visibility stays aligned across mobile and desktop breakpoints', () => {
+  assert.deepEqual(controller.facetVisibilityState(true, false), {
+    expanded: false,
+    hidden: true
+  });
+  assert.deepEqual(controller.facetVisibilityState(true, true), {
+    expanded: true,
+    hidden: false
+  });
+  assert.deepEqual(controller.facetVisibilityState(false, false), {
+    expanded: false,
+    hidden: false
+  });
+  assert.deepEqual(controller.facetVisibilityState(false, true), {
+    expanded: false,
+    hidden: false
+  });
+});
+
 const RECIPE_FIELDS = [
   'exposure_checks',
   'remediation_steps',
@@ -200,6 +234,11 @@ test('canonical CVE recognition is exact and shard paths use identifier buckets'
   assert.equal(controller.canonicalCve('CVE-2024-3400-extra'), null);
   assert.equal(controller.canonicalCve('prefix CVE-2024-3400'), null);
   assert.equal(controller.canonicalCve('CVE-2024-999'), null);
+  ['C', 'CV', 'CVE', 'CVE-', 'CVE-2024', 'CVE-2024-', 'CVE-2024-999'].forEach((value) => {
+    assert.equal(controller.incompleteCveQuery(value), true, value + ' should remain a direct-lookup draft');
+  });
+  assert.equal(controller.incompleteCveQuery('CVE-2024-3400'), false);
+  assert.equal(controller.incompleteCveQuery('OpenSSL'), false);
   assert.equal(
     controller.canonicalCvePageUrl(' cve-2024-3400 '),
     'https://www.cve.org/CVERecord?id=CVE-2024-3400'
@@ -551,6 +590,12 @@ test('runtime summary metadata produces coverage without loading the browser ind
       bytes: 50000,
       agentic_contract: agenticManifestMetadata()
     },
+    search_api: {
+      schema_version: 1,
+      path: 'search',
+      max_query_length: 120,
+      max_results: 100
+    },
     shard_set_sha256: 'c'.repeat(64)
   });
   const summary = controller.manifestCoverageText(manifest);
@@ -673,6 +718,49 @@ test('runtime summary requires content-derived shard and archetype versions', ()
   assert.throws(
     () => controller.validateManifest({ ...base, archetypes: { ...base.archetypes, sha256: '' } }),
     /asset version metadata/
+  );
+  assert.throws(
+    () => controller.validateManifest({ ...base, search_api: { ...base.search_api, path: '../search' } }),
+    /search API metadata/
+  );
+});
+
+test('catalog search API responses are bounded and normalized for rendering', () => {
+  const revision = 'd'.repeat(64);
+  const payload = controller.validateCatalogSearch({
+    schema_version: 1,
+    query: 'OpenSSL',
+    revision,
+    total_matches: 12,
+    truncated: true,
+    results: [{
+      cve: 'cve-2024-3400',
+      title: 'Example vulnerability',
+      severity: 'HIGH',
+      score: 8.8,
+      published: '2024-04-12',
+      ecosystem: 'software/application',
+      kev: true,
+      archetypes: ['command_code_injection'],
+      has_markdown: true,
+      shard: 'shards/2024/0003.jsonl.gz'
+    }]
+  }, revision);
+
+  assert.equal(payload.totalMatches, 12);
+  assert.equal(payload.results[0].cve, 'CVE-2024-3400');
+  assert.equal(payload.results[0].severity, 'high');
+  assert.equal(payload.results[0].hasMarkdown, true);
+  assert.throws(
+    () => controller.validateCatalogSearch({
+      schema_version: 1,
+      query: 'bad',
+      revision,
+      total_matches: 1,
+      truncated: false,
+      results: [{ cve: 'not-a-cve' }]
+    }, revision),
+    /invalid record/
   );
 });
 
@@ -927,7 +1015,7 @@ test('controller never parses the full index and feed Markdown is never injected
   assert.doesNotMatch(controllerSource, /\.innerHTML\s*=/);
   assert.doesNotMatch(workerSource, /\.innerHTML\s*=/);
   assert.match(controllerSource, /browser-index\.json\.gz/);
-  assert.match(controllerSource, /fetchJson\('runtime-summary\.json'\)/);
+  assert.match(controllerSource, /fetchJson\(\s*'runtime-summary\.json'/);
   assert.doesNotMatch(controllerSource, /fetchJson\('manifest\.json'\)/);
   assert.match(controllerSource, /state\.runtimeSummary\.shard_set_sha256/);
   assert.match(controllerSource, /metadata && metadata\.sha256/);
@@ -966,10 +1054,35 @@ test('controller never parses the full index and feed Markdown is never injected
   assert.match(catalogCss, /\.cve-catalog__canonical-link:focus-visible/);
   assert.match(catalogCss, /@media \(max-width:\s*480px\)[\s\S]*?\.cve-catalog__canonical-link\s*\{[\s\S]*?min-height:\s*44px/);
   assert.match(workerSource, /browser-index\.json\.gz/);
+  assert.doesNotMatch(
+    controllerSource,
+    /search\.addEventListener\('focus',[\s\S]*?runSearch\(\)/,
+    'focusing the search input must not download the full browser index'
+  );
   assert.match(
     controllerSource,
-    /search\.addEventListener\('focus',[\s\S]*?if \(state\.requestId === 0\) runSearch\(\);[\s\S]*?\{ once: true \}/,
-    'the full browser index is activated only after search focus'
+    /if \(incompleteCveQuery\(query\)\) \{[\s\S]*?return;[\s\S]*?fetchCatalogSearch\(query, searchSignal\)/,
+    'partial canonical CVE input must stop before broad catalog search is activated'
+  );
+  assert.match(
+    controllerSource,
+    /var searchMode = catalogSearchMode\(state\.runtimeSummary\);[\s\S]*?searchMode === 'metadata-unavailable'[\s\S]*?showRetry\('search', retryMetadataThenSearch\);[\s\S]*?searchMode === 'legacy-worker'[\s\S]*?startWorkerSearch\(requestId, query\);[\s\S]*?fetchCatalogSearch\(query, searchSignal\)/,
+    'missing metadata must stop at a retry while only a validated legacy summary retains the worker fallback'
+  );
+  assert.match(
+    controllerSource,
+    /response\.status === 409[\s\S]*?'search-api-stale'[\s\S]*?canAutoRefreshStaleRevision\(revisionRefreshes\)[\s\S]*?loadManifest\(true\)[\s\S]*?manifest\.shard_set_sha256 === error\.staleRevision[\s\S]*?runSearch\(revisionRefreshes \+ 1\)/,
+    'a revision mismatch spends one automatic refresh token before requiring a user retry'
+  );
+  assert.match(
+    controllerSource,
+    /fetchJson\(\s*'runtime-summary\.json',\s*null,\s*manifestFetchCacheMode\(force\)\s*\)/,
+    'a forced revision refresh must bypass the browser cache'
+  );
+  assert.match(
+    controllerSource,
+    /matchMedia\('\(max-width: 60rem\)'\)[\s\S]*?addEventListener\('change', syncFacetBreakpoint\)/,
+    'facet accessibility state must follow the responsive breakpoint'
   );
   assert.match(
     controllerSource,
@@ -993,17 +1106,15 @@ test('controller never parses the full index and feed Markdown is never injected
   );
 });
 
-test('browse results are canonical record links and only landing embeds expand in place', () => {
+test('browse results are canonical record links and explicit initial records expand in place', () => {
   const root = path.resolve(__dirname, '..');
   const controllerSource = fs.readFileSync(path.join(root, 'assets/js/cve-catalog.js'), 'utf8');
   const catalogCss = fs.readFileSync(path.join(root, 'assets/css/cve-catalog.css'), 'utf8');
 
-  // Mode selection: the complete-record loader strips the initial-id
-  // attribute during mount, so the loader-section ancestor must gate the
-  // expandable view alongside a declared initial CVE.
+  // Only an explicitly declared initial CVE selects the in-place record mode.
   assert.match(
     controllerSource,
-    /var linkedRecordRows = !initialCve &&\s*!\(element\.closest && element\.closest\('\[data-cve-record-loader\]'\)\);/
+    /var linkedRecordRows = !initialCve;/
   );
   assert.match(
     controllerSource,

@@ -1228,7 +1228,9 @@ wait_for_slot_cve_landing() {
       curl --fail --silent --show-error --max-time 8 \
         "http://${endpoint}/cve/CVE-2024-3400/" 2>/dev/null || true
     )"
-    if grep -Fq 'data-cve-initial-id="CVE-2024-3400"' <<<"${page}" &&
+    if grep -Fq 'data-cve-id="CVE-2024-3400"' <<<"${page}" &&
+       grep -Fq 'id="remediation-authority-heading"' <<<"${page}" &&
+       grep -Fq 'id="use-ai-heading"' <<<"${page}" &&
        grep -Fq '"@type":"Article"' <<<"${page}" &&
        grep -Fq '"additionalType":"https://schema.org/TechArticle"' <<<"${page}" &&
        grep -Fq "<link rel=\"canonical\" href=\"${expected_canonical}\">" <<<"${page}" &&
@@ -1662,7 +1664,9 @@ validate_proxy_cve_landing() {
     log "ERROR: The canonical CVE landing route is unavailable through the active proxy."
     return 1
   }
-  grep -Fq 'data-cve-initial-id="CVE-2024-3400"' <<<"${page}" &&
+  grep -Fq 'data-cve-id="CVE-2024-3400"' <<<"${page}" &&
+    grep -Fq 'id="remediation-authority-heading"' <<<"${page}" &&
+    grep -Fq 'id="use-ai-heading"' <<<"${page}" &&
     grep -Fq '"@type":"Article"' <<<"${page}" &&
     grep -Fq '"additionalType":"https://schema.org/TechArticle"' <<<"${page}" &&
     grep -Fq "<link rel=\"canonical\" href=\"${expected_canonical}\">" <<<"${page}" &&
@@ -1827,31 +1831,66 @@ refresh_non_site_images() {
   pull_mcp_candidate "${revision}"
 }
 
-cleanup_site_images() {
-  local blue_id green_id dev_id blue_ref green_ref dev_ref ref
-  blue_id="$(docker compose ps -q "${BLUE_SERVICE}" 2>/dev/null || true)"
-  green_id="$(docker compose ps -q "${GREEN_SERVICE}" 2>/dev/null || true)"
-  dev_id="$(docker compose ps -q "${DEV_SERVICE}" 2>/dev/null || true)"
-  blue_ref=""
-  green_ref=""
-  dev_ref=""
-  [[ -z "${blue_id}" ]] ||
-    blue_ref="$(docker inspect --format '{{.Config.Image}}' "${blue_id}" 2>/dev/null || true)"
-  [[ -z "${green_id}" ]] ||
-    green_ref="$(docker inspect --format '{{.Config.Image}}' "${green_id}" 2>/dev/null || true)"
-  [[ -z "${dev_id}" ]] ||
-    dev_ref="$(docker inspect --format '{{.Config.Image}}' "${dev_id}" 2>/dev/null || true)"
+cleanup_tagged_images() {
+  local repository="$1"
+  local service container_ids container_id image_ref image_id inventory ref candidate_id
+  local -a protected_services=(
+    "${BLUE_SERVICE}"
+    "${GREEN_SERVICE}"
+    "${DEV_SERVICE}"
+    "mcp-server"
+    "mcp-server-blue"
+    "mcp-server-green"
+  )
+  local -A protected_refs=()
+  local -A protected_ids=()
 
-  while IFS= read -r ref; do
-    [[ -n "${ref}" ]] || continue
-    if [[ "${ref}" != "${blue_ref}" && "${ref}" != "${green_ref}" && "${ref}" != "${dev_ref}" ]]; then
+  # Protect both the configured reference and immutable image ID for every
+  # running site/MCP container. A running container may have been created from
+  # a digest or an alias rather than the tag currently listed in this repo.
+  for service in "${protected_services[@]}"; do
+    if ! container_ids="$(docker compose ps -q "${service}" 2>/dev/null)"; then
+      log "WARNING: Could not enumerate ${service}; skipping ${repository} image cleanup."
+      return 0
+    fi
+    while IFS= read -r container_id; do
+      [[ -n "${container_id}" ]] || continue
+      if ! image_ref="$(
+        docker inspect --format '{{.Config.Image}}' "${container_id}" 2>/dev/null
+      )" || ! image_id="$(
+        docker inspect --format '{{.Image}}' "${container_id}" 2>/dev/null
+      )" || [[ -z "${image_ref}" || -z "${image_id}" ]]; then
+        log "WARNING: Could not identify running container ${container_id}; skipping ${repository} image cleanup."
+        return 0
+      fi
+      protected_refs["${image_ref}"]=1
+      protected_ids["${image_id}"]=1
+    done <<<"${container_ids}"
+  done
+
+  if ! inventory="$(
+    docker image ls --no-trunc "${repository}" \
+      --format '{{.Repository}}:{{.Tag}} {{.ID}}' 2>/dev/null
+  )"; then
+    log "WARNING: Could not list ${repository} images; skipping cleanup."
+    return 0
+  fi
+  while read -r ref candidate_id; do
+    [[ -n "${ref}" && -n "${candidate_id}" && "${ref}" != *':<none>' ]] || continue
+    if [[ -z "${protected_refs["${ref}"]+protected}" &&
+          -z "${protected_ids["${candidate_id}"]+protected}" ]]; then
       docker image rm "${ref}" >/dev/null 2>&1 || true
     fi
-  done < <(
-    docker image ls "${SITE_IMAGE_REPOSITORY}" \
-      --format '{{.Repository}}:{{.Tag}}' 2>/dev/null || true
-  )
+  done <<<"${inventory}"
+}
+
+cleanup_site_images() {
+  cleanup_tagged_images "${SITE_IMAGE_REPOSITORY}"
   docker image prune -f >/dev/null
+}
+
+cleanup_mcp_images() {
+  cleanup_tagged_images "${MCP_IMAGE_REPOSITORY}"
 }
 
 prune_build_cache() {
@@ -1898,8 +1937,9 @@ ensure_disk_headroom() {
   }
 
   if (( available_mb < MIN_FREE_MB )); then
-    log "Free disk is ${available_mb}MB; safely pruning unused site images and old build cache before the build."
+    log "Free disk is ${available_mb}MB; safely pruning unused site/MCP images and old build cache before the build."
     cleanup_site_images
+    cleanup_mcp_images
     prune_build_cache
     available_mb="$(available_disk_mb)" || return 1
   fi
@@ -2473,6 +2513,7 @@ main() {
   fi
   rm -f "${FAILED_MARKER}"
   cleanup_site_images
+  cleanup_mcp_images
   prune_build_cache
   if [[ -n "${FALLBACK_SERVICE}" ]]; then
     log "Deploy complete: ${TARGET:0:12} is active on ${ACTIVE_SERVICE}; ${FALLBACK_SERVICE}@${FALLBACK_SHA:0:12} remains the verified warm fallback."

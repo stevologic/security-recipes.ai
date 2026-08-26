@@ -13,6 +13,7 @@ const {
   isCveSearchIndexable,
   loadCveSearchIndexableIds,
   loadCveSearchIndexableRecords,
+  normalizeQualifiedRecord,
 } = require("../lib/cve-indexability");
 
 function qualifiedRecord(cve, overrides = {}) {
@@ -67,7 +68,12 @@ test("indexable CVE IDs come from the integrity-checked evidence-qualified allow
     catalog_updated_at: catalogUpdatedAt,
     policy: SEARCH_INDEX_POLICY,
     records: [
-      qualifiedRecord("CVE-2026-1000", { qualification: "stable_markdown" }),
+      qualifiedRecord("CVE-2026-1000", {
+        qualification: "stable_markdown",
+        page_title: "CVE-2026-1000 — Reviewed remediation",
+        page_description: "Apply the reviewed fix and verify the deployed version.",
+        page_lastmod: "2026-07-22",
+      }),
       qualifiedRecord("CVE-2026-1001"),
     ],
   }));
@@ -91,9 +97,39 @@ test("indexable CVE IDs come from the integrity-checked evidence-qualified allow
     [...loadCveSearchIndexableIds(root)].sort(),
     ["CVE-2026-1000", "CVE-2026-1001"],
   );
+  const loaded = loadCveSearchIndexableRecords(root);
   assert.deepEqual(
-    loadCveSearchIndexableRecords(root).map((record) => record.qualification),
+    loaded.map((record) => record.qualification),
     ["stable_markdown", "recipe_ready_ai"],
+  );
+  assert.deepEqual(
+    {
+      page_title: loaded[0].page_title,
+      page_description: loaded[0].page_description,
+      page_lastmod: loaded[0].page_lastmod,
+    },
+    {
+      page_title: "CVE-2026-1000 — Reviewed remediation",
+      page_description: "Apply the reviewed fix and verify the deployed version.",
+      page_lastmod: "2026-07-22",
+    },
+  );
+  assert.equal(Object.hasOwn(loaded[1], "page_title"), false);
+});
+
+test("optional page metadata remains schema-v2 compatible and fails closed when invalid", () => {
+  assert.ok(normalizeQualifiedRecord(qualifiedRecord("CVE-2026-2000")));
+  assert.equal(
+    normalizeQualifiedRecord(qualifiedRecord("CVE-2026-2001", { page_lastmod: "2026-02-30" })),
+    null,
+  );
+  assert.equal(
+    normalizeQualifiedRecord(qualifiedRecord("CVE-2026-2002", { page_title: "x".repeat(201) })),
+    null,
+  );
+  assert.equal(
+    normalizeQualifiedRecord(qualifiedRecord("CVE-2026-2003", { page_description: {} })),
+    null,
   );
 });
 

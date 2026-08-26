@@ -48,11 +48,26 @@ BROWSER_INDEX_FIELDS = [
 ]
 BROWSER_SEVERITY_CODES = {"medium": 0, "high": 1, "critical": 2}
 BROWSER_SEVERITY_NAMES = {str(code): severity for severity, code in BROWSER_SEVERITY_CODES.items()}
+SEARCH_API_RUNTIME = {
+    "schema_version": 1,
+    "path": "search",
+    "max_query_length": 120,
+    "max_results": 100,
+}
 MAX_STABLE_MARKDOWN_BYTES = 256 * 1024
 MAX_FRONTMATTER_TITLE_CHARS = 200
 MAX_FRONTMATTER_DESCRIPTION_CHARS = 500
 MAX_FRONTMATTER_AUTHOR_CHARS = 120
 MAX_FRONTMATTER_MODEL_CHARS = 120
+MAX_FRONTMATTER_AI_ENRICHMENT_REVIEW_STATUS_CHARS = 64
+AI_ENRICHMENT_REVIEW_STATUS_HUMAN_DRAFT = "human-reviewed-development-draft"
+AI_ENRICHMENT_REVIEW_STATUS_APPROVED = "approved-for-ai-authority"
+AI_ENRICHMENT_REVIEW_STATUSES = frozenset(
+    {
+        AI_ENRICHMENT_REVIEW_STATUS_HUMAN_DRAFT,
+        AI_ENRICHMENT_REVIEW_STATUS_APPROVED,
+    }
+)
 ARCHETYPE_LIST_FIELDS = (
     "exposure_checks",
     "remediation_steps",
@@ -606,7 +621,7 @@ def validate_markdown_recipes(
     identities: dict[str, list[str]] = {}
     counts = {"files": 0, "cve": 0, "ghsa": 0}
     inventory: dict[str, dict[str, str]] = {}
-    for path in sorted(content_dir.glob("*.md")):
+    for path in sorted(content_dir.rglob("*.md")):
         if path.name == "_index.md":
             continue
         counts["files"] += 1
@@ -657,17 +672,34 @@ def validate_markdown_recipes(
         published_date = frontmatter_line_value(frontmatter, "date")
         lastmod = frontmatter_line_value(frontmatter, "lastmod")
         model = frontmatter_line_value(frontmatter, "model")
+        ai_enrichment_review_status = frontmatter_line_value(
+            frontmatter, "ai_enrichment_review_status"
+        ).casefold()
         for field, value, limit in (
             ("title", title, MAX_FRONTMATTER_TITLE_CHARS),
             ("description", description, MAX_FRONTMATTER_DESCRIPTION_CHARS),
             ("author", author, MAX_FRONTMATTER_AUTHOR_CHARS),
             ("model", model, MAX_FRONTMATTER_MODEL_CHARS),
+            (
+                "ai_enrichment_review_status",
+                ai_enrichment_review_status,
+                MAX_FRONTMATTER_AI_ENRICHMENT_REVIEW_STATUS_CHARS,
+            ),
         ):
             if len(value) > limit:
                 fail(
                     failures,
                     f"{identity} frontmatter {field} exceeds {limit} characters: {path}",
                 )
+        if (
+            ai_enrichment_review_status
+            and ai_enrichment_review_status not in AI_ENRICHMENT_REVIEW_STATUSES
+        ):
+            fail(
+                failures,
+                f"{identity} has invalid ai_enrichment_review_status "
+                f"{ai_enrichment_review_status!r}: {path}",
+            )
         for field, value in (("date", published_date), ("lastmod", lastmod)):
             if not value:
                 continue
@@ -694,6 +726,7 @@ def validate_markdown_recipes(
             "date": published_date,
             "lastmod": lastmod,
             "model": model,
+            "ai_enrichment_review_status": ai_enrichment_review_status,
         }
 
     for identity, paths in identities.items():
@@ -993,6 +1026,29 @@ def validate_browser_index(
     return len(browser_records)
 
 
+def ai_enrichment_human_review_blocked(record: dict[str, Any]) -> bool:
+    """Independently identify an explicit development-review authority block."""
+
+    markdown = record.get("markdown")
+    if not isinstance(markdown, list):
+        return False
+    return any(
+        isinstance(entry, dict)
+        and str(entry.get("maturity") or "").strip().casefold() == "development"
+        and str(entry.get("ai_enrichment_review_status") or "").strip().casefold()
+        == AI_ENRICHMENT_REVIEW_STATUS_HUMAN_DRAFT
+        for entry in markdown
+    )
+
+
+def ai_enrichment_ready_for_authority(record: dict[str, Any]) -> bool:
+    """Require both deterministic recipe evidence and non-blocking review state."""
+
+    return recipe_ready(
+        record.get("ai_enrichment"), record
+    ) and not ai_enrichment_human_review_blocked(record)
+
+
 def projected_search_index_record(record: dict[str, Any]) -> dict[str, Any]:
     product_rows: list[dict[str, str]] = []
     product_seen: set[tuple[str, str]] = set()
@@ -1008,7 +1064,7 @@ def projected_search_index_record(record: dict[str, Any]) -> dict[str, Any]:
         product_seen.add(identity)
         if len(product_rows) >= 8:
             break
-    return {
+    projected = {
         "cve": record["cve"],
         "title": record["title"],
         "severity": record["severity"],
@@ -1025,6 +1081,11 @@ def projected_search_index_record(record: dict[str, Any]) -> dict[str, Any]:
             else "recipe_ready_ai"
         ),
     }
+    projected.update(projected_stable_page_metadata(record))
+    page_lastmod = projected_page_lastmod(record)
+    if page_lastmod:
+        projected["page_lastmod"] = page_lastmod
+    return projected
 
 
 def projected_page_lastmod(record: dict[str, Any]) -> str:
@@ -1170,7 +1231,7 @@ def validate_search_index(
             failures,
             f"search index does not match evidence-qualified records: missing={missing[:10]}, extra={extra[:10]}",
         )
-    expected_record_fields = {
+    required_record_fields = {
         "cve",
         "title",
         "severity",
@@ -1183,10 +1244,35 @@ def validate_search_index(
         "products",
         "qualification",
     }
+    optional_record_fields = {"page_title", "page_description", "page_lastmod"}
     for position, record in enumerate(raw_records):
-        if not isinstance(record, dict) or set(record) != expected_record_fields:
+        if (
+            not isinstance(record, dict)
+            or not required_record_fields.issubset(record)
+            or not set(record).issubset(required_record_fields | optional_record_fields)
+        ):
             fail(failures, f"search index record {position} schema is invalid")
             continue
+        for field, limit in (
+            ("page_title", MAX_FRONTMATTER_TITLE_CHARS),
+            ("page_description", MAX_FRONTMATTER_DESCRIPTION_CHARS),
+        ):
+            if field in record and (
+                not isinstance(record[field], str)
+                or not record[field].strip()
+                or len(record[field]) > limit
+            ):
+                fail(failures, f"search index record {position} has invalid {field}")
+        if "page_lastmod" in record:
+            page_lastmod = record["page_lastmod"]
+            try:
+                if not isinstance(page_lastmod, str) or not re.fullmatch(
+                    r"\d{4}-\d{2}-\d{2}", page_lastmod
+                ):
+                    raise ValueError
+                date.fromisoformat(page_lastmod)
+            except (TypeError, ValueError):
+                fail(failures, f"search index record {position} has invalid page_lastmod")
         expected = expected_records.get(str(record.get("cve") or ""))
         if expected is not None and record != expected:
             fail(failures, f"search index record does not match its source shard: {record['cve']}")
@@ -1235,6 +1321,7 @@ def validate_runtime_summary(
         "by_severity": manifest.get("by_severity"),
         "by_publication_year": manifest.get("by_publication_year"),
         "ai_enrichment_models": manifest.get("ai_enrichment_models"),
+        "search_api": SEARCH_API_RUNTIME,
         "browser_index": manifest.get("browser_index"),
         "archetypes": manifest.get("archetypes_asset"),
         "shard_set_sha256": manifest.get("shard_set_sha256"),
@@ -1609,7 +1696,12 @@ def validate(catalog_dir: Path, content_dir: Path = DEFAULT_CONTENT) -> dict[str
     markdown_pages = 0
     ai_enriched = 0
     ai_enrichment_complete = 0
+    ai_enrichment_specific = 0
+    ai_enrichment_evidence_ready = 0
+    ai_enrichment_recipe_ready = 0
+    ai_enrichment_human_review_blocked_count = 0
     ai_enrichment_insufficient = 0
+    ai_enrichment_withheld = 0
     ai_enrichment_models: Counter[str] = Counter()
     search_indexable_records: dict[str, dict[str, Any]] = {}
     catalog_markdown_paths: set[str] = set()
@@ -1728,12 +1820,28 @@ def validate(catalog_dir: Path, content_dir: Path = DEFAULT_CONTENT) -> dict[str
                         fail(failures, f"{cve} catalog Markdown title is stale for {override_path}")
                     if source_markdown.get("maturity") != maturity:
                         fail(failures, f"{cve} catalog Markdown maturity is stale for {override_path}")
-                    for field in ("description", "author", "date", "lastmod", "model"):
+                    for field in (
+                        "description",
+                        "author",
+                        "date",
+                        "lastmod",
+                        "model",
+                        "ai_enrichment_review_status",
+                    ):
                         if (source_markdown.get(field) or "") != (override.get(field) or ""):
                             fail(
                                 failures,
                                 f"{cve} catalog Markdown {field} is stale for {override_path}",
                             )
+                review_status = str(
+                    override.get("ai_enrichment_review_status") or ""
+                )
+                if review_status and review_status not in AI_ENRICHMENT_REVIEW_STATUSES:
+                    fail(
+                        failures,
+                        f"{cve} Markdown entry has invalid ai_enrichment_review_status "
+                        f"{review_status!r}",
+                    )
                 if maturity == "stable":
                     stable_entries += 1
                     content = override.get("content_markdown")
@@ -1864,11 +1972,23 @@ def validate(catalog_dir: Path, content_dir: Path = DEFAULT_CONTENT) -> dict[str
                     fail(failures, f"{cve} {error}")
                 if isinstance(enrichment, dict):
                     ai_enrichment_complete += int(enrichment.get("status") == "complete")
+                    ai_enrichment_specific += int(
+                        enrichment.get("recipe_specificity") == "specific"
+                    )
                     ai_enrichment_insufficient += int(enrichment.get("status") == "insufficient_evidence")
+                    evidence_ready = recipe_ready(enrichment, record)
+                    human_review_blocked = (
+                        evidence_ready and ai_enrichment_human_review_blocked(record)
+                    )
+                    authority_ready = evidence_ready and not human_review_blocked
+                    ai_enrichment_evidence_ready += int(evidence_ready)
+                    ai_enrichment_recipe_ready += int(authority_ready)
+                    ai_enrichment_human_review_blocked_count += int(human_review_blocked)
+                    ai_enrichment_withheld += int(not authority_ready)
                     model = str(enrichment.get("model") or "").strip()
                     if model:
                         ai_enrichment_models[model] += 1
-            if recipe_kind == "markdown-override" or recipe_ready(enrichment, record):
+            if recipe_kind == "markdown-override" or ai_enrichment_ready_for_authority(record):
                 search_indexable_records[cve] = projected_search_index_record(record)
 
     if shard_ids != set(index_by_cve):
@@ -1939,8 +2059,21 @@ def validate(catalog_dir: Path, content_dir: Path = DEFAULT_CONTENT) -> dict[str
         fail(failures, "manifest AI-enriched record count does not match shards")
     if totals.get("ai_enrichment_complete") != ai_enrichment_complete:
         fail(failures, "manifest complete AI-enrichment count does not match shards")
+    if totals.get("ai_enrichment_specific") != ai_enrichment_specific:
+        fail(failures, "manifest specific AI-enrichment count does not match shards")
+    if totals.get("ai_enrichment_evidence_ready") != ai_enrichment_evidence_ready:
+        fail(failures, "manifest evidence-ready AI-enrichment count does not match shards")
+    if totals.get("ai_enrichment_recipe_ready") != ai_enrichment_recipe_ready:
+        fail(failures, "manifest recipe-ready AI-enrichment count does not match shards")
+    if (
+        totals.get("ai_enrichment_human_review_blocked")
+        != ai_enrichment_human_review_blocked_count
+    ):
+        fail(failures, "manifest human-review-blocked AI-enrichment count does not match shards")
     if totals.get("ai_enrichment_insufficient_evidence") != ai_enrichment_insufficient:
         fail(failures, "manifest insufficient AI-enrichment count does not match shards")
+    if totals.get("ai_enrichment_withheld") != ai_enrichment_withheld:
+        fail(failures, "manifest withheld AI-enrichment count does not match shards")
     if manifest.get("ai_enrichment_models") != dict(sorted(ai_enrichment_models.items())):
         fail(failures, "manifest AI-enrichment model counts do not match shards")
     if totals.get("search_indexable_records") != search_indexable_records:
@@ -1975,7 +2108,12 @@ def validate(catalog_dir: Path, content_dir: Path = DEFAULT_CONTENT) -> dict[str
         "ai_enrichment": {
             "records": ai_enriched,
             "complete": ai_enrichment_complete,
+            "specific": ai_enrichment_specific,
+            "evidence_ready": ai_enrichment_evidence_ready,
+            "recipe_ready": ai_enrichment_recipe_ready,
+            "human_review_blocked": ai_enrichment_human_review_blocked_count,
             "insufficient_evidence": ai_enrichment_insufficient,
+            "withheld": ai_enrichment_withheld,
         },
         "search_indexable_records": search_indexable_records,
         "failures": failures,

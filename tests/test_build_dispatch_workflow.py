@@ -39,13 +39,57 @@ class BuildDispatchWorkflowTests(unittest.TestCase):
         publish_job = self.workflow.split("\n  publish:\n", 1)[1]
         self.assertIn("if: github.event_name != 'pull_request'", publish_job)
         self.assertIn("timeout-minutes: 30", publish_job)
-        self.assertIn("fetch-depth: 1", publish_job)
+        self.assertNotIn("actions/checkout", publish_job)
         self.assertIn('IMAGE_TAG="${GITHUB_SHA}-development"', publish_job)
         self.assertIn('IMAGE_TAG="${GITHUB_SHA}"', publish_job)
-        self.assertIn('docker push "${IMAGE_PREFIX}-site:${IMAGE_TAG}"', publish_job)
-        self.assertIn('docker push "${IMAGE_PREFIX}-mcp:${IMAGE_TAG}"', publish_job)
+        self.assertIn('SITE_TARGET_IMAGE="${IMAGE_PREFIX}-site:${IMAGE_TAG}"', publish_job)
+        self.assertIn('MCP_TARGET_IMAGE="${IMAGE_PREFIX}-mcp:${IMAGE_TAG}"', publish_job)
+        self.assertIn('docker push "${SITE_TARGET_IMAGE}"', publish_job)
+        self.assertIn('docker push "${MCP_TARGET_IMAGE}"', publish_job)
         self.assertIn("branches: [main, development]", self.workflow)
         self.assertNotIn('BASE_URL="https://dev.security-recipes.ai/"', self.workflow)
+
+    def test_publish_promotes_the_exact_images_verified_by_the_build_job(self) -> None:
+        build_job = self.workflow.split("\n  build:\n", 1)[1].split("\n  publish:\n", 1)[0]
+        publish_job = self.workflow.split("\n  publish:\n", 1)[1]
+        for scope in ("security-recipes-site", "security-recipes-mcp"):
+            self.assertIn(f'type=gha,scope={scope},mode=max', build_job)
+        self.assertIn("docker buildx build --load", build_job)
+        self.assertNotIn("docker build", publish_job)
+        self.assertNotIn("packages: write", build_job)
+        self.assertIn("packages: write", publish_job)
+
+        package_step = build_job.split("- name: Package verified deployment images", 1)[1]
+        upload_step = build_job.split("- name: Upload verified deployment images", 1)[1]
+        self.assertIn("if: github.event_name != 'pull_request'", package_step)
+        self.assertIn("if: github.event_name != 'pull_request'", upload_step)
+        self.assertIn('docker save "${SITE_IMAGE}" "${MCP_IMAGE}"', package_step)
+        self.assertIn("sha256sum images.tar.gz", package_step)
+        self.assertIn("image-identities.env", package_step)
+        self.assertIn("actions/upload-artifact@", upload_step)
+        self.assertEqual(
+            self.workflow.count(
+                "name: verified-deployment-images-${{ github.sha }}-"
+                "${{ github.run_attempt }}"
+            ),
+            2,
+        )
+
+        self.assertIn("actions/download-artifact@", publish_job)
+        self.assertIn("sha256sum --check --strict images.tar.gz.sha256", publish_job)
+        self.assertIn("gzip --decompress --stdout images.tar.gz | docker load", publish_job)
+        self.assertIn("loaded_site_id=", publish_job)
+        self.assertIn("loaded_mcp_id=", publish_job)
+        self.assertIn('"${loaded_site_id}" != "${recorded_site_id}"', publish_job)
+        self.assertIn('"${loaded_mcp_id}" != "${recorded_mcp_id}"', publish_job)
+        self.assertIn('docker tag "${SITE_SOURCE_IMAGE}" "${SITE_TARGET_IMAGE}"', publish_job)
+        self.assertIn('docker tag "${MCP_SOURCE_IMAGE}" "${MCP_TARGET_IMAGE}"', publish_job)
+
+        final_smoke_assertion = build_job.index(
+            'grep -Fqi "location: ${expected_canonical}" "${lowercase_headers}"'
+        )
+        package_verified = build_job.index("- name: Package verified deployment images")
+        self.assertLess(final_smoke_assertion, package_verified)
 
 
 if __name__ == "__main__":

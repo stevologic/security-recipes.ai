@@ -154,7 +154,7 @@ and `not_a_stable_override: true`. It is not a named floor and does not
 change `recommended_source` away from `composed-agentic-plan`. Development
 CVE drafts stay noindex and are not catalog overrides; leftover version
 text or a guessed next tag is never a named fix. The branch catalog
-currently publishes 57 search-indexable CVE pages (33 stable, 24
+currently publishes 35 search-indexable CVE pages (33 stable, 2
 AI-qualified). Production MCP still serves the last deployed image until
 this branch merges.
 

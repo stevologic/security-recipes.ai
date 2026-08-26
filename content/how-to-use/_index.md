@@ -75,10 +75,11 @@ database covers the complete tracked rolling ten-year Medium, High, and Critical
 scope. A
 canonical CVE page is narrower: it is published for search only after the
 record passes the repository's remediation-evidence policy. The page initially
-shows its server-rendered qualified records and downloads the full compressed
-browser index only after you interact with search. Results link to a local
-canonical page only when that evidence-qualified route exists; every record
-still links to its official [CVE.org](https://www.cve.org/) source.
+shows its server-rendered latest records and calls the bounded, revision-pinned
+search service only after you interact with search. Every result links to a
+local CVE record. Evidence-qualified records are static and indexable; the
+remainder use a bounded `noindex` runtime page that still cites the official
+[CVE.org](https://www.cve.org/) source.
 
 On a canonical record, the visible primary references and structured-data
 citations come from the same conservative source set. Multi-branch fixes keep

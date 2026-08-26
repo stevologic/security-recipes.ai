@@ -60,6 +60,8 @@ def sync_report(
     selected: int = 20,
     generated: int = 20,
     failed: int = 0,
+    refresh_due: int = 0,
+    refresh_forced: int = 0,
     deleted: int = 0,
     provider_error: str | None = None,
 ) -> dict[str, Any]:
@@ -70,6 +72,8 @@ def sync_report(
         "selected": selected,
         "generated": generated,
         "failed": failed,
+        "refresh_due": refresh_due,
+        "refresh_forced": refresh_forced,
     }
     if provider_error:
         enrichment["provider_error"] = provider_error
@@ -141,6 +145,19 @@ class CatalogUpdateGuardTests(unittest.TestCase):
         self.assertTrue(report["safe_to_merge"])
         self.assertFalse(report["enrichment"]["healthy"])
         self.assertGreaterEqual(len(report["enrichment"]["alerts"]), 2)
+
+    def test_enrichment_freshness_backlog_is_visible_without_becoming_an_outage(self) -> None:
+        report = catalog_guard.build_report(
+            manifest(),
+            manifest(),
+            sync_report(refresh_due=37, refresh_forced=2),
+        )
+
+        self.assertTrue(report["enrichment"]["healthy"])
+        self.assertEqual(report["enrichment"]["metrics"]["refresh_due"], 37)
+        self.assertEqual(report["enrichment"]["metrics"]["refresh_forced"], 2)
+        markdown = catalog_guard.markdown_report(report)
+        self.assertIn("37 refresh-due, 2 manually prioritized", markdown)
 
     def test_missing_xai_key_is_explicitly_unhealthy(self) -> None:
         health = catalog_guard.enrichment_health(
@@ -274,12 +291,12 @@ class ProductionHealthTests(unittest.TestCase):
 </head><body class="sr-docs-body sr-cve-detail-page" data-cve-detail-page="true">
 <nav class="sr-breadcrumbs" aria-label="Breadcrumb"><a href="/cve-database/">CVE Database</a></nav>
 <h1 class="sr-page-title">{cve_id}: PAN-OS command injection</h1>
-<div data-cve-initial-id="{cve_id}"></div></body></html>""".encode()
+<div data-cve-id="{cve_id}"><span id="remediation-authority-heading"></span><span id="use-ai-heading"></span></div></body></html>""".encode()
         default_excluded_cve_html = f"""<!doctype html><html><head>
 <title>{excluded_cve_id}: Windows shortcut vulnerability</title>
 <meta content="noindex,follow" name="robots">
 <link rel="canonical" href="{excluded_cve_url}">
-</head><body><div data-cve-initial-id="{excluded_cve_id}"></div></body></html>""".encode()
+</head><body><div data-cve-id="{excluded_cve_id}"></div></body></html>""".encode()
         default_sitemap = f"""<?xml version="1.0" encoding="utf-8"?>
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <sitemap><loc>https://security-recipes.ai/sitemaps/pages.xml</loc></sitemap>
@@ -578,7 +595,7 @@ Sitemap: https://security-recipes.ai/sitemap.xml
 <link rel="canonical" href="{cve_url}">
 <script type="application/ld+json">{{"@context":"https://schema.org","@type":"Article","additionalType":"https://schema.org/TechArticle"}}</script>
 </head><body><h1>{cve_id}: PAN-OS command injection</h1>
-<div data-cve-initial-id="{cve_id}"></div></body></html>""".encode()
+<div data-cve-id="{cve_id}"><span id="remediation-authority-heading"></span><span id="use-ai-heading"></span></div></body></html>""".encode()
         report = production.run_probes(
             base_url="https://security-recipes.ai",
             expected_revision=self.SHA,
