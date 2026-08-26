@@ -287,6 +287,27 @@ test("documentation hub links contextually to marketplace and release guidance",
     docs,
     /\[Secure Context Release Gate\]\(\/docs\/secure-context-release\/\)/u,
   );
+  assert.match(
+    docs,
+    /card link="\/docs\/site-data-pipeline\/"/u,
+  );
+});
+
+test("site data pipeline page uses the shared mermaid fence and names the real jobs", () => {
+  const page = source("content/docs/site-data-pipeline.md");
+  const fm = frontMatter("content/docs/site-data-pipeline.md");
+
+  assert.equal(fm.title, "How the site gets its data");
+  assert.match(page, /```mermaid\r?\nflowchart TB/u);
+  assert.match(page, /cve-catalog-sync\.yml/u);
+  assert.match(page, /content-refresh\.yml/u);
+  assert.match(page, /leftover-review\.yml/u);
+  assert.match(page, /search-indexing\.yml/u);
+  assert.match(page, /scripts\/sync_cve_catalog\.py/u);
+  assert.match(page, /scripts\/materialize_cve_pages\.py/u);
+  assert.match(page, /deploy\.sh/u);
+  assert.match(page, /docs\/cve-intelligence-intake/u);
+  assert.doesNotMatch(page, /mermaid-viewer|mermaid\.min\.js/u);
 });
 
 test("the remediation pillar links to every agent with descriptive anchors", () => {
