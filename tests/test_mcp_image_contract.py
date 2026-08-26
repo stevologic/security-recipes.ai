@@ -17,7 +17,7 @@ ROBOTS = (
     '<meta name="robots" content="index,follow,max-image-preview:large,'
     'max-snippet:-1,max-video-preview:-1">'
 )
-IDENTITY = 'data-cve-initial-id="CVE-2024-3400"'
+IDENTITY = 'data-cve-id="CVE-2024-3400"'
 ARTICLE_TYPE = '"@type":"Article"'
 ARTICLE_SEMANTICS = '"additionalType":"https://schema.org/TechArticle"'
 

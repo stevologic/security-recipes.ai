@@ -1341,7 +1341,9 @@ class SyncCveCatalogTests(unittest.TestCase):
                 "Body mentions CVE-2025-9999, which must not become inventory.\n",
                 encoding="utf-8",
             )
-            (content_dir / "b.md").write_text(
+            historical_dir = content_dir / "historical"
+            historical_dir.mkdir()
+            (historical_dir / "b.md").write_text(
                 "---\n"
                 'title: "Duplicate"\n'
                 "cve: CVE-2024-1111\n"
@@ -1542,6 +1544,7 @@ class SyncCveCatalogTests(unittest.TestCase):
                 "path": "content/recipes/cve/cve-2024-1234.md",
                 "maturity": "stable",
                 "title": "Reviewed CVE-2024-1234",
+                "description": "Apply the reviewed remediation and verify the result.",
                 "date": "2026-07-18",
                 "lastmod": "2026-07-21",
                 "content_markdown": "Reviewed body.",
@@ -1550,8 +1553,16 @@ class SyncCveCatalogTests(unittest.TestCase):
         record["last_modified"] = "2026-07-22T12:30:00Z"
 
         compact = catalog.compact_index_record(record, catalog.cve_shard(record))
+        search_compact = catalog.search_index_record(record)
 
         self.assertEqual(compact["page_lastmod"], "2026-07-22")
+        self.assertEqual(search_compact["page_title"], "Reviewed CVE-2024-1234")
+        self.assertEqual(
+            search_compact["page_description"],
+            "Apply the reviewed remediation and verify the result.",
+        )
+        self.assertEqual(search_compact["page_lastmod"], "2026-07-22")
+        self.assertEqual(search_compact, validator.projected_search_index_record(record))
         self.assertEqual(validator.projected_page_lastmod(record), "2026-07-22")
 
         record["recipe_kind"] = "composed"
@@ -1562,12 +1573,16 @@ class SyncCveCatalogTests(unittest.TestCase):
             "generated_at": "2026-07-21T08:00:00Z",
         }
         compact = catalog.compact_index_record(record, catalog.cve_shard(record))
+        search_compact = catalog.search_index_record(record)
         self.assertEqual(compact["page_lastmod"], "2026-07-21")
+        self.assertEqual(search_compact["page_lastmod"], "2026-07-21")
         self.assertEqual(validator.projected_page_lastmod(record), "2026-07-21")
 
         record["ai_enrichment"]["status"] = "insufficient_evidence"
         compact = catalog.compact_index_record(record, catalog.cve_shard(record))
+        search_compact = catalog.search_index_record(record)
         self.assertNotIn("page_lastmod", compact)
+        self.assertNotIn("page_lastmod", search_compact)
 
     def test_only_stable_markdown_is_embedded_and_advertised_as_an_override(self) -> None:
         with tempfile.TemporaryDirectory(prefix="test-cve-overrides-", dir=catalog.ROOT) as tmpdir:

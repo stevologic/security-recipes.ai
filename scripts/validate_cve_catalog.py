@@ -606,7 +606,7 @@ def validate_markdown_recipes(
     identities: dict[str, list[str]] = {}
     counts = {"files": 0, "cve": 0, "ghsa": 0}
     inventory: dict[str, dict[str, str]] = {}
-    for path in sorted(content_dir.glob("*.md")):
+    for path in sorted(content_dir.rglob("*.md")):
         if path.name == "_index.md":
             continue
         counts["files"] += 1
@@ -1008,7 +1008,7 @@ def projected_search_index_record(record: dict[str, Any]) -> dict[str, Any]:
         product_seen.add(identity)
         if len(product_rows) >= 8:
             break
-    return {
+    projected = {
         "cve": record["cve"],
         "title": record["title"],
         "severity": record["severity"],
@@ -1025,6 +1025,11 @@ def projected_search_index_record(record: dict[str, Any]) -> dict[str, Any]:
             else "recipe_ready_ai"
         ),
     }
+    projected.update(projected_stable_page_metadata(record))
+    page_lastmod = projected_page_lastmod(record)
+    if page_lastmod:
+        projected["page_lastmod"] = page_lastmod
+    return projected
 
 
 def projected_page_lastmod(record: dict[str, Any]) -> str:
@@ -1170,7 +1175,7 @@ def validate_search_index(
             failures,
             f"search index does not match evidence-qualified records: missing={missing[:10]}, extra={extra[:10]}",
         )
-    expected_record_fields = {
+    required_record_fields = {
         "cve",
         "title",
         "severity",
@@ -1183,10 +1188,35 @@ def validate_search_index(
         "products",
         "qualification",
     }
+    optional_record_fields = {"page_title", "page_description", "page_lastmod"}
     for position, record in enumerate(raw_records):
-        if not isinstance(record, dict) or set(record) != expected_record_fields:
+        if (
+            not isinstance(record, dict)
+            or not required_record_fields.issubset(record)
+            or not set(record).issubset(required_record_fields | optional_record_fields)
+        ):
             fail(failures, f"search index record {position} schema is invalid")
             continue
+        for field, limit in (
+            ("page_title", MAX_FRONTMATTER_TITLE_CHARS),
+            ("page_description", MAX_FRONTMATTER_DESCRIPTION_CHARS),
+        ):
+            if field in record and (
+                not isinstance(record[field], str)
+                or not record[field].strip()
+                or len(record[field]) > limit
+            ):
+                fail(failures, f"search index record {position} has invalid {field}")
+        if "page_lastmod" in record:
+            page_lastmod = record["page_lastmod"]
+            try:
+                if not isinstance(page_lastmod, str) or not re.fullmatch(
+                    r"\d{4}-\d{2}-\d{2}", page_lastmod
+                ):
+                    raise ValueError
+                date.fromisoformat(page_lastmod)
+            except (TypeError, ValueError):
+                fail(failures, f"search index record {position} has invalid page_lastmod")
         expected = expected_records.get(str(record.get("cve") or ""))
         if expected is not None and record != expected:
             fail(failures, f"search index record does not match its source shard: {record['cve']}")

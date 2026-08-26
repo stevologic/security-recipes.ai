@@ -993,17 +993,15 @@ test('controller never parses the full index and feed Markdown is never injected
   );
 });
 
-test('browse results are canonical record links and only landing embeds expand in place', () => {
+test('browse results are canonical record links and explicit initial records expand in place', () => {
   const root = path.resolve(__dirname, '..');
   const controllerSource = fs.readFileSync(path.join(root, 'assets/js/cve-catalog.js'), 'utf8');
   const catalogCss = fs.readFileSync(path.join(root, 'assets/css/cve-catalog.css'), 'utf8');
 
-  // Mode selection: the complete-record loader strips the initial-id
-  // attribute during mount, so the loader-section ancestor must gate the
-  // expandable view alongside a declared initial CVE.
+  // Only an explicitly declared initial CVE selects the in-place record mode.
   assert.match(
     controllerSource,
-    /var linkedRecordRows = !initialCve &&\s*!\(element\.closest && element\.closest\('\[data-cve-record-loader\]'\)\);/
+    /var linkedRecordRows = !initialCve;/
   );
   assert.match(
     controllerSource,

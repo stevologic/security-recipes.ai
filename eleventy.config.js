@@ -10,7 +10,6 @@ const markdownItContainer = require("markdown-it-container");
 const syntaxHighlight = require("@11ty/eleventy-plugin-syntaxhighlight");
 const fs = require("node:fs");
 const path = require("node:path");
-const zlib = require("node:zlib");
 
 const site = require("./lib/site-config");
 const contentIndex = require("./lib/content-index");
@@ -20,7 +19,7 @@ const { escapeHtml, stripTags, isoDate } = require("./lib/util");
 const { articleDatesFor, presentationText, seoHead, seoTitle } = require("./lib/seo");
 const { cveDisplayTitle, stripFirstH1 } = require("./lib/html-content");
 const { cleanCatalogText } = require("./lib/text-quality");
-const { loadCveSearchIndexableIds } = require("./lib/cve-indexability");
+const { loadCveSearchIndexableRecords } = require("./lib/cve-indexability");
 const {
   canonicalCvePresentationDescription,
   canonicalCvePresentationLastmod,
@@ -29,12 +28,12 @@ const {
 const { isDiscoveryPage, canonicalUrlForPage } = contentIndex;
 
 // Search engines accept at most 50,000 locations in one sitemap. Keep a
-// little headroom and derive output chunks from the small catalog manifest;
-// an individual gzip partition is only opened while its sitemap is rendered.
+// little headroom and derive output chunks from the compact, integrity-checked
+// search-indexable record payload. The full publication-year indexes are a
+// browser/catalog delivery artifact and never need to enter Eleventy's heap.
 const CVE_SITEMAP_URL_LIMIT = 49_000;
 const CVE_ARCHIVE_PAGE_SIZE = 500;
 const CANONICAL_CVE_ID = /^CVE-\d{4}-\d{4,}$/;
-const CVE_PARTITION_PATH = /^indexes\/(\d{4})\.json\.gz$/;
 const CVE_CATALOG_ROOT = path.join(__dirname, "static", "api", "cve-catalog");
 const GENERATED_TAG_PAGE_SEO = Object.freeze({
   noindex: true,
@@ -117,28 +116,16 @@ function isPagesSitemapEntry(page) {
   );
 }
 
-function loadCveSitemapManifest(catalogRoot = CVE_CATALOG_ROOT) {
-  const manifestPath = path.join(catalogRoot, "index.json");
-  const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
-  if (!Array.isArray(manifest.partitions)) {
-    throw new Error("CVE catalog sitemap manifest is missing partitions");
-  }
-  return manifest;
-}
-
-function cveBelongsInSearchSurface(
-  record,
-  excludedCveIds = new Set(),
-  searchIndexableCveIds = null,
-) {
+function cvePublicationYear(record) {
   const cve = String(record?.cve || "");
   if (!CANONICAL_CVE_ID.test(cve)) {
     throw new Error(`Invalid canonical CVE ID: ${cve || "(missing)"}`);
   }
-  return (
-    !excludedCveIds.has(cve) &&
-    (!(searchIndexableCveIds instanceof Set) || searchIndexableCveIds.has(cve))
-  );
+  const published = sitemapLastmod(record?.published);
+  if (!published) {
+    throw new Error(`Invalid publication date for ${cve}`);
+  }
+  return published.slice(0, 4);
 }
 
 function isSectionFeedEntry(page) {
@@ -150,70 +137,57 @@ function isSectionFeedEntry(page) {
   );
 }
 
-function readCvePartition(partition, catalogRoot = CVE_CATALOG_ROOT) {
-  const partitionPath = path.resolve(catalogRoot, partition.path);
-  const expectedRoot = `${path.resolve(catalogRoot)}${path.sep}`;
-  if (!partitionPath.startsWith(expectedRoot)) {
-    throw new Error("CVE catalog partition escaped the catalog root");
+function groupCveRecordsByPublicationYear(records, excludedCveIds = new Set()) {
+  if (!Array.isArray(records)) {
+    throw new Error("CVE search-indexable records must be an array");
   }
-  const payload = JSON.parse(zlib.gunzipSync(fs.readFileSync(partitionPath)).toString("utf8"));
-  if (!Array.isArray(payload.records) || payload.records.length !== partition.records) {
-    throw new Error(`CVE catalog partition count mismatch for ${partition.year}`);
+  if (!(excludedCveIds instanceof Set)) {
+    throw new Error("Excluded CVE IDs must be a Set");
   }
-  return payload.records;
+  const seen = new Set();
+  const grouped = new Map();
+  for (const record of records) {
+    const cve = String(record?.cve || "");
+    const year = cvePublicationYear(record);
+    if (seen.has(cve)) {
+      throw new Error(`Duplicate search-indexable CVE record: ${cve}`);
+    }
+    seen.add(cve);
+    if (excludedCveIds.has(cve)) continue;
+    const yearRecords = grouped.get(year) || [];
+    yearRecords.push(record);
+    grouped.set(year, yearRecords);
+  }
+  for (const yearRecords of grouped.values()) {
+    yearRecords.sort((a, b) => String(a.cve).localeCompare(String(b.cve), "en"));
+  }
+  return grouped;
 }
 
 function planCveSitemaps(
-  manifest,
+  records,
   urlLimit = CVE_SITEMAP_URL_LIMIT,
-  catalogRoot = CVE_CATALOG_ROOT,
   excludedCveIds = new Set(),
-  searchIndexableCveIds = null,
 ) {
   if (!Number.isSafeInteger(urlLimit) || urlLimit < 1 || urlLimit >= 50_000) {
     throw new Error("CVE sitemap URL limit must be between 1 and 49,999");
   }
 
-  const seenYears = new Set();
   const entries = [];
-  let plannedRecords = 0;
-  for (const partition of manifest.partitions) {
-    const year = String(partition.year || "");
-    const pathMatch = String(partition.path || "").match(CVE_PARTITION_PATH);
-    if (!/^\d{4}$/.test(year) || !pathMatch || pathMatch[1] !== year) {
-      throw new Error(`Unsafe CVE catalog partition path: ${partition.path || "(missing)"}`);
-    }
-    if (seenYears.has(year)) {
-      throw new Error(`Duplicate CVE catalog sitemap year: ${year}`);
-    }
-    if (!Number.isSafeInteger(partition.records) || partition.records < 1) {
-      throw new Error(`Invalid CVE catalog record count for ${year}`);
-    }
-    seenYears.add(year);
-    plannedRecords += partition.records;
-
-    const appliesSearchGate = searchIndexableCveIds instanceof Set || excludedCveIds.size > 0;
-    const partitionRecords = readCvePartition(partition, catalogRoot);
-    const eligibleRecordList = appliesSearchGate
-      ? partitionRecords.filter((record) =>
-          cveBelongsInSearchSurface(record, excludedCveIds, searchIndexableCveIds)
-        )
-      : partitionRecords;
-    const eligibleRecords = eligibleRecordList.length;
-    const chunkCount = Math.ceil(eligibleRecords / urlLimit);
+  const recordsByYear = groupCveRecordsByPublicationYear(records, excludedCveIds);
+  for (const year of [...recordsByYear.keys()].sort((a, b) => a.localeCompare(b, "en"))) {
+    const yearRecords = recordsByYear.get(year);
+    const chunkCount = Math.ceil(yearRecords.length / urlLimit);
     for (let chunk = 0; chunk < chunkCount; chunk += 1) {
       const offset = chunk * urlLimit;
-      const count = Math.min(urlLimit, Math.max(0, eligibleRecords - offset));
-      const chunkRecords = eligibleRecordList.slice(offset, offset + count);
+      const chunkRecords = yearRecords.slice(offset, offset + urlLimit);
       const suffix = chunkCount === 1 ? "" : `-${chunk + 1}`;
       entries.push({
         year,
-        sourcePath: partition.path,
         outputPath: `/sitemaps/cves-${year}${suffix}.xml`,
         offset,
-        count,
-        partitionRecords: partition.records,
-        ...(appliesSearchGate ? { eligibleRecords } : {}),
+        count: chunkRecords.length,
+        records: chunkRecords,
         lastmod: latestSitemapLastmod(
           chunkRecords.map((record) =>
             canonicalCvePresentationLastmod(
@@ -225,54 +199,28 @@ function planCveSitemaps(
       });
     }
   }
-  if (Number.isSafeInteger(manifest.total) && manifest.total !== plannedRecords) {
-    throw new Error(
-      `CVE catalog manifest total mismatch: expected ${manifest.total}, planned ${plannedRecords}`
-    );
-  }
   return entries;
 }
 
-function renderCveSitemap(
-  entry,
-  catalogRoot = CVE_CATALOG_ROOT,
-  excludedCveIds = new Set(),
-  searchIndexableCveIds = null,
-) {
-  if (!entry || !String(entry.sourcePath || "").match(CVE_PARTITION_PATH)) {
-    throw new Error("Unsafe CVE sitemap partition");
-  }
-  const partitionPath = path.resolve(catalogRoot, entry.sourcePath);
-  const expectedRoot = `${path.resolve(catalogRoot)}${path.sep}`;
-  if (!partitionPath.startsWith(expectedRoot)) {
-    throw new Error("CVE sitemap partition escaped the catalog root");
-  }
-
-  // Each call owns only one inflated yearly partition. Nothing is retained
-  // between renders, keeping the build bounded on small production hosts.
-  const payload = JSON.parse(zlib.gunzipSync(fs.readFileSync(partitionPath)).toString("utf8"));
-  if (!Array.isArray(payload.records) || payload.records.length !== entry.partitionRecords) {
-    throw new Error(`CVE sitemap partition count mismatch for ${entry.year}`);
-  }
-  const eligibleRecords = payload.records.filter((record) =>
-    cveBelongsInSearchSurface(record, excludedCveIds, searchIndexableCveIds)
-  );
+function renderCveSitemap(entry) {
   if (
-    Number.isSafeInteger(entry.eligibleRecords) &&
-    eligibleRecords.length !== entry.eligibleRecords
+    !entry ||
+    !/^\d{4}$/.test(String(entry.year || "")) ||
+    !Array.isArray(entry.records) ||
+    entry.records.length !== entry.count ||
+    !String(entry.outputPath || "").match(/^\/sitemaps\/cves-\d{4}(?:-\d+)?\.xml$/)
   ) {
-    throw new Error(`CVE sitemap eligibility mismatch for ${entry.year}`);
-  }
-  const records = eligibleRecords.slice(entry.offset, entry.offset + entry.count);
-  if (Number.isSafeInteger(entry.eligibleRecords) && records.length !== entry.count) {
-    throw new Error(`CVE sitemap chunk bounds mismatch for ${entry.year}`);
+    throw new Error("Invalid planned CVE sitemap entry");
   }
 
-  const urls = records
+  const urls = entry.records
     .map((record) => {
       const cve = String(record && record.cve ? record.cve : "");
       if (!CANONICAL_CVE_ID.test(cve)) {
-        throw new Error(`Invalid canonical CVE ID in ${entry.sourcePath}: ${cve || "(missing)"}`);
+        throw new Error(`Invalid canonical CVE ID in ${entry.outputPath}: ${cve || "(missing)"}`);
+      }
+      if (cvePublicationYear(record) !== entry.year) {
+        throw new Error(`CVE record is in the wrong publication-year sitemap: ${cve}`);
       }
       const lastmod = sitemapLastmod(
         canonicalCvePresentationLastmod(cve, record?.page_lastmod),
@@ -379,15 +327,11 @@ function safeCanonicalCveRoute(value, cve) {
 function cveArchiveRecordRoute(
   record,
   excludedCveIds,
-  searchIndexableCveIds,
   canonicalCveRoutes,
 ) {
   const cve = String(record?.cve || "");
   if (!CANONICAL_CVE_ID.test(cve)) {
     throw new Error(`Invalid canonical CVE ID: ${cve || "(missing)"}`);
-  }
-  if (searchIndexableCveIds instanceof Set && !searchIndexableCveIds.has(cve)) {
-    return "";
   }
   if (!excludedCveIds.has(cve)) {
     return `/cve/${cve}/`;
@@ -501,38 +445,27 @@ function buildRecentCatalogItems(cveArchiveEntries, limit = 100) {
     });
 }
 
-// Build a crawlable HTML hierarchy from the same compact yearly partitions
-// used by the XML sitemaps. Retain only archive/feed fields so the build stays
-// bounded while every qualified CVE resolves to its actual canonical href.
+// Build a crawlable HTML hierarchy directly from the compact verified
+// search-indexable records. Retain only archive/feed fields while every
+// qualified CVE resolves to its actual canonical href.
 function planCveArchivePages(
-  manifest,
+  searchIndexableRecords,
   pageSize = CVE_ARCHIVE_PAGE_SIZE,
-  catalogRoot = CVE_CATALOG_ROOT,
   excludedCveIds = new Set(),
-  searchIndexableCveIds = null,
   canonicalCveRoutes = new Map(),
 ) {
   if (!Number.isSafeInteger(pageSize) || pageSize < 100 || pageSize > 5_000) {
     throw new Error("CVE archive page size must be between 100 and 5,000");
   }
   const entries = [];
-  for (const partition of manifest.partitions) {
-    const year = String(partition.year || "");
-    if (!/^\d{4}$/.test(year) || !String(partition.path || "").match(CVE_PARTITION_PATH)) {
-      throw new Error(`Unsafe CVE archive partition: ${partition.path || "(missing)"}`);
-    }
-    const partitionPath = path.resolve(catalogRoot, partition.path);
-    const payload = JSON.parse(zlib.gunzipSync(fs.readFileSync(partitionPath)).toString("utf8"));
-    if (!Array.isArray(payload.records) || payload.records.length !== partition.records) {
-      throw new Error(`CVE archive partition count mismatch for ${year}`);
-    }
-    const records = payload.records
+  const recordsByYear = groupCveRecordsByPublicationYear(searchIndexableRecords);
+  for (const year of [...recordsByYear.keys()].sort((a, b) => a.localeCompare(b, "en"))) {
+    const records = recordsByYear.get(year)
       .map((record) => ({
         record,
         url: cveArchiveRecordRoute(
           record,
           excludedCveIds,
-          searchIndexableCveIds,
           canonicalCveRoutes,
         ),
       }))
@@ -563,9 +496,6 @@ function planCveArchivePages(
           b.published.localeCompare(a.published, "en") ||
           b.cve.localeCompare(a.cve, "en"),
       );
-    if (records.some((record) => !CANONICAL_CVE_ID.test(record.cve))) {
-      throw new Error(`Invalid canonical CVE ID in archive partition ${year}`);
-    }
     const pageCount = Math.ceil(records.length / pageSize);
     for (let pageNumber = 1; pageNumber <= pageCount; pageNumber += 1) {
       const pageRecords = records.slice(
@@ -783,6 +713,14 @@ function extractTocEntries(content) {
 }
 
 module.exports = function (eleventyConfig) {
+  // CVE Markdown in this directory is catalog/editorial input, not a page
+  // source. Parsing thousands of drafts that all resolve to permalink=false
+  // made site builds scale with the editorial queue. The section index and
+  // the three pre-catalog historical pages remain Eleventy-owned.
+  eleventyConfig.ignores.add("content/recipes/cve/cve-*.md");
+  eleventyConfig.ignores.add("content/recipes/cve/ai-enrichment-cve-*.md");
+  eleventyConfig.ignores.add("content/recipes/cve/ghsa-*.md");
+
   // ---------- markdown pipeline ----------
   const md = markdownIt({ html: true, linkify: true, typographer: true })
     .use(markdownItAnchor, {
@@ -1004,7 +942,6 @@ module.exports = function (eleventyConfig) {
 
   // The root sitemap is an index: normal content/tag coverage lives in one
   // child, and each bounded catalog partition gets its own CVE child sitemap.
-  const cveSitemapManifest = loadCveSitemapManifest();
   const staticCanonicalCvePages = contentIndex
     .getIndex()
     .pages.filter(
@@ -1020,20 +957,16 @@ module.exports = function (eleventyConfig) {
     ]),
   );
   const staticCanonicalCveIds = new Set(staticCanonicalCveRoutes.keys());
-  const cveSearchIndexableIds = loadCveSearchIndexableIds(CVE_CATALOG_ROOT);
+  const cveSearchIndexableRecords = loadCveSearchIndexableRecords(CVE_CATALOG_ROOT);
   const cveSitemapEntries = planCveSitemaps(
-    cveSitemapManifest,
+    cveSearchIndexableRecords,
     CVE_SITEMAP_URL_LIMIT,
-    CVE_CATALOG_ROOT,
     staticCanonicalCveIds,
-    cveSearchIndexableIds,
   );
   const cveArchiveEntries = planCveArchivePages(
-    cveSitemapManifest,
+    cveSearchIndexableRecords,
     CVE_ARCHIVE_PAGE_SIZE,
-    CVE_CATALOG_ROOT,
     staticCanonicalCveIds,
-    cveSearchIndexableIds,
     staticCanonicalCveRoutes,
   );
   const recentCatalogItems = buildRecentCatalogItems(cveArchiveEntries);
@@ -1070,13 +1003,7 @@ module.exports = function (eleventyConfig) {
       eleventyExcludeFromCollections: true,
       permalink: (data) => data.cveSitemapEntry.outputPath,
     }),
-    render: (data) =>
-      renderCveSitemap(
-        data.cveSitemapEntry,
-        CVE_CATALOG_ROOT,
-        staticCanonicalCveIds,
-        cveSearchIndexableIds,
-      ),
+    render: (data) => renderCveSitemap(data.cveSitemapEntry),
   });
 
   eleventyConfig.addTemplate("cve-archive-index.11ty.js", {
@@ -1254,9 +1181,10 @@ module.exports = function (eleventyConfig) {
 module.exports.cveSitemaps = {
   CANONICAL_CVE_ID,
   CVE_SITEMAP_URL_LIMIT,
+  cvePublicationYear,
   escapeXml,
+  groupCveRecordsByPublicationYear,
   isPagesSitemapEntry,
-  loadCveSitemapManifest,
   planCveSitemaps,
   renderCveSitemap,
   renderSitemapIndex,

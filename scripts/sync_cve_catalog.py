@@ -1753,7 +1753,9 @@ def frontmatter_boolean(
 
 def markdown_inventory(content_dir: Path) -> dict[str, list[ExistingRecipe]]:
     inventory: dict[str, list[ExistingRecipe]] = {}
-    for path in sorted(content_dir.glob("*.md")):
+    # Historical static recipes live in a rendered subdirectory while the
+    # immediate files remain catalog/editorial input only.
+    for path in sorted(content_dir.rglob("*.md")):
         text = path.read_text(encoding="utf-8", errors="replace")
         frontmatter = FRONTMATTER_RE.match(text)
         if not frontmatter:
@@ -2062,7 +2064,7 @@ def is_record_search_indexable(record: dict[str, Any]) -> bool:
 
 
 def search_index_record(record: dict[str, Any]) -> dict[str, Any]:
-    """Project one qualified record into the compact related-CVE/search surface."""
+    """Project one qualified record into the compact search/build surface."""
 
     product_rows: list[dict[str, str]] = []
     product_seen: set[tuple[str, str]] = set()
@@ -2078,7 +2080,7 @@ def search_index_record(record: dict[str, Any]) -> dict[str, Any]:
         product_seen.add(identity)
         if len(product_rows) >= 8:
             break
-    return {
+    compact = {
         "cve": record["cve"],
         "title": record["title"],
         "severity": record["severity"],
@@ -2095,6 +2097,21 @@ def search_index_record(record: dict[str, Any]) -> dict[str, Any]:
             else "recipe_ready_ai"
         ),
     }
+    reviewed = stable_markdown_entry(record)
+    if reviewed:
+        page_title = normalize_space(reviewed.get("title"), limit=MAX_FRONTMATTER_TITLE_CHARS)
+        page_description = normalize_space(
+            reviewed.get("description"),
+            limit=MAX_FRONTMATTER_DESCRIPTION_CHARS,
+        )
+        if page_title:
+            compact["page_title"] = page_title
+        if page_description:
+            compact["page_description"] = page_description
+    page_lastmod = record_page_lastmod(record)
+    if page_lastmod:
+        compact["page_lastmod"] = page_lastmod
+    return compact
 
 
 def browser_index_payload(index_records: list[dict[str, Any]]) -> tuple[bytes, bytes]:

@@ -739,6 +739,18 @@ class CVERecipeCatalogTests(unittest.TestCase):
         self.assertLessEqual(browser["uncompressed_bytes"], self.catalog.MAX_SEARCH_INDEX_UNCOMPRESSED_BYTES)
         self.assertLessEqual(browser["records"], self.catalog.MAX_SEARCH_RECORDS)
 
+    def test_search_allowlist_accepts_bounded_page_presentation_metadata(self) -> None:
+        self.assertTrue(self.catalog.is_search_indexable("CVE-2021-44228"))
+        record = next(
+            item
+            for item in self.catalog._search_indexable_records
+            if item["cve"] == "CVE-2021-44228"
+        )
+
+        self.assertEqual(record["page_title"], "CVE-2021-44228 — Log4Shell")
+        self.assertTrue(record["page_description"].startswith("CVE-2021-44228"))
+        self.assertRegex(record["page_lastmod"], r"^\d{4}-\d{2}-\d{2}$")
+
 
 class CVERecipeCompositionTests(unittest.TestCase):
     def test_dependency_plan_targets_manifest_lockfile_and_authoritative_resolution(self) -> None:

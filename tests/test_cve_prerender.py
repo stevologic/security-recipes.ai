@@ -71,7 +71,7 @@ class CvePrerenderTests(unittest.TestCase):
                     require_remediation_summary=True,
                 )
 
-    def test_runtime_contract_requires_data_first_sections_and_visible_freshness(self) -> None:
+    def test_runtime_contract_requires_flat_sections_and_visible_freshness(self) -> None:
         cve_id = self.rendered_ids[0]
         canonical_url = f"{PUBLIC_BASE_URL}cve/{cve_id}/"
         document = (self.output_root / "cve" / cve_id / "index.html").read_text(
@@ -80,12 +80,20 @@ class CvePrerenderTests(unittest.TestCase):
 
         for broken_document, message in (
             (
-                document.replace('id="remediation-summary-heading"', "", 1),
-                "remediation data sections",
+                document.replace('id="overview-heading"', "", 1),
+                "flat CVE sections",
+            ),
+            (
+                document.replace('id="remediation-authority-heading"', "", 1),
+                "flat CVE sections",
+            ),
+            (
+                document.replace('id="use-ai-heading"', "", 1),
+                "flat CVE sections",
             ),
             (
                 document.replace('id="cite-record-heading"', "", 1),
-                "remediation data sections",
+                "flat CVE sections",
             ),
             (
                 document.replace("<time", "<span").replace("</time>", "</span>"),
@@ -100,6 +108,20 @@ class CvePrerenderTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, message):
                     prerender.validate_landing_page_contract(
                         broken_document,
+                        cve_id=cve_id,
+                        canonical_url=canonical_url,
+                        require_remediation_summary=True,
+                    )
+
+        for nested_ui in (
+            "<details><summary>More</summary></details>",
+            '<div data-cve-record-loader></div>',
+            '<div id="complete-record"></div>',
+        ):
+            with self.subTest(nested_ui=nested_ui):
+                with self.assertRaisesRegex(ValueError, "nested or deferred record UI"):
+                    prerender.validate_landing_page_contract(
+                        document.replace("</article>", f"{nested_ui}</article>"),
                         cve_id=cve_id,
                         canonical_url=canonical_url,
                         require_remediation_summary=True,

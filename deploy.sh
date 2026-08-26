@@ -1228,7 +1228,9 @@ wait_for_slot_cve_landing() {
       curl --fail --silent --show-error --max-time 8 \
         "http://${endpoint}/cve/CVE-2024-3400/" 2>/dev/null || true
     )"
-    if grep -Fq 'data-cve-initial-id="CVE-2024-3400"' <<<"${page}" &&
+    if grep -Fq 'data-cve-id="CVE-2024-3400"' <<<"${page}" &&
+       grep -Fq 'id="remediation-authority-heading"' <<<"${page}" &&
+       grep -Fq 'id="use-ai-heading"' <<<"${page}" &&
        grep -Fq '"@type":"Article"' <<<"${page}" &&
        grep -Fq '"additionalType":"https://schema.org/TechArticle"' <<<"${page}" &&
        grep -Fq "<link rel=\"canonical\" href=\"${expected_canonical}\">" <<<"${page}" &&
@@ -1662,7 +1664,9 @@ validate_proxy_cve_landing() {
     log "ERROR: The canonical CVE landing route is unavailable through the active proxy."
     return 1
   }
-  grep -Fq 'data-cve-initial-id="CVE-2024-3400"' <<<"${page}" &&
+  grep -Fq 'data-cve-id="CVE-2024-3400"' <<<"${page}" &&
+    grep -Fq 'id="remediation-authority-heading"' <<<"${page}" &&
+    grep -Fq 'id="use-ai-heading"' <<<"${page}" &&
     grep -Fq '"@type":"Article"' <<<"${page}" &&
     grep -Fq '"additionalType":"https://schema.org/TechArticle"' <<<"${page}" &&
     grep -Fq "<link rel=\"canonical\" href=\"${expected_canonical}\">" <<<"${page}" &&

@@ -229,7 +229,9 @@ jobs:
             --output "${static_response}"
           grep -Fq "<link rel=\"canonical\" href=\"${expected_canonical}\">" "${static_response}"
           grep -Fq '<meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">' "${static_response}"
-          grep -Fq 'data-cve-initial-id="CVE-2024-3400"' "${static_response}"
+          grep -Fq 'data-cve-id="CVE-2024-3400"' "${static_response}"
+          grep -Fq 'id="remediation-authority-heading"' "${static_response}"
+          grep -Fq 'id="use-ai-heading"' "${static_response}"
           grep -Fq '"@type":"Article"' "${static_response}"
           grep -Fq '"additionalType":"https://schema.org/TechArticle"' "${static_response}"
           if grep -Eqi '^X-CVE-Cache:' "${static_headers}"; then
@@ -271,7 +273,9 @@ jobs:
             --output "${mcp_response}"
           grep -Fq "<link rel=\"canonical\" href=\"${expected_canonical}\">" "${mcp_response}"
           grep -Fq '<meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">' "${mcp_response}"
-          grep -Fq 'data-cve-initial-id="CVE-2024-3400"' "${mcp_response}"
+          grep -Fq 'data-cve-id="CVE-2024-3400"' "${mcp_response}"
+          grep -Fq 'id="remediation-authority-heading"' "${mcp_response}"
+          grep -Fq 'id="use-ai-heading"' "${mcp_response}"
           grep -Fq '"@type":"Article"' "${mcp_response}"
           grep -Fq '"additionalType":"https://schema.org/TechArticle"' "${mcp_response}"
 
@@ -315,7 +319,9 @@ jobs:
           runtime_canonical="${SECURITY_RECIPES_BASE_URL%/}/cve/${nonqualified_cve}/"
           grep -Fq "<link rel=\"canonical\" href=\"${runtime_canonical}\">" "${runtime_response}"
           grep -Fq '<meta name="robots" content="noindex,follow">' "${runtime_response}"
-          grep -Fq "data-cve-initial-id=\"${nonqualified_cve}\"" "${runtime_response}"
+          grep -Fq "data-cve-id=\"${nonqualified_cve}\"" "${runtime_response}"
+          grep -Fq 'id="remediation-authority-heading"' "${runtime_response}"
+          grep -Fq 'id="use-ai-heading"' "${runtime_response}"
           grep -Eqi '^X-CVE-Cache:' "${runtime_headers}"
 
           # A case variant must be canonicalized by the runtime route, never

@@ -599,7 +599,9 @@ class DeployScriptStaticTests(unittest.TestCase):
         mcp_dockerfile = MCP_DOCKERFILE.read_text(encoding="utf-8")
 
         self.assertIn("/cve/CVE-2024-3400/", mcp_dockerfile)
-        self.assertIn('data-cve-initial-id=\\"CVE-2024-3400\\"', mcp_dockerfile)
+        self.assertIn('data-cve-id=\\"CVE-2024-3400\\"', mcp_dockerfile)
+        self.assertIn('id=\\"remediation-authority-heading\\"', mcp_dockerfile)
+        self.assertIn('id=\\"use-ai-heading\\"', mcp_dockerfile)
         self.assertIn(
             "RECIPES_PUBLIC_SITE_BASE_URL=https://security-recipes.ai/",
             mcp_dockerfile,
@@ -1177,7 +1179,7 @@ render_cve() {
         "$service" == "$FAKE_CVE_NOINDEX_SERVICE" ]]; then
     robots='noindex,follow'
   fi
-  printf '%s\n' "<!doctype html><title>CVE-2024-3400</title><link rel=\"canonical\" href=\"${canonical}\"><meta name=\"robots\" content=\"${robots}\"><script type=\"application/ld+json\">{\"@type\":\"Article\",\"additionalType\":\"https://schema.org/TechArticle\"}</script><div data-cve-initial-id=\"CVE-2024-3400\"></div>"
+  printf '%s\n' "<!doctype html><title>CVE-2024-3400</title><link rel=\"canonical\" href=\"${canonical}\"><meta name=\"robots\" content=\"${robots}\"><script type=\"application/ld+json\">{\"@type\":\"Article\",\"additionalType\":\"https://schema.org/TechArticle\"}</script><div data-cve-id=\"CVE-2024-3400\"><span id=\"remediation-authority-heading\"></span><span id=\"use-ai-heading\"></span></div>"
 }
 
 case "$url" in

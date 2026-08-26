@@ -2,6 +2,7 @@
 
 const test = require("node:test");
 const assert = require("node:assert/strict");
+const path = require("node:path");
 
 const contentIndex = require("../lib/content-index");
 const feeds = require("../lib/feeds");
@@ -64,17 +65,29 @@ test("retired redirects do not receive collection or sidebar links", () => {
   for (const url of current) assert.ok(sidebarUrls.includes(url));
 });
 
-test("CVE overrides stay in compatible feeds and out of curated recipe feeds", () => {
+test("only rendered historical CVEs enter the content index and compatible feeds", () => {
   const cvePages = contentIndex.getIndex().pages.filter(
     (page) => page.sourcePath.startsWith("recipes/cve/") && !page.isSection,
   );
   const stable = cvePages.filter((page) => page.fm.maturity === "stable");
   const development = cvePages.filter((page) => page.fm.maturity !== "stable");
 
-  assert.ok(stable.length > 0, "fixture repository must contain stable CVE overrides");
-  assert.ok(development.length > 0, "fixture repository must contain development CVE pages");
+  assert.equal(stable.length, 3, "only the three historical static CVEs belong in Eleventy");
+  assert.equal(development.length, 0, "catalog/editorial CVE drafts must bypass the content index");
   assert.ok(stable.every(contentIndex.isDiscoveryPage));
-  assert.ok(development.every((page) => !contentIndex.isDiscoveryPage(page)));
+
+  assert.equal(
+    contentIndex.isRenderedContentFile(
+      path.resolve("content/recipes/cve/cve-2021-44228-log4shell.md"),
+    ),
+    false,
+  );
+  assert.equal(
+    contentIndex.isRenderedContentFile(
+      path.resolve("content/recipes/cve/historical/cve-2014-0160-heartbleed.md"),
+    ),
+    true,
+  );
 
   const stablePaths = new Set(stable.map(contentIndex.canonicalUrlForPage));
   const developmentPaths = new Set(development.map((page) => page.url));
@@ -117,17 +130,15 @@ test("CVE overrides stay in compatible feeds and out of curated recipe feeds", (
   assert.ok(curated.recipes.every((item) => item.category?.slug !== "cve"));
 });
 
-test("reviewed CVE feeds and TOC use each page's canonical destination", () => {
+test("historical CVE feeds and TOC preserve their authored public routes", () => {
   const stable = contentIndex.getIndex().pages.filter(
     (page) =>
       page.sourcePath.startsWith("recipes/cve/") &&
       !page.isSection &&
       contentIndex.isDiscoveryPage(page),
   );
-  const migrated = stable.filter(
-    (page) => contentIndex.canonicalUrlForPage(page) !== page.url,
-  );
-  assert.ok(migrated.length > 0, "fixture repository must contain canonicalized CVE overrides");
+  assert.equal(stable.length, 3);
+  assert.ok(stable.every((page) => contentIndex.canonicalUrlForPage(page) === page.url));
 
   const expectedPaths = new Set(stable.map(contentIndex.canonicalUrlForPage));
   const stableSources = new Set(stable.map((page) => page.sourcePath));
@@ -150,22 +161,15 @@ test("reviewed CVE feeds and TOC use each page's canonical destination", () => {
     assert.match(rss, new RegExp(`<link>https://security-recipes\\.ai${canonical}</link>`));
     assert.match(rss, new RegExp(`<guid>https://security-recipes\\.ai${canonical}</guid>`));
   }
-  for (const page of migrated) {
-    assert.doesNotMatch(rss, new RegExp(`https://security-recipes\\.ai${page.url}`));
-  }
-
   const cveToc = require("../lib/shortcodes/cve-toc");
   const html = cveToc("recipes/cve/_index.md");
   for (const page of stable) {
     assert.match(html, new RegExp(`href="${contentIndex.canonicalUrlForPage(page)}"`));
   }
-  for (const page of migrated) {
-    assert.doesNotMatch(html, new RegExp(`href="${page.url}"`));
-  }
 });
 
 test("CVE pages do not receive generic sibling pagers", () => {
-  const siblings = contentIndex.siblingsByDir().get("recipes/cve") || [];
+  const siblings = contentIndex.siblingsByDir().get("recipes/cve/historical") || [];
   assert.ok(siblings.length > 1, "fixture repository must contain sibling CVE overrides");
 
   const requiredLegacyCves = new Set([

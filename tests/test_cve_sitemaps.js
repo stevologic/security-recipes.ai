@@ -1,15 +1,10 @@
 const assert = require("node:assert/strict");
-const fs = require("node:fs");
-const os = require("node:os");
-const path = require("node:path");
 const test = require("node:test");
-const zlib = require("node:zlib");
 
 const {
   CANONICAL_CVE_ID,
   CVE_SITEMAP_URL_LIMIT,
   isPagesSitemapEntry,
-  loadCveSitemapManifest,
   planCveSitemaps,
   renderCveSitemap,
   renderSitemapIndex,
@@ -28,14 +23,9 @@ const {
 const {
   canonicalCvePresentationLastmod,
 } = require("../lib/cve-editorial-metadata");
-
-const CATALOG_ROOT = path.join(
-  __dirname,
-  "..",
-  "static",
-  "api",
-  "cve-catalog"
-);
+const {
+  loadCveSearchIndexableRecords,
+} = require("../lib/cve-indexability");
 
 function count(xml, token) {
   return xml.split(token).length - 1;
@@ -53,9 +43,9 @@ test("CVE archive display text removes upstream encoding artifacts", () => {
   assert.equal(cleanCveSourceText("Ângela — München"), "Ângela — München");
 });
 
-test("production manifest plans bounded sitemaps for every yearly partition", () => {
-  const manifest = loadCveSitemapManifest(CATALOG_ROOT);
-  const entries = planCveSitemaps(manifest);
+test("verified compact records plan bounded publication-year sitemaps", () => {
+  const records = loadCveSearchIndexableRecords();
+  const entries = planCveSitemaps(records);
   const entriesByYear = Map.groupBy
     ? Map.groupBy(entries, (entry) => entry.year)
     : entries.reduce((grouped, entry) => {
@@ -64,33 +54,38 @@ test("production manifest plans bounded sitemaps for every yearly partition", ()
         grouped.set(entry.year, current);
         return grouped;
       }, new Map());
+  const recordCountsByYear = records.reduce((counts, record) => {
+    const year = record.published.slice(0, 4);
+    counts.set(year, (counts.get(year) || 0) + 1);
+    return counts;
+  }, new Map());
 
   assert.equal(
     entries.reduce((total, entry) => total + entry.count, 0),
-    manifest.total
+    records.length,
   );
   assert.equal(new Set(entries.map((entry) => entry.outputPath)).size, entries.length);
   assert.deepEqual(
     [...entriesByYear.keys()].sort(),
-    manifest.partitions.map((partition) => String(partition.year)).sort(),
+    [...recordCountsByYear.keys()].sort(),
   );
-  for (const partition of manifest.partitions) {
-    const year = String(partition.year);
+  for (const [year, recordCount] of recordCountsByYear) {
     const yearEntries = entriesByYear.get(year);
-    const expectedChunks = Math.ceil(partition.records / CVE_SITEMAP_URL_LIMIT);
+    const expectedChunks = Math.ceil(recordCount / CVE_SITEMAP_URL_LIMIT);
     assert.ok(yearEntries);
     assert.equal(yearEntries.length, expectedChunks);
     assert.equal(
       yearEntries.reduce((total, entry) => total + entry.count, 0),
-      partition.records,
+      recordCount,
     );
     yearEntries.forEach((entry, index) => {
       assert.ok(entry.count > 0);
       assert.ok(entry.count < 50_000);
       assert.ok(entry.count <= CVE_SITEMAP_URL_LIMIT);
       assert.equal(entry.offset, index * CVE_SITEMAP_URL_LIMIT);
-      assert.equal(entry.sourcePath, partition.path);
-      assert.match(entry.sourcePath, /^indexes\/\d{4}\.json\.gz$/);
+      assert.equal(entry.records.length, entry.count);
+      assert.ok(entry.records.every((record) => record.published.startsWith(year)));
+      assert.equal(Object.hasOwn(entry, "sourcePath"), false);
       if (expectedChunks === 1) {
         assert.equal(entry.outputPath, `/sitemaps/cves-${year}.xml`);
       } else {
@@ -100,38 +95,37 @@ test("production manifest plans bounded sitemaps for every yearly partition", ()
   }
 });
 
-test("future oversized yearly partitions are split below 50,000 URLs", (t) => {
-  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "cve-sitemap-large-"));
-  t.after(() => fs.rmSync(tempRoot, { recursive: true, force: true }));
-  fs.mkdirSync(path.join(tempRoot, "indexes"), { recursive: true });
-  const records = Array.from({ length: 100_001 }, (_, index) => ({
+test("a 500,001-record qualified projection is split into bounded sitemap chunks", () => {
+  const records = Array.from({ length: 500_001 }, (_, index) => ({
     cve: `CVE-2026-${index + 1000}`,
+    published: "2026-07-17",
   }));
-  fs.writeFileSync(
-    path.join(tempRoot, "indexes", "2026.json.gz"),
-    zlib.gzipSync(JSON.stringify({ records })),
-  );
-  const manifest = {
-    catalog_updated_at: "2026-07-17T07:02:25Z",
-    total: 100_001,
-    partitions: [
-      { year: "2026", path: "indexes/2026.json.gz", records: 100_001 },
-    ],
-  };
-  const entries = planCveSitemaps(
-    manifest,
-    CVE_SITEMAP_URL_LIMIT,
-    tempRoot,
-  );
+  const entries = planCveSitemaps(records, CVE_SITEMAP_URL_LIMIT);
 
+  assert.equal(entries.length, 11);
   assert.deepEqual(
-    entries.map(({ outputPath, offset, count }) => ({ outputPath, offset, count })),
-    [
-      { outputPath: "/sitemaps/cves-2026-1.xml", offset: 0, count: 49_000 },
-      { outputPath: "/sitemaps/cves-2026-2.xml", offset: 49_000, count: 49_000 },
-      { outputPath: "/sitemaps/cves-2026-3.xml", offset: 98_000, count: 2_001 },
-    ]
+    Object.fromEntries(Object.entries(entries[0]).filter(([key]) => key !== "records")),
+    {
+      year: "2026",
+      outputPath: "/sitemaps/cves-2026-1.xml",
+      offset: 0,
+      count: 49_000,
+      lastmod: "",
+    },
   );
+  assert.deepEqual(
+    Object.fromEntries(Object.entries(entries.at(-1)).filter(([key]) => key !== "records")),
+    {
+      year: "2026",
+      outputPath: "/sitemaps/cves-2026-11.xml",
+      offset: 490_000,
+      count: 10_001,
+      lastmod: "",
+    },
+  );
+  assert.equal(entries[0].records.length, 49_000);
+  assert.equal(entries.at(-1).records.length, 10_001);
+  assert.equal(entries.reduce((total, entry) => total + entry.count, 0), 500_001);
   assert.ok(entries.every((entry) => entry.count < 50_000));
 });
 
@@ -223,7 +217,7 @@ test("normal pages sitemap excludes aliases, redirects, and noindex pages", () =
   );
   assert.equal(
     isPagesSitemapEntry({
-      sourcePath: "recipes/cve/cve-2014-0160-heartbleed.md",
+      sourcePath: "recipes/cve/historical/cve-2014-0160-heartbleed.md",
       fm: {
         cve: "CVE-2014-0160",
         maturity: "stable",
@@ -249,42 +243,17 @@ test("normal pages sitemap excludes aliases, redirects, and noindex pages", () =
   );
 });
 
-test("yearly sitemap renders only canonical dynamic CVE detail URLs", (t) => {
-  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "cve-sitemap-"));
-  t.after(() => fs.rmSync(tempRoot, { recursive: true, force: true }));
-  fs.mkdirSync(path.join(tempRoot, "indexes"), { recursive: true });
+test("yearly sitemap renders only canonical dynamic CVE detail URLs", () => {
+  const records = [
+    { cve: "CVE-2026-0001", published: "2026-07-17" },
+    { cve: "CVE-2026-12345", published: "2026-07-17" },
+    { cve: "CVE-2026-9999999", published: "2026-07-17" },
+  ];
+  const [entry] = planCveSitemaps(records);
+  const xml = renderCveSitemap(entry);
 
-  const payload = {
-    year: "2026",
-    records: [
-      { cve: "CVE-2026-0001" },
-      { cve: "CVE-2026-12345" },
-      { cve: "CVE-2026-9999999" },
-    ],
-  };
-  fs.writeFileSync(
-    path.join(tempRoot, "indexes", "2026.json.gz"),
-    zlib.gzipSync(JSON.stringify(payload))
-  );
-  const [entry] = planCveSitemaps(
-    {
-      catalog_updated_at: "2026-07-17T07:02:25Z",
-      total: payload.records.length,
-      partitions: [
-        {
-          year: "2026",
-          path: "indexes/2026.json.gz",
-          records: payload.records.length,
-        },
-      ],
-    },
-    CVE_SITEMAP_URL_LIMIT,
-    tempRoot,
-  );
-  const xml = renderCveSitemap(entry, tempRoot);
-
-  assert.equal(count(xml, "<url>"), payload.records.length);
-  for (const { cve } of payload.records) {
+  assert.equal(count(xml, "<url>"), records.length);
+  for (const { cve } of records) {
     assert.match(cve, CANONICAL_CVE_ID);
     assert.match(
       xml,
@@ -294,94 +263,25 @@ test("yearly sitemap renders only canonical dynamic CVE detail URLs", (t) => {
   assert.doesNotMatch(xml, /\/recipes\/\?view=cve/);
   assert.doesNotMatch(xml, /<lastmod>/);
 
-  const excluded = renderCveSitemap(
-    entry,
-    tempRoot,
-    new Set([payload.records[0].cve]),
-  );
-  assert.equal(count(excluded, "<url>"), payload.records.length - 1);
-  assert.doesNotMatch(excluded, new RegExp(`/cve/${payload.records[0].cve}/`));
-
-  const searchIndexable = new Set([payload.records[0].cve, payload.records[2].cve]);
   const [filteredEntry] = planCveSitemaps(
-    {
-      catalog_updated_at: "2026-07-17T07:02:25Z",
-      total: payload.records.length,
-      partitions: [
-        {
-          year: "2026",
-          path: "indexes/2026.json.gz",
-          records: payload.records.length,
-        },
-      ],
-    },
+    records,
     CVE_SITEMAP_URL_LIMIT,
-    tempRoot,
-    new Set(),
-    searchIndexable,
+    new Set([records[1].cve]),
   );
-  const filtered = renderCveSitemap(
-    filteredEntry,
-    tempRoot,
-    new Set(),
-    searchIndexable,
-  );
-  assert.equal(count(filtered, "<url>"), searchIndexable.size);
-  assert.doesNotMatch(filtered, new RegExp(`/cve/${payload.records[1].cve}/`));
-  assert.deepEqual(
-    planCveSitemaps(
-      {
-        catalog_updated_at: "2026-07-17T07:02:25Z",
-        total: payload.records.length,
-        partitions: [
-          {
-            year: "2026",
-            path: "indexes/2026.json.gz",
-            records: payload.records.length,
-          },
-        ],
-      },
-      CVE_SITEMAP_URL_LIMIT,
-      tempRoot,
-      new Set(),
-      new Set(),
-    ),
-    [],
-  );
+  const filtered = renderCveSitemap(filteredEntry);
+  assert.equal(count(filtered, "<url>"), records.length - 1);
+  assert.doesNotMatch(filtered, new RegExp(`/cve/${records[1].cve}/`));
+  assert.deepEqual(planCveSitemaps([]), []);
 });
 
-test("yearly sitemap emits only record-specific significant-update dates", (t) => {
-  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "cve-sitemap-lastmod-"));
-  t.after(() => fs.rmSync(tempRoot, { recursive: true, force: true }));
-  fs.mkdirSync(path.join(tempRoot, "indexes"), { recursive: true });
-  const payload = {
-    year: "2026",
-    records: [
-      { cve: "CVE-2026-1234", page_lastmod: "2026-07-21" },
-      { cve: "CVE-2026-5678" },
-    ],
-  };
-  fs.writeFileSync(
-    path.join(tempRoot, "indexes", "2026.json.gz"),
-    zlib.gzipSync(JSON.stringify(payload))
-  );
-  const [entry] = planCveSitemaps(
-    {
-      catalog_updated_at: "2026-07-22T00:00:00Z",
-      total: payload.records.length,
-      partitions: [
-        {
-          year: "2026",
-          path: "indexes/2026.json.gz",
-          records: payload.records.length,
-        },
-      ],
-    },
-    CVE_SITEMAP_URL_LIMIT,
-    tempRoot,
-  );
+test("yearly sitemap emits only record-specific significant-update dates", () => {
+  const records = [
+    { cve: "CVE-2026-1234", published: "2026-07-17", page_lastmod: "2026-07-21" },
+    { cve: "CVE-2026-5678", published: "2026-07-17" },
+  ];
+  const [entry] = planCveSitemaps(records);
 
-  const xml = renderCveSitemap(entry, tempRoot);
+  const xml = renderCveSitemap(entry);
 
   assert.match(
     xml,
@@ -395,35 +295,16 @@ test("yearly sitemap emits only record-specific significant-update dates", (t) =
   assert.doesNotMatch(xml, /2026-07-22/);
 });
 
-test("sitemap index child lastmods come from each filtered chunk", (t) => {
-  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "cve-sitemap-index-lastmod-"));
-  t.after(() => fs.rmSync(tempRoot, { recursive: true, force: true }));
-  fs.mkdirSync(path.join(tempRoot, "indexes"), { recursive: true });
+test("sitemap index child lastmods come from each compact-record chunk", () => {
   const records = [
-    { cve: "CVE-2026-1001", page_lastmod: "2026-07-18" },
-    { cve: "CVE-2026-1002", page_lastmod: "2026-07-20T10:00:00Z" },
-    { cve: "CVE-2026-1003", page_lastmod: "2026-07-31" },
+    { cve: "CVE-2026-1001", published: "2026-07-17", page_lastmod: "2026-07-18" },
+    { cve: "CVE-2026-1002", published: "2026-07-17", page_lastmod: "2026-07-20" },
+    { cve: "CVE-2026-1003", published: "2026-07-17", page_lastmod: "2026-07-31" },
   ];
-  fs.writeFileSync(
-    path.join(tempRoot, "indexes", "2026.json.gz"),
-    zlib.gzipSync(JSON.stringify({ year: "2026", records })),
-  );
   const entries = planCveSitemaps(
-    {
-      catalog_updated_at: "2026-08-01T00:00:00Z",
-      total: records.length,
-      partitions: [
-        {
-          year: "2026",
-          path: "indexes/2026.json.gz",
-          records: records.length,
-        },
-      ],
-    },
+    records,
     1,
-    tempRoot,
-    new Set(),
-    new Set([records[0].cve, records[1].cve]),
+    new Set([records[2].cve]),
   );
 
   assert.deepEqual(
@@ -445,30 +326,17 @@ test("sitemap index child lastmods come from each filtered chunk", (t) => {
   assert.doesNotMatch(indexXml, /2026-07-31|2026-08-01/);
 });
 
-test("HTML archive pages provide bounded crawlable canonical CVE links", (t) => {
-  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "cve-archive-"));
-  t.after(() => fs.rmSync(tempRoot, { recursive: true, force: true }));
-  fs.mkdirSync(path.join(tempRoot, "indexes"), { recursive: true });
-
+test("HTML archive pages provide bounded crawlable canonical CVE links", () => {
   const records = Array.from({ length: 205 }, (_, index) => ({
     cve: `CVE-2026-${String(index + 1000).padStart(4, "0")}`,
     title: index === 150 ? "Unsafe <SCRIPT src=x>alert(1)</SCRIPT> title" : `Record ${index}`,
     severity: index % 2 ? "high" : "medium",
     score: index % 2 ? 8.1 : 5.4,
-    published: `2026-07-${String((index % 20) + 1).padStart(2, "0")}T12:00:00Z`,
+    published: `2026-07-${String((index % 20) + 1).padStart(2, "0")}`,
     kev: index === 150,
     ecosystem: "Test ecosystem",
   }));
-  fs.writeFileSync(
-    path.join(tempRoot, "indexes", "2026.json.gz"),
-    zlib.gzipSync(JSON.stringify({ year: "2026", records }))
-  );
-  const manifest = {
-    catalog_updated_at: "2026-07-21T07:00:00Z",
-    total: records.length,
-    partitions: [{ year: "2026", path: "indexes/2026.json.gz", records: records.length }],
-  };
-  const entries = planCveArchivePages(manifest, 100, tempRoot);
+  const entries = planCveArchivePages(records, 100);
 
   assert.deepEqual(
     entries.map(({ outputPath, offset, records: pageRecords }) => ({
@@ -502,9 +370,8 @@ test("HTML archive pages provide bounded crawlable canonical CVE links", (t) => 
   assert.match(maliciousHtml, /Unsafe &lt;SCRIPT src=x&gt;alert\(1\)&lt;\/SCRIPT&gt; title/);
 
   const excludedEntries = planCveArchivePages(
-    manifest,
+    records,
     100,
-    tempRoot,
     new Set([records[0].cve]),
   );
   assert.equal(excludedEntries[0].total, records.length - 1);
@@ -516,11 +383,8 @@ test("HTML archive pages provide bounded crawlable canonical CVE links", (t) => 
 
   const searchIndexable = new Set([records[0].cve, records[150].cve]);
   const indexableEntries = planCveArchivePages(
-    manifest,
+    records.filter((record) => searchIndexable.has(record.cve)),
     100,
-    tempRoot,
-    new Set(),
-    searchIndexable,
   );
   assert.equal(indexableEntries.length, 1);
   assert.equal(indexableEntries[0].total, searchIndexable.size);
@@ -531,10 +395,7 @@ test("HTML archive pages provide bounded crawlable canonical CVE links", (t) => 
   assert.doesNotMatch(indexableHtml, new RegExp(`href="/cve/${records[1].cve}/"`));
 });
 
-test("HTML archive retains reviewed static CVEs at their canonical recipe route", (t) => {
-  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "cve-static-archive-"));
-  t.after(() => fs.rmSync(tempRoot, { recursive: true, force: true }));
-  fs.mkdirSync(path.join(tempRoot, "indexes"), { recursive: true });
+test("HTML archive retains reviewed static CVEs at their canonical recipe route", () => {
   const staticCve = "CVE-2017-18342";
   const records = [
     {
@@ -543,33 +404,22 @@ test("HTML archive retains reviewed static CVEs at their canonical recipe route"
       page_title: "CVE-2017-18342 — PyYAML safe loading remediation",
       page_description: "Replace unsafe PyYAML loading with safe_load and verify callers.",
       page_lastmod: "2026-07-20",
-      published: "2018-06-27T00:00:00Z",
+      published: "2018-06-27",
       severity: "high",
     },
     {
       cve: "CVE-2017-9999",
       title: "Dynamic source record",
       page_lastmod: "2026-07-19",
-      published: "2018-06-28T00:00:00Z",
+      published: "2018-06-28",
       severity: "medium",
     },
   ];
-  fs.writeFileSync(
-    path.join(tempRoot, "indexes", "2017.json.gz"),
-    zlib.gzipSync(JSON.stringify({ year: "2017", records })),
-  );
-  const manifest = {
-    catalog_updated_at: "2026-07-21T07:00:00Z",
-    total: records.length,
-    partitions: [{ year: "2017", path: "indexes/2017.json.gz", records: records.length }],
-  };
   const staticRoute = "/recipes/cve/cve-2017-18342-pyyaml/";
   const entries = planCveArchivePages(
-    manifest,
+    records,
     100,
-    tempRoot,
     new Set([staticCve]),
-    new Set(records.map((record) => record.cve)),
     new Map([[staticCve, staticRoute]]),
   );
 
@@ -598,10 +448,8 @@ test("HTML archive retains reviewed static CVEs at their canonical recipe route"
   assert.throws(
     () =>
       planCveArchivePages(
-        manifest,
+        records,
         100,
-        tempRoot,
-        new Set([staticCve]),
         new Set([staticCve]),
         new Map([[staticCve, "https://example.test/escape/"]]),
       ),
@@ -687,21 +535,21 @@ test("CVE RSS disambiguates canonical records that share source titles", () => {
 });
 
 test("CVE RSS preserves concise reviewed titles for canonical stable pages", () => {
-  const records = [
-    "CVE-2026-14956",
-    "CVE-2021-44228",
-    "CVE-2024-6387",
-  ].map((cve) => ({
+  const reviewedTitles = new Map([
+    ["CVE-2026-14956", "CVE-2026-14956 — Bricksforge Pro Forms privilege escalation"],
+    ["CVE-2021-44228", "CVE-2021-44228 — Log4Shell"],
+    ["CVE-2024-6387", "CVE-2024-6387: OpenSSH regreSSHion RCE Remediation"],
+  ]);
+  const records = [...reviewedTitles].map(([cve, pageTitle]) => ({
     cve,
     title: `${cve} verbose upstream source sentence that should not replace reviewed copy`,
-    description: `${cve} source description`,
+    page_title: pageTitle,
+    page_description: `${cve} reviewed remediation summary`,
     severity: "critical",
     published: "2026-01-01",
-    pageLastmod: "",
-    url: `/cve/${cve}/`,
   }));
   const byUrl = new Map(
-    buildRecentCatalogItems([{ records }]).map((item) => [item.url, item]),
+    buildRecentCatalogItems(planCveArchivePages(records, 100)).map((item) => [item.url, item]),
   );
   assert.equal(
     byUrl.get("/cve/CVE-2026-14956/").title,
@@ -743,34 +591,36 @@ test("editorial CVE updates advance canonical sitemap freshness", () => {
   );
 });
 
-test("unsafe partitions and non-canonical CVE IDs fail closed", (t) => {
+test("malformed compact records fail closed and use publication year", () => {
   assert.throws(
-    () =>
-      planCveSitemaps({
-        total: 1,
-        partitions: [{ year: "2026", path: "../2026.json.gz", records: 1 }],
-      }),
-    /Unsafe CVE catalog partition path/
+    () => planCveSitemaps({ records: [] }),
+    /must be an array/,
+  );
+  assert.throws(
+    () => planCveSitemaps([{ cve: "cve-2026-0001", published: "2026-07-17" }]),
+    /Invalid canonical CVE ID/,
+  );
+  assert.throws(
+    () => planCveSitemaps([{ cve: "CVE-2026-0001", published: "" }]),
+    /Invalid publication date/,
+  );
+  assert.throws(
+    () => planCveSitemaps([
+      { cve: "CVE-2026-0001", published: "2026-07-17" },
+      { cve: "CVE-2026-0001", published: "2026-07-18" },
+    ]),
+    /Duplicate search-indexable CVE record/,
   );
 
-  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "cve-sitemap-invalid-"));
-  t.after(() => fs.rmSync(tempRoot, { recursive: true, force: true }));
-  fs.mkdirSync(path.join(tempRoot, "indexes"), { recursive: true });
-  fs.writeFileSync(
-    path.join(tempRoot, "indexes", "2026.json.gz"),
-    zlib.gzipSync(JSON.stringify({ records: [{ cve: "cve-2026-0001" }] }))
-  );
-  const [entry] = planCveSitemaps(
-    {
-      total: 1,
-      partitions: [{ year: "2026", path: "indexes/2026.json.gz", records: 1 }],
-    },
-    CVE_SITEMAP_URL_LIMIT,
-    tempRoot,
-  );
+  const [entry] = planCveSitemaps([
+    { cve: "CVE-2025-9999", published: "2026-01-02" },
+  ]);
+  assert.equal(entry.year, "2026");
+  assert.equal(entry.outputPath, "/sitemaps/cves-2026.xml");
+  assert.match(renderCveSitemap(entry), /\/cve\/CVE-2025-9999\//);
 
   assert.throws(
-    () => renderCveSitemap(entry, tempRoot),
-    /Invalid canonical CVE ID/
+    () => renderCveSitemap({ ...entry, year: "2025" }),
+    /wrong publication-year sitemap/,
   );
 });

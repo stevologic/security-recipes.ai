@@ -83,7 +83,10 @@ class CveSyncWorkflowTests(unittest.TestCase):
         self.assertIn('gh pr list --head "$BRANCH"', restore_step)
         self.assertIn("--json number,isCrossRepository", restore_step)
         self.assertIn("select(.isCrossRepository == false)", restore_step)
-        self.assertIn('git fetch --no-tags origin "+refs/heads/$BRANCH:$STATE_REF"', restore_step)
+        self.assertIn(
+            'git fetch --depth=1 --no-tags origin "+refs/heads/$BRANCH:$STATE_REF"',
+            restore_step,
+        )
         self.assertIn("data/cve/ai-enrichments.json", restore_step)
         self.assertIn("data/cve/ai-generated-recipes.json", restore_step)
         self.assertIn("GeneratedRecipeManager", restore_step)

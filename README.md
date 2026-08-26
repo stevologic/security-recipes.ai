@@ -66,8 +66,10 @@ connectors, context, memory, runtime, and recovery controls, use
 
 The complete catalog remains searchable, while public canonical CVE pages stay
 limited to reviewed or evidence-qualified records. Those pages ship unique
-search metadata, server-rendered remediation and source evidence, canonical
-URLs, breadcrumbs, and `Article`/`TechArticle` structured data. The CVE database
+search metadata, server-rendered core facts and affected-version evidence, one
+remediation authority (stable reviewed guidance first, otherwise complete
+source-linked AI enrichment), a short approval-gated AI implementation prompt,
+canonical URLs, breadcrumbs, and `Article`/`TechArticle` structured data. The CVE database
 describes the catalog as a `Dataset`; the remediation pillar exposes its visible
 seven-step workflow as a `HowTo`. Year-partitioned CVE sitemaps contain only
 indexable canonical routes, and the build fails when sitemap parity, canonical
@@ -305,10 +307,11 @@ The complete CVE catalog is also available without MCP:
   index searched off the browser's main thread. The CVE database defers this
   download until a visitor focuses, filters, submits, or otherwise starts a
   search; the initial page keeps its server-rendered, evidence-qualified list.
-- Canonical CVE pages server-render their essential facts, remediation,
-  references, and schema. The complete catalog application and exact record
-  shard load only when a visitor selects **Load complete machine-readable
-  record**, avoiding a duplicate fetch on the initial search landing.
+- Canonical CVE pages server-render their overview, affected-version evidence,
+  selected remediation authority, AI implementation and verification handoff,
+  sources, provenance, citation, and schema. They do not embed or hydrate the
+  catalog application. A compact link to the exact gzip JSON Lines shard remains
+  available for machine-readable provenance without adding a browser fetch.
 - `/api/cve-catalog/search-indexable.json` is the compact, integrity-hashed
   allowlist for canonical CVE pages, related-CVE links, and search discovery.
   Its policy accepts only reviewed stable Markdown or complete AI enrichment
@@ -337,12 +340,13 @@ section. When remediation spans several supported branches or product
 families, the displayed action preserves every trusted fixed-release claim
 instead of collapsing the guidance to one incomplete upgrade.
 
-Development CVE Markdown emits no standalone page in the pure static build and
-is excluded from generic recipe/search feeds, tag pages, RSS, and the sitemap.
+Development and catalog-owned stable CVE Markdown emit no standalone page in
+the pure static build and are excluded from Eleventy and generic recipe/search
+feeds, tag pages, RSS, and the sitemap. The three pre-catalog historical stable
+recipes remain ordinary rendered content.
 Production can retain a legacy recipe URL as a redirect to the canonical CVE
 route through nginx and the MCP-backed landing service. Use the dedicated
-catalog or `recipes_cve_*` MCP tools for complete discovery; only reviewed
-`maturity: stable` Markdown is republished in generic indexes.
+catalog or `recipes_cve_*` MCP tools for complete discovery.
 
 The browser's exact-ID path and compressed worker index both cover every
 in-scope Medium, High, and Critical record declared by the manifest. The MCP
@@ -459,6 +463,10 @@ The runtime paths are deliberately bounded for catalog-scale traffic:
   limits, and bounded query/shard caches;
 - immutable browser cache keys come from the actual browser-index, archetype,
   and shard-set hashes rather than an upstream timestamp.
+
+The implemented build boundary, exact-shard delivery model, evidence-gated SEO
+policy, and remaining browser-search/artifact migration are documented in
+[CVE scale architecture](docs/cve-scale-architecture.md).
 
 The bundled production Compose service defaults
 `RECIPES_MCP_EAGER_CVE_SEARCH=false`, leaving the shared text index lazy so a
