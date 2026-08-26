@@ -341,22 +341,6 @@ jobs:
           assert payload["record"].get("ai_enrichment") or payload["record"].get("markdown")
           PY
 
-          # Recipe chat stays off without XAI_API_KEY. The site nginx must still
-          # proxy the status route to MCP so the widget can hide itself.
-          chat_status="${RUNNER_TEMP}/site-recipe-chat-status.json"
-          curl --fail --silent --show-error --max-time 10 \
-            "http://127.0.0.1:${site_port}/api/chat/status" \
-            --output "${chat_status}"
-          python3 - "${chat_status}" <<'PY'
-          import json
-          import sys
-
-          payload = json.load(open(sys.argv[1], encoding="utf-8"))
-          assert payload["enabled"] is False
-          assert payload["label"] == "Recipe chat"
-          assert payload["read_only"] is True
-          PY
-
           # Select an in-catalog record that was deliberately excluded from the
           # qualified static surface, then prove nginx reaches the healthy MCP
           # fallback and preserves the noindex contract.

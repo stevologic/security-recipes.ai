@@ -35,13 +35,6 @@ x-security-recipes-mcp-runtime: &security-recipes-mcp-runtime
     # The production image uses manifest-pinned SQLite. This controls only the
     # legacy local fallback when an operator deliberately removes the DB path.
     RECIPES_MCP_EAGER_CVE_SEARCH: "${RECIPES_MCP_EAGER_CVE_SEARCH:-false}"
-    # Recipe chat is off unless XAI_API_KEY is present. Development
-    # (dev.security-recipes.ai) must use Stripe test keys only.
-    XAI_API_KEY: "${XAI_API_KEY:-}"
-    STRIPE_SECRET_KEY: "${STRIPE_SECRET_KEY:-}"
-    STRIPE_WEBHOOK_SECRET: "${STRIPE_WEBHOOK_SECRET:-}"
-    STRIPE_PUBLISHABLE_KEY: "${STRIPE_PUBLISHABLE_KEY:-}"
-    RECIPE_CHAT_SIGNING_SECRET: "${RECIPE_CHAT_SIGNING_SECRET:-}"
   expose:
     - "80"
   logging: *security-recipes-logging

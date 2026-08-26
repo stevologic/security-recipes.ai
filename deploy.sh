@@ -1272,13 +1272,6 @@ run_mcp_compose() {
       SECURITY_RECIPES_IMAGE_REVISION="${revision}" \
         docker compose "$@"
       ;;
-    "${DEV_SERVICE}"|mcp-server)
-      # Staging uses the transitional singleton. Production blue/green pairs
-      # stay untouched; this path only refreshes mcp-server for development.
-      RECIPES_MCP_IMAGE="${image}" \
-      SECURITY_RECIPES_IMAGE_REVISION="${revision}" \
-        docker compose "$@"
-      ;;
     *)
       return 1
       ;;
@@ -2194,23 +2187,9 @@ start_development_slot() {
   wait_for_slot_revision "${service}" "${revision}"
 }
 
-start_development_mcp() {
-  local image="$1"
-  local revision="$2"
-
-  log "Starting development MCP singleton from ${image}."
-  run_mcp_compose mcp-server "${image}" "${revision}" \
-    up -d --no-deps --force-recreate --no-build --pull never \
-      --wait --wait-timeout "${HEALTH_TIMEOUT}" mcp-server || return 1
-  if ! mcp_service_is_healthy mcp-server; then
-    log "ERROR: Development MCP singleton is not healthy."
-    return 1
-  fi
-}
-
 deploy_development_track() {
   local branch="${DEVELOPMENT_BRANCH}"
-  local target confirmed image mcp_image repository
+  local target confirmed image repository
 
   [[ -n "${branch}" ]] || return 0
   [[ "${branch}" != "${BRANCH}" ]] || {
@@ -2266,21 +2245,12 @@ deploy_development_track() {
     log "Development track skipped: ${image} is not available yet."
     return 0
   fi
-  mcp_image="${MCP_IMAGE_REPOSITORY}:${target}${DEVELOPMENT_IMAGE_SUFFIX}"
-  if ! pull_candidate "mcp-server" "${mcp_image}" "${target}"; then
-    log "Development track skipped: ${mcp_image} is not available yet."
-    return 0
-  fi
   prepare_host_caddy_dev_site || return 1
   ensure_staging_tls
   if [[ "${TRAFFIC_CADDY_CONFIG_CHANGED}" == "true" ]]; then
     switch_proxy "${ACTIVE_SERVICE}" "${FALLBACK_SERVICE}" || return 1
     TRAFFIC_CADDY_CONFIG_CHANGED="false"
   fi
-  start_development_mcp "${mcp_image}" "${target}" || {
-    log "ERROR: The development MCP singleton did not become healthy."
-    return 1
-  }
   start_development_slot "${DEV_SERVICE}" "${image}" "${target}" || {
     log "ERROR: The development slot did not become revision-verified."
     return 1

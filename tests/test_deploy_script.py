@@ -116,10 +116,6 @@ class DeployScriptStaticTests(unittest.TestCase):
         self.assertIn("security-recipes-dev:", compose)
         self.assertIn("SECURITY_RECIPES_DEV_IMAGE", compose)
         self.assertIn("SECURITY_RECIPES_DEV_HTTP_PORT:-127.0.0.1:8082", compose)
-        self.assertIn('XAI_API_KEY: "${XAI_API_KEY:-}"', compose)
-        self.assertIn('STRIPE_SECRET_KEY: "${STRIPE_SECRET_KEY:-}"', compose)
-        self.assertIn('STRIPE_WEBHOOK_SECRET: "${STRIPE_WEBHOOK_SECRET:-}"', compose)
-        self.assertIn('STRIPE_PUBLISHABLE_KEY: "${STRIPE_PUBLISHABLE_KEY:-}"', compose)
         self.assertIn('"80:80"', compose)
         self.assertIn('"443:443"', compose)
         self.assertIn(
@@ -212,8 +208,6 @@ class DeployScriptStaticTests(unittest.TestCase):
         self.assertIn("staging_apex_hostname", deploy)
         self.assertIn("deploy_development_track", deploy)
         self.assertIn('DEV_SERVICE="security-recipes-dev"', deploy)
-        self.assertIn("start_development_mcp", deploy)
-        self.assertIn("${MCP_IMAGE_REPOSITORY}:${target}${DEVELOPMENT_IMAGE_SUFFIX}", deploy)
         self.assertIn('python3 "${helper}"', deploy)
         self.assertIn("Staging DNS skipped: no DigitalOcean API token or authenticated doctl", deploy)
         runtime = deploy[deploy.index("ensure_traffic_report_runtime() {") :]
@@ -852,7 +846,9 @@ if [[ "${1:-}" == "inspect" ]]; then
       cat "$FAKE_MCP_GREEN_REVISION"
     elif [[ "$target" == "legacy-mcp-id" ]]; then
       cat "$FAKE_CURRENT_SHA"
-    elif [[ "$target" == *"security-recipes.ai-mcp:"* || "$target" == *"-development" ]]; then
+    elif [[ "$target" == *"security-recipes.ai-mcp:"* ]]; then
+      printf '%s\n' "${target##*:}"
+    elif [[ "$target" == *"-development" ]]; then
       revision="${target##*:}"
       printf '%s\n' "${revision%-development}"
     else
@@ -1048,9 +1044,6 @@ case "${1:-}" in
         [[ "$(cat "$health_file")" == "healthy" ]] || exit 12
         ;;
       traffic-report)
-        ;;
-      mcp-server)
-        # Development track refreshes the transitional singleton only.
         ;;
       *)
         printf 'unscoped compose up: %s\n' "$*" >> "$FAKE_OUTAGE"
@@ -1744,13 +1737,6 @@ exit 0
             any(
                 "compose up -d --no-deps --force-recreate --no-build --pull never" in command
                 and command.endswith("security-recipes-dev")
-                for command in commands
-            )
-        )
-        self.assertTrue(
-            any(
-                "compose up -d --no-deps --force-recreate --no-build --pull never" in command
-                and command.endswith(" mcp-server")
                 for command in commands
             )
         )

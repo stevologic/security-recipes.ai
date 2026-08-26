@@ -30,7 +30,6 @@
 {# Shared collection surface for the two browsable corpora. Loads last so its
    tokens win over both pages' older, divergent vocabularies. #}
 {% if page.url == "/recipes/" or page.url == "/cve-database/" %}<link rel="stylesheet" href="/css/collection-ui.css">{% endif %}
-{% if page.url == "/recipes/" or page.url == "/cve-database/" or page.url == "/mcp-servers/" %}<link rel="stylesheet" href="/css/recipe-chat.css">{% endif %}
 <script>
 document.documentElement.dataset.siteSignalBackground = "true";
 {% if page.url == "/recipes/" %}document.documentElement.dataset.recipeBrowserPage = "true";{% endif %}
@@ -73,4 +72,3 @@ window.__SECURITY_RECIPES_MARKETPLACE_SCHEMAS = {
 {% if page.url == "/recipes/" %}<script src="/js/recipe-mobile-hardening.js" defer></script>{% endif %}
 <script src="/js/mcp-config-helper.js" defer></script>
 <script src="/js/sr-tabs.js" defer></script>
-{% if page.url == "/recipes/" or page.url == "/cve-database/" or page.url == "/mcp-servers/" %}<script src="/js/recipe-chat.js" defer></script>{% endif %}

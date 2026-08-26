@@ -104,9 +104,6 @@
     {% if title and page.url != "/cve-database/" %}{% set renderedContent = content | stripFirstH1 %}{% endif %}
     <div class="content{% if isCveDetail %} sr-cve-detail-content{% endif %}">
 {{ renderedContent | safe }}
-    {% if page.url == "/recipes/" or page.url == "/cve-database/" or page.url == "/mcp-servers/" %}
-    {% include "partials/recipe-chat.njk" %}
-    {% endif %}
     </div>
     {% if isArticle and not isError %}
     {% set attributionName = author or site.seo.author %}

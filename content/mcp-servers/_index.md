@@ -257,9 +257,6 @@ right client URL and public metadata.
   <p class="sr-mcp-config-helper__status" data-mcp-config-status aria-live="polite"></p>
 </div>
 
-Recipe chat on this page answers from the same published MCP and recipe
-pages. It stays read-only: no scan, no autofix, no deploy.
-
 For Docker Compose, keep `RECIPES_MCP_SOURCE_INDEX_URL` on the internal
 `http://security-recipes/api/recipes.json` feed. That lets the MCP container
 read the exact recipes built from this checkout, even before a public domain or
@@ -452,8 +449,7 @@ cadence, and whether the connector can write or execute commands.
 
 The site exposes recipes through static JSON feeds and the optional read-only
 MCP server. Use those surfaces to let approved agents search, retrieve, and
-match recipes. The optional same-origin Recipe chat uses the same published
-pages and stays read-only.
+match recipes without adding a site-hosted chatbot.
 
 | Mode | Sources | Notes |
 | --- | --- | --- |

@@ -42,7 +42,6 @@ from scripts.cve_search_runtime import (
     CVESearchTimeoutError,
 )
 from scripts.cve_text_quality import clean_catalog_text
-from tools.recipe_chat.routes import register_recipe_chat_routes
 from fastmcp import FastMCP
 from starlette.requests import Request
 from starlette.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
@@ -12835,12 +12834,6 @@ evidence_contract = SecureContextEvidenceContract(config.evidence_contract_path)
 hosted_mcp_readiness_pack = HostedMcpReadinessPack(config.hosted_mcp_readiness_pack_path)
 upstream_mcp = UpstreamMCPRegistry(config.upstream_mcp_servers)
 mcp = FastMCP(name="security-recipes-mcp")
-register_recipe_chat_routes(
-    mcp,
-    recipe_index=index,
-    cve_catalog=cve_catalog,
-    playbook_registry=playbook_registry,
-)
 
 _CVE_LANDING_DEFAULT_SITE_BASE_URL = "https://security-recipes.ai"
 _CVE_LANDING_CACHE_CONTROL = "public, max-age=300, stale-while-revalidate=3600"
