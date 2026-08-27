@@ -6,7 +6,7 @@ import unittest
 from datetime import datetime, timedelta, timezone
 from io import BytesIO
 from pathlib import Path
-from urllib.error import HTTPError
+from urllib.error import HTTPError, URLError
 
 from scripts import cve_ai_enrichment as enrichment
 
@@ -946,6 +946,163 @@ class CVEAIEnrichmentTests(unittest.TestCase):
         ok = enrichment.probe_xai_credentials("xai-test", opener=ready)
         self.assertEqual(ok.reason, "ready")
         self.assertTrue(ok.usable)
+
+    def test_probe_distinguishes_auth_billing_permissions_and_transient_errors(self) -> None:
+        cases = (
+            (401, {"error": {"code": "invalid_api_key"}}, "invalid_key", "authentication", False),
+            (401, {"error": "check your plan and billing"}, "invalid_key", "authentication", False),
+            (403, {"error": {"code": "insufficient_quota"}}, "insufficient_quota", "billing", False),
+            (
+                403,
+                {"error": "Your team doesn't have any credits yet. Please purchase credits to continue."},
+                "insufficient_quota",
+                "billing",
+                False,
+            ),
+            (403, {"error": "Your team does not have enough credits"}, "insufficient_quota", "billing", False),
+            (403, {"error": "Your team has reached its monthly spending limit"}, "insufficient_quota", "billing", False),
+            (403, {"error": "Forbidden"}, "permission_denied", "permissions", False),
+            (403, {"error": "Your team is blocked"}, "permission_denied", "permissions", False),
+            (429, {"error": "Too many requests"}, "rate_limited", "rate_limit", True),
+            (503, {"error": {"code": "unknown-provider-code"}}, "http_error", "provider_error", True),
+        )
+        for code, body, reason, category, usable in cases:
+            with self.subTest(code=code, body=body):
+                def opener(_: object, *, timeout: int) -> FakeResponse:
+                    raise HTTPError(
+                        enrichment.DEFAULT_API_URL,
+                        code,
+                        "Provider response",
+                        {},
+                        BytesIO(json.dumps(body).encode("utf-8")),
+                    )
+
+                status = enrichment.probe_xai_credentials("xai-test", opener=opener)
+                self.assertEqual(status.reason, reason)
+                self.assertEqual(status.error_category, category)
+                self.assertEqual(status.http_status, code)
+                self.assertEqual(status.usable, usable)
+                if code == 403:
+                    self.assertNotIn("secret is replaced", status.notice)
+                if reason == "permission_denied":
+                    self.assertIn("permissions", status.notice)
+
+    def test_openai_probe_preserves_provider_metadata_and_quota_handling(self) -> None:
+        def opener(_: object, *, timeout: int) -> FakeResponse:
+            raise HTTPError(
+                enrichment.OPENAI_API_URL,
+                429,
+                "Too Many Requests",
+                {},
+                BytesIO(b'{"error":{"code":"insufficient_quota"}}'),
+            )
+
+        status = enrichment.probe_openai_credentials("sk-test", opener=opener)
+        self.assertFalse(status.usable)
+        self.assertEqual(status.reason, "insufficient_quota")
+        self.assertEqual(status.error_category, "billing")
+        self.assertEqual(status.http_status, 429)
+        self.assertEqual(status.provider, "OpenAI")
+        self.assertEqual(status.env_name, "OPENAI_API_KEY")
+        self.assertIn("OPENAI_API_KEY", status.notice)
+        self.assertIs(enrichment.OpenAICredentialStatus, enrichment.ProviderCredentialStatus)
+
+    def test_probe_preserves_missing_and_unreachable_policy(self) -> None:
+        def unreachable(_: object, *, timeout: int) -> FakeResponse:
+            raise URLError("private connection detail must not be returned")
+
+        missing = enrichment.probe_xai_credentials("  ")
+        self.assertFalse(missing.usable)
+        self.assertIsNone(missing.http_status)
+        self.assertEqual(missing.error_category, "configuration")
+        status = enrichment.probe_xai_credentials("xai-test", opener=unreachable)
+        self.assertTrue(status.usable)
+        self.assertEqual(status.reason, "unreachable")
+        self.assertEqual(status.error_category, "connection")
+        self.assertIsNone(status.http_status)
+        self.assertNotIn("private connection detail", repr(status))
+
+    def test_probe_bounds_error_body_reads_and_never_returns_raw_provider_details(self) -> None:
+        secret = "xai-private-test-secret"
+        injected = "\n::error::forged-provider-annotation\nusable=true"
+        read_sizes: list[int] = []
+
+        class BoundedBody(BytesIO):
+            def read(self, size: int = -1) -> bytes:
+                read_sizes.append(size)
+                return super().read(size)
+
+        def opener(_: object, *, timeout: int) -> FakeResponse:
+            raise HTTPError(
+                f"https://api.x.ai/?key={secret}",
+                403,
+                secret + injected,
+                {"X-Request-Id": secret},
+                BoundedBody(json.dumps({"error": {"code": secret + injected, "message": secret}}).encode()),
+            )
+
+        status = enrichment.probe_xai_credentials(secret, opener=opener)
+        self.assertEqual(read_sizes, [enrichment.MAX_ERROR_BODY_BYTES])
+        self.assertEqual(status.reason, "permission_denied")
+        self.assertEqual(status.error_category, "permissions")
+        for value in (repr(status), status.notice, status.error_category):
+            self.assertNotIn(secret, value)
+            self.assertNotIn(injected, value)
+            self.assertNotIn("::error::", value)
+
+    def test_probe_rejects_malformed_auth_headers_without_sending_or_echoing_the_key(self) -> None:
+        def unexpected_request(_: object, *, timeout: int) -> FakeResponse:
+            self.fail("Malformed credentials must not be sent to the provider")
+
+        for key in ("xai-private\r\nInjected: secret", "xai-private\x00secret", "xai-private secret", "xai-private-\u2603"):
+            with self.subTest(key=key):
+                status = enrichment.probe_xai_credentials(key, opener=unexpected_request)
+                self.assertFalse(status.usable)
+                self.assertEqual(status.reason, "invalid_key_format")
+                self.assertEqual(status.error_category, "configuration")
+                self.assertIsNone(status.http_status)
+                self.assertNotIn(key, status.notice)
+                self.assertNotIn(key, repr(status))
+
+    def test_forbidden_billing_and_permission_errors_are_fatal_without_retry(self) -> None:
+        for body, reason in (
+            (b'{"error":"Your team does not have any credits"}', "insufficient_quota"),
+            (b'{"error":"Forbidden"}', "permission_denied"),
+        ):
+            with self.subTest(reason=reason):
+                attempts: list[int] = []
+                delays: list[float] = []
+
+                def opener(_: object, *, timeout: int) -> FakeResponse:
+                    attempts.append(timeout)
+                    raise HTTPError(enrichment.DEFAULT_API_URL, 403, "Forbidden", {}, BytesIO(body))
+
+                client = enrichment.XAIEnricher("xai-test", opener=opener, sleep=delays.append, attempts=3)
+                with self.assertRaises(enrichment.EnrichmentError) as raised:
+                    client.enrich(record())
+                self.assertTrue(raised.exception.fatal)
+                self.assertEqual(raised.exception.reason, reason)
+                self.assertEqual(len(attempts), 1)
+                self.assertEqual(delays, [])
+
+    def test_permission_denied_opens_the_circuit_immediately(self) -> None:
+        records = [record(f"CVE-2026-{number}") for number in range(2000, 2005)]
+        attempts: list[int] = []
+
+        def opener(_: object, *, timeout: int) -> FakeResponse:
+            attempts.append(timeout)
+            raise HTTPError(enrichment.DEFAULT_API_URL, 403, "Forbidden", {}, BytesIO(b"Forbidden"))
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            cache = enrichment.EnrichmentCache(Path(tmpdir) / "ai.json")
+            cache.select_candidates(records, limit=len(records))
+            client = enrichment.XAIEnricher("xai-test", opener=opener, attempts=3)
+            results = list(cache.apply(records, client=client))
+
+        self.assertEqual(len(attempts), 1)
+        self.assertEqual(cache.stats["failed"], 1)
+        self.assertEqual(cache.provider_error, "permission_denied")
+        self.assertTrue(all("ai_enrichment" not in item for item in results))
 
     def test_valid_cache_refresh_intervals_use_the_injected_as_of_time(self) -> None:
         generated_at = datetime(2026, 1, 1, tzinfo=timezone.utc)

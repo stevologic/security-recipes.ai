@@ -46,10 +46,32 @@ MAX_ERROR_BODY_BYTES = 4096
 QUOTA_ERROR_MARKERS = (
     "insufficient_quota",
     "no credits remaining",
+    "doesn't have any credits",
+    "does not have any credits",
+    "doesn't have enough credits",
+    "does not have enough credits",
+    "insufficient credits",
+    "ran out of credits",
     "exceeded your current quota",
     "add credits to continue",
+    "purchase credits to continue",
     "check your plan and billing",
+    "reached its monthly spending limit",
+    "reached your monthly spending limit",
+    "exceeded its monthly spending limit",
+    "exceeded your monthly spending limit",
 )
+PROVIDER_ERROR_CATEGORIES = {
+    "missing": "configuration",
+    "invalid_key_format": "configuration",
+    "invalid_key": "authentication",
+    "permission_denied": "permissions",
+    "insufficient_quota": "billing",
+    "rate_limited": "rate_limit",
+    "http_error": "provider_error",
+    "unreachable": "connection",
+    "ready": "none",
+}
 MAX_SOURCE_URLS = 24
 MAX_LIST_ITEMS = 8
 MAX_ITEM_LENGTH = 600
@@ -189,6 +211,13 @@ class ProviderCredentialStatus:
     usable: bool
     env_name: str = API_KEY_ENV
     provider: str = "xAI"
+    http_status: int | None = None
+
+    @property
+    def error_category(self) -> str:
+        """A fixed diagnostic category, never an arbitrary provider code or body."""
+
+        return PROVIDER_ERROR_CATEGORIES.get(self.reason, "provider_error")
 
     @property
     def notice(self) -> str:
@@ -202,10 +231,21 @@ class ProviderCredentialStatus:
                 f"{self.env_name} was rejected by {self.provider}; automation is "
                 "inactive until the repository secret is replaced."
             )
+        if self.reason == "invalid_key_format":
+            return (
+                f"{self.env_name} contains unsupported whitespace or non-ASCII characters; "
+                "automation is inactive until the repository secret contains only the API key."
+            )
         if self.reason == "insufficient_quota":
             return (
-                f"{self.env_name} has no remaining credits; automation is inactive "
+                f"{self.env_name} has no remaining credits or has reached a billing limit; automation is inactive "
                 "until billing is restored."
+            )
+        if self.reason == "permission_denied":
+            return (
+                f"{self.provider} denied access for {self.env_name}; automation is inactive "
+                "until the key permissions, model access, or team restrictions are resolved. "
+                "This response does not establish that the API key is invalid."
             )
         return f"{self.env_name} is not usable ({self.reason})."
 
@@ -227,10 +267,12 @@ def classify_provider_http_error(exc: HTTPError) -> str:
     """Return a stable provider reason without echoing secret-bearing bodies."""
 
     snippet = _http_error_body(exc).lower()
-    if exc.code in {401, 403}:
+    if exc.code == 401:
         return "invalid_key"
     if any(marker in snippet for marker in QUOTA_ERROR_MARKERS):
         return "insufficient_quota"
+    if exc.code == 403:
+        return "permission_denied"
     if exc.code == 429:
         return "rate_limited"
     return "http_error"
@@ -252,6 +294,8 @@ def probe_provider_credentials(
     status_kwargs = {"env_name": env_name, "provider": provider}
     if not key:
         return ProviderCredentialStatus("missing", usable=False, **status_kwargs)
+    if re.fullmatch(r"[\x21-\x7e]+", key) is None:
+        return ProviderCredentialStatus("invalid_key_format", usable=False, **status_kwargs)
     if opener is None:
         opener = urlopen
     payload = {
@@ -275,9 +319,12 @@ def probe_provider_credentials(
             response.read(MAX_RESPONSE_BYTES)
     except HTTPError as exc:
         reason = classify_provider_http_error(exc)
-        if reason in {"insufficient_quota", "invalid_key"}:
-            return ProviderCredentialStatus(reason, usable=False, **status_kwargs)
-        return ProviderCredentialStatus(reason, usable=True, **status_kwargs)
+        return ProviderCredentialStatus(
+            reason,
+            usable=reason not in {"insufficient_quota", "invalid_key", "permission_denied"},
+            http_status=exc.code,
+            **status_kwargs,
+        )
     except (TimeoutError, URLError, OSError):
         return ProviderCredentialStatus("unreachable", usable=True, **status_kwargs)
     return ProviderCredentialStatus("ready", usable=True, **status_kwargs)
@@ -1111,13 +1158,19 @@ class XAIEnricher:
                 reason = classify_provider_http_error(exc)
                 if reason == "insufficient_quota":
                     raise EnrichmentError(
-                        "xAI Responses API has no remaining credits",
+                        "xAI Responses API has no remaining credits or has reached a billing limit",
                         fatal=True,
                         reason=reason,
                     ) from exc
                 if reason == "invalid_key":
                     raise EnrichmentError(
                         "xAI Responses API rejected the API key",
+                        fatal=True,
+                        reason=reason,
+                    ) from exc
+                if reason == "permission_denied":
+                    raise EnrichmentError(
+                        "xAI Responses API denied access; check key permissions, model access, and team restrictions",
                         fatal=True,
                         reason=reason,
                     ) from exc

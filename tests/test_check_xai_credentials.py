@@ -1,10 +1,14 @@
 from __future__ import annotations
 
+import json
 import os
 import tempfile
 import unittest
+from contextlib import redirect_stdout
+from io import BytesIO, StringIO
 from pathlib import Path
 from unittest.mock import patch
+from urllib.error import HTTPError
 
 from scripts import check_xai_credentials as check
 from scripts import cve_ai_enrichment as enrichment
@@ -37,6 +41,53 @@ class CheckXAICredentialsTests(unittest.TestCase):
                 output.read_text(encoding="utf-8"),
                 "usable=false\nreason=missing\n",
             )
+
+    def test_cli_reports_safe_http_diagnostics_without_provider_payloads(self) -> None:
+        secret = "xai-private-credential-value"
+        injected = "\n::error::forged-provider-annotation\nusable=true"
+        cases = (
+            (401, "Rejected", "invalid_key", "authentication", False),
+            (403, "Your team doesn't have any credits yet", "insufficient_quota", "billing", False),
+            (403, "Forbidden", "permission_denied", "permissions", False),
+            (429, "Too many requests", "rate_limited", "rate_limit", True),
+            (503, "Unavailable", "http_error", "provider_error", True),
+        )
+        for code, message, reason, category, usable in cases:
+            with self.subTest(code=code, reason=reason), tempfile.TemporaryDirectory() as tmpdir:
+                output = Path(tmpdir) / "github-output.txt"
+                stdout = StringIO()
+                error = HTTPError(
+                    f"https://api.x.ai/?key={secret}",
+                    code,
+                    secret + injected,
+                    {"X-Request-Id": secret},
+                    BytesIO(
+                        json.dumps({"error": {"code": secret + injected, "message": message + secret}}).encode()
+                    ),
+                )
+                with (
+                    patch.dict(os.environ, {"XAI_API_KEY": secret}, clear=True),
+                    patch.object(enrichment, "urlopen", side_effect=error),
+                    redirect_stdout(stdout),
+                ):
+                    result = check.main(["--github-output", str(output)])
+
+                self.assertEqual(result, 0)
+                self.assertEqual(
+                    output.read_text(encoding="utf-8"),
+                    f"usable={'true' if usable else 'false'}\nreason={reason}\n"
+                    f"http_status={code}\nerror_category={category}\n",
+                )
+                self.assertIn(f"HTTP {code}; category={category}.", stdout.getvalue())
+                for value in (output.read_text(encoding="utf-8"), stdout.getvalue()):
+                    self.assertNotIn(secret, value)
+                    self.assertNotIn("::error::", value)
+                    self.assertNotIn("forged-provider-annotation", value)
+                if usable:
+                    self.assertIn("readiness is unconfirmed", stdout.getvalue())
+                    self.assertNotIn("credentials are usable", stdout.getvalue())
+                if code == 403:
+                    self.assertNotIn("secret is replaced", stdout.getvalue())
 
 
 class RunGrokAgentTests(unittest.TestCase):

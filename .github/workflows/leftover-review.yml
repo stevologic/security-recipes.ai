@@ -9,6 +9,12 @@ on:
   schedule:
     - cron: "17 13 * * *"
   workflow_dispatch:
+    inputs:
+      diagnostics_only:
+        description: Check xAI access without running reviews or changing repository content
+        required: false
+        default: false
+        type: boolean
 
 permissions: {}
 
@@ -20,7 +26,28 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
 jobs:
+  credential-diagnostics:
+    if: github.event_name == 'workflow_dispatch' && inputs.diagnostics_only
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout the selected diagnostic revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+          sparse-checkout: scripts
+
+      - name: Diagnose xAI access without exposing provider payloads
+        env:
+          XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
+          XAI_MODEL: ${{ vars.XAI_MODEL || 'grok-4.6' }}
+        run: python scripts/diagnose_xai_credentials.py
+
   review:
+    if: github.event_name != 'workflow_dispatch' || !inputs.diagnostics_only
     runs-on: ubuntu-latest
     timeout-minutes: 180
     permissions:
