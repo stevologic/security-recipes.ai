@@ -55,7 +55,10 @@ export GIT_SSH_COMMAND="${GIT_SSH_COMMAND:-ssh -o BatchMode=yes}"
 #                      development images.            Default: -development
 #   DEPLOY_REMOTE      Git remote to fetch.           Default: origin
 #   DEPLOY_GIT_TIMEOUT Seconds allowed for git fetch. Default: 120
-#   DEPLOY_HEALTH_TIMEOUT  Seconds to wait for health. Default: 90
+#   DEPLOY_HEALTH_TIMEOUT  Seconds to wait for health. Default: 180
+#   DEPLOY_FAILED_REVISION_RETRY_SECONDS
+#                      Cooldown before automatically retrying a revision that
+#                      failed after candidate replacement began. Default: 900
 #   DEPLOY_PROXY_HEALTH_URL Base URL for local post-switch verification.
 #                           Default: SECURITY_RECIPES_BASE_URL resolved to loopback
 #   DEPLOY_HEALTH_URL       Legacy alias for DEPLOY_PROXY_HEALTH_URL.
@@ -105,7 +108,8 @@ DEVELOPMENT_BRANCH="${DEPLOY_DEVELOPMENT_BRANCH-development}"
 DEVELOPMENT_IMAGE_SUFFIX="${DEPLOY_DEVELOPMENT_IMAGE_SUFFIX--development}"
 REMOTE="${DEPLOY_REMOTE:-origin}"
 GIT_TIMEOUT="${DEPLOY_GIT_TIMEOUT:-120}"
-HEALTH_TIMEOUT="${DEPLOY_HEALTH_TIMEOUT:-90}"
+HEALTH_TIMEOUT="${DEPLOY_HEALTH_TIMEOUT:-180}"
+FAILED_REVISION_RETRY_SECONDS="${DEPLOY_FAILED_REVISION_RETRY_SECONDS:-900}"
 LOCK_FILE="${DEPLOY_LOCK_FILE:-/var/lock/security-recipes-deploy.lock}"
 TAKEOVER_GRACE="${DEPLOY_TAKEOVER_GRACE:-30}"
 PROXY_HEALTH_URL="${DEPLOY_PROXY_HEALTH_URL:-${DEPLOY_HEALTH_URL:-}}"
@@ -148,6 +152,8 @@ die() {
 }
 
 [[ "${HEALTH_TIMEOUT}" =~ ^[1-9][0-9]*$ ]] || die "DEPLOY_HEALTH_TIMEOUT must be a positive integer."
+[[ "${FAILED_REVISION_RETRY_SECONDS}" =~ ^[1-9][0-9]*$ ]] ||
+  die "DEPLOY_FAILED_REVISION_RETRY_SECONDS must be a positive integer."
 [[ "${GIT_TIMEOUT}" =~ ^[1-9][0-9]*$ ]] || die "DEPLOY_GIT_TIMEOUT must be a positive integer."
 [[ "${GITHUB_REQUEST_TIMEOUT}" =~ ^[1-9][0-9]*$ ]] || die "DEPLOY_GITHUB_REQUEST_TIMEOUT must be a positive integer."
 [[ "${CI_TIMEOUT}" =~ ^[1-9][0-9]*$ ]] || die "DEPLOY_CI_TIMEOUT must be a positive integer."
@@ -1986,8 +1992,42 @@ ensure_memory_headroom() {
 
 revision_is_marked_failed() {
   local revision="$1"
-  [[ -f .git/deploy-failed-sha ]] &&
-    [[ "$(cat .git/deploy-failed-sha 2>/dev/null || true)" == "${revision}" ]]
+  local marked_revision failed_at ignored
+  [[ -f .git/deploy-failed-sha ]] || return 1
+  IFS=' ' read -r marked_revision failed_at ignored \
+    < .git/deploy-failed-sha || true
+  marked_revision="${marked_revision%$'\r'}"
+  [[ "${marked_revision}" == "${revision}" ]]
+}
+
+failed_revision_retry_remaining() {
+  local failed_marker="$1"
+  local revision="$2"
+  local marked_revision failed_at ignored now
+  local failed_at_value now_value age
+
+  [[ -f "${failed_marker}" ]] || return 1
+  IFS=' ' read -r marked_revision failed_at ignored \
+    < "${failed_marker}" || true
+  marked_revision="${marked_revision%$'\r'}"
+  failed_at="${failed_at%$'\r'}"
+  [[ "${marked_revision}" == "${revision}" ]] || return 1
+
+  # A marker written by an older deploy.sh contains only the SHA. Treat it as
+  # eligible for one retry so upgrading the script cannot leave a release
+  # suppressed forever. Any subsequent failure writes the timestamped format.
+  [[ "${failed_at:-}" =~ ^[0-9]{1,12}$ ]] || return 1
+  now="$(date +%s 2>/dev/null || true)"
+  [[ "${now}" =~ ^[0-9]{1,12}$ ]] || return 1
+  failed_at_value=$((10#${failed_at}))
+  now_value=$((10#${now}))
+
+  # A future timestamp indicates clock skew or a malformed marker. Retrying is
+  # safer than allowing it to create another unbounded suppression window.
+  (( failed_at_value <= now_value )) || return 1
+  age=$((now_value - failed_at_value))
+  (( age < FAILED_REVISION_RETRY_SECONDS )) || return 1
+  printf '%s\n' "$((FAILED_REVISION_RETRY_SECONDS - age))"
 }
 
 reconcile_active_slot() {
@@ -2133,6 +2173,7 @@ fail_deployment() {
   local previous_fallback_sha="$7"
   local candidate_service="$8"
   local failed_marker="$9"
+  local failed_at
   local rollback_fallback_service=""
   local rollback_fallback_sha=""
 
@@ -2146,7 +2187,9 @@ fail_deployment() {
 
   log "ERROR: ${reason}"
   if [[ "${SWAP_ATTEMPTED}" == "true" ]]; then
-    if ! printf '%s' "${target_sha}" > "${failed_marker}"; then
+    failed_at="$(date +%s 2>/dev/null || true)"
+    if [[ ! "${failed_at}" =~ ^[0-9]{1,12}$ ]] ||
+       ! printf '%s %s\n' "${target_sha}" "${failed_at}" > "${failed_marker}"; then
       log "WARNING: Could not record failed revision ${target_sha:0:12}; rollback will continue."
     fi
   fi
@@ -2268,6 +2311,7 @@ main() {
   local PREVIOUS_FALLBACK_SERVICE PREVIOUS_FALLBACK_SHA
   local CANDIDATE_SERVICE CANDIDATE_IMAGE
   local CUTOVER_FALLBACK_SERVICE CUTOVER_FALLBACK_SHA
+  local FAILED_RETRY_REMAINING
   local FAILED_MARKER=".git/deploy-failed-sha"
   CURRENT_HEAD="$(git rev-parse HEAD)"
   REPOSITORY=""
@@ -2311,16 +2355,22 @@ main() {
       exit 0
     fi
 
-    # A commit that already failed health checks and was rolled back is not
-    # retried on every timer tick — push a fix (or run --force) to clear it.
+    # A commit that failed after candidate replacement began remains excluded
+    # from routing, but is retried after a bounded cooldown. This prevents a
+    # transient startup failure from suppressing the same SHA forever while
+    # avoiding candidate churn on every 15-minute timer tick.
     if [[ "${FORCE}" != "true" &&
-          -f "${FAILED_MARKER}" &&
-          "$(cat "${FAILED_MARKER}")" == "${TARGET}" ]]; then
+          -f "${FAILED_MARKER}" ]] &&
+       revision_is_marked_failed "${TARGET}"; then
       if slot_serves_revision "${ACTIVE_SERVICE}" "${TARGET}" &&
          proxy_serves_revision "${TARGET}"; then
         log "The previously failed target ${TARGET:0:12} is unexpectedly active; rebuilding it instead of suppressing recovery."
+      elif FAILED_RETRY_REMAINING="$(
+        failed_revision_retry_remaining "${FAILED_MARKER}" "${TARGET}"
+      )"; then
+        die "Target ${TARGET:0:12} is in a failed-revision retry cooldown; automatic retry is due in ${FAILED_RETRY_REMAINING}s (or run deploy.sh --force)."
       else
-        die "Target ${TARGET:0:12} failed health checks on a previous run and remains undeployed. Push a fix or run deploy.sh --force."
+        log "Retry window is open for previously failed target ${TARGET:0:12}; the active release remains available during this attempt."
       fi
     fi
 

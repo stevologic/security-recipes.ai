@@ -49,6 +49,14 @@ class MCPImageContractTests(unittest.TestCase):
             with self.subTest(marker=marker):
                 self.assertIn(marker.replace('"', '\\"'), healthcheck)
 
+    def test_container_healthcheck_reports_readiness_within_deploy_window(self) -> None:
+        healthcheck = self.dockerfile.split("HEALTHCHECK", maxsplit=1)[1]
+
+        self.assertIn("--interval=10s", healthcheck)
+        self.assertIn("--timeout=8s", healthcheck)
+        self.assertIn("--start-period=30s", healthcheck)
+        self.assertIn("--retries=20", healthcheck)
+
     def test_production_image_requires_the_manifest_pinned_search_database(self) -> None:
         self.assertIn(
             "RECIPES_MCP_CVE_SEARCH_DB_PATH=/app/runtime/cve-search.sqlite3",

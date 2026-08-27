@@ -6,6 +6,7 @@ import shutil
 import stat
 import subprocess
 import tempfile
+import time
 import unittest
 from pathlib import Path
 
@@ -76,6 +77,11 @@ class DeployScriptStaticTests(unittest.TestCase):
         self.assertIn('--data-urlencode "head_sha=${sha}"', source)
         self.assertIn('--data-urlencode "event=${event}"', source)
         self.assertIn('REQUIRED_WORKFLOWS="${DEPLOY_REQUIRED_WORKFLOWS:-Build}"', source)
+        self.assertIn('HEALTH_TIMEOUT="${DEPLOY_HEALTH_TIMEOUT:-180}"', source)
+        self.assertIn(
+            'FAILED_REVISION_RETRY_SECONDS="${DEPLOY_FAILED_REVISION_RETRY_SECONDS:-900}"',
+            source,
+        )
         self.assertIn('DEVELOPMENT_BRANCH="${DEPLOY_DEVELOPMENT_BRANCH-development}"', source)
         self.assertIn('DEVELOPMENT_IMAGE_SUFFIX="${DEPLOY_DEVELOPMENT_IMAGE_SUFFIX--development}"', source)
         self.assertIn('--data-urlencode "branch=${branch}"', source)
@@ -1865,15 +1871,46 @@ exit 0
         )
         self.assert_no_outage()
 
-    def test_previously_failed_target_remains_a_visible_service_failure(self) -> None:
-        (self.repo / ".git" / "deploy-failed-sha").write_text("b" * 40)
+    def test_recently_failed_target_honors_retry_cooldown(self) -> None:
+        marker = self.repo / ".git" / "deploy-failed-sha"
+        marker.write_text(
+            f"{'b' * 40} {int(time.time())}\n", encoding="utf-8"
+        )
+
+        result = self.run_deploy(
+            DEPLOY_FAILED_REVISION_RETRY_SECONDS="3600"
+        )
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("failed-revision retry cooldown", result.stdout)
+        self.assertIn("automatic retry is due", result.stdout)
+        self.assertFalse(any("/actions/runs" in command for command in self.commands()))
+        self.assertFalse(any("compose build" in command for command in self.commands()))
+        self.assertTrue(marker.exists())
+        self.assert_no_outage()
+
+    def test_failed_target_retries_automatically_after_cooldown(self) -> None:
+        marker = self.repo / ".git" / "deploy-failed-sha"
+        marker.write_text(f"{'b' * 40} 0\n", encoding="utf-8")
+        self.workflow_response()
 
         result = self.run_deploy()
 
-        self.assertNotEqual(result.returncode, 0)
-        self.assertIn("remains undeployed", result.stdout)
-        self.assertFalse(any("/actions/runs" in command for command in self.commands()))
-        self.assertFalse(any("compose build" in command for command in self.commands()))
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("Retry window is open", result.stdout)
+        self.assertFalse(marker.exists())
+        self.assert_no_outage()
+
+    def test_legacy_failed_sha_marker_gets_one_automatic_retry(self) -> None:
+        marker = self.repo / ".git" / "deploy-failed-sha"
+        marker.write_text("b" * 40, encoding="utf-8")
+        self.workflow_response()
+
+        result = self.run_deploy()
+
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("Retry window is open", result.stdout)
+        self.assertFalse(marker.exists())
         self.assert_no_outage()
 
     def test_low_disk_cleanup_preserves_slots_and_stops_before_build(self) -> None:
@@ -2401,6 +2438,11 @@ printf 'fake 10000000 9999000 %s 99%% /\n' "${FAKE_FREE_KB:-1024}"
                 for command in self.commands()
             )
         )
+        failed_marker_fields = (
+            self.repo / ".git" / "deploy-failed-sha"
+        ).read_text(encoding="utf-8").split()
+        self.assertEqual(failed_marker_fields[0], "b" * 40)
+        self.assertRegex(failed_marker_fields[1], r"^[0-9]{10,12}$")
         self.assert_no_outage()
 
     def test_candidate_cve_requires_the_exact_canonical_url(self) -> None:
