@@ -3,7 +3,7 @@ title: MCP and Agentic Skills Risk Coverage
 linkTitle: MCP Risk Coverage
 weight: 18
 date: 2026-05-04
-lastmod: 2026-08-21
+lastmod: 2026-08-27
 toc: true
 description: >
   Map OWASP MCP Top 10 and Agentic Skills Top 10 risks to SecurityRecipes
@@ -34,18 +34,21 @@ The **MCP and Agentic Skills Risk Coverage Pack** maps those two layers
 to existing SecurityRecipes artifacts. It is designed for platform teams,
 procurement reviewers, GRC, reviewers, and reviewers who need to know
 whether the project tracks the newest risks without reading the whole
-site. Rechecked August 23, 2026: MCP
+site. Rechecked August 27, 2026: MCP
 [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28)
 is still current and **stateless**. Servers **MUST** implement
-[`server/discover`](https://modelcontextprotocol.io/specification/2026-07-28/server/discover).
+[`server/discover`](https://modelcontextprotocol.io/specification/2026-07-28/server/discover)
+and **MUST NOT** treat possession of a state handle as authentication.
 OWASP [MCP Top 10](https://owasp.org/www-project-mcp-top-10/) remains
 **beta / v0.1** with IDs MCP01–MCP10:2025; the project is in Phase 3
 pilot testing, with the next planned release in October 2026. OWASP
 [Agentic Skills Top 10](https://owasp.org/www-project-agentic-skills-top-10/)
-remains a **public-review v1** draft. The generated pack still uses
-source-reference id `mcp-security-best-practices-2025` for the
-2025-06-18 prior revision. That is a pack source id, not a current-spec
-claim.
+is a **v1.0 (2026 Edition)** project in active development. AST05 is now
+**Untrusted External Instructions**; unsafe YAML/JSON loading is treated
+under AST04. The pack keeps source-reference id
+`mcp-security-best-practices-2025` as a labeled 2025-06-18 prior
+revision and uses `mcp-security-best-practices-2026-07-28` for current
+controls.
 
 ## Generated artifact
 
@@ -79,14 +82,15 @@ This pack makes that coverage explicit:
 
 | Risk surface | SecurityRecipes evidence |
 | --- | --- |
-| MCP token, scope, and authorization failures | MCP Authorization Conformance, Gateway Policy, Agent Identity Ledger, Entitlement Review |
+| MCP token, scope, and authorization failures | MCP Authorization Conformance, Gateway Policy, Elicitation Boundary, Agent Identity Ledger, Entitlement Review |
 | Tool poisoning and drift | MCP Tool Risk Contract, MCP Tool Surface Drift Sentinel, Connector Intake, Context Poisoning Guard |
 | Local server and command execution | MCP STDIO Launch Boundary, Agent Skill Supply Chain, Action Runtime Pack |
-| Shadow MCP servers | Connector Intake, Connector Trust, STDIO Launch Boundary, Agentic System BOM |
+| Shadow MCP servers | Connector Intake, Connector Trust, STDIO Launch Boundary, SOC Detection Pack, Agentic System BOM |
 | Context injection and over-sharing | Secure Context Trust Pack, Context Poisoning Guard, Context Egress Boundary, Memory Boundary, Handoff Boundary |
 | Malicious or over-privileged skills | Agent Skill Supply Chain, Gateway Policy, Identity Ledger, Entitlement Review, Action Runtime Pack |
+| Untrusted external skill instructions | Agent Skill Supply Chain, Context Poisoning Guard, Secure Context Trust Pack, Measurement Probes, Red-Team Drills |
 | Skill isolation, scanning, and update drift | Browser Agent Boundary, Measurement Probes, Red-Team Drills, Tool Surface Drift |
-| Governance and trust review evidence | Enterprise Trust Center Export, Agentic System BOM, Telemetry Contract, Run Receipts |
+| Governance and trust review evidence | Enterprise Trust Center Export, Agentic System BOM, Telemetry Contract, SOC Detection Pack, Run Receipts |
 
 ## MCP examples
 
@@ -162,6 +166,8 @@ Review and regenerate the pack when these sources change:
 - [Agentic Standards Crosswalk]({{< relref "/security-remediation/agentic-standards-crosswalk" >}})
 - [Enterprise Trust Center Export]({{< relref "/security-remediation/enterprise-trust-center-export" >}})
 - [MCP Authorization Conformance]({{< relref "/security-remediation/mcp-authorization-conformance" >}})
+- [MCP Elicitation Boundary]({{< relref "/security-remediation/mcp-elicitation-boundary" >}})
 - [MCP Tool Surface Drift Sentinel]({{< relref "/security-remediation/mcp-tool-surface-drift-sentinel" >}})
+- [Agentic SOC Detection Pack]({{< relref "/security-remediation/agentic-soc-detection-pack" >}})
 - [Agent Skill Supply Chain]({{< relref "/security-remediation/agent-skill-supply-chain" >}})
 - [Agentic Action Runtime Pack]({{< relref "/security-remediation/agentic-action-runtime" >}})

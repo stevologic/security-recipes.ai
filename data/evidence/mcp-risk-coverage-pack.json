@@ -9,7 +9,7 @@
       ],
       "standards": [
         {
-          "capability_count": 23,
+          "capability_count": 25,
           "coverage_score": 100.0,
           "id": "owasp-mcp-top-10-2025",
           "mcp_tools": [
@@ -23,6 +23,7 @@
             "recipes_agentic_measurement_probe_pack",
             "recipes_agentic_red_team_drill_pack",
             "recipes_agentic_run_receipt_pack",
+            "recipes_agentic_soc_detection_pack",
             "recipes_agentic_system_bom",
             "recipes_agentic_telemetry_contract",
             "recipes_context_egress_boundary_pack",
@@ -31,6 +32,7 @@
             "recipes_mcp_authorization_conformance_pack",
             "recipes_mcp_connector_intake_pack",
             "recipes_mcp_connector_trust_pack",
+            "recipes_mcp_elicitation_boundary_pack",
             "recipes_mcp_gateway_policy",
             "recipes_mcp_stdio_launch_boundary_pack",
             "recipes_mcp_tool_risk_contract",
@@ -52,6 +54,7 @@
           ],
           "source_ids": [
             "owasp-mcp-top-10-2025",
+            "mcp-security-best-practices-2026-07-28",
             "mcp-security-best-practices-2025"
           ],
           "sources": [
@@ -64,8 +67,16 @@
               "url": "https://owasp.org/www-project-mcp-top-10/"
             },
             {
+              "id": "mcp-security-best-practices-2026-07-28",
+              "name": "Model Context Protocol Security Best Practices (2026-07-28 current revision)",
+              "published": "2026-07-28",
+              "publisher": "Model Context Protocol",
+              "source_class": "protocol_guidance",
+              "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices"
+            },
+            {
               "id": "mcp-security-best-practices-2025",
-              "name": "Model Context Protocol Security Best Practices",
+              "name": "Model Context Protocol Security Best Practices (2025-06-18 prior revision)",
               "published": "2025-06-18",
               "publisher": "Model Context Protocol",
               "source_class": "protocol_guidance",
@@ -87,7 +98,7 @@
       ],
       "standards": [
         {
-          "capability_count": 20,
+          "capability_count": 21,
           "coverage_score": 100.0,
           "id": "owasp-agentic-skills-top-10-2026",
           "mcp_tools": [
@@ -110,7 +121,8 @@
             "recipes_mcp_gateway_policy",
             "recipes_mcp_stdio_launch_boundary_pack",
             "recipes_mcp_tool_risk_contract",
-            "recipes_mcp_tool_surface_drift_pack"
+            "recipes_mcp_tool_surface_drift_pack",
+            "recipes_secure_context_trust_pack"
           ],
           "risk_count": 10,
           "risk_ids": [
@@ -172,7 +184,7 @@
       ],
       "standards": [
         {
-          "capability_count": 23,
+          "capability_count": 25,
           "coverage_score": 100.0,
           "id": "owasp-mcp-top-10-2025",
           "mcp_tools": [
@@ -186,6 +198,7 @@
             "recipes_agentic_measurement_probe_pack",
             "recipes_agentic_red_team_drill_pack",
             "recipes_agentic_run_receipt_pack",
+            "recipes_agentic_soc_detection_pack",
             "recipes_agentic_system_bom",
             "recipes_agentic_telemetry_contract",
             "recipes_context_egress_boundary_pack",
@@ -194,6 +207,7 @@
             "recipes_mcp_authorization_conformance_pack",
             "recipes_mcp_connector_intake_pack",
             "recipes_mcp_connector_trust_pack",
+            "recipes_mcp_elicitation_boundary_pack",
             "recipes_mcp_gateway_policy",
             "recipes_mcp_stdio_launch_boundary_pack",
             "recipes_mcp_tool_risk_contract",
@@ -215,6 +229,7 @@
           ],
           "source_ids": [
             "owasp-mcp-top-10-2025",
+            "mcp-security-best-practices-2026-07-28",
             "mcp-security-best-practices-2025"
           ],
           "sources": [
@@ -227,8 +242,16 @@
               "url": "https://owasp.org/www-project-mcp-top-10/"
             },
             {
+              "id": "mcp-security-best-practices-2026-07-28",
+              "name": "Model Context Protocol Security Best Practices (2026-07-28 current revision)",
+              "published": "2026-07-28",
+              "publisher": "Model Context Protocol",
+              "source_class": "protocol_guidance",
+              "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices"
+            },
+            {
               "id": "mcp-security-best-practices-2025",
-              "name": "Model Context Protocol Security Best Practices",
+              "name": "Model Context Protocol Security Best Practices (2025-06-18 prior revision)",
               "published": "2025-06-18",
               "publisher": "Model Context Protocol",
               "source_class": "protocol_guidance",
@@ -239,7 +262,7 @@
           "title": "OWASP MCP Top 10 Coverage"
         },
         {
-          "capability_count": 20,
+          "capability_count": 21,
           "coverage_score": 100.0,
           "id": "owasp-agentic-skills-top-10-2026",
           "mcp_tools": [
@@ -262,7 +285,8 @@
             "recipes_mcp_gateway_policy",
             "recipes_mcp_stdio_launch_boundary_pack",
             "recipes_mcp_tool_risk_contract",
-            "recipes_mcp_tool_surface_drift_pack"
+            "recipes_mcp_tool_surface_drift_pack",
+            "recipes_secure_context_trust_pack"
           ],
           "risk_count": 10,
           "risk_ids": [
@@ -427,7 +451,7 @@
         "title": "Agentic Action Runtime Pack"
       },
       "capability_id": "agentic-action-runtime-pack",
-      "risk_count": 8,
+      "risk_count": 7,
       "risk_ids": [
         "MCP01",
         "MCP02",
@@ -435,7 +459,6 @@
         "MCP06",
         "AST01",
         "AST03",
-        "AST05",
         "AST06"
       ],
       "standard_count": 2,
@@ -501,12 +524,13 @@
         "title": "Agentic Measurement Probe Pack"
       },
       "capability_id": "agentic-measurement-probe-pack",
-      "risk_count": 7,
+      "risk_count": 8,
       "risk_ids": [
         "MCP06",
         "MCP08",
         "MCP09",
         "AST02",
+        "AST05",
         "AST07",
         "AST08",
         "AST10"
@@ -560,6 +584,28 @@
         "AST09"
       ],
       "standard_count": 2,
+      "status": "mapped"
+    },
+    {
+      "capability": {
+        "commercial_value": "SIEM-ready detections for token passthrough, state-handle hijacking, unregistered server/discover traffic, and elicitation abuse turn MCP coverage into operational SOC signal.",
+        "evidence_paths": [
+          "data/evidence/agentic-soc-detection-pack.json"
+        ],
+        "id": "agentic-soc-detection-pack",
+        "mcp_tools": [
+          "recipes_agentic_soc_detection_pack"
+        ],
+        "status": "implemented",
+        "title": "Agentic SOC Detection Pack"
+      },
+      "capability_id": "agentic-soc-detection-pack",
+      "risk_count": 2,
+      "risk_ids": [
+        "MCP08",
+        "MCP09"
+      ],
+      "standard_count": 1,
       "status": "mapped"
     },
     {
@@ -669,12 +715,13 @@
         "title": "Context Poisoning Guard Pack"
       },
       "capability_id": "context-poisoning-guard-pack",
-      "risk_count": 5,
+      "risk_count": 6,
       "risk_ids": [
         "MCP03",
         "MCP06",
         "MCP10",
         "AST04",
+        "AST05",
         "AST08"
       ],
       "standard_count": 2,
@@ -775,6 +822,28 @@
     },
     {
       "capability": {
+        "commercial_value": "Hosted elicitation gates stop form-mode secret collection, URL-mode phishing, and requestState replay before user data or third-party authorization enters the agent workflow.",
+        "evidence_paths": [
+          "data/evidence/mcp-elicitation-boundary-pack.json"
+        ],
+        "id": "mcp-elicitation-boundary-pack",
+        "mcp_tools": [
+          "recipes_mcp_elicitation_boundary_pack"
+        ],
+        "status": "implemented",
+        "title": "MCP Elicitation Boundary Pack"
+      },
+      "capability_id": "mcp-elicitation-boundary-pack",
+      "risk_count": 2,
+      "risk_ids": [
+        "MCP01",
+        "MCP07"
+      ],
+      "standard_count": 1,
+      "status": "mapped"
+    },
+    {
+      "capability": {
         "commercial_value": "Default-deny gateway decisions are the natural hosted enforcement point between agents and enterprise tools.",
         "evidence_paths": [
           "data/policy/mcp-gateway-policy.json"
@@ -811,13 +880,12 @@
         "title": "MCP STDIO Launch Boundary Pack"
       },
       "capability_id": "mcp-stdio-launch-boundary-pack",
-      "risk_count": 6,
+      "risk_count": 5,
       "risk_ids": [
         "MCP04",
         "MCP05",
         "MCP09",
         "AST01",
-        "AST05",
         "AST06"
       ],
       "standard_count": 2,
@@ -884,12 +952,13 @@
         "title": "Secure Context Trust Pack"
       },
       "capability_id": "secure-context-trust-pack",
-      "risk_count": 2,
+      "risk_count": 3,
       "risk_ids": [
         "MCP06",
-        "MCP10"
+        "MCP10",
+        "AST05"
       ],
-      "standard_count": 1,
+      "standard_count": 2,
       "status": "mapped"
     }
   ],
@@ -919,11 +988,13 @@
       "mcp-connector-intake-pack",
       "mcp-connector-trust-pack",
       "mcp-stdio-launch-boundary-pack",
+      "mcp-elicitation-boundary-pack",
       "agent-skill-supply-chain-pack",
       "agent-identity-ledger",
       "agentic-entitlement-review-pack",
       "agentic-run-receipt-pack",
       "agentic-telemetry-contract",
+      "agentic-soc-detection-pack",
       "agentic-incident-response-pack",
       "context-poisoning-guard-pack",
       "context-egress-boundary-pack",
@@ -945,14 +1016,14 @@
     "sales_motion": "Lead with open MCP and skill risk coverage, then sell hosted connector drift monitoring, skill scanning, policy enforcement, run receipts, and trust-center exports."
   },
   "failures": [],
-  "generated_at": "2026-05-04",
+  "generated_at": "2026-08-27",
   "intent": "Define the SecurityRecipes MCP and agentic-skill risk coverage profile: a machine-readable map from the current OWASP MCP Top 10 beta and OWASP Agentic Skills Top 10 into SecurityRecipes secure-context, MCP authorization, connector trust, agent skill, telemetry, incident response, and runtime action evidence.",
   "mcp_risk_coverage_pack_id": "security-recipes.mcp-and-agentic-skill-risk-coverage.v1",
   "positioning": {
     "buyer": "AI Platform, Product Security, AppSec, Security Engineering, GRC, procurement security, model-risk, agent-host, and acquisition diligence teams",
     "category": "MCP and agentic-skill risk coverage for the secure context layer",
     "enterprise_promise": "SecurityRecipes can show, in one generated packet, how the most current MCP and agent-skill risk language maps to concrete controls, evidence paths, MCP tools, and hosted product wedges.",
-    "why_now": "MCP has become the default integration surface for tool-using agents, while skills, rules files, hooks, and agent extensions are becoming the execution layer that tells agents how to combine those tools. Buyers now need coverage across both layers: protocol/tool security and behavior-package security."
+    "why_now": "MCP 2026-07-28 made the protocol stateless and required server/discover, while OWASP Agentic Skills Top 10 now treats untrusted external instructions as a first-class skill risk. Buyers need coverage across protocol/tool security and behavior-package security, including state-handle binding and referenced-document integrity."
   },
   "residual_risks": [
     {
@@ -996,6 +1067,18 @@
           "title": "Context Egress Boundary Pack"
         },
         {
+          "commercial_value": "Hosted elicitation gates stop form-mode secret collection, URL-mode phishing, and requestState replay before user data or third-party authorization enters the agent workflow.",
+          "evidence_paths": [
+            "data/evidence/mcp-elicitation-boundary-pack.json"
+          ],
+          "id": "mcp-elicitation-boundary-pack",
+          "mcp_tools": [
+            "recipes_mcp_elicitation_boundary_pack"
+          ],
+          "status": "implemented",
+          "title": "MCP Elicitation Boundary Pack"
+        },
+        {
           "commercial_value": "OpenTelemetry-shaped agent evidence with redaction controls is a credible SIEM and observability integration path.",
           "evidence_paths": [
             "data/evidence/agentic-telemetry-contract.json"
@@ -1023,30 +1106,34 @@
       "commercialization_hook": "Hosted token-passthrough detection, trace redaction validation, and signed action receipts.",
       "coverage_status": "covered",
       "diligence_question": "What prevents MCP tokens and secrets from being forwarded, logged, stored in memory, or returned to the model?",
-      "evidence_expectation": "Authorization, egress, telemetry, and action-runtime evidence shows token audience checks, token-passthrough denial, redaction, secret kill signals, and receipt linkage.",
+      "evidence_expectation": "Authorization, egress, elicitation, telemetry, and action-runtime evidence shows token audience checks, token-passthrough denial, form-mode secret denial, redaction, secret kill signals, and receipt linkage.",
       "evidence_paths": [
         "data/evidence/agentic-action-runtime-pack.json",
         "data/evidence/agentic-telemetry-contract.json",
         "data/evidence/context-egress-boundary-pack.json",
-        "data/evidence/mcp-authorization-conformance-pack.json"
+        "data/evidence/mcp-authorization-conformance-pack.json",
+        "data/evidence/mcp-elicitation-boundary-pack.json"
       ],
       "id": "MCP01",
       "mcp_tools": [
         "recipes_agentic_action_runtime_pack",
         "recipes_agentic_telemetry_contract",
         "recipes_context_egress_boundary_pack",
-        "recipes_mcp_authorization_conformance_pack"
+        "recipes_mcp_authorization_conformance_pack",
+        "recipes_mcp_elicitation_boundary_pack"
       ],
       "primary_attack_path": "Secrets, long-lived tokens, or credentials are exposed through prompts, tool outputs, memory, logs, or token passthrough.",
       "required_capability_ids": [
         "mcp-authorization-conformance",
         "context-egress-boundary-pack",
+        "mcp-elicitation-boundary-pack",
         "agentic-telemetry-contract",
         "agentic-action-runtime-pack"
       ],
       "risk_tier": "critical",
       "source_ids": [
         "owasp-mcp-top-10-2025",
+        "mcp-security-best-practices-2026-07-28",
         "mcp-security-best-practices-2025"
       ],
       "sources": [
@@ -1059,8 +1146,16 @@
           "url": "https://owasp.org/www-project-mcp-top-10/"
         },
         {
+          "id": "mcp-security-best-practices-2026-07-28",
+          "name": "Model Context Protocol Security Best Practices (2026-07-28 current revision)",
+          "published": "2026-07-28",
+          "publisher": "Model Context Protocol",
+          "source_class": "protocol_guidance",
+          "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices"
+        },
+        {
           "id": "mcp-security-best-practices-2025",
-          "name": "Model Context Protocol Security Best Practices",
+          "name": "Model Context Protocol Security Best Practices (2025-06-18 prior revision)",
           "published": "2025-06-18",
           "publisher": "Model Context Protocol",
           "source_class": "protocol_guidance",
@@ -1164,6 +1259,7 @@
       "risk_tier": "high",
       "source_ids": [
         "owasp-mcp-top-10-2025",
+        "mcp-security-best-practices-2026-07-28",
         "mcp-security-best-practices-2025"
       ],
       "sources": [
@@ -1176,8 +1272,16 @@
           "url": "https://owasp.org/www-project-mcp-top-10/"
         },
         {
+          "id": "mcp-security-best-practices-2026-07-28",
+          "name": "Model Context Protocol Security Best Practices (2026-07-28 current revision)",
+          "published": "2026-07-28",
+          "publisher": "Model Context Protocol",
+          "source_class": "protocol_guidance",
+          "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices"
+        },
+        {
           "id": "mcp-security-best-practices-2025",
-          "name": "Model Context Protocol Security Best Practices",
+          "name": "Model Context Protocol Security Best Practices (2025-06-18 prior revision)",
           "published": "2025-06-18",
           "publisher": "Model Context Protocol",
           "source_class": "protocol_guidance",
@@ -1281,6 +1385,7 @@
       "risk_tier": "critical",
       "source_ids": [
         "owasp-mcp-top-10-2025",
+        "mcp-security-best-practices-2026-07-28",
         "mcp-security-best-practices-2025"
       ],
       "sources": [
@@ -1293,8 +1398,16 @@
           "url": "https://owasp.org/www-project-mcp-top-10/"
         },
         {
+          "id": "mcp-security-best-practices-2026-07-28",
+          "name": "Model Context Protocol Security Best Practices (2026-07-28 current revision)",
+          "published": "2026-07-28",
+          "publisher": "Model Context Protocol",
+          "source_class": "protocol_guidance",
+          "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices"
+        },
+        {
           "id": "mcp-security-best-practices-2025",
-          "name": "Model Context Protocol Security Best Practices",
+          "name": "Model Context Protocol Security Best Practices (2025-06-18 prior revision)",
           "published": "2025-06-18",
           "publisher": "Model Context Protocol",
           "source_class": "protocol_guidance",
@@ -1398,6 +1511,7 @@
       "risk_tier": "critical",
       "source_ids": [
         "owasp-mcp-top-10-2025",
+        "mcp-security-best-practices-2026-07-28",
         "mcp-security-best-practices-2025"
       ],
       "sources": [
@@ -1410,8 +1524,16 @@
           "url": "https://owasp.org/www-project-mcp-top-10/"
         },
         {
+          "id": "mcp-security-best-practices-2026-07-28",
+          "name": "Model Context Protocol Security Best Practices (2026-07-28 current revision)",
+          "published": "2026-07-28",
+          "publisher": "Model Context Protocol",
+          "source_class": "protocol_guidance",
+          "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices"
+        },
+        {
           "id": "mcp-security-best-practices-2025",
-          "name": "Model Context Protocol Security Best Practices",
+          "name": "Model Context Protocol Security Best Practices (2025-06-18 prior revision)",
           "published": "2025-06-18",
           "publisher": "Model Context Protocol",
           "source_class": "protocol_guidance",
@@ -1515,6 +1637,7 @@
       "risk_tier": "critical",
       "source_ids": [
         "owasp-mcp-top-10-2025",
+        "mcp-security-best-practices-2026-07-28",
         "mcp-security-best-practices-2025"
       ],
       "sources": [
@@ -1527,8 +1650,16 @@
           "url": "https://owasp.org/www-project-mcp-top-10/"
         },
         {
+          "id": "mcp-security-best-practices-2026-07-28",
+          "name": "Model Context Protocol Security Best Practices (2026-07-28 current revision)",
+          "published": "2026-07-28",
+          "publisher": "Model Context Protocol",
+          "source_class": "protocol_guidance",
+          "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices"
+        },
+        {
           "id": "mcp-security-best-practices-2025",
-          "name": "Model Context Protocol Security Best Practices",
+          "name": "Model Context Protocol Security Best Practices (2025-06-18 prior revision)",
           "published": "2025-06-18",
           "publisher": "Model Context Protocol",
           "source_class": "protocol_guidance",
@@ -1632,6 +1763,7 @@
       "risk_tier": "high",
       "source_ids": [
         "owasp-mcp-top-10-2025",
+        "mcp-security-best-practices-2026-07-28",
         "mcp-security-best-practices-2025"
       ],
       "sources": [
@@ -1644,8 +1776,16 @@
           "url": "https://owasp.org/www-project-mcp-top-10/"
         },
         {
+          "id": "mcp-security-best-practices-2026-07-28",
+          "name": "Model Context Protocol Security Best Practices (2026-07-28 current revision)",
+          "published": "2026-07-28",
+          "publisher": "Model Context Protocol",
+          "source_class": "protocol_guidance",
+          "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices"
+        },
+        {
           "id": "mcp-security-best-practices-2025",
-          "name": "Model Context Protocol Security Best Practices",
+          "name": "Model Context Protocol Security Best Practices (2025-06-18 prior revision)",
           "published": "2025-06-18",
           "publisher": "Model Context Protocol",
           "source_class": "protocol_guidance",
@@ -1681,6 +1821,18 @@
           ],
           "status": "implemented",
           "title": "MCP Gateway Policy"
+        },
+        {
+          "commercial_value": "Hosted elicitation gates stop form-mode secret collection, URL-mode phishing, and requestState replay before user data or third-party authorization enters the agent workflow.",
+          "evidence_paths": [
+            "data/evidence/mcp-elicitation-boundary-pack.json"
+          ],
+          "id": "mcp-elicitation-boundary-pack",
+          "mcp_tools": [
+            "recipes_mcp_elicitation_boundary_pack"
+          ],
+          "status": "implemented",
+          "title": "MCP Elicitation Boundary Pack"
         },
         {
           "commercial_value": "Non-human identity contracts make agent authority reviewable, revocable, and ready for customer IAM integration.",
@@ -1721,13 +1873,14 @@
       ],
       "commercialization_hook": "Hosted MCP policy decision point with customer IAM and trace adapters.",
       "coverage_status": "covered",
-      "diligence_question": "Can the platform prove every MCP call is bound to a resource, token audience, workflow, identity, and receipt?",
-      "evidence_expectation": "Authorization, gateway, identity, entitlement, and receipt evidence exposes resource indicators, audience validation, session binding, allowed scopes, and correlation IDs.",
+      "diligence_question": "Can the platform prove every MCP call is bound to a resource, token audience, workflow, identity, state handle, and receipt?",
+      "evidence_expectation": "Authorization, gateway, elicitation, identity, entitlement, and receipt evidence exposes resource indicators, audience validation, request-bound identity, state-handle-to-principal binding, allowed scopes, and correlation IDs.",
       "evidence_paths": [
         "data/evidence/agent-identity-delegation-ledger.json",
         "data/evidence/agentic-entitlement-review-pack.json",
         "data/evidence/agentic-run-receipt-pack.json",
         "data/evidence/mcp-authorization-conformance-pack.json",
+        "data/evidence/mcp-elicitation-boundary-pack.json",
         "data/policy/mcp-gateway-policy.json"
       ],
       "id": "MCP07",
@@ -1736,12 +1889,14 @@
         "recipes_agentic_entitlement_review_pack",
         "recipes_agentic_run_receipt_pack",
         "recipes_mcp_authorization_conformance_pack",
+        "recipes_mcp_elicitation_boundary_pack",
         "recipes_mcp_gateway_policy"
       ],
-      "primary_attack_path": "MCP servers or tools fail to verify resource, audience, user, session, connector, or workflow authority.",
+      "primary_attack_path": "MCP servers or tools fail to verify resource, audience, user, request-bound identity, state-handle ownership, connector, or workflow authority.",
       "required_capability_ids": [
         "mcp-authorization-conformance",
         "mcp-gateway-policy",
+        "mcp-elicitation-boundary-pack",
         "agent-identity-ledger",
         "agentic-entitlement-review-pack",
         "agentic-run-receipt-pack"
@@ -1749,6 +1904,7 @@
       "risk_tier": "critical",
       "source_ids": [
         "owasp-mcp-top-10-2025",
+        "mcp-security-best-practices-2026-07-28",
         "mcp-security-best-practices-2025"
       ],
       "sources": [
@@ -1761,8 +1917,16 @@
           "url": "https://owasp.org/www-project-mcp-top-10/"
         },
         {
+          "id": "mcp-security-best-practices-2026-07-28",
+          "name": "Model Context Protocol Security Best Practices (2026-07-28 current revision)",
+          "published": "2026-07-28",
+          "publisher": "Model Context Protocol",
+          "source_class": "protocol_guidance",
+          "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices"
+        },
+        {
           "id": "mcp-security-best-practices-2025",
-          "name": "Model Context Protocol Security Best Practices",
+          "name": "Model Context Protocol Security Best Practices (2025-06-18 prior revision)",
           "published": "2025-06-18",
           "publisher": "Model Context Protocol",
           "source_class": "protocol_guidance",
@@ -1786,6 +1950,18 @@
           ],
           "status": "implemented",
           "title": "Agentic Telemetry Contract"
+        },
+        {
+          "commercial_value": "SIEM-ready detections for token passthrough, state-handle hijacking, unregistered server/discover traffic, and elicitation abuse turn MCP coverage into operational SOC signal.",
+          "evidence_paths": [
+            "data/evidence/agentic-soc-detection-pack.json"
+          ],
+          "id": "agentic-soc-detection-pack",
+          "mcp_tools": [
+            "recipes_agentic_soc_detection_pack"
+          ],
+          "status": "implemented",
+          "title": "Agentic SOC Detection Pack"
         },
         {
           "commercial_value": "Run receipts convert agent activity into portable evidence for auditors, incident response, and trust-center exports.",
@@ -1840,13 +2016,14 @@
       "commercialization_hook": "Hosted SIEM/SOAR export and agent run evidence retention.",
       "coverage_status": "covered",
       "diligence_question": "Which trace fields let a buyer reconstruct an agent, model, MCP, context, policy, egress, approval, and verifier path?",
-      "evidence_expectation": "Telemetry, receipt, incident, measurement, and trust-center evidence defines trace attributes, redaction state, incident classes, replay cases, and buyer export fields.",
+      "evidence_expectation": "Telemetry, SOC, receipt, incident, measurement, and trust-center evidence defines trace attributes, metadata-only detections, redaction state, incident classes, replay cases, and buyer export fields.",
       "evidence_paths": [
         "content/security-remediation/enterprise-trust-center-export/_index.md",
         "data/assurance/enterprise-trust-center-profile.json",
         "data/evidence/agentic-incident-response-pack.json",
         "data/evidence/agentic-measurement-probe-pack.json",
         "data/evidence/agentic-run-receipt-pack.json",
+        "data/evidence/agentic-soc-detection-pack.json",
         "data/evidence/agentic-telemetry-contract.json"
       ],
       "id": "MCP08",
@@ -1854,12 +2031,14 @@
         "recipes_agentic_incident_response_pack",
         "recipes_agentic_measurement_probe_pack",
         "recipes_agentic_run_receipt_pack",
+        "recipes_agentic_soc_detection_pack",
         "recipes_agentic_telemetry_contract",
         "recipes_enterprise_trust_center_export"
       ],
       "primary_attack_path": "Tool invocations, context changes, agent decisions, and egress events are not logged with enough structure for detection or response.",
       "required_capability_ids": [
         "agentic-telemetry-contract",
+        "agentic-soc-detection-pack",
         "agentic-run-receipt-pack",
         "agentic-incident-response-pack",
         "agentic-measurement-probe-pack",
@@ -1868,6 +2047,7 @@
       "risk_tier": "high",
       "source_ids": [
         "owasp-mcp-top-10-2025",
+        "mcp-security-best-practices-2026-07-28",
         "mcp-security-best-practices-2025"
       ],
       "sources": [
@@ -1880,8 +2060,16 @@
           "url": "https://owasp.org/www-project-mcp-top-10/"
         },
         {
+          "id": "mcp-security-best-practices-2026-07-28",
+          "name": "Model Context Protocol Security Best Practices (2026-07-28 current revision)",
+          "published": "2026-07-28",
+          "publisher": "Model Context Protocol",
+          "source_class": "protocol_guidance",
+          "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices"
+        },
+        {
           "id": "mcp-security-best-practices-2025",
-          "name": "Model Context Protocol Security Best Practices",
+          "name": "Model Context Protocol Security Best Practices (2025-06-18 prior revision)",
           "published": "2025-06-18",
           "publisher": "Model Context Protocol",
           "source_class": "protocol_guidance",
@@ -1931,6 +2119,18 @@
           "title": "MCP STDIO Launch Boundary Pack"
         },
         {
+          "commercial_value": "SIEM-ready detections for token passthrough, state-handle hijacking, unregistered server/discover traffic, and elicitation abuse turn MCP coverage into operational SOC signal.",
+          "evidence_paths": [
+            "data/evidence/agentic-soc-detection-pack.json"
+          ],
+          "id": "agentic-soc-detection-pack",
+          "mcp_tools": [
+            "recipes_agentic_soc_detection_pack"
+          ],
+          "status": "implemented",
+          "title": "Agentic SOC Detection Pack"
+        },
+        {
           "commercial_value": "The Agentic System BOM inventories tools, skills, identities, contexts, and evidence for procurement and incident response.",
           "evidence_paths": [
             "data/evidence/agentic-system-bom.json"
@@ -1957,10 +2157,11 @@
       ],
       "commercialization_hook": "Hosted shadow MCP discovery, promotion workflows, and fleet drift alerts.",
       "coverage_status": "covered",
-      "diligence_question": "What prevents unknown MCP servers from becoming part of production agent workflows?",
-      "evidence_expectation": "Intake, trust, launch, BOM, and measurement evidence covers admission decisions, registry state, launch profiles, component inventory, and drift probes.",
+      "diligence_question": "What prevents unknown MCP servers, including unregistered server/discover advertisers, from becoming part of production agent workflows?",
+      "evidence_expectation": "Intake, trust, launch, SOC, BOM, and measurement evidence covers admission decisions, registry state, launch profiles, unregistered server/discover detections, component inventory, and drift probes.",
       "evidence_paths": [
         "data/evidence/agentic-measurement-probe-pack.json",
+        "data/evidence/agentic-soc-detection-pack.json",
         "data/evidence/agentic-system-bom.json",
         "data/evidence/mcp-connector-intake-pack.json",
         "data/evidence/mcp-connector-trust-pack.json",
@@ -1969,22 +2170,25 @@
       "id": "MCP09",
       "mcp_tools": [
         "recipes_agentic_measurement_probe_pack",
+        "recipes_agentic_soc_detection_pack",
         "recipes_agentic_system_bom",
         "recipes_mcp_connector_intake_pack",
         "recipes_mcp_connector_trust_pack",
         "recipes_mcp_stdio_launch_boundary_pack"
       ],
-      "primary_attack_path": "Unapproved local, remote, or experimental MCP servers run outside inventory and governance.",
+      "primary_attack_path": "Unapproved local, remote, or experimental MCP servers run outside inventory and governance, including servers that never complete intake but advertise through server/discover.",
       "required_capability_ids": [
         "mcp-connector-intake-pack",
         "mcp-connector-trust-pack",
         "mcp-stdio-launch-boundary-pack",
+        "agentic-soc-detection-pack",
         "agentic-system-bom",
         "agentic-measurement-probe-pack"
       ],
       "risk_tier": "high",
       "source_ids": [
         "owasp-mcp-top-10-2025",
+        "mcp-security-best-practices-2026-07-28",
         "mcp-security-best-practices-2025"
       ],
       "sources": [
@@ -1997,8 +2201,16 @@
           "url": "https://owasp.org/www-project-mcp-top-10/"
         },
         {
+          "id": "mcp-security-best-practices-2026-07-28",
+          "name": "Model Context Protocol Security Best Practices (2026-07-28 current revision)",
+          "published": "2026-07-28",
+          "publisher": "Model Context Protocol",
+          "source_class": "protocol_guidance",
+          "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices"
+        },
+        {
           "id": "mcp-security-best-practices-2025",
-          "name": "Model Context Protocol Security Best Practices",
+          "name": "Model Context Protocol Security Best Practices (2025-06-18 prior revision)",
           "published": "2025-06-18",
           "publisher": "Model Context Protocol",
           "source_class": "protocol_guidance",
@@ -2102,6 +2314,7 @@
       "risk_tier": "critical",
       "source_ids": [
         "owasp-mcp-top-10-2025",
+        "mcp-security-best-practices-2026-07-28",
         "mcp-security-best-practices-2025"
       ],
       "sources": [
@@ -2114,8 +2327,16 @@
           "url": "https://owasp.org/www-project-mcp-top-10/"
         },
         {
+          "id": "mcp-security-best-practices-2026-07-28",
+          "name": "Model Context Protocol Security Best Practices (2026-07-28 current revision)",
+          "published": "2026-07-28",
+          "publisher": "Model Context Protocol",
+          "source_class": "protocol_guidance",
+          "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices"
+        },
+        {
           "id": "mcp-security-best-practices-2025",
-          "name": "Model Context Protocol Security Best Practices",
+          "name": "Model Context Protocol Security Best Practices (2025-06-18 prior revision)",
           "published": "2025-06-18",
           "publisher": "Model Context Protocol",
           "source_class": "protocol_guidance",
@@ -2558,7 +2779,7 @@
       "commercialization_hook": "Hosted manifest linting and semantic metadata review.",
       "coverage_status": "covered",
       "diligence_question": "How are manifests, metadata, descriptions, and tool annotations reviewed for deception and drift?",
-      "evidence_expectation": "Skill, tool-risk, tool-surface, and poisoning evidence records metadata checks, annotations, schema hashes, hidden instructions, and approval-bypass markers.",
+      "evidence_expectation": "Skill, tool-risk, tool-surface, and poisoning evidence records metadata checks, annotations, schema hashes, hidden instructions, unsafe YAML/JSON loaders, and approval-bypass markers.",
       "evidence_paths": [
         "data/evidence/agent-skill-supply-chain-pack.json",
         "data/evidence/context-poisoning-guard-pack.json",
@@ -2572,7 +2793,7 @@
         "recipes_mcp_tool_risk_contract",
         "recipes_mcp_tool_surface_drift_pack"
       ],
-      "primary_attack_path": "Skill metadata hides unsafe instructions, ambiguous permissions, misleading publishers, or unexpected tool requirements.",
+      "primary_attack_path": "Skill metadata hides unsafe instructions, ambiguous permissions, misleading publishers, unexpected tool requirements, or unsafely parsed YAML/JSON that executes during skill load.",
       "required_capability_ids": [
         "agent-skill-supply-chain-pack",
         "mcp-tool-risk-contract",
@@ -2630,28 +2851,40 @@
           "title": "Agent Skill Supply-Chain Pack"
         },
         {
-          "commercial_value": "Local server launch policy is a high-value endpoint and developer-workstation control for AI coding environments.",
+          "commercial_value": "Pre-retrieval poisoning scans are the practical bridge between prompt-injection guidance and MCP context delivery.",
           "evidence_paths": [
-            "data/evidence/mcp-stdio-launch-boundary-pack.json"
+            "data/evidence/context-poisoning-guard-pack.json"
           ],
-          "id": "mcp-stdio-launch-boundary-pack",
+          "id": "context-poisoning-guard-pack",
           "mcp_tools": [
-            "recipes_mcp_stdio_launch_boundary_pack"
+            "recipes_context_poisoning_guard_pack"
           ],
           "status": "implemented",
-          "title": "MCP STDIO Launch Boundary Pack"
+          "title": "Context Poisoning Guard Pack"
         },
         {
-          "commercial_value": "Action-runtime decisions are the commercial enforcement layer for high-impact agent side effects.",
+          "commercial_value": "Source hashes, trust tiers, and retrieval contracts form the defensible data moat for SecurityRecipes.",
           "evidence_paths": [
-            "data/evidence/agentic-action-runtime-pack.json"
+            "data/evidence/secure-context-trust-pack.json"
           ],
-          "id": "agentic-action-runtime-pack",
+          "id": "secure-context-trust-pack",
           "mcp_tools": [
-            "recipes_agentic_action_runtime_pack"
+            "recipes_secure_context_trust_pack"
           ],
           "status": "implemented",
-          "title": "Agentic Action Runtime Pack"
+          "title": "Secure Context Trust Pack"
+        },
+        {
+          "commercial_value": "Measurement probes make risk coverage observable by tying each mapped MCP and skill risk to replayable checks, trace fields, expected decisions, and drift-triggered evidence.",
+          "evidence_paths": [
+            "data/evidence/agentic-measurement-probe-pack.json"
+          ],
+          "id": "agentic-measurement-probe-pack",
+          "mcp_tools": [
+            "recipes_agentic_measurement_probe_pack"
+          ],
+          "status": "implemented",
+          "title": "Agentic Measurement Probe Pack"
         },
         {
           "commercial_value": "Replayable attack drills let the hosted product prove control behavior after model, connector, prompt, skill, or context drift.",
@@ -2666,28 +2899,31 @@
           "title": "Agentic Red-Team Drill Pack"
         }
       ],
-      "commercialization_hook": "Hosted skill import sandbox and behavioral replay before enablement.",
+      "commercialization_hook": "Hosted skill reference pinning, source allowlists, and continuous rescan of external instruction URLs.",
       "coverage_status": "covered",
-      "diligence_question": "What stops skill loading from becoming untrusted code execution?",
-      "evidence_expectation": "Skill, STDIO launch, action-runtime, and red-team evidence covers safe parser expectations, package launch holds, sandbox decisions, and attack replay.",
+      "diligence_question": "How are external documents a skill fetches pinned, hashed, allowlisted, and rescanned so they cannot become unreviewed instructions?",
+      "evidence_expectation": "Skill, poisoning, trust, measurement, and red-team evidence records referenced-source inventory, content hashes, instruction demotion, drift probes, and replay of rug-pull and bait-and-switch instruction fetches.",
       "evidence_paths": [
         "data/evidence/agent-skill-supply-chain-pack.json",
-        "data/evidence/agentic-action-runtime-pack.json",
+        "data/evidence/agentic-measurement-probe-pack.json",
         "data/evidence/agentic-red-team-drill-pack.json",
-        "data/evidence/mcp-stdio-launch-boundary-pack.json"
+        "data/evidence/context-poisoning-guard-pack.json",
+        "data/evidence/secure-context-trust-pack.json"
       ],
       "id": "AST05",
       "mcp_tools": [
         "recipes_agent_skill_supply_chain_pack",
-        "recipes_agentic_action_runtime_pack",
+        "recipes_agentic_measurement_probe_pack",
         "recipes_agentic_red_team_drill_pack",
-        "recipes_mcp_stdio_launch_boundary_pack"
+        "recipes_context_poisoning_guard_pack",
+        "recipes_secure_context_trust_pack"
       ],
-      "primary_attack_path": "Skill manifests, YAML, JSON, scripts, or extension packages are parsed unsafely and trigger code execution or policy bypass.",
+      "primary_attack_path": "A skill points the agent at a URL or remote file that is treated as trusted instructions at runtime, so attacker-controlled or post-review documentation can hijack the agent without changing the signed skill package.",
       "required_capability_ids": [
         "agent-skill-supply-chain-pack",
-        "mcp-stdio-launch-boundary-pack",
-        "agentic-action-runtime-pack",
+        "context-poisoning-guard-pack",
+        "secure-context-trust-pack",
+        "agentic-measurement-probe-pack",
         "agentic-red-team-drill-pack"
       ],
       "risk_tier": "high",
@@ -2724,7 +2960,7 @@
       ],
       "standard_id": "owasp-agentic-skills-top-10-2026",
       "standard_title": "OWASP Agentic Skills Top 10 Coverage",
-      "title": "Unsafe Deserialization"
+      "title": "Untrusted External Instructions"
     },
     {
       "capabilities": [
@@ -3330,12 +3566,12 @@
     }
   ],
   "risk_coverage_summary": {
-    "capability_count": 24,
+    "capability_count": 26,
     "covered_risk_count": 20,
     "critical_or_high_risk_count": 16,
-    "distinct_mcp_tool_count": 24,
+    "distinct_mcp_tool_count": 26,
     "failure_count": 0,
-    "mapped_capability_count": 24,
+    "mapped_capability_count": 26,
     "risk_count": 20,
     "risk_status_counts": {
       "covered": 20
@@ -3349,9 +3585,9 @@
       "government_framework": 1,
       "government_guidance": 1,
       "industry_standard": 2,
-      "protocol_guidance": 1
+      "protocol_guidance": 2
     },
-    "source_reference_count": 5,
+    "source_reference_count": 6,
     "standard_count": 2,
     "standard_status_counts": {
       "covered": 2
@@ -3371,7 +3607,7 @@
       },
       {
         "path": "data/evidence/agent-handoff-boundary-pack.json",
-        "sha256": "0724c63c8c47743b51db95b360b93ddab7ce820e38250baaa7823bd4e36981a2"
+        "sha256": "2378bcb396b9dcc11dbeca9e1d10a78c7ddc95394e0224e024e86d0f38054e82"
       },
       {
         "path": "data/evidence/agent-identity-delegation-ledger.json",
@@ -3383,23 +3619,23 @@
       },
       {
         "path": "data/evidence/agent-skill-supply-chain-pack.json",
-        "sha256": "e8647d238ec06fc270ec60321e356f6d49e1025f7698d6d39ff201aaac90a6a0"
+        "sha256": "e32d83f627f7a0dab1ffc3b0319018d788c8779453ef012b1b937389f5c0948d"
       },
       {
         "path": "data/evidence/agentic-action-runtime-pack.json",
-        "sha256": "b5c0cfefeaf8e35fab40b0fe4d063777f44b3729033af3dcfbfdf97157f8a5b4"
+        "sha256": "3ab254c42eeeb0e31e9b4c5f222894ad978d199d233b1d666f7bd91ecc47581e"
       },
       {
         "path": "data/evidence/agentic-entitlement-review-pack.json",
-        "sha256": "f1aecf825dfd926a158de11092c42f34d0310793fedf67420161c1e8a9465919"
+        "sha256": "1355487665ec18c078ef13446d0cac0601b1c718194d26cba6df88ecad2fd1ca"
       },
       {
         "path": "data/evidence/agentic-incident-response-pack.json",
-        "sha256": "ed05f6c58ade0b314d3d362accfb6ddd492fc2301c9f2442d8907c8f48a54960"
+        "sha256": "1d3b7f29ef04df6a8470954790c5d1905dad0d00b35c4db989acbf9663cefc8a"
       },
       {
         "path": "data/evidence/agentic-measurement-probe-pack.json",
-        "sha256": "53ec8a995675b4c7eb8f5c2dcdb203ab0a3e09cc17ec542a93128f401c1f6aee"
+        "sha256": "5a8d13ed526dde10456f9c57e7a593922e4ee439ffbaae4a5b89048e0bdd8771"
       },
       {
         "path": "data/evidence/agentic-red-team-drill-pack.json",
@@ -3407,7 +3643,11 @@
       },
       {
         "path": "data/evidence/agentic-run-receipt-pack.json",
-        "sha256": "db9ed9fe60e15de83a3bc6d250fae0c67d8280af522d552007c2c66f787bc566"
+        "sha256": "903d50202a0f4a91e3fa02c6b59741682e7653754231af1254a2de4d736408db"
+      },
+      {
+        "path": "data/evidence/agentic-soc-detection-pack.json",
+        "sha256": "1b3e1ad2bc7b97806d663714189378f3fb260596899361c10de9fbd88d702a3b"
       },
       {
         "path": "data/evidence/agentic-system-bom.json",
@@ -3415,19 +3655,19 @@
       },
       {
         "path": "data/evidence/agentic-telemetry-contract.json",
-        "sha256": "1b457de34b02016db9b434d92cf3c61da172d54b6692f775eecfbc3cc7cd5721"
+        "sha256": "46904e2e3218f42311ee6f2e01fd9e978f60a6b13214a720e2ebe7f9d00ddb2d"
       },
       {
         "path": "data/evidence/browser-agent-boundary-pack.json",
-        "sha256": "e6c7e431001efe578b7f54e9225aebaceb4ca6f75f3448155c2befae00b9b208"
+        "sha256": "b1a8b45d4956ef00905d8faf1b00fdd7e9c50981b28deea58f3b1fd0978f0ef1"
       },
       {
         "path": "data/evidence/context-egress-boundary-pack.json",
-        "sha256": "11a271691d117a7bbb40c0cf4a7481ba1f75c0648bf1f35dbb833fb075b90f5a"
+        "sha256": "6f7301b6a215604b28660966e3a0aeab93a2a2ef210ffbdbed3681c4c75c7dd4"
       },
       {
         "path": "data/evidence/context-poisoning-guard-pack.json",
-        "sha256": "50b248a75c75bcc3e3ba4fb497e93bb0f8a9902f38b33494707909e58b9cb32a"
+        "sha256": "87278fb22d84ebcc726d190a38dfd6e1fd3c4fb65cfa5a0b968895ea80e0016c"
       },
       {
         "path": "data/evidence/mcp-authorization-conformance-pack.json",
@@ -3440,6 +3680,10 @@
       {
         "path": "data/evidence/mcp-connector-trust-pack.json",
         "sha256": "77e4c63f3c9b2a7ac9088bede503e5d34a8a5056a2968d144bc8a8b816006427"
+      },
+      {
+        "path": "data/evidence/mcp-elicitation-boundary-pack.json",
+        "sha256": "3cf5040a07ec7e47fba39cef0092ae646e02e23413cb005e2b3bcc0228a62f70"
       },
       {
         "path": "data/evidence/mcp-stdio-launch-boundary-pack.json",
@@ -3455,7 +3699,7 @@
       },
       {
         "path": "data/evidence/secure-context-trust-pack.json",
-        "sha256": "778c277b3b5fb405a6c5a03ade1ead0e84f1fdfa2fdaf7c08c1d2ec9eb39a107"
+        "sha256": "ecceffef43a220d8025a9734c20559a4cea24603b6d7da76341c1dc4785905d4"
       },
       {
         "path": "data/policy/mcp-gateway-policy.json",
@@ -3464,7 +3708,7 @@
     ],
     "mcp_risk_coverage_profile": {
       "path": "data/assurance/mcp-risk-coverage-profile.json",
-      "sha256": "5e17b4a4004ce04de218d6bcb0774d4fed79f3f37fa0408b40a679a38af5ea5b"
+      "sha256": "066543376fa0268afecbb77de045e5b583ffa000c8f363de5898fa7e7c93daea"
     }
   },
   "source_references": [
@@ -3487,13 +3731,22 @@
       "why_it_matters": "OWASP frames agentic skills as the behavior layer between models and tools: MCP describes how the model talks to tools, while skills define what those tools actually do across multi-step workflows."
     },
     {
+      "id": "mcp-security-best-practices-2026-07-28",
+      "name": "Model Context Protocol Security Best Practices (2026-07-28 current revision)",
+      "published": "2026-07-28",
+      "publisher": "Model Context Protocol",
+      "source_class": "protocol_guidance",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices",
+      "why_it_matters": "Current MCP 2026-07-28 security guidance replaces session-hijacking assumptions with state-handle binding, forbids token passthrough, requires confused-deputy consent on proxies, and tightens SSRF controls during metadata and Client ID Metadata Document fetches."
+    },
+    {
       "id": "mcp-security-best-practices-2025",
-      "name": "Model Context Protocol Security Best Practices",
+      "name": "Model Context Protocol Security Best Practices (2025-06-18 prior revision)",
       "published": "2025-06-18",
       "publisher": "Model Context Protocol",
       "source_class": "protocol_guidance",
       "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices",
-      "why_it_matters": "MCP guidance anchors practical controls for confused deputy prevention, session safety, scope minimization, auditability, local server sandboxing, and least-privilege tool access."
+      "why_it_matters": "Prior MCP security-best-practices revision kept as a historical source ID. Session-hijacking guidance applies only to 2025-11-25 and earlier protocol versions; prefer the 2026-07-28 state-handle controls."
     },
     {
       "id": "nist-ai-600-1",
@@ -3516,7 +3769,7 @@
   ],
   "standards": [
     {
-      "capability_count": 23,
+      "capability_count": 25,
       "coverage_score": 100.0,
       "id": "owasp-mcp-top-10-2025",
       "mcp_tools": [
@@ -3530,6 +3783,7 @@
         "recipes_agentic_measurement_probe_pack",
         "recipes_agentic_red_team_drill_pack",
         "recipes_agentic_run_receipt_pack",
+        "recipes_agentic_soc_detection_pack",
         "recipes_agentic_system_bom",
         "recipes_agentic_telemetry_contract",
         "recipes_context_egress_boundary_pack",
@@ -3538,6 +3792,7 @@
         "recipes_mcp_authorization_conformance_pack",
         "recipes_mcp_connector_intake_pack",
         "recipes_mcp_connector_trust_pack",
+        "recipes_mcp_elicitation_boundary_pack",
         "recipes_mcp_gateway_policy",
         "recipes_mcp_stdio_launch_boundary_pack",
         "recipes_mcp_tool_risk_contract",
@@ -3559,6 +3814,7 @@
       ],
       "source_ids": [
         "owasp-mcp-top-10-2025",
+        "mcp-security-best-practices-2026-07-28",
         "mcp-security-best-practices-2025"
       ],
       "sources": [
@@ -3571,8 +3827,16 @@
           "url": "https://owasp.org/www-project-mcp-top-10/"
         },
         {
+          "id": "mcp-security-best-practices-2026-07-28",
+          "name": "Model Context Protocol Security Best Practices (2026-07-28 current revision)",
+          "published": "2026-07-28",
+          "publisher": "Model Context Protocol",
+          "source_class": "protocol_guidance",
+          "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices"
+        },
+        {
           "id": "mcp-security-best-practices-2025",
-          "name": "Model Context Protocol Security Best Practices",
+          "name": "Model Context Protocol Security Best Practices (2025-06-18 prior revision)",
           "published": "2025-06-18",
           "publisher": "Model Context Protocol",
           "source_class": "protocol_guidance",
@@ -3583,7 +3847,7 @@
       "title": "OWASP MCP Top 10 Coverage"
     },
     {
-      "capability_count": 20,
+      "capability_count": 21,
       "coverage_score": 100.0,
       "id": "owasp-agentic-skills-top-10-2026",
       "mcp_tools": [
@@ -3606,7 +3870,8 @@
         "recipes_mcp_gateway_policy",
         "recipes_mcp_stdio_launch_boundary_pack",
         "recipes_mcp_tool_risk_contract",
-        "recipes_mcp_tool_surface_drift_pack"
+        "recipes_mcp_tool_surface_drift_pack",
+        "recipes_secure_context_trust_pack"
       ],
       "risk_count": 10,
       "risk_ids": [
