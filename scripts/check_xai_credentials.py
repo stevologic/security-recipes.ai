@@ -30,8 +30,23 @@ def main(argv: list[str] | None = None) -> int:
         with args.github_output.open("a", encoding="utf-8") as stream:
             stream.write(f"usable={'true' if status.usable else 'false'}\n")
             stream.write(f"reason={status.reason}\n")
+            if status.http_status is not None:
+                stream.write(f"http_status={status.http_status}\n")
+                stream.write(f"error_category={status.error_category}\n")
+    if status.http_status is not None:
+        print(
+            f"xAI credential probe: HTTP {status.http_status}; category={status.error_category}.",
+            flush=True,
+        )
     if status.usable:
-        print(f"xAI credentials are usable ({status.reason}).", flush=True)
+        if status.reason == "ready":
+            print("xAI credentials are usable (ready).", flush=True)
+        else:
+            print(
+                f"xAI credential readiness is unconfirmed ({status.reason}); "
+                "continuing under the transient-probe-error policy.",
+                flush=True,
+            )
     else:
         print(f"::notice::{status.notice}", flush=True)
     return 0

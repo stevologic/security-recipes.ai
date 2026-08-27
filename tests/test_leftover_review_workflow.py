@@ -60,10 +60,22 @@ class LeftoverReviewWorkflowTests(unittest.TestCase):
 
     def test_actions_are_pinned_to_full_commit_shas(self) -> None:
         references = re.findall(r"(?m)^\s*uses:\s*([^#\s]+)", self.workflow)
-        self.assertEqual(len(references), 1)
+        self.assertEqual(len(references), 2)
         for reference in references:
             with self.subTest(reference=reference):
                 self.assertRegex(reference, r"^[^@\s]+@[0-9a-f]{40}$")
+
+    def test_diagnostics_are_opt_in_and_cannot_run_the_review_job(self) -> None:
+        self.assertIn("diagnostics_only:", self.workflow)
+        self.assertIn("default: false", self.workflow)
+        diagnostic_job = self.workflow.split("  credential-diagnostics:\n", 1)[1].split("  review:\n", 1)[0]
+        self.assertIn("if: github.event_name == 'workflow_dispatch' && inputs.diagnostics_only", diagnostic_job)
+        self.assertIn("contents: read", diagnostic_job)
+        self.assertNotIn(": write", diagnostic_job)
+        self.assertIn("persist-credentials: false", diagnostic_job)
+        self.assertIn("scripts/diagnose_xai_credentials.py", diagnostic_job)
+        self.assertNotIn("scripts/run_grok_agent.py", diagnostic_job)
+        self.assertIn("if: github.event_name != 'workflow_dispatch' || !inputs.diagnostics_only", self.workflow)
 
 
 if __name__ == "__main__":
