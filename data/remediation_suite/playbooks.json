@@ -1855,43 +1855,44 @@
       "title": "Agent Skill Supply Chain",
       "page": "/security-remediation/agent-skill-supply-chain/",
       "category": "agent-runtime",
-      "summary": "Verify a skill's provenance, code, dependencies, permissions, package hash, and runtime controls before installation or execution.",
+      "summary": "Verify a skill's provenance, code, dependencies, permissions, package hash, referenced instruction sources, and runtime controls before installation or execution.",
       "phases": [
         {
           "label": "Signal",
           "title": "Discover the skill",
-          "detail": "Capture source, publisher, version, package, digest, manifest, entrypoints, dependencies, permissions, and update channel."
+          "detail": "Capture source, publisher, version, package, digest, manifest, entrypoints, dependencies, permissions, update channel, and any URL or remote file the skill treats as instructions."
         },
         {
           "label": "Scope",
           "title": "Inspect the supply chain",
-          "detail": "Verify provenance/signatures, scan code and dependencies, resolve redirects, and compare package contents with declarations."
+          "detail": "Verify provenance/signatures, scan code and dependencies, inventory external instruction sources, pin or inline those documents, follow transitive references, and compare package contents with declarations."
         },
         {
           "label": "Decision",
           "title": "Score capability risk",
-          "detail": "Classify file, network, shell, browser, secret, identity, deployment, and irreversible-action permissions."
+          "detail": "Classify file, network, shell, browser, secret, identity, deployment, irreversible-action, and unpinned-instruction-fetch permissions."
         },
         {
           "label": "Action",
           "title": "Choose a trust mode",
-          "detail": "Allow pinned read-only use, sandbox a pilot, require approval, quarantine, deny, or disable a changed skill."
+          "detail": "Allow pinned read-only use, sandbox a pilot, require approval, quarantine, deny unpinned instruction fetches, or disable a changed skill."
         },
         {
           "label": "Proof",
           "title": "Register and monitor",
-          "detail": "Record hash, trust tier, owner, scope, controls, expiry, SBOM, runtime receipts, and drift triggers."
+          "detail": "Record hash, referenced-document hashes, trust tier, owner, scope, controls, expiry, SBOM, runtime receipts, and drift triggers."
         }
       ],
       "gate": {
-        "question": "Is the skill authentic, pinned, scanned, minimally privileged, owned, and controlled for its highest-impact capability?",
+        "question": "Is the skill authentic, pinned, scanned, minimally privileged, owned, and free of unpinned documents treated as instructions?",
         "pass": "Register it for the approved sandbox, scope, and trust tier.",
-        "stop": "Quarantine or deny unverified, changed, overprivileged, malicious, or high-consequence skills without approval."
+        "stop": "Quarantine or deny unverified, changed, overprivileged, malicious, unpinned-instruction, or high-consequence skills without approval."
       },
       "evidence": [
         "skill manifest/package hash",
         "provenance and scan results",
-        "capability-risk decision"
+        "capability-risk decision",
+        "external instruction source inventory and content hashes"
       ],
       "outputs": [
         "trusted skill record",
@@ -1913,7 +1914,8 @@
         "agent skill security",
         "skill supply chain",
         "plugin provenance",
-        "skill permissions"
+        "skill permissions",
+        "untrusted external instructions"
       ]
     },
     {

@@ -1553,7 +1553,7 @@
         ],
         "path": "data/evidence/agentic-measurement-probe-pack.json",
         "schema_version": "1.0",
-        "sha256": "5a8d13ed526dde10456f9c57e7a593922e4ee439ffbaae4a5b89048e0bdd8771",
+        "sha256": "cf83ddd76de17d28a5a6a7062a9b30e5f8c5cd949ebacb25b84704e2d4fc7e7f",
         "status": "ready",
         "summary": {
           "key": "measurement_probe_summary",
@@ -1610,7 +1610,7 @@
         ],
         "path": "data/evidence/agentic-run-receipt-pack.json",
         "schema_version": "1.0",
-        "sha256": "903d50202a0f4a91e3fa02c6b59741682e7653754231af1254a2de4d736408db",
+        "sha256": "3429d5e9b4a9fe271dd73086b2db44d10ae23a6d7dcc89a4dcdb48387bdaaf81",
         "status": "ready",
         "summary": {
           "key": "receipt_summary",
@@ -1637,7 +1637,7 @@
         ],
         "path": "data/evidence/secure-context-trust-pack.json",
         "schema_version": "1.0",
-        "sha256": "ecceffef43a220d8025a9734c20559a4cea24603b6d7da76341c1dc4785905d4",
+        "sha256": "732f12220ab34b8dafe2330cbed963dfebe5d69e6b0722a279fbe3a55f4271ca",
         "status": "ready",
         "summary": null,
         "title": "Secure Context Trust Pack"
@@ -1651,7 +1651,7 @@
         ],
         "path": "data/evidence/context-egress-boundary-pack.json",
         "schema_version": "1.0",
-        "sha256": "6f7301b6a215604b28660966e3a0aeab93a2a2ef210ffbdbed3681c4c75c7dd4",
+        "sha256": "0bcab66bbd49fc13db2ac2186cf40fb47046d10e41dd265e78f82cb950955ea8",
         "status": "ready",
         "summary": {
           "key": "egress_boundary_summary",
@@ -1692,7 +1692,7 @@
         ],
         "path": "data/evidence/agent-handoff-boundary-pack.json",
         "schema_version": "1.0",
-        "sha256": "2378bcb396b9dcc11dbeca9e1d10a78c7ddc95394e0224e024e86d0f38054e82",
+        "sha256": "a0a6cfda5a6da3be73bdbb60515b2059999064b48d8c3c1f195d83bf9deb38be",
         "status": "ready",
         "summary": {
           "key": "handoff_boundary_summary",
@@ -1741,7 +1741,7 @@
         ],
         "path": "data/evidence/agent-skill-supply-chain-pack.json",
         "schema_version": "1.0",
-        "sha256": "e32d83f627f7a0dab1ffc3b0319018d788c8779453ef012b1b937389f5c0948d",
+        "sha256": "8537c499f7f5cd8a750740d94ac11bdcb2e73adfc19f72609808effc35e08235",
         "status": "ready",
         "summary": {
           "key": "skill_supply_chain_summary",
@@ -1749,31 +1749,39 @@
             "decision_counts": {
               "allow_guarded_skill": 3,
               "allow_pinned_readonly_skill": 1,
+              "deny_untrusted_skill": 1,
               "kill_session_on_malicious_skill_signal": 1
             },
             "failure_count": 0,
             "lethal_trifecta_count": 1,
             "platform_counts": {
-              "claude": 5,
-              "codex": 5,
-              "cursor": 3,
+              "claude": 6,
+              "codex": 6,
+              "cursor": 4,
               "devin": 2,
               "github_copilot": 1,
               "vscode": 1
             },
             "risk_tier_counts": {
-              "critical": 1,
+              "critical": 2,
               "low": 4
             },
             "signed_skill_count": 4,
-            "skill_count": 5,
+            "skill_count": 6,
             "top_risk_skills": [
               {
                 "decision": "kill_session_on_malicious_skill_signal",
-                "residual_risk_score": 226,
+                "residual_risk_score": 258,
                 "risk_tier": "critical",
                 "skill_id": "untrusted-marketplace-shell-skill",
                 "title": "Untrusted Marketplace Shell Skill"
+              },
+              {
+                "decision": "deny_untrusted_skill",
+                "residual_risk_score": 112,
+                "risk_tier": "critical",
+                "skill_id": "unpinned-external-instruction-skill",
+                "title": "Unpinned External Instruction Skill"
               },
               {
                 "decision": "allow_guarded_skill",
@@ -1795,13 +1803,6 @@
                 "risk_tier": "low",
                 "skill_id": "sr-agent-memory-operator-skill",
                 "title": "SecurityRecipes Agent Memory Operator Skill"
-              },
-              {
-                "decision": "allow_pinned_readonly_skill",
-                "residual_risk_score": 0,
-                "risk_tier": "low",
-                "skill_id": "sr-secure-context-retrieval-skill",
-                "title": "SecurityRecipes Secure Context Retrieval Skill"
               }
             ],
             "verified_publisher_count": 4,
