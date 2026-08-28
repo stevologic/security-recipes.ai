@@ -1,19 +1,31 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-08-21",
-  "intent": "Define an enterprise-ready supply-chain model for agentic skills, rules files, hooks, and tool bundles so SecurityRecipes can govern the behavior layer between model prompts and MCP tool execution. The model turns skill provenance, permissions, registry trust, version pinning, isolation, and runtime evidence into deterministic install, update, and run decisions.",
+  "last_reviewed": "2026-08-28",
+  "intent": "Define an enterprise-ready supply-chain model for agentic skills, rules files, hooks, and tool bundles so SecurityRecipes can govern the behavior layer between model prompts and MCP tool execution. The model turns skill provenance, permissions, registry trust, version pinning, isolation, referenced-instruction integrity, and runtime evidence into deterministic install, update, and run decisions.",
   "positioning": {
     "buyer": "AI Platform, Security Engineering, Product Security, AppSec, GRC, procurement security, vendor-risk, and acquisition diligence teams",
     "category": "Agent skill provenance, permission, and isolation firewall",
     "enterprise_promise": "SecurityRecipes can inventory agent skills across Claude Code, Cursor, Codex, Devin, VS Code, and MCP-adjacent ecosystems, prove which behaviors are pinned and reviewed, and block untrusted skills before they reach agents with filesystem, network, memory, shell, or MCP authority.",
-    "why_now": "Agentic AI risk is moving from isolated prompts to reusable behavior packages. Skills, rules files, hooks, extensions, and MCP tool bundles can quietly combine private data, untrusted instructions, and external egress. Enterprises need a default-deny admission layer before these packages become trusted execution context."
+    "why_now": "Agentic AI risk is moving from isolated prompts to reusable behavior packages. Skills, rules files, hooks, extensions, and MCP tool bundles can quietly combine private data, untrusted instructions, and external egress. OWASP AST05 names a distinct skill failure: a URL or remote file that the agent treats as trusted instructions after the signed package has already been reviewed. Enterprises need a default-deny admission layer before these packages become trusted execution context."
   },
   "standards_alignment": [
     {
       "id": "owasp-agentic-skills-top-10-2026",
       "name": "OWASP Agentic Skills Top 10",
       "url": "https://owasp.org/www-project-agentic-skills-top-10/",
-      "coverage": "Malicious skills, supply-chain compromise, over-privileged manifests, unsafe metadata, weak isolation, update drift, poor scanning, missing governance, and cross-platform reuse."
+      "coverage": "Malicious skills, supply-chain compromise, over-privileged manifests, insecure metadata, untrusted external instructions, weak isolation, update drift, poor scanning, missing governance, and cross-platform reuse."
+    },
+    {
+      "id": "owasp-agentic-skills-ast05-2026",
+      "name": "OWASP Agentic Skills Top 10 AST05 Untrusted External Instructions",
+      "url": "https://owasp.org/www-project-agentic-skills-top-10/ast05",
+      "coverage": "Skills that point an agent at a URL or remote file treat mutable documentation as trusted instructions. Pin and hash referenced content at review time, prefer inlining snapshots into the signed package, allowlist fetch domains, audit transitive references, inventory fleet sources, and rescan continuously."
+    },
+    {
+      "id": "anthropic-agent-skills-security-2026",
+      "name": "Anthropic Agent Skills security considerations",
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview",
+      "coverage": "Skills that fetch data from external URLs pose particular risk because fetched content may contain malicious instructions, and even trustworthy skills can be compromised if their external dependencies change over time."
     },
     {
       "id": "owasp-agentic-top-10-2026",
@@ -113,7 +125,8 @@
       "execute_shell_with_untrusted_input",
       "external_egress_without_allowlist",
       "install_unpinned_update",
-      "load_untrusted_serialized_skill_config"
+      "load_untrusted_serialized_skill_config",
+      "fetch_unpinned_external_instructions"
     ],
     "required_install_evidence": [
       "publisher_identity",
@@ -125,14 +138,17 @@
       "scan_status",
       "sandbox_profile",
       "egress_policy",
-      "owner_review"
+      "owner_review",
+      "external_instruction_source_inventory",
+      "external_instruction_content_hash"
     ],
     "kill_signals": [
       "skill attempts to read private keys, seed phrases, raw tokens, browser passwords, wallet material, or production credentials",
       "skill attempts to modify AGENTS.md, CLAUDE.md, SOUL.md, MEMORY.md, hook configs, or identity files outside an approved policy change",
       "skill combines private data access, untrusted content ingestion, and external network egress",
       "skill package hash changes without version bump, review, and pack regeneration",
-      "skill invokes shell, package manager, curl, wget, PowerShell, or bash through untrusted retrieved context"
+      "skill invokes shell, package manager, curl, wget, PowerShell, or bash through untrusted retrieved context",
+      "skill treats an unpinned, unhashed, or drifted URL or remote file as runtime instructions"
     ]
   },
   "risk_model": {
@@ -183,7 +199,8 @@
       "missing_hash": 10,
       "unpinned_version": 12,
       "failed_or_missing_scan": 16,
-      "cross_platform_reuse": 6
+      "cross_platform_reuse": 6,
+      "unpinned_external_instructions": 32
     },
     "control_credits": {
       "max_credit": 46,
@@ -227,6 +244,11 @@
           "id": "human_approval_required",
           "points": 6,
           "condition": "High-consequence install, update, or run paths require owner approval."
+        },
+        {
+          "id": "external_instruction_sources_pinned",
+          "points": 8,
+          "condition": "Every external document the skill treats as instructions is inlined or pinned with a review-time content hash and an allowlisted host."
         }
       ]
     }
@@ -297,8 +319,10 @@
           "generated_policy_evidence"
         ]
       },
+      "external_instruction_sources": [],
       "mapped_ast_risks": [
         "AST02",
+        "AST05",
         "AST07",
         "AST09",
         "AST10"
@@ -314,6 +338,7 @@
         "pinned version",
         "hash verification",
         "retrieved text demoted from instruction to evidence",
+        "no external instruction URLs",
         "default-deny egress"
       ]
     },
@@ -408,9 +433,11 @@
           "generated_policy_evidence"
         ]
       },
+      "external_instruction_sources": [],
       "mapped_ast_risks": [
         "AST02",
         "AST03",
+        "AST05",
         "AST06",
         "AST07",
         "AST08",
@@ -430,7 +457,8 @@
         "hash verification",
         "branch-only writes",
         "no package publish authority",
-        "scanner before/after evidence"
+        "scanner before/after evidence",
+        "advisory fetches treated as evidence not instructions"
       ]
     },
     {
@@ -507,10 +535,12 @@
           "generated_policy_evidence"
         ]
       },
+      "external_instruction_sources": [],
       "mapped_ast_risks": [
         "AST01",
         "AST02",
         "AST03",
+        "AST05",
         "AST06",
         "AST07",
         "AST08",
@@ -594,6 +624,7 @@
           "generated_policy_evidence"
         ]
       },
+      "external_instruction_sources": [],
       "mapped_ast_risks": [
         "AST02",
         "AST03",
@@ -683,6 +714,16 @@
           "tenant_runtime_context"
         ]
       },
+      "external_instruction_sources": [
+        {
+          "url": "https://marketplace.example.invalid/skills/shell-helper/runbook.md",
+          "content_hash": "",
+          "pinned": false,
+          "inlined": false,
+          "allowlisted": false,
+          "treated_as": "instructions"
+        }
+      ],
       "mapped_ast_risks": [
         "AST01",
         "AST02",
@@ -713,6 +754,88 @@
         "disable session on access attempt",
         "incident evidence required"
       ]
+    },
+    {
+      "id": "unpinned-external-instruction-skill",
+      "title": "Unpinned External Instruction Skill",
+      "platforms": [
+        "claude",
+        "cursor",
+        "codex"
+      ],
+      "publisher": {
+        "name": "Unsigned Docs Host",
+        "verified": false,
+        "identity": ""
+      },
+      "registry": {
+        "name": "third-party-marketplace",
+        "verified": false,
+        "source": "external"
+      },
+      "owner": {
+        "accountable_team": "Unassigned",
+        "evidence_owner": "AI Platform",
+        "escalation": "agent-skill-security-review"
+      },
+      "source_path": "",
+      "version": "latest",
+      "version_pinned": false,
+      "package_hash": "",
+      "signature_present": false,
+      "scan_status": "missing",
+      "sandbox_required": true,
+      "human_approval_required": true,
+      "cross_platform_reuse": true,
+      "allowed_workflow_ids": [],
+      "permissions": {
+        "filesystem_read": [
+          "docs/**"
+        ],
+        "filesystem_write": [],
+        "network_egress": [
+          "runbooks.example.invalid"
+        ],
+        "shell": false,
+        "persistent_memory": false,
+        "identity_file_write": false,
+        "mcp_namespaces": [
+          {
+            "namespace": "recipes.context",
+            "access": "read"
+          }
+        ],
+        "data_access_classes": [
+          "public_guidance"
+        ]
+      },
+      "external_instruction_sources": [
+        {
+          "url": "https://runbooks.example.invalid/operator-notes.md",
+          "content_hash": "",
+          "pinned": false,
+          "inlined": false,
+          "allowlisted": false,
+          "treated_as": "instructions"
+        }
+      ],
+      "mapped_ast_risks": [
+        "AST02",
+        "AST05",
+        "AST07",
+        "AST08"
+      ],
+      "mapped_mcp_risks": [
+        "MCP03",
+        "MCP06",
+        "MCP10"
+      ],
+      "required_controls": [
+        "do not install",
+        "inline or pin every instruction URL with a review-time content hash",
+        "allowlist fetch hosts",
+        "rescan referenced documents before each load"
+      ]
     }
   ],
   "enterprise_adoption_packet": {
@@ -722,6 +845,7 @@
       "Who published and owns each skill?",
       "Which skills are pinned, signed, scanned, and hash verified?",
       "Which skills combine private data access, untrusted content, and network egress?",
+      "Which skills fetch external documents as instructions, and are those sources pinned, hashed, allowlisted, or inlined?",
       "Which skills require human approval, sandboxing, or denial?",
       "Which runtime decision should an MCP gateway make before install, update, or run?"
     ],

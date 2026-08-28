@@ -32,7 +32,8 @@
       "skill attempts to modify AGENTS.md, CLAUDE.md, SOUL.md, MEMORY.md, hook configs, or identity files outside an approved policy change",
       "skill combines private data access, untrusted content ingestion, and external network egress",
       "skill package hash changes without version bump, review, and pack regeneration",
-      "skill invokes shell, package manager, curl, wget, PowerShell, or bash through untrusted retrieved context"
+      "skill invokes shell, package manager, curl, wget, PowerShell, or bash through untrusted retrieved context",
+      "skill treats an unpinned, unhashed, or drifted URL or remote file as runtime instructions"
     ],
     "prohibited_capabilities": [
       "read_private_keys",
@@ -44,7 +45,8 @@
       "execute_shell_with_untrusted_input",
       "external_egress_without_allowlist",
       "install_unpinned_update",
-      "load_untrusted_serialized_skill_config"
+      "load_untrusted_serialized_skill_config",
+      "fetch_unpinned_external_instructions"
     ],
     "required_install_evidence": [
       "publisher_identity",
@@ -56,7 +58,9 @@
       "scan_status",
       "sandbox_profile",
       "egress_policy",
-      "owner_review"
+      "owner_review",
+      "external_instruction_source_inventory",
+      "external_instruction_content_hash"
     ],
     "runtime_attributes": [
       "skill_id",
@@ -83,6 +87,7 @@
       "Who published and owns each skill?",
       "Which skills are pinned, signed, scanned, and hash verified?",
       "Which skills combine private data access, untrusted content, and network egress?",
+      "Which skills fetch external documents as instructions, and are those sources pinned, hashed, allowlisted, or inlined?",
       "Which skills require human approval, sandboxing, or denial?",
       "Which runtime decision should an MCP gateway make before install, update, or run?"
     ],
@@ -90,13 +95,13 @@
     "sales_motion": "Lead with open skill provenance and runtime decisions, then sell hosted skill inventory ingestion, registry transparency checks, semantic skill scanning, signed package admission, sandbox policies, and trust-center exports."
   },
   "failures": [],
-  "generated_at": "2026-08-21",
-  "intent": "Define an enterprise-ready supply-chain model for agentic skills, rules files, hooks, and tool bundles so SecurityRecipes can govern the behavior layer between model prompts and MCP tool execution. The model turns skill provenance, permissions, registry trust, version pinning, isolation, and runtime evidence into deterministic install, update, and run decisions.",
+  "generated_at": "2026-08-28",
+  "intent": "Define an enterprise-ready supply-chain model for agentic skills, rules files, hooks, and tool bundles so SecurityRecipes can govern the behavior layer between model prompts and MCP tool execution. The model turns skill provenance, permissions, registry trust, version pinning, isolation, referenced-instruction integrity, and runtime evidence into deterministic install, update, and run decisions.",
   "positioning": {
     "buyer": "AI Platform, Security Engineering, Product Security, AppSec, GRC, procurement security, vendor-risk, and acquisition diligence teams",
     "category": "Agent skill provenance, permission, and isolation firewall",
     "enterprise_promise": "SecurityRecipes can inventory agent skills across Claude Code, Cursor, Codex, Devin, VS Code, and MCP-adjacent ecosystems, prove which behaviors are pinned and reviewed, and block untrusted skills before they reach agents with filesystem, network, memory, shell, or MCP authority.",
-    "why_now": "Agentic AI risk is moving from isolated prompts to reusable behavior packages. Skills, rules files, hooks, extensions, and MCP tool bundles can quietly combine private data, untrusted instructions, and external egress. Enterprises need a default-deny admission layer before these packages become trusted execution context."
+    "why_now": "Agentic AI risk is moving from isolated prompts to reusable behavior packages. Skills, rules files, hooks, extensions, and MCP tool bundles can quietly combine private data, untrusted instructions, and external egress. OWASP AST05 names a distinct skill failure: a URL or remote file that the agent treats as trusted instructions after the signed package has already been reviewed. Enterprises need a default-deny admission layer before these packages become trusted execution context."
   },
   "residual_risks": [
     {
@@ -110,32 +115,36 @@
     {
       "risk": "A skill can become unsafe after a publisher, dependency, registry, or host update.",
       "treatment": "Disable unpinned auto-updates and regenerate this pack whenever package hashes, permissions, scans, or host runtimes change."
+    },
+    {
+      "risk": "A skill can keep a pinned package hash while a referenced URL or remote file changes and is treated as trusted instructions.",
+      "treatment": "Inventory external instruction sources, inline snapshots or pin review-time content hashes, allowlist fetch hosts, refuse unpinned or drifted documents, and rescan referenced content continuously."
     }
   ],
   "risk_coverage": {
     "ast_risk_counts": {
       "AST01": 2,
-      "AST02": 5,
+      "AST02": 6,
       "AST03": 4,
       "AST04": 1,
-      "AST05": 1,
+      "AST05": 5,
       "AST06": 4,
-      "AST07": 5,
-      "AST08": 3,
+      "AST07": 6,
+      "AST08": 4,
       "AST09": 5,
       "AST10": 3
     },
     "mcp_risk_counts": {
       "MCP01": 1,
       "MCP02": 4,
-      "MCP03": 3,
+      "MCP03": 4,
       "MCP04": 3,
       "MCP05": 2,
-      "MCP06": 1,
+      "MCP06": 2,
       "MCP07": 3,
       "MCP08": 5,
       "MCP09": 2,
-      "MCP10": 3
+      "MCP10": 4
     }
   },
   "risk_model": {
@@ -180,6 +189,11 @@
           "condition": "High-consequence install, update, or run paths require owner approval.",
           "id": "human_approval_required",
           "points": 6
+        },
+        {
+          "condition": "Every external document the skill treats as instructions is inlined or pinned with a review-time content hash and an allowlisted host.",
+          "id": "external_instruction_sources_pinned",
+          "points": 8
         }
       ],
       "max_credit": 46
@@ -227,6 +241,7 @@
       "private_data_read": 24,
       "repo_write": 12,
       "shell_access": 30,
+      "unpinned_external_instructions": 32,
       "unpinned_version": 12,
       "unrestricted_network_egress": 24,
       "untrusted_registry": 18,
@@ -260,6 +275,16 @@
         "tenant_runtime_context"
       ],
       "decision": "kill_session_on_malicious_skill_signal",
+      "external_instruction_sources": [
+        {
+          "allowlisted": false,
+          "content_hash": "",
+          "inlined": false,
+          "pinned": false,
+          "treated_as": "instructions",
+          "url": "https://marketplace.example.invalid/skills/shell-helper/runbook.md"
+        }
+      ],
       "human_approval_required": true,
       "lethal_trifecta": true,
       "mapped_ast_risks": [
@@ -293,7 +318,8 @@
         "Block install and create incident evidence if observed in a live agent host.",
         "Deny install or runtime invocation until provenance and permission controls change.",
         "Require a package hash before treating the skill as installable.",
-        "Require package signature or an expiring security exception."
+        "Require package signature or an expiring security exception.",
+        "Refuse install or run until every external instruction URL is inlined or pinned with a review-time content hash."
       ],
       "owner": {
         "accountable_team": "Unassigned",
@@ -345,7 +371,7 @@
         "name": "Unknown Publisher",
         "verified": false
       },
-      "raw_risk_score": 240,
+      "raw_risk_score": 272,
       "registry": {
         "name": "third-party-marketplace",
         "source": "external",
@@ -357,7 +383,7 @@
         "disable session on access attempt",
         "incident evidence required"
       ],
-      "residual_risk_score": 226,
+      "residual_risk_score": 258,
       "risk_factors": [
         {
           "evidence": "skill declares shell access",
@@ -428,6 +454,11 @@
           "evidence": "skill is reusable across agent hosts",
           "id": "cross_platform_reuse",
           "points": 6
+        },
+        {
+          "evidence": "skill treats an unpinned or unhashed URL or remote file as instructions",
+          "id": "unpinned_external_instructions",
+          "points": 32
         }
       ],
       "risk_tier": "critical",
@@ -438,6 +469,176 @@
       "skill_id": "untrusted-marketplace-shell-skill",
       "source_path": "",
       "title": "Untrusted Marketplace Shell Skill",
+      "version": "latest",
+      "version_pinned": false
+    },
+    {
+      "allowed_workflow_ids": [],
+      "control_credit": 20,
+      "control_credits": [
+        {
+          "evidence": "sandbox profile is required",
+          "id": "sandbox_required",
+          "points": 8
+        },
+        {
+          "evidence": "network egress uses explicit domains",
+          "id": "egress_allowlisted",
+          "points": 6
+        },
+        {
+          "evidence": "human approval is required for high-consequence paths",
+          "id": "human_approval_required",
+          "points": 6
+        }
+      ],
+      "cross_platform_reuse": true,
+      "data_access_classes": [
+        "public_guidance"
+      ],
+      "decision": "deny_untrusted_skill",
+      "external_instruction_sources": [
+        {
+          "allowlisted": false,
+          "content_hash": "",
+          "inlined": false,
+          "pinned": false,
+          "treated_as": "instructions",
+          "url": "https://runbooks.example.invalid/operator-notes.md"
+        }
+      ],
+      "human_approval_required": true,
+      "lethal_trifecta": false,
+      "mapped_ast_risks": [
+        "AST02",
+        "AST05",
+        "AST07",
+        "AST08"
+      ],
+      "mapped_mcp_risks": [
+        "MCP03",
+        "MCP06",
+        "MCP10"
+      ],
+      "network_egress": [
+        "runbooks.example.invalid"
+      ],
+      "next_actions": [
+        "Deny install or runtime invocation until provenance and permission controls change.",
+        "Require a package hash before treating the skill as installable.",
+        "Require package signature or an expiring security exception.",
+        "Refuse install or run until every external instruction URL is inlined or pinned with a review-time content hash."
+      ],
+      "owner": {
+        "accountable_team": "Unassigned",
+        "escalation": "agent-skill-security-review",
+        "evidence_owner": "AI Platform"
+      },
+      "package_hash": "",
+      "permissions": {
+        "data_access_classes": [
+          "public_guidance"
+        ],
+        "filesystem_read": [
+          "docs/**"
+        ],
+        "filesystem_write": [],
+        "identity_file_write": false,
+        "mcp_namespaces": [
+          {
+            "access": "read",
+            "namespace": "recipes.context"
+          }
+        ],
+        "network_egress": [
+          "runbooks.example.invalid"
+        ],
+        "persistent_memory": false,
+        "shell": false
+      },
+      "platforms": [
+        "claude",
+        "cursor",
+        "codex"
+      ],
+      "publisher": {
+        "identity": "",
+        "name": "Unsigned Docs Host",
+        "verified": false
+      },
+      "raw_risk_score": 132,
+      "registry": {
+        "name": "third-party-marketplace",
+        "source": "external",
+        "verified": false
+      },
+      "required_controls": [
+        "do not install",
+        "inline or pin every instruction URL with a review-time content hash",
+        "allowlist fetch hosts",
+        "rescan referenced documents before each load"
+      ],
+      "residual_risk_score": 112,
+      "risk_factors": [
+        {
+          "evidence": "skill declares network egress domains",
+          "id": "domain_allowlisted_egress",
+          "points": 8
+        },
+        {
+          "evidence": "skill uses read-only MCP namespaces",
+          "id": "mcp_read",
+          "points": 6
+        },
+        {
+          "evidence": "skill registry is not verified",
+          "id": "untrusted_registry",
+          "points": 18
+        },
+        {
+          "evidence": "skill publisher is not verified",
+          "id": "unverified_publisher",
+          "points": 14
+        },
+        {
+          "evidence": "skill has no package signature",
+          "id": "missing_signature",
+          "points": 10
+        },
+        {
+          "evidence": "skill has no package hash",
+          "id": "missing_hash",
+          "points": 10
+        },
+        {
+          "evidence": "skill is not version pinned",
+          "id": "unpinned_version",
+          "points": 12
+        },
+        {
+          "evidence": "skill scan status is not pass",
+          "id": "failed_or_missing_scan",
+          "points": 16
+        },
+        {
+          "evidence": "skill is reusable across agent hosts",
+          "id": "cross_platform_reuse",
+          "points": 6
+        },
+        {
+          "evidence": "skill treats an unpinned or unhashed URL or remote file as instructions",
+          "id": "unpinned_external_instructions",
+          "points": 32
+        }
+      ],
+      "risk_tier": "critical",
+      "risk_tier_meaning": "Denied until architecture, provenance, isolation, and permission controls materially change.",
+      "sandbox_required": true,
+      "scan_status": "missing",
+      "signature_present": false,
+      "skill_id": "unpinned-external-instruction-skill",
+      "source_path": "",
+      "title": "Unpinned External Instruction Skill",
       "version": "latest",
       "version_pinned": false
     },
@@ -495,12 +696,14 @@
         "generated_policy_evidence"
       ],
       "decision": "allow_guarded_skill",
+      "external_instruction_sources": [],
       "human_approval_required": true,
       "lethal_trifecta": false,
       "mapped_ast_risks": [
         "AST01",
         "AST02",
         "AST03",
+        "AST05",
         "AST06",
         "AST07",
         "AST08",
@@ -680,11 +883,13 @@
         "generated_policy_evidence"
       ],
       "decision": "allow_guarded_skill",
+      "external_instruction_sources": [],
       "human_approval_required": false,
       "lethal_trifecta": false,
       "mapped_ast_risks": [
         "AST02",
         "AST03",
+        "AST05",
         "AST06",
         "AST07",
         "AST08",
@@ -791,7 +996,8 @@
         "hash verification",
         "branch-only writes",
         "no package publish authority",
-        "scanner before/after evidence"
+        "scanner before/after evidence",
+        "advisory fetches treated as evidence not instructions"
       ],
       "residual_risk_score": 4,
       "risk_factors": [
@@ -887,6 +1093,7 @@
         "generated_policy_evidence"
       ],
       "decision": "allow_guarded_skill",
+      "external_instruction_sources": [],
       "human_approval_required": true,
       "lethal_trifecta": false,
       "mapped_ast_risks": [
@@ -1030,10 +1237,12 @@
         "generated_policy_evidence"
       ],
       "decision": "allow_pinned_readonly_skill",
+      "external_instruction_sources": [],
       "human_approval_required": false,
       "lethal_trifecta": false,
       "mapped_ast_risks": [
         "AST02",
+        "AST05",
         "AST07",
         "AST09",
         "AST10"
@@ -1100,6 +1309,7 @@
         "pinned version",
         "hash verification",
         "retrieved text demoted from instruction to evidence",
+        "no external instruction URLs",
         "default-deny egress"
       ],
       "residual_risk_score": 0,
@@ -1136,31 +1346,39 @@
     "decision_counts": {
       "allow_guarded_skill": 3,
       "allow_pinned_readonly_skill": 1,
+      "deny_untrusted_skill": 1,
       "kill_session_on_malicious_skill_signal": 1
     },
     "failure_count": 0,
     "lethal_trifecta_count": 1,
     "platform_counts": {
-      "claude": 5,
-      "codex": 5,
-      "cursor": 3,
+      "claude": 6,
+      "codex": 6,
+      "cursor": 4,
       "devin": 2,
       "github_copilot": 1,
       "vscode": 1
     },
     "risk_tier_counts": {
-      "critical": 1,
+      "critical": 2,
       "low": 4
     },
     "signed_skill_count": 4,
-    "skill_count": 5,
+    "skill_count": 6,
     "top_risk_skills": [
       {
         "decision": "kill_session_on_malicious_skill_signal",
-        "residual_risk_score": 226,
+        "residual_risk_score": 258,
         "risk_tier": "critical",
         "skill_id": "untrusted-marketplace-shell-skill",
         "title": "Untrusted Marketplace Shell Skill"
+      },
+      {
+        "decision": "deny_untrusted_skill",
+        "residual_risk_score": 112,
+        "risk_tier": "critical",
+        "skill_id": "unpinned-external-instruction-skill",
+        "title": "Unpinned External Instruction Skill"
       },
       {
         "decision": "allow_guarded_skill",
@@ -1182,13 +1400,6 @@
         "risk_tier": "low",
         "skill_id": "sr-agent-memory-operator-skill",
         "title": "SecurityRecipes Agent Memory Operator Skill"
-      },
-      {
-        "decision": "allow_pinned_readonly_skill",
-        "residual_risk_score": 0,
-        "risk_tier": "low",
-        "skill_id": "sr-secure-context-retrieval-skill",
-        "title": "SecurityRecipes Secure Context Retrieval Skill"
       }
     ],
     "verified_publisher_count": 4,
@@ -1201,7 +1412,7 @@
     },
     "agent_skill_supply_chain_model": {
       "path": "data/assurance/agent-skill-supply-chain-model.json",
-      "sha256": "2da00afe6fe2d9210b34097c62c8c8974e59cc8936d3e74bd6d4b221837bd837"
+      "sha256": "856d4fa8e1458e4ed81e99d54994af9c7beb4875872c1e2a675d0ba2a132543f"
     },
     "mcp_connector_trust_pack": {
       "path": "data/evidence/mcp-connector-trust-pack.json",
@@ -1209,7 +1420,7 @@
     },
     "secure_context_trust_pack": {
       "path": "data/evidence/secure-context-trust-pack.json",
-      "sha256": "ecceffef43a220d8025a9734c20559a4cea24603b6d7da76341c1dc4785905d4"
+      "sha256": "732f12220ab34b8dafe2330cbed963dfebe5d69e6b0722a279fbe3a55f4271ca"
     },
     "workflow_manifest": {
       "path": "data/control-plane/workflow-manifests.json",
@@ -1218,10 +1429,22 @@
   },
   "standards_alignment": [
     {
-      "coverage": "Malicious skills, supply-chain compromise, over-privileged manifests, unsafe metadata, weak isolation, update drift, poor scanning, missing governance, and cross-platform reuse.",
+      "coverage": "Malicious skills, supply-chain compromise, over-privileged manifests, insecure metadata, untrusted external instructions, weak isolation, update drift, poor scanning, missing governance, and cross-platform reuse.",
       "id": "owasp-agentic-skills-top-10-2026",
       "name": "OWASP Agentic Skills Top 10",
       "url": "https://owasp.org/www-project-agentic-skills-top-10/"
+    },
+    {
+      "coverage": "Skills that point an agent at a URL or remote file treat mutable documentation as trusted instructions. Pin and hash referenced content at review time, prefer inlining snapshots into the signed package, allowlist fetch domains, audit transitive references, inventory fleet sources, and rescan continuously.",
+      "id": "owasp-agentic-skills-ast05-2026",
+      "name": "OWASP Agentic Skills Top 10 AST05 Untrusted External Instructions",
+      "url": "https://owasp.org/www-project-agentic-skills-top-10/ast05"
+    },
+    {
+      "coverage": "Skills that fetch data from external URLs pose particular risk because fetched content may contain malicious instructions, and even trustworthy skills can be compromised if their external dependencies change over time.",
+      "id": "anthropic-agent-skills-security-2026",
+      "name": "Anthropic Agent Skills security considerations",
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview"
     },
     {
       "coverage": "Agent behavior hijacking, tool misuse, identity and privilege abuse, supply-chain vulnerabilities, unexpected code execution, memory and context poisoning, insecure inter-agent communication, cascading failures, human-agent trust exploitation, and rogue-agent containment.",
