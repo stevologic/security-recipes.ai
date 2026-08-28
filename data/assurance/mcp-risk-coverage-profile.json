@@ -1,12 +1,12 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-05-04",
+  "last_reviewed": "2026-08-27",
   "intent": "Define the SecurityRecipes MCP and agentic-skill risk coverage profile: a machine-readable map from the current OWASP MCP Top 10 beta and OWASP Agentic Skills Top 10 into SecurityRecipes secure-context, MCP authorization, connector trust, agent skill, telemetry, incident response, and runtime action evidence.",
   "positioning": {
     "buyer": "AI Platform, Product Security, AppSec, Security Engineering, GRC, procurement security, model-risk, agent-host, and acquisition diligence teams",
     "category": "MCP and agentic-skill risk coverage for the secure context layer",
     "enterprise_promise": "SecurityRecipes can show, in one generated packet, how the most current MCP and agent-skill risk language maps to concrete controls, evidence paths, MCP tools, and hosted product wedges.",
-    "why_now": "MCP has become the default integration surface for tool-using agents, while skills, rules files, hooks, and agent extensions are becoming the execution layer that tells agents how to combine those tools. Buyers now need coverage across both layers: protocol/tool security and behavior-package security."
+    "why_now": "MCP 2026-07-28 made the protocol stateless and required server/discover, while OWASP Agentic Skills Top 10 now treats untrusted external instructions as a first-class skill risk. Buyers need coverage across protocol/tool security and behavior-package security, including state-handle binding and referenced-document integrity."
   },
   "source_references": [
     {
@@ -28,13 +28,22 @@
       "why_it_matters": "OWASP frames agentic skills as the behavior layer between models and tools: MCP describes how the model talks to tools, while skills define what those tools actually do across multi-step workflows."
     },
     {
+      "id": "mcp-security-best-practices-2026-07-28",
+      "name": "Model Context Protocol Security Best Practices (2026-07-28 current revision)",
+      "publisher": "Model Context Protocol",
+      "published": "2026-07-28",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices",
+      "source_class": "protocol_guidance",
+      "why_it_matters": "Current MCP 2026-07-28 security guidance replaces session-hijacking assumptions with state-handle binding, forbids token passthrough, requires confused-deputy consent on proxies, and tightens SSRF controls during metadata and Client ID Metadata Document fetches."
+    },
+    {
       "id": "mcp-security-best-practices-2025",
-      "name": "Model Context Protocol Security Best Practices",
+      "name": "Model Context Protocol Security Best Practices (2025-06-18 prior revision)",
       "publisher": "Model Context Protocol",
       "published": "2025-06-18",
       "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices",
       "source_class": "protocol_guidance",
-      "why_it_matters": "MCP guidance anchors practical controls for confused deputy prevention, session safety, scope minimization, auditability, local server sandboxing, and least-privilege tool access."
+      "why_it_matters": "Prior MCP security-best-practices revision kept as a historical source ID. Session-hijacking guidance applies only to 2025-11-25 and earlier protocol versions; prefer the 2026-07-28 state-handle controls."
     },
     {
       "id": "nist-ai-600-1",
@@ -68,11 +77,13 @@
       "mcp-connector-intake-pack",
       "mcp-connector-trust-pack",
       "mcp-stdio-launch-boundary-pack",
+      "mcp-elicitation-boundary-pack",
       "agent-skill-supply-chain-pack",
       "agent-identity-ledger",
       "agentic-entitlement-review-pack",
       "agentic-run-receipt-pack",
       "agentic-telemetry-contract",
+      "agentic-soc-detection-pack",
       "agentic-incident-response-pack",
       "context-poisoning-guard-pack",
       "context-egress-boundary-pack",
@@ -174,6 +185,18 @@
       "commercial_value": "Local server launch policy is a high-value endpoint and developer-workstation control for AI coding environments."
     },
     {
+      "id": "mcp-elicitation-boundary-pack",
+      "title": "MCP Elicitation Boundary Pack",
+      "status": "implemented",
+      "evidence_paths": [
+        "data/evidence/mcp-elicitation-boundary-pack.json"
+      ],
+      "mcp_tools": [
+        "recipes_mcp_elicitation_boundary_pack"
+      ],
+      "commercial_value": "Hosted elicitation gates stop form-mode secret collection, URL-mode phishing, and requestState replay before user data or third-party authorization enters the agent workflow."
+    },
+    {
       "id": "agent-skill-supply-chain-pack",
       "title": "Agent Skill Supply-Chain Pack",
       "status": "implemented",
@@ -232,6 +255,18 @@
         "recipes_agentic_telemetry_contract"
       ],
       "commercial_value": "OpenTelemetry-shaped agent evidence with redaction controls is a credible SIEM and observability integration path."
+    },
+    {
+      "id": "agentic-soc-detection-pack",
+      "title": "Agentic SOC Detection Pack",
+      "status": "implemented",
+      "evidence_paths": [
+        "data/evidence/agentic-soc-detection-pack.json"
+      ],
+      "mcp_tools": [
+        "recipes_agentic_soc_detection_pack"
+      ],
+      "commercial_value": "SIEM-ready detections for token passthrough, state-handle hijacking, unregistered server/discover traffic, and elicitation abuse turn MCP coverage into operational SOC signal."
     },
     {
       "id": "agentic-incident-response-pack",
@@ -385,6 +420,7 @@
       "title": "OWASP MCP Top 10 Coverage",
       "source_ids": [
         "owasp-mcp-top-10-2025",
+        "mcp-security-best-practices-2026-07-28",
         "mcp-security-best-practices-2025"
       ],
       "risks": [
@@ -396,11 +432,12 @@
           "required_capability_ids": [
             "mcp-authorization-conformance",
             "context-egress-boundary-pack",
+            "mcp-elicitation-boundary-pack",
             "agentic-telemetry-contract",
             "agentic-action-runtime-pack"
           ],
           "diligence_question": "What prevents MCP tokens and secrets from being forwarded, logged, stored in memory, or returned to the model?",
-          "evidence_expectation": "Authorization, egress, telemetry, and action-runtime evidence shows token audience checks, token-passthrough denial, redaction, secret kill signals, and receipt linkage.",
+          "evidence_expectation": "Authorization, egress, elicitation, telemetry, and action-runtime evidence shows token audience checks, token-passthrough denial, form-mode secret denial, redaction, secret kill signals, and receipt linkage.",
           "commercialization_hook": "Hosted token-passthrough detection, trace redaction validation, and signed action receipts."
         },
         {
@@ -487,16 +524,17 @@
           "id": "MCP07",
           "title": "Insufficient Authentication and Authorization",
           "risk_tier": "critical",
-          "primary_attack_path": "MCP servers or tools fail to verify resource, audience, user, session, connector, or workflow authority.",
+          "primary_attack_path": "MCP servers or tools fail to verify resource, audience, user, request-bound identity, state-handle ownership, connector, or workflow authority.",
           "required_capability_ids": [
             "mcp-authorization-conformance",
             "mcp-gateway-policy",
+            "mcp-elicitation-boundary-pack",
             "agent-identity-ledger",
             "agentic-entitlement-review-pack",
             "agentic-run-receipt-pack"
           ],
-          "diligence_question": "Can the platform prove every MCP call is bound to a resource, token audience, workflow, identity, and receipt?",
-          "evidence_expectation": "Authorization, gateway, identity, entitlement, and receipt evidence exposes resource indicators, audience validation, session binding, allowed scopes, and correlation IDs.",
+          "diligence_question": "Can the platform prove every MCP call is bound to a resource, token audience, workflow, identity, state handle, and receipt?",
+          "evidence_expectation": "Authorization, gateway, elicitation, identity, entitlement, and receipt evidence exposes resource indicators, audience validation, request-bound identity, state-handle-to-principal binding, allowed scopes, and correlation IDs.",
           "commercialization_hook": "Hosted MCP policy decision point with customer IAM and trace adapters."
         },
         {
@@ -506,29 +544,31 @@
           "primary_attack_path": "Tool invocations, context changes, agent decisions, and egress events are not logged with enough structure for detection or response.",
           "required_capability_ids": [
             "agentic-telemetry-contract",
+            "agentic-soc-detection-pack",
             "agentic-run-receipt-pack",
             "agentic-incident-response-pack",
             "agentic-measurement-probe-pack",
             "enterprise-trust-center-export"
           ],
           "diligence_question": "Which trace fields let a buyer reconstruct an agent, model, MCP, context, policy, egress, approval, and verifier path?",
-          "evidence_expectation": "Telemetry, receipt, incident, measurement, and trust-center evidence defines trace attributes, redaction state, incident classes, replay cases, and buyer export fields.",
+          "evidence_expectation": "Telemetry, SOC, receipt, incident, measurement, and trust-center evidence defines trace attributes, metadata-only detections, redaction state, incident classes, replay cases, and buyer export fields.",
           "commercialization_hook": "Hosted SIEM/SOAR export and agent run evidence retention."
         },
         {
           "id": "MCP09",
           "title": "Shadow MCP Servers",
           "risk_tier": "high",
-          "primary_attack_path": "Unapproved local, remote, or experimental MCP servers run outside inventory and governance.",
+          "primary_attack_path": "Unapproved local, remote, or experimental MCP servers run outside inventory and governance, including servers that never complete intake but advertise through server/discover.",
           "required_capability_ids": [
             "mcp-connector-intake-pack",
             "mcp-connector-trust-pack",
             "mcp-stdio-launch-boundary-pack",
+            "agentic-soc-detection-pack",
             "agentic-system-bom",
             "agentic-measurement-probe-pack"
           ],
-          "diligence_question": "What prevents unknown MCP servers from becoming part of production agent workflows?",
-          "evidence_expectation": "Intake, trust, launch, BOM, and measurement evidence covers admission decisions, registry state, launch profiles, component inventory, and drift probes.",
+          "diligence_question": "What prevents unknown MCP servers, including unregistered server/discover advertisers, from becoming part of production agent workflows?",
+          "evidence_expectation": "Intake, trust, launch, SOC, BOM, and measurement evidence covers admission decisions, registry state, launch profiles, unregistered server/discover detections, component inventory, and drift probes.",
           "commercialization_hook": "Hosted shadow MCP discovery, promotion workflows, and fleet drift alerts."
         },
         {
@@ -610,7 +650,7 @@
           "id": "AST04",
           "title": "Insecure Metadata",
           "risk_tier": "high",
-          "primary_attack_path": "Skill metadata hides unsafe instructions, ambiguous permissions, misleading publishers, or unexpected tool requirements.",
+          "primary_attack_path": "Skill metadata hides unsafe instructions, ambiguous permissions, misleading publishers, unexpected tool requirements, or unsafely parsed YAML/JSON that executes during skill load.",
           "required_capability_ids": [
             "agent-skill-supply-chain-pack",
             "mcp-tool-risk-contract",
@@ -618,23 +658,24 @@
             "context-poisoning-guard-pack"
           ],
           "diligence_question": "How are manifests, metadata, descriptions, and tool annotations reviewed for deception and drift?",
-          "evidence_expectation": "Skill, tool-risk, tool-surface, and poisoning evidence records metadata checks, annotations, schema hashes, hidden instructions, and approval-bypass markers.",
+          "evidence_expectation": "Skill, tool-risk, tool-surface, and poisoning evidence records metadata checks, annotations, schema hashes, hidden instructions, unsafe YAML/JSON loaders, and approval-bypass markers.",
           "commercialization_hook": "Hosted manifest linting and semantic metadata review."
         },
         {
           "id": "AST05",
-          "title": "Unsafe Deserialization",
+          "title": "Untrusted External Instructions",
           "risk_tier": "high",
-          "primary_attack_path": "Skill manifests, YAML, JSON, scripts, or extension packages are parsed unsafely and trigger code execution or policy bypass.",
+          "primary_attack_path": "A skill points the agent at a URL or remote file that is treated as trusted instructions at runtime, so attacker-controlled or post-review documentation can hijack the agent without changing the signed skill package.",
           "required_capability_ids": [
             "agent-skill-supply-chain-pack",
-            "mcp-stdio-launch-boundary-pack",
-            "agentic-action-runtime-pack",
+            "context-poisoning-guard-pack",
+            "secure-context-trust-pack",
+            "agentic-measurement-probe-pack",
             "agentic-red-team-drill-pack"
           ],
-          "diligence_question": "What stops skill loading from becoming untrusted code execution?",
-          "evidence_expectation": "Skill, STDIO launch, action-runtime, and red-team evidence covers safe parser expectations, package launch holds, sandbox decisions, and attack replay.",
-          "commercialization_hook": "Hosted skill import sandbox and behavioral replay before enablement."
+          "diligence_question": "How are external documents a skill fetches pinned, hashed, allowlisted, and rescanned so they cannot become unreviewed instructions?",
+          "evidence_expectation": "Skill, poisoning, trust, measurement, and red-team evidence records referenced-source inventory, content hashes, instruction demotion, drift probes, and replay of rug-pull and bait-and-switch instruction fetches.",
+          "commercialization_hook": "Hosted skill reference pinning, source allowlists, and continuous rescan of external instruction URLs."
         },
         {
           "id": "AST06",
