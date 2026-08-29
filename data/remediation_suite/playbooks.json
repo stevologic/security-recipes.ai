@@ -1855,43 +1855,44 @@
       "title": "Agent Skill Supply Chain",
       "page": "/security-remediation/agent-skill-supply-chain/",
       "category": "agent-runtime",
-      "summary": "Verify a skill's provenance, code, dependencies, permissions, package hash, and runtime controls before installation or execution.",
+      "summary": "Verify a skill's provenance, code, dependencies, permissions, package hash, referenced instruction sources, and runtime controls before installation or execution.",
       "phases": [
         {
           "label": "Signal",
           "title": "Discover the skill",
-          "detail": "Capture source, publisher, version, package, digest, manifest, entrypoints, dependencies, permissions, and update channel."
+          "detail": "Capture source, publisher, version, package, digest, manifest, entrypoints, dependencies, permissions, update channel, and any URL or remote file the skill treats as instructions."
         },
         {
           "label": "Scope",
           "title": "Inspect the supply chain",
-          "detail": "Verify provenance/signatures, scan code and dependencies, resolve redirects, and compare package contents with declarations."
+          "detail": "Verify provenance/signatures, scan code and dependencies, inventory external instruction sources, pin or inline those documents, follow transitive references, and compare package contents with declarations."
         },
         {
           "label": "Decision",
           "title": "Score capability risk",
-          "detail": "Classify file, network, shell, browser, secret, identity, deployment, and irreversible-action permissions."
+          "detail": "Classify file, network, shell, browser, secret, identity, deployment, irreversible-action, and unpinned-instruction-fetch permissions."
         },
         {
           "label": "Action",
           "title": "Choose a trust mode",
-          "detail": "Allow pinned read-only use, sandbox a pilot, require approval, quarantine, deny, or disable a changed skill."
+          "detail": "Allow pinned read-only use, sandbox a pilot, require approval, quarantine, deny unpinned instruction fetches, or disable a changed skill."
         },
         {
           "label": "Proof",
           "title": "Register and monitor",
-          "detail": "Record hash, trust tier, owner, scope, controls, expiry, SBOM, runtime receipts, and drift triggers."
+          "detail": "Record hash, referenced-document hashes, trust tier, owner, scope, controls, expiry, SBOM, runtime receipts, and drift triggers."
         }
       ],
       "gate": {
-        "question": "Is the skill authentic, pinned, scanned, minimally privileged, owned, and controlled for its highest-impact capability?",
+        "question": "Is the skill authentic, pinned, scanned, minimally privileged, owned, and free of unpinned documents treated as instructions?",
         "pass": "Register it for the approved sandbox, scope, and trust tier.",
-        "stop": "Quarantine or deny unverified, changed, overprivileged, malicious, or high-consequence skills without approval."
+        "stop": "Quarantine or deny unverified, changed, overprivileged, malicious, unpinned-instruction, or high-consequence skills without approval."
       },
       "evidence": [
         "skill manifest/package hash",
         "provenance and scan results",
-        "capability-risk decision"
+        "capability-risk decision",
+        "external instruction source inventory and content hashes"
       ],
       "outputs": [
         "trusted skill record",
@@ -1913,7 +1914,8 @@
         "agent skill security",
         "skill supply chain",
         "plugin provenance",
-        "skill permissions"
+        "skill permissions",
+        "untrusted external instructions"
       ]
     },
     {
@@ -3415,27 +3417,27 @@
       "title": "MCP Authorization Conformance",
       "page": "/security-remediation/mcp-authorization-conformance/",
       "category": "mcp-governance",
-      "summary": "Test an MCP client's OAuth, token, scope, resource, audience, metadata, and runtime authorization behavior.",
+      "summary": "Test an MCP client's OAuth, token, scope, resource, audience, RFC 9207 issuer, metadata, and runtime authorization behavior.",
       "phases": [
         {
           "label": "Signal",
           "title": "Capture the authorization profile",
-          "detail": "Record client, server, transport, issuer, metadata, redirect mode, grant, resource, scopes, audience, and environment."
+          "detail": "Record client, server, transport, issuer, RFC 9207 iss support, metadata, redirect mode, grant, resource, scopes, audience, and environment."
         },
         {
           "label": "Scope",
           "title": "Validate protocol evidence",
-          "detail": "Check HTTPS metadata, PKCE/state, client registration, token binding/storage, refresh, expiration, audience, and resource indicators."
+          "detail": "Check HTTPS metadata, PKCE/state, client registration, issuer-bound credentials, RFC 9207 iss comparison, token binding/storage, refresh, expiration, audience, and resource indicators."
         },
         {
           "label": "Decision",
           "title": "Evaluate a runtime request",
-          "detail": "Bind identity, token claims, workflow, tool/resource, arguments, tenant, entitlement, approval, and policy."
+          "detail": "Bind identity, token claims, recorded issuer, workflow, tool/resource, arguments, tenant, entitlement, approval, and policy."
         },
         {
           "label": "Action",
           "title": "Enforce authorization",
-          "detail": "Allow, narrow scope, require approval, hold, deny, revoke, or kill on token passthrough or credential misuse."
+          "detail": "Allow, narrow scope, require approval, hold, deny mix-up or unbound tokens, revoke, or kill on token passthrough or credential misuse."
         },
         {
           "label": "Proof",
@@ -3446,7 +3448,7 @@
       "gate": {
         "question": "Does the implementation and request satisfy required OAuth/MCP authorization controls for this resource and action?",
         "pass": "Authorize only the exact approved scope and resource.",
-        "stop": "Hold, deny, revoke, or kill invalid, overbroad, replayed, passthrough, or mis-audienced authorization."
+        "stop": "Hold, deny, revoke, or kill invalid, overbroad, replayed, mix-up, passthrough, or mis-audienced authorization."
       },
       "evidence": [
         "authorization profile and cases",
@@ -3472,6 +3474,7 @@
         "MCP authorization",
         "OAuth resource indicators",
         "MCP token security",
+        "RFC 9207 mix-up",
         "PKCE"
       ]
     },
@@ -3750,7 +3753,7 @@
         {
           "label": "Scope",
           "title": "Select risk scenarios",
-          "detail": "Map authorization, injection, exfiltration, supply chain, tool drift, confused deputy, tenancy, destructive action, and availability risks."
+          "detail": "Map authorization, state-handle hijacking, injection, untrusted external skill instructions, exfiltration, supply chain, tool drift, confused deputy, unregistered server/discover, tenancy, destructive action, and availability risks."
         },
         {
           "label": "Decision",

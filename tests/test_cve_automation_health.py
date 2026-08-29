@@ -550,6 +550,29 @@ Sitemap: https://security-recipes.ai/sitemap.xml
         self.assertTrue(report["healthy"])
         self.assertEqual(report["warning_count"], 1)
 
+    def test_stale_catalog_ends_revision_grace_so_watchdog_can_heal_build(self) -> None:
+        report = production.run_probes(
+            base_url="https://security-recipes.ai",
+            expected_revision=self.SHA,
+            expected_commit_time=self.NOW - timedelta(minutes=10),
+            revision_grace_minutes=1440,
+            now=self.NOW,
+            opener=self.opener(
+                catalog_updated_at="2026-07-15T00:00:00Z",
+                revision="b" * 40,
+            ),
+            certificate_expiry=self.certificate,
+        )
+
+        self.assertFalse(report["healthy"])
+        failed = {check["name"] for check in report["checks"] if not check["ok"]}
+        self.assertEqual(failed, {"catalog", "revision"})
+        revision = next(
+            check for check in report["checks"] if check["name"] == "revision"
+        )
+        self.assertFalse(revision["warning"])
+        self.assertIn("no longer covered by the revision grace period", revision["message"])
+
     def test_stale_catalog_and_stuck_revision_fail(self) -> None:
         report = production.run_probes(
             base_url="https://security-recipes.ai",

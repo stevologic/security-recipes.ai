@@ -113,6 +113,26 @@ def has_network(permissions: dict[str, Any]) -> bool:
     return bool(permissions.get("network_egress"))
 
 
+def external_instruction_sources(skill: dict[str, Any], label: str | None = None) -> list[dict[str, Any]]:
+    skill_label = label or str(skill.get("id") or "skill")
+    rows = skill.get("external_instruction_sources") or []
+    if not isinstance(rows, list):
+        raise SkillSupplyChainError(f"{skill_label}.external_instruction_sources must be a list")
+    return [as_dict(row, f"{skill_label}.external_instruction_sources[{idx}]") for idx, row in enumerate(rows)]
+
+
+def instruction_source_is_pinned(row: dict[str, Any]) -> bool:
+    content_hash = str(row.get("content_hash") or "").strip()
+    return bool(row.get("pinned") or row.get("inlined")) and content_hash.startswith("sha256:") and len(content_hash) > 7
+
+
+def has_unpinned_external_instructions(skill: dict[str, Any]) -> bool:
+    sources = skill.get("external_instruction_sources") or []
+    if not sources:
+        return False
+    return any(not isinstance(row, dict) or not instruction_source_is_pinned(row) for row in sources)
+
+
 def has_wide_read(permissions: dict[str, Any]) -> bool:
     patterns = [str(item).lower() for item in permissions.get("filesystem_read", []) or []]
     return any(pattern in {"~/**", "/**", "**/*", "*"} or pattern.startswith("~/") for pattern in patterns)
@@ -184,6 +204,7 @@ def risk_score(
     add(not skill.get("version_pinned"), "unpinned_version", "skill is not version pinned")
     add(str(skill.get("scan_status")) != "pass", "failed_or_missing_scan", "skill scan status is not pass")
     add(bool(skill.get("cross_platform_reuse")), "cross_platform_reuse", "skill is reusable across agent hosts")
+    add(has_unpinned_external_instructions(skill), "unpinned_external_instructions", "skill treats an unpinned or unhashed URL or remote file as instructions")
 
     credit_model = {}
     # Filled by caller through mutation-free recomputation below.
@@ -209,6 +230,13 @@ def control_credits(skill: dict[str, Any], package_hash: str, credit_model: dict
     add(has_network(permissions) and not has_unrestricted_network(permissions), "egress_allowlisted", 6, "network egress uses explicit domains")
     add(str(skill.get("scan_status")) == "pass", "scan_pass", 8, "scan status is pass")
     add(bool(skill.get("human_approval_required")), "human_approval_required", 6, "human approval is required for high-consequence paths")
+    sources = skill.get("external_instruction_sources") or []
+    add(
+        bool(sources) and not has_unpinned_external_instructions(skill),
+        "external_instruction_sources_pinned",
+        8,
+        "every external instruction source is inlined or pinned with a content hash",
+    )
     max_credit = int(credit_model.get("max_credit") or 46)
     total = min(max_credit, sum(int(item.get("points") or 0) for item in credits))
     return total, credits
@@ -240,6 +268,8 @@ def next_actions(row: dict[str, Any]) -> list[str]:
         actions.append("Require a package hash before treating the skill as installable.")
     if not row.get("signature_present"):
         actions.append("Require package signature or an expiring security exception.")
+    if has_unpinned_external_instructions(row):
+        actions.append("Refuse install or run until every external instruction URL is inlined or pinned with a review-time content hash.")
     return actions
 
 
@@ -292,6 +322,17 @@ def validate_model(model: dict[str, Any], manifest: dict[str, Any], repo_root: P
         source_path = str(item.get("source_path") or "").strip()
         if source_path:
             require((repo_root / source_path).exists(), failures, f"{skill_id}: source_path does not exist: {source_path}")
+        sources = external_instruction_sources(item, skill_id)
+        for source in sources:
+            url = str(source.get("url") or "").strip()
+            require(url.startswith("https://"), failures, f"{skill_id}: external instruction URL must be https")
+            if source.get("pinned") or source.get("inlined"):
+                content_hash = str(source.get("content_hash") or "").strip()
+                require(content_hash.startswith("sha256:") and len(content_hash) > 7, failures, f"{skill_id}: pinned external instruction source requires a content hash")
+        if sources and "AST05" not in ast_risks:
+            failures.append(f"{skill_id}: skills that fetch external instruction sources must map AST05")
+    require("AST05" in {str(risk) for skill in skills if isinstance(skill, dict) for risk in skill.get("mapped_ast_risks", []) or []}, failures, "at least one skill must map AST05 Untrusted External Instructions")
+    require(any(has_unpinned_external_instructions(skill) for skill in skills if isinstance(skill, dict)), failures, "at least one skill must demonstrate an unpinned external instruction source")
     return failures
 
 
@@ -336,6 +377,8 @@ def build_skill_rows(model: dict[str, Any], repo_root: Path) -> list[dict[str, A
             decision = "allow_guarded_skill"
         if lethal_trifecta:
             decision = "kill_session_on_malicious_skill_signal"
+        elif has_unpinned_external_instructions(item):
+            decision = "deny_untrusted_skill"
         elif decision == "deny_untrusted_skill" and not item.get("registry", {}).get("verified"):
             decision = "deny_untrusted_skill"
         row = {
@@ -345,6 +388,7 @@ def build_skill_rows(model: dict[str, Any], repo_root: Path) -> list[dict[str, A
             "cross_platform_reuse": item.get("cross_platform_reuse"),
             "data_access_classes": permissions.get("data_access_classes", []),
             "decision": decision,
+            "external_instruction_sources": item.get("external_instruction_sources", []),
             "human_approval_required": item.get("human_approval_required"),
             "lethal_trifecta": lethal_trifecta,
             "mapped_ast_risks": item.get("mapped_ast_risks", []),
@@ -419,6 +463,10 @@ def build_pack(
             {
                 "risk": "A skill can become unsafe after a publisher, dependency, registry, or host update.",
                 "treatment": "Disable unpinned auto-updates and regenerate this pack whenever package hashes, permissions, scans, or host runtimes change."
+            },
+            {
+                "risk": "A skill can keep a pinned package hash while a referenced URL or remote file changes and is treated as trusted instructions.",
+                "treatment": "Inventory external instruction sources, inline snapshots or pin review-time content hashes, allowlist fetch hosts, refuse unpinned or drifted documents, and rescan referenced content continuously."
             }
         ],
         "risk_model": model.get("risk_model", {}),
@@ -497,6 +545,7 @@ def validate_pack(pack: dict[str, Any]) -> list[str]:
         require(bool(item.get("next_actions")), failures, f"{skill_id}: next actions are required")
         if item.get("decision") in {"allow_pinned_readonly_skill", "allow_guarded_skill"}:
             require(bool(item.get("package_hash")), failures, f"{skill_id}: allowed skill must have package hash")
+            require(not has_unpinned_external_instructions(item), failures, f"{skill_id}: allowed skill cannot fetch unpinned external instructions")
     return failures
 
 

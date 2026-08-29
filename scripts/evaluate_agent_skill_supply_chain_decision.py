@@ -105,6 +105,7 @@ def skill_preview(skill: dict[str, Any] | None) -> dict[str, Any] | None:
         "title": skill.get("title"),
         "version": skill.get("version"),
         "version_pinned": skill.get("version_pinned"),
+        "external_instruction_sources": skill.get("external_instruction_sources", []),
     }
 
 
@@ -126,6 +127,30 @@ def has_untrusted_execution(requested_permissions: dict[str, Any]) -> bool:
         or requested_permissions.get("identity_file_write")
         or requested_permissions.get("persistent_memory")
     )
+
+
+def instruction_source_is_pinned(row: dict[str, Any]) -> bool:
+    content_hash = str(row.get("content_hash") or "").strip()
+    return bool(row.get("pinned") or row.get("inlined")) and content_hash.startswith("sha256:") and len(content_hash) > 7
+
+
+def external_instruction_sources(skill: dict[str, Any]) -> list[dict[str, Any]]:
+    rows = skill.get("external_instruction_sources") or []
+    if not isinstance(rows, list):
+        return []
+    return [row for row in rows if isinstance(row, dict)]
+
+
+def unpinned_external_instruction_sources(skill: dict[str, Any]) -> list[dict[str, Any]]:
+    return [row for row in external_instruction_sources(skill) if not instruction_source_is_pinned(row)]
+
+
+def pinned_instruction_urls(skill: dict[str, Any]) -> set[str]:
+    return {
+        str(row.get("url") or "").strip()
+        for row in external_instruction_sources(skill)
+        if instruction_source_is_pinned(row) and str(row.get("url") or "").strip()
+    }
 
 
 def decision_result(
@@ -162,6 +187,7 @@ def decision_result(
             "skill_id": request.get("skill_id"),
             "verified_publisher": request.get("verified_publisher"),
             "workflow_id": request.get("workflow_id"),
+            "external_instruction_urls": request.get("external_instruction_urls", []),
         },
         "violations": violations or [],
     }
@@ -189,6 +215,9 @@ def evaluate_agent_skill_supply_chain_decision(
     request["registry_verified"] = as_bool(request.get("registry_verified"))
     request["sandboxed"] = as_bool(request.get("sandboxed"))
     request["network_egress_domains"] = [str(item) for item in as_list(request.get("network_egress_domains")) if item]
+    request["external_instruction_urls"] = [
+        str(item).strip() for item in as_list(request.get("external_instruction_urls")) if str(item).strip()
+    ]
     requested_permissions = request.get("requested_permissions") if isinstance(request.get("requested_permissions"), dict) else {}
 
     if request["runtime_kill_signal"]:
@@ -254,6 +283,31 @@ def evaluate_agent_skill_supply_chain_decision(
             violations=violations or ["lethal_trifecta"],
         )
 
+    unpinned_sources = unpinned_external_instruction_sources(skill)
+    if unpinned_sources:
+        return decision_result(
+            decision="deny_untrusted_skill",
+            reason="registered skill treats an unpinned or unhashed URL or remote file as instructions",
+            request=request,
+            pack=skill_pack,
+            skill=skill,
+            violations=[f"unpinned_external_instruction_source: {row.get('url')}" for row in unpinned_sources],
+        )
+
+    allowed_instruction_urls = pinned_instruction_urls(skill)
+    undeclared_instruction_urls = [
+        url for url in request["external_instruction_urls"] if url not in allowed_instruction_urls
+    ]
+    if undeclared_instruction_urls:
+        return decision_result(
+            decision="deny_untrusted_skill",
+            reason="runtime request fetches an instruction URL that is not in the pinned external-instruction inventory",
+            request=request,
+            pack=skill_pack,
+            skill=skill,
+            violations=[f"undeclared_external_instruction_url: {url}" for url in undeclared_instruction_urls],
+        )
+
     registered_decision = str(skill.get("decision") or "")
     if registered_decision in {"deny_untrusted_skill", "kill_session_on_malicious_skill_signal"}:
         return decision_result(
@@ -312,6 +366,7 @@ def request_from_args(args: argparse.Namespace) -> dict[str, Any]:
     overrides = {
         "agent_id": args.agent_id,
         "human_approval_record": {"id": args.human_approval_id} if args.human_approval_id else None,
+        "external_instruction_urls": args.external_instruction_url,
         "network_egress_domains": args.network_egress_domains,
         "operation": args.operation,
         "package_hash": args.package_hash,
@@ -348,6 +403,11 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--registry-verified", action="store_true")
     parser.add_argument("--sandboxed", action="store_true")
     parser.add_argument("--network-egress-domains", nargs="*", default=None)
+    parser.add_argument(
+        "--external-instruction-url",
+        action="append",
+        help="Runtime URL the skill would treat as instructions",
+    )
     parser.add_argument("--permission", action="append", help="Requested permission override as key=value1,value2 or key=true")
     parser.add_argument("--human-approval-id")
     parser.add_argument("--runtime-kill-signal")

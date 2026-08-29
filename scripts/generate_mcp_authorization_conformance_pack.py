@@ -196,6 +196,7 @@ def registered_rows(connector_trust_pack: dict[str, Any], profile: dict[str, Any
                 "latest_spec_controls": [
                     "protected_resource_metadata_discovery",
                     "client_id_metadata_document",
+                    "rfc9207_iss_validation",
                     "scope_challenge_handling",
                     "step_up_authorization"
                 ],
@@ -290,6 +291,7 @@ def candidate_rows(
                 "latest_spec_controls": [
                     "protected_resource_metadata_discovery",
                     "client_id_metadata_document",
+                    "rfc9207_iss_validation",
                     "scope_challenge_handling",
                     "step_up_authorization"
                 ],

@@ -89,9 +89,9 @@
     "failure_count": 0,
     "freshness_class_counts": {
       "current_reference": 16,
-      "recent_signal": 16,
+      "recent_signal": 17,
       "standing_reference": 5,
-      "undated_review_required": 5
+      "undated_review_required": 4
     },
     "newest_sources": [
       {
@@ -107,6 +107,13 @@
         "published": "2026-07-28",
         "publisher_family": "Model Context Protocol",
         "url": "https://modelcontextprotocol.io/specification/2026-07-28/changelog"
+      },
+      {
+        "id": "mcp-security-best-practices-2026-07-28",
+        "name": "Model Context Protocol Security Best Practices (2026-07-28 current revision)",
+        "published": "2026-07-28",
+        "publisher_family": "Model Context Protocol",
+        "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices"
       },
       {
         "id": "openai-agents-sdk-guardrails-2026",
@@ -142,13 +149,6 @@
         "published": "2026-04-17",
         "publisher_family": "A2A",
         "url": "https://a2a-protocol.org/latest/specification/"
-      },
-      {
-        "id": "owasp-genai-exploit-roundup-q1-2026",
-        "name": "OWASP GenAI Exploit Round-up Report Q1 2026",
-        "published": "2026-04-14",
-        "publisher_family": "OWASP",
-        "url": "https://genai.owasp.org/2026/04/14/owasp-genai-exploit-round-up-report-q1-2026/"
       }
     ],
     "primary_watchlist_count": 10,
@@ -160,12 +160,12 @@
       "Cloud Security Alliance": 6,
       "Linux Foundation": 1,
       "Microsoft": 1,
-      "Model Context Protocol": 6,
+      "Model Context Protocol": 7,
       "NIST": 4,
       "OWASP": 7,
       "OpenAI": 5,
       "OpenTelemetry": 1,
-      "Unknown": 5
+      "Unknown": 4
     },
     "source_class_counts": {
       "frontier_lab_guidance": 6,
@@ -176,9 +176,9 @@
       "industry_guidance": 3,
       "industry_standard": 8,
       "observability_standard": 1,
-      "protocol_guidance": 2,
+      "protocol_guidance": 3,
       "protocol_specification": 7,
-      "unknown": 5,
+      "unknown": 4,
       "vendor_architecture_guidance": 1
     },
     "status": "source_freshness_ready",
@@ -414,11 +414,11 @@
     },
     "mcp-authorization-conformance-profile": {
       "path": "data/assurance/mcp-authorization-conformance-profile.json",
-      "sha256": "829ee5a5b3696f9e1f0c7219a92362d852e9a739bcb8198ea44dadea0e851d26"
+      "sha256": "c641a21a28f752ce3309219218257fb0ad7e2e411dd6fe2ad49deac940389ad7"
     },
     "mcp-risk-coverage-profile": {
       "path": "data/assurance/mcp-risk-coverage-profile.json",
-      "sha256": "5e17b4a4004ce04de218d6bcb0774d4fed79f3f37fa0408b40a679a38af5ea5b"
+      "sha256": "066543376fa0268afecbb77de045e5b583ffa000c8f363de5898fa7e7c93daea"
     },
     "secure-context-release-profile": {
       "path": "data/context/secure-context-release-profile.json",
@@ -969,6 +969,32 @@
       "source_class_family": "protocol",
       "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices",
       "why_it_matters": "MCP guidance emphasizes token-passthrough avoidance, confused deputy prevention, scope minimization, session safety, SSRF controls, and auditability."
+    },
+    {
+      "freshness_class": "recent_signal",
+      "id": "mcp-security-best-practices-2026-07-28",
+      "name": "Model Context Protocol Security Best Practices (2026-07-28 current revision)",
+      "published": "2026-07-28",
+      "published_age_days": -85,
+      "published_date": "2026-07-28",
+      "publisher": "Model Context Protocol",
+      "publisher_family": "Model Context Protocol",
+      "referenced_by": [
+        {
+          "path": "data/assurance/mcp-risk-coverage-profile.json",
+          "watched_source_id": "mcp-risk-coverage-profile",
+          "watched_source_title": "MCP and Agentic Skills Risk Coverage Profile"
+        },
+        {
+          "path": "data/assurance/mcp-authorization-conformance-profile.json",
+          "watched_source_id": "mcp-authorization-conformance-profile",
+          "watched_source_title": "MCP Authorization Conformance Profile"
+        }
+      ],
+      "source_class": "protocol_guidance",
+      "source_class_family": "protocol",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices",
+      "why_it_matters": "Current MCP 2026-07-28 security guidance replaces session-hijacking assumptions with state-handle binding, forbids token passthrough, requires confused-deputy consent on proxies, and tightens SSRF controls during metadata and Client ID Metadata Document fetches."
     },
     {
       "freshness_class": "recent_signal",
@@ -1542,27 +1568,6 @@
     },
     {
       "freshness_class": "undated_review_required",
-      "id": "mcp-security-best-practices-2026-07-28",
-      "name": "Model Context Protocol Security Best Practices",
-      "published": null,
-      "published_age_days": null,
-      "published_date": null,
-      "publisher": "Unknown",
-      "publisher_family": "Unknown",
-      "referenced_by": [
-        {
-          "path": "data/assurance/mcp-authorization-conformance-profile.json",
-          "watched_source_id": "mcp-authorization-conformance-profile",
-          "watched_source_title": "MCP Authorization Conformance Profile"
-        }
-      ],
-      "source_class": "unknown",
-      "source_class_family": "unknown",
-      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices",
-      "why_it_matters": "Current public MCP security-best-practices revision: confused-deputy prevention, token-passthrough avoidance, SSRF controls, scope minimization, session safety, local-server hardening, and audit trails."
-    },
-    {
-      "freshness_class": "undated_review_required",
       "id": "nist-sp-800-61r3",
       "name": "NIST SP 800-61 Rev. 3 Incident Response Recommendations",
       "published": null,
@@ -1706,14 +1711,14 @@
       "business_criticality": "critical",
       "decision": "current",
       "id": "mcp-authorization-conformance-profile",
-      "last_reviewed": "2026-08-21",
+      "last_reviewed": "2026-08-29",
       "path": "data/assurance/mcp-authorization-conformance-profile.json",
       "reference_count": 10,
       "reference_paths": [
         "standards_alignment"
       ],
       "review_cadence_days": 21,
-      "review_due_at": "2026-09-11",
+      "review_due_at": "2026-09-19",
       "title": "MCP Authorization Conformance Profile",
       "why": "MCP authorization, resource indicators, token audience, PKCE, and token-passthrough expectations are core hosted-MCP trust controls."
     },
@@ -1722,14 +1727,14 @@
       "business_criticality": "high",
       "decision": "current",
       "id": "mcp-risk-coverage-profile",
-      "last_reviewed": "2026-05-04",
+      "last_reviewed": "2026-08-27",
       "path": "data/assurance/mcp-risk-coverage-profile.json",
-      "reference_count": 5,
+      "reference_count": 6,
       "reference_paths": [
         "source_references"
       ],
       "review_cadence_days": 30,
-      "review_due_at": "2026-06-03",
+      "review_due_at": "2026-09-26",
       "title": "MCP and Agentic Skills Risk Coverage Profile",
       "why": "This pack proves coverage against OWASP MCP and Agentic Skills risks."
     },
