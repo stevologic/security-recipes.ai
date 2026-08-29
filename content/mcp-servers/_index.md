@@ -3,13 +3,66 @@ title: MCP Context for AI Vulnerability Remediation
 linkTitle: MCP Integration
 weight: 5
 date: 2026-04-21
-lastmod: 2026-08-21
+lastmod: 2026-08-29
 toc: true
 sidebar:
   open: true
 description: >
   Connect security-recipes.ai and approved security systems to AI remediation
   agents through read-only MCP servers, scoped tools, and auditable context.
+---
+
+## Connect in 30 seconds
+
+Add the hosted, read-only Security Recipes server to any MCP client that
+supports Streamable HTTP. No local installation, Docker, or API key is
+required.
+
+<div class="sr-mcp-config-helper sr-mcp-config-helper--quick" data-mcp-config-helper data-mcp-config-endpoint="https://security-recipes.ai/mcp">
+  <div class="sr-mcp-config-helper__header">
+    <div>
+      <p class="sr-mcp-config-helper__eyebrow">Hosted Streamable HTTP</p>
+      <h3>Paste the URL or JSON into your MCP client</h3>
+      <p>Use the URL when your client has an “Add server” form, or the JSON when it accepts a configuration file.</p>
+    </div>
+    <span>read-only</span>
+  </div>
+
+  <div class="sr-mcp-config-helper__grid">
+    <section>
+      <div class="sr-mcp-config-helper__section-head">
+        <h4>Server URL</h4>
+        <button type="button" data-mcp-config-copy="url">Copy URL</button>
+      </div>
+      <pre><code data-mcp-config-url>https://security-recipes.ai/mcp</code></pre>
+    </section>
+    <section>
+      <div class="sr-mcp-config-helper__section-head">
+        <h4>MCP client JSON</h4>
+        <button type="button" data-mcp-config-copy="client">Copy JSON</button>
+      </div>
+      <pre><code data-mcp-config-client-json>{
+  "mcpServers": {
+    "security-recipes": {
+      "transport": "streamable-http",
+      "url": "https://security-recipes.ai/mcp"
+    }
+  }
+}</code></pre>
+    </section>
+  </div>
+
+  <p class="sr-mcp-config-helper__status" data-mcp-config-status aria-live="polite"></p>
+</div>
+
+1. Open your MCP client's server or integration settings.
+2. Choose **Streamable HTTP**, then paste the URL or JSON above.
+3. Reload or reconnect the client, then run `recipes_server_info` to confirm the
+   connection.
+
+Client labels vary. The [complete configuration guide](#configure-this-security-recipes-mcp-server)
+below covers local hosts, Docker, TOML, health checks, and troubleshooting.
+
 ---
 
 This page covers the MCP-specific security and context layer: server roles,

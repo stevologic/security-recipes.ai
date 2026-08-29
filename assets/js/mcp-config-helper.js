@@ -21,6 +21,22 @@
     return new URL(basePrefix() + path.replace(/^\/+/, ''), window.location.origin).toString();
   }
 
+  function mcpEndpointOverride(root, fallback) {
+    var raw = root && root.getAttribute
+      ? root.getAttribute('data-mcp-config-endpoint')
+      : '';
+    if (!raw) return fallback;
+
+    try {
+      var parsed = new URL(raw);
+      if (['http:', 'https:'].indexOf(parsed.protocol) === -1) return fallback;
+      if (parsed.username || parsed.password) return fallback;
+      return parsed.toString();
+    } catch (error) {
+      return fallback;
+    }
+  }
+
   function hostList(hostname, isLocal) {
     var hosts = ['security-recipes'];
     if (hostname) hosts.push(hostname);
@@ -153,6 +169,7 @@
 
   function copyLabel(key) {
     return {
+      url: 'MCP client URL',
       client: 'MCP client JSON',
       env: 'Docker Compose environment',
       toml: 'standalone TOML',
@@ -177,9 +194,10 @@
     var hostname = window.location.hostname;
     var isLocal = ['localhost', '127.0.0.1', '::1'].indexOf(hostname) !== -1;
     var isProduction = hostname === 'security-recipes.ai' || hostname === 'www.security-recipes.ai';
+    var mcpUrl = mcpEndpointOverride(root, endpoint('/mcp'));
     var config = {
       origin: withoutTrailingSlash(window.location.origin),
-      mcpUrl: endpoint('/mcp'),
+      mcpUrl: mcpUrl,
       feedUrl: endpoint('/api/recipes.json'),
       allowedHosts: hostList(hostname, isLocal),
       publicAllowedHosts: hostList(hostname, isLocal).filter(function (host) {
@@ -206,6 +224,7 @@
     setText(root, '[data-mcp-config-env]', env);
     setText(root, '[data-mcp-config-toml]', toml);
     setText(root, '[data-mcp-config-checks]', checks);
+    setCopy(root, 'url', config.mcpUrl);
     setCopy(root, 'client', client);
     setCopy(root, 'env', env);
     setCopy(root, 'toml', toml);
@@ -218,6 +237,7 @@
 
   var api = {
     healthChecks: healthChecks,
+    mcpEndpointOverride: mcpEndpointOverride,
     shellQuote: shellQuote,
     standaloneToml: standaloneToml,
     tomlArray: tomlArray,
