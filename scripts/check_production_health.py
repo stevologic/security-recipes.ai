@@ -962,7 +962,13 @@ def run_probes(
                 f"Production serves {deployed_revision[:12]}, while main is "
                 f"{expected_revision[:12]}."
             )
-            if head_age <= timedelta(minutes=revision_grace_minutes):
+            catalog_failed = any(
+                check.name == "catalog" and not check.ok for check in checks
+            )
+            if (
+                head_age <= timedelta(minutes=revision_grace_minutes)
+                and not catalog_failed
+            ):
                 checks.append(
                     Check(
                         "revision",
@@ -974,6 +980,11 @@ def run_probes(
                     )
                 )
             else:
+                if catalog_failed:
+                    message += (
+                        " Catalog freshness already failed, so deploy lag is no "
+                        "longer covered by the revision grace period."
+                    )
                 checks.append(Check("revision", False, message))
     except Exception as exc:  # noqa: BLE001 - every probe must become a report.
         checks.append(Check("revision", False, f"Revision probe failed: {exc}"))
