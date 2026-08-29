@@ -406,6 +406,258 @@ class SyncCveCatalogTests(unittest.TestCase):
         self.assertEqual(normalized["ai_enrichment"]["source_urls"], [source_url])
         self.assertEqual(normalized["ai_enrichment"]["source_fingerprint"], fingerprint)
 
+    def test_catalog_text_cleanup_removes_han_from_user_visible_record_fields(self) -> None:
+        kev_source = "https://cisa.example.test/中文-source"
+        record = {
+            "cve": "CVE-2024-4321",
+            "title": "Acme中文Gateway vulnerability",
+            "summary": "The 设备 gateway is affected.",
+            "page_title": "Reviewed Acme【中文】Gateway",
+            "page_description": "中文：Remote code execution；修复。",
+            "products": [
+                {
+                    "vendor": "供应商 Acme",
+                    "product": "Acme防火墙Gateway",
+                    "version": "设备版 1.0",
+                    "version_start_including": "版本 0.9",
+                    "version_end_excluding": "修复版 1.1",
+                    "source": "来源 NVD",
+                },
+                "preserve-non-object-row",
+            ],
+            "affected_data": [
+                {
+                    "vendor": "Acme供应商",
+                    "product": "云端 Console",
+                    "source": "来源 CNA",
+                    "platforms": ["云端 Linux"],
+                    "cpes": ["中文 cpe:2.3:a:acme:gateway:*"],
+                    "versions": [
+                        {
+                            "version": "中文 version",
+                            "less_than": "修复 2.0",
+                            "less_than_or_equal": "版本 1.9",
+                            "version_type": "语义 semver",
+                            "status": "受影响 affected",
+                            "changes": [
+                                {
+                                    "at": "修复 1.5",
+                                    "status": "不受影响 unaffected",
+                                }
+                            ],
+                        }
+                    ],
+                }
+            ],
+            "kev_details": {
+                "vendor_project": "供应商 Acme",
+                "product": "云端 Gateway",
+                "vulnerability_name": "Acme【中文】Gateway flaw",
+                "required_action": "安装 修复 update",
+                "known_ransomware_campaign_use": "未知 Unknown",
+                "notes": "中文：Apply the update；完成。",
+                "cwes": ["CWE-79", "中文 CWE-89"],
+                "source": kev_source,
+            },
+            "references": [
+                {
+                    "title": "厂商 Vendor advisory",
+                    "name": "安全 Security bulletin",
+                    "url": "https://vendor.example.test/中文-advisory",
+                    "href": "https://vendor.example.test/中文-href",
+                    "link": "https://vendor.example.test/中文-link",
+                    "source": "中文-provenance-source",
+                    "fingerprint": "中文-provenance-fingerprint",
+                },
+                "preserve-non-object-reference",
+            ],
+            "ai_enrichment": {
+                "business_risk": "Compromise of the 设备 gateway.",
+                "source_urls": ["https://vendor.example.test/中文-advisory"],
+            },
+        }
+
+        normalized = catalog.normalize_catalog_record_text(record)
+
+        self.assertEqual(normalized["title"], "Acme Gateway vulnerability")
+        self.assertEqual(normalized["summary"], "The gateway is affected.")
+        self.assertEqual(normalized["page_title"], "Reviewed Acme Gateway")
+        self.assertEqual(normalized["page_description"], "Remote code execution")
+        self.assertEqual(normalized["products"][0]["vendor"], "Acme")
+        self.assertEqual(normalized["products"][0]["product"], "Acme Gateway")
+        self.assertEqual(normalized["products"][0]["version"], "1.0")
+        self.assertEqual(normalized["products"][0]["version_start_including"], "0.9")
+        self.assertEqual(normalized["products"][0]["version_end_excluding"], "1.1")
+        self.assertEqual(normalized["products"][0]["source"], "NVD")
+        self.assertEqual(normalized["products"][1], "preserve-non-object-row")
+        self.assertEqual(normalized["affected_data"][0]["vendor"], "Acme")
+        self.assertEqual(normalized["affected_data"][0]["product"], "Console")
+        self.assertEqual(normalized["affected_data"][0]["source"], "CNA")
+        self.assertEqual(normalized["affected_data"][0]["platforms"], ["Linux"])
+        self.assertEqual(
+            normalized["affected_data"][0]["cpes"],
+            ["cpe:2.3:a:acme:gateway:*"],
+        )
+        version = normalized["affected_data"][0]["versions"][0]
+        self.assertEqual(version["version"], "version")
+        self.assertEqual(version["less_than"], "2.0")
+        self.assertEqual(version["less_than_or_equal"], "1.9")
+        self.assertEqual(version["version_type"], "semver")
+        self.assertEqual(version["status"], "affected")
+        self.assertEqual(
+            version["changes"],
+            [{"at": "1.5", "status": "unaffected"}],
+        )
+        self.assertEqual(normalized["kev_details"]["vendor_project"], "Acme")
+        self.assertEqual(normalized["kev_details"]["product"], "Gateway")
+        self.assertEqual(
+            normalized["kev_details"]["vulnerability_name"],
+            "Acme Gateway flaw",
+        )
+        self.assertEqual(normalized["kev_details"]["required_action"], "update")
+        self.assertEqual(
+            normalized["kev_details"]["known_ransomware_campaign_use"],
+            "Unknown",
+        )
+        self.assertEqual(normalized["kev_details"]["notes"], "Apply the update")
+        self.assertEqual(normalized["kev_details"]["cwes"], ["CWE-79", "CWE-89"])
+        self.assertEqual(normalized["kev_details"]["source"], kev_source)
+        self.assertEqual(normalized["references"][0]["title"], "Vendor advisory")
+        self.assertEqual(normalized["references"][0]["name"], "Security bulletin")
+        self.assertEqual(
+            normalized["references"][0]["url"],
+            "https://vendor.example.test/中文-advisory",
+        )
+        self.assertEqual(
+            normalized["references"][0]["href"],
+            "https://vendor.example.test/中文-href",
+        )
+        self.assertEqual(
+            normalized["references"][0]["link"],
+            "https://vendor.example.test/中文-link",
+        )
+        self.assertEqual(
+            normalized["references"][0]["source"],
+            "中文-provenance-source",
+        )
+        self.assertEqual(
+            normalized["references"][0]["fingerprint"],
+            "中文-provenance-fingerprint",
+        )
+        self.assertEqual(normalized["references"][1], "preserve-non-object-reference")
+        self.assertEqual(
+            normalized["ai_enrichment"]["business_risk"],
+            "Compromise of the gateway.",
+        )
+        self.assertEqual(
+            normalized["ai_enrichment"]["source_urls"],
+            ["https://vendor.example.test/中文-advisory"],
+        )
+        self.assertEqual(record["products"][0]["vendor"], "供应商 Acme")
+        self.assertEqual(record["affected_data"][0]["versions"][0]["version"], "中文 version")
+        self.assertEqual(record["references"][0]["title"], "厂商 Vendor advisory")
+
+    def test_catalog_text_cleanup_uses_cve_fallbacks_for_han_only_core_text(self) -> None:
+        normalized = catalog.normalize_catalog_record_text(
+            {
+                "cve": "CVE-2024-4321",
+                "title": "中文",
+                "summary": "修复。",
+                "page_title": "中文",
+                "page_description": "修复。",
+            }
+        )
+
+        self.assertEqual(normalized["title"], "CVE-2024-4321 vulnerability")
+        self.assertEqual(
+            normalized["summary"],
+            "No English description is available for CVE-2024-4321; "
+            "consult the linked source references.",
+        )
+        self.assertEqual(normalized["page_title"], "")
+        self.assertEqual(normalized["page_description"], "")
+
+    def test_catalog_text_cleanup_keeps_product_rows_identifiable(self) -> None:
+        normalized = catalog.normalize_catalog_record_text(
+            {
+                "cve": "CVE-2024-4321",
+                "products": [
+                    {"vendor": "供应商", "product": "产品", "version": "1.0"},
+                    {"vendor": "", "product": "Unspecified product", "version": "2.0"},
+                ],
+                "affected_data": [
+                    {
+                        "vendor": "供应商",
+                        "product": "产品",
+                        "versions": [],
+                    }
+                ],
+            }
+        )
+
+        self.assertEqual(normalized["products"][0]["product"], "Unspecified")
+        self.assertEqual(normalized["products"][1]["product"], "Unspecified")
+        self.assertEqual(
+            normalized["affected_data"][0]["product"],
+            "Unspecified",
+        )
+
+    def test_output_normalization_discards_enrichment_staled_by_cleanup(self) -> None:
+        record = normalize(nvd_record("CVE-2024-4321"))
+        self.assertIsNotNone(record)
+        assert record is not None
+        record["summary"] = "Product 中文 service is affected."
+        source_url = record["references"][0]["url"]
+        record["ai_enrichment"] = ai.build_enrichment_entry(
+            record,
+            {
+                "status": "complete",
+                "business_risk": "An exposed vulnerable service could be compromised.",
+                "exposure_conditions": ["The affected service is reachable."],
+                "remediation_steps": ["Apply the vendor-supported fixed release."],
+                "verification_steps": ["Confirm the fixed release is deployed."],
+                "uncertainty": [],
+                "recipe_specificity": "not_specific",
+                "claim_evidence": [],
+                "source_urls": [source_url],
+            },
+            model="test-model",
+            retrieved_source_urls=[source_url],
+        )
+
+        normalized = catalog.normalize_catalog_output_record(record)
+
+        self.assertEqual(normalized["summary"], "Product service is affected.")
+        self.assertNotIn("ai_enrichment", normalized)
+        self.assertIn("ai_enrichment", record)
+
+    def test_output_normalization_withholds_han_only_ai_guidance(self) -> None:
+        record = normalize(nvd_record("CVE-2024-4321"))
+        self.assertIsNotNone(record)
+        assert record is not None
+        source_url = record["references"][0]["url"]
+        candidate = ai.build_enrichment_entry(
+            record,
+            {
+                "status": "complete",
+                "business_risk": "An exposed vulnerable service could be compromised.",
+                "exposure_conditions": ["The affected service is reachable."],
+                "remediation_steps": ["修复"],
+                "verification_steps": ["Confirm the fixed release is deployed."],
+                "uncertainty": [],
+                "recipe_specificity": "not_specific",
+                "claim_evidence": [],
+                "source_urls": [source_url],
+            },
+            model="test-model",
+            retrieved_source_urls=[source_url],
+        )
+        record["ai_enrichment"] = candidate
+
+        normalized = catalog.normalize_catalog_output_record(record)
+
+        self.assertNotIn("ai_enrichment", normalized)
+
     def test_generic_space_normalization_does_not_decode_url_entities(self) -> None:
         source_url = "https://vendor.example.test/advisory?a=1&notid=2&amp;b=3"
 
@@ -449,6 +701,8 @@ class SyncCveCatalogTests(unittest.TestCase):
             ),
             [],
         )
+        published = catalog.normalize_catalog_output_record(refreshed)
+        self.assertEqual(published["ai_enrichment"], candidate)
 
     def test_valid_cached_enrichment_is_removed_from_stable_override(self) -> None:
         record = normalize(nvd_record("CVE-2024-4321"))
@@ -2039,6 +2293,150 @@ class SyncCveCatalogTests(unittest.TestCase):
         self.assertFalse(validation["ok"])
         self.assertIn(
             "uses the forbidden generic affected-product title",
+            "\n".join(validation["failures"]),
+        )
+
+    def test_literal_han_check_covers_nested_user_visible_catalog_fields(self) -> None:
+        record = {
+            "title": "Acme\u4e2d\u6587 Gateway",
+            "summary": "Affected \U00020000 component.",
+            "page_title": "Reviewed \uf900 recipe",
+            "page_description": "Fixed in \U0003347f release.",
+            "products": [
+                {
+                    "vendor": "\u4f9b\u5e94\u5546 Acme",
+                    "product": "Gateway \u8bbe\u5907",
+                    "version": "\u4e2d\u6587-version",
+                    "version_end_including": "\u4fee\u590d-version",
+                    "platforms": ["\u4e91\u7aef"],
+                    "source": "\u4ea7\u54c1 inventory",
+                }
+            ],
+            "affected_data": [
+                {
+                    "vendor": "Acme \u4f9b\u5e94\u5546",
+                    "product": "\u4e91\u7aef Console",
+                    "source": "\u5382\u5546 CNA",
+                    "platforms": ["Windows \u670d\u52a1\u5668"],
+                    "versions": [
+                        {
+                            "version": "\u4e2d\u6587-version",
+                            "less_than": "\u4fee\u590d-version",
+                            "changes": [
+                                {
+                                    "at": "\u7248\u672c 2.0",
+                                    "status": "\u4e0d\u53d7\u5f71\u54cd",
+                                }
+                            ],
+                        }
+                    ],
+                }
+            ],
+            "kev_details": {
+                "vendor_project": "\u5382\u5546 Acme",
+                "product": "\u4e91\u7aef Gateway",
+                "vulnerability_name": "Gateway \u6f0f\u6d1e",
+                "required_action": "Install the \u8865\u4e01.",
+                "known_ransomware_campaign_use": "\u672a\u77e5",
+                "notes": "\u8be6\u60c5",
+                "cwes": ["CWE-79 \u6ce8\u91ca"],
+                "source": "https://vendor.example.test/\u4e2d\u6587-feed",
+            },
+            "references": [
+                {
+                    "url": "https://vendor.example.test/\u4e2d\u6587-advisory",
+                    "title": "\u5382\u5546 advisory",
+                    "name": "\u5b89\u5168 bulletin",
+                }
+            ],
+            "ai_enrichment": {
+                "business_risk": "Compromise of the \u8bbe\u5907 gateway.",
+                "exposure_conditions": ["The \u4e91\u7aef service is reachable."],
+                "remediation_steps": ["Install the \u8865\u4e01."],
+                "verification_steps": ["Verify the \u7248\u672c."],
+                "uncertainty": ["\u672a\u77e5 deployment state."],
+                "claim_evidence": [{"claim": "The \u8bbe\u5907 is affected."}],
+                "source_urls": ["https://vendor.example.test/\u4e2d\u6587-advisory"],
+            },
+        }
+
+        self.assertEqual(
+            validator.literal_han_user_visible_fields(record),
+            [
+                "title",
+                "summary",
+                "page_title",
+                "page_description",
+                "products[0].vendor",
+                "products[0].product",
+                "products[0].version",
+                "products[0].version_end_including",
+                "products[0].platforms[0]",
+                "products[0].source",
+                "affected_data[0].vendor",
+                "affected_data[0].product",
+                "affected_data[0].source",
+                "affected_data[0].platforms[0]",
+                "affected_data[0].versions[0].version",
+                "affected_data[0].versions[0].less_than",
+                "affected_data[0].versions[0].changes[0].at",
+                "affected_data[0].versions[0].changes[0].status",
+                "kev_details.vendor_project",
+                "kev_details.product",
+                "kev_details.vulnerability_name",
+                "kev_details.required_action",
+                "kev_details.known_ransomware_campaign_use",
+                "kev_details.notes",
+                "kev_details.cwes[0]",
+                "references[0].title",
+                "references[0].name",
+                "ai_enrichment.business_risk",
+                "ai_enrichment.exposure_conditions[0]",
+                "ai_enrichment.remediation_steps[0]",
+                "ai_enrichment.verification_steps[0]",
+                "ai_enrichment.uncertainty[0]",
+                "ai_enrichment.claim_evidence[0].claim",
+            ],
+        )
+        self.assertIsNone(validator.LITERAL_HAN_RE.search("かな 한글 &#x4E2D; \\u4E2D"))
+
+    def test_validator_rejects_literal_han_in_a_user_visible_shard_field(self) -> None:
+        record = normalize(nvd_record())
+        self.assertIsNotNone(record)
+        assert record is not None
+
+        with tempfile.TemporaryDirectory(prefix="test-cve-literal-han-", dir=catalog.ROOT) as tmpdir:
+            output_dir, content_dir, _ = write_catalog_fixture(Path(tmpdir), [record])
+            manifest_path = output_dir / "manifest.json"
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            shard_entry = manifest["shard_manifest"][0]
+            shard_path = output_dir / shard_entry["path"]
+            shard_record = json.loads(gzip.decompress(shard_path.read_bytes()))
+            shard_record["summary"] = "The \u8bbe\u5907 gateway is affected."
+            uncompressed = catalog.json_bytes(shard_record)
+            compressed = catalog.deterministic_gzip(uncompressed)
+            shard_path.write_bytes(compressed)
+            shard_entry.update(
+                {
+                    "bytes": len(compressed),
+                    "sha256": catalog.hash_bytes(compressed),
+                    "uncompressed_bytes": len(uncompressed),
+                }
+            )
+            inventory = [
+                {"path": entry["path"], "sha256": entry["sha256"]}
+                for entry in manifest["shard_manifest"]
+            ]
+            manifest["shard_set_sha256"] = catalog.hash_bytes(
+                catalog.json_bytes(inventory)
+            )
+            manifest_path.write_bytes(catalog.json_bytes(manifest, pretty=True))
+
+            validation = validator.validate(output_dir, content_dir)
+
+        self.assertFalse(validation["ok"])
+        self.assertIn(
+            f"{record['cve']} summary contains literal Han ideographs",
             "\n".join(validation["failures"]),
         )
 

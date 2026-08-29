@@ -37,6 +37,30 @@ class CveTextQualityTests(unittest.TestCase):
                 self.assertEqual(clean_catalog_text(source), source)
                 self.assertFalse(catalog_text_has_artifact(source))
 
+    def test_replaces_han_runs_without_joining_adjacent_text(self) -> None:
+        samples = (
+            ("Acme中文Gateway", "Acme Gateway"),
+            ("alpha㐀㐁beta", "alpha beta"),
+            ("vendor豈product", "vendor product"),
+            ("before𠀀after", "before after"),
+            ("left\U000323b0right", "left right"),
+            ("中文：remote code execution；修复。", "remote code execution"),
+            ("Acme【中文】Gateway", "Acme Gateway"),
+            ("Acme 日本語テスト Gateway", "Acme Gateway"),
+            ("Acme((中文))Gateway", "Acme Gateway"),
+            ("中文", ""),
+        )
+        for source, expected in samples:
+            with self.subTest(source=source):
+                self.assertEqual(clean_catalog_text(source), expected)
+                self.assertTrue(catalog_text_has_artifact(source))
+
+    def test_preserves_kana_only_text(self) -> None:
+        source = "Acme テスト Gateway"
+
+        self.assertEqual(clean_catalog_text(source), source)
+        self.assertFalse(catalog_text_has_artifact(source))
+
 
 if __name__ == "__main__":
     unittest.main()

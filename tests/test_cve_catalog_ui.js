@@ -37,6 +37,41 @@ test('catalog display text preserves already-correct Unicode', () => {
   assert.equal(controller.cleanCatalogText(source), source);
 });
 
+test('catalog display text removes Han-bearing mixed CJK runs and empty wrappers', () => {
+  const samples = [
+    ['Acme\u4e2d\u6587Gateway', 'Acme Gateway'],
+    ['alpha\u3400\u3401beta', 'alpha beta'],
+    ['vendor\uf900product', 'vendor product'],
+    ['before\ud840\udc00after', 'before after'],
+    ['before\ud87e\ude1fafter', 'before after'],
+    ['left\ud880\udc00right', 'left right'],
+    ['left\ud88d\udc7fright', 'left right'],
+    ['Acme\u3010\u4e2d\u6587\u3001\u6e2c\u8a66\u3011Gateway', 'Acme Gateway'],
+    ['Acme ({[ \u4e2d\u6587 ]}) Gateway', 'Acme Gateway'],
+    ['Web\u306e\u76f8\u8ac7\u6240 plugin', 'Web plugin'],
+    ['\uff08\u4e2d\u6587\uff09', ''],
+    ['\u4e2d\u6587', '']
+  ];
+  for (const [source, expected] of samples) {
+    assert.equal(worker.cleanCatalogText(source), expected);
+    assert.equal(controller.cleanCatalogText(source), expected);
+  }
+});
+
+test('catalog display text leaves kana and empty ASCII pairs alone without Han', () => {
+  const samples = [
+    '\u300c\u30ab\u30bf\u30ab\u30ca\u300d',
+    '\u3072\u3089\u304c\u306a',
+    '\uff76\uff80\uff76\uff85',
+    'Acme () [] {}',
+    `left${String.fromCodePoint(0x33480)}right`
+  ];
+  for (const source of samples) {
+    assert.equal(worker.cleanCatalogText(source), source);
+    assert.equal(controller.cleanCatalogText(source), source);
+  }
+});
+
 test('forced manifest refresh bypasses a stale browser cache', () => {
   assert.equal(controller.manifestFetchCacheMode(false), 'default');
   assert.equal(controller.manifestFetchCacheMode(true), 'reload');
@@ -979,7 +1014,7 @@ test('catalog search API responses are bounded and normalized for rendering', ()
     truncated: true,
     results: [{
       cve: 'cve-2024-3400',
-      title: 'Example vulnerability',
+      title: 'Example \u4e2d\u6587 vulnerability',
       severity: 'HIGH',
       score: 8.8,
       published: '2024-04-12',
@@ -993,6 +1028,7 @@ test('catalog search API responses are bounded and normalized for rendering', ()
 
   assert.equal(payload.totalMatches, 12);
   assert.equal(payload.results[0].cve, 'CVE-2024-3400');
+  assert.equal(payload.results[0].title, 'Example vulnerability');
   assert.equal(payload.results[0].severity, 'high');
   assert.equal(payload.results[0].hasMarkdown, true);
   assert.throws(
@@ -1067,7 +1103,7 @@ test('full-record cache is bounded and refreshes recently used entries', () => {
 
 test('browser index dictionaries decode medium, high, and critical severity codes', () => {
   const index = browserIndex([
-    ['CVE-2024-3400', 'GlobalProtect command injection', 2, 10, '2024-04-12', 0, 1, [1, 0, 1], 1],
+    ['CVE-2024-3400', 'GlobalProtect \u4e2d\u6587 command injection', 2, 10, '2024-04-12', 0, 1, [1, 0, 1], 1],
     ['CVE-2024-3401', 'Another GlobalProtect issue', 1, 8.1, '2023-04-12', 1, 0, [0], 0],
     ['CVE-2024-3402', 'Moderate GlobalProtect issue', 0, 6.4, '2022-04-12', 1, 0, [0], 0]
   ]);
@@ -1076,6 +1112,7 @@ test('browser index dictionaries decode medium, high, and critical severity code
   const medium = worker.decodeRecord(index, index.records[2]);
 
   assert.equal(critical.severity, 'critical');
+  assert.equal(critical.title, 'GlobalProtect command injection');
   assert.equal(high.severity, 'high');
   assert.equal(medium.severity, 'medium');
   assert.equal(critical.ecosystem, 'network-appliance');

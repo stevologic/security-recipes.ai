@@ -266,6 +266,11 @@
     background: rgba(255, 255, 255, 0.035);
   }
 
+  .cve-ticker__toggle svg {
+    display: block;
+    margin: auto;
+  }
+
   @keyframes latest-cves-scroll {
     to { transform: translate3d(-50%, 0, 0); }
   }
@@ -400,7 +405,10 @@
       </div>
       {% if latestReviewedCves and latestReviewedCves.length %}
       <button class="cve-ticker__toggle" type="button" data-cve-ticker-toggle aria-label="Pause latest CVE ticker" aria-pressed="false" title="Pause ticker" hidden>
-        <span aria-hidden="true">&#8545;</span>
+        <svg aria-hidden="true" focusable="false" width="10" height="12" viewBox="0 0 10 12">
+          <rect x="1" y="1" width="3" height="10" rx="1" fill="currentColor"></rect>
+          <rect x="6" y="1" width="3" height="10" rx="1" fill="currentColor"></rect>
+        </svg>
       </button>
       {% endif %}
     </div>
