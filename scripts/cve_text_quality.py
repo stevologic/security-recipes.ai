@@ -37,6 +37,20 @@ CP1252_BYTE_BY_CODE_POINT = {
     0x2122: 0x99,
 }
 
+# The public site is English-only. Detect Han independently so kana-only text
+# remains untouched, then remove the complete mixed CJK runs around detected
+# ideographs. The Han ranges include Unicode 17's Extension J.
+HAN_IDEOGRAPH_RE = re.compile(
+    "[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff"
+    "\U00020000-\U0002fa1f\U00030000-\U0003347f]"
+)
+MIXED_CJK_RUN_RE = re.compile(
+    "[\u2e80-\u312f\u3190-\u33ff\u3400-\u4dbf\u4e00-\u9fff"
+    "\uf900-\ufaff\uff01-\uff0f\uff1a-\uff20\uff3b-\uff40"
+    "\uff5b-\uff9f\U00020000-\U0002fa1f\U00030000-\U0003347f]+"
+)
+EMPTY_ASCII_PAIR_RE = re.compile(r"\(\s*\)|\[\s*\]|\{\s*\}")
+
 
 def _mojibake_byte(character: str) -> int:
     codepoint = ord(character)
@@ -79,7 +93,7 @@ def _repair_mojibake_pass(value: str) -> str:
 
 
 def clean_catalog_text(value: object) -> str:
-    """Return readable Unicode without altering already-correct international text."""
+    """Return readable site text without Han ideographs or encoding artifacts."""
     text = str(value or "")
     for _ in range(3):
         decoded = html.unescape(text)
@@ -94,6 +108,13 @@ def clean_catalog_text(value: object) -> str:
     text = re.sub(r"\u00c2+(?=\s|$)", "", text)
     text = re.sub(r"\ufffds\b", "'s", text)
     text = text.replace("\ufffd", " ")
+    if HAN_IDEOGRAPH_RE.search(text):
+        text = MIXED_CJK_RUN_RE.sub(" ", text)
+        while True:
+            unwrapped = EMPTY_ASCII_PAIR_RE.sub(" ", text)
+            if unwrapped == text:
+                break
+            text = unwrapped
     return re.sub(r"\s+", " ", text).strip()
 
 

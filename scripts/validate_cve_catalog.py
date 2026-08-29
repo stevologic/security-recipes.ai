@@ -34,6 +34,15 @@ INDEX_PARTITION_PATH_RE = re.compile(r"indexes/(\d{4})\.json\.gz")
 NVD_FEED_ROOT = "https://nvd.nist.gov/feeds/json/cve/2.0"
 CISA_KEV_URL = "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
 FORBIDDEN_GENERIC_TITLE = "affected product security vulnerability"
+# Keep this independent from the producer's text cleanup. The validator must
+# reject a catalog if a generation path bypasses normalization. These ranges
+# cover CJK unified and compatibility ideographs, including supplementary
+# plane extensions used by modern CVE source records, through Unicode 17's
+# Extension J endpoint at U+3347F.
+LITERAL_HAN_RE = re.compile(
+    "[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff"
+    "\U00020000-\U0002fa1f\U00030000-\U0003347f]"
+)
 NVD_METADATA_FIELDS = ("lastModifiedDate", "size", "zipSize", "gzSize", "sha256")
 BROWSER_INDEX_FIELDS = [
     "cve",
@@ -370,6 +379,83 @@ def valid_datetime(value: object) -> bool:
 def fail(failures: list[str], message: str, *, cap: int = 200) -> None:
     if len(failures) < cap:
         failures.append(message)
+
+
+def literal_han_user_visible_fields(record: dict[str, Any]) -> list[str]:
+    """Return user-visible catalog field paths that contain literal Han."""
+
+    matches: list[str] = []
+
+    def check(path: str, value: object) -> None:
+        if isinstance(value, str):
+            if LITERAL_HAN_RE.search(value):
+                matches.append(path)
+            return
+        if isinstance(value, list):
+            for index, item in enumerate(value):
+                check(f"{path}[{index}]", item)
+            return
+        if isinstance(value, dict):
+            for key, item in value.items():
+                check(f"{path}.{key}", item)
+
+    def check_string(path: str, value: object) -> None:
+        if isinstance(value, str) and LITERAL_HAN_RE.search(value):
+            matches.append(path)
+
+    for field in ("title", "summary", "page_title", "page_description"):
+        check_string(field, record.get(field))
+
+    for collection_name in ("products", "affected_data"):
+        check(collection_name, record.get(collection_name))
+
+    kev_details = record.get("kev_details")
+    if isinstance(kev_details, dict):
+        for field, value in kev_details.items():
+            if field != "source":
+                check(f"kev_details.{field}", value)
+
+    references = record.get("references")
+    if isinstance(references, list):
+        for index, reference in enumerate(references):
+            if not isinstance(reference, dict):
+                continue
+            for field in ("title", "name"):
+                check(f"references[{index}].{field}", reference.get(field))
+
+    enrichment = record.get("ai_enrichment")
+    if isinstance(enrichment, dict):
+        check_string("ai_enrichment.business_risk", enrichment.get("business_risk"))
+        for field in (
+            "exposure_conditions",
+            "remediation_steps",
+            "verification_steps",
+            "uncertainty",
+        ):
+            values = enrichment.get(field)
+            if not isinstance(values, list):
+                continue
+            for index, value in enumerate(values):
+                check_string(f"ai_enrichment.{field}[{index}]", value)
+        claims = enrichment.get("claim_evidence")
+        if isinstance(claims, list):
+            for index, claim in enumerate(claims):
+                if isinstance(claim, dict):
+                    check_string(
+                        f"ai_enrichment.claim_evidence[{index}].claim",
+                        claim.get("claim"),
+                    )
+
+    return matches
+
+
+def reject_literal_han(
+    record: dict[str, Any],
+    cve: str,
+    failures: list[str],
+) -> None:
+    for field in literal_han_user_visible_fields(record):
+        fail(failures, f"{cve} {field} contains literal Han ideographs")
 
 
 def nonempty_unique_strings(value: object) -> bool:
@@ -1573,6 +1659,7 @@ def validate(catalog_dir: Path, content_dir: Path = DEFAULT_CONTENT) -> dict[str
         if cve in index_by_cve:
             fail(failures, f"duplicate catalog identity: {cve}")
         index_by_cve[cve] = record
+        reject_literal_han(record, cve, failures)
         title = str(record.get("title") or "").strip()
         if not title:
             fail(failures, f"{cve} has an empty title")
@@ -1749,6 +1836,7 @@ def validate(catalog_dir: Path, content_dir: Path = DEFAULT_CONTENT) -> dict[str
                 fail(failures, f"invalid JSON in {relative}:{line_number}: {exc}")
                 continue
             cve = str(record.get("cve") or "")
+            reject_literal_han(record, cve, failures)
             if cve in shard_ids:
                 fail(failures, f"duplicate CVE across shards: {cve}")
             shard_ids.add(cve)
