@@ -7,7 +7,7 @@
 [![MCP server](https://img.shields.io/badge/MCP-%2Fmcp-5eead4.svg?style=flat-square&labelColor=020506)](https://security-recipes.ai/mcp-servers/)
 [![Security health action](https://img.shields.io/badge/CI-Security_Health_Action-5eead4.svg?style=flat-square&labelColor=020506)](https://security-recipes.ai/docs/security-health-action/)
 [![llms.txt](https://img.shields.io/badge/agents-llms.txt-67e8f9.svg?style=flat-square&labelColor=020506)](https://security-recipes.ai/llms.txt)
-
+[![Listed on mcpservers.org](https://mcpservers.org/badge.svg)](https://mcpservers.org/servers/security-recipes-ai-mcp-servers)
 </div>
 
 # security-recipes.ai
