@@ -3417,27 +3417,27 @@
       "title": "MCP Authorization Conformance",
       "page": "/security-remediation/mcp-authorization-conformance/",
       "category": "mcp-governance",
-      "summary": "Test an MCP client's OAuth, token, scope, resource, audience, metadata, and runtime authorization behavior.",
+      "summary": "Test an MCP client's OAuth, token, scope, resource, audience, RFC 9207 issuer, metadata, and runtime authorization behavior.",
       "phases": [
         {
           "label": "Signal",
           "title": "Capture the authorization profile",
-          "detail": "Record client, server, transport, issuer, metadata, redirect mode, grant, resource, scopes, audience, and environment."
+          "detail": "Record client, server, transport, issuer, RFC 9207 iss support, metadata, redirect mode, grant, resource, scopes, audience, and environment."
         },
         {
           "label": "Scope",
           "title": "Validate protocol evidence",
-          "detail": "Check HTTPS metadata, PKCE/state, client registration, token binding/storage, refresh, expiration, audience, and resource indicators."
+          "detail": "Check HTTPS metadata, PKCE/state, client registration, issuer-bound credentials, RFC 9207 iss comparison, token binding/storage, refresh, expiration, audience, and resource indicators."
         },
         {
           "label": "Decision",
           "title": "Evaluate a runtime request",
-          "detail": "Bind identity, token claims, workflow, tool/resource, arguments, tenant, entitlement, approval, and policy."
+          "detail": "Bind identity, token claims, recorded issuer, workflow, tool/resource, arguments, tenant, entitlement, approval, and policy."
         },
         {
           "label": "Action",
           "title": "Enforce authorization",
-          "detail": "Allow, narrow scope, require approval, hold, deny, revoke, or kill on token passthrough or credential misuse."
+          "detail": "Allow, narrow scope, require approval, hold, deny mix-up or unbound tokens, revoke, or kill on token passthrough or credential misuse."
         },
         {
           "label": "Proof",
@@ -3448,7 +3448,7 @@
       "gate": {
         "question": "Does the implementation and request satisfy required OAuth/MCP authorization controls for this resource and action?",
         "pass": "Authorize only the exact approved scope and resource.",
-        "stop": "Hold, deny, revoke, or kill invalid, overbroad, replayed, passthrough, or mis-audienced authorization."
+        "stop": "Hold, deny, revoke, or kill invalid, overbroad, replayed, mix-up, passthrough, or mis-audienced authorization."
       },
       "evidence": [
         "authorization profile and cases",
@@ -3474,6 +3474,7 @@
         "MCP authorization",
         "OAuth resource indicators",
         "MCP token security",
+        "RFC 9207 mix-up",
         "PKCE"
       ]
     },
