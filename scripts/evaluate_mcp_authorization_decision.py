@@ -2,11 +2,13 @@
 """Evaluate one MCP authorization decision.
 
 The authorization conformance pack declares which MCP connectors and
-candidate servers have enough resource, audience, scope, consent,
+candidate servers have enough resource, audience, issuer, scope, consent,
 session, and audit evidence to be used by governed agent runs. This
 runtime evaluator gives an MCP gateway or agent host a deterministic
 allow, hold, deny, or kill-session decision before the tool call is
-forwarded.
+forwarded. MCP 2026-07-28 requires RFC 9207 authorization-response
+issuer checks before a code is redeemed; this evaluator applies the
+same mix-up rule to the stored grant evidence on a tool call.
 """
 
 from __future__ import annotations
@@ -27,6 +29,7 @@ VALID_DECISIONS = {
     "hold_for_step_up_authorization",
     "deny_token_passthrough",
     "deny_unbound_token",
+    "deny_authorization_issuer_mismatch",
     "deny_scope_challenge_mismatch",
     "deny_scope_drift",
     "kill_session_on_secret_or_signer_scope",
@@ -71,6 +74,42 @@ def as_list(value: Any) -> list[Any]:
 def is_https_url_with_path(value: str) -> bool:
     parsed = urlparse(value)
     return parsed.scheme == "https" and bool(parsed.netloc) and bool(parsed.path and parsed.path != "/")
+
+
+def is_https_issuer_identifier(value: str) -> bool:
+    """RFC 8414 / RFC 9207 issuer identifiers are HTTPS URLs with no query or fragment."""
+    parsed = urlparse(value)
+    return (
+        parsed.scheme == "https"
+        and bool(parsed.netloc)
+        and not parsed.query
+        and not parsed.fragment
+        and value == value.strip()
+    )
+
+
+def rfc9207_issuer_violations(request: dict[str, Any]) -> list[str]:
+    """Return RFC 9207 mix-up and issuer-binding failures for one HTTP grant.
+
+    MCP 2026-07-28 requires clients to record the authorization-server issuer
+    from validated metadata and apply RFC 9207 Section 2.4 with simple string
+    comparison before redeeming an authorization code. Credentials must stay
+    keyed to that same issuer.
+    """
+    expected = str(request.get("expected_authorization_issuer") or "")
+    response_iss = str(request.get("authorization_response_iss") or "")
+    token_issuer = str(request.get("token_issuer") or "")
+    iss_supported = as_bool(request.get("authorization_response_iss_parameter_supported"))
+    violations: list[str] = []
+    if iss_supported and not response_iss:
+        violations.append(
+            "authorization_response_iss is required when authorization_response_iss_parameter_supported is true"
+        )
+    if response_iss and response_iss != expected:
+        violations.append("authorization_response_iss does not match expected_authorization_issuer")
+    if token_issuer and token_issuer != expected:
+        violations.append("token_issuer does not match expected_authorization_issuer")
+    return violations
 
 
 def missing_fields(request: dict[str, Any], fields: list[str]) -> list[str]:
@@ -128,6 +167,8 @@ def normalize_request(runtime_request: dict[str, Any]) -> dict[str, Any]:
         "client_metadata_document_url",
         "authorization_server_discovery_method",
         "protected_resource_metadata_url",
+        "expected_authorization_issuer",
+        "authorization_response_iss",
         "resource_indicator",
         "token_audience",
         "token_issuer",
@@ -143,6 +184,9 @@ def normalize_request(runtime_request: dict[str, Any]) -> dict[str, Any]:
     request["token_passthrough"] = as_bool(request.get("token_passthrough"))
     request["contains_secret_scope"] = as_bool(request.get("contains_secret_scope"))
     request["client_metadata_document_validated"] = as_bool(request.get("client_metadata_document_validated"))
+    request["authorization_response_iss_parameter_supported"] = as_bool(
+        request.get("authorization_response_iss_parameter_supported")
+    )
     request["step_up_required"] = as_bool(request.get("step_up_required"))
     request["token_scopes"] = [str(scope).strip() for scope in as_list(request.get("token_scopes")) if str(scope).strip()]
     request["scope_challenge"] = [
@@ -174,6 +218,11 @@ def decision_result(
             "canonical_resource_uri": connector.get("canonical_resource_uri") if connector else None,
             "client_metadata_document_url": request.get("client_metadata_document_url"),
             "client_metadata_document_validated": request.get("client_metadata_document_validated"),
+            "authorization_response_iss": request.get("authorization_response_iss"),
+            "authorization_response_iss_parameter_supported": request.get(
+                "authorization_response_iss_parameter_supported"
+            ),
+            "expected_authorization_issuer": request.get("expected_authorization_issuer"),
             "conformance_decision": connector.get("conformance_decision") if connector else None,
             "observed_runtime_attributes": sorted(k for k, v in request.items() if v not in (None, "", [], {}, False)),
             "protected_resource_metadata_url": request.get("protected_resource_metadata_url"),
@@ -186,8 +235,13 @@ def decision_result(
             "agent_id": request.get("agent_id"),
             "client_id": request.get("client_id"),
             "client_metadata_document_url": request.get("client_metadata_document_url"),
+            "authorization_response_iss": request.get("authorization_response_iss"),
+            "authorization_response_iss_parameter_supported": request.get(
+                "authorization_response_iss_parameter_supported"
+            ),
             "connector_id": request.get("connector_id"),
             "correlation_id": request.get("correlation_id"),
+            "expected_authorization_issuer": request.get("expected_authorization_issuer"),
             "protected_resource_metadata_url": request.get("protected_resource_metadata_url"),
             "namespace": request.get("namespace"),
             "requested_access_mode": request.get("requested_access_mode"),
@@ -298,6 +352,7 @@ def evaluate_mcp_authorization_decision(
                 "correlation_id",
                 "gateway_policy_hash",
                 "protected_resource_metadata_url",
+                "expected_authorization_issuer",
             ],
         )
         if missing:
@@ -309,6 +364,16 @@ def evaluate_mcp_authorization_decision(
                 connector=connector,
                 workflow=workflow,
                 violations=[f"missing runtime evidence: {field}" for field in missing],
+            )
+        if not is_https_issuer_identifier(request["expected_authorization_issuer"]):
+            return decision_result(
+                decision="hold_for_authorization_evidence",
+                reason="recorded authorization-server issuer must be an HTTPS identifier with no query or fragment",
+                pack=authorization_pack,
+                request=request,
+                connector=connector,
+                workflow=workflow,
+                violations=["expected_authorization_issuer is not a valid HTTPS issuer identifier"],
             )
 
         metadata_url = request["client_metadata_document_url"] or request["client_id"]
@@ -327,6 +392,18 @@ def evaluate_mcp_authorization_decision(
                 violations=[
                     "client metadata document must be HTTPS, path-based, validated, and match client_id exactly"
                 ],
+            )
+
+        issuer_violations = rfc9207_issuer_violations(request)
+        if issuer_violations:
+            return decision_result(
+                decision="deny_authorization_issuer_mismatch",
+                reason="authorization response or token issuer does not match the recorded authorization-server issuer",
+                pack=authorization_pack,
+                request=request,
+                connector=connector,
+                workflow=workflow,
+                violations=issuer_violations,
             )
 
         if not request["resource_indicator"]:
@@ -417,6 +494,8 @@ def request_from_args(args: argparse.Namespace) -> dict[str, Any]:
         "client_metadata_document_url",
         "authorization_server_discovery_method",
         "protected_resource_metadata_url",
+        "expected_authorization_issuer",
+        "authorization_response_iss",
         "resource_indicator",
         "token_audience",
         "token_issuer",
@@ -441,6 +520,8 @@ def request_from_args(args: argparse.Namespace) -> dict[str, Any]:
         payload["contains_secret_scope"] = True
     if args.client_metadata_document_validated:
         payload["client_metadata_document_validated"] = True
+    if args.authorization_response_iss_parameter_supported:
+        payload["authorization_response_iss_parameter_supported"] = True
     if args.step_up_required:
         payload["step_up_required"] = True
     return payload
@@ -459,6 +540,13 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--client-metadata-document-url", dest="client_metadata_document_url")
     parser.add_argument("--authorization-server-discovery-method", dest="authorization_server_discovery_method")
     parser.add_argument("--protected-resource-metadata-url", dest="protected_resource_metadata_url")
+    parser.add_argument("--expected-authorization-issuer", dest="expected_authorization_issuer")
+    parser.add_argument("--authorization-response-iss", dest="authorization_response_iss")
+    parser.add_argument(
+        "--authorization-response-iss-parameter-supported",
+        dest="authorization_response_iss_parameter_supported",
+        action="store_true",
+    )
     parser.add_argument("--resource-indicator", dest="resource_indicator")
     parser.add_argument("--token-audience", dest="token_audience")
     parser.add_argument("--token-issuer", dest="token_issuer")

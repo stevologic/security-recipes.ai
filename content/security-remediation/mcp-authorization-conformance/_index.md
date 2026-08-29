@@ -3,12 +3,12 @@ title: MCP Authorization Conformance
 linkTitle: MCP Authorization Conformance
 weight: 10
 date: 2026-05-02
-lastmod: 2026-08-21
+lastmod: 2026-08-29
 toc: true
 description: >
   Generate an MCP authorization conformance pack for resource-bound tokens,
-  audience validation, PKCE, client metadata, scope challenges, and step-up
-  authorization.
+  audience validation, PKCE, RFC 9207 issuer mix-up checks, client metadata,
+  scope challenges, and step-up authorization.
 sidebar:
   exclude: true
 breadcrumb_parent: /agentic-security/
@@ -32,6 +32,10 @@ enough if MCP authorization is loose. A production reviewer will ask:
 - Are raw user tokens ever passed through to downstream tools?
 - Is the scope tied to workflow, namespace, access mode, agent, and run?
 - Was the OAuth client ID metadata document validated for this client?
+- Was the authorization-response `iss` checked against the recorded
+  authorization-server issuer before the code was redeemed?
+- Are client credentials keyed to that same issuer, not reused across
+  authorization servers?
 - Did the client satisfy an authoritative `WWW-Authenticate` scope challenge?
 - Is a typed step-up authorization receipt present for approval-required access?
 - Can the gateway prove consent, session binding, and audit correlation?
@@ -39,16 +43,22 @@ enough if MCP authorization is loose. A production reviewer will ask:
 
 The MCP Authorization Conformance pack answers those questions in a
 machine-readable artifact and exposes a runtime evaluator for pre-call
-authorization decisions. Rechecked August 23, 2026: MCP
+authorization decisions. Rechecked August 29, 2026: MCP
 [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28)
 is still current and **stateless**. There is no negotiation handshake.
 Each request carries protocol version and capabilities. Servers
 **MUST** implement
 [`server/discover`](https://modelcontextprotocol.io/specification/2026-07-28/server/discover).
-`--session-id` and `kill_session` here are local run identifiers and
-host-session kill switches, not `Mcp-Session-Id`. Session binding in
-this pack means OAuth and token-to-run binding. Streamable HTTP
-revisions through
+Authorization servers **SHOULD** include RFC 9207 `iss` on
+authorization responses; clients **MUST** record the issuer from
+validated authorization-server metadata and apply
+[RFC 9207 Section 2.4](https://www.rfc-editor.org/rfc/rfc9207.html#section-2.4)
+with simple string comparison before redeeming a code. Dynamic Client
+Registration is **deprecated**; Client ID Metadata Documents remain the
+preferred registration method. `--session-id` and `kill_session` here
+are local run identifiers and host-session kill switches, not
+`Mcp-Session-Id`. Session binding in this pack means OAuth and
+token-to-run binding. Streamable HTTP revisions through
 [2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25)
 could assign that header; 2026-07-28 ignores it and does not mint
 session IDs.
@@ -91,6 +101,9 @@ python3 scripts/evaluate_mcp_authorization_decision.py \
   --resource-indicator https://mcp.security-recipes.ai/mcp \
   --token-audience https://mcp.security-recipes.ai/mcp \
   --token-issuer https://auth.security-recipes.ai \
+  --expected-authorization-issuer https://auth.security-recipes.ai \
+  --authorization-response-iss https://auth.security-recipes.ai \
+  --authorization-response-iss-parameter-supported \
   --token-expires-at 2099-01-01T00:15:00Z \
   --token-scope repo.contents:write_branch \
   --scope-challenge repo.contents:write_branch \
@@ -99,6 +112,38 @@ python3 scripts/evaluate_mcp_authorization_decision.py \
   --correlation-id corr-ci \
   --gateway-policy-hash sha256:ci-policy \
   --expect-decision allow_authorized_mcp_request
+```
+
+Reject a mix-up grant whose authorization-response `iss` does not match
+the recorded authorization-server issuer:
+
+```bash
+python3 scripts/evaluate_mcp_authorization_decision.py \
+  --workflow-id vulnerable-dependency-remediation \
+  --connector-id repository-contents \
+  --namespace repo.contents \
+  --agent-id sr-agent::vulnerable-dependency-remediation::codex \
+  --run-id ci-mixup \
+  --client-id https://agent.security-recipes.ai/client-metadata/codex.json \
+  --client-metadata-document-url https://agent.security-recipes.ai/client-metadata/codex.json \
+  --client-metadata-document-validated \
+  --authorization-server-discovery-method www_authenticate \
+  --protected-resource-metadata-url https://mcp.security-recipes.ai/.well-known/oauth-protected-resource \
+  --requested-access-mode write_branch \
+  --resource-indicator https://mcp.security-recipes.ai/mcp \
+  --token-audience https://mcp.security-recipes.ai/mcp \
+  --token-issuer https://auth.security-recipes.ai \
+  --expected-authorization-issuer https://auth.security-recipes.ai \
+  --authorization-response-iss https://attacker.example/as \
+  --authorization-response-iss-parameter-supported \
+  --token-expires-at 2099-01-01T00:15:00Z \
+  --token-scope repo.contents:write_branch \
+  --scope-challenge repo.contents:write_branch \
+  --consent-record-id consent-ci \
+  --session-id session-ci \
+  --correlation-id corr-ci \
+  --gateway-policy-hash sha256:ci-policy \
+  --expect-decision deny_authorization_issuer_mismatch
 ```
 
 ## Decision model
@@ -111,6 +156,7 @@ python3 scripts/evaluate_mcp_authorization_decision.py \
 | `hold_for_step_up_authorization` | Approval-required MCP access lacks a typed step-up authorization receipt. |
 | `deny_token_passthrough` | The request would pass raw user or upstream tokens through the agent/tool path. |
 | `deny_unbound_token` | The token is missing the expected resource indicator or audience binding. |
+| `deny_authorization_issuer_mismatch` | The authorization-response `iss` or token issuer does not match the recorded authorization-server issuer. |
 | `deny_scope_challenge_mismatch` | The token scopes do not satisfy the authoritative MCP scope challenge for the resource. |
 | `deny_scope_drift` | The workflow, namespace, connector, or access mode is outside the approved authorization scope. |
 | `kill_session_on_secret_or_signer_scope` | The request includes credential, signer, deploy, publish, or live-funds authority. |
@@ -133,7 +179,8 @@ approval controls where applicable.
 For the latest MCP authorization revision, it also records the metadata
 evidence a production gateway should retain: protected-resource metadata
 discovery, authorization-server discovery, client ID metadata document
-validation, resource indicator and audience values, JWKS or introspection
+validation, the recorded authorization-server issuer, RFC 9207 `iss`
+support, resource indicator and audience values, JWKS or introspection
 validation, redirect policy, scope challenge policy, and step-up
 authorization policy.
 
@@ -150,7 +197,10 @@ This feature follows current primary guidance:
 - [Model Context Protocol Authorization](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
   for protected-resource metadata discovery, OAuth client ID metadata
   documents, resource indicators, audience-bound bearer tokens, HTTPS,
-  PKCE, scope challenges, step-up authorization, and token validation.
+  PKCE, RFC 9207 authorization-response issuer validation, issuer-bound
+  client credentials, scope challenges, step-up authorization, and token
+  validation. Dynamic Client Registration remains available only as a
+  deprecated compatibility path.
 - [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices)
   for confused-deputy prevention, token-passthrough avoidance, SSRF,
   session safety, scope minimization, and audit trails.
@@ -175,7 +225,7 @@ a hosted MCP authorization scanner:
 - diff resource indicators, audiences, scopes, and redirect policy,
 - alert on scope challenge drift and token-passthrough regressions,
 - enforce step-up authorization receipts for approval-required calls,
-- replay confused-deputy and unbound-token tests,
+- replay confused-deputy, issuer mix-up, and unbound-token tests,
 - attach signed authorization receipts to agent run receipts,
 - export fleet-wide evidence for AI platform review and procurement.
 
