@@ -191,19 +191,25 @@ jobs:
               continue
             fi
 
+            PENDING_REQUESTS="$(gh run list \
+              --workflow cve-catalog-validate-request.yml \
+              --limit 20 \
+              --json displayTitle,status \
+              --jq "[.[] | select(.status != \"completed\")
+                | select(.displayTitle | endswith(\"@ ${HEAD_SHA}\"))] | length")"
             PENDING_VALIDATIONS="$(gh run list \
               --workflow cve-catalog-validate.yml \
               --limit 20 \
               --json displayTitle,status \
               --jq "[.[] | select(.status != \"completed\")
                 | select(.displayTitle | endswith(\"@ ${HEAD_SHA}\"))] | length")"
-            if [ "$PENDING_VALIDATIONS" -gt 0 ]; then
+            if [ "$PENDING_REQUESTS" -gt 0 ] || [ "$PENDING_VALIDATIONS" -gt 0 ]; then
               echo "#${PR_NUMBER}: an exact-SHA validation is already running for ${HEAD_SHA}."
               continue
             fi
 
             echo "#${PR_NUMBER}: head ${HEAD_SHA} has no build context; dispatching exact-SHA validation."
-            gh workflow run cve-catalog-validate.yml \
+            gh workflow run cve-catalog-validate-request.yml \
               --ref "$GITHUB_DEFAULT_BRANCH" \
               --field "expected_sha=${HEAD_SHA}" \
               --field "request_id=shepherd-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${PR_NUMBER}" \

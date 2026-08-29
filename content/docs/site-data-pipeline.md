@@ -38,7 +38,8 @@ flowchart TB
     CACHE["Committed data/cve/ai-enrichments.json"]
     PIPE["scripts/run_generator_pipeline.py --write"]
     CATPR["PR automation/cve-catalog-sync"]
-    VAL["cve-catalog-validate.yml"]
+    VALREQ["cve-catalog-validate-request.yml<br/>API-only identity gate"]
+    VAL["cve-catalog-validate.yml<br/>read-only-cache worker"]
 
     HUMAN["Human PRs"]
     REFRESH["content-refresh.yml<br/>11:47 UTC daily"]
@@ -64,7 +65,8 @@ flowchart TB
     SYNCPY --> CAT
     CAT --> PIPE
     PIPE --> CATPR
-    CATPR --> VAL
+    CATPR --> VALREQ
+    VALREQ --> VAL
     VAL --> MAIN
 
     MD --> HUMAN
@@ -140,8 +142,11 @@ dependency order with the new catalog. `scripts/validate_cve_catalog.py` and
 the catalog unit tests must pass. `scripts/check_cve_catalog_update.py`
 quarantines a suspicious delta (`automation:quarantine`) instead of merging it.
 
-A change lands as PR branch `automation/cve-catalog-sync`. Exact-SHA
-validation is `cve-catalog-validate.yml`. Merge is squash, and only when
+A change lands as PR branch `automation/cve-catalog-sync`. The exact-SHA flow
+first dispatches `cve-catalog-validate-request.yml`, which verifies the live PR
+identity without checking out its code. The completed request triggers
+`cve-catalog-validate.yml`; GitHub gives that `workflow_run` validator
+read-only access to the default-branch cache. Merge is squash, and only when
 repository variable `CVE_AUTO_MERGE_ENABLED=true`. After merge, `build.yml`
 runs from the push (GitHub App) or a dispatched Build pinned to that SHA.
 
