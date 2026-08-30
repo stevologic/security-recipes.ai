@@ -12,7 +12,8 @@ access token is required.
 | CVE catalog sync (`cve-catalog-sync.yml`) | daily 09:23 UTC | Refreshes the rolling ten-year CVE catalog, runs xAI/Grok enrichment and recipe drafts, opens/merges its own PR through exact-SHA validation |
 | Content refresh (`content-refresh.yml`) | daily 11:47 UTC | Researches one source-backed opportunity across reviewed remediation workflows, executable playbooks, or non-CVE recipes and submits a validated auto-merge PR when a substantive update is warranted |
 | Leftover review (`leftover-review.yml`) | daily 13:17 UTC | Live-verifies leftover-gold CVE leftovers against GHAD/NVD; leftover-gold criticals and highs drain first, then each run reviews up to 100 leftover-gold medium and low pages and submits a validated auto-merge PR |
-| CVE catalog validation (`cve-catalog-validate.yml`) | dispatch only | Runs the build-equivalent suite against one exact SHA and publishes the required `build` status for it |
+| CVE catalog validation request (`cve-catalog-validate-request.yml`) | dispatch only | Verifies that an exact SHA is the live head of the requested same-repository PR without checking out or executing PR code |
+| CVE catalog validation (`cve-catalog-validate.yml`) | completed validation request | Revalidates and runs the build-equivalent suite with read-only default-branch cache access, then publishes the required `build` status from a separate no-checkout job |
 | Production watchdog (`production-watchdog.yml`) | every 30 min | Probes the live site, catalog freshness, revision, and TLS; maintains the health issue; self-heals unbuilt revisions and stale catalogs |
 | Automation shepherd (`automation-shepherd.yml`) | every 30 min | Dispatches missing main Builds after token-authored merges, updates stale auto-merge PR branches, and attaches missing build validations |
 | Dependabot auto-merge (`dependabot-automerge.yml`) | Dependabot PRs | Arms auto-merge for verified patch/minor bumps |
@@ -71,18 +72,21 @@ content refresh, CVE sync, and security-health on Actions.
 
 ## Why the shepherd exists
 
-GitHub never creates workflow runs for events that `GITHUB_TOKEN` caused,
-except `workflow_dispatch` and `repository_dispatch`. Two consequences:
+Most events caused by `GITHUB_TOKEN` cannot provide a hands-off workflow run;
+bot-created pull-request runs can require approval, while `workflow_dispatch`
+and `repository_dispatch` are the direct-dispatch exceptions. Two consequences:
 
 - A PR merged through token-enabled auto-merge produces a main revision with
   **no Build run** and therefore no deployable image.
-- A PR branch updated with the token produces a head with **no `build`
-  check**, so its auto-merge waits forever under the ruleset.
+- A PR created or updated with the token can leave its head with **no completed
+  `build` check**, so its auto-merge waits forever under the ruleset.
 
 The shepherd closes both gaps with dispatches (the allowed exception): it
 dispatches `build.yml` for unbuilt main revisions and dispatches the exact-SHA
-validation — which publishes the required `build` commit status — for
-auto-merge PR heads that have none.
+validation request for auto-merge PR heads that have none. The request performs
+only API identity checks. Its `workflow_run` validator executes the PR head
+under GitHub's read-only default-branch cache boundary, then publishes the
+required `build` commit status from a separate no-checkout job.
 
 ## Merge policy
 

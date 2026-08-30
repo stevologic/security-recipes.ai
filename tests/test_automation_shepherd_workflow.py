@@ -63,7 +63,7 @@ class AutomationShepherdWorkflowTests(unittest.TestCase):
         self.assertIn('HEAD_SHA="$UPDATED_SHA"', shepherd)
         self.assertLess(
             shepherd.index('HEAD_SHA="$UPDATED_SHA"'),
-            shepherd.index("gh workflow run cve-catalog-validate.yml"),
+            shepherd.index("gh workflow run cve-catalog-validate-request.yml"),
         )
 
     def test_dispatches_validation_only_when_the_build_context_is_absent(self) -> None:
@@ -71,14 +71,17 @@ class AutomationShepherdWorkflowTests(unittest.TestCase):
 
         self.assertIn('select(.name == "build")', shepherd)
         self.assertIn('select(.context == "build")', shepherd)
-        self.assertIn("gh workflow run cve-catalog-validate.yml", shepherd)
+        self.assertIn("gh workflow run cve-catalog-validate-request.yml", shepherd)
         self.assertIn('--field "expected_sha=${HEAD_SHA}"', shepherd)
         self.assertIn('--field "pr_number=${PR_NUMBER}"', shepherd)
         self.assertIn('--field "expected_branch=${HEAD_BRANCH}"', shepherd)
+        self.assertIn("PENDING_REQUESTS", shepherd)
         self.assertIn("PENDING_VALIDATIONS", shepherd)
+        self.assertIn("--workflow cve-catalog-validate-request.yml", shepherd)
+        self.assertIn("--workflow cve-catalog-validate.yml", shepherd)
         self.assertLess(
-            shepherd.index("PENDING_VALIDATIONS"),
-            shepherd.index("gh workflow run cve-catalog-validate.yml"),
+            shepherd.index("PENDING_REQUESTS"),
+            shepherd.index("gh workflow run cve-catalog-validate-request.yml"),
         )
 
     def test_never_merges_directly_or_checks_out_code(self) -> None:
