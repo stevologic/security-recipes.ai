@@ -380,13 +380,87 @@ def trim_incomplete_summary_tail(value: object) -> str:
     return candidate[: endings[-1].end()].rstrip() if endings else text
 
 
+def _clean_nested_catalog_text(value: Any) -> Any:
+    """Clean every string value in a JSON-compatible catalog subtree."""
+    if isinstance(value, str):
+        return clean_catalog_text(value)
+    if isinstance(value, list):
+        return [_clean_nested_catalog_text(item) for item in value]
+    if isinstance(value, dict):
+        return {
+            key: _clean_nested_catalog_text(item)
+            for key, item in value.items()
+        }
+    return value
+
+
 def normalize_catalog_record_text(record: dict[str, Any]) -> dict[str, Any]:
     """Repair bounded user-visible source fields while preserving record structure."""
     normalized = dict(record)
+    cve_id = str(normalized.get("cve") or "").strip().upper()
+    canonical_cve = cve_id if re.fullmatch(r"CVE-\d{4}-\d{4,}", cve_id) else ""
     if isinstance(normalized.get("title"), str):
         normalized["title"] = clean_catalog_text(normalized["title"])
+        if not normalized["title"]:
+            normalized["title"] = (
+                f"{canonical_cve} vulnerability"
+                if canonical_cve
+                else "Vulnerability record"
+            )
     if isinstance(normalized.get("summary"), str):
         normalized["summary"] = trim_incomplete_summary_tail(normalized["summary"])
+        if not normalized["summary"]:
+            normalized["summary"] = (
+                f"No English description is available for {canonical_cve}; "
+                "consult the linked source references."
+                if canonical_cve
+                else "No English description is available; consult the linked source references."
+            )
+
+    for field in ("page_title", "page_description"):
+        if isinstance(normalized.get(field), str):
+            normalized[field] = clean_catalog_text(normalized[field])
+
+    for field in ("products", "affected_data"):
+        rows = normalized.get(field)
+        if isinstance(rows, list):
+            cleaned_rows = _clean_nested_catalog_text(rows)
+            for index, row in enumerate(cleaned_rows):
+                if not isinstance(row, dict):
+                    continue
+                vendor_identity = normalize_space(row.get("vendor"))
+                product_identity = normalize_space(row.get("product"))
+                if not vendor_identity and product_identity.casefold() in {
+                    "",
+                    "unspecified product",
+                }:
+                    row = dict(row)
+                    row["product"] = "Unspecified"
+                    cleaned_rows[index] = row
+            normalized[field] = cleaned_rows
+
+    kev_details = normalized.get("kev_details")
+    if isinstance(kev_details, dict):
+        normalized["kev_details"] = {
+            key: value if key == "source" else _clean_nested_catalog_text(value)
+            for key, value in kev_details.items()
+        }
+
+    references = normalized.get("references")
+    if isinstance(references, list):
+        cleaned_references: list[Any] = []
+        for reference in references:
+            if not isinstance(reference, dict):
+                cleaned_references.append(reference)
+                continue
+            cleaned_reference = dict(reference)
+            for label_field in ("title", "name"):
+                if isinstance(cleaned_reference.get(label_field), str):
+                    cleaned_reference[label_field] = clean_catalog_text(
+                        cleaned_reference[label_field]
+                    )
+            cleaned_references.append(cleaned_reference)
+        normalized["references"] = cleaned_references
 
     enrichment = normalized.get("ai_enrichment")
     if isinstance(enrichment, dict):
@@ -422,6 +496,15 @@ def normalize_catalog_record_text(record: dict[str, Any]) -> dict[str, Any]:
         # Provenance and identity fields (URLs, fingerprints, model metadata,
         # schema identifiers) are deliberately byte-preserved.
         normalized["ai_enrichment"] = cleaned_enrichment
+    return normalized
+
+
+def normalize_catalog_output_record(record: dict[str, Any]) -> dict[str, Any]:
+    """Prepare a record for publication without retaining stale AI evidence."""
+    normalized = normalize_catalog_record_text(record)
+    enrichment = normalized.get("ai_enrichment")
+    if isinstance(enrichment, dict) and enrichment_errors(enrichment, normalized):
+        normalized.pop("ai_enrichment", None)
     return normalized
 
 
@@ -2349,7 +2432,7 @@ def build_outputs(
 
         try:
             for record in ordered_records:
-                record = normalize_catalog_record_text(record)
+                record = normalize_catalog_output_record(record)
                 shard = cve_shard(record)
                 append_shard_record(shard, json_bytes(record))
                 shard_counts[shard] = shard_counts.get(shard, 0) + 1
@@ -3438,6 +3521,9 @@ def main(argv: list[str] | None = None) -> int:
                 )
                 if record is None:
                     continue
+                # Canonicalize source text before cache selection or enrichment so
+                # evidence fingerprints describe the same record we publish.
+                record = normalize_catalog_record_text(record)
                 cve_id = record["cve"]
                 if cve_id in year_records or cve_id in seen_cves:
                     raise ValueError(f"NVD feeds contain duplicate normalized identity {cve_id}")
@@ -3478,6 +3564,9 @@ def main(argv: list[str] | None = None) -> int:
         def recipe_records() -> Iterator[dict[str, Any]]:
             enriched_records = enrichment_cache.apply(output_records(), client=xai_client)
             for record in enriched_records:
+                # Generated Markdown must see the same Han-free, integrity-checked
+                # enrichment that can be published in the catalog.
+                record = normalize_catalog_output_record(record)
                 draft = generated_recipes.consider(record, archetypes=archetypes)
                 if draft is not None:
                     metadata = draft.metadata

@@ -25,6 +25,36 @@ test("catalog cleanup repairs upstream encoding and HTML entity artifacts", () =
   assert.equal(cleanCatalogText(clean), clean);
 });
 
+test("catalog cleanup removes Han-bearing mixed CJK runs and empty wrappers", () => {
+  const samples = [
+    ["Acme\u4e2d\u6587Gateway", "Acme Gateway"],
+    ["alpha\u3400\u3401beta", "alpha beta"],
+    ["vendor\uf900product", "vendor product"],
+    ["before\ud840\udc00after", "before after"],
+    ["before\ud87e\ude1fafter", "before after"],
+    ["left\ud880\udc00right", "left right"],
+    ["left\ud88d\udc7fright", "left right"],
+    ["Acme\u3010\u4e2d\u6587\u3001\u6e2c\u8a66\u3011Gateway", "Acme Gateway"],
+    ["Acme ({[ \u4e2d\u6587 ]}) Gateway", "Acme Gateway"],
+    ["Web\u306e\u76f8\u8ac7\u6240 plugin", "Web plugin"],
+    ["\uff08\u4e2d\u6587\uff09", ""],
+    ["\u4e2d\u6587", ""],
+    ["encoded &#x4e2d;&#x6587; value", "encoded value"],
+  ];
+  for (const [source, expected] of samples) assert.equal(cleanCatalogText(source), expected);
+});
+
+test("catalog cleanup leaves kana and empty ASCII pairs alone without Han", () => {
+  const samples = [
+    "\u300c\u30ab\u30bf\u30ab\u30ca\u300d",
+    "\u3072\u3089\u304c\u306a",
+    "\uff76\uff80\uff76\uff85",
+    "Acme () [] {}",
+    `left${String.fromCodePoint(0x33480)}right`,
+  ];
+  for (const source of samples) assert.equal(cleanCatalogText(source), source);
+});
+
 test("text-quality checks detect contextual UTF-8 decoding artifacts", () => {
   const artifacts = [
     "replacement \ufffd character",

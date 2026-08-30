@@ -92,6 +92,8 @@ test('homepage ticker is semantic, bounded, and explicitly motion-safe', () => {
   assert.match(source, /<ul class="cve-ticker__list">/);
   assert.match(source, /<ul class="cve-ticker__list" aria-hidden="true" inert>/);
   assert.match(source, /data-cve-ticker-toggle[^>]*aria-pressed="false"/);
+  assert.match(source, /data-cve-ticker-toggle[\s\S]*?<svg aria-hidden="true"/);
+  assert.doesNotMatch(source, /&#8545;|Ⅱ/u);
   assert.match(source, /animation:\s*latest-cves-scroll 90s linear infinite;/);
   assert.match(source, /\.cve-ticker__item\s*\{[^}]*display:\s*grid;[^}]*grid-template-rows:\s*auto auto;/);
   assert.match(source, /\.cve-ticker__date::before\s*\{[^}]*content:\s*"Published ";/);
