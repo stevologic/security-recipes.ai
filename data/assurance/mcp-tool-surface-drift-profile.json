@@ -1,25 +1,25 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-08-21",
-  "intent": "Fingerprint approved MCP tool descriptions, schemas, annotations, and capability metadata so agent hosts and MCP gateways can detect post-approval tool-surface drift before a changed tool is allowed to influence an agent run.",
+  "last_reviewed": "2026-08-30",
+  "intent": "Fingerprint approved MCP tool descriptions, schemas, annotations, capability metadata, and x-mcp-header parameter mirroring so agent hosts and MCP gateways can detect post-approval tool-surface drift before a changed tool is allowed to influence an agent run.",
   "positioning": {
     "buyer": "AI Platform, Product Security, IAM, GRC, enterprise architecture, and MCP gateway teams",
     "category": "MCP tool-surface drift sentinel",
-    "enterprise_promise": "SecurityRecipes can turn MCP tool-list churn into an auditable allow, hold, deny, or kill decision before agents rely on changed tool descriptions, schemas, annotations, or capability boundaries.",
-    "why_now": "MCP adoption makes tool descriptions and schemas part of the prompt and policy boundary. Enterprises need continuous drift detection because a connector that was safe at intake can become unsafe after a server update, registry compromise, annotation change, or capability expansion."
+    "enterprise_promise": "SecurityRecipes can turn MCP tool-list churn into an auditable allow, hold, deny, or kill decision before agents rely on changed tool descriptions, schemas, annotations, header-parameter mirroring, or capability boundaries.",
+    "why_now": "MCP 2026-07-28 lets tool parameters be mirrored into HTTP headers through x-mcp-header. Clients MUST exclude invalid header annotations from tools/list, and servers SHOULD NOT mark secrets or PII as headers. A connector that was safe at intake can become unsafe after a schema adds header mirroring, a server update, registry compromise, annotation change, or capability expansion."
   },
   "standards_alignment": [
     {
       "id": "mcp-tools-2026-07-28",
       "name": "Model Context Protocol Tools Specification (2026-07-28 current revision)",
       "url": "https://modelcontextprotocol.io/specification/2026-07-28/server/tools",
-      "coverage": "Current public MCP 2026-07-28 revision. Tool names, descriptions, input schemas, structured outputs, annotations, and tool-list change notifications that should be pinned and diff-reviewed before production use."
+      "coverage": "Current public MCP 2026-07-28 revision. Tool names, descriptions, input schemas, structured outputs, annotations, tool-list change notifications, and x-mcp-header parameter-to-HTTP-header mirroring. Clients MUST reject invalid x-mcp-header values by excluding the tool from tools/list; servers SHOULD NOT mark sensitive parameters as headers."
     },
     {
       "id": "mcp-tools-2025-11-25",
-      "name": "Model Context Protocol Tools Specification",
+      "name": "Model Context Protocol Tools Specification (2025-11-25 prior revision)",
       "url": "https://modelcontextprotocol.io/specification/2025-11-25/server/tools",
-      "coverage": "Tool names, descriptions, input schemas, structured outputs, annotations, and tool-list change notifications that should be pinned and diff-reviewed before production use."
+      "coverage": "Prior MCP tools revision kept as a historical source ID. It does not define x-mcp-header. Do not treat 2025-11-25 as the current public specification."
     },
     {
       "id": "mcp-security-best-practices",
@@ -110,11 +110,14 @@
       "data class expansion",
       "state-changing or destructive capability expansion",
       "server trust downgrade",
-      "tool-list notification without matching signed baseline"
+      "tool-list notification without matching signed baseline",
+      "x-mcp-header addition, rename, or invalid header annotation"
     ],
     "kill_signals": [
       "description contains hidden instruction or approval-bypass language",
       "schema adds command, shell, token, secret, signer, deploy, publish, delete, or funds-movement fields",
+      "schema adds or changes x-mcp-header mirroring after approval",
+      "x-mcp-header marks a sensitive parameter such as a token, secret, password, API key, or PII",
       "annotation change claims read-only for a state-changing tool",
       "tool adds private-network, metadata-IP, webhook, public-post, or external-send destination",
       "tool returns raw secret material during drift review",
@@ -133,6 +136,12 @@
       "severity": "critical",
       "evidence_key": "input_schema_sha256",
       "control_reason": "Input schemas define what the agent can ask a tool to do; added command, URL, signer, or token fields can expand blast radius."
+    },
+    {
+      "id": "x_mcp_header_pin",
+      "severity": "critical",
+      "evidence_key": "x_mcp_headers",
+      "control_reason": "x-mcp-header mirrors tool arguments into Mcp-Param-* HTTP headers visible to intermediaries; new, renamed, invalid, or sensitive-parameter headers must fail closed before the agent trusts the tool."
     },
     {
       "id": "output_schema_hash_pin",
@@ -690,6 +699,7 @@
     "default_questions_answered": [
       "Which approved MCP tools have pinned descriptions and schemas?",
       "Which tool-surface changes force review, deny, or session kill?",
+      "Which tools gained x-mcp-header HTTP mirroring after the approved baseline?",
       "Can the gateway distinguish registered connector tools from candidate or denied tools?",
       "Which workflows depend on each pinned surface?",
       "Where does a hosted product create premium value through signed tool baselines and fleet drift alerts?"
