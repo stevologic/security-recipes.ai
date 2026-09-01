@@ -1,12 +1,12 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-08-21",
-  "intent": "Define the SecurityRecipes MCP STDIO launch boundary so local MCP server configuration is reviewed as code execution before an agent host starts a subprocess. The model gives enterprise AI platform teams a deterministic allow, hold, deny, or kill decision for command, package, sandbox, environment, network, filesystem, and approval risk.",
+  "last_reviewed": "2026-09-01",
+  "intent": "Define the SecurityRecipes MCP STDIO launch boundary so local MCP server configuration is reviewed as code execution before an agent host starts a subprocess. The model gives enterprise AI platform teams a deterministic allow, hold, deny, or kill decision for command, package, sandbox, environment, network, filesystem, approval, dual-era server/discover probe, and proxy-spawn risk.",
   "positioning": {
     "buyer": "AI Platform, Product Security, Endpoint Security, IAM, GRC, and enterprise developer platform teams",
     "category": "MCP STDIO launch governance",
-    "enterprise_promise": "SecurityRecipes can evaluate local STDIO MCP launches before execution, prove which commands are approved, and block shell, package-runner, secret, network, and privilege drift with machine-readable evidence.",
-    "why_now": "MCP adoption has made local tools easy to add, but STDIO launches are subprocess execution requests. Enterprises need a launch boundary that is just as explicit as remote MCP authorization, especially as agents, skills, and local MCP servers become part of the production control plane."
+    "enterprise_promise": "SecurityRecipes can evaluate local STDIO MCP launches before execution, prove which commands are approved, and block shell, package-runner, secret, network, privilege, wrong-era initialize fallback, and proxy-spawn drift with machine-readable evidence.",
+    "why_now": "MCP 2026-07-28 made STDIO a dual-era subprocess: modern servers speak per-request _meta and MUST implement server/discover, while a local proxy that spawns those children can turn a stolen proxy token into host RCE. Enterprises need a launch boundary that is just as explicit as remote MCP authorization."
   },
   "standards_alignment": [
     {
@@ -16,6 +16,30 @@
       "coverage": "Current public MCP 2026-07-28 revision. Defines STDIO as client-launched subprocess communication over standard input and output, making launch configuration part of the security boundary."
     },
     {
+      "id": "mcp-transports-stdio-2026-07-28",
+      "name": "Model Context Protocol stdio Transport (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/transports/stdio",
+      "coverage": "Current public MCP 2026-07-28 stdio binding. Dual-era clients SHOULD probe with server/discover before any other request. DiscoverResult or a recognized modern error MUST NOT fall back to initialize. Fallback MUST NOT be keyed to one error code."
+    },
+    {
+      "id": "mcp-server-discover-2026-07-28",
+      "name": "Model Context Protocol server/discover (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/server/discover",
+      "coverage": "Current public MCP 2026-07-28 revision. Servers MUST implement server/discover. On stdio it is the backward-compatibility probe. serverInfo is self-reported and clients SHOULD NOT rely on it for security decisions."
+    },
+    {
+      "id": "mcp-versioning-2026-07-28",
+      "name": "Model Context Protocol Versioning and Compatibility (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/versioning",
+      "coverage": "Current public MCP 2026-07-28 revision. Defines modern per-request _meta versions, legacy initialize handshake versions, and dual-era clients that must choose era from the stdio discover probe rather than from a single error code."
+    },
+    {
+      "id": "mcp-security-best-practices-2026-07-28",
+      "name": "Model Context Protocol Security Best Practices (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/docs/2026-07-28/tutorials/security/security_best_practices",
+      "coverage": "Current public MCP 2026-07-28 security guidance. Covers local MCP server compromise, one-click startup-command consent, sandboxing, and proxy architectures where a stolen proxy token can spawn arbitrary stdio child processes."
+    },
+    {
       "id": "mcp-transports-2025-11-25",
       "name": "Model Context Protocol Transports",
       "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/transports",
@@ -23,9 +47,9 @@
     },
     {
       "id": "mcp-security-best-practices",
-      "name": "Model Context Protocol Security Best Practices",
+      "name": "Model Context Protocol Security Best Practices (unversioned alias)",
       "url": "https://modelcontextprotocol.io/docs/tutorials/security/security_best_practices",
-      "coverage": "Calls out local MCP server compromise, startup command abuse, sandboxing, consent, filesystem controls, network controls, and scope minimization."
+      "coverage": "Unversioned alias that currently redirects to the 2026-07-28 security-best-practices revision. Prefer the versioned source ID for launch, sandbox, and proxy-spawn controls."
     },
     {
       "id": "mcp-authorization-2026-07-28",
@@ -95,7 +119,7 @@
       },
       {
         "decision": "kill_session_on_secret_or_privilege_request",
-        "meaning": "The launch attempts to expose secrets, inherited credentials, privileged execution, or prohibited host access."
+        "meaning": "The launch attempts to expose secrets, inherited credentials, privileged execution, prohibited host access, a wrong-era initialize fallback, or an unbound proxy spawn."
       }
     ],
     "runtime_fields": [
@@ -118,7 +142,17 @@
       "env_keys",
       "requested_capabilities",
       "human_approval_record",
-      "correlation_id"
+      "correlation_id",
+      "client_era",
+      "discover_probe_policy",
+      "discover_probe_result",
+      "legacy_initialize_fallback",
+      "discover_fallback_keyed_to_single_error_code",
+      "treats_server_info_as_security_decision",
+      "proxy_spawn_architecture",
+      "proxy_token_binds_to_registered_launch",
+      "proxy_child_sandboxed",
+      "proxy_spawn_logged"
     ],
     "required_allow_controls": [
       "exact_command_allowlist",
@@ -563,6 +597,30 @@
       "attack_family": "approval_bypass",
       "name": "Start a high-impact local server without sandbox evidence or typed owner approval.",
       "expected_decision": "hold_for_owner_review"
+    },
+    {
+      "id": "stdio-dual-era-skip-discover",
+      "attack_family": "wrong_era_handshake",
+      "name": "Launch a dual-era STDIO client that skips server/discover and speaks initialize first.",
+      "expected_decision": "hold_for_owner_review"
+    },
+    {
+      "id": "stdio-initialize-fallback-after-modern-error",
+      "attack_family": "wrong_era_handshake",
+      "name": "Fall back to initialize after server/discover returned DiscoverResult or a recognized modern error.",
+      "expected_decision": "kill_session_on_secret_or_privilege_request"
+    },
+    {
+      "id": "stdio-proxy-arbitrary-spawn",
+      "attack_family": "proxy_spawn_rce",
+      "name": "Use a stolen local-proxy token to spawn an unregistered or unbound STDIO command as a child process.",
+      "expected_decision": "kill_session_on_secret_or_privilege_request"
+    },
+    {
+      "id": "stdio-server-info-security-decision",
+      "attack_family": "untrusted_server_identity",
+      "name": "Treat self-reported serverInfo from server/discover as a security decision instead of display metadata.",
+      "expected_decision": "hold_for_owner_review"
     }
   ],
   "enterprise_adoption_packet": {
@@ -572,6 +630,8 @@
       "Which launches can install packages or execute shell wrappers?",
       "Which environment keys, network hosts, and filesystem roots can the process see?",
       "Which launch changes require owner approval or full connector intake?",
+      "Does a dual-era client probe with server/discover before falling back to initialize?",
+      "Can a local proxy spawn stdio children from a token that is not bound to a registered launch?",
       "Which runtime decision should an agent host enforce before spawning the process?"
     ],
     "recommended_first_use": "Run this pack in MCP client configuration review, developer endpoint hardening, local connector approval, and one-click MCP install gating.",
