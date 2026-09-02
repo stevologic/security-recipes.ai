@@ -6,10 +6,11 @@
     "required_agent_card_field_count": 8,
     "sample_decision_counts": {
       "allow_trusted_agent_card": 1,
+      "deny_insecure_agent_card": 1,
       "kill_session_on_agent_card_secret": 1,
       "pilot_with_restricted_context": 1
     },
-    "sample_evaluation_count": 3,
+    "sample_evaluation_count": 4,
     "skill_risk_tier_counts": {
       "blocked": 1,
       "discovery": 1,
@@ -28,7 +29,7 @@
     "default_questions_answered": [
       "Is the Agent Card complete enough for enterprise review?",
       "Does the card advertise HTTPS interfaces and provider identity?",
-      "Does the card require standard HTTP-layer authentication?",
+      "Does the card require standard HTTP-layer authentication without deprecated OAuth implicit or password grants?",
       "Is the card signed or restricted to metadata-only pilot use?",
       "Do advertised skills require approval, gateway enforcement, or hard denial?"
     ],
@@ -36,7 +37,7 @@
     "sales_motion": "Lead with open Agent Card evaluation, then sell hosted Agent Card monitoring, signature verification, allowlist drift detection, tenant policy exports, and A2A/MCP gateway enforcement."
   },
   "failures": [],
-  "generated_at": "2026-08-21",
+  "generated_at": "2026-09-02",
   "handoff_integration": {
     "a2a_protocol_surface": {
       "allowed_target_trust_tiers": [
@@ -174,7 +175,7 @@
       "title": "Blocked or Malicious Agent Card"
     }
   ],
-  "intent": "Define the SecurityRecipes A2A Agent Card trust profile so remote agents can be discovered, scored, piloted, denied, or killed before they receive secure context or join an agent-to-agent workflow. The profile turns an A2A Agent Card into enterprise intake evidence for protocol identity, HTTPS interfaces, authentication, authorization scope, signing, skill risk, extended-card handling, and prompt-injection containment.",
+  "intent": "Define the SecurityRecipes A2A Agent Card trust profile so remote agents can be discovered, scored, piloted, denied, or killed before they receive secure context or join an agent-to-agent workflow. The profile turns an A2A Agent Card into enterprise intake evidence for protocol identity, HTTPS interfaces, authentication, OAuth flow hygiene, authorization scope, signing, skill risk, extended-card handling, and prompt-injection containment.",
   "positioning": {
     "buyer": "AI Platform, Product Security, AppSec, IAM, GRC, procurement security, model-risk, and acquisition diligence teams",
     "category": "A2A remote-agent discovery and Agent Card trust intake",
@@ -215,6 +216,18 @@
       "production": false,
       "reason": "Agent Card is eligible only for restricted metadata-context pilot use",
       "violations": []
+    },
+    {
+      "agent_card_hash": "c877ac9912afaba9ce7364cb4e967a1edfd69ef4554ba0a71ccfbf6c1cf170ba",
+      "case_id": "implicit-oauth-production-agent",
+      "decision": "deny_insecure_agent_card",
+      "expected_decision": "deny_insecure_agent_card",
+      "expected_profile_id": "trusted-production-agent",
+      "production": true,
+      "reason": "trusted production Agent Card failed security requirements",
+      "violations": [
+        "oauth: OAuth implicit flow is deprecated; use authorizationCode with PKCE or deviceCode"
+      ]
     },
     {
       "agent_card_hash": "c80768652e25f1cc43a651bc3c4d4f3cd62f6b6df103ddc975d6a115f014055a",
@@ -302,20 +315,20 @@
   "source_artifacts": {
     "a2a_agent_card_trust_profile": {
       "path": "data/assurance/a2a-agent-card-trust-profile.json",
-      "sha256": "5bce6abf568e90c755f11c1fac348390aed1a0d977481b87ba5139bd2da92300"
+      "sha256": "846df4a4a30781ea69219ac58defdb435f2e56589cdbdf1c558372031a051736"
     },
     "agent_handoff_boundary_pack": {
       "path": "data/evidence/agent-handoff-boundary-pack.json",
-      "sha256": "e2ff2d68728c742b5bb5a916e73c99c16826a4c25dff3001e80486c80235bce6"
+      "sha256": "65f8b37be84e9f03ab1b88fce11f5282bf51d67ee9ad30fd6944b10a19eee093"
     },
     "agentic_threat_radar": {
       "path": "data/evidence/agentic-threat-radar.json",
-      "sha256": "f9467ffa7f294ae35945e768b32fc95c34c912e176c677071e90ae9d8def8074"
+      "sha256": "d197b0890c4710a13f0d59210b3cec3660c04a021551e8614e295e7fe8721707"
     }
   },
   "standards_alignment": [
     {
-      "coverage": "Agent Card fields, supported interfaces, security schemes, security requirements, signatures, authenticated extended cards, and the .well-known/agent-card.json discovery surface.",
+      "coverage": "Agent Card fields, supported interfaces, security schemes, security requirements, signatures, authenticated extended cards, .well-known/agent-card.json discovery, and OAuthFlows: authorizationCode with pkceRequired, clientCredentials, deviceCode, and deprecated implicit/password grants.",
       "id": "a2a-specification-latest",
       "name": "Agent2Agent Protocol Specification",
       "url": "https://a2a-protocol.org/latest/specification/"
@@ -325,6 +338,12 @@
       "id": "a2a-enterprise-features",
       "name": "A2A Enterprise Implementation Guidance",
       "url": "https://a2a-protocol.org/latest/topics/enterprise-ready/"
+    },
+    {
+      "coverage": "A2A v1.0 OAuth modernization: Device Code (RFC 8628), pkceRequired on Authorization Code, removal of deprecated implicit and password grants as current flows, and mTLS security-scheme support.",
+      "id": "a2a-whats-new-v1",
+      "name": "A2A Protocol v1.0 What is New",
+      "url": "https://a2a-protocol.org/latest/whats-new-v1/"
     },
     {
       "coverage": "Enterprise A2A adoption signals including signed security cards, gRPC support, and developer tooling for building, deploying, evaluating, and selling A2A agents.",
@@ -339,9 +358,9 @@
       "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization"
     },
     {
-      "coverage": "Complements A2A by keeping tool access behind resource indicators, token audience validation, protected resource metadata, PKCE, and token-passthrough denial.",
+      "coverage": "Prior MCP authorization revision kept as a historical source ID. Do not treat 2025-11-25 as the current public specification. Complements A2A only as labeled history.",
       "id": "mcp-authorization-2025-11-25",
-      "name": "Model Context Protocol Authorization Specification",
+      "name": "Model Context Protocol Authorization Specification (2025-11-25 prior revision)",
       "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization"
     },
     {
@@ -436,6 +455,11 @@
     }
   ],
   "trust_contract": {
+    "allowed_oauth_flows": [
+      "authorizationCode",
+      "clientCredentials",
+      "deviceCode"
+    ],
     "allowed_security_scheme_types": [
       "oauth2SecurityScheme",
       "openIdConnectSecurityScheme",
@@ -454,11 +478,11 @@
       },
       {
         "decision": "hold_for_agent_card_intake",
-        "meaning": "The card is incomplete, unsigned, over-broad, or missing declared controls that a human owner or gateway policy must review before use."
+        "meaning": "The card is incomplete, unsigned, over-broad, missing authorization-code PKCE evidence, or missing declared controls that a human owner or gateway policy must review before use."
       },
       {
         "decision": "deny_insecure_agent_card",
-        "meaning": "The card uses insecure transport, unsafe API key placement, missing authentication for production, unsupported interfaces, or risky skill declarations that should not be piloted."
+        "meaning": "The card uses insecure transport, deprecated OAuth implicit or password grants, unsafe API key placement, missing authentication for production, unsupported interfaces, or risky skill declarations that should not be piloted."
       },
       {
         "decision": "kill_session_on_agent_card_secret",
@@ -498,6 +522,10 @@
     "prohibited_api_key_locations": [
       "query",
       "cookie"
+    ],
+    "prohibited_oauth_flows": [
+      "implicit",
+      "password"
     ],
     "prohibited_secret_markers": [
       "-----BEGIN PRIVATE KEY-----",

@@ -1218,12 +1218,12 @@
         {
           "label": "Scope",
           "title": "Validate the trust surface",
-          "detail": "Check HTTPS, schema, identity, signature, auth, skill scope, gateway controls, logs, and prohibited content."
+          "detail": "Check HTTPS, schema, identity, signature, OAuth flow hygiene, skill scope, gateway controls, logs, and prohibited content."
         },
         {
           "label": "Decision",
           "title": "Assign a trust profile",
-          "detail": "Compare the evidence with production, restricted-pilot, discovery-only, and blocked profile requirements."
+          "detail": "Compare the evidence with production, restricted-pilot, discovery-only, and blocked profile requirements. Deny deprecated OAuth implicit and password grants."
         },
         {
           "label": "Action",
@@ -1239,7 +1239,7 @@
       "gate": {
         "question": "Does the Agent Card prove identity, secure transport, bounded skills, and the controls required for its requested trust tier?",
         "pass": "Register the card with only its approved context and handoff profile.",
-        "stop": "Hold, deny, or kill when evidence is missing, content is hostile, or secrets/insecure interfaces appear."
+        "stop": "Hold, deny, or kill when evidence is missing, deprecated OAuth grants appear, content is hostile, or secrets/insecure interfaces appear."
       },
       "evidence": [
         "Agent Card snapshot and hash",

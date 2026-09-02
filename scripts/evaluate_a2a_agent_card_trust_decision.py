@@ -4,7 +4,10 @@
 The evaluator is deterministic. It treats A2A discovery as a security
 intake event: a remote agent must prove enough structure, transport,
 authentication, signature, provider, scope, and skill evidence before it
-can receive secure context or join an agent-to-agent workflow.
+can receive secure context or join an agent-to-agent workflow. A2A v1.0
+removed implicit and password OAuth grants as current flows; this
+evaluator denies cards that still advertise them and requires
+authorization-code PKCE evidence before production trust.
 """
 
 from __future__ import annotations
@@ -40,6 +43,15 @@ PREFERRED_SECURITY_SCHEME_KEYS = {
     "mtlsSecurityScheme",
     "oauth2SecurityScheme",
     "openIdConnectSecurityScheme",
+}
+CURRENT_OAUTH_FLOWS = {
+    "authorizationCode",
+    "clientCredentials",
+    "deviceCode",
+}
+DEPRECATED_OAUTH_FLOWS = {
+    "implicit",
+    "password",
 }
 
 
@@ -233,11 +245,32 @@ def security_scheme_entries(card: dict[str, Any]) -> list[tuple[str, str, dict[s
     return entries
 
 
-def security_violations(card: dict[str, Any], production: bool) -> tuple[list[str], dict[str, Any]]:
+def declared_oauth_flows(scheme: dict[str, Any]) -> list[str]:
+    flows = as_dict(scheme.get("flows"))
+    return [name for name, value in flows.items() if as_dict(value)]
+
+
+def security_violations(
+    card: dict[str, Any], production: bool, pack: dict[str, Any] | None = None
+) -> tuple[list[str], list[str], dict[str, Any]]:
     violations: list[str] = []
+    holds: list[str] = []
     entries = security_scheme_entries(card)
+    cfg = contract(pack or {})
+    prohibited_oauth_flows = {
+        str(item).strip()
+        for item in as_list(cfg.get("prohibited_oauth_flows"))
+        if str(item).strip()
+    } or set(DEPRECATED_OAUTH_FLOWS)
+    allowed_oauth_flows = {
+        str(item).strip()
+        for item in as_list(cfg.get("allowed_oauth_flows"))
+        if str(item).strip()
+    } or set(CURRENT_OAUTH_FLOWS)
     scheme_types = sorted({entry[1] for entry in entries})
+    oauth_flow_names: list[str] = []
     facts = {
+        "oauth_flow_names": oauth_flow_names,
         "preferred_security_scheme_present": bool(set(scheme_types) & PREFERRED_SECURITY_SCHEME_KEYS),
         "security_requirement_count": len(as_list(card.get("securityRequirements"))),
         "security_scheme_count": len(entries),
@@ -254,11 +287,27 @@ def security_violations(card: dict[str, Any], production: bool) -> tuple[list[st
             if location in {"query", "cookie"}:
                 violations.append(f"{name}: API key location {location} is prohibited")
         if scheme_type == "oauth2SecurityScheme":
+            flow_names = declared_oauth_flows(scheme)
+            oauth_flow_names.extend(flow_names)
+            if len(flow_names) != 1:
+                violations.append(f"{name}: OAuth2 scheme must declare exactly one flow")
+            for flow_name in flow_names:
+                if flow_name in prohibited_oauth_flows or flow_name in DEPRECATED_OAUTH_FLOWS:
+                    violations.append(
+                        f"{name}: OAuth {flow_name} flow is deprecated; use authorizationCode with PKCE or deviceCode"
+                    )
+                elif flow_name not in allowed_oauth_flows:
+                    violations.append(f"{name}: OAuth flow {flow_name} is not a current A2A v1.0 flow")
             flows = as_dict(scheme.get("flows"))
             auth_code = as_dict(flows.get("authorizationCode"))
-            if auth_code and auth_code.get("pkceRequired") is False:
-                violations.append(f"{name}: OAuth authorizationCode flow must require PKCE")
-    return violations, facts
+            if auth_code:
+                pkce_required = auth_code.get("pkceRequired")
+                if pkce_required is False:
+                    violations.append(f"{name}: OAuth authorizationCode flow must require PKCE")
+                elif pkce_required is not True:
+                    holds.append(f"{name}: authorizationCode flow must declare pkceRequired=true")
+    facts["oauth_flow_names"] = sorted(set(oauth_flow_names))
+    return violations, holds, facts
 
 
 def signature_facts(card: dict[str, Any]) -> dict[str, Any]:
@@ -358,7 +407,9 @@ def evaluate_a2a_agent_card_trust_decision(
     violations.extend(required_field_violations(card, agent_card_pack))
     interface_urls, interface_violations = interface_facts(card)
     provider_gaps = provider_violations(card, runtime_request.get("expected_domain"))
-    security_gaps, security_facts = security_violations(card, production)
+    security_gaps, security_holds, security_facts = security_violations(
+        card, production, agent_card_pack
+    )
     skill_gaps, skill_facts = high_impact_skill_violations(card, agent_card_pack, runtime_request)
     signature = signature_facts(card)
     extended_gaps = extended_card_violations(card)
@@ -391,6 +442,8 @@ def evaluate_a2a_agent_card_trust_decision(
         )
     if security_gaps:
         violations.extend(security_gaps)
+    if security_holds:
+        holds.extend(security_holds)
     if extended_gaps:
         violations.extend(extended_gaps)
     if skill_gaps:
