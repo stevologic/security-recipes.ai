@@ -42,7 +42,7 @@ class LeftoverReviewQueueTests(unittest.TestCase):
             json.dumps(
                 {
                     "schema_version": 1,
-                    "daily_limit": 100,
+                    "daily_limit": 25,
                     "severity_order": ["critical", "high", "medium", "low"],
                     "reviewed_cves": ["CVE-2026-00001"],
                 },
@@ -136,9 +136,9 @@ class LeftoverReviewQueueTests(unittest.TestCase):
         rows = inventory_leftover_pages(self.cve_dir, {"CVE-2026-00008"})
         self.assertEqual(rows, [])
 
-    def test_repository_state_file_declares_a_100_page_daily_limit(self) -> None:
+    def test_repository_state_file_declares_a_25_page_daily_limit(self) -> None:
         state = json.loads((ROOT / "data" / "cve" / "leftover-review-state.json").read_text(encoding="utf-8"))
-        self.assertEqual(state["daily_limit"], 100)
+        self.assertEqual(state["daily_limit"], 25)
         self.assertEqual(state["severity_order"], ["critical", "high", "medium", "low"])
         self.assertIn("CVE-2026-46520", state["reviewed_cves"])
         self.assertGreaterEqual(len(state["reviewed_cves"]), 100)
