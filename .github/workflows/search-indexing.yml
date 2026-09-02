@@ -7,10 +7,11 @@ name: Search indexing
 # IndexNow; its discovery runs through the sitemap and Search Console.
 
 on:
-  schedule:
-    - cron: "53 7 * * *"
-  push:
-    branches: [main]
+  workflow_run:
+    workflows:
+      - Build
+    types:
+      - completed
   workflow_dispatch:
 
 permissions: {}
@@ -24,6 +25,7 @@ env:
 
 jobs:
   indexnow:
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:

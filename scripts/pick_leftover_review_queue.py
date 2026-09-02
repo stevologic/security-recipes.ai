@@ -2,7 +2,7 @@
 """Select leftover-gold CVE pages for the daily leftover review.
 
 Leftover-gold criticals and highs drain first. After those close, the daily
-job takes up to 100 leftover-gold medium and low pages. Skip-family leftover
+job takes up to 25 leftover-gold medium and low pages. Skip-family leftover
 dumps stay out of this queue unless a later intentional pass includes them.
 """
 
@@ -42,7 +42,7 @@ def load_state(path: Path) -> dict[str, Any]:
     order = payload.get("severity_order") or list(DEFAULT_SEVERITY_ORDER)
     if not isinstance(order, list) or not all(isinstance(item, str) for item in order):
         raise ValueError("severity_order must be a list of strings")
-    limit = payload.get("daily_limit", 100)
+    limit = payload.get("daily_limit", 25)
     if not isinstance(limit, int) or limit < 1:
         raise ValueError("daily_limit must be a positive integer")
     return {
