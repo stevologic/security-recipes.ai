@@ -7,8 +7,8 @@ name: AI issue maintenance
 # trigger only covers owner-authored issues. The workflows that publish
 # automation issues (the watchdog and the catalog sync) chain into this one
 # on completion, so a token-published issue is worked minutes after it is
-# filed instead of waiting for the twice-daily sweep, which remains the
-# backstop.
+# filed instead of waiting for the once-daily sweep at 16:41 UTC
+# (9:41am Phoenix), which remains the backstop.
 # The same prompt is the Cursor Automation playbook in
 # .github/prompts/ai-issue-maintenance.md.
 
@@ -24,7 +24,7 @@ on:
     types:
       - completed
   schedule:
-    - cron: "41 4,16 * * *"
+    - cron: "41 16 * * *"
   workflow_dispatch:
 
 permissions: {}

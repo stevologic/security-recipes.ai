@@ -25,7 +25,8 @@ class AiIssueMaintenanceWorkflowTests(unittest.TestCase):
         self.assertIn("workflow_run:", self.workflow)
         self.assertIn("- Production watchdog", self.workflow)
         self.assertIn("- CVE catalog sync", self.workflow)
-        self.assertIn('- cron: "41 4,16 * * *"', self.workflow)
+        self.assertIn('- cron: "41 16 * * *"', self.workflow)
+        self.assertNotIn("41 4,16", self.workflow)
         self.assertRegex(self.workflow, r"(?m)^\s*workflow_dispatch:\s*$")
         self.assertNotRegex(self.workflow, r"(?m)^\s+(push|pull_request|pull_request_target):")
 

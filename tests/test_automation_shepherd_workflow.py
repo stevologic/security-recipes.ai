@@ -14,8 +14,9 @@ class AutomationShepherdWorkflowTests(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.workflow = WORKFLOW.read_text(encoding="utf-8")
 
-    def test_runs_twice_hourly_and_can_be_dispatched(self) -> None:
-        self.assertIn('- cron: "7,37 * * * *"', self.workflow)
+    def test_chains_and_can_be_dispatched_without_a_schedule(self) -> None:
+        self.assertNotIn("schedule:", self.workflow)
+        self.assertNotIn("- cron:", self.workflow)
         self.assertRegex(self.workflow, r"(?m)^\s*workflow_dispatch:\s*$")
         self.assertNotRegex(self.workflow, r"(?m)^\s+(push|pull_request|pull_request_target):")
 
