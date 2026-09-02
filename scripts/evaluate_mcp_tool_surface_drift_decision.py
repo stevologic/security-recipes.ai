@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 import sys
 from pathlib import Path
 from typing import Any
@@ -40,6 +41,27 @@ HIGH_IMPACT_ADDED_FLAGS = {
     "signer",
     "token",
     "webhook",
+}
+# RFC 9110 Section 5.1 token / HTTP field-name tchar.
+X_MCP_HEADER_TCHAR_RE = re.compile(r"^[!#$%&'*+\-.^_`|~0-9A-Za-z]+$")
+X_MCP_HEADER_PRIMITIVE_TYPES = {"boolean", "integer", "string"}
+X_MCP_HEADER_SENSITIVE_RE = re.compile(
+    r"(pass(word|wd)|secret|token|api[_-]?key|auth(orization)?|cookie|credential|"
+    r"private[_-]?key|ssn|session)",
+    re.IGNORECASE,
+)
+X_MCP_HEADER_BLOCKED_PATH_KEYS = {
+    "$ref",
+    "additionalProperties",
+    "allOf",
+    "anyOf",
+    "else",
+    "if",
+    "items",
+    "not",
+    "oneOf",
+    "patternProperties",
+    "then",
 }
 
 
@@ -83,6 +105,140 @@ def as_list(value: Any) -> list[Any]:
     if isinstance(value, list):
         return value
     return [value]
+
+
+def schema_type_names(schema: dict[str, Any]) -> set[str]:
+    raw = schema.get("type")
+    if isinstance(raw, str) and raw.strip():
+        return {raw.strip()}
+    if isinstance(raw, list):
+        return {str(item).strip() for item in raw if str(item).strip()}
+    return set()
+
+
+def is_statically_reachable_header_path(path: tuple[str, ...]) -> bool:
+    """True when path is properties/<name>/(properties/<name>)* from the schema root."""
+    if len(path) < 2 or len(path) % 2 != 0:
+        return False
+    for index, part in enumerate(path):
+        if index % 2 == 0:
+            if part != "properties":
+                return False
+            continue
+        if part in X_MCP_HEADER_BLOCKED_PATH_KEYS:
+            return False
+    return True
+
+
+def iter_x_mcp_header_nodes(node: Any, path: tuple[str, ...] = ()) -> list[tuple[tuple[str, ...], dict[str, Any]]]:
+    found: list[tuple[tuple[str, ...], dict[str, Any]]] = []
+    if isinstance(node, dict):
+        if "x-mcp-header" in node:
+            found.append((path, node))
+        for key, child in node.items():
+            found.extend(iter_x_mcp_header_nodes(child, path + (str(key),)))
+    elif isinstance(node, list):
+        for index, child in enumerate(node):
+            found.extend(iter_x_mcp_header_nodes(child, path + (str(index),)))
+    return found
+
+
+def property_path_for_header_node(path: tuple[str, ...]) -> str:
+    names = [part for index, part in enumerate(path) if index % 2 == 1]
+    return ".".join(names)
+
+
+def collect_x_mcp_headers(schema: Any) -> tuple[list[dict[str, str]], list[str]]:
+    """Return pinned header records and spec-constraint violations for one inputSchema."""
+    records: list[dict[str, str]] = []
+    violations: list[str] = []
+    if schema in (None, ""):
+        return records, violations
+    if not isinstance(schema, dict):
+        violations.append("input_schema must be an object to evaluate x-mcp-header")
+        return records, violations
+
+    seen_headers: dict[str, str] = {}
+    for path, node in iter_x_mcp_header_nodes(schema):
+        raw = node.get("x-mcp-header")
+        header = "" if raw is None else str(raw)
+        property_path = property_path_for_header_node(path)
+        location = property_path or "/".join(path) or "input_schema"
+
+        if not is_statically_reachable_header_path(path):
+            violations.append(
+                f"x-mcp-header on {location!r} is not statically reachable via properties from the schema root"
+            )
+            continue
+        if not isinstance(raw, str) or not header:
+            violations.append(f"x-mcp-header on {location!r} is empty")
+            continue
+        if any(ord(char) < 32 for char in header) or not X_MCP_HEADER_TCHAR_RE.fullmatch(header):
+            violations.append(
+                f"x-mcp-header {header!r} on {location!r} is not an HTTP field-name token"
+            )
+            continue
+        types = schema_type_names(node)
+        if len(types) != 1 or next(iter(types)) not in X_MCP_HEADER_PRIMITIVE_TYPES:
+            violations.append(
+                f"x-mcp-header on {location!r} is not limited to string, integer, or boolean"
+            )
+            continue
+        header_key = header.casefold()
+        if header_key in seen_headers:
+            violations.append(
+                f"x-mcp-header {header!r} on {location!r} duplicates {seen_headers[header_key]!r}"
+            )
+            continue
+        seen_headers[header_key] = location
+        records.append(
+            {
+                "header": header,
+                "property_path": location,
+                "type": next(iter(types)),
+            }
+        )
+    records.sort(key=lambda item: (item["property_path"], item["header"].casefold()))
+    return records, violations
+
+
+def header_map(records: list[dict[str, str]]) -> dict[str, str]:
+    return {str(item["property_path"]): str(item["header"]) for item in records}
+
+
+def sensitive_header_violations(records: list[dict[str, str]]) -> list[str]:
+    violations: list[str] = []
+    for item in records:
+        path = str(item.get("property_path") or "")
+        header = str(item.get("header") or "")
+        if X_MCP_HEADER_SENSITIVE_RE.search(path) or X_MCP_HEADER_SENSITIVE_RE.search(header):
+            violations.append(
+                f"x-mcp-header {header!r} mirrors sensitive parameter {path!r} to HTTP intermediaries"
+            )
+    return violations
+
+
+def x_mcp_header_kill_violations(
+    baseline_schema: Any,
+    live_schema: Any,
+) -> tuple[list[str], list[str]]:
+    """Return (kill_violations, invalid_violations) for live vs baseline inputSchema."""
+    live_records, invalid = collect_x_mcp_headers(live_schema)
+    if invalid:
+        return [], invalid
+    kills = sensitive_header_violations(live_records)
+    baseline_records, _baseline_invalid = collect_x_mcp_headers(baseline_schema if isinstance(baseline_schema, dict) else {})
+    live = header_map(live_records)
+    baseline = header_map(baseline_records)
+    for path, header in live.items():
+        expected = baseline.get(path)
+        if expected is None:
+            kills.append(f"x-mcp-header {header!r} added on {path!r} after approval")
+        elif expected != header:
+            kills.append(
+                f"x-mcp-header on {path!r} changed from {expected!r} to {header!r}"
+            )
+    return kills, []
 
 
 def normalize_bool_map(value: dict[str, Any]) -> dict[str, bool]:
@@ -164,6 +320,8 @@ def normalize_runtime_request(runtime_request: dict[str, Any]) -> dict[str, Any]
         for flag in as_list(request.get("added_capability_flags"))
         if str(flag).strip()
     ]
+    input_schema = request.get("input_schema")
+    request["input_schema"] = input_schema if isinstance(input_schema, dict) else {}
     return request
 
 
@@ -298,6 +456,31 @@ def evaluate_mcp_tool_surface_drift_decision(drift_pack: dict[str, Any], runtime
             violations=["namespace/tool_name or surface_id is not registered"],
         )
 
+    live_schema = request.get("input_schema")
+    if isinstance(live_schema, dict) and live_schema:
+        header_kills, invalid_headers = x_mcp_header_kill_violations(
+            surface.get("input_schema"),
+            live_schema,
+        )
+        if invalid_headers:
+            return decision_result(
+                decision=DENY_REGRESSION_DECISION,
+                reason="live tool definition has an invalid x-mcp-header annotation and must be excluded from tools/list",
+                pack=drift_pack,
+                request=request,
+                surface=surface,
+                violations=invalid_headers,
+            )
+        if header_kills:
+            return decision_result(
+                decision=KILL_DECISION,
+                reason="tool surface added or changed x-mcp-header mirroring after approval",
+                pack=drift_pack,
+                request=request,
+                surface=surface,
+                violations=header_kills,
+            )
+
     regressions: list[str] = []
     if request["workflow_id"] and request["workflow_id"] not in set(surface.get("allowed_workflow_ids", []) or []):
         regressions.append(f"workflow_id {request['workflow_id']!r} is not allowed for this tool surface")
@@ -405,7 +588,11 @@ def request_from_args(args: argparse.Namespace) -> dict[str, Any]:
     if args.description is not None:
         payload["description_sha256"] = text_hash(args.description)
     if args.input_schema_json is not None:
-        payload["input_schema_sha256"] = stable_hash(parse_json_value(args.input_schema_json, "input schema"))
+        input_schema = parse_json_value(args.input_schema_json, "input schema")
+        if not isinstance(input_schema, dict):
+            raise argparse.ArgumentTypeError("input schema must be a JSON object")
+        payload["input_schema"] = input_schema
+        payload["input_schema_sha256"] = stable_hash(input_schema)
     if args.output_schema_json is not None:
         payload["output_schema_sha256"] = stable_hash(parse_json_value(args.output_schema_json, "output schema"))
     if args.annotations_json is not None:
