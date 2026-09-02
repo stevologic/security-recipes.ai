@@ -469,7 +469,7 @@ ledger, and generated drafts as a short-lived workflow artifact for review.
 `.github/workflows/leftover-review.yml` runs every day at `13:17 UTC` and
 live-verifies leftover-gold CVE leftovers against GitHub Advisories and NVD.
 Leftover-gold criticals and highs drain first. After those close, each run
-reviews up to 100 leftover-gold medium and low pages, records completed IDs
+reviews up to 25 leftover-gold medium and low pages, records completed IDs
 in `data/cve/leftover-review-state.json`, and opens a labeled auto-merge PR.
 The leftover-review job uses the Grok Build CLI with `XAI_API_KEY` and
 no-ops when that secret is missing or the leftover-gold queue is empty.

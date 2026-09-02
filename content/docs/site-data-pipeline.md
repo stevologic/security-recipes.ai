@@ -173,7 +173,7 @@ opens `automation/content-refresh-*` and labels it
 `XAI_API_KEY` is set.
 `scripts/pick_leftover_review_queue.py` selects leftover-gold pages under
 `content/recipes/cve/`, ordered critical → high → medium → low, up to
-`daily_limit` in `data/cve/leftover-review-state.json` (currently 100).
+`daily_limit` in `data/cve/leftover-review-state.json` (currently 25).
 The Grok pass live-checks GHAD and NVD and **rewrites those files in place**.
 It must not promote them to `maturity: stable` without a verified named floor.
 The leftover-review prompt then requires

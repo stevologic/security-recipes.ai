@@ -15,9 +15,16 @@ class SearchIndexingWorkflowTests(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.workflow = WORKFLOW.read_text(encoding="utf-8")
 
-    def test_runs_daily_on_main_pushes_and_by_hand(self) -> None:
-        self.assertIn('- cron: "53 7 * * *"', self.workflow)
-        self.assertIn("push:", self.workflow)
+    def test_runs_after_successful_build_and_by_hand(self) -> None:
+        self.assertNotIn("schedule:", self.workflow)
+        self.assertNotIn("- cron:", self.workflow)
+        self.assertNotIn("push:", self.workflow)
+        self.assertIn("workflow_run:", self.workflow)
+        self.assertIn("- Build", self.workflow)
+        self.assertIn(
+            "github.event_name == 'workflow_dispatch' || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')",
+            self.workflow,
+        )
         self.assertRegex(self.workflow, r"(?m)^\s*workflow_dispatch:\s*$")
         self.assertNotRegex(self.workflow, r"(?m)^\s+(pull_request|pull_request_target):")
 

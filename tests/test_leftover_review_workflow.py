@@ -23,10 +23,10 @@ class LeftoverReviewWorkflowTests(unittest.TestCase):
         self.assertIn("group: leftover-review", self.workflow)
         self.assertIn("cancel-in-progress: false", self.workflow)
 
-    def test_reviews_up_to_100_leftover_gold_mediums_and_lows_after_highs(self) -> None:
+    def test_reviews_up_to_25_leftover_gold_mediums_and_lows_after_highs(self) -> None:
         for required in (
             "scripts/pick_leftover_review_queue.py",
-            "up to 100 leftover-gold medium and low",
+            "up to 25 leftover-gold medium and low",
             "drains leftover-gold criticals and highs first",
             "data/cve/leftover-review-state.json",
             "never invent +1 versions",
