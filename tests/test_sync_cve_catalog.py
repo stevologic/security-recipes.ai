@@ -837,6 +837,55 @@ class SyncCveCatalogTests(unittest.TestCase):
         self.assertEqual(mocked_open.call_count, 2)
         mocked_sleep.assert_called_once_with(1)
 
+    def test_nvd_fetch_retries_cloudflare_origin_timeouts(self) -> None:
+        self.assertTrue({520, 521, 522, 523, 524} <= catalog.RETRYABLE_HTTP_CODES)
+
+        class Response:
+            def __enter__(self) -> "Response":
+                return self
+
+            def __exit__(self, *args: object) -> None:
+                return None
+
+            def read(self) -> bytes:
+                return b"recovered metadata"
+
+        transient = HTTPError(
+            "https://nvd.example.test/nvdcve-2.0-2018.meta",
+            522,
+            "<none>",
+            {},
+            None,
+        )
+        with (
+            patch.object(catalog, "urlopen", side_effect=[transient, Response()]) as mocked_open,
+            patch.object(catalog.time, "sleep") as mocked_sleep,
+        ):
+            payload = catalog.fetch_bytes("https://nvd.example.test/nvdcve-2.0-2018.meta")
+
+        self.assertEqual(payload, b"recovered metadata")
+        self.assertEqual(mocked_open.call_count, 2)
+        mocked_sleep.assert_called_once_with(1)
+
+    def test_fetch_bytes_does_not_retry_non_transient_http_errors(self) -> None:
+        forbidden = HTTPError(
+            "https://nvd.example.test/nvdcve-2.0-2018.meta",
+            403,
+            "Forbidden",
+            {},
+            None,
+        )
+        with (
+            patch.object(catalog, "urlopen", side_effect=forbidden) as mocked_open,
+            patch.object(catalog.time, "sleep") as mocked_sleep,
+        ):
+            with self.assertRaises(HTTPError) as raised:
+                catalog.fetch_bytes("https://nvd.example.test/nvdcve-2.0-2018.meta")
+
+        self.assertEqual(raised.exception.code, 403)
+        self.assertEqual(mocked_open.call_count, 1)
+        mocked_sleep.assert_not_called()
+
     def test_build_and_validator_account_for_ai_enrichment(self) -> None:
         record = normalize(nvd_record("CVE-2024-1234"))
         self.assertIsNotNone(record)
@@ -1658,6 +1707,51 @@ class SyncCveCatalogTests(unittest.TestCase):
             with patch.object(catalog, "fetch_bytes", fetch):
                 with self.assertRaises(ValueError):
                     catalog.cache_feed(2024, cache_dir)
+
+    def test_unreachable_feed_metadata_falls_back_to_the_last_verified_cache(self) -> None:
+        # Cloudflare 522 on the .meta object used to abort the entire refresh
+        # even when this year already had independently verified cached bytes.
+        with tempfile.TemporaryDirectory(prefix="test-cve-cache-", dir=catalog.ROOT) as tmpdir:
+            cache_dir = Path(tmpdir)
+            stem = "nvdcve-2.0-2018"
+            raw = b'{"vulnerabilities":[]}\n'
+            cached_sha = hashlib.sha256(raw).hexdigest()
+            cached_meta = f"lastModifiedDate:2026-07-01T00:00:00\nsha256:{cached_sha}\n"
+            (cache_dir / f"{stem}.meta").write_text(cached_meta, encoding="utf-8")
+            (cache_dir / f"{stem}.verified").write_text(cached_sha + "\n", encoding="ascii")
+            gzip_path = cache_dir / f"{stem}.json.gz"
+            gzip_path.write_bytes(gzip.compress(raw, mtime=0))
+
+            def fetch(url: str, **_: object) -> bytes:
+                raise HTTPError(url, 522, "<none>", {}, None)  # type: ignore[arg-type]
+
+            with patch.object(catalog, "fetch_bytes", fetch):
+                resolved, metadata = catalog.cache_feed(2018, cache_dir)
+
+            self.assertEqual(resolved, gzip_path)
+            self.assertEqual(metadata["sha256"], cached_sha)
+            self.assertEqual(metadata["lastModifiedDate"], "2026-07-01T00:00:00")
+            self.assertEqual(
+                (cache_dir / f"{stem}.meta").read_text(encoding="utf-8"), cached_meta
+            )
+
+            gzip_path.write_bytes(gzip.compress(b'{"vulnerabilities":[{"x":1}]}\n', mtime=0))
+            with patch.object(catalog, "fetch_bytes", fetch):
+                with self.assertRaises(ValueError):
+                    catalog.cache_feed(2018, cache_dir)
+
+    def test_unreachable_feed_metadata_without_verified_cache_still_fails(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="test-cve-cache-", dir=catalog.ROOT) as tmpdir:
+            cache_dir = Path(tmpdir)
+
+            def fetch(url: str, **_: object) -> bytes:
+                raise HTTPError(url, 522, "<none>", {}, None)  # type: ignore[arg-type]
+
+            with patch.object(catalog, "fetch_bytes", fetch):
+                with self.assertRaises(HTTPError) as raised:
+                    catalog.cache_feed(2018, cache_dir)
+
+            self.assertEqual(raised.exception.code, 522)
 
     def test_archetype_contract_requires_descriptions_and_nonempty_string_lists(self) -> None:
         payload = archetype_payload()
