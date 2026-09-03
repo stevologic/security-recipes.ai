@@ -505,6 +505,7 @@ def build_pack(
             "decision_order": [
                 "kill_session_on_tool_risk_signal",
                 "deny_scope_drift",
+                "deny_insecure_tool_list_cache",
                 "deny_annotation_contradiction",
                 "deny_session_exfiltration_path",
                 "hold_for_tool_risk_review",
@@ -512,6 +513,7 @@ def build_pack(
                 "allow_tool_call"
             ],
             "session_combination_rule": profile.get("tool_risk_contract", {}).get("session_combination_rule", {}),
+            "tool_list_cache_rule": profile.get("tool_risk_contract", {}).get("tool_list_cache_rule", {}),
         },
         "failures": failures,
         "generated_at": generated_at or str(profile.get("last_reviewed", "")),
@@ -525,6 +527,10 @@ def build_pack(
             {
                 "risk": "The risk of a tool depends on the rest of the session, not only on that tool's declaration.",
                 "treatment": "Evaluate private-data, untrusted-content, and external-communication factors before each tool call and after tool-list changes."
+            },
+            {
+                "risk": "A cacheable tools/list result can be reused across callers or access tokens when cacheScope is public, and cacheScope is not an access-control lock.",
+                "treatment": "Deny public caches of user-specific tool lists, kill private caches reused across authorization contexts, refuse cached input_required results, and keep per-primitive authorization independent of cacheScope."
             },
             {
                 "risk": "MCP annotation proposals are still evolving.",

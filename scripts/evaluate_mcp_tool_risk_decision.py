@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
-"""Evaluate one MCP tool call against the generated tool-risk contract."""
+"""Evaluate one MCP tool call against the generated tool-risk contract.
+
+MCP 2026-07-28 makes complete tools/list results cacheable with ttlMs and
+cacheScope. This evaluator treats those fields as sharing and freshness
+hints, not access control: a public cache of user-specific tools is
+denied, a private cache reused across authorization contexts is killed,
+and unspecified cache evidence keeps the prior allow path valid.
+"""
 
 from __future__ import annotations
 
@@ -15,6 +22,7 @@ ALLOW_DECISION = "allow_tool_call"
 CONFIRM_DECISION = "allow_with_confirmation"
 HOLD_DECISION = "hold_for_tool_risk_review"
 DENY_ANNOTATION_DECISION = "deny_annotation_contradiction"
+DENY_CACHE_DECISION = "deny_insecure_tool_list_cache"
 DENY_SESSION_DECISION = "deny_session_exfiltration_path"
 DENY_SCOPE_DECISION = "deny_scope_drift"
 KILL_DECISION = "kill_session_on_tool_risk_signal"
@@ -23,16 +31,23 @@ VALID_DECISIONS = {
     CONFIRM_DECISION,
     HOLD_DECISION,
     DENY_ANNOTATION_DECISION,
+    DENY_CACHE_DECISION,
     DENY_SESSION_DECISION,
     DENY_SCOPE_DECISION,
     KILL_DECISION,
 }
 WRITE_ACCESS_MODES = {"write_branch", "write_ticket", "approval_required"}
+PUBLIC_CACHE_SCOPE = "public"
+PRIVATE_CACHE_SCOPE = "private"
+VALID_CACHE_SCOPES = {PUBLIC_CACHE_SCOPE, PRIVATE_CACHE_SCOPE}
+INPUT_REQUIRED_RESULT = "input_required"
+COMPLETE_RESULT = "complete"
 KILL_MARKERS = {
     "raw_secret_in_tool_argument",
     "raw_secret_in_tool_result",
     "credential_or_signer_scope_requested",
     "tool_list_changed_after_approval",
+    "private_tool_list_cache_shared_across_authorization_contexts",
     "unapproved_external_destination",
     "private_network_or_metadata_ip_destination",
     "approval_bypass_attempt",
@@ -88,8 +103,12 @@ def normalize_runtime_request(runtime_request: dict[str, Any]) -> dict[str, Any]
         "policy_pack_hash",
         "authorization_pack_hash",
         "runtime_kill_signal",
+        "tools_list_cache_scope",
+        "tools_list_result_type",
     ]:
         request[key] = str(request.get(key) or "").strip()
+    request["tools_list_cache_scope"] = request["tools_list_cache_scope"].lower()
+    request["tools_list_result_type"] = request["tools_list_result_type"].lower()
     for key in [
         "server_trusted",
         "session_reads_private_data",
@@ -98,6 +117,11 @@ def normalize_runtime_request(runtime_request: dict[str, Any]) -> dict[str, Any]
         "contains_secret",
         "tool_list_changed_after_approval",
         "private_network_destination",
+        "tools_list_from_cache",
+        "tools_list_user_specific",
+        "tools_list_cache_shared_across_authorization_contexts",
+        "tools_list_cache_used_as_access_control",
+        "tools_list_mixed_page_cache_scope",
     ]:
         request[key] = as_bool(request.get(key))
     approval = request.get("human_approval_record")
@@ -217,6 +241,10 @@ def decision_result(
             "server_trusted": request.get("server_trusted"),
             "session_id": request.get("session_id"),
             "tool_name": request.get("tool_name"),
+            "tools_list_cache_scope": request.get("tools_list_cache_scope"),
+            "tools_list_from_cache": request.get("tools_list_from_cache"),
+            "tools_list_result_type": request.get("tools_list_result_type"),
+            "tools_list_user_specific": request.get("tools_list_user_specific"),
             "workflow_id": request.get("workflow_id"),
         },
         "violations": violations or [],
@@ -234,7 +262,76 @@ def runtime_kill_violations(request: dict[str, Any]) -> list[str]:
         violations.append("tool_list_changed_after_approval")
     if request.get("private_network_destination"):
         violations.append("private_network_or_metadata_ip_destination")
+    violations.extend(private_cache_reuse_violations(request))
     return [violation for violation in violations if violation in KILL_MARKERS or violation]
+
+
+def cache_evidence_present(request: dict[str, Any]) -> bool:
+    """Return True when the caller supplied tools/list cache evidence.
+
+    Unspecified cache fields keep the prior allow path valid.
+    """
+    return bool(
+        request.get("tools_list_from_cache")
+        or request.get("tools_list_cache_scope")
+        or request.get("tools_list_result_type")
+        or request.get("tools_list_user_specific")
+        or request.get("tools_list_cache_shared_across_authorization_contexts")
+        or request.get("tools_list_cache_used_as_access_control")
+        or request.get("tools_list_mixed_page_cache_scope")
+    )
+
+
+def private_cache_reuse_violations(request: dict[str, Any]) -> list[str]:
+    """Return kill markers for a private tools/list cache reused across tokens."""
+    if (
+        request.get("tools_list_from_cache")
+        and request.get("tools_list_cache_scope") == PRIVATE_CACHE_SCOPE
+        and request.get("tools_list_cache_shared_across_authorization_contexts")
+    ):
+        return ["private_tool_list_cache_shared_across_authorization_contexts"]
+    return []
+
+
+def insecure_tool_list_cache_violations(request: dict[str, Any]) -> list[str]:
+    """Return MCP 2026-07-28 caching security failures for one tool call.
+
+    Complete tools/list results MUST carry cacheScope. A public cache MAY be
+    shared across callers and access tokens, so a user-specific list must not
+    be marked public. Private caches MUST NOT be shared across authorization
+    contexts (handled as a kill). input_required MRTR results MUST NOT be
+    cached. cacheScope MUST NOT replace per-primitive access control. Paginated
+    list pages MUST share one cacheScope.
+    """
+    if not cache_evidence_present(request):
+        return []
+    violations: list[str] = []
+    from_cache = bool(request.get("tools_list_from_cache"))
+    scope = str(request.get("tools_list_cache_scope") or "")
+    result_type = str(request.get("tools_list_result_type") or "")
+    if from_cache and result_type == INPUT_REQUIRED_RESULT:
+        violations.append("cached_input_required_tools_list")
+    if from_cache and scope == PUBLIC_CACHE_SCOPE and request.get("tools_list_user_specific"):
+        violations.append("public_tool_list_cache_contains_user_specific_data")
+    if request.get("tools_list_cache_used_as_access_control"):
+        violations.append("cache_scope_used_as_access_control")
+    if request.get("tools_list_mixed_page_cache_scope"):
+        violations.append("mixed_page_cache_scope")
+    if from_cache and scope and scope not in VALID_CACHE_SCOPES:
+        violations.append(f"tools_list_cache_scope {scope!r} is not public or private")
+    return violations
+
+
+def missing_tool_list_cache_scope_violations(request: dict[str, Any]) -> list[str]:
+    """Hold when a cached complete tools/list omits the required cacheScope hint."""
+    if not request.get("tools_list_from_cache"):
+        return []
+    result_type = str(request.get("tools_list_result_type") or "")
+    if result_type not in {"", COMPLETE_RESULT}:
+        return []
+    if request.get("tools_list_cache_scope"):
+        return []
+    return ["complete_tools_list_cache_missing_cache_scope"]
 
 
 def evaluate_mcp_tool_risk_decision(tool_risk_pack: dict[str, Any], runtime_request: dict[str, Any]) -> dict[str, Any]:
@@ -297,6 +394,31 @@ def evaluate_mcp_tool_risk_decision(tool_risk_pack: dict[str, Any], runtime_requ
             workflow=workflow,
             annotations=annotations,
             violations=violations,
+        )
+
+    cache_violations = insecure_tool_list_cache_violations(request)
+    if cache_violations:
+        return decision_result(
+            decision=DENY_CACHE_DECISION,
+            reason="tools/list cacheScope, authorization context, or resultType violates MCP caching security considerations",
+            pack=tool_risk_pack,
+            request=request,
+            profile=profile,
+            workflow=workflow,
+            annotations=annotations,
+            violations=cache_violations,
+        )
+    missing_cache_scope = missing_tool_list_cache_scope_violations(request)
+    if missing_cache_scope:
+        return decision_result(
+            decision=HOLD_DECISION,
+            reason="cached complete tools/list is missing the required cacheScope hint",
+            pack=tool_risk_pack,
+            request=request,
+            profile=profile,
+            workflow=workflow,
+            annotations=annotations,
+            violations=missing_cache_scope,
         )
 
     requested_mode = request["requested_access_mode"]
@@ -438,6 +560,8 @@ def request_from_args(args: argparse.Namespace) -> dict[str, Any]:
         "policy_pack_hash",
         "authorization_pack_hash",
         "runtime_kill_signal",
+        "tools_list_cache_scope",
+        "tools_list_result_type",
     ]:
         value = getattr(args, key)
         if value not in (None, ""):
@@ -462,6 +586,11 @@ def request_from_args(args: argparse.Namespace) -> dict[str, Any]:
         "contains_secret",
         "tool_list_changed_after_approval",
         "private_network_destination",
+        "tools_list_from_cache",
+        "tools_list_user_specific",
+        "tools_list_cache_shared_across_authorization_contexts",
+        "tools_list_cache_used_as_access_control",
+        "tools_list_mixed_page_cache_scope",
     ]:
         if getattr(args, key):
             payload[key] = True
@@ -501,6 +630,33 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--contains-secret", action="store_true")
     parser.add_argument("--tool-list-changed-after-approval", action="store_true")
     parser.add_argument("--private-network-destination", action="store_true")
+    parser.add_argument("--tools-list-from-cache", dest="tools_list_from_cache", action="store_true")
+    parser.add_argument(
+        "--tools-list-cache-scope",
+        dest="tools_list_cache_scope",
+        choices=sorted(VALID_CACHE_SCOPES),
+    )
+    parser.add_argument(
+        "--tools-list-result-type",
+        dest="tools_list_result_type",
+        choices=[COMPLETE_RESULT, INPUT_REQUIRED_RESULT],
+    )
+    parser.add_argument("--tools-list-user-specific", dest="tools_list_user_specific", action="store_true")
+    parser.add_argument(
+        "--tools-list-cache-shared-across-authorization-contexts",
+        dest="tools_list_cache_shared_across_authorization_contexts",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--tools-list-cache-used-as-access-control",
+        dest="tools_list_cache_used_as_access_control",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--tools-list-mixed-page-cache-scope",
+        dest="tools_list_mixed_page_cache_scope",
+        action="store_true",
+    )
     parser.add_argument("--human-approval-id")
     parser.add_argument("--runtime-kill-signal")
     parser.add_argument("--expect-decision", choices=sorted(VALID_DECISIONS))

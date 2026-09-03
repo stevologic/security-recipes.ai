@@ -3939,7 +3939,7 @@
       "title": "MCP Tool Risk Contract",
       "page": "/security-remediation/mcp-tool-risk-contract/",
       "category": "mcp-governance",
-      "summary": "Classify an MCP tool's data access, side effects, reversibility, authority, argument controls, and approval needs before exposure to agents.",
+      "summary": "Classify an MCP tool's data access, side effects, reversibility, authority, argument controls, tools/list cache isolation, and approval needs before exposure to agents.",
       "phases": [
         {
           "label": "Signal",
@@ -3949,12 +3949,12 @@
         {
           "label": "Scope",
           "title": "Analyze capability risk",
-          "detail": "Rate read/write/admin authority, sensitive data, destructive or irreversible effects, scope, concurrency, network, and confused-deputy risk."
+          "detail": "Rate read/write/admin authority, sensitive data, destructive or irreversible effects, scope, concurrency, network, confused-deputy risk, and whether a cached tools/list was public, private, user-specific, or reused across authorization contexts."
         },
         {
           "label": "Decision",
           "title": "Define required controls",
-          "detail": "Specify argument/path validation, tenant isolation, auth, rate limits, dry-run, idempotency, approvals, telemetry, and rollback."
+          "detail": "Specify argument/path validation, tenant isolation, auth, cacheScope isolation, rate limits, dry-run, idempotency, approvals, telemetry, and rollback."
         },
         {
           "label": "Action",
@@ -3996,7 +3996,8 @@
         "MCP tool risk",
         "tool side effects",
         "MCP approval policy",
-        "tool schema security"
+        "tool schema security",
+        "MCP tools list cache"
       ]
     },
     {
