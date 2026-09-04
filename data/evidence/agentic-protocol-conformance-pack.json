@@ -388,8 +388,8 @@
           "title": "MCP Authorization Conformance"
         },
         {
-          "commercial_value": "Packages live tool-list monitoring, signed tool-surface baselines, annotation trust, and session-combination risk into a hosted MCP security control plane.",
-          "conformance_check_count": 4,
+          "commercial_value": "Packages live tool-list monitoring, subscriptions/listen notification bounds, signed tool-surface baselines, annotation trust, and session-combination risk into a hosted MCP security control plane.",
+          "conformance_check_count": 5,
           "conformance_checks": [
             {
               "buyer_question": "Are annotations enforceable policy evidence or only UI hints from an untrusted server?",
@@ -686,18 +686,102 @@
               },
               "status": "ready",
               "title": "Schema and Output Validation"
+            },
+            {
+              "buyer_question": "What stops an MCP server from pushing unsolicited tool-list or resource-update notifications that poison a previously approved surface?",
+              "check_hash": "2b9bd4eeaa3834e5cef456d659ca3db4c1384526ee54c8474fb8b855e96d0b84",
+              "evidence_paths": [
+                "data/evidence/mcp-tool-surface-drift-pack.json",
+                "data/evidence/mcp-tool-risk-contract.json"
+              ],
+              "fail_closed_decision": "deny_untrusted_protocol_surface",
+              "id": "mcp-subscription-listen-boundary",
+              "missing_evidence_paths": [],
+              "missing_source_pack_keys": [],
+              "protocol_id": "mcp-tooling-safety",
+              "required_runtime_attributes": [
+                "subscription_method",
+                "requested_notification_types",
+                "observed_notification_types",
+                "subscription_acknowledged",
+                "subscription_id_present"
+              ],
+              "requirement": "MCP 2026-07-28 replaces resources/subscribe and the HTTP GET notification endpoint with subscriptions/listen. Servers MUST acknowledge with io.modelcontextprotocol/subscriptionId before any notification, MUST NOT send types the client did not request, MUST keep request-scoped progress and log messages on the originating request stream, and stdio clients MUST re-listen after reconnect because the server holds no subscription state.",
+              "source_pack_keys": [
+                "mcp_tool_surface_drift_pack",
+                "mcp_tool_risk_contract"
+              ],
+              "source_pack_status": {
+                "mcp_tool_risk_contract": {
+                  "failure_count": 0,
+                  "path": "data/evidence/mcp-tool-risk-contract.json",
+                  "schema_version": "1.0",
+                  "status": "ready",
+                  "summaries": {
+                    "tool_risk_summary": {
+                      "annotation_trust_counts": {
+                        "trusted_enterprise_gateway": 11,
+                        "untrusted_or_unverified_server": 5
+                      },
+                      "default_decision_counts": {
+                        "allow_with_confirmation": 2,
+                        "hold_for_tool_risk_review": 14
+                      },
+                      "failure_count": 0,
+                      "lethal_combination_workflow_count": 2,
+                      "risk_tier_counts": {
+                        "tier_1_read_untrusted": 1,
+                        "tier_2_private_context": 11,
+                        "tier_3_state_changing": 1,
+                        "tier_4_destructive_or_exfiltration": 3
+                      },
+                      "tool_profile_count": 16,
+                      "trusted_server_count": 11,
+                      "workflow_count": 8
+                    }
+                  }
+                },
+                "mcp_tool_surface_drift_pack": {
+                  "failure_count": 0,
+                  "path": "data/evidence/mcp-tool-surface-drift-pack.json",
+                  "schema_version": "1.0",
+                  "status": "ready",
+                  "summaries": {
+                    "tool_surface_summary": {
+                      "default_decision_counts": {
+                        "allow_pinned_tool_surface": 5,
+                        "hold_for_tool_surface_review": 1
+                      },
+                      "failure_count": 0,
+                      "high_impact_surface_count": 3,
+                      "namespace_count": 6,
+                      "source_kind_counts": {
+                        "candidate_connector": 1,
+                        "registered_connector": 5
+                      },
+                      "status": "drift_baseline_ready",
+                      "surface_count": 6
+                    }
+                  }
+                }
+              },
+              "status": "ready",
+              "title": "Subscription Listen Boundary"
             }
           ],
           "current_versions": [
+            "2026-07-28",
             "2025-11-25",
             "2026-03-16-tool-annotations"
           ],
           "effective_decision": "ready_for_enterprise_conformance",
           "id": "mcp-tooling-safety",
           "readiness_score": 100.0,
-          "ready_check_count": 4,
+          "ready_check_count": 5,
           "source_ids": [
             "mcp-tool-annotations-2026-03-16",
+            "mcp-subscriptions-listen-2026-07-28",
+            "mcp-spec-changelog-2026-07-28",
             "mcp-spec-changelog-2025-11-25",
             "openai-agent-prompt-injection-2026"
           ],
@@ -709,6 +793,22 @@
               "publisher": "Model Context Protocol",
               "source_class": "protocol_guidance",
               "url": "https://blog.modelcontextprotocol.io/posts/2026-03-16-tool-annotations/"
+            },
+            {
+              "id": "mcp-subscriptions-listen-2026-07-28",
+              "name": "Model Context Protocol Subscriptions (2026-07-28 current revision)",
+              "published": "2026-07-28",
+              "publisher": "Model Context Protocol",
+              "source_class": "protocol_specification",
+              "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/patterns/subscriptions"
+            },
+            {
+              "id": "mcp-spec-changelog-2026-07-28",
+              "name": "MCP Specification Changelog (2026-07-28 current revision)",
+              "published": "2026-07-28",
+              "publisher": "Model Context Protocol",
+              "source_class": "protocol_specification",
+              "url": "https://modelcontextprotocol.io/specification/2026-07-28/changelog"
             },
             {
               "id": "mcp-spec-changelog-2025-11-25",
@@ -2015,7 +2115,7 @@
                         "agentic-assurance-models",
                         "recipes"
                       ],
-                      "byte_count": 14968962,
+                      "byte_count": 14973029,
                       "decision_counts": {
                         "allow_with_adversarial_examples": 1,
                         "block_until_removed": 2,
@@ -2627,8 +2727,8 @@
           "title": "MCP Authorization Conformance"
         },
         {
-          "commercial_value": "Packages live tool-list monitoring, signed tool-surface baselines, annotation trust, and session-combination risk into a hosted MCP security control plane.",
-          "conformance_check_count": 4,
+          "commercial_value": "Packages live tool-list monitoring, subscriptions/listen notification bounds, signed tool-surface baselines, annotation trust, and session-combination risk into a hosted MCP security control plane.",
+          "conformance_check_count": 5,
           "conformance_checks": [
             {
               "buyer_question": "Are annotations enforceable policy evidence or only UI hints from an untrusted server?",
@@ -2925,18 +3025,102 @@
               },
               "status": "ready",
               "title": "Schema and Output Validation"
+            },
+            {
+              "buyer_question": "What stops an MCP server from pushing unsolicited tool-list or resource-update notifications that poison a previously approved surface?",
+              "check_hash": "2b9bd4eeaa3834e5cef456d659ca3db4c1384526ee54c8474fb8b855e96d0b84",
+              "evidence_paths": [
+                "data/evidence/mcp-tool-surface-drift-pack.json",
+                "data/evidence/mcp-tool-risk-contract.json"
+              ],
+              "fail_closed_decision": "deny_untrusted_protocol_surface",
+              "id": "mcp-subscription-listen-boundary",
+              "missing_evidence_paths": [],
+              "missing_source_pack_keys": [],
+              "protocol_id": "mcp-tooling-safety",
+              "required_runtime_attributes": [
+                "subscription_method",
+                "requested_notification_types",
+                "observed_notification_types",
+                "subscription_acknowledged",
+                "subscription_id_present"
+              ],
+              "requirement": "MCP 2026-07-28 replaces resources/subscribe and the HTTP GET notification endpoint with subscriptions/listen. Servers MUST acknowledge with io.modelcontextprotocol/subscriptionId before any notification, MUST NOT send types the client did not request, MUST keep request-scoped progress and log messages on the originating request stream, and stdio clients MUST re-listen after reconnect because the server holds no subscription state.",
+              "source_pack_keys": [
+                "mcp_tool_surface_drift_pack",
+                "mcp_tool_risk_contract"
+              ],
+              "source_pack_status": {
+                "mcp_tool_risk_contract": {
+                  "failure_count": 0,
+                  "path": "data/evidence/mcp-tool-risk-contract.json",
+                  "schema_version": "1.0",
+                  "status": "ready",
+                  "summaries": {
+                    "tool_risk_summary": {
+                      "annotation_trust_counts": {
+                        "trusted_enterprise_gateway": 11,
+                        "untrusted_or_unverified_server": 5
+                      },
+                      "default_decision_counts": {
+                        "allow_with_confirmation": 2,
+                        "hold_for_tool_risk_review": 14
+                      },
+                      "failure_count": 0,
+                      "lethal_combination_workflow_count": 2,
+                      "risk_tier_counts": {
+                        "tier_1_read_untrusted": 1,
+                        "tier_2_private_context": 11,
+                        "tier_3_state_changing": 1,
+                        "tier_4_destructive_or_exfiltration": 3
+                      },
+                      "tool_profile_count": 16,
+                      "trusted_server_count": 11,
+                      "workflow_count": 8
+                    }
+                  }
+                },
+                "mcp_tool_surface_drift_pack": {
+                  "failure_count": 0,
+                  "path": "data/evidence/mcp-tool-surface-drift-pack.json",
+                  "schema_version": "1.0",
+                  "status": "ready",
+                  "summaries": {
+                    "tool_surface_summary": {
+                      "default_decision_counts": {
+                        "allow_pinned_tool_surface": 5,
+                        "hold_for_tool_surface_review": 1
+                      },
+                      "failure_count": 0,
+                      "high_impact_surface_count": 3,
+                      "namespace_count": 6,
+                      "source_kind_counts": {
+                        "candidate_connector": 1,
+                        "registered_connector": 5
+                      },
+                      "status": "drift_baseline_ready",
+                      "surface_count": 6
+                    }
+                  }
+                }
+              },
+              "status": "ready",
+              "title": "Subscription Listen Boundary"
             }
           ],
           "current_versions": [
+            "2026-07-28",
             "2025-11-25",
             "2026-03-16-tool-annotations"
           ],
           "effective_decision": "ready_for_enterprise_conformance",
           "id": "mcp-tooling-safety",
           "readiness_score": 100.0,
-          "ready_check_count": 4,
+          "ready_check_count": 5,
           "source_ids": [
             "mcp-tool-annotations-2026-03-16",
+            "mcp-subscriptions-listen-2026-07-28",
+            "mcp-spec-changelog-2026-07-28",
             "mcp-spec-changelog-2025-11-25",
             "openai-agent-prompt-injection-2026"
           ],
@@ -2948,6 +3132,22 @@
               "publisher": "Model Context Protocol",
               "source_class": "protocol_guidance",
               "url": "https://blog.modelcontextprotocol.io/posts/2026-03-16-tool-annotations/"
+            },
+            {
+              "id": "mcp-subscriptions-listen-2026-07-28",
+              "name": "Model Context Protocol Subscriptions (2026-07-28 current revision)",
+              "published": "2026-07-28",
+              "publisher": "Model Context Protocol",
+              "source_class": "protocol_specification",
+              "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/patterns/subscriptions"
+            },
+            {
+              "id": "mcp-spec-changelog-2026-07-28",
+              "name": "MCP Specification Changelog (2026-07-28 current revision)",
+              "published": "2026-07-28",
+              "publisher": "Model Context Protocol",
+              "source_class": "protocol_specification",
+              "url": "https://modelcontextprotocol.io/specification/2026-07-28/changelog"
             },
             {
               "id": "mcp-spec-changelog-2025-11-25",
@@ -3513,7 +3713,7 @@
                         "agentic-assurance-models",
                         "recipes"
                       ],
-                      "byte_count": 14968962,
+                      "byte_count": 14973029,
                       "decision_counts": {
                         "allow_with_adversarial_examples": 1,
                         "block_until_removed": 2,
@@ -3773,6 +3973,9 @@
       "tool_annotations_trusted",
       "tool_surface_pinned",
       "schema_drift_detected",
+      "subscription_method",
+      "subscription_acknowledged",
+      "subscription_id_present",
       "agent_card_signed",
       "extended_card_authenticated",
       "protocol_version_observed",
@@ -4395,6 +4598,87 @@
       "title": "Schema and Output Validation"
     },
     {
+      "buyer_question": "What stops an MCP server from pushing unsolicited tool-list or resource-update notifications that poison a previously approved surface?",
+      "check_hash": "2b9bd4eeaa3834e5cef456d659ca3db4c1384526ee54c8474fb8b855e96d0b84",
+      "evidence_paths": [
+        "data/evidence/mcp-tool-surface-drift-pack.json",
+        "data/evidence/mcp-tool-risk-contract.json"
+      ],
+      "fail_closed_decision": "deny_untrusted_protocol_surface",
+      "id": "mcp-subscription-listen-boundary",
+      "missing_evidence_paths": [],
+      "missing_source_pack_keys": [],
+      "protocol_id": "mcp-tooling-safety",
+      "required_runtime_attributes": [
+        "subscription_method",
+        "requested_notification_types",
+        "observed_notification_types",
+        "subscription_acknowledged",
+        "subscription_id_present"
+      ],
+      "requirement": "MCP 2026-07-28 replaces resources/subscribe and the HTTP GET notification endpoint with subscriptions/listen. Servers MUST acknowledge with io.modelcontextprotocol/subscriptionId before any notification, MUST NOT send types the client did not request, MUST keep request-scoped progress and log messages on the originating request stream, and stdio clients MUST re-listen after reconnect because the server holds no subscription state.",
+      "source_pack_keys": [
+        "mcp_tool_surface_drift_pack",
+        "mcp_tool_risk_contract"
+      ],
+      "source_pack_status": {
+        "mcp_tool_risk_contract": {
+          "failure_count": 0,
+          "path": "data/evidence/mcp-tool-risk-contract.json",
+          "schema_version": "1.0",
+          "status": "ready",
+          "summaries": {
+            "tool_risk_summary": {
+              "annotation_trust_counts": {
+                "trusted_enterprise_gateway": 11,
+                "untrusted_or_unverified_server": 5
+              },
+              "default_decision_counts": {
+                "allow_with_confirmation": 2,
+                "hold_for_tool_risk_review": 14
+              },
+              "failure_count": 0,
+              "lethal_combination_workflow_count": 2,
+              "risk_tier_counts": {
+                "tier_1_read_untrusted": 1,
+                "tier_2_private_context": 11,
+                "tier_3_state_changing": 1,
+                "tier_4_destructive_or_exfiltration": 3
+              },
+              "tool_profile_count": 16,
+              "trusted_server_count": 11,
+              "workflow_count": 8
+            }
+          }
+        },
+        "mcp_tool_surface_drift_pack": {
+          "failure_count": 0,
+          "path": "data/evidence/mcp-tool-surface-drift-pack.json",
+          "schema_version": "1.0",
+          "status": "ready",
+          "summaries": {
+            "tool_surface_summary": {
+              "default_decision_counts": {
+                "allow_pinned_tool_surface": 5,
+                "hold_for_tool_surface_review": 1
+              },
+              "failure_count": 0,
+              "high_impact_surface_count": 3,
+              "namespace_count": 6,
+              "source_kind_counts": {
+                "candidate_connector": 1,
+                "registered_connector": 5
+              },
+              "status": "drift_baseline_ready",
+              "surface_count": 6
+            }
+          }
+        }
+      },
+      "status": "ready",
+      "title": "Subscription Listen Boundary"
+    },
+    {
       "buyer_question": "Is a discovered remote agent complete enough to enter an enterprise trust workflow?",
       "check_hash": "bfee70f2abac8e68f23ad39a9ce819291b05e7adc61306793f30ce2a4d2d2074",
       "evidence_paths": [
@@ -4888,7 +5172,7 @@
                 "agentic-assurance-models",
                 "recipes"
               ],
-              "byte_count": 14968962,
+              "byte_count": 14973029,
               "decision_counts": {
                 "allow_with_adversarial_examples": 1,
                 "block_until_removed": 2,
@@ -5065,26 +5349,26 @@
     "sales_motion": "Lead with open protocol conformance evidence, then sell hosted live checks, drift alerts, signed receipts, fleet reporting, and private customer policy mapping."
   },
   "failures": [],
-  "generated_at": "2026-08-21",
+  "generated_at": "2026-09-04",
   "intent": "Create a buyer-grade protocol conformance layer for SecurityRecipes so MCP, A2A, agent identity, prompt-injection, and standards drift are translated into generated evidence, deterministic runtime decisions, and MCP-readable diligence artifacts.",
   "positioning": {
     "buyer": "AI platform, product security, AppSec, GRC, procurement security, and acquisition diligence teams",
     "category": "Agentic protocol conformance and drift evidence",
     "enterprise_promise": "SecurityRecipes can prove that fast-moving agent protocols are tracked, mapped to controls, regenerated in CI, and enforced before context, authority, tools, or remote-agent delegation crosses a trust boundary.",
-    "why_now": "Agent systems are moving from single-agent pilots to protocol-mediated fleets. MCP and A2A make context, tools, and remote agents composable, but enterprise buyers need conformance gates for authorization metadata, resource binding, tool annotations, tool-surface drift, Agent Cards, authenticated extended cards, prompt-injection paths, and protocol-version drift."
+    "why_now": "Agent systems are moving from single-agent pilots to protocol-mediated fleets. MCP and A2A make context, tools, and remote agents composable, but enterprise buyers need conformance gates for authorization metadata, resource binding, tool annotations, subscriptions/listen notification streams, tool-surface drift, Agent Cards, authenticated extended cards, prompt-injection paths, and protocol-version drift."
   },
   "protocol_conformance_pack_id": "security-recipes-agentic-protocol-conformance",
   "protocol_conformance_summary": {
-    "control_check_count": 16,
+    "control_check_count": 17,
     "control_status_counts": {
-      "ready": 16
+      "ready": 17
     },
     "failure_count": 0,
     "protocol_decision_counts": {
       "ready_for_enterprise_conformance": 4
     },
     "protocol_profile_count": 4,
-    "ready_control_check_count": 16,
+    "ready_control_check_count": 17,
     "ready_protocol_profile_count": 4,
     "status": "protocol_conformance_ready"
   },
@@ -5473,8 +5757,8 @@
       "title": "MCP Authorization Conformance"
     },
     {
-      "commercial_value": "Packages live tool-list monitoring, signed tool-surface baselines, annotation trust, and session-combination risk into a hosted MCP security control plane.",
-      "conformance_check_count": 4,
+      "commercial_value": "Packages live tool-list monitoring, subscriptions/listen notification bounds, signed tool-surface baselines, annotation trust, and session-combination risk into a hosted MCP security control plane.",
+      "conformance_check_count": 5,
       "conformance_checks": [
         {
           "buyer_question": "Are annotations enforceable policy evidence or only UI hints from an untrusted server?",
@@ -5771,18 +6055,102 @@
           },
           "status": "ready",
           "title": "Schema and Output Validation"
+        },
+        {
+          "buyer_question": "What stops an MCP server from pushing unsolicited tool-list or resource-update notifications that poison a previously approved surface?",
+          "check_hash": "2b9bd4eeaa3834e5cef456d659ca3db4c1384526ee54c8474fb8b855e96d0b84",
+          "evidence_paths": [
+            "data/evidence/mcp-tool-surface-drift-pack.json",
+            "data/evidence/mcp-tool-risk-contract.json"
+          ],
+          "fail_closed_decision": "deny_untrusted_protocol_surface",
+          "id": "mcp-subscription-listen-boundary",
+          "missing_evidence_paths": [],
+          "missing_source_pack_keys": [],
+          "protocol_id": "mcp-tooling-safety",
+          "required_runtime_attributes": [
+            "subscription_method",
+            "requested_notification_types",
+            "observed_notification_types",
+            "subscription_acknowledged",
+            "subscription_id_present"
+          ],
+          "requirement": "MCP 2026-07-28 replaces resources/subscribe and the HTTP GET notification endpoint with subscriptions/listen. Servers MUST acknowledge with io.modelcontextprotocol/subscriptionId before any notification, MUST NOT send types the client did not request, MUST keep request-scoped progress and log messages on the originating request stream, and stdio clients MUST re-listen after reconnect because the server holds no subscription state.",
+          "source_pack_keys": [
+            "mcp_tool_surface_drift_pack",
+            "mcp_tool_risk_contract"
+          ],
+          "source_pack_status": {
+            "mcp_tool_risk_contract": {
+              "failure_count": 0,
+              "path": "data/evidence/mcp-tool-risk-contract.json",
+              "schema_version": "1.0",
+              "status": "ready",
+              "summaries": {
+                "tool_risk_summary": {
+                  "annotation_trust_counts": {
+                    "trusted_enterprise_gateway": 11,
+                    "untrusted_or_unverified_server": 5
+                  },
+                  "default_decision_counts": {
+                    "allow_with_confirmation": 2,
+                    "hold_for_tool_risk_review": 14
+                  },
+                  "failure_count": 0,
+                  "lethal_combination_workflow_count": 2,
+                  "risk_tier_counts": {
+                    "tier_1_read_untrusted": 1,
+                    "tier_2_private_context": 11,
+                    "tier_3_state_changing": 1,
+                    "tier_4_destructive_or_exfiltration": 3
+                  },
+                  "tool_profile_count": 16,
+                  "trusted_server_count": 11,
+                  "workflow_count": 8
+                }
+              }
+            },
+            "mcp_tool_surface_drift_pack": {
+              "failure_count": 0,
+              "path": "data/evidence/mcp-tool-surface-drift-pack.json",
+              "schema_version": "1.0",
+              "status": "ready",
+              "summaries": {
+                "tool_surface_summary": {
+                  "default_decision_counts": {
+                    "allow_pinned_tool_surface": 5,
+                    "hold_for_tool_surface_review": 1
+                  },
+                  "failure_count": 0,
+                  "high_impact_surface_count": 3,
+                  "namespace_count": 6,
+                  "source_kind_counts": {
+                    "candidate_connector": 1,
+                    "registered_connector": 5
+                  },
+                  "status": "drift_baseline_ready",
+                  "surface_count": 6
+                }
+              }
+            }
+          },
+          "status": "ready",
+          "title": "Subscription Listen Boundary"
         }
       ],
       "current_versions": [
+        "2026-07-28",
         "2025-11-25",
         "2026-03-16-tool-annotations"
       ],
       "effective_decision": "ready_for_enterprise_conformance",
       "id": "mcp-tooling-safety",
       "readiness_score": 100.0,
-      "ready_check_count": 4,
+      "ready_check_count": 5,
       "source_ids": [
         "mcp-tool-annotations-2026-03-16",
+        "mcp-subscriptions-listen-2026-07-28",
+        "mcp-spec-changelog-2026-07-28",
         "mcp-spec-changelog-2025-11-25",
         "openai-agent-prompt-injection-2026"
       ],
@@ -5794,6 +6162,22 @@
           "publisher": "Model Context Protocol",
           "source_class": "protocol_guidance",
           "url": "https://blog.modelcontextprotocol.io/posts/2026-03-16-tool-annotations/"
+        },
+        {
+          "id": "mcp-subscriptions-listen-2026-07-28",
+          "name": "Model Context Protocol Subscriptions (2026-07-28 current revision)",
+          "published": "2026-07-28",
+          "publisher": "Model Context Protocol",
+          "source_class": "protocol_specification",
+          "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/patterns/subscriptions"
+        },
+        {
+          "id": "mcp-spec-changelog-2026-07-28",
+          "name": "MCP Specification Changelog (2026-07-28 current revision)",
+          "published": "2026-07-28",
+          "publisher": "Model Context Protocol",
+          "source_class": "protocol_specification",
+          "url": "https://modelcontextprotocol.io/specification/2026-07-28/changelog"
         },
         {
           "id": "mcp-spec-changelog-2025-11-25",
@@ -6359,7 +6743,7 @@
                     "agentic-assurance-models",
                     "recipes"
                   ],
-                  "byte_count": 14968962,
+                  "byte_count": 14973029,
                   "decision_counts": {
                     "allow_with_adversarial_examples": 1,
                     "block_until_removed": 2,
@@ -6579,16 +6963,16 @@
   "source_artifacts": {
     "agentic_protocol_conformance_profile": {
       "path": "data/assurance/agentic-protocol-conformance-profile.json",
-      "sha256": "cca4e374e6d7c6ba178b509fc10341fa92172337e72a86e39e56bab1d6d8d187"
+      "sha256": "4c7225001aade11b4ea9e1fbc2cb3475574ff2ee4f1b4a4e34ce92367317fe68"
     },
     "source_packs": {
       "a2a_agent_card_trust_profile": {
         "path": "data/evidence/a2a-agent-card-trust-profile.json",
-        "sha256": "2cd8d7b126c4e8c8379249388077a16fbae2176d5fbcf8267902410d026bdd68"
+        "sha256": "73fdb502d5ec08703be6be755576f5fa9110e5652b3c5fe3863564d9a0c8a09f"
       },
       "agent_handoff_boundary_pack": {
         "path": "data/evidence/agent-handoff-boundary-pack.json",
-        "sha256": "e2ff2d68728c742b5bb5a916e73c99c16826a4c25dff3001e80486c80235bce6"
+        "sha256": "3063d3ea25b9318704fb2db7eb5e4ba0f6316d9a6d14f46ff7f95dd6208f4e00"
       },
       "agent_identity_ledger": {
         "path": "data/evidence/agent-identity-delegation-ledger.json",
@@ -6596,7 +6980,7 @@
       },
       "agentic_control_plane_blueprint": {
         "path": "data/evidence/agentic-control-plane-blueprint.json",
-        "sha256": "72fedde9130f1065be9b4029cb3a270ec64656b9d5aaa94ac34c2d92a3abb7dd"
+        "sha256": "b845a94ee434f6a21720efd82d13ec689f734b1318d56abe0854357996009248"
       },
       "agentic_red_team_drill_pack": {
         "path": "data/evidence/agentic-red-team-drill-pack.json",
@@ -6604,15 +6988,15 @@
       },
       "agentic_run_receipt_pack": {
         "path": "data/evidence/agentic-run-receipt-pack.json",
-        "sha256": "30ff5e32a4851d2570eb40a4d3e59a9da3d0de838468bec3d814e699c7a1f387"
+        "sha256": "0e94329e596d1bcb743441110fd36202567704a352061a1a643cfa41c5cfab57"
       },
       "context_egress_boundary_pack": {
         "path": "data/evidence/context-egress-boundary-pack.json",
-        "sha256": "4c0576d2c368059dfe9ac852f8abd32395a13ea49b8cf4b2abcba7675c98c33c"
+        "sha256": "e6df23f9270966e91b3228c63a23f3811a555dc780ec3a9751a9ceee2068fbce"
       },
       "context_poisoning_guard_pack": {
         "path": "data/evidence/context-poisoning-guard-pack.json",
-        "sha256": "c8d4feec83c5c6d99be3c60a2ee107dcca9f7047fdb5ccc556bd7a35545e4ab6"
+        "sha256": "2b6066505e510caadafd31274247f5ae76cf2c2c9d1bac57c1cc0d4b582a2b8e"
       },
       "mcp_authorization_conformance_pack": {
         "path": "data/evidence/mcp-authorization-conformance-pack.json",
@@ -6632,11 +7016,11 @@
       },
       "secure_context_eval_pack": {
         "path": "data/evidence/secure-context-eval-pack.json",
-        "sha256": "5e77bc1683f0073fd5b5b7fdeaaae49da418220b41607fa2797d10204bfc1f99"
+        "sha256": "f01d1e184344ded0852f5f4ec4d3eeee6482f82b1962fc77166bfcfd28e9ab9c"
       },
       "standards_crosswalk": {
         "path": "data/evidence/agentic-standards-crosswalk.json",
-        "sha256": "38b2b5aa867991f96be964b0a9af954990b536fb73e0e0c1fa6bbf1257a8382b"
+        "sha256": "65b0eb7cbc6301ad26ab42b556fbe597d1f8f4b3486ca23d74d085e3bbae34af"
       }
     }
   },
@@ -6685,6 +7069,15 @@
       "source_class": "protocol_guidance",
       "url": "https://blog.modelcontextprotocol.io/posts/2026-03-16-tool-annotations/",
       "why_it_matters": "MCP tool annotations can help clients present risk-aware approval UI, but annotations are hints until a trusted server, gateway policy, and drift baseline make them enforceable."
+    },
+    {
+      "id": "mcp-subscriptions-listen-2026-07-28",
+      "name": "Model Context Protocol Subscriptions (2026-07-28 current revision)",
+      "published": "2026-07-28",
+      "publisher": "Model Context Protocol",
+      "source_class": "protocol_specification",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/patterns/subscriptions",
+      "why_it_matters": "Current public MCP 2026-07-28 revision. Servers MUST use subscriptions/listen instead of resources/subscribe or HTTP GET, MUST acknowledge with a subscriptionId before any notification, and MUST NOT send notification types the client did not request."
     },
     {
       "id": "mcp-spec-changelog-2026-07-28",
