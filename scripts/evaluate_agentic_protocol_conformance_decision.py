@@ -3,7 +3,10 @@
 
 This deterministic evaluator gives an agent host, MCP gateway, or A2A
 gateway a fail-closed decision before protocol-mediated context, tool
-authority, or remote-agent delegation proceeds.
+authority, or remote-agent delegation proceeds. MCP 2026-07-28 replaced
+resources/subscribe and HTTP GET notifications with subscriptions/listen;
+this evaluator applies that listen-stream bound on the tooling-safety
+profile without changing unspecified subscription evidence.
 """
 
 from __future__ import annotations
@@ -26,6 +29,15 @@ VALID_DECISIONS = {
     "kill_session_on_protocol_violation",
 }
 HTTP_TRANSPORTS = {"http", "streamable-http", "sse", "https"}
+CURRENT_MCP_PROTOCOL_VERSIONS = {"", "2026-07-28"}
+LEGACY_SUBSCRIPTION_METHODS = {
+    "resources/subscribe",
+    "resources/unsubscribe",
+    "get",
+    "http_get",
+    "http-get",
+}
+LISTEN_SUBSCRIPTION_METHOD = "subscriptions/listen"
 
 
 class ProtocolConformanceDecisionError(RuntimeError):
@@ -88,6 +100,61 @@ def has_approval(value: Any) -> bool:
     return bool(record.get("approval_id") or record.get("id")) and status in {"approved", "allow", "granted"}
 
 
+def normalize_subscription_method(value: Any) -> str:
+    method = str(value or "").strip().lower()
+    if method in {"http get", "http-get", "http_get", "get"}:
+        return "http_get"
+    return method
+
+
+def is_current_mcp_protocol(version: str) -> bool:
+    observed = str(version or "").strip()
+    return observed in CURRENT_MCP_PROTOCOL_VERSIONS or observed.startswith("2026-")
+
+
+def subscription_listen_violations(request: dict[str, Any]) -> list[str]:
+    """Return MCP 2026-07-28 subscriptions/listen failures for one request.
+
+    Callers should skip this helper when subscription_method is unspecified
+    so existing authorization, annotation, and handoff checks remain valid.
+    Legacy resources/subscribe and HTTP GET methods are a drift hold, not
+    a listen-stream denial.
+    """
+    method = normalize_subscription_method(request.get("subscription_method"))
+    requested = {
+        str(item).strip()
+        for item in as_list(request.get("requested_notification_types"))
+        if str(item).strip()
+    }
+    observed = {
+        str(item).strip()
+        for item in as_list(request.get("observed_notification_types"))
+        if str(item).strip()
+    }
+    violations: list[str] = []
+    if method != LISTEN_SUBSCRIPTION_METHOD:
+        if method and method not in LEGACY_SUBSCRIPTION_METHODS:
+            violations.append(f"unknown subscription_method: {method}")
+        return violations
+    if not as_bool(request.get("subscription_acknowledged")):
+        violations.append("notifications/subscriptions/acknowledged was not the first subscription message")
+    if not as_bool(request.get("subscription_id_present")):
+        violations.append("io.modelcontextprotocol/subscriptionId is missing from the subscription stream")
+    unsolicited = sorted(observed - requested)
+    if unsolicited:
+        violations.append(
+            "server sent notification types the client did not request: " + ", ".join(unsolicited)
+        )
+    if as_bool(request.get("request_scoped_notification_on_listen_stream")):
+        violations.append(
+            "request-scoped notifications/progress or notifications/message arrived on subscriptions/listen"
+        )
+    transport = str(request.get("transport") or "").strip().lower()
+    if transport in {"stdio", "std-io"} and as_bool(request.get("stdio_reconnect_without_relissen")):
+        violations.append("stdio reconnect reused subscription state instead of re-sending subscriptions/listen")
+    return violations
+
+
 def normalize_request(runtime_request: dict[str, Any]) -> dict[str, Any]:
     request = dict(runtime_request)
     for key in [
@@ -102,6 +169,7 @@ def normalize_request(runtime_request: dict[str, Any]) -> dict[str, Any]:
         "session_id",
         "correlation_id",
         "gateway_policy_hash",
+        "subscription_method",
     ]:
         request[key] = str(request.get(key) or "").strip()
     for key in [
@@ -126,9 +194,19 @@ def normalize_request(runtime_request: dict[str, Any]) -> dict[str, Any]:
         "tool_output_schema_validated",
         "tool_surface_pinned",
         "untrusted_content_seen",
+        "subscription_acknowledged",
+        "subscription_id_present",
+        "request_scoped_notification_on_listen_stream",
+        "stdio_reconnect_without_relissen",
     ]:
         request[key] = as_bool(request.get(key))
     request["data_classes"] = [str(item).strip() for item in as_list(request.get("data_classes")) if str(item).strip()]
+    request["requested_notification_types"] = [
+        str(item).strip() for item in as_list(request.get("requested_notification_types")) if str(item).strip()
+    ]
+    request["observed_notification_types"] = [
+        str(item).strip() for item in as_list(request.get("observed_notification_types")) if str(item).strip()
+    ]
     request["human_approval_record"] = as_dict(request.get("human_approval_record"))
     return request
 
@@ -301,6 +379,32 @@ def evaluate_agentic_protocol_conformance_decision(
                 matched_checks=selected_checks(protocol, ["mcp-private-untrusted-exfiltration-triangle"]),
                 violations=["private_data_access+open_world_tool+external_egress"],
             )
+        subscription_method = normalize_subscription_method(request.get("subscription_method"))
+        if subscription_method in LEGACY_SUBSCRIPTION_METHODS and is_current_mcp_protocol(
+            str(request.get("protocol_version_observed") or "")
+        ):
+            return decision_result(
+                decision="hold_for_protocol_drift_review",
+                reason="MCP 2026-07-28 replaced resources/subscribe and HTTP GET notifications with subscriptions/listen",
+                pack=conformance_pack,
+                request=request,
+                matched_protocol=protocol,
+                matched_checks=selected_checks(protocol, ["mcp-subscription-listen-boundary"]),
+                violations=[
+                    "legacy subscription method is not valid on MCP 2026-07-28; use subscriptions/listen"
+                ],
+            )
+        listen_violations = subscription_listen_violations(request)
+        if listen_violations:
+            return decision_result(
+                decision="deny_untrusted_protocol_surface",
+                reason="MCP subscription stream sent unsolicited, unbound, or request-scoped notifications",
+                pack=conformance_pack,
+                request=request,
+                matched_protocol=protocol,
+                matched_checks=selected_checks(protocol, ["mcp-subscription-listen-boundary"]),
+                violations=listen_violations,
+            )
 
     if protocol_id == "a2a-agent-discovery":
         violations = []
@@ -397,6 +501,7 @@ def request_from_args(args: argparse.Namespace) -> dict[str, Any]:
         "session_id",
         "correlation_id",
         "gateway_policy_hash",
+        "subscription_method",
     ]:
         value = getattr(args, key)
         if value not in (None, ""):
@@ -423,11 +528,19 @@ def request_from_args(args: argparse.Namespace) -> dict[str, Any]:
         "tool_output_schema_validated",
         "tool_surface_pinned",
         "untrusted_content_seen",
+        "subscription_acknowledged",
+        "subscription_id_present",
+        "request_scoped_notification_on_listen_stream",
+        "stdio_reconnect_without_relissen",
     ]:
         if getattr(args, flag):
             payload[flag] = True
     if args.data_class:
         payload["data_classes"] = args.data_class
+    if args.requested_notification_type:
+        payload["requested_notification_types"] = args.requested_notification_type
+    if args.observed_notification_type:
+        payload["observed_notification_types"] = args.observed_notification_type
     if args.approval:
         payload["human_approval_record"] = parse_key_value(args.approval)
     return payload
@@ -471,6 +584,31 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--tool-output-schema-validated", dest="tool_output_schema_validated", action="store_true")
     parser.add_argument("--tool-surface-pinned", dest="tool_surface_pinned", action="store_true")
     parser.add_argument("--untrusted-content-seen", dest="untrusted_content_seen", action="store_true")
+    parser.add_argument("--subscription-method", dest="subscription_method")
+    parser.add_argument(
+        "--requested-notification-type",
+        dest="requested_notification_type",
+        action="append",
+        default=[],
+    )
+    parser.add_argument(
+        "--observed-notification-type",
+        dest="observed_notification_type",
+        action="append",
+        default=[],
+    )
+    parser.add_argument("--subscription-acknowledged", dest="subscription_acknowledged", action="store_true")
+    parser.add_argument("--subscription-id-present", dest="subscription_id_present", action="store_true")
+    parser.add_argument(
+        "--request-scoped-notification-on-listen-stream",
+        dest="request_scoped_notification_on_listen_stream",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--stdio-reconnect-without-relissen",
+        dest="stdio_reconnect_without_relissen",
+        action="store_true",
+    )
     parser.add_argument("--expect-decision", choices=sorted(VALID_DECISIONS))
     return parser.parse_args(argv)
 

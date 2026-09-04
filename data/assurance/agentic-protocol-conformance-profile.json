@@ -1,12 +1,12 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-08-21",
+  "last_reviewed": "2026-09-04",
   "intent": "Create a buyer-grade protocol conformance layer for SecurityRecipes so MCP, A2A, agent identity, prompt-injection, and standards drift are translated into generated evidence, deterministic runtime decisions, and MCP-readable diligence artifacts.",
   "positioning": {
     "buyer": "AI platform, product security, AppSec, GRC, procurement security, and acquisition diligence teams",
     "category": "Agentic protocol conformance and drift evidence",
     "enterprise_promise": "SecurityRecipes can prove that fast-moving agent protocols are tracked, mapped to controls, regenerated in CI, and enforced before context, authority, tools, or remote-agent delegation crosses a trust boundary.",
-    "why_now": "Agent systems are moving from single-agent pilots to protocol-mediated fleets. MCP and A2A make context, tools, and remote agents composable, but enterprise buyers need conformance gates for authorization metadata, resource binding, tool annotations, tool-surface drift, Agent Cards, authenticated extended cards, prompt-injection paths, and protocol-version drift."
+    "why_now": "Agent systems are moving from single-agent pilots to protocol-mediated fleets. MCP and A2A make context, tools, and remote agents composable, but enterprise buyers need conformance gates for authorization metadata, resource binding, tool annotations, subscriptions/listen notification streams, tool-surface drift, Agent Cards, authenticated extended cards, prompt-injection paths, and protocol-version drift."
   },
   "conformance_contract": {
     "default_state": "hold_for_protocol_evidence",
@@ -30,6 +30,9 @@
       "tool_annotations_trusted",
       "tool_surface_pinned",
       "schema_drift_detected",
+      "subscription_method",
+      "subscription_acknowledged",
+      "subscription_id_present",
       "agent_card_signed",
       "extended_card_authenticated",
       "protocol_version_observed",
@@ -97,6 +100,15 @@
       "url": "https://blog.modelcontextprotocol.io/posts/2026-03-16-tool-annotations/",
       "source_class": "protocol_guidance",
       "why_it_matters": "MCP tool annotations can help clients present risk-aware approval UI, but annotations are hints until a trusted server, gateway policy, and drift baseline make them enforceable."
+    },
+    {
+      "id": "mcp-subscriptions-listen-2026-07-28",
+      "name": "Model Context Protocol Subscriptions (2026-07-28 current revision)",
+      "publisher": "Model Context Protocol",
+      "published": "2026-07-28",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/patterns/subscriptions",
+      "source_class": "protocol_specification",
+      "why_it_matters": "Current public MCP 2026-07-28 revision. Servers MUST use subscriptions/listen instead of resources/subscribe or HTTP GET, MUST acknowledge with a subscriptionId before any notification, and MUST NOT send notification types the client did not request."
     },
     {
       "id": "mcp-spec-changelog-2026-07-28",
@@ -262,15 +274,18 @@
       "id": "mcp-tooling-safety",
       "title": "MCP Tool Annotation, Schema, and Drift Safety",
       "current_versions": [
+        "2026-07-28",
         "2025-11-25",
         "2026-03-16-tool-annotations"
       ],
       "source_ids": [
         "mcp-tool-annotations-2026-03-16",
+        "mcp-subscriptions-listen-2026-07-28",
+        "mcp-spec-changelog-2026-07-28",
         "mcp-spec-changelog-2025-11-25",
         "openai-agent-prompt-injection-2026"
       ],
-      "commercial_value": "Packages live tool-list monitoring, signed tool-surface baselines, annotation trust, and session-combination risk into a hosted MCP security control plane.",
+      "commercial_value": "Packages live tool-list monitoring, subscriptions/listen notification bounds, signed tool-surface baselines, annotation trust, and session-combination risk into a hosted MCP security control plane.",
       "conformance_checks": [
         {
           "id": "mcp-trusted-tool-annotations",
@@ -346,6 +361,28 @@
           ],
           "fail_closed_decision": "hold_for_protocol_evidence",
           "buyer_question": "How does a buyer know tool output cannot silently become untrusted prompt content?"
+        },
+        {
+          "id": "mcp-subscription-listen-boundary",
+          "title": "Subscription Listen Boundary",
+          "requirement": "MCP 2026-07-28 replaces resources/subscribe and the HTTP GET notification endpoint with subscriptions/listen. Servers MUST acknowledge with io.modelcontextprotocol/subscriptionId before any notification, MUST NOT send types the client did not request, MUST keep request-scoped progress and log messages on the originating request stream, and stdio clients MUST re-listen after reconnect because the server holds no subscription state.",
+          "source_pack_keys": [
+            "mcp_tool_surface_drift_pack",
+            "mcp_tool_risk_contract"
+          ],
+          "evidence_paths": [
+            "data/evidence/mcp-tool-surface-drift-pack.json",
+            "data/evidence/mcp-tool-risk-contract.json"
+          ],
+          "required_runtime_attributes": [
+            "subscription_method",
+            "requested_notification_types",
+            "observed_notification_types",
+            "subscription_acknowledged",
+            "subscription_id_present"
+          ],
+          "fail_closed_decision": "deny_untrusted_protocol_surface",
+          "buyer_question": "What stops an MCP server from pushing unsolicited tool-list or resource-update notifications that poison a previously approved surface?"
         }
       ]
     },
