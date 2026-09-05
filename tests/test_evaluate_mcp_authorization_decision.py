@@ -5,6 +5,7 @@ import unittest
 from pathlib import Path
 
 from scripts.evaluate_mcp_authorization_decision import (
+    authorization_url_violations,
     evaluate_mcp_authorization_decision,
     rfc9207_issuer_violations,
 )
@@ -155,6 +156,92 @@ class RFC9207IssuerValidationTests(unittest.TestCase):
                 }
             ),
             [],
+        )
+
+
+class AuthorizationUrlSchemeTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.pack = json.loads(PACK_PATH.read_text(encoding="utf-8"))
+
+    def test_unspecified_authorization_url_stays_on_allow_path(self) -> None:
+        result = evaluate_mcp_authorization_decision(self.pack, _http_request())
+        self.assertEqual(result["decision"], "allow_authorized_mcp_request")
+        self.assertTrue(result["allowed"])
+
+    def test_https_authorization_url_allows_authorized_request(self) -> None:
+        result = evaluate_mcp_authorization_decision(
+            self.pack,
+            _http_request(authorization_endpoint_url="https://auth.security-recipes.ai/authorize"),
+        )
+        self.assertEqual(result["decision"], "allow_authorized_mcp_request")
+
+    def test_http_loopback_authorization_url_is_allowed_for_local_development(self) -> None:
+        result = evaluate_mcp_authorization_decision(
+            self.pack,
+            _http_request(authorization_endpoint_url="http://127.0.0.1:8080/authorize"),
+        )
+        self.assertEqual(result["decision"], "allow_authorized_mcp_request")
+
+    def test_javascript_authorization_url_is_denied(self) -> None:
+        result = evaluate_mcp_authorization_decision(
+            self.pack,
+            _http_request(authorization_endpoint_url="javascript:alert(1)"),
+        )
+        self.assertEqual(result["decision"], "deny_insecure_authorization_url")
+        self.assertFalse(result["allowed"])
+        self.assertIn(
+            "authorization endpoint uses prohibited javascript: scheme",
+            result["violations"],
+        )
+
+    def test_http_non_loopback_authorization_url_is_denied(self) -> None:
+        result = evaluate_mcp_authorization_decision(
+            self.pack,
+            _http_request(authorization_endpoint_url="http://auth.example/authorize"),
+        )
+        self.assertEqual(result["decision"], "deny_insecure_authorization_url")
+        self.assertTrue(
+            any("loopback" in item for item in result["violations"]),
+        )
+
+    def test_helper_encodes_scheme_table(self) -> None:
+        self.assertEqual(authorization_url_violations(""), [])
+        self.assertEqual(
+            authorization_url_violations("https://auth.example/authorize"),
+            [],
+        )
+        self.assertEqual(
+            authorization_url_violations("http://localhost/authorize"),
+            [],
+        )
+        self.assertEqual(
+            authorization_url_violations("http://[::1]/authorize"),
+            [],
+        )
+        self.assertEqual(
+            authorization_url_violations("javascript:alert(1)"),
+            ["authorization endpoint uses prohibited javascript: scheme"],
+        )
+        self.assertEqual(
+            authorization_url_violations("data:text/html,alert(1)"),
+            ["authorization endpoint uses prohibited data: scheme"],
+        )
+        self.assertEqual(
+            authorization_url_violations("file:///etc/passwd"),
+            ["authorization endpoint uses prohibited file: scheme"],
+        )
+        self.assertEqual(
+            authorization_url_violations("vbscript:msgbox(1)"),
+            ["authorization endpoint uses prohibited vbscript: scheme"],
+        )
+        self.assertEqual(
+            authorization_url_violations("ftp://auth.example/authorize"),
+            ["authorization endpoint scheme 'ftp' is not http or https"],
+        )
+        self.assertEqual(
+            authorization_url_violations("http://auth.example/authorize"),
+            ["http authorization endpoints are allowed only for loopback addresses during local development"],
         )
 
 

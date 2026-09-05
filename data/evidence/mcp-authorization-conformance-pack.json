@@ -14,6 +14,7 @@
       "pkce",
       "short_lived_tokens",
       "rfc9207_iss_validation",
+      "authorization_url_scheme_validation",
       "deny_token_passthrough",
       "deny_private_network_egress",
       "session_binding",
@@ -39,6 +40,7 @@
       "resource_indicator_value",
       "token_audience_value",
       "jwks_or_introspection_validation",
+      "authorization_endpoint_url",
       "redirect_uri_policy",
       "scope_catalog_hash",
       "scope_challenge_policy_hash",
@@ -90,6 +92,7 @@
       "deny_token_passthrough",
       "deny_unbound_token",
       "deny_authorization_issuer_mismatch",
+      "deny_insecure_authorization_url",
       "deny_scope_challenge_mismatch",
       "deny_scope_drift",
       "kill_session_on_secret_or_signer_scope"
@@ -148,6 +151,7 @@
         "protected_resource_metadata_discovery",
         "client_id_metadata_document",
         "rfc9207_iss_validation",
+        "authorization_url_scheme_validation",
         "scope_challenge_handling",
         "step_up_authorization"
       ],
@@ -192,6 +196,7 @@
         "protected_resource_metadata_discovery",
         "client_id_metadata_document",
         "rfc9207_iss_validation",
+        "authorization_url_scheme_validation",
         "scope_challenge_handling",
         "step_up_authorization"
       ],
@@ -229,6 +234,7 @@
         "protected_resource_metadata_discovery",
         "client_id_metadata_document",
         "rfc9207_iss_validation",
+        "authorization_url_scheme_validation",
         "scope_challenge_handling",
         "step_up_authorization"
       ],
@@ -313,6 +319,13 @@
       "severity": "high"
     },
     {
+      "applies_to": "remote_http_mcp",
+      "control_reason": "MCP security best practices require clients to open only http or https authorization URLs, reject javascript:, data:, file:, and vbscript: schemes, and restrict http to loopback addresses during local development so a malicious MCP server cannot turn the authorization redirect into XSS or host command execution.",
+      "evidence_key": "authorization_endpoint_url",
+      "id": "authorization_url_scheme_validation",
+      "severity": "critical"
+    },
+    {
       "applies_to": "all_mcp",
       "control_reason": "Agents must not receive or forward raw user tokens to downstream tools or hidden connector calls.",
       "evidence_key": "token_passthrough",
@@ -366,7 +379,7 @@
     "board_level_claim": "SecurityRecipes can verify the authorization boundary around MCP tool use before an agent acts.",
     "default_questions_answered": [
       "Which MCP connectors have enough gateway evidence to be used today?",
-      "Which candidate MCP servers fail resource, audience, PKCE, RFC 9207 issuer, token-passthrough, or private-network checks?",
+      "Which candidate MCP servers fail resource, audience, PKCE, RFC 9207 issuer, authorization-URL scheme, token-passthrough, or private-network checks?",
       "Which workflow namespaces are exposed to authorization scope drift?",
       "What runtime attributes must appear in a run receipt before an MCP tool call is trusted?",
       "Which premium controls should be hosted: live metadata discovery, scope-drift alerts, token-binding replay tests, and auth evidence exports?"
@@ -375,8 +388,8 @@
     "sales_motion": "Lead with open conformance rules, then sell hosted MCP authorization discovery, live metadata checks, fleet-wide scope-drift detection, and signed run-level authorization receipts."
   },
   "failures": [],
-  "generated_at": "2026-08-29",
-  "intent": "Define the SecurityRecipes MCP authorization conformance model so agent hosts, MCP gateways, IAM teams, and enterprise buyers can verify latest MCP authorization requirements: resource-bound tokens, token audience validation, PKCE, protected-resource metadata discovery, client ID metadata documents, RFC 9207 authorization-response issuer validation against mix-up, credentials bound to the issuing authorization server, authoritative scope challenges, step-up authorization, token-passthrough denial, scope minimization, consent, session binding, and audit evidence before agents use MCP tools.",
+  "generated_at": "2026-09-05",
+  "intent": "Define the SecurityRecipes MCP authorization conformance model so agent hosts, MCP gateways, IAM teams, and enterprise buyers can verify latest MCP authorization requirements: resource-bound tokens, token audience validation, PKCE, protected-resource metadata discovery, client ID metadata documents, RFC 9207 authorization-response issuer validation against mix-up, credentials bound to the issuing authorization server, http(s)-only authorization endpoint URLs, authoritative scope challenges, step-up authorization, token-passthrough denial, scope minimization, consent, session binding, and audit evidence before agents use MCP tools.",
   "positioning": {
     "buyer": "AI Platform, IAM, Product Security, GRC, procurement security, and enterprise architecture teams",
     "category": "MCP authorization conformance and scope-drift control",
@@ -403,6 +416,7 @@
         "protected_resource_metadata_discovery",
         "client_id_metadata_document",
         "rfc9207_iss_validation",
+        "authorization_url_scheme_validation",
         "scope_challenge_handling",
         "step_up_authorization"
       ],
@@ -416,6 +430,7 @@
         "resource_indicator_value",
         "token_audience_value",
         "jwks_or_introspection_validation",
+        "authorization_endpoint_url",
         "redirect_uri_policy",
         "scope_catalog_hash",
         "scope_challenge_policy_hash",
@@ -480,6 +495,7 @@
         "protected_resource_metadata_discovery",
         "client_id_metadata_document",
         "rfc9207_iss_validation",
+        "authorization_url_scheme_validation",
         "scope_challenge_handling",
         "step_up_authorization"
       ],
@@ -493,6 +509,7 @@
         "resource_indicator_value",
         "token_audience_value",
         "jwks_or_introspection_validation",
+        "authorization_endpoint_url",
         "redirect_uri_policy",
         "scope_catalog_hash",
         "scope_challenge_policy_hash",
@@ -557,6 +574,7 @@
         "protected_resource_metadata_discovery",
         "client_id_metadata_document",
         "rfc9207_iss_validation",
+        "authorization_url_scheme_validation",
         "scope_challenge_handling",
         "step_up_authorization"
       ],
@@ -570,6 +588,7 @@
         "resource_indicator_value",
         "token_audience_value",
         "jwks_or_introspection_validation",
+        "authorization_endpoint_url",
         "redirect_uri_policy",
         "scope_catalog_hash",
         "scope_challenge_policy_hash",
@@ -635,6 +654,7 @@
         "protected_resource_metadata_discovery",
         "client_id_metadata_document",
         "rfc9207_iss_validation",
+        "authorization_url_scheme_validation",
         "scope_challenge_handling",
         "step_up_authorization"
       ],
@@ -648,6 +668,7 @@
         "resource_indicator_value",
         "token_audience_value",
         "jwks_or_introspection_validation",
+        "authorization_endpoint_url",
         "redirect_uri_policy",
         "scope_catalog_hash",
         "scope_challenge_policy_hash",
@@ -712,6 +733,7 @@
         "protected_resource_metadata_discovery",
         "client_id_metadata_document",
         "rfc9207_iss_validation",
+        "authorization_url_scheme_validation",
         "scope_challenge_handling",
         "step_up_authorization"
       ],
@@ -725,6 +747,7 @@
         "resource_indicator_value",
         "token_audience_value",
         "jwks_or_introspection_validation",
+        "authorization_endpoint_url",
         "redirect_uri_policy",
         "scope_catalog_hash",
         "scope_challenge_policy_hash",
@@ -790,6 +813,7 @@
         "protected_resource_metadata_discovery",
         "client_id_metadata_document",
         "rfc9207_iss_validation",
+        "authorization_url_scheme_validation",
         "scope_challenge_handling",
         "step_up_authorization"
       ],
@@ -803,6 +827,7 @@
         "resource_indicator_value",
         "token_audience_value",
         "jwks_or_introspection_validation",
+        "authorization_endpoint_url",
         "redirect_uri_policy",
         "scope_catalog_hash",
         "scope_challenge_policy_hash",
@@ -867,6 +892,7 @@
         "protected_resource_metadata_discovery",
         "client_id_metadata_document",
         "rfc9207_iss_validation",
+        "authorization_url_scheme_validation",
         "scope_challenge_handling",
         "step_up_authorization"
       ],
@@ -880,6 +906,7 @@
         "resource_indicator_value",
         "token_audience_value",
         "jwks_or_introspection_validation",
+        "authorization_endpoint_url",
         "redirect_uri_policy",
         "scope_catalog_hash",
         "scope_challenge_policy_hash",
@@ -945,6 +972,7 @@
         "protected_resource_metadata_discovery",
         "client_id_metadata_document",
         "rfc9207_iss_validation",
+        "authorization_url_scheme_validation",
         "scope_challenge_handling",
         "step_up_authorization"
       ],
@@ -958,6 +986,7 @@
         "resource_indicator_value",
         "token_audience_value",
         "jwks_or_introspection_validation",
+        "authorization_endpoint_url",
         "redirect_uri_policy",
         "scope_catalog_hash",
         "scope_challenge_policy_hash",
@@ -1023,6 +1052,7 @@
         "protected_resource_metadata_discovery",
         "client_id_metadata_document",
         "rfc9207_iss_validation",
+        "authorization_url_scheme_validation",
         "scope_challenge_handling",
         "step_up_authorization"
       ],
@@ -1036,6 +1066,7 @@
         "resource_indicator_value",
         "token_audience_value",
         "jwks_or_introspection_validation",
+        "authorization_endpoint_url",
         "redirect_uri_policy",
         "scope_catalog_hash",
         "scope_challenge_policy_hash",
@@ -1100,6 +1131,7 @@
         "protected_resource_metadata_discovery",
         "client_id_metadata_document",
         "rfc9207_iss_validation",
+        "authorization_url_scheme_validation",
         "scope_challenge_handling",
         "step_up_authorization"
       ],
@@ -1113,6 +1145,7 @@
         "resource_indicator_value",
         "token_audience_value",
         "jwks_or_introspection_validation",
+        "authorization_endpoint_url",
         "redirect_uri_policy",
         "scope_catalog_hash",
         "scope_challenge_policy_hash",
@@ -1178,6 +1211,7 @@
         "protected_resource_metadata_discovery",
         "client_id_metadata_document",
         "rfc9207_iss_validation",
+        "authorization_url_scheme_validation",
         "scope_challenge_handling",
         "step_up_authorization"
       ],
@@ -1191,6 +1225,7 @@
         "resource_indicator_value",
         "token_audience_value",
         "jwks_or_introspection_validation",
+        "authorization_endpoint_url",
         "redirect_uri_policy",
         "scope_catalog_hash",
         "scope_challenge_policy_hash",
@@ -1255,6 +1290,7 @@
         "protected_resource_metadata_discovery",
         "client_id_metadata_document",
         "rfc9207_iss_validation",
+        "authorization_url_scheme_validation",
         "scope_challenge_handling",
         "step_up_authorization"
       ],
@@ -1268,6 +1304,7 @@
         "resource_indicator_value",
         "token_audience_value",
         "jwks_or_introspection_validation",
+        "authorization_endpoint_url",
         "redirect_uri_policy",
         "scope_catalog_hash",
         "scope_challenge_policy_hash",
@@ -1333,6 +1370,7 @@
         "protected_resource_metadata_discovery",
         "client_id_metadata_document",
         "rfc9207_iss_validation",
+        "authorization_url_scheme_validation",
         "scope_challenge_handling",
         "step_up_authorization"
       ],
@@ -1346,6 +1384,7 @@
         "resource_indicator_value",
         "token_audience_value",
         "jwks_or_introspection_validation",
+        "authorization_endpoint_url",
         "redirect_uri_policy",
         "scope_catalog_hash",
         "scope_challenge_policy_hash",
@@ -1410,6 +1449,7 @@
         "protected_resource_metadata_discovery",
         "client_id_metadata_document",
         "rfc9207_iss_validation",
+        "authorization_url_scheme_validation",
         "scope_challenge_handling",
         "step_up_authorization"
       ],
@@ -1423,6 +1463,7 @@
         "resource_indicator_value",
         "token_audience_value",
         "jwks_or_introspection_validation",
+        "authorization_endpoint_url",
         "redirect_uri_policy",
         "scope_catalog_hash",
         "scope_challenge_policy_hash",
@@ -1488,6 +1529,7 @@
         "protected_resource_metadata_discovery",
         "client_id_metadata_document",
         "rfc9207_iss_validation",
+        "authorization_url_scheme_validation",
         "scope_challenge_handling",
         "step_up_authorization"
       ],
@@ -1501,6 +1543,7 @@
         "resource_indicator_value",
         "token_audience_value",
         "jwks_or_introspection_validation",
+        "authorization_endpoint_url",
         "redirect_uri_policy",
         "scope_catalog_hash",
         "scope_challenge_policy_hash",
@@ -1565,6 +1608,7 @@
         "protected_resource_metadata_discovery",
         "client_id_metadata_document",
         "rfc9207_iss_validation",
+        "authorization_url_scheme_validation",
         "scope_challenge_handling",
         "step_up_authorization"
       ],
@@ -1578,6 +1622,7 @@
         "resource_indicator_value",
         "token_audience_value",
         "jwks_or_introspection_validation",
+        "authorization_endpoint_url",
         "redirect_uri_policy",
         "scope_catalog_hash",
         "scope_challenge_policy_hash",
@@ -1629,7 +1674,7 @@
   "source_artifacts": {
     "mcp_authorization_conformance_profile": {
       "path": "data/assurance/mcp-authorization-conformance-profile.json",
-      "sha256": "c641a21a28f752ce3309219218257fb0ad7e2e411dd6fe2ad49deac940389ad7"
+      "sha256": "95e618e203c7e7e1419cf9693a53566adc96bc1b4471323eab9313e6ec6b171a"
     },
     "mcp_connector_intake_candidates": {
       "path": "data/mcp/connector-intake-candidates.json",
@@ -1660,7 +1705,7 @@
       "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization"
     },
     {
-      "coverage": "Current public MCP security-best-practices revision: confused-deputy prevention, token-passthrough avoidance, SSRF controls, scope minimization, session safety, local-server hardening, and audit trails.",
+      "coverage": "Current public MCP security-best-practices revision: confused-deputy prevention, token-passthrough avoidance, SSRF controls, OAuth authorization URL scheme validation, scope minimization, session safety, local-server hardening, and audit trails.",
       "id": "mcp-security-best-practices-2026-07-28",
       "name": "Model Context Protocol Security Best Practices",
       "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices"
