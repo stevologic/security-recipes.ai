@@ -50,8 +50,9 @@ REQUIRED_TRACE_ATTRIBUTES = {
     "identity_id",
     "correlation_id",
     "gen_ai.operation.name",
-    "mcp.session.id",
+    "mcp.protocol.version",
     "mcp.method.name",
+    "jsonrpc.request.id",
     "policy.decision",
     "policy.pack_hash",
     "context.package_hash",
@@ -357,6 +358,10 @@ def build_pack(
             {
                 "risk": "OpenTelemetry GenAI and MCP conventions are still evolving.",
                 "treatment": "Version the contract and re-run compatibility checks after semantic-convention or MCP specification changes."
+            },
+            {
+                "risk": "Collectors that still require mcp.session.id after MCP 2026-07-28 will mint fake session identifiers or drop current-spec traces.",
+                "treatment": "Require jsonrpc.request.id, mcp.method.name, and mcp.protocol.version for 2026-07-28 tool spans. Keep mcp.session.id only for 2025-11-25 traces and never treat it as authentication."
             }
         ],
         "schema_version": PACK_SCHEMA_VERSION,
