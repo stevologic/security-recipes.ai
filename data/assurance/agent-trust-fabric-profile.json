@@ -1,12 +1,12 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-08-21",
+  "last_reviewed": "2026-09-07",
   "intent": "Create an enterprise Agent Trust Fabric profile for SecurityRecipes that turns identity, behavior, context, least-privilege scope, telemetry, containment, source freshness, and buyer proof into one deterministic trust verdict before an agent retrieves secure context, invokes MCP tools, delegates, writes memory, or performs high-impact actions.",
   "positioning": {
     "buyer": "AI platform, product security, CISO, GRC, model-risk, SOC, procurement-security, and acquisition diligence teams",
     "category": "Agentic AI zero-trust decision fabric",
     "enterprise_promise": "SecurityRecipes can answer the board-level question 'which agents can we trust right now?' with generated evidence, source hashes, runtime decisions, and MCP tools instead of narrative policy.",
-    "why_now": "2026 agent deployments are moving from pilots to autonomous action. Current guidance converges on the same enterprise requirement: every agent must have verifiable identity, least-privilege scope, governed context input and output, real-time behavior telemetry, and fast containment."
+    "why_now": "2026 agent deployments are moving from pilots to autonomous action. NIST's August 27, 2026 identity guidance warns that shared human credentials, long-lived API keys, and local user-account impersonation recreate classic IAM failures at agent scale. Every agent still needs a unique identity, least-privilege scope, governed context, telemetry, and fast containment."
   },
   "source_references": [
     {
@@ -44,6 +44,15 @@
       "url": "https://www.nist.gov/news-events/news/2026/01/caisi-issues-request-information-about-securing-ai-agent-systems",
       "source_class": "government_security_signal",
       "why_it_matters": "CAISI highlights indirect prompt injection, poisoning, misaligned actions, and constrained deployment access as distinct agent security risks."
+    },
+    {
+      "id": "nist-agentic-identity-foundation-2026",
+      "name": "Back to the Future: Why Agentic AI Needs a Strong Identity Foundation",
+      "publisher": "NIST",
+      "published": "2026-08-27",
+      "url": "https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation",
+      "source_class": "government_security_signal",
+      "why_it_matters": "NIST warns that agent rollouts are repeating IAM mistakes: shared human credentials, long-lived API keys and bearer tokens, overly broad access, local user-account impersonation, and over-reliance on human-in-the-loop approvals. Agents need unique identifiers and short-lived scoped credentials, not borrowed user sessions."
     },
     {
       "id": "mcp-authorization-2026-07-28",
@@ -165,6 +174,8 @@
     "kill_signals": [
       "token_passthrough",
       "identity_used_after_revocation",
+      "shared_human_credential",
+      "local_user_account_impersonation",
       "secret_egress",
       "runtime_kill_signal",
       "deny_after_deny_loop",
@@ -179,7 +190,7 @@
       "id": "identity",
       "title": "Verifiable Agent Identity",
       "weight": 20,
-      "question": "Who is the agent and which delegated identity is it using?",
+      "question": "Who is the agent, which unique delegated identity is it using, and is that identity a shared human credential, static token, or local user-account impersonation?",
       "required_evidence": [
         "agent_identity_ledger",
         "agentic_entitlement_review_pack",
@@ -195,7 +206,10 @@
         "expired_entitlement",
         "wrong_token_audience",
         "token_passthrough",
-        "identity_used_after_revocation"
+        "identity_used_after_revocation",
+        "shared_human_credential",
+        "long_lived_static_credential",
+        "local_user_account_impersonation"
       ]
     },
     {
@@ -380,11 +394,14 @@
       "workflow is unknown",
       "requested trust tier exceeds generated workflow tier and no approval exists",
       "required evidence fields are missing after normalization",
-      "trust score falls below deny threshold"
+      "trust score falls below deny threshold",
+      "agent authenticates with a long-lived static API key or unconstrained bearer token"
     ],
     "kill_when": [
       "token passthrough is observed",
       "delegated identity was used after revocation",
+      "agent is using a shared human credential instead of a unique agent identity",
+      "agent is impersonating a local user account",
       "secret egress or cross-tenant context access is observed",
       "runtime kill signal is present",
       "prompt injection is combined with external side effect",

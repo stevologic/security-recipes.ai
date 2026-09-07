@@ -23,12 +23,12 @@
     "why_it_is_differentiated": "Most agent guidance stops at controls. The trust fabric composes generated evidence into an allow, hold, deny, or kill decision that agents and auditors can consume."
   },
   "failures": [],
-  "generated_at": "2026-08-21",
+  "generated_at": "2026-09-07",
   "positioning": {
     "buyer": "AI platform, product security, CISO, GRC, model-risk, SOC, procurement-security, and acquisition diligence teams",
     "category": "Agentic AI zero-trust decision fabric",
     "enterprise_promise": "SecurityRecipes can answer the board-level question 'which agents can we trust right now?' with generated evidence, source hashes, runtime decisions, and MCP tools instead of narrative policy.",
-    "why_now": "2026 agent deployments are moving from pilots to autonomous action. Current guidance converges on the same enterprise requirement: every agent must have verifiable identity, least-privilege scope, governed context input and output, real-time behavior telemetry, and fast containment."
+    "why_now": "2026 agent deployments are moving from pilots to autonomous action. NIST's August 27, 2026 identity guidance warns that shared human credentials, long-lived API keys, and local user-account impersonation recreate classic IAM failures at agent scale. Every agent still needs a unique identity, least-privilege scope, governed context, telemetry, and fast containment."
   },
   "runtime_policy": {
     "decision_order": [
@@ -42,11 +42,14 @@
       "workflow is unknown",
       "requested trust tier exceeds generated workflow tier and no approval exists",
       "required evidence fields are missing after normalization",
-      "trust score falls below deny threshold"
+      "trust score falls below deny threshold",
+      "agent authenticates with a long-lived static API key or unconstrained bearer token"
     ],
     "kill_when": [
       "token passthrough is observed",
       "delegated identity was used after revocation",
+      "agent is using a shared human credential instead of a unique agent identity",
+      "agent is impersonating a local user account",
       "secret egress or cross-tenant context access is observed",
       "runtime kill signal is present",
       "prompt injection is combined with external side effect",
@@ -76,7 +79,7 @@
       "failure_count": 0,
       "path": "data/evidence/agentic-action-runtime-pack.json",
       "schema_version": "1.0",
-      "sha256": "88107fd90a07115c29aa652140cc118fc5f24a821fc98f83b93026956d09869f",
+      "sha256": "4ada2082bc68b0759b8dc6719c7ffd30b14a400f0acd395f54089341a7803251",
       "summary_keys": [
         "action_runtime_summary"
       ]
@@ -85,7 +88,7 @@
       "failure_count": 0,
       "path": "data/evidence/agentic-entitlement-review-pack.json",
       "schema_version": "1.0",
-      "sha256": "476a09c2cc25e9befcb4f73f42dd3e1069201ceba0753702b26c6af0b671e0ef",
+      "sha256": "b56e52f5a242e2efeb78ab984e6d34b15df768589e38adcfc3b8d4e76217a2d2",
       "summary_keys": [
         "entitlement_review_summary"
       ]
@@ -94,7 +97,7 @@
       "failure_count": 0,
       "path": "data/evidence/agentic-run-receipt-pack.json",
       "schema_version": "1.0",
-      "sha256": "30ff5e32a4851d2570eb40a4d3e59a9da3d0de838468bec3d814e699c7a1f387",
+      "sha256": "34f14c0a62b7f1ba9457c35d63185a0ec1b2986a8b4a0d931d1d8c3861968034",
       "summary_keys": [
         "receipt_summary"
       ]
@@ -103,7 +106,7 @@
       "failure_count": 0,
       "path": "data/evidence/agentic-soc-detection-pack.json",
       "schema_version": "1.0",
-      "sha256": "eab113354b6add6b445321647c8294392e9443f8542771baa2e56fbcb4b0bac6",
+      "sha256": "03024b21d941d78c2e53f839989db810238f44a456a262e8f3d8de552ec2d795",
       "summary_keys": [
         "detection_summary"
       ]
@@ -112,7 +115,7 @@
       "failure_count": 0,
       "path": "data/evidence/agentic-source-freshness-watch.json",
       "schema_version": "1.0",
-      "sha256": "e1944ca6beae2df6d262d902146f8a9dc9476f7021518f6480be99ae030b6817",
+      "sha256": "cc80fe5469b1f09f8c58e78a19e8cf296ac77516c194c07ade11b907bb0e3e3c",
       "summary_keys": [
         "freshness_summary"
       ]
@@ -121,7 +124,7 @@
       "failure_count": 0,
       "path": "data/evidence/agentic-telemetry-contract.json",
       "schema_version": "1.0",
-      "sha256": "d74bb045c82f7b9f50941e445f29e350c48147cc3349ecc7c01334a5f75d5fa6",
+      "sha256": "652b145e5ae47937238d41c069958ef74e9bd9c0a34f14bc1088b041fb7fc0d8",
       "summary_keys": [
         "telemetry_summary"
       ]
@@ -130,7 +133,7 @@
       "failure_count": 0,
       "path": "data/evidence/context-egress-boundary-pack.json",
       "schema_version": "1.0",
-      "sha256": "4c0576d2c368059dfe9ac852f8abd32395a13ea49b8cf4b2abcba7675c98c33c",
+      "sha256": "bc95f67089537c5f54fbd13da8824412da0fb72b144db7d0553ec1d614bff773",
       "summary_keys": [
         "egress_boundary_summary"
       ]
@@ -139,7 +142,7 @@
       "failure_count": 0,
       "path": "data/evidence/context-poisoning-guard-pack.json",
       "schema_version": "1.0",
-      "sha256": "c8d4feec83c5c6d99be3c60a2ee107dcca9f7047fdb5ccc556bd7a35545e4ab6",
+      "sha256": "2ba951c4f6a2fd9ca5b40bd34ca7ff8e698ba08d27925252216bc9e868a30a8f",
       "summary_keys": [
         "guard_summary"
       ]
@@ -148,7 +151,7 @@
       "failure_count": 0,
       "path": "data/evidence/enterprise-trust-center-export.json",
       "schema_version": "1.0",
-      "sha256": "047a6a51c05d43b7147c6266411dc4f2f14e6244d5601cb3b376ea564902b503",
+      "sha256": "b691a20b9178aa72efea310d864ba5c84bdfdeca90c4922ebd42d0dff9f5edd0",
       "summary_keys": [
         "export_summary"
       ]
@@ -157,7 +160,7 @@
       "failure_count": 0,
       "path": "data/evidence/hosted-mcp-readiness-pack.json",
       "schema_version": "1.0",
-      "sha256": "38e9cee54ff29ac0a7dcbbe3d9ca335ead893eef9d6e9c459d30c54b454a46ac",
+      "sha256": "97fa660ed11f2cbb67a557ae5da09d8fe8f5acd8baa737ec3f1b9be7d22d7f21",
       "summary_keys": [
         "hosted_mcp_readiness_summary"
       ]
@@ -175,7 +178,7 @@
       "failure_count": 0,
       "path": "data/evidence/secure-context-trust-pack.json",
       "schema_version": "1.0",
-      "sha256": "747135ad4e7ffa75199d9f532392151d1fce0b774cfacab682e5eecf1c29bcfe",
+      "sha256": "a821926d276075a24790a36d3db0a955b6d463af48a0d426ac5f6fbb29d6fba5",
       "summary_keys": [
         "context_trust_summary"
       ]
@@ -224,6 +227,15 @@
       "source_class": "government_security_signal",
       "url": "https://www.nist.gov/news-events/news/2026/01/caisi-issues-request-information-about-securing-ai-agent-systems",
       "why_it_matters": "CAISI highlights indirect prompt injection, poisoning, misaligned actions, and constrained deployment access as distinct agent security risks."
+    },
+    {
+      "id": "nist-agentic-identity-foundation-2026",
+      "name": "Back to the Future: Why Agentic AI Needs a Strong Identity Foundation",
+      "published": "2026-08-27",
+      "publisher": "NIST",
+      "source_class": "government_security_signal",
+      "url": "https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation",
+      "why_it_matters": "NIST warns that agent rollouts are repeating IAM mistakes: shared human credentials, long-lived API keys and bearer tokens, overly broad access, local user-account impersonation, and over-reliance on human-in-the-loop approvals. Agents need unique identifiers and short-lived scoped credentials, not borrowed user sessions."
     },
     {
       "id": "mcp-authorization-2026-07-28",
@@ -315,9 +327,19 @@
       "trigger": "The workflow is missing from the generated matrix or source freshness is stale enough to drop the score below the deny threshold."
     },
     {
+      "expected_decision": "deny_untrusted_agent",
+      "id": "long-lived-static-credential",
+      "trigger": "An agent authenticates with a long-lived static API key or unconstrained bearer token instead of a unique, short-lived, scoped credential."
+    },
+    {
       "expected_decision": "kill_session_on_agent_trust_break",
       "id": "token-passthrough-or-secret-egress",
       "trigger": "A protected MCP token is passed downstream, a revoked identity is used, or a secret crosses an external egress boundary."
+    },
+    {
+      "expected_decision": "kill_session_on_agent_trust_break",
+      "id": "shared-human-credential-or-local-impersonation",
+      "trigger": "An agent is using a shared human credential or impersonating a local user account instead of a unique, run-bound identity."
     }
   ],
   "trust_contract": {
@@ -325,6 +347,8 @@
     "kill_signals": [
       "token_passthrough",
       "identity_used_after_revocation",
+      "shared_human_credential",
+      "local_user_account_impersonation",
       "secret_egress",
       "runtime_kill_signal",
       "deny_after_deny_loop",
@@ -388,7 +412,10 @@
         "expired_entitlement",
         "wrong_token_audience",
         "token_passthrough",
-        "identity_used_after_revocation"
+        "identity_used_after_revocation",
+        "shared_human_credential",
+        "long_lived_static_credential",
+        "local_user_account_impersonation"
       ],
       "id": "identity",
       "mcp_tools": [
@@ -396,7 +423,7 @@
         "recipes_agentic_entitlement_review_pack",
         "recipes_mcp_authorization_conformance_pack"
       ],
-      "question": "Who is the agent and which delegated identity is it using?",
+      "question": "Who is the agent, which unique delegated identity is it using, and is that identity a shared human credential, static token, or local user-account impersonation?",
       "required_evidence": [
         "agent_identity_ledger",
         "agentic_entitlement_review_pack",

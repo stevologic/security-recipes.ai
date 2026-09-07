@@ -3,7 +3,7 @@ title: Agent Trust Fabric
 linkTitle: Agent Trust Fabric
 weight: 16
 date: 2026-05-05
-lastmod: 2026-08-21
+lastmod: 2026-09-07
 sidebar:
   exclude: true
 description: >
@@ -20,7 +20,7 @@ this agent run is trusted, needs step-up, is untrusted, or must be
 killed.
 {{< /callout >}}
 
-Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) on August 21, 2026.
+Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) and NIST's [August 27, 2026 agent identity guidance](https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation) on September 7, 2026. MCP `latest` still redirects to 2026-07-28.
 
 ## The product bet
 
@@ -31,8 +31,9 @@ want one answer before an agent touches tools or private context:
 
 The **Agent Trust Fabric** composes six dimensions into that answer:
 
-1. **Identity** - who the agent is, which delegated identity it is using,
-   and whether that identity still has valid scope.
+1. **Identity** - who the agent is, which unique delegated identity it
+   is using, and whether that identity is a shared human credential,
+   a long-lived static token, or a local user-account impersonation.
 2. **Context** - what the agent is consuming, whether the context is
    fresh, and whether poisoning signals were found.
 3. **Scope** - where the agent can go and which action class is being
@@ -113,6 +114,64 @@ python3 scripts/evaluate_agent_trust_fabric_decision.py \
   --source-freshness-decision current \
   --token-passthrough \
   --expect-decision kill_session_on_agent_trust_break
+```
+
+Evaluate a shared human credential:
+
+```bash
+python3 scripts/evaluate_agent_trust_fabric_decision.py \
+  --workflow-id sensitive-data-remediation \
+  --run-id run-shared-identity \
+  --agent-id sr-agent::sensitive-data-remediation::codex \
+  --identity-id sr-agent::sensitive-data-remediation::codex \
+  --tenant-id tenant-demo \
+  --correlation-id corr-shared \
+  --trust-event-id trust-evt-3 \
+  --requested-trust-tier operator \
+  --intent-summary "Triage a secret finding with a borrowed user session" \
+  --context-package-hash sha256:context \
+  --policy-pack-hash sha256:policy \
+  --authorization-decision allow_authorized_mcp_request \
+  --egress-decision allow_internal_context \
+  --action-runtime-decision allow_bounded_action \
+  --telemetry-decision telemetry_ready \
+  --soc-decision no_alert \
+  --telemetry-event-id trace-3 \
+  --receipt-id receipt-3 \
+  --source-freshness-decision current \
+  --approval-id approval-3 \
+  --approval-status approved \
+  --shared-human-credential \
+  --expect-decision kill_session_on_agent_trust_break
+```
+
+Evaluate a long-lived static credential:
+
+```bash
+python3 scripts/evaluate_agent_trust_fabric_decision.py \
+  --workflow-id vulnerable-dependency-remediation \
+  --run-id run-static-token \
+  --agent-id sr-agent::vulnerable-dependency-remediation::codex \
+  --identity-id sr-agent::vulnerable-dependency-remediation::codex \
+  --tenant-id tenant-demo \
+  --correlation-id corr-static \
+  --trust-event-id trust-evt-4 \
+  --requested-trust-tier operator \
+  --intent-summary "Patch dependency lockfiles on a scoped remediation branch" \
+  --context-package-hash sha256:context \
+  --policy-pack-hash sha256:policy \
+  --authorization-decision allow_authorized_mcp_request \
+  --egress-decision allow_internal_context \
+  --action-runtime-decision allow_bounded_action \
+  --telemetry-decision telemetry_ready \
+  --soc-decision no_alert \
+  --telemetry-event-id trace-4 \
+  --receipt-id receipt-4 \
+  --source-freshness-decision current \
+  --approval-id approval-4 \
+  --approval-status approved \
+  --long-lived-static-credential \
+  --expect-decision deny_untrusted_agent
 ```
 
 ## What is inside
@@ -217,6 +276,10 @@ The pack is anchored in current primary guidance:
 - [NIST CAISI AI Agent Security RFI](https://www.nist.gov/news-events/news/2026/01/caisi-issues-request-information-about-securing-ai-agent-systems)
   for indirect prompt injection, poisoning, misaligned actions, and
   constrained deployment access.
+- [NIST: Why Agentic AI Needs a Strong Identity Foundation](https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation)
+  for unique agent identifiers, short-lived scoped credentials, and
+  denial of shared human logins, static API keys, and local
+  user-account impersonation.
 - [MCP Authorization 2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
   for protected-resource metadata, scope challenges, resource indicators,
   token audience validation, and token-passthrough denial.
@@ -231,6 +294,7 @@ The pack is anchored in current primary guidance:
 
 ## See also
 
+- [Agent Identity & Delegation Ledger]({{< relref "/security-remediation/agent-identity-ledger" >}})
 - [Agentic Action Runtime Pack]({{< relref "/security-remediation/agentic-action-runtime" >}})
 - [Agentic SOC Detection Pack]({{< relref "/security-remediation/agentic-soc-detection-pack" >}})
 - [Agentic Run Receipts]({{< relref "/security-remediation/agentic-run-receipts" >}})
