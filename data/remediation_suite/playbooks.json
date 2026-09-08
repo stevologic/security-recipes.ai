@@ -4004,7 +4004,7 @@
       "title": "MCP Tool Surface Drift Sentinel",
       "page": "/security-remediation/mcp-tool-surface-drift-sentinel/",
       "category": "mcp-governance",
-      "summary": "Compare a live MCP tool surface with its approved baseline and contain capability, schema, permission, or ownership expansion.",
+      "summary": "Compare a live MCP tool surface with its approved baseline and contain capability, schema, x-mcp-header, permission, or ownership expansion.",
       "phases": [
         {
           "label": "Signal",
@@ -4019,7 +4019,7 @@
         {
           "label": "Decision",
           "title": "Compute semantic drift",
-          "detail": "Detect additions, removals, argument widening, required-field changes, side effects, permission expansion, auth changes, and ownership drift."
+          "detail": "Detect additions, removals, argument widening, required-field changes, x-mcp-header mirroring, side effects, permission expansion, auth changes, and ownership drift."
         },
         {
           "label": "Action",
@@ -4035,7 +4035,7 @@
       "gate": {
         "question": "Is live drift backward-compatible, non-expansive, owned, and explicitly permitted by the trust and tool contracts?",
         "pass": "Accept the new baseline after review and recertification.",
-        "stop": "Restrict or disable material unapproved capability, permission, auth, or ownership drift."
+        "stop": "Restrict or disable material unapproved capability, x-mcp-header, permission, auth, or ownership drift."
       },
       "evidence": [
         "baseline and live surface snapshots",
@@ -4061,6 +4061,7 @@
         "MCP tool drift",
         "capability expansion",
         "MCP schema change",
+        "x-mcp-header",
         "connector drift"
       ]
     },

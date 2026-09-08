@@ -17,6 +17,17 @@ from collections import Counter
 from pathlib import Path
 from typing import Any
 
+try:
+    from scripts.evaluate_mcp_tool_surface_drift_decision import (
+        collect_x_mcp_headers,
+        sensitive_header_violations,
+    )
+except ImportError:  # pragma: no cover - supports direct script-directory execution.
+    from evaluate_mcp_tool_surface_drift_decision import (  # type: ignore[no-redef]
+        collect_x_mcp_headers,
+        sensitive_header_violations,
+    )
+
 
 PACK_SCHEMA_VERSION = "1.0"
 DEFAULT_PROFILE = Path("data/assurance/mcp-tool-surface-drift-profile.json")
@@ -220,6 +231,12 @@ def validate_profile(
         require(bool(as_list(item.get("allowed_workflow_ids"), f"{surface_id}.allowed_workflow_ids")), failures, f"{surface_id}: allowed_workflow_ids are required")
         require(isinstance(item.get("input_schema"), dict), failures, f"{surface_id}: input_schema must be an object")
         require(isinstance(item.get("output_schema"), dict), failures, f"{surface_id}: output_schema must be an object")
+        header_records, header_violations = collect_x_mcp_headers(item.get("input_schema"))
+        for message in header_violations:
+            failures.append(f"{surface_id}: {message}")
+        if source_kind == "registered_connector":
+            for message in sensitive_header_violations(header_records):
+                failures.append(f"{surface_id}: {message}")
         require(isinstance(item.get("annotations"), dict), failures, f"{surface_id}: annotations must be an object")
         require(str(item.get("access_mode", "")).strip(), failures, f"{surface_id}: access_mode is required")
         require(bool(as_list(item.get("capability_flags"), f"{surface_id}.capability_flags")), failures, f"{surface_id}: capability_flags are required")
@@ -247,7 +264,9 @@ def build_surface_baseline(
 ) -> dict[str, Any]:
     annotations = normalize_bool_map(as_dict(surface.get("annotations"), f"{surface.get('id')}.annotations"))
     description_hash = text_hash(str(surface.get("description", "")))
-    input_schema_hash = stable_hash(surface.get("input_schema", {}))
+    input_schema = surface.get("input_schema", {})
+    header_records, _header_violations = collect_x_mcp_headers(input_schema)
+    input_schema_hash = stable_hash(input_schema)
     output_schema_hash = stable_hash(surface.get("output_schema", {}))
     annotations_hash = stable_hash(annotations)
     source_kind = str(surface.get("source_kind"))
@@ -293,8 +312,9 @@ def build_surface_baseline(
         "external_systems": surface.get("external_systems", []),
         "high_impact_surface": high_impact,
         "id": surface.get("id"),
-        "input_schema": surface.get("input_schema"),
+        "input_schema": input_schema,
         "input_schema_sha256": input_schema_hash,
+        "x_mcp_headers": header_records,
         "namespace": surface.get("namespace"),
         "output_schema": surface.get("output_schema"),
         "output_schema_sha256": output_schema_hash,
@@ -355,6 +375,25 @@ def build_sample_decisions(surfaces: list[dict[str, Any]]) -> list[dict[str, Any
                 ]
             },
             "why": "High-impact capability expansion after approval invalidates the session."
+        },
+        {
+            "id": "repo-xmcp-header-expansion",
+            "decision": "kill_session_on_tool_surface_signal",
+            "expected_runtime_request": {
+                "namespace": repo.get("namespace"),
+                "tool_name": repo.get("tool_name"),
+                "input_schema": {
+                    "additionalProperties": False,
+                    "properties": {
+                        "repository": {
+                            "type": "string",
+                            "x-mcp-header": "Repository"
+                        }
+                    },
+                    "type": "object"
+                }
+            },
+            "why": "MCP 2026-07-28 x-mcp-header mirroring is HTTP-visible capability expansion; adding it after approval is a kill-session event."
         },
         {
             "id": "candidate-browser-tool",
