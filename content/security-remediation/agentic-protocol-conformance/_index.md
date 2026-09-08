@@ -3,7 +3,7 @@ title: Agentic Protocol Conformance Pack
 linkTitle: Protocol Conformance
 weight: 14
 date: 2026-05-04
-lastmod: 2026-08-21
+lastmod: 2026-09-04
 sidebar:
   exclude: true
 description: >
@@ -30,9 +30,17 @@ The **Agentic Protocol Conformance Pack** turns fast-moving protocol and
 agent-security guidance into a generated artifact that a platform team,
 or procurement reviewer can inspect through MCP. Rechecked against MCP
 [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28)
-on August 23, 2026. `--protocol-id mcp-authorization-2025-11-25` is
-the existing pack id. It is not a 2026 protocol-profile clone and not
-a claim that 2025-11-25 is still the current MCP specification.
+on September 4, 2026.
+[`subscriptions/listen`](https://modelcontextprotocol.io/specification/2026-07-28/basic/patterns/subscriptions)
+replaced `resources/subscribe` and the HTTP GET notification endpoint.
+Servers **MUST** send `notifications/subscriptions/acknowledged` with
+`io.modelcontextprotocol/subscriptionId` before any notification, and
+**MUST NOT** send notification types the client did not request.
+Request-scoped `notifications/progress` and `notifications/message`
+stay on the originating request stream. `--protocol-id
+mcp-authorization-2025-11-25` is the existing pack id. It is not a 2026
+protocol-profile clone and not a claim that 2025-11-25 is still the
+current MCP specification.
 
 ## What was added
 
@@ -70,6 +78,28 @@ python3 scripts/evaluate_agentic_protocol_conformance_decision.py \
   --expect-decision allow_with_protocol_receipt
 ```
 
+Evaluate an unsolicited `subscriptions/listen` notification:
+
+```bash
+python3 scripts/evaluate_agentic_protocol_conformance_decision.py \
+  --protocol-id mcp-tooling-safety \
+  --workflow-id vulnerable-dependency-remediation \
+  --agent-id sec-auto-remediator \
+  --run-id run-2026-09-04-listen \
+  --session-id sess-listen \
+  --correlation-id corr-listen \
+  --transport streamable-http \
+  --tool-surface-pinned \
+  --tool-annotations-trusted \
+  --subscription-method subscriptions/listen \
+  --subscription-acknowledged \
+  --subscription-id-present \
+  --requested-notification-type toolsListChanged \
+  --observed-notification-type toolsListChanged \
+  --observed-notification-type resourcesListChanged \
+  --expect-decision deny_untrusted_protocol_surface
+```
+
 {{< playbook-workflow >}}
 
 ## Decision model
@@ -78,9 +108,9 @@ python3 scripts/evaluate_agentic_protocol_conformance_decision.py \
 | --- | --- |
 | `allow_with_protocol_receipt` | Protocol evidence is current enough to proceed and can be attached to the run receipt. |
 | `hold_for_protocol_evidence` | Required metadata, identity, consent, Agent Card, approval, or evidence-pack state is missing. |
-| `hold_for_protocol_drift_review` | The observed protocol version, tool surface, annotations, or schema drift requires review. |
+| `hold_for_protocol_drift_review` | The observed protocol version, tool surface, annotations, schema drift, or a legacy `resources/subscribe` / HTTP GET notification path requires review. |
 | `deny_unbound_protocol_authority` | MCP authority is not bound to the expected protected resource, audience, or PKCE evidence. |
-| `deny_untrusted_protocol_surface` | A protocol path combines unsafe trust boundaries such as untrusted content, private data, external egress, or unauthenticated remote-agent delegation. |
+| `deny_untrusted_protocol_surface` | A protocol path combines unsafe trust boundaries such as untrusted content, private data, external egress, unauthenticated remote-agent delegation, or an unsolicited `subscriptions/listen` notification. |
 | `kill_session_on_protocol_violation` | The request includes token passthrough, secret movement, or an explicit runtime kill signal. |
 
 ## What the pack proves
@@ -93,8 +123,8 @@ protocol profiles:
   metadata review, and incremental consent evidence.
 - **MCP Tool Annotation, Schema, and Drift Safety** for trusted
   annotations, pinned tool descriptions and schemas, tool-output
-  validation, and private-data plus untrusted-content plus external-send
-  risk.
+  validation, `subscriptions/listen` notification bounds, and
+  private-data plus untrusted-content plus external-send risk.
 - **A2A Agent Discovery and Delegation** for Agent Card completeness,
   authenticated extended cards, HTTPS transport, version headers, signed
   card evidence, skill trust, and handoff minimization.
@@ -109,6 +139,9 @@ This feature tracks current primary guidance:
 - [MCP Authorization](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
   for protected-resource metadata, resource indicators, audience-bound
   tokens, PKCE, client metadata, and token-passthrough denial.
+- [MCP Subscriptions](https://modelcontextprotocol.io/specification/2026-07-28/basic/patterns/subscriptions)
+  for `subscriptions/listen`, acknowledgment-before-notification,
+  `subscriptionId` binding, and the ban on unsolicited notification types.
 - [MCP Tool Annotations](https://blog.modelcontextprotocol.io/posts/2026-03-16-tool-annotations/)
   for annotation-driven tool UX and the need to treat annotations as
   policy hints until trust and drift evidence exist.
@@ -136,7 +169,9 @@ MCP and A2A protocol conformance:
 - live MCP protected-resource metadata checks,
 - client metadata and redirect-policy review,
 - resource, audience, PKCE, consent, and scope-drift monitoring,
-- signed tool-surface baselines and annotation drift alerts,
+- signed tool-surface baselines, annotation drift alerts, and
+  `subscriptions/listen` bounds against unsolicited list-changed
+  notifications,
 - A2A Agent Card monitoring, signature verification, and skill allowlists,
 - source-to-sink prompt-injection policy across protocol boundaries,
 - signed protocol receipts attached to agent run receipts,

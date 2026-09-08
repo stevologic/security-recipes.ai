@@ -89,7 +89,7 @@
     "failure_count": 0,
     "freshness_class_counts": {
       "current_reference": 16,
-      "recent_signal": 17,
+      "recent_signal": 18,
       "standing_reference": 5,
       "undated_review_required": 4
     },
@@ -100,6 +100,13 @@
         "published": "2026-07-28",
         "publisher_family": "Model Context Protocol",
         "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization"
+      },
+      {
+        "id": "mcp-subscriptions-listen-2026-07-28",
+        "name": "Model Context Protocol Subscriptions (2026-07-28 current revision)",
+        "published": "2026-07-28",
+        "publisher_family": "Model Context Protocol",
+        "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/patterns/subscriptions"
       },
       {
         "id": "mcp-spec-changelog-2026-07-28",
@@ -142,13 +149,6 @@
         "published": "2026-04-29",
         "publisher_family": "Cloud Security Alliance",
         "url": "https://cloudsecurityalliance.org/press-releases/2026/04/29/csai-foundation-announces-key-milestones-to-secure-the-agentic-control-plane"
-      },
-      {
-        "id": "a2a-protocol-latest",
-        "name": "Agent2Agent Protocol Specification",
-        "published": "2026-04-17",
-        "publisher_family": "A2A",
-        "url": "https://a2a-protocol.org/latest/specification/"
       }
     ],
     "primary_watchlist_count": 10,
@@ -160,7 +160,7 @@
       "Cloud Security Alliance": 6,
       "Linux Foundation": 1,
       "Microsoft": 1,
-      "Model Context Protocol": 7,
+      "Model Context Protocol": 8,
       "NIST": 4,
       "OWASP": 7,
       "OpenAI": 5,
@@ -177,12 +177,12 @@
       "industry_standard": 8,
       "observability_standard": 1,
       "protocol_guidance": 3,
-      "protocol_specification": 7,
+      "protocol_specification": 8,
       "unknown": 4,
       "vendor_architecture_guidance": 1
     },
     "status": "source_freshness_ready",
-    "unique_source_reference_count": 42,
+    "unique_source_reference_count": 43,
     "watch_decision_counts": {
       "current": 9
     },
@@ -398,7 +398,7 @@
     },
     "agentic-protocol-conformance-profile": {
       "path": "data/assurance/agentic-protocol-conformance-profile.json",
-      "sha256": "cca4e374e6d7c6ba178b509fc10341fa92172337e72a86e39e56bab1d6d8d187"
+      "sha256": "4c7225001aade11b4ea9e1fbc2cb3475574ff2ee4f1b4a4e34ce92367317fe68"
     },
     "agentic-standards-crosswalk-profile": {
       "path": "data/assurance/agentic-standards-crosswalk.json",
@@ -995,6 +995,27 @@
       "source_class_family": "protocol",
       "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices",
       "why_it_matters": "Current MCP 2026-07-28 security guidance replaces session-hijacking assumptions with state-handle binding, forbids token passthrough, requires confused-deputy consent on proxies, and tightens SSRF controls during metadata and Client ID Metadata Document fetches."
+    },
+    {
+      "freshness_class": "recent_signal",
+      "id": "mcp-subscriptions-listen-2026-07-28",
+      "name": "Model Context Protocol Subscriptions (2026-07-28 current revision)",
+      "published": "2026-07-28",
+      "published_age_days": -85,
+      "published_date": "2026-07-28",
+      "publisher": "Model Context Protocol",
+      "publisher_family": "Model Context Protocol",
+      "referenced_by": [
+        {
+          "path": "data/assurance/agentic-protocol-conformance-profile.json",
+          "watched_source_id": "agentic-protocol-conformance-profile",
+          "watched_source_title": "Agentic Protocol Conformance Profile"
+        }
+      ],
+      "source_class": "protocol_specification",
+      "source_class_family": "protocol",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/patterns/subscriptions",
+      "why_it_matters": "Current public MCP 2026-07-28 revision. Servers MUST use subscriptions/listen instead of resources/subscribe or HTTP GET, MUST acknowledge with a subscriptionId before any notification, and MUST NOT send notification types the client did not request."
     },
     {
       "freshness_class": "recent_signal",
@@ -1663,14 +1684,14 @@
       "business_criticality": "critical",
       "decision": "current",
       "id": "agentic-protocol-conformance-profile",
-      "last_reviewed": "2026-08-21",
+      "last_reviewed": "2026-09-04",
       "path": "data/assurance/agentic-protocol-conformance-profile.json",
-      "reference_count": 12,
+      "reference_count": 13,
       "reference_paths": [
         "source_references"
       ],
       "review_cadence_days": 14,
-      "review_due_at": "2026-09-04",
+      "review_due_at": "2026-09-18",
       "title": "Agentic Protocol Conformance Profile",
       "why": "This pack tracks MCP, A2A, tool annotations, identity, handoff, and prompt-injection protocol boundaries."
     },
