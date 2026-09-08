@@ -59,42 +59,51 @@ class CveCatalogValidationWorkflowTests(unittest.TestCase):
             with self.subTest(value=value):
                 self.assertNotIn(value, self.request)
 
-    def test_validator_uses_read_only_cache_workflow_run_boundary(self) -> None:
-        self.assertRegex(self.validation, r"(?m)^on:\s*\n\s+workflow_run:")
-        self.assertIn("- CVE catalog validation request", self.validation)
-        self.assertIn("- completed", self.validation)
-        self.assertNotIn("workflow_dispatch:", self.validation)
-        self.assertIn("SOURCE_CONCLUSION", self.validation)
-        self.assertIn('[ "$SOURCE_CONCLUSION" != "success" ]', self.validation)
-        self.assertIn(
-            '[ "$SOURCE_PATH" != ".github/workflows/cve-catalog-validate-request.yml" ]',
+    def test_validator_uses_read_only_cache_workflow_dispatch_boundary(self) -> None:
+        self.assertRegex(self.validation, r"(?m)^on:\s*\n\s+workflow_dispatch:")
+        self.assertNotRegex(
             self.validation,
+            r"(?m)^\s+(push|pull_request|pull_request_target|workflow_run|schedule):",
         )
-        self.assertIn('[ "$SOURCE_BRANCH" != "$DEFAULT_BRANCH" ]', self.validation)
-        self.assertIn(
-            '[ "$SOURCE_REPOSITORY" != "$GITHUB_REPOSITORY" ]', self.validation
+        for input_name in (
+            "expected_sha:",
+            "request_id:",
+            "pr_number:",
+            "expected_branch:",
+        ):
+            self.assertIn(input_name, self.validation)
+        self.assertRegex(
+            self.validation,
+            r"(?m)^run-name: CVE catalog validation .+ @ .+$",
         )
+        self.assertNotIn("SOURCE_CONCLUSION", self.validation)
+        self.assertNotIn("cve-catalog-validate-request.yml", self.validation)
+        self.assertNotIn("cache:", self.validation)
 
     def test_validator_rechecks_live_pr_before_checkout(self) -> None:
-        authorize, validate = self.validation.split("\n  validate:\n", 1)
+        # Lean dispatch path: checkout exact input SHA; publish rechecks PR.
+        self.assertIn("ref: ${{ inputs.expected_sha }}", self.validation)
         self.assertIn(
-            'PR_JSON="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}")"',
-            authorize,
+            '[[ ! "$EXPECTED_SHA" =~ ^[0-9a-f]{40}$ ]]', self.validation
         )
-        self.assertIn('[ "$HEAD_REPOSITORY" != "$GITHUB_REPOSITORY" ]', authorize)
-        self.assertIn('[ "$HEAD_SHA" != "$EXPECTED_SHA" ]', authorize)
-        self.assertIn('[ "$BASE_BRANCH" != "$DEFAULT_BRANCH" ]', authorize)
-        self.assertIn("validated_revision=${EXPECTED_SHA}", authorize)
-        self.assertIn("needs: authorize", validate)
-        self.assertIn(
-            "ref: ${{ needs.authorize.outputs.validated_revision }}", validate
-        )
-        self.assertLess(
-            self.validation.index("authorize-exact-pr-head"),
-            self.validation.index("Checkout exact catalog PR revision"),
-        )
+        self.assertIn("Checkout exact catalog PR revision", self.validation)
+        self.assertNotIn("authorize-exact-pr-head", self.validation)
+        self.assertNotIn("needs: authorize", self.validation)
         self.assertNotIn("submodules: recursive", self.validation)
-        self.assertNotIn("cache: npm", self.validation)
+        self.assertNotIn("cache:", self.validation)
+        _, publish_job = self.validation.split("\n  publish:\n", 1)
+        self.assertIn(
+            'PR_JSON="$(gh_api_with_retry "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}")"',
+            publish_job,
+        )
+        self.assertIn('[ "$HEAD_REPOSITORY" != "$GITHUB_REPOSITORY" ]', publish_job)
+        self.assertIn('[ "$HEAD_SHA" != "$EXPECTED_SHA" ]', publish_job)
+        self.assertIn('[ "$BASE_BRANCH" != "$DEFAULT_BRANCH" ]', publish_job)
+        self.assertIn('[ "$HEAD_BRANCH" != "$EXPECTED_BRANCH" ]', publish_job)
+        self.assertLess(
+            self.validation.index("Checkout exact catalog PR revision"),
+            self.validation.index("Verify pull request identity and publish"),
+        )
 
     def test_emits_the_existing_required_build_context(self) -> None:
         self.assertRegex(
@@ -109,7 +118,7 @@ class CveCatalogValidationWorkflowTests(unittest.TestCase):
         validate_job, publish_job = self.validation.split("\n  publish:\n", 1)
 
         self.assertNotIn("statuses: write", validate_job)
-        self.assertIn("- validate", publish_job)
+        self.assertRegex(publish_job, r"(?m)^\s{4}needs:\s*validate\s*$")
         self.assertRegex(publish_job, r"(?m)^\s{6}statuses: write\s*$")
         self.assertIn("pull-requests: read", publish_job)
         self.assertNotIn("actions/checkout", publish_job)
