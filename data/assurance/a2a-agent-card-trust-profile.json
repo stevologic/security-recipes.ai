@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-08-21",
-  "intent": "Define the SecurityRecipes A2A Agent Card trust profile so remote agents can be discovered, scored, piloted, denied, or killed before they receive secure context or join an agent-to-agent workflow. The profile turns an A2A Agent Card into enterprise intake evidence for protocol identity, HTTPS interfaces, authentication, authorization scope, signing, skill risk, extended-card handling, and prompt-injection containment.",
+  "last_reviewed": "2026-09-02",
+  "intent": "Define the SecurityRecipes A2A Agent Card trust profile so remote agents can be discovered, scored, piloted, denied, or killed before they receive secure context or join an agent-to-agent workflow. The profile turns an A2A Agent Card into enterprise intake evidence for protocol identity, HTTPS interfaces, authentication, OAuth flow hygiene, authorization scope, signing, skill risk, extended-card handling, and prompt-injection containment.",
   "positioning": {
     "buyer": "AI Platform, Product Security, AppSec, IAM, GRC, procurement security, model-risk, and acquisition diligence teams",
     "category": "A2A remote-agent discovery and Agent Card trust intake",
@@ -13,13 +13,19 @@
       "id": "a2a-specification-latest",
       "name": "Agent2Agent Protocol Specification",
       "url": "https://a2a-protocol.org/latest/specification/",
-      "coverage": "Agent Card fields, supported interfaces, security schemes, security requirements, signatures, authenticated extended cards, and the .well-known/agent-card.json discovery surface."
+      "coverage": "Agent Card fields, supported interfaces, security schemes, security requirements, signatures, authenticated extended cards, .well-known/agent-card.json discovery, and OAuthFlows: authorizationCode with pkceRequired, clientCredentials, deviceCode, and deprecated implicit/password grants."
     },
     {
       "id": "a2a-enterprise-features",
       "name": "A2A Enterprise Implementation Guidance",
       "url": "https://a2a-protocol.org/latest/topics/enterprise-ready/",
       "coverage": "HTTPS, TLS, server identity verification, HTTP-layer authentication, authorization, data privacy, tracing, monitoring, API management, and governance for remote opaque agents."
+    },
+    {
+      "id": "a2a-whats-new-v1",
+      "name": "A2A Protocol v1.0 What is New",
+      "url": "https://a2a-protocol.org/latest/whats-new-v1/",
+      "coverage": "A2A v1.0 OAuth modernization: Device Code (RFC 8628), pkceRequired on Authorization Code, removal of deprecated implicit and password grants as current flows, and mTLS security-scheme support."
     },
     {
       "id": "google-cloud-a2a-toolkit-2025",
@@ -35,9 +41,9 @@
     },
     {
       "id": "mcp-authorization-2025-11-25",
-      "name": "Model Context Protocol Authorization Specification",
+      "name": "Model Context Protocol Authorization Specification (2025-11-25 prior revision)",
       "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization",
-      "coverage": "Complements A2A by keeping tool access behind resource indicators, token audience validation, protected resource metadata, PKCE, and token-passthrough denial."
+      "coverage": "Prior MCP authorization revision kept as a historical source ID. Do not treat 2025-11-25 as the current public specification. Complements A2A only as labeled history."
     },
     {
       "id": "openai-prompt-injection-agents-2026",
@@ -82,11 +88,11 @@
       },
       {
         "decision": "hold_for_agent_card_intake",
-        "meaning": "The card is incomplete, unsigned, over-broad, or missing declared controls that a human owner or gateway policy must review before use."
+        "meaning": "The card is incomplete, unsigned, over-broad, missing authorization-code PKCE evidence, or missing declared controls that a human owner or gateway policy must review before use."
       },
       {
         "decision": "deny_insecure_agent_card",
-        "meaning": "The card uses insecure transport, unsafe API key placement, missing authentication for production, unsupported interfaces, or risky skill declarations that should not be piloted."
+        "meaning": "The card uses insecure transport, deprecated OAuth implicit or password grants, unsafe API key placement, missing authentication for production, unsupported interfaces, or risky skill declarations that should not be piloted."
       },
       {
         "decision": "kill_session_on_agent_card_secret",
@@ -148,6 +154,15 @@
       "oauth2SecurityScheme",
       "openIdConnectSecurityScheme",
       "mtlsSecurityScheme"
+    ],
+    "allowed_oauth_flows": [
+      "authorizationCode",
+      "clientCredentials",
+      "deviceCode"
+    ],
+    "prohibited_oauth_flows": [
+      "implicit",
+      "password"
     ],
     "prohibited_api_key_locations": [
       "query",
@@ -476,6 +491,87 @@
       }
     },
     {
+      "id": "implicit-oauth-production-agent",
+      "expected_profile_id": "trusted-production-agent",
+      "expected_decision": "deny_insecure_agent_card",
+      "production": true,
+      "declared_controls": [
+        "agent_card_signature_verified",
+        "standard_http_auth",
+        "https_interface",
+        "scope_minimized_security",
+        "gateway_enforced",
+        "audit_log",
+        "human_approval_for_high_impact",
+        "provider_identity_verified",
+        "server_identity_verified"
+      ],
+      "agent_card": {
+        "name": "Legacy Implicit OAuth Delegate",
+        "description": "Looks production-ready but advertises the A2A-deprecated OAuth implicit grant for delegated triage.",
+        "provider": {
+          "organization": "Example Legacy Vendor",
+          "url": "https://legacy.example.com"
+        },
+        "version": "1.0.0",
+        "documentationUrl": "https://legacy.example.com/docs/a2a",
+        "supportedInterfaces": [
+          {
+            "url": "https://agents.legacy.example.com/a2a",
+            "protocolBinding": "https://a2a-protocol.org/specification/transport/http+json",
+            "protocolVersion": "1.0"
+          }
+        ],
+        "capabilities": {
+          "streaming": false,
+          "pushNotifications": false,
+          "extendedAgentCard": true
+        },
+        "securitySchemes": {
+          "oauth": {
+            "oauth2SecurityScheme": {
+              "flows": {
+                "implicit": {
+                  "authorizationUrl": "https://auth.legacy.example.com/authorize",
+                  "scopes": {
+                    "a2a.task:delegate": "Delegate A2A tasks"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "securityRequirements": [
+          {
+            "oauth": [
+              "a2a.task:delegate"
+            ]
+          }
+        ],
+        "defaultInputModes": [
+          "application/json",
+          "text/plain"
+        ],
+        "defaultOutputModes": [
+          "application/json",
+          "text/markdown"
+        ],
+        "skills": [
+          {
+            "id": "dependency-triage",
+            "name": "Dependency triage",
+            "description": "Summarize vulnerability remediation context and return cited next actions without writing code."
+          }
+        ],
+        "signatures": [
+          {
+            "protected": "eyJhbGciOiJFUzI1NiIsImtpZCI6ImxlZ2FjeS1kZW1vIn0",
+            "signature": "example-detached-signature"
+          }
+        ]
+      }
+    },
+    {
       "id": "malicious-secret-leaking-card",
       "expected_profile_id": "blocked-agent-card",
       "expected_decision": "kill_session_on_agent_card_secret",
@@ -518,7 +614,7 @@
     "default_questions_answered": [
       "Is the Agent Card complete enough for enterprise review?",
       "Does the card advertise HTTPS interfaces and provider identity?",
-      "Does the card require standard HTTP-layer authentication?",
+      "Does the card require standard HTTP-layer authentication without deprecated OAuth implicit or password grants?",
       "Is the card signed or restricted to metadata-only pilot use?",
       "Do advertised skills require approval, gateway enforcement, or hard denial?"
     ],
