@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-08-21",
+  "last_reviewed": "2026-09-06",
   "intent": "Define a vendor-neutral telemetry contract for SecurityRecipes so agentic AI and MCP runs can be reconstructed from OpenTelemetry-shaped traces without leaking secrets, raw tenant context, or unredacted tool payloads into observability systems.",
   "positioning": {
     "buyer": "AI Platform, Security Engineering, Detection Engineering, GRC, model risk, procurement security, and acquisition diligence teams",
@@ -19,7 +19,7 @@
       "id": "opentelemetry-mcp-semconv-1-41",
       "name": "OpenTelemetry Semantic Conventions for Model Context Protocol",
       "url": "https://opentelemetry.io/docs/specs/semconv/gen-ai/mcp/",
-      "coverage": "Anchors MCP spans, JSON-RPC request identifiers, method names, session ids, protocol versions, transport attributes, and trace-context propagation through params._meta."
+      "coverage": "Anchors MCP spans, JSON-RPC request identifiers, method names, protocol versions, transport attributes, and W3C trace-context propagation through params._meta. mcp.session.id remains recommended only when the request is part of a session."
     },
     {
       "id": "mcp-authorization-2026-07-28",
@@ -37,7 +37,7 @@
       "id": "mcp-transports-2026-07-28",
       "name": "Model Context Protocol Transports (2026-07-28 current revision)",
       "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/transports",
-      "coverage": "Current public MCP 2026-07-28 revision. Covers stdio and Streamable HTTP transport requirements, Origin validation, localhost binding, authentication expectations, and session behavior that must appear in trace evidence."
+      "coverage": "Current public MCP 2026-07-28 revision. Covers stdio and Streamable HTTP transport requirements, Origin validation, localhost binding, and authentication expectations. This revision does not mint protocol session IDs; traces must reconstruct requests without Mcp-Session-Id."
     },
     {
       "id": "mcp-transports-2025-11-25",
@@ -46,10 +46,16 @@
       "coverage": "Covers stdio and Streamable HTTP transport requirements, Origin validation, localhost binding, authentication expectations, and session behavior that must appear in trace evidence."
     },
     {
+      "id": "mcp-basic-2026-07-28",
+      "name": "Model Context Protocol Base Protocol (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/",
+      "coverage": "Current public MCP 2026-07-28 revision. Every request declares io.modelcontextprotocol/protocolVersion in params._meta. Reserved unprefixed traceparent, tracestate, and baggage keys carry W3C trace context without protocol sessions."
+    },
+    {
       "id": "mcp-security-best-practices",
       "name": "Model Context Protocol Security Best Practices",
-      "url": "https://modelcontextprotocol.io/docs/tutorials/security/security_best_practices",
-      "coverage": "Supports SSRF-safe discovery, redirect validation, private IP blocking, session hijack resistance, local server hardening, and auditability for MCP client and server deployments."
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices",
+      "coverage": "Supports SSRF-safe discovery, redirect validation, private IP blocking, local server hardening, and auditability. Cross-request state uses explicit handles that MUST NOT be treated as authentication after sessions were removed."
     },
     {
       "id": "nist-ai-600-1",
@@ -110,7 +116,6 @@
       "gen_ai.system",
       "gen_ai.request.model",
       "mcp.protocol.version",
-      "mcp.session.id",
       "mcp.method.name",
       "jsonrpc.request.id",
       "network.transport",
@@ -120,6 +125,12 @@
       "egress.decision",
       "receipt_id",
       "telemetry.redaction_state"
+    ],
+    "optional_trace_attributes": [
+      "mcp.session.id",
+      "traceparent",
+      "tracestate",
+      "baggage"
     ],
     "sensitive_opt_in_attributes": [
       "gen_ai.prompt",
@@ -193,14 +204,13 @@
         "gen_ai.operation.name",
         "gen_ai.tool.name",
         "mcp.protocol.version",
-        "mcp.session.id",
         "mcp.method.name",
         "jsonrpc.request.id",
         "network.transport",
         "policy.decision",
         "authorization.decision"
       ],
-      "minimum_evidence": "MCP spans include JSON-RPC, session, protocol, transport, tool, policy, and authorization evidence before a tool result is trusted.",
+      "minimum_evidence": "MCP spans include JSON-RPC request id, method, protocol version, transport, tool, policy, and authorization evidence before a tool result is trusted. mcp.session.id is optional after MCP 2026-07-28.",
       "default_failure_decision": "hold_for_trace_completion"
     },
     {
@@ -342,11 +352,10 @@
     {
       "id": "mcp-jsonrpc-span-contract",
       "class_id": "mcp_tool_call",
-      "title": "MCP tool span includes JSON-RPC, session, transport, and policy attributes",
+      "title": "MCP tool span includes JSON-RPC, request-bound identity, transport, and policy attributes",
       "required_attributes": [
         "mcp.method.name",
         "jsonrpc.request.id",
-        "mcp.session.id",
         "mcp.protocol.version",
         "network.transport",
         "gen_ai.tool.name",
@@ -354,7 +363,8 @@
       ],
       "pass_conditions": [
         "MCP method name is low-cardinality",
-        "session id is present but not used as authentication",
+        "jsonrpc.request.id and protocol version identify the request without minting a protocol session",
+        "mcp.session.id is absent or treated as host-session correlation, not authentication",
         "policy decision is linked to the tool call"
       ],
       "failure_decision": "hold_for_trace_completion"
