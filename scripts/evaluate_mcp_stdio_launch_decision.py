@@ -3,7 +3,9 @@
 
 The evaluator is designed for MCP clients, endpoint policy agents, and
 CI gates that need a deterministic answer before spawning a local MCP
-server subprocess.
+server subprocess. Dual-era clients must declare a server/discover-first
+probe. Proxy architectures that spawn stdio children must bind the proxy
+token to a registered launch.
 """
 
 from __future__ import annotations
@@ -25,6 +27,15 @@ VALID_DECISIONS = {
     "deny_untrusted_package_launch",
     "deny_shell_or_network_bootstrap",
     "kill_session_on_secret_or_privilege_request",
+}
+DUAL_ERA_VALUES = {"dual-era", "legacy-compatible"}
+PROBE_FIRST_POLICIES = {"probe-first", "server-discover-first"}
+SKIP_PROBE_POLICIES = {"skip", "initialize-first"}
+EMPTY_PROBE_RESULTS = {"", "not-yet", "not-probed", "unspecified"}
+MODERN_DISCOVER_RESULTS = {
+    "discover-result",
+    "modern-error",
+    "unsupported-protocol-version",
 }
 
 
@@ -120,6 +131,77 @@ def has_approval(value: Any) -> bool:
     return bool(record.get("approval_id") or record.get("id")) and status in {"approved", "allow", "granted"}
 
 
+def normalize_token(value: Any) -> str:
+    return str(value or "").strip().lower().replace("_", "-")
+
+
+def is_dual_era_client(runtime_request: dict[str, Any]) -> bool:
+    return normalize_token(runtime_request.get("client_era")) in DUAL_ERA_VALUES
+
+
+def discover_probe_policy(runtime_request: dict[str, Any]) -> str:
+    return normalize_token(runtime_request.get("discover_probe_policy"))
+
+
+def discover_probe_result(runtime_request: dict[str, Any]) -> str:
+    return normalize_token(runtime_request.get("discover_probe_result"))
+
+
+def proxy_spawn_kill_reason(runtime_request: dict[str, Any], launch: dict[str, Any] | None) -> str | None:
+    """Return a kill reason when a local proxy can spawn an unbound stdio child.
+
+    MCP 2026-07-28 security guidance says a proxy that spawns stdio children
+    becomes an RCE path if a stolen proxy token can request arbitrary commands.
+    Direct stdio (no proxy) is out of scope for this check.
+    """
+    if not runtime_request.get("proxy_spawn_architecture"):
+        return None
+    if launch is None:
+        return "proxy architecture attempted to spawn an unregistered STDIO command"
+    if not runtime_request.get("proxy_token_binds_to_registered_launch"):
+        return "proxy authentication token is not bound to the registered STDIO launch"
+    return None
+
+
+def dual_era_discover_decision(runtime_request: dict[str, Any]) -> tuple[str, str, list[str]] | None:
+    """Return a hold or kill when dual-era stdio skips or misuses server/discover.
+
+    Dual-era clients SHOULD probe with server/discover first. DiscoverResult or a
+    recognized modern error MUST NOT fall back to initialize. Fallback MUST NOT
+    be keyed to one error code. Unspecified client era keeps prior launch
+    behavior so existing allow scenarios remain valid.
+    """
+    if not is_dual_era_client(runtime_request):
+        return None
+
+    policy = discover_probe_policy(runtime_request)
+    result = discover_probe_result(runtime_request)
+    fallback = bool(runtime_request.get("legacy_initialize_fallback"))
+    keyed = bool(runtime_request.get("discover_fallback_keyed_to_single_error_code"))
+
+    if fallback and result in MODERN_DISCOVER_RESULTS:
+        return (
+            "kill_session_on_secret_or_privilege_request",
+            "dual-era STDIO client fell back to initialize after a modern server/discover response",
+            [f"discover_probe_result={result}", "legacy_initialize_fallback=true"],
+        )
+    if keyed:
+        return (
+            "hold_for_owner_review",
+            "legacy initialize fallback is keyed to a single error code",
+            ["discover_fallback_keyed_to_single_error_code=true"],
+        )
+    if policy in SKIP_PROBE_POLICIES or (
+        policy not in PROBE_FIRST_POLICIES and result in EMPTY_PROBE_RESULTS
+    ):
+        return (
+            "hold_for_owner_review",
+            "dual-era STDIO client did not declare a server/discover-first probe before initialize fallback",
+            [f"client_era={normalize_token(runtime_request.get('client_era'))}", f"discover_probe_policy={policy or '<missing>'}"],
+        )
+    return None
+
+
 def decision_result(
     *,
     decision: str,
@@ -148,15 +230,23 @@ def decision_result(
         "runtime_request": {
             "agent_id": runtime_request.get("agent_id"),
             "args": as_list(runtime_request.get("args")),
+            "client_era": runtime_request.get("client_era"),
             "command": runtime_request.get("command"),
             "correlation_id": runtime_request.get("correlation_id"),
+            "discover_probe_policy": runtime_request.get("discover_probe_policy"),
+            "discover_probe_result": runtime_request.get("discover_probe_result"),
             "env_keys": as_list(runtime_request.get("env_keys")),
             "launch_id": runtime_request.get("launch_id"),
+            "legacy_initialize_fallback": runtime_request.get("legacy_initialize_fallback"),
             "network_egress": runtime_request.get("network_egress"),
             "package_hash": runtime_request.get("package_hash"),
             "package_install_on_launch": runtime_request.get("package_install_on_launch"),
             "package_name": runtime_request.get("package_name"),
             "package_version": runtime_request.get("package_version"),
+            "proxy_spawn_architecture": runtime_request.get("proxy_spawn_architecture"),
+            "proxy_token_binds_to_registered_launch": runtime_request.get(
+                "proxy_token_binds_to_registered_launch"
+            ),
             "requested_capabilities": as_list(runtime_request.get("requested_capabilities")),
             "run_id": runtime_request.get("run_id"),
             "sandboxed": runtime_request.get("sandboxed"),
@@ -185,6 +275,18 @@ def evaluate_mcp_stdio_launch_decision(
 
     launch_id = str(runtime_request.get("launch_id") or "").strip()
     launch = launches_by_id(launch_pack).get(launch_id)
+    proxy_kill = proxy_spawn_kill_reason(runtime_request, launch)
+    if proxy_kill:
+        return decision_result(
+            decision="kill_session_on_secret_or_privilege_request",
+            reason=proxy_kill,
+            runtime_request=runtime_request,
+            matched_launch=launch,
+            violations=[
+                "proxy_spawn_architecture=true",
+                f"launch_id={launch_id or '<missing>'}",
+            ],
+        )
     if not launch:
         return decision_result(
             decision="deny_unregistered_stdio_launch",
@@ -348,6 +450,18 @@ def evaluate_mcp_stdio_launch_decision(
             violations=["allowed_external_hosts contains *"],
         )
 
+    discover_decision = dual_era_discover_decision(runtime_request)
+    if discover_decision:
+        decision, reason, violations = discover_decision
+        return decision_result(
+            decision=decision,
+            reason=reason,
+            runtime_request=runtime_request,
+            matched_launch=launch,
+            matched_profile=profile,
+            violations=violations,
+        )
+
     if not runtime_request.get("sandboxed"):
         return decision_result(
             decision="hold_for_owner_review",
@@ -357,6 +471,32 @@ def evaluate_mcp_stdio_launch_decision(
             matched_profile=profile,
             violations=["sandboxed=false"],
         )
+
+    if runtime_request.get("treats_server_info_as_security_decision"):
+        return decision_result(
+            decision="hold_for_owner_review",
+            reason="serverInfo from server/discover is self-reported and must not drive security decisions",
+            runtime_request=runtime_request,
+            matched_launch=launch,
+            matched_profile=profile,
+            violations=["treats_server_info_as_security_decision=true"],
+        )
+
+    if runtime_request.get("proxy_spawn_architecture"):
+        proxy_holds: list[str] = []
+        if not runtime_request.get("proxy_child_sandboxed"):
+            proxy_holds.append("proxy_child_sandboxed=false")
+        if not runtime_request.get("proxy_spawn_logged"):
+            proxy_holds.append("proxy_spawn_logged=false")
+        if proxy_holds:
+            return decision_result(
+                decision="hold_for_owner_review",
+                reason="proxy-spawned STDIO child is missing extra sandbox or spawn-audit evidence",
+                runtime_request=runtime_request,
+                matched_launch=launch,
+                matched_profile=profile,
+                violations=proxy_holds,
+            )
 
     capabilities = lower_set(runtime_request.get("requested_capabilities")) | lower_set(launch.get("requested_capabilities"))
     high_impact = lower_set(contract.get("high_impact_capabilities"))
@@ -430,6 +570,24 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--requests-privilege-escalation", action="store_true")
     parser.add_argument("--approval", action="append", default=[], help="Approval field as KEY=VALUE.")
     parser.add_argument("--runtime-kill-signal", default=None)
+    parser.add_argument("--client-era", default=None, help="modern, dual-era, or legacy-compatible.")
+    parser.add_argument(
+        "--discover-probe-policy",
+        default=None,
+        help="probe-first, server-discover-first, skip, or initialize-first.",
+    )
+    parser.add_argument(
+        "--discover-probe-result",
+        default=None,
+        help="discover-result, modern-error, other-error-or-timeout, or not-probed.",
+    )
+    parser.add_argument("--legacy-initialize-fallback", action="store_true")
+    parser.add_argument("--discover-fallback-keyed-to-single-error-code", action="store_true")
+    parser.add_argument("--treats-server-info-as-security-decision", action="store_true")
+    parser.add_argument("--proxy-spawn-architecture", action="store_true")
+    parser.add_argument("--proxy-token-binds-to-registered-launch", action="store_true")
+    parser.add_argument("--proxy-child-sandboxed", action="store_true")
+    parser.add_argument("--proxy-spawn-logged", action="store_true")
     parser.add_argument("--expect-decision", default=None)
     parser.add_argument("--json", action="store_true", help="Print full JSON decision.")
     return parser.parse_args()
@@ -467,6 +625,18 @@ def main() -> int:
             "runtime_kill_signal": args.runtime_kill_signal,
             "sandboxed": args.sandboxed,
             "signature_present": args.signature_present,
+            "client_era": args.client_era,
+            "discover_fallback_keyed_to_single_error_code": (
+                args.discover_fallback_keyed_to_single_error_code
+            ),
+            "discover_probe_policy": args.discover_probe_policy,
+            "discover_probe_result": args.discover_probe_result,
+            "legacy_initialize_fallback": args.legacy_initialize_fallback,
+            "proxy_child_sandboxed": args.proxy_child_sandboxed,
+            "proxy_spawn_architecture": args.proxy_spawn_architecture,
+            "proxy_spawn_logged": args.proxy_spawn_logged,
+            "proxy_token_binds_to_registered_launch": args.proxy_token_binds_to_registered_launch,
+            "treats_server_info_as_security_decision": args.treats_server_info_as_security_decision,
         }
         decision = evaluate_mcp_stdio_launch_decision(pack, request)
     except StdioLaunchDecisionError as exc:

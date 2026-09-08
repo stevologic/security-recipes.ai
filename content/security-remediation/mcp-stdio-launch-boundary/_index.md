@@ -3,7 +3,7 @@ title: MCP STDIO Launch Boundary
 linkTitle: MCP STDIO Launch Boundary
 weight: 8
 date: 2026-05-04
-lastmod: 2026-08-21
+lastmod: 2026-09-01
 sidebar:
   exclude: true
 description: >
@@ -21,16 +21,20 @@ boundary gives that moment the same policy discipline as remote MCP
 authorization.
 {{< /callout >}}
 
-Rechecked August 23, 2026: MCP
+Rechecked September 1, 2026: MCP
 [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28)
 is still current and **stateless**. There is no negotiation handshake.
 Each request carries protocol version and capabilities. Servers
 **MUST** implement
 [`server/discover`](https://modelcontextprotocol.io/specification/2026-07-28/server/discover).
 STDIO remains newline-delimited JSON-RPC over a client-launched
-subprocess. Dual-era clients **SHOULD** send `server/discover` first
-before falling back to legacy `initialize`. `kill_session` here is a
-host-session kill switch, not `Mcp-Session-Id`.
+subprocess. Dual-era clients **SHOULD** probe with `server/discover`
+before any other request. A `DiscoverResult` or recognized modern error
+**MUST NOT** fall back to `initialize`; fallback **MUST NOT** be keyed
+to one error code. `serverInfo` is self-reported display metadata, not
+a trust signal. A local proxy that spawns STDIO children is an RCE path
+if a stolen proxy token can launch unbound commands. `kill_session` here
+is a host-session kill switch, not `Mcp-Session-Id`.
 
 ## The product bet
 
@@ -84,19 +88,67 @@ python3 scripts/evaluate_mcp_stdio_launch_decision.py \
   --sandboxed \
   --network-egress allowlist \
   --env-key RECIPES_MCP_TRANSPORT \
+  --client-era dual-era \
+  --discover-probe-policy probe-first \
   --expect-decision allow_pinned_sandboxed_stdio_launch
+```
+
+Hold a dual-era client that skips the `server/discover` probe:
+
+```bash
+python3 scripts/evaluate_mcp_stdio_launch_decision.py \
+  --launch-id security-recipes-local-stdio \
+  --command python \
+  --arg mcp_server.py \
+  --sandboxed \
+  --network-egress allowlist \
+  --env-key RECIPES_MCP_TRANSPORT \
+  --client-era dual-era \
+  --discover-probe-policy skip \
+  --expect-decision hold_for_owner_review
+```
+
+Kill a wrong-era fallback after a modern `server/discover` response:
+
+```bash
+python3 scripts/evaluate_mcp_stdio_launch_decision.py \
+  --launch-id security-recipes-local-stdio \
+  --command python \
+  --arg mcp_server.py \
+  --sandboxed \
+  --network-egress allowlist \
+  --env-key RECIPES_MCP_TRANSPORT \
+  --client-era dual-era \
+  --discover-probe-policy probe-first \
+  --discover-probe-result modern-error \
+  --legacy-initialize-fallback \
+  --expect-decision kill_session_on_secret_or_privilege_request
+```
+
+Kill a proxy architecture whose token is not bound to the registered launch:
+
+```bash
+python3 scripts/evaluate_mcp_stdio_launch_decision.py \
+  --launch-id security-recipes-local-stdio \
+  --command python \
+  --arg mcp_server.py \
+  --sandboxed \
+  --network-egress allowlist \
+  --env-key RECIPES_MCP_TRANSPORT \
+  --proxy-spawn-architecture \
+  --expect-decision kill_session_on_secret_or_privilege_request
 ```
 
 ## Launch decisions
 
 | Decision | Meaning |
 | --- | --- |
-| `allow_pinned_sandboxed_stdio_launch` | The command, args, package, sandbox, environment, network, filesystem, and evidence all match the registered boundary. |
-| `hold_for_owner_review` | The launch is known, but missing sandbox, approval, network, environment, or profile evidence. |
+| `allow_pinned_sandboxed_stdio_launch` | The command, args, package, sandbox, environment, network, filesystem, discover-probe policy, and evidence all match the registered boundary. |
+| `hold_for_owner_review` | The launch is known, but missing sandbox, approval, discover-first policy, extra proxy-child sandbox, or profile evidence. |
 | `deny_unregistered_stdio_launch` | The launch ID or profile is unknown. Run intake before allowing it. |
 | `deny_untrusted_package_launch` | The launch uses package-runner bootstrap, floating versions, unverified publisher state, or missing digest/signature evidence. |
 | `deny_shell_or_network_bootstrap` | The launch uses shell wrappers, command chaining, broad network bootstrap, private-network reachability, or command drift. |
-| `kill_session_on_secret_or_privilege_request` | The launch attempts to pass secrets, inherited credentials, root privileges, private keys, tokens, or prohibited data to the subprocess. |
+| `kill_session_on_secret_or_privilege_request` | The launch attempts to pass secrets, inherited credentials, root privileges, private keys, tokens, prohibited data, a wrong-era initialize fallback, or an unbound proxy spawn to the subprocess. |
 
 ## What the evaluator checks
 
@@ -107,6 +159,8 @@ python3 scripts/evaluate_mcp_stdio_launch_decision.py \
 | Environment | Secret-like keys such as tokens, API keys, passwords, SSH agent sockets, and private-key material kill the session unless explicitly allowed. |
 | Network | Wildcard, unrestricted, private-network, or metadata-endpoint reachability is denied for local launches. |
 | Filesystem | Declared roots and modes become the policy surface for endpoint or sandbox enforcement. |
+| Dual-era discover probe | Dual-era clients must declare `server/discover` first. Falling back to `initialize` after `DiscoverResult` or a recognized modern error kills the session. |
+| Proxy spawn | A local proxy that can spawn STDIO children needs a token bound to the registered launch, extra child sandboxing, and spawn audit logs. |
 | Approval | Browser automation, source-control write, registry publish, credential access, broad network, and subprocess-spawn capabilities require typed approval. |
 
 ## Current sample boundaries
@@ -129,13 +183,17 @@ python3 scripts/evaluate_mcp_stdio_launch_decision.py \
 
 This feature follows current primary guidance:
 
-- [MCP Transports](https://modelcontextprotocol.io/specification/2026-07-28/basic/transports)
-  defines STDIO as a client-launched subprocess and warns local HTTP
-  transports to avoid DNS rebinding exposure.
-- [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices)
+- [MCP stdio transport](https://modelcontextprotocol.io/specification/2026-07-28/basic/transports/stdio)
+  defines STDIO as a client-launched subprocess and requires dual-era
+  clients to probe with `server/discover` before falling back to
+  `initialize`.
+- [MCP server/discover](https://modelcontextprotocol.io/specification/2026-07-28/server/discover)
+  is mandatory for servers and is the stdio backward-compatibility probe.
+  `serverInfo` is for display and logging, not security decisions.
+- [MCP Security Best Practices](https://modelcontextprotocol.io/docs/2026-07-28/tutorials/security/security_best_practices)
   covers local MCP server compromise, malicious startup commands,
-  sandboxing, consent, filesystem control, network control, and scope
-  minimization.
+  sandboxing, consent, filesystem control, network control, and proxy
+  architectures that can escalate a stolen proxy token into host RCE.
 - [MCP Authorization](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
   says HTTP authorization guidance does not apply to STDIO; local
   credentials come from the environment, so environment policy matters.
@@ -164,8 +222,9 @@ This feature follows current primary guidance:
 2. Generate the launch boundary pack and publish it to the internal MCP
    client, endpoint policy agent, or platform control plane.
 3. Before spawning a STDIO server, call the evaluator with the actual
-   command, args, environment keys, network posture, sandbox state, and
-   approval record.
+   command, args, environment keys, network posture, sandbox state,
+   dual-era discover-probe policy, proxy-spawn evidence, and approval
+   record.
 4. Spawn only on `allow_pinned_sandboxed_stdio_launch`.
 5. Treat `hold_for_owner_review`, `deny_*`, and `kill_*` as enforceable
    outcomes with audit records.

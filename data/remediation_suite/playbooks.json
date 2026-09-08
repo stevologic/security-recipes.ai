@@ -3873,7 +3873,7 @@
       "title": "MCP STDIO Launch Boundary",
       "page": "/security-remediation/mcp-stdio-launch-boundary/",
       "category": "mcp-governance",
-      "summary": "Validate a local MCP STDIO command, package, environment, working directory, permissions, and client configuration before process launch.",
+      "summary": "Validate a local MCP STDIO command, package, environment, discover-probe policy, proxy spawn binding, and client configuration before process launch.",
       "phases": [
         {
           "label": "Signal",
@@ -3888,7 +3888,7 @@
         {
           "label": "Decision",
           "title": "Inspect process boundaries",
-          "detail": "Check shell use, argument injection, environment secrets, cwd/workspace access, network, filesystem, subprocesses, and permissions."
+          "detail": "Check shell use, argument injection, environment secrets, cwd/workspace access, network, filesystem, dual-era server/discover probe policy, proxy token binding, subprocesses, and permissions."
         },
         {
           "label": "Action",
@@ -3902,13 +3902,14 @@
         }
       ],
       "gate": {
-        "question": "Is the resolved launch immutable, shell-safe, minimally privileged, workspace-bounded, and free of exposed secrets?",
+        "question": "Is the resolved launch immutable, shell-safe, discover-first when dual-era, proxy-token-bound, workspace-bounded, and free of exposed secrets?",
         "pass": "Start the approved STDIO server in its declared sandbox.",
-        "stop": "Hold, deny, or kill unknown, mutable, shell-interpreted, secret-bearing, or overprivileged launch requests."
+        "stop": "Hold, deny, or kill unknown, mutable, wrong-era, unbound-proxy, secret-bearing, or overprivileged launch requests."
       },
       "evidence": [
         "resolved command/package identity",
         "argv/env/cwd/permission checks",
+        "discover-probe and proxy-spawn evidence",
         "launch decision and process receipt"
       ],
       "outputs": [
@@ -3931,7 +3932,9 @@
         "MCP STDIO security",
         "MCP command injection",
         "local MCP launch",
-        "MCP client config"
+        "MCP client config",
+        "MCP server/discover stdio",
+        "MCP stdio proxy spawn"
       ]
     },
     {
