@@ -31,6 +31,9 @@ SENSITIVE_FIELD_RE = re.compile(
     r"(password|passwd|secret|token|api[_-]?key|private[_-]?key|seed[_-]?phrase|card[_-]?number|cvv|session[_-]?cookie)",
     re.IGNORECASE,
 )
+TASK_DELIVERIES = {"tasks_get", "task_bound", "tasks/get", "create_task_result"}
+GUESSABLE_TASK_ID_RE = re.compile(r"^(?:\d+|task-\d+|id-\d+|test|sample|demo)$", re.IGNORECASE)
+MIN_TASK_ID_ENTROPY_CHARS = 16
 
 
 class MCPElicitationBoundaryDecisionError(RuntimeError):
@@ -123,6 +126,10 @@ def normalize_request(runtime_request: dict[str, Any]) -> dict[str, Any]:
         "gateway_policy_hash",
         "authorization_pack_hash",
         "response_action",
+        "delivery",
+        "task_id",
+        "task_status",
+        "result_type",
     ]:
         request[key] = str(request.get(key) or "").strip()
     for key in [
@@ -147,6 +154,13 @@ def normalize_request(runtime_request: dict[str, Any]) -> dict[str, Any]:
         "user_can_decline",
         "user_can_review",
         "user_consent_recorded",
+        "tasks_extension_declared",
+        "task_id_unguessable",
+        "task_id_guessable",
+        "task_request_authorized",
+        "tasks_update_used",
+        "task_treated_as_higher_trust",
+        "original_method_retried_for_task_input",
     ]:
         request[key] = as_bool(request.get(key))
     request["requested_data_classes"] = [
@@ -204,6 +218,8 @@ def decision_result(
             "correlation_id": request.get("correlation_id"),
             "input_request_id": request.get("input_request_id"),
             "request_state_present": bool(request.get("request_state")),
+            "delivery": request.get("delivery"),
+            "task_id_present": bool(request.get("task_id")),
             "elicitation_profile_id": request.get("elicitation_profile_id"),
             "mode": request.get("mode"),
             "namespace": request.get("namespace"),
@@ -252,6 +268,24 @@ def form_has_sensitive_fields(request: dict[str, Any]) -> bool:
     return any(SENSITIVE_FIELD_RE.search(field) for field in request.get("response_schema_fields", []))
 
 
+def is_task_bound_elicitation(request: dict[str, Any]) -> bool:
+    delivery = str(request.get("delivery") or "").strip().lower()
+    if delivery in TASK_DELIVERIES:
+        return True
+    if str(request.get("result_type") or "").strip().lower() == "task":
+        return True
+    if str(request.get("task_status") or "").strip().lower() == "input_required":
+        return True
+    return bool(str(request.get("task_id") or "").strip())
+
+
+def task_id_looks_guessable(task_id: str) -> bool:
+    compact = re.sub(r"[-_]", "", task_id)
+    if len(compact) < MIN_TASK_ID_ENTROPY_CHARS:
+        return True
+    return bool(GUESSABLE_TASK_ID_RE.match(task_id.strip()))
+
+
 def evaluate_mcp_elicitation_boundary_decision(
     elicitation_pack: dict[str, Any],
     runtime_request: dict[str, Any],
@@ -293,6 +327,27 @@ def evaluate_mcp_elicitation_boundary_decision(
             workflow=workflow,
             violations=["token_or_secret_transit=true"],
         )
+
+    if is_task_bound_elicitation(request):
+        kill_violations = []
+        if not request["tasks_extension_declared"]:
+            kill_violations.append("tasks_extension_declared=false")
+        if request["task_id_guessable"] or (
+            request.get("task_id") and task_id_looks_guessable(str(request.get("task_id")))
+        ):
+            kill_violations.append("task_id is guessable or lacks required entropy")
+        if request["task_treated_as_higher_trust"]:
+            kill_violations.append("task_treated_as_higher_trust=true")
+        if kill_violations:
+            return decision_result(
+                decision="kill_session_on_elicitation_abuse",
+                reason="task-bound elicitation returned a handle without the tasks extension, used a guessable task ID, or treated the task as a higher-trust channel",
+                pack=elicitation_pack,
+                request=request,
+                profile=profile,
+                workflow=workflow,
+                violations=kill_violations,
+            )
 
     if profile is None:
         return decision_result(
@@ -392,6 +447,29 @@ def evaluate_mcp_elicitation_boundary_decision(
                 violations=violations,
             )
 
+    if is_task_bound_elicitation(request):
+        hold_violations = []
+        if not request.get("task_id"):
+            hold_violations.append("task_id=<missing>")
+        if not request["task_id_unguessable"]:
+            hold_violations.append("task_id_unguessable=false")
+        if not request["task_request_authorized"]:
+            hold_violations.append("task_request_authorized=false")
+        if not request["tasks_update_used"]:
+            hold_violations.append("tasks_update_used=false")
+        if request["original_method_retried_for_task_input"]:
+            hold_violations.append("original_method_retried_for_task_input=true")
+        if hold_violations:
+            return decision_result(
+                decision="hold_for_elicitation_evidence",
+                reason="task-bound elicitation is missing entropy, auth-binding, or tasks/update fulfillment evidence",
+                pack=elicitation_pack,
+                request=request,
+                profile=profile,
+                workflow=workflow,
+                violations=hold_violations,
+            )
+
     missing = missing_identity_fields(request)
     if missing:
         return decision_result(
@@ -443,12 +521,15 @@ def evaluate_mcp_elicitation_boundary_decision(
             violations=["user_can_review=false"],
         )
 
+    task_bound = is_task_bound_elicitation(request)
+    url_request_bound = request["tasks_update_used"] if task_bound else request["retry_request_bound"]
     if mode == "url" and (
         not request["user_consent_recorded"]
         or not request["request_state_echoed_exactly"]
         or not request["request_state_integrity_validated"]
-        or not request["retry_request_bound"]
+        or not url_request_bound
     ):
+        binding_flag = "tasks_update_used=false" if task_bound else "retry_request_bound=false"
         return decision_result(
             decision="hold_for_elicitation_evidence",
             reason="URL-mode consent or multi-round-trip request binding evidence is missing",
@@ -462,12 +543,12 @@ def evaluate_mcp_elicitation_boundary_decision(
                     "user_consent_recorded=false",
                     "request_state_echoed_exactly=false",
                     "request_state_integrity_validated=false",
-                    "retry_request_bound=false",
+                    binding_flag,
                 ]
                 if flag == "user_consent_recorded=false" and not request["user_consent_recorded"]
                 or flag == "request_state_echoed_exactly=false" and not request["request_state_echoed_exactly"]
                 or flag == "request_state_integrity_validated=false" and not request["request_state_integrity_validated"]
-                or flag == "retry_request_bound=false" and not request["retry_request_bound"]
+                or flag == binding_flag and not url_request_bound
             ],
         )
 
@@ -527,6 +608,10 @@ def request_from_args(args: argparse.Namespace) -> dict[str, Any]:
         "gateway_policy_hash",
         "authorization_pack_hash",
         "response_action",
+        "delivery",
+        "task_id",
+        "task_status",
+        "result_type",
     ]:
         value = getattr(args, key)
         if value not in (None, ""):
@@ -557,6 +642,13 @@ def request_from_args(args: argparse.Namespace) -> dict[str, Any]:
         "user_can_decline",
         "user_can_review",
         "user_consent_recorded",
+        "tasks_extension_declared",
+        "task_id_unguessable",
+        "task_id_guessable",
+        "task_request_authorized",
+        "tasks_update_used",
+        "task_treated_as_higher_trust",
+        "original_method_retried_for_task_input",
     ]:
         if getattr(args, flag):
             payload[flag] = True
@@ -611,6 +703,25 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--user-can-decline", dest="user_can_decline", action="store_true")
     parser.add_argument("--user-can-review", dest="user_can_review", action="store_true")
     parser.add_argument("--user-consent-recorded", dest="user_consent_recorded", action="store_true")
+    parser.add_argument(
+        "--delivery",
+        choices=["input_required_result", "tasks_get"],
+        help="How elicitation arrived: synchronous InputRequiredResult or tasks/get inputRequests.",
+    )
+    parser.add_argument("--task-id", dest="task_id")
+    parser.add_argument("--task-status", dest="task_status")
+    parser.add_argument("--result-type", dest="result_type")
+    parser.add_argument("--tasks-extension-declared", dest="tasks_extension_declared", action="store_true")
+    parser.add_argument("--task-id-unguessable", dest="task_id_unguessable", action="store_true")
+    parser.add_argument("--task-id-guessable", dest="task_id_guessable", action="store_true")
+    parser.add_argument("--task-request-authorized", dest="task_request_authorized", action="store_true")
+    parser.add_argument("--tasks-update-used", dest="tasks_update_used", action="store_true")
+    parser.add_argument("--task-treated-as-higher-trust", dest="task_treated_as_higher_trust", action="store_true")
+    parser.add_argument(
+        "--original-method-retried-for-task-input",
+        dest="original_method_retried_for_task_input",
+        action="store_true",
+    )
     parser.add_argument("--expect-decision", choices=sorted(VALID_DECISIONS))
     return parser.parse_args(argv)
 

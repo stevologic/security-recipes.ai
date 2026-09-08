@@ -3,11 +3,12 @@ title: MCP Elicitation Boundary
 linkTitle: MCP Elicitation Boundary
 weight: 11
 date: 2026-05-04
-lastmod: 2026-08-21
+lastmod: 2026-08-31
 toc: true
 description: >
-  Enforce MCP multi-round-trip form-mode and URL-mode elicitation boundaries
-  with state binding, allowlists, approval gates, and deterministic decisions.
+  Enforce MCP multi-round-trip and tasks-extension form-mode and URL-mode
+  elicitation boundaries with state binding, allowlists, approval gates,
+  and deterministic decisions.
 sidebar:
   exclude: true
 breadcrumb_parent: /agentic-security/
@@ -34,9 +35,21 @@ version needs a default-deny policy:
   parent request, and servers only ask for modes declared on that request;
 - servers return elicitation inside `InputRequiredResult.inputRequests`,
   never as a standalone server-initiated JSON-RPC request;
+- long-running `tools/call` work MAY instead return
+  `CreateTaskResult`; later `tasks/get` snapshots MAY carry the same
+  elicitation `inputRequests`, which clients fulfill with `tasks/update`,
+  not by retrying the original method;
+- hosts **MUST** apply the same form, URL, consent, and secret-collection
+  controls to task-bound `inputRequests`. A task is not a higher-trust
+  channel;
+- clients **MUST** declare `io.modelcontextprotocol/tasks` on that parent
+  request. Servers **MUST NOT** return a task handle otherwise;
+- task IDs **MAY** be bearer tokens: they **MUST** be unguessable, and
+  every `tasks/get`, `tasks/update`, and `tasks/cancel` **MUST** be
+  authenticated and authorized. Do not treat a task ID as `Mcp-Session-Id`;
 - clients correlate each response by its `inputRequests` map key, echo
   opaque `requestState` exactly, and retry the original operation with a
-  new JSON-RPC ID;
+  new JSON-RPC ID when the elicitation used `InputRequiredResult`;
 - servers treat `requestState` as attacker-controlled, verify its integrity,
   bind it to the principal and original request, enforce a short expiry, and
   add single-use enforcement where replay would have side effects;
@@ -105,6 +118,45 @@ python3 scripts/evaluate_mcp_elicitation_boundary_decision.py \
   --expect-decision allow_elicitation_with_receipt
 ```
 
+Evaluate the same URL-mode OAuth request when it arrives on a task handle:
+
+```bash
+python3 scripts/evaluate_mcp_elicitation_boundary_decision.py \
+  --workflow-id mcp-connector-intake-scanner \
+  --agent-id sr-agent::mcp-connector-intake::codex \
+  --run-id run-125 \
+  --connector-id github \
+  --namespace github.oauth \
+  --server-id mcp-server::github \
+  --elicitation-profile-id profile-third-party-oauth-url \
+  --input-request-id github_oauth \
+  --request-state opaque-aead-state \
+  --mode url \
+  --url https://github.com/login/oauth/authorize \
+  --url-domain github.com \
+  --user-id user-125 \
+  --session-id session-125 \
+  --correlation-id corr-125 \
+  --authorization-pack-hash auth-pack-sha256 \
+  --delivery tasks_get \
+  --task-id 8f3c9e2a1b4d80c65e4a3210abcdef12 \
+  --task-status input_required \
+  --result-type task \
+  --tasks-extension-declared \
+  --task-id-unguessable \
+  --task-request-authorized \
+  --tasks-update-used \
+  --client-supports-mode \
+  --server-identity-displayed \
+  --user-can-decline \
+  --user-consent-recorded \
+  --request-state-echoed-exactly \
+  --request-state-integrity-validated \
+  --https-url \
+  --url-allowlisted \
+  --expect-decision allow_elicitation_with_receipt
+```
+
 Evaluate a blocked secret-form request:
 
 ```bash
@@ -128,16 +180,36 @@ python3 scripts/evaluate_mcp_elicitation_boundary_decision.py \
   --expect-decision deny_sensitive_form_elicitation
 ```
 
+Kill a task handle that was returned without the tasks extension:
+
+```bash
+python3 scripts/evaluate_mcp_elicitation_boundary_decision.py \
+  --workflow-id mcp-connector-intake-scanner \
+  --agent-id sr-agent::mcp-connector-intake::codex \
+  --run-id run-126 \
+  --server-id mcp-server::github \
+  --elicitation-profile-id profile-third-party-oauth-url \
+  --input-request-id github_oauth \
+  --mode url \
+  --url https://github.com/login/oauth/authorize \
+  --session-id session-126 \
+  --correlation-id corr-126 \
+  --delivery tasks_get \
+  --task-id 1 \
+  --client-supports-mode \
+  --expect-decision kill_session_on_elicitation_abuse
+```
+
 ## Decision model
 
 | Decision | Meaning |
 | --- | --- |
-| `allow_elicitation_with_receipt` | The request satisfies mode, data-class, URL, consent, identity, and receipt controls. |
-| `hold_for_elicitation_evidence` | The request is missing profile, client capability, identity, consent, review, completion, or workflow evidence. |
-| `deny_sensitive_form_elicitation` | Form mode is asking for a secret, token, payment credential, private key, seed phrase, or secret-like field. |
+| `allow_elicitation_with_receipt` | The request satisfies mode, data-class, URL, consent, identity, receipt, and (when present) task-handle controls. |
+| `hold_for_elicitation_evidence` | The request is missing profile, client capability, identity, consent, review, completion, workflow, task-ID entropy, auth-binding, or `tasks/update` evidence. |
+| `deny_sensitive_form_elicitation` | Form mode is asking for a secret, token, payment credential, private key, seed phrase, or secret-like field, including when that form arrived on a task. |
 | `deny_untrusted_elicitation_url` | URL mode failed HTTPS, allowlist, phishing, open-redirect, prefetch, pre-authenticated URL, or sensitive-URL checks. |
 | `deny_token_or_secret_transit` | Credentials or tokens would transit the MCP client, LLM context, or intermediate MCP server. |
-| `kill_session_on_elicitation_abuse` | A runtime kill signal fired or a URL was opened without explicit consent. |
+| `kill_session_on_elicitation_abuse` | A runtime kill signal fired, a URL was opened without consent, a task handle was returned without `io.modelcontextprotocol/tasks`, a task ID is guessable, or the host treated the task as a higher-trust channel. |
 
 ## What the pack proves
 
@@ -158,12 +230,16 @@ For MCP 2026-07-28, the answer also covers the breaking multi-round-trip
 transport change: supported parent request, per-request client capability,
 unique input-request correlation, exact opaque-state echo, a distinct retry
 request ID, state integrity and replay protection, and binding to the
-authenticated principal and original operation. Rechecked August 23, 2026:
+authenticated principal and original operation. Rechecked August 31, 2026:
 2026-07-28 is still current and **stateless**. There is no negotiation
 handshake. Servers **MUST** implement
 [`server/discover`](https://modelcontextprotocol.io/specification/2026-07-28/server/discover).
-`--session-id` and `kill_session` here are local run identifiers and
-host-session kill switches, not `Mcp-Session-Id`. Streamable HTTP
+Experimental tasks moved into the
+[`io.modelcontextprotocol/tasks`](https://modelcontextprotocol.io/extensions/tasks/overview)
+extension. Task-bound elicitation uses `tasks/get` `inputRequests` and
+`tasks/update`, not a retry of the original method. `--session-id` and
+`kill_session` here are local run identifiers and host-session kill
+switches, not `Mcp-Session-Id` and not a task ID. Streamable HTTP
 revisions through
 [2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25)
 could assign that header; 2026-07-28 ignores it and does not mint
@@ -179,6 +255,10 @@ This feature follows current primary guidance:
 - [MCP Multi Round-Trip Requests 2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28/basic/patterns/mrtr)
   for the breaking replacement of server-initiated requests, opaque
   `requestState`, retry correlation, integrity checks, and replay protection.
+- [MCP Tasks Extension 2026-07-28](https://modelcontextprotocol.io/extensions/tasks/overview)
+  for `CreateTaskResult` handles, `tasks/get` polling, `tasks/update`
+  input, unguessable task IDs, auth binding, and the rule that task
+  `inputRequests` use the same elicitation trust model.
 - [MCP Authorization 2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
   for protected-resource metadata, resource indicators, audience-bound
   tokens, client identity metadata, and scope challenges.
