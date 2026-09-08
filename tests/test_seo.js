@@ -246,6 +246,31 @@ test("authored article dates choose the newest valid lastmod, git, or publicatio
   assert.equal(fromFrontMatter.dateModified, "2026-07-23T09:15:00.000Z");
 });
 
+test("catalog-dependent pages take catalog freshness as dateModified", () => {
+  const homepage = articleDatesFor({
+    sourcePath: "_index.md",
+    date: "2026-08-21",
+    lastmod: "2026-08-21",
+    catalogUpdatedAt: "2026-09-08T07:01:49Z",
+  }, () => new Map());
+  const database = articleDatesFor({
+    sourcePath: "cve-database/_index.md",
+    date: "2026-08-21",
+    lastmod: "2026-08-21",
+    catalogUpdatedAt: "2026-09-08T07:01:49Z",
+  }, () => new Map());
+  const about = articleDatesFor({
+    sourcePath: "about/_index.md",
+    date: "2026-08-21",
+    lastmod: "2026-08-21",
+    catalogUpdatedAt: "2026-09-08T07:01:49Z",
+  }, () => new Map());
+
+  assert.equal(homepage.dateModified, "2026-09-08T07:01:49.000Z");
+  assert.equal(database.dateModified, "2026-09-08T07:01:49.000Z");
+  assert.equal(about.dateModified, "2026-08-21T00:00:00.000Z");
+});
+
 test("authored article dates reject ambiguous, malformed, and impossible timestamps", () => {
   const dates = articleDatesFor({
     date: "05/02/2026",

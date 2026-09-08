@@ -11,6 +11,7 @@ const {
   hasCompleteAiEnrichment,
   hasStableMarkdown,
   isCveSearchIndexable,
+  loadCatalogUpdatedAt,
   loadCveSearchIndexableIds,
   loadCveSearchIndexableRecords,
   normalizeQualifiedRecord,
@@ -93,6 +94,7 @@ test("indexable CVE IDs come from the integrity-checked evidence-qualified allow
     }),
   );
 
+  assert.equal(loadCatalogUpdatedAt(root), "2026-07-21");
   assert.deepEqual(
     [...loadCveSearchIndexableIds(root)].sort(),
     ["CVE-2026-1000", "CVE-2026-1001"],
