@@ -215,13 +215,12 @@ class CveSyncWorkflowTests(unittest.TestCase):
         self.assertIn(f"GH_TOKEN: ${{{{ {app_first_token} }}}}", commit_step)
         self.assertIn("MAX_DELIVERY_ATTEMPTS=5", delivery_step)
         self.assertIn(
-            "gh workflow run cve-catalog-validate-request.yml", delivery_step
+            "gh workflow run cve-catalog-validate.yml", delivery_step
         )
         self.assertIn("--workflow cve-catalog-validate.yml", delivery_step)
-        self.assertIn("--event workflow_run", delivery_step)
+        self.assertIn("--event workflow_dispatch", delivery_step)
         self.assertIn(
-            "Execute CVE catalog validation request ${request_id} "
-            "PR-${PR_NUMBER} @ ${EXPECTED_SHA}",
+            "CVE catalog validation ${request_id} @ ${EXPECTED_SHA}",
             delivery_step,
         )
         self.assertIn('--ref "$GITHUB_DEFAULT_BRANCH"', delivery_step)
