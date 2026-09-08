@@ -310,9 +310,19 @@ def tabletop_cases() -> list[dict[str, Any]]:
             "trigger": "The workflow is missing from the generated matrix or source freshness is stale enough to drop the score below the deny threshold."
         },
         {
+            "expected_decision": "deny_untrusted_agent",
+            "id": "long-lived-static-credential",
+            "trigger": "An agent authenticates with a long-lived static API key or unconstrained bearer token instead of a unique, short-lived, scoped credential."
+        },
+        {
             "expected_decision": "kill_session_on_agent_trust_break",
             "id": "token-passthrough-or-secret-egress",
             "trigger": "A protected MCP token is passed downstream, a revoked identity is used, or a secret crosses an external egress boundary."
+        },
+        {
+            "expected_decision": "kill_session_on_agent_trust_break",
+            "id": "shared-human-credential-or-local-impersonation",
+            "trigger": "An agent is using a shared human credential or impersonating a local user account instead of a unique, run-bound identity."
         }
     ]
 
