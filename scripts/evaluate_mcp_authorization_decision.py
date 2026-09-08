@@ -8,12 +8,16 @@ runtime evaluator gives an MCP gateway or agent host a deterministic
 allow, hold, deny, or kill-session decision before the tool call is
 forwarded. MCP 2026-07-28 requires RFC 9207 authorization-response
 issuer checks before a code is redeemed; this evaluator applies the
-same mix-up rule to the stored grant evidence on a tool call.
+same mix-up rule to the stored grant evidence on a tool call. MCP
+security best practices also require clients to reject authorization
+URLs that are not http(s), including javascript:, data:, file:, and
+vbscript: schemes, before those URLs are opened.
 """
 
 from __future__ import annotations
 
 import argparse
+import ipaddress
 import json
 import sys
 from pathlib import Path
@@ -30,10 +34,14 @@ VALID_DECISIONS = {
     "deny_token_passthrough",
     "deny_unbound_token",
     "deny_authorization_issuer_mismatch",
+    "deny_insecure_authorization_url",
     "deny_scope_challenge_mismatch",
     "deny_scope_drift",
     "kill_session_on_secret_or_signer_scope",
 }
+
+PROHIBITED_AUTHORIZATION_URL_SCHEMES = {"javascript", "data", "file", "vbscript"}
+LOOPBACK_HOSTS = {"localhost", "127.0.0.1", "::1", "0:0:0:0:0:0:0:1"}
 
 HTTP_TRANSPORTS = {"streamable-http", "http", "sse"}
 STEP_UP_ACCESS_MODES = {"approval_required"}
@@ -86,6 +94,42 @@ def is_https_issuer_identifier(value: str) -> bool:
         and not parsed.fragment
         and value == value.strip()
     )
+
+
+def is_loopback_host(hostname: str) -> bool:
+    """Return True when hostname is localhost or a loopback IP."""
+    host = hostname.strip("[]").lower()
+    if host in LOOPBACK_HOSTS:
+        return True
+    try:
+        return ipaddress.ip_address(host).is_loopback
+    except ValueError:
+        return False
+
+
+def authorization_url_violations(url: str) -> list[str]:
+    """Return MCP authorization-URL scheme failures for one endpoint.
+
+    MCP security best practices require clients to open only http(s)
+    authorization URLs. javascript:, data:, file:, and vbscript: are
+    prohibited. http is acceptable only for loopback addresses during
+    local development; production authorization servers MUST use https.
+    An unspecified URL is not a violation so existing grant evidence
+    stays on the prior allow path.
+    """
+    if not url:
+        return []
+    parsed = urlparse(url)
+    scheme = (parsed.scheme or "").lower()
+    if scheme in PROHIBITED_AUTHORIZATION_URL_SCHEMES:
+        return [f"authorization endpoint uses prohibited {scheme}: scheme"]
+    if scheme not in {"http", "https"}:
+        return [f"authorization endpoint scheme {scheme or 'missing'!r} is not http or https"]
+    if not parsed.netloc:
+        return ["authorization endpoint is missing a host"]
+    if scheme == "http" and not is_loopback_host(parsed.hostname or ""):
+        return ["http authorization endpoints are allowed only for loopback addresses during local development"]
+    return []
 
 
 def rfc9207_issuer_violations(request: dict[str, Any]) -> list[str]:
@@ -169,6 +213,7 @@ def normalize_request(runtime_request: dict[str, Any]) -> dict[str, Any]:
         "protected_resource_metadata_url",
         "expected_authorization_issuer",
         "authorization_response_iss",
+        "authorization_endpoint_url",
         "resource_indicator",
         "token_audience",
         "token_issuer",
@@ -222,6 +267,7 @@ def decision_result(
             "authorization_response_iss_parameter_supported": request.get(
                 "authorization_response_iss_parameter_supported"
             ),
+            "authorization_endpoint_url": request.get("authorization_endpoint_url"),
             "expected_authorization_issuer": request.get("expected_authorization_issuer"),
             "conformance_decision": connector.get("conformance_decision") if connector else None,
             "observed_runtime_attributes": sorted(k for k, v in request.items() if v not in (None, "", [], {}, False)),
@@ -239,6 +285,7 @@ def decision_result(
             "authorization_response_iss_parameter_supported": request.get(
                 "authorization_response_iss_parameter_supported"
             ),
+            "authorization_endpoint_url": request.get("authorization_endpoint_url"),
             "connector_id": request.get("connector_id"),
             "correlation_id": request.get("correlation_id"),
             "expected_authorization_issuer": request.get("expected_authorization_issuer"),
@@ -336,6 +383,18 @@ def evaluate_mcp_authorization_decision(
             connector=connector,
             workflow=workflow,
             violations=violations,
+        )
+
+    url_violations = authorization_url_violations(request.get("authorization_endpoint_url") or "")
+    if url_violations:
+        return decision_result(
+            decision="deny_insecure_authorization_url",
+            reason="authorization endpoint URL is not a safe http or https URL to open",
+            pack=authorization_pack,
+            request=request,
+            connector=connector,
+            workflow=workflow,
+            violations=url_violations,
         )
 
     canonical_resource_uri = str(connector.get("canonical_resource_uri") or contract.get("canonical_mcp_resource_uri") or "")
@@ -496,6 +555,7 @@ def request_from_args(args: argparse.Namespace) -> dict[str, Any]:
         "protected_resource_metadata_url",
         "expected_authorization_issuer",
         "authorization_response_iss",
+        "authorization_endpoint_url",
         "resource_indicator",
         "token_audience",
         "token_issuer",
@@ -547,6 +607,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         dest="authorization_response_iss_parameter_supported",
         action="store_true",
     )
+    parser.add_argument("--authorization-endpoint-url", dest="authorization_endpoint_url")
     parser.add_argument("--resource-indicator", dest="resource_indicator")
     parser.add_argument("--token-audience", dest="token_audience")
     parser.add_argument("--token-issuer", dest="token_issuer")

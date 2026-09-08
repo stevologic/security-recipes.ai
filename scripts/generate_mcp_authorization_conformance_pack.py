@@ -197,6 +197,7 @@ def registered_rows(connector_trust_pack: dict[str, Any], profile: dict[str, Any
                     "protected_resource_metadata_discovery",
                     "client_id_metadata_document",
                     "rfc9207_iss_validation",
+                    "authorization_url_scheme_validation",
                     "scope_challenge_handling",
                     "step_up_authorization"
                 ],
@@ -292,6 +293,7 @@ def candidate_rows(
                     "protected_resource_metadata_discovery",
                     "client_id_metadata_document",
                     "rfc9207_iss_validation",
+                    "authorization_url_scheme_validation",
                     "scope_challenge_handling",
                     "step_up_authorization"
                 ],
