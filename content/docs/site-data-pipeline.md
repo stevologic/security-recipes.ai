@@ -240,7 +240,9 @@ a SHA-pinned dispatch from catalog automation.
 `npm run build` is:
 
 1. `eleventy --quiet` — docs, recipes, `/cve-database/`, API JSON feeds,
-   `sitemap.xml` index, `sitemaps/pages.xml`, `sitemaps/cves-*.xml`
+   `sitemap.xml` index, `sitemaps/pages.xml`, year-partitioned
+   `sitemaps/cves-*.xml`, and a compatibility `sitemaps/cves.xml` index of
+   those year shards (not listed from the root index)
 2. `python scripts/materialize_cve_pages.py` — same MCP landing-page renderer
    the runtime fallback uses, written to `public/cve/<ID>/`
 3. `node scripts/copy_cve_catalog.js` — validate and copy the catalog outside
