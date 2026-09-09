@@ -20903,103 +20903,6 @@
         "Do not use crafted HTML or other exploit-like content for validation; version and deployment-state checks are sufficient for safe remediation verification."
       ]
     },
-    "CVE-2025-14733": {
-      "business_risk": "Critical remote unauthenticated code-execution risk in the Fireware OS iked process. The vulnerability is listed in CISA's Known Exploited Vulnerabilities catalog, so internet-exposed or otherwise reachable Firebox appliances should be prioritized for immediate remediation and post-remediation compromise assessment.",
-      "claim_evidence": [
-        {
-          "claim": "The affected product is WatchGuard Fireware OS running on Firebox appliances.",
-          "kind": "affected_product",
-          "source_url": "https://www.watchguard.com/es/wgrd-psirt/advisory/wgsa-2025-00027"
-        },
-        {
-          "claim": "Affected releases include Fireware OS 11.10.2 through 11.12.4_Update1, 12.0 through 12.11.5, 12.5.x through 12.5.14 on T15/T35, FIPS 12.3.1 before Update 4, and 2025.1 through 2025.1.3.",
-          "kind": "affected_version",
-          "source_url": "https://www.watchguard.com/es/wgrd-psirt/advisory/wgsa-2025-00027"
-        },
-        {
-          "claim": "The vulnerability affects Mobile User VPN with IKEv2 and Branch Office VPN using IKEv2 with a dynamic gateway peer; previously deleted configurations may still leave a Firebox vulnerable when a static-peer Branch Office VPN remains configured.",
-          "kind": "exposure",
-          "source_url": "https://www.watchguard.com/es/wgrd-psirt/advisory/wgsa-2025-00027"
-        },
-        {
-          "claim": "WatchGuard lists resolved versions 2025.1.4, 12.11.6, 12.5.15, and 12.3.1_Update4 (B728352), and lists 11.x as end-of-life.",
-          "kind": "fixed_version",
-          "source_url": "https://www.watchguard.com/es/wgrd-psirt/advisory/wgsa-2025-00027"
-        },
-        {
-          "claim": "WatchGuard directs administrators to install the Fireware OS release containing the vulnerability resolution and provides a temporary workaround for deployments limited to static-gateway Branch Office VPN tunnels.",
-          "kind": "remediation",
-          "source_url": "https://www.watchguard.com/es/wgrd-psirt/advisory/wgsa-2025-00027"
-        },
-        {
-          "claim": "Installed versions can be checked against the vendor's branch-specific resolved-version table; WatchGuard also states that an iked fault report or crash is only a weak indicator of attack.",
-          "kind": "verification",
-          "source_url": "https://www.watchguard.com/es/wgrd-psirt/advisory/wgsa-2025-00027"
-        },
-        {
-          "claim": "NVD identifies the vulnerability as a remote unauthenticated arbitrary-code-execution issue in WatchGuard Fireware OS and records the affected version ranges and CISA KEV catalog inclusion.",
-          "kind": "affected_product",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-14733"
-        }
-      ],
-      "exposure_conditions": [
-        "Fireware OS versions 11.10.2 through 11.12.4_Update1, 12.0 through 12.11.5, 12.5.x through 12.5.14 on T15/T35, 12.3.1 FIPS-certified releases before Update 4, and 2025.1 through 2025.1.3 are affected.",
-        "Exposure involves the Mobile User VPN with IKEv2 or a Branch Office VPN using IKEv2 configured with a dynamic gateway peer.",
-        "A Firebox may remain vulnerable after those configurations are deleted if a Branch Office VPN to a static gateway peer remains configured.",
-        "The attack is remotely reachable without authentication and can affect confidentiality, integrity, and availability."
-      ],
-      "gaps": [],
-      "generated_at": "2026-08-12T10:54:15Z",
-      "model": "gpt-5.6-luna",
-      "prompt_version": "2026-07-14.2",
-      "recipe_specificity": "not_specific",
-      "remediation_steps": [
-        "Upgrade Fireware OS to 2025.1.4 or later for the 2025.1 branch.",
-        "Upgrade Fireware OS to 12.11.6 or later for the 12.x branch.",
-        "Upgrade T15/T35 appliances running the 12.5.x branch to 12.5.15 or later.",
-        "For FIPS-certified 12.3.1 deployments, upgrade to 12.3.1_Update4 (B728352) or later.",
-        "Fireware 11.x is end-of-life; the vendor lists no 11.x fixed release, so migrate to a supported Fireware branch or discontinue use if migration or mitigation is unavailable.",
-        "If immediate upgrade is not possible and the appliance only has Branch Office VPN tunnels to static gateway peers, apply WatchGuard's documented temporary secure-access recommendations.",
-        "For appliances with confirmed threat-actor activity, rotate locally stored Firebox secrets according to WatchGuard's guidance and investigate for compromise."
-      ],
-      "retrieved_source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2025-14733",
-        "https://www.watchguard.com/es/wgrd-psirt/advisory/wgsa-2025-00027",
-        "https://www.watchguard.com/support/release-notes/fireware/2025/en_US/2025_1_4/Fireware_Release-Notes_v2025_1_4.pdf",
-        "https://www.watchguard.com/wgrd-blog/watchguard-fireware-versions-202514-12116-and-12515-available-now",
-        "https://www.watchguard.com/es/wgrd-psirt/advisories",
-        "https://techsearch.watchguard.com/KB?SFDCID=kA1Vr000000DMltKAG&lang=en_US&type=Article",
-        "https://www.watchguard.com/br/wgrd-psirt/advisories?order=title&search=&sort=desc&text=",
-        "https://www.watchguard.com/fr/wgrd-psirt/advisories?impact%5B1%5D=1&text=",
-        "https://www.watchguard.com/br/wgrd-psirt/advisories?impact%5B1%5D=1&order=field_adv_id&sort=asc&text=",
-        "https://www.watchguard.com/wgrd-psirt/advisory/wgsa-2025-00014",
-        "https://www.watchguard.com/de/wgrd-psirt/advisories?order=field_adv_impact&page=1&search=&sort=desc&text=",
-        "https://www.watchguard.com/fr/wgrd-psirt/advisories?impact%5B1%5D=1&order=title&sort=desc&text=",
-        "https://www.watchguard.com/br/wgrd-psirt/advisories?order=title&page=1&sort=asc&text=",
-        "https://www.watchguard.com/support/release-notes/fireware/12/en-US/EN_ReleaseNotes_Fireware_12_9_3/Fireware_Release-Notes_v12_9_3.pdf",
-        "https://www.watchguard.com/support/release-notes/fireware/2025/en_US/2025_1_3/Fireware_Release-Notes_v2025_1_3.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
-        "https://www.cisa.gov/sites/default/files/2025-08/CSA_COUNTERING_CHINA_STATE_ACTORS_COMPROMISE_OF_NETWORKS.pdf"
-      ],
-      "schema_version": 2,
-      "source_fingerprint": "fca1cb0780542c8c4260d5965e6cf2d431efef2fbb9383b51866cca75ed33332",
-      "source_urls": [
-        "https://www.watchguard.com/es/wgrd-psirt/advisory/wgsa-2025-00027",
-        "https://nvd.nist.gov/vuln/detail/CVE-2025-14733",
-        "https://www.watchguard.com/wgrd-blog/watchguard-fireware-versions-202514-12116-and-12515-available-now"
-      ],
-      "status": "complete",
-      "uncertainty": [
-        "The vendor advisory provides resolved versions and configuration conditions but does not provide a product-independent method for remotely validating the running Fireware version.",
-        "The advisory states that 11.x is end-of-life rather than identifying a fixed 11.x version.",
-        "An iked crash or fault report is not conclusive evidence of exploitation because other conditions can also cause the process to crash."
-      ],
-      "verification_steps": [
-        "Confirm that each appliance reports a Fireware OS version at or above the applicable resolved version: 2025.1.4, 12.11.6, 12.5.15, or 12.3.1_Update4 (B728352), as applicable.",
-        "For Fireware 11.x appliances, verify that they have been migrated to a supported fixed branch or removed from service; the vendor does not identify an 11.x fix.",
-        "Review affected appliances for evidence of exploitation after applying mitigations, especially those reachable from the internet. WatchGuard notes that an iked fault report or process crash can occur after exploitation but is only a weak indicator and is not sufficient by itself to confirm compromise."
-      ]
-    },
     "CVE-2025-20281": {
       "business_risk": "Critical risk: an unauthenticated remote attacker can exploit a specific Cisco ISE or ISE-PIC API to execute arbitrary operating-system code as root. Cisco reported attempted exploitation in the wild, and CISA lists the CVE in its Known Exploited Vulnerabilities Catalog.",
       "claim_evidence": [
@@ -24132,95 +24035,6 @@
         "If a hotfix was used instead of an upgrade, verify through the supported HPE update or security-status interface that the applicable CVE-2025-37164 hotfix completed successfully.",
         "Confirm that administrative access to the OneView management interface is limited to intended management networks and authorized personnel.",
         "Do not perform exploit testing or unauthenticated probing against the appliance; rely on version, patch, update-history, and vendor-supported health information."
-      ]
-    },
-    "CVE-2025-38352": {
-      "business_risk": "High. CVE-2025-38352 is a Linux kernel TOCTOU race in POSIX CPU timer handling. The issue is local-accessible and may affect confidentiality, integrity, and availability. It is listed in CISA's Known Exploited Vulnerabilities catalog, so vulnerable systems should be prioritized for remediation.",
-      "claim_evidence": [
-        {
-          "claim": "The affected product is the Linux kernel, specifically POSIX CPU-timer handling; NVD identifies the affected program area as kernel/time/posix-cpu-timers.c.",
-          "kind": "affected_product",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-38352"
-        },
-        {
-          "claim": "NVD lists affected upstream kernel ranges beginning at 2.6.36 and ending before the branch-specific fixed releases, including 5.4.295, 5.10.239, 5.15.186, 6.1.142, 6.6.94, 6.12.34, and 6.15.3.",
-          "kind": "affected_version",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-38352"
-        },
-        {
-          "claim": "The documented vulnerability is a race between handle_posix_cpu_timers() and posix_cpu_timer_del() during task exit, and NVD displays a local attack vector in the CISA-ADP assessment.",
-          "kind": "exposure",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-38352"
-        },
-        {
-          "claim": "NVD identifies 5.4.295, 5.10.239, 5.15.186, 6.1.142, 6.6.94, 6.12.34, and 6.15.3 as unaffected branch endpoints; versions at or above the relevant endpoint are treated as fixed by that record.",
-          "kind": "fixed_version",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-38352"
-        },
-        {
-          "claim": "The Debian 11 LTS advisory includes CVE-2025-38352 and states that the Debian 11 linux package issues listed in the advisory are fixed in version 5.10.244-1, recommending an upgrade.",
-          "kind": "remediation",
-          "source_url": "https://lists.debian.org/debian-lts-announce/2025/10/msg00007.html"
-        },
-        {
-          "claim": "A safe verification approach is to compare the running kernel or installed vendor package against the applicable fixed version, because NVD supplies branch-specific unaffected thresholds and Debian supplies a fixed package version for Debian 11.",
-          "kind": "verification",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-38352"
-        }
-      ],
-      "exposure_conditions": [
-        "The system runs a Linux kernel in an affected version range: 2.6.36 through the listed branch-specific fixed releases, including versions below 5.4.295, 5.10.239, 5.15.186, 6.1.142, 6.6.94, 6.12.34, or 6.15.3, as applicable to the kernel branch.",
-        "The vulnerable POSIX CPU-timer code path is present and usable. The documented race involves concurrent task exit, POSIX CPU-timer handling, and timer deletion.",
-        "The vulnerability is locally reachable according to the published CVSS attack-vector assessment; remote exposure is not established by the available sources."
-      ],
-      "gaps": [],
-      "generated_at": "2026-08-11T10:26:56Z",
-      "model": "gpt-5.6-luna",
-      "prompt_version": "2026-07-14.2",
-      "recipe_specificity": "not_specific",
-      "remediation_steps": [
-        "Upgrade to a vendor kernel containing the upstream fix. For upstream kernel branches, use at least 5.4.295, 5.10.239, 5.15.186, 6.1.142, 6.6.94, 6.12.34, or 6.15.3, depending on the deployed branch.",
-        "For Debian 11 LTS, update the linux package to version 5.10.244-1 or later, subject to the vendor's current security guidance.",
-        "After updating, ensure the system is running the remediated kernel according to the operating system vendor's standard kernel-update and reboot procedure.",
-        "If a vendor-supported fix is unavailable, apply the vendor's documented mitigation or discontinue use of the affected product, consistent with CISA KEV guidance."
-      ],
-      "retrieved_source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2025-38352",
-        "https://lists.debian.org/debian-lts-announce/",
-        "https://lists.debian.org/debian-lts-announce/2025/10/msg00007.html",
-        "https://lists.debian.org/debian-lts-announce/2025/10/msg00006.html",
-        "https://lists.debian.org/debian-lts-announce/2025/10/msg00005.html",
-        "https://lists.debian.org/debian-announce/",
-        "https://lists.debian.org/debian-lts-announce/2025/10/msg00008.html",
-        "https://lists.debian.org/debian-lts-announce/2025/10/msg00003.html",
-        "https://lists.debian.org/debian-lts-announce/2025/10/msg00035.html",
-        "https://lists.debian.org/debian-lts-changes/",
-        "https://lists.debian.org/debian-lts-announce/2025/09/msg00031.html",
-        "https://lists.debian.org/debian-lts-announce/2025/03/msg00002.html",
-        "https://lists.debian.org/debian-kernel/2012/02/pdfvq1B3rmTL3.pdf",
-        "https://lists.debian.org/debian-doc/2023/06/pdfXg1IRl68tr.pdf",
-        "https://lists.debian.org/debian-l10n-spanish/2007/01/pdfnFkaGun5VG.pdf",
-        "https://lists.debian.org/debian-cloud/2021/02/pdfRGv_paNhmH.pdf"
-      ],
-      "schema_version": 2,
-      "source_fingerprint": "76890cbac98a64cfa571bc59bb8454a17d508e7b942e1f98267103f89e9a2bb4",
-      "source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2025-38352",
-        "https://lists.debian.org/debian-lts-announce/2025/10/msg00007.html",
-        "https://lists.debian.org/debian-lts-announce/2025/10/msg00008.html"
-      ],
-      "status": "complete",
-      "uncertainty": [
-        "NVD provides upstream kernel version thresholds, but downstream distributions may backport the fix without matching the upstream version string.",
-        "The available evidence does not establish whether a particular deployment has CONFIG_POSIX_CPU_TIMERS_TASK_WORK enabled, although the upstream description states that the added check remains relevant even when that option is enabled.",
-        "No universal fixed package version was identified for distributions other than Debian 11.",
-        "The supplied record includes a future-dated last_modified value relative to the stated current date of August 11, 2026; this enrichment relies on the retrieved NVD and Debian advisory content rather than that unverified timestamp."
-      ],
-      "verification_steps": [
-        "Record the running kernel release and compare it with the applicable branch-specific fixed version identified by NVD.",
-        "For Debian 11, verify that the installed linux package is version 5.10.244-1 or later and that the running kernel corresponds to the updated package.",
-        "Confirm that the deployed kernel is not an affected 6.16-rc1 build; use a subsequent vendor-supported release containing the fix.",
-        "Use package and kernel inventory checks only; do not attempt to trigger the race or run exploit code."
       ]
     },
     "CVE-2025-40536": {
@@ -29262,96 +29076,6 @@
         "Reconcile the installed build and remediation status against the current Citrix bulletin and NVD record because the NVD record contains a later 14.1 affected-version boundary than the Citrix bulletin."
       ]
     },
-    "CVE-2026-31431": {
-      "business_risk": "High-risk local privilege-escalation vulnerability in the Linux kernel. An attacker with a local unprivileged account may be able to obtain root-level privileges; Ubuntu also notes possible container escape. The CVE is listed in CISA's Known Exploited Vulnerabilities catalog, increasing remediation urgency.",
-      "claim_evidence": [
-        {
-          "claim": "CVE-2026-31431 affects the Linux kernel's algif_aead cryptographic functionality; Ubuntu describes the issue as improper handling of in-place cryptographic operations.",
-          "kind": "affected_product",
-          "source_url": "https://ubuntu.com/security/CVE-2026-31431"
-        },
-        {
-          "claim": "A local attacker with low privileges may escalate privileges, with possible container escape; the vulnerability is also listed in the CISA Known Exploited Vulnerabilities catalog through the NVD record.",
-          "kind": "exposure",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-31431"
-        },
-        {
-          "claim": "Ubuntu recommends applying the vendor kernel updates and documents a temporary kmod-based mitigation while kernel updates are unavailable.",
-          "kind": "remediation",
-          "source_url": "https://ubuntu.com/security/CVE-2026-31431"
-        },
-        {
-          "claim": "Ubuntu lists fixed package versions including 6.17.0-29.29 for Ubuntu 25.10, 6.8.0-117.117 for Ubuntu 24.04, 5.15.0-179.189 for Ubuntu 22.04, 5.4.0-230.250 for Ubuntu 20.04, and 4.15.0-250.262 for Ubuntu 18.04.",
-          "kind": "fixed_version",
-          "source_url": "https://ubuntu.com/security/CVE-2026-31431"
-        },
-        {
-          "claim": "The Ubuntu advisory provides release-specific fixed package versions that can be compared with the installed and running kernel versions after update and reboot.",
-          "kind": "verification",
-          "source_url": "https://ubuntu.com/security/CVE-2026-31431"
-        }
-      ],
-      "exposure_conditions": [
-        "The system runs an affected Linux kernel release or a vendor kernel package that has not incorporated the CVE-2026-31431 fix.",
-        "An attacker can obtain local, low-privilege access to the host or an applicable container workload.",
-        "The vulnerable algif_aead functionality is reachable through the kernel userspace cryptographic interface; vendor packaging and mitigations may alter practical exposure."
-      ],
-      "gaps": [],
-      "generated_at": "2026-08-07T10:28:57Z",
-      "model": "gpt-5.6-luna",
-      "prompt_version": "2026-07-14.2",
-      "recipe_specificity": "not_specific",
-      "remediation_steps": [
-        "Apply the security update supplied by the operating-system vendor and reboot into the updated kernel.",
-        "For Ubuntu, use a kernel package at or above the vendor-listed fixed version for the applicable release, including 6.17.0-29.29 for Ubuntu 25.10, 6.8.0-117.117 for Ubuntu 24.04, 5.15.0-179.189 for Ubuntu 22.04, 5.4.0-230.250 for Ubuntu 20.04, or 4.15.0-250.262 for Ubuntu 18.04, subject to the release and support-status qualifications in the advisory.",
-        "For Red Hat products, apply the applicable RHSA or platform update; Red Hat states that fixes are available and identifies fixed OpenShift releases including 4.16.61, 4.18.40, 4.19.30, 4.20.21, and 4.21.14.",
-        "If an approved vendor mitigation is used while awaiting a kernel update, treat it as temporary and continue toward the patched kernel because mitigation applicability depends on workload use of AF_ALG and related cryptographic functionality."
-      ],
-      "retrieved_source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2026-31431",
-        "https://ubuntu.com/security/CVE-2026-31431",
-        "https://lists.ubuntu.com/archives/kernel-team/2026-April/167446.html",
-        "https://www.nist.gov/itl/nvd",
-        "https://www.ipa.go.jp/security/security-alert/2026/alert20260501.html",
-        "https://cert.europa.eu/publications/security-advisories/2026-005/",
-        "https://ociso.ucla.edu/news/linux-kernel-local-privilege-escalation-vulnerability-copy-fail",
-        "https://advisories.egi.eu/Advisory-EGI-SVG-2026-12",
-        "https://perifery.atlassian.net/wiki/spaces/KB/pages/5089984536/Security%2BAdvisory%2BCVE-2026-31431%2BLinux%2BKernel%2BLocal%2BPrivilege%2BEscalation",
-        "https://www.csa.gov.sg/alerts-and-advisories/alerts/al-2026-047/",
-        "https://www.ncsc.gov.ie/pdfs/2605010207_CVE-2026-31431.pdf",
-        "https://advisories.egi.eu/",
-        "https://labs.cloudsecurityalliance.org/wp-content/uploads/2026/05/CSA_research_note_linux_copy_fail_CVE-2026-31431_20260503-csa-styled.pdf",
-        "https://knowledge.broadcom.com/external/article/439058",
-        "https://www.digi.com/getattachment/Resources/Security/Alerts/Security-advisory-CVE-2026-31431-Copy-Fail-2/advisory.pdf",
-        "https://arxiv.org/abs/2601.22196",
-        "https://www.reddit.com/r/Ubuntu/comments/1t2m7ya/reminder_if_you_are_on_2604_you_are_safe_from/",
-        "https://cow-prod-www-v3.azurewebsites.net/publications/security-advisories/2026-005/pdf",
-        "https://arxiv.org/abs/2604.22176",
-        "https://www.reddit.com/r/Ubuntu/comments/1t6udmn/ysk_ubuntu_released_a_workaround_for_copyfail/",
-        "https://www.reddit.com/r/slackware/comments/1t2z8dv/fyi_slackware_150_and_current_changelogs_with/",
-        "https://arxiv.org/abs/2604.03851",
-        "https://www.reddit.com/r/redhat/comments/1t6ut4r/information_and_mitigations_for_the_recent_kernel/",
-        "https://www.reddit.com/r/SolusProject/comments/1t0y3x9/copyfail_exploit/"
-      ],
-      "schema_version": 2,
-      "source_fingerprint": "d4a4d7a7ef1e7cc9d57b4698cf66eef7dc8c3c9a53821b0f42559fc6339e316a",
-      "source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2026-31431",
-        "https://ubuntu.com/security/CVE-2026-31431"
-      ],
-      "status": "complete",
-      "uncertainty": [
-        "The supplied record is truncated for affected products and does not identify the target distribution, architecture, kernel flavor, or installed package version.",
-        "Generic upstream kernel branch boundaries and all Red Hat package-level fixed versions were not independently confirmed from the returned authoritative pages; use the exact vendor advisory for the deployed product.",
-        "A mitigation may reduce exposure but is not equivalent to applying the vendor kernel fix, and its suitability depends on whether workloads require the affected cryptographic interface."
-      ],
-      "verification_steps": [
-        "Identify the running kernel and installed vendor kernel package using the operating system's normal inventory mechanism.",
-        "Compare the installed package against the fixed version listed in the applicable vendor advisory; do not rely solely on the package being downloaded or installed if the host is still running an older kernel.",
-        "Confirm after reboot that the running kernel corresponds to the remediated vendor package.",
-        "For Red Hat OpenShift, confirm that the cluster is on a platform release listed by Red Hat as containing the fix, or consult the applicable RHSA for the exact underlying kernel package."
-      ]
-    },
     "CVE-2026-33017": {
       "business_risk": "Critical unauthenticated remote code execution may allow complete compromise of an exposed Langflow server, including confidentiality, integrity, and availability impact. NVD also lists CVE-2026-33017 in the CISA Known Exploited Vulnerabilities Catalog.",
       "claim_evidence": [
@@ -31138,6 +30862,26 @@
         "The sources describe the RCE impact as dependent on chaining with CVE-2026-60137; this enrichment does not independently establish the prerequisites or exploitability of that related issue.",
         "No authoritative source reviewed here provides a separate temporary mitigation that can be relied upon instead of upgrading.",
         "The exact current stable branch beyond the listed patched versions was not used to define an additional fixed-version claim."
+      ],
+      "verification_steps": []
+    },
+    "CVE-2026-65400": {
+      "business_risk": "No additional source-verified CVE-specific business impact was established.",
+      "claim_evidence": [],
+      "exposure_conditions": [],
+      "gaps": [],
+      "generated_at": "2026-09-08T22:06:09Z",
+      "model": "grok-4.6",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [],
+      "retrieved_source_urls": [],
+      "schema_version": 2,
+      "source_fingerprint": "5c9806555ad0cff2133402eee37135e63d92da13351e1f4df61ba143e283edab",
+      "source_urls": [],
+      "status": "insufficient_evidence",
+      "uncertainty": [
+        "No authoritative web-search results have been retrieved yet; supplied CVE record is untrusted and cannot be used as evidence."
       ],
       "verification_steps": []
     },
