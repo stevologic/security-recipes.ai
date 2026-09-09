@@ -3,7 +3,7 @@ title: Agentic Action Runtime Pack
 linkTitle: Action Runtime Pack
 weight: 15
 date: 2026-05-04
-lastmod: 2026-08-21
+lastmod: 2026-09-09
 sidebar:
   exclude: true
 description: >
@@ -22,7 +22,7 @@ production, or touches irreversible systems, the host can ask for a
 deterministic allow, hold, deny, or kill decision.
 {{< /callout >}}
 
-Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) on August 21, 2026.
+Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) and [security best practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices) on September 9, 2026. MCP `latest` still redirects to 2026-07-28. Stateless servers mint explicit state handles as ordinary tool arguments; possession of a handle is not authentication.
 
 ## The product bet
 
@@ -39,7 +39,9 @@ evidence before action:
 3. **Intent** - the declared action class and purpose for this run.
 4. **Behavior** - runtime indicators, telemetry, changed paths, data
    classes, and high-impact flags.
-5. **Identity** - the delegated non-human identity and owner.
+5. **Identity** - the delegated non-human identity and owner, including
+   whether an MCP state handle is bound to that principal instead of
+   being treated as authentication.
 6. **Receipt** - the run receipt, approval, risk acceptance, and
    correlation id needed to reconstruct the decision.
 
@@ -96,6 +98,25 @@ python3 scripts/evaluate_agentic_action_runtime_decision.py \
   --egress-decision hold_for_redaction_or_dpa \
   --receipt-id receipt-secret \
   --contains-secret \
+  --expect-decision kill_session_on_runtime_action_signal
+```
+
+Evaluate an unbound MCP state handle:
+
+```bash
+python3 scripts/evaluate_agentic_action_runtime_decision.py \
+  --workflow-id vulnerable-dependency-remediation \
+  --action-class repo_branch_write \
+  --run-id run-handle \
+  --agent-id sr-agent::vulnerable-dependency-remediation::codex \
+  --identity-id sr-agent::vulnerable-dependency-remediation::codex \
+  --tenant-id tenant-demo \
+  --correlation-id corr-handle \
+  --intent-summary "Patch dependency lockfiles on a scoped remediation branch" \
+  --policy-pack-hash sha256:policy \
+  --authorization-decision allow_authorized_mcp_request \
+  --receipt-id receipt-handle \
+  --state-handle-unbound \
   --expect-decision kill_session_on_runtime_action_signal
 ```
 
@@ -192,9 +213,11 @@ The pack is anchored in current primary guidance:
 - [OWASP Top 10 for Agentic Applications 2026](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/)
   for tool misuse, goal hijacking, identity abuse, memory poisoning,
   unexpected code execution, and rogue-agent containment.
-- [MCP Security Best Practices](https://modelcontextprotocol.io/docs/tutorials/security/security_best_practices)
-  for confused-deputy prevention, least privilege, command review,
-  sandboxing, and local-server boundaries.
+- [MCP Security Best Practices (2026-07-28)](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices)
+  for confused-deputy prevention, least privilege, and state-handle
+  hijacking: servers **MUST NOT** treat possession of a handle as
+  authentication and **SHOULD** bind handles to the verified token
+  principal with non-guessable identifiers.
 - [MCP Authorization](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
   for protected resource metadata, OAuth 2.1, resource indicators,
   audience validation, PKCE, and token handling.
