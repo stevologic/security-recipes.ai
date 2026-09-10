@@ -4,7 +4,10 @@
 The evaluator is deterministic. It checks the generated action runtime
 pack, workflow action matrix, runtime evidence, high-impact flags,
 authorization state, egress and handoff outcomes, approval evidence, and
-kill signals before returning allow, hold, deny, or kill.
+kill signals before returning allow, hold, deny, or kill. MCP 2026-07-28
+forbids treating possession of a server-minted state handle as
+authentication; unbound, guessable, or principal-mismatched handles are
+kill-class signals.
 """
 
 from __future__ import annotations
@@ -128,6 +131,9 @@ def normalize_request(runtime_request: dict[str, Any]) -> dict[str, Any]:
         "persistent_memory_write",
         "repeated_denied_action",
         "skill_or_tool_install",
+        "state_handle_guessable",
+        "state_handle_principal_mismatch",
+        "state_handle_unbound",
         "token_passthrough",
         "writes_public_corpus",
     ]:
@@ -179,6 +185,12 @@ def matched_kill_reasons(pack: dict[str, Any], request: dict[str, Any]) -> list[
         reasons.append("raw token passthrough was observed")
     if request.get("identity_used_after_revocation"):
         reasons.append("delegated identity was used after revocation")
+    if request.get("state_handle_unbound"):
+        reasons.append("MCP state handle was used without a server-side principal binding")
+    if request.get("state_handle_guessable"):
+        reasons.append("MCP state handle is predictable or sequential instead of a secure random identifier")
+    if request.get("state_handle_principal_mismatch"):
+        reasons.append("MCP state handle was presented by a principal other than the verified token subject")
     if request.get("repeated_denied_action"):
         reasons.append("agent repeated an action after a deny or hold decision")
     if request.get("external_side_effect") and request.get("contains_secret"):
@@ -426,6 +438,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--persistent-memory-write", action="store_true")
     parser.add_argument("--repeated-denied-action", action="store_true")
     parser.add_argument("--skill-or-tool-install", action="store_true")
+    parser.add_argument("--state-handle-guessable", action="store_true")
+    parser.add_argument("--state-handle-principal-mismatch", action="store_true")
+    parser.add_argument("--state-handle-unbound", action="store_true")
     parser.add_argument("--token-passthrough", action="store_true")
     parser.add_argument("--writes-public-corpus", action="store_true")
     parser.add_argument("--expect-decision")
@@ -468,6 +483,9 @@ def request_from_args(args: argparse.Namespace) -> dict[str, Any]:
         "run_id": args.run_id,
         "runtime_kill_signal": args.runtime_kill_signal,
         "skill_or_tool_install": args.skill_or_tool_install,
+        "state_handle_guessable": args.state_handle_guessable,
+        "state_handle_principal_mismatch": args.state_handle_principal_mismatch,
+        "state_handle_unbound": args.state_handle_unbound,
         "telemetry_decision": args.telemetry_decision,
         "telemetry_event_id": args.telemetry_event_id,
         "tenant_id": args.tenant_id,
