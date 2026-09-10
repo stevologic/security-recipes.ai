@@ -3,7 +3,7 @@ title: Context Egress Boundary
 linkTitle: Context Egress Boundary
 weight: 11
 date: 2026-05-02
-lastmod: 2026-08-21
+lastmod: 2026-09-10
 toc: true
 description: >
   Classify and enforce which context may leave each trust boundary, with
@@ -19,7 +19,7 @@ only controls retrieval. Enterprise reviewers also need to know where
 context is allowed to go after retrieval.
 {{< /callout >}}
 
-Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) on August 21, 2026.
+Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) and OWASP [LLM Top 10 2026](https://genai.owasp.org/resource/owasp-genai-llm-top-10-2026/) LLM08 Hidden Context Exposure on September 10, 2026. MCP `latest` still redirects to 2026-07-28. This page records an editorial recheck, not a separate human review of the pack.
 
 ## The product bet
 
@@ -82,6 +82,9 @@ The model separates context into classes such as:
 - public references,
 - curated SecurityRecipes guidance,
 - generated policy evidence,
+- hidden operational context (system prompts, developer instructions,
+  retrieved policy, tool and function schemas, authorization details,
+  and refusal rules),
 - public vulnerability intelligence,
 - customer asset metadata,
 - customer source code,
@@ -157,6 +160,21 @@ python3 scripts/evaluate_context_egress_decision.py \
   --expect-decision kill_session_on_secret_egress
 ```
 
+Deny hidden operational context on the public corpus. OWASP LLM08:2026
+treats system prompts, tool schemas, and authorization or refusal rules
+as discoverable control context, not as secrets and not as a security
+boundary:
+
+```bash
+python3 scripts/evaluate_context_egress_decision.py \
+  --workflow-id vulnerable-dependency-remediation \
+  --destination-class securityrecipes_public_corpus \
+  --source-id recipes \
+  --data-class curated_security_guidance \
+  --contains-hidden-operational-context \
+  --expect-decision deny_untrusted_destination
+```
+
 ## MCP examples
 
 Inspect the boundary:
@@ -212,6 +230,12 @@ This feature follows current guidance:
 - [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices)
   for confused-deputy prevention, token safety, scope minimization,
   SSRF controls, session safety, and auditability.
+- [OWASP Top 10 for LLM Applications 2026](https://genai.owasp.org/resource/owasp-genai-llm-top-10-2026/)
+  LLM08 Hidden Context Exposure: assume system prompts, retrieved
+  policy, tool schemas, and authorization or refusal rules are
+  discoverable; keep credentials out of that material; enforce
+  authorization outside the model; deny user-visible, public-corpus,
+  and untrusted egress of hidden operational context.
 - [OWASP MCP Top 10](https://owasp.org/www-project-mcp-top-10/)
   for token mismanagement, scope creep, tool poisoning, command
   execution, missing telemetry, shadow MCP servers, and context

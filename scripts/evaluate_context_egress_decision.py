@@ -32,6 +32,19 @@ ALLOW_DECISIONS = {
     "allow_public_egress_with_citation",
     "allow_tenant_bound_egress",
 }
+HIDDEN_OPERATIONAL_DATA_CLASSES = {
+    "authorization_policy_text",
+    "developer_instruction",
+    "hidden_operational_context",
+    "refusal_or_guardrail_rules",
+    "system_prompt",
+    "tool_function_schema",
+}
+HIDDEN_CONTEXT_EXPOSURE_DESTINATIONS = {
+    "external_url_or_webhook",
+    "securityrecipes_public_corpus",
+    "untrusted_remote_mcp_server",
+}
 
 
 class ContextEgressDecisionError(RuntimeError):
@@ -204,6 +217,9 @@ def decision_result(
         "matched_workflow": workflow_preview(workflow),
         "reason": reason,
         "request": {
+            "contains_hidden_operational_context": request.get(
+                "contains_hidden_operational_context"
+            ),
             "contains_secret": request.get("contains_secret"),
             "contains_unredacted_pii": request.get("contains_unredacted_pii"),
             "data_class": request.get("data_class"),
@@ -249,11 +265,14 @@ def evaluate_context_egress_decision(
         request[key] = str(request.get(key) or "").strip()
     for key in [
         "contains_secret",
+        "contains_hidden_operational_context",
         "contains_unredacted_pii",
         "dpa_in_place",
         "zero_data_retention",
     ]:
         request[key] = as_bool(request.get(key))
+    if request["data_class"] in HIDDEN_OPERATIONAL_DATA_CLASSES:
+        request["contains_hidden_operational_context"] = True
 
     policies = policies_by_id(egress_pack)
     destinations = destinations_by_id(egress_pack)
@@ -272,6 +291,10 @@ def evaluate_context_egress_decision(
     workflow = workflows.get(request["workflow_id"]) if request["workflow_id"] else None
     source = sources.get(request["source_id"]) if request["source_id"] else None
     namespace = namespace_policy(workflow, request["mcp_namespace"])
+
+    if request["data_class"] in HIDDEN_OPERATIONAL_DATA_CLASSES:
+        request["contains_hidden_operational_context"] = True
+        request["data_class"] = "hidden_operational_context"
 
     policy = policies.get(request["data_class"]) if request["data_class"] else None
     if policy is None and namespace and namespace.get("data_class"):
@@ -381,6 +404,26 @@ def evaluate_context_egress_decision(
         return decision_result(
             decision="deny_untrusted_destination",
             reason="destination is explicitly untrusted",
+            request=request,
+            pack=egress_pack,
+            policy=policy,
+            destination=destination,
+            source=source,
+            workflow=workflow,
+            namespace=namespace,
+            violations=violations,
+        )
+
+    if (
+        request["contains_hidden_operational_context"]
+        and request["destination_class"] in HIDDEN_CONTEXT_EXPOSURE_DESTINATIONS
+    ):
+        violations.append(
+            "hidden operational context cannot leave to a user-visible, public-corpus, or untrusted destination"
+        )
+        return decision_result(
+            decision="deny_untrusted_destination",
+            reason="hidden operational context is assumed discoverable and is not allowed on this egress path",
             request=request,
             pack=egress_pack,
             policy=policy,
@@ -534,6 +577,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--tenant-id")
     parser.add_argument("--destination-trust-tier")
     parser.add_argument("--contains-secret", action="store_true")
+    parser.add_argument("--contains-hidden-operational-context", action="store_true")
     parser.add_argument("--contains-unredacted-pii", action="store_true")
     parser.add_argument("--dpa-in-place", action="store_true")
     parser.add_argument("--zero-data-retention", action="store_true")
@@ -555,6 +599,9 @@ def main() -> int:
         decision = evaluate_context_egress_decision(
             pack,
             {
+                "contains_hidden_operational_context": (
+                    args.contains_hidden_operational_context
+                ),
                 "contains_secret": args.contains_secret,
                 "contains_unredacted_pii": args.contains_unredacted_pii,
                 "data_class": args.data_class,
