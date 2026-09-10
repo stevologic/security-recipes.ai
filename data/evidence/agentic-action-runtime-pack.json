@@ -101,7 +101,8 @@
       "kill_signals": [
         "identity used after revocation",
         "wildcard or signer scope requested",
-        "token audience mismatch"
+        "token audience mismatch",
+        "unbound, guessable, or principal-mismatched MCP state handle"
       ],
       "linked_evidence": [
         "agent_identity_ledger",
@@ -437,7 +438,7 @@
       },
       {
         "decision": "kill_session_on_runtime_action_signal",
-        "meaning": "A kill signal indicates secret exposure, token passthrough, revoked identity use, cross-tenant movement, repeated denied calls, or irreversible side effects."
+        "meaning": "A kill signal indicates secret exposure, token passthrough, revoked identity use, unbound or guessable MCP state-handle use, principal-mismatched handles, cross-tenant movement, repeated denied calls, or irreversible side effects."
       }
     ],
     "default_state": "action_untrusted_until_context_policy_intent_behavior_identity_and_receipt_evidence_are_bound",
@@ -517,12 +518,12 @@
     "recommended_first_use": "Attach the pack to MCP gateway design, agent host runtime gates, platform production-readiness review, high-impact action inventory, and buyer diligence."
   },
   "failures": [],
-  "generated_at": "2026-08-21",
+  "generated_at": "2026-09-09",
   "positioning": {
     "buyer": "AI Platform, Security Engineering, Product Security, SOC, GRC, model risk, procurement security, and agent-host platform teams",
     "category": "Autonomous action runtime management for agentic AI and MCP-backed workflows",
     "enterprise_promise": "SecurityRecipes can turn secure context and generated MCP evidence into pre-action runtime decisions that tell an agent host whether to allow, hold, deny, or kill an autonomous action before it reaches production systems.",
-    "why_now": "Enterprise agents are moving from retrieval and chat into tool use, remote delegation, persistent memory, code changes, connector scope changes, and high-impact operations. Buyers need a clear runtime action envelope that is easier to adopt than bespoke policy code and strong enough for platform diligence."
+    "why_now": "Enterprise agents are moving from retrieval and chat into tool use, remote delegation, persistent memory, code changes, connector scope changes, and high-impact operations. MCP 2026-07-28 removed protocol sessions; servers mint explicit state handles as ordinary tool arguments. Treating those handles as authentication lets an attacker act on another user's state, so buyers need a runtime action envelope that fails closed on unbound, guessable, or principal-mismatched handles."
   },
   "residual_risks": [
     {
@@ -543,11 +544,14 @@
       "high",
       "critical"
     ],
-    "evidence_gate": "Action evidence must bind the exact workflow, run, identity, context package, policy pack, authorization decision, egress decision, handoff decision, telemetry event, and receipt before the action is trusted.",
+    "evidence_gate": "Action evidence must bind the exact workflow, run, identity, context package, policy pack, authorization decision, egress decision, handoff decision, telemetry event, and receipt before the action is trusted. Possession of an MCP state handle is not authentication.",
     "kill_signal_indicators": [
       "raw_token_passthrough",
       "secret_in_action_payload",
       "identity_used_after_revocation",
+      "unbound_state_handle",
+      "guessable_state_handle",
+      "state_handle_principal_mismatch",
       "cross_tenant_context",
       "policy_decision_kill",
       "repeated_denied_action",
@@ -561,7 +565,7 @@
       "failure_count": 0,
       "path": "data/evidence/a2a-agent-card-trust-profile.json",
       "schema_version": "1.0",
-      "sha256": "68b146b4d599042a4e2cfe8f8c2cea08132e62bdb47b653e613b10c764b8f9c3",
+      "sha256": "daf0eac217ba3e55a9d57bc9299a465d3804c67baed04357c6edeaed017e06f8",
       "summary_keys": [
         "agent_card_trust_summary"
       ]
@@ -579,7 +583,7 @@
       "failure_count": 0,
       "path": "data/evidence/agent-handoff-boundary-pack.json",
       "schema_version": "1.0",
-      "sha256": "ae4b963c3dc56d6b086595881a4cac813da4956142096550fe531829214607cf",
+      "sha256": "652c034e2c103a856575742966540175f9b0308628be52e9318d92dd08875b1e",
       "summary_keys": [
         "handoff_boundary_summary"
       ]
@@ -606,7 +610,7 @@
       "failure_count": 0,
       "path": "data/evidence/agent-skill-supply-chain-pack.json",
       "schema_version": "1.0",
-      "sha256": "0521ba663b644e250bd7a58fd9777286d51c0a1e9e57683ae52e4e8a800b9f20",
+      "sha256": "000e6f7a67ff608c0bd45ceb14230ce3445ff95e37180de22c614b0a23d9afcb",
       "summary_keys": [
         "skill_supply_chain_summary"
       ]
@@ -615,7 +619,7 @@
       "failure_count": 0,
       "path": "data/evidence/agentic-catastrophic-risk-annex.json",
       "schema_version": "1.0",
-      "sha256": "27779afa5d644db0809b2665051693f9c9c06609c45287ca29216a4874fd580e",
+      "sha256": "61f3d77ae4eee998b8fab674dc6cfc98871c998b5dccdc1fb205e261644640e8",
       "summary_keys": [
         "annex_summary"
       ]
@@ -624,7 +628,7 @@
       "failure_count": 0,
       "path": "data/evidence/agentic-incident-response-pack.json",
       "schema_version": "1.0",
-      "sha256": "832ab3040e95e377389363a2b0385b3e6713f1b8da941c0ab7f2a4ef9d709cff",
+      "sha256": "01aa85e5bf541e7de3a93ab36def234fdbc03aeec7f3817c962fb1657061eee0",
       "summary_keys": [
         "incident_response_summary"
       ]
@@ -633,7 +637,7 @@
       "failure_count": 0,
       "path": "data/evidence/agentic-run-receipt-pack.json",
       "schema_version": "1.0",
-      "sha256": "34f14c0a62b7f1ba9457c35d63185a0ec1b2986a8b4a0d931d1d8c3861968034",
+      "sha256": "7df18f6923655ca4194230f8c92d5afc410ebe6fde409ea796417301f9a9e0f4",
       "summary_keys": [
         "receipt_summary"
       ]
@@ -642,7 +646,7 @@
       "failure_count": 0,
       "path": "data/evidence/agentic-telemetry-contract.json",
       "schema_version": "1.0",
-      "sha256": "652b145e5ae47937238d41c069958ef74e9bd9c0a34f14bc1088b041fb7fc0d8",
+      "sha256": "a04d9a8640028b077f14c91b6ecbf80db3b658534bac11d49d9c5ae7a20f1598",
       "summary_keys": [
         "telemetry_summary"
       ]
@@ -651,7 +655,7 @@
       "failure_count": 0,
       "path": "data/evidence/context-egress-boundary-pack.json",
       "schema_version": "1.0",
-      "sha256": "bc95f67089537c5f54fbd13da8824412da0fb72b144db7d0553ec1d614bff773",
+      "sha256": "f25b8fd7baf3231f1e4c91ff78ec6e5f241997f51201f87918c1c4d90d4c3234",
       "summary_keys": [
         "egress_boundary_summary"
       ]
@@ -660,7 +664,7 @@
       "failure_count": 0,
       "path": "data/evidence/context-poisoning-guard-pack.json",
       "schema_version": "1.0",
-      "sha256": "2ba951c4f6a2fd9ca5b40bd34ca7ff8e698ba08d27925252216bc9e868a30a8f",
+      "sha256": "ba0f3fbbd583153aa024588ddbe6dae781780732e6a6394f2285db19544491f6",
       "summary_keys": [
         "guard_summary"
       ]
@@ -705,7 +709,7 @@
       "failure_count": 0,
       "path": "data/evidence/secure-context-trust-pack.json",
       "schema_version": "1.0",
-      "sha256": "a821926d276075a24790a36d3db0a955b6d463af48a0d426ac5f6fbb29d6fba5",
+      "sha256": "383dcdddb1095ad3bc72397e0c8a094aac19805e7a9f921aae025fe23e5e1819",
       "summary_keys": [
         "context_trust_summary"
       ]
@@ -732,7 +736,13 @@
       "url": "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/"
     },
     {
-      "coverage": "Applies confused-deputy prevention, command review, sandboxing, least privilege, scope minimization, and local-server privilege boundaries to action-level decisions.",
+      "coverage": "Current public MCP 2026-07-28 revision. Stateless servers mint explicit state handles as ordinary tool arguments; servers MUST NOT treat possession of a handle as authentication and SHOULD bind handles server-side to the verified token principal using non-guessable identifiers.",
+      "id": "mcp-security-best-practices-2026-07-28",
+      "name": "Model Context Protocol Security Best Practices (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices"
+    },
+    {
+      "coverage": "Applies confused-deputy prevention, command review, sandboxing, least privilege, scope minimization, and local-server privilege boundaries to action-level decisions. Prefer the 2026-07-28 revision for state-handle hijacking controls.",
       "id": "mcp-security-best-practices-2025",
       "name": "Model Context Protocol Security Best Practices",
       "url": "https://modelcontextprotocol.io/docs/tutorials/security/security_best_practices"
@@ -780,6 +790,12 @@
       "expected_decision": "kill_session_on_runtime_action_signal",
       "id": "secret-in-tool-payload",
       "trigger": "A tool call payload or telemetry event contains a secret or raw token."
+    },
+    {
+      "action_class": "repo_branch_write",
+      "expected_decision": "kill_session_on_runtime_action_signal",
+      "id": "unbound-or-guessable-state-handle",
+      "trigger": "An MCP tool argument carries a server-minted state handle that is unbound, guessable, or presented by a different principal than the verified token subject."
     },
     {
       "action_class": "funds_or_irreversible_transaction",

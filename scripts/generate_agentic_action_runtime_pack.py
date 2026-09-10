@@ -342,6 +342,12 @@ def tabletop_cases(profile: dict[str, Any]) -> list[dict[str, Any]]:
             "trigger": "A tool call payload or telemetry event contains a secret or raw token."
         },
         {
+            "action_class": "repo_branch_write",
+            "expected_decision": "kill_session_on_runtime_action_signal",
+            "id": "unbound-or-guessable-state-handle",
+            "trigger": "An MCP tool argument carries a server-minted state handle that is unbound, guessable, or presented by a different principal than the verified token subject."
+        },
+        {
             "action_class": "funds_or_irreversible_transaction",
             "expected_decision": "deny_unapproved_high_impact_action",
             "id": "live-funds-movement-request",
