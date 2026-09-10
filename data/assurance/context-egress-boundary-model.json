@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-08-21",
+  "last_reviewed": "2026-09-10",
   "intent": "Define the SecurityRecipes context egress boundary for agentic AI and MCP systems: every data class, destination class, workflow namespace, source trust tier, redaction requirement, residency constraint, and secret-egress kill rule is expressed as machine-readable policy before context leaves a tenant, model, MCP server, or observability boundary.",
   "positioning": {
     "buyer": "AI Platform, Security Engineering, Product Security, Privacy Engineering, GRC, procurement security, vendor-risk, and acquisition diligence teams",
@@ -58,12 +58,20 @@
       "coverage": "MCP-specific risks include token mismanagement, scope creep, tool poisoning, command execution, weak auth, missing telemetry, shadow servers, and context injection or over-sharing."
     },
     {
+      "id": "owasp-llm-top-10-2026",
+      "name": "OWASP Top 10 for LLM Applications 2026",
+      "publisher": "OWASP GenAI Security Project",
+      "published": "2026-08-04",
+      "url": "https://genai.owasp.org/resource/owasp-genai-llm-top-10-2026/",
+      "coverage": "LLM08:2026 Hidden Context Exposure covers extraction of system prompts, developer instructions, retrieved policy, tool and function schemas, authorization details, and refusal rules. Assume that material is discoverable; never treat it as a secret or as the sole security boundary; deny user-visible, public-corpus, and untrusted egress."
+    },
+    {
       "id": "owasp-llm-top-10-2025",
       "name": "OWASP Top 10 for LLM Applications 2025",
       "publisher": "OWASP GenAI Security Project",
       "published": "2025",
       "url": "https://genai.owasp.org/llm-top-10/",
-      "coverage": "Relevant risks include sensitive information disclosure, prompt injection, excessive agency, insecure plugin design, supply chain vulnerabilities, and overreliance."
+      "coverage": "Prior edition kept as a labeled 2025 source. System prompt leakage is now the broader LLM08:2026 Hidden Context Exposure category in the 2026 list."
     },
     {
       "id": "cisa-ai-data-security-2025",
@@ -93,6 +101,7 @@
       "tenant_id",
       "destination_trust_tier",
       "contains_secret",
+      "contains_hidden_operational_context",
       "contains_unredacted_pii",
       "dpa_in_place",
       "zero_data_retention",
@@ -136,7 +145,8 @@
       "Public SecurityRecipes content may leave with citation and source-hash metadata; tenant runtime context may not be embedded in the open corpus.",
       "Customer source code, tickets, findings, logs, and pipeline evidence remain tenant-bound unless redaction, DPA, retention, and residency controls are satisfied.",
       "Remote MCP servers and model providers are treated as external processors unless explicitly approved for the tenant and data class.",
-      "Secrets, private keys, signing material, seed phrases, and raw access tokens trigger kill-session behavior."
+      "Secrets, private keys, signing material, seed phrases, and raw access tokens trigger kill-session behavior.",
+      "Hidden operational context is assumed discoverable: system prompts, developer instructions, retrieved policy, tool and function schemas, authorization details, and refusal rules must not be treated as secrets or as the sole security boundary, and they must not leave to user-visible, public-corpus, or untrusted destinations."
     ],
     "prohibited_data_classes": [
       "secret_or_token",
@@ -562,6 +572,35 @@
       "redaction_required_before_external": true
     },
     {
+      "id": "hidden_operational_context",
+      "title": "Hidden Operational Context",
+      "sensitivity": "tenant_restricted",
+      "default_decision": "allow_tenant_bound_egress",
+      "allowed_destination_classes": [
+        "tenant_mcp_gateway",
+        "approved_model_provider"
+      ],
+      "hold_destination_classes": [
+        "approved_remote_mcp_server",
+        "observability_sink"
+      ],
+      "prohibited_destination_classes": [
+        "securityrecipes_public_corpus",
+        "untrusted_remote_mcp_server",
+        "external_url_or_webhook"
+      ],
+      "required_controls": [
+        "assume_discoverable",
+        "no_secrets_in_hidden_context",
+        "authorization_enforced_outside_model",
+        "redaction_before_user_visible_output",
+        "deterministic_guardrails_outside_prompt"
+      ],
+      "tenant_id_required": false,
+      "human_approval_required": false,
+      "redaction_required_before_external": true
+    },
+    {
       "id": "secret_or_token",
       "title": "Secret or Token",
       "sensitivity": "prohibited",
@@ -684,7 +723,8 @@
       "Which model providers, remote MCP servers, telemetry sinks, or public corpus destinations are allowed?",
       "Which requests hold for redaction, DPA, zero-data-retention, residency, or human approval evidence?",
       "Which context egress attempts should deny by default?",
-      "Which secret or signing-material attempts kill the agent session?"
+      "Which secret or signing-material attempts kill the agent session?",
+      "Which hidden operational context (system prompts, tool schemas, authorization or refusal rules) must not leave to users, the public corpus, or untrusted destinations?"
     ],
     "recommended_first_use": "Attach this pack to AI platform intake, remote MCP approval, model-provider review, privacy review, and customer trust-center evidence.",
     "sales_motion": "Lead with open data-boundary evidence, then sell tenant-side egress enforcement, provider policy adapters, residency alerts, DLP integrations, and trust-center exports."

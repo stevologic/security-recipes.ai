@@ -1998,12 +1998,12 @@
         {
           "label": "Scope",
           "title": "Classify data and destination",
-          "detail": "Identify public, internal, customer, regulated, secret, prompt, memory, trace, model, tool, agent, or external classes."
+          "detail": "Identify public, internal, customer, regulated, secret, hidden operational context, prompt, memory, trace, model, tool, agent, or external classes."
         },
         {
           "label": "Decision",
           "title": "Evaluate the egress contract",
-          "detail": "Check purpose limitation, consent, region, provider route, destination trust, minimization, redaction, approval, and retention."
+          "detail": "Check purpose limitation, consent, region, provider route, destination trust, minimization, redaction, approval, retention, and whether hidden operational context would become user-visible."
         },
         {
           "label": "Action",
@@ -2019,7 +2019,7 @@
       "gate": {
         "question": "Is every outbound field necessary and permitted for this destination, purpose, provider, region, and approval state?",
         "pass": "Release only the minimized approved payload with downstream restrictions.",
-        "stop": "Hold, deny, or kill when destination trust, purpose, approval, or prohibited-data checks fail."
+        "stop": "Hold, deny, or kill when destination trust, purpose, approval, prohibited-data, or hidden-operational-context exposure checks fail."
       },
       "evidence": [
         "source/destination classification",
@@ -2045,6 +2045,7 @@
         "context egress",
         "data exfiltration control",
         "model data boundary",
+        "hidden context exposure",
         "redaction policy"
       ]
     },
