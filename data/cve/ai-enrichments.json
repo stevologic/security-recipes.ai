@@ -20903,6 +20903,91 @@
         "Do not use crafted HTML or other exploit-like content for validation; version and deployment-state checks are sufficient for safe remediation verification."
       ]
     },
+    "CVE-2025-14733": {
+      "business_risk": "Critical unauthenticated remote code execution on internet-facing WatchGuard Firebox firewalls via IKEv2 VPN, with confirmed in-the-wild exploitation including ransomware campaigns; CISA KEV listing with short remediation window and residual risk after config deletion.",
+      "claim_evidence": [
+        {
+          "claim": "WatchGuard Fireware OS on Firebox (including Firebox hardware, related T15/T35 and FIPS platforms) is the affected product; vulnerability is an out-of-bounds write in the iked process.",
+          "kind": "affected_product",
+          "source_url": "https://www.cve.org/CVERecord?id=CVE-2025-14733"
+        },
+        {
+          "claim": "Affected: Fireware OS from 2025.1 before 2025.1.4; from 12.0 before 12.11.6; from 11.10.2 through 11.12.4+541730; T15/T35 from 12.0 before 12.5.15; FIPS from 12.0 before 12.3.1+728352.",
+          "kind": "affected_version",
+          "source_url": "https://www.cve.org/CVERecord?id=CVE-2025-14733"
+        },
+        {
+          "claim": "Affects mobile user VPN with IKEv2 and branch office VPN using IKEv2 when configured with a dynamic gateway peer. If those configs were previously present and later deleted, the Firebox may still be vulnerable if a branch office VPN to a static gateway peer is still configured. Remote unauthenticated attacker may execute arbitrary code.",
+          "kind": "exposure",
+          "source_url": "https://www.cve.org/CVERecord?id=CVE-2025-14733"
+        },
+        {
+          "claim": "CISA notes: Check for signs of potential compromise on all internet accessible instances after applying mitigations. Vendor advisory WGSA-2025-00027 is the source for patch and investigation indicators.",
+          "kind": "verification",
+          "source_url": "https://www.cisa.gov/known-exploited-vulnerabilities-catalog"
+        }
+      ],
+      "exposure_conditions": [
+        "Firebox running affected Fireware OS with Mobile User VPN using IKEv2 enabled",
+        "Firebox running affected Fireware OS with Branch Office VPN using IKEv2 configured with a dynamic gateway peer",
+        "Firebox that previously had Mobile User VPN with IKEv2 or BOVPN IKEv2 to a dynamic gateway peer (even if later deleted) while a Branch Office VPN to a static gateway peer remains configured",
+        "Internet-accessible Firebox instances"
+      ],
+      "gaps": [],
+      "generated_at": "2026-09-11T13:49:22Z",
+      "model": "grok-4.6",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [
+        "Upgrade Fireware OS to a vendor-fixed version: 2025.1.4 or later (2025.1 branch), 12.11.6 or later (12.x default), 12.5.15 or later (T15/T35), or 12.3.1 Update 4 / 12.3.1+728352 (FIPS-certified 12.3.1 branch)",
+        "Fireware OS 11.x is end-of-life; no patch is available—discontinue use or migrate per vendor/CISA guidance",
+        "After applying mitigations, check internet-accessible instances for signs of potential compromise per CISA and vendor advisory"
+      ],
+      "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-14733",
+        "https://nvd.nist.gov/vuln/detail/cve-2025-0133",
+        "https://nvd.nist.gov/vuln/detail/cve-2025-14233",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-46733",
+        "https://nvd.nist.gov/vuln/detail/cve-2025-47933",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-15533",
+        "https://nvd.nist.gov/vuln/detail/cve-2025-48633",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-20333",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-21333",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-10533",
+        "https://www.cve.org/CVERecord?id=CVE-2025-14733",
+        "https://www.cyber.gov.au/about-us/view-all-content/alerts-and-advisories/critical-vulnerability-in-watchguard-firebox-devices-cve-2025-14733",
+        "https://www.bleepingcomputer.com/news/security/cisa-watchguard-rce-flaw-now-exploited-in-ransomware-attacks/",
+        "https://asec.ahnlab.com/en/91704/",
+        "https://digital.nhs.uk/cyber-alerts/2025/cc-4733",
+        "https://www.cyber.gc.ca/en/alerts-advisories/al25-020-vulnerability-impacting-watchguard-fireware-os-cve-2025-14733",
+        "https://stack.watch/vuln/CVE-2025-14733/",
+        "https://www.securityweek.com/watchguard-patches-firebox-zero-day-exploited-in-the-wild/amp/",
+        "https://www.nics.nat.gov.tw/core_business/information_security_information_sharing/Vulnerability_Alert_Announcements/93a5d42c-81d1-459a-a261-8eb952643170",
+        "https://avd.aquasec.com/nvd/2025/cve-2025-14733/",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog",
+        "https://www.cisa.gov/news-events/bulletins/sb25-265",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog-print",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-25-350-01"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "b412b88e7f5d2bc2a9f1c51d8036b6d9ea173dd2e4a3156aa4ca98c9f360dedc",
+      "source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-14733",
+        "https://www.cve.org/CVERecord?id=CVE-2025-14733",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog"
+      ],
+      "status": "complete",
+      "uncertainty": [
+        "Exact UI/CLI steps to inspect residual IKEv2 configuration after deletion are not fully extracted from the advisory body in this pass",
+        "NVD page content was only partially returned in search snippets; CPE/version mapping should be confirmed on the live NVD record",
+        "11.x has no fixed version; replacement path is vendor/CISA discontinue-use rather than a patch version"
+      ],
+      "verification_steps": [
+        "Confirm the installed Fireware OS version in Firebox management UI, WatchGuard System Manager, or WatchGuard Cloud against the vendor-fixed versions listed in WGSA-2025-00027 and release notes",
+        "Review whether Mobile User VPN with IKEv2 or Branch Office VPN with IKEv2 (dynamic gateway peer) is or was configured, including residual static BOVPN after deletion of dynamic/MU IKEv2 configs, as described in the vendor advisory",
+        "Follow WatchGuard advisory guidance for indicators of compromise after upgrade; do not perform exploit or production attack tests"
+      ]
+    },
     "CVE-2025-20281": {
       "business_risk": "Critical risk: an unauthenticated remote attacker can exploit a specific Cisco ISE or ISE-PIC API to execute arbitrary operating-system code as root. Cisco reported attempted exploitation in the wild, and CISA lists the CVE in its Known Exploited Vulnerabilities Catalog.",
       "claim_evidence": [
