@@ -5,6 +5,9 @@ The agent memory boundary pack declares which memories agents may read,
 write, delete, replay, or reindex. This evaluator is the deterministic
 policy function an MCP gateway, memory middleware, CI admission check,
 or audit replay can call before persistent state is stored or reused.
+OWASP LLM09:2026 requires tenant scope inside the index query, trust-tier
+index isolation, no raw similarity scores to clients, and embedding
+deletion with the source; those signals fail closed when observed.
 """
 
 from __future__ import annotations
@@ -154,13 +157,25 @@ def decision_result(
             "agent_id": request.get("agent_id"),
             "contains_secret": request.get("contains_secret"),
             "contains_unredacted_pii": request.get("contains_unredacted_pii"),
+            "embeddings_persist_after_source_delete": request.get(
+                "embeddings_persist_after_source_delete"
+            ),
             "memory_class_id": request.get("memory_class_id"),
+            "mixed_trust_index_without_isolation": request.get(
+                "mixed_trust_index_without_isolation"
+            ),
             "operation": request.get("operation"),
             "provenance_hash": request.get("provenance_hash"),
+            "raw_similarity_scores_returned_to_client": request.get(
+                "raw_similarity_scores_returned_to_client"
+            ),
             "requested_ttl_days": request.get("requested_ttl_days"),
             "run_id": request.get("run_id"),
             "source_id": request.get("source_id"),
             "tenant_id": request.get("tenant_id"),
+            "tenant_scope_post_retrieval_only": request.get(
+                "tenant_scope_post_retrieval_only"
+            ),
             "workflow_id": request.get("workflow_id"),
         },
         "violations": violations or [],
@@ -180,6 +195,18 @@ def evaluate_agent_memory_boundary_decision(
     request = dict(runtime_request)
     request["contains_secret"] = as_bool(request.get("contains_secret"))
     request["contains_unredacted_pii"] = as_bool(request.get("contains_unredacted_pii"))
+    request["tenant_scope_post_retrieval_only"] = as_bool(
+        request.get("tenant_scope_post_retrieval_only")
+    )
+    request["mixed_trust_index_without_isolation"] = as_bool(
+        request.get("mixed_trust_index_without_isolation")
+    )
+    request["raw_similarity_scores_returned_to_client"] = as_bool(
+        request.get("raw_similarity_scores_returned_to_client")
+    )
+    request["embeddings_persist_after_source_delete"] = as_bool(
+        request.get("embeddings_persist_after_source_delete")
+    )
     request["memory_class_id"] = str(request.get("memory_class_id") or "").strip()
     request["operation"] = str(request.get("operation") or "").strip().lower()
     request["provenance_hash"] = str(request.get("provenance_hash") or "").strip()
@@ -323,6 +350,28 @@ def evaluate_agent_memory_boundary_decision(
             violations=["tenant_id is required"],
         )
 
+    if request["tenant_scope_post_retrieval_only"]:
+        return decision_result(
+            decision="deny_cross_tenant_memory",
+            reason="tenant scope was applied only after similarity search instead of inside the index query",
+            request=request,
+            pack=memory_pack,
+            memory_class=memory_class,
+            workflow=workflow,
+            violations=["tenant scope must be enforced inside the index query, not as a post-retrieval filter"],
+        )
+
+    if request["mixed_trust_index_without_isolation"]:
+        return decision_result(
+            decision="deny_cross_tenant_memory",
+            reason="mixed-trust content shares an embedding index without hard isolation",
+            request=request,
+            pack=memory_pack,
+            memory_class=memory_class,
+            workflow=workflow,
+            violations=["mixed-trust content must not share an embedding index without hard isolation"],
+        )
+
     if memory_class.get("provenance_hash_required") and write_like and not request["provenance_hash"]:
         return decision_result(
             decision="hold_for_memory_admission_review",
@@ -367,6 +416,28 @@ def evaluate_agent_memory_boundary_decision(
             violations=["human_approval_record is required"],
         )
 
+    if request["raw_similarity_scores_returned_to_client"]:
+        return decision_result(
+            decision="hold_for_memory_admission_review",
+            reason="raw similarity scores returned to clients turn the index into a membership and inversion oracle",
+            request=request,
+            pack=memory_pack,
+            memory_class=memory_class,
+            workflow=workflow,
+            violations=["raw similarity scores must not be returned to clients"],
+        )
+
+    if request["embeddings_persist_after_source_delete"]:
+        return decision_result(
+            decision="hold_for_memory_admission_review",
+            reason="embeddings remain after the source document was deleted",
+            request=request,
+            pack=memory_pack,
+            memory_class=memory_class,
+            workflow=workflow,
+            violations=["embeddings must be deleted when their source is deleted"],
+        )
+
     if decision not in VALID_DECISIONS:
         return decision_result(
             decision="hold_for_memory_admission_review",
@@ -399,14 +470,18 @@ def request_from_args(args: argparse.Namespace) -> dict[str, Any]:
         "contains_secret": args.contains_secret,
         "contains_unredacted_pii": args.contains_unredacted_pii,
         "data_class": args.data_class,
+        "embeddings_persist_after_source_delete": args.embeddings_persist_after_source_delete,
         "memory_class_id": args.memory_class_id,
+        "mixed_trust_index_without_isolation": args.mixed_trust_index_without_isolation,
         "operation": args.operation,
         "provenance_hash": args.provenance_hash,
+        "raw_similarity_scores_returned_to_client": args.raw_similarity_scores_returned_to_client,
         "requested_ttl_days": args.requested_ttl_days,
         "run_id": args.run_id,
         "runtime_kill_signal": args.runtime_kill_signal,
         "source_id": args.source_id,
         "tenant_id": args.tenant_id,
+        "tenant_scope_post_retrieval_only": args.tenant_scope_post_retrieval_only,
         "workflow_id": args.workflow_id,
     }
     for key, value in overrides.items():
@@ -431,6 +506,10 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--data-class")
     parser.add_argument("--contains-secret", action="store_true")
     parser.add_argument("--contains-unredacted-pii", action="store_true")
+    parser.add_argument("--tenant-scope-post-retrieval-only", action="store_true")
+    parser.add_argument("--mixed-trust-index-without-isolation", action="store_true")
+    parser.add_argument("--raw-similarity-scores-returned-to-client", action="store_true")
+    parser.add_argument("--embeddings-persist-after-source-delete", action="store_true")
     parser.add_argument("--runtime-kill-signal")
     parser.add_argument("--expect-decision", choices=sorted(VALID_DECISIONS))
     return parser.parse_args(argv)

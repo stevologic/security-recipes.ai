@@ -181,6 +181,32 @@ def validate_model(model: dict[str, Any]) -> list[str]:
     require(not missing_classes, failures, f"memory_classes missing required classes: {missing_classes}")
     require("memory_poisoning" in covered_risks, failures, "memory_classes must cover memory_poisoning")
     require("secret_exposure" in covered_risks, failures, "memory_classes must cover secret_exposure")
+    require("vector_embedding_weakness" in covered_risks, failures, "memory_classes must cover vector_embedding_weakness")
+
+    vector_class = next(
+        (
+            memory_class
+            for memory_class in classes
+            if isinstance(memory_class, dict) and memory_class.get("id") == "vector-embedding-memory"
+        ),
+        None,
+    )
+    if isinstance(vector_class, dict):
+        vector_controls = {
+            str(item)
+            for item in as_list(vector_class.get("required_controls"), "vector-embedding-memory.required_controls")
+        }
+        for control in (
+            "tenant_scope_in_index_query",
+            "trust_tier_index_segregation",
+            "no_raw_similarity_scores_to_client",
+            "delete_embeddings_with_source",
+        ):
+            require(
+                control in vector_controls,
+                failures,
+                f"vector-embedding-memory must require {control}",
+            )
 
     defaults = as_dict(model.get("workflow_memory_defaults"), "workflow_memory_defaults")
     default_class_ids = {str(item) for item in as_list(defaults.get("default_memory_class_ids"), "workflow_memory_defaults.default_memory_class_ids")}
