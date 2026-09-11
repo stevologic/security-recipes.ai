@@ -1805,7 +1805,7 @@
         {
           "label": "Decision",
           "title": "Evaluate memory policy",
-          "detail": "Check tenant isolation, consent, provenance, freshness, allowed operations, reuse scope, retention, and approval."
+          "detail": "Check tenant isolation, in-query tenant scope versus post-retrieval filters, mixed-trust index isolation, consent, provenance, freshness, allowed operations, reuse scope, retention, and approval."
         },
         {
           "label": "Action",
@@ -1821,7 +1821,7 @@
       "gate": {
         "question": "Is this content permitted for this store, tenant, workflow, operation, purpose, and retention period?",
         "pass": "Perform only the minimized memory operation and record its lifecycle.",
-        "stop": "Hold, deny, or kill cross-tenant, secret-bearing, policy-mutating, unprovenanced, or over-retained memory."
+        "stop": "Hold, deny, or kill cross-tenant, post-retrieval tenant filters, mixed-trust indexes, secret-bearing, policy-mutating, unprovenanced, or over-retained memory."
       },
       "evidence": [
         "memory classification and provenance",
@@ -1847,6 +1847,7 @@
         "agent memory boundary",
         "memory poisoning",
         "cross-tenant memory",
+        "vector embedding",
         "memory retention"
       ]
     },
