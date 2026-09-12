@@ -29,6 +29,16 @@ VALID_DECISIONS = {
     "kill_session",
 }
 
+# OWASP Agent Control Standard (ACS) v0.1.0 §6.4. A decision failure is
+# timeout, transport failure, or an error without a decision. The ACS
+# default on_decision_failure posture is proceed (fail-open).
+ACS_DECISION_FAILURE_STATUSES = {
+    "error_without_decision",
+    "timeout",
+    "transport_failure",
+}
+ACS_FAIL_CLOSED_POSTURES = {"deny", "fail_closed"}
+
 
 class GatewayDecisionError(RuntimeError):
     """Raised when a policy or runtime request cannot be parsed."""
@@ -106,6 +116,40 @@ def approval_satisfied(record: Any) -> bool:
             return value.lower() in {"approved", "approve", "allow", "allowed", "accepted", "true"}
         return approval_satisfied(parsed)
     return False
+
+
+def normalize_acs_token(value: Any) -> str:
+    return str(value or "").strip().lower().replace("-", "_")
+
+
+def acs_fail_open_decision_failure(request: dict[str, Any]) -> tuple[str, list[str]] | None:
+    """Return a kill or deny outcome when an ACS Guardian decision failed.
+
+    Unspecified guardian evidence stays on the prior allow/deny path so
+    existing policy, identity, and path checks remain valid. When a
+    decision failure is observed, ACS-Core defaults to proceed (fail-open)
+    unless the deployment set on_decision_failure=deny.
+    """
+    status = normalize_acs_token(request.get("guardian_decision_status"))
+    if status not in ACS_DECISION_FAILURE_STATUSES:
+        return None
+
+    posture = normalize_acs_token(request.get("on_decision_failure"))
+    if posture in ACS_FAIL_CLOSED_POSTURES:
+        return (
+            "deny",
+            [
+                f"ACS Guardian decision failed ({status}) and on_decision_failure=deny; do not execute the tool"
+            ],
+        )
+    return (
+        "kill_session",
+        [
+            "ACS Guardian decision failed "
+            f"({status}) with fail-open on_decision_failure="
+            f"{posture or 'proceed'}; an unreachable Guardian must not convert control into audit"
+        ],
+    )
 
 
 def derive_agent_class(agent_id: str, allowed_agents: list[Any], explicit: Any = None) -> str:
@@ -232,6 +276,22 @@ def evaluate_policy_decision(policy_pack: dict[str, Any], runtime_request: dict[
             policy_pack=policy_pack,
             policy=policy,
             violations=[] if kill_signal in known_signals else [f"unregistered kill signal: {kill_signal}"],
+        )
+
+    acs_failure = acs_fail_open_decision_failure(request)
+    if acs_failure is not None:
+        decision, acs_violations = acs_failure
+        return decision_result(
+            decision=decision,
+            reason=(
+                "ACS Guardian decision failure proceeded fail-open"
+                if decision == "kill_session"
+                else "ACS Guardian decision failure fail-closed; tool call is not executed"
+            ),
+            request=request,
+            policy_pack=policy_pack,
+            policy=policy,
+            violations=acs_violations,
         )
 
     violations: list[str] = []
@@ -386,6 +446,8 @@ def request_from_args(args: argparse.Namespace) -> dict[str, Any]:
         "gate_phase": args.gate_phase,
         "human_approval_record": args.human_approval_record,
         "run_id": args.run_id,
+        "guardian_decision_status": args.guardian_decision_status,
+        "on_decision_failure": args.on_decision_failure,
         "runtime_kill_signal": args.runtime_kill_signal,
         "tool_access_mode": args.tool_access_mode,
         "tool_namespace": args.tool_namespace,
@@ -415,6 +477,16 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--gate-phase")
     parser.add_argument("--human-approval-record")
     parser.add_argument("--runtime-kill-signal")
+    parser.add_argument(
+        "--guardian-decision-status",
+        default="",
+        help="ACS Guardian outcome: timeout, transport_failure, or error_without_decision when no usable decision arrived",
+    )
+    parser.add_argument(
+        "--on-decision-failure",
+        default="",
+        help="ACS on_decision_failure posture: proceed (fail-open default) or deny (fail-closed)",
+    )
     parser.add_argument("--change-class")
     parser.add_argument("--expect-decision", choices=sorted(VALID_DECISIONS))
     return parser.parse_args(argv)
