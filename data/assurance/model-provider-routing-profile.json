@@ -1,14 +1,20 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-08-21",
-  "intent": "Define the SecurityRecipes model-provider routing gate: a deterministic policy layer that decides which model provider and model class may receive secure context for a governed agentic workflow, with explicit proof for data retention, residency, training exclusion, guardrails, telemetry, run receipts, and human approval before context crosses a frontier, local, or unsanctioned model boundary.",
+  "last_reviewed": "2026-09-13",
+  "intent": "Define the SecurityRecipes model-provider routing gate: a deterministic policy layer that decides which model provider and model class may receive secure context for a governed agentic workflow, with explicit proof for data retention, residency, training exclusion, guardrails, telemetry, run receipts, human approval, and consumption controls before context crosses a frontier, local, or unsanctioned model boundary.",
   "positioning": {
     "buyer": "AI Platform, Product Security, GRC, privacy, procurement security, model risk, and acquisition diligence teams",
     "category": "Secure model-provider routing and context boundary governance for agentic AI",
-    "enterprise_promise": "SecurityRecipes makes model choice easy to approve: a team can ask for the best model for an agentic workflow while the routing gate proves whether the provider, model, data class, autonomy level, and evidence state are acceptable.",
-    "why_now": "Enterprises are moving from single-model pilots to multi-provider agent fleets that combine MCP tools, private code, ticket data, browser activity, remote agents, and frontier-model reasoning. A secure context layer needs a provider-neutral routing decision before sensitive context reaches any model boundary."
+    "enterprise_promise": "SecurityRecipes makes model choice easy to approve: a team can ask for the best model for an agentic workflow while the routing gate proves whether the provider, model, data class, autonomy level, evidence state, and consumption controls are acceptable.",
+    "why_now": "Enterprises are moving from single-model pilots to multi-provider agent fleets that combine MCP tools, private code, ticket data, browser activity, remote agents, and frontier-model reasoning. OWASP LLM06:2026 ranks unbounded consumption as a first-class risk: token-aware rate limits, hard spending caps that halt inference, and agentic circuit breakers must exist before a model route receives tool-capable context. A secure context layer needs a provider-neutral routing decision before sensitive context reaches any model boundary."
   },
   "standards_alignment": [
+    {
+      "id": "owasp-llm-top-10-2026-llm06",
+      "name": "OWASP GenAI LLM Top 10 2026 — LLM06 Unbounded Consumption",
+      "url": "https://genai.owasp.org/resource/owasp-genai-llm-top-10-2026/",
+      "coverage": "LLM06:2026 requires token-aware rate limits, hard spending caps that halt inference rather than only alert, and agentic circuit breakers before a model route receives tool-capable or reasoning context. Alert-only budgets and unbounded agent-tool loops are not approved consumption controls."
+    },
     {
       "id": "owasp-agentic-top-10-2026",
       "name": "OWASP Top 10 for Agentic Applications 2026",
@@ -138,7 +144,10 @@
       "tool_and_output_guardrails",
       "redacted_trace_contract",
       "run_receipt_binding",
-      "context_egress_decision"
+      "context_egress_decision",
+      "token_aware_rate_limits",
+      "hard_spending_caps_that_halt_inference",
+      "agentic_circuit_breakers"
     ],
     "runtime_kill_signals": [
       "raw_token_or_private_key_in_prompt",
@@ -150,7 +159,9 @@
       "unredacted_pii_without_approval",
       "provider_endpoint_not_https",
       "tool_call_started_before_blocking_guardrail",
-      "egress_decision_denied_or_killed"
+      "egress_decision_denied_or_killed",
+      "unbounded_consumption_observed",
+      "agentic_loop_without_circuit_breaker"
     ],
     "prohibited_without_two_key_review": [
       "regulated_customer_data",
@@ -522,7 +533,8 @@
       "Which data classes are prohibited for each provider or model route?",
       "Which routes require zero data retention, training exclusion, DPA, residency, guardrails, telemetry, receipt, and human approval evidence?",
       "Which workflows can use frontier hosted models versus private runtimes?",
-      "Which runtime signals force hold, deny, or kill decisions before a model call starts?"
+      "Which runtime signals force hold, deny, or kill decisions before a model call starts?",
+      "Which routes halt inference on token, cost, or agent-loop runaway instead of only alerting?"
     ],
     "recommended_first_use": "Attach the routing gate to AI platform model registries, secure-context retrieval, MCP gateway policy, context egress, procurement review, and enterprise trust-center exports.",
     "sales_motion": "Lead with open model-route policy, then sell hosted route decisions, provider inventory, contract-state checks, tenant-specific policy packs, and acquisition diligence reports."
@@ -539,6 +551,10 @@
     {
       "risk": "Provider-neutral model IDs are intentionally abstract in the open project.",
       "treatment": "Fork the profile and map route IDs to approved OpenAI, Anthropic, xAI, private-cloud, or local model SKUs inside the enterprise layer."
+    },
+    {
+      "risk": "An otherwise approved route can still exhaust tokens, cost, or agent-tool loops when spending caps only alert and no circuit breaker exists.",
+      "treatment": "Kill observed unbounded consumption and agentic loops without circuit breakers; deny alert-only spending caps; keep unspecified consumption evidence on the prior allow path until live meter evidence is attached."
     }
   ]
 }
