@@ -2068,7 +2068,7 @@
         {
           "label": "Decision",
           "title": "Score route risk",
-          "detail": "Evaluate private context, secrets, regulated data, tool use, autonomy, safety controls, outage state, and fallback equivalence."
+          "detail": "Evaluate private context, secrets, regulated data, tool use, autonomy, safety controls, outage state, fallback equivalence, token-aware rate limits, hard spending caps, and agentic circuit breakers."
         },
         {
           "label": "Action",
@@ -2082,9 +2082,9 @@
         }
       ],
       "gate": {
-        "question": "Is there an approved route satisfying data, region, capability, risk, contract, and fallback requirements?",
+        "question": "Is there an approved route satisfying data, region, capability, risk, contract, fallback, and consumption-control requirements?",
         "pass": "Send only the authorized context to the selected route.",
-        "stop": "Redact, hold, or deny when no compliant provider/model route exists."
+        "stop": "Redact, hold, deny, or kill when no compliant provider/model route exists or consumption controls cannot halt inference."
       },
       "evidence": [
         "request data/risk classification",
@@ -2110,7 +2110,8 @@
         "model routing policy",
         "AI provider gate",
         "data residency model",
-        "model fallback"
+        "model fallback",
+        "unbounded consumption"
       ]
     },
     {

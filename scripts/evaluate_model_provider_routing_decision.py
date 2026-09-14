@@ -5,6 +5,9 @@ The model-provider routing pack declares approved providers, model
 routes, workflow route preferences, data classes, and required proof.
 This evaluator is the deterministic function an agent host, MCP gateway,
 or audit replay can call before secure context is sent to a model.
+OWASP LLM06:2026 treats unbounded consumption as a first-class routing
+failure: observed runaway, agentic loops without circuit breakers, and
+alert-only spending caps must not receive an allow decision.
 """
 
 from __future__ import annotations
@@ -154,6 +157,13 @@ def request_from_input(runtime_request: dict[str, Any]) -> dict[str, Any]:
         "tool_guardrails_enforced": as_bool(runtime_request.get("tool_guardrails_enforced")),
         "training_opt_out": as_bool(runtime_request.get("training_opt_out")),
         "untrusted_input": as_bool(runtime_request.get("untrusted_input")),
+        "unbounded_consumption_observed": as_bool(
+            runtime_request.get("unbounded_consumption_observed")
+        ),
+        "spending_cap_alert_only": as_bool(runtime_request.get("spending_cap_alert_only")),
+        "agentic_loop_without_circuit_breaker": as_bool(
+            runtime_request.get("agentic_loop_without_circuit_breaker")
+        ),
         "workflow_id": str(runtime_request.get("workflow_id") or ""),
         "zero_data_retention": as_bool(runtime_request.get("zero_data_retention")),
     }
@@ -413,6 +423,22 @@ def evaluate_model_provider_routing_decision(
             request=request,
             violations=["egress_decision_denied_or_killed"],
         )
+    if request["unbounded_consumption_observed"]:
+        return decision_result(
+            decision="kill_session_on_provider_signal",
+            reason="unbounded model consumption was observed without a halt",
+            pack=routing_pack,
+            request=request,
+            violations=["unbounded_consumption_observed"],
+        )
+    if request["agentic_loop_without_circuit_breaker"]:
+        return decision_result(
+            decision="kill_session_on_provider_signal",
+            reason="agentic tool or reasoning loop ran without a circuit breaker",
+            pack=routing_pack,
+            request=request,
+            violations=["agentic_loop_without_circuit_breaker"],
+        )
 
     route = match_route(routing_pack, request)
     if route is None:
@@ -540,6 +566,17 @@ def evaluate_model_provider_routing_decision(
             workflow=workflow,
             violations=["tool_call_started_before_blocking_guardrail"],
         )
+    if request["spending_cap_alert_only"]:
+        return decision_result(
+            decision="deny_unapproved_route",
+            reason="spending cap is alert-only and does not halt inference",
+            pack=routing_pack,
+            request=request,
+            provider=provider,
+            route=route,
+            workflow=workflow,
+            violations=["spending_cap_does_not_halt_inference"],
+        )
 
     missing = missing_controls(request=request, route=route, provider=provider)
     score = risk_score(pack=routing_pack, request=request, provider=provider, missing=missing)
@@ -607,6 +644,9 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--untrusted-input", action="store_true")
     parser.add_argument("--tool-call-started", action="store_true")
     parser.add_argument("--high-impact-action", action="store_true")
+    parser.add_argument("--unbounded-consumption-observed", action="store_true")
+    parser.add_argument("--spending-cap-alert-only", action="store_true")
+    parser.add_argument("--agentic-loop-without-circuit-breaker", action="store_true")
     parser.add_argument("--expect-decision")
     return parser.parse_args(argv)
 
@@ -642,6 +682,9 @@ def main(argv: list[str] | None = None) -> int:
         "tool_guardrails_enforced": args.tool_guardrails_enforced,
         "training_opt_out": args.training_opt_out,
         "untrusted_input": args.untrusted_input,
+        "unbounded_consumption_observed": args.unbounded_consumption_observed,
+        "spending_cap_alert_only": args.spending_cap_alert_only,
+        "agentic_loop_without_circuit_breaker": args.agentic_loop_without_circuit_breaker,
         "workflow_id": args.workflow_id,
         "zero_data_retention": args.zero_data_retention,
     }
