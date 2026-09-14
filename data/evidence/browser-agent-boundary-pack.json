@@ -2,6 +2,9 @@
   "boundary_contract": {
     "default_state": "browser_authority_untrusted_until_isolated_scoped_user_confirmed_and_receipt_bound",
     "kill_signal_indicators": [
+      "actuate_outside_write_origin_set",
+      "consume_outside_read_origin_set",
+      "cross_origin_read_to_write_leak",
       "cross_origin_secret_egress",
       "credential_visible_to_page",
       "download_and_execute",
@@ -11,6 +14,7 @@
       "prompt_injection_detected_with_side_effect",
       "raw_token_in_dom_or_storage",
       "unapproved_admin_console_write",
+      "ungated_origin_expansion",
       "untrusted_content_requests_external_send"
     ],
     "minimum_task_profiles": 6,
@@ -94,6 +98,7 @@
     "default_questions_answered": [
       "Can this browser task run logged out?",
       "Is this a dedicated agent profile or a user's normal browser?",
+      "Is the next origin in a gated, task-relevant read or write set?",
       "Can untrusted content influence an external send or form submit?",
       "Are provider, GitHub, session, or customer tokens visible to the page or model?",
       "Is localhost, download, admin-console, or payment authority reachable?",
@@ -103,13 +108,13 @@
     "sales_motion": "Lead with a readable browser-agent safety gate, then sell hosted policy, dedicated workspace brokering, origin enforcement, prompt-injection telemetry, and signed browser run receipts."
   },
   "failures": [],
-  "generated_at": "2026-08-21",
+  "generated_at": "2026-09-14",
   "intent": "Define the SecurityRecipes browser-agent workspace boundary: a generated, machine-readable policy model for deciding when browser-based or desktop browser agents may inspect untrusted content, use logged-in sessions, hold credentials, navigate origins, fill forms, download files, call local services, or deliver outputs through external routes.",
   "positioning": {
     "buyer": "AI Platform, Product Security, Browser Platform, Security Engineering, SOC, GRC, procurement security, and agent-host teams",
     "category": "Browser-agent workspace isolation and ambient-authority control for agentic AI",
     "enterprise_promise": "SecurityRecipes can make browser agents easier to approve by turning prompt-injection exposure, logged-in session state, local credential storage, origin changes, file downloads, localhost access, and side effects into deterministic allow, hold, deny, or kill decisions.",
-    "why_now": "Agentic AI is moving from chat and code review into browsers, email, documents, web apps, and desktop workspaces. Browser agents combine untrusted content with ambient user sessions, DOM-visible data, local storage, downloads, forms, and external communication, so enterprises need a boundary that constrains impact even when prompt injection or social-engineering attacks are not perfectly detected."
+    "why_now": "Agentic AI is moving from chat and code review into browsers, email, documents, web apps, and desktop workspaces. Chrome Agent Origin Sets show that an unrestricted agent is effectively a Site Isolation bypass: without a gated read-versus-write origin set, prompt injection can consume unrelated iframes or actuate on logged-in origins the user never shared."
   },
   "residual_risks": [
     {
@@ -121,15 +126,22 @@
       "treatment": "Constrain source-to-sink combinations: untrusted content plus external send, credential use, localhost access, downloads, admin writes, or payment actions should hold, deny, or kill."
     },
     {
+      "risk": "An unrestricted browser agent can bypass Site Isolation by consuming or actuating on origins outside a task-relevant set.",
+      "treatment": "Kill ungated origin expansion, consumption outside the read set, actuation outside the write set, and read-to-write origin leaks before the session continues."
+    },
+    {
       "risk": "Browser profile state can drift when extensions, tokens, cookies, local storage, or saved credentials change.",
       "treatment": "Prefer dedicated agent profiles, scoped storage, short-lived tokens, storage inspection, and recertification before recurring browser-agent schedules run."
     }
   ],
   "runtime_risk_weights": {
+    "actuate_outside_write_origin_set": 30,
     "admin_console_write": 35,
     "ambient_cookies_available": 25,
+    "consume_outside_read_origin_set": 25,
     "contains_secret": 35,
     "cross_origin_egress": 20,
+    "cross_origin_read_to_write_leak": 30,
     "dom_credential_visible": 30,
     "downloads_file": 14,
     "executes_code": 35,
@@ -142,6 +154,7 @@
     "payment_or_purchase": 45,
     "persistent_memory_write": 18,
     "personal_profile": 25,
+    "ungated_origin_expansion": 30,
     "untrusted_content": 15
   },
   "schema_version": "1.0",
@@ -160,26 +173,26 @@
     "agentic_action_runtime_pack": {
       "available": true,
       "path": "data/evidence/agentic-action-runtime-pack.json",
-      "sha256": "3fc73421a2da2afd42840813853d88f837031f0e95621dda12977d74e1cf014c"
+      "sha256": "6392772f0fa61508dc82e1685d968e2dc5a1b098ed14bdb053ed2b023fb21e76"
     },
     "agentic_app_intake_pack": {
       "available": true,
       "path": "data/evidence/agentic-app-intake-pack.json",
-      "sha256": "489ffcf3c3a70190ff6c0dfdc5c98394bb18bf2c7d86bc7e8cea6cb66da767c9"
+      "sha256": "8685345d6266b843760fc202f3b2e4110cf51a620fabec76f7c7666980f2a58b"
     },
     "agentic_incident_response_pack": {
       "available": true,
       "path": "data/evidence/agentic-incident-response-pack.json",
-      "sha256": "ae6de3389940b64572fc45a7fd16a119531282a1e6ad8c89d67999271265ff42"
+      "sha256": "fcecb447278eba16f227891e7b4b1d94d697ca82f0fe303b663c419d3c81b7f6"
     },
     "agentic_telemetry_contract": {
       "available": true,
       "path": "data/evidence/agentic-telemetry-contract.json",
-      "sha256": "13af061ddf989e992ee1772a1f1be74eb05dadfe4025cc9f4428201aae8492d3"
+      "sha256": "a9ac22d5092a3c2d946e77a0fd0d07e75ad76f0dac3c6925ecb85f685e2d00d7"
     },
     "browser_agent_boundary_profile": {
       "path": "data/assurance/browser-agent-boundary-profile.json",
-      "sha256": "9388223da63191897c7f55a1b03adf0d1e15cf5eb2cd4ae4d45760b2c65304fc"
+      "sha256": "455c40d7325662cb75287cc470e866a5be2f18bb48ccd31691afbdce56653d66"
     },
     "browser_agent_readme": {
       "available": false,
@@ -189,17 +202,17 @@
     "context_egress_boundary_pack": {
       "available": true,
       "path": "data/evidence/context-egress-boundary-pack.json",
-      "sha256": "52ae72afeed959edd39a1d7a9e8c154ceb3c897b69875de1484fa87ea88d618b"
+      "sha256": "d2e3cc4215d3db9001d587abd2f876e27191f581833e17263a24929dbba2c38d"
     },
     "secure_context_trust_pack": {
       "available": true,
       "path": "data/evidence/secure-context-trust-pack.json",
-      "sha256": "705b23fe67c78f32340031504f496bf5932493f31a5906a6e764158f8c2142d7"
+      "sha256": "abaf20b0bf378975601f8c518a8827dddecda357cacc83d699f0a3b2918bc9f5"
     },
     "threat_radar": {
       "available": true,
       "path": "data/evidence/agentic-threat-radar.json",
-      "sha256": "ce1fb0e88764338f43fd1ea69e63d7639ccb809f7f675bda9907ce7c0347309d"
+      "sha256": "26f36d5c232be71d8e4577752916fcf0d16d0d6b5791826aa93793c0a1b0e7b6"
     }
   },
   "source_summaries": {
@@ -327,7 +340,7 @@
         "default_decision": "deny_unregistered_context",
         "failure_count": 0,
         "prohibited_data_class_count": 7,
-        "registered_byte_count": 14978313,
+        "registered_byte_count": 14982114,
         "registered_file_count": 3520,
         "risk_family_counts": {
           "context_poisoning": 8,
@@ -421,6 +434,18 @@
     }
   },
   "standards_alignment": [
+    {
+      "coverage": "Extends Site Isolation and the same-origin policy with Agent Origin Sets. A gating function isolated from untrusted content decides task-relevant read-only versus read-writable origins; the planner cannot add origins without that approval, and unrelated iframes are withheld from the model.",
+      "id": "chrome-agent-origin-sets-2025",
+      "name": "Chrome Security: Architecting Security for Agentic Capabilities in Chrome",
+      "url": "https://security.googleblog.com/2025/12/architecting-security-for-agentic.html"
+    },
+    {
+      "coverage": "Published 2026-06-09. Agents in authenticated browser sessions must restrict the set of web origins they interact with to those relevant to the user's task, reducing rogue tool calls and data exfiltration to unrelated origins.",
+      "id": "chrome-webmcp-agent-security-2026",
+      "name": "Chrome: Agent security considerations for WebMCP",
+      "url": "https://developer.chrome.com/docs/agents/security"
+    },
     {
       "coverage": "Treats prompt injection as a social-engineering style agent-security problem and emphasizes constraining dangerous sources-to-sinks combinations such as untrusted content plus external transmission or tool actions.",
       "id": "openai-agent-prompt-injection-2026",
