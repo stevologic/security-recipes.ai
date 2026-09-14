@@ -81,10 +81,13 @@ def normalize_request(runtime_request: dict[str, Any]) -> dict[str, Any]:
     for key in ["action_classes", "controls", "data_classes", "indicators"]:
         request[key] = [str(item) for item in as_list(request.get(key)) if str(item).strip()]
     for key in [
+        "actuate_outside_write_origin_set",
         "admin_console_write",
         "ambient_cookies_available",
+        "consume_outside_read_origin_set",
         "contains_secret",
         "cross_origin_egress",
+        "cross_origin_read_to_write_leak",
         "dom_credential_visible",
         "downloads_file",
         "executes_code",
@@ -97,6 +100,7 @@ def normalize_request(runtime_request: dict[str, Any]) -> dict[str, Any]:
         "persistent_memory_write",
         "prompt_injection_signal",
         "sends_external_message",
+        "ungated_origin_expansion",
         "uses_personal_profile",
     ]:
         request[key] = as_bool(request.get(key))
@@ -156,6 +160,14 @@ def matched_kill_reasons(pack: dict[str, Any], request: dict[str, Any]) -> list[
         reasons.append(f"runtime_kill_signal: {request['runtime_kill_signal']}")
     for indicator in sorted(configured & indicators):
         reasons.append(f"kill indicator: {indicator}")
+    if request.get("ungated_origin_expansion"):
+        reasons.append("planner added an origin without a gating function isolated from untrusted content")
+    if request.get("consume_outside_read_origin_set"):
+        reasons.append("browser agent consumed page or iframe content from an origin outside the gated read set")
+    if request.get("actuate_outside_write_origin_set"):
+        reasons.append("browser agent actuated on an origin that is not in the gated read-writable set")
+    if request.get("cross_origin_read_to_write_leak"):
+        reasons.append("data from a read-only origin was passed to a writable origin outside the gated origin sets")
     if request.get("contains_secret") and (request.get("cross_origin_egress") or request.get("external_side_effect") or request.get("sends_external_message")):
         reasons.append("secret-bearing browser context is crossing an origin or external delivery boundary")
     if request.get("dom_credential_visible") or request.get("local_storage_token"):
@@ -450,10 +462,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--indicator", action="append", default=[])
     parser.add_argument("--human-approval-id")
     parser.add_argument("--human-approval-status")
+    parser.add_argument("--actuate-outside-write-origin-set", action="store_true")
     parser.add_argument("--admin-console-write", action="store_true")
     parser.add_argument("--ambient-cookies-available", action="store_true")
+    parser.add_argument("--consume-outside-read-origin-set", action="store_true")
     parser.add_argument("--contains-secret", action="store_true")
     parser.add_argument("--cross-origin-egress", action="store_true")
+    parser.add_argument("--cross-origin-read-to-write-leak", action="store_true")
     parser.add_argument("--dom-credential-visible", action="store_true")
     parser.add_argument("--downloads-file", action="store_true")
     parser.add_argument("--executes-code", action="store_true")
@@ -466,6 +481,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--persistent-memory-write", action="store_true")
     parser.add_argument("--prompt-injection-signal", action="store_true")
     parser.add_argument("--sends-external-message", action="store_true")
+    parser.add_argument("--ungated-origin-expansion", action="store_true")
     parser.add_argument("--uses-personal-profile", action="store_true")
     parser.add_argument("--expect-decision")
     return parser.parse_args()
@@ -476,16 +492,19 @@ def request_from_args(args: argparse.Namespace) -> dict[str, Any]:
         return load_json(args.runtime_request)
     request: dict[str, Any] = {
         "action_classes": args.action_class,
+        "actuate_outside_write_origin_set": args.actuate_outside_write_origin_set,
         "admin_console_write": args.admin_console_write,
         "agent_id": args.agent_id,
         "ambient_cookies_available": args.ambient_cookies_available,
         "approval_state": args.approval_state,
         "auth_state": args.auth_state,
         "browser_storage_policy": args.browser_storage_policy,
+        "consume_outside_read_origin_set": args.consume_outside_read_origin_set,
         "contains_secret": args.contains_secret,
         "content_trust_level": args.content_trust_level,
         "controls": args.control,
         "cross_origin_egress": args.cross_origin_egress,
+        "cross_origin_read_to_write_leak": args.cross_origin_read_to_write_leak,
         "data_classes": args.data_class,
         "dom_credential_visible": args.dom_credential_visible,
         "downloads_file": args.downloads_file,
@@ -505,6 +524,7 @@ def request_from_args(args: argparse.Namespace) -> dict[str, Any]:
         "run_id": args.run_id,
         "runtime_kill_signal": args.runtime_kill_signal,
         "sends_external_message": args.sends_external_message,
+        "ungated_origin_expansion": args.ungated_origin_expansion,
         "session_id": args.session_id,
         "target_origin": args.target_origin,
         "task_profile_id": args.task_profile_id,

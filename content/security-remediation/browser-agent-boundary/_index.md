@@ -3,7 +3,7 @@ title: Browser Agent Workspace Boundary
 linkTitle: Browser Agent Boundary
 weight: 16
 date: 2026-05-04
-lastmod: 2026-08-21
+lastmod: 2026-09-14
 sidebar:
   exclude: true
 description: >
@@ -22,6 +22,15 @@ delivery routes. This pack decides when that boundary should allow, hold,
 deny, or kill a browser-agent session.
 {{< /callout >}}
 
+Rechecked source anchors against Chrome's [Architecting Security for
+Agentic Capabilities in Chrome](https://security.googleblog.com/2025/12/architecting-security-for-agentic.html)
+and [Agent security considerations for WebMCP](https://developer.chrome.com/docs/agents/security)
+on September 14, 2026. Agent Origin Sets split task-relevant origins
+into read-only and read-writable sets; a gating function isolated from
+untrusted content must approve origin expansion, and unrelated iframes
+are withheld from the model. Chrome's WebMCP agent guidance requires
+restricting the agent to origins relevant to the user's task.
+
 ## The product bet
 
 The next enterprise question is not just whether an agent can use MCP
@@ -38,6 +47,7 @@ runtime evaluator for browser-agent sessions.
 The control point is intentionally practical:
 
 - public research can run in a logged-out, isolated browser;
+- origin expansion stays inside a gated read versus write set;
 - draft handoffs can proceed only after explicit route selection;
 - email and document triage holds because embedded instructions are
   untrusted;
@@ -139,6 +149,41 @@ python3 scripts/evaluate_browser_agent_boundary_decision.py \
   --expect-decision kill_session_on_browser_agent_signal
 ```
 
+Evaluate ungated origin expansion:
+
+```bash
+python3 scripts/evaluate_browser_agent_boundary_decision.py \
+  --workspace-class-id public-research-browser \
+  --task-profile-id public-security-research \
+  --session-id browser-ci-origin-set \
+  --run-id run-origin-set \
+  --agent-id sr-browser-agent \
+  --tenant-id tenant-demo \
+  --user-intent "Collect cited public AI security references" \
+  --target-origin https://www.nist.gov \
+  --content-trust-level standards_body \
+  --auth-state logged_out \
+  --isolation-mode dedicated_agent_profile \
+  --action-class navigate \
+  --action-class read_page \
+  --action-class summarize \
+  --action-class copy_draft \
+  --data-class public_security_guidance \
+  --network-egress-policy origin_allowlist \
+  --browser-storage-policy ephemeral_or_scoped_storage \
+  --approval-state approved \
+  --telemetry-event-id telemetry-origin-set \
+  --receipt-id receipt-origin-set \
+  --control dedicated_agent_profile \
+  --control ephemeral_or_scoped_storage \
+  --control logged_out_by_default \
+  --control origin_allowlist \
+  --control metadata_only_telemetry \
+  --control run_receipt \
+  --ungated-origin-expansion \
+  --expect-decision kill_session_on_browser_agent_signal
+```
+
 ## What is inside
 
 | Section | Purpose |
@@ -147,7 +192,7 @@ python3 scripts/evaluate_browser_agent_boundary_decision.py \
 | `boundary_contract` | Fail-closed default state, required runtime attributes, required browser controls, valid decisions, and kill indicators. |
 | `workspace_classes` | Browser workspace profiles for public research, SecurityRecipes planner, isolated enterprise workspaces, email/document agents, personal browsers, localhost/devtools, and admin/payment consoles. |
 | `task_profiles` | Browser tasks such as public research, draft remediation handoff, email/document triage, internal form fill, localhost review, and admin/payment observation. |
-| `runtime_risk_weights` | Runtime signals that increase risk: ambient cookies, personal profile use, untrusted content, external sends, cross-origin egress, visible credentials, localhost access, downloads, code execution, admin writes, and payments. |
+| `runtime_risk_weights` | Runtime signals that increase risk: ambient cookies, personal profile use, untrusted content, external sends, cross-origin egress, ungated origin expansion, visible credentials, localhost access, downloads, code execution, admin writes, and payments. |
 | `source_artifacts` | Hashes for this profile plus related SecurityRecipes packs, so browser-agent policy can be tied to secure context, egress, telemetry, action runtime, app intake, incident response, and threat radar evidence. |
 
 ## MCP examples
@@ -226,7 +271,7 @@ This pack creates that path:
 
 - hosted browser-agent policy API;
 - dedicated agent workspace broker;
-- origin allowlist and localhost controls;
+- origin allowlist, gated origin sets, and localhost controls;
 - browser storage and token exposure checks;
 - prompt-injection event ingestion;
 - signed browser run receipts;
@@ -242,6 +287,12 @@ session.
 
 The pack is anchored in current primary guidance:
 
+- [Chrome Security: Architecting Security for Agentic Capabilities in Chrome](https://security.googleblog.com/2025/12/architecting-security-for-agentic.html)
+  for Agent Origin Sets that split task-relevant origins into read-only
+  and read-writable sets and withhold unrelated iframes from the model.
+- [Chrome: Agent security considerations for WebMCP](https://developer.chrome.com/docs/agents/security)
+  for restricting authenticated browser agents to origins relevant to
+  the user's task.
 - [OpenAI: Designing AI agents to resist prompt injection](https://openai.com/index/designing-agents-to-resist-prompt-injection/)
   for source-to-sink analysis and constraining the impact of social
   engineering-style prompt injection.

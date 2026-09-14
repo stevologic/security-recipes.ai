@@ -343,6 +343,10 @@ def build_pack(
                 "treatment": "Constrain source-to-sink combinations: untrusted content plus external send, credential use, localhost access, downloads, admin writes, or payment actions should hold, deny, or kill."
             },
             {
+                "risk": "An unrestricted browser agent can bypass Site Isolation by consuming or actuating on origins outside a task-relevant set.",
+                "treatment": "Kill ungated origin expansion, consumption outside the read set, actuation outside the write set, and read-to-write origin leaks before the session continues."
+            },
+            {
                 "risk": "Browser profile state can drift when extensions, tokens, cookies, local storage, or saved credentials change.",
                 "treatment": "Prefer dedicated agent profiles, scoped storage, short-lived tokens, storage inspection, and recertification before recurring browser-agent schedules run."
             }
