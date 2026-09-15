@@ -1,12 +1,12 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-08-21",
+  "last_reviewed": "2026-09-15",
   "intent": "Define the SecurityRecipes agentic entitlement review pack: a machine-readable access-review and permission-lease layer that proves every non-human agent identity, MCP namespace, access mode, A2A handoff, and high-impact action has an owner, expiry, review cadence, step-up authorization expectation, and deterministic revocation decision before enterprise agents scale.",
   "positioning": {
     "buyer": "AI Platform, IAM, Security Engineering, Product Security, GRC, SOC, procurement security, model-risk, and acquisition diligence teams",
     "category": "Agentic AI entitlement review and permission lease governance",
     "enterprise_promise": "SecurityRecipes can turn static agent identity contracts into expiring, reviewable, revocable entitlements so agent hosts and MCP gateways know whether a specific identity still has authority to use a scope right now.",
-    "why_now": "Agentic AI is becoming a fleet problem. Enterprises need the same lifecycle discipline they expect for privileged human and workload identities, but adapted for autonomous agents that use MCP tools, receive secure context, delegate across A2A-style protocols, persist memory, and trigger action-runtime gates."
+    "why_now": "Agentic AI is becoming a fleet problem. Enterprises need the same lifecycle discipline they expect for privileged human and workload identities, but adapted for autonomous agents that use MCP tools, receive secure context, delegate across A2A-style protocols, persist memory, and trigger action-runtime gates. MCP 2026-07-28 now names omnibus initial grants such as files:*, db:*, and admin:* as a token-compromise blast-radius failure, so entitlement review must kill those grants and hold full scopes_supported initial requests for incremental elevation."
   },
   "standards_alignment": [
     {
@@ -20,6 +20,12 @@
       "name": "Model Context Protocol Authorization Specification (2026-07-28 current revision)",
       "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization",
       "coverage": "Current public MCP 2026-07-28 revision. Applies protected resource metadata, OAuth 2.1, resource indicators, token audience binding, PKCE, scope challenges, and token-passthrough denial to each MCP entitlement."
+    },
+    {
+      "id": "mcp-security-best-practices-scope-minimization-2026-07-28",
+      "name": "Model Context Protocol Security Best Practices: Scope Minimization (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices",
+      "coverage": "Current public MCP 2026-07-28 revision. Poor scope design grants omnibus tokens such as files:*, db:*, and admin:* up front when a server exposes every scope in scopes_supported and the client requests them all. Mitigations are a minimal initial scope set, incremental WWW-Authenticate elevation, and down-scoping tolerance."
     },
     {
       "id": "mcp-authorization-2025-11-25",
@@ -95,7 +101,7 @@
       },
       {
         "decision": "hold_for_step_up_authorization",
-        "meaning": "The entitlement exists, but the requested access needs fresh MCP authorization, scope challenge handling, human approval, or elevated policy evidence."
+        "meaning": "The entitlement exists, but the requested access needs fresh MCP authorization, a targeted WWW-Authenticate scope challenge, human approval, or elevated policy evidence. A client that requested the full scopes_supported catalog as an initial grant stays here until the grant is down-scoped."
       },
       {
         "decision": "deny_unregistered_entitlement",
@@ -107,7 +113,7 @@
       },
       {
         "decision": "kill_session_on_entitlement_signal",
-        "meaning": "A revocation, token passthrough, secret exposure, identity-after-revocation, cross-tenant scope, or repeated denied action requires immediate session shutdown."
+        "meaning": "A revocation, token passthrough, secret exposure, identity-after-revocation, omnibus wildcard token grant, cross-tenant scope, or repeated denied action requires immediate session shutdown."
       }
     ]
   },
@@ -217,11 +223,17 @@
     "authorization_allow_prefixes": [
       "allow"
     ],
+    "omnibus_scope_patterns": [
+      "files:*",
+      "db:*",
+      "admin:*"
+    ],
     "step_up_required_for": [
       "approval_required namespace",
       "high-control identity",
       "A2A handoff to remote agent",
       "scope expansion",
+      "full scopes_supported initial grant",
       "production-affecting action",
       "secret or regulated-data boundary"
     ],
@@ -231,6 +243,7 @@
       "raw_token_passthrough",
       "secret_in_entitlement_payload",
       "scope_escalation_attempt",
+      "omnibus_scope_grant",
       "cross_tenant_entitlement",
       "repeated_denied_entitlement"
     ]

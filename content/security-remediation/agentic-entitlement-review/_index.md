@@ -3,7 +3,7 @@ title: Agentic Entitlement Review Pack
 linkTitle: Entitlement Review
 weight: 16
 date: 2026-05-04
-lastmod: 2026-08-21
+lastmod: 2026-09-15
 sidebar:
   exclude: true
 description: >
@@ -20,7 +20,7 @@ which agent identity has which MCP scope right now, when that authority
 expires, who must review it, and what kills the session.
 {{< /callout >}}
 
-Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) on August 21, 2026.
+Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) on September 15, 2026. MCP [security best practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices) now treat omnibus initial grants such as `files:*`, `db:*`, and `admin:*` as a token-compromise blast-radius failure. This evaluator kills those grants and holds a full `scopes_supported` initial request for incremental `WWW-Authenticate` elevation. Unspecified scope evidence stays on the prior allow path. This pass does not claim human review of the pack.
 
 ## The product bet
 
@@ -105,6 +105,52 @@ python3 scripts/evaluate_agentic_entitlement_decision.py \
   --expect-decision deny_expired_or_missing_lease
 ```
 
+Evaluate an omnibus `files:*` grant that would otherwise look like an active lease:
+
+```bash
+python3 scripts/evaluate_agentic_entitlement_decision.py \
+  --identity-id sr-agent::vulnerable-dependency-remediation::codex \
+  --workflow-id vulnerable-dependency-remediation \
+  --agent-class codex \
+  --namespace repo.contents \
+  --requested-access-mode write_branch \
+  --lease-id lease-ci \
+  --lease-status active \
+  --lease-expires-at 2099-01-01T00:00:00Z \
+  --review-status current \
+  --authorization-decision allow_authorized_mcp_request \
+  --run-id run-omnibus \
+  --tenant-id tenant-ci \
+  --correlation-id corr-omnibus \
+  --receipt-id receipt-omnibus \
+  --policy-pack-hash sha256:policy \
+  --granted-scope 'files:*' \
+  --expect-decision kill_session_on_entitlement_signal
+```
+
+Evaluate a full `scopes_supported` initial grant that still needs step-up:
+
+```bash
+python3 scripts/evaluate_agentic_entitlement_decision.py \
+  --identity-id sr-agent::vulnerable-dependency-remediation::codex \
+  --workflow-id vulnerable-dependency-remediation \
+  --agent-class codex \
+  --namespace repo.contents \
+  --requested-access-mode write_branch \
+  --lease-id lease-ci \
+  --lease-status active \
+  --lease-expires-at 2099-01-01T00:00:00Z \
+  --review-status current \
+  --authorization-decision allow_authorized_mcp_request \
+  --run-id run-catalog \
+  --tenant-id tenant-ci \
+  --correlation-id corr-catalog \
+  --receipt-id receipt-catalog \
+  --policy-pack-hash sha256:policy \
+  --requested-all-scopes-supported \
+  --expect-decision hold_for_step_up_authorization
+```
+
 ## What is inside
 
 | Section | Purpose |
@@ -113,7 +159,7 @@ python3 scripts/evaluate_agentic_entitlement_decision.py \
 | `review_contract` | Default fail-closed state, required runtime fields, evidence sources, and allow / hold / deny / kill decision ladder. |
 | `entitlements` | One lease-ready entitlement per identity, workflow, MCP namespace, and access mode. |
 | `workflow_entitlement_rollups` | Per-workflow access summaries for quarterly reviews and platform intake. |
-| `runtime_policy` | Lease status values, review status values, step-up triggers, and kill indicators. |
+| `runtime_policy` | Lease status values, review status values, step-up triggers, omnibus scope patterns, and kill indicators. |
 | `source_artifacts` | Hashes and paths for the identity, MCP authorization, connector, handoff, action runtime, telemetry, and receipt packs used to build the model. |
 
 ## MCP examples
@@ -171,6 +217,8 @@ are adapted for autonomous systems:
 - agent permission leases,
 - quarterly and event-driven access review,
 - MCP scope and audience binding,
+- kill-session on omnibus `files:*`, `db:*`, or `admin:*` grants,
+- hold for step-up when a client requests the full `scopes_supported` catalog as an initial grant,
 - step-up authorization for privileged scopes,
 - A2A handoff and Agent Card trust evidence,
 - action-runtime and catastrophic-risk linkage,
@@ -191,6 +239,10 @@ The pack is anchored in current primary guidance:
 - [MCP Authorization](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
   for protected resource metadata, resource indicators, token audience
   binding, PKCE, scope challenges, and token handling.
+- [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices)
+  for scope minimization: do not mint omnibus `files:*`, `db:*`, or
+  `admin:*` tokens up front; start from a minimal baseline and elevate
+  with targeted `WWW-Authenticate` challenges.
 - [A2A Protocol Specification](https://a2a-protocol.org/latest/specification/)
   for Agent Card discovery, Agent Card signing, authentication,
   authorization, and extended Agent Card access control.
