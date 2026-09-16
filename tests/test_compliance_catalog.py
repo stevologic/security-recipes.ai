@@ -57,6 +57,7 @@ class ComplianceCatalogTests(unittest.TestCase):
             "pci-dss": ("4.0.1", "final"),
             "slsa": ("1.2", "final"),
             "cisa-cross-sector-cpg": ("2.0", "final"),
+            "openssf-osps-baseline": ("2026.08.28", "final"),
             "hipaa-security-rule": (
                 "Current effective Security Rule; 2025 NPRM not finalized",
                 "final",
