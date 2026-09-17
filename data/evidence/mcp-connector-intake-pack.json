@@ -143,6 +143,144 @@
       "transport": "streamable-http"
     },
     {
+      "business_purpose": "Render an in-chat tenant metrics dashboard through MCP Apps so reviewers can inspect bounded analytics without granting write or registry authority.",
+      "candidate_id": "tenant-analytics-mcp-app",
+      "control_gaps": [],
+      "declared_controls": [
+        "per_client_consent",
+        "short_lived_workload_identity",
+        "token_audience_validation",
+        "deny_token_passthrough",
+        "pin_tool_descriptions",
+        "pin_tool_schemas",
+        "inspect_tool_results",
+        "deny_private_network_egress",
+        "audit_every_tool_call",
+        "session_binding"
+      ],
+      "evidence_available": [
+        "OAuth protected-resource metadata",
+        "tool schema pin export",
+        "MCP gateway tool-call audit",
+        "owner review record"
+      ],
+      "intake_decision": "hold_for_controls",
+      "namespace": "analytics.tenant.dashboard",
+      "promotion_plan": [
+        "Register owner, escalation path, namespace, access mode, data classes, and tool schema hashes.",
+        "Bind the connector to the MCP gateway with default-deny policy and correlation IDs.",
+        "Run connector-drift and tool-result-injection drills before production promotion."
+      ],
+      "recommended_trust_tier": "tier_1_internal_read",
+      "red_team_drills": [
+        {
+          "attack_family": "tool_result_injection",
+          "expected_decision": "deny_or_strip_untrusted_instructions",
+          "name": "Return hostile instructions inside a normal tool result."
+        },
+        {
+          "attack_family": "connector_schema_drift",
+          "expected_decision": "hold_for_connector_recertification",
+          "name": "Change a tool description, input schema, or output schema after approval."
+        },
+        {
+          "attack_family": "mcp_apps_ui_escape",
+          "expected_decision": "hold_for_controls",
+          "name": "Render a ui:// HTML app that requests unbounded connect-src, device permissions, or unsandboxed tool calls."
+        }
+      ],
+      "registry_patch_preview": {
+        "access_modes": [
+          "read"
+        ],
+        "category": "knowledge_and_runbook_sources",
+        "data_classes": [
+          "internal_metrics",
+          "tenant_usage_summaries"
+        ],
+        "deployment_model": "enterprise_gateway",
+        "id": "tenant-analytics-mcp-app",
+        "namespace": "analytics.tenant.dashboard",
+        "owner": {
+          "accountable_team": "AI Platform",
+          "escalation": "agentic-analytics-review"
+        },
+        "required_controls": [
+          "per_client_consent",
+          "short_lived_workload_identity",
+          "token_audience_validation",
+          "deny_token_passthrough",
+          "pin_tool_descriptions",
+          "inspect_tool_results",
+          "deny_private_network_egress",
+          "audit_every_tool_call",
+          "session_binding"
+        ],
+        "status": "pilot",
+        "title": "Tenant Analytics MCP App Dashboard",
+        "transport": "streamable-http",
+        "trust_tier": "tier_1_internal_read"
+      },
+      "requested_access_modes": [
+        "read"
+      ],
+      "risk_findings": [
+        {
+          "control": "typed_human_approval",
+          "evidence": "camera, geolocation, microphone",
+          "id": "mcp-apps-device-permissions",
+          "severity": "critical",
+          "title": "MCP Apps view requests camera, microphone, or geolocation without typed two-key approval"
+        },
+        {
+          "control": "mcp_apps_sandbox_and_csp",
+          "evidence": "show_tenant_dashboard",
+          "id": "mcp-apps-missing-sandbox",
+          "severity": "critical",
+          "title": "MCP Apps view is not rendered in a sandboxed iframe"
+        },
+        {
+          "control": "mcp_apps_sandbox_and_csp",
+          "evidence": "connect_domains=*, frame_domains=https://*",
+          "id": "mcp-apps-unbounded-csp",
+          "severity": "critical",
+          "title": "MCP Apps CSP allows undeclared or wildcard network origins"
+        },
+        {
+          "control": "mcp_apps_sandbox_and_csp",
+          "evidence": "show_tenant_dashboard",
+          "id": "mcp-apps-missing-csp-enforcement",
+          "severity": "high",
+          "title": "Host does not enforce CSP from MCP Apps resource metadata"
+        },
+        {
+          "control": "audit_every_tool_call",
+          "evidence": "show_tenant_dashboard",
+          "id": "mcp-apps-unaudited-postmessage",
+          "severity": "high",
+          "title": "MCP Apps view-to-host JSON-RPC is not auditable"
+        },
+        {
+          "control": "mcp_apps_sandbox_and_csp",
+          "evidence": "show_tenant_dashboard",
+          "id": "mcp-apps-deprecated-meta-key",
+          "severity": "medium",
+          "title": "Tool still uses deprecated _meta.ui/resourceUri instead of _meta.ui.resourceUri"
+        }
+      ],
+      "risk_score": 99,
+      "source": {
+        "distribution": "private registry",
+        "package": "tenant-analytics-mcp-app",
+        "publisher": "internal-platform",
+        "review_state": "security-reviewed",
+        "version": "0.6.2"
+      },
+      "title": "Tenant Analytics MCP App Dashboard",
+      "tool_count": 1,
+      "transport": "streamable-http"
+    },
+    {
       "business_purpose": "Let agents gather public security references during triage, while preventing browser context, local host access, and retrieved pages from becoming trusted instructions.",
       "candidate_id": "browser-research-stdio",
       "control_gaps": [
@@ -407,7 +545,7 @@
     "sales_motion": "Lead with open intake scoring, then sell hosted connector discovery, schema diffing, approval receipts, and continuous recertification."
   },
   "failures": [],
-  "generated_at": "2026-05-02",
+  "generated_at": "2026-09-17",
   "intake_contract": {
     "default_decision": "hold_for_intake_review",
     "manual_review_required_for": [
@@ -444,15 +582,16 @@
       "schema_drift",
       "write_scope_bypass",
       "approval_bypass",
-      "secret_exposure"
+      "secret_exposure",
+      "mcp_apps_ui"
     ]
   },
   "intake_summary": {
-    "candidate_count": 3,
+    "candidate_count": 4,
     "decision_counts": {
       "approve_for_registry_candidate": 1,
       "deny_until_redesigned": 1,
-      "hold_for_controls": 1
+      "hold_for_controls": 2
     },
     "highest_risk_candidates": [
       {
@@ -463,32 +602,32 @@
         "title": "Container Registry Publisher"
       },
       {
+        "candidate_id": "tenant-analytics-mcp-app",
+        "decision": "hold_for_controls",
+        "namespace": "analytics.tenant.dashboard",
+        "risk_score": 99,
+        "title": "Tenant Analytics MCP App Dashboard"
+      },
+      {
         "candidate_id": "browser-research-stdio",
         "decision": "hold_for_controls",
         "namespace": "research.browser",
         "risk_score": 83,
         "title": "Local Browser Research STDIO Server"
-      },
-      {
-        "candidate_id": "github-remediation-writer",
-        "decision": "approve_for_registry_candidate",
-        "namespace": "repo.remediation",
-        "risk_score": 0,
-        "title": "GitHub Remediation Branch Writer"
       }
     ],
-    "hold_or_deny_count": 2,
+    "hold_or_deny_count": 3,
     "tier_counts": {
-      "tier_1_internal_read": 1,
+      "tier_1_internal_read": 2,
       "tier_2_scoped_write": 1,
       "tier_4_prohibited": 1
     },
     "transport_counts": {
       "stdio": 1,
-      "streamable-http": 2
+      "streamable-http": 3
     }
   },
-  "intent": "Evaluate new and changed MCP connector candidates before they enter the production connector trust registry, so SecurityRecipes can turn fast MCP adoption into a governed intake workflow with repeatable auth, network, schema, data, approval, evidence, and red-team gates.",
+  "intent": "Evaluate new and changed MCP connector candidates before they enter the production connector trust registry, so SecurityRecipes can turn fast MCP adoption into a governed intake workflow with repeatable auth, network, schema, data, MCP Apps UI, approval, evidence, and red-team gates.",
   "positioning": {
     "buyer": "AI Platform, Product Security, IAM, GRC, procurement security, and enterprise architecture teams",
     "category": "MCP connector intake and schema-drift gating",
@@ -499,7 +638,7 @@
   "source_artifacts": {
     "connector_intake_candidates": {
       "path": "data/mcp/connector-intake-candidates.json",
-      "sha256": "d6c783f56dc38909b87abb5187014f2d0acadb8d4771b1ab35e9a35538688148"
+      "sha256": "0f8a329b8e0660449a800abe97f877cd7b1ec92d3e5de3cf38d27ec0ef697a08"
     },
     "connector_trust_pack": {
       "path": "data/evidence/mcp-connector-trust-pack.json",
@@ -508,16 +647,22 @@
   },
   "standards_alignment": [
     {
-      "coverage": "OAuth 2.1 style authorization, resource indicators, token audience validation, PKCE, HTTPS, protected resource metadata, and strict bearer token handling.",
-      "id": "mcp-authorization-2025-11-25",
+      "coverage": "Current public MCP 2026-07-28 revision. OAuth 2.1 style authorization, resource indicators, token audience validation, PKCE, HTTPS, protected resource metadata, Client ID Metadata Documents, and strict bearer token handling.",
+      "id": "mcp-authorization-2026-07-28",
       "name": "Model Context Protocol Authorization Specification",
-      "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization"
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization"
     },
     {
-      "coverage": "Confused deputy prevention, token passthrough denial, SSRF mitigation, session safety, local MCP server compromise controls, and scope minimization.",
-      "id": "mcp-security-best-practices",
+      "coverage": "Current public MCP 2026-07-28 revision. Confused deputy prevention, token passthrough denial, SSRF mitigation, session safety, local MCP server compromise controls, and scope minimization.",
+      "id": "mcp-security-best-practices-2026-07-28",
       "name": "Model Context Protocol Security Best Practices",
-      "url": "https://modelcontextprotocol.io/docs/tutorials/security/security_best_practices"
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices"
+    },
+    {
+      "coverage": "Optional io.modelcontextprotocol/ui extension: ui:// HTML resources, sandboxed iframes, host-enforced CSP from declared connect/resource/frame domains, device permission requests, and auditable postMessage tool calls. Hosts MUST NOT allow undeclared origins.",
+      "id": "mcp-apps-ui-2026-01-26",
+      "name": "MCP Apps interactive UI extension",
+      "url": "https://modelcontextprotocol.io/extensions/apps/overview"
     },
     {
       "coverage": "Agent behavior hijacking, tool misuse, identity and privilege abuse, agentic supply chain, memory and context poisoning, cascading failures, and rogue agent behavior.",

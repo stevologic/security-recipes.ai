@@ -3483,7 +3483,7 @@
       "title": "MCP Connector Intake Scanner",
       "page": "/security-remediation/mcp-connector-intake-scanner/",
       "category": "mcp-governance",
-      "summary": "Inspect a proposed MCP connector's provenance, authentication, tool surface, data access, network reach, and operating controls before registration.",
+      "summary": "Inspect a proposed MCP connector's provenance, authentication, tool surface, MCP Apps UI, data access, network reach, and operating controls before registration.",
       "phases": [
         {
           "label": "Signal",
@@ -3493,12 +3493,12 @@
         {
           "label": "Scope",
           "title": "Inspect trust and access",
-          "detail": "Verify provenance/signatures, dependencies, auth, secrets, scopes, data classes, network destinations, tenancy, and updates."
+          "detail": "Verify provenance/signatures, dependencies, auth, secrets, scopes, data classes, network destinations, MCP Apps ui:// resources, CSP, sandbox, device permissions, tenancy, and updates."
         },
         {
           "label": "Decision",
           "title": "Analyze capabilities",
-          "detail": "Classify read/write/admin actions, argument schemas, side effects, destructive operations, approvals, and hidden expansion paths."
+          "detail": "Classify read/write/admin actions, argument schemas, side effects, destructive operations, unsandboxed HTML apps, unbounded connect-src, approvals, and hidden expansion paths."
         },
         {
           "label": "Action",

@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-05-02",
-  "intent": "Evaluate new and changed MCP connector candidates before they enter the production connector trust registry, so SecurityRecipes can turn fast MCP adoption into a governed intake workflow with repeatable auth, network, schema, data, approval, evidence, and red-team gates.",
+  "last_reviewed": "2026-09-17",
+  "intent": "Evaluate new and changed MCP connector candidates before they enter the production connector trust registry, so SecurityRecipes can turn fast MCP adoption into a governed intake workflow with repeatable auth, network, schema, data, MCP Apps UI, approval, evidence, and red-team gates.",
   "positioning": {
     "buyer": "AI Platform, Product Security, IAM, GRC, procurement security, and enterprise architecture teams",
     "category": "MCP connector intake and schema-drift gating",
@@ -10,16 +10,22 @@
   },
   "standards_alignment": [
     {
-      "id": "mcp-authorization-2025-11-25",
+      "id": "mcp-authorization-2026-07-28",
       "name": "Model Context Protocol Authorization Specification",
-      "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization",
-      "coverage": "OAuth 2.1 style authorization, resource indicators, token audience validation, PKCE, HTTPS, protected resource metadata, and strict bearer token handling."
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization",
+      "coverage": "Current public MCP 2026-07-28 revision. OAuth 2.1 style authorization, resource indicators, token audience validation, PKCE, HTTPS, protected resource metadata, Client ID Metadata Documents, and strict bearer token handling."
     },
     {
-      "id": "mcp-security-best-practices",
+      "id": "mcp-security-best-practices-2026-07-28",
       "name": "Model Context Protocol Security Best Practices",
-      "url": "https://modelcontextprotocol.io/docs/tutorials/security/security_best_practices",
-      "coverage": "Confused deputy prevention, token passthrough denial, SSRF mitigation, session safety, local MCP server compromise controls, and scope minimization."
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices",
+      "coverage": "Current public MCP 2026-07-28 revision. Confused deputy prevention, token passthrough denial, SSRF mitigation, session safety, local MCP server compromise controls, and scope minimization."
+    },
+    {
+      "id": "mcp-apps-ui-2026-01-26",
+      "name": "MCP Apps interactive UI extension",
+      "url": "https://modelcontextprotocol.io/extensions/apps/overview",
+      "coverage": "Optional io.modelcontextprotocol/ui extension: ui:// HTML resources, sandboxed iframes, host-enforced CSP from declared connect/resource/frame domains, device permission requests, and auditable postMessage tool calls. Hosts MUST NOT allow undeclared origins."
     },
     {
       "id": "owasp-agentic-top-10-2026",
@@ -71,7 +77,8 @@
       "schema_drift",
       "write_scope_bypass",
       "approval_bypass",
-      "secret_exposure"
+      "secret_exposure",
+      "mcp_apps_ui"
     ],
     "manual_review_required_for": [
       "new remote MCP server",
@@ -366,6 +373,108 @@
         "registry audit log",
         "incident ticket approval",
         "image attestation"
+      ]
+    },
+    {
+      "id": "tenant-analytics-mcp-app",
+      "namespace": "analytics.tenant.dashboard",
+      "title": "Tenant Analytics MCP App Dashboard",
+      "category": "knowledge_and_runbook_sources",
+      "business_purpose": "Render an in-chat tenant metrics dashboard through MCP Apps so reviewers can inspect bounded analytics without granting write or registry authority.",
+      "requested_status": "pilot",
+      "requested_access_modes": [
+        "read"
+      ],
+      "transport": "streamable-http",
+      "deployment_model": "enterprise_gateway",
+      "source": {
+        "publisher": "internal-platform",
+        "package": "tenant-analytics-mcp-app",
+        "version": "0.6.2",
+        "distribution": "private registry",
+        "review_state": "security-reviewed"
+      },
+      "owner": {
+        "accountable_team": "AI Platform",
+        "escalation": "agentic-analytics-review"
+      },
+      "auth": {
+        "strategy": "oauth2",
+        "resource_indicators": true,
+        "audience_validation": true,
+        "client_id_metadata_document": true,
+        "scope_challenge_handling": true,
+        "step_up_authorization": false,
+        "pkce": true,
+        "token_passthrough": false,
+        "short_lived_tokens": true,
+        "command_allowlist": false
+      },
+      "network": {
+        "allowed_external_hosts": [
+          "metrics.internal.example"
+        ],
+        "allows_private_network": false,
+        "allows_metadata_ip": false,
+        "follows_redirects": false
+      },
+      "tool_surface": [
+        {
+          "name": "show_tenant_dashboard",
+          "description": "Open the tenant analytics dashboard as an MCP Apps HTML view inside the host conversation.",
+          "mutates_state": false,
+          "destructive": false,
+          "returns_untrusted_content": false,
+          "external_systems": [
+            "metrics"
+          ],
+          "input_schema_pinned": true,
+          "output_schema_pinned": true,
+          "ui": {
+            "resource_uri": "ui://tenant-analytics/dashboard",
+            "mime_type": "text/html;profile=mcp-app",
+            "sandbox_iframe": false,
+            "host_enforces_csp": false,
+            "auditable_postmessage": false,
+            "deprecated_flat_ui_resource_uri": true,
+            "csp": {
+              "connect_domains": ["*"],
+              "resource_domains": ["https://cdn.jsdelivr.net"],
+              "frame_domains": ["https://*"]
+            },
+            "permissions": {
+              "camera": {},
+              "microphone": {},
+              "geolocation": {}
+            }
+          }
+        }
+      ],
+      "data_classes": [
+        "internal_metrics",
+        "tenant_usage_summaries"
+      ],
+      "requested_operations": [
+        "render tenant analytics dashboard",
+        "read aggregated usage metrics"
+      ],
+      "declared_controls": [
+        "per_client_consent",
+        "short_lived_workload_identity",
+        "token_audience_validation",
+        "deny_token_passthrough",
+        "pin_tool_descriptions",
+        "pin_tool_schemas",
+        "inspect_tool_results",
+        "deny_private_network_egress",
+        "audit_every_tool_call",
+        "session_binding"
+      ],
+      "evidence_available": [
+        "OAuth protected-resource metadata",
+        "tool schema pin export",
+        "MCP gateway tool-call audit",
+        "owner review record"
       ]
     }
   ]
