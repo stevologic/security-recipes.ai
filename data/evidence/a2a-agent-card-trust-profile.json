@@ -44,14 +44,16 @@
         "approved_vendor",
         "tenant_controlled"
       ],
-      "description": "An agent delegates a task to an opaque remote agent through HTTP and JSON-RPC style task exchange.",
-      "protocol_hash": "58754c8b58ea96f896179f88be4d02f023116eef0298ed544b3cc046e8cd1e73",
+      "description": "An agent delegates a task to an opaque remote agent through HTTP and JSON-RPC style task exchange that must declare A2A-Version 1.0 and keep AUTH_REQUIRED credentials out of band.",
+      "protocol_hash": "6a4d043e5f33d8f8e569ae86def03e79766affa9bb3c6ae33532b062629337ce",
       "protocol_id": "a2a_task_delegation",
       "required_controls": [
         "https_required",
         "server_identity_verified",
         "agent_card_reviewed",
         "skill_scope_authorized",
+        "a2a_version_declared",
+        "in_task_authorization_out_of_band",
         "trace_context_propagated",
         "payload_minimized"
       ],
@@ -306,11 +308,11 @@
     },
     "agent_handoff_boundary_pack": {
       "path": "data/evidence/agent-handoff-boundary-pack.json",
-      "sha256": "2ce2e528af2a4f94db48ad0feb7687e0f9b4fac25349205fec488b0802f7853c"
+      "sha256": "c874867f61d7c31be6cc6d27e27daf38cf01eaa318935f6a634069ca315c65cc"
     },
     "agentic_threat_radar": {
       "path": "data/evidence/agentic-threat-radar.json",
-      "sha256": "ce1fb0e88764338f43fd1ea69e63d7639ccb809f7f675bda9907ce7c0347309d"
+      "sha256": "b960aac381964e454fa85f1b73daa82ec55d0e25bf3a37ee8128d58a334ba835"
     }
   },
   "standards_alignment": [
