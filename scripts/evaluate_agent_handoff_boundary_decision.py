@@ -33,6 +33,29 @@ VALID_DECISIONS = {
 }
 TRUSTED_TARGET_TIERS = {"first_party", "approved_vendor", "tenant_controlled"}
 AUTHN_SCHEMES = {"oauth2", "openid_connect", "mutual_tls", "api_key", "signed_agent_card"}
+SUPPORTED_A2A_MAJOR_MINOR = {"1.0"}
+A2A_AUTH_REQUIRED_STATES = {
+    "auth_required",
+    "task_state_auth_required",
+    "taskstate_auth_required",
+}
+A2A_OUT_OF_BAND_CHANNELS = {
+    "https",
+    "human_approval_bridge",
+    "oob",
+    "out_of_band",
+    "push_notification",
+    "subscribe_to_task",
+}
+A2A_IN_BAND_CREDENTIAL_FIELDS = {
+    "access_token",
+    "authorization_code",
+    "bearer_token",
+    "credential",
+    "credentials",
+    "oauth_access_token",
+    "raw_access_token",
+}
 
 
 class AgentHandoffBoundaryError(RuntimeError):
@@ -99,6 +122,29 @@ def has_approval(value: Any) -> bool:
     return bool(record.get("approval_id") or record.get("id")) and status in {"approved", "allow", "granted"}
 
 
+def normalize_a2a_major_minor(value: Any) -> str:
+    """Return Major.Minor from A2A-Version, or empty when the header is absent.
+
+    A2A 1.0.0 §3.6.2 says an empty A2A-Version is 0.3. This evaluator does not
+    treat that fallback as current 1.0; callers must declare Major.Minor.
+    """
+    raw = str(value or "").strip().lstrip("vV")
+    if not raw:
+        return ""
+    parts = raw.split(".")
+    if len(parts) >= 2 and parts[0].isdigit() and parts[1].isdigit():
+        return f"{int(parts[0])}.{int(parts[1])}"
+    return raw
+
+
+def normalize_task_state(value: Any) -> str:
+    return str(value or "").strip().lower().replace("-", "_").replace(" ", "_")
+
+
+def normalize_credential_channel(value: Any) -> str:
+    return str(value or "").strip().lower().replace("-", "_")
+
+
 def decision_result(
     *,
     decision: str,
@@ -129,7 +175,9 @@ def decision_result(
         },
         "reason": reason,
         "runtime_request": {
+            "a2a_version": runtime_request.get("a2a_version"),
             "correlation_id": runtime_request.get("correlation_id"),
+            "credential_channel": runtime_request.get("credential_channel"),
             "data_classes": as_list(runtime_request.get("data_classes")),
             "handoff_profile_id": runtime_request.get("handoff_profile_id"),
             "payload_fields": as_list(runtime_request.get("payload_fields")),
@@ -138,6 +186,7 @@ def decision_result(
             "run_id": runtime_request.get("run_id"),
             "target_agent_class": runtime_request.get("target_agent_class"),
             "target_trust_tier": runtime_request.get("target_trust_tier"),
+            "task_state": runtime_request.get("task_state"),
             "workflow_id": runtime_request.get("workflow_id"),
         },
         "violations": violations or [],
@@ -301,6 +350,54 @@ def evaluate_agent_handoff_boundary_decision(
                 matched_workflow=workflow,
                 violations=["agent_card_signed=false"],
             )
+        a2a_version = normalize_a2a_major_minor(runtime_request.get("a2a_version"))
+        if not a2a_version:
+            return decision_result(
+                decision="hold_for_redaction_or_approval",
+                reason="A2A handoff is missing A2A-Version; an empty header is 0.3, not current 1.0",
+                runtime_request=runtime_request,
+                matched_profile=profile,
+                matched_protocol=protocol,
+                matched_workflow=workflow,
+                violations=["missing a2a_version; empty A2A-Version is 0.3"],
+            )
+        if a2a_version not in SUPPORTED_A2A_MAJOR_MINOR:
+            return decision_result(
+                decision="deny_untrusted_agent_handoff",
+                reason="A2A handoff requested an unsupported A2A-Version",
+                runtime_request=runtime_request,
+                matched_profile=profile,
+                matched_protocol=protocol,
+                matched_workflow=workflow,
+                violations=[f"unsupported a2a_version: {a2a_version}"],
+            )
+        task_state = normalize_task_state(runtime_request.get("task_state"))
+        if task_state in A2A_AUTH_REQUIRED_STATES:
+            in_band_fields = sorted(payload_fields & A2A_IN_BAND_CREDENTIAL_FIELDS)
+            if runtime_request.get("in_band_credential") or in_band_fields:
+                return decision_result(
+                    decision="kill_session_on_secret_handoff",
+                    reason="A2A AUTH_REQUIRED handoff attempted to move credentials in the A2A message",
+                    runtime_request=runtime_request,
+                    matched_profile=profile,
+                    matched_protocol=protocol,
+                    matched_workflow=workflow,
+                    violations=[
+                        f"in-band credential field: {field}" for field in in_band_fields
+                    ]
+                    or ["in_band_credential=true"],
+                )
+            channel = normalize_credential_channel(runtime_request.get("credential_channel"))
+            if channel not in A2A_OUT_OF_BAND_CHANNELS:
+                return decision_result(
+                    decision="hold_for_redaction_or_approval",
+                    reason="A2A AUTH_REQUIRED credentials must be received out of band, not in the A2A message",
+                    runtime_request=runtime_request,
+                    matched_profile=profile,
+                    matched_protocol=protocol,
+                    matched_workflow=workflow,
+                    violations=["missing out-of-band credential_channel for AUTH_REQUIRED"],
+                )
 
     if protocol_id == "mcp_tool_call":
         resource_indicator = str(runtime_request.get("resource_indicator") or "").strip()
@@ -373,6 +470,26 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--authentication-scheme", action="append", default=[])
     parser.add_argument("--agent-card-signed", action="store_true")
     parser.add_argument("--contains-secret", action="store_true")
+    parser.add_argument(
+        "--a2a-version",
+        default=None,
+        help="A2A-Version Major.Minor for a2a_task_delegation, such as 1.0.",
+    )
+    parser.add_argument(
+        "--task-state",
+        default=None,
+        help="A2A TaskState such as auth_required when in-task authorization is pending.",
+    )
+    parser.add_argument(
+        "--credential-channel",
+        default=None,
+        help="Out-of-band channel for AUTH_REQUIRED credentials, such as https or human_approval_bridge.",
+    )
+    parser.add_argument(
+        "--in-band-credential",
+        action="store_true",
+        help="Set when AUTH_REQUIRED credentials are present in the A2A message.",
+    )
     parser.add_argument("--resource-indicator", default=None)
     parser.add_argument("--token-audience", default=None)
     parser.add_argument("--approval", action="append", default=[], help="Approval field as KEY=VALUE.")
@@ -387,10 +504,13 @@ def main() -> int:
     try:
         pack = load_json(args.handoff_pack)
         request = {
+            "a2a_version": args.a2a_version,
             "agent_card_signed": args.agent_card_signed,
             "authentication_schemes": args.authentication_scheme,
             "contains_secret": args.contains_secret,
             "correlation_id": args.correlation_id,
+            "credential_channel": args.credential_channel,
+            "in_band_credential": args.in_band_credential,
             "data_classes": args.data_class,
             "handoff_profile_id": args.handoff_profile_id,
             "human_approval_record": parse_key_value(args.approval),
@@ -403,6 +523,7 @@ def main() -> int:
             "source_agent_id": args.source_agent_id,
             "target_agent_class": args.target_agent_class,
             "target_trust_tier": args.target_trust_tier,
+            "task_state": args.task_state,
             "token_audience": args.token_audience,
             "workflow_id": args.workflow_id,
         }

@@ -3,7 +3,7 @@ title: Agent Handoff Boundary
 linkTitle: Agent Handoff Boundary
 weight: 12
 date: 2026-05-04
-lastmod: 2026-08-21
+lastmod: 2026-09-19
 sidebar:
   exclude: true
 description: >
@@ -20,7 +20,17 @@ allowed, which data classes trigger redaction or approval, and which
 payload fields terminate the session.
 {{< /callout >}}
 
-Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) on August 21, 2026.
+Rechecked source anchors on September 19, 2026 against MCP
+[2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28)
+and the current released [A2A Protocol 1.0.0](https://a2a-protocol.org/v1.0.0/specification/).
+A2A `latest` still redirects to 1.0.0. Clients **MUST** send
+`A2A-Version` on every request; an empty header is **0.3**, not 1.0.
+Servers **MUST** authenticate every request and return
+`VersionNotSupportedError` for unsupported versions. When a task is in
+`TASK_STATE_AUTH_REQUIRED`, credentials **MUST** be received out of band
+unless an in-band mechanism was negotiated. This page records an
+editorial recheck; it does not claim independent human review of the
+pack.
 
 SecurityRecipes is positioned as **The Secure Context Layer for Agentic
 AI**. That claim has to hold when one agent delegates to another agent,
@@ -57,6 +67,7 @@ python3 scripts/evaluate_agent_handoff_boundary_decision.py \
   --target-trust-tier approved_vendor \
   --agent-card-signed \
   --authentication-scheme oauth2 \
+  --a2a-version 1.0 \
   --payload-field task_summary \
   --payload-field workflow_id \
   --payload-field source_ids \
@@ -64,6 +75,47 @@ python3 scripts/evaluate_agent_handoff_boundary_decision.py \
   --payload-field correlation_id \
   --data-class curated_security_guidance \
   --expect-decision allow_metadata_handoff
+```
+
+Hold an otherwise valid A2A handoff that omits `A2A-Version` (empty is 0.3):
+
+```bash
+python3 scripts/evaluate_agent_handoff_boundary_decision.py \
+  --workflow-id vulnerable-dependency-remediation \
+  --handoff-profile-id metadata-only \
+  --protocol a2a_task_delegation \
+  --target-trust-tier approved_vendor \
+  --agent-card-signed \
+  --authentication-scheme oauth2 \
+  --payload-field task_summary \
+  --payload-field workflow_id \
+  --payload-field source_ids \
+  --payload-field source_hashes \
+  --payload-field correlation_id \
+  --data-class curated_security_guidance \
+  --expect-decision hold_for_redaction_or_approval
+```
+
+Kill an `AUTH_REQUIRED` A2A handoff that puts credentials in the message:
+
+```bash
+python3 scripts/evaluate_agent_handoff_boundary_decision.py \
+  --workflow-id vulnerable-dependency-remediation \
+  --handoff-profile-id metadata-only \
+  --protocol a2a_task_delegation \
+  --target-trust-tier approved_vendor \
+  --agent-card-signed \
+  --authentication-scheme oauth2 \
+  --a2a-version 1.0 \
+  --task-state auth_required \
+  --in-band-credential \
+  --payload-field task_summary \
+  --payload-field workflow_id \
+  --payload-field source_ids \
+  --payload-field source_hashes \
+  --payload-field correlation_id \
+  --data-class curated_security_guidance \
+  --expect-decision kill_session_on_secret_handoff
 ```
 
 {{< playbook-workflow >}}
@@ -88,6 +140,8 @@ This pack answers concrete diligence questions:
 - Can handoffs fail closed by default?
 - Can a remote agent receive only the minimum context required?
 - Can MCP and A2A controls be represented in the same decision model?
+- Can an A2A handoff proceed without `A2A-Version` 1.0, or with the empty-header 0.3 fallback?
+- Can `AUTH_REQUIRED` credentials ride in the A2A message instead of an out-of-band channel?
 - Can high-impact delegated work require explicit approval?
 - Can the product kill sessions when hidden prompts, memory, raw traces,
   credentials, or signing material are about to cross a boundary?
@@ -110,6 +164,10 @@ This layer is anchored in current primary guidance:
   for resource indicators, token audience validation, PKCE, protected
   resource metadata, Client ID Metadata Documents, and token-passthrough
   denial.
+- [A2A Protocol Specification 1.0.0](https://a2a-protocol.org/v1.0.0/specification/)
+  for `A2A-Version` on every request, `VersionNotSupportedError`,
+  per-request authentication, and out-of-band `TASK_STATE_AUTH_REQUIRED`
+  credentials.
 - [A2A Enterprise Implementation](https://a2a-protocol.org/latest/topics/enterprise-ready/)
   for TLS, HTTP-layer authentication, skill-based authorization, data
   minimization, tracing, auditing, and API management.
@@ -143,6 +201,7 @@ Evaluate an approval-gated handoff:
   "target_trust_tier": "approved_vendor",
   "agent_card_signed": true,
   "authentication_schemes": ["oauth2"],
+  "a2a_version": "1.0",
   "payload_fields": [
     "task_summary",
     "workflow_id",
