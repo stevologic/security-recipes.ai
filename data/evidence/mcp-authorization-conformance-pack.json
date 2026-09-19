@@ -101,9 +101,9 @@
   },
   "authorization_pack_id": "security-recipes-mcp-authorization-conformance",
   "authorization_summary": {
-    "candidate_count": 3,
+    "candidate_count": 4,
     "candidate_decision_counts": {
-      "approve_for_pilot": 1,
+      "approve_for_pilot": 2,
       "deny_until_redesigned": 1,
       "hold_for_authorization_evidence": 1
     },
@@ -164,6 +164,42 @@
         "version": "0.4.1"
       },
       "title": "Container Registry Publisher",
+      "transport": "streamable-http"
+    },
+    {
+      "access_modes": [
+        "read"
+      ],
+      "candidate_id": "tenant-analytics-mcp-app",
+      "canonical_resource_uri": "https://mcp.security-recipes.ai/mcp#analytics.tenant.dashboard",
+      "conformance_decision": "approve_for_pilot",
+      "control_gaps": [],
+      "data_classes": [
+        "internal_metrics",
+        "tenant_usage_summaries"
+      ],
+      "evidence_mode": "candidate_auth_profile",
+      "intake_decision": "hold_for_controls",
+      "latest_spec_controls": [
+        "protected_resource_metadata_discovery",
+        "client_id_metadata_document",
+        "rfc9207_iss_validation",
+        "scope_challenge_handling",
+        "step_up_authorization"
+      ],
+      "namespace": "analytics.tenant.dashboard",
+      "requested_access_modes": [
+        "read"
+      ],
+      "risk_score": 99,
+      "source": {
+        "distribution": "private registry",
+        "package": "tenant-analytics-mcp-app",
+        "publisher": "internal-platform",
+        "review_state": "security-reviewed",
+        "version": "0.6.2"
+      },
+      "title": "Tenant Analytics MCP App Dashboard",
       "transport": "streamable-http"
     },
     {
@@ -1633,11 +1669,11 @@
     },
     "mcp_connector_intake_candidates": {
       "path": "data/mcp/connector-intake-candidates.json",
-      "sha256": "d6c783f56dc38909b87abb5187014f2d0acadb8d4771b1ab35e9a35538688148"
+      "sha256": "0f8a329b8e0660449a800abe97f877cd7b1ec92d3e5de3cf38d27ec0ef697a08"
     },
     "mcp_connector_intake_pack": {
       "path": "data/evidence/mcp-connector-intake-pack.json",
-      "sha256": "b690310927b5231559b4216a737bf33357a2a025f8288f82cb581645683ae6c3"
+      "sha256": "115a2aeb98d535aab8de7a82b67f2801394de0e452eac1d8171988eb042983a9"
     },
     "mcp_connector_trust_pack": {
       "path": "data/evidence/mcp-connector-trust-pack.json",
