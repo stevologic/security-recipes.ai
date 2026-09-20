@@ -3,7 +3,7 @@ title: MCP Runtime Decision Evaluator
 linkTitle: Runtime Decision Evaluator
 weight: 6
 date: 2026-05-02
-lastmod: 2026-09-12
+lastmod: 2026-09-20
 sidebar:
   exclude: true
 description: >
@@ -20,7 +20,7 @@ gateway, or CI admission check can execute the same policy before a tool
 call happens.
 {{< /callout >}}
 
-Rechecked September 12, 2026: MCP
+Rechecked September 20, 2026: MCP
 [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28)
 is still current and **stateless**. There is no negotiation handshake.
 Each request carries protocol version and capabilities. Servers
@@ -30,7 +30,13 @@ Each request carries protocol version and capabilities. Servers
 Streamable HTTP revisions through
 [2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25)
 could assign that header; 2026-07-28 ignores it and does not mint
-session IDs. Rechecked the same day against the OWASP
+session IDs. Streamable HTTP
+[request metadata](https://modelcontextprotocol.io/specification/2026-07-28/basic/transports/streamable-http)
+mirrors `MCP-Protocol-Version`, `Mcp-Method`, and `Mcp-Name` so a
+gateway can route without parsing the body. Servers that process the
+body **MUST** reject disagreement with HTTP 400 and JSON-RPC
+`HeaderMismatch` (`-32020`). Rechecked September 12, 2026 against the
+OWASP
 [Agent Control Standard](https://genai.owasp.org/resource/agent-control-standard-acs/)
 (ACS) v0.1.0 [§6.4](https://github.com/GenAI-Security-Project/agent-control-standard/blob/main/docs/spec/instrument/specification.md):
 the Observed Agent **MUST** wait for and apply a Guardian decision;
@@ -117,6 +123,42 @@ python3 scripts/evaluate_mcp_gateway_decision.py \
   --expect-decision deny
 ```
 
+Evaluate a Streamable HTTP `tools/call` whose headers match the body:
+
+```bash
+python3 scripts/evaluate_mcp_gateway_decision.py \
+  --workflow-id vulnerable-dependency-remediation \
+  --agent-id sr-agent::vulnerable-dependency-remediation::codex \
+  --agent-class codex \
+  --run-id run-header-match \
+  --tool-namespace advisories.vulnerability \
+  --tool-access-mode read \
+  --gate-phase tool_call \
+  --mcp-method tools/call \
+  --mcp-name advisories.vulnerability.read \
+  --mcp-protocol-version 2026-07-28 \
+  --jsonrpc-method tools/call \
+  --jsonrpc-name advisories.vulnerability.read \
+  --jsonrpc-protocol-version 2026-07-28 \
+  --expect-decision allow
+```
+
+Evaluate a gateway-routable `tools/list` header whose body is `tools/call`:
+
+```bash
+python3 scripts/evaluate_mcp_gateway_decision.py \
+  --workflow-id vulnerable-dependency-remediation \
+  --agent-id sr-agent::vulnerable-dependency-remediation::codex \
+  --agent-class codex \
+  --run-id run-header-mismatch \
+  --tool-namespace advisories.vulnerability \
+  --tool-access-mode read \
+  --gate-phase tool_call \
+  --mcp-method tools/list \
+  --jsonrpc-method tools/call \
+  --expect-decision deny
+```
+
 The response includes the decision, matched workflow, matched scope,
 violations, approval state, source manifest hash, and observed runtime
 attributes. That output can be attached to PR evidence, MCP gateway logs,
@@ -145,6 +187,10 @@ The evaluator fails closed:
     `kill_session`. The same failure with `on_decision_failure=deny`
     returns `deny` so the tool is not executed. Unspecified Guardian
     evidence stays on the prior allow path.
+12. Observed Streamable HTTP `MCP-Protocol-Version`, `Mcp-Method`, or
+    `Mcp-Name` values that disagree with the JSON-RPC body return `deny`
+    (`HeaderMismatch`, `-32020`). Unspecified headers stay on the prior
+    allow path so stdio and CI admission checks stay valid.
 
 The important design choice is that the evaluator does not ask the model
 to decide whether a call is safe. The model requests a tool call; the
@@ -155,6 +201,13 @@ policy layer decides.
 This is the practical enforcement layer implied by current AI security
 guidance:
 
+- [MCP Streamable HTTP](https://modelcontextprotocol.io/specification/2026-07-28/basic/transports/streamable-http)
+  requires `MCP-Protocol-Version`, `Mcp-Method`, and `Mcp-Name` on every
+  POST so intermediaries can route without parsing the body. Servers that
+  process the body **MUST** reject header/body disagreement with HTTP 400
+  and JSON-RPC `HeaderMismatch` (`-32020`). Otherwise a gateway can
+  authorize `tools/list` from the header while the server executes
+  `tools/call` from the body. This evaluator denies that split.
 - [OWASP Agent Control Standard](https://genai.owasp.org/resource/agent-control-standard-acs/)
   (ACS-Core §6.4, donated 2026-09-01) requires the Observed Agent to wait
   for and apply a Guardian decision. The ACS default `on_decision_failure`
