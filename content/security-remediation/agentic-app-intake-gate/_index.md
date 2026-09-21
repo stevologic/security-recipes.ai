@@ -3,7 +3,7 @@ title: Agentic App Intake Gate
 linkTitle: Agentic App Intake
 weight: 5
 date: 2026-05-04
-lastmod: 2026-08-21
+lastmod: 2026-09-21
 toc: true
 description: >
   A generated launch-review gate for agentic applications, agent hosts,
@@ -20,7 +20,11 @@ for new agentic apps. It turns "can this AI launch?" into generated
 evidence instead of a meeting full of vague claims about prompts.
 Rechecked against MCP
 [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28)
-on August 21, 2026.
+on September 21, 2026. Icon metadata on tools, prompts, resources, and
+implementations is untrusted input. Hosts that render icons
+**MUST** use HTTPS or `data:` URIs, **MUST** reject `javascript:`,
+`file:`, `ftp:`, `ws:`, and other unsafe schemes, **MUST** fetch
+without credentials, and **MUST** treat SVG as potentially executable.
 {{< /callout >}}
 
 ## Product bet
@@ -41,7 +45,9 @@ motion. It scores applications by:
 - persistent memory and A2A or remote-agent handoffs;
 - guardrail evals, telemetry, run receipts, egress boundaries,
   authorization conformance, skill governance, and incident response;
-- human approval and two-key review evidence for high-impact actions.
+- human approval and two-key review evidence for high-impact actions;
+- MCP icon URI schemes, credential-free fetch, same-origin HTTPS or
+  `data:` images, and SVG sanitization when the host renders icons.
 
 The result is a simple launch decision that AI platform, product
 security, GRC, procurement, and trust review reviewers can understand.
@@ -82,6 +88,61 @@ python3 scripts/evaluate_agentic_app_intake_decision.py \
   --expect-decision approve_guarded_pilot
 ```
 
+Evaluate a host that renders same-origin HTTPS PNG icons without credentials:
+
+```bash
+python3 scripts/evaluate_agentic_app_intake_decision.py \
+  --app-id repository-remediation-agent-host \
+  --deployment-environment enterprise_pilot \
+  --egress-decision allow_internal_boundary \
+  --authorization-decision allow_authorized_mcp_request \
+  --telemetry-decision telemetry_ready \
+  --human-approval-id approval-ci \
+  --approver product-security \
+  --approver service-owner \
+  --two-key-review \
+  --mcp-icon-src https://mcp.example.com/icons/tool.png \
+  --mcp-server-origin https://mcp.example.com \
+  --mcp-icon-mime-type image/png \
+  --expect-decision approve_guarded_pilot
+```
+
+Hold a host that fetches MCP icons from a third-party origin:
+
+```bash
+python3 scripts/evaluate_agentic_app_intake_decision.py \
+  --app-id repository-remediation-agent-host \
+  --deployment-environment enterprise_pilot \
+  --egress-decision allow_internal_boundary \
+  --authorization-decision allow_authorized_mcp_request \
+  --telemetry-decision telemetry_ready \
+  --human-approval-id approval-ci \
+  --approver product-security \
+  --approver service-owner \
+  --two-key-review \
+  --mcp-icon-src https://cdn.untrusted.example/icons/tool.png \
+  --mcp-server-origin https://mcp.example.com \
+  --mcp-icon-mime-type image/png \
+  --expect-decision hold_for_agentic_app_security_review
+```
+
+Kill a host that renders a `javascript:` MCP icon URI:
+
+```bash
+python3 scripts/evaluate_agentic_app_intake_decision.py \
+  --app-id repository-remediation-agent-host \
+  --deployment-environment enterprise_pilot \
+  --egress-decision allow_internal_boundary \
+  --authorization-decision allow_authorized_mcp_request \
+  --telemetry-decision telemetry_ready \
+  --human-approval-id approval-ci \
+  --approver product-security \
+  --approver service-owner \
+  --two-key-review \
+  --mcp-icon-src 'javascript:void(0)' \
+  --expect-decision kill_session_on_launch_signal
+```
+
 Block high-impact signer or production authority:
 
 
@@ -93,7 +154,7 @@ Block high-impact signer or production authority:
 | `approve_guarded_pilot` | App can run only as a guarded pilot with approval, telemetry, egress, and run receipts. |
 | `hold_for_agentic_app_security_review` | Architecture or security review is required before launch or expansion. |
 | `deny_until_controls_exist` | High-risk app lacks required controls or must be redesigned before launch. |
-| `kill_session_on_launch_signal` | Runtime launch request includes a hard-stop signal such as signer access, token passthrough, private-network egress, approval bypass, or autonomous high-impact action. |
+| `kill_session_on_launch_signal` | Runtime launch request includes a hard-stop signal such as signer access, token passthrough, private-network egress, approval bypass, autonomous high-impact action, or an unsafe MCP icon URI scheme. |
 
 ## Why this is trust review-relevant
 
@@ -124,6 +185,12 @@ The gate is aligned with current 2026 agentic security direction:
 - MCP authorization now emphasizes protected-resource metadata,
   resource indicators, audience-bound tokens, PKCE, and token-passthrough
   prevention.
+- MCP
+  [icon metadata](https://modelcontextprotocol.io/specification/2026-07-28/basic/#icons)
+  is untrusted. Clients that render icons **MUST** reject unsafe URI
+  schemes, fetch without credentials, prefer same-origin HTTPS or `data:`
+  image URIs, and treat SVG as potentially executable. Unspecified icon
+  fields stay on the prior launch path.
 - OpenAI's Agents SDK guardrail model separates input, output, and tool
   guardrails, with tool guardrails needed around function-tool calls.
 - Anthropic's Claude Code security guidance emphasizes read-only

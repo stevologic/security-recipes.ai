@@ -658,7 +658,8 @@
       "autonomous_live_funds_or_production_deploy",
       "unregistered_agent_host",
       "tool_or_skill_changed_after_approval",
-      "approval_bypass_attempt"
+      "approval_bypass_attempt",
+      "unsafe_mcp_icon_uri_scheme"
     ],
     "score_thresholds": {
       "approve_guarded_pilot_max": 39,
@@ -717,11 +718,12 @@
       "autonomous_live_funds_or_production_deploy",
       "unregistered_agent_host",
       "tool_or_skill_changed_after_approval",
-      "approval_bypass_attempt"
+      "approval_bypass_attempt",
+      "unsafe_mcp_icon_uri_scheme"
     ]
   },
   "failures": [],
-  "generated_at": "2026-08-21",
+  "generated_at": "2026-09-21",
   "intent": "Define a repeatable SecurityRecipes intake gate for new agentic applications, agent hosts, and enterprise MCP rollouts so AI platform, security architecture, GRC, procurement, and acquisition diligence teams can decide whether an agentic app can launch as open reference, guarded pilot, architecture review, or blocked high-impact autonomy.",
   "positioning": {
     "buyer": "AI Platform, Product Security, AppSec, IAM, GRC, procurement security, model-risk, vendor-risk, and acquisition diligence teams",
@@ -802,31 +804,31 @@
   "source_artifacts": {
     "agent_skill_supply_chain_pack": {
       "path": "data/evidence/agent-skill-supply-chain-pack.json",
-      "sha256": "40c8d54c6518f06ad5c8d65197a37c7e6811c0ea3367d03026dbaa5c58e76aaa"
+      "sha256": "c31cb66f97e95c7104c2ee5e58097221790cf36726a788459b340437abae82e0"
     },
     "agentic_app_intake_profile": {
       "path": "data/assurance/agentic-app-intake-profile.json",
-      "sha256": "42de52b863463e52e5afab1e6ab208c5cd114a15dc308dc4d160ef26b7ce80c1"
+      "sha256": "74beaf201e5e8cdd0854b161ab2faff25edbb0b578e1619a55df8da52a553850"
     },
     "agentic_incident_response_pack": {
       "path": "data/evidence/agentic-incident-response-pack.json",
-      "sha256": "c7801eaea681b591d7a56a9b63ac556a8f9502d87e8502068f572066d2f07b6b"
+      "sha256": "e5e34cd6a86ea562829dc52ec0640d4f01d836e738a86b7f5cf4c6226a6a2a20"
     },
     "agentic_posture_snapshot": {
       "path": "data/evidence/agentic-posture-snapshot.json",
-      "sha256": "c5d363b35456712fc76abecc12100d6e209e1fa33b066668b75fbf995dc3f1bf"
+      "sha256": "e9e794b1561f6afbd99aa7d85a29b6c1a507305a8d49d9ceebc7035ab7c2d25a"
     },
     "agentic_run_receipt_pack": {
       "path": "data/evidence/agentic-run-receipt-pack.json",
-      "sha256": "737c8bf41263e89aad1986c579bd694be19e4880212e8b0e461418dc6e62d549"
+      "sha256": "cdf982d72ddaf964419128b2ecd736cb229d21d5e85fe20b481d42322643bf54"
     },
     "agentic_telemetry_contract": {
       "path": "data/evidence/agentic-telemetry-contract.json",
-      "sha256": "f3a9a2917ba7e2f3081493f0642a56d45060e161dd93dbfd60d2c43488395c6c"
+      "sha256": "c5eb29f27fda663f2c51aeec342e6524556aed280f13cb174525256b8764c1d8"
     },
     "context_egress_boundary_pack": {
       "path": "data/evidence/context-egress-boundary-pack.json",
-      "sha256": "c47b1bcf0760b56b02c54d5b38855a386029c069ee89d8e21d9be6ef583b4f9a"
+      "sha256": "cce94e517f255fd49d1144052082979c14b0e09678d3e12805825d7261d646df"
     },
     "mcp_authorization_conformance_pack": {
       "path": "data/evidence/mcp-authorization-conformance-pack.json",
@@ -838,7 +840,7 @@
     },
     "secure_context_eval_pack": {
       "path": "data/evidence/secure-context-eval-pack.json",
-      "sha256": "569b05cb0799dc0e2194b9e9420d4d2d66558388beb7dea5b6df4ae9b75302de"
+      "sha256": "252d1a6ffc8dcb01d5679c3cb378abb75034c5e3cbbe96774f0c40acaca5aea4"
     },
     "workflow_manifest": {
       "path": "data/control-plane/workflow-manifests.json",
@@ -857,6 +859,12 @@
       "id": "owasp-agentic-skills-top-10",
       "name": "OWASP Agentic Skills Top 10",
       "url": "https://owasp.org/www-project-agentic-skills-top-10/"
+    },
+    {
+      "coverage": "Current public MCP 2026-07-28 revision. Icon metadata on tools, prompts, resources, and implementations is untrusted input. Clients that render icons MUST use HTTPS or data: URIs, MUST reject unsafe schemes and redirects, MUST fetch without credentials, and MUST treat SVG as potentially executable.",
+      "id": "mcp-icons-2026-07-28",
+      "name": "Model Context Protocol Icons (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/#icons"
     },
     {
       "coverage": "Current public MCP 2026-07-28 revision. OAuth 2.1 protected-resource metadata, resource indicators, audience-bound tokens, PKCE, HTTPS, token validation, and token theft controls for HTTP MCP servers.",

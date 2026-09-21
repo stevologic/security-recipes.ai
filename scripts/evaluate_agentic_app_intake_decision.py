@@ -8,6 +8,7 @@ import json
 import sys
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlsplit
 
 
 DEFAULT_PACK = Path("data/evidence/agentic-app-intake-pack.json")
@@ -44,7 +45,31 @@ KILL_SIGNALS = {
     "unregistered_agent_host",
     "tool_or_skill_changed_after_approval",
     "approval_bypass_attempt",
+    "unsafe_mcp_icon_uri_scheme",
 }
+
+# MCP 2026-07-28 Icons. Consumers MUST treat icon metadata and bytes as
+# untrusted, MUST use HTTPS or data: URIs, MUST reject unsafe schemes and
+# redirects, and MUST fetch without credentials. See specification/2026-07-28
+# basic/#icons.
+MCP_ICON_SRC_KEYS = ("mcp_icon_src", "icon_src")
+MCP_SAFE_ICON_SCHEMES = {"https", "data"}
+MCP_UNSAFE_ICON_SCHEMES = {
+    "javascript",
+    "file",
+    "ftp",
+    "ws",
+    "wss",
+    "blob",
+    "about",
+    "vbscript",
+    "smb",
+    "chrome",
+    "ms-appx",
+    "intent",
+}
+MCP_SAFE_ICON_MIME_TYPES = {"image/png", "image/jpeg", "image/jpg"}
+MCP_EXECUTABLE_ICON_MIME_TYPES = {"image/svg+xml", "text/html", "application/javascript", "text/javascript"}
 
 
 class AppIntakeDecisionError(RuntimeError):
@@ -94,6 +119,152 @@ def two_key_present(value: Any) -> bool:
     if isinstance(approvers, list) and len([item for item in approvers if item]) >= 2:
         return True
     return as_bool(value.get("two_key_review"))
+
+
+def data_uri_media_type(src: str) -> str:
+    payload = src[5:] if src.lower().startswith("data:") else src
+    header = payload.split(",", 1)[0]
+    media = header.split(";", 1)[0].strip().lower()
+    return media
+
+
+def icon_origin(src: str) -> str:
+    parsed = urlsplit(src)
+    if parsed.scheme.lower() == "data" or not parsed.netloc:
+        return ""
+    return f"{parsed.scheme.lower()}://{parsed.netloc.lower()}"
+
+
+def mcp_icon_sources(request: dict[str, Any]) -> list[str]:
+    sources: list[str] = []
+    for key in MCP_ICON_SRC_KEYS:
+        for item in as_list(request.get(key)):
+            src = str(item).strip()
+            if src:
+                sources.append(src)
+    icons = request.get("mcp_icons")
+    if isinstance(icons, list):
+        for item in icons:
+            if isinstance(item, dict):
+                src = str(item.get("src") or "").strip()
+            else:
+                src = str(item or "").strip()
+            if src:
+                sources.append(src)
+    return sources
+
+
+def mcp_icon_security_outcome(request: dict[str, Any]) -> tuple[str, list[str]] | None:
+    """Return kill/hold when an app renders MCP icon metadata unsafely.
+
+    Unspecified icon fields stay on the prior allow/hold/deny path so
+    existing launch checks remain valid. When a host declares icon
+    rendering or supplies icon URIs, MCP 2026-07-28 requires HTTPS or
+    data: URIs, credential-free fetch, and untrusted-input handling.
+    """
+    sources = mcp_icon_sources(request)
+    renders = as_bool(request.get("renders_mcp_icons"))
+    fetch_with_credentials = as_bool(request.get("mcp_icon_fetch_with_credentials"))
+    svg_unsandboxed = as_bool(request.get("mcp_icon_svg_unsandboxed"))
+    declared_same_origin = request.get("mcp_icon_same_origin")
+    mime_type = str(request.get("mcp_icon_mime_type") or "").strip().lower()
+    server_origin = str(request.get("mcp_server_origin") or "").strip()
+    if not (sources or renders or fetch_with_credentials or svg_unsandboxed or mime_type):
+        return None
+
+    kill_violations: list[str] = []
+    hold_violations: list[str] = []
+    if renders and not sources:
+        hold_violations.append(
+            "MCP icon rendering is declared but no icon URI was supplied; "
+            "consumers MUST treat icon metadata as untrusted input"
+        )
+    if fetch_with_credentials:
+        kill_violations.append(
+            "MCP icons must be fetched without credentials; cookies, "
+            "Authorization headers, or client credentials are forbidden"
+        )
+
+    for src in sources:
+        parsed = urlsplit(src)
+        scheme = parsed.scheme.lower()
+        if src.startswith("//") or scheme in MCP_UNSAFE_ICON_SCHEMES:
+            kill_violations.append(
+                f"MCP icon URI {src!r} uses an unsafe scheme; clients MUST "
+                "reject javascript:, file:, ftp:, ws:, and other non-HTTPS/data URIs"
+            )
+            continue
+        if not scheme:
+            hold_violations.append(
+                f"MCP icon URI {src!r} is not an absolute HTTPS or data: URI"
+            )
+            continue
+        if scheme not in MCP_SAFE_ICON_SCHEMES:
+            kill_violations.append(
+                f"MCP icon URI {src!r} is not HTTPS or data:; clients MUST reject it"
+            )
+            continue
+        if scheme == "data":
+            media = data_uri_media_type(src)
+            if media in MCP_EXECUTABLE_ICON_MIME_TYPES or media not in MCP_SAFE_ICON_MIME_TYPES:
+                if media in MCP_EXECUTABLE_ICON_MIME_TYPES:
+                    hold_violations.append(
+                        f"MCP data: icon {src!r} may contain executable content; "
+                        "sanitize or disallow SVG and non-image types before rendering"
+                    )
+                else:
+                    kill_violations.append(
+                        f"MCP data: icon {src!r} is not an allowlisted image type; "
+                        "clients MUST support PNG/JPEG and reject unknown types"
+                    )
+            continue
+        src_origin = icon_origin(src)
+        if server_origin:
+            server_parsed = urlsplit(server_origin if "://" in server_origin else f"https://{server_origin}")
+            expected = f"{server_parsed.scheme.lower()}://{server_parsed.netloc.lower()}"
+            if src_origin != expected:
+                hold_violations.append(
+                    f"MCP icon URI origin {src_origin!r} is not the MCP server origin "
+                    f"{expected!r}; verify same-origin before rendering"
+                )
+        elif declared_same_origin is False or (
+            declared_same_origin not in (None, "") and not as_bool(declared_same_origin)
+        ):
+            hold_violations.append(
+                "MCP icon URI is not same-origin with the server; third-party icon "
+                "hosts can track or receive data"
+            )
+        elif not as_bool(declared_same_origin) and not server_origin:
+            hold_violations.append(
+                "MCP icon rendering lacks same-origin evidence; verify icon URIs "
+                "are from the MCP server origin"
+            )
+
+    if mime_type == "image/svg+xml" and not as_bool(request.get("mcp_icon_svg_sanitized")):
+        hold_violations.append(
+            "MCP SVG icons can contain embedded JavaScript; sanitize or "
+            "disallow image/svg+xml before rendering"
+        )
+    elif mime_type and mime_type in MCP_EXECUTABLE_ICON_MIME_TYPES:
+        hold_violations.append(
+            f"MCP icon MIME type {mime_type!r} may contain executable content; "
+            "sanitize or disallow it before rendering"
+        )
+    elif mime_type and mime_type not in MCP_SAFE_ICON_MIME_TYPES:
+        hold_violations.append(
+            f"MCP icon MIME type {mime_type!r} is outside the PNG/JPEG allowlist"
+        )
+    if svg_unsandboxed:
+        hold_violations.append(
+            "Unsandboxed SVG MCP icons can contain embedded JavaScript; sanitize "
+            "or disallow image/svg+xml before rendering"
+        )
+
+    if kill_violations:
+        return ("kill_session_on_launch_signal", kill_violations)
+    if hold_violations:
+        return ("hold_for_agentic_app_security_review", hold_violations)
+    return None
 
 
 def normalize_request(runtime_request: dict[str, Any]) -> dict[str, Any]:
@@ -188,6 +359,7 @@ def result(
             "external_write": request.get("external_write"),
             "indirect_prompt_injection_risk": request.get("indirect_prompt_injection_risk"),
             "mcp_namespaces": request.get("mcp_namespaces", []),
+            "mcp_icon_src": (mcp_icon_sources(request) or [None])[0],
             "owner": request.get("owner"),
             "production_write": request.get("production_write"),
             "telemetry_decision": request.get("telemetry_decision"),
@@ -267,7 +439,20 @@ def evaluate_agentic_app_intake_decision(app_intake_pack: dict[str, Any], runtim
             violations=["secret_or_signer_material_requested"],
         )
 
+    icon_outcome = mcp_icon_security_outcome(request)
+    if icon_outcome and icon_outcome[0] == "kill_session_on_launch_signal":
+        return result(
+            decision="kill_session_on_launch_signal",
+            reason="MCP icon metadata uses an unsafe URI scheme or credentialed fetch",
+            request=request,
+            pack=app_intake_pack,
+            app=app,
+            violations=icon_outcome[1],
+        )
+
     violations: list[str] = []
+    if icon_outcome and icon_outcome[0] == "hold_for_agentic_app_security_review":
+        violations.extend(icon_outcome[1])
     if not request.get("owner"):
         violations.append("owner is required")
     if not request.get("business_purpose"):
@@ -354,6 +539,9 @@ def request_from_args(args: argparse.Namespace) -> dict[str, Any]:
         "egress_decision",
         "authorization_decision",
         "runtime_kill_signal",
+        "mcp_icon_src",
+        "mcp_server_origin",
+        "mcp_icon_mime_type",
     ]:
         value = getattr(args, key)
         if value not in (None, ""):
@@ -366,6 +554,11 @@ def request_from_args(args: argparse.Namespace) -> dict[str, Any]:
         "a2a_or_remote_agent",
         "untrusted_input",
         "startup_or_package_install",
+        "renders_mcp_icons",
+        "mcp_icon_fetch_with_credentials",
+        "mcp_icon_same_origin",
+        "mcp_icon_svg_unsandboxed",
+        "mcp_icon_svg_sanitized",
     ]:
         if getattr(args, key):
             payload[key] = True
@@ -412,6 +605,26 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--approver", action="append")
     parser.add_argument("--two-key-review", action="store_true")
     parser.add_argument("--runtime-kill-signal")
+    parser.add_argument("--mcp-icon-src", dest="mcp_icon_src")
+    parser.add_argument("--mcp-server-origin", dest="mcp_server_origin")
+    parser.add_argument("--mcp-icon-mime-type", dest="mcp_icon_mime_type")
+    parser.add_argument("--renders-mcp-icons", dest="renders_mcp_icons", action="store_true")
+    parser.add_argument(
+        "--mcp-icon-fetch-with-credentials",
+        dest="mcp_icon_fetch_with_credentials",
+        action="store_true",
+    )
+    parser.add_argument("--mcp-icon-same-origin", dest="mcp_icon_same_origin", action="store_true")
+    parser.add_argument(
+        "--mcp-icon-svg-unsandboxed",
+        dest="mcp_icon_svg_unsandboxed",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--mcp-icon-svg-sanitized",
+        dest="mcp_icon_svg_sanitized",
+        action="store_true",
+    )
     parser.add_argument("--expect-decision", choices=sorted(VALID_DECISIONS))
     return parser.parse_args(argv)
 

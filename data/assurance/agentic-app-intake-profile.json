@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-08-21",
+  "last_reviewed": "2026-09-21",
   "intent": "Define a repeatable SecurityRecipes intake gate for new agentic applications, agent hosts, and enterprise MCP rollouts so AI platform, security architecture, GRC, procurement, and acquisition diligence teams can decide whether an agentic app can launch as open reference, guarded pilot, architecture review, or blocked high-impact autonomy.",
   "positioning": {
     "buyer": "AI Platform, Product Security, AppSec, IAM, GRC, procurement security, model-risk, vendor-risk, and acquisition diligence teams",
@@ -20,6 +20,12 @@
       "name": "OWASP Agentic Skills Top 10",
       "url": "https://owasp.org/www-project-agentic-skills-top-10/",
       "coverage": "Skill governance, publisher verification, scanning, isolation, permission review, update drift, audit logging, and incident response for behavior packages used by agent hosts."
+    },
+    {
+      "id": "mcp-icons-2026-07-28",
+      "name": "Model Context Protocol Icons (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/#icons",
+      "coverage": "Current public MCP 2026-07-28 revision. Icon metadata on tools, prompts, resources, and implementations is untrusted input. Clients that render icons MUST use HTTPS or data: URIs, MUST reject unsafe schemes and redirects, MUST fetch without credentials, and MUST treat SVG as potentially executable."
     },
     {
       "id": "mcp-authorization-2026-07-28",
@@ -141,7 +147,8 @@
       "autonomous_live_funds_or_production_deploy",
       "unregistered_agent_host",
       "tool_or_skill_changed_after_approval",
-      "approval_bypass_attempt"
+      "approval_bypass_attempt",
+      "unsafe_mcp_icon_uri_scheme"
     ],
     "prohibited_without_two_key_review": [
       "live_funds_movement",
