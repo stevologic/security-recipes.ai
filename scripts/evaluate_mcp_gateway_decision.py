@@ -11,6 +11,8 @@ can be used directly in audit logs and run transcripts.
 from __future__ import annotations
 
 import argparse
+import base64
+import binascii
 import fnmatch
 import json
 import re
@@ -38,6 +40,27 @@ ACS_DECISION_FAILURE_STATUSES = {
     "transport_failure",
 }
 ACS_FAIL_CLOSED_POSTURES = {"deny", "fail_closed"}
+
+# MCP Streamable HTTP 2026-07-28 request metadata. Servers that process the
+# body MUST reject header/body disagreement with JSON-RPC HeaderMismatch
+# (-32020). See specification/2026-07-28/basic/transports/streamable-http.
+MCP_HEADER_MISMATCH_CODE = -32020
+MCP_BASE64_SENTINEL_PREFIX = "=?base64?"
+MCP_BASE64_SENTINEL_SUFFIX = "?="
+MCP_METHOD_HEADER_KEYS = ("mcp_method", "Mcp-Method", "mcp-method")
+MCP_NAME_HEADER_KEYS = ("mcp_name", "Mcp-Name", "mcp-name")
+MCP_PROTOCOL_VERSION_HEADER_KEYS = (
+    "mcp_protocol_version",
+    "MCP-Protocol-Version",
+    "mcp-protocol-version",
+)
+JSONRPC_METHOD_KEYS = ("jsonrpc_method", "method")
+JSONRPC_NAME_KEYS = ("jsonrpc_name", "params_name", "tool_name")
+JSONRPC_PROTOCOL_VERSION_KEYS = (
+    "jsonrpc_protocol_version",
+    "protocol_version",
+    "io.modelcontextprotocol/protocolVersion",
+)
 
 
 class GatewayDecisionError(RuntimeError):
@@ -150,6 +173,107 @@ def acs_fail_open_decision_failure(request: dict[str, Any]) -> tuple[str, list[s
             f"{posture or 'proceed'}; an unreachable Guardian must not convert control into audit"
         ],
     )
+
+
+def first_present(request: dict[str, Any], keys: tuple[str, ...]) -> str:
+    for key in keys:
+        value = request.get(key)
+        if value not in (None, "", [], {}):
+            return str(value).strip()
+    return ""
+
+
+def decode_mcp_header_value(value: str) -> str | None:
+    """Decode MCP Base64 sentinel header values; None means malformed encoding."""
+    if not (
+        value.startswith(MCP_BASE64_SENTINEL_PREFIX)
+        and value.endswith(MCP_BASE64_SENTINEL_SUFFIX)
+        and len(value) > len(MCP_BASE64_SENTINEL_PREFIX) + len(MCP_BASE64_SENTINEL_SUFFIX)
+    ):
+        return value
+    encoded = value[len(MCP_BASE64_SENTINEL_PREFIX) : -len(MCP_BASE64_SENTINEL_SUFFIX)]
+    try:
+        return base64.b64decode(encoded, validate=True).decode("utf-8")
+    except (binascii.Error, UnicodeDecodeError, ValueError):
+        return None
+
+
+def inferred_jsonrpc_method(request: dict[str, Any]) -> str:
+    method = first_present(request, JSONRPC_METHOD_KEYS)
+    if method:
+        return method
+    if str(request.get("gate_phase") or "").strip() == "tool_call":
+        return "tools/call"
+    return ""
+
+
+def streamable_http_header_mismatch(request: dict[str, Any]) -> tuple[str, list[str]] | None:
+    """Return a deny outcome when Streamable HTTP headers disagree with the body.
+
+    Unspecified request metadata stays on the prior allow/deny path so stdio
+    and CI admission checks remain valid. When any of MCP-Protocol-Version,
+    Mcp-Method, or Mcp-Name is observed, the header value must match the
+    corresponding JSON-RPC body field. A gateway that routes on the header
+    while the server executes the body otherwise authorizes the wrong call.
+    """
+    header_method = first_present(request, MCP_METHOD_HEADER_KEYS)
+    header_name = first_present(request, MCP_NAME_HEADER_KEYS)
+    header_version = first_present(request, MCP_PROTOCOL_VERSION_HEADER_KEYS)
+    if not (header_method or header_name or header_version):
+        return None
+
+    violations: list[str] = []
+    body_method = inferred_jsonrpc_method(request)
+    body_name = first_present(request, JSONRPC_NAME_KEYS)
+    body_version = first_present(request, JSONRPC_PROTOCOL_VERSION_KEYS)
+
+    if header_method:
+        if not body_method:
+            violations.append(
+                "Mcp-Method is present but the JSON-RPC method is missing; "
+                f"HeaderMismatch ({MCP_HEADER_MISMATCH_CODE})"
+            )
+        elif header_method != body_method:
+            violations.append(
+                f"Mcp-Method {header_method!r} does not match JSON-RPC method "
+                f"{body_method!r}; HeaderMismatch ({MCP_HEADER_MISMATCH_CODE})"
+            )
+
+    if header_name:
+        decoded_name = decode_mcp_header_value(header_name)
+        if decoded_name is None:
+            violations.append(
+                "Mcp-Name Base64 sentinel is malformed; "
+                f"HeaderMismatch ({MCP_HEADER_MISMATCH_CODE})"
+            )
+        elif not body_name:
+            violations.append(
+                "Mcp-Name is present but params.name is missing; "
+                f"HeaderMismatch ({MCP_HEADER_MISMATCH_CODE})"
+            )
+        elif decoded_name != body_name:
+            violations.append(
+                f"Mcp-Name {decoded_name!r} does not match JSON-RPC params.name "
+                f"{body_name!r}; HeaderMismatch ({MCP_HEADER_MISMATCH_CODE})"
+            )
+
+    if header_version:
+        if not body_version:
+            violations.append(
+                "MCP-Protocol-Version is present but "
+                "io.modelcontextprotocol/protocolVersion is missing; "
+                f"HeaderMismatch ({MCP_HEADER_MISMATCH_CODE})"
+            )
+        elif header_version != body_version:
+            violations.append(
+                f"MCP-Protocol-Version {header_version!r} does not match "
+                f"JSON-RPC protocolVersion {body_version!r}; "
+                f"HeaderMismatch ({MCP_HEADER_MISMATCH_CODE})"
+            )
+
+    if not violations:
+        return None
+    return ("deny", violations)
 
 
 def derive_agent_class(agent_id: str, allowed_agents: list[Any], explicit: Any = None) -> str:
@@ -292,6 +416,18 @@ def evaluate_policy_decision(policy_pack: dict[str, Any], runtime_request: dict[
             policy_pack=policy_pack,
             policy=policy,
             violations=acs_violations,
+        )
+
+    header_failure = streamable_http_header_mismatch(request)
+    if header_failure is not None:
+        decision, header_violations = header_failure
+        return decision_result(
+            decision=decision,
+            reason="Streamable HTTP headers do not match the JSON-RPC body",
+            request=request,
+            policy_pack=policy_pack,
+            policy=policy,
+            violations=header_violations,
         )
 
     violations: list[str] = []
@@ -448,6 +584,12 @@ def request_from_args(args: argparse.Namespace) -> dict[str, Any]:
         "run_id": args.run_id,
         "guardian_decision_status": args.guardian_decision_status,
         "on_decision_failure": args.on_decision_failure,
+        "mcp_method": args.mcp_method,
+        "mcp_name": args.mcp_name,
+        "mcp_protocol_version": args.mcp_protocol_version,
+        "jsonrpc_method": args.jsonrpc_method,
+        "jsonrpc_name": args.jsonrpc_name,
+        "jsonrpc_protocol_version": args.jsonrpc_protocol_version,
         "runtime_kill_signal": args.runtime_kill_signal,
         "tool_access_mode": args.tool_access_mode,
         "tool_namespace": args.tool_namespace,
@@ -486,6 +628,36 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         "--on-decision-failure",
         default="",
         help="ACS on_decision_failure posture: proceed (fail-open default) or deny (fail-closed)",
+    )
+    parser.add_argument(
+        "--mcp-method",
+        default="",
+        help="Observed Streamable HTTP Mcp-Method header (mirrors JSON-RPC method)",
+    )
+    parser.add_argument(
+        "--mcp-name",
+        default="",
+        help="Observed Streamable HTTP Mcp-Name header (mirrors params.name or params.uri)",
+    )
+    parser.add_argument(
+        "--mcp-protocol-version",
+        default="",
+        help="Observed Streamable HTTP MCP-Protocol-Version header",
+    )
+    parser.add_argument(
+        "--jsonrpc-method",
+        default="",
+        help="JSON-RPC body method; defaults to tools/call when gate_phase is tool_call",
+    )
+    parser.add_argument(
+        "--jsonrpc-name",
+        default="",
+        help="JSON-RPC body params.name (or params.uri) compared to Mcp-Name",
+    )
+    parser.add_argument(
+        "--jsonrpc-protocol-version",
+        default="",
+        help="JSON-RPC _meta io.modelcontextprotocol/protocolVersion compared to MCP-Protocol-Version",
     )
     parser.add_argument("--change-class")
     parser.add_argument("--expect-decision", choices=sorted(VALID_DECISIONS))
