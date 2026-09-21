@@ -125,10 +125,14 @@
           "human_approval_record"
         ],
         "token_rules": [
-          "issue tokens just in time",
-          "bind tokens to workflow_id and run_id",
+          "issue tokens just in time through an approved identity platform",
+          "bind tokens to workflow_id, agent_class, run_id, and intended audience",
+          "prefer sender-constrained presentation (DPoP RFC 9449 or mTLS RFC 8705) over unconstrained bearer tokens",
           "deny token passthrough to downstream tools",
-          "expire tokens when the run ends or a kill signal fires"
+          "expire tokens within one hour or when the run ends, whichever is sooner",
+          "reject expired tokens at the gateway and policy enforcement point",
+          "never write tokens to logs, console output, cache directories, or artifact stores",
+          "revoke tokens when a kill signal fires or token exposure is detected"
         ]
       },
       "identity_id": "sr-agent::artifact-cache-quarantine::claude",
@@ -308,10 +312,14 @@
           "human_approval_record"
         ],
         "token_rules": [
-          "issue tokens just in time",
-          "bind tokens to workflow_id and run_id",
+          "issue tokens just in time through an approved identity platform",
+          "bind tokens to workflow_id, agent_class, run_id, and intended audience",
+          "prefer sender-constrained presentation (DPoP RFC 9449 or mTLS RFC 8705) over unconstrained bearer tokens",
           "deny token passthrough to downstream tools",
-          "expire tokens when the run ends or a kill signal fires"
+          "expire tokens within one hour or when the run ends, whichever is sooner",
+          "reject expired tokens at the gateway and policy enforcement point",
+          "never write tokens to logs, console output, cache directories, or artifact stores",
+          "revoke tokens when a kill signal fires or token exposure is detected"
         ]
       },
       "identity_id": "sr-agent::artifact-cache-quarantine::codex",
@@ -491,10 +499,14 @@
           "human_approval_record"
         ],
         "token_rules": [
-          "issue tokens just in time",
-          "bind tokens to workflow_id and run_id",
+          "issue tokens just in time through an approved identity platform",
+          "bind tokens to workflow_id, agent_class, run_id, and intended audience",
+          "prefer sender-constrained presentation (DPoP RFC 9449 or mTLS RFC 8705) over unconstrained bearer tokens",
           "deny token passthrough to downstream tools",
-          "expire tokens when the run ends or a kill signal fires"
+          "expire tokens within one hour or when the run ends, whichever is sooner",
+          "reject expired tokens at the gateway and policy enforcement point",
+          "never write tokens to logs, console output, cache directories, or artifact stores",
+          "revoke tokens when a kill signal fires or token exposure is detected"
         ]
       },
       "identity_id": "sr-agent::artifact-cache-quarantine::devin",
@@ -675,10 +687,14 @@
           "human_approval_record"
         ],
         "token_rules": [
-          "issue tokens just in time",
-          "bind tokens to workflow_id and run_id",
+          "issue tokens just in time through an approved identity platform",
+          "bind tokens to workflow_id, agent_class, run_id, and intended audience",
+          "prefer sender-constrained presentation (DPoP RFC 9449 or mTLS RFC 8705) over unconstrained bearer tokens",
           "deny token passthrough to downstream tools",
-          "expire tokens when the run ends or a kill signal fires"
+          "expire tokens within one hour or when the run ends, whichever is sooner",
+          "reject expired tokens at the gateway and policy enforcement point",
+          "never write tokens to logs, console output, cache directories, or artifact stores",
+          "revoke tokens when a kill signal fires or token exposure is detected"
         ]
       },
       "identity_id": "sr-agent::base-image-remediation::claude",
@@ -859,10 +875,14 @@
           "human_approval_record"
         ],
         "token_rules": [
-          "issue tokens just in time",
-          "bind tokens to workflow_id and run_id",
+          "issue tokens just in time through an approved identity platform",
+          "bind tokens to workflow_id, agent_class, run_id, and intended audience",
+          "prefer sender-constrained presentation (DPoP RFC 9449 or mTLS RFC 8705) over unconstrained bearer tokens",
           "deny token passthrough to downstream tools",
-          "expire tokens when the run ends or a kill signal fires"
+          "expire tokens within one hour or when the run ends, whichever is sooner",
+          "reject expired tokens at the gateway and policy enforcement point",
+          "never write tokens to logs, console output, cache directories, or artifact stores",
+          "revoke tokens when a kill signal fires or token exposure is detected"
         ]
       },
       "identity_id": "sr-agent::base-image-remediation::codex",
@@ -1043,10 +1063,14 @@
           "human_approval_record"
         ],
         "token_rules": [
-          "issue tokens just in time",
-          "bind tokens to workflow_id and run_id",
+          "issue tokens just in time through an approved identity platform",
+          "bind tokens to workflow_id, agent_class, run_id, and intended audience",
+          "prefer sender-constrained presentation (DPoP RFC 9449 or mTLS RFC 8705) over unconstrained bearer tokens",
           "deny token passthrough to downstream tools",
-          "expire tokens when the run ends or a kill signal fires"
+          "expire tokens within one hour or when the run ends, whichever is sooner",
+          "reject expired tokens at the gateway and policy enforcement point",
+          "never write tokens to logs, console output, cache directories, or artifact stores",
+          "revoke tokens when a kill signal fires or token exposure is detected"
         ]
       },
       "identity_id": "sr-agent::base-image-remediation::cursor",
@@ -1227,10 +1251,14 @@
           "human_approval_record"
         ],
         "token_rules": [
-          "issue tokens just in time",
-          "bind tokens to workflow_id and run_id",
+          "issue tokens just in time through an approved identity platform",
+          "bind tokens to workflow_id, agent_class, run_id, and intended audience",
+          "prefer sender-constrained presentation (DPoP RFC 9449 or mTLS RFC 8705) over unconstrained bearer tokens",
           "deny token passthrough to downstream tools",
-          "expire tokens when the run ends or a kill signal fires"
+          "expire tokens within one hour or when the run ends, whichever is sooner",
+          "reject expired tokens at the gateway and policy enforcement point",
+          "never write tokens to logs, console output, cache directories, or artifact stores",
+          "revoke tokens when a kill signal fires or token exposure is detected"
         ]
       },
       "identity_id": "sr-agent::base-image-remediation::devin",
@@ -1411,10 +1439,14 @@
           "human_approval_record"
         ],
         "token_rules": [
-          "issue tokens just in time",
-          "bind tokens to workflow_id and run_id",
+          "issue tokens just in time through an approved identity platform",
+          "bind tokens to workflow_id, agent_class, run_id, and intended audience",
+          "prefer sender-constrained presentation (DPoP RFC 9449 or mTLS RFC 8705) over unconstrained bearer tokens",
           "deny token passthrough to downstream tools",
-          "expire tokens when the run ends or a kill signal fires"
+          "expire tokens within one hour or when the run ends, whichever is sooner",
+          "reject expired tokens at the gateway and policy enforcement point",
+          "never write tokens to logs, console output, cache directories, or artifact stores",
+          "revoke tokens when a kill signal fires or token exposure is detected"
         ]
       },
       "identity_id": "sr-agent::base-image-remediation::github_copilot",
@@ -1592,10 +1624,14 @@
           "human_approval_record"
         ],
         "token_rules": [
-          "issue tokens just in time",
-          "bind tokens to workflow_id and run_id",
+          "issue tokens just in time through an approved identity platform",
+          "bind tokens to workflow_id, agent_class, run_id, and intended audience",
+          "prefer sender-constrained presentation (DPoP RFC 9449 or mTLS RFC 8705) over unconstrained bearer tokens",
           "deny token passthrough to downstream tools",
-          "expire tokens when the run ends or a kill signal fires"
+          "expire tokens within one hour or when the run ends, whichever is sooner",
+          "reject expired tokens at the gateway and policy enforcement point",
+          "never write tokens to logs, console output, cache directories, or artifact stores",
+          "revoke tokens when a kill signal fires or token exposure is detected"
         ]
       },
       "identity_id": "sr-agent::classic-vulnerable-defaults::claude",
@@ -1773,10 +1809,14 @@
           "human_approval_record"
         ],
         "token_rules": [
-          "issue tokens just in time",
-          "bind tokens to workflow_id and run_id",
+          "issue tokens just in time through an approved identity platform",
+          "bind tokens to workflow_id, agent_class, run_id, and intended audience",
+          "prefer sender-constrained presentation (DPoP RFC 9449 or mTLS RFC 8705) over unconstrained bearer tokens",
           "deny token passthrough to downstream tools",
-          "expire tokens when the run ends or a kill signal fires"
+          "expire tokens within one hour or when the run ends, whichever is sooner",
+          "reject expired tokens at the gateway and policy enforcement point",
+          "never write tokens to logs, console output, cache directories, or artifact stores",
+          "revoke tokens when a kill signal fires or token exposure is detected"
         ]
       },
       "identity_id": "sr-agent::classic-vulnerable-defaults::codex",
@@ -1954,10 +1994,14 @@
           "human_approval_record"
         ],
         "token_rules": [
-          "issue tokens just in time",
-          "bind tokens to workflow_id and run_id",
+          "issue tokens just in time through an approved identity platform",
+          "bind tokens to workflow_id, agent_class, run_id, and intended audience",
+          "prefer sender-constrained presentation (DPoP RFC 9449 or mTLS RFC 8705) over unconstrained bearer tokens",
           "deny token passthrough to downstream tools",
-          "expire tokens when the run ends or a kill signal fires"
+          "expire tokens within one hour or when the run ends, whichever is sooner",
+          "reject expired tokens at the gateway and policy enforcement point",
+          "never write tokens to logs, console output, cache directories, or artifact stores",
+          "revoke tokens when a kill signal fires or token exposure is detected"
         ]
       },
       "identity_id": "sr-agent::classic-vulnerable-defaults::cursor",
@@ -2135,10 +2179,14 @@
           "human_approval_record"
         ],
         "token_rules": [
-          "issue tokens just in time",
-          "bind tokens to workflow_id and run_id",
+          "issue tokens just in time through an approved identity platform",
+          "bind tokens to workflow_id, agent_class, run_id, and intended audience",
+          "prefer sender-constrained presentation (DPoP RFC 9449 or mTLS RFC 8705) over unconstrained bearer tokens",
           "deny token passthrough to downstream tools",
-          "expire tokens when the run ends or a kill signal fires"
+          "expire tokens within one hour or when the run ends, whichever is sooner",
+          "reject expired tokens at the gateway and policy enforcement point",
+          "never write tokens to logs, console output, cache directories, or artifact stores",
+          "revoke tokens when a kill signal fires or token exposure is detected"
         ]
       },
       "identity_id": "sr-agent::classic-vulnerable-defaults::github_copilot",
@@ -2319,10 +2367,14 @@
           "human_approval_record"
         ],
         "token_rules": [
-          "issue tokens just in time",
-          "bind tokens to workflow_id and run_id",
+          "issue tokens just in time through an approved identity platform",
+          "bind tokens to workflow_id, agent_class, run_id, and intended audience",
+          "prefer sender-constrained presentation (DPoP RFC 9449 or mTLS RFC 8705) over unconstrained bearer tokens",
           "deny token passthrough to downstream tools",
-          "expire tokens when the run ends or a kill signal fires"
+          "expire tokens within one hour or when the run ends, whichever is sooner",
+          "reject expired tokens at the gateway and policy enforcement point",
+          "never write tokens to logs, console output, cache directories, or artifact stores",
+          "revoke tokens when a kill signal fires or token exposure is detected"
         ]
       },
       "identity_id": "sr-agent::crypto-payment-security::claude",
@@ -2503,10 +2555,14 @@
           "human_approval_record"
         ],
         "token_rules": [
-          "issue tokens just in time",
-          "bind tokens to workflow_id and run_id",
+          "issue tokens just in time through an approved identity platform",
+          "bind tokens to workflow_id, agent_class, run_id, and intended audience",
+          "prefer sender-constrained presentation (DPoP RFC 9449 or mTLS RFC 8705) over unconstrained bearer tokens",
           "deny token passthrough to downstream tools",
-          "expire tokens when the run ends or a kill signal fires"
+          "expire tokens within one hour or when the run ends, whichever is sooner",
+          "reject expired tokens at the gateway and policy enforcement point",
+          "never write tokens to logs, console output, cache directories, or artifact stores",
+          "revoke tokens when a kill signal fires or token exposure is detected"
         ]
       },
       "identity_id": "sr-agent::crypto-payment-security::codex",
@@ -2687,10 +2743,14 @@
           "human_approval_record"
         ],
         "token_rules": [
-          "issue tokens just in time",
-          "bind tokens to workflow_id and run_id",
+          "issue tokens just in time through an approved identity platform",
+          "bind tokens to workflow_id, agent_class, run_id, and intended audience",
+          "prefer sender-constrained presentation (DPoP RFC 9449 or mTLS RFC 8705) over unconstrained bearer tokens",
           "deny token passthrough to downstream tools",
-          "expire tokens when the run ends or a kill signal fires"
+          "expire tokens within one hour or when the run ends, whichever is sooner",
+          "reject expired tokens at the gateway and policy enforcement point",
+          "never write tokens to logs, console output, cache directories, or artifact stores",
+          "revoke tokens when a kill signal fires or token exposure is detected"
         ]
       },
       "identity_id": "sr-agent::crypto-payment-security::cursor",
@@ -2870,10 +2930,14 @@
           "human_approval_record"
         ],
         "token_rules": [
-          "issue tokens just in time",
-          "bind tokens to workflow_id and run_id",
+          "issue tokens just in time through an approved identity platform",
+          "bind tokens to workflow_id, agent_class, run_id, and intended audience",
+          "prefer sender-constrained presentation (DPoP RFC 9449 or mTLS RFC 8705) over unconstrained bearer tokens",
           "deny token passthrough to downstream tools",
-          "expire tokens when the run ends or a kill signal fires"
+          "expire tokens within one hour or when the run ends, whichever is sooner",
+          "reject expired tokens at the gateway and policy enforcement point",
+          "never write tokens to logs, console output, cache directories, or artifact stores",
+          "revoke tokens when a kill signal fires or token exposure is detected"
         ]
       },
       "identity_id": "sr-agent::defi-blockchain-security::claude",
@@ -3053,10 +3117,14 @@
           "human_approval_record"
         ],
         "token_rules": [
-          "issue tokens just in time",
-          "bind tokens to workflow_id and run_id",
+          "issue tokens just in time through an approved identity platform",
+          "bind tokens to workflow_id, agent_class, run_id, and intended audience",
+          "prefer sender-constrained presentation (DPoP RFC 9449 or mTLS RFC 8705) over unconstrained bearer tokens",
           "deny token passthrough to downstream tools",
-          "expire tokens when the run ends or a kill signal fires"
+          "expire tokens within one hour or when the run ends, whichever is sooner",
+          "reject expired tokens at the gateway and policy enforcement point",
+          "never write tokens to logs, console output, cache directories, or artifact stores",
+          "revoke tokens when a kill signal fires or token exposure is detected"
         ]
       },
       "identity_id": "sr-agent::defi-blockchain-security::codex",
@@ -3236,10 +3304,14 @@
           "human_approval_record"
         ],
         "token_rules": [
-          "issue tokens just in time",
-          "bind tokens to workflow_id and run_id",
+          "issue tokens just in time through an approved identity platform",
+          "bind tokens to workflow_id, agent_class, run_id, and intended audience",
+          "prefer sender-constrained presentation (DPoP RFC 9449 or mTLS RFC 8705) over unconstrained bearer tokens",
           "deny token passthrough to downstream tools",
-          "expire tokens when the run ends or a kill signal fires"
+          "expire tokens within one hour or when the run ends, whichever is sooner",
+          "reject expired tokens at the gateway and policy enforcement point",
+          "never write tokens to logs, console output, cache directories, or artifact stores",
+          "revoke tokens when a kill signal fires or token exposure is detected"
         ]
       },
       "identity_id": "sr-agent::defi-blockchain-security::cursor",
@@ -3418,10 +3490,14 @@
           "human_approval_record"
         ],
         "token_rules": [
-          "issue tokens just in time",
-          "bind tokens to workflow_id and run_id",
+          "issue tokens just in time through an approved identity platform",
+          "bind tokens to workflow_id, agent_class, run_id, and intended audience",
+          "prefer sender-constrained presentation (DPoP RFC 9449 or mTLS RFC 8705) over unconstrained bearer tokens",
           "deny token passthrough to downstream tools",
-          "expire tokens when the run ends or a kill signal fires"
+          "expire tokens within one hour or when the run ends, whichever is sooner",
+          "reject expired tokens at the gateway and policy enforcement point",
+          "never write tokens to logs, console output, cache directories, or artifact stores",
+          "revoke tokens when a kill signal fires or token exposure is detected"
         ]
       },
       "identity_id": "sr-agent::sast-finding-remediation::claude",
@@ -3600,10 +3676,14 @@
           "human_approval_record"
         ],
         "token_rules": [
-          "issue tokens just in time",
-          "bind tokens to workflow_id and run_id",
+          "issue tokens just in time through an approved identity platform",
+          "bind tokens to workflow_id, agent_class, run_id, and intended audience",
+          "prefer sender-constrained presentation (DPoP RFC 9449 or mTLS RFC 8705) over unconstrained bearer tokens",
           "deny token passthrough to downstream tools",
-          "expire tokens when the run ends or a kill signal fires"
+          "expire tokens within one hour or when the run ends, whichever is sooner",
+          "reject expired tokens at the gateway and policy enforcement point",
+          "never write tokens to logs, console output, cache directories, or artifact stores",
+          "revoke tokens when a kill signal fires or token exposure is detected"
         ]
       },
       "identity_id": "sr-agent::sast-finding-remediation::codex",
@@ -3782,10 +3862,14 @@
           "human_approval_record"
         ],
         "token_rules": [
-          "issue tokens just in time",
-          "bind tokens to workflow_id and run_id",
+          "issue tokens just in time through an approved identity platform",
+          "bind tokens to workflow_id, agent_class, run_id, and intended audience",
+          "prefer sender-constrained presentation (DPoP RFC 9449 or mTLS RFC 8705) over unconstrained bearer tokens",
           "deny token passthrough to downstream tools",
-          "expire tokens when the run ends or a kill signal fires"
+          "expire tokens within one hour or when the run ends, whichever is sooner",
+          "reject expired tokens at the gateway and policy enforcement point",
+          "never write tokens to logs, console output, cache directories, or artifact stores",
+          "revoke tokens when a kill signal fires or token exposure is detected"
         ]
       },
       "identity_id": "sr-agent::sast-finding-remediation::cursor",
@@ -3964,10 +4048,14 @@
           "human_approval_record"
         ],
         "token_rules": [
-          "issue tokens just in time",
-          "bind tokens to workflow_id and run_id",
+          "issue tokens just in time through an approved identity platform",
+          "bind tokens to workflow_id, agent_class, run_id, and intended audience",
+          "prefer sender-constrained presentation (DPoP RFC 9449 or mTLS RFC 8705) over unconstrained bearer tokens",
           "deny token passthrough to downstream tools",
-          "expire tokens when the run ends or a kill signal fires"
+          "expire tokens within one hour or when the run ends, whichever is sooner",
+          "reject expired tokens at the gateway and policy enforcement point",
+          "never write tokens to logs, console output, cache directories, or artifact stores",
+          "revoke tokens when a kill signal fires or token exposure is detected"
         ]
       },
       "identity_id": "sr-agent::sast-finding-remediation::github_copilot",
@@ -4150,10 +4238,14 @@
           "human_approval_record"
         ],
         "token_rules": [
-          "issue tokens just in time",
-          "bind tokens to workflow_id and run_id",
+          "issue tokens just in time through an approved identity platform",
+          "bind tokens to workflow_id, agent_class, run_id, and intended audience",
+          "prefer sender-constrained presentation (DPoP RFC 9449 or mTLS RFC 8705) over unconstrained bearer tokens",
           "deny token passthrough to downstream tools",
-          "expire tokens when the run ends or a kill signal fires"
+          "expire tokens within one hour or when the run ends, whichever is sooner",
+          "reject expired tokens at the gateway and policy enforcement point",
+          "never write tokens to logs, console output, cache directories, or artifact stores",
+          "revoke tokens when a kill signal fires or token exposure is detected"
         ]
       },
       "identity_id": "sr-agent::sensitive-data-remediation::claude",
@@ -4336,10 +4428,14 @@
           "human_approval_record"
         ],
         "token_rules": [
-          "issue tokens just in time",
-          "bind tokens to workflow_id and run_id",
+          "issue tokens just in time through an approved identity platform",
+          "bind tokens to workflow_id, agent_class, run_id, and intended audience",
+          "prefer sender-constrained presentation (DPoP RFC 9449 or mTLS RFC 8705) over unconstrained bearer tokens",
           "deny token passthrough to downstream tools",
-          "expire tokens when the run ends or a kill signal fires"
+          "expire tokens within one hour or when the run ends, whichever is sooner",
+          "reject expired tokens at the gateway and policy enforcement point",
+          "never write tokens to logs, console output, cache directories, or artifact stores",
+          "revoke tokens when a kill signal fires or token exposure is detected"
         ]
       },
       "identity_id": "sr-agent::sensitive-data-remediation::codex",
@@ -4522,10 +4618,14 @@
           "human_approval_record"
         ],
         "token_rules": [
-          "issue tokens just in time",
-          "bind tokens to workflow_id and run_id",
+          "issue tokens just in time through an approved identity platform",
+          "bind tokens to workflow_id, agent_class, run_id, and intended audience",
+          "prefer sender-constrained presentation (DPoP RFC 9449 or mTLS RFC 8705) over unconstrained bearer tokens",
           "deny token passthrough to downstream tools",
-          "expire tokens when the run ends or a kill signal fires"
+          "expire tokens within one hour or when the run ends, whichever is sooner",
+          "reject expired tokens at the gateway and policy enforcement point",
+          "never write tokens to logs, console output, cache directories, or artifact stores",
+          "revoke tokens when a kill signal fires or token exposure is detected"
         ]
       },
       "identity_id": "sr-agent::sensitive-data-remediation::cursor",
@@ -4708,10 +4808,14 @@
           "human_approval_record"
         ],
         "token_rules": [
-          "issue tokens just in time",
-          "bind tokens to workflow_id and run_id",
+          "issue tokens just in time through an approved identity platform",
+          "bind tokens to workflow_id, agent_class, run_id, and intended audience",
+          "prefer sender-constrained presentation (DPoP RFC 9449 or mTLS RFC 8705) over unconstrained bearer tokens",
           "deny token passthrough to downstream tools",
-          "expire tokens when the run ends or a kill signal fires"
+          "expire tokens within one hour or when the run ends, whichever is sooner",
+          "reject expired tokens at the gateway and policy enforcement point",
+          "never write tokens to logs, console output, cache directories, or artifact stores",
+          "revoke tokens when a kill signal fires or token exposure is detected"
         ]
       },
       "identity_id": "sr-agent::sensitive-data-remediation::devin",
@@ -4894,10 +4998,14 @@
           "human_approval_record"
         ],
         "token_rules": [
-          "issue tokens just in time",
-          "bind tokens to workflow_id and run_id",
+          "issue tokens just in time through an approved identity platform",
+          "bind tokens to workflow_id, agent_class, run_id, and intended audience",
+          "prefer sender-constrained presentation (DPoP RFC 9449 or mTLS RFC 8705) over unconstrained bearer tokens",
           "deny token passthrough to downstream tools",
-          "expire tokens when the run ends or a kill signal fires"
+          "expire tokens within one hour or when the run ends, whichever is sooner",
+          "reject expired tokens at the gateway and policy enforcement point",
+          "never write tokens to logs, console output, cache directories, or artifact stores",
+          "revoke tokens when a kill signal fires or token exposure is detected"
         ]
       },
       "identity_id": "sr-agent::sensitive-data-remediation::github_copilot",
@@ -5085,10 +5193,14 @@
           "human_approval_record"
         ],
         "token_rules": [
-          "issue tokens just in time",
-          "bind tokens to workflow_id and run_id",
+          "issue tokens just in time through an approved identity platform",
+          "bind tokens to workflow_id, agent_class, run_id, and intended audience",
+          "prefer sender-constrained presentation (DPoP RFC 9449 or mTLS RFC 8705) over unconstrained bearer tokens",
           "deny token passthrough to downstream tools",
-          "expire tokens when the run ends or a kill signal fires"
+          "expire tokens within one hour or when the run ends, whichever is sooner",
+          "reject expired tokens at the gateway and policy enforcement point",
+          "never write tokens to logs, console output, cache directories, or artifact stores",
+          "revoke tokens when a kill signal fires or token exposure is detected"
         ]
       },
       "identity_id": "sr-agent::vulnerable-dependency-remediation::claude",
@@ -5276,10 +5388,14 @@
           "human_approval_record"
         ],
         "token_rules": [
-          "issue tokens just in time",
-          "bind tokens to workflow_id and run_id",
+          "issue tokens just in time through an approved identity platform",
+          "bind tokens to workflow_id, agent_class, run_id, and intended audience",
+          "prefer sender-constrained presentation (DPoP RFC 9449 or mTLS RFC 8705) over unconstrained bearer tokens",
           "deny token passthrough to downstream tools",
-          "expire tokens when the run ends or a kill signal fires"
+          "expire tokens within one hour or when the run ends, whichever is sooner",
+          "reject expired tokens at the gateway and policy enforcement point",
+          "never write tokens to logs, console output, cache directories, or artifact stores",
+          "revoke tokens when a kill signal fires or token exposure is detected"
         ]
       },
       "identity_id": "sr-agent::vulnerable-dependency-remediation::codex",
@@ -5467,10 +5583,14 @@
           "human_approval_record"
         ],
         "token_rules": [
-          "issue tokens just in time",
-          "bind tokens to workflow_id and run_id",
+          "issue tokens just in time through an approved identity platform",
+          "bind tokens to workflow_id, agent_class, run_id, and intended audience",
+          "prefer sender-constrained presentation (DPoP RFC 9449 or mTLS RFC 8705) over unconstrained bearer tokens",
           "deny token passthrough to downstream tools",
-          "expire tokens when the run ends or a kill signal fires"
+          "expire tokens within one hour or when the run ends, whichever is sooner",
+          "reject expired tokens at the gateway and policy enforcement point",
+          "never write tokens to logs, console output, cache directories, or artifact stores",
+          "revoke tokens when a kill signal fires or token exposure is detected"
         ]
       },
       "identity_id": "sr-agent::vulnerable-dependency-remediation::cursor",
@@ -5658,10 +5778,14 @@
           "human_approval_record"
         ],
         "token_rules": [
-          "issue tokens just in time",
-          "bind tokens to workflow_id and run_id",
+          "issue tokens just in time through an approved identity platform",
+          "bind tokens to workflow_id, agent_class, run_id, and intended audience",
+          "prefer sender-constrained presentation (DPoP RFC 9449 or mTLS RFC 8705) over unconstrained bearer tokens",
           "deny token passthrough to downstream tools",
-          "expire tokens when the run ends or a kill signal fires"
+          "expire tokens within one hour or when the run ends, whichever is sooner",
+          "reject expired tokens at the gateway and policy enforcement point",
+          "never write tokens to logs, console output, cache directories, or artifact stores",
+          "revoke tokens when a kill signal fires or token exposure is detected"
         ]
       },
       "identity_id": "sr-agent::vulnerable-dependency-remediation::devin",
@@ -5849,10 +5973,14 @@
           "human_approval_record"
         ],
         "token_rules": [
-          "issue tokens just in time",
-          "bind tokens to workflow_id and run_id",
+          "issue tokens just in time through an approved identity platform",
+          "bind tokens to workflow_id, agent_class, run_id, and intended audience",
+          "prefer sender-constrained presentation (DPoP RFC 9449 or mTLS RFC 8705) over unconstrained bearer tokens",
           "deny token passthrough to downstream tools",
-          "expire tokens when the run ends or a kill signal fires"
+          "expire tokens within one hour or when the run ends, whichever is sooner",
+          "reject expired tokens at the gateway and policy enforcement point",
+          "never write tokens to logs, console output, cache directories, or artifact stores",
+          "revoke tokens when a kill signal fires or token exposure is detected"
         ]
       },
       "identity_id": "sr-agent::vulnerable-dependency-remediation::github_copilot",
@@ -6499,6 +6627,7 @@
       "human_approval_recorded",
       "evidence_record_attached",
       "kill_signal_triggered",
+      "token_exposure_detected",
       "identity_revoked"
     ],
     "delegation_chain_required_fields": [
@@ -6512,15 +6641,20 @@
     "identity_granularity": "one non-human identity per workflow, agent class, and runtime run",
     "issuance_requirements": [
       "service principal or workload identity is unique to the workflow and agent class",
-      "runtime token is bound to workflow_id, agent_class, and run_id",
+      "runtime token is bound to workflow_id, agent_class, run_id, and intended audience",
+      "runtime tokens are tightly scoped, short-lived, and sender-constrained whenever feasible",
       "tool calls are evaluated by the MCP gateway policy before execution",
       "human approval is required before merge, release, deployment, or approval-required MCP scopes"
     ],
     "token_rules": [
       "no shared long-lived credentials",
       "no token passthrough from user session to downstream MCP tools",
-      "expire identity at run completion",
-      "revoke identity when a runtime kill signal fires"
+      "issue tightly scoped, audience-restricted, short-lived tokens through an approved identity platform",
+      "prefer sender-constrained tokens (DPoP or mTLS) whenever feasible",
+      "expire identity tokens within one hour or at run completion, whichever is sooner",
+      "reject expired tokens",
+      "never write tokens to logs, console output, cache directories, or artifact stores",
+      "revoke identity when a runtime kill signal fires or token exposure is detected"
     ]
   },
   "failures": [],
@@ -6574,11 +6708,15 @@
   "residual_risks": [
     {
       "risk": "The ledger defines approved delegation, but the deploying enterprise still has to enforce it in IAM and the MCP gateway.",
-      "treatment": "Bind runtime credentials to workflow_id, agent_class, and run_id; deny tool calls without a matching ledger identity."
+      "treatment": "Bind runtime credentials to workflow_id, agent_class, run_id, and intended audience; deny tool calls without a matching ledger identity."
     },
     {
       "risk": "Human approval records are external to this repository.",
       "treatment": "Export source-host review events and change-management approvals into the same evidence retention window."
+    },
+    {
+      "risk": "Unconstrained bearer tokens remain reusable if stolen before expiry.",
+      "treatment": "Issue sender-constrained, audience-restricted, short-lived run tokens; reject expired or unbound tokens; treat token exposure as an incident."
     },
     {
       "risk": "Compromised downstream MCP servers can still misrepresent tool results.",
@@ -6608,16 +6746,22 @@
       "url": "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/"
     },
     {
-      "coverage": "HTTP transport authorization, resource-owner consent, and restricted MCP server access.",
+      "coverage": "Final September 15, 2026. Organizations should apply these token-protection guidelines when AI agents use signed tokens to access systems, data, tools, or APIs. Workload and non-person identities MUST use tightly scoped, short-lived tokens from approved identity platforms and SHOULD use sender-constrained mechanisms such as DPoP or mTLS. Access and identity tokens MUST have defined short lifetimes, SHOULD expire within one hour, and expired tokens MUST be rejected. Never write tokens to logs, console output, cache directories, or artifact stores.",
+      "id": "nist-ir-8587",
+      "name": "NIST IR 8587 Protecting Tokens and Assertions from Forgery, Theft, and Misuse",
+      "url": "https://csrc.nist.gov/pubs/ir/8587/final"
+    },
+    {
+      "coverage": "Current public MCP 2026-07-28 revision. HTTP transport authorization, resource indicators, token audience validation, and restricted MCP server access.",
       "id": "mcp-authorization",
-      "name": "Model Context Protocol Authorization",
-      "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization"
+      "name": "Model Context Protocol Authorization (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization"
     },
     {
       "coverage": "Confused-deputy prevention, token-passthrough avoidance, scope minimization, and session safety.",
       "id": "mcp-security-best-practices",
-      "name": "Model Context Protocol Security Best Practices",
-      "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices"
+      "name": "Model Context Protocol Security Best Practices (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices"
     },
     {
       "coverage": "Governed, mapped, measured, and managed AI system risk.",

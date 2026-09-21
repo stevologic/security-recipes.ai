@@ -1725,7 +1725,7 @@
       "title": "Agent Identity & Delegation Ledger",
       "page": "/security-remediation/agent-identity-ledger/",
       "category": "agent-runtime",
-      "summary": "Record non-human identity ownership, delegation, scope, lease, and runtime use so every agent action is attributable.",
+      "summary": "Record non-human identity ownership, delegation, scope, short-lived sender-constrained lease, and runtime use so every agent action is attributable.",
       "phases": [
         {
           "label": "Signal",
@@ -1735,28 +1735,28 @@
         {
           "label": "Scope",
           "title": "Issue scoped delegation",
-          "detail": "Bind workflow, resources, actions, constraints, approver, parent identity, start, expiry, and revocation channel."
+          "detail": "Bind workflow, resources, actions, constraints, approver, parent identity, audience, start, short-lived expiry, sender constraint, and revocation channel."
         },
         {
           "label": "Decision",
           "title": "Validate at action time",
-          "detail": "Check active status, chain integrity, lease, scope, entitlement, separation of duties, and requested target."
+          "detail": "Check active status, chain integrity, lease, audience, sender constraint, expiry, scope, entitlement, separation of duties, and requested target."
         },
         {
           "label": "Action",
           "title": "Allow or revoke",
-          "detail": "Permit the bounded use, hold for owner review, deny excess authority, or revoke compromised identity/credentials."
+          "detail": "Permit the bounded use, hold for owner review, deny expired or unbound tokens, or revoke compromised identity/credentials."
         },
         {
           "label": "Proof",
           "title": "Append ledger evidence",
-          "detail": "Record use, renewal, scope change, denial, revocation, linked receipt, and next review without rewriting history."
+          "detail": "Record use, renewal, scope change, denial, token exposure, revocation, linked receipt, and next review without rewriting history."
         }
       ],
       "gate": {
-        "question": "Is the identity active, owned, within an intact unexpired delegation chain, and authorized for this exact action?",
+        "question": "Is the identity active, owned, within an intact unexpired sender-constrained delegation chain, and authorized for this exact audience and action?",
         "pass": "Permit the action and append its usage receipt.",
-        "stop": "Hold, deny, or revoke when ownership, chain, lease, scope, or credential trust fails."
+        "stop": "Hold, deny, or revoke when ownership, chain, lease, audience, sender constraint, expiry, scope, or credential trust fails."
       },
       "evidence": [
         "identity and ownership record",
