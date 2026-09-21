@@ -1,14 +1,26 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-08-21",
+  "last_reviewed": "2026-09-14",
   "intent": "Define the SecurityRecipes browser-agent workspace boundary: a generated, machine-readable policy model for deciding when browser-based or desktop browser agents may inspect untrusted content, use logged-in sessions, hold credentials, navigate origins, fill forms, download files, call local services, or deliver outputs through external routes.",
   "positioning": {
     "buyer": "AI Platform, Product Security, Browser Platform, Security Engineering, SOC, GRC, procurement security, and agent-host teams",
     "category": "Browser-agent workspace isolation and ambient-authority control for agentic AI",
     "enterprise_promise": "SecurityRecipes can make browser agents easier to approve by turning prompt-injection exposure, logged-in session state, local credential storage, origin changes, file downloads, localhost access, and side effects into deterministic allow, hold, deny, or kill decisions.",
-    "why_now": "Agentic AI is moving from chat and code review into browsers, email, documents, web apps, and desktop workspaces. Browser agents combine untrusted content with ambient user sessions, DOM-visible data, local storage, downloads, forms, and external communication, so enterprises need a boundary that constrains impact even when prompt injection or social-engineering attacks are not perfectly detected."
+    "why_now": "Agentic AI is moving from chat and code review into browsers, email, documents, web apps, and desktop workspaces. Chrome Agent Origin Sets show that an unrestricted agent is effectively a Site Isolation bypass: without a gated read-versus-write origin set, prompt injection can consume unrelated iframes or actuate on logged-in origins the user never shared."
   },
   "standards_alignment": [
+    {
+      "id": "chrome-agent-origin-sets-2025",
+      "name": "Chrome Security: Architecting Security for Agentic Capabilities in Chrome",
+      "url": "https://security.googleblog.com/2025/12/architecting-security-for-agentic.html",
+      "coverage": "Extends Site Isolation and the same-origin policy with Agent Origin Sets. A gating function isolated from untrusted content decides task-relevant read-only versus read-writable origins; the planner cannot add origins without that approval, and unrelated iframes are withheld from the model."
+    },
+    {
+      "id": "chrome-webmcp-agent-security-2026",
+      "name": "Chrome: Agent security considerations for WebMCP",
+      "url": "https://developer.chrome.com/docs/agents/security",
+      "coverage": "Published 2026-06-09. Agents in authenticated browser sessions must restrict the set of web origins they interact with to those relevant to the user's task, reducing rogue tool calls and data exfiltration to unrelated origins."
+    },
     {
       "id": "openai-agent-prompt-injection-2026",
       "name": "OpenAI: Designing AI agents to resist prompt injection",
@@ -96,6 +108,9 @@
       "kill_session_on_browser_agent_signal"
     ],
     "kill_signal_indicators": [
+      "actuate_outside_write_origin_set",
+      "consume_outside_read_origin_set",
+      "cross_origin_read_to_write_leak",
       "cross_origin_secret_egress",
       "credential_visible_to_page",
       "download_and_execute",
@@ -105,6 +120,7 @@
       "prompt_injection_detected_with_side_effect",
       "raw_token_in_dom_or_storage",
       "unapproved_admin_console_write",
+      "ungated_origin_expansion",
       "untrusted_content_requests_external_send"
     ],
     "required_control_keys": [
@@ -520,6 +536,10 @@
     "untrusted_content": 15,
     "external_side_effect": 20,
     "cross_origin_egress": 20,
+    "ungated_origin_expansion": 30,
+    "consume_outside_read_origin_set": 25,
+    "actuate_outside_write_origin_set": 30,
+    "cross_origin_read_to_write_leak": 30,
     "contains_secret": 35,
     "dom_credential_visible": 30,
     "local_storage_token": 20,
@@ -544,6 +564,7 @@
     "default_questions_answered": [
       "Can this browser task run logged out?",
       "Is this a dedicated agent profile or a user's normal browser?",
+      "Is the next origin in a gated, task-relevant read or write set?",
       "Can untrusted content influence an external send or form submit?",
       "Are provider, GitHub, session, or customer tokens visible to the page or model?",
       "Is localhost, download, admin-console, or payment authority reachable?",
