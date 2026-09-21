@@ -5,6 +5,12 @@ The evaluator is deterministic. It checks whether a non-human agent
 identity still has an active, unexpired, reviewed entitlement for a
 specific workflow, MCP namespace, and access mode before a gateway or
 agent host forwards the request.
+
+MCP 2026-07-28 security best practices treat omnibus initial grants
+such as files:*, db:*, and admin:* as a blast-radius failure: a stolen
+token can chain privileged tools without a further elevation prompt.
+Unspecified scope evidence stays on the prior allow/hold/deny/kill
+path so existing lease, review, and authorization checks remain valid.
 """
 
 from __future__ import annotations
@@ -29,6 +35,7 @@ VALID_DECISIONS = {
     "kill_session_on_entitlement_signal",
 }
 NEGATIVE_PREFIXES = ("deny", "kill")
+DEFAULT_OMNIBUS_SCOPE_PATTERNS = ("admin:*", "db:*", "files:*")
 
 
 class EntitlementDecisionError(RuntimeError):
@@ -134,6 +141,46 @@ def is_negative_decision(value: Any) -> bool:
     return decision.startswith(NEGATIVE_PREFIXES) or "_deny" in decision or "_kill" in decision
 
 
+def granted_scopes(request: dict[str, Any]) -> list[str]:
+    values: list[str] = []
+    seen: set[str] = set()
+    for key in ("granted_scopes", "token_scopes"):
+        for item in as_list(request.get(key)):
+            text = str(item).strip()
+            if not text:
+                continue
+            marker = text.lower()
+            if marker in seen:
+                continue
+            seen.add(marker)
+            values.append(text)
+    return values
+
+
+def omnibus_scope_patterns(pack: dict[str, Any]) -> list[str]:
+    policy = as_dict(pack.get("runtime_policy"))
+    patterns = [
+        str(item).strip().lower()
+        for item in as_list(policy.get("omnibus_scope_patterns"))
+        if str(item).strip()
+    ]
+    return patterns or list(DEFAULT_OMNIBUS_SCOPE_PATTERNS)
+
+
+def is_omnibus_scope(scope: str, patterns: list[str]) -> bool:
+    text = str(scope).strip().lower()
+    if not text:
+        return False
+    if text in patterns or text == "*":
+        return True
+    return text.endswith(":*")
+
+
+def omnibus_granted_scopes(pack: dict[str, Any], request: dict[str, Any]) -> list[str]:
+    patterns = omnibus_scope_patterns(pack)
+    return [scope for scope in granted_scopes(request) if is_omnibus_scope(scope, patterns)]
+
+
 def normalize_request(runtime_request: dict[str, Any]) -> dict[str, Any]:
     request = dict(runtime_request)
     for key in [
@@ -141,10 +188,12 @@ def normalize_request(runtime_request: dict[str, Any]) -> dict[str, Any]:
         "cross_tenant_entitlement",
         "identity_used_after_revocation",
         "repeated_denied_entitlement",
+        "requested_all_scopes_supported",
         "scope_escalation",
         "token_passthrough",
     ]:
         request[key] = as_bool(request.get(key))
+    request["granted_scopes"] = granted_scopes(request)
     request["indicators"] = [str(item).strip().lower() for item in as_list(request.get("indicators")) if str(item).strip()]
     return request
 
@@ -166,6 +215,13 @@ def kill_reasons(pack: dict[str, Any], request: dict[str, Any]) -> list[str]:
         reasons.append("identity was used after revocation")
     if request.get("scope_escalation"):
         reasons.append("scope escalation was requested outside the lease")
+    omnibus = omnibus_granted_scopes(pack, request)
+    if omnibus:
+        joined = ", ".join(omnibus)
+        reasons.append(
+            "MCP omnibus scope grant "
+            f"({joined}) enables privilege chaining without a further elevation prompt"
+        )
     if request.get("cross_tenant_entitlement"):
         reasons.append("cross-tenant entitlement was requested")
     if request.get("repeated_denied_entitlement"):
@@ -232,11 +288,13 @@ def decision_result(
         "reason": reason,
         "request": {
             "authorization_decision": request.get("authorization_decision"),
+            "granted_scopes": request.get("granted_scopes") or [],
             "identity_id": request.get("identity_id"),
             "lease_id": request.get("lease_id"),
             "lease_status": request.get("lease_status"),
             "namespace": request.get("namespace"),
             "requested_access_mode": request.get("requested_access_mode"),
+            "requested_all_scopes_supported": request.get("requested_all_scopes_supported"),
             "review_status": request.get("review_status"),
             "run_id": request.get("run_id"),
             "tenant_id": request.get("tenant_id"),
@@ -359,6 +417,19 @@ def evaluate_agentic_entitlement_decision(
             violations=["missing risk_acceptance_id"],
         )
 
+    if request.get("requested_all_scopes_supported") and not granted_scopes(request):
+        return decision_result(
+            decision="hold_for_step_up_authorization",
+            pack=pack,
+            request=request,
+            entitlement=entitlement,
+            reason=(
+                "client requested the full scopes_supported catalog as an initial grant; "
+                "require a minimal baseline set and incremental WWW-Authenticate elevation"
+            ),
+            violations=["requested_all_scopes_supported without down-scoped granted_scopes"],
+        )
+
     return decision_result(
         decision="allow_active_entitlement",
         pack=pack,
@@ -399,6 +470,17 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--repeated-denied-entitlement", action="store_true")
     parser.add_argument("--scope-escalation", action="store_true")
     parser.add_argument("--token-passthrough", action="store_true")
+    parser.add_argument(
+        "--granted-scope",
+        action="append",
+        default=[],
+        help="OAuth scope already bound to the token or lease. Repeat for multiple scopes.",
+    )
+    parser.add_argument(
+        "--requested-all-scopes-supported",
+        action="store_true",
+        help="Client requested every scope in scopes_supported as the initial grant.",
+    )
     parser.add_argument("--expect-decision")
     return parser.parse_args()
 
@@ -413,6 +495,7 @@ def request_from_args(args: argparse.Namespace) -> dict[str, Any]:
         "correlation_id": args.correlation_id,
         "cross_tenant_entitlement": args.cross_tenant_entitlement,
         "entitlement_id": args.entitlement_id,
+        "granted_scopes": args.granted_scope,
         "identity_id": args.identity_id,
         "identity_used_after_revocation": args.identity_used_after_revocation,
         "indicators": args.indicator,
@@ -425,6 +508,7 @@ def request_from_args(args: argparse.Namespace) -> dict[str, Any]:
         "receipt_id": args.receipt_id,
         "repeated_denied_entitlement": args.repeated_denied_entitlement,
         "requested_access_mode": args.requested_access_mode,
+        "requested_all_scopes_supported": args.requested_all_scopes_supported,
         "review_status": args.review_status,
         "risk_acceptance_id": args.risk_acceptance_id,
         "run_id": args.run_id,
