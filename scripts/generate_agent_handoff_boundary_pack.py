@@ -394,6 +394,10 @@ def build_pack(
             {
                 "risk": "A2A, MCP, and provider-native orchestration can compose into longer chains than one gateway can inspect.",
                 "treatment": "Propagate correlation IDs, require per-hop boundary decisions, and deny handoffs that omit prior hop evidence."
+            },
+            {
+                "risk": "An A2A client that omits A2A-Version is interpreted as 0.3, so a current-looking handoff can silently downgrade and skip 1.0 authentication and in-task authorization semantics.",
+                "treatment": "Require A2A-Version Major.Minor 1.0 on a2a_task_delegation, deny unsupported versions, and keep AUTH_REQUIRED credentials out of band."
             }
         ],
         "failures": failures,
