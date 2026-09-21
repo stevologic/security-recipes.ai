@@ -3,12 +3,13 @@ title: MCP Connector Intake Scanner
 linkTitle: Connector Intake Scanner
 weight: 7
 date: 2026-05-02
-lastmod: 2026-08-21
+lastmod: 2026-09-17
 sidebar:
   exclude: true
 description: >
-  Score authentication, token, network, schema, data, write, approval,
-  evidence, and red-team risk before promoting a new or changed MCP connector.
+  Score authentication, token, network, schema, data, MCP Apps UI, write,
+  approval, evidence, and red-team risk before promoting a new or changed
+  MCP connector.
 breadcrumb_parent: /agentic-security/
 ---
 
@@ -19,7 +20,7 @@ reviewable admission decision before it becomes a trusted enterprise
 connector.
 {{< /callout >}}
 
-Rechecked August 23, 2026: MCP
+Rechecked September 17, 2026: MCP
 [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28)
 is still current and **stateless**. There is no negotiation handshake.
 Each request carries protocol version and capabilities. Servers
@@ -29,7 +30,16 @@ Each request carries protocol version and capabilities. Servers
 Streamable HTTP revisions through
 [2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25)
 could assign that header; 2026-07-28 ignores it and does not mint
-session IDs.
+session IDs. Rechecked the same day against
+[MCP Apps](https://modelcontextprotocol.io/extensions/apps/overview)
+(`io.modelcontextprotocol/ui`, stable 2026-01-26): hosts **MUST** render
+`ui://` HTML in a sandboxed iframe, **MUST** enforce CSP from declared
+domains, and **MUST NOT** allow undeclared origins. Camera, microphone,
+and geolocation permission requests are not an implicit grant. This
+scanner now holds those UI surfaces. Candidates that do not declare MCP
+Apps metadata stay on the prior intake path. This change does not claim
+human review of the pack; `lastmod` and the source `last_reviewed`
+date record this editorial pass.
 
 ## The product bet
 
@@ -92,6 +102,7 @@ material, and unrestricted bulk personal data as prohibited context.
 | Authorization | Resource indicators, audience validation, PKCE, short-lived identity, token-passthrough denial. |
 | Network | Private ranges, cloud metadata endpoints, redirect behavior, external host allowlists. |
 | Tool surface | Mutating tools, destructive operations, tool descriptions, input schema pins, output schema pins. |
+| MCP Apps UI | `ui://` resource URIs, `text/html;profile=mcp-app`, sandboxed iframes, host-enforced CSP, unbounded `connect-src`, camera/microphone/geolocation, deprecated `_meta.ui/resourceUri`. |
 | Data classes | Source code, internal findings, untrusted web content, production credentials, signing material. |
 | Evidence | Gateway audit, owner records, review events, package provenance, approval records. |
 | Promotion | Registry patch preview, red-team drills, owner and escalation requirements. |
@@ -102,12 +113,13 @@ model to interpret the policy.
 
 ## Current sample decisions
 
-The initial candidates model three realistic enterprise intake outcomes:
+The candidates model four realistic enterprise intake outcomes:
 
 - **GitHub Remediation Branch Writer**: a scoped-write connector that is
   close to pilot-ready because it declares OAuth audience validation,
   short-lived workload identity, branch scope enforcement, review gates,
-  schema pins, and tool-call audit.
+  schema pins, and tool-call audit. It does not declare MCP Apps UI, so
+  it stays on the prior allow path.
 - **Local Browser Research STDIO Server**: held because local process
   launch, broad network egress, redirects, missing schema pins, and
   untrusted web content make it unsafe until hardened.
@@ -115,6 +127,10 @@ The initial candidates model three realistic enterprise intake outcomes:
   registry publishing, tag deletion, token passthrough, private network
   reachability, and production credential exposure belong behind a
   separate approval-only or hard-denied surface.
+- **Tenant Analytics MCP App Dashboard**: held because a production-looking
+  OAuth read connector still ships an unsandboxed `ui://` HTML app with
+  wildcard `connect-src`, camera and microphone permission requests, and
+  unaudited postMessage tool calls.
 
 ## Industry alignment
 
@@ -126,6 +142,11 @@ This feature follows current primary guidance:
 - [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices)
   calls out confused deputy risk, forbidden token passthrough, SSRF,
   session safety, local server compromise, and scope minimization.
+- [MCP Apps](https://modelcontextprotocol.io/extensions/apps/overview)
+  and the
+  [2026-01-26 extension specification](https://github.com/modelcontextprotocol/ext-apps/blob/main/specification/2026-01-26/apps.mdx)
+  require sandboxed `ui://` HTML, host-enforced CSP, and auditable
+  View-to-host JSON-RPC. Hosts must not allow undeclared network origins.
 - [OWASP Top 10 for Agentic Applications 2026](https://genai.owasp.org/2025/12/09/owasp-genai-security-project-releases-top-10-risks-and-mitigations-for-agentic-ai-security/)
   elevates tool misuse, identity abuse, supply-chain exposure, cascading
   failures, and rogue agent behavior.

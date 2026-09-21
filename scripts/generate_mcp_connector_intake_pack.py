@@ -3,8 +3,9 @@
 
 The connector trust registry describes namespaces that are already
 approved. The intake pack handles the step before that: new or changed
-MCP servers are scored for auth, network, tool-schema, data, write, and
-evidence risk before they are allowed into the production registry.
+MCP servers are scored for auth, network, tool-schema, data, write,
+MCP Apps UI resources, and evidence risk before they are allowed into
+the production registry.
 
 The output is deterministic by default so CI can run with --check and
 fail when the checked-in intake pack drifts from source candidates.
@@ -63,6 +64,24 @@ PROMPT_INJECTION_TERMS = {
     "follow these instructions",
     "execute these instructions",
 }
+MCP_APPS_MIME_TYPE = "text/html;profile=mcp-app"
+UNBOUNDED_CSP_ORIGINS = {
+    "*",
+    "*://*",
+    "https://*",
+    "http://*",
+    "https://*.*",
+    "http://*.*",
+    "*:*",
+}
+SENSITIVE_UI_PERMISSIONS = {"camera", "microphone", "geolocation"}
+CLIPBOARD_UI_PERMISSIONS = {"clipboardWrite", "clipboard-write", "clipboard_write"}
+CSP_ORIGIN_FIELDS = (
+    "connect_domains",
+    "resource_domains",
+    "frame_domains",
+    "base_uri_domains",
+)
 
 TIER_REQUIRED_CONTROLS = {
     "tier_0_public_context": [
@@ -169,6 +188,220 @@ def evidence_text(value: Any) -> str:
         return str(value)
 
 
+def as_bool(value: Any) -> bool:
+    if isinstance(value, bool):
+        return value
+    if value is None:
+        return False
+    return str(value).strip().lower() in {"1", "true", "yes", "y", "on"}
+
+
+def origin_list(ui: dict[str, Any], field: str) -> list[str]:
+    csp = ui.get("csp") if isinstance(ui.get("csp"), dict) else {}
+    raw = csp.get(field, ui.get(field, []))
+    if raw is None:
+        return []
+    if isinstance(raw, str):
+        return [raw.strip()] if raw.strip() else []
+    if not isinstance(raw, list):
+        return [str(raw)]
+    return [str(item).strip() for item in raw if str(item).strip()]
+
+
+def is_unbounded_csp_origin(origin: str) -> bool:
+    value = origin.strip()
+    if value in UNBOUNDED_CSP_ORIGINS:
+        return True
+    lowered = value.lower()
+    if lowered in UNBOUNDED_CSP_ORIGINS:
+        return True
+    if lowered.endswith("://*") or lowered.endswith("://*.*"):
+        return True
+    return False
+
+
+def is_insecure_csp_origin(origin: str) -> bool:
+    lowered = origin.strip().lower()
+    if not lowered.startswith("http://"):
+        return False
+    host = lowered[len("http://") :].split("/", 1)[0].split(":", 1)[0]
+    return host not in {"localhost", "127.0.0.1", "[::1]"}
+
+
+def declared_ui_permissions(ui: dict[str, Any]) -> set[str]:
+    permissions = ui.get("permissions")
+    names: set[str] = set()
+    if isinstance(permissions, dict):
+        for key, value in permissions.items():
+            if value in (False, None, ""):
+                continue
+            if value is True or isinstance(value, dict) or as_bool(value):
+                names.add(str(key).strip())
+        return {name for name in names if name}
+    if isinstance(permissions, list):
+        return {str(item).strip() for item in permissions if str(item).strip()}
+    return set()
+
+
+def mcp_apps_ui_findings(tool_name: str, ui: dict[str, Any], controls: set[str]) -> list[dict[str, str]]:
+    """Score MCP Apps UI metadata when a tool declares it.
+
+    MCP Apps (io.modelcontextprotocol/ui) is optional. Tools without a `ui`
+    object stay on the prior intake path. When UI is present, hosts MUST
+    sandbox the iframe, MUST enforce CSP from declared domains, MUST NOT
+    allow undeclared origins, and MUST keep View-initiated tool calls
+    auditable. Unbounded connect-src, missing sandbox, or device
+    permissions without typed approval are intake blockers.
+    """
+    findings: list[dict[str, str]] = []
+    resource_uri = str(ui.get("resource_uri") or ui.get("resourceUri") or "").strip()
+    mime_type = str(ui.get("mime_type") or ui.get("mimeType") or "").strip()
+    if ui.get("deprecated_flat_ui_resource_uri") or ui.get("deprecated_ui_resource_uri_key"):
+        findings.append(
+            finding(
+                "mcp-apps-deprecated-meta-key",
+                "medium",
+                "Tool still uses deprecated _meta.ui/resourceUri instead of _meta.ui.resourceUri",
+                tool_name,
+                "mcp_apps_sandbox_and_csp",
+            )
+        )
+    if resource_uri and not resource_uri.startswith("ui://"):
+        findings.append(
+            finding(
+                "mcp-apps-invalid-uri-scheme",
+                "critical",
+                "MCP Apps resource URI does not use the reserved ui:// scheme",
+                resource_uri,
+                "mcp_apps_sandbox_and_csp",
+            )
+        )
+    if mime_type and mime_type != MCP_APPS_MIME_TYPE:
+        findings.append(
+            finding(
+                "mcp-apps-invalid-mime-type",
+                "high",
+                "MCP Apps HTML resource is not text/html;profile=mcp-app",
+                mime_type,
+                "mcp_apps_sandbox_and_csp",
+            )
+        )
+    if ui.get("sandbox_iframe") is False or (
+        "sandbox_iframe" in ui and not as_bool(ui.get("sandbox_iframe"))
+    ):
+        findings.append(
+            finding(
+                "mcp-apps-missing-sandbox",
+                "critical",
+                "MCP Apps view is not rendered in a sandboxed iframe",
+                tool_name,
+                "mcp_apps_sandbox_and_csp",
+            )
+        )
+    elif "sandbox_iframe" not in ui:
+        findings.append(
+            finding(
+                "mcp-apps-missing-sandbox",
+                "critical",
+                "MCP Apps view does not declare sandboxed iframe evidence",
+                tool_name,
+                "mcp_apps_sandbox_and_csp",
+            )
+        )
+    if ui.get("host_enforces_csp") is False or (
+        "host_enforces_csp" in ui and not as_bool(ui.get("host_enforces_csp"))
+    ):
+        findings.append(
+            finding(
+                "mcp-apps-missing-csp-enforcement",
+                "high",
+                "Host does not enforce CSP from MCP Apps resource metadata",
+                tool_name,
+                "mcp_apps_sandbox_and_csp",
+            )
+        )
+    elif "host_enforces_csp" not in ui:
+        findings.append(
+            finding(
+                "mcp-apps-missing-csp-enforcement",
+                "high",
+                "MCP Apps view does not declare host CSP enforcement evidence",
+                tool_name,
+                "mcp_apps_sandbox_and_csp",
+            )
+        )
+    if ui.get("auditable_postmessage") is False or (
+        "auditable_postmessage" in ui and not as_bool(ui.get("auditable_postmessage"))
+    ):
+        findings.append(
+            finding(
+                "mcp-apps-unaudited-postmessage",
+                "high",
+                "MCP Apps view-to-host JSON-RPC is not auditable",
+                tool_name,
+                "audit_every_tool_call",
+            )
+        )
+    unbounded = []
+    insecure = []
+    for field in CSP_ORIGIN_FIELDS:
+        for origin in origin_list(ui, field):
+            if is_unbounded_csp_origin(origin):
+                unbounded.append(f"{field}={origin}")
+            elif is_insecure_csp_origin(origin):
+                insecure.append(f"{field}={origin}")
+    if unbounded:
+        findings.append(
+            finding(
+                "mcp-apps-unbounded-csp",
+                "critical",
+                "MCP Apps CSP allows undeclared or wildcard network origins",
+                ", ".join(unbounded),
+                "mcp_apps_sandbox_and_csp",
+            )
+        )
+    if insecure:
+        findings.append(
+            finding(
+                "mcp-apps-insecure-csp-origin",
+                "high",
+                "MCP Apps CSP allows cleartext http origins",
+                ", ".join(insecure),
+                "mcp_apps_sandbox_and_csp",
+            )
+        )
+    permissions = declared_ui_permissions(ui)
+    sensitive = sorted(permissions & SENSITIVE_UI_PERMISSIONS)
+    clipboard = sorted(name for name in permissions if name in CLIPBOARD_UI_PERMISSIONS)
+    if sensitive and not {"typed_human_approval", "two_key_review"}.issubset(controls):
+        findings.append(
+            finding(
+                "mcp-apps-device-permissions",
+                "critical",
+                "MCP Apps view requests camera, microphone, or geolocation without typed two-key approval",
+                ", ".join(sensitive),
+                "typed_human_approval",
+            )
+        )
+    if clipboard and "typed_human_approval" not in controls:
+        findings.append(
+            finding(
+                "mcp-apps-clipboard-permission",
+                "high",
+                "MCP Apps view requests clipboard write without typed approval",
+                ", ".join(clipboard),
+                "typed_human_approval",
+            )
+        )
+    return findings
+
+
+def tool_declares_mcp_apps_ui(tool: dict[str, Any]) -> bool:
+    return isinstance(tool.get("ui"), dict) or bool(
+        str(tool.get("resource_uri") or tool.get("ui_resource_uri") or "").strip()
+    )
+
+
 def connector_namespaces(connector_trust_pack: dict[str, Any]) -> set[str]:
     return {
         str(connector.get("namespace"))
@@ -251,6 +484,13 @@ def validate_candidates(candidates: dict[str, Any]) -> list[str]:
             require(isinstance(tool.get("mutates_state"), bool), failures, f"{tool_label}.mutates_state must be boolean")
             require(isinstance(tool.get("destructive"), bool), failures, f"{tool_label}.destructive must be boolean")
             require(isinstance(tool.get("returns_untrusted_content"), bool), failures, f"{tool_label}.returns_untrusted_content must be boolean")
+            if "ui" in tool:
+                ui = tool.get("ui")
+                if not isinstance(ui, dict):
+                    failures.append(f"{tool_label}.ui must be an object when present")
+                else:
+                    resource_uri = str(ui.get("resource_uri") or ui.get("resourceUri") or "").strip()
+                    require(bool(resource_uri), failures, f"{tool_label}.ui.resource_uri is required when ui is present")
 
         for field in ["data_classes", "requested_operations", "declared_controls", "evidence_available"]:
             require(bool(as_list(candidate.get(field), f"{label}.{field}")), failures, f"{candidate_id}: {field} must not be empty")
@@ -330,6 +570,21 @@ def risk_findings(candidate: dict[str, Any], known_namespaces: set[str]) -> list
             findings.append(finding("write-without-scope", "high", "Mutating tool lacks write-scope enforcement", tool_name, "write_scope_enforcement"))
         if tool.get("destructive") and not {"typed_human_approval", "two_key_review"}.issubset(controls):
             findings.append(finding("destructive-without-two-key", "critical", "Destructive tool lacks typed two-key approval", tool_name, "typed_human_approval"))
+        ui = tool.get("ui")
+        if ui is None:
+            continue
+        if not isinstance(ui, dict):
+            findings.append(
+                finding(
+                    "mcp-apps-ui-malformed",
+                    "high",
+                    "Tool declares MCP Apps UI metadata that is not an object",
+                    tool_name,
+                    "mcp_apps_sandbox_and_csp",
+                )
+            )
+            continue
+        findings.extend(mcp_apps_ui_findings(tool_name, ui, controls))
 
     if any(term in operations for term in {"deploy", "publish", "release", "sign", "payment", "transaction", "purge", "delete"}) and "typed_human_approval" not in controls:
         findings.append(finding("high-impact-operation-without-approval", "critical", "High-impact operation lacks typed approval", operations, "typed_human_approval"))
@@ -422,6 +677,15 @@ def red_team_drills(candidate: dict[str, Any], tier: str) -> list[dict[str, str]
                 "attack_family": "local_server_compromise",
                 "expected_decision": "deny_unapproved_command_or_kill_session",
                 "name": "Alter the local server launch command or package source.",
+            }
+        )
+    tools = [tool for tool in candidate.get("tool_surface", []) if isinstance(tool, dict)]
+    if any(tool_declares_mcp_apps_ui(tool) for tool in tools):
+        drills.append(
+            {
+                "attack_family": "mcp_apps_ui_escape",
+                "expected_decision": "hold_for_controls",
+                "name": "Render a ui:// HTML app that requests unbounded connect-src, device permissions, or unsandboxed tool calls.",
             }
         )
     return drills
