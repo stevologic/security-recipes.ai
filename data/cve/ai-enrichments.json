@@ -30502,6 +30502,26 @@
         "Confirm that the vendor release is recorded as applied and that unauthenticated access to the relevant functionality is subject to the intended access controls."
       ]
     },
+    "CVE-2026-49869": {
+      "business_risk": "No additional source-verified CVE-specific business impact was established.",
+      "claim_evidence": [],
+      "exposure_conditions": [],
+      "gaps": [],
+      "generated_at": "2026-09-15T14:33:22Z",
+      "model": "grok-4.6",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [],
+      "retrieved_source_urls": [],
+      "schema_version": 2,
+      "source_fingerprint": "d39bc96da251ad9c62a14d18e8f580c07156af2efa1eeb063b7115726f693106",
+      "source_urls": [],
+      "status": "insufficient_evidence",
+      "uncertainty": [
+        "Authoritative NVD, CNA, vendor advisory, and CISA sources have not yet been retrieved and verified for this CVE; supplied record data is untrusted and cannot be used as evidence."
+      ],
+      "verification_steps": []
+    },
     "CVE-2026-50522": {
       "business_risk": "No additional source-verified CVE-specific business impact was established.",
       "claim_evidence": [],
@@ -30950,26 +30970,6 @@
       ],
       "verification_steps": []
     },
-    "CVE-2026-65400": {
-      "business_risk": "No additional source-verified CVE-specific business impact was established.",
-      "claim_evidence": [],
-      "exposure_conditions": [],
-      "gaps": [],
-      "generated_at": "2026-09-08T22:06:09Z",
-      "model": "grok-4.6",
-      "prompt_version": "2026-07-14.2",
-      "recipe_specificity": "not_specific",
-      "remediation_steps": [],
-      "retrieved_source_urls": [],
-      "schema_version": 2,
-      "source_fingerprint": "5c9806555ad0cff2133402eee37135e63d92da13351e1f4df61ba143e283edab",
-      "source_urls": [],
-      "status": "insufficient_evidence",
-      "uncertainty": [
-        "No authoritative web-search results have been retrieved yet; supplied CVE record is untrusted and cannot be used as evidence."
-      ],
-      "verification_steps": []
-    },
     "CVE-2026-8037": {
       "business_risk": "Critical risk. The vulnerability is an OS command-injection flaw in Progress ADC product APIs that may permit an unauthenticated attacker to execute arbitrary commands, potentially resulting in full compromise of confidentiality, integrity, and availability. Prioritize affected internet- or untrusted-network-reachable management interfaces and perform incident review where exposure or suspicious activity is identified.",
       "claim_evidence": [
@@ -31138,89 +31138,6 @@
         "Confirm that the replacement package was obtained from the official DAEMON Tools distribution source.",
         "Confirm completion of a full security-product scan and review its results for detections associated with the incident.",
         "For systems that had an affected package installed, verify through endpoint and network monitoring that no suspicious follow-on activity remains; absence of detections is not proof that a prior compromise did not occur."
-      ]
-    },
-    "CVE-2026-86060": {
-      "business_risk": "Critical unauthenticated privilege escalation on MikroTik RouterOS via SSH login-path argument injection, listed in CISA KEV with active exploitation, enabling full device compromise and network control.",
-      "claim_evidence": [
-        {
-          "claim": "The affected product is MikroTik RouterOS.",
-          "kind": "affected_product",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-86060"
-        },
-        {
-          "claim": "Affected versions include RouterOS from 6.0 up to but excluding 6.49.21, from 7.0 up to but excluding 7.23.4, and from 7.24 up to but excluding 7.24.2.",
-          "kind": "affected_version",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-86060"
-        },
-        {
-          "claim": "Exploitation requires an unauthenticated SSH session to reach the RouterOS login helper; devices that expose SSH to untrusted networks are at risk.",
-          "kind": "exposure",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-86060"
-        },
-        {
-          "claim": "The issue was fixed in RouterOS 6.49.21 (Long-term), 7.23.4 (Long-term), and 7.24.2 (Stable).",
-          "kind": "fixed_version",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-86060"
-        }
-      ],
-      "exposure_conditions": [
-        "MikroTik RouterOS versions in 6.x before 6.49.21, 7.x before 7.23.4, or 7.24.x before 7.24.2",
-        "SSH service reachable by untrusted networks, allowing an unauthenticated SSH session to reach the RouterOS login helper"
-      ],
-      "gaps": [],
-      "generated_at": "2026-09-14T16:16:41Z",
-      "model": "grok-4.6",
-      "prompt_version": "2026-07-14.2",
-      "recipe_specificity": "not_specific",
-      "remediation_steps": [
-        "Upgrade RouterOS to 6.49.21 (Long-term), 7.23.4 (Long-term), or 7.24.2 (Stable) or later as applicable to the installed branch",
-        "Ensure SSH is not exposed to untrusted networks; restrict SSH to trusted addresses or access management only via a strong VPN such as WireGuard",
-        "After upgrade, inspect configuration for unrecognized users, scripts, or other unexpected settings",
-        "If the device log shows a critical Flagged status, follow MikroTik Flagged status documentation"
-      ],
-      "retrieved_source_urls": [
-        "https://app.opencve.io/cve/CVE-2026-86060",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog-print",
-        "https://thehackernews.com/2026/09/cisa-adds-5-actively-exploited.html",
-        "https://www.cve.org/CVERecord?id=CVE-2026-8606",
-        "https://www.tenable.com/blog/microsofts-september-2026-patch-tuesday-addresses-964-cves-cve-2026-81963-cve-2026-85880",
-        "https://aws.amazon.com/security/security-bulletins/2026-102-aws/",
-        "https://vuldb.com/cve",
-        "https://www.patchbrief.org/feed.html",
-        "https://www.greenbone.net/blog/2026/",
-        "https://github.com/aws/aws-advanced-jdbc-wrapper/security/advisories/GHSA-fpvp-qwgm-v6h9",
-        "https://www.cve.org/CVERecord?id=CVE-2026-23560",
-        "https://cyber.gc.ca/en/alerts-advisories/microsoft-security-advisory-september-2026-monthly-rollup-av26-896",
-        "https://cve.circl.lu/vuln/cve-2026-20060",
-        "https://www.cve.org/CVERecord?id=CVE-2026-20960",
-        "https://github.com/advisories/GHSA-96fm-jjf3-wv64",
-        "https://nvd.nist.gov/vuln/detail/CVE-2026-86060",
-        "https://nvd.nist.gov/vuln/detail/CVE-2026-64560",
-        "https://nvd.nist.gov/vuln/detail/cve-2026-2760",
-        "https://nvd.nist.gov/vuln/detail/cve-2026-39860",
-        "https://www.cisa.gov/news-events/bulletins/sb26-250",
-        "https://www.cisa.gov/news-events/bulletins/sb26-180",
-        "https://www.cisa.gov/news-events/alerts/2026/09/08/cisa-adds-four-known-exploited-vulnerabilities-catalog",
-        "https://mikrotik.com/supportsec"
-      ],
-      "schema_version": 2,
-      "source_fingerprint": "ce77f2d8fc8fb1bf0e8c0065c8743c4a40a4298ac79fea93163886d797b03512",
-      "source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2026-86060",
-        "https://mikrotik.com/supportsec",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog-print"
-      ],
-      "status": "complete",
-      "uncertainty": [
-        "Vendor advisory withholds detailed technical information about the vulnerability",
-        "Safe verification is limited to version confirmation, SSH exposure review, Flagged-status log inspection, and configuration review; no source describes an inert functional test of the SSH login-path flaw",
-        "Exact CPE mapping and whether every 7.24.0/7.24.1 build is in-scope is taken from NVD/CERT version ranges rather than a MikroTik enumerated version list"
-      ],
-      "verification_steps": [
-        "Confirm installed RouterOS version is 6.49.21, 7.23.4, 7.24.2, or a later release in the same channel via the device Check for updates or system version display",
-        "Confirm SSH is not reachable from untrusted networks",
-        "Review system logs for a critical Flagged status entry and inspect configuration for unknown users or scripts after upgrade"
       ]
     }
   },
