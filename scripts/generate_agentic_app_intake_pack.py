@@ -3,8 +3,9 @@
 
 The intake gate is the launch-review layer for agentic applications. It
 turns declared autonomy, data, MCP authority, memory, handoffs,
-guardrails, telemetry, and approval evidence into deterministic decisions
-before a new app, agent host, or production MCP rollout expands.
+guardrails, telemetry, approval evidence, and MCP icon handling into
+deterministic decisions before a new app, agent host, or production MCP
+rollout expands.
 """
 
 from __future__ import annotations
