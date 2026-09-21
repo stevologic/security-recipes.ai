@@ -86,7 +86,7 @@ Catalog sources were reviewed on **2026-08-21**. Draft, phased, and revision-in-
 | [OWASP API Top 10:2023](./owasp-api-security-top-10-2023-evidence-check/) | 2023 | `final` | global |
 | [OWASP MASVS 2.1.0](./owasp-masvs-2-1-0-mobile-evidence-check/) | 2.1.0 | `final` | global |
 | [OWASP SAMM 2.1](./owasp-samm-2-1-program-evidence-check/) | 2.1 | `final` | global |
-| [OpenSSF OSPS Baseline](./openssf-osps-baseline-evidence-check/) | 2026.02.19 | `final` | global |
+| [OpenSSF OSPS Baseline](./openssf-osps-baseline-evidence-check/) | 2026.08.28 | `final` | global |
 | [EU Cyber Resilience Act](./eu-cyber-resilience-act-evidence-check/) | Regulation (EU) 2024/2847 | `phased-implementation` | european-union, extraterritorial |
 | [NIST IoT 8259 Series](./nist-iot-8259-rev1-evidence-check/) | NISTIR 8259 Rev. 1 series (April 2026) | `final` | global, united-states |
 
