@@ -3,7 +3,7 @@ title: MCP Gateway Policy Pack
 linkTitle: Gateway Policy
 weight: 5
 date: 2026-05-02
-lastmod: 2026-09-20
+lastmod: 2026-09-22
 sidebar:
   exclude: true
 description: >
@@ -19,7 +19,7 @@ enforcement contract an MCP gateway, agent host, CI admission check, or
 policy sidecar can load directly.
 {{< /callout >}}
 
-Rechecked September 20, 2026: MCP
+Rechecked September 22, 2026: MCP
 [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28)
 is still current and **stateless**. There is no negotiation handshake.
 Each request carries protocol version and capabilities. Servers
@@ -30,6 +30,10 @@ Streamable HTTP revisions through
 [2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25)
 could assign that header; 2026-07-28 ignores it and does not mint
 session IDs. Streamable HTTP
+[Security & Endpoint](https://modelcontextprotocol.io/specification/2026-07-28/basic/transports/streamable-http)
+requires `Origin` validation on every incoming connection; a present
+invalid `Origin` is HTTP 403, not an authorized tool call. Streamable
+HTTP
 [request metadata](https://modelcontextprotocol.io/specification/2026-07-28/basic/transports/streamable-http)
 requires `MCP-Protocol-Version`, `Mcp-Method`, and `Mcp-Name` on each
 POST. Gateways that route on those headers **MUST** treat
@@ -123,8 +127,10 @@ mid-run control:
 2. Match the incoming run to `workflow_id`.
 3. Reject the run if the workflow is missing, paused, retired, or outside
    its declared maturity posture.
-4. For Streamable HTTP, compare `MCP-Protocol-Version`, `Mcp-Method`, and
-   `Mcp-Name` to the JSON-RPC body before trusting either for routing.
+4. For Streamable HTTP, reject a present `Origin` that is not a valid
+   http(s) origin or is outside the host-app allowlist (`deny`, HTTP
+   403). Compare `MCP-Protocol-Version`, `Mcp-Method`, and `Mcp-Name`
+   to the JSON-RPC body before trusting either for routing.
    Header/body disagreement is `deny` (`HeaderMismatch`, `-32020`).
 5. For each tool call, match `tool_namespace` and requested access mode
    against `allowed_mcp_scopes`.
@@ -145,10 +151,12 @@ This feature is aligned with the controls serious AI security programs
 are already converging on:
 
 - [MCP Streamable HTTP](https://modelcontextprotocol.io/specification/2026-07-28/basic/transports/streamable-http)
-  mirrors selected JSON-RPC fields into HTTP headers so a gateway can
-  route without parsing the body. Servers that process the body **MUST**
-  reject header/body disagreement. The runtime evaluator enforces that
-  `HeaderMismatch` before ordinary scope checks.
+  requires `Origin` validation to stop DNS rebinding against local MCP
+  servers, then mirrors selected JSON-RPC fields into HTTP headers so a
+  gateway can route without parsing the body. Servers that process the
+  body **MUST** reject header/body disagreement. The runtime evaluator
+  enforces the Origin 403 and `HeaderMismatch` before ordinary scope
+  checks.
 - [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices)
   calls out MCP-specific attack paths such as confused deputy and token
   passthrough risk. A gateway policy pack keeps tool access scoped and

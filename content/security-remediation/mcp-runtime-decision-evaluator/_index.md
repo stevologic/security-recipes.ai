@@ -3,7 +3,7 @@ title: MCP Runtime Decision Evaluator
 linkTitle: Runtime Decision Evaluator
 weight: 6
 date: 2026-05-02
-lastmod: 2026-09-20
+lastmod: 2026-09-22
 sidebar:
   exclude: true
 description: >
@@ -20,7 +20,7 @@ gateway, or CI admission check can execute the same policy before a tool
 call happens.
 {{< /callout >}}
 
-Rechecked September 20, 2026: MCP
+Rechecked September 22, 2026: MCP
 [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28)
 is still current and **stateless**. There is no negotiation handshake.
 Each request carries protocol version and capabilities. Servers
@@ -31,6 +31,11 @@ Streamable HTTP revisions through
 [2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25)
 could assign that header; 2026-07-28 ignores it and does not mint
 session IDs. Streamable HTTP
+[Security & Endpoint](https://modelcontextprotocol.io/specification/2026-07-28/basic/transports/streamable-http)
+requires servers to validate the `Origin` header on every incoming
+connection. If `Origin` is present and invalid, the server **MUST**
+respond with HTTP 403 Forbidden. Without that check, a remote page can
+use DNS rebinding to call a local MCP server. Streamable HTTP
 [request metadata](https://modelcontextprotocol.io/specification/2026-07-28/basic/transports/streamable-http)
 mirrors `MCP-Protocol-Version`, `Mcp-Method`, and `Mcp-Name` so a
 gateway can route without parsing the body. Servers that process the
@@ -159,6 +164,38 @@ python3 scripts/evaluate_mcp_gateway_decision.py \
   --expect-decision deny
 ```
 
+Evaluate a host-app Origin that matches the Streamable HTTP allowlist:
+
+```bash
+python3 scripts/evaluate_mcp_gateway_decision.py \
+  --workflow-id vulnerable-dependency-remediation \
+  --agent-id sr-agent::vulnerable-dependency-remediation::codex \
+  --agent-class codex \
+  --run-id run-origin-allow \
+  --tool-namespace advisories.vulnerability \
+  --tool-access-mode read \
+  --gate-phase tool_call \
+  --origin https://mcp.security-recipes.ai \
+  --allowed-origin https://mcp.security-recipes.ai \
+  --expect-decision allow
+```
+
+Evaluate a DNS-rebinding Origin that does not match the allowlist:
+
+```bash
+python3 scripts/evaluate_mcp_gateway_decision.py \
+  --workflow-id vulnerable-dependency-remediation \
+  --agent-id sr-agent::vulnerable-dependency-remediation::codex \
+  --agent-class codex \
+  --run-id run-origin-deny \
+  --tool-namespace advisories.vulnerability \
+  --tool-access-mode read \
+  --gate-phase tool_call \
+  --origin https://attacker.example \
+  --allowed-origin https://mcp.security-recipes.ai \
+  --expect-decision deny
+```
+
 The response includes the decision, matched workflow, matched scope,
 violations, approval state, source manifest hash, and observed runtime
 attributes. That output can be attached to PR evidence, MCP gateway logs,
@@ -191,6 +228,11 @@ The evaluator fails closed:
     `Mcp-Name` values that disagree with the JSON-RPC body return `deny`
     (`HeaderMismatch`, `-32020`). Unspecified headers stay on the prior
     allow path so stdio and CI admission checks stay valid.
+13. Observed Streamable HTTP `Origin` that is `null`, a non-http(s)
+    scheme, a URL with a path, missing from the allowlist, or present
+    without an allowlist returns `deny` (HTTP 403). Unspecified `Origin`
+    stays on the prior allow path so stdio and CI admission checks stay
+    valid.
 
 The important design choice is that the evaluator does not ask the model
 to decide whether a call is safe. The model requests a tool call; the
@@ -202,12 +244,16 @@ This is the practical enforcement layer implied by current AI security
 guidance:
 
 - [MCP Streamable HTTP](https://modelcontextprotocol.io/specification/2026-07-28/basic/transports/streamable-http)
-  requires `MCP-Protocol-Version`, `Mcp-Method`, and `Mcp-Name` on every
-  POST so intermediaries can route without parsing the body. Servers that
-  process the body **MUST** reject header/body disagreement with HTTP 400
-  and JSON-RPC `HeaderMismatch` (`-32020`). Otherwise a gateway can
-  authorize `tools/list` from the header while the server executes
-  `tools/call` from the body. This evaluator denies that split.
+  requires servers to validate `Origin` on every incoming connection and
+  to reject an invalid header with HTTP 403. A browser page whose DNS
+  rebinds onto a local MCP server otherwise inherits the server's
+  network position. The same page requires `MCP-Protocol-Version`,
+  `Mcp-Method`, and `Mcp-Name` on every POST so intermediaries can route
+  without parsing the body. Servers that process the body **MUST** reject
+  header/body disagreement with HTTP 400 and JSON-RPC `HeaderMismatch`
+  (`-32020`). Otherwise a gateway can authorize `tools/list` from the
+  header while the server executes `tools/call` from the body. This
+  evaluator denies both the invalid Origin and the header/body split.
 - [OWASP Agent Control Standard](https://genai.owasp.org/resource/agent-control-standard-acs/)
   (ACS-Core §6.4, donated 2026-09-01) requires the Observed Agent to wait
   for and apply a Guardian decision. The ACS default `on_decision_failure`
