@@ -15563,96 +15563,6 @@
         "Review relevant authentication, application, and operating-system logs using existing defensive monitoring procedures for indicators of unauthorized activity; do not send exploit payloads or conduct intrusive validation."
       ]
     },
-    "CVE-2023-43000": {
-      "business_risk": "High risk of memory corruption from maliciously crafted web content, with potential for arbitrary code execution. NVD records this CVE as actively exploited and included in CISA's Known Exploited Vulnerabilities Catalog.",
-      "claim_evidence": [
-        {
-          "claim": "Apple identifies CVE-2023-43000 in the WebKit security content for iOS 16.6 and iPadOS 16.6.",
-          "kind": "affected_product",
-          "source_url": "https://support.apple.com/en-us/120338"
-        },
-        {
-          "claim": "Apple describes the impact as processing maliciously crafted web content leading to memory corruption.",
-          "kind": "exposure",
-          "source_url": "https://support.apple.com/en-us/120338"
-        },
-        {
-          "claim": "NVD records the network/user-interaction CVSS vector and classifies the vulnerability as actively exploited in CISA's KEV catalog.",
-          "kind": "exposure",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-43000"
-        },
-        {
-          "claim": "Apple released iOS 16.6 and iPadOS 16.6 with the CVE-2023-43000 WebKit fix.",
-          "kind": "fixed_version",
-          "source_url": "https://support.apple.com/en-us/120338"
-        },
-        {
-          "claim": "Updating to the corresponding Apple security release is the vendor-supported remediation.",
-          "kind": "remediation",
-          "source_url": "https://support.apple.com/en-us/120338"
-        }
-      ],
-      "exposure_conditions": [
-        "A vulnerable Apple platform or Safari version is in use.",
-        "The vulnerable component processes maliciously crafted web content.",
-        "Exploitation requires user interaction with the content, consistent with the recorded CVSS vector; the sources do not establish a more specific delivery mechanism."
-      ],
-      "gaps": [],
-      "generated_at": "2026-08-09T10:05:32Z",
-      "model": "gpt-5.6-luna",
-      "prompt_version": "2026-07-14.2",
-      "recipe_specificity": "not_specific",
-      "remediation_steps": [
-        "Update macOS Ventura installations to macOS Ventura 13.5 or later.",
-        "Update iOS and iPadOS installations on the affected branch to version 16.6 or later.",
-        "For devices remaining on the legacy branch, update to iOS 15.8.7 or iPadOS 15.8.7 or later.",
-        "Update Safari installations to Safari 16.6 or later.",
-        "Prioritize remediation because the CVE is listed in CISA's Known Exploited Vulnerabilities Catalog. If an affected device cannot receive a supported fix, follow applicable vendor and organizational replacement or isolation procedures."
-      ],
-      "retrieved_source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2023-43000",
-        "https://nvd.nist.gov/vuln/detail/CVE-2023-4300",
-        "https://nvd.nist.gov/vuln/detail/cve-2023-20243",
-        "https://nvd.nist.gov/vuln/detail/CVE-2022-46487",
-        "https://support.apple.com/en-us/106332",
-        "https://support.apple.com/en-ca/120301",
-        "https://nvd.nist.gov/vuln/detail/CVE-2023-4310",
-        "https://support.apple.com/en-us/120949",
-        "https://support.apple.com/en-us/121754",
-        "https://support.apple.com/en-mide/106359",
-        "https://nvd.nist.gov/vuln/detail/CVE-2023-43320",
-        "https://support.apple.com/en-us/120329",
-        "https://support.apple.com/content/dam/edam/applecare/images/en_US/programsservices/serviceandrepair/aasp-notification-of-interest-application-form-es-lamr.pdf",
-        "https://support.apple.com/content/dam/edam/applecare/images/en_US/otherassets/accessibility/vpat_macbookpro_14_2023.pdf",
-        "https://support.apple.com/content/dam/edam/applecare/images/en_US/otherassets/accessibility/vpat_final_cut_pro_ipad_1_0.pdf",
-        "https://support.apple.com/content/dam/edam/applecare/images/en_US/programsservices/serviceandrepair/irp-pre-screen-application-nov2019-09-NO-NO.pdf",
-        "https://support.apple.com/en-us/120326",
-        "https://support.apple.com/en-us/120338",
-        "https://support.apple.com/en-asia/126632",
-        "https://support.apple.com/en-il/106367",
-        "https://support.apple.com/en-lb/120338",
-        "https://support.apple.com/en-az/106359",
-        "https://support.apple.com/en-ug/126632"
-      ],
-      "schema_version": 2,
-      "source_fingerprint": "2235adc05f3f0ce655dbec10f80accccc92b4664d5aa2b4c83d612780123ec62",
-      "source_urls": [
-        "https://support.apple.com/en-us/120338",
-        "https://nvd.nist.gov/vuln/detail/CVE-2023-43000"
-      ],
-      "status": "complete",
-      "uncertainty": [
-        "The authoritative sources establish release-level fixes but do not provide a complete device-by-device eligibility matrix for every Apple hardware model.",
-        "The sources do not establish whether a particular deployment received an equivalent bundled WebKit fix under a later Apple operating-system release; verify the installed product version and applicable Apple update path.",
-        "The supplied record contains future-dated metadata relative to the stated current date of August 9, 2026; this enrichment relies only on the authoritative pages retrieved during verification."
-      ],
-      "verification_steps": [
-        "Using the platform's normal version-information interface, confirm that macOS reports version 13.5 or later where applicable.",
-        "Confirm that iOS or iPadOS reports version 16.6 or later, or version 15.8.7 or later for devices on the legacy branch.",
-        "Confirm that Safari reports version 16.6 or later.",
-        "Confirm that the installed product and version correspond to the Apple security release used for remediation; do not perform exploit testing or process malicious content as a verification method."
-      ]
-    },
     "CVE-2023-46604": {
       "business_risk": "Critical remote-code-execution risk. A remote attacker with network access to an affected Java-based OpenWire broker or client may cause arbitrary classes on the classpath to be instantiated, potentially enabling arbitrary shell-command execution. The vulnerability is listed in CISA's Known Exploited Vulnerabilities Catalog and is known to have been used in ransomware campaigns.",
       "claim_evidence": [
@@ -17795,54 +17705,6 @@
         "Confirm that all production instances, clustered nodes, DMZ instances, and standby systems have been assessed; do not treat the presence of a DMZ proxy alone as proof of remediation.",
         "Do not perform exploit testing against production systems; rely on version evidence and vendor update status."
       ]
-    },
-    "CVE-2024-40766": {
-      "business_risk": "No additional source-verified CVE-specific business impact was established.",
-      "claim_evidence": [],
-      "exposure_conditions": [],
-      "gaps": [],
-      "generated_at": "2026-07-26T11:00:30Z",
-      "model": "gpt-5.6-luna",
-      "prompt_version": "2026-07-14.2",
-      "recipe_specificity": "not_specific",
-      "remediation_steps": [],
-      "retrieved_source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2024-40766",
-        "https://nvd.nist.gov/vuln/detail/cve-2024-40766",
-        "https://www.sonicwall.com/support/notices/product-notice-sslvpn-and-ssh-vulnerability-in-sonicos/kA1VN0000000RBZ0A2",
-        "https://psirt.global.sonicwall.com/vuln-detail/SNWLID-2024-0018",
-        "https://psirt.global.sonicwall.com/vuln-detail/SNWLID-2024-0001",
-        "https://www.sonicwall.com/support/technical-documentation/docs/sonicos-7.3-release_notes/Content/sonicos-7-3-3-0-7014.htm",
-        "https://www.sonicwall.com/support/technical-documentation/docs/sonicos-7-1-2-release_notes/Content/sonicos-7-1-2-7019.htm",
-        "https://www.sonicwall.com/support/technical-documentation/docs/sonicos-7-1-release_notes/Content/sonicos-7-1-1-7047.htm",
-        "https://nvd.nist.gov/vuln/detail/CVE-2024-4076",
-        "https://nvd.nist.gov/vuln/detail/CVE-2024-9676",
-        "https://www.sonicwall.com/support/notices/product-notice-buffer-overflow-vulnerability-in-sonicos-ipsec/kA1VN0000000REj0AM",
-        "https://www.sonicwall.com/support/technical-documentation/docs/sonicos-7-1-release_notes/Content/sonicos-7-1-1-7051.htm/",
-        "https://www.sonicwall.com/techdocs/pdf/sonicos-6-5-4-v-release_notes.pdf",
-        "https://software.sonicwall.com/Firmware/Documentation/232-005888-00_RevC_SOS_7.1_ReleaseNotes.pdf",
-        "https://software.sonicwall.com/Firmware/Documentation/232-005888-00_RevE_SOS_7.1_ReleaseNotes.pdf",
-        "https://software.sonicwall.com/Firmware/Documentation/232-002951-00_RevA_SonicOS_6.2.4.0_ReleaseNotes.pdf",
-        "https://www2.gov.bc.ca/assets/gov/british-columbians-our-governments/services-policies-for-government/information-management-technology/information-security/vulnerability-risk-management/vulnerability-reports/n24-373_sonicwall_security_advisory.pdf",
-        "https://www.cert.govt.nz/advisories/vulnerability-in-sonicwall-firewalls/",
-        "https://assets.adgm.com/download/assets/20240823%2BCyber%2BSecurity%2BCouncil%2BAlert%2B391.pdf/686f74aa70f711efaee1127d098d64e3",
-        "https://asec.ahnlab.com/en/83037/",
-        "https://avd.aquasec.com/nvd/2024/cve-2024-40766/",
-        "https://knvd.krcert.or.kr/detailSecNo.do?IDX=6284"
-      ],
-      "schema_version": 2,
-      "source_fingerprint": "4d9ff47170786ef10b9774866cc8c989d467c44217c0f4b5bb195110bffcd835",
-      "source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2024-40766"
-      ],
-      "status": "insufficient_evidence",
-      "uncertainty": [
-        "The SonicWall PSIRT advisory page was reachable but did not return readable advisory content through the source retrieval tool.",
-        "NVD provides model-specific fixed thresholds for Gen 5 and Gen 6, but does not establish a single concrete fixed version for all Gen 7 devices.",
-        "The supplied source data contains a discrepancy between broad affected-version text and model-specific NVD configurations; model-specific NVD configuration data should be preferred for Gen 6 applicability.",
-        "No authoritative source reviewed established a detailed safe test for confirming exploitability or compromise."
-      ],
-      "verification_steps": []
     },
     "CVE-2024-42009": {
       "business_risk": "Critical risk to confidentiality and integrity of email accounts. A remote attacker can exploit a crafted email to execute cross-site scripting in a victim's Roundcube session, potentially enabling email theft and sending messages as the victim. The CVE is listed in CISA's Known Exploited Vulnerabilities Catalog.",
@@ -23127,46 +22989,6 @@
         "The arbitrary-read/write prerequisite is described by Apple, but the sources do not identify the prerequisite's origin, exploit chain, or whether it is remotely obtainable in a particular deployment.",
         "Apple's advisories report possible targeted exploitation on iOS but do not establish affected device identities, exploitation volume, or compromise indicators.",
         "The Apple advisories describe remediation as removal of vulnerable code but do not provide a standalone workaround or configuration-based mitigation."
-      ],
-      "verification_steps": []
-    },
-    "CVE-2025-31277": {
-      "business_risk": "No additional source-verified CVE-specific business impact was established.",
-      "claim_evidence": [],
-      "exposure_conditions": [],
-      "gaps": [],
-      "generated_at": "2026-08-09T10:07:15Z",
-      "model": "gpt-5.6-luna",
-      "prompt_version": "2026-07-14.2",
-      "recipe_specificity": "not_specific",
-      "remediation_steps": [],
-      "retrieved_source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2025-31277",
-        "https://access.redhat.com/support/policy/updates/errata",
-        "https://access.redhat.com/security/updates/advisory",
-        "https://nvd.nist.gov/vuln/detail/CVE-2025-20277",
-        "https://access.redhat.com/errata/RHSA-2025%3A9203",
-        "https://access.redhat.com/security/lifecycle-security-update-policy",
-        "https://access.redhat.com/solutions/7025257",
-        "https://nvd.nist.gov/vuln/detail/CVE-2025-31177",
-        "https://access.redhat.com/errata/RHSA-2025%3A0029",
-        "https://access.redhat.com/errata/RHSA-2025%3A22622",
-        "https://access.redhat.com/errata/RHSA-2026%3A36345",
-        "https://access.redhat.com/errata/RHSA-2026%3A42146",
-        "https://access.redhat.com/webassets/avalon/d/Red_Hat_Enterprise_Linux_Atomic_Host-7-CLI_Reference-en-US/Red_Hat_Enterprise_Linux_Atomic_Host-7-CLI_Reference-en-US.pdf",
-        "https://access.redhat.com/documentation/en-us/openshift_enterprise/2/pdf/technical_notes/openshift_enterprise-2-technical_notes-en-us.pdf",
-        "https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/5/pdf/5.7_technical_notes/red_hat_enterprise_linux-5-5.7_technical_notes-en-us.pdf"
-      ],
-      "schema_version": 2,
-      "source_fingerprint": "ff1fd26c21b70dfa1c2501fc520cf59a980144a9dab5c263623cf521c9d4f85c",
-      "source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2025-31277"
-      ],
-      "status": "insufficient_evidence",
-      "uncertainty": [
-        "The returned sources substantiate Apple affected products, the malicious-web-content exposure condition, and Apple fixed versions, but do not provide sufficient authoritative evidence for the supplied WebKitGTK, WPE WebKit, or Red Hat package-specific claims.",
-        "The returned Apple advisories do not provide a product-independent verification procedure; version comparison is therefore a conservative inventory check rather than a source-documented functional test.",
-        "The supplied record states that affected-product data and product lists are truncated, so additional affected platforms or package streams may require separate review."
       ],
       "verification_steps": []
     },
@@ -30967,6 +30789,26 @@
         "The sources describe the RCE impact as dependent on chaining with CVE-2026-60137; this enrichment does not independently establish the prerequisites or exploitability of that related issue.",
         "No authoritative source reviewed here provides a separate temporary mitigation that can be relied upon instead of upgrading.",
         "The exact current stable branch beyond the listed patched versions was not used to define an additional fixed-version claim."
+      ],
+      "verification_steps": []
+    },
+    "CVE-2026-76461": {
+      "business_risk": "No additional source-verified CVE-specific business impact was established.",
+      "claim_evidence": [],
+      "exposure_conditions": [],
+      "gaps": [],
+      "generated_at": "2026-09-22T14:31:43Z",
+      "model": "grok-4.6",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [],
+      "retrieved_source_urls": [],
+      "schema_version": 2,
+      "source_fingerprint": "a848acd69c0c9f1c085f41ff10a46ea43833f5653838e4cbebb329bf878ab52f",
+      "source_urls": [],
+      "status": "insufficient_evidence",
+      "uncertainty": [
+        "Live NVD, CiSco adviSory, and CISA KEV page content were not retrieved in thi turn, So affected range, fixed verSion, expoSure condition, remediation, and Safe verification cannot be aSSerted from returned Source URL."
       ],
       "verification_steps": []
     },
