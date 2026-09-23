@@ -60,6 +60,12 @@ RULE_PATTERNS: dict[str, Pattern[str]] = {
     ),
     "encoded-payload": re.compile(r"\b[A-Za-z0-9+/]{180,}={0,2}\b"),
     "zero-width-control": re.compile(r"[\u200b\u200c\u200d\u2060\ufeff\u202a-\u202e]"),
+    # Tag-block is the ASCII-smuggling channel in OWASP LLM01:2026. Variation
+    # selectors are also in that strip set; require a run of three or more so a
+    # single U+FE0F emoji modifier does not hold a source.
+    "invisible-unicode-smuggling": re.compile(
+        r"[\U000E0000-\U000E007F]|[\uFE00-\uFE0F]{3,}"
+    ),
 }
 
 
@@ -478,7 +484,7 @@ def build_pack(
         "prevention_controls": [
             "Demote retrieved text to evidence before model use.",
             "Label documented attack payloads as adversarial examples.",
-            "Hold normal guidance for review when it contains instruction-override, approval-bypass, or exfiltration markers.",
+            "Hold normal guidance for review when it contains instruction-override, approval-bypass, exfiltration, or invisible Unicode tag-block markers.",
             "Block critical actionable findings from MCP retrieval until source owners remove or explicitly recertify them.",
             "Regenerate the pack before secure context trust-pack generation so source hashes include the current scan result."
         ],

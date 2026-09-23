@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-08-21",
-  "intent": "Add a deterministic context-poisoning guard for the SecurityRecipes secure context layer: every registered source root is scanned for prompt-injection, tool-result-injection, approval-bypass, hidden-instruction, encoded-payload, and secret-exfiltration markers before it is treated as MCP-retrievable context.",
+  "last_reviewed": "2026-09-23",
+  "intent": "Add a deterministic context-poisoning guard for the SecurityRecipes secure context layer: every registered source root is scanned for prompt-injection, tool-result-injection, approval-bypass, hidden-instruction, invisible Unicode tag-block and variation-selector smuggling, encoded-payload, and secret-exfiltration markers before it is treated as MCP-retrievable context.",
   "positioning": {
     "buyer": "AI Platform, Security Engineering, AppSec, Product Security, red teams, GRC, procurement security, and acquisition diligence teams",
     "category": "Secure-context poisoning detection for agentic AI and MCP",
@@ -16,6 +16,14 @@
       "published": "2026-03-11",
       "url": "https://openai.com/index/designing-agents-to-resist-prompt-injection/",
       "coverage": "Prompt injection is treated as social engineering against agents; controls should constrain impact even when hostile context reaches the model."
+    },
+    {
+      "id": "owasp-llm01-prompt-injection-2026",
+      "name": "OWASP LLM01:2026 Prompt Injection",
+      "publisher": "OWASP GenAI Security Project",
+      "published": "2026-08-04",
+      "url": "https://github.com/GenAI-Security-Project/GenAI-LLM-Top10/blob/main/2026/final/LLM01_PromptInjection.md",
+      "coverage": "Invisible-character injection uses Unicode tag-block (U+E0000 to U+E007F), variation-selector (U+FE00 to U+FE0F), and zero-width characters to hide instructions or exfiltrate bytes. LLM01:2026 says to strip those characters at every ingest and render boundary."
     },
     {
       "id": "owasp-mcp-tool-poisoning",
@@ -135,6 +143,12 @@
       "severity": "medium",
       "risk_family": "hidden_instruction",
       "description": "Detects zero-width or bidirectional control characters that can obscure text in rendered review surfaces."
+    },
+    {
+      "id": "invisible-unicode-smuggling",
+      "severity": "high",
+      "risk_family": "hidden_instruction",
+      "description": "Detects Unicode tag-block characters (U+E0000 to U+E007F) and runs of three or more variation selectors (U+FE00 to U+FE0F). LLM01:2026 names these as an ingest-boundary strip set because they can hide instructions from rendered review while remaining visible to the model. A single variation selector, used as an emoji modifier, is not this rule."
     }
   ],
   "allowed_adversarial_context_globs": [
