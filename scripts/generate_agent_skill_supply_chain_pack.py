@@ -331,6 +331,8 @@ def validate_model(model: dict[str, Any], manifest: dict[str, Any], repo_root: P
                 require(content_hash.startswith("sha256:") and len(content_hash) > 7, failures, f"{skill_id}: pinned external instruction source requires a content hash")
         if sources and "AST05" not in ast_risks:
             failures.append(f"{skill_id}: skills that fetch external instruction sources must map AST05")
+    require("owasp-agentic-skills-ast03-2026" in seen_standards, failures, "standards_alignment must include AST03 Over-Privileged Skills")
+    require("AST03" in {str(risk) for skill in skills if isinstance(skill, dict) for risk in skill.get("mapped_ast_risks", []) or []}, failures, "at least one skill must map AST03 Over-Privileged Skills")
     require("AST05" in {str(risk) for skill in skills if isinstance(skill, dict) for risk in skill.get("mapped_ast_risks", []) or []}, failures, "at least one skill must map AST05 Untrusted External Instructions")
     require(any(has_unpinned_external_instructions(skill) for skill in skills if isinstance(skill, dict)), failures, "at least one skill must demonstrate an unpinned external instruction source")
     return failures

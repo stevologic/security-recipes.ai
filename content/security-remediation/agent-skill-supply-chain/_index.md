@@ -3,7 +3,7 @@ title: Agent Skill Supply Chain
 linkTitle: Agent Skill Supply Chain
 weight: 18
 date: 2026-05-02
-lastmod: 2026-08-28
+lastmod: 2026-09-24
 sidebar:
   exclude: true
 description: >
@@ -19,7 +19,7 @@ before those calls. This pack governs that behavior layer as a software
 supply chain.
 {{< /callout >}}
 
-Rechecked August 28, 2026: skills are the portable
+Rechecked September 24, 2026: skills are the portable
 [agentskills.io](https://agentskills.io) shape used by Claude Code,
 Codex, Cursor, Hermes, and others — not a Claude-only package. OWASP
 [MCP Top 10](https://owasp.org/www-project-mcp-top-10/) remains
@@ -30,6 +30,9 @@ remains a **public-review v1** draft. Do not claim v1.0 is final.
 AST05 is **Untrusted External Instructions**: a skill that points the
 agent at a URL or remote file can turn mutable documentation into
 trusted instructions after the signed package has already been reviewed.
+AST03 is **Over-Privileged Skills**: a pinned skill that later requests
+shell, identity-file write, extra filesystem paths, extra egress, or
+extra MCP access must fail closed at runtime, not only at review.
 `kill_session_on_malicious_skill_signal` is a host-session kill
 switch, not `Mcp-Session-Id`. MCP
 [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28)
@@ -94,6 +97,18 @@ python3 scripts/evaluate_agent_skill_supply_chain_decision.py \
   --expect-decision deny_untrusted_skill
 ```
 
+Refuse a pinned read-only skill that requests shell after review:
+
+```bash
+python3 scripts/evaluate_agent_skill_supply_chain_decision.py \
+  --skill-id sr-secure-context-retrieval-skill \
+  --operation run \
+  --workflow-id vulnerable-dependency-remediation \
+  --platform codex \
+  --permission shell=true \
+  --expect-decision deny_untrusted_skill
+```
+
 The MCP server exposes the pack through
 `recipes_agent_skill_supply_chain_pack`. Runtime allow, hold, deny, or
 kill-session decisions stay with
@@ -139,6 +154,11 @@ This feature follows current primary guidance:
   for pin-and-hash, inlining, domain allowlists, transitive reference
   audit, fleet source inventory, and continuous rescan of documents a
   skill treats as instructions.
+- [OWASP AST03 Over-Privileged Skills](https://github.com/OWASP/www-project-agentic-skills-top-10/blob/main/ast03.md)
+  for a declared permission manifest, runtime enforcement of that
+  manifest, domain-scoped egress, and elevated review of identity-file
+  writes. The OWASP project page remains public-review v1; this change
+  does not claim v1.0 is final.
 - [Anthropic Agent Skills security considerations](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview)
   for the vendor warning that fetched URL content may contain malicious
   instructions and that even trustworthy skills can be compromised when
@@ -176,8 +196,9 @@ recipes_playbook_plan(
 ```
 
 An unregistered marketplace skill, a changed package hash, a wildcard
-egress request, an unpinned instruction URL, or a private-data-plus-egress
-pattern fails closed.
+egress request, an unpinned instruction URL, a private-data-plus-egress
+pattern, or a runtime permission that exceeds the declared manifest
+fails closed.
 
 ## CI contract
 
@@ -190,6 +211,7 @@ The generator fails if:
 - required source packs are missing or have failures;
 - an allowed skill has no package hash;
 - an allowed skill fetches unpinned external instructions;
+- AST03 Over-Privileged Skills is missing from standards or risk maps;
 - the checked-in pack is stale in `--check` mode.
 
 That is the enterprise bar for agentic behavior packages: inventory them,
