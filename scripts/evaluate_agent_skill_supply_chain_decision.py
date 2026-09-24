@@ -5,12 +5,15 @@ The generated pack declares which agentic skills, rules files, hooks, and
 behavior packages are trusted enough to install, update, or run. This
 evaluator is the deterministic policy function an MCP gateway, agent host,
 CI admission check, or audit replay can call before a skill inherits
-filesystem, network, memory, shell, or MCP authority.
+filesystem, network, memory, shell, or MCP authority. OWASP AST03 requires
+runtime enforcement of the declared permission manifest, not only a
+declarative review.
 """
 
 from __future__ import annotations
 
 import argparse
+import fnmatch
 import json
 import sys
 from pathlib import Path
@@ -36,6 +39,13 @@ PRIVATE_DATA_CLASSES = {
     "browser_password",
     "production_credential",
 }
+BOOLEAN_PERMISSION_KEYS = ("shell", "persistent_memory", "identity_file_write")
+LIST_PERMISSION_KEYS = (
+    "filesystem_read",
+    "filesystem_write",
+    "network_egress",
+    "data_access_classes",
+)
 
 
 class SkillDecisionError(RuntimeError):
@@ -106,6 +116,7 @@ def skill_preview(skill: dict[str, Any] | None) -> dict[str, Any] | None:
         "version": skill.get("version"),
         "version_pinned": skill.get("version_pinned"),
         "external_instruction_sources": skill.get("external_instruction_sources", []),
+        "permissions": skill.get("permissions", {}),
     }
 
 
@@ -151,6 +162,89 @@ def pinned_instruction_urls(skill: dict[str, Any]) -> set[str]:
         for row in external_instruction_sources(skill)
         if instruction_source_is_pinned(row) and str(row.get("url") or "").strip()
     }
+
+
+def requested_permission_payload(requested_permissions: dict[str, Any]) -> bool:
+    return any(value not in (None, "", [], {}, False) for value in requested_permissions.values())
+
+
+def matches_declared_path(path: str, patterns: list[str]) -> bool:
+    value = str(path).replace("\\", "/").strip()
+    while value.startswith("./"):
+        value = value[2:]
+    value = value.lstrip("/")
+    if not value:
+        return False
+    for pattern in patterns:
+        pat = str(pattern).replace("\\", "/").strip()
+        if not pat:
+            continue
+        stripped = pat.lstrip("/")
+        if value == stripped:
+            return True
+        if fnmatch.fnmatchcase(value, pat) or fnmatch.fnmatchcase(value, stripped):
+            return True
+        if pat.endswith("/**"):
+            prefix = pat[:-3].rstrip("/")
+            if value == prefix or value.startswith(prefix + "/"):
+                return True
+        if pat.startswith("**/") and fnmatch.fnmatchcase(value, pat[3:]):
+            return True
+    return False
+
+
+def overprivileged_permission_violations(
+    skill: dict[str, Any],
+    requested_permissions: dict[str, Any],
+) -> list[str]:
+    """Return AST03 violations when runtime permissions exceed the manifest.
+
+    Unspecified requested_permissions stay on the prior allow path so
+    documented read-only and guarded runs remain valid. A present shell,
+    identity-file write, extra filesystem path, extra egress domain, extra
+    data class, or extra MCP namespace is denied.
+    """
+    if not requested_permission_payload(requested_permissions):
+        return []
+    declared = skill.get("permissions") if isinstance(skill.get("permissions"), dict) else {}
+    violations: list[str] = []
+    for key in BOOLEAN_PERMISSION_KEYS:
+        if as_bool(requested_permissions.get(key)) and not as_bool(declared.get(key)):
+            violations.append(f"requested {key}=true is outside the declared permission manifest")
+    for key in LIST_PERMISSION_KEYS:
+        if requested_permissions.get(key) is True:
+            violations.append(f"requested unrestricted {key} is outside the declared permission manifest")
+            continue
+        requested_values = [str(item).strip() for item in as_list(requested_permissions.get(key)) if str(item).strip()]
+        declared_values = [str(item).strip() for item in as_list(declared.get(key)) if str(item).strip()]
+        if key in {"filesystem_read", "filesystem_write"}:
+            for path in requested_values:
+                if not matches_declared_path(path, declared_values):
+                    violations.append(
+                        f"requested {key} path {path!r} is outside the declared permission manifest"
+                    )
+            continue
+        declared_set = {item.lower() for item in declared_values}
+        for token in requested_values:
+            if token.lower() not in declared_set:
+                violations.append(f"requested {key} {token!r} is outside the declared permission manifest")
+    requested_mcp = requested_permissions.get("mcp_namespaces")
+    if requested_mcp not in (None, "", [], {}):
+        declared_mcp = {
+            (str(row.get("namespace") or "").strip(), str(row.get("access") or "").strip())
+            for row in as_list(declared.get("mcp_namespaces"))
+            if isinstance(row, dict)
+        }
+        for row in as_list(requested_mcp):
+            if not isinstance(row, dict):
+                violations.append("requested mcp_namespaces entries must be objects")
+                continue
+            key = (str(row.get("namespace") or "").strip(), str(row.get("access") or "").strip())
+            if key not in declared_mcp:
+                violations.append(
+                    f"requested MCP namespace {key[0]!r} access {key[1]!r} is outside the declared permission manifest"
+                )
+    return violations
 
 
 def decision_result(
@@ -218,7 +312,16 @@ def evaluate_agent_skill_supply_chain_decision(
     request["external_instruction_urls"] = [
         str(item).strip() for item in as_list(request.get("external_instruction_urls")) if str(item).strip()
     ]
-    requested_permissions = request.get("requested_permissions") if isinstance(request.get("requested_permissions"), dict) else {}
+    requested_permissions = (
+        dict(request.get("requested_permissions"))
+        if isinstance(request.get("requested_permissions"), dict)
+        else {}
+    )
+    if request["network_egress_domains"]:
+        requested_permissions["network_egress"] = [
+            *[str(item).strip() for item in as_list(requested_permissions.get("network_egress")) if str(item).strip()],
+            *request["network_egress_domains"],
+        ]
 
     if request["runtime_kill_signal"]:
         return decision_result(
@@ -306,6 +409,17 @@ def evaluate_agent_skill_supply_chain_decision(
             pack=skill_pack,
             skill=skill,
             violations=[f"undeclared_external_instruction_url: {url}" for url in undeclared_instruction_urls],
+        )
+
+    expansion = overprivileged_permission_violations(skill, requested_permissions)
+    if expansion:
+        return decision_result(
+            decision="deny_untrusted_skill",
+            reason="runtime request exceeds the skill's declared permission manifest",
+            request=request,
+            pack=skill_pack,
+            skill=skill,
+            violations=expansion,
         )
 
     registered_decision = str(skill.get("decision") or "")

@@ -1,12 +1,12 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-08-28",
+  "last_reviewed": "2026-09-24",
   "intent": "Define an enterprise-ready supply-chain model for agentic skills, rules files, hooks, and tool bundles so SecurityRecipes can govern the behavior layer between model prompts and MCP tool execution. The model turns skill provenance, permissions, registry trust, version pinning, isolation, referenced-instruction integrity, and runtime evidence into deterministic install, update, and run decisions.",
   "positioning": {
     "buyer": "AI Platform, Security Engineering, Product Security, AppSec, GRC, procurement security, vendor-risk, and acquisition diligence teams",
     "category": "Agent skill provenance, permission, and isolation firewall",
     "enterprise_promise": "SecurityRecipes can inventory agent skills across Claude Code, Cursor, Codex, Devin, VS Code, and MCP-adjacent ecosystems, prove which behaviors are pinned and reviewed, and block untrusted skills before they reach agents with filesystem, network, memory, shell, or MCP authority.",
-    "why_now": "Agentic AI risk is moving from isolated prompts to reusable behavior packages. Skills, rules files, hooks, extensions, and MCP tool bundles can quietly combine private data, untrusted instructions, and external egress. OWASP AST05 names a distinct skill failure: a URL or remote file that the agent treats as trusted instructions after the signed package has already been reviewed. Enterprises need a default-deny admission layer before these packages become trusted execution context."
+    "why_now": "Agentic AI risk is moving from isolated prompts to reusable behavior packages. Skills, rules files, hooks, extensions, and MCP tool bundles can quietly combine private data, untrusted instructions, and external egress. OWASP AST05 names a distinct skill failure: a URL or remote file that the agent treats as trusted instructions after the signed package has already been reviewed. OWASP AST03 requires a permission manifest plus runtime enforcement so a pinned skill cannot inherit shell, identity-file write, extra filesystem, extra egress, or extra MCP access after review. Enterprises need a default-deny admission layer before these packages become trusted execution context."
   },
   "standards_alignment": [
     {
@@ -20,6 +20,12 @@
       "name": "OWASP Agentic Skills Top 10 AST05 Untrusted External Instructions",
       "url": "https://owasp.org/www-project-agentic-skills-top-10/ast05",
       "coverage": "Skills that point an agent at a URL or remote file treat mutable documentation as trusted instructions. Pin and hash referenced content at review time, prefer inlining snapshots into the signed package, allowlist fetch domains, audit transitive references, inventory fleet sources, and rescan continuously."
+    },
+    {
+      "id": "owasp-agentic-skills-ast03-2026",
+      "name": "OWASP Agentic Skills Top 10 AST03 Over-Privileged Skills",
+      "url": "https://github.com/OWASP/www-project-agentic-skills-top-10/blob/main/ast03.md",
+      "coverage": "Skills granted broader file, network, shell, or tool permissions than their stated function require a declared permission manifest and runtime enforcement. Reject missing manifests, deny requests that exceed the manifest, allowlist egress by domain, and flag identity-file writes for elevated review."
     },
     {
       "id": "anthropic-agent-skills-security-2026",
@@ -322,6 +328,7 @@
       "external_instruction_sources": [],
       "mapped_ast_risks": [
         "AST02",
+        "AST03",
         "AST05",
         "AST07",
         "AST09",
@@ -339,7 +346,8 @@
         "hash verification",
         "retrieved text demoted from instruction to evidence",
         "no external instruction URLs",
-        "default-deny egress"
+        "default-deny egress",
+        "runtime permission subset vs declared manifest"
       ]
     },
     {
