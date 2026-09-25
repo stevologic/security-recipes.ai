@@ -8,12 +8,16 @@ runtime evaluator gives an MCP gateway or agent host a deterministic
 allow, hold, deny, or kill-session decision before the tool call is
 forwarded. MCP 2026-07-28 requires RFC 9207 authorization-response
 issuer checks before a code is redeemed; this evaluator applies the
-same mix-up rule to the stored grant evidence on a tool call.
+same mix-up rule to the stored grant evidence on a tool call. It also
+denies OAuth metadata fetches whose URL is not HTTPS or whose host is a
+private, loopback, link-local, or reserved address, matching MCP SSRF
+guidance and RFC 9728 Section 7.7.
 """
 
 from __future__ import annotations
 
 import argparse
+import ipaddress
 import json
 import sys
 from pathlib import Path
@@ -30,6 +34,7 @@ VALID_DECISIONS = {
     "deny_token_passthrough",
     "deny_unbound_token",
     "deny_authorization_issuer_mismatch",
+    "deny_oauth_metadata_ssrf",
     "deny_scope_challenge_mismatch",
     "deny_scope_drift",
     "kill_session_on_secret_or_signer_scope",
@@ -37,6 +42,15 @@ VALID_DECISIONS = {
 
 HTTP_TRANSPORTS = {"streamable-http", "http", "sse"}
 STEP_UP_ACCESS_MODES = {"approval_required"}
+BLOCKED_OAUTH_METADATA_HOSTNAMES = {
+    "localhost",
+    "metadata.google.internal",
+}
+OAUTH_METADATA_URL_FIELDS = (
+    "protected_resource_metadata_url",
+    "client_metadata_document_url",
+    "authorization_server_metadata_url",
+)
 
 
 class MCPAuthorizationDecisionError(RuntimeError):
@@ -86,6 +100,82 @@ def is_https_issuer_identifier(value: str) -> bool:
         and not parsed.fragment
         and value == value.strip()
     )
+
+
+def parse_ip_literal(host: str) -> ipaddress.IPv4Address | ipaddress.IPv6Address | None:
+    """Parse a URL hostname as an IP literal using the standard library.
+
+    MCP security best practices warn against custom IP parsers because
+    octal, hex, and IPv4-mapped encodings bypass hand-rolled checks.
+    """
+    candidate = host.strip().rstrip(".").lower()
+    if candidate.startswith("[") and candidate.endswith("]"):
+        candidate = candidate[1:-1]
+    if "%" in candidate:
+        candidate = candidate.split("%", 1)[0]
+    try:
+        return ipaddress.ip_address(candidate)
+    except ValueError:
+        return None
+
+
+def ip_is_blocked_oauth_fetch(ip: ipaddress.IPv4Address | ipaddress.IPv6Address) -> bool:
+    """Return True when an IP is in the RFC 9728 / MCP blocked fetch ranges."""
+    mapped = getattr(ip, "ipv4_mapped", None)
+    if mapped is not None:
+        return ip_is_blocked_oauth_fetch(mapped)
+    return bool(ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_unspecified)
+
+
+def oauth_metadata_ssrf_violations(request: dict[str, Any]) -> list[str]:
+    """Return SSRF failures for OAuth metadata URLs on one HTTP request.
+
+    MCP 2026-07-28 security best practices require server-side MCP clients
+    to treat OAuth metadata fetches as SSRF-capable. Clients SHOULD require
+    HTTPS and SHOULD block private, loopback, and link-local destinations
+    as recommended by RFC 9728 Section 7.7. The same rule applies to
+    Client ID Metadata Document fetches. This check inspects URL literals
+    only; DNS TOCTOU still needs an egress proxy.
+    """
+    violations: list[str] = []
+    fields: list[tuple[str, str]] = []
+    for field in OAUTH_METADATA_URL_FIELDS:
+        value = str(request.get(field) or "").strip()
+        if value:
+            fields.append((field, value))
+    if not str(request.get("client_metadata_document_url") or "").strip():
+        fallback = str(request.get("client_id") or "").strip()
+        if fallback:
+            fields.append(("client_metadata_document_url", fallback))
+    seen: set[tuple[str, str]] = set()
+    for field, value in fields:
+        key = (field, value)
+        if key in seen:
+            continue
+        seen.add(key)
+        parsed = urlparse(value)
+        scheme = (parsed.scheme or "").lower()
+        if scheme != "https":
+            violations.append(
+                f"{field} must use https for OAuth metadata fetches (got {scheme or 'missing-scheme'})"
+            )
+            continue
+        try:
+            host = (parsed.hostname or "").strip().rstrip(".").lower()
+        except ValueError:
+            host = ""
+        if not host:
+            violations.append(f"{field} is missing a hostname")
+            continue
+        if host in BLOCKED_OAUTH_METADATA_HOSTNAMES or host.endswith(".localhost"):
+            violations.append(f"{field} hostname {host} is a loopback or cloud-metadata name")
+            continue
+        ip = parse_ip_literal(host)
+        if ip is not None and ip_is_blocked_oauth_fetch(ip):
+            violations.append(
+                f"{field} host {host} is a blocked private, loopback, link-local, or unspecified address"
+            )
+    return violations
 
 
 def rfc9207_issuer_violations(request: dict[str, Any]) -> list[str]:
@@ -167,6 +257,7 @@ def normalize_request(runtime_request: dict[str, Any]) -> dict[str, Any]:
         "client_metadata_document_url",
         "authorization_server_discovery_method",
         "protected_resource_metadata_url",
+        "authorization_server_metadata_url",
         "expected_authorization_issuer",
         "authorization_response_iss",
         "resource_indicator",
@@ -226,6 +317,7 @@ def decision_result(
             "conformance_decision": connector.get("conformance_decision") if connector else None,
             "observed_runtime_attributes": sorted(k for k, v in request.items() if v not in (None, "", [], {}, False)),
             "protected_resource_metadata_url": request.get("protected_resource_metadata_url"),
+            "authorization_server_metadata_url": request.get("authorization_server_metadata_url"),
             "source_artifacts": pack.get("source_artifacts"),
         },
         "matched_connector": connector,
@@ -243,6 +335,7 @@ def decision_result(
             "correlation_id": request.get("correlation_id"),
             "expected_authorization_issuer": request.get("expected_authorization_issuer"),
             "protected_resource_metadata_url": request.get("protected_resource_metadata_url"),
+            "authorization_server_metadata_url": request.get("authorization_server_metadata_url"),
             "namespace": request.get("namespace"),
             "requested_access_mode": request.get("requested_access_mode"),
             "resource_indicator": request.get("resource_indicator"),
@@ -376,6 +469,18 @@ def evaluate_mcp_authorization_decision(
                 violations=["expected_authorization_issuer is not a valid HTTPS issuer identifier"],
             )
 
+        ssrf_violations = oauth_metadata_ssrf_violations(request)
+        if ssrf_violations:
+            return decision_result(
+                decision="deny_oauth_metadata_ssrf",
+                reason="OAuth metadata URL is not a safe HTTPS fetch target",
+                pack=authorization_pack,
+                request=request,
+                connector=connector,
+                workflow=workflow,
+                violations=ssrf_violations,
+            )
+
         metadata_url = request["client_metadata_document_url"] or request["client_id"]
         if (
             not request["client_metadata_document_validated"]
@@ -494,6 +599,7 @@ def request_from_args(args: argparse.Namespace) -> dict[str, Any]:
         "client_metadata_document_url",
         "authorization_server_discovery_method",
         "protected_resource_metadata_url",
+        "authorization_server_metadata_url",
         "expected_authorization_issuer",
         "authorization_response_iss",
         "resource_indicator",
@@ -540,6 +646,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--client-metadata-document-url", dest="client_metadata_document_url")
     parser.add_argument("--authorization-server-discovery-method", dest="authorization_server_discovery_method")
     parser.add_argument("--protected-resource-metadata-url", dest="protected_resource_metadata_url")
+    parser.add_argument("--authorization-server-metadata-url", dest="authorization_server_metadata_url")
     parser.add_argument("--expected-authorization-issuer", dest="expected_authorization_issuer")
     parser.add_argument("--authorization-response-iss", dest="authorization_response_iss")
     parser.add_argument(

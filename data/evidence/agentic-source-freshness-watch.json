@@ -91,7 +91,7 @@
       "current_reference": 16,
       "recent_signal": 18,
       "standing_reference": 5,
-      "undated_review_required": 4
+      "undated_review_required": 5
     },
     "newest_sources": [
       {
@@ -165,7 +165,7 @@
       "OWASP": 7,
       "OpenAI": 5,
       "OpenTelemetry": 1,
-      "Unknown": 4
+      "Unknown": 5
     },
     "source_class_counts": {
       "frontier_lab_guidance": 6,
@@ -179,11 +179,11 @@
       "observability_standard": 1,
       "protocol_guidance": 3,
       "protocol_specification": 7,
-      "unknown": 4,
+      "unknown": 5,
       "vendor_architecture_guidance": 1
     },
     "status": "source_freshness_ready",
-    "unique_source_reference_count": 43,
+    "unique_source_reference_count": 44,
     "watch_decision_counts": {
       "current": 9
     },
@@ -415,7 +415,7 @@
     },
     "mcp-authorization-conformance-profile": {
       "path": "data/assurance/mcp-authorization-conformance-profile.json",
-      "sha256": "c641a21a28f752ce3309219218257fb0ad7e2e411dd6fe2ad49deac940389ad7"
+      "sha256": "7394b44ddd3c5afd45e110e81a0a2120b66bd3076d7d7ac8d1123aeb2687e304"
     },
     "mcp-risk-coverage-profile": {
       "path": "data/assurance/mcp-risk-coverage-profile.json",
@@ -1629,6 +1629,27 @@
       "source_class_family": "unknown",
       "url": "https://genai.owasp.org/llm-top-10/",
       "why_it_matters": "Prompt injection, sensitive information disclosure, supply-chain risk, improper output handling, excessive agency, vector weakness, and unbounded consumption."
+    },
+    {
+      "freshness_class": "undated_review_required",
+      "id": "rfc-9728-section-7-7",
+      "name": "RFC 9728 OAuth 2.0 Protected Resource Metadata Section 7.7",
+      "published": null,
+      "published_age_days": null,
+      "published_date": null,
+      "publisher": "Unknown",
+      "publisher_family": "Unknown",
+      "referenced_by": [
+        {
+          "path": "data/assurance/mcp-authorization-conformance-profile.json",
+          "watched_source_id": "mcp-authorization-conformance-profile",
+          "watched_source_title": "MCP Authorization Conformance Profile"
+        }
+      ],
+      "source_class": "unknown",
+      "source_class_family": "unknown",
+      "url": "https://www.rfc-editor.org/rfc/rfc9728.html#section-7.7",
+      "why_it_matters": "Clients that fetch authorization-server metadata from a resource-server issuer value SHOULD take SSRF precautions such as blocking requests to internal IP address ranges, because they may have no prior knowledge of the resource server or authorization server."
     }
   ],
   "watch_sources": [
@@ -1733,14 +1754,14 @@
       "business_criticality": "critical",
       "decision": "current",
       "id": "mcp-authorization-conformance-profile",
-      "last_reviewed": "2026-08-29",
+      "last_reviewed": "2026-09-25",
       "path": "data/assurance/mcp-authorization-conformance-profile.json",
-      "reference_count": 10,
+      "reference_count": 11,
       "reference_paths": [
         "standards_alignment"
       ],
       "review_cadence_days": 21,
-      "review_due_at": "2026-09-19",
+      "review_due_at": "2026-10-16",
       "title": "MCP Authorization Conformance Profile",
       "why": "MCP authorization, resource indicators, token audience, PKCE, and token-passthrough expectations are core hosted-MCP trust controls."
     },

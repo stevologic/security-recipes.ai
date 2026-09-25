@@ -6,6 +6,7 @@ from pathlib import Path
 
 from scripts.evaluate_mcp_authorization_decision import (
     evaluate_mcp_authorization_decision,
+    oauth_metadata_ssrf_violations,
     rfc9207_issuer_violations,
 )
 
@@ -155,6 +156,119 @@ class RFC9207IssuerValidationTests(unittest.TestCase):
                 }
             ),
             [],
+        )
+
+
+class OAuthMetadataSSRFTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.pack = json.loads(PACK_PATH.read_text(encoding="utf-8"))
+
+    def test_https_public_metadata_urls_remain_allowed(self) -> None:
+        result = evaluate_mcp_authorization_decision(self.pack, _http_request())
+        self.assertEqual(result["decision"], "allow_authorized_mcp_request")
+        self.assertTrue(result["allowed"])
+
+    def test_link_local_http_metadata_url_is_denied(self) -> None:
+        result = evaluate_mcp_authorization_decision(
+            self.pack,
+            _http_request(
+                protected_resource_metadata_url="http://169.254.169.254/latest/meta-data/"
+            ),
+        )
+        self.assertEqual(result["decision"], "deny_oauth_metadata_ssrf")
+        self.assertFalse(result["allowed"])
+        self.assertTrue(
+            any("must use https" in item for item in result["violations"])
+        )
+
+    def test_https_link_local_metadata_url_is_denied(self) -> None:
+        result = evaluate_mcp_authorization_decision(
+            self.pack,
+            _http_request(
+                protected_resource_metadata_url="https://169.254.169.254/latest/meta-data/"
+            ),
+        )
+        self.assertEqual(result["decision"], "deny_oauth_metadata_ssrf")
+        self.assertTrue(
+            any("blocked private, loopback, link-local" in item for item in result["violations"])
+        )
+
+    def test_private_rfc1918_metadata_url_is_denied(self) -> None:
+        result = evaluate_mcp_authorization_decision(
+            self.pack,
+            _http_request(
+                protected_resource_metadata_url="https://10.0.0.1/.well-known/oauth-protected-resource"
+            ),
+        )
+        self.assertEqual(result["decision"], "deny_oauth_metadata_ssrf")
+
+    def test_ipv4_mapped_loopback_metadata_url_is_denied(self) -> None:
+        result = evaluate_mcp_authorization_decision(
+            self.pack,
+            _http_request(
+                protected_resource_metadata_url="https://[::ffff:127.0.0.1]/.well-known/oauth-protected-resource"
+            ),
+        )
+        self.assertEqual(result["decision"], "deny_oauth_metadata_ssrf")
+
+    def test_localhost_metadata_hostname_is_denied(self) -> None:
+        result = evaluate_mcp_authorization_decision(
+            self.pack,
+            _http_request(
+                protected_resource_metadata_url="https://localhost/.well-known/oauth-protected-resource"
+            ),
+        )
+        self.assertEqual(result["decision"], "deny_oauth_metadata_ssrf")
+        self.assertTrue(any("localhost" in item for item in result["violations"]))
+
+    def test_client_metadata_document_ssrf_is_denied(self) -> None:
+        result = evaluate_mcp_authorization_decision(
+            self.pack,
+            _http_request(
+                client_id="https://169.254.169.254/client-metadata/codex.json",
+                client_metadata_document_url="https://169.254.169.254/client-metadata/codex.json",
+                client_metadata_document_validated=True,
+            ),
+        )
+        self.assertEqual(result["decision"], "deny_oauth_metadata_ssrf")
+
+    def test_optional_authorization_server_metadata_ssrf_is_denied(self) -> None:
+        result = evaluate_mcp_authorization_decision(
+            self.pack,
+            _http_request(
+                authorization_server_metadata_url="https://192.168.1.1/.well-known/oauth-authorization-server"
+            ),
+        )
+        self.assertEqual(result["decision"], "deny_oauth_metadata_ssrf")
+
+    def test_helper_accepts_https_public_hosts_and_rejects_blocked_literals(self) -> None:
+        self.assertEqual(
+            oauth_metadata_ssrf_violations(
+                {
+                    "protected_resource_metadata_url": (
+                        "https://mcp.security-recipes.ai/.well-known/oauth-protected-resource"
+                    ),
+                    "client_metadata_document_url": (
+                        "https://agent.security-recipes.ai/client-metadata/codex.json"
+                    ),
+                }
+            ),
+            [],
+        )
+        self.assertTrue(
+            oauth_metadata_ssrf_violations(
+                {
+                    "protected_resource_metadata_url": "http://169.254.169.254/latest/meta-data/",
+                }
+            )
+        )
+        self.assertTrue(
+            oauth_metadata_ssrf_violations(
+                {
+                    "protected_resource_metadata_url": "https://[fe80::1]/metadata",
+                }
+            )
         )
 
 

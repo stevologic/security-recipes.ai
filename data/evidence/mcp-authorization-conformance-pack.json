@@ -14,6 +14,7 @@
       "pkce",
       "short_lived_tokens",
       "rfc9207_iss_validation",
+      "oauth_metadata_ssrf",
       "deny_token_passthrough",
       "deny_private_network_egress",
       "session_binding",
@@ -90,6 +91,7 @@
       "deny_token_passthrough",
       "deny_unbound_token",
       "deny_authorization_issuer_mismatch",
+      "deny_oauth_metadata_ssrf",
       "deny_scope_challenge_mismatch",
       "deny_scope_drift",
       "kill_session_on_secret_or_signer_scope"
@@ -148,6 +150,7 @@
         "protected_resource_metadata_discovery",
         "client_id_metadata_document",
         "rfc9207_iss_validation",
+        "oauth_metadata_ssrf",
         "scope_challenge_handling",
         "step_up_authorization"
       ],
@@ -192,6 +195,7 @@
         "protected_resource_metadata_discovery",
         "client_id_metadata_document",
         "rfc9207_iss_validation",
+        "oauth_metadata_ssrf",
         "scope_challenge_handling",
         "step_up_authorization"
       ],
@@ -229,6 +233,7 @@
         "protected_resource_metadata_discovery",
         "client_id_metadata_document",
         "rfc9207_iss_validation",
+        "oauth_metadata_ssrf",
         "scope_challenge_handling",
         "step_up_authorization"
       ],
@@ -307,6 +312,13 @@
     },
     {
       "applies_to": "remote_http_mcp",
+      "control_reason": "MCP 2026-07-28 requires server-side clients to treat OAuth metadata and Client ID Metadata Document fetches as SSRF-capable. Production fetches MUST use HTTPS and SHOULD block private, loopback, and link-local destinations per RFC 9728 Section 7.7 so a malicious resource_metadata URL cannot reach cloud metadata or internal services.",
+      "evidence_key": "protected_resource_metadata_url",
+      "id": "oauth_metadata_ssrf",
+      "severity": "critical"
+    },
+    {
+      "applies_to": "remote_http_mcp",
       "control_reason": "MCP 2026-07-28 requires client credentials to be keyed to the issuing authorization server identifier; reused DCR or pre-registered credentials against a different issuer are a mix-up and confused-deputy path.",
       "evidence_key": "expected_authorization_issuer",
       "id": "issuer_bound_credentials",
@@ -366,7 +378,7 @@
     "board_level_claim": "SecurityRecipes can verify the authorization boundary around MCP tool use before an agent acts.",
     "default_questions_answered": [
       "Which MCP connectors have enough gateway evidence to be used today?",
-      "Which candidate MCP servers fail resource, audience, PKCE, RFC 9207 issuer, token-passthrough, or private-network checks?",
+      "Which candidate MCP servers fail resource, audience, PKCE, RFC 9207 issuer, OAuth-metadata SSRF, token-passthrough, or private-network checks?",
       "Which workflow namespaces are exposed to authorization scope drift?",
       "What runtime attributes must appear in a run receipt before an MCP tool call is trusted?",
       "Which premium controls should be hosted: live metadata discovery, scope-drift alerts, token-binding replay tests, and auth evidence exports?"
@@ -375,13 +387,13 @@
     "sales_motion": "Lead with open conformance rules, then sell hosted MCP authorization discovery, live metadata checks, fleet-wide scope-drift detection, and signed run-level authorization receipts."
   },
   "failures": [],
-  "generated_at": "2026-08-29",
-  "intent": "Define the SecurityRecipes MCP authorization conformance model so agent hosts, MCP gateways, IAM teams, and enterprise buyers can verify latest MCP authorization requirements: resource-bound tokens, token audience validation, PKCE, protected-resource metadata discovery, client ID metadata documents, RFC 9207 authorization-response issuer validation against mix-up, credentials bound to the issuing authorization server, authoritative scope challenges, step-up authorization, token-passthrough denial, scope minimization, consent, session binding, and audit evidence before agents use MCP tools.",
+  "generated_at": "2026-09-25",
+  "intent": "Define the SecurityRecipes MCP authorization conformance model so agent hosts, MCP gateways, IAM teams, and enterprise buyers can verify latest MCP authorization requirements: resource-bound tokens, token audience validation, PKCE, protected-resource metadata discovery, client ID metadata documents, RFC 9207 authorization-response issuer validation against mix-up, credentials bound to the issuing authorization server, HTTPS OAuth-metadata fetches that are not private, loopback, or link-local SSRF targets, authoritative scope challenges, step-up authorization, token-passthrough denial, scope minimization, consent, session binding, and audit evidence before agents use MCP tools.",
   "positioning": {
     "buyer": "AI Platform, IAM, Product Security, GRC, procurement security, and enterprise architecture teams",
     "category": "MCP authorization conformance and scope-drift control",
     "enterprise_promise": "SecurityRecipes can explain whether MCP tool access is bound to the right resource, token audience, client, workflow, agent run, and scope before a tool call reaches enterprise systems.",
-    "why_now": "MCP adoption is moving from local developer experiments to remote production servers. The enterprise control gap is now authorization evidence: who delegated which agent, to which MCP resource, with which scopes, and whether raw user tokens or over-broad permissions leaked into the tool path."
+    "why_now": "MCP adoption is moving from local developer experiments to remote production servers. The enterprise control gap is now authorization evidence: who delegated which agent, to which MCP resource, with which scopes, whether raw user tokens leaked into the tool path, and whether OAuth metadata discovery was pointed at a private or cloud-metadata URL."
   },
   "registered_connector_authorization": [
     {
@@ -403,6 +415,7 @@
         "protected_resource_metadata_discovery",
         "client_id_metadata_document",
         "rfc9207_iss_validation",
+        "oauth_metadata_ssrf",
         "scope_challenge_handling",
         "step_up_authorization"
       ],
@@ -480,6 +493,7 @@
         "protected_resource_metadata_discovery",
         "client_id_metadata_document",
         "rfc9207_iss_validation",
+        "oauth_metadata_ssrf",
         "scope_challenge_handling",
         "step_up_authorization"
       ],
@@ -557,6 +571,7 @@
         "protected_resource_metadata_discovery",
         "client_id_metadata_document",
         "rfc9207_iss_validation",
+        "oauth_metadata_ssrf",
         "scope_challenge_handling",
         "step_up_authorization"
       ],
@@ -635,6 +650,7 @@
         "protected_resource_metadata_discovery",
         "client_id_metadata_document",
         "rfc9207_iss_validation",
+        "oauth_metadata_ssrf",
         "scope_challenge_handling",
         "step_up_authorization"
       ],
@@ -712,6 +728,7 @@
         "protected_resource_metadata_discovery",
         "client_id_metadata_document",
         "rfc9207_iss_validation",
+        "oauth_metadata_ssrf",
         "scope_challenge_handling",
         "step_up_authorization"
       ],
@@ -790,6 +807,7 @@
         "protected_resource_metadata_discovery",
         "client_id_metadata_document",
         "rfc9207_iss_validation",
+        "oauth_metadata_ssrf",
         "scope_challenge_handling",
         "step_up_authorization"
       ],
@@ -867,6 +885,7 @@
         "protected_resource_metadata_discovery",
         "client_id_metadata_document",
         "rfc9207_iss_validation",
+        "oauth_metadata_ssrf",
         "scope_challenge_handling",
         "step_up_authorization"
       ],
@@ -945,6 +964,7 @@
         "protected_resource_metadata_discovery",
         "client_id_metadata_document",
         "rfc9207_iss_validation",
+        "oauth_metadata_ssrf",
         "scope_challenge_handling",
         "step_up_authorization"
       ],
@@ -1023,6 +1043,7 @@
         "protected_resource_metadata_discovery",
         "client_id_metadata_document",
         "rfc9207_iss_validation",
+        "oauth_metadata_ssrf",
         "scope_challenge_handling",
         "step_up_authorization"
       ],
@@ -1100,6 +1121,7 @@
         "protected_resource_metadata_discovery",
         "client_id_metadata_document",
         "rfc9207_iss_validation",
+        "oauth_metadata_ssrf",
         "scope_challenge_handling",
         "step_up_authorization"
       ],
@@ -1178,6 +1200,7 @@
         "protected_resource_metadata_discovery",
         "client_id_metadata_document",
         "rfc9207_iss_validation",
+        "oauth_metadata_ssrf",
         "scope_challenge_handling",
         "step_up_authorization"
       ],
@@ -1255,6 +1278,7 @@
         "protected_resource_metadata_discovery",
         "client_id_metadata_document",
         "rfc9207_iss_validation",
+        "oauth_metadata_ssrf",
         "scope_challenge_handling",
         "step_up_authorization"
       ],
@@ -1333,6 +1357,7 @@
         "protected_resource_metadata_discovery",
         "client_id_metadata_document",
         "rfc9207_iss_validation",
+        "oauth_metadata_ssrf",
         "scope_challenge_handling",
         "step_up_authorization"
       ],
@@ -1410,6 +1435,7 @@
         "protected_resource_metadata_discovery",
         "client_id_metadata_document",
         "rfc9207_iss_validation",
+        "oauth_metadata_ssrf",
         "scope_challenge_handling",
         "step_up_authorization"
       ],
@@ -1488,6 +1514,7 @@
         "protected_resource_metadata_discovery",
         "client_id_metadata_document",
         "rfc9207_iss_validation",
+        "oauth_metadata_ssrf",
         "scope_challenge_handling",
         "step_up_authorization"
       ],
@@ -1565,6 +1592,7 @@
         "protected_resource_metadata_discovery",
         "client_id_metadata_document",
         "rfc9207_iss_validation",
+        "oauth_metadata_ssrf",
         "scope_challenge_handling",
         "step_up_authorization"
       ],
@@ -1629,7 +1657,7 @@
   "source_artifacts": {
     "mcp_authorization_conformance_profile": {
       "path": "data/assurance/mcp-authorization-conformance-profile.json",
-      "sha256": "c641a21a28f752ce3309219218257fb0ad7e2e411dd6fe2ad49deac940389ad7"
+      "sha256": "7394b44ddd3c5afd45e110e81a0a2120b66bd3076d7d7ac8d1123aeb2687e304"
     },
     "mcp_connector_intake_candidates": {
       "path": "data/mcp/connector-intake-candidates.json",
@@ -1654,13 +1682,13 @@
   },
   "standards_alignment": [
     {
-      "coverage": "Current public MCP authorization revision: OAuth authorization for HTTP MCP servers, resource indicators, protected-resource metadata discovery, authorization-server metadata discovery, OAuth client ID metadata documents, PKCE, HTTPS, bearer-token validation, token audience checks, RFC 9207 iss mix-up checks, credentials keyed to the issuing authorization server, deprecated Dynamic Client Registration, scope challenges, and step-up authorization.",
+      "coverage": "Current public MCP authorization revision: OAuth authorization for HTTP MCP servers, resource indicators, protected-resource metadata discovery, authorization-server metadata discovery, OAuth client ID metadata documents, PKCE, HTTPS, bearer-token validation, token audience checks, RFC 9207 iss mix-up checks, credentials keyed to the issuing authorization server, SSRF-safe metadata fetches, deprecated Dynamic Client Registration, scope challenges, and step-up authorization.",
       "id": "mcp-authorization-2026-07-28",
       "name": "Model Context Protocol Authorization",
       "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization"
     },
     {
-      "coverage": "Current public MCP security-best-practices revision: confused-deputy prevention, token-passthrough avoidance, SSRF controls, scope minimization, session safety, local-server hardening, and audit trails.",
+      "coverage": "Current public MCP security-best-practices revision: confused-deputy prevention, token-passthrough avoidance, SSRF controls on OAuth metadata and Client ID Metadata Document fetches, HTTPS-only production metadata URLs, RFC 9728 private-IP blocking, scope minimization, session safety, local-server hardening, and audit trails.",
       "id": "mcp-security-best-practices-2026-07-28",
       "name": "Model Context Protocol Security Best Practices",
       "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices"
@@ -1676,6 +1704,12 @@
       "id": "mcp-security-best-practices",
       "name": "Model Context Protocol Security Best Practices (2025-06-18 prior revision)",
       "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices"
+    },
+    {
+      "coverage": "Clients that fetch authorization-server metadata from a resource-server issuer value SHOULD take SSRF precautions such as blocking requests to internal IP address ranges, because they may have no prior knowledge of the resource server or authorization server.",
+      "id": "rfc-9728-section-7-7",
+      "name": "RFC 9728 OAuth 2.0 Protected Resource Metadata Section 7.7",
+      "url": "https://www.rfc-editor.org/rfc/rfc9728.html#section-7.7"
     },
     {
       "coverage": "Agent goal hijacking, tool misuse, identity and privilege abuse, agentic supply-chain risk, unexpected code execution, memory and context poisoning, and rogue-agent containment.",
