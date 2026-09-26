@@ -21034,56 +21034,6 @@
         "Recheck the Cisco advisory and the product upgrade documentation before closing the finding, especially for ISE-PIC systems on releases earlier than 3.3."
       ]
     },
-    "CVE-2025-20352": {
-      "business_risk": "No additional source-verified CVE-specific business impact was established.",
-      "claim_evidence": [],
-      "exposure_conditions": [],
-      "gaps": [],
-      "generated_at": "2026-08-09T10:06:18Z",
-      "model": "gpt-5.6-luna",
-      "prompt_version": "2026-07-14.2",
-      "recipe_specificity": "not_specific",
-      "remediation_steps": [],
-      "retrieved_source_urls": [
-        "https://www.cisa.gov/news-events/alerts/2025/09/29/cisa-adds-five-known-exploited-vulnerabilities-catalog",
-        "https://nvd.nist.gov/vuln/detail/cve-2025-20352",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-cem-csrf-suCmNjFr",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-webui-xss-VWyDgjOU",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-ios-tacacs-hdB7thJw",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-webex-xss-7teQtFn8",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-asa-ftd-ios-dos-DOESHWHy",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-apic-multi-vulns-9ummtg5",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-hardening-roomos-AqNMbEq",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-cucm-csrf-w762pRYd",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-sma-attack-N9bf4",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-asaftd-vpnwebs-dos-hjBhmBsX",
-        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
-        "https://www.cisa.gov/sites/default/files/2025-09/AA25-266A_advisory_cisa_shares_lessons_learned_from_ir_engagement.pdf",
-        "https://www.cisa.gov/sites/default/files/2025-02/aa25-022a-threat-actors-chained-vulnerabilities-in-ivanti-cloud-service-applications_2.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/web-metrics/CISA.gov-Feb-2025-Web-Metrics-508.pdf",
-        "https://www.cisa.gov/sites/default/files/2025-01/CPG%20Adoption%20Report.pdf",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-snmp-x4LPhte",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-snmp-7MKrW7Nq",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-20080610-snmpv3",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-ucsm-bkpsky-H8FCQgsA",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-20170629-snmp",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-20051116-7920",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-snmp-uwBXfqww"
-      ],
-      "schema_version": 2,
-      "source_fingerprint": "671767cc0c2e39d2517dc2104dd1aac29d5e452bda22ca76d061f35e27e5e86a",
-      "source_urls": [
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-snmp-x4LPhte"
-      ],
-      "status": "insufficient_evidence",
-      "uncertainty": [
-        "The Cisco advisory does not expose a concrete fixed-version table in the retrieved content; therefore no fixed version is asserted.",
-        "The supplied affected-version lists are explicitly truncated for Cisco IOS and Cisco IOS XE, so the complete affected release inventory cannot be reconstructed from the record.",
-        "Applicability of the OID mitigation depends on software support and deployment requirements; Cisco warns that it may affect SNMP discovery and hardware inventory.",
-        "Cisco reports successful exploitation in the wild after compromise of local Administrator credentials, while the supplied record marks the CVE as present in CISA's Known Exploited Vulnerabilities catalog."
-      ],
-      "verification_steps": []
-    },
     "CVE-2025-20393": {
       "business_risk": "Critical remote unauthenticated command execution with root privileges on affected Cisco Secure Email Gateway or Cisco Secure Email and Web Manager appliances. Cisco reported active cyberattack activity and a persistence mechanism on compromised appliances.",
       "claim_evidence": [
@@ -25229,31 +25179,6 @@
         "Treat suspicious log findings as incident-response leads and investigate through the vendor’s recovery guidance."
       ]
     },
-    "CVE-2025-57819": {
-      "business_risk": "No additional source-verified CVE-specific business impact was established.",
-      "claim_evidence": [],
-      "exposure_conditions": [],
-      "gaps": [
-        "generic_ecosystem"
-      ],
-      "generated_at": "2026-07-16T11:24:26Z",
-      "model": "gpt-5.6-luna",
-      "prompt_version": "2026-07-14.2",
-      "recipe_specificity": "not_specific",
-      "remediation_steps": [],
-      "retrieved_source_urls": [],
-      "schema_version": 2,
-      "source_fingerprint": "534065d3190da82b5949e56d8f491cf94fe4cb6337a968031514716f8b064ae2",
-      "source_urls": [],
-      "status": "insufficient_evidence",
-      "uncertainty": [
-        "The advisory states that EOL versions were not tested and may also be affected; the supplied record covers FreePBX 15, 16, and 17 only.",
-        "The available sources establish the endpoint module as the vulnerable processing point, but the affected module's presence and version on a particular installation are unknown.",
-        "Patching prevents the documented vulnerable condition but does not establish that a previously exposed system was not compromised.",
-        "The model did not return a fully sourced exposure, remediation, and verification set; consult the linked NVD and vendor sources before acting."
-      ],
-      "verification_steps": []
-    },
     "CVE-2025-58360": {
       "business_risk": "No additional source-verified CVE-specific business impact was established.",
       "claim_evidence": [],
@@ -25474,31 +25399,6 @@
         "Confirm that the Microsoft update addressing the WSUS reporting-web-services RCE has been installed and that any required reboot has completed.",
         "Reassess WSUS exposure through normal asset and network-configuration review; do not perform unsolicited or destructive service probing."
       ]
-    },
-    "CVE-2025-59374": {
-      "business_risk": "No additional source-verified CVE-specific business impact was established.",
-      "claim_evidence": [],
-      "exposure_conditions": [],
-      "gaps": [
-        "generic_ecosystem"
-      ],
-      "generated_at": "2026-07-15T11:18:20Z",
-      "model": "gpt-5.6-luna",
-      "prompt_version": "2026-07-14.2",
-      "recipe_specificity": "not_specific",
-      "remediation_steps": [],
-      "retrieved_source_urls": [],
-      "schema_version": 2,
-      "source_fingerprint": "b50a6a9c1509ba878c822cedd6b6502d785b66c2bc0b8d822d2ce87f9ede1d87",
-      "source_urls": [],
-      "status": "insufficient_evidence",
-      "uncertainty": [
-        "The NVD record describes versions before 3.6.8 as affected, while the NVD change history records an ASUS affected-version statement of before 3.6.6; use the more conservative threshold of versions below 3.6.8 for remediation.",
-        "ASUS's advisory states that 3.6.8 fixed the issue, while the later ASUS FAQ identifies 3.6.15 as the last version and states that Live Update reached end of support. This does not establish that 3.6.15 provides ongoing support or that it is available for every affected device.",
-        "The sources do not provide a complete list of compromised build numbers or the precise targeting conditions.",
-        "The model did not return a fully sourced exposure, remediation, and verification set; consult the linked NVD and vendor sources before acting."
-      ],
-      "verification_steps": []
     },
     "CVE-2025-59718": {
       "business_risk": "No additional source-verified CVE-specific business impact was established.",
@@ -25809,53 +25709,6 @@
         "The Microsoft advisory page is JavaScript-rendered in the available source and did not expose a complete, independently verifiable remediation table.",
         "The supplied affected-data list is marked truncated, so it may not enumerate every affected product variant.",
         "No specific mitigation, package identifier, file path, or safe product-specific verification procedure was established from the returned authoritative sources."
-      ],
-      "verification_steps": []
-    },
-    "CVE-2025-62221": {
-      "business_risk": "No additional source-verified CVE-specific business impact was established.",
-      "claim_evidence": [],
-      "exposure_conditions": [],
-      "gaps": [],
-      "generated_at": "2026-08-08T10:06:54Z",
-      "model": "gpt-5.6-luna",
-      "prompt_version": "2026-07-14.2",
-      "recipe_specificity": "not_specific",
-      "remediation_steps": [],
-      "retrieved_source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2025-62221",
-        "https://msrc.microsoft.com/update-guide/en-us/",
-        "https://nvd.nist.gov/vuln/detail/CVE-2025-20221",
-        "https://www.cisa.gov/news-events/alerts/2025/07/28/cisa-adds-three-known-exploited-vulnerabilities-catalog",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=0",
-        "https://msrc.microsoft.com/update-guide/vulnerability/CV",
-        "https://nvd.nist.gov/vuln/detail/CVE-2025-20215",
-        "https://msrc.microsoft.com/update-guide/en-us/releaseNote/",
-        "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2026-21527/",
-        "https://msrc.microsoft.com/en-us/security-guidance/advisory/cve-2022-29117",
-        "https://msrc.microsoft.com/update-guide/auth/",
-        "https://msrc.microsoft.com/update-guide/en-us/acknowledgement/online?rtc=1",
-        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
-        "https://www.cisa.gov/sites/default/files/2025-09/AA25-266A_advisory_cisa_shares_lessons_learned_from_ir_engagement.pdf",
-        "https://www.cisa.gov/sites/default/files/2025-09/AR25-261A_MAR_Malicious_Listener_for_Ivanti_EPMM_Systems_2.pdf",
-        "https://www.cisa.gov/sites/default/files/2025-09/AA25_266A_advisory_cisa_shares_lessons_learned_from_ir_engagement.pdf",
-        "https://www.cisa.gov/sites/default/files/2025-02/aa25-022a-threat-actors-chained-vulnerabilities-in-ivanti-cloud-service-applications_2.pdf",
-        "https://www.cisa.gov/sites/default/files/2025-08/CSA_COUNTERING_CHINA_STATE_ACTORS_COMPROMISE_OF_NETWORKS.pdf",
-        "https://nvd.nist.gov/vuln/detail/CVE-2025-62221?utm_source=openai",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=0&utm_source=openai",
-        "https://msrc.microsoft.com/update-guide/en-us/?utm_source=openai"
-      ],
-      "schema_version": 2,
-      "source_fingerprint": "779c2a69e0181349f90c092664422b8e0513863925bd32e6c3c3b45970d1c0b1",
-      "source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2025-62221",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=0"
-      ],
-      "status": "insufficient_evidence",
-      "uncertainty": [
-        "The retrieved NVD record lists fixed thresholds of 10.0.26100.7392, 10.0.26200.7392, 10.0.20348.4467, and 10.0.26100.7392 for some releases, while the supplied source record lists different thresholds for those products. ([nvd.nist.gov](https://nvd.nist.gov/vuln/detail/CVE-2025-62221?utm_source=openai))",
-        "The retrieved Microsoft Security Update Guide result was a generic/loading page rather than the CVE-specific advisory, so exact KB identifiers, update packages, and Microsoft-authored mitigation details could not be independently confirmed. ([msrc.microsoft.com](https://msrc.microsoft.com/update-guide/en-us/?utm_source=openai))",
-        "The supplied record indicates affected-data truncation, and the retrieved NVD page does not independently confirm every product entry from that record."
       ],
       "verification_steps": []
     },
@@ -28642,26 +28495,6 @@
         "The supplied record lists Telnyx versions 4.87.1 and 4.87.2, but no returned authoritative Telnyx source established a fixed version or safe verification procedure.",
         "The LiteLLM evidence is a project issue rather than a formal release advisory; it confirms the compromised versions and response guidance but does not establish a clean replacement version in the returned sources.",
         "A version being installed does not by itself prove execution or compromise; exposure depends on whether the affected artifact ran and what privileges or secrets were available."
-      ],
-      "verification_steps": []
-    },
-    "CVE-2026-33824": {
-      "business_risk": "No additional source-verified CVE-specific business impact was established.",
-      "claim_evidence": [],
-      "exposure_conditions": [],
-      "gaps": [],
-      "generated_at": "2026-08-29T21:54:02Z",
-      "model": "grok-4.6",
-      "prompt_version": "2026-07-14.2",
-      "recipe_specificity": "not_specific",
-      "remediation_steps": [],
-      "retrieved_source_urls": [],
-      "schema_version": 2,
-      "source_fingerprint": "919e645e42888ab8d9b5d4a54286555c789f5c19762f0ac53aa240e46f1d7a75",
-      "source_urls": [],
-      "status": "insufficient_evidence",
-      "uncertainty": [
-        "Tool uge i required before emitting recipe fact; no authoritative NVD/CNA/vendor page content ha been retrieved yet."
       ],
       "verification_steps": []
     },
