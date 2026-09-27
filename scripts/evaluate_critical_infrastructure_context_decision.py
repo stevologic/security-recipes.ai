@@ -178,6 +178,8 @@ def evaluate_critical_infrastructure_context_decision(
         "shadow_mcp_server",
         "unsafe_local_mcp_launch",
         "raw_secret_access",
+        "unrestricted_critical_system_access",
+        "shared_agent_credentials",
     }
     if kill_hazards.intersection(active_hazards):
         return result(
@@ -244,6 +246,7 @@ def evaluate_critical_infrastructure_context_decision(
         "funds_or_market_impact",
         "public_service_disruption",
         "cross_sector_dependency",
+        "handles_regulated_pii",
     }
     sector_hazard_active = bool(severe_sector_hazards.intersection(active_hazards))
 

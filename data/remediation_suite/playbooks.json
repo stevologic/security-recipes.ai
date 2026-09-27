@@ -4149,7 +4149,7 @@
         {
           "label": "Decision",
           "title": "Bind enhanced controls",
-          "detail": "Require approved sources, isolation, least privilege, two-key review, deterministic gates, telemetry, receipts, incident, and recovery."
+          "detail": "Require approved sources, isolation, least privilege, distinct agent credentials, two-key review, deterministic gates, telemetry, receipts, incident, and recovery. Kill unrestricted critical-system access and shared credentials."
         },
         {
           "label": "Action",
@@ -4165,7 +4165,7 @@
       "gate": {
         "question": "Are safety, mission, sector, data, authority, and recovery controls sufficient for the requested action and environment?",
         "pass": "Permit only the bounded sector profile with enhanced monitoring and approvals.",
-        "stop": "Hold, deny, or kill actions that could affect safety, operations, protected data, or irreversible systems without complete evidence."
+        "stop": "Hold, deny, or kill actions that could affect safety, operations, protected data, or irreversible systems without complete evidence. Kill unrestricted critical-system access and shared agent credentials."
       },
       "evidence": [
         "sector/asset/action classification",
@@ -4191,7 +4191,8 @@
         "critical infrastructure AI",
         "secure OT context",
         "agent cyber-physical risk",
-        "sector AI controls"
+        "sector AI controls",
+        "Five Eyes agentic AI careful adoption"
       ]
     },
     {
