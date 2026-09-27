@@ -15,7 +15,7 @@ import json
 import re
 import sys
 from collections import Counter, defaultdict
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -168,6 +168,39 @@ def freshness_class(published: date | None, as_of: date) -> str:
     if age <= 365:
         return "current_reference"
     return "standing_reference"
+
+
+DUE_WATCH_FAILURE = "one or more watched source packs are due or blocked"
+
+
+def today_utc() -> date:
+    return datetime.now(timezone.utc).date()
+
+
+def resolve_as_of(
+    requested: str | None,
+    contract: dict[str, Any],
+    *,
+    today: date | None = None,
+) -> date:
+    """Return the evaluation date.
+
+    ``--as-of`` (or today in UTC) is the value used. ``contract.as_of`` is only
+    a floor: an earlier requested date is raised to the contract floor, but the
+    contract date is never chosen on its own.
+    """
+    current = today or today_utc()
+    parsed = parse_source_date(requested) if requested else current
+    if parsed is None:
+        raise SourceFreshnessError("freshness as_of date is invalid")
+    floor = parse_source_date(contract.get("as_of"))
+    if floor is not None and parsed < floor:
+        return floor
+    return parsed
+
+
+def structural_failures(failures: list[str]) -> list[str]:
+    return [item for item in failures if item != DUE_WATCH_FAILURE]
 
 
 def review_decision(reviewed: date | None, cadence_days: int, as_of: date, source_count: int, missing: bool) -> tuple[str, list[str]]:
@@ -362,7 +395,7 @@ def validate_coverage(
     require(source_count >= int(contract.get("minimum_unique_source_references") or 0), failures, "unique source reference count below minimum")
 
     due_count = sum(1 for row in watch_rows if row.get("decision") != "current")
-    require(due_count <= int(contract.get("maximum_due_watch_sources") or 0), failures, "one or more watched source packs are due or blocked")
+    require(due_count <= int(contract.get("maximum_due_watch_sources") or 0), failures, DUE_WATCH_FAILURE)
 
     publisher_families = {str(source.get("publisher_family")) for source in source_catalog.values()}
     for publisher in as_list(contract.get("required_publishers"), "freshness_contract.required_publishers"):
@@ -443,6 +476,65 @@ def build_summary(
     }
 
 
+def evaluate_pack_as_of(pack: dict[str, Any], as_of: date) -> dict[str, Any]:
+    """Recompute watch decisions and summary against ``as_of`` without regenerating sources."""
+    evaluated = dict(pack)
+    watch_rows: list[dict[str, Any]] = []
+    for raw in pack.get("watch_sources") or []:
+        if not isinstance(raw, dict):
+            continue
+        row = dict(raw)
+        reviewed = parse_source_date(row.get("last_reviewed"))
+        cadence = int(row.get("review_cadence_days") or 0)
+        missing = not bool(row.get("path"))
+        decision, blockers = review_decision(
+            reviewed,
+            cadence,
+            as_of,
+            int(row.get("reference_count") or 0),
+            missing,
+        )
+        row["decision"] = decision
+        row["blockers"] = blockers
+        row["evaluated_as_of"] = as_of.isoformat()
+        watch_rows.append(row)
+
+    source_rows: list[dict[str, Any]] = []
+    source_catalog: dict[str, dict[str, Any]] = {}
+    for raw in pack.get("source_catalog") or []:
+        if not isinstance(raw, dict):
+            continue
+        source = dict(raw)
+        published = parse_source_date(source.get("published_date") or source.get("published"))
+        source["freshness_class"] = freshness_class(published, as_of)
+        source["published_age_days"] = (as_of - published).days if published else None
+        source_rows.append(source)
+        key = str(source.get("id") or source.get("url") or len(source_catalog))
+        source_catalog[key] = source
+
+    failures = [
+        item
+        for item in list(pack.get("failures") or [])
+        if item != DUE_WATCH_FAILURE
+    ]
+    due_count = sum(1 for row in watch_rows if row.get("decision") != "current")
+    contract = pack.get("freshness_contract") if isinstance(pack.get("freshness_contract"), dict) else {}
+    if due_count > int(contract.get("maximum_due_watch_sources") or 0):
+        failures.append(DUE_WATCH_FAILURE)
+
+    evaluated["watch_sources"] = watch_rows
+    evaluated["source_catalog"] = source_rows
+    evaluated["failures"] = failures
+    evaluated["evaluated_as_of"] = as_of.isoformat()
+    evaluated["freshness_summary"] = build_summary(
+        watch_rows,
+        source_catalog,
+        list(pack.get("primary_watchlist_coverage") or []),
+        failures,
+    )
+    return evaluated
+
+
 def build_pack(
     *,
     profile: dict[str, Any],
@@ -450,13 +542,9 @@ def build_pack(
     profile_ref: Path,
     repo_root: Path,
     generated_at: str | None,
+    as_of: date,
     failures: list[str],
 ) -> dict[str, Any]:
-    contract = as_dict(profile.get("freshness_contract"), "freshness_contract")
-    as_of = parse_source_date(generated_at or contract.get("as_of") or profile.get("last_reviewed"))
-    if as_of is None:
-        raise SourceFreshnessError("freshness as_of date is invalid")
-
     watch_rows, source_catalog, source_paths, source_refs, collect_failures = collect_watch_sources(profile, repo_root, as_of)
     primary_coverage = primary_watchlist_coverage(profile, source_catalog)
     failures = [*failures, *collect_failures, *validate_coverage(profile, watch_rows, source_catalog, primary_coverage)]
@@ -472,7 +560,7 @@ def build_pack(
         "failures": failures,
         "freshness_contract": profile.get("freshness_contract", {}),
         "freshness_summary": build_summary(watch_rows, source_catalog, primary_coverage, failures),
-        "generated_at": generated_at or str(contract.get("as_of") or profile.get("last_reviewed")),
+        "generated_at": generated_at or as_of.isoformat(),
         "intent": profile.get("intent"),
         "positioning": profile.get("positioning", {}),
         "primary_watchlist_coverage": primary_coverage,
@@ -500,6 +588,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--profile", type=Path, default=DEFAULT_PROFILE)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--generated-at", default=None)
+    parser.add_argument(
+        "--as-of",
+        default=None,
+        help="UTC calendar date used for review decisions. Defaults to today in UTC. "
+        "freshness_contract.as_of is only a floor, never the date used on its own. "
+        "--check must pass the same --as-of the generation run used.",
+    )
     parser.add_argument("--check", action="store_true", help="Fail if the checked-in source freshness watch is stale.")
     return parser.parse_args()
 
@@ -512,6 +607,8 @@ def main() -> int:
 
     try:
         profile = load_json(profile_path)
+        contract = as_dict(profile.get("freshness_contract"), "freshness_contract")
+        as_of = resolve_as_of(args.as_of, contract)
         failures = validate_profile(profile, repo_root)
         pack = build_pack(
             profile=profile,
@@ -519,6 +616,7 @@ def main() -> int:
             profile_ref=args.profile,
             repo_root=repo_root,
             generated_at=args.generated_at,
+            as_of=as_of,
             failures=failures,
         )
     except SourceFreshnessError as exc:
@@ -526,10 +624,11 @@ def main() -> int:
         return 1
 
     next_text = stable_json(pack)
+    blocking = structural_failures(list(pack.get("failures") or []))
     if args.check:
-        if pack.get("failures"):
+        if blocking:
             print("agentic source freshness watch validation failed:", file=sys.stderr)
-            for failure in pack.get("failures", []):
+            for failure in blocking:
                 print(f"- {failure}", file=sys.stderr)
             return 1
         try:
@@ -545,9 +644,9 @@ def main() -> int:
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(next_text, encoding="utf-8")
-    if pack.get("failures"):
+    if blocking:
         print("Generated agentic source freshness watch with validation failures:", file=sys.stderr)
-        for failure in pack.get("failures", []):
+        for failure in blocking:
             print(f"- {failure}", file=sys.stderr)
         return 1
     print(f"Generated agentic source freshness watch: {output_path}")

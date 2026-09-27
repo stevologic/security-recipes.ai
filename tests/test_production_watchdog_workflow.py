@@ -26,6 +26,12 @@ class ProductionWatchdogWorkflowTests(unittest.TestCase):
         self.assertIn("--expected-revision", self.workflow)
         self.assertIn("--expected-commit-time", self.workflow)
         self.assertIn("PRODUCTION_BASE_URL", self.workflow)
+        self.assertIn("--check-backlog", self.workflow)
+        self.assertIn(
+            "--source-freshness-pack data/evidence/agentic-source-freshness-watch.json",
+            self.workflow,
+        )
+        self.assertIn('cron: "17,47 * * * *"', self.workflow)
         self.assertIn(
             "context.minimum_version = ssl.TLSVersion.TLSv1_2",
             self.probe,

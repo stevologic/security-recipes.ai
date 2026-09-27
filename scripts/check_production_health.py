@@ -24,6 +24,12 @@ from urllib.request import Request, urlopen
 SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 CVE_RE = re.compile(r"^CVE-\d{4}-\d{4,}$")
 USER_AGENT = "security-recipes.ai-production-watchdog/1"
+BACKLOG_LABELS = frozenset({"automation:content-refresh", "dependencies"})
+DEFAULT_MAX_AUTO_MERGE_AGE_HOURS = 72.0
+DEFAULT_MAX_SHEPHERD_AGE_HOURS = 6.0
+DEFAULT_SOURCE_FRESHNESS_GRACE_DAYS = 3.0
+DEFAULT_SOURCE_FRESHNESS_PACK = Path("data/evidence/agentic-source-freshness-watch.json")
+GITHUB_API_ROOT = "https://api.github.com"
 GOOGLEBOT_USER_AGENT = (
     "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"
 )
@@ -431,6 +437,144 @@ def _certificate_expiry(
     )
 
 
+def _pr_label_names(pull_request: dict[str, Any]) -> set[str]:
+    names: set[str] = set()
+    for label in pull_request.get("labels") or []:
+        if isinstance(label, str) and label:
+            names.add(label)
+            continue
+        if isinstance(label, dict):
+            name = str(label.get("name") or "").strip()
+            if name:
+                names.add(name)
+    return names
+
+
+def _github_json(
+    path: str,
+    *,
+    token: str,
+    timeout: float,
+    opener: Callable[..., Any],
+    api_root: str = GITHUB_API_ROOT,
+) -> Any:
+    url = f"{api_root.rstrip('/')}/{path.lstrip('/')}"
+    request = Request(
+        url,
+        headers={
+            "Accept": "application/vnd.github+json",
+            "Authorization": f"Bearer {token}",
+            "User-Agent": USER_AGENT,
+            "X-GitHub-Api-Version": "2022-11-28",
+        },
+    )
+    with opener(request, timeout=timeout) as response:
+        raw_status = getattr(response, "status", None)
+        status = int(raw_status if raw_status is not None else response.getcode())
+        if status != 200:
+            raise ValueError(f"GitHub API HTTP {status} for {path}")
+        return json.loads(_bounded_read(response))
+
+
+def check_automation_backlog(
+    *,
+    now: datetime,
+    pull_requests: list[dict[str, Any]],
+    shepherd_last_started: datetime | None,
+    max_auto_merge_age_hours: float = DEFAULT_MAX_AUTO_MERGE_AGE_HOURS,
+    max_shepherd_age_hours: float = DEFAULT_MAX_SHEPHERD_AGE_HOURS,
+) -> Check:
+    stale: list[str] = []
+    for pull in pull_requests:
+        if not isinstance(pull, dict):
+            continue
+        if pull.get("auto_merge") in {None, False}:
+            continue
+        labels = _pr_label_names(pull)
+        if not labels & BACKLOG_LABELS:
+            continue
+        created = _utc_timestamp(pull.get("created_at") or pull.get("createdAt"))
+        if created is None:
+            stale.append(f"#{pull.get('number', '?')} has auto-merge on but no created_at")
+            continue
+        age = now - created
+        if age > timedelta(hours=max_auto_merge_age_hours):
+            stale.append(
+                f"#{pull.get('number', '?')} has auto-merge on and is "
+                f"{age.total_seconds() / 3600:.1f} hours old"
+            )
+    if stale:
+        return Check(
+            "backlog",
+            False,
+            "Automation merge train is stalled: " + "; ".join(stale[:8]) + ".",
+        )
+    if shepherd_last_started is None:
+        return Check(
+            "backlog",
+            False,
+            "Automation shepherd has no recorded runs.",
+        )
+    shepherd_age = now - shepherd_last_started
+    if shepherd_age > timedelta(hours=max_shepherd_age_hours):
+        return Check(
+            "backlog",
+            False,
+            "Automation shepherd last ran "
+            f"{shepherd_age.total_seconds() / 3600:.1f} hours ago "
+            f"(limit {max_shepherd_age_hours:g}).",
+        )
+    return Check(
+        "backlog",
+        True,
+        "No stale auto-merge content-refresh or dependency PRs; "
+        f"shepherd last ran {shepherd_age.total_seconds() / 3600:.1f} hours ago.",
+    )
+
+
+def check_source_freshness(
+    *,
+    now: datetime,
+    pack: dict[str, Any],
+    grace_days: float = DEFAULT_SOURCE_FRESHNESS_GRACE_DAYS,
+) -> Check:
+    as_of = now.astimezone(timezone.utc).date()
+    overdue: list[str] = []
+    watches = pack.get("watch_sources") if isinstance(pack, dict) else None
+    if not isinstance(watches, list) or not watches:
+        return Check(
+            "source_freshness",
+            False,
+            "Source freshness pack has no watched sources.",
+        )
+    for row in watches:
+        if not isinstance(row, dict):
+            continue
+        due = _utc_timestamp(str(row.get("review_due_at") or ""))
+        if due is None:
+            overdue.append(f"{row.get('id', 'unknown')} has no review_due_at")
+            continue
+        due_date = due.date()
+        if due_date < as_of - timedelta(days=grace_days):
+            overdue.append(
+                f"{row.get('id', 'unknown')} was due {due_date.isoformat()} "
+                f"(grace {grace_days:g} days)"
+            )
+    if overdue:
+        return Check(
+            "source_freshness",
+            False,
+            "Watched sources are past the review grace period: "
+            + "; ".join(overdue[:8])
+            + ".",
+        )
+    return Check(
+        "source_freshness",
+        True,
+        f"{len(watches)} watched sources are within the {grace_days:g}-day review grace.",
+    )
+
+
 def run_probes(
     *,
     base_url: str,
@@ -446,6 +590,14 @@ def run_probes(
     opener: Callable[..., Any] = urlopen,
     certificate_expiry: Callable[..., datetime] = _certificate_expiry,
     check_tls_expiry: bool = True,
+    check_backlog: bool = False,
+    github_repository: str | None = None,
+    github_token: str | None = None,
+    github_api: Callable[[str], Any] | None = None,
+    max_auto_merge_age_hours: float = DEFAULT_MAX_AUTO_MERGE_AGE_HOURS,
+    max_shepherd_age_hours: float = DEFAULT_MAX_SHEPHERD_AGE_HOURS,
+    source_freshness_pack: Path | dict[str, Any] | None = None,
+    source_freshness_grace_days: float = DEFAULT_SOURCE_FRESHNESS_GRACE_DAYS,
 ) -> dict[str, Any]:
     current = (now or datetime.now(timezone.utc)).astimezone(timezone.utc)
     normalized_base = base_url.rstrip("/") + "/"
@@ -1032,6 +1184,85 @@ def run_probes(
             except Exception as exc:  # noqa: BLE001 - report TLS failures.
                 checks.append(Check("tls", False, f"TLS probe failed: {exc}"))
 
+    if check_backlog:
+        try:
+            repository = (github_repository or os.environ.get("GITHUB_REPOSITORY") or "").strip()
+            token = (
+                github_token
+                or os.environ.get("GH_TOKEN")
+                or os.environ.get("GITHUB_TOKEN")
+                or ""
+            ).strip()
+            if not repository:
+                raise ValueError("GITHUB_REPOSITORY is required for the backlog check")
+            if github_api is None and not token:
+                raise ValueError("GH_TOKEN is required for the backlog check")
+            fetcher = github_api
+            if fetcher is None:
+                def fetcher(path: str) -> Any:
+                    return _github_json(
+                        path,
+                        token=token,
+                        timeout=timeout,
+                        opener=opener,
+                    )
+
+            pulls_payload = fetcher(
+                f"repos/{repository}/pulls?state=open&per_page=100"
+            )
+            if isinstance(pulls_payload, dict):
+                pull_requests = list(pulls_payload.get("items") or pulls_payload.get("pulls") or [])
+            elif isinstance(pulls_payload, list):
+                pull_requests = pulls_payload
+            else:
+                raise ValueError("open pull request list is not a JSON array")
+            runs_payload = fetcher(
+                f"repos/{repository}/actions/workflows/automation-shepherd.yml/runs?per_page=1"
+            )
+            latest_run = None
+            if isinstance(runs_payload, dict):
+                runs = runs_payload.get("workflow_runs")
+                if isinstance(runs, list) and runs:
+                    latest_run = runs[0] if isinstance(runs[0], dict) else None
+            shepherd_started = None
+            if latest_run is not None:
+                shepherd_started = _utc_timestamp(
+                    latest_run.get("run_started_at")
+                    or latest_run.get("created_at")
+                )
+            checks.append(
+                check_automation_backlog(
+                    now=current,
+                    pull_requests=pull_requests if isinstance(pull_requests, list) else [],
+                    shepherd_last_started=shepherd_started,
+                    max_auto_merge_age_hours=max_auto_merge_age_hours,
+                    max_shepherd_age_hours=max_shepherd_age_hours,
+                )
+            )
+        except Exception as exc:  # noqa: BLE001 - every probe must become a report.
+            checks.append(Check("backlog", False, f"Backlog probe failed: {exc}"))
+
+    if source_freshness_pack is not None:
+        try:
+            if isinstance(source_freshness_pack, dict):
+                pack = source_freshness_pack
+            else:
+                pack_path = Path(source_freshness_pack)
+                pack = json.loads(pack_path.read_text(encoding="utf-8"))
+            if not isinstance(pack, dict):
+                raise ValueError("source freshness pack is not a JSON object")
+            checks.append(
+                check_source_freshness(
+                    now=current,
+                    pack=pack,
+                    grace_days=source_freshness_grace_days,
+                )
+            )
+        except Exception as exc:  # noqa: BLE001 - every probe must become a report.
+            checks.append(
+                Check("source_freshness", False, f"Source freshness probe failed: {exc}")
+            )
+
     failures = [check for check in checks if not check.ok]
     warnings = [check for check in checks if check.warning]
     return {
@@ -1108,6 +1339,32 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--markdown", type=Path, required=True)
     parser.add_argument("--github-output", type=Path)
     parser.add_argument("--skip-tls-expiry", action="store_true")
+    parser.add_argument("--check-backlog", action="store_true")
+    parser.add_argument(
+        "--github-repository",
+        default=os.environ.get("GITHUB_REPOSITORY", ""),
+        help="owner/name used by the backlog check. Defaults to GITHUB_REPOSITORY.",
+    )
+    parser.add_argument(
+        "--max-auto-merge-age-hours",
+        type=float,
+        default=DEFAULT_MAX_AUTO_MERGE_AGE_HOURS,
+    )
+    parser.add_argument(
+        "--max-shepherd-age-hours",
+        type=float,
+        default=DEFAULT_MAX_SHEPHERD_AGE_HOURS,
+    )
+    parser.add_argument(
+        "--source-freshness-pack",
+        type=Path,
+        help="Local source-freshness watch JSON evaluated against today.",
+    )
+    parser.add_argument(
+        "--source-freshness-grace-days",
+        type=float,
+        default=DEFAULT_SOURCE_FRESHNESS_GRACE_DAYS,
+    )
     return parser.parse_args(argv)
 
 
@@ -1164,6 +1421,12 @@ def main(argv: list[str] | None = None) -> int:
         cve_probe_id=cve_probe_id,
         excluded_cve_probe_id=excluded_cve_probe_id,
         check_tls_expiry=not args.skip_tls_expiry,
+        check_backlog=args.check_backlog,
+        github_repository=args.github_repository,
+        max_auto_merge_age_hours=args.max_auto_merge_age_hours,
+        max_shepherd_age_hours=args.max_shepherd_age_hours,
+        source_freshness_pack=args.source_freshness_pack,
+        source_freshness_grace_days=args.source_freshness_grace_days,
     )
     args.report.parent.mkdir(parents=True, exist_ok=True)
     args.markdown.parent.mkdir(parents=True, exist_ok=True)

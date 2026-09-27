@@ -52,6 +52,8 @@ class ContentRefreshWorkflowTests(unittest.TestCase):
             "gh pr merge --auto --squash <pr-number>",
             "Never push directly to main or merge directly",
             "never force-push",
+            "Closed unmerged content-refresh PRs are stale research",
+            "re-derive that change from current sources",
         ):
             self.assertIn(delivery_rule, self.prompt)
 
