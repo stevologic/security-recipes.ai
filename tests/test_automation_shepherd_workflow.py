@@ -117,6 +117,50 @@ class AutomationShepherdWorkflowTests(unittest.TestCase):
         self.assertIn('SYNC_BRANCH="automation/cve-catalog-sync"', drain)
         self.assertNotIn("gh workflow run automation-shepherd.yml", drain)
 
+    def test_polls_unknown_merge_state_before_dirty_or_age_decisions(self) -> None:
+        drain = self.workflow.split(
+            "- name: Drain stale content-refresh pull requests", 1
+        )[1]
+        drain = drain.split("- name: Shepherd auto-merge pull requests", 1)[0]
+        shepherd = self.workflow.split("- name: Shepherd auto-merge pull requests", 1)[1]
+
+        for step in (drain, shepherd):
+            self.assertIn('[ "$MERGE_STATE" = "UNKNOWN" ]', step)
+            self.assertIn("for attempt in $(seq 1 8)", step)
+            self.assertIn("sleep $((attempt * 2))", step)
+            self.assertIn('gh pr view "$PR_NUMBER" --json mergeStateStatus', step)
+            self.assertIn("still UNKNOWN after polling", step)
+            self.assertLess(
+                step.index('gh pr view "$PR_NUMBER" --json mergeStateStatus'),
+                step.index("still UNKNOWN after polling"),
+            )
+
+        self.assertLess(
+            drain.index('gh pr view "$PR_NUMBER" --json mergeStateStatus'),
+            drain.index('[ "$MERGE_STATE" != "DIRTY" ]'),
+        )
+        self.assertLess(
+            drain.index('gh pr view "$PR_NUMBER" --json mergeStateStatus'),
+            drain.index('[ "$AGE_DAYS" -lt 5 ]'),
+        )
+        self.assertLess(
+            drain.index("still UNKNOWN after polling"),
+            drain.index("gh pr close"),
+        )
+
+        self.assertLess(
+            shepherd.index('gh pr view "$PR_NUMBER" --json mergeStateStatus'),
+            shepherd.index('[ "$MERGE_STATE" = "DIRTY" ]'),
+        )
+        self.assertLess(
+            shepherd.index("still UNKNOWN after polling"),
+            shepherd.index('[ "$MERGE_STATE" = "DIRTY" ]'),
+        )
+        self.assertLess(
+            shepherd.index("still UNKNOWN after polling"),
+            shepherd.index('[ "$MERGE_STATE" = "BEHIND" ]'),
+        )
+
     def test_actions_are_pinned_to_full_commit_shas(self) -> None:
         references = re.findall(r"(?m)^\s*uses:\s*([^#\s]+)", self.workflow)
 

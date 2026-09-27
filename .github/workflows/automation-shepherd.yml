@@ -150,6 +150,20 @@ jobs:
               continue
             fi
 
+            if [ "$MERGE_STATE" = "UNKNOWN" ]; then
+              for attempt in $(seq 1 8); do
+                sleep $((attempt * 2))
+                MERGE_STATE="$(gh pr view "$PR_NUMBER" --json mergeStateStatus --jq '.mergeStateStatus' 2>/dev/null || true)"
+                if [ -n "$MERGE_STATE" ] && [ "$MERGE_STATE" != "UNKNOWN" ]; then
+                  break
+                fi
+              done
+            fi
+            if [ -z "$MERGE_STATE" ] || [ "$MERGE_STATE" = "UNKNOWN" ]; then
+              echo "#${PR_NUMBER}: mergeStateStatus is still UNKNOWN after polling; leaving it for a later pass."
+              continue
+            fi
+
             CREATED_EPOCH="$(date -d "$CREATED_AT" +%s)"
             NOW_EPOCH="$(date +%s)"
             AGE_DAYS=$(( (NOW_EPOCH - CREATED_EPOCH) / 86400 ))
@@ -192,6 +206,20 @@ jobs:
 
             if [ "$HEAD_BRANCH" = "$SYNC_BRANCH" ]; then
               echo "#${PR_NUMBER}: the catalog sync manages its own delivery."
+              continue
+            fi
+
+            if [ "$MERGE_STATE" = "UNKNOWN" ]; then
+              for attempt in $(seq 1 8); do
+                sleep $((attempt * 2))
+                MERGE_STATE="$(gh pr view "$PR_NUMBER" --json mergeStateStatus --jq '.mergeStateStatus' 2>/dev/null || true)"
+                if [ -n "$MERGE_STATE" ] && [ "$MERGE_STATE" != "UNKNOWN" ]; then
+                  break
+                fi
+              done
+            fi
+            if [ -z "$MERGE_STATE" ] || [ "$MERGE_STATE" = "UNKNOWN" ]; then
+              echo "#${PR_NUMBER}: mergeStateStatus is still UNKNOWN after polling; leaving it for a later pass."
               continue
             fi
 
