@@ -348,7 +348,7 @@
       "why": "Context provenance guidance now needs verification, recertification, and production signing readiness; this run implemented the generated attestation seed, runtime evaluator, and MCP tools without overstating that hosted keyless signing exists yet."
     }
   ],
-  "generated_at": "2026-08-21",
+  "generated_at": "2026-09-27",
   "intent": "Maintain a source-backed market and threat radar for SecurityRecipes so the secure context layer tracks current agentic AI risk, MCP security guidance, enterprise buyer pressure, and product opportunities before they become stale documentation.",
   "path_evidence": [
     {
@@ -361,7 +361,7 @@
     },
     {
       "path": "content/security-remediation/agentic-threat-radar/_index.md",
-      "sha256": "1f89a545fb2e79ef51de7b0b5cba6737e367fc6eb18f467713958d3d199b3d86"
+      "sha256": "87584d7c7d4c5516b3a85a5b91880d5e8ede2362e00fecff797eb9c41bdd91a7"
     },
     {
       "path": "content/security-remediation/context-egress-boundary/_index.md",
@@ -457,11 +457,11 @@
     },
     {
       "path": "data/evidence/context-egress-boundary-pack.json",
-      "sha256": "e9e97999e9a357415080fe1345ddf4ea7048b6402fd71674b15ba59a8821d933"
+      "sha256": "ecc2932bd59e20f5d169a462d6ce7e0adae4522df87b40a2d2988d86ebcfbc2c"
     },
     {
       "path": "data/evidence/context-poisoning-guard-pack.json",
-      "sha256": "5539118b5d2bee552a6403042da76eeae7b4576f0ba82bb5449c39ec895d7d2d"
+      "sha256": "ecefe0ce8d25171214f56f65fe49b91253471079e7b5b958cc9f6929b88f9bec"
     },
     {
       "path": "data/evidence/mcp-authorization-conformance-pack.json",
@@ -477,15 +477,15 @@
     },
     {
       "path": "data/evidence/secure-context-attestation-pack.json",
-      "sha256": "9e92a6da6c0433bfe63627db6e5987a75f484539d88c9e1d69dceff2714614a9"
+      "sha256": "5c4d8effbbc690aa68041414ce512d86d400f2849a2ffa3a26f68939e5417e68"
     },
     {
       "path": "data/evidence/secure-context-trust-pack.json",
-      "sha256": "1690e9760cbeea531c37e33c9c6061413856289ecf691f0350ff6ae6bd1a4f84"
+      "sha256": "6eb3b31365496857674f67c0479667dd06c6773bed39ba9a7cc3be4f7d015761"
     },
     {
       "path": "data/intelligence/agentic-threat-radar-sources.json",
-      "sha256": "6ae8f96cf6e3e263966d5cae8c176ade2cb904e8633395037a60b3a7e5052250"
+      "sha256": "4d53c7512746ac9cd4457bb725efc18f07fa13b17dbe7ade1ccb12b1ad6973e8"
     },
     {
       "path": "data/mcp/connector-intake-candidates.json",
@@ -746,7 +746,7 @@
   "source_artifacts": {
     "agentic_threat_radar_sources": {
       "path": "data/intelligence/agentic-threat-radar-sources.json",
-      "sha256": "6ae8f96cf6e3e263966d5cae8c176ade2cb904e8633395037a60b3a7e5052250"
+      "sha256": "4d53c7512746ac9cd4457bb725efc18f07fa13b17dbe7ade1ccb12b1ad6973e8"
     }
   },
   "source_references": [
@@ -793,16 +793,25 @@
       "publisher": "Model Context Protocol",
       "source_class": "protocol_specification",
       "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization",
-      "why_it_matters": "The current MCP authorization spec requires OAuth 2.1 style bearer-token handling, resource indicators, token audience validation, PKCE, HTTPS, and strict token use."
+      "why_it_matters": "Prior MCP 2025-11-25 authorization revision kept as a historical source ID. Prefer the 2026-07-28 resource-indicator, audience, PKCE, and token-passthrough rules."
+    },
+    {
+      "id": "mcp-security-best-practices-2026-07-28",
+      "name": "Model Context Protocol Security Best Practices (2026-07-28 current revision)",
+      "published": "2026-07-28",
+      "publisher": "Model Context Protocol",
+      "source_class": "protocol_guidance",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices",
+      "why_it_matters": "Current MCP 2026-07-28 security guidance replaces session-hijacking assumptions with state-handle binding, forbids token passthrough, requires confused-deputy consent on proxies, and tightens SSRF controls during metadata and Client ID Metadata Document fetches."
     },
     {
       "id": "mcp-security-best-practices-2025",
-      "name": "Model Context Protocol Security Best Practices",
+      "name": "Model Context Protocol Security Best Practices (2025-06-18 prior revision)",
       "published": "2025-06-18",
       "publisher": "Model Context Protocol",
       "source_class": "protocol_guidance",
       "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices",
-      "why_it_matters": "MCP guidance emphasizes token-passthrough avoidance, confused deputy prevention, scope minimization, session safety, SSRF controls, and auditability."
+      "why_it_matters": "Prior MCP security-best-practices revision kept as a historical source ID. Session-hijacking guidance applies only to 2025-11-25 and earlier protocol versions; prefer the 2026-07-28 state-handle controls."
     },
     {
       "id": "microsoft-indirect-prompt-injection-2026",
@@ -866,6 +875,15 @@
       "source_class": "government_framework",
       "url": "https://www.nist.gov/news-events/news/2026/01/caisi-issues-request-information-about-securing-ai-agent-systems",
       "why_it_matters": "CAISI highlights risks from model outputs combined with software functionality, including indirect prompt injection, data poisoning, misaligned actions, and the need to constrain and monitor deployment access."
+    },
+    {
+      "id": "nist-agentic-identity-foundation-2026",
+      "name": "Back to the Future: Why Agentic AI Needs a Strong Identity Foundation",
+      "published": "2026-08-27",
+      "publisher": "NIST",
+      "source_class": "government_security_signal",
+      "url": "https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation",
+      "why_it_matters": "NIST warns that agent rollouts are repeating IAM mistakes: shared human credentials, long-lived API keys and bearer tokens, overly broad access, local user-account impersonation, and over-reliance on human-in-the-loop approvals. Agents need unique identifiers and short-lived scoped credentials, not borrowed user sessions."
     },
     {
       "id": "nist-ai-600-1",
@@ -961,13 +979,14 @@
       "frontier_lab_guidance": 3,
       "government_framework": 4,
       "government_guidance": 2,
+      "government_security_signal": 1,
       "industry_guidance": 3,
       "industry_standard": 3,
-      "protocol_guidance": 1,
+      "protocol_guidance": 2,
       "protocol_specification": 4,
       "vendor_architecture_guidance": 1
     },
-    "source_reference_count": 21,
+    "source_reference_count": 23,
     "top_signals": [
       {
         "id": "agent-protocol-handoff-boundaries",
@@ -1117,7 +1136,7 @@
         "nist-caisi-ai-agent-security-rfi-2026",
         "a2a-enterprise-ready-2026",
         "linux-foundation-a2a-production-2026",
-        "mcp-authorization-2025-11-25",
+        "mcp-authorization-2026-07-28",
         "owasp-agentic-top-10-2026"
       ],
       "sources": [
@@ -1154,12 +1173,12 @@
           "url": "https://www.linuxfoundation.org/press/a2a-protocol-surpasses-150-organizations-lands-in-major-cloud-platforms-and-sees-enterprise-production-use-in-first-year"
         },
         {
-          "id": "mcp-authorization-2025-11-25",
-          "name": "Model Context Protocol Authorization Specification",
-          "published": "2025-11-25",
+          "id": "mcp-authorization-2026-07-28",
+          "name": "Model Context Protocol Authorization Specification (2026-07-28 current revision)",
+          "published": "2026-07-28",
           "publisher": "Model Context Protocol",
           "source_class": "protocol_specification",
-          "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization"
+          "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization"
         },
         {
           "id": "owasp-agentic-top-10-2026",
@@ -1410,11 +1429,13 @@
       "confidence": "high",
       "control_objectives": [
         "Require resource-bound tokens and reject tokens issued for another resource.",
+        "Bind MCP state handles to the authenticated user and never treat handle possession as authentication.",
+        "Require per-client consent on MCP OAuth proxies before third-party authorization.",
         "Use progressive, least-privilege scopes rather than wildcard access.",
         "Log scope elevation with correlation IDs.",
         "Deny tool access by default until workflow policy grants a specific namespace and mode."
       ],
-      "enterprise_risk": "A compromised client or confused-deputy flow can reuse broad tokens across resources, escalate privileges through permissive scopes, or turn a convenience connector into a cross-system breach path.",
+      "enterprise_risk": "A compromised client or confused-deputy proxy flow can reuse broad tokens across resources, hijack another user's state handle, skip consent with a static client ID, fetch internal metadata URLs, or turn a convenience connector into a cross-system breach path.",
       "horizon": "now",
       "id": "mcp-token-passthrough-and-scope-creep",
       "mapped_capability_ids": [
@@ -1435,27 +1456,27 @@
         "mcp_monetization_fit": 5
       },
       "source_ids": [
-        "mcp-authorization-2025-11-25",
-        "mcp-security-best-practices-2025",
+        "mcp-authorization-2026-07-28",
+        "mcp-security-best-practices-2026-07-28",
         "owasp-mcp-top-10-2025",
         "csa-mcp-resource-center-2025"
       ],
       "sources": [
         {
-          "id": "mcp-authorization-2025-11-25",
-          "name": "Model Context Protocol Authorization Specification",
-          "published": "2025-11-25",
+          "id": "mcp-authorization-2026-07-28",
+          "name": "Model Context Protocol Authorization Specification (2026-07-28 current revision)",
+          "published": "2026-07-28",
           "publisher": "Model Context Protocol",
           "source_class": "protocol_specification",
-          "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization"
+          "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization"
         },
         {
-          "id": "mcp-security-best-practices-2025",
-          "name": "Model Context Protocol Security Best Practices",
-          "published": "2025-06-18",
+          "id": "mcp-security-best-practices-2026-07-28",
+          "name": "Model Context Protocol Security Best Practices (2026-07-28 current revision)",
+          "published": "2026-07-28",
           "publisher": "Model Context Protocol",
           "source_class": "protocol_guidance",
-          "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices"
+          "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices"
         },
         {
           "id": "owasp-mcp-top-10-2025",
@@ -1476,7 +1497,7 @@
       ],
       "strategic_score": 95,
       "title": "MCP token audience, passthrough, and scope creep are control-plane risks",
-      "trend": "MCP standardization is moving quickly, and the current spec makes audience binding, resource indicators, PKCE, short-lived tokens, precise scopes, and forbidden token passthrough foundational controls."
+      "trend": "MCP 2026-07-28 remains the current public revision. Servers MUST NOT accept tokens that were not issued for them, MUST NOT pass those tokens to downstream APIs, MUST bind multi-request state handles to the authenticated user instead of treating handle possession as authentication, MUST implement per-client consent on OAuth proxies, and MUST treat OAuth metadata and Client ID Metadata Document fetches as SSRF-sensitive."
     },
     {
       "buyer_trigger": "Security leadership asks who owns an agent, what it can do, and how to revoke one unsafe run.",
@@ -1534,12 +1555,12 @@
       ],
       "confidence": "high",
       "control_objectives": [
-        "Issue per-run or per-workflow non-human identities.",
+        "Issue per-run or per-workflow non-human identities instead of sharing human or local user credentials.",
         "Bind delegated scopes to workflow, agent class, owner, and run ID.",
-        "Require short-lived credentials and runtime revocation.",
-        "Preserve human owner and reviewer linkage in audit evidence."
+        "Require short-lived, audience-restricted credentials and runtime revocation.",
+        "Preserve human owner and reviewer linkage in audit evidence without treating HITL prompts as a substitute for unique agent identity."
       ],
-      "enterprise_risk": "Shared bot accounts, human-token borrowing, weak owner links, and missing revocation paths make incidents hard to contain or explain.",
+      "enterprise_risk": "Shared bot accounts, human-token borrowing, local user-account impersonation, weak owner links, and missing revocation paths make incidents hard to contain or explain, and they undermine non-repudiation when an agent acts without a distinct identity.",
       "horizon": "now",
       "id": "agent-identity-explosion",
       "mapped_capability_ids": [
@@ -1559,9 +1580,9 @@
       },
       "source_ids": [
         "owasp-agentic-top-10-2026",
+        "nist-agentic-identity-foundation-2026",
         "csa-agentic-identity-2025",
-        "mcp-security-best-practices-2025",
-        "microsoft-indirect-prompt-injection-2026"
+        "mcp-security-best-practices-2026-07-28"
       ],
       "sources": [
         {
@@ -1573,6 +1594,14 @@
           "url": "https://genai.owasp.org/2025/12/09/owasp-genai-security-project-releases-top-10-risks-and-mitigations-for-agentic-ai-security/"
         },
         {
+          "id": "nist-agentic-identity-foundation-2026",
+          "name": "Back to the Future: Why Agentic AI Needs a Strong Identity Foundation",
+          "published": "2026-08-27",
+          "publisher": "NIST",
+          "source_class": "government_security_signal",
+          "url": "https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation"
+        },
+        {
           "id": "csa-agentic-identity-2025",
           "name": "Agentic AI, MCP, and the Identity Explosion You Cannot Ignore",
           "published": "2025-07-10",
@@ -1581,25 +1610,17 @@
           "url": "https://cloudsecurityalliance.org/blog/2025/07/10/agentic-ai-mcp-and-the-identity-explosion-you-can-t-ignore"
         },
         {
-          "id": "mcp-security-best-practices-2025",
-          "name": "Model Context Protocol Security Best Practices",
-          "published": "2025-06-18",
+          "id": "mcp-security-best-practices-2026-07-28",
+          "name": "Model Context Protocol Security Best Practices (2026-07-28 current revision)",
+          "published": "2026-07-28",
           "publisher": "Model Context Protocol",
           "source_class": "protocol_guidance",
-          "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices"
-        },
-        {
-          "id": "microsoft-indirect-prompt-injection-2026",
-          "name": "Defend against indirect prompt injection attacks",
-          "published": "2026-03-24",
-          "publisher": "Microsoft Learn",
-          "source_class": "vendor_architecture_guidance",
-          "url": "https://learn.microsoft.com/en-us/security/zero-trust/sfi/defend-indirect-prompt-injection"
+          "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices"
         }
       ],
       "strategic_score": 93,
       "title": "Agent identities are becoming a new non-human identity class",
-      "trend": "Enterprise agents act through service accounts, OAuth tokens, delegated user scopes, API keys, and MCP connector permissions. Traditional IAM often cannot distinguish which agent run used which authority for which intent."
+      "trend": "NIST's August 27, 2026 identity guidance warns that agent rollouts are repeating IAM mistakes: shared human credentials, long-lived API keys and bearer tokens, overly broad access, local user-account impersonation, and over-reliance on human-in-the-loop approvals. Agents need unique identifiers and short-lived scoped credentials, not borrowed user sessions."
     },
     {
       "buyer_trigger": "AI platform, GRC, or security architecture asks which agentic workflows are safe to expand and which require deeper review.",
@@ -2006,7 +2027,7 @@
         "owasp-mcp-top-10-2025",
         "owasp-agentic-top-10-2026",
         "csa-mcp-resource-center-2025",
-        "mcp-security-best-practices-2025"
+        "mcp-security-best-practices-2026-07-28"
       ],
       "sources": [
         {
@@ -2034,17 +2055,17 @@
           "url": "https://cloudsecurityalliance.org/articles/securing-the-agentic-ai-control-plane-announcing-the-mcp-security-resource-center"
         },
         {
-          "id": "mcp-security-best-practices-2025",
-          "name": "Model Context Protocol Security Best Practices",
-          "published": "2025-06-18",
+          "id": "mcp-security-best-practices-2026-07-28",
+          "name": "Model Context Protocol Security Best Practices (2026-07-28 current revision)",
+          "published": "2026-07-28",
           "publisher": "Model Context Protocol",
           "source_class": "protocol_guidance",
-          "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices"
+          "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices"
         }
       ],
       "strategic_score": 90,
       "title": "Tool poisoning, schema drift, and shadow MCP servers expand the agent attack surface",
-      "trend": "MCP and agent tool ecosystems make tool descriptions, schemas, connector updates, local servers, and third-party outputs part of the trust boundary."
+      "trend": "MCP and agent tool ecosystems make tool descriptions, schemas, connector updates, local servers, and third-party outputs part of the trust boundary. MCP 2026-07-28 also treats local MCP server compromise and stdio proxy spawn as control-plane risks, not just unregistered namespaces."
     },
     {
       "buyer_trigger": "AI governance teams ask whether agent context, evidence, and outputs are sourced and current.",
@@ -2416,10 +2437,10 @@
       "control_objectives": [
         "Assign risk ratings to tools and operations.",
         "Hold privileged or irreversible operations for explicit approval.",
-        "Make approval prompts structured and auditable.",
+        "Make approval prompts structured and auditable, and do not treat HITL as a substitute for unique agent identity and scoped credentials.",
         "Preserve reviewer separation of duties before merge or release."
       ],
-      "enterprise_risk": "An attacker can manipulate an agent into requesting approval for the wrong thing, hiding sensitive data in a tool call, or bypassing human review through a lower-risk path.",
+      "enterprise_risk": "An attacker can manipulate an agent into requesting approval for the wrong thing, hiding sensitive data in a tool call, or bypassing human review through a lower-risk path. Frequent unstructured prompts also train operators to click through, recreating MFA-fatigue failure modes.",
       "horizon": "now",
       "id": "human-approval-and-tool-safeguards",
       "mapped_capability_ids": [
@@ -2441,6 +2462,7 @@
         "openai-agent-safety-2026",
         "openai-prompt-injections-2025",
         "microsoft-indirect-prompt-injection-2026",
+        "nist-agentic-identity-foundation-2026",
         "owasp-agentic-top-10-2026"
       ],
       "sources": [
@@ -2469,6 +2491,14 @@
           "url": "https://learn.microsoft.com/en-us/security/zero-trust/sfi/defend-indirect-prompt-injection"
         },
         {
+          "id": "nist-agentic-identity-foundation-2026",
+          "name": "Back to the Future: Why Agentic AI Needs a Strong Identity Foundation",
+          "published": "2026-08-27",
+          "publisher": "NIST",
+          "source_class": "government_security_signal",
+          "url": "https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation"
+        },
+        {
           "id": "owasp-agentic-top-10-2026",
           "name": "OWASP Top 10 for Agentic Applications",
           "published": "2025-12-09",
@@ -2479,7 +2509,7 @@
       ],
       "strategic_score": 85,
       "title": "Human approval is shifting from UX prompt to policy-enforced control",
-      "trend": "High-risk agent actions need confirmations, tool safeguards, clear policies, trace grading, and reviewable execution plans. Approval needs a typed policy surface, not a free-text negotiation with the model."
+      "trend": "High-risk agent actions need confirmations, tool safeguards, clear policies, trace grading, and reviewable execution plans. NIST warns that over-reliance on human-in-the-loop approvals causes consent fatigue, so approval needs a typed policy surface rather than a free-text negotiation with the model."
     },
     {
       "buyer_trigger": "The buyer wants to move from pilot to fleet-wide agentic remediation.",
