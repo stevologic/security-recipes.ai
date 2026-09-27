@@ -547,7 +547,9 @@ def build_pack(
 ) -> dict[str, Any]:
     watch_rows, source_catalog, source_paths, source_refs, collect_failures = collect_watch_sources(profile, repo_root, as_of)
     primary_coverage = primary_watchlist_coverage(profile, source_catalog)
-    failures = [*failures, *collect_failures, *validate_coverage(profile, watch_rows, source_catalog, primary_coverage)]
+    failures = structural_failures(
+        [*failures, *collect_failures, *validate_coverage(profile, watch_rows, source_catalog, primary_coverage)]
+    )
     source_rows = sorted(
         source_catalog.values(),
         key=lambda source: (str(source.get("publisher_family")), str(source.get("name")), str(source.get("url"))),
@@ -593,7 +595,9 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help="UTC calendar date used for review decisions. Defaults to today in UTC. "
         "freshness_contract.as_of is only a floor, never the date used on its own. "
-        "--check must pass the same --as-of the generation run used.",
+        "--check without --as-of reuses the checked-in pack date so CI generation and "
+        "--check stay pinned together. Pass the same --as-of used for generation when "
+        "verifying a specific run.",
     )
     parser.add_argument("--check", action="store_true", help="Fail if the checked-in source freshness watch is stale.")
     return parser.parse_args()
@@ -608,14 +612,26 @@ def main() -> int:
     try:
         profile = load_json(profile_path)
         contract = as_dict(profile.get("freshness_contract"), "freshness_contract")
-        as_of = resolve_as_of(args.as_of, contract)
+        requested_as_of = args.as_of
+        generated_at = args.generated_at
+        if args.check and requested_as_of is None:
+            try:
+                existing = load_json(output_path)
+            except SourceFreshnessError:
+                existing = {}
+            pack_as_of = existing.get("as_of") or existing.get("generated_at")
+            if parse_source_date(pack_as_of) is not None:
+                requested_as_of = str(pack_as_of)
+            if generated_at is None and existing.get("generated_at"):
+                generated_at = str(existing["generated_at"])
+        as_of = resolve_as_of(requested_as_of, contract)
         failures = validate_profile(profile, repo_root)
         pack = build_pack(
             profile=profile,
             profile_path=profile_path,
             profile_ref=args.profile,
             repo_root=repo_root,
-            generated_at=args.generated_at,
+            generated_at=generated_at,
             as_of=as_of,
             failures=failures,
         )

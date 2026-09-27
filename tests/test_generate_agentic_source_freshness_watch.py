@@ -69,6 +69,34 @@ class SourceFreshnessAsOfTests(unittest.TestCase):
             ["profile schema_version must be 1.0"],
         )
 
+    def test_written_pack_omits_editorial_due_failures(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            output = Path(tmpdir) / "watch.json"
+            generate = subprocess.run(
+                [
+                    sys.executable,
+                    str(SCRIPT),
+                    "--repo-root",
+                    str(ROOT),
+                    "--profile",
+                    str(PROFILE),
+                    "--output",
+                    str(output),
+                    "--as-of",
+                    "2026-09-27",
+                    "--generated-at",
+                    "2026-09-27",
+                ],
+                check=False,
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(generate.returncode, 0, generate.stderr)
+            payload = json.loads(output.read_text(encoding="utf-8"))
+            self.assertNotIn(DUE_WATCH_FAILURE, payload.get("failures") or [])
+            self.assertEqual(payload["freshness_summary"]["status"], "source_freshness_ready")
+            self.assertIn("review_due", payload["freshness_summary"]["watch_decision_counts"])
+
     def test_evaluate_pack_as_of_cannot_freeze_at_current(self) -> None:
         pack = {
             "failures": [],
@@ -160,6 +188,23 @@ class SourceFreshnessAsOfTests(unittest.TestCase):
                 text=True,
             )
             self.assertEqual(mismatched.returncode, 1)
+            inferred = subprocess.run(
+                [
+                    sys.executable,
+                    str(SCRIPT),
+                    "--repo-root",
+                    str(ROOT),
+                    "--profile",
+                    str(PROFILE),
+                    "--output",
+                    str(output),
+                    "--check",
+                ],
+                check=False,
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(inferred.returncode, 0, inferred.stderr)
             payload = json.loads(output.read_text(encoding="utf-8"))
             self.assertEqual(payload["generated_at"], "2026-05-04")
 
