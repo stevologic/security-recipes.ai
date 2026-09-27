@@ -10,13 +10,16 @@ name: Automation shepherd
 #   shepherd step updates stale branches and dispatches the trusted exact-SHA
 #   validation that publishes the required context.
 #
-# The workflow_run chaining makes the train self-driving without depending
-# on GitHub's cron scheduler: every completed Build or validation re-runs
-# the shepherd, which advances the next queued auto-merge PR and exits
-# without dispatching when there is nothing left to do, so the chain
-# terminates naturally.
+# Completions of workflows that GITHUB_TOKEN itself dispatched do not emit
+# workflow_run events. The half-hourly schedule and the explicit
+# workflow_dispatch kicks from validation and Build close that hole.
+# workflow_run still covers human- and Dependabot-triggered completions.
+# The shepherd never dispatches itself. A concurrency group queues
+# overlapping runs so the schedule, workflow_run, and kicks cannot loop.
 
 on:
+  schedule:
+    - cron: "7,37 * * * *"
   workflow_run:
     workflows:
       - Build
@@ -114,6 +117,52 @@ jobs:
             --field "request_id=shepherd-development-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           echo "Dispatched the missing Build for development revision ${DEV_SHA}."
 
+      - name: Drain stale content-refresh pull requests
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          # No checkout exists, so gh must be told its repository context.
+          GH_REPO: ${{ github.repository }}
+          GITHUB_DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          # The CVE catalog sync owns its branch end to end, including guarded
+          # updates and exact-SHA validation, so the shepherd never touches it.
+          SYNC_BRANCH="automation/cve-catalog-sync"
+          DRAIN_COMMENT='Closing this stale content-refresh PR. The next scheduled content refresh will re-derive the change from current sources rather than rebasing this conflicted or expired branch.'
+
+          PRS_JSON="$(gh pr list \
+            --state open \
+            --base "$GITHUB_DEFAULT_BRANCH" \
+            --label "automation:content-refresh" \
+            --limit 50 \
+            --json number,isCrossRepository,mergeStateStatus,headRefName,createdAt)"
+
+          echo "$PRS_JSON" | jq -c '.[]
+            | select(.isCrossRepository == false)' |
+          while IFS= read -r PR_JSON; do
+            PR_NUMBER="$(jq -r '.number' <<<"$PR_JSON")"
+            HEAD_BRANCH="$(jq -r '.headRefName' <<<"$PR_JSON")"
+            MERGE_STATE="$(jq -r '.mergeStateStatus' <<<"$PR_JSON")"
+            CREATED_AT="$(jq -r '.createdAt' <<<"$PR_JSON")"
+
+            if [ "$HEAD_BRANCH" = "$SYNC_BRANCH" ]; then
+              echo "#${PR_NUMBER}: the catalog sync manages its own delivery."
+              continue
+            fi
+
+            CREATED_EPOCH="$(date -d "$CREATED_AT" +%s)"
+            NOW_EPOCH="$(date +%s)"
+            AGE_DAYS=$(( (NOW_EPOCH - CREATED_EPOCH) / 86400 ))
+            if [ "$MERGE_STATE" != "DIRTY" ] && [ "$AGE_DAYS" -lt 5 ]; then
+              echo "#${PR_NUMBER}: content-refresh PR is ${AGE_DAYS}d old and ${MERGE_STATE}; leaving it on the merge train."
+              continue
+            fi
+
+            echo "#${PR_NUMBER}: draining content-refresh PR (${MERGE_STATE}, ${AGE_DAYS}d old)."
+            gh pr comment "$PR_NUMBER" --body "$DRAIN_COMMENT"
+            gh pr close "$PR_NUMBER"
+          done
+
       - name: Shepherd auto-merge pull requests
         shell: bash
         env:
@@ -147,7 +196,7 @@ jobs:
             fi
 
             if [ "$MERGE_STATE" = "DIRTY" ]; then
-              echo "#${PR_NUMBER}: has merge conflicts; a human or AI maintenance must resolve them."
+              echo "#${PR_NUMBER}: has merge conflicts; the drain step closes labeled content-refresh PRs, otherwise a human or AI maintenance must resolve them."
               continue
             fi
 

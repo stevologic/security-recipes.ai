@@ -49,6 +49,23 @@ class BuildDispatchWorkflowTests(unittest.TestCase):
         self.assertIn("branches: [main, development]", self.workflow)
         self.assertNotIn('BASE_URL="https://dev.security-recipes.ai/"', self.workflow)
 
+    def test_dispatch_completion_kicks_shepherd_and_search_indexing(self) -> None:
+        self.assertIn("kick-automation:", self.workflow)
+        self.assertIn(
+            "if: always() && github.event_name == 'workflow_dispatch'",
+            self.workflow,
+        )
+        kick = self.workflow.split("\n  kick-automation:\n", 1)[1]
+        self.assertIn("actions: write", kick)
+        self.assertIn("gh workflow run automation-shepherd.yml --ref main", kick)
+        self.assertIn("gh workflow run search-indexing.yml --ref main", kick)
+        self.assertNotIn("actions/checkout", kick)
+        self.assertNotIn("cache: npm", kick)
+        self.assertLess(
+            self.workflow.index("\n  publish:\n"),
+            self.workflow.index("\n  kick-automation:\n"),
+        )
+
     def test_publish_promotes_the_exact_images_verified_by_the_build_job(self) -> None:
         build_job = self.workflow.split("\n  build:\n", 1)[1].split("\n  publish:\n", 1)[0]
         publish_job = self.workflow.split("\n  publish:\n", 1)[1]

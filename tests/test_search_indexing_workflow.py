@@ -16,13 +16,12 @@ class SearchIndexingWorkflowTests(unittest.TestCase):
         cls.workflow = WORKFLOW.read_text(encoding="utf-8")
 
     def test_runs_after_successful_build_and_by_hand(self) -> None:
-        self.assertNotIn("schedule:", self.workflow)
-        self.assertNotIn("- cron:", self.workflow)
+        self.assertIn('cron: "53 7 * * *"', self.workflow)
         self.assertNotIn("push:", self.workflow)
         self.assertIn("workflow_run:", self.workflow)
         self.assertIn("- Build", self.workflow)
         self.assertIn(
-            "github.event_name == 'workflow_dispatch' || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')",
+            "github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')",
             self.workflow,
         )
         self.assertRegex(self.workflow, r"(?m)^\s*workflow_dispatch:\s*$")
