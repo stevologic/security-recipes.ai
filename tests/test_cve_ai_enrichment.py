@@ -1529,6 +1529,77 @@ class CVEAIEnrichmentTests(unittest.TestCase):
         self.assertEqual(cache.stats["failed"], enrichment.MAX_CONSECUTIVE_FAILURES)
         self.assertTrue(all("ai_enrichment" not in item for item in results))
 
+    def test_request_timeout_reads_xai_enrichment_timeout(self) -> None:
+        self.assertEqual(enrichment.DEFAULT_REQUEST_TIMEOUT, 180)
+        self.assertEqual(enrichment.request_timeout_seconds(""), 180)
+        self.assertEqual(enrichment.request_timeout_seconds("240"), 240)
+        with self.assertRaisesRegex(ValueError, "XAI_ENRICHMENT_TIMEOUT"):
+            enrichment.request_timeout_seconds("0")
+        with self.assertRaisesRegex(ValueError, "XAI_ENRICHMENT_TIMEOUT"):
+            enrichment.request_timeout_seconds("fast")
+
+    def test_enricher_uses_env_timeout_when_not_passed(self) -> None:
+        previous = enrichment.os.environ.get("XAI_ENRICHMENT_TIMEOUT")
+        enrichment.os.environ["XAI_ENRICHMENT_TIMEOUT"] = "210"
+        try:
+            client = enrichment.XAIEnricher("xai-test")
+            self.assertEqual(client.timeout, 210)
+        finally:
+            if previous is None:
+                enrichment.os.environ.pop("XAI_ENRICHMENT_TIMEOUT", None)
+            else:
+                enrichment.os.environ["XAI_ENRICHMENT_TIMEOUT"] = previous
+
+    def test_consecutive_timeouts_at_the_configured_limit_open_the_breaker(self) -> None:
+        records = [record(f"CVE-2026-{number}") for number in range(2100, 2105)]
+        with tempfile.TemporaryDirectory() as tmpdir:
+            cache = enrichment.EnrichmentCache(Path(tmpdir) / "ai.json")
+            cache.select_candidates(records, limit=len(records))
+
+            class TimeoutClient:
+                def __init__(self) -> None:
+                    self.calls = 0
+
+                def enrich(self, _: dict[str, object]) -> dict[str, object]:
+                    self.calls += 1
+                    raise enrichment.EnrichmentError(
+                        "xAI Responses API request failed: TimeoutError",
+                        reason="timeout",
+                    )
+
+            client = TimeoutClient()
+            results = list(cache.apply(records, client=client))
+
+        self.assertEqual(client.calls, enrichment.MAX_CONSECUTIVE_FAILURES)
+        self.assertEqual(cache.stats["failed"], enrichment.MAX_CONSECUTIVE_FAILURES)
+        self.assertTrue(all("ai_enrichment" not in item for item in results))
+
+    def test_timeouts_do_not_count_toward_non_timeout_consecutive_failures(self) -> None:
+        records = [record(f"CVE-2026-{number}") for number in range(2200, 2206)]
+        with tempfile.TemporaryDirectory() as tmpdir:
+            cache = enrichment.EnrichmentCache(Path(tmpdir) / "ai.json")
+            cache.select_candidates(records, limit=len(records))
+
+            class MixedClient:
+                def __init__(self) -> None:
+                    self.calls = 0
+
+                def enrich(self, _: dict[str, object]) -> dict[str, object]:
+                    self.calls += 1
+                    if self.calls in {1, 3}:
+                        raise enrichment.EnrichmentError(
+                            "xAI Responses API request failed: TimeoutError",
+                            reason="timeout",
+                        )
+                    raise enrichment.EnrichmentError("simulated provider outage")
+
+            client = MixedClient()
+            results = list(cache.apply(records, client=client))
+
+        self.assertEqual(client.calls, 5)
+        self.assertEqual(cache.stats["failed"], 5)
+        self.assertTrue(all("ai_enrichment" not in item for item in results))
+
     def test_priority_order_spends_one_call_time_budget_before_source_order(self) -> None:
         ranked = record("CVE-2026-3001", severity="critical", kev=True)
         requested = source_complete_record("CVE-2026-3999", severity="medium")

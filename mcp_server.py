@@ -42,6 +42,10 @@ from scripts.cve_search_runtime import (
     CVESearchTimeoutError,
 )
 from scripts.cve_text_quality import clean_catalog_text
+from scripts.generate_agentic_source_freshness_watch import (
+    evaluate_pack_as_of,
+    today_utc,
+)
 from fastmcp import FastMCP
 from starlette.requests import Request
 from starlette.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
@@ -10615,11 +10619,32 @@ class AgenticSourceFreshnessWatch:
                 "pack_path": str(self.path),
             }
 
+        pack = evaluate_pack_as_of(pack, today_utc())
+        watches = [
+            row
+            for row in pack.get("watch_sources") or []
+            if isinstance(row, dict) and row.get("id")
+        ]
+        sources = [
+            row
+            for row in pack.get("source_catalog") or []
+            if isinstance(row, dict) and row.get("id")
+        ]
+        primary = [
+            row
+            for row in pack.get("primary_watchlist_coverage") or []
+            if isinstance(row, dict) and row.get("id")
+        ]
+        watch_by_id = {str(row.get("id")): row for row in watches}
+        source_by_id = {str(row.get("id")): row for row in sources}
+        primary_by_id = {str(row.get("id")): row for row in primary}
+
         if watched_source_id:
             key = watched_source_id.strip()
-            watch = self._watch_by_id.get(key)
+            watch = watch_by_id.get(key)
             return {
                 "available": True,
+                "evaluated_as_of": pack.get("evaluated_as_of"),
                 "found": watch is not None,
                 "watch_source": watch,
                 "watched_source_id": key,
@@ -10627,9 +10652,10 @@ class AgenticSourceFreshnessWatch:
 
         if source_id:
             key = source_id.strip()
-            source = self._source_by_id.get(key)
+            source = source_by_id.get(key)
             return {
                 "available": True,
+                "evaluated_as_of": pack.get("evaluated_as_of"),
                 "found": source is not None,
                 "source": source,
                 "source_id": key,
@@ -10637,16 +10663,15 @@ class AgenticSourceFreshnessWatch:
 
         if primary_watchlist_id:
             key = primary_watchlist_id.strip()
-            primary = self._primary_by_id.get(key)
+            primary_row = primary_by_id.get(key)
             return {
                 "available": True,
-                "found": primary is not None,
-                "primary_watchlist": primary,
+                "evaluated_as_of": pack.get("evaluated_as_of"),
+                "found": primary_row is not None,
+                "primary_watchlist": primary_row,
                 "primary_watchlist_id": key,
             }
 
-        watches = list(self._watch_by_id.values())
-        sources = list(self._source_by_id.values())
         if decision:
             key = decision.strip()
             watches = [row for row in watches if str(row.get("decision")) == key]
@@ -10665,6 +10690,7 @@ class AgenticSourceFreshnessWatch:
             "buyer_views": pack.get("buyer_views", []),
             "commercialization_path": pack.get("commercialization_path", {}),
             "enterprise_adoption_packet": pack.get("enterprise_adoption_packet"),
+            "evaluated_as_of": pack.get("evaluated_as_of"),
             "filters": {
                 "decision": decision,
                 "freshness_class": freshness_class,
