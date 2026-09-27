@@ -1,7 +1,7 @@
 {
   "buyer_views": [
     {
-      "answer_contract": "Start with read-only context, require source hashes, sector hazard mapping, operator approval, incident containment, and telemetry before any supervised action.",
+      "answer_contract": "Start with read-only context on low-risk non-sensitive tasks, deny unrestricted critical-system access, require distinct agent credentials, source hashes, sector hazard mapping, operator approval, incident containment, and telemetry before any supervised action.",
       "controls": [
         {
           "id": "ci-context-provenance-minimization",
@@ -22,6 +22,16 @@
           ],
           "status": "ready",
           "title": "MCP authorization and scope minimization"
+        },
+        {
+          "id": "ci-five-eyes-least-privilege",
+          "mcp_tools": [
+            "recipes_agent_identity_ledger",
+            "recipes_agentic_entitlement_review_pack",
+            "recipes_agentic_approval_receipt_pack"
+          ],
+          "status": "ready",
+          "title": "Five Eyes least privilege and careful adoption"
         },
         {
           "id": "ci-human-oversight-approval",
@@ -56,10 +66,11 @@
       ],
       "id": "critical-infrastructure-operator",
       "question": "Can we pilot agentic AI without weakening safety, availability, privacy, or incident response in high-stakes systems?",
-      "ready_control_count": 5,
+      "ready_control_count": 6,
       "required_control_ids": [
         "ci-context-provenance-minimization",
         "ci-mcp-authorization-scope",
+        "ci-five-eyes-least-privilege",
         "ci-human-oversight-approval",
         "ci-telemetry-reconstruction",
         "ci-incident-containment-replay"
@@ -208,6 +219,34 @@
       "ready_evidence_count": 3,
       "status": "ready",
       "title": "Context provenance and minimization",
+      "total_evidence_count": 3
+    },
+    {
+      "control_objective": "Critical-infrastructure agents start on low-risk non-sensitive tasks, never receive unrestricted access to sensitive data or critical systems, use distinct non-shared credentials, and require human approval before progressing into higher-risk activity.",
+      "evidence_pack_ids": [
+        "agent-identity-ledger",
+        "agentic-entitlement-review-pack",
+        "agentic-approval-receipt-pack"
+      ],
+      "evidence_paths": [
+        "data/evidence/agent-identity-delegation-ledger.json",
+        "data/evidence/agentic-entitlement-review-pack.json",
+        "data/evidence/agentic-approval-receipt-pack.json"
+      ],
+      "hazard_flags": [
+        "unrestricted_critical_system_access",
+        "shared_agent_credentials",
+        "handles_regulated_pii"
+      ],
+      "id": "ci-five-eyes-least-privilege",
+      "mcp_tools": [
+        "recipes_agent_identity_ledger",
+        "recipes_agentic_entitlement_review_pack",
+        "recipes_agentic_approval_receipt_pack"
+      ],
+      "ready_evidence_count": 3,
+      "status": "ready",
+      "title": "Five Eyes least privilege and careful adoption",
       "total_evidence_count": 3
     },
     {
@@ -435,9 +474,9 @@
     }
   ],
   "critical_infrastructure_summary": {
-    "control_count": 9,
+    "control_count": 10,
     "control_status_counts": {
-      "ready": 9
+      "ready": 10
     },
     "distinct_mcp_tool_count": 17,
     "evidence_pack_count": 17,
@@ -468,7 +507,7 @@
       "path": "data/evidence/agentic-catastrophic-risk-annex.json",
       "proof_role": "High-impact action classes, severe scenarios, default decisions, approval evidence, risk acceptance, and runtime kill signals.",
       "schema_version": "1.0",
-      "sha256": "0190c99eb76a28a8d6d9b0eeae82e2d385f716be1142f7c0f0a922090bf61393",
+      "sha256": "3f8e8d345c71a6ee49fe4368e696499844b4b5f0d8a0f2da930bb4c4f73c5aa9",
       "status": "ready",
       "summary": {
         "key": "annex_summary",
@@ -509,7 +548,7 @@
       "path": "data/evidence/agentic-action-runtime-pack.json",
       "proof_role": "Action classes, workflow envelopes, approval requirements, runtime kill signals, and deterministic allow, hold, deny, or kill decisions.",
       "schema_version": "1.0",
-      "sha256": "3fc73421a2da2afd42840813853d88f837031f0e95621dda12977d74e1cf014c",
+      "sha256": "93ca73381e77ed912d674435a7c898c535c9c8db7ca165f9e5dca73764aae072",
       "status": "ready",
       "summary": {
         "key": "action_runtime_summary",
@@ -540,7 +579,7 @@
       "path": "data/evidence/agentic-approval-receipt-pack.json",
       "proof_role": "Scope-bound approval profiles, expiry, separation of duties, reviewer roles, and approval-bypass kill signals.",
       "schema_version": "1.0",
-      "sha256": "b0e5a38ad3795556c4df1a429f1fb4cf0476064c5d354c97cae6e97e14152fdc",
+      "sha256": "a2ec5453f95fa1aca23f1eea4d32d0905f3f74b46fb56e65c3382d1710dfb0a1",
       "status": "ready",
       "summary": {
         "key": "approval_receipt_summary",
@@ -613,7 +652,7 @@
       "path": "data/evidence/agentic-incident-response-pack.json",
       "proof_role": "Incident classes, containment phases, forensic evidence, replay gates, and response decisions for agentic and MCP failures.",
       "schema_version": "1.0",
-      "sha256": "ae6de3389940b64572fc45a7fd16a119531282a1e6ad8c89d67999271265ff42",
+      "sha256": "dce96c03b14d37a06cc4e830ac5acc0ec0cbaa60b5d65e4f985ea5e9dfe82cb9",
       "status": "ready",
       "summary": {
         "key": "incident_response_summary",
@@ -645,7 +684,7 @@
       "path": "data/evidence/agentic-soc-detection-pack.json",
       "proof_role": "SIEM-ready detections, query templates, alert decisions, and runtime evaluation for MCP and agent telemetry.",
       "schema_version": "1.0",
-      "sha256": "92baf1687e88419d36f434663629c8ca9cccce0d5457ed115ed825ce2531cb16",
+      "sha256": "18679e268c374fa4da37ed59bca6dbe3856523deb76f12497fce08546e8c2bb6",
       "status": "ready",
       "summary": {
         "key": "detection_summary",
@@ -679,7 +718,7 @@
       "path": "data/evidence/agentic-telemetry-contract.json",
       "proof_role": "OpenTelemetry-aligned fields for agent, model, MCP, context, policy, egress, approval, verifier, incident, redaction, and receipt evidence.",
       "schema_version": "1.0",
-      "sha256": "13af061ddf989e992ee1772a1f1be74eb05dadfe4025cc9f4428201aae8492d3",
+      "sha256": "3bf562129e5ffd5a02362490a285aa45c3bed69707f9c924c84b2eaa58c17566",
       "status": "ready",
       "summary": {
         "key": "telemetry_summary",
@@ -745,7 +784,7 @@
       "path": "data/evidence/mcp-stdio-launch-boundary-pack.json",
       "proof_role": "Local MCP command allowlists, sandbox requirements, startup risk, env secret handling, and launch decisions.",
       "schema_version": "1.0",
-      "sha256": "c5150ddebcfbcc5ea25ad04c1f169c7413dd11cc8edcf8db77f9aa47d2757bb0",
+      "sha256": "ac8fba744afa34c51d6537de71a6d3743b13e4628ad3bf445498f6b33055c7fc",
       "status": "ready",
       "summary": {
         "key": "stdio_launch_summary",
@@ -811,7 +850,7 @@
       "path": "data/evidence/secure-context-trust-pack.json",
       "proof_role": "Trusted source registry, context package hashes, retrieval policy, and workflow-safe context decisions.",
       "schema_version": "1.0",
-      "sha256": "705b23fe67c78f32340031504f496bf5932493f31a5906a6e764158f8c2142d7",
+      "sha256": "cdfe1c656b0f1edb1bf1b0895a49dff9c4c89073cd8a4cbd23a642a9304ac306",
       "status": "ready",
       "summary": {
         "key": "context_trust_summary",
@@ -824,7 +863,7 @@
           "default_decision": "deny_unregistered_context",
           "failure_count": 0,
           "prohibited_data_class_count": 7,
-          "registered_byte_count": 14978313,
+          "registered_byte_count": 14986411,
           "registered_file_count": 3520,
           "risk_family_counts": {
             "context_poisoning": 8,
@@ -863,7 +902,7 @@
       "path": "data/evidence/secure-context-lineage-ledger.json",
       "proof_role": "Source-to-run lineage across attestation, poisoning, retrieval, model route, egress, handoff, telemetry, and receipts.",
       "schema_version": "1.0",
-      "sha256": "36848888d8379436c9eec3aafff2316ea2231e34aeebcac6178d2824dfb2ca28",
+      "sha256": "212558d02cab9cbeae9dd623afb66b361e998ded5f6d7aad50de40bc348a79dd",
       "status": "ready",
       "summary": {
         "key": "lineage_summary",
@@ -899,7 +938,7 @@
       "path": "data/evidence/context-egress-boundary-pack.json",
       "proof_role": "Data-class, destination, tenant, model, telemetry, DPA, zero-data-retention, and secret-egress decisions.",
       "schema_version": "1.0",
-      "sha256": "52ae72afeed959edd39a1d7a9e8c154ceb3c897b69875de1484fa87ea88d618b",
+      "sha256": "84c22dd3d4ecb07c828f20a8f6ad1157e86f74b6ccac2370b7cb155620267b9c",
       "status": "ready",
       "summary": {
         "key": "egress_boundary_summary",
@@ -996,7 +1035,7 @@
       "path": "data/evidence/agentic-entitlement-review-pack.json",
       "proof_role": "Expiring leases, review cadence, step-up authorization, and runtime entitlement decisions for agent identities and MCP scopes.",
       "schema_version": "1.0",
-      "sha256": "9303974dcf442ad5d3544f8ccf7b26e5eb96168f3bf2f3ec2a75dcfd08fe0379",
+      "sha256": "b8d9272edd35a624e56ffb99c51a3f92e566fec6acf660dccc36f13a3230deca",
       "status": "ready",
       "summary": {
         "key": "entitlement_review_summary",
@@ -1038,16 +1077,16 @@
       "path": "data/evidence/agentic-source-freshness-watch.json",
       "proof_role": "Source freshness, standards drift, primary-source coverage, and source hashes for buyer-facing AI and MCP claims.",
       "schema_version": "1.0",
-      "sha256": "cc80fe5469b1f09f8c58e78a19e8cf296ac77516c194c07ade11b907bb0e3e3c",
+      "sha256": "23f95f0b9af5167a5187dc55c0de99dc0f779a9375ee249381c4a1395bb41e61",
       "status": "ready",
       "summary": {
         "key": "freshness_summary",
         "value": {
           "failure_count": 0,
           "freshness_class_counts": {
-            "current_reference": 16,
-            "recent_signal": 18,
-            "standing_reference": 5,
+            "current_reference": 25,
+            "recent_signal": 4,
+            "standing_reference": 10,
             "undated_review_required": 4
           },
           "newest_sources": [
@@ -1142,7 +1181,8 @@
           "status": "source_freshness_ready",
           "unique_source_reference_count": 43,
           "watch_decision_counts": {
-            "current": 9
+            "review_due": 7,
+            "stale_or_missing": 2
           },
           "watch_source_count": 9
         }
@@ -1159,7 +1199,7 @@
       "path": "data/evidence/agentic-standards-crosswalk.json",
       "proof_role": "Standards-to-evidence map across OWASP, NIST, CSA, MCP, OpenAI, Anthropic, and A2A security guidance.",
       "schema_version": "1.0",
-      "sha256": "0618045846ce1ccdecdef84ca0e40b48c7554199b411d70c9cfb53d866fdb191",
+      "sha256": "359feb69296f408e74b751efdf0f91189dda848605f52a4d54e06bf87ebab43d",
       "status": "ready",
       "summary": {
         "key": "crosswalk_summary",
@@ -1193,13 +1233,13 @@
     }
   ],
   "failures": [],
-  "generated_at": "2026-08-21",
+  "generated_at": "2026-09-26",
   "intent": "Define a critical-infrastructure secure-context profile for SecurityRecipes so operators, frontier labs, platform teams, and acquirers can see how agentic AI and MCP evidence must be constrained before context, tools, approvals, and autonomous actions touch high-stakes IT, OT, ICS, healthcare, financial, public-sector, communications, or transportation environments.",
   "positioning": {
     "buyer": "Critical infrastructure operators, regulated enterprises, AI platform teams, GRC, product security, SOC, model-risk, safety, procurement, frontier lab enterprise teams, and acquisition diligence reviewers",
     "category": "Critical-infrastructure readiness profile for secure context, MCP, and agentic AI governance",
     "enterprise_promise": "SecurityRecipes can make agentic AI easier to approve in high-stakes environments by turning sector hazards, MCP scope minimization, human oversight, telemetry, incident response, egress controls, and generated evidence packs into one deterministic profile and runtime evaluator.",
-    "why_now": "NIST started the AI RMF Profile on Trustworthy AI in Critical Infrastructure in April 2026. At the same time, OWASP Agentic Top 10, OWASP MCP Top 10, and MCP authorization guidance are making autonomous tool use, non-human identity, scope minimization, telemetry, and context boundaries core enterprise review surfaces."
+    "why_now": "NIST started the AI RMF Profile on Trustworthy AI in Critical Infrastructure in April 2026. Five Eyes agencies published Careful Adoption of Agentic AI Services for government and critical-infrastructure operators: start on low-risk non-sensitive tasks, never grant unrestricted access to sensitive data or critical systems, and keep distinct agent credentials. OWASP Agentic Top 10, OWASP MCP Top 10, and MCP authorization guidance make those same identity, scope, telemetry, and context boundaries inspectable."
   },
   "readiness_contract": {
     "allowed_decisions": [
@@ -1236,7 +1276,9 @@
       "shadow_mcp_server",
       "token_passthrough",
       "unsafe_local_mcp_launch",
-      "untrusted_context"
+      "untrusted_context",
+      "unrestricted_critical_system_access",
+      "shared_agent_credentials"
     ],
     "high_impact_action_classes": [
       "critical_infrastructure_control",
@@ -1274,7 +1316,7 @@
       "telemetry_trace_id",
       "incident_response_profile_id"
     ],
-    "source_status": "NIST critical-infrastructure AI guidance is still a concept-note and community-of-interest effort, so this profile is a readiness scaffold and not a compliance claim."
+    "source_status": "NIST critical-infrastructure AI guidance is still a concept-note and community-of-interest effort, so this profile is a readiness scaffold and not a compliance claim. Five Eyes careful-adoption guidance is published joint operational advice, not a certification."
   },
   "rollout_lanes": [
     {
@@ -1355,6 +1397,11 @@
           "title": "MCP authorization and scope minimization"
         },
         {
+          "id": "ci-five-eyes-least-privilege",
+          "status": "ready",
+          "title": "Five Eyes least privilege and careful adoption"
+        },
+        {
           "id": "ci-human-oversight-approval",
           "status": "ready",
           "title": "Operator oversight and approval receipts"
@@ -1391,10 +1438,11 @@
         "connector_scope_escalation"
       ],
       "readiness_status": "ready_for_read_only_pilot",
-      "ready_control_count": 7,
+      "ready_control_count": 8,
       "required_control_ids": [
         "ci-context-provenance-minimization",
         "ci-mcp-authorization-scope",
+        "ci-five-eyes-least-privilege",
         "ci-human-oversight-approval",
         "ci-action-runtime-deny-default",
         "ci-local-mcp-sandbox",
@@ -1403,7 +1451,7 @@
       ],
       "sector_hazard": "Agentic context or MCP tools can affect process control, grid reliability, safety interlocks, maintenance plans, vendor remote access, and incident response timing.",
       "title": "Energy, OT, and ICS",
-      "total_control_count": 7
+      "total_control_count": 8
     },
     {
       "allowed_pilot_actions": [
@@ -1412,9 +1460,11 @@
         "ticket_prefill"
       ],
       "control_evidence_paths": [
+        "data/evidence/agent-identity-delegation-ledger.json",
         "data/evidence/agentic-action-runtime-pack.json",
         "data/evidence/agentic-approval-receipt-pack.json",
         "data/evidence/agentic-catastrophic-risk-annex.json",
+        "data/evidence/agentic-entitlement-review-pack.json",
         "data/evidence/agentic-incident-response-pack.json",
         "data/evidence/agentic-readiness-scorecard.json",
         "data/evidence/agentic-soc-detection-pack.json",
@@ -1428,6 +1478,11 @@
           "id": "ci-context-provenance-minimization",
           "status": "ready",
           "title": "Context provenance and minimization"
+        },
+        {
+          "id": "ci-five-eyes-least-privilege",
+          "status": "ready",
+          "title": "Five Eyes least privilege and careful adoption"
         },
         {
           "id": "ci-human-oversight-approval",
@@ -1461,9 +1516,10 @@
         "external_send"
       ],
       "readiness_status": "ready_for_read_only_pilot",
-      "ready_control_count": 5,
+      "ready_control_count": 6,
       "required_control_ids": [
         "ci-context-provenance-minimization",
+        "ci-five-eyes-least-privilege",
         "ci-human-oversight-approval",
         "ci-telemetry-reconstruction",
         "ci-incident-containment-replay",
@@ -1471,7 +1527,7 @@
       ],
       "sector_hazard": "Agentic context can expose regulated health data or influence care operations, clinical workflow availability, medical device operations, or emergency response coordination.",
       "title": "Healthcare and public health",
-      "total_control_count": 5
+      "total_control_count": 6
     },
     {
       "allowed_pilot_actions": [
@@ -1497,6 +1553,11 @@
           "id": "ci-mcp-authorization-scope",
           "status": "ready",
           "title": "MCP authorization and scope minimization"
+        },
+        {
+          "id": "ci-five-eyes-least-privilege",
+          "status": "ready",
+          "title": "Five Eyes least privilege and careful adoption"
         },
         {
           "id": "ci-human-oversight-approval",
@@ -1530,9 +1591,10 @@
         "mass_delete"
       ],
       "readiness_status": "ready_for_read_only_pilot",
-      "ready_control_count": 5,
+      "ready_control_count": 6,
       "required_control_ids": [
         "ci-mcp-authorization-scope",
+        "ci-five-eyes-least-privilege",
         "ci-human-oversight-approval",
         "ci-action-runtime-deny-default",
         "ci-telemetry-reconstruction",
@@ -1540,7 +1602,7 @@
       ],
       "sector_hazard": "Agentic actions can create funds movement, market impact, access-policy drift, model-route risk, fraud-monitoring blind spots, or regulated-data leakage.",
       "title": "Financial services",
-      "total_control_count": 5
+      "total_control_count": 6
     },
     {
       "allowed_pilot_actions": [
@@ -1549,8 +1611,11 @@
         "ticket_prefill"
       ],
       "control_evidence_paths": [
+        "data/evidence/agent-identity-delegation-ledger.json",
         "data/evidence/agentic-action-runtime-pack.json",
+        "data/evidence/agentic-approval-receipt-pack.json",
         "data/evidence/agentic-catastrophic-risk-annex.json",
+        "data/evidence/agentic-entitlement-review-pack.json",
         "data/evidence/agentic-incident-response-pack.json",
         "data/evidence/agentic-readiness-scorecard.json",
         "data/evidence/agentic-soc-detection-pack.json",
@@ -1566,6 +1631,11 @@
           "id": "ci-context-provenance-minimization",
           "status": "ready",
           "title": "Context provenance and minimization"
+        },
+        {
+          "id": "ci-five-eyes-least-privilege",
+          "status": "ready",
+          "title": "Five Eyes least privilege and careful adoption"
         },
         {
           "id": "ci-action-runtime-deny-default",
@@ -1598,9 +1668,10 @@
         "safety_system_change"
       ],
       "readiness_status": "ready_for_read_only_pilot",
-      "ready_control_count": 5,
+      "ready_control_count": 6,
       "required_control_ids": [
         "ci-context-provenance-minimization",
+        "ci-five-eyes-least-privilege",
         "ci-action-runtime-deny-default",
         "ci-local-mcp-sandbox",
         "ci-sector-hazard-escalation",
@@ -1608,7 +1679,7 @@
       ],
       "sector_hazard": "Agentic workflows can affect treatment operations, remote access, field response, public-service continuity, and vendor maintenance windows.",
       "title": "Water and wastewater",
-      "total_control_count": 5
+      "total_control_count": 6
     },
     {
       "allowed_pilot_actions": [
@@ -1618,15 +1689,22 @@
         "policy_simulation"
       ],
       "control_evidence_paths": [
+        "data/evidence/agent-identity-delegation-ledger.json",
         "data/evidence/agentic-action-runtime-pack.json",
         "data/evidence/agentic-approval-receipt-pack.json",
         "data/evidence/agentic-catastrophic-risk-annex.json",
+        "data/evidence/agentic-entitlement-review-pack.json",
         "data/evidence/agentic-incident-response-pack.json",
         "data/evidence/agentic-readiness-scorecard.json",
         "data/evidence/agentic-soc-detection-pack.json",
         "data/evidence/agentic-telemetry-contract.json"
       ],
       "controls": [
+        {
+          "id": "ci-five-eyes-least-privilege",
+          "status": "ready",
+          "title": "Five Eyes least privilege and careful adoption"
+        },
         {
           "id": "ci-human-oversight-approval",
           "status": "ready",
@@ -1663,8 +1741,9 @@
         "identity_admin"
       ],
       "readiness_status": "ready_for_read_only_pilot",
-      "ready_control_count": 5,
+      "ready_control_count": 6,
       "required_control_ids": [
+        "ci-five-eyes-least-privilege",
         "ci-human-oversight-approval",
         "ci-action-runtime-deny-default",
         "ci-telemetry-reconstruction",
@@ -1673,7 +1752,7 @@
       ],
       "sector_hazard": "Agentic decisions can affect passenger safety, logistics availability, signaling support systems, maintenance operations, and public-service continuity.",
       "title": "Transportation systems",
-      "total_control_count": 5
+      "total_control_count": 6
     },
     {
       "allowed_pilot_actions": [
@@ -1685,6 +1764,7 @@
       "control_evidence_paths": [
         "data/evidence/agent-identity-delegation-ledger.json",
         "data/evidence/agentic-action-runtime-pack.json",
+        "data/evidence/agentic-approval-receipt-pack.json",
         "data/evidence/agentic-catastrophic-risk-annex.json",
         "data/evidence/agentic-entitlement-review-pack.json",
         "data/evidence/agentic-incident-response-pack.json",
@@ -1708,6 +1788,11 @@
           "id": "ci-mcp-authorization-scope",
           "status": "ready",
           "title": "MCP authorization and scope minimization"
+        },
+        {
+          "id": "ci-five-eyes-least-privilege",
+          "status": "ready",
+          "title": "Five Eyes least privilege and careful adoption"
         },
         {
           "id": "ci-action-runtime-deny-default",
@@ -1741,10 +1826,11 @@
         "model_route_change"
       ],
       "readiness_status": "ready_for_read_only_pilot",
-      "ready_control_count": 6,
+      "ready_control_count": 7,
       "required_control_ids": [
         "ci-context-provenance-minimization",
         "ci-mcp-authorization-scope",
+        "ci-five-eyes-least-privilege",
         "ci-action-runtime-deny-default",
         "ci-telemetry-reconstruction",
         "ci-local-mcp-sandbox",
@@ -1752,29 +1838,29 @@
       ],
       "sector_hazard": "Agentic workflows can affect cross-sector dependencies, routing, identity, DNS, cloud metadata, tenant isolation, platform availability, and incident response visibility.",
       "title": "Communications, cloud, and DNS",
-      "total_control_count": 6
+      "total_control_count": 7
     }
   ],
   "source_artifacts": {
     "critical_infrastructure_secure_context_profile": {
       "path": "data/assurance/critical-infrastructure-secure-context-profile.json",
-      "sha256": "9ca1b076d42604b02a355817da449b0aaef73cd29c42ab3e842f83d7f40422a8"
+      "sha256": "c9aa602e8f25c98b4c46e559aa7e5bd2b50283f050c121ae1fd0e83ae27ac81f"
     },
     "evidence_packs": [
       {
         "id": "agentic-catastrophic-risk-annex",
         "path": "data/evidence/agentic-catastrophic-risk-annex.json",
-        "sha256": "0190c99eb76a28a8d6d9b0eeae82e2d385f716be1142f7c0f0a922090bf61393"
+        "sha256": "3f8e8d345c71a6ee49fe4368e696499844b4b5f0d8a0f2da930bb4c4f73c5aa9"
       },
       {
         "id": "agentic-action-runtime-pack",
         "path": "data/evidence/agentic-action-runtime-pack.json",
-        "sha256": "3fc73421a2da2afd42840813853d88f837031f0e95621dda12977d74e1cf014c"
+        "sha256": "93ca73381e77ed912d674435a7c898c535c9c8db7ca165f9e5dca73764aae072"
       },
       {
         "id": "agentic-approval-receipt-pack",
         "path": "data/evidence/agentic-approval-receipt-pack.json",
-        "sha256": "b0e5a38ad3795556c4df1a429f1fb4cf0476064c5d354c97cae6e97e14152fdc"
+        "sha256": "a2ec5453f95fa1aca23f1eea4d32d0905f3f74b46fb56e65c3382d1710dfb0a1"
       },
       {
         "id": "agentic-readiness-scorecard",
@@ -1784,17 +1870,17 @@
       {
         "id": "agentic-incident-response-pack",
         "path": "data/evidence/agentic-incident-response-pack.json",
-        "sha256": "ae6de3389940b64572fc45a7fd16a119531282a1e6ad8c89d67999271265ff42"
+        "sha256": "dce96c03b14d37a06cc4e830ac5acc0ec0cbaa60b5d65e4f985ea5e9dfe82cb9"
       },
       {
         "id": "agentic-soc-detection-pack",
         "path": "data/evidence/agentic-soc-detection-pack.json",
-        "sha256": "92baf1687e88419d36f434663629c8ca9cccce0d5457ed115ed825ce2531cb16"
+        "sha256": "18679e268c374fa4da37ed59bca6dbe3856523deb76f12497fce08546e8c2bb6"
       },
       {
         "id": "agentic-telemetry-contract",
         "path": "data/evidence/agentic-telemetry-contract.json",
-        "sha256": "13af061ddf989e992ee1772a1f1be74eb05dadfe4025cc9f4428201aae8492d3"
+        "sha256": "3bf562129e5ffd5a02362490a285aa45c3bed69707f9c924c84b2eaa58c17566"
       },
       {
         "id": "mcp-authorization-conformance",
@@ -1804,7 +1890,7 @@
       {
         "id": "mcp-stdio-launch-boundary",
         "path": "data/evidence/mcp-stdio-launch-boundary-pack.json",
-        "sha256": "c5150ddebcfbcc5ea25ad04c1f169c7413dd11cc8edcf8db77f9aa47d2757bb0"
+        "sha256": "ac8fba744afa34c51d6537de71a6d3743b13e4628ad3bf445498f6b33055c7fc"
       },
       {
         "id": "mcp-tool-surface-drift-pack",
@@ -1814,17 +1900,17 @@
       {
         "id": "secure-context-trust-pack",
         "path": "data/evidence/secure-context-trust-pack.json",
-        "sha256": "705b23fe67c78f32340031504f496bf5932493f31a5906a6e764158f8c2142d7"
+        "sha256": "cdfe1c656b0f1edb1bf1b0895a49dff9c4c89073cd8a4cbd23a642a9304ac306"
       },
       {
         "id": "secure-context-lineage-ledger",
         "path": "data/evidence/secure-context-lineage-ledger.json",
-        "sha256": "36848888d8379436c9eec3aafff2316ea2231e34aeebcac6178d2824dfb2ca28"
+        "sha256": "212558d02cab9cbeae9dd623afb66b361e998ded5f6d7aad50de40bc348a79dd"
       },
       {
         "id": "context-egress-boundary-pack",
         "path": "data/evidence/context-egress-boundary-pack.json",
-        "sha256": "52ae72afeed959edd39a1d7a9e8c154ceb3c897b69875de1484fa87ea88d618b"
+        "sha256": "84c22dd3d4ecb07c828f20a8f6ad1157e86f74b6ccac2370b7cb155620267b9c"
       },
       {
         "id": "agent-identity-ledger",
@@ -1834,17 +1920,17 @@
       {
         "id": "agentic-entitlement-review-pack",
         "path": "data/evidence/agentic-entitlement-review-pack.json",
-        "sha256": "9303974dcf442ad5d3544f8ccf7b26e5eb96168f3bf2f3ec2a75dcfd08fe0379"
+        "sha256": "b8d9272edd35a624e56ffb99c51a3f92e566fec6acf660dccc36f13a3230deca"
       },
       {
         "id": "agentic-source-freshness-watch",
         "path": "data/evidence/agentic-source-freshness-watch.json",
-        "sha256": "cc80fe5469b1f09f8c58e78a19e8cf296ac77516c194c07ade11b907bb0e3e3c"
+        "sha256": "23f95f0b9af5167a5187dc55c0de99dc0f779a9375ee249381c4a1395bb41e61"
       },
       {
         "id": "agentic-standards-crosswalk",
         "path": "data/evidence/agentic-standards-crosswalk.json",
-        "sha256": "0618045846ce1ccdecdef84ca0e40b48c7554199b411d70c9cfb53d866fdb191"
+        "sha256": "359feb69296f408e74b751efdf0f91189dda848605f52a4d54e06bf87ebab43d"
       }
     ]
   },
@@ -1866,6 +1952,12 @@
       "id": "cisa-secure-by-design",
       "name": "CISA Secure by Design",
       "url": "https://www.cisa.gov/securebydesign"
+    },
+    {
+      "coverage": "Joint CCCS, CISA, NSA, ASD ACSC, NCSC-NZ, and NCSC-UK operational guidance that critical-infrastructure agents start on low-risk non-sensitive tasks, never receive unrestricted access to sensitive data or critical systems, use distinct credentials, and cannot progress into higher-risk activity without human approval.",
+      "id": "five-eyes-careful-adoption-agentic-ai-2026",
+      "name": "Careful Adoption of Agentic AI Services (Five Eyes)",
+      "url": "https://www.cyber.gc.ca/en/guidance/careful-adoption-agentic-ai"
     },
     {
       "coverage": "Covers autonomous behavior risks such as goal hijacking, tool misuse, identity abuse, supply-chain compromise, unexpected execution, memory poisoning, handoff failures, cascading failures, trust exploitation, and rogue behavior.",

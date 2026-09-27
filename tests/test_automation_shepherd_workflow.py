@@ -14,19 +14,23 @@ class AutomationShepherdWorkflowTests(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.workflow = WORKFLOW.read_text(encoding="utf-8")
 
-    def test_chains_and_can_be_dispatched_without_a_schedule(self) -> None:
-        self.assertNotIn("schedule:", self.workflow)
-        self.assertNotIn("- cron:", self.workflow)
+    def test_has_a_half_hourly_clock_and_can_be_dispatched(self) -> None:
+        self.assertIn('cron: "7,37 * * * *"', self.workflow)
         self.assertRegex(self.workflow, r"(?m)^\s*workflow_dispatch:\s*$")
         self.assertNotRegex(self.workflow, r"(?m)^\s+(push|pull_request|pull_request_target):")
+        self.assertIn("group: automation-shepherd", self.workflow)
+        self.assertIn("cancel-in-progress: false", self.workflow)
+        self.assertNotIn("gh workflow run automation-shepherd.yml", self.workflow)
 
     def test_chains_off_build_and_validation_completions(self) -> None:
-        # GitHub cron can lag or skip; every completed Build or validation
-        # re-running the shepherd keeps the merge train self-driving.
+        # GITHUB_TOKEN-dispatched completions do not emit workflow_run, so the
+        # schedule and explicit kicks close that hole. workflow_run still
+        # covers human- and Dependabot-triggered completions.
         self.assertIn("workflow_run:", self.workflow)
         self.assertIn("- Build", self.workflow)
         self.assertIn("- CVE catalog validation", self.workflow)
-        self.assertIn("exits\n# without dispatching", self.workflow)
+        self.assertIn("GITHUB_TOKEN itself dispatched do not emit", self.workflow)
+        self.assertIn("workflow_run events", self.workflow)
 
     def test_reconciles_unbuilt_main_revisions_without_retry_storms(self) -> None:
         reconcile = self.workflow.split("- name: Reconcile the main branch Build", 1)[1]
@@ -95,8 +99,23 @@ class AutomationShepherdWorkflowTests(unittest.TestCase):
         # needs an explicit repository context.
         self.assertEqual(
             self.workflow.count("GH_REPO: ${{ github.repository }}"),
-            3,
+            4,
         )
+
+    def test_drains_dirty_or_stale_content_refresh_prs(self) -> None:
+        drain = self.workflow.split(
+            "- name: Drain stale content-refresh pull requests", 1
+        )[1]
+        drain = drain.split("- name: Shepherd auto-merge pull requests", 1)[0]
+
+        self.assertIn('--label "automation:content-refresh"', drain)
+        self.assertIn("[ \"$MERGE_STATE\" != \"DIRTY\" ]", drain)
+        self.assertIn("[ \"$AGE_DAYS\" -lt 5 ]", drain)
+        self.assertIn("gh pr comment", drain)
+        self.assertIn("re-derive the change from current sources", drain)
+        self.assertIn("gh pr close", drain)
+        self.assertIn('SYNC_BRANCH="automation/cve-catalog-sync"', drain)
+        self.assertNotIn("gh workflow run automation-shepherd.yml", drain)
 
     def test_actions_are_pinned_to_full_commit_shas(self) -> None:
         references = re.findall(r"(?m)^\s*uses:\s*([^#\s]+)", self.workflow)

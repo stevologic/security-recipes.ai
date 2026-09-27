@@ -155,6 +155,23 @@ class CveCatalogValidationWorkflowTests(unittest.TestCase):
             with self.subTest(command=command):
                 self.assertIn(command, self.validation)
 
+    def test_dispatch_completion_kicks_the_shepherd(self) -> None:
+        self.assertIn("kick-shepherd:", self.validation)
+        self.assertIn(
+            "if: always() && github.event_name == 'workflow_dispatch'",
+            self.validation,
+        )
+        self.assertIn("gh workflow run automation-shepherd.yml --ref main", self.validation)
+        kick = self.validation.split("\n  kick-shepherd:\n", 1)[1]
+        self.assertIn("actions: write", kick)
+        self.assertNotIn("actions/checkout", kick)
+        self.assertNotIn("cache:", kick)
+        self.assertNotIn("gh workflow run automation-shepherd.yml", kick.split("run:", 1)[0])
+        self.assertLess(
+            self.validation.index("publish-required-status"),
+            self.validation.index("kick-shepherd:"),
+        )
+
     def test_actions_are_pinned_to_full_commit_shas(self) -> None:
         request_references = re.findall(
             r"(?m)^\s*uses:\s*([^#\s]+)", self.request

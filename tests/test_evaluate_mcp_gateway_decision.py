@@ -69,5 +69,84 @@ class MCPGatewayAcsFailOpenTests(unittest.TestCase):
         self.assertTrue(any("on_decision_failure=deny" in item for item in result["violations"]))
 
 
+class MCPGatewayHeaderMismatchTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.policy = json.loads(POLICY_PATH.read_text(encoding="utf-8"))
+
+    def test_matching_streamable_http_headers_stay_on_the_allow_path(self) -> None:
+        result = evaluate_policy_decision(
+            self.policy,
+            _bounded_read(
+                mcp_method="tools/call",
+                mcp_name="advisories.vulnerability.read",
+                mcp_protocol_version="2026-07-28",
+                jsonrpc_method="tools/call",
+                jsonrpc_name="advisories.vulnerability.read",
+                jsonrpc_protocol_version="2026-07-28",
+            ),
+        )
+        self.assertEqual(result["decision"], "allow")
+        self.assertTrue(result["allowed"])
+
+    def test_mcp_method_mismatch_denies_instead_of_executing_the_body(self) -> None:
+        result = evaluate_policy_decision(
+            self.policy,
+            _bounded_read(
+                mcp_method="tools/list",
+                jsonrpc_method="tools/call",
+            ),
+        )
+        self.assertEqual(result["decision"], "deny")
+        self.assertFalse(result["allowed"])
+        self.assertTrue(any("Mcp-Method" in item and "-32020" in item for item in result["violations"]))
+
+    def test_mcp_method_header_disagrees_with_inferred_tools_call(self) -> None:
+        result = evaluate_policy_decision(
+            self.policy,
+            _bounded_read(mcp_method="resources/read"),
+        )
+        self.assertEqual(result["decision"], "deny")
+        self.assertFalse(result["allowed"])
+        self.assertTrue(any("resources/read" in item for item in result["violations"]))
+
+    def test_mcp_name_mismatch_denies(self) -> None:
+        result = evaluate_policy_decision(
+            self.policy,
+            _bounded_read(
+                mcp_name="harmless.search",
+                jsonrpc_name="repo.contents.patch_scoped_branch",
+            ),
+        )
+        self.assertEqual(result["decision"], "deny")
+        self.assertFalse(result["allowed"])
+        self.assertTrue(any("Mcp-Name" in item and "-32020" in item for item in result["violations"]))
+
+    def test_mcp_name_base64_sentinel_is_decoded_before_comparison(self) -> None:
+        result = evaluate_policy_decision(
+            self.policy,
+            _bounded_read(
+                mcp_name="=?base64?YWR2aXNvcmllcy52dWxuZXJhYmlsaXR5LnJlYWQ=?=",
+                jsonrpc_name="advisories.vulnerability.read",
+            ),
+        )
+        self.assertEqual(result["decision"], "allow")
+        self.assertTrue(result["allowed"])
+
+    def test_protocol_version_mismatch_denies(self) -> None:
+        result = evaluate_policy_decision(
+            self.policy,
+            _bounded_read(
+                mcp_protocol_version="2025-11-25",
+                jsonrpc_protocol_version="2026-07-28",
+            ),
+        )
+        self.assertEqual(result["decision"], "deny")
+        self.assertFalse(result["allowed"])
+        self.assertTrue(
+            any("MCP-Protocol-Version" in item and "-32020" in item for item in result["violations"])
+        )
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -16,9 +16,13 @@ Out of scope:
   modifying unrelated application code.
 
 Work the refresh end to end:
-1. Start from the current default branch. Inspect recent content
-   refresh PRs with `gh pr list --state all --search
-   "label:automation:content-refresh"` so work is not duplicated.
+1. Start from the current default branch. Inspect recent and closed
+   content-refresh PRs with `gh pr list --state all --search
+   "label:automation:content-refresh"`. Do not duplicate an already-open
+   PR. Closed unmerged content-refresh PRs are stale research, not
+   completed work: re-derive that change from current sources if it is
+   still the best opportunity. Do not treat a closed unmerged PR as a
+   reason to skip the topic.
 2. Inventory the in-scope content and its frontmatter review dates,
    source links, git history, registry coverage, validation tests,
    and TODO/gap signals. Research current primary/official sources
