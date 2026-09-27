@@ -3,7 +3,7 @@ title: Agentic Protocol Conformance Pack
 linkTitle: Protocol Conformance
 weight: 14
 date: 2026-05-04
-lastmod: 2026-08-21
+lastmod: 2026-09-27
 sidebar:
   exclude: true
 description: >
@@ -33,6 +33,19 @@ or procurement reviewer can inspect through MCP. Rechecked against MCP
 on August 23, 2026. `--protocol-id mcp-authorization-2025-11-25` is
 the existing pack id. It is not a 2026 protocol-profile clone and not
 a claim that 2025-11-25 is still the current MCP specification.
+
+Rechecked September 27, 2026 against the MCP
+[2026-07-28 subscriptions pattern](https://modelcontextprotocol.io/specification/2026-07-28/basic/patterns/subscriptions)
+and [changelog](https://modelcontextprotocol.io/specification/2026-07-28/changelog).
+`subscriptions/listen` replaced `resources/subscribe` and the HTTP GET
+notification endpoint. Servers must send
+`notifications/subscriptions/acknowledged` with
+`io.modelcontextprotocol/subscriptionId` before any event, must not
+push unrequested notification types, and must keep request-scoped
+`notifications/progress` and `notifications/message` on the originating
+request stream. After a stdio reconnect, clients must re-send
+`subscriptions/listen`. This editorial pass does not claim a separate
+human review of the pack.
 
 ## What was added
 
@@ -70,6 +83,26 @@ python3 scripts/evaluate_agentic_protocol_conformance_decision.py \
   --expect-decision allow_with_protocol_receipt
 ```
 
+Deny an unsolicited `subscriptions/listen` notification:
+
+```bash
+python3 scripts/evaluate_agentic_protocol_conformance_decision.py \
+  --protocol-id mcp-tooling-safety \
+  --workflow-id vulnerable-dependency-remediation \
+  --agent-id sec-auto-remediator \
+  --run-id run-2026-09-27-listen \
+  --session-id sess-listen \
+  --correlation-id corr-listen \
+  --transport streamable-http \
+  --tool-surface-pinned \
+  --tool-annotations-trusted \
+  --subscription-method subscriptions/listen \
+  --subscription-id 1 \
+  --subscription-acknowledged \
+  --subscription-unsolicited-notification \
+  --expect-decision deny_untrusted_protocol_surface
+```
+
 {{< playbook-workflow >}}
 
 ## Decision model
@@ -92,7 +125,8 @@ protocol profiles:
   audience and resource binding, PKCE, token-passthrough denial, client
   metadata review, and incremental consent evidence.
 - **MCP Tool Annotation, Schema, and Drift Safety** for trusted
-  annotations, pinned tool descriptions and schemas, tool-output
+  annotations, pinned tool descriptions and schemas, `subscriptions/listen`
+  acknowledgment and requested-type enforcement, tool-output
   validation, and private-data plus untrusted-content plus external-send
   risk.
 - **A2A Agent Discovery and Delegation** for Agent Card completeness,
@@ -109,6 +143,10 @@ This feature tracks current primary guidance:
 - [MCP Authorization](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
   for protected-resource metadata, resource indicators, audience-bound
   tokens, PKCE, client metadata, and token-passthrough denial.
+- [MCP Subscriptions](https://modelcontextprotocol.io/specification/2026-07-28/basic/patterns/subscriptions)
+  for `subscriptions/listen`, `notifications/subscriptions/acknowledged`,
+  `io.modelcontextprotocol/subscriptionId`, requested notification
+  types, and stdio reconnect behavior.
 - [MCP Tool Annotations](https://blog.modelcontextprotocol.io/posts/2026-03-16-tool-annotations/)
   for annotation-driven tool UX and the need to treat annotations as
   policy hints until trust and drift evidence exist.

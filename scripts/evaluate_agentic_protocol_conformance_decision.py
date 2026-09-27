@@ -3,7 +3,10 @@
 
 This deterministic evaluator gives an agent host, MCP gateway, or A2A
 gateway a fail-closed decision before protocol-mediated context, tool
-authority, or remote-agent delegation proceeds.
+authority, or remote-agent delegation proceeds. MCP 2026-07-28
+notification streams must use subscriptions/listen with an
+acknowledgment and subscriptionId; legacy resources/subscribe and HTTP
+GET notification endpoints are drift.
 """
 
 from __future__ import annotations
@@ -26,6 +29,16 @@ VALID_DECISIONS = {
     "kill_session_on_protocol_violation",
 }
 HTTP_TRANSPORTS = {"http", "streamable-http", "sse", "https"}
+LISTEN_SUBSCRIPTION_METHOD = "subscriptions/listen"
+LEGACY_SUBSCRIPTION_METHODS = {
+    "resources/subscribe",
+    "resources/unsubscribe",
+    "http_get_notifications",
+    "http-get-notifications",
+    "http_get",
+    "get",
+}
+SUBSCRIPTION_CHECK_ID = "mcp-subscription-listen-conformance"
 
 
 class ProtocolConformanceDecisionError(RuntimeError):
@@ -102,6 +115,8 @@ def normalize_request(runtime_request: dict[str, Any]) -> dict[str, Any]:
         "session_id",
         "correlation_id",
         "gateway_policy_hash",
+        "subscription_method",
+        "subscription_id",
     ]:
         request[key] = str(request.get(key) or "").strip()
     for key in [
@@ -120,17 +135,80 @@ def normalize_request(runtime_request: dict[str, Any]) -> dict[str, Any]:
         "resource_indicator_present",
         "runtime_kill_signal",
         "schema_drift_detected",
+        "stdio_subscription_state_reused_after_reconnect",
+        "subscription_acknowledged",
+        "subscription_request_scoped_on_listen_stream",
+        "subscription_unsolicited_notification",
         "token_audience_bound",
         "token_passthrough",
         "tool_annotations_trusted",
         "tool_output_schema_validated",
         "tool_surface_pinned",
         "untrusted_content_seen",
+        "legacy_http_get_notifications",
+        "legacy_resources_subscribe",
     ]:
         request[key] = as_bool(request.get(key))
     request["data_classes"] = [str(item).strip() for item in as_list(request.get("data_classes")) if str(item).strip()]
+    request["requested_notification_types"] = [
+        str(item).strip() for item in as_list(request.get("requested_notification_types")) if str(item).strip()
+    ]
+    request["observed_notification_types"] = [
+        str(item).strip() for item in as_list(request.get("observed_notification_types")) if str(item).strip()
+    ]
     request["human_approval_record"] = as_dict(request.get("human_approval_record"))
     return request
+
+
+def is_mcp_protocol(protocol_id: str) -> bool:
+    return protocol_id.startswith("mcp-")
+
+
+def has_subscription_evidence(request: dict[str, Any]) -> bool:
+    return bool(
+        request.get("subscription_method")
+        or request.get("subscription_id")
+        or request.get("subscription_acknowledged")
+        or request.get("subscription_unsolicited_notification")
+        or request.get("subscription_request_scoped_on_listen_stream")
+        or request.get("stdio_subscription_state_reused_after_reconnect")
+        or request.get("legacy_resources_subscribe")
+        or request.get("legacy_http_get_notifications")
+        or request.get("requested_notification_types")
+        or request.get("observed_notification_types")
+    )
+
+
+def uses_legacy_subscription_method(request: dict[str, Any]) -> bool:
+    method = str(request.get("subscription_method") or "").strip()
+    return (
+        request.get("legacy_resources_subscribe")
+        or request.get("legacy_http_get_notifications")
+        or method in LEGACY_SUBSCRIPTION_METHODS
+    )
+
+
+def subscription_listen_violations(request: dict[str, Any]) -> list[str]:
+    violations: list[str] = []
+    method = str(request.get("subscription_method") or "").strip()
+    requested = set(request.get("requested_notification_types") or [])
+    observed = set(request.get("observed_notification_types") or [])
+    if request.get("subscription_unsolicited_notification") or (
+        requested and observed and not observed.issubset(requested)
+    ):
+        violations.append("unsolicited notification type on subscriptions/listen")
+    if request.get("subscription_request_scoped_on_listen_stream"):
+        violations.append(
+            "request-scoped notifications/progress or notifications/message on subscriptions/listen"
+        )
+    if request.get("stdio_subscription_state_reused_after_reconnect"):
+        violations.append("stdio subscription state reused after reconnect")
+    if method == LISTEN_SUBSCRIPTION_METHOD:
+        if not request.get("subscription_acknowledged"):
+            violations.append("missing notifications/subscriptions/acknowledged")
+        if not request.get("subscription_id"):
+            violations.append("missing io.modelcontextprotocol/subscriptionId")
+    return violations
 
 
 def decision_result(
@@ -265,6 +343,30 @@ def evaluate_agentic_protocol_conformance_decision(
                 violations=["client_metadata_reviewed=false"],
             )
 
+    if is_mcp_protocol(protocol_id) and has_subscription_evidence(request):
+        listen_violations = subscription_listen_violations(request)
+        subscription_protocol = protocols.get("mcp-tooling-safety") or protocol
+        if listen_violations:
+            return decision_result(
+                decision="deny_untrusted_protocol_surface",
+                reason="MCP subscriptions/listen stream violates acknowledgment, subscriptionId, requested-type, or request-scoped notification rules",
+                pack=conformance_pack,
+                request=request,
+                matched_protocol=subscription_protocol,
+                matched_checks=selected_checks(subscription_protocol, [SUBSCRIPTION_CHECK_ID]),
+                violations=listen_violations,
+            )
+        if uses_legacy_subscription_method(request):
+            return decision_result(
+                decision="hold_for_protocol_drift_review",
+                reason="MCP 2026-07-28 replaced resources/subscribe and HTTP GET notifications with subscriptions/listen",
+                pack=conformance_pack,
+                request=request,
+                matched_protocol=subscription_protocol,
+                matched_checks=selected_checks(subscription_protocol, [SUBSCRIPTION_CHECK_ID]),
+                violations=["legacy MCP notification subscription method"],
+            )
+
     if protocol_id == "mcp-tooling-safety":
         if request["schema_drift_detected"] or not request["tool_surface_pinned"]:
             return decision_result(
@@ -397,6 +499,8 @@ def request_from_args(args: argparse.Namespace) -> dict[str, Any]:
         "session_id",
         "correlation_id",
         "gateway_policy_hash",
+        "subscription_method",
+        "subscription_id",
     ]:
         value = getattr(args, key)
         if value not in (None, ""):
@@ -417,17 +521,27 @@ def request_from_args(args: argparse.Namespace) -> dict[str, Any]:
         "resource_indicator_present",
         "runtime_kill_signal",
         "schema_drift_detected",
+        "stdio_subscription_state_reused_after_reconnect",
+        "subscription_acknowledged",
+        "subscription_request_scoped_on_listen_stream",
+        "subscription_unsolicited_notification",
         "token_audience_bound",
         "token_passthrough",
         "tool_annotations_trusted",
         "tool_output_schema_validated",
         "tool_surface_pinned",
         "untrusted_content_seen",
+        "legacy_http_get_notifications",
+        "legacy_resources_subscribe",
     ]:
         if getattr(args, flag):
             payload[flag] = True
     if args.data_class:
         payload["data_classes"] = args.data_class
+    if args.requested_notification_type:
+        payload["requested_notification_types"] = args.requested_notification_type
+    if args.observed_notification_type:
+        payload["observed_notification_types"] = args.observed_notification_type
     if args.approval:
         payload["human_approval_record"] = parse_key_value(args.approval)
     return payload
@@ -448,7 +562,21 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--session-id", dest="session_id")
     parser.add_argument("--correlation-id", dest="correlation_id")
     parser.add_argument("--gateway-policy-hash", dest="gateway_policy_hash")
+    parser.add_argument("--subscription-method", dest="subscription_method")
+    parser.add_argument("--subscription-id", dest="subscription_id")
     parser.add_argument("--data-class", dest="data_class", action="append", default=[])
+    parser.add_argument(
+        "--requested-notification-type",
+        dest="requested_notification_type",
+        action="append",
+        default=[],
+    )
+    parser.add_argument(
+        "--observed-notification-type",
+        dest="observed_notification_type",
+        action="append",
+        default=[],
+    )
     parser.add_argument("--approval", action="append", default=[], help="Approval field as KEY=VALUE.")
     parser.add_argument("--a2a-version-header", dest="a2a_version_header", action="store_true")
     parser.add_argument("--agent-card-present", dest="agent_card_present", action="store_true")
@@ -465,6 +593,36 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--resource-indicator-present", dest="resource_indicator_present", action="store_true")
     parser.add_argument("--runtime-kill-signal", dest="runtime_kill_signal", action="store_true")
     parser.add_argument("--schema-drift-detected", dest="schema_drift_detected", action="store_true")
+    parser.add_argument(
+        "--stdio-subscription-state-reused-after-reconnect",
+        dest="stdio_subscription_state_reused_after_reconnect",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--subscription-acknowledged",
+        dest="subscription_acknowledged",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--subscription-request-scoped-on-listen-stream",
+        dest="subscription_request_scoped_on_listen_stream",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--subscription-unsolicited-notification",
+        dest="subscription_unsolicited_notification",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--legacy-http-get-notifications",
+        dest="legacy_http_get_notifications",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--legacy-resources-subscribe",
+        dest="legacy_resources_subscribe",
+        action="store_true",
+    )
     parser.add_argument("--token-audience-bound", dest="token_audience_bound", action="store_true")
     parser.add_argument("--token-passthrough", dest="token_passthrough", action="store_true")
     parser.add_argument("--tool-annotations-trusted", dest="tool_annotations_trusted", action="store_true")
