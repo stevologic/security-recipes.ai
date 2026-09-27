@@ -523,3 +523,21 @@ jobs:
             docker login ghcr.io --username "${GITHUB_ACTOR}" --password-stdin
           docker push "${SITE_TARGET_IMAGE}"
           docker push "${MCP_TARGET_IMAGE}"
+
+  kick-automation:
+    if: always() && github.event_name == 'workflow_dispatch'
+    needs:
+      - build
+      - publish
+    permissions:
+      actions: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Dispatch shepherd and search indexing
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh workflow run automation-shepherd.yml --ref main
+          gh workflow run search-indexing.yml --ref main
