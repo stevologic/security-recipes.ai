@@ -24,6 +24,8 @@ class ContentRefreshWorkflowTests(unittest.TestCase):
             "content/security-remediation/",
             "data/remediation_suite/",
             "data/assurance/",
+            "data/evidence/agentic-source-freshness-watch.json",
+            "data/intelligence/",
             "non-CVE recipes under content/recipes/",
         ):
             self.assertIn(required_scope, self.prompt)
@@ -39,6 +41,9 @@ class ContentRefreshWorkflowTests(unittest.TestCase):
             "primary/official sources",
             "at most one high-confidence, coherent opportunity",
             "date-only freshness edits",
+            "never bump last_reviewed",
+            "review_due_at has already passed",
+            "source_freshness watchdog",
             "Do not claim human review",
             "python scripts/run_checks.py",
             "creating a branch, issue, or PR",
