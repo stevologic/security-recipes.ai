@@ -1407,10 +1407,8 @@ class EnrichmentCache:
                 self.stats["failed"] += 1
                 if exc.reason == "timeout":
                     consecutive_timeouts += 1
-                    consecutive_errors = 0
                 else:
                     consecutive_errors += 1
-                    consecutive_timeouts = 0
                 print(
                     f"[{cve}] optional xAI enrichment skipped: {exc}",
                     file=sys.stderr,

@@ -488,7 +488,7 @@ def check_automation_backlog(
     for pull in pull_requests:
         if not isinstance(pull, dict):
             continue
-        if pull.get("auto_merge") in {None, False}:
+        if not pull.get("auto_merge"):
             continue
         labels = _pr_label_names(pull)
         if not labels & BACKLOG_LABELS:
