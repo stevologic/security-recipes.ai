@@ -388,8 +388,8 @@
           "title": "MCP Authorization Conformance"
         },
         {
-          "commercial_value": "Packages live tool-list monitoring, signed tool-surface baselines, annotation trust, and session-combination risk into a hosted MCP security control plane.",
-          "conformance_check_count": 4,
+          "commercial_value": "Packages live tool-list monitoring over subscriptions/listen, signed tool-surface baselines, annotation trust, and private-data plus untrusted-content plus external-send risk into a hosted MCP security control plane.",
+          "conformance_check_count": 5,
           "conformance_checks": [
             {
               "buyer_question": "Are annotations enforceable policy evidence or only UI hints from an untrusted server?",
@@ -515,6 +515,55 @@
               },
               "status": "ready",
               "title": "Tool Surface Pinning"
+            },
+            {
+              "buyer_question": "Can SecurityRecipes reject an MCP notification stream that still uses resources/subscribe, skips the listen acknowledgment, or pushes unsolicited list-changed events?",
+              "check_hash": "405998662647802aabfcb44da041564f9d6c22b3b4e380f68c31febc5ff1a3f8",
+              "evidence_paths": [
+                "data/evidence/mcp-tool-surface-drift-pack.json",
+                "data/evidence/agentic-protocol-conformance-pack.json"
+              ],
+              "fail_closed_decision": "deny_untrusted_protocol_surface",
+              "id": "mcp-subscription-listen-conformance",
+              "missing_evidence_paths": [],
+              "missing_source_pack_keys": [],
+              "protocol_id": "mcp-tooling-safety",
+              "required_runtime_attributes": [
+                "subscription_method",
+                "subscription_id",
+                "subscription_acknowledged"
+              ],
+              "requirement": "MCP 2026-07-28 notification streams must use subscriptions/listen, send notifications/subscriptions/acknowledged with io.modelcontextprotocol/subscriptionId before any event, omit unrequested notification types, keep request-scoped progress and log messages on the originating request stream, and re-send subscriptions/listen after a stdio reconnect.",
+              "source_pack_keys": [
+                "mcp_tool_surface_drift_pack"
+              ],
+              "source_pack_status": {
+                "mcp_tool_surface_drift_pack": {
+                  "failure_count": 0,
+                  "path": "data/evidence/mcp-tool-surface-drift-pack.json",
+                  "schema_version": "1.0",
+                  "status": "ready",
+                  "summaries": {
+                    "tool_surface_summary": {
+                      "default_decision_counts": {
+                        "allow_pinned_tool_surface": 5,
+                        "hold_for_tool_surface_review": 1
+                      },
+                      "failure_count": 0,
+                      "high_impact_surface_count": 3,
+                      "namespace_count": 6,
+                      "source_kind_counts": {
+                        "candidate_connector": 1,
+                        "registered_connector": 5
+                      },
+                      "status": "drift_baseline_ready",
+                      "surface_count": 6
+                    }
+                  }
+                }
+              },
+              "status": "ready",
+              "title": "MCP subscriptions/listen Stream Conformance"
             },
             {
               "buyer_question": "Can SecurityRecipes block the realistic data-theft path created by composable tools?",
@@ -689,19 +738,38 @@
             }
           ],
           "current_versions": [
+            "2026-07-28",
             "2025-11-25",
             "2026-03-16-tool-annotations"
           ],
           "effective_decision": "ready_for_enterprise_conformance",
           "id": "mcp-tooling-safety",
           "readiness_score": 100.0,
-          "ready_check_count": 4,
+          "ready_check_count": 5,
           "source_ids": [
+            "mcp-subscriptions-listen-2026-07-28",
+            "mcp-spec-changelog-2026-07-28",
             "mcp-tool-annotations-2026-03-16",
             "mcp-spec-changelog-2025-11-25",
             "openai-agent-prompt-injection-2026"
           ],
           "sources": [
+            {
+              "id": "mcp-subscriptions-listen-2026-07-28",
+              "name": "MCP Subscriptions Pattern (2026-07-28 current revision)",
+              "published": "2026-07-28",
+              "publisher": "Model Context Protocol",
+              "source_class": "protocol_specification",
+              "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/patterns/subscriptions"
+            },
+            {
+              "id": "mcp-spec-changelog-2026-07-28",
+              "name": "MCP Specification Changelog (2026-07-28 current revision)",
+              "published": "2026-07-28",
+              "publisher": "Model Context Protocol",
+              "source_class": "protocol_specification",
+              "url": "https://modelcontextprotocol.io/specification/2026-07-28/changelog"
+            },
             {
               "id": "mcp-tool-annotations-2026-03-16",
               "name": "Tool annotations in the Model Context Protocol",
@@ -2015,7 +2083,7 @@
                         "agentic-assurance-models",
                         "recipes"
                       ],
-                      "byte_count": 14986411,
+                      "byte_count": 14990383,
                       "decision_counts": {
                         "allow_with_adversarial_examples": 1,
                         "block_until_removed": 2,
@@ -2627,8 +2695,8 @@
           "title": "MCP Authorization Conformance"
         },
         {
-          "commercial_value": "Packages live tool-list monitoring, signed tool-surface baselines, annotation trust, and session-combination risk into a hosted MCP security control plane.",
-          "conformance_check_count": 4,
+          "commercial_value": "Packages live tool-list monitoring over subscriptions/listen, signed tool-surface baselines, annotation trust, and private-data plus untrusted-content plus external-send risk into a hosted MCP security control plane.",
+          "conformance_check_count": 5,
           "conformance_checks": [
             {
               "buyer_question": "Are annotations enforceable policy evidence or only UI hints from an untrusted server?",
@@ -2754,6 +2822,55 @@
               },
               "status": "ready",
               "title": "Tool Surface Pinning"
+            },
+            {
+              "buyer_question": "Can SecurityRecipes reject an MCP notification stream that still uses resources/subscribe, skips the listen acknowledgment, or pushes unsolicited list-changed events?",
+              "check_hash": "405998662647802aabfcb44da041564f9d6c22b3b4e380f68c31febc5ff1a3f8",
+              "evidence_paths": [
+                "data/evidence/mcp-tool-surface-drift-pack.json",
+                "data/evidence/agentic-protocol-conformance-pack.json"
+              ],
+              "fail_closed_decision": "deny_untrusted_protocol_surface",
+              "id": "mcp-subscription-listen-conformance",
+              "missing_evidence_paths": [],
+              "missing_source_pack_keys": [],
+              "protocol_id": "mcp-tooling-safety",
+              "required_runtime_attributes": [
+                "subscription_method",
+                "subscription_id",
+                "subscription_acknowledged"
+              ],
+              "requirement": "MCP 2026-07-28 notification streams must use subscriptions/listen, send notifications/subscriptions/acknowledged with io.modelcontextprotocol/subscriptionId before any event, omit unrequested notification types, keep request-scoped progress and log messages on the originating request stream, and re-send subscriptions/listen after a stdio reconnect.",
+              "source_pack_keys": [
+                "mcp_tool_surface_drift_pack"
+              ],
+              "source_pack_status": {
+                "mcp_tool_surface_drift_pack": {
+                  "failure_count": 0,
+                  "path": "data/evidence/mcp-tool-surface-drift-pack.json",
+                  "schema_version": "1.0",
+                  "status": "ready",
+                  "summaries": {
+                    "tool_surface_summary": {
+                      "default_decision_counts": {
+                        "allow_pinned_tool_surface": 5,
+                        "hold_for_tool_surface_review": 1
+                      },
+                      "failure_count": 0,
+                      "high_impact_surface_count": 3,
+                      "namespace_count": 6,
+                      "source_kind_counts": {
+                        "candidate_connector": 1,
+                        "registered_connector": 5
+                      },
+                      "status": "drift_baseline_ready",
+                      "surface_count": 6
+                    }
+                  }
+                }
+              },
+              "status": "ready",
+              "title": "MCP subscriptions/listen Stream Conformance"
             },
             {
               "buyer_question": "Can SecurityRecipes block the realistic data-theft path created by composable tools?",
@@ -2928,19 +3045,38 @@
             }
           ],
           "current_versions": [
+            "2026-07-28",
             "2025-11-25",
             "2026-03-16-tool-annotations"
           ],
           "effective_decision": "ready_for_enterprise_conformance",
           "id": "mcp-tooling-safety",
           "readiness_score": 100.0,
-          "ready_check_count": 4,
+          "ready_check_count": 5,
           "source_ids": [
+            "mcp-subscriptions-listen-2026-07-28",
+            "mcp-spec-changelog-2026-07-28",
             "mcp-tool-annotations-2026-03-16",
             "mcp-spec-changelog-2025-11-25",
             "openai-agent-prompt-injection-2026"
           ],
           "sources": [
+            {
+              "id": "mcp-subscriptions-listen-2026-07-28",
+              "name": "MCP Subscriptions Pattern (2026-07-28 current revision)",
+              "published": "2026-07-28",
+              "publisher": "Model Context Protocol",
+              "source_class": "protocol_specification",
+              "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/patterns/subscriptions"
+            },
+            {
+              "id": "mcp-spec-changelog-2026-07-28",
+              "name": "MCP Specification Changelog (2026-07-28 current revision)",
+              "published": "2026-07-28",
+              "publisher": "Model Context Protocol",
+              "source_class": "protocol_specification",
+              "url": "https://modelcontextprotocol.io/specification/2026-07-28/changelog"
+            },
             {
               "id": "mcp-tool-annotations-2026-03-16",
               "name": "Tool annotations in the Model Context Protocol",
@@ -3513,7 +3649,7 @@
                         "agentic-assurance-models",
                         "recipes"
                       ],
-                      "byte_count": 14986411,
+                      "byte_count": 14990383,
                       "decision_counts": {
                         "allow_with_adversarial_examples": 1,
                         "block_until_removed": 2,
@@ -3773,6 +3909,9 @@
       "tool_annotations_trusted",
       "tool_surface_pinned",
       "schema_drift_detected",
+      "subscription_method",
+      "subscription_id",
+      "subscription_acknowledged",
       "agent_card_signed",
       "extended_card_authenticated",
       "protocol_version_observed",
@@ -4222,6 +4361,55 @@
       },
       "status": "ready",
       "title": "Tool Surface Pinning"
+    },
+    {
+      "buyer_question": "Can SecurityRecipes reject an MCP notification stream that still uses resources/subscribe, skips the listen acknowledgment, or pushes unsolicited list-changed events?",
+      "check_hash": "405998662647802aabfcb44da041564f9d6c22b3b4e380f68c31febc5ff1a3f8",
+      "evidence_paths": [
+        "data/evidence/mcp-tool-surface-drift-pack.json",
+        "data/evidence/agentic-protocol-conformance-pack.json"
+      ],
+      "fail_closed_decision": "deny_untrusted_protocol_surface",
+      "id": "mcp-subscription-listen-conformance",
+      "missing_evidence_paths": [],
+      "missing_source_pack_keys": [],
+      "protocol_id": "mcp-tooling-safety",
+      "required_runtime_attributes": [
+        "subscription_method",
+        "subscription_id",
+        "subscription_acknowledged"
+      ],
+      "requirement": "MCP 2026-07-28 notification streams must use subscriptions/listen, send notifications/subscriptions/acknowledged with io.modelcontextprotocol/subscriptionId before any event, omit unrequested notification types, keep request-scoped progress and log messages on the originating request stream, and re-send subscriptions/listen after a stdio reconnect.",
+      "source_pack_keys": [
+        "mcp_tool_surface_drift_pack"
+      ],
+      "source_pack_status": {
+        "mcp_tool_surface_drift_pack": {
+          "failure_count": 0,
+          "path": "data/evidence/mcp-tool-surface-drift-pack.json",
+          "schema_version": "1.0",
+          "status": "ready",
+          "summaries": {
+            "tool_surface_summary": {
+              "default_decision_counts": {
+                "allow_pinned_tool_surface": 5,
+                "hold_for_tool_surface_review": 1
+              },
+              "failure_count": 0,
+              "high_impact_surface_count": 3,
+              "namespace_count": 6,
+              "source_kind_counts": {
+                "candidate_connector": 1,
+                "registered_connector": 5
+              },
+              "status": "drift_baseline_ready",
+              "surface_count": 6
+            }
+          }
+        }
+      },
+      "status": "ready",
+      "title": "MCP subscriptions/listen Stream Conformance"
     },
     {
       "buyer_question": "Can SecurityRecipes block the realistic data-theft path created by composable tools?",
@@ -4888,7 +5076,7 @@
                 "agentic-assurance-models",
                 "recipes"
               ],
-              "byte_count": 14986411,
+              "byte_count": 14990383,
               "decision_counts": {
                 "allow_with_adversarial_examples": 1,
                 "block_until_removed": 2,
@@ -5065,7 +5253,7 @@
     "sales_motion": "Lead with open protocol conformance evidence, then sell hosted live checks, drift alerts, signed receipts, fleet reporting, and private customer policy mapping."
   },
   "failures": [],
-  "generated_at": "2026-08-21",
+  "generated_at": "2026-09-27",
   "intent": "Create a buyer-grade protocol conformance layer for SecurityRecipes so MCP, A2A, agent identity, prompt-injection, and standards drift are translated into generated evidence, deterministic runtime decisions, and MCP-readable diligence artifacts.",
   "positioning": {
     "buyer": "AI platform, product security, AppSec, GRC, procurement security, and acquisition diligence teams",
@@ -5075,16 +5263,16 @@
   },
   "protocol_conformance_pack_id": "security-recipes-agentic-protocol-conformance",
   "protocol_conformance_summary": {
-    "control_check_count": 16,
+    "control_check_count": 17,
     "control_status_counts": {
-      "ready": 16
+      "ready": 17
     },
     "failure_count": 0,
     "protocol_decision_counts": {
       "ready_for_enterprise_conformance": 4
     },
     "protocol_profile_count": 4,
-    "ready_control_check_count": 16,
+    "ready_control_check_count": 17,
     "ready_protocol_profile_count": 4,
     "status": "protocol_conformance_ready"
   },
@@ -5473,8 +5661,8 @@
       "title": "MCP Authorization Conformance"
     },
     {
-      "commercial_value": "Packages live tool-list monitoring, signed tool-surface baselines, annotation trust, and session-combination risk into a hosted MCP security control plane.",
-      "conformance_check_count": 4,
+      "commercial_value": "Packages live tool-list monitoring over subscriptions/listen, signed tool-surface baselines, annotation trust, and private-data plus untrusted-content plus external-send risk into a hosted MCP security control plane.",
+      "conformance_check_count": 5,
       "conformance_checks": [
         {
           "buyer_question": "Are annotations enforceable policy evidence or only UI hints from an untrusted server?",
@@ -5600,6 +5788,55 @@
           },
           "status": "ready",
           "title": "Tool Surface Pinning"
+        },
+        {
+          "buyer_question": "Can SecurityRecipes reject an MCP notification stream that still uses resources/subscribe, skips the listen acknowledgment, or pushes unsolicited list-changed events?",
+          "check_hash": "405998662647802aabfcb44da041564f9d6c22b3b4e380f68c31febc5ff1a3f8",
+          "evidence_paths": [
+            "data/evidence/mcp-tool-surface-drift-pack.json",
+            "data/evidence/agentic-protocol-conformance-pack.json"
+          ],
+          "fail_closed_decision": "deny_untrusted_protocol_surface",
+          "id": "mcp-subscription-listen-conformance",
+          "missing_evidence_paths": [],
+          "missing_source_pack_keys": [],
+          "protocol_id": "mcp-tooling-safety",
+          "required_runtime_attributes": [
+            "subscription_method",
+            "subscription_id",
+            "subscription_acknowledged"
+          ],
+          "requirement": "MCP 2026-07-28 notification streams must use subscriptions/listen, send notifications/subscriptions/acknowledged with io.modelcontextprotocol/subscriptionId before any event, omit unrequested notification types, keep request-scoped progress and log messages on the originating request stream, and re-send subscriptions/listen after a stdio reconnect.",
+          "source_pack_keys": [
+            "mcp_tool_surface_drift_pack"
+          ],
+          "source_pack_status": {
+            "mcp_tool_surface_drift_pack": {
+              "failure_count": 0,
+              "path": "data/evidence/mcp-tool-surface-drift-pack.json",
+              "schema_version": "1.0",
+              "status": "ready",
+              "summaries": {
+                "tool_surface_summary": {
+                  "default_decision_counts": {
+                    "allow_pinned_tool_surface": 5,
+                    "hold_for_tool_surface_review": 1
+                  },
+                  "failure_count": 0,
+                  "high_impact_surface_count": 3,
+                  "namespace_count": 6,
+                  "source_kind_counts": {
+                    "candidate_connector": 1,
+                    "registered_connector": 5
+                  },
+                  "status": "drift_baseline_ready",
+                  "surface_count": 6
+                }
+              }
+            }
+          },
+          "status": "ready",
+          "title": "MCP subscriptions/listen Stream Conformance"
         },
         {
           "buyer_question": "Can SecurityRecipes block the realistic data-theft path created by composable tools?",
@@ -5774,19 +6011,38 @@
         }
       ],
       "current_versions": [
+        "2026-07-28",
         "2025-11-25",
         "2026-03-16-tool-annotations"
       ],
       "effective_decision": "ready_for_enterprise_conformance",
       "id": "mcp-tooling-safety",
       "readiness_score": 100.0,
-      "ready_check_count": 4,
+      "ready_check_count": 5,
       "source_ids": [
+        "mcp-subscriptions-listen-2026-07-28",
+        "mcp-spec-changelog-2026-07-28",
         "mcp-tool-annotations-2026-03-16",
         "mcp-spec-changelog-2025-11-25",
         "openai-agent-prompt-injection-2026"
       ],
       "sources": [
+        {
+          "id": "mcp-subscriptions-listen-2026-07-28",
+          "name": "MCP Subscriptions Pattern (2026-07-28 current revision)",
+          "published": "2026-07-28",
+          "publisher": "Model Context Protocol",
+          "source_class": "protocol_specification",
+          "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/patterns/subscriptions"
+        },
+        {
+          "id": "mcp-spec-changelog-2026-07-28",
+          "name": "MCP Specification Changelog (2026-07-28 current revision)",
+          "published": "2026-07-28",
+          "publisher": "Model Context Protocol",
+          "source_class": "protocol_specification",
+          "url": "https://modelcontextprotocol.io/specification/2026-07-28/changelog"
+        },
         {
           "id": "mcp-tool-annotations-2026-03-16",
           "name": "Tool annotations in the Model Context Protocol",
@@ -6359,7 +6615,7 @@
                     "agentic-assurance-models",
                     "recipes"
                   ],
-                  "byte_count": 14986411,
+                  "byte_count": 14990383,
                   "decision_counts": {
                     "allow_with_adversarial_examples": 1,
                     "block_until_removed": 2,
@@ -6579,16 +6835,16 @@
   "source_artifacts": {
     "agentic_protocol_conformance_profile": {
       "path": "data/assurance/agentic-protocol-conformance-profile.json",
-      "sha256": "cca4e374e6d7c6ba178b509fc10341fa92172337e72a86e39e56bab1d6d8d187"
+      "sha256": "7ab0c411968728df70cf891e7e1ae8e5fa4fef51a168e1b8270260cad4c00832"
     },
     "source_packs": {
       "a2a_agent_card_trust_profile": {
         "path": "data/evidence/a2a-agent-card-trust-profile.json",
-        "sha256": "ff55fc40526e8a89f86de3ba616e718a6842bf88dcb391444ee320c4f4a6d387"
+        "sha256": "7098fc1fbcfe23fd6b9c2ee82385481088f9a2f4a70fecf714a3379042e19d31"
       },
       "agent_handoff_boundary_pack": {
         "path": "data/evidence/agent-handoff-boundary-pack.json",
-        "sha256": "32bd7c7890ed6b650aca55e370b74631633d4cea53b3c986796597c8b68404e8"
+        "sha256": "e2d7710b92f9b3fd3416f96e7366a5988b03b7c3d6078d5699666dbdffe75986"
       },
       "agent_identity_ledger": {
         "path": "data/evidence/agent-identity-delegation-ledger.json",
@@ -6596,7 +6852,7 @@
       },
       "agentic_control_plane_blueprint": {
         "path": "data/evidence/agentic-control-plane-blueprint.json",
-        "sha256": "9ec552ad5b0762f6b150cecc5df4d35d3c370ca69d6ab47936c78fd4a431b438"
+        "sha256": "ffd9de390ae4a257c01a5dc79fd5c0e46ea27c60e62a1fabf41c5e3cad800c09"
       },
       "agentic_red_team_drill_pack": {
         "path": "data/evidence/agentic-red-team-drill-pack.json",
@@ -6604,15 +6860,15 @@
       },
       "agentic_run_receipt_pack": {
         "path": "data/evidence/agentic-run-receipt-pack.json",
-        "sha256": "2a64cd338d3a00ec004c8ab365dcfd0d8bb1e736de867cbf92cfed3b865fe9c9"
+        "sha256": "440d0cedab3a85a2d0cdb97f6ed8f388e446b61ad20e2400ca0fa38939e80581"
       },
       "context_egress_boundary_pack": {
         "path": "data/evidence/context-egress-boundary-pack.json",
-        "sha256": "84c22dd3d4ecb07c828f20a8f6ad1157e86f74b6ccac2370b7cb155620267b9c"
+        "sha256": "e9e97999e9a357415080fe1345ddf4ea7048b6402fd71674b15ba59a8821d933"
       },
       "context_poisoning_guard_pack": {
         "path": "data/evidence/context-poisoning-guard-pack.json",
-        "sha256": "abe4bf81d3591f6a89de66896a24736c5fc2706993f4e1c53cc42426748d9a70"
+        "sha256": "5539118b5d2bee552a6403042da76eeae7b4576f0ba82bb5449c39ec895d7d2d"
       },
       "mcp_authorization_conformance_pack": {
         "path": "data/evidence/mcp-authorization-conformance-pack.json",
@@ -6632,11 +6888,11 @@
       },
       "secure_context_eval_pack": {
         "path": "data/evidence/secure-context-eval-pack.json",
-        "sha256": "f1340d68718f62eecac342f4d943875f372c86df2ded921ff4cb6749833f5957"
+        "sha256": "17e22400ceb7d734acd14f5b92e865fc82fad6dfead62704d01a56d28e87484a"
       },
       "standards_crosswalk": {
         "path": "data/evidence/agentic-standards-crosswalk.json",
-        "sha256": "359feb69296f408e74b751efdf0f91189dda848605f52a4d54e06bf87ebab43d"
+        "sha256": "2ab66c589438ba3e222cb19fedf7d9d7619c1168dbc85a4a85fd12c47d92860b"
       }
     }
   },
@@ -6685,6 +6941,15 @@
       "source_class": "protocol_guidance",
       "url": "https://blog.modelcontextprotocol.io/posts/2026-03-16-tool-annotations/",
       "why_it_matters": "MCP tool annotations can help clients present risk-aware approval UI, but annotations are hints until a trusted server, gateway policy, and drift baseline make them enforceable."
+    },
+    {
+      "id": "mcp-subscriptions-listen-2026-07-28",
+      "name": "MCP Subscriptions Pattern (2026-07-28 current revision)",
+      "published": "2026-07-28",
+      "publisher": "Model Context Protocol",
+      "source_class": "protocol_specification",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/patterns/subscriptions",
+      "why_it_matters": "MCP 2026-07-28 replaced resources/subscribe and the HTTP GET notification endpoint with subscriptions/listen. Servers must acknowledge the stream with io.modelcontextprotocol/subscriptionId, must not send unrequested notification types, and must keep request-scoped progress and log messages on the originating request stream."
     },
     {
       "id": "mcp-spec-changelog-2026-07-28",

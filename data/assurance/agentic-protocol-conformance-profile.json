@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-08-21",
+  "last_reviewed": "2026-09-27",
   "intent": "Create a buyer-grade protocol conformance layer for SecurityRecipes so MCP, A2A, agent identity, prompt-injection, and standards drift are translated into generated evidence, deterministic runtime decisions, and MCP-readable diligence artifacts.",
   "positioning": {
     "buyer": "AI platform, product security, AppSec, GRC, procurement security, and acquisition diligence teams",
@@ -30,6 +30,9 @@
       "tool_annotations_trusted",
       "tool_surface_pinned",
       "schema_drift_detected",
+      "subscription_method",
+      "subscription_id",
+      "subscription_acknowledged",
       "agent_card_signed",
       "extended_card_authenticated",
       "protocol_version_observed",
@@ -97,6 +100,15 @@
       "url": "https://blog.modelcontextprotocol.io/posts/2026-03-16-tool-annotations/",
       "source_class": "protocol_guidance",
       "why_it_matters": "MCP tool annotations can help clients present risk-aware approval UI, but annotations are hints until a trusted server, gateway policy, and drift baseline make them enforceable."
+    },
+    {
+      "id": "mcp-subscriptions-listen-2026-07-28",
+      "name": "MCP Subscriptions Pattern (2026-07-28 current revision)",
+      "publisher": "Model Context Protocol",
+      "published": "2026-07-28",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/patterns/subscriptions",
+      "source_class": "protocol_specification",
+      "why_it_matters": "MCP 2026-07-28 replaced resources/subscribe and the HTTP GET notification endpoint with subscriptions/listen. Servers must acknowledge the stream with io.modelcontextprotocol/subscriptionId, must not send unrequested notification types, and must keep request-scoped progress and log messages on the originating request stream."
     },
     {
       "id": "mcp-spec-changelog-2026-07-28",
@@ -262,15 +274,18 @@
       "id": "mcp-tooling-safety",
       "title": "MCP Tool Annotation, Schema, and Drift Safety",
       "current_versions": [
+        "2026-07-28",
         "2025-11-25",
         "2026-03-16-tool-annotations"
       ],
       "source_ids": [
+        "mcp-subscriptions-listen-2026-07-28",
+        "mcp-spec-changelog-2026-07-28",
         "mcp-tool-annotations-2026-03-16",
         "mcp-spec-changelog-2025-11-25",
         "openai-agent-prompt-injection-2026"
       ],
-      "commercial_value": "Packages live tool-list monitoring, signed tool-surface baselines, annotation trust, and session-combination risk into a hosted MCP security control plane.",
+      "commercial_value": "Packages live tool-list monitoring over subscriptions/listen, signed tool-surface baselines, annotation trust, and private-data plus untrusted-content plus external-send risk into a hosted MCP security control plane.",
       "conformance_checks": [
         {
           "id": "mcp-trusted-tool-annotations",
@@ -307,6 +322,25 @@
           ],
           "fail_closed_decision": "hold_for_protocol_drift_review",
           "buyer_question": "What happens when a tool changes after a previous approval?"
+        },
+        {
+          "id": "mcp-subscription-listen-conformance",
+          "title": "MCP subscriptions/listen Stream Conformance",
+          "requirement": "MCP 2026-07-28 notification streams must use subscriptions/listen, send notifications/subscriptions/acknowledged with io.modelcontextprotocol/subscriptionId before any event, omit unrequested notification types, keep request-scoped progress and log messages on the originating request stream, and re-send subscriptions/listen after a stdio reconnect.",
+          "source_pack_keys": [
+            "mcp_tool_surface_drift_pack"
+          ],
+          "evidence_paths": [
+            "data/evidence/mcp-tool-surface-drift-pack.json",
+            "data/evidence/agentic-protocol-conformance-pack.json"
+          ],
+          "required_runtime_attributes": [
+            "subscription_method",
+            "subscription_id",
+            "subscription_acknowledged"
+          ],
+          "fail_closed_decision": "deny_untrusted_protocol_surface",
+          "buyer_question": "Can SecurityRecipes reject an MCP notification stream that still uses resources/subscribe, skips the listen acknowledgment, or pushes unsolicited list-changed events?"
         },
         {
           "id": "mcp-private-untrusted-exfiltration-triangle",

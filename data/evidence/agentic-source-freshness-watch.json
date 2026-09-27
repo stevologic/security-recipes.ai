@@ -89,7 +89,7 @@
     "failure_count": 0,
     "freshness_class_counts": {
       "current_reference": 25,
-      "recent_signal": 4,
+      "recent_signal": 5,
       "standing_reference": 10,
       "undated_review_required": 4
     },
@@ -107,6 +107,13 @@
         "published": "2026-07-28",
         "publisher_family": "Model Context Protocol",
         "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization"
+      },
+      {
+        "id": "mcp-subscriptions-listen-2026-07-28",
+        "name": "MCP Subscriptions Pattern (2026-07-28 current revision)",
+        "published": "2026-07-28",
+        "publisher_family": "Model Context Protocol",
+        "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/patterns/subscriptions"
       },
       {
         "id": "mcp-spec-changelog-2026-07-28",
@@ -142,13 +149,6 @@
         "published": "2026-05-04",
         "publisher_family": "OpenTelemetry",
         "url": "https://opentelemetry.io/docs/specs/semconv/gen-ai/gen-ai-agent-spans/"
-      },
-      {
-        "id": "csa-star-ai-catastrophic-risk-annex-2026",
-        "name": "STAR for AI Catastrophic Risk Annex",
-        "published": "2026-04-29",
-        "publisher_family": "Cloud Security Alliance",
-        "url": "https://cloudsecurityalliance.org/press-releases/2026/04/29/csai-foundation-announces-key-milestones-to-secure-the-agentic-control-plane"
       }
     ],
     "primary_watchlist_count": 10,
@@ -160,7 +160,7 @@
       "Cloud Security Alliance": 6,
       "Linux Foundation": 1,
       "Microsoft": 1,
-      "Model Context Protocol": 7,
+      "Model Context Protocol": 8,
       "NIST": 5,
       "OWASP": 7,
       "OpenAI": 5,
@@ -178,15 +178,16 @@
       "industry_standard": 8,
       "observability_standard": 1,
       "protocol_guidance": 3,
-      "protocol_specification": 7,
+      "protocol_specification": 8,
       "unknown": 4,
       "vendor_architecture_guidance": 1
     },
     "status": "source_freshness_ready",
-    "unique_source_reference_count": 43,
+    "unique_source_reference_count": 44,
     "watch_decision_counts": {
+      "current": 1,
       "review_due": 7,
-      "stale_or_missing": 2
+      "stale_or_missing": 1
     },
     "watch_source_count": 9
   },
@@ -400,7 +401,7 @@
     },
     "agentic-protocol-conformance-profile": {
       "path": "data/assurance/agentic-protocol-conformance-profile.json",
-      "sha256": "cca4e374e6d7c6ba178b509fc10341fa92172337e72a86e39e56bab1d6d8d187"
+      "sha256": "7ab0c411968728df70cf891e7e1ae8e5fa4fef51a168e1b8270260cad4c00832"
     },
     "agentic-standards-crosswalk-profile": {
       "path": "data/assurance/agentic-standards-crosswalk.json",
@@ -808,6 +809,27 @@
       "source_class_family": "protocol",
       "url": "https://modelcontextprotocol.io/specification/2026-07-28/changelog",
       "why_it_matters": "Current public MCP 2026-07-28 revision. MCP is still changing quickly, so buyers need explicit evidence that resource metadata, authorization expectations, client metadata, and tool behavior are reviewed after spec revisions."
+    },
+    {
+      "freshness_class": "recent_signal",
+      "id": "mcp-subscriptions-listen-2026-07-28",
+      "name": "MCP Subscriptions Pattern (2026-07-28 current revision)",
+      "published": "2026-07-28",
+      "published_age_days": 61,
+      "published_date": "2026-07-28",
+      "publisher": "Model Context Protocol",
+      "publisher_family": "Model Context Protocol",
+      "referenced_by": [
+        {
+          "path": "data/assurance/agentic-protocol-conformance-profile.json",
+          "watched_source_id": "agentic-protocol-conformance-profile",
+          "watched_source_title": "Agentic Protocol Conformance Profile"
+        }
+      ],
+      "source_class": "protocol_specification",
+      "source_class_family": "protocol",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/patterns/subscriptions",
+      "why_it_matters": "MCP 2026-07-28 replaced resources/subscribe and the HTTP GET notification endpoint with subscriptions/listen. Servers must acknowledge the stream with io.modelcontextprotocol/subscriptionId, must not send unrequested notification types, and must keep request-scoped progress and log messages on the originating request stream."
     },
     {
       "freshness_class": "current_reference",
@@ -1688,20 +1710,18 @@
       "why": "Incident response guidance must track the latest MCP, context, identity, handoff, and evidence-integrity failure modes."
     },
     {
-      "blockers": [
-        "review stale after 2026-09-04"
-      ],
+      "blockers": [],
       "business_criticality": "critical",
-      "decision": "stale_or_missing",
+      "decision": "current",
       "id": "agentic-protocol-conformance-profile",
-      "last_reviewed": "2026-08-21",
+      "last_reviewed": "2026-09-27",
       "path": "data/assurance/agentic-protocol-conformance-profile.json",
-      "reference_count": 12,
+      "reference_count": 13,
       "reference_paths": [
         "source_references"
       ],
       "review_cadence_days": 14,
-      "review_due_at": "2026-09-04",
+      "review_due_at": "2026-10-11",
       "title": "Agentic Protocol Conformance Profile",
       "why": "This pack tracks MCP, A2A, tool annotations, identity, handoff, and prompt-injection protocol boundaries."
     },
