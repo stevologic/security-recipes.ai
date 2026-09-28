@@ -7,8 +7,9 @@ lastmod: 2026-09-28
 toc: true
 description: >
   Generate an MCP authorization conformance pack for resource-bound tokens,
-  audience validation, PKCE, RFC 9207 issuer mix-up checks, client metadata,
-  scope challenges, and step-up authorization.
+  audience validation, PKCE, RFC 9207 issuer mix-up checks, SSRF-safe OAuth
+  metadata fetches, client metadata, scope challenges, and step-up
+  authorization.
 sidebar:
   exclude: true
 breadcrumb_parent: /agentic-security/
@@ -21,7 +22,7 @@ resource the token was minted for, which scopes were granted, and whether
 the tool call stayed inside the workflow.
 {{< /callout >}}
 
-Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28), the current [security best practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices), and NIST's [August 27, 2026 agent identity guidance](https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation) on September 28, 2026. MCP `latest` still redirects to 2026-07-28. The 2026-07-28 authorization and security-best-practices pages are unchanged since the August 29 review; this pass records state-handle binding and unique short-lived agent credentials as current source language.
+Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28), the current [security best practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices), and NIST's [August 27, 2026 agent identity guidance](https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation) on September 28, 2026. MCP `latest` still redirects to 2026-07-28. This pass records the 2026-07-28 SSRF rule for OAuth metadata and Client ID Metadata Document fetches: server-side clients **MUST** treat those URLs as SSRF-capable, **SHOULD** require HTTPS, and **SHOULD** block private, loopback, and link-local destinations as recommended by [RFC 9728 Section 7.7](https://www.rfc-editor.org/rfc/rfc9728.html#section-7.7).
 
 ## The product bet
 
@@ -38,6 +39,9 @@ enough if MCP authorization is loose. A production reviewer will ask:
   authorization-server issuer before the code was redeemed?
 - Are client credentials keyed to that same issuer, not reused across
   authorization servers?
+- Are protected-resource metadata, authorization-server metadata, and
+  Client ID Metadata Document URLs HTTPS and free of private, loopback,
+  or link-local destinations?
 - Did the client satisfy an authoritative `WWW-Authenticate` scope challenge?
 - Is a typed step-up authorization receipt present for approval-required access?
 - Can the gateway prove consent, session binding, and audit correlation?
@@ -148,6 +152,38 @@ python3 scripts/evaluate_mcp_authorization_decision.py \
   --expect-decision deny_authorization_issuer_mismatch
 ```
 
+Reject a grant whose protected-resource metadata URL points at a
+link-local or cloud-metadata destination:
+
+```bash
+python3 scripts/evaluate_mcp_authorization_decision.py \
+  --workflow-id vulnerable-dependency-remediation \
+  --connector-id repository-contents \
+  --namespace repo.contents \
+  --agent-id sr-agent::vulnerable-dependency-remediation::codex \
+  --run-id ci-ssrf \
+  --client-id https://agent.security-recipes.ai/client-metadata/codex.json \
+  --client-metadata-document-url https://agent.security-recipes.ai/client-metadata/codex.json \
+  --client-metadata-document-validated \
+  --authorization-server-discovery-method www_authenticate \
+  --protected-resource-metadata-url http://169.254.169.254/latest/meta-data/ \
+  --requested-access-mode write_branch \
+  --resource-indicator https://mcp.security-recipes.ai/mcp \
+  --token-audience https://mcp.security-recipes.ai/mcp \
+  --token-issuer https://auth.security-recipes.ai \
+  --expected-authorization-issuer https://auth.security-recipes.ai \
+  --authorization-response-iss https://auth.security-recipes.ai \
+  --authorization-response-iss-parameter-supported \
+  --token-expires-at 2099-01-01T00:15:00Z \
+  --token-scope repo.contents:write_branch \
+  --scope-challenge repo.contents:write_branch \
+  --consent-record-id consent-ci \
+  --session-id session-ci \
+  --correlation-id corr-ci \
+  --gateway-policy-hash sha256:ci-policy \
+  --expect-decision deny_oauth_metadata_ssrf
+```
+
 ## Decision model
 
 | Decision | Meaning |
@@ -159,6 +195,7 @@ python3 scripts/evaluate_mcp_authorization_decision.py \
 | `deny_token_passthrough` | The request would pass raw user or upstream tokens through the agent/tool path. |
 | `deny_unbound_token` | The token is missing the expected resource indicator or audience binding. |
 | `deny_authorization_issuer_mismatch` | The authorization-response `iss` or token issuer does not match the recorded authorization-server issuer. |
+| `deny_oauth_metadata_ssrf` | A protected-resource, authorization-server, or Client ID Metadata Document URL is HTTP or points at a private, loopback, or link-local destination. |
 | `deny_scope_challenge_mismatch` | The token scopes do not satisfy the authoritative MCP scope challenge for the resource. |
 | `deny_scope_drift` | The workflow, namespace, connector, or access mode is outside the approved authorization scope. |
 | `kill_session_on_secret_or_signer_scope` | The request includes credential, signer, deploy, publish, or live-funds authority. |
@@ -188,9 +225,9 @@ authorization policy.
 
 For candidate MCP servers, it evaluates the detailed intake profile for
 resource indicators, audience validation, PKCE, short-lived tokens,
-client ID metadata documents, scope challenge handling, step-up
-authorization, private-network exposure, token passthrough, session
-binding, and audit evidence before promotion.
+client ID metadata documents, OAuth metadata SSRF, scope challenge
+handling, step-up authorization, private-network exposure, token
+passthrough, session binding, and audit evidence before promotion.
 
 ## Industry alignment
 
@@ -204,8 +241,10 @@ This feature follows current primary guidance:
   validation. Dynamic Client Registration remains available only as a
   deprecated compatibility path.
 - [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices)
-  for confused-deputy prevention, token-passthrough avoidance, SSRF,
-  session safety, scope minimization, and audit trails.
+  for confused-deputy prevention, token-passthrough avoidance, SSRF
+  controls on OAuth metadata and Client ID Metadata Document fetches
+  (HTTPS plus RFC 9728 Section 7.7 private/loopback/link-local
+  blocking), session safety, scope minimization, and audit trails.
 - [OWASP Top 10 for Agentic Applications 2026](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/)
   for tool misuse, identity abuse, agentic supply-chain risk, context
   poisoning, cascading failures, and rogue-agent containment.
@@ -227,7 +266,7 @@ a hosted MCP authorization scanner:
 - diff resource indicators, audiences, scopes, and redirect policy,
 - alert on scope challenge drift and token-passthrough regressions,
 - enforce step-up authorization receipts for approval-required calls,
-- replay confused-deputy, issuer mix-up, and unbound-token tests,
+- replay confused-deputy, issuer mix-up, metadata-SSRF, and unbound-token tests,
 - attach signed authorization receipts to agent run receipts,
 - export fleet-wide evidence for AI platform review and procurement.
 

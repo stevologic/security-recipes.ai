@@ -6,6 +6,8 @@ from pathlib import Path
 
 from scripts.evaluate_mcp_authorization_decision import (
     evaluate_mcp_authorization_decision,
+    is_blocked_oauth_metadata_destination,
+    oauth_metadata_ssrf_violations,
     rfc9207_issuer_violations,
 )
 
@@ -156,6 +158,88 @@ class RFC9207IssuerValidationTests(unittest.TestCase):
             ),
             [],
         )
+
+
+class OAuthMetadataSSRFTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.pack = json.loads(PACK_PATH.read_text(encoding="utf-8"))
+
+    def test_https_public_metadata_allows_authorized_request(self) -> None:
+        result = evaluate_mcp_authorization_decision(self.pack, _http_request())
+        self.assertEqual(result["decision"], "allow_authorized_mcp_request")
+        self.assertTrue(result["allowed"])
+
+    def test_link_local_metadata_url_is_denied(self) -> None:
+        result = evaluate_mcp_authorization_decision(
+            self.pack,
+            _http_request(
+                protected_resource_metadata_url="http://169.254.169.254/latest/meta-data/"
+            ),
+        )
+        self.assertEqual(result["decision"], "deny_oauth_metadata_ssrf")
+        self.assertFalse(result["allowed"])
+        self.assertTrue(
+            any("protected_resource_metadata_url" in item for item in result["violations"])
+        )
+
+    def test_https_does_not_excuse_link_local_destination(self) -> None:
+        result = evaluate_mcp_authorization_decision(
+            self.pack,
+            _http_request(
+                protected_resource_metadata_url="https://169.254.169.254/.well-known/oauth-protected-resource"
+            ),
+        )
+        self.assertEqual(result["decision"], "deny_oauth_metadata_ssrf")
+
+    def test_private_ipv4_metadata_url_is_denied(self) -> None:
+        result = evaluate_mcp_authorization_decision(
+            self.pack,
+            _http_request(
+                authorization_server_metadata_url="https://10.0.0.12/.well-known/oauth-authorization-server"
+            ),
+        )
+        self.assertEqual(result["decision"], "deny_oauth_metadata_ssrf")
+        self.assertTrue(
+            any("authorization_server_metadata_url" in item for item in result["violations"])
+        )
+
+    def test_loopback_client_metadata_url_is_denied(self) -> None:
+        result = evaluate_mcp_authorization_decision(
+            self.pack,
+            _http_request(
+                client_id="https://localhost/client-metadata/codex.json",
+                client_metadata_document_url="https://localhost/client-metadata/codex.json",
+            ),
+        )
+        self.assertEqual(result["decision"], "deny_oauth_metadata_ssrf")
+
+    def test_ipv4_mapped_ipv6_link_local_is_denied(self) -> None:
+        result = evaluate_mcp_authorization_decision(
+            self.pack,
+            _http_request(
+                protected_resource_metadata_url="https://[::ffff:169.254.169.254]/.well-known/oauth-protected-resource"
+            ),
+        )
+        self.assertEqual(result["decision"], "deny_oauth_metadata_ssrf")
+
+    def test_helper_blocks_rfc9728_ranges_and_localhost(self) -> None:
+        self.assertTrue(is_blocked_oauth_metadata_destination("169.254.169.254"))
+        self.assertTrue(is_blocked_oauth_metadata_destination("10.1.2.3"))
+        self.assertTrue(is_blocked_oauth_metadata_destination("192.168.0.8"))
+        self.assertTrue(is_blocked_oauth_metadata_destination("127.0.0.1"))
+        self.assertTrue(is_blocked_oauth_metadata_destination("localhost"))
+        self.assertTrue(is_blocked_oauth_metadata_destination("::1"))
+        self.assertTrue(is_blocked_oauth_metadata_destination("::ffff:169.254.169.254"))
+        self.assertFalse(is_blocked_oauth_metadata_destination("mcp.security-recipes.ai"))
+
+    def test_helper_requires_https_for_metadata_urls(self) -> None:
+        violations = oauth_metadata_ssrf_violations(
+            {
+                "protected_resource_metadata_url": "http://as.example/.well-known/oauth-protected-resource"
+            }
+        )
+        self.assertTrue(any("must use HTTPS" in item for item in violations))
 
 
 if __name__ == "__main__":

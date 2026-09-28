@@ -8,12 +8,16 @@ runtime evaluator gives an MCP gateway or agent host a deterministic
 allow, hold, deny, or kill-session decision before the tool call is
 forwarded. MCP 2026-07-28 requires RFC 9207 authorization-response
 issuer checks before a code is redeemed; this evaluator applies the
-same mix-up rule to the stored grant evidence on a tool call.
+same mix-up rule to the stored grant evidence on a tool call. The same
+revision treats OAuth metadata and Client ID Metadata Document fetches
+as SSRF-capable, so this evaluator also rejects HTTP, loopback, and
+private or link-local metadata URLs.
 """
 
 from __future__ import annotations
 
 import argparse
+import ipaddress
 import json
 import sys
 from pathlib import Path
@@ -30,6 +34,7 @@ VALID_DECISIONS = {
     "deny_token_passthrough",
     "deny_unbound_token",
     "deny_authorization_issuer_mismatch",
+    "deny_oauth_metadata_ssrf",
     "deny_scope_challenge_mismatch",
     "deny_scope_drift",
     "kill_session_on_secret_or_signer_scope",
@@ -86,6 +91,86 @@ def is_https_issuer_identifier(value: str) -> bool:
         and not parsed.fragment
         and value == value.strip()
     )
+
+
+OAUTH_METADATA_URL_FIELDS = (
+    "protected_resource_metadata_url",
+    "authorization_server_metadata_url",
+    "client_metadata_document_url",
+    "client_id",
+)
+LOOPBACK_METADATA_HOSTS = {"localhost", "localhost."}
+
+
+def _url_ip_address(hostname: str) -> ipaddress.IPv4Address | ipaddress.IPv6Address | None:
+    host = hostname.strip("[]")
+    try:
+        return ipaddress.ip_address(host)
+    except ValueError:
+        return None
+
+
+def is_blocked_oauth_metadata_destination(hostname: str) -> bool:
+    """Return True when a metadata hostname is loopback, private, or link-local.
+
+    MCP Security Best Practices (2026-07-28) tell server-side clients to
+    treat OAuth metadata fetches as SSRF-capable and to block private and
+    reserved ranges from RFC 9728 Section 7.7. Hostname checks use
+    ``ipaddress`` instead of a custom parser.
+    """
+    lowered = hostname.strip("[]").lower().rstrip(".")
+    if lowered in LOOPBACK_METADATA_HOSTS or lowered.endswith(".localhost"):
+        return True
+    ip = _url_ip_address(hostname)
+    if ip is None:
+        return False
+    mapped = getattr(ip, "ipv4_mapped", None)
+    if mapped is not None:
+        ip = mapped
+    return bool(
+        ip.is_private
+        or ip.is_loopback
+        or ip.is_link_local
+        or ip.is_reserved
+        or ip.is_multicast
+        or ip.is_unspecified
+    )
+
+
+def oauth_metadata_ssrf_violations(request: dict[str, Any]) -> list[str]:
+    """Return SSRF failures for OAuth metadata and Client ID Metadata URLs.
+
+    MCP 2026-07-28 requires server-side MCP clients to consider SSRF when
+    fetching ``resource_metadata``, authorization-server metadata, and
+    Client ID Metadata Documents. Production checks require HTTPS and
+    reject loopback, private, and link-local destinations.
+    """
+    violations: list[str] = []
+    seen: set[str] = set()
+    for field in OAUTH_METADATA_URL_FIELDS:
+        value = str(request.get(field) or "").strip()
+        if not value or value in seen:
+            continue
+        parsed = urlparse(value)
+        if parsed.scheme not in {"http", "https"}:
+            continue
+        seen.add(value)
+        if parsed.scheme != "https":
+            violations.append(f"{field} must use HTTPS; {parsed.scheme} URLs are SSRF-sensitive")
+            continue
+        try:
+            hostname = parsed.hostname or ""
+        except ValueError:
+            violations.append(f"{field} has a malformed hostname")
+            continue
+        if not hostname:
+            violations.append(f"{field} is missing a hostname")
+            continue
+        if is_blocked_oauth_metadata_destination(hostname):
+            violations.append(
+                f"{field} points at a private, loopback, or link-local destination"
+            )
+    return violations
 
 
 def rfc9207_issuer_violations(request: dict[str, Any]) -> list[str]:
@@ -167,6 +252,7 @@ def normalize_request(runtime_request: dict[str, Any]) -> dict[str, Any]:
         "client_metadata_document_url",
         "authorization_server_discovery_method",
         "protected_resource_metadata_url",
+        "authorization_server_metadata_url",
         "expected_authorization_issuer",
         "authorization_response_iss",
         "resource_indicator",
@@ -226,6 +312,7 @@ def decision_result(
             "conformance_decision": connector.get("conformance_decision") if connector else None,
             "observed_runtime_attributes": sorted(k for k, v in request.items() if v not in (None, "", [], {}, False)),
             "protected_resource_metadata_url": request.get("protected_resource_metadata_url"),
+            "authorization_server_metadata_url": request.get("authorization_server_metadata_url"),
             "source_artifacts": pack.get("source_artifacts"),
         },
         "matched_connector": connector,
@@ -243,6 +330,7 @@ def decision_result(
             "correlation_id": request.get("correlation_id"),
             "expected_authorization_issuer": request.get("expected_authorization_issuer"),
             "protected_resource_metadata_url": request.get("protected_resource_metadata_url"),
+            "authorization_server_metadata_url": request.get("authorization_server_metadata_url"),
             "namespace": request.get("namespace"),
             "requested_access_mode": request.get("requested_access_mode"),
             "resource_indicator": request.get("resource_indicator"),
@@ -341,6 +429,17 @@ def evaluate_mcp_authorization_decision(
     canonical_resource_uri = str(connector.get("canonical_resource_uri") or contract.get("canonical_mcp_resource_uri") or "")
     transport = str(connector.get("transport") or "")
     if transport in HTTP_TRANSPORTS:
+        ssrf_violations = oauth_metadata_ssrf_violations(request)
+        if ssrf_violations:
+            return decision_result(
+                decision="deny_oauth_metadata_ssrf",
+                reason="OAuth metadata or Client ID Metadata Document URL is not safe to fetch",
+                pack=authorization_pack,
+                request=request,
+                connector=connector,
+                workflow=workflow,
+                violations=ssrf_violations,
+            )
         missing = missing_fields(
             request,
             [
@@ -494,6 +593,7 @@ def request_from_args(args: argparse.Namespace) -> dict[str, Any]:
         "client_metadata_document_url",
         "authorization_server_discovery_method",
         "protected_resource_metadata_url",
+        "authorization_server_metadata_url",
         "expected_authorization_issuer",
         "authorization_response_iss",
         "resource_indicator",
@@ -540,6 +640,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--client-metadata-document-url", dest="client_metadata_document_url")
     parser.add_argument("--authorization-server-discovery-method", dest="authorization_server_discovery_method")
     parser.add_argument("--protected-resource-metadata-url", dest="protected_resource_metadata_url")
+    parser.add_argument("--authorization-server-metadata-url", dest="authorization_server_metadata_url")
     parser.add_argument("--expected-authorization-issuer", dest="expected_authorization_issuer")
     parser.add_argument("--authorization-response-iss", dest="authorization_response_iss")
     parser.add_argument(
