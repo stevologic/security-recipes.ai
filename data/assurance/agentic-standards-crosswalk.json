@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-08-21",
+  "last_reviewed": "2026-09-28",
   "intent": "Create an enterprise buyer and AI-platform standards crosswalk for SecurityRecipes so OWASP Agentic Top 10, CSA AI Controls Matrix, NIST AI agent guidance, MCP authorization requirements, critical-infrastructure AI expectations, and frontier-lab prompt-injection defenses map directly to generated evidence packs, MCP tools, and runtime decision surfaces.",
   "positioning": {
     "buyer": "AI Platform, Product Security, AppSec, GRC, procurement security, model-risk, and acquisition diligence teams",
@@ -149,16 +149,34 @@
       "published": "2025-11-25",
       "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization",
       "source_class": "protocol_specification",
-      "why_it_matters": "The current MCP authorization specification requires protected resource metadata, OAuth 2.1 alignment, resource indicators, token audience validation, PKCE support, and token-passthrough denial for protected MCP servers."
+      "why_it_matters": "Prior MCP 2025-11-25 authorization revision kept as a historical source ID. Prefer the 2026-07-28 resource-indicator, audience, PKCE, and token-passthrough rules."
+    },
+    {
+      "id": "mcp-security-best-practices-2026-07-28",
+      "name": "Model Context Protocol Security Best Practices (2026-07-28 current revision)",
+      "publisher": "Model Context Protocol",
+      "published": "2026-07-28",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices",
+      "source_class": "protocol_guidance",
+      "why_it_matters": "Current MCP 2026-07-28 security guidance replaces session-hijacking assumptions with state-handle binding, forbids token passthrough, requires confused-deputy consent on proxies, and tightens SSRF controls during metadata and Client ID Metadata Document fetches."
     },
     {
       "id": "mcp-security-best-practices-2025",
-      "name": "Model Context Protocol Security Best Practices",
+      "name": "Model Context Protocol Security Best Practices (2025-06-18 prior revision)",
       "publisher": "Model Context Protocol",
       "published": "2025-06-18",
       "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices",
       "source_class": "protocol_guidance",
-      "why_it_matters": "MCP guidance covers confused deputy attacks, token passthrough, SSRF, session safety, local-server sandboxing, scope minimization, auditability, and least-privilege access."
+      "why_it_matters": "Prior MCP security-best-practices revision kept as a historical source ID. Session-hijacking guidance applies only to 2025-11-25 and earlier protocol versions; prefer the 2026-07-28 state-handle controls."
+    },
+    {
+      "id": "nist-agentic-identity-foundation-2026",
+      "name": "Back to the Future: Why Agentic AI Needs a Strong Identity Foundation",
+      "publisher": "NIST",
+      "published": "2026-08-27",
+      "url": "https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation",
+      "source_class": "government_security_signal",
+      "why_it_matters": "NIST warns that agent rollouts are repeating IAM mistakes: shared human credentials, long-lived API keys and bearer tokens, overly broad access, local user-account impersonation, and over-reliance on human-in-the-loop approvals."
     },
     {
       "id": "openai-prompt-injections-2025",
@@ -772,10 +790,12 @@
       "title": "MCP Authorization and Security Best Practices",
       "kind": "protocol_security",
       "source_ids": [
+        "mcp-authorization-2026-07-28",
         "mcp-authorization-2025-11-25",
+        "mcp-security-best-practices-2026-07-28",
         "mcp-security-best-practices-2025"
       ],
-      "buyer_question": "Can protected MCP calls enforce identity, audience, resource, scope, sandbox, and session safety requirements before tool execution?",
+      "buyer_question": "Can protected MCP calls enforce identity, audience, resource, scope, sandbox, and state-handle binding requirements before tool execution?",
       "minimum_required_controls": 6,
       "controls": [
         {
@@ -850,6 +870,19 @@
           ],
           "diligence_question": "What prevents local MCP servers from inheriting excessive filesystem, network, or secret access?",
           "evidence_expectation": "STDIO launch, connector intake, and skill supply-chain packs record sandbox, command, package, env, and permission decisions."
+        },
+        {
+          "id": "MCP-SEC-07",
+          "title": "State-Handle Binding and Confused-Deputy Consent",
+          "objective": "Bind multi-request MCP state handles to the authenticated user and require per-client consent on OAuth proxies before third-party authorization.",
+          "required_capability_ids": [
+            "mcp-authorization-conformance",
+            "mcp-gateway-policy",
+            "agent-identity-ledger",
+            "agentic-run-receipt-pack"
+          ],
+          "diligence_question": "What stops a stolen state handle or a static-client-ID proxy from skipping user consent?",
+          "evidence_expectation": "Authorization conformance, gateway policy, identity ledger, and run receipts record state-handle owner binding, per-client consent, and token-passthrough denial."
         }
       ]
     },
@@ -861,7 +894,8 @@
         "nist-ai-agent-standards-initiative-2026",
         "nist-caisi-ai-agent-security-rfi-2026",
         "nist-ai-rmf-2026",
-        "nist-ai-600-1"
+        "nist-ai-600-1",
+        "nist-agentic-identity-foundation-2026"
       ],
       "buyer_question": "Can SecurityRecipes show governance, measurement, identity, data, and lifecycle evidence for deployed agent systems?",
       "minimum_required_controls": 5,

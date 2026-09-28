@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-08-21",
+  "last_reviewed": "2026-09-28",
   "intent": "Define a testable catastrophic-risk annex for SecurityRecipes so high-impact agentic workflows can be held, denied, or killed before autonomous behavior creates irreversible business, safety, financial, privacy, supply-chain, or critical-infrastructure consequences.",
   "positioning": {
     "buyer": "AI Platform, Security Engineering, Product Security, GRC, model-risk, board risk, safety, procurement security, and acquisition diligence teams",
@@ -40,10 +40,22 @@
       "coverage": "Current public MCP 2026-07-28 revision. Anchors high-impact MCP action controls in OAuth 2.1, resource indicators, token audience validation, PKCE, protected resource metadata, and token-passthrough denial."
     },
     {
+      "id": "mcp-security-best-practices-2026-07-28",
+      "name": "Model Context Protocol Security Best Practices (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices",
+      "coverage": "Current MCP 2026-07-28 security guidance: state-handle binding instead of session-hijacking assumptions, token-passthrough denial, confused-deputy consent on OAuth proxies, and SSRF-sensitive metadata and Client ID Metadata Document fetches."
+    },
+    {
+      "id": "nist-agentic-identity-foundation-2026",
+      "name": "Back to the Future: Why Agentic AI Needs a Strong Identity Foundation",
+      "url": "https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation",
+      "coverage": "NIST's August 27, 2026 identity guidance: unique agent identifiers, short-lived scoped credentials, and a ban on shared human credentials, long-lived API keys, and local user-account impersonation as high-impact autonomy failure modes."
+    },
+    {
       "id": "mcp-authorization-2025-11-25",
       "name": "Model Context Protocol Authorization Specification",
       "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization",
-      "coverage": "Anchors high-impact MCP action controls in OAuth 2.1, resource indicators, token audience validation, PKCE, protected resource metadata, and token-passthrough denial."
+      "coverage": "Prior MCP 2025-11-25 authorization revision kept as a historical source ID. Prefer the 2026-07-28 resource-indicator, audience, PKCE, and token-passthrough rules."
     },
     {
       "id": "nist-ai-600-1",
@@ -317,7 +329,7 @@
         "identity_admin",
         "connector_scope_escalation"
       ],
-      "board_question": "Can the buyer prove an agent cannot pass tokens across MCP servers, request broader audience tokens, or silently inherit user authority?",
+      "board_question": "Can the buyer prove an agent cannot pass tokens across MCP servers, reuse another user's state handle, request broader audience tokens, or silently inherit a shared human credential or local user account?",
       "required_pack_ids": [
         "mcp-authorization-conformance",
         "agent-identity-ledger",

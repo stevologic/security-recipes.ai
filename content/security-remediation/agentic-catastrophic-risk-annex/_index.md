@@ -3,7 +3,7 @@ title: Agentic Catastrophic Risk Annex
 linkTitle: Catastrophic Risk Annex
 weight: 18
 date: 2026-05-04
-lastmod: 2026-08-21
+lastmod: 2026-09-28
 toc: true
 description: >
   Evaluate severe agentic AI failure modes, escalation triggers, containment
@@ -20,7 +20,7 @@ normal readiness scorecard. It answers the board and reviewer question:
 severe failure becomes irreversible?"
 {{< /callout >}}
 
-Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) on August 21, 2026.
+Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28), the current [security best practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices), and NIST's [August 27, 2026 agent identity guidance](https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation) on September 28, 2026. MCP `latest` still redirects to 2026-07-28.
 
 SecurityRecipes already has workflow policy, MCP authorization,
 non-human identity, context trust, handoff boundaries, egress policy, run

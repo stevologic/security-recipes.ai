@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-08-21",
+  "last_reviewed": "2026-09-28",
   "intent": "Define the SecurityRecipes agentic incident response pack: a machine-readable response model for failures in secure context retrieval, MCP tool execution, agent identity, handoffs, memory, skills, eval drift, and high-impact autonomous actions.",
   "positioning": {
     "buyer": "AI Platform, Security Engineering, SOC, Product Security, GRC, trust and safety, procurement security, and acquisition diligence teams",
@@ -40,10 +40,22 @@
       "coverage": "Current public MCP 2026-07-28 revision. Protected resource metadata, OAuth 2.1, resource indicators, token audience validation, PKCE, scope handling, token theft, confused deputy prevention, and token privilege restriction."
     },
     {
+      "id": "mcp-security-best-practices-2026-07-28",
+      "name": "Model Context Protocol Security Best Practices (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices",
+      "coverage": "Current MCP 2026-07-28 security guidance for incident classification: state-handle binding instead of session-hijacking assumptions, token-passthrough denial, confused-deputy consent on OAuth proxies, and SSRF-sensitive metadata fetches."
+    },
+    {
+      "id": "nist-agentic-identity-foundation-2026",
+      "name": "Back to the Future: Why Agentic AI Needs a Strong Identity Foundation",
+      "url": "https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation",
+      "coverage": "NIST's August 27, 2026 identity guidance: treat shared human credentials, long-lived API keys, local user-account impersonation, and unstructured HITL approvals as identity-incident signals, not generic IAM gaps."
+    },
+    {
       "id": "mcp-authorization-2025-11-25",
       "name": "Model Context Protocol Authorization Specification",
       "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization",
-      "coverage": "Protected resource metadata, OAuth 2.1, resource indicators, token audience validation, PKCE, scope handling, token theft, confused deputy prevention, and token privilege restriction."
+      "coverage": "Prior MCP 2025-11-25 authorization revision kept as a historical source ID. Prefer the 2026-07-28 resource-indicator, audience, PKCE, and token-passthrough rules."
     },
     {
       "id": "cisa-deploying-ai-securely-2024",
@@ -287,7 +299,7 @@
       "default_decision": "contain_and_open_war_room",
       "kill_signals": [
         "identity is missing, expired, over-scoped, used after revocation, or acting outside workflow contract",
-        "implicit user token is used where a scoped non-human identity is required"
+        "implicit user token, shared human credential, long-lived API key, or local user-account impersonation is used where a unique short-lived non-human identity is required"
       ],
       "linked_evidence": [
         "agent_identity_ledger",
@@ -306,8 +318,8 @@
       "default_severity": "sev0",
       "default_decision": "kill_session_and_escalate_board",
       "kill_signals": [
-        "token audience, resource indicator, issuer, session binding, or scope does not match the protected MCP server",
-        "raw access token is forwarded to an upstream MCP server or remote agent"
+        "token audience, resource indicator, issuer, state-handle binding, or scope does not match the protected MCP server",
+        "raw access token is forwarded to an upstream MCP server or remote agent, or an OAuth proxy skips per-client consent"
       ],
       "linked_evidence": [
         "mcp_authorization_conformance",

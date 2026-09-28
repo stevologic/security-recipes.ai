@@ -3,7 +3,7 @@ title: MCP Authorization Conformance
 linkTitle: MCP Authorization Conformance
 weight: 10
 date: 2026-05-02
-lastmod: 2026-08-29
+lastmod: 2026-09-28
 toc: true
 description: >
   Generate an MCP authorization conformance pack for resource-bound tokens,
@@ -20,6 +20,8 @@ need the missing authorization proof: which agent was delegated, which
 resource the token was minted for, which scopes were granted, and whether
 the tool call stayed inside the workflow.
 {{< /callout >}}
+
+Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28), the current [security best practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices), and NIST's [August 27, 2026 agent identity guidance](https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation) on September 28, 2026. MCP `latest` still redirects to 2026-07-28. The 2026-07-28 authorization and security-best-practices pages are unchanged since the August 29 review; this pass records state-handle binding and unique short-lived agent credentials as current source language.
 
 ## The product bet
 

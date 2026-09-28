@@ -998,7 +998,7 @@
       ]
     },
     {
-      "board_question": "Can the buyer prove an agent cannot pass tokens across MCP servers, request broader audience tokens, or silently inherit user authority?",
+      "board_question": "Can the buyer prove an agent cannot pass tokens across MCP servers, reuse another user's state handle, request broader audience tokens, or silently inherit a shared human credential or local user account?",
       "buyer_value": "Directly addresses the MCP authorization and non-human identity concerns large AI platforms must solve.",
       "default_decision": "deny_unbounded_autonomy",
       "evidence_coverage_score": 100.0,
@@ -1194,7 +1194,7 @@
     "sales_motion": "Lead with open severe-risk evidence, then sell hosted approval receipts, runtime kill policy, customer-specific risk acceptance, replay, and trust-center exports."
   },
   "failures": [],
-  "generated_at": "2026-08-21",
+  "generated_at": "2026-09-28",
   "intent": "Define a testable catastrophic-risk annex for SecurityRecipes so high-impact agentic workflows can be held, denied, or killed before autonomous behavior creates irreversible business, safety, financial, privacy, supply-chain, or critical-infrastructure consequences.",
   "positioning": {
     "buyer": "AI Platform, Security Engineering, Product Security, GRC, model-risk, board risk, safety, procurement security, and acquisition diligence teams",
@@ -1262,7 +1262,7 @@
   "source_artifacts": {
     "annex_profile": {
       "path": "data/assurance/agentic-catastrophic-risk-annex.json",
-      "sha256": "a46134a936e3947190ed6f19f7cb3272c24c2a307cb8d6c308944f8933b0d142"
+      "sha256": "1c7abfb59da8516a3ef1043d39f65651d96a5fb6bd2ee536dc434d87a4c50cd1"
     },
     "source_packs": [
       {
@@ -1317,7 +1317,7 @@
         ],
         "path": "data/evidence/mcp-authorization-conformance-pack.json",
         "schema_version": "1.0",
-        "sha256": "2b6e49246a6d628872daa9980c62b329952278251d58d8643eb65377e03610de",
+        "sha256": "773ba4eabf87489efab0b91ff2a6777787e78311303551770865c47182250b30",
         "status": "ready",
         "summary": {
           "key": "authorization_summary",
@@ -1553,7 +1553,7 @@
         ],
         "path": "data/evidence/agentic-measurement-probe-pack.json",
         "schema_version": "1.0",
-        "sha256": "88cff3f3dddd543558d0d036a97896980511cafac9397360d4cdb7d576e3879b",
+        "sha256": "1d028455b2fe8cd036c9a22fb6f7daad2815c596f60ec65a67809cb14c0943fe",
         "status": "ready",
         "summary": {
           "key": "measurement_probe_summary",
@@ -1610,7 +1610,7 @@
         ],
         "path": "data/evidence/agentic-run-receipt-pack.json",
         "schema_version": "1.0",
-        "sha256": "d3c52852b7e5db5742e46f826403a548a0f8d4095a4e2622243d3674f077ef36",
+        "sha256": "472d71078c2e09e637744b4cd870f91b6d5b0c006749b20884630e95638620e3",
         "status": "ready",
         "summary": {
           "key": "receipt_summary",
@@ -1637,7 +1637,7 @@
         ],
         "path": "data/evidence/secure-context-trust-pack.json",
         "schema_version": "1.0",
-        "sha256": "6eb3b31365496857674f67c0479667dd06c6773bed39ba9a7cc3be4f7d015761",
+        "sha256": "cdd00727a7ad57a28df45c628d9703b4ca8c1b48a96c96305afec893e28a6f6a",
         "status": "ready",
         "summary": null,
         "title": "Secure Context Trust Pack"
@@ -1651,7 +1651,7 @@
         ],
         "path": "data/evidence/context-egress-boundary-pack.json",
         "schema_version": "1.0",
-        "sha256": "ecc2932bd59e20f5d169a462d6ce7e0adae4522df87b40a2d2988d86ebcfbc2c",
+        "sha256": "cdcea804528ed7146dbc223213101aa5e8fcd40446bb48694f417379a0298317",
         "status": "ready",
         "summary": {
           "key": "egress_boundary_summary",
@@ -1692,7 +1692,7 @@
         ],
         "path": "data/evidence/agent-handoff-boundary-pack.json",
         "schema_version": "1.0",
-        "sha256": "fbde782afbf6c2f7f0f0660b78d96d0bffcc27db870f8f374c8e7182bcb5478d",
+        "sha256": "b67b7ac9d473bc83b4d1eeaa26554f8f928cad87aacf4a0ac2bea6595dcf67fc",
         "status": "ready",
         "summary": {
           "key": "handoff_boundary_summary",
@@ -1741,7 +1741,7 @@
         ],
         "path": "data/evidence/agent-skill-supply-chain-pack.json",
         "schema_version": "1.0",
-        "sha256": "df9a3ede8c3ec314960a2ecc939d90546d9d07b8b9f21fb6b8da7c92938885a1",
+        "sha256": "ab0b55cc50885c561218953df5545c8b6198990b269d6869d54902e488262661",
         "status": "ready",
         "summary": {
           "key": "skill_supply_chain_summary",
@@ -1845,7 +1845,19 @@
       "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization"
     },
     {
-      "coverage": "Anchors high-impact MCP action controls in OAuth 2.1, resource indicators, token audience validation, PKCE, protected resource metadata, and token-passthrough denial.",
+      "coverage": "Current MCP 2026-07-28 security guidance: state-handle binding instead of session-hijacking assumptions, token-passthrough denial, confused-deputy consent on OAuth proxies, and SSRF-sensitive metadata and Client ID Metadata Document fetches.",
+      "id": "mcp-security-best-practices-2026-07-28",
+      "name": "Model Context Protocol Security Best Practices (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices"
+    },
+    {
+      "coverage": "NIST's August 27, 2026 identity guidance: unique agent identifiers, short-lived scoped credentials, and a ban on shared human credentials, long-lived API keys, and local user-account impersonation as high-impact autonomy failure modes.",
+      "id": "nist-agentic-identity-foundation-2026",
+      "name": "Back to the Future: Why Agentic AI Needs a Strong Identity Foundation",
+      "url": "https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation"
+    },
+    {
+      "coverage": "Prior MCP 2025-11-25 authorization revision kept as a historical source ID. Prefer the 2026-07-28 resource-indicator, audience, PKCE, and token-passthrough rules.",
       "id": "mcp-authorization-2025-11-25",
       "name": "Model Context Protocol Authorization Specification",
       "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization"
