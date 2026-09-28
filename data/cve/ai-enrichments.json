@@ -20386,27 +20386,93 @@
       ]
     },
     "CVE-2025-10585": {
-      "business_risk": "No additional source-verified CVE-specific business impact was established.",
-      "claim_evidence": [],
-      "exposure_conditions": [],
+      "business_risk": "Known-exploited type confusion in Google Chrome V8 (CISA KEV) that can enable heap corruption via a crafted HTML page; also listed against unpatched Siemens CADRA with no vendor fix.",
+      "claim_evidence": [
+        {
+          "claim": "Google Chrome (V8 type confusion)",
+          "kind": "affected_product",
+          "source_url": "https://chromereleases.googleblog.com/2025/09/stable-channel-update-for-desktop_17.html"
+        },
+        {
+          "claim": "Siemens CADRA all versions",
+          "kind": "affected_product",
+          "source_url": "https://cert-portal.siemens.com/productcert/html/ssa-470355.html"
+        },
+        {
+          "claim": "Type confusion in V8 allowed a remote attacker to potentially exploit heap corruption via a crafted HTML page; Google is aware an exploit exists in the wild",
+          "kind": "exposure",
+          "source_url": "https://chromereleases.googleblog.com/2025/09/stable-channel-update-for-desktop_17.html"
+        },
+        {
+          "claim": "Stable channel updated to 140.0.7339.185/.186 for Windows/Mac and 140.0.7339.185 for Linux",
+          "kind": "fixed_version",
+          "source_url": "https://chromereleases.googleblog.com/2025/09/stable-channel-update-for-desktop_17.html"
+        },
+        {
+          "claim": "Siemens CADRA: currently no fix is available; mitigation is to block access to untrusted or external web content from sensitive systems",
+          "kind": "remediation",
+          "source_url": "https://www.cisa.gov/news-events/ics-advisories/icsa-26-202-06"
+        }
+      ],
+      "exposure_conditions": [
+        "Remote attacker can potentially exploit heap corruption via a crafted HTML page",
+        "Google stated an exploit for CVE-2025-10585 exists in the wild",
+        "Siemens CADRA: exposure related to untrusted or external web content on sensitive systems"
+      ],
       "gaps": [],
-      "generated_at": "2026-07-29T08:52:23Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-09-28T17:58:57Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
-      "remediation_steps": [],
-      "retrieved_source_urls": [],
+      "remediation_steps": [
+        "Update Google Chrome desktop stable channel to 140.0.7339.185 (Linux) or 140.0.7339.185/.186 (Windows/Mac) per the vendor release",
+        "For Siemens CADRA, no fix is currently available; block access to untrusted or external web content from sensitive systems and follow Siemens general industrial security recommendations"
+      ],
+      "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/cve-2025-10585",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-10587",
+        "https://nvd.nist.gov/vuln/detail/cve-2026-10585",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2025-71085",
+        "https://nvd.nist.gov/nvd.cfm?cvename=CVE-2024-10585",
+        "https://nvd.nist.gov/vuln/detail/cve-2025-39885",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2025-22085",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-39985",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2025-38585",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2024-57885",
+        "https://chromereleases.googleblog.com/2025/09/stable-channel-update-for-desktop_17.html",
+        "https://chromereleases.googleblog.com/2025/10/long-term-support-channel-update-for_10.html",
+        "https://chromereleases.googleblog.com/search/label/Stable%20updates%2BDesktop%20Update?updated-max=2025-10-28T14:42:00-07:00&max-results=20&start=6&by-date=false",
+        "https://chromereleases.googleblog.com/2025/09/stable-channel-update-for-chromeos_18.html",
+        "https://chromereleases.googleblog.com/search/label/Chrome%20for%20Android?max-results=56",
+        "https://www.cisa.gov/news-events/alerts/2025/10/06/cisa-adds-seven-known-exploited-vulnerabilities-catalog",
+        "https://www.cisa.gov/news-events/bulletins/sb25-349",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog-print",
+        "https://www.cisa.gov/news-events/cybersecurity-advisories/aa25-163a",
+        "https://www.cisa.gov/news-events/bulletins/sb25-237",
+        "https://cert-portal.siemens.com/productcert/html/ssa-470355.html",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-26-202-06",
+        "https://github.com/cisagov/CSAF/blob/develop/csaf_files/OT/white/2026/icsa-26-202-06.json",
+        "https://cvepremium.circl.lu/vuln/ssa-470355"
+      ],
       "schema_version": 2,
       "source_fingerprint": "48e8cb16f297b54d07d50b958bbb873d8234a64c43964e23d1b6073bca34cd4f",
-      "source_urls": [],
-      "status": "insufficient_evidence",
-      "uncertainty": [
-        "The authoritative Siemens advisory does not provide a fixed CADRA version for CVE-2025-10585.",
-        "The provided data includes CADRA as affected, but does not establish whether a particular CADRA deployment actually processes the relevant untrusted content.",
-        "No source reviewed provides a product-specific CADRA verification procedure beyond reviewing application and network controls.",
-        "The Chrome release notice confirms the fixed release and exploitation in the wild but does not provide deployment-specific verification steps."
+      "source_urls": [
+        "https://nvd.nist.gov/vuln/detail/cve-2025-10585",
+        "https://chromereleases.googleblog.com/2025/09/stable-channel-update-for-desktop_17.html",
+        "https://cert-portal.siemens.com/productcert/html/ssa-470355.html",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-26-202-06"
       ],
-      "verification_steps": []
+      "status": "complete",
+      "uncertainty": [
+        "NVD detail page content was not retrieved by the fetch tool",
+        "CVSS 3.1 scores and user-interaction ratings differ across CNA/NVD-style records (9.8 UI:N) versus Siemens/CISA ICS (8.8 UI:R)",
+        "Siemens CADRA embedding of the V8 component and any version-specific CADRA ranges beyond all versions are not detailed",
+        "Explicit end-user version-check UI steps are not stated in the consulted advisories",
+        "Coverage of non-desktop Chromium products is only partially indicated in related ChromeOS notes"
+      ],
+      "verification_steps": [
+        "Confirm the Chrome release notes identify 140.0.7339.185 as the version that includes the CVE-2025-10585 fix and that the installed product matches that channel update"
+      ]
     },
     "CVE-2025-12480": {
       "business_risk": "Critical risk: an unauthenticated network attacker may access Triofox configuration and initialization pages, potentially create administrative access, and achieve confidentiality and integrity impact. The vulnerability is listed in CISA’s Known Exploited Vulnerabilities catalog, indicating active exploitation and heightened remediation priority.",
@@ -21035,212 +21101,271 @@
       ]
     },
     "CVE-2025-20393": {
-      "business_risk": "Critical remote unauthenticated command execution with root privileges on affected Cisco Secure Email Gateway or Cisco Secure Email and Web Manager appliances. Cisco reported active cyberattack activity and a persistence mechanism on compromised appliances.",
+      "business_risk": "Critical (CVSS 3.1 10.0) unauthenticated remote command execution as root on Cisco Secure Email Gateway and Cisco Secure Email and Web Manager appliances via the Spam Quarantine feature. Actively exploited in a campaign with implanted persistence; listed in CISA KEV with a short remediation window. Compromise of internet-exposed email security appliances can enable full device control, persistence, and downstream email-borne attacks.",
       "claim_evidence": [
         {
-          "claim": "The vulnerability permits an unauthenticated remote attacker to execute arbitrary system commands with root privileges through the Spam Quarantine feature.",
+          "claim": "The vulnerability affects Cisco AsyncOS Software for Cisco Secure Email Gateway (physical and virtual) and Cisco Secure Email and Web Manager (physical and virtual).",
           "kind": "affected_product",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-20393"
+          "source_url": "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-sma-attack-N9bf4"
+        },
+        {
+          "claim": "The attack campaign and vulnerability apply when the appliance runs a vulnerable AsyncOS release, is configured with the Spam Quarantine feature, and that feature is exposed to and reachable from the internet. The feature is not enabled by default.",
+          "kind": "exposure",
+          "source_url": "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-sma-attack-N9bf4"
+        },
+        {
+          "claim": "Cisco Email Security Gateway first fixed AsyncOS releases: 15.0.5-016 (14.2 and earlier and 15.0), 15.5.4-012 (15.5), 16.0.4-016 (16.0).",
+          "kind": "fixed_version",
+          "source_url": "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-sma-attack-N9bf4"
+        },
+        {
+          "claim": "Secure Email and Web Manager first fixed AsyncOS releases: 15.0.2-007 (15.0 and earlier), 15.5.4-007 (15.5), 16.0.4-010 (16.0).",
+          "kind": "fixed_version",
+          "source_url": "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-sma-attack-N9bf4"
+        },
+        {
+          "claim": "Cisco has released software updates that address this vulnerability. There are no workarounds that address this vulnerability. Customers are advised to upgrade to an appropriate fixed software release. The fix also clears identified persistence mechanisms.",
+          "kind": "remediation",
+          "source_url": "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-sma-attack-N9bf4"
+        },
+        {
+          "claim": "Determine whether Spam Quarantine is enabled by checking the corresponding checkbox on the IP Interfaces page in the web management interface. Customers who wish to verify compromise should open a Cisco TAC case.",
+          "kind": "verification",
+          "source_url": "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-sma-attack-N9bf4"
+        },
+        {
+          "claim": "CISA describes the issue as an improper input validation vulnerability in Cisco Secure Email Gateway, Secure Email, AsyncOS Software, and Web Manager appliances allowing arbitrary commands with root privileges.",
+          "kind": "affected_product",
+          "source_url": "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2025-20393"
+        },
+        {
+          "claim": "CISA required action is to apply mitigations per vendor instructions, follow applicable BOD 22-01 guidance for cloud services, or discontinue use of the product if mitigations are unavailable. Check internet-accessible affected products for signs of potential compromise.",
+          "kind": "remediation",
+          "source_url": "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2025-20393"
         }
       ],
       "exposure_conditions": [
-        "The appliance runs a vulnerable Cisco AsyncOS release.",
-        "The Spam Quarantine feature is enabled.",
-        "Spam Quarantine is exposed to and reachable from the Internet.",
-        "Cisco Secure Email Cloud instances are not affected according to Cisco's advisory."
+        "Appliance is running a vulnerable release of Cisco AsyncOS Software for Cisco Secure Email Gateway or Cisco Secure Email and Web Manager (physical or virtual).",
+        "The Spam Quarantine feature is configured and enabled (not enabled by default).",
+        "The Spam Quarantine feature is exposed to and reachable from the internet."
       ],
       "gaps": [],
-      "generated_at": "2026-07-29T08:52:13Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-09-28T17:56:06Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
-      "recipe_specificity": "not_specific",
+      "recipe_specificity": "specific",
       "remediation_steps": [
-        "Upgrade Cisco Secure Email Gateway appliances to a Cisco AsyncOS fixed release: 15.0.5-016 for releases 14.2 and earlier or 15.0; 15.5.4-012 for the 15.5 branch; or 16.0.4-016 for the 16.0 branch.",
-        "Upgrade Cisco Secure Email and Web Manager appliances to a fixed release: 15.0.2-007 for releases 15.0 and earlier; 15.5.4-007 for the 15.5 branch; or 16.0.4-010 for the 16.0 branch.",
-        "Until upgraded, prevent Internet access to the appliance and restrict permitted access to known, trusted hosts using filtering controls.",
-        "Review whether Spam Quarantine is enabled and remove direct Internet exposure where it is not required.",
-        "If compromise is suspected, contact Cisco TAC for confirmation and follow Cisco's recovery guidance; Cisco states that upgrading to a fixed release clears the identified persistence mechanisms."
+        "Upgrade to a vendor-documented first fixed AsyncOS release: Cisco Secure Email Gateway 15.0.5-016 (14.2 and earlier / 15.0 trains), 15.5.4-012 (15.5), or 16.0.4-016 (16.0); Cisco Secure Email and Web Manager 15.0.2-007 (15.0 and earlier), 15.5.4-007 (15.5), or 16.0.4-010 (16.0).",
+        "Perform the upgrade via the web-based management interface System Administration > System Upgrade path described in the Cisco advisory. Cisco states there are no workarounds that address this vulnerability.",
+        "Apply Cisco hardening guidance: prevent or strictly restrict internet access to the appliance, place it behind filtering devices, separate mail and management interfaces where applicable, and disable unneeded services.",
+        "Follow CISA KEV required action: apply mitigations per vendor instructions (or discontinue use if unavailable). Cisco Secure Email Cloud is confirmed not affected.",
+        "If Spam Quarantine was internet-reachable, contact Cisco TAC for compromise assessment; the upgrade also clears identified persistence mechanisms from the campaign."
       ],
       "retrieved_source_urls": [
         "https://nvd.nist.gov/vuln/detail/CVE-2025-20393",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-webui-multi-ARNHM4v6?vs_f=Cisco+Security+Advisory%26vs_cat%3DSecurity+Intelligence%26vs_type%3DRSS%26vs_p%3DCisco+IOS+XE+Software+Web-Based+Management+Interface+Vulnerabilities%26vs_k%3D1",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-webex-xss-7teQtFn8",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-roomos-inf-disc-qGgsbxAm",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-snmp-x4LPhte",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-sma-attack-N9bf4?vs_f=Cisco+Security+Advisory%26vs_cat%3DSecurity+Intelligence%26vs_type%3DRSS%26vs_p%3DReports+About+Cyberattacks+Against+Cisco+Secure+Email+Gateway+And+Cisco+Secure+Email+and+Web+Manager%26vs_k%3D1",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-cucm-csrf-w762pRYd",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-webex-app-ZjNm8X8j",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-cat9k-acl-L4K7VXgD",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-cucm-ssh-m4UBdpE7",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-asaftd-cmdinj-VEhFeZQ3",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-asa-ftd-ios-dos-DOESHWHy",
-        "https://www.cisa.gov/sites/default/files/2025-06/CISA.gov-Apr-2025-Web-Metrics-508.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/web-metrics/CISA.gov-Mar-2025-Web-Metrics-508.pdf",
-        "https://www.cisa.gov/sites/default/files/2025-08/CSA_COUNTERING_CHINA_STATE_ACTORS_COMPROMISE_OF_NETWORKS.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
-        "https://www.cisa.gov/sites/default/files/2025-02/aa25-022a-threat-actors-chained-vulnerabilities-in-ivanti-cloud-service-applications_2.pdf",
-        "https://www.cisa.gov/sites/default/files/2024-05/Secure_by_Design_Alert_Eliminating_Directory_Traversal_Vulnerabilities_in_Software_508c%20%283%29.pdf"
+        "https://www.cve.org/CVERecord?id=CVE-2025-20393",
+        "https://avd.aquasec.com/nvd/2025/cve-2025-20393/",
+        "https://www.incibe.es/incibe-cert/alerta-temprana/vulnerabilidades/cve-2025-20393",
+        "https://www.cvedetails.com/cve/CVE-2025-20393/",
+        "https://www.sentinelone.com/vulnerability-database/cve-2025-20393/",
+        "https://www.rainforest.tech/en/cves/CVE-2025-20393",
+        "https://www.thehackerwire.com/vulnerability/CVE-2025-20393/",
+        "https://www.cloudanix.com/vulndb/cve/CVE-2025-20393",
+        "https://app.opencve.io/cve/CVE-2025-20393",
+        "https://www.tenable.com/cve/CVE-2025-20393",
+        "https://www.upguard.com/vulnerabilities/cve-2025-20393",
+        "https://vulnerability.circl.lu/vuln/CVE-2025-20393",
+        "https://socradar.io/free-tools/cve-radar/CVE-2025-20393",
+        "https://blog.elvatis.com/critical-zero-day-vulnerability-cve-2025-20393-cisa-kev/",
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-20393/change-record?changeRecordedOn=10/02/2024T13:15:15.337-0400",
+        "https://nvd.nist.gov/vuln/detail/cve-2024-20393",
+        "https://nvd.nist.gov/vuln/detail/cve-2022-20393",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-0393",
+        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-sma-attack-N9bf4",
+        "https://www.cisco.com/c/ja_jp/support/docs/csa/2025/cisco-sa-sma-attack-N9bf4.html",
+        "https://community.cisco.com/t5/email-security/0-day-in-esa-sma-cve-2025-20393/td-p/5356027",
+        "https://community.cisco.com/t5/email-security/zero-day-vulnerability-with-cve-2025-20393/td-p/5356849",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2025-20393"
       ],
       "schema_version": 2,
       "source_fingerprint": "7bf70e5407d8aa864b3606e27efe5512c1a4ffb9ac7253d5883126307de3a7a6",
       "source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2025-20393"
+        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-sma-attack-N9bf4",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-20393",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2025-20393",
+        "https://www.cve.org/CVERecord?id=CVE-2025-20393"
       ],
       "status": "complete",
       "uncertainty": [
-        "The supplied record lists individual affected versions, but Cisco's advisory provides remediation by release branch rather than a one-to-one fixed version for every listed build.",
-        "A clean version check alone does not establish that an appliance was not previously compromised.",
-        "The advisory does not provide a customer-executable, non-intrusive compromise-detection test; Cisco directs customers to TAC for confirmation."
+        "NVD page content could not be fully retrieved in this session; CPE ranges and the long list of specific CNA-affected builds should be cross-checked directly on NVD and cve.org against the Cisco train-based fixed-release table.",
+        "Hardware model lists beyond physical/virtual Secure Email Gateway and Secure Email and Web Manager appliances are not exhaustively restated in the primary advisory text used here.",
+        "Indicators of compromise and persistence details are summarized at a high level; forensic confirmation is directed to Cisco TAC rather than independently specified."
       ],
       "verification_steps": [
-        "Confirm the appliance product and installed Cisco AsyncOS release against Cisco's fixed-release table.",
-        "Confirm that the installed release is at or above the applicable fixed version for the product branch.",
-        "Review the relevant interface configuration to confirm whether Spam Quarantine is enabled and whether it is reachable from the Internet.",
-        "Review appliance web traffic and externally stored logs for unexpected traffic involving the appliance; preserve relevant evidence for investigation.",
-        "If compromise is suspected, obtain confirmation through Cisco TAC rather than attempting intrusive validation on the appliance."
+        "In the web management interface, open Network > IP Interfaces (Secure Email Gateway) or Management Appliance > Network > IP Interfaces (Secure Email and Web Manager) and check whether the Spam Quarantine checkbox is selected on any internet-reachable interface.",
+        "Confirm the installed AsyncOS version against the first fixed releases listed in the Cisco security advisory.",
+        "If internet exposure of Spam Quarantine cannot be ruled out, contact Cisco TAC (with remote access enabled as they request) for vendor-assisted compromise assessment rather than independent invasive checks. CISA additionally advises checking internet-accessible affected products for signs of potential compromise."
       ]
     },
     "CVE-2025-21042": {
-      "business_risk": "Critical remote code-execution risk on affected Samsung mobile devices. The vulnerability is in the image codec library and is listed in CISA's Known Exploited Vulnerabilities catalog, indicating active exploitation and requiring prioritized remediation.",
+      "business_risk": "Critical remote arbitrary code execution on Samsung Android mobile devices via out-of-bounds write; listed in CISA Known Exploited Vulnerabilities catalog with federal remediation due date.",
       "claim_evidence": [
         {
-          "claim": "The vulnerability is an out-of-bounds write in libimagecodec.quram.so that allows remote attackers to execute arbitrary code.",
+          "claim": "Samsung Mobile Devices (Android 13, 14, 15)",
+          "kind": "affected_product",
+          "source_url": "https://www.cve.org/CVERecord?id=CVE-2025-21042"
+        },
+        {
+          "claim": "Out-of-bounds write in libimagecodec.quram.so allows remote attackers to execute arbitrary code",
           "kind": "exposure",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-21042"
+          "source_url": "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2025-21042"
+        },
+        {
+          "claim": "SMR Apr-2025 Release 1 (unaffected at SMR Apr-2025 Release in Android 13, 14, 15)",
+          "kind": "fixed_version",
+          "source_url": "https://www.cve.org/CVERecord?id=CVE-2025-21042"
+        },
+        {
+          "claim": "Apply mitigations per vendor instructions (SMR Apr-2025 Release 1)",
+          "kind": "remediation",
+          "source_url": "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2025-21042"
         }
       ],
       "exposure_conditions": [
-        "Samsung Mobile devices running Android 13, Android 14, or Android 15 with a security maintenance release earlier than SMR Apr-2025 Release 1.",
-        "The vulnerable libimagecodec.quram.so component can be reached through a remote attack path; successful exploitation may allow arbitrary code execution."
+        "Samsung mobile devices on Android 13, 14, or 15 containing libimagecodec.quram.so prior to the patched SMR",
+        "Remote attackers able to cause an out-of-bounds write that executes arbitrary code"
       ],
       "gaps": [],
-      "generated_at": "2026-07-25T21:06:58Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-09-28T18:02:17Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [
-        "Install Samsung's SMR Apr-2025 Release 1 or a later security maintenance release on affected devices.",
-        "Prioritize devices that cannot yet be updated because CVE-2025-21042 is listed in the CISA Known Exploited Vulnerabilities catalog.",
-        "Account for Samsung's stated variation in security-update delivery by device model and region; obtain the applicable update through the device's supported Samsung update channel.",
-        "If a device cannot receive the vendor mitigation, apply organizational restrictions appropriate to unsupported mobile devices or retire the device."
+        "Apply Samsung Mobile SMR Apr-2025 Release 1 or a later security maintenance release per vendor instructions."
       ],
       "retrieved_source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2025-21042",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=0",
-        "https://nvd.nist.gov/vuln/detail/CVE-2025-21042?email_hash=0d7a7050906b225db2718485ca0f3472",
-        "https://www.cisa.gov/news-events/alerts/2025/07/28/cisa-adds-three-known-exploited-vulnerabilities-catalog",
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-21042",
-        "https://nvd.nist.gov/vuln/detail/cve-2021-21042",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=21",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=23",
-        "https://nvd.nist.gov/vuln/cvmap/report/21026",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=50",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A811&f%5B1%5D=vendor_project%3A822&f%5B2%5D=vendor_project%3A859&f%5B3%5D=vendor_project%3A865&f%5B4%5D=vendor_project%3A901&f%5B5%5D=vendor_project%3A904&f%5B6%5D=vendor_project%3A914&f%5B7%5D=vendor_project%3A952&page=1",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=38",
-        "https://cisa.gov/sites/default/files/2024-05/Compendium%20CISA%20Tech%20Investigations%2020240424%20SPP_V2_508c.pdf",
-        "https://niccs.cisa.gov/sites/default/files/documents/Cybersecurity_Workforce_Training_Guide_7.28.21_508c.pdf",
-        "https://niccs.cisa.gov/sites/default/files/documents/pdf/cybersecurity%20careers%20of%20the%20future.pdf?trackDocs=cybersecurity+careers+of+the+future.pdf"
+        "https://nvd.nist.gov/vuln/detail/cve-2025-21042",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-21042/change-record?changeRecordedOn=09/19/2025T16:12:59.913-0400",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-21043",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2025-21642",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-21942",
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-50542",
+        "https://nvd.nist.gov/vuln/detail/cve-2025-37742",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-21542/change-record?changeRecordedOn=01/21/2025T16:15:20.420-0500",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-29042",
+        "https://nvd.nist.gov/vuln/detail/cve-2025-22042",
+        "https://security.samsungmobile.com/securityUpdate.smsb?year=2025&month=09",
+        "https://r.srvtrck.com/v1/redirect?url=https%3A%2F%2Fsecurity.samsungmobile.com%2FsecurityUpdate.smsb&type=url&abtag=abp:false&api_key=238621be58f59770152dac0d4ef09b6f&site_id=4f329b08d537771acc385347&tid=08353157-7555-4688-a71d-4e284c183e99&dch=gaia&tna=gaia&tv=0.121&title=(5)%20Samsung%20Galaxy%20Note10%20%2F%20Note10%2B%204G%20%2F%205G%20-%20Neuigkeiten%20und%20Rollouts%20der%20Firmware%20(keine%20Diskussion%2FFragen)%20%7C%20Seite%204%20%E2%80%93%20Android-Hilfe.de&refr=https%3A%2F%2Fwww.android-hilfe.de%2Fforum%2Fsamsung-galaxy-note-10-note-10-5g.3565%2Fsamsung-galaxy-note10-note10-4g-5g-neuigkeiten-und-rollouts-der-firmware-keine-diskussion-fragen.933819-page-5.html&page=https%3A%2F%2Fwww.android-hilfe.de%2Fforum%2Fsamsung-galaxy-note-10-note-10-5g.3565%2Fsamsung-galaxy-note10-note10-4g-5g-neuigkeiten-und-rollouts-der-firmware-keine-diskussion-fragen.933819-page-4.html&afsrc=1&cache=65SOLE1BSRABGHITORUOCQJFT303SKOI&vid=20&dnt=0&ad_k=Samsung%20Mobile%20Security&ad_t=advertiser&ad_zi=YieldLink&ad_dt=link",
+        "https://security.samsungmobile.com/serviceWeb.smsb?year=2025",
+        "https://security.samsungmobile.com/securityUpdate.smsb?year=2024&month=12",
+        "https://security.samsungmobile.com/securityReportingRiskClassification.smsb",
+        "https://security.samsungmobile.com/serviceWeb.smsb",
+        "https://www.cisa.gov/news-events/alerts/2025/11/10/cisa-adds-one-known-exploited-vulnerability-catalog",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2025-21042",
+        "https://cisa.gov/news-events/ics-advisories/icsa-25-063-02",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog-print",
+        "https://www.cve.org/CVERecord?id=CVE-2025-21042"
       ],
       "schema_version": 2,
       "source_fingerprint": "f234237f8fc24d21bd35ca07128d9f57dd7df3c5dec0d8afb29f1842b59b7337",
       "source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2025-21042"
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2025-21042",
+        "https://www.cve.org/CVERecord?id=CVE-2025-21042"
       ],
       "status": "complete",
       "uncertainty": [
-        "Samsung's advisory identifies Android 13, 14, and 15 as affected versions but does not provide a complete model-by-model applicability list in the cited section.",
-        "Update availability can vary by model and region, so the fixed release designation does not by itself prove that every Samsung device received the patch simultaneously.",
-        "The sources establish remote arbitrary-code-execution capability but do not establish the precise delivery vector or whether a particular deployment is reachable in a given environment."
+        "NVD page content could not be retrieved due to rendering requirements",
+        "CNA CVSS includes user interaction while other analyses use a different vector",
+        "Vendor summary lists Android 13/14/15 rather than an exhaustive model list"
       ],
       "verification_steps": [
-        "On each device, review the installed Android security software or security-patch level and confirm that it reports SMR Apr-2025 Release 1 or a later release.",
-        "Confirm the reported Android major version and device model against Samsung's applicable update availability; do not treat an unavailable update as evidence that the device is unaffected.",
-        "Record verification results from device-management inventory or the device's normal settings interface without sending test payloads or performing exploit validation."
+        "Confirm the device Security software version (SSI) reports SMR Apr-2025 Release 1 or a subsequent SMR release."
       ]
     },
     "CVE-2025-21043": {
-      "business_risk": "Critical remote code-execution risk on affected Samsung mobile devices. The vulnerability is an out-of-bounds write in libimagecodec.quram.so, and CISA lists CVE-2025-21043 in its Known Exploited Vulnerabilities Catalog as actively exploited.",
+      "business_risk": "Critical known-exploited remote code execution on Samsung Android mobile devices via out-of-bounds write, enabling full device compromise.",
       "claim_evidence": [
         {
-          "claim": "Samsung Mobile identifies Android 13, 14, 15, and 16 devices as affected before SMR Sep-2025 Release 1.",
+          "claim": "Samsung Mobile Devices (Android 13, 14, 15, 16)",
           "kind": "affected_product",
-          "source_url": "https://security.samsungmobile.com/securityUpdate.smsb?month=9&year=2025"
+          "source_url": "https://security.samsungmobile.com/securityUpdate.smsb?year=2025&month=09"
         },
         {
-          "claim": "The vulnerability affects Samsung Mobile devices prior to SMR Sep-2025 Release 1.",
+          "claim": "prior to SMR Sep-2025 Release 1",
           "kind": "affected_version",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-21043"
+          "source_url": "https://security.samsungmobile.com/securityUpdate.smsb?year=2025&month=09"
         },
         {
-          "claim": "An out-of-bounds write in libimagecodec.quram.so allows remote attackers to execute arbitrary code; Samsung states that an exploit existed in the wild.",
+          "claim": "Out-of-bounds write in libimagecodec.quram.so prior to SMR Sep-2025 Release 1 allows remote attackers to execute arbitrary code",
           "kind": "exposure",
-          "source_url": "https://security.samsungmobile.com/securityUpdate.smsb?month=9&year=2025"
-        },
-        {
-          "claim": "Samsung states that SMR Sep-2025 Release 1 includes the fix for CVE-2025-21043.",
-          "kind": "fixed_version",
-          "source_url": "https://security.samsungmobile.com/securityUpdate.smsb?month=9&year=2025"
-        },
-        {
-          "claim": "CISA requires applying vendor mitigations and recommends discontinuing use when mitigations are unavailable.",
-          "kind": "remediation",
           "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-21043"
         },
         {
-          "claim": "Samsung identifies the security index as being found in the device's Security software version, supporting verification through that device-reported value.",
+          "claim": "SMR Sep-2025 Release 1",
+          "kind": "fixed_version",
+          "source_url": "https://security.samsungmobile.com/securityUpdate.smsb?year=2025&month=09"
+        },
+        {
+          "claim": "SMR Sep-2025 Release 1 includes all patches from Samsung and Google; apply vendor mitigations",
+          "kind": "remediation",
+          "source_url": "https://security.samsungmobile.com/securityUpdate.smsb?year=2025&month=09"
+        },
+        {
+          "claim": "Samsung security index (SSI), found in “Security software version”, SMR Sep-2025 Release 1 includes all patches",
           "kind": "verification",
-          "source_url": "https://security.samsungmobile.com/securityUpdate.smsb?month=9&year=2025"
+          "source_url": "https://security.samsungmobile.com/securityUpdate.smsb?year=2025&month=09"
         }
       ],
       "exposure_conditions": [
-        "Samsung Mobile devices running Android 13, 14, 15, or 16 before SMR Sep-2025 Release 1 are affected.",
-        "Remote attackers may exploit the vulnerability to execute arbitrary code.",
-        "Samsung reported that an exploit for this issue existed in the wild."
+        "Samsung mobile devices on Android 13, 14, 15, or 16 prior to SMR Sep-2025 Release 1",
+        "Remote attackers can execute arbitrary code through an out-of-bounds write in libimagecodec.quram.so",
+        "The vulnerability has been exploited in the wild"
       ],
       "gaps": [],
-      "generated_at": "2026-07-25T21:06:42Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-09-28T18:00:22Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [
-        "Apply Samsung's SMR Sep-2025 Release 1 update, or a later Samsung security update, to affected devices.",
-        "Confirm that the device's Security software version reflects SMR Sep-2025 Release 1 or later.",
-        "Where vendor mitigation is unavailable, follow applicable CISA guidance, including discontinuing use of the affected product when appropriate."
+        "Apply the SMR Sep-2025 Release 1 security maintenance release (or later) per the Samsung Mobile Security advisory",
+        "Apply mitigations per vendor instructions, follow applicable BOD 22-01 guidance for cloud services, or discontinue use of the product if mitigations are unavailable"
       ],
       "retrieved_source_urls": [
-        "https://security.samsungmobile.com/securityUpdate.smsb?month=9&year=2025",
         "https://nvd.nist.gov/vuln/detail/CVE-2025-21043",
-        "https://security.samsungmobile.com/securityUpdate.smsb?pubDate=20250915",
-        "https://www.cisa.gov/news-events/alerts/2025/07/28/cisa-adds-three-known-exploited-vulnerabilities-catalog",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-21043/change-record?changeRecordedOn=09/19/2025T16:10:07.140-0400",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-21843",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2025-38443",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-4143/change-record?changeRecordedOn=04/30/2025T21:15:54.127-0400",
+        "https://nvd.nist.gov/vuln/detail/cve-2025-13943",
+        "https://nvd.nist.gov/vuln/detail/cve-2025-21743",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2025-40343",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-21643/change-record?changeRecordedOn=01/19/2025T06:15:09.870-0500",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-40243",
+        "https://security.samsungmobile.com/securityUpdate.smsb?year=2025&month=09",
+        "https://r.srvtrck.com/v1/redirect?url=https%3A%2F%2Fsecurity.samsungmobile.com%2FsecurityUpdate.smsb&type=url&abtag=abp:false&api_key=238621be58f59770152dac0d4ef09b6f&site_id=4f329b08d537771acc385347&tid=08353157-7555-4688-a71d-4e284c183e99&dch=gaia&tna=gaia&tv=0.121&title=(5)%20Samsung%20Galaxy%20Note10%20%2F%20Note10%2B%204G%20%2F%205G%20-%20Neuigkeiten%20und%20Rollouts%20der%20Firmware%20(keine%20Diskussion%2FFragen)%20%7C%20Seite%204%20%E2%80%93%20Android-Hilfe.de&refr=https%3A%2F%2Fwww.android-hilfe.de%2Fforum%2Fsamsung-galaxy-note-10-note-10-5g.3565%2Fsamsung-galaxy-note10-note10-4g-5g-neuigkeiten-und-rollouts-der-firmware-keine-diskussion-fragen.933819-page-5.html&page=https%3A%2F%2Fwww.android-hilfe.de%2Fforum%2Fsamsung-galaxy-note-10-note-10-5g.3565%2Fsamsung-galaxy-note10-note10-4g-5g-neuigkeiten-und-rollouts-der-firmware-keine-diskussion-fragen.933819-page-4.html&afsrc=1&cache=65SOLE1BSRABGHITORUOCQJFT303SKOI&vid=20&dnt=0&ad_k=Samsung%20Mobile%20Security&ad_t=advertiser&ad_zi=YieldLink&ad_dt=link",
         "https://security.samsungmobile.com/serviceWeb.smsb?year=2025",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=0",
-        "https://security.samsungmobile.com/securityUpdate.smsb?year=2026",
+        "https://security.samsungmobile.com/securityReportingRiskClassification.smsb",
         "https://security.samsungmobile.com/serviceWeb.smsb",
-        "https://security.samsungmobile.com/securityUpdate.smsb?month=06&year=2025",
-        "https://security.samsungmobile.com/securityPost.smsb/Advisory",
-        "https://security.samsungmobile.com/securityUpdate.smsb?year=2024",
-        "https://security.samsungmobile.com/rewardsProgram.smsb",
-        "https://niccs.cisa.gov/sites/default/files/documents/Cybersecurity_Workforce_Training_Guide_7.28.21_508c.pdf",
-        "https://cisa.gov/sites/default/files/2024-05/Compendium%20CISA%20Tech%20Investigations%2020240424%20SPP_V2_508c.pdf",
-        "https://niccs.cisa.gov/sites/default/files/documents/pdf/cybersecurity%20careers%20of%20the%20future.pdf?trackDocs=cybersecurity+careers+of+the+future.pdf",
-        "https://niccs.cisa.gov/sites/default/files/documents/Cybersecurity_Workforce_Training_Guide_7.28.21_508c.pdf?trackDocs=Cybersecurity_Workforce_Training_Guide_7.28.21_508c.pdf"
+        "https://www.cisa.gov/news-events/alerts/2025/11/10/cisa-adds-one-known-exploited-vulnerability-catalog",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2025-21042",
+        "https://www.cisa.gov/news-events/bulletins/sb25-349",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog-print",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog",
+        "https://socradar.io/free-tools/cve-radar/CVE-2025-21043"
       ],
       "schema_version": 2,
       "source_fingerprint": "76db72c0f4c433f0b313724796741a2e20702a0e592b6c147707accaec8beae3",
       "source_urls": [
-        "https://security.samsungmobile.com/securityUpdate.smsb?month=9&year=2025",
-        "https://nvd.nist.gov/vuln/detail/CVE-2025-21043"
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-21043",
+        "https://security.samsungmobile.com/securityUpdate.smsb?year=2025&month=09"
       ],
       "status": "complete",
       "uncertainty": [
-        "The supplied product records contain truncated CPE data and do not identify specific Samsung device models.",
-        "Samsung's advisory describes the fixed level as SMR Sep-2025 Release 1 but does not establish model-by-model deployment availability in the retrieved material.",
-        "The sources do not provide a standalone mitigation that safely removes exposure without applying an update."
+        "Security update delivery timing varies by device model and region",
+        "Exact image-processing trigger and user-interaction requirements are not fully specified in vendor or NVD descriptions"
       ],
       "verification_steps": [
-        "On each device, review the reported Android version and Security software version.",
-        "Confirm that the reported Security software version is SMR Sep-2025 Release 1 or later.",
-        "Record devices that cannot report the required security release or cannot receive the vendor update for additional remediation."
+        "Confirm the device Security software version shows SMR Sep-2025 Release 1 or a later release, which includes the patches from Samsung and Google"
       ]
     },
     "CVE-2025-22224": {
@@ -23631,6 +23756,113 @@
         "Do not perform exploit testing or unauthenticated probing against the appliance; rely on version, patch, update-history, and vendor-supported health information."
       ]
     },
+    "CVE-2025-39682": {
+      "business_risk": "CISA Known Exploited Vulnerability in the Linux kernel TLS receive path (CVSS 3.1 9.8 Critical from NVD/CNA) that can be remotely triggered when kernel TLS is in use, with high impact to confidentiality, integrity, and availability. Also listed for Siemens SIMATIC CN 4100 before V5.0. CISA requires vendor mitigations, BOD 26-04 compliance, and forensic triage; ransomware campaign use is Unknown.",
+      "claim_evidence": [
+        {
+          "claim": "The vulnerability is in the Linux kernel TLS receive path (tls: handling of zero-length records on rx_list).",
+          "kind": "affected_product",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-39682"
+        },
+        {
+          "claim": "NVD lists Linux kernel as affected from 6.0 up to excluding 6.1.149; from 6.2 up to excluding 6.6.103; from 6.7 up to excluding 6.12.44; from 6.13 up to excluding 6.16.4; and 6.17-rc1 and 6.17-rc2.",
+          "kind": "affected_version",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-39682"
+        },
+        {
+          "claim": "CNA git ranges are affected from 84c61fe1a75b4255df1e1e7c054c9e6d048da417 before the listed stable fix commits.",
+          "kind": "affected_version",
+          "source_url": "https://www.cve.org/CVERecord?id=CVE-2025-39682"
+        },
+        {
+          "claim": "The issue can be remotely triggered only when kernel TLS (CONFIG_TLS with the TLS ULP attached to TCP sockets with SOL_TLS) is in use.",
+          "kind": "exposure",
+          "source_url": "https://access.redhat.com/security/cve/cve-2025-39682"
+        },
+        {
+          "claim": "CNA lists unaffected 0 before 6.0; 6.1.149 through 6.1.*; 6.6.103 through 6.6.*; 6.12.44 through 6.12.*; 6.16.4 through 6.16.*; and 6.17 as original_commit_for_fix.",
+          "kind": "fixed_version",
+          "source_url": "https://www.cve.org/CVERecord?id=CVE-2025-39682"
+        },
+        {
+          "claim": "Red Hat mitigation if needed: prevent the tls kernel module from being loaded.",
+          "kind": "remediation",
+          "source_url": "https://access.redhat.com/security/cve/cve-2025-39682"
+        },
+        {
+          "claim": "Fixed status can be confirmed by matching the installed kernel or Siemens firmware to the published unaffected/fixed versions above; Red Hat states kTLS must be in use for the issue to be triggerable.",
+          "kind": "verification",
+          "source_url": "https://www.cve.org/CVERecord?id=CVE-2025-39682"
+        }
+      ],
+      "exposure_conditions": [
+        "Linux kernel TLS (kTLS) is in use: CONFIG_TLS with the TLS ULP attached to TCP sockets (SOL_TLS).",
+        "Linux kernel 6.0 and later until CNA/NVD-stated fixed stable versions, including 6.17-rc1 and 6.17-rc2.",
+        "A zero-length TLS record taken from rx_list is processed on the receive path, which can bypass per-recvmsg() record-type handling.",
+        "Siemens SIMATIC CN 4100 firmware before V5.0.",
+        "Network-exposed kTLS receive paths; CISA requires stakeholders to evaluate internet exposure."
+      ],
+      "gaps": [],
+      "generated_at": "2026-09-28T18:04:01Z",
+      "model": "grok-4.6",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [
+        "Apply Linux kernel updates to a CNA/NVD-stated fixed release for the running stable line (6.1.149 or later 6.1.*, 6.6.103 or later 6.6.*, 6.12.44 or later 6.12.*, 6.16.4 or later 6.16.*, or 6.17).",
+        "For Siemens SIMATIC CN 4100, update to V5.0 or later as stated in SSA-032379.",
+        "If a kernel update cannot be applied immediately, prevent the tls kernel module from loading per Red Hat guidance.",
+        "Follow CISA KEV required action: vendor mitigations, BOD 26-04 risk-based patching, forensic triage, and discontinue use if mitigations are unavailable."
+      ],
+      "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-39682",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2025-39686",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-39692",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2025-40082",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-39982/change-record?changeRecordedOn=10/15/2025T04:15:36.153-0400",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-39792",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2025-21682",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-38582",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-39996",
+        "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2025-40362",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-26-134-10",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2025-55182",
+        "https://www.cisa.gov/news-events/bulletins/sb25-342",
+        "https://www.cisa.gov/ed-25-03-guidance-device-updates-and-patching",
+        "https://www.cisa.gov/news-events/alerts/2025/12/09/cisa-adds-two-known-exploited-vulnerabilities-catalog",
+        "https://www.cisa.gov/news-events/bulletins/sb25-349",
+        "https://www.cisa.gov/news-events/bulletins/sb25-363",
+        "https://www.cisa.gov/news-events/bulletins/sb25-272",
+        "https://www.cisa.gov/news-events/bulletins/sb26-040",
+        "https://www.cve.org/CVERecord?id=CVE-2025-39682",
+        "https://docs.bell-sw.com/security/cves/CVE-2025-39682/",
+        "https://ubuntu.com/security/CVE-2025-39682",
+        "https://access.redhat.com/security/cve/cve-2025-39682"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "a9a1b3ef57b0926d1bd0e8cddc42b9314b93d03b09dbffb4df69a1a2eee025e2",
+      "source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-39682",
+        "https://www.cve.org/CVERecord?id=CVE-2025-39682",
+        "https://access.redhat.com/security/cve/cve-2025-39682",
+        "https://ubuntu.com/security/CVE-2025-39682"
+      ],
+      "status": "complete",
+      "uncertainty": [
+        "Full NVD HTML body was not retrievable; CPE and version ranges are taken from NVD search snippets plus CVE.org product status.",
+        "git.kernel.org patch pages were blocked by anti-bot controls; commit IDs are taken from CNA/NVD/CISA reference lists only.",
+        "Ubuntu Security page did not return a complete per-release package status table.",
+        "Red Hat CVE page did not return a product-by-product affected/fixed table.",
+        "No authoritative source published a non-destructive runtime functional test beyond version and kTLS-usage confirmation.",
+        "CISA lists known ransomware campaign use as Unknown."
+      ],
+      "verification_steps": [
+        "Compare the installed Linux kernel version with NVD/CNA unaffected ranges: 6.1.149 and later on 6.1.*, 6.6.103 and later on 6.6.*, 6.12.44 and later on 6.12.*, 6.16.4 and later on 6.16.*, or 6.17; versions before 6.0 are listed unaffected.",
+        "For Debian packages, confirm the linux source meets tracker-stated fixed versions (for example bookworm 6.1.153-1, trixie 6.12.48-1, unstable 6.16.5-1); Debian notes the bullseye linux package as not affected because the vulnerable code is not present.",
+        "For SIMATIC CN 4100, confirm firmware is V5.0 or later per Siemens SSA-032379.",
+        "Confirm from vendor configuration whether kernel TLS ULP is in use; Red Hat states the issue can only be triggered when kTLS is in use."
+      ]
+    },
     "CVE-2025-40536": {
       "business_risk": "No additional source-verified CVE-specific business impact was established.",
       "claim_evidence": [],
@@ -25307,97 +25539,97 @@
       ]
     },
     "CVE-2025-59287": {
-      "business_risk": "Critical remote code execution risk in Windows Server Update Services (WSUS). An unauthenticated network attacker may execute code with high impact to confidentiality, integrity, and availability. The CVE is listed in CISA's Known Exploited Vulnerabilities catalog, requiring urgent remediation.",
+      "business_risk": "Critical unauthenticated remote code execution (CVSS 9.8) in WSUS that can yield SYSTEM privileges and compromise the Windows update distribution infrastructure; listed in CISA KEV with known in-the-wild exploitation.",
       "claim_evidence": [
         {
-          "claim": "Affected products include Windows Server 2012, Windows Server 2012 R2, Windows Server 2016, Windows Server 2019, Windows Server 2022, Windows Server 2022 23H2, and Windows Server 2025, including the listed Server Core variants.",
+          "claim": "Microsoft Windows Server (2012, 2012 R2, 2016, 2019, 2022 and 2025) running Windows Server Update Service (WSUS)",
           "kind": "affected_product",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-59287"
+          "source_url": "https://www.cisa.gov/news-events/alerts/2025/10/24/microsoft-releases-out-band-security-update-mitigate-windows-server-update-service-vulnerability-cve"
         },
         {
-          "claim": "The NVD record identifies affected builds below the Microsoft-provided thresholds for the listed Windows Server releases.",
+          "claim": "Windows Server 2016 versions prior to 10.0.14393.8524; Windows Server 2019 prior to 10.0.17763.7922; Windows Server 2022 prior to 10.0.20348.4297; Windows Server 2025 prior to 10.0.26100.6905 (and corresponding Server Core / 23H2 builds)",
           "kind": "affected_version",
           "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-59287"
         },
         {
-          "claim": "CVE-2025-59287 is a WSUS deserialization-of-untrusted-data vulnerability permitting unauthorized code execution over a network; the CVSS vector indicates no privileges or user interaction are required.",
+          "claim": "Servers with the WSUS Server Role enabled and TCP ports 8530/8531 open are vulnerable to unauthenticated remote code execution",
           "kind": "exposure",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-59287"
+          "source_url": "https://www.cisa.gov/news-events/alerts/2025/10/24/microsoft-releases-out-band-security-update-mitigate-windows-server-update-service-vulnerability-cve"
         },
         {
-          "claim": "The fixed build thresholds are 6.2.9200.25728 for Windows Server 2012, 6.3.9600.22826 for Windows Server 2012 R2, 10.0.14393.8524 for Windows Server 2016, 10.0.17763.7922 for Windows Server 2019, 10.0.20348.4297 for Windows Server 2022, 10.0.25398.1916 for Windows Server 2022 23H2, and 10.0.26100.6905 for Windows Server 2025.",
+          "claim": "Out-of-band updates that raise the OS build to at least 6.2.9200.25728 (2012), 6.3.9600.22826 (2012 R2), 10.0.14393.8524 (2016), 10.0.17763.7922 (2019), 10.0.20348.4297 (2022) or 10.0.26100.6905 (2025)",
           "kind": "fixed_version",
           "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-59287"
         },
         {
-          "claim": "Microsoft states that the October 24, 2025 security update for Windows Server 2025 fixes the WSUS reporting-web-services RCE associated with CVE-2025-59287; the NVD record identifies corresponding fixed build thresholds for the other affected releases.",
+          "claim": "Install the 23 October 2025 out-of-band update (or 24 October 2025 hotpatch update) and reboot; alternatively disable the WSUS role or block ports 8530/8531 until patched",
           "kind": "remediation",
-          "source_url": "https://support.microsoft.com/en-us/servicing/os/hotpatch/windows-server-2025/2025/october-24-2025-kb5070893-os-build-26100-6905-security-update-for-windows-server-update-services"
+          "source_url": "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2025-59287"
         },
         {
-          "claim": "Verification can be performed by comparing the installed OS build with the fixed build thresholds recorded by NVD and confirming installation of the applicable Microsoft security update.",
+          "claim": "Use Server Manager to confirm WSUS role status and review installed updates for the corresponding October 2025 out-of-band package",
           "kind": "verification",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-59287"
+          "source_url": "https://www.cisa.gov/news-events/alerts/2025/10/24/microsoft-releases-out-band-security-update-mitigate-windows-server-update-service-vulnerability-cve"
         }
       ],
       "exposure_conditions": [
-        "The affected component is WSUS, specifically its reporting web services.",
-        "Exposure requires network reachability to the vulnerable WSUS service; the reported CVSS vector indicates no authentication or user interaction is required.",
-        "WSUS-enabled servers are the relevant deployment context; Microsoft notes that the associated update requires a reboot for servers with WSUS enabled."
+        "Windows Server with the WSUS Server Role enabled",
+        "Inbound network access to the default WSUS listeners on TCP 8530 and/or TCP 8531",
+        "Unauthenticated remote attacker able to send crafted data that triggers unsafe deserialization"
       ],
       "gaps": [],
-      "generated_at": "2026-07-25T21:06:05Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-09-28T17:57:36Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [
-        "Apply Microsoft's security update for CVE-2025-59287 to every affected Windows Server installation, including Server Core deployments.",
-        "Ensure the resulting OS build is at or above the applicable fixed build: Windows Server 2012: 6.2.9200.25728; Windows Server 2012 R2: 6.3.9600.22826; Windows Server 2016: 10.0.14393.8524; Windows Server 2019: 10.0.17763.7922; Windows Server 2022: 10.0.20348.4297; Windows Server 2022 23H2: 10.0.25398.1916; Windows Server 2025: 10.0.26100.6905.",
-        "Prioritize systems exposed to untrusted networks and follow applicable CISA Known Exploited Vulnerabilities remediation requirements.",
-        "Plan for a reboot where required by the installed WSUS update."
+        "Install the Microsoft out-of-band security update released 23 October 2025 (or the 24 October 2025 standalone hotpatch update for enrolled servers)",
+        "Reboot the affected WSUS server after the update is installed",
+        "If the update cannot be applied immediately, disable the WSUS Server Role and/or block inbound traffic to TCP 8530 and 8531 at the host firewall; do not reverse these workarounds until the update is installed"
       ],
       "retrieved_source_urls": [
-        "https://msrc.microsoft.com/update-guide/en-us/",
         "https://nvd.nist.gov/vuln/detail/CVE-2025-59287",
-        "https://support.microsoft.com/en-us/servicing/os/hotpatch/windows-server-2025/2025/october-24-2025-kb5070893-os-build-26100-6905-security-update-for-windows-server-update-services",
-        "https://support.microsoft.com/en-us/servicing/azure/marketplace/update/2025/10/windows-server-images-for-october-2025-out-of-band",
-        "https://msrc.microsoft.com/update-guide/vulnerability/CV",
-        "https://nvd.nist.gov/vuln/detail/CVE-2025-59187",
-        "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2026-21527/",
-        "https://msrc.microsoft.com/update-guide/auth/",
-        "https://support.microsoft.com/en-gb/topic/kb5071205-windows-server-containers-for-october-2025-out-of-band-d00fb3cd-b7ff-436a-b2c5-bb2173f1c2ee",
-        "https://support.microsoft.com/id-ID/servicing/azure/marketplace/update/2025/10/windows-server-images-for-october-2025-out-of-band",
-        "https://support.microsoft.com/hr-hr/topic/windows-server-slika-za-listopad-2025-izvan-sastava-87d9db19-502d-43da-9cbe-370884f163ea",
-        "https://support.microsoft.com/pl-pl/topic/windows-server-obraz%C3%B3w-z-pa%C5%BAdziernika-2025-r-poza-zespo%C5%82em-87d9db19-502d-43da-9cbe-370884f163ea",
-        "https://niccs.cisa.gov/sites/default/files/documents/Cybersecurity_Workforce_Training_Guide_7.28.21_508c.pdf",
-        "https://cisa.gov/sites/default/files/2024-05/Compendium%20CISA%20Tech%20Investigations%2020240424%20SPP_V2_508c.pdf",
-        "https://niccs.cisa.gov/sites/default/files/documents/pdf/cybersecurity%20careers%20of%20the%20future.pdf?trackDocs=cybersecurity+careers+of+the+future.pdf",
-        "https://support.microsoft.com/en-US/servicing/os/server-containers/container/2025/10/kb5071205-windows-server-containers-for-october-2025-out-of-band",
-        "https://support.microsoft.com/sr-latn-rs/topic/kb5071205-windows-server-kontejneri-za-oktobar-2025-van-benda-d00fb3cd-b7ff-436a-b2c5-bb2173f1c2ee",
-        "https://support.microsoft.com/id-id/topic/kb5071205-windows-server-containers-for-october-2025-out-of-band-d00fb3cd-b7ff-436a-b2c5-bb2173f1c2ee",
-        "https://support.microsoft.com/es-es/topic/kb5071205-contenedores-windows-server-de-octubre-de-2025-fuera-de-banda-d00fb3cd-b7ff-436a-b2c5-bb2173f1c2ee",
-        "https://support.microsoft.com/hr-hr/topic/kb5071205-windows-server-spremnici-za-listopad-2025-izvan-sastava-d00fb3cd-b7ff-436a-b2c5-bb2173f1c2ee",
-        "https://support.microsoft.com/pl-pl/topic/kb5071205-kontenery-windows-server-na-pa%C5%BAdziernik-2025-r-poza-zakresem-d00fb3cd-b7ff-436a-b2c5-bb2173f1c2ee",
-        "https://support.microsoft.com/th-th/topic/kb5071205-%E0%B8%84%E0%B8%AD%E0%B8%99%E0%B9%80%E0%B8%97%E0%B8%99%E0%B9%80%E0%B8%99%E0%B8%AD%E0%B8%A3%E0%B9%8C-windows-server-%E0%B9%80%E0%B8%94%E0%B8%B7%E0%B8%AD%E0%B8%99%E0%B8%95%E0%B8%B8%E0%B8%A5%E0%B8%B2%E0%B8%84%E0%B8%A1-2025-%E0%B8%99%E0%B8%AD%E0%B8%81%E0%B8%A7%E0%B8%87-d00fb3cd-b7ff-436a-b2c5-bb2173f1c2ee",
-        "https://support.microsoft.com/sl-si/servicing/os/server-containers/container/2025/10/kb5071205-windows-server-containers-for-october-2025-out-of-band",
-        "https://support.microsoft.com/ja-jp/topic/kb5071205-2025-%E5%B9%B4-10-%E6%9C%88%E3%81%AEwindows-server-%E3%82%B3%E3%83%B3%E3%83%86%E3%83%8A%E3%83%BC-%E5%B8%AF%E5%9F%9F%E5%A4%96-d00fb3cd-b7ff-436a-b2c5-bb2173f1c2ee"
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2025-59287",
+        "https://nvd.nist.gov/vuln/detail/cve-2025-0287",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2025-71087",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-68787",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-55286",
+        "https://nvd.nist.gov/vuln/detail/cve-2025-66287",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2025-68287",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-39987",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-62487",
+        "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2025-59287",
+        "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2025-59288",
+        "https://msrc.microsoft.com/csaf/advisories/2025/msrc_cve-2025-59227.json",
+        "https://portal.msrc.microsoft.com/ja-JP/security-guidance/advisory/CVE-2025-59271",
+        "https://msrc.microsoft.com/csaf/advisories/2025/msrc_cve-2025-59205.json",
+        "https://msrc.microsoft.com/update-guide/ja-JP/advisory/CVE-2025-59207",
+        "https://msrc.microsoft.com/update-guide/ja-JP/vulnerability/CVE-2025-59208",
+        "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2024-29187",
+        "https://www.cisa.gov/news-events/alerts/2025/10/24/microsoft-releases-out-band-security-update-mitigate-windows-server-update-service-vulnerability-cve",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-25-352-02",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2025-59287",
+        "https://www.cisa.gov/news-events/cybersecurity-advisories/aa25-022a",
+        "https://www.cisa.gov/news-events/bulletins/sb25-363",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog-print"
       ],
       "schema_version": 2,
       "source_fingerprint": "c0422bd17d6814f0fbb0db89ddb80305d9df52701d07f8447c9a2ad378eff580",
       "source_urls": [
         "https://nvd.nist.gov/vuln/detail/CVE-2025-59287",
-        "https://support.microsoft.com/en-us/servicing/os/hotpatch/windows-server-2025/2025/october-24-2025-kb5070893-os-build-26100-6905-security-update-for-windows-server-update-services"
+        "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2025-59287",
+        "https://www.cisa.gov/news-events/alerts/2025/10/24/microsoft-releases-out-band-security-update-mitigate-windows-server-update-service-vulnerability-cve",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2025-59287"
       ],
       "status": "complete",
       "uncertainty": [
-        "The returned authoritative sources identify fixed OS build thresholds but do not provide a single universal KB identifier covering every listed Windows Server release.",
-        "The sources do not establish whether a particular deployment is network-accessible; exposure must be assessed from the environment's approved inventory and network records.",
-        "The NVD record describes affected versions using OS build thresholds; validate applicability against the exact edition, servicing channel, and update baseline in the environment."
+        "Exact KB numbers and OS builds differ by Windows Server version, edition, ESU status and hotpatch enrollment; later cumulative updates may supersede the original out-of-band packages",
+        "Full MSRC and NVD pages require JavaScript; version and mitigation details were taken from search snippets, CISA alerts and Microsoft support articles"
       ],
       "verification_steps": [
-        "Confirm that the installed Windows Server OS build is greater than or equal to the applicable fixed build listed in the NVD affected-configuration record.",
-        "Confirm that the Microsoft update addressing the WSUS reporting-web-services RCE has been installed and that any required reboot has completed.",
-        "Reassess WSUS exposure through normal asset and network-configuration review; do not perform unsolicited or destructive service probing."
+        "Confirm WSUS Server Role status in the Server Manager Dashboard",
+        "Review Windows Update history or the list of installed updates for the October 2025 out-of-band package that matches the server version and edition",
+        "Confirm that TCP ports 8530 and 8531 are not exposed if workarounds are in use"
       ]
     },
     "CVE-2025-59718": {
@@ -25892,6 +26124,106 @@
         "Confirm that endpoint inventory or software-management data no longer reports an affected Chrome version; do not attempt exploit-based validation."
       ]
     },
+    "CVE-2025-67038": {
+      "business_risk": "Critical unauthenticated remote OS command injection as root on Lantronix serial-to-IP converters, cellular routers, and gateways used in OT/ICS, manufacturing, and communications; listed in CISA KEV with confirmed exploitation.",
+      "claim_evidence": [
+        {
+          "claim": "Lantronix EDS5000 series, G520 series, X300 series, E210 series, and E220 series",
+          "kind": "affected_product",
+          "source_url": "https://www.cisa.gov/news-events/ics-advisories/icsa-26-069-02"
+        },
+        {
+          "claim": "EDS5000 series <=2.1.0.0R3; G520 series <2.6.0.4R6; X300 series <2.6.0.4R6; E210 series <3.21.0.0R1; E220 series <3.21.0.0R1",
+          "kind": "affected_version",
+          "source_url": "https://www.cisa.gov/news-events/ics-advisories/icsa-26-069-02"
+        },
+        {
+          "claim": "Unauthenticated network attacker can inject OS commands via the username parameter on HTTP RPC authentication failure; injected commands run with root privileges",
+          "kind": "exposure",
+          "source_url": "https://www.cisa.gov/news-events/ics-advisories/icsa-26-069-02"
+        },
+        {
+          "claim": "EDS5000 series 2.2.0.0R1 or later; G520 and X300 series 2.6.0.4R6 or later; E210 and E220 series 3.21.0.0R1 or later",
+          "kind": "fixed_version",
+          "source_url": "https://www.cisa.gov/news-events/ics-advisories/icsa-26-069-02"
+        },
+        {
+          "claim": "Apply vendor mitigations, evaluate internet exposure, and follow CISA BOD 26-04",
+          "kind": "remediation",
+          "source_url": "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2025-67038"
+        },
+        {
+          "claim": "Verify devices are running the latest firmware; evaluate each asset's internet exposure",
+          "kind": "verification",
+          "source_url": "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2025-67038"
+        }
+      ],
+      "exposure_conditions": [
+        "HTTP RPC module on affected firmware is reachable over the network without authentication",
+        "Failed-authentication logging concatenates an unsanitized username into a root-executed shell command",
+        "Management interfaces are reachable from untrusted networks or the internet"
+      ],
+      "gaps": [],
+      "generated_at": "2026-09-27T15:03:29Z",
+      "model": "grok-4.6",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [
+        "Upgrade EDS5000 series firmware to 2.2.0.0R1 or later",
+        "Upgrade G520 series firmware to 2.6.0.4R6 or later",
+        "Upgrade X300 series firmware to 2.6.0.4R6 or later",
+        "Upgrade E210 series firmware to 3.21.0.0R1 or later",
+        "Upgrade E220 series firmware to 3.21.0.0R1 or later",
+        "Restrict network access to affected devices, place them behind a firewall, and limit management interfaces to trusted networks only",
+        "Replace default credentials and prohibit weak passwords",
+        "Evaluate internet exposure of each asset and apply CISA BOD 26-04 guidance"
+      ],
+      "retrieved_source_urls": [
+        "https://www.cve.org/CVERecord?id=CVE-2025-67038",
+        "https://www.securityweek.com/lantronix-serial-to-ip-converter-flaw-exploited-in-attacks-after-ot-threat-warning/",
+        "https://techinformed.com/cisa-adds-lantronix-flaw-to-its-known-exploited-vulnerabilities/",
+        "https://dbugs.ptsecurity.com/vulnerability/CVE-2025-67038",
+        "https://avd.aquasec.com/nvd/2025/cve-2025-67038/",
+        "https://vullify.com/vulnerability-database/cve/CVE-2025-67038",
+        "https://knoxsystems.com/cve-database/cve-2025-67038",
+        "https://sploitus.com/cve/CVE-2025-67038",
+        "https://turingpoint.de/en/cve/CVE-2025-67038/",
+        "https://security-tracker.debian.org/tracker/CVE-2025-67038",
+        "https://app.opencve.io/cve/CVE-2025-67038",
+        "https://www.thehackerwire.com/vulnerability/CVE-2025-67038/",
+        "https://cve.circl.lu/vuln/CVE-2025-67038",
+        "https://feedly.com/cve/CVE-2025-67038",
+        "https://github.com/advisories/GHSA-55gq-23mv-cw8r",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-67039",
+        "https://nvd.nist.gov/vuln/detail/cve-2025-63938",
+        "https://nvd.nist.gov/vuln/detail/cve-2025-66238",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-26-069-02",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?search_api_fulltext=Fortinet&field_date_added_wrapper=year&field_cve=&sort_by=field_date_added&items_per_page=20&url=&f%255B0%255D=vendor_project%253A813",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog",
+        "https://www.cisa.gov/news-events/alerts/2025/12/09/cisa-adds-two-known-exploited-vulnerabilities-catalog",
+        "https://www.cisa.gov/news-events/bulletins/sb25-363",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2025-67038"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "517fd9fb10bb9287f4beb0044bd27f552243726bd75c8e471bcc6c82e319d1b6",
+      "source_urls": [
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-26-069-02",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2025-67038",
+        "https://www.cve.org/CVERecord?id=CVE-2025-67038"
+      ],
+      "status": "complete",
+      "uncertainty": [
+        "NVD detail page content was not retrieved",
+        "Lantronix Atlassian firmware wiki pages did not return installable version or procedure details",
+        "Sources do not document an exact inert UI path or command for reading firmware version",
+        "Series-level statements in CISA and vendor advisories may be coarser than individual CPE mappings"
+      ],
+      "verification_steps": [
+        "Confirm installed firmware version via the device management interface against the fixed versions published by CISA and Lantronix",
+        "Confirm management interfaces are not reachable from untrusted networks",
+        "Review vendor interim mitigations and CISA KEV required actions for residual exposure"
+      ]
+    },
     "CVE-2025-68613": {
       "business_risk": "Critical remote code execution can allow an authenticated attacker with workflow configuration privileges to execute arbitrary code as the n8n process, potentially compromising sensitive data, workflows, and the host environment. CISA lists this CVE in the Known Exploited Vulnerabilities Catalog.",
       "claim_evidence": [
@@ -26308,27 +26640,106 @@
       "verification_steps": []
     },
     "CVE-2026-0257": {
-      "business_risk": "No additional source-verified CVE-specific business impact was established.",
-      "claim_evidence": [],
-      "exposure_conditions": [],
+      "business_risk": "Authentication bypass on GlobalProtect portal/gateway can allow an unauthenticated attacker to establish an unauthorized VPN session, with subsequent high confidentiality and integrity impact. CISA lists the issue in KEV with known ransomware campaign use and a short remediation due date.",
+      "claim_evidence": [
+        {
+          "claim": "Palo Alto Networks PAN-OS GlobalProtect portal and gateway are affected; Prisma Access 10.2.0 and 11.2.0 trains are affected; Panorama and Cloud NGFW are not impacted.",
+          "kind": "affected_product",
+          "source_url": "https://security.paloaltonetworks.com/CVE-2026-0257"
+        },
+        {
+          "claim": "PAN-OS 12.1 is affected below 12.1.4-h6 and below 12.1.7; PAN-OS 11.2 is affected below 11.2.4-h17, 11.2.7-h14, 11.2.10-h7, and 11.2.12; PAN-OS 11.1 is affected below 11.1.4-h33, 11.1.6-h32, 11.1.7-h6, 11.1.10-h25, 11.1.13-h5, and 11.1.15; PAN-OS 10.2 is affected below 10.2.7-h34, 10.2.10-h36, 10.2.13-h21, 10.2.16-h7, and 10.2.18-h6; Prisma Access is affected below 11.2.7-h13 and below 10.2.10-h36.",
+          "kind": "affected_version",
+          "source_url": "https://security.paloaltonetworks.com/CVE-2026-0257"
+        },
+        {
+          "claim": "The issue affects firewalls with GlobalProtect portal or gateway configured when authentication override cookies are enabled and a specific certificate configuration exists.",
+          "kind": "exposure",
+          "source_url": "https://security.paloaltonetworks.com/CVE-2026-0257"
+        },
+        {
+          "claim": "Unaffected PAN-OS versions include 12.1.4-h6 and 12.1.7; 11.2.4-h17, 11.2.7-h14, 11.2.10-h7, and 11.2.12; 11.1.4-h33, 11.1.6-h32, 11.1.7-h6, 11.1.10-h25, 11.1.13-h5, and 11.1.15; 10.2.7-h34, 10.2.10-h36, 10.2.13-h21, 10.2.16-h7, and 10.2.18-h6. Prisma Access is unaffected from 11.2.7-h13 and 10.2.10-h36.",
+          "kind": "fixed_version",
+          "source_url": "https://security.paloaltonetworks.com/CVE-2026-0257"
+        },
+        {
+          "claim": "Upgrade to the listed fixed PAN-OS/Prisma Access versions; alternatively mitigate by using a dedicated authentication-override cookie certificate or disabling Authentication Override generate/accept cookie options. After the fix, GlobalProtect users must re-authenticate once.",
+          "kind": "remediation",
+          "source_url": "https://security.paloaltonetworks.com/CVE-2026-0257"
+        },
+        {
+          "claim": "Exposure can be checked in the management UI: Portals > Agent > Authentication for generate/accept cookie options, and Gateways > Agent > Client Settings > Authentication Override for accept cookie.",
+          "kind": "verification",
+          "source_url": "https://security.paloaltonetworks.com/CVE-2026-0257"
+        }
+      ],
+      "exposure_conditions": [
+        "PAN-OS firewalls with a GlobalProtect portal or gateway configured",
+        "Authentication override cookies enabled (generate and/or accept cookie for authentication override)",
+        "A specific certificate configuration exists for authentication override cookies (including reuse of a non-dedicated certificate)",
+        "Prisma Access deployments on affected 10.2 and 11.2 trains before the vendor-listed fixed builds",
+        "Siemens RUGGEDCOM APE1808 running Palo Alto Networks Virtual NGFW with GlobalProtect portal or gateway and the same authentication-override cookie and certificate conditions",
+        "Panorama and Cloud NGFW are not impacted"
+      ],
       "gaps": [],
-      "generated_at": "2026-07-25T21:04:11Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-09-27T14:57:58Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
-      "recipe_specificity": "not_specific",
-      "remediation_steps": [],
-      "retrieved_source_urls": [],
+      "recipe_specificity": "specific",
+      "remediation_steps": [
+        "Upgrade PAN-OS to a vendor-listed unaffected release for the installed branch (for example 12.1.4-h6 or 12.1.7; 11.2.4-h17, 11.2.7-h14, 11.2.10-h7, or 11.2.12; 11.1.4-h33, 11.1.6-h32, 11.1.7-h6, 11.1.10-h25, 11.1.13-h5, or 11.1.15; 10.2.7-h34, 10.2.10-h36, 10.2.13-h21, 10.2.16-h7, or 10.2.18-h6)",
+        "Upgrade all GlobalProtect portals and gateways that generate or accept authentication override cookies together to avoid mixed-version cookie incompatibility",
+        "For Prisma Access, apply or confirm vendor-scheduled upgrades to 10.2.10-h36 or later, or 11.2.7-h13 or later, and upgrade hybrid on-premises NGFWs to matching fixed PAN-OS versions",
+        "If upgrade is delayed, disable Authentication Override generate/accept cookie options on GlobalProtect portal and gateway, or generate a new certificate used exclusively for authentication override cookies and do not reuse portal/gateway or other-service certificates",
+        "For Siemens RUGGEDCOM APE1808, upgrade Palo Alto Networks Virtual NGFW to V11.2.10-h7 and contact Siemens customer support for patch/update information",
+        "After applying the PAN-OS fix, expect a one-time GlobalProtect user re-authentication because authentication override cookies are regenerated with a more secure method"
+      ],
+      "retrieved_source_urls": [
+        "https://www.cve.org/CVERecord?id=CVE-2026-0257",
+        "https://cve.report/CVE-2026-0257",
+        "https://cvepremium.circl.lu/vuln/rhsa-2026:28571",
+        "https://fidelissecurity.com/vulnerabilities/cve-2026-0257/",
+        "https://previdian.com/CVE-2026-0257",
+        "https://socradar.io/free-tools/cve-radar/CVE-2026-0257",
+        "https://vulnerability.circl.lu/vuln/rhsa-2026:26590",
+        "https://cve.circl.lu/vuln/CVE-2026-0257",
+        "https://vulnerability.circl.lu/vuln/suse-su-2026:0871-1",
+        "https://www.cve.org/CVERecord?id=CVE-2026-25707",
+        "https://app.opencve.io/cve/CVE-2026-0257",
+        "https://vulnerability.circl.lu/vuln/CVE-2026-0257",
+        "https://cvepremium.circl.lu/vuln/CVE-2026-25997",
+        "https://vulnerability.circl.lu/vuln/CVE-2026-27557",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-25797",
+        "https://nvd.nist.gov/vuln/detail/cve-2026-0257",
+        "https://nvd.nist.gov/vuln/detail/cve-2026-25997",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2026-23427",
+        "https://nvd.nist.gov/vuln/detail/cve-2026-90057",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2026-23097",
+        "https://security.paloaltonetworks.com/?severity=CRITICAL&severity=HIGH&product=GlobalProtect+App&product=PAN-OS&sort=-updated&limit=100",
+        "https://security.paloaltonetworks.com/CVE-2026-0257",
+        "https://security.paloaltonetworks.com/?version=PAN-OS+11.1.6&product=PAN-OS&sort=-date",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog-print"
+      ],
       "schema_version": 2,
       "source_fingerprint": "e58b2223a088a8290fdeefef2275827381a5acd3a4aa2d42be9934b5aeeb7e60",
-      "source_urls": [],
-      "status": "insufficient_evidence",
-      "uncertainty": [
-        "The Palo Alto Networks advisory refers to a specific certificate configuration but does not fully define that condition in the returned text.",
-        "The Siemens advisory identifies RUGGEDCOM APE1808 as affected when the stated GlobalProtect and certificate conditions exist, but directs customers to contact support for patch/update information.",
-        "No source returned a safe active test that would demonstrate exploitability; verification should remain configuration- and version-based.",
-        "The model did not return a fully sourced exposure, remediation, and verification set; consult the linked NVD and vendor sources before acting."
+      "source_urls": [
+        "https://security.paloaltonetworks.com/CVE-2026-0257",
+        "https://www.cve.org/CVERecord?id=CVE-2026-0257"
       ],
-      "verification_steps": []
+      "status": "complete",
+      "uncertainty": [
+        "The NVD detail page did not return usable content in this retrieval, so NVD-specific CPE/CVSS enrichment was not independently confirmed beyond CISA and vendor references",
+        "The vendor states a 'specific certificate configuration' is required but does not fully enumerate every certificate-reuse condition beyond dedicated vs reused certificates",
+        "Prisma Access fixes are described as actively applied on a customer upgrade schedule, so local confirmation depends on vendor-provided status",
+        "Safe verification is limited to GUI configuration and version comparison; sources do not provide an inert functional test of the patch itself"
+      ],
+      "verification_steps": [
+        "In the management interface, open Network > GlobalProtect > Portals, select the portal, Agent tab, Agent Configuration, Authentication tab, and confirm whether Generate cookie for authentication override or Accept cookie for authentication override is enabled",
+        "In the management interface, open Network > GlobalProtect > Gateways, select the gateway, Agent tab, Client Settings profile, Authentication Override tab, and confirm whether Accept cookie for authentication override is enabled",
+        "Compare the installed PAN-OS or Prisma Access version against the vendor Product Status and Solution tables to confirm it is an unaffected/fixed build for that branch",
+        "Confirm Cloud NGFW and Panorama are out of scope per the vendor advisory",
+        "For RUGGEDCOM APE1808, confirm Virtual NGFW version and GlobalProtect authentication-override cookie/certificate configuration against the Siemens advisory"
+      ]
     },
     "CVE-2026-0300": {
       "business_risk": "No additional source-verified CVE-specific business impact was established.",
@@ -27031,36 +27442,48 @@
       "claim_evidence": [],
       "exposure_conditions": [],
       "gaps": [],
-      "generated_at": "2026-07-25T21:04:58Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-09-27T15:04:56Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [],
       "retrieved_source_urls": [
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-csw-pnbsa-g8WEnuy",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-ise-rce-4fverepv",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-ikev2-ebFrwMPr",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-iox-crlf-NvgKTKJZ",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-epnm-improp-auth-mUwFWUU3",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-sdwan-arbfw-c2rZvQ",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-ndi-afw-rJuRC5dZ",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-20171103-bgp",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-pi-unauth-infodiscl-LFnLgmey?vs_f=Cisco+Security+Advisory%26vs_cat%3DSecurity+Intelligence%26vs_type%3DRSS%26vs_p%3DCisco+Prime+Infrastructure+Information+Disclosure+Vulnerability%26vs_k%3D1",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-ise-multi-G5WP8vv",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-clamav-88cFYyxR",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-iec6400-Pem5uQ7v",
-        "https://www.cisco.com/c/en/us/td/docs/security/secure-firewall/release-notes/threat-defense/740/threat-defense-release-notes-74.pdf",
-        "https://www.cisco.com/c/ja_jp/support/docs/csa/2026/cisco-sa-fmc-rce-NKhnULJh.pdf"
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-90071",
+        "https://nvd.nist.gov/vuln/detail/cve-2026-43731",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-80726",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2026-53131",
+        "https://nvd.nist.gov/vuln/detail/cve-2026-53139",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-94127",
+        "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2026-80731",
+        "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2026-93197",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-68127",
+        "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2026-90131",
+        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-fmc-rce-NKhnULJh",
+        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-notice-jfxK98ZP",
+        "https://sec.cloudapps.cisco.com/security/center/publicationService.x?limit=50",
+        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-sdwan-rpa-EHchtZk",
+        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-sisf-dos-ZGwt4DdY",
+        "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-fmc-rce-NKhnULJh.html",
+        "https://www.cisco.com/c/ja_jp/support/docs/csa/2026/cisco-sa-fmc-rce-NKhnULJh.html",
+        "https://www.securitytoday.de/en/2026/03/29/cisco-fmc-exploit-cve-2026-20131/",
+        "https://kudelskisecurity.com/research/cisco-secure-firewall-management-center-fmc-authentication-bypass-and-rce-vulnerabilities",
+        "https://oredsecurity.com/research/threat-advisory-cisco-fmc-rce",
+        "https://labs.beazley.security/advisories/BSL-A1204",
+        "https://zone.ci/secarticles/wx/574748.html",
+        "https://www.cisco.com/c/ja_jp/support/docs/csa/2019/cisco-sa-20191002-fmc-rce.html",
+        "https://www.bleepingcomputer.com/news/security/cisco-warns-of-max-severity-secure-fmc-flaws-giving-root-access/"
       ],
       "schema_version": 2,
       "source_fingerprint": "6b9aa4b2fb9c58f34eafb8e713588d8c20af5efd7b81f81ade5b0838dd394e9d",
-      "source_urls": [],
+      "source_urls": [
+        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-fmc-rce-NKhnULJh",
+        "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-fmc-rce-NKhnULJh.html"
+      ],
       "status": "insufficient_evidence",
       "uncertainty": [
-        "The authoritative Cisco advisory page retrieved does not expose a concrete fixed FMC version table; it directs administrators to the Cisco Software Checker instead.",
-        "The supplied affected-version list is truncated, so it should not be treated as a complete affected-version inventory.",
-        "No source retrieved established a single fixed_version applicable to every affected FMC release.",
-        "No exploit testing or intrusive validation was performed or should be performed against production systems."
+        "The retrieved Cisco advisory text does not publish a static first-fixed version table and instead directs customers to Cisco Software Checker.",
+        "The NVD detail page for CVE-2026-20131 could not be retrieved in this session.",
+        "A complete authoritative affected-version and fixed-version mapping was not obtained from the vendor advisory HTML, so concrete fixed_version values are not claimed."
       ],
       "verification_steps": []
     },
@@ -27267,107 +27690,83 @@
       ]
     },
     "CVE-2026-20963": {
-      "business_risk": "Critical remote code execution risk for exposed, unpatched on-premises SharePoint deployments. The vulnerability is reachable over the network, requires no user interaction or privileges according to the published CVSS vector, and is listed in CISA's Known Exploited Vulnerabilities catalog. Successful exploitation could affect confidentiality, integrity, and availability.",
+      "business_risk": "Critical unauthenticated remote code execution on on-premises SharePoint Server (CWE-502 deserialization), CVSS 9.8, listed in CISA KEV with confirmed exploitation in the wild; full compromise of confidentiality, integrity, and availability of the SharePoint host and hosted content.",
       "claim_evidence": [
         {
-          "claim": "Microsoft identifies Microsoft SharePoint Enterprise Server 2016, Microsoft SharePoint Server 2019, and Microsoft SharePoint Server Subscription Edition as affected products.",
+          "claim": "Affected products are Microsoft SharePoint Enterprise Server 2016, Microsoft SharePoint Server 2019, and Microsoft SharePoint Server Subscription Edition.",
           "kind": "affected_product",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-20963"
+          "source_url": "https://nvd.nist.gov/vuln/detail/cve-2026-20963"
         },
         {
-          "claim": "The affected-version thresholds are below 16.0.5535.1001 for SharePoint 2016, below 16.0.10417.20083 for SharePoint 2019, and below 16.0.19127.20442 for SharePoint Subscription Edition.",
+          "claim": "SharePoint Enterprise Server 2016 is affected from 16.0.0 before 16.0.5535.1001; SharePoint Server 2019 from 16.0.0 before 16.0.10417.20083; SharePoint Server Subscription Edition from 16.0.0 before 16.0.19127.20442.",
           "kind": "affected_version",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-20963"
+          "source_url": "https://nvd.nist.gov/vuln/detail/cve-2026-20963"
         },
         {
-          "claim": "The published CVSS vector specifies network attack vector, low attack complexity, no privileges required, and no user interaction: AV:N/AC:L/PR:N/UI:N.",
+          "claim": "Deserialization of untrusted data allows an unauthorized attacker to execute code over a network with no privileges or user interaction required (CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H).",
           "kind": "exposure",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-20963"
-        },
-        {
-          "claim": "CISA lists CVE-2026-20963 in the Known Exploited Vulnerabilities catalog with a required action to apply vendor mitigations or discontinue use if mitigations are unavailable.",
-          "kind": "exposure",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-20963"
-        },
-        {
-          "claim": "Microsoft's SharePoint update history lists the January 13, 2026 SharePoint 2016 update at build 16.0.5535.1001.",
-          "kind": "fixed_version",
-          "source_url": "https://learn.microsoft.com/en-us/officeupdates/sharepoint-updates"
-        },
-        {
-          "claim": "Microsoft's SharePoint update history lists the January 13, 2026 SharePoint Server 2019 updates at build 16.0.10417.20083.",
-          "kind": "fixed_version",
-          "source_url": "https://learn.microsoft.com/en-us/officeupdates/sharepoint-updates"
-        },
-        {
-          "claim": "Microsoft's SharePoint update history lists the January 13, 2026 Subscription Edition update at build 16.0.19127.20442.",
-          "kind": "fixed_version",
-          "source_url": "https://learn.microsoft.com/en-us/officeupdates/sharepoint-updates"
-        },
-        {
-          "claim": "Microsoft states that SharePoint updates are cumulative and provides the update history and build numbers for SharePoint Server Subscription Edition, SharePoint Server 2019, and SharePoint Server 2016.",
-          "kind": "remediation",
-          "source_url": "https://learn.microsoft.com/en-us/officeupdates/sharepoint-updates"
-        },
-        {
-          "claim": "Microsoft's SharePoint update-history page provides the applicable product update entries, KB identifiers, release dates, and build numbers that can be used to compare an installed farm build with the fixed thresholds.",
-          "kind": "verification",
-          "source_url": "https://learn.microsoft.com/en-us/officeupdates/sharepoint-updates"
+          "source_url": "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2026-20963"
         }
       ],
       "exposure_conditions": [
-        "SharePoint Server 2016, SharePoint Server 2019, or SharePoint Server Subscription Edition is deployed.",
-        "The installation is below the applicable Microsoft security-update build.",
-        "The SharePoint service is network reachable by an attacker; the published CVSS vector specifies AV:N, PR:N, and UI:N.",
-        "The affected deployment is an on-premises/server installation; the cited product records do not establish applicability to SharePoint Online."
+        "On-premises Microsoft SharePoint Enterprise Server 2016, SharePoint Server 2019, or SharePoint Server Subscription Edition with a build prior to the vendor-documented fixed version",
+        "Network-reachable SharePoint Server that an unauthorized attacker can contact without authentication or user interaction"
       ],
       "gaps": [],
-      "generated_at": "2026-07-25T21:05:16Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-09-28T17:54:42Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [
-        "Apply Microsoft's January 13, 2026 security updates or any later cumulative SharePoint update.",
-        "For SharePoint Enterprise Server 2016, update to build 16.0.5535.1001 or later.",
-        "For SharePoint Server 2019, update to build 16.0.10417.20083 or later; Microsoft identifies KB5002825 and KB5002823 in the January 13, 2026 update entry.",
-        "For SharePoint Server Subscription Edition, update to build 16.0.19127.20442 or later; Microsoft identifies KB5002822 in the January 13, 2026 update entry.",
-        "Because SharePoint updates are cumulative, use the current supported cumulative update rather than relying on an older individual package. Follow Microsoft's deployment requirements for core and language-dependent updates where applicable.",
-        "Prioritize remediation immediately because the vulnerability is included in CISA's Known Exploited Vulnerabilities catalog."
+        "Apply the Microsoft security updates for the installed SharePoint edition as directed in the MSRC advisory for CVE-2026-20963 and the January 13, 2026 Microsoft Support security-update articles.",
+        "For SharePoint Server 2019 install the security update that Microsoft documents as KB5002825 (package build 16.0.10417.20083); install the corresponding language-dependent update when required for a complete farm.",
+        "For SharePoint Enterprise Server 2016 install the security update that Microsoft documents as KB5002828 (package build 16.0.5535.1001); install the corresponding language-dependent update when required for a complete farm.",
+        "For SharePoint Server Subscription Edition install the January 13, 2026 security update (KB5002822, package build 16.0.19127.20442).",
+        "Later SharePoint public updates are cumulative and include previously released security fixes; install the latest applicable STS/WSSLOC (or single SE) update for the farm after meeting any documented prerequisites in the KB articles."
       ],
       "retrieved_source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2026-20963",
-        "https://msrc.microsoft.com/update-guide/en-us/",
-        "https://msrc.microsoft.com/update-guide/vulnerability/CV",
-        "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2026-21527/",
-        "https://learn.microsoft.com/en-us/officeupdates/sharepoint-updates",
-        "https://learn.microsoft.com/en-us/troubleshoot/sharepoint/administration/sharepoint-online-inaccessible",
-        "https://learn.microsoft.com/en-us/troubleshoot/sharepoint/sharing-and-permissions/anonymous-users-are-prompted-for-credentials-in-library",
-        "https://msrc.microsoft.com/update-guide/en-us/acknowledgement/online?rtc=1",
-        "https://learn.microsoft.com/en-nz/answers/questions/5832349/cve-2026-20963-sharepoint-rce",
-        "https://learn.microsoft.com/en-us/answers/tags/41/m365-office-office-sp-server-business%3Fpage%3D164",
-        "https://support.microsoft.com/en-us/servicing/office/update/description-of-the-security-update-for-sharepoint-server-subscription-edition-june-9-2026-kb5002873",
-        "https://learn.microsoft.com/en-za/answers/questions/5833204/sharepoint-sever-se-update-issue",
-        "https://learn.microsoft.com/en-us/microsoft-365/media/teams-sharepoint-online-sites-highly-regulated-data/sharepointsiteshighlyregulateddata.pdf",
-        "https://learn.microsoft.com/en-us/openspecs/interopevents/interopevents/media/index/pdfs/whatsnewinsharepointframework_mingyuanyu.pdf",
-        "https://learn.microsoft.com/en-us/services-hub/health/getting-started-sharepoint/Datasheet_Offline_SP.pdf"
+        "https://nvd.nist.gov/vuln/detail/cve-2026-20963",
+        "https://www.cve.org/CVERecord?id=CVE-2026-20963",
+        "https://cipherssecurity.com/cve/CVE-2026-20963/",
+        "https://www.cvedetails.com/cve/CVE-2026-20963/",
+        "https://vulnerability.circl.lu/vuln/ghsa-5vr8-9cf6-r7px",
+        "https://www.tenable.com/cve/CVE-2026-20963",
+        "https://cvefeed.io/vuln/detail/CVE-2026-20963",
+        "https://socradar.io/free-tools/cve-radar/CVE-2026-20963",
+        "https://cvetodo.com/cve/CVE-2026-20963",
+        "https://www.incibe.es/incibe-cert/alerta-temprana/vulnerabilidades/cve-2026-20963",
+        "https://osv.dev/vulnerability/CVE-2026-20963",
+        "https://www.cloudanix.com/vulndb/cve/CVE-2026-20963",
+        "https://cve.circl.lu/known-exploited-vulnerabilities-catalog/89e95885-1490-4942-a08d-70a2423ae944",
+        "https://www.sentinelone.com/vulnerability-database/cve-2026-20963/",
+        "https://senserva.com/cve/CVE-2026-20963.html",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-53009",
+        "https://nvd.nist.gov/vuln/detail/cve-2026-89663",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-80928",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2026-46209",
+        "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2026-20963",
+        "https://msrc.microsoft.com/update-guide/zh-tw/vulnerability/CVE-2026-20963",
+        "https://msrc.microsoft.com/security-guidance/advisory/CVE-2026-20936",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog-print",
+        "https://www.cisa.gov/news-events/alerts/2026/09/27/critical-zero-day-vulnerabilities-exploited-citrix-netscaler-adc-gateway"
       ],
       "schema_version": 2,
       "source_fingerprint": "3c6ef283fce556077227e2975404a89c1ecb0dca3a603b85eac978340083680c",
       "source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2026-20963",
-        "https://learn.microsoft.com/en-us/officeupdates/sharepoint-updates"
+        "https://nvd.nist.gov/vuln/detail/cve-2026-20963",
+        "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2026-20963",
+        "https://www.cve.org/CVERecord?id=CVE-2026-20963"
       ],
       "status": "complete",
       "uncertainty": [
-        "The NVD record identifies SharePoint 2016 and SharePoint 2019 as affected product lines but does not display a separate version threshold for those products beyond Microsoft's affected-version records.",
-        "The available authoritative sources establish network-based, unauthenticated exploitability from the CVSS vector but do not describe additional deployment-specific exposure prerequisites such as reverse-proxy topology, authentication configuration, or internet exposure.",
-        "The sources establish fixed builds and update history but do not provide a product-specific, non-invasive runtime health check for confirming remediation beyond comparing the installed build with Microsoft's published update records."
+        "Microsoft’s exploitability assessment at original publication stated the issue was not publicly disclosed, not exploited, and exploitation was less likely; CISA later added the CVE to KEV on 2026-03-18.",
+        "NVD has not published an independent CVSS assessment.",
+        "Consulted vendor and CISA pages do not document additional configuration workarounds beyond applying the security updates.",
+        "SharePoint Online / Microsoft 365 is not listed among the affected products in the CNA/NVD product status."
       ],
       "verification_steps": [
-        "Identify the installed SharePoint farm/build version using the organization's approved administrative inventory or SharePoint administration process.",
-        "Compare the reported build with the applicable Microsoft thresholds: 16.0.5535.1001 for SharePoint 2016, 16.0.10417.20083 for SharePoint 2019, or 16.0.19127.20442 for Subscription Edition.",
-        "Confirm that the installed update corresponds to the Microsoft SharePoint update history and that all update components required for the farm, including applicable language-dependent updates, are installed.",
-        "Record the update KB, installed build, deployment date, and affected server/farm scope for remediation tracking. Do not perform exploit testing against production systems."
+        "After deployment, confirm the SharePoint build matches or exceeds the package build stated in the applicable January 13, 2026 Microsoft security-update article: 16.0.5535.1001 for SharePoint Enterprise Server 2016, 16.0.10417.20083 for SharePoint Server 2019, and 16.0.19127.20442 for SharePoint Server Subscription Edition.",
+        "Use SharePoint Central Administration farm/server information or the list of installed updates to match the documented security-update package, without running diagnostic or exploit tests."
       ]
     },
     "CVE-2026-21509": {
@@ -28366,83 +28765,55 @@
       ]
     },
     "CVE-2026-33017": {
-      "business_risk": "Critical unauthenticated remote code execution may allow complete compromise of an exposed Langflow server, including confidentiality, integrity, and availability impact. NVD also lists CVE-2026-33017 in the CISA Known Exploited Vulnerabilities Catalog.",
-      "claim_evidence": [
-        {
-          "claim": "The vulnerability affects the Langflow PyPI package.",
-          "kind": "affected_product",
-          "source_url": "https://github.com/langflow-ai/langflow/security/advisories/GHSA-vwmf-pq79-vjvx"
-        },
-        {
-          "claim": "The vendor advisory identifies Langflow versions <= 1.8.2 as affected; NVD describes versions prior to 1.9.0 as affected.",
-          "kind": "affected_version",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-33017"
-        },
-        {
-          "claim": "The public-flow build endpoint does not require authentication and accepts attacker-controlled flow data through the data parameter, which can reach unsandboxed dynamic code execution.",
-          "kind": "exposure",
-          "source_url": "https://github.com/langflow-ai/langflow/security/advisories/GHSA-vwmf-pq79-vjvx"
-        },
-        {
-          "claim": "The vendor advisory identifies version 1.9.0 and later as patched.",
-          "kind": "fixed_version",
-          "source_url": "https://github.com/langflow-ai/langflow/security/advisories/GHSA-vwmf-pq79-vjvx"
-        }
-      ],
-      "exposure_conditions": [
-        "Langflow is deployed with a version earlier than 1.9.0; the vendor advisory identifies versions <= 1.8.2 as affected.",
-        "The /api/v1/build_public_tmp/{flow_id}/flow endpoint is reachable by an attacker.",
-        "The deployment has public flows and accepts attacker-controlled flow data through the endpoint's data parameter.",
-        "The vulnerable implementation passes attacker-controlled component code into unsandboxed dynamic execution."
-      ],
+      "business_risk": "No additional source-verified CVE-specific business impact was established.",
+      "claim_evidence": [],
+      "exposure_conditions": [],
       "gaps": [],
-      "generated_at": "2026-07-25T21:04:43Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-09-27T15:01:51Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
-      "remediation_steps": [
-        "Upgrade Langflow to version 1.9.0 or later.",
-        "If an immediate upgrade is not possible, apply the vendor's code-level mitigation: remove the data parameter from the public-flow build endpoint and ensure public flows use only their stored database definition.",
-        "Restrict external access to Langflow until the upgrade or vendor mitigation is deployed.",
-        "Because this CVE is listed in the CISA KEV catalog, prioritize remediation according to applicable organizational or regulatory deadlines."
-      ],
+      "remediation_steps": [],
       "retrieved_source_urls": [
         "https://nvd.nist.gov/vuln/detail/CVE-2026-33017",
-        "https://github.com/langflow-ai/langflow/releases",
-        "https://github.com/langflow-ai",
-        "https://github.com/langflow-ai/langflow",
-        "https://nvd.nist.gov/vuln/detail/CVE-2026-33317",
-        "https://github.com/langflow-ai/langflow/issues/8479",
-        "https://github.com/langflow-ai/langflow/security/advisories/GHSA-vwmf-pq79-vjvx",
-        "https://github.com/langflow-ai/langflow/issues/8633",
-        "https://github.com/langflow-ai/langflow/issues/8995",
-        "https://github.com/langflow-ai/langflow/issues/4913",
-        "https://github.com/langflow-ai/langflow/discussions/3454",
-        "https://github.com/langflow-ai/langflow/issues/9126",
-        "https://resources.github.com/downloads/1811_GitHub_wp_part1.pdf",
-        "https://resources.github.com/downloads/github-git-cheat-sheet.pdf",
-        "https://github.com/BeyondTrust/pbis-open/wiki/docs/adb-quick-start-guide.pdf",
-        "https://education.github.com/git-cheat-sheet-education.pdf?file=git-cheat-sheet-education.pdf",
-        "https://raw.github.com/OpenExoplanetCatalogue/open_exoplanet_catalogue/master/oec_paper.pdf",
-        "https://github.github.com/actions-cheat-sheet/actions-cheat-sheet.pdf"
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2026-23427",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2026-42027",
+        "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2026-31727",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-53717",
+        "https://github.com/alan-turing-institute/cyber-threat-observatory/blob/main/reports/2026-03-20/TIER_1_CVE-2026-33017.md",
+        "https://github.com/canonical/ubuntu-security-notices/blob/main/osv/cve/2026/UBUNTU-CVE-2026-3497.json",
+        "https://github.com/php/php-src/security/advisories/GHSA-xr7j-rvgx-xq5p",
+        "https://github.com/vercel/next.js/security/advisories/GHSA-vcvr-r3jv-pc5j",
+        "https://github.com/advisories/GHSA-7c7c-373r-gfjj",
+        "https://github.com/advisories/GHSA-mvpm-v6q4-m2pf",
+        "https://github.com/advisories/ghsa-6vmq-24h2-pj7j",
+        "https://github.com/keycloak/keycloak/security/advisories/GHSA-xpwp-2pcm-8xq3",
+        "https://github.com/advisories/ghsa-559w-6g2v-jh67",
+        "https://github.com/CVEProject/cvelistV5/blob/main/cves/2026/72xxx/CVE-2026-72717.json",
+        "https://github.com/github/advisory-database/blob/main/advisories/github-reviewed/2026/03/GHSA-72gr-qfp7-vwhw/GHSA-72gr-qfp7-vwhw.json",
+        "https://github.com/github/advisory-database/blob/main/advisories/github-reviewed/2026/02/GHSA-7r86-cg39-jmmj/GHSA-7r86-cg39-jmmj.json",
+        "https://psirt.com/advisory/GHSA-q9pg-jj6x-j9p6",
+        "https://github.com/github/advisory-database/blob/main/advisories/github-reviewed/2025/12/GHSA-9qr9-h5gf-34mp/GHSA-9qr9-h5gf-34mp.json",
+        "https://github.com/github/advisory-database/blob/main/advisories/github-reviewed/2026/06/GHSA-3fxj-6jh8-hvhx/GHSA-3fxj-6jh8-hvhx.json",
+        "https://github.com/github/advisory-database/blob/main/advisories/github-reviewed/2026/03/GHSA-jjwv-57xh-xr6r/GHSA-jjwv-57xh-xr6r.json",
+        "https://github.com/github/advisory-database/blob/main/advisories/github-reviewed/2026/04/GHSA-h27x-rffw-24p4/GHSA-h27x-rffw-24p4.json",
+        "https://psirt.com/advisory/GHSA-659f-rgp5-w4wf",
+        "https://github.com/github/advisory-database/blob/main/advisories/github-reviewed/2026/06/GHSA-9cpj-qc93-vw8v/GHSA-9cpj-qc93-vw8v.json"
       ],
       "schema_version": 2,
       "source_fingerprint": "9119d62d87ea1954f59743219963b388eb07e19a11935408946eb7a3ff57cb3b",
       "source_urls": [
-        "https://github.com/langflow-ai/langflow/security/advisories/GHSA-vwmf-pq79-vjvx",
         "https://nvd.nist.gov/vuln/detail/CVE-2026-33017"
       ],
-      "status": "complete",
+      "status": "insufficient_evidence",
       "uncertainty": [
-        "The supplied source record contains a CPE boundary of versions earlier than 1.8.2, while the CNA/vendor advisory and NVD describe the affected range as versions earlier than 1.9.0, with the advisory specifying <= 1.8.2 and patched >= 1.9.0. Use the vendor advisory's explicit fixed version of 1.9.0 as the remediation boundary.",
-        "No deployment-specific evidence was provided, so actual exposure, installed version, public-flow configuration, and compromise status remain unconfirmed.",
-        "No safe active endpoint test was performed or recommended."
+        "The NVD detail page did not return full structured content via retrieval, so CPE and metric details rely on NVD search snippets and the GitHub CNA advisory",
+        "GitHub advisory lists affected versions as <= 1.8.2 with patched 1.9.0 / >= 1.9.0, while NVD snippets state versions prior to 1.9.0 and fixed in 1.9.0; intermediate 1.8.x releases after 1.8.2 were not confirmed from loaded release notes",
+        "Vendor and CISA sources do not publish an inert, non-exploitative verification procedure",
+        "GitHub release pages for 1.8.2 and 1.9.0 did not load security-fix details",
+        "The model did not return a fully sourced exposure, remediation, and verification set; consult the linked NVD and vendor sources before acting."
       ],
-      "verification_steps": [
-        "Confirm the deployed Langflow package or container version is 1.9.0 or later.",
-        "For source-based deployments, verify that the public-flow build handler no longer accepts attacker-supplied data and always loads the flow definition from the database.",
-        "Review the deployed source or API schema without sending exploit-like requests; the vendor's remediation commit includes unit coverage showing that the data parameter is ignored and stored flow data is used."
-      ]
+      "verification_steps": []
     },
     "CVE-2026-33634": {
       "business_risk": "No additional source-verified CVE-specific business impact was established.",
@@ -28497,6 +28868,95 @@
         "A version being installed does not by itself prove execution or compromise; exposure depends on whether the affected artifact ran and what privileges or secrets were available."
       ],
       "verification_steps": []
+    },
+    "CVE-2026-33824": {
+      "business_risk": "Critical unauthenticated remote code execution (CVSS 3.1 9.8) via double-free in the Windows IKE Extension; CISA KEV-listed as exploited in the wild, with high impact on network-reachable IPsec/VPN and IKEv2 endpoints.",
+      "claim_evidence": [
+        {
+          "claim": "Microsoft Windows IKE Service Extensions (Windows 10 Version 1607/1809/21H2/22H2, Windows 11 23H2 and later, Windows Server 2016/2019/2022/2025 and related editions)",
+          "kind": "affected_product",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-33824"
+        },
+        {
+          "claim": "Windows 10 Version 1607 affected from 10.0.14393.0 before 10.0.14393.9060; similar less-than fixed builds for other listed Windows versions",
+          "kind": "affected_version",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-33824"
+        },
+        {
+          "claim": "affected from 10.0.14393.0 before 10.0.14393.9060 and corresponding ranges for other Windows versions",
+          "kind": "affected_version",
+          "source_url": "https://www.cve.org/CVERecord?id=CVE-2026-33824"
+        },
+        {
+          "claim": "An unauthenticated attacker could send specially crafted packets to a Windows machine with Internet Key Exchange (IKE) version 2 enabled, which could enable remote code execution",
+          "kind": "exposure",
+          "source_url": "https://portal.msrc.microsoft.com/en-US/security-guidance/advisory/CVE-2026-33824"
+        },
+        {
+          "claim": "Fixed builds include 10.0.14393.9060 (Windows 10 1607), 10.0.17763.8644, 10.0.19044.7184, 10.0.19045.7184, 10.0.22631.6936, 10.0.26100.32690 and related later builds",
+          "kind": "fixed_version",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-33824"
+        },
+        {
+          "claim": "Apply Microsoft security updates; temporary mitigations include blocking inbound UDP 500/4500 or restricting those ports to known peers; these do not replace the update",
+          "kind": "remediation",
+          "source_url": "https://portal.msrc.microsoft.com/en-US/security-guidance/advisory/CVE-2026-33824"
+        }
+      ],
+      "exposure_conditions": [
+        "Internet Key Exchange version 2 (IKEv2) is enabled",
+        "Unauthenticated network attacker can send specially crafted packets to the system (IKE commonly uses UDP 500 and 4500)"
+      ],
+      "gaps": [],
+      "generated_at": "2026-09-27T14:59:38Z",
+      "model": "grok-4.6",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [
+        "Apply the Microsoft security updates listed for CVE-2026-33824 in the MSRC Security Update Guide for the installed Windows version and edition.",
+        "If the update cannot be installed immediately, block inbound UDP 500 and 4500 on systems that do not use IKE, or restrict inbound traffic on those ports to known peer addresses where IKE is required; these steps reduce attack surface but do not replace the security update."
+      ],
+      "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-33824",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2026-23427",
+        "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2026-80824",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2026-68297",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2026-53224",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-52724",
+        "https://portal.msrc.microsoft.com/en-US/security-guidance/advisory/CVE-2026-33824",
+        "https://msrc.microsoft.com/csaf/advisories/2025/msrc_cve-2025-53727.json",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog-print",
+        "https://www.cisa.gov/news-events/bulletins/sb26-257",
+        "https://www.cisa.gov/news-events/alerts/2026/09/09/cisa-adds-four-known-exploited-vulnerabilities-catalog",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-26-265-02",
+        "https://cisa.gov/kev",
+        "https://www.cisa.gov/news-events/bulletins/sb26-250",
+        "https://www.cisa.gov/news-events/bulletins/sb26-215",
+        "https://www.cisa.gov/news-events/bulletins/sb26-201",
+        "https://www.cve.org/CVERecord?id=CVE-2026-33824",
+        "https://0patch.com/blog/micropatches-released-for-windows-ike-service-extensions",
+        "https://www.scyscan.com/news/critical-rce-flaw-in-windows-ike-extension-now-actively-exploited/",
+        "https://vulnerability.circl.lu/known-exploited-vulnerabilities-catalog/a9a2c080-f104-42a8-9b0e-d6a49d1c2f5a",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog",
+        "https://support.microsoft.com/en-us/servicing/os/windows-11/2026/09/kb5129195-windows-11-24h2-25h2-security-update",
+        "https://vuldb.com/vuln/357545"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "efd52f6bb3eb2c8d3bf94a4739775657af272464ac727c73bc0a0022820a3588",
+      "source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-33824",
+        "https://portal.msrc.microsoft.com/en-US/security-guidance/advisory/CVE-2026-33824",
+        "https://www.cve.org/CVERecord?id=CVE-2026-33824"
+      ],
+      "status": "complete",
+      "uncertainty": [
+        "Full affected-product table, platforms, and Microsoft KB article numbers were not fully retrieved from JavaScript-rendered MSRC pages.",
+        "Reported fixed OS builds for some later Windows 11 and Server SKUs vary across NVD/CNA excerpts and should be confirmed on the live MSRC update guide."
+      ],
+      "verification_steps": [
+        "Confirm the installed Windows OS build is at or above the fixed build published by Microsoft/NVD/CNA for that product (examples include 10.0.14393.9060 for Windows 10 Version 1607).",
+        "Review whether IKEv2 remains enabled and whether inbound IKE-related exposure has been restricted per vendor guidance."
+      ]
     },
     "CVE-2026-33825": {
       "business_risk": "High. CVE-2026-33825 is a locally exploitable Microsoft Defender privilege-escalation vulnerability requiring low privileges and can affect confidentiality, integrity, and availability. It is listed in CISA's Known Exploited Vulnerabilities catalog, so remediation should be prioritized.",
@@ -29799,99 +30259,26 @@
       "verification_steps": []
     },
     "CVE-2026-56164": {
-      "business_risk": "Critical risk to network-reachable SharePoint farms. CVE-2026-56164 is an authentication-bypass vulnerability that can allow an unauthorized network attacker to elevate privileges. The vulnerability is listed in CISA's Known Exploited Vulnerabilities Catalog, so exposed or unpatched systems should receive emergency prioritization.",
-      "claim_evidence": [
-        {
-          "claim": "Microsoft SharePoint Enterprise Server 2016 is affected below build 16.0.5561.1001.",
-          "kind": "affected_product",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-56164"
-        },
-        {
-          "claim": "Microsoft SharePoint Server 2019 is affected below build 16.0.10417.20175.",
-          "kind": "affected_product",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-56164"
-        },
-        {
-          "claim": "Microsoft SharePoint Server Subscription Edition is affected below build 16.0.19725.20434.",
-          "kind": "affected_product",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-56164"
-        },
-        {
-          "claim": "The vulnerability is described as allowing an unauthorized attacker to elevate privileges over a network; the published CVSS vector indicates network attack, no required privileges, and no user interaction.",
-          "kind": "exposure",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-56164"
-        },
-        {
-          "claim": "Microsoft's July 14, 2026 SharePoint Server Subscription Edition security update is KB5002882 and has build 16.0.19725.20434; the update includes CVE-2026-56164.",
-          "kind": "remediation",
-          "source_url": "https://support.microsoft.com/en-us/servicing/office/update/2026/5002882"
-        },
-        {
-          "claim": "SharePoint Server Subscription Edition is fixed at build 16.0.19725.20434.",
-          "kind": "fixed_version",
-          "source_url": "https://support.microsoft.com/en-us/servicing/office/update/2026/5002882"
-        }
-      ],
-      "exposure_conditions": [
-        "The affected SharePoint Server 2016, 2019, or Subscription Edition installation is below its applicable fixed build.",
-        "The SharePoint service is reachable over the network by an unauthorized attacker; internet exposure materially increases risk.",
-        "The affected SharePoint farm has not received and completed deployment of the applicable July 14, 2026 security update."
-      ],
+      "business_risk": "No additional source-verified CVE-specific business impact was established.",
+      "claim_evidence": [],
+      "exposure_conditions": [],
       "gaps": [],
-      "generated_at": "2026-07-25T21:02:46Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-09-27T14:54:56Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
-      "remediation_steps": [
-        "Apply the July 14, 2026 security update for Microsoft SharePoint Server 2016, KB5002891, and complete the normal SharePoint farm deployment/configuration process. The fixed build is 16.0.5561.1001.",
-        "Apply the July 14, 2026 security update for Microsoft SharePoint Server 2019, KB5002883, and complete the normal SharePoint farm deployment/configuration process. The fixed build is 16.0.10417.20175.",
-        "Apply the July 14, 2026 security update for Microsoft SharePoint Server Subscription Edition, KB5002882. The fixed build is 16.0.19725.20434.",
-        "Until patching is complete, reduce unnecessary network exposure and restrict access to trusted administrative or user networks using existing approved access-control mechanisms. Do not treat network restriction as a replacement for patching.",
-        "Because the vulnerability is in CISA's Known Exploited Vulnerabilities Catalog, prioritize patching and investigate relevant telemetry according to applicable organizational incident-response and CISA requirements."
-      ],
-      "retrieved_source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2026-56164",
-        "https://msrc.microsoft.com/update-guide/en-us/",
-        "https://msrc.microsoft.com/update-guide/vulnerability/CV",
-        "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2026-21527/",
-        "https://msrc.microsoft.com/update-guide/en-us/releaseNote/",
-        "https://support.microsoft.com/en-us/servicing/office/update/2026/5002882",
-        "https://msrc.microsoft.com/update-guide/acknowledgement",
-        "https://msrc.microsoft.com/en-us/security-guidance/advisory/cve-2022-29117",
-        "https://msrc.microsoft.com/update-guide/en-us/advisory/CVE-2026-7168",
-        "https://msrc.microsoft.com/update-guide/en-us/acknowledgement/online?rtc=1",
-        "https://nvd.nist.gov/vuln/detail/CVE-2026-46164",
-        "https://msrc.microsoft.com/update-guide/auth/",
-        "https://support.microsoft.com/en-us/servicing/office/update/2026/5105810",
-        "https://support.microsoft.com/en-us/servicing/office/update/sharepoint/description-of-the-security-update-for-sharepoint-server-2016-november-14-2017",
-        "https://support.microsoft.com/en-US/servicing/Office/update/project/july-2020-updates-for-microsoft-office",
-        "https://support.microsoft.com/en-us/servicing/office/update/sharepoint/december-13-2016-update-for-sharepoint-server-2016-kb3128017",
-        "https://support.microsoft.com/en-us/servicing/office/update/sharepoint/april-11-2017-update-for-sharepoint-server-2016-kb3178718",
-        "https://support.microsoft.com/en-US/servicing/Office/hotfix/sharepoint/description-of-the-security-update-for-sharepoint-server-2016-july-21-2025-kb5002760",
-        "https://support.microsoft.com/en-US/servicing/Office/update/sharepoint/description-of-the-security-update-for-sharepoint-enterprise-server-2016-january-9-2018",
-        "https://support.microsoft.com/en-US/servicing/Office/update/july-5-2016-update-for-office-2016-kb2910984",
-        "https://support.microsoft.com/en-us/servicing/office/update/sharepoint/october-13-2020-update-for-sharepoint-enterprise-server-2016-kb4486681",
-        "https://support.microsoft.com/en-us/servicing/office/hotfix/sharepoint/description-of-the-security-update-for-sharepoint-server-2016-language-pack-july-21-2025-kb5002759"
-      ],
+      "remediation_steps": [],
+      "retrieved_source_urls": [],
       "schema_version": 2,
       "source_fingerprint": "a42875b46e585e27973e93daaa9e58ad3015ffda8021c27ea0427f1449f757c5",
-      "source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2026-56164",
-        "https://support.microsoft.com/en-us/servicing/office/update/2026/5002882"
-      ],
-      "status": "complete",
+      "source_urls": [],
+      "status": "insufficient_evidence",
       "uncertainty": [
-        "The Microsoft Security Response Center advisory page was not available in rendered search results, so detailed vendor mitigation or workaround text could not be independently confirmed.",
-        "The supplied record and NVD describe network exploitation and privilege elevation, but do not establish a specific endpoint, request pattern, configuration dependency, or forensic indicator.",
-        "The fixed-build claims are supported by Microsoft's July 14, 2026 update articles; installation success and current asset state require local administrative verification."
+        "MSRC and NVD page content could not be independently retrieved in thi eion; fixed build and expoure detail re-t on the untru-ted ource record and may be incomplete",
+        "Safe verification ufficient for recipe_pecificity=pecific wa not confirmed from returned page text",
+        "Whether the miing authentication applie only to internet-facing farm or al-o internal farm i not fully pecified in retrieved advisory text"
       ],
-      "verification_steps": [
-        "Identify the SharePoint product edition and record the deployed farm/build version through an approved administrative inventory process.",
-        "Confirm the reported build is at least 16.0.5561.1001 for SharePoint Server 2016, 16.0.10417.20175 for SharePoint Server 2019, or 16.0.19725.20434 for SharePoint Server Subscription Edition.",
-        "Confirm that the corresponding July 14, 2026 security update is recorded as installed on all applicable SharePoint servers in the farm.",
-        "Confirm that the farm remains operational after the update using normal, authenticated administrative and application health checks; do not perform unauthenticated exploit testing.",
-        "Review network telemetry and authentication logs for unexpected unauthenticated access attempts or anomalous privilege changes, particularly where the SharePoint service was externally reachable."
-      ]
+      "verification_steps": []
     },
     "CVE-2026-56290": {
       "business_risk": "Critical risk: an unauthenticated remote attacker may upload executable files through Page Builder CK and achieve full remote code execution, potentially compromising Joomla confidentiality, integrity, and availability. CISA lists the CVE in its Known Exploited Vulnerabilities Catalog with active exploitation and total technical impact.",
@@ -29993,166 +30380,325 @@
       ]
     },
     "CVE-2026-58644": {
-      "business_risk": "Critical remote-code-execution risk in on-premises Microsoft SharePoint. Microsoft describes the issue as deserialization of untrusted data that may allow an unauthorized attacker to execute code over a network. The CVE is listed in CISA's Known Exploited Vulnerabilities Catalog, requiring expedited remediation and exposure assessment.",
-      "claim_evidence": [
-        {
-          "claim": "Microsoft identifies Microsoft SharePoint Enterprise Server 2016, Microsoft SharePoint Server 2019, and Microsoft SharePoint Server Subscription Edition as affected products.",
-          "kind": "affected_product",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-58644"
-        },
-        {
-          "claim": "NVD records affected versions below 16.0.5556.1005 for SharePoint Server 2016, below 16.0.10417.20153 for SharePoint Server 2019, and below 16.0.19725.20384 in the CNA affected-data record for Subscription Edition.",
-          "kind": "affected_version",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-58644"
-        },
-        {
-          "claim": "The vulnerability allows an unauthorized attacker to execute code over a network, with Microsoft CNA CVSS metrics indicating network attackability, no privileges required, and no user interaction required.",
-          "kind": "exposure",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-58644"
-        },
-        {
-          "claim": "Microsoft SharePoint release notes list build 16.0.5556.1005 for SharePoint Server 2016 and build 16.0.10417.20153 for SharePoint Server 2019.",
-          "kind": "fixed_version",
-          "source_url": "https://learn.microsoft.com/en-us/officeupdates/sharepoint-updates"
-        },
-        {
-          "claim": "Microsoft's SharePoint Subscription Edition security-update page identifies KB5002873, build 16.0.19725.20384, as resolving CVE-2026-58644.",
-          "kind": "fixed_version",
-          "source_url": "https://support.microsoft.com/en-us/servicing/office/update/description-of-the-security-update-for-sharepoint-server-subscription-edition-june-9-2026-kb5002873"
-        },
-        {
-          "claim": "Microsoft states that SharePoint updates are cumulative and that the most recently released applicable updates contain previously released security fixes; required language-independent and language-dependent packages should be installed where applicable.",
-          "kind": "remediation",
-          "source_url": "https://learn.microsoft.com/en-us/officeupdates/sharepoint-updates"
-        },
-        {
-          "claim": "A safe verification is to compare the approved administrative inventory's installed SharePoint build with Microsoft's published build numbers and confirm the applicable update packages are present; the source provides the authoritative package/build mapping.",
-          "kind": "verification",
-          "source_url": "https://learn.microsoft.com/en-us/officeupdates/sharepoint-updates"
-        }
-      ],
-      "exposure_conditions": [
-        "A vulnerable SharePoint Server 2016, SharePoint Server 2019, or SharePoint Server Subscription Edition deployment is reachable over a network.",
-        "The affected SharePoint build is below the applicable Microsoft security-update build.",
-        "Because CISA reports active exploitation, externally reachable or otherwise attacker-accessible SharePoint systems should be prioritized."
-      ],
+      "business_risk": "No additional source-verified CVE-specific business impact was established.",
+      "claim_evidence": [],
+      "exposure_conditions": [],
       "gaps": [],
-      "generated_at": "2026-07-25T21:02:28Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-09-27T14:54:41Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
-      "remediation_steps": [
-        "Apply the latest cumulative SharePoint security update for the deployed product and confirm that both required language-independent and language-dependent packages are installed where applicable.",
-        "For SharePoint Server 2016, update to at least build 16.0.5556.1005; the July 14, 2026 release notes list build 16.0.5561.1001 as newer.",
-        "For SharePoint Server 2019, update to at least build 16.0.10417.20153; the July 14, 2026 release notes list build 16.0.10417.20175 as newer.",
-        "For SharePoint Server Subscription Edition, Microsoft identifies build 16.0.19725.20384 (KB5002873, June 9, 2026) as resolving CVE-2026-58644; the July 14, 2026 release notes list build 16.0.19725.20434 as newer.",
-        "Prioritize internet-facing and otherwise externally reachable systems, preserve relevant forensic data before remediation where required by organizational incident-response procedures, and follow applicable CISA KEV requirements."
-      ],
+      "remediation_steps": [],
       "retrieved_source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2026-58644",
-        "https://msrc.microsoft.com/update-guide/en-us/",
-        "https://msrc.microsoft.com/update-guide/vulnerability/CV",
-        "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2026-21527/",
-        "https://learn.microsoft.com/en-us/officeupdates/sharepoint-updates",
-        "https://msrc.microsoft.com/update-guide/en-us/acknowledgement/online?rtc=1",
-        "https://learn.microsoft.com/de-de/officeupdates/sharepoint-updates",
-        "https://msrc.microsoft.com/update-guide/acknowledgement",
-        "https://nvd.nist.gov/vuln/detail/CVE-2026-6644",
-        "https://nvd.nist.gov/vuln/search?cves=on&search_type=last3months",
-        "https://msrc.microsoft.com/en-us/security-guidance/advisory/cve-2022-29117",
-        "https://learn.microsoft.com/it-it/officeupdates/sharepoint-updates",
-        "https://learn.microsoft.com/en-in/microsoft-365/enterprise/media/teams-sharepoint-online-sites-highly-regulated-data/sharepointsiteshighlyregulateddata.pdf",
-        "https://learn.microsoft.com/en-us/openspecs/interopevents/interopevents/media/index/pdfs/whatsnewinsharepointframework_mingyuanyu.pdf",
-        "https://support.microsoft.com/en-us/servicing/office/update/description-of-the-security-update-for-sharepoint-server-subscription-edition-june-9-2026-kb5002873"
+        "https://www.cve.org/CVERecord?id=CVE-2026-58644",
+        "https://socradar.io/free-tools/cve-radar/CVE-2026-58644",
+        "https://www.sentinelone.com/vulnerability-database/cve-2026-58644/",
+        "https://cvefeed.io/vuln/detail/CVE-2026-58644",
+        "https://thehackernews.com/2026/07/cisa-adds-exploited-sharepoint-rce-zero.html",
+        "https://cvetodo.com/cve/CVE-2026-58644",
+        "https://cvepremium.circl.lu/vuln/bdu:2026-09928",
+        "https://www.ionix.io/threat-center/cve-2026-58644/",
+        "https://cvepremium.circl.lu/vuln/CVE-2026-58644",
+        "https://turingpoint.de/cve/CVE-2026-58644/",
+        "https://nvd.nist.gov/vuln/detail/cve-2026-58649",
+        "https://nvd.nist.gov/vuln/detail/cve-2026-64448",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2026-23427",
+        "https://nvd.nist.gov/vuln/detail/cve-2026-43327",
+        "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2026-90327",
+        "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2026-58644",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog-print",
+        "https://www.cisa.gov/news-events/bulletins/sb26-257",
+        "https://www.cisa.gov/news-events/bulletins/sb26-250",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-26-211-07",
+        "https://www.cisa.gov/news-events/alerts/2026/07/14/cisa-urges-sharepoint-hardening-after-new-exploitations",
+        "https://support.microsoft.com/en-us/topic/description-of-the-security-update-for-sharepoint-server-2016-june-9-2026-kb5002880-acd28b53-ca87-48da-8d49-786546e630cf",
+        "https://support.microsoft.com/en-us/topic/description-of-the-security-update-for-sharepoint-server-2019-june-9-2026-kb5002874-ddd2ad8c-f1e6-4285-8d09-1eeeaaabab3a",
+        "https://support.microsoft.com/it-it/servicing/office/update/description-of-the-security-update-for-sharepoint-server-2016-june-9-2026-kb5002880"
       ],
       "schema_version": 2,
       "source_fingerprint": "4f52d25ffddcacb91f7f7a3677167537bdb05456088001e6f409e27d910185d9",
       "source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2026-58644",
-        "https://learn.microsoft.com/en-us/officeupdates/sharepoint-updates",
-        "https://support.microsoft.com/en-us/servicing/office/update/description-of-the-security-update-for-sharepoint-server-subscription-edition-june-9-2026-kb5002873"
+        "https://www.cve.org/CVERecord?id=CVE-2026-58644",
+        "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2026-58644",
+        "https://www.cisa.gov/news-events/alerts/2026/07/14/cisa-urges-sharepoint-hardening-after-new-exploitations"
       ],
-      "status": "complete",
-      "uncertainty": [
-        "The NVD CPE data lists SharePoint Subscription Edition as affected below 16.0.19725.20434, while Microsoft's June 9, 2026 update page identifies build 16.0.19725.20384 as resolving CVE-2026-58644. Treat 16.0.19725.20434 as the conservative operational target until Microsoft clarifies the discrepancy.",
-        "The reviewed sources establish network attackability and active exploitation, but do not establish a narrower deployment-specific exposure condition such as a particular endpoint, configuration, or authentication state.",
-        "No source-supported exploit reproduction or successful verification result was performed."
-      ],
-      "verification_steps": [
-        "Record the installed SharePoint farm/product build using the organization's approved administrative inventory process without initiating exploit or production-probing activity.",
-        "Compare the recorded build with the applicable minimum remediation build: 16.0.5556.1005 for SharePoint Server 2016, 16.0.10417.20153 for SharePoint Server 2019, and 16.0.19725.20384 for SharePoint Server Subscription Edition.",
-        "Confirm that the installed update corresponds to the correct SharePoint product and that all required language-dependent and language-independent packages are present where applicable.",
-        "Reassess network exposure and confirm that systems identified as externally reachable have been patched or formally isolated under the organization's emergency-change and risk-acceptance process."
-      ]
-    },
-    "CVE-2026-60137": {
-      "business_risk": "No additional source-verified CVE-specific business impact was established.",
-      "claim_evidence": [],
-      "exposure_conditions": [],
-      "gaps": [],
-      "generated_at": "2026-07-30T11:31:21Z",
-      "model": "gpt-5.6-luna",
-      "prompt_version": "2026-07-14.2",
-      "recipe_specificity": "not_specific",
-      "remediation_steps": [],
-      "retrieved_source_urls": [],
-      "schema_version": 2,
-      "source_fingerprint": "a0c5ae2eca877605f4e151817f609847b65927ca4da4964eeb45f47d09f8ffd6",
-      "source_urls": [],
       "status": "insufficient_evidence",
       "uncertainty": [
-        "The advisory establishes the vulnerable parameter and version ranges but does not identify every affected plugin or theme.",
-        "The source material does not provide a complete inventory-based method for determining whether a particular site invokes the vulnerable code path.",
-        "No claim is made that a specific asset was exploited or that remediation succeeded; those require asset-level evidence.",
-        "The model did not return a fully sourced exposure, remediation, and verification set; consult the linked NVD and vendor sources before acting."
+        "CNA/CVE record lists affected ranges ending before 16.0.5556.1005, 16.0.10417.20153, and 16.0.19725.20384 while a subsequent government advisory lists later builds as fixed and later cumulative updates exist.",
+        "MSRC FAQ describes an attacker authenticated as at least a Site Owner while the CVSS vector and description indicate an unauthorized attacker (PR:N).",
+        "Full MSRC update-guide content and NVD detail page were not retrievable.",
+        "Product-to-version-range mapping relies on matching known SharePoint versioning plus secondary sources."
       ],
       "verification_steps": []
     },
-    "CVE-2026-63030": {
-      "business_risk": "No additional source-verified CVE-specific business impact was established.",
-      "claim_evidence": [],
-      "exposure_conditions": [],
+    "CVE-2026-60137": {
+      "business_risk": "WordPress Core SQL injection in WP_Query author__not_in can expose database contents and, per CISA, can be chained to unauthenticated remote code execution on default installations; CISA KEV listing and vendor forced auto-updates indicate urgent production risk for internet-facing sites on 6.8.x, 6.9.x, and 7.0.x.",
+      "claim_evidence": [
+        {
+          "claim": "The affected product is WordPress Core (vendor WordPress), specifically the WP_Query author__not_in parameter sanitization.",
+          "kind": "affected_product",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-60137"
+        },
+        {
+          "claim": "Affected versions are WordPress 6.8.x before 6.8.6, 6.9.x before 6.9.5, and 7.0.x before 7.0.2 (NVD CPE: 6.8 inclusive to 6.8.6 exclusive, 6.9 inclusive to 6.9.5 exclusive, 7.0 inclusive to 7.0.2 exclusive).",
+          "kind": "affected_version",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-60137"
+        },
+        {
+          "claim": "SQL injection is possible when a plugin or theme passes untrusted input to the unsanitized WP_Query author__not_in parameter.",
+          "kind": "exposure",
+          "source_url": "https://www.cve.org/CVERecord?id=CVE-2026-60137"
+        },
+        {
+          "claim": "CISA KEV: WordPress Core SQL injection when a plugin or theme passes untrusted input to the parameter; can be chained with CVE-2026-63030 to allow an unauthenticated attacker to gain remote code execution on default WordPress installations. Added 2026-07-21, due 2026-08-04.",
+          "kind": "exposure",
+          "source_url": "https://www.cisa.gov/known-exploited-vulnerabilities-catalog"
+        },
+        {
+          "claim": "Fixed in WordPress 6.8.6, 6.9.5, and 7.0.2; versions prior to 6.8 are not affected. WordPress 6.8 is only affected by this first vulnerability (facilitated SQL injection).",
+          "kind": "fixed_version",
+          "source_url": "https://wordpress.org/news/2026/07/wordpress-7-0-2-release/"
+        },
+        {
+          "claim": "WordPress 7.0.2 security release includes the facilitated SQL injection fix; 6.9.5 and 6.8.6 contain the corresponding backports; files revised include /wp-includes/class-wp-query.php.",
+          "kind": "fixed_version",
+          "source_url": "https://wordpress.org/documentation/wordpress-version/version-7-0-2/"
+        },
+        {
+          "claim": "Update sites immediately to WordPress 7.0.2 (or the 6.9.5 / 6.8.6 backports) via Dashboard Updates or WordPress.org download; WordPress.org enabled forced auto-updates for affected versions.",
+          "kind": "remediation",
+          "source_url": "https://wordpress.org/news/2026/07/wordpress-7-0-2-release/"
+        },
+        {
+          "claim": "CISA required action: apply mitigations per vendor instructions, comply with BOD 26-04, follow applicable cloud-service guidance or discontinue use if mitigations are unavailable, and evaluate internet exposure.",
+          "kind": "remediation",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-60137"
+        },
+        {
+          "claim": "Confirm Core is at 7.0.2 or the documented backports 6.8.6 / 6.9.5 (or a later maintained release). WordPress documents 7.0.2 as released 17 July 2026 and lists class-wp-query.php among revised files; Debian notes the 6.8.6/7.0.2 package fixes.",
+          "kind": "verification",
+          "source_url": "https://wordpress.org/documentation/wordpress-version/version-7-0-2/"
+        }
+      ],
+      "exposure_conditions": [
+        "WordPress Core 6.8.x before 6.8.6, 6.9.x before 6.9.5, or 7.0.x before 7.0.2 is installed.",
+        "A plugin or theme passes untrusted input to the WP_Query author__not_in parameter.",
+        "CISA reports the issue can be chained with CVE-2026-63030 to allow unauthenticated remote code execution on default WordPress installations.",
+        "Internet-exposed WordPress sites are in-scope for CISA KEV/BOD 26-04 patching evaluation."
+      ],
       "gaps": [],
-      "generated_at": "2026-07-25T21:01:54Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-09-28T17:52:22Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
-      "remediation_steps": [],
+      "remediation_steps": [
+        "Update WordPress Core immediately to a vendor security release: 6.8.6 (6.8 branch), 6.9.5 (6.9 branch), or 7.0.2 (7.0 branch), or a later maintained version.",
+        "Use Dashboard → Updates → Update Now, or obtain the official package from WordPress.org; WordPress.org enabled forced auto-updates for affected versions.",
+        "CISA KEV required action: apply vendor mitigations, follow BOD 26-04 risk-based update guidance, and discontinue use if mitigations are unavailable.",
+        "Versions prior to 6.8 are not affected per WordPress; prefer remaining on a currently supported WordPress branch after patching."
+      ],
       "retrieved_source_urls": [
-        "https://wordpress.org/news/2026/07/wordpress-7-0-2-release/",
-        "https://nvd.nist.gov/vuln/detail/CVE-2026-63030",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-60137",
+        "https://ubuntu.com/security/CVE-2026-60137",
+        "https://www.cve.org/CVERecord?id=CVE-2026-60137",
+        "https://security-tracker.debian.org/tracker/CVE-2026-60137",
+        "https://cve.report/CVE-2026-60137",
+        "https://www.upguard.com/vulnerabilities/cve-2026-60137",
+        "https://tridentstack.com/cve/CVE-2026-60137",
+        "https://www.sentinelone.com/vulnerability-database/cve-2026-60137/",
+        "https://app.opencve.io/cve/CVE-2026-60137",
+        "https://www.tenable.com/cve/CVE-2026-60137",
+        "https://socradar.io/free-tools/cve-radar/CVE-2026-60137",
+        "https://service.securitm.ru/vm/vulnerability/cve/show/CVE-2026-60137",
+        "https://www.rapid7.com/db/vulnerabilities/cve-2026-60137/",
+        "https://cvepremium.circl.lu/vuln/fkie_cve-2026-60137",
+        "https://cve.circl.lu/vuln/ubuntu-cve-2026-60137",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-82562",
+        "https://nvd.nist.gov/vuln/detail/cve-2026-83613",
+        "https://nvd.nist.gov/vuln/detail/cve-2026-90337",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-86861",
         "https://wordpress.org/documentation/wordpress-version/version-7-0-2/",
-        "https://wordpress.org/news/tag/releases/",
-        "https://wordpress.org/news/",
-        "https://wordpress.org/news/?order=desc",
-        "https://wordpress.org/news/2026/07/wordpress-7-0-1-maintenance-release/",
-        "https://wordpress.org/news/category/security/",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=0",
-        "https://wordpress.org/documentation/article/wordpress-versions/",
-        "https://wordpress.org/documentation/wordpress-version/version-7.0/",
-        "https://nvd.nist.gov/vuln/detail/CVE-2025-3030",
-        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
-        "https://www.cisa.gov/sites/default/files/2025-09/AA25-266A_advisory_cisa_shares_lessons_learned_from_ir_engagement.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/aa22-228a-threat-actors-exploiting-multiple-cves-against-zimbra.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/AA21-209A_Joint_CSA%20Top%20Routinely%20Exploited%20Vulnerabilities.pdf",
-        "https://www.cisa.gov/sites/default/files/2025-02/aa25-022a-threat-actors-chained-vulnerabilities-in-ivanti-cloud-service-applications_2.pdf",
-        "https://www.cisa.gov/sites/default/files/documents/Metrics_Primer_7-13-09_FINAL.pdf"
+        "https://wordpress.org/news/2026/07/wordpress-7-0-2-release/",
+        "https://wordpress.org/plugins/compromise-scanner-for-wp2shell/",
+        "https://de.wordpress.org/2026/07/wordpress-7-0-2-sicherheitsrelease/",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "a0c5ae2eca877605f4e151817f609847b65927ca4da4964eeb45f47d09f8ffd6",
+      "source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-60137",
+        "https://www.cve.org/CVERecord?id=CVE-2026-60137",
+        "https://wordpress.org/news/2026/07/wordpress-7-0-2-release/",
+        "https://wordpress.org/documentation/wordpress-version/version-7-0-2/",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog",
+        "https://ubuntu.com/security/CVE-2026-60137",
+        "https://security-tracker.debian.org/tracker/CVE-2026-60137"
+      ],
+      "status": "complete",
+      "uncertainty": [
+        "CNA (WPScan) CVSS is 5.9 Medium (AC:H, confidentiality only); CISA-ADP scores 9.1 Critical (AC:L, confidentiality and integrity). Business impact depends on whether the chained RCE path is treated as in-scope.",
+        "Exploitation of CVE-2026-60137 alone is described as requiring a plugin or theme to pass untrusted input to author__not_in; CISA additionally states chaining with CVE-2026-63030 enables unauthenticated RCE on default installs.",
+        "NVD has not published its own CVSS assessment.",
+        "Ubuntu wordpress packages were listed as Needs evaluation; distribution-specific fixed versions outside Debian were not fully established from the consulted pages.",
+        "Safe verification is limited to version/inventory checks; no authoritative inert functional test of the WP_Query sanitization was documented without exercising the injection path."
+      ],
+      "verification_steps": [
+        "In WordPress Dashboard → Updates (or About), confirm the installed Core version is 6.8.6, 6.9.5, 7.0.2, or a later release in a maintained branch.",
+        "Confirm the site is not running 6.8.0–6.8.5, 6.9.0–6.9.4, or 7.0.0–7.0.1.",
+        "If using a packaged distribution, confirm the vendor package is at or beyond the corresponding fixed WordPress Core version (for example Debian trixie wordpress 6.8.6+dfsg1-0+deb13u1 or later).",
+        "Do not attempt SQL injection or exploit-chain tests; verification is limited to reading the reported Core version and vendor release notes."
+      ]
+    },
+    "CVE-2026-63030": {
+      "business_risk": "Critical WordPress Core interpretation-conflict issue that, when chained with CVE-2026-60137, can enable SQL injection and remote code execution. CNA CVSS is 9.8 with a network attack vector, no privileges, and no user interaction. CISA lists the CVE in KEV as exploited in the wild, with a short due date and BOD 26-04 patching and forensics-triage requirements.",
+      "claim_evidence": [
+        {
+          "claim": "NVD/CNA affected ranges are WordPress from 6.9 up to but excluding 6.9.5, and from 7.0 up to but excluding 7.0.2.",
+          "kind": "affected_version",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-63030"
+        },
+        {
+          "claim": "The issue is a REST API batch endpoint route confusion / interpretation conflict that, combined with CVE-2026-60137, could allow SQL injection and remote code execution.",
+          "kind": "exposure",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-63030"
+        }
+      ],
+      "exposure_conditions": [
+        "WordPress Core 6.9.x before 6.9.5 or 7.0.x before 7.0.2",
+        "REST API batch endpoint route/interpretation confusion (CWE-436)",
+        "Described impact is SQL injection and remote code execution when combined with CVE-2026-60137",
+        "CNA CVSS 3.1 vector indicates network access with no privileges and no user interaction",
+        "CISA KEV: known exploited; asset internet exposure must be evaluated"
+      ],
+      "gaps": [],
+      "generated_at": "2026-09-27T14:52:21Z",
+      "model": "grok-4.6",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [
+        "Update WordPress 7.0.x installations to 7.0.2 or a later 7.0/current release using Dashboard → Updates or the official WordPress 7.0.2 package",
+        "Update WordPress 6.9.x installations to 6.9.5 or later",
+        "On sites that support automatic background updates, allow the WordPress.org forced auto-update for affected versions to complete",
+        "For CISA-covered systems, apply vendor mitigations in accordance with BOD 26-04 and complete required forensics triage"
+      ],
+      "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-63030",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2026-23427",
+        "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2026-63073",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2026-80630",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-6301",
+        "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2026-63827",
+        "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2026-63930",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-74630",
+        "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2026-90327",
+        "https://www.cve.org/CVERecord?id=CVE-2026-63030",
+        "https://security-tracker.debian.org/tracker/CVE-2026-63030",
+        "https://www.wordfence.com/threat-intel/vulnerabilities/wordpress-core/wordpress-core-69-701-remote-code-execution-via-rest-api-batch-request-route-confusion?asset_slug=wordpress",
+        "https://labs.beazley.security/advisories/BSL-A1193",
+        "https://wpscan.com/vulnerability/73310d64-e790-4a78-ab0a-12995b762dba/",
+        "https://www.scyscan.com/news/wordpress-core-wp2shell-rce-flaws-get-public-exploits-patch-now/",
+        "https://www.akamai.com/blog/security-research/wordpress-unauthenticated-rce-cve-2026-63030-cve-2026-60137",
+        "https://cve.circl.lu/known-exploited-vulnerabilities-catalog/52d5288e-4cf6-435f-95fd-5a35606b08f2",
+        "https://pkcert.gov.pk/advisory/26/14.pdf",
+        "https://github.com/vulhub/vulhub/blob/master/wordpress/CVE-2026-63030/README.md",
+        "https://orca.security/resources/blog/wordpress-core-pre-auth-rce-chain/",
+        "https://greenwiremedia.com/blog/wordpress-critical-security-update-2026/",
+        "https://www.hivepro.com/threat-advisory/wp2shell-one-request-no-login-full-control-of-wordpress-core",
+        "https://cve.report/CVE-2026-63030",
+        "https://wordpress.org/plugins/compromise-scanner-for-wp2shell/"
       ],
       "schema_version": 2,
       "source_fingerprint": "687819731ae245fffaac71bfaf0c714c148a9c060621b46f3f16f142be19779f",
       "source_urls": [
         "https://nvd.nist.gov/vuln/detail/CVE-2026-63030",
-        "https://wordpress.org/news/2026/07/wordpress-7-0-2-release/",
-        "https://wordpress.org/documentation/wordpress-version/version-7-0-2/"
+        "https://www.cve.org/CVERecord?id=CVE-2026-63030",
+        "https://wpscan.com/vulnerability/73310d64-e790-4a78-ab0a-12995b762dba/"
       ],
-      "status": "insufficient_evidence",
+      "status": "complete",
       "uncertainty": [
-        "The sources do not provide a complete, configuration-specific exposure recipe for REST API batch-route reachability.",
-        "The sources describe the RCE impact as dependent on chaining with CVE-2026-60137; this enrichment does not independently establish the prerequisites or exploitability of that related issue.",
-        "No authoritative source reviewed here provides a separate temporary mitigation that can be relied upon instead of upgrading.",
-        "The exact current stable branch beyond the listed patched versions was not used to define an additional fixed-version claim."
+        "NVD has not published its own CVSS assessment",
+        "Authoritative sources do not fully specify site-level REST API or batch-endpoint availability beyond the affected version ranges",
+        "Remote code execution is described as a combined impact with CVE-2026-60137, not as a fully specified standalone outcome of this CVE"
       ],
-      "verification_steps": []
+      "verification_steps": [
+        "In the WordPress Dashboard, open Updates and confirm the displayed core version is 6.9.5, 7.0.2, or a later patched release for the installed branch",
+        "If automatic background updates are enabled, confirm the update finished and the Dashboard still reports a patched core version"
+      ]
+    },
+    "CVE-2026-65400": {
+      "business_risk": "Critical (CVSS 3.1 9.8) improper authentication in macOS Screen Sharing that is listed in the CISA Known Exploited Vulnerabilities catalog; a network attacker may authenticate without valid credentials, enabling unauthorized remote access.",
+      "claim_evidence": [
+        {
+          "claim": "affected from 0 before 14.8.9, 0 before 15.7.9, 0 before 26.6.1, 0 before 26.7, and 0 before 27",
+          "kind": "affected_version",
+          "source_url": "https://www.cve.org/CVERecord?id=CVE-2026-65400"
+        },
+        {
+          "claim": "An attacker on the network may be able to authenticate to Screen Sharing without valid credentials",
+          "kind": "exposure",
+          "source_url": "https://support.apple.com/en-us/148170"
+        },
+        {
+          "claim": "This issue is fixed in macOS Golden Gate 27, macOS Sequoia 15.7.9, macOS Sonoma 14.8.9, macOS Tahoe 26.6.1, macOS Tahoe 26.7",
+          "kind": "fixed_version",
+          "source_url": "https://nvd.nist.gov/vuln/detail/cve-2026-65400"
+        }
+      ],
+      "exposure_conditions": [
+        "Screen Sharing is reachable by an attacker on the network",
+        "An attacker on the network may be able to authenticate to Screen Sharing without valid credentials"
+      ],
+      "gaps": [],
+      "generated_at": "2026-09-27T14:50:53Z",
+      "model": "grok-4.6",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [
+        "Apply the macOS updates Apple documents as containing the fix: macOS Sonoma 14.8.9, macOS Sequoia 15.7.9, macOS Tahoe 26.6.1, macOS Tahoe 26.7, or macOS Golden Gate 27",
+        "Follow CISA KEV required action to apply mitigations in accordance with vendor instructions and BOD 26-04 guidance"
+      ],
+      "retrieved_source_urls": [
+        "https://www.cve.org/CVERecord?id=CVE-2026-65400",
+        "https://nvd.nist.gov/vuln/detail/cve-2026-65400",
+        "https://www.rainforest.tech/en/cves/CVE-2026-65400",
+        "https://www.tenable.com/cve/CVE-2026-65400",
+        "https://github.com/advisories/GHSA-cwph-f4w9-f4wq",
+        "https://cyberveille.esante.gouv.fr/alertes/apple-cve-2026-65400-2026-08-07",
+        "https://www.rainforest.tech/es/cves/CVE-2026-65400",
+        "https://app.opencve.io/cve/CVE-2026-65400",
+        "https://vulnerability.circl.lu/vuln/fkie_cve-2026-65400",
+        "https://jvndb.jvn.jp/ja/contents/2026/JVNDB-2026-034057.html",
+        "https://turingpoint.de/en/cve/CVE-2026-65400/",
+        "https://www.thehackerwire.com/vulnerability/CVE-2026-65400/",
+        "https://www.rainforest.tech/pt/cves/CVE-2026-65400",
+        "https://cvepremium.circl.lu/vuln/cve-2026-65400",
+        "https://cvetodo.com/cve/CVE-2026-65400",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2026-23427",
+        "https://nvd.nist.gov/vuln/detail/cve-2026-42769",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-2100",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2026-52927",
+        "https://support.apple.com/en-us/148170",
+        "https://support.apple.com/tr-tr/148171",
+        "https://support.apple.com/en-us/102774",
+        "https://support.apple.com/zh-tw/149038",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog-print"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "ea4f270f0f7d3622886bfb1432f3e517f1da3645c7d8a6dc089b99774ae91007",
+      "source_urls": [
+        "https://nvd.nist.gov/vuln/detail/cve-2026-65400",
+        "https://www.cve.org/CVERecord?id=CVE-2026-65400",
+        "https://support.apple.com/en-us/148170"
+      ],
+      "status": "complete",
+      "uncertainty": [
+        "NVD known-affected CPE configurations list only the 14.x, 15.x, and 26.x ranges up to 26.6.1 while the CVE description and Apple advisories also identify fixes in macOS Tahoe 26.7 and macOS Golden Gate 27",
+        "Consulted sources do not state whether Screen Sharing is enabled by default or give additional reachability prerequisites",
+        "No vendor document provides an explicit inert verification procedure beyond naming the fixed OS versions"
+      ],
+      "verification_steps": [
+        "Confirm the installed macOS release name and version against the fixed releases listed in the Apple security content documents for this CVE"
+      ]
     },
     "CVE-2026-76461": {
       "business_risk": "No additional source-verified CVE-specific business impact was established.",
@@ -30282,66 +30828,99 @@
       "verification_steps": []
     },
     "CVE-2026-8398": {
-      "business_risk": "Critical supply-chain compromise: a maliciously modified, legitimately signed DAEMON Tools Lite installer could execute attacker-controlled code, expose host and organizational information, and enable additional payload deployment. Treat systems that installed an affected package as potentially compromised, not merely vulnerable.",
+      "business_risk": "CISA KEV-listed supply-chain compromise of official, legitimately signed DAEMON Tools Lite Windows installers with embedded malicious code (CWE-506). Affected packages were distributed from the vendor website for several weeks; systems that installed them may have received persistent implants with high confidentiality, integrity, and availability impact. Follow-on targeting of some organizations was reported by the CNA.",
       "claim_evidence": [
         {
-          "claim": "DAEMON Tools Lite for Windows was affected by the supply-chain incident.",
+          "claim": "The affected product is DAEMON Tools Lite from AVB Disc Soft / Disc Soft, on Windows.",
           "kind": "affected_product",
           "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-8398"
+        },
+        {
+          "claim": "Vendor advisory identifies free DAEMON Tools Lite 12.5.1 as the affected version that was removed from distribution.",
+          "kind": "affected_version",
+          "source_url": "https://blog.daemon-tools.cc/post/security-incident"
+        },
+        {
+          "claim": "Vendor states the incident was limited to free DAEMON Tools Lite and did not affect DAEMON Tools Ultra, DAEMON Tools Pro, or paid Lite.",
+          "kind": "exposure",
+          "source_url": "https://blog.daemon-tools.cc/post/security-incident"
+        },
+        {
+          "claim": "Vendor released DAEMON Tools Lite 12.6 on 5 May 2026 and states 12.6.0.2445 no longer exhibits the incident-associated behavior.",
+          "kind": "fixed_version",
+          "source_url": "https://blog.daemon-tools.cc/post/security-incident"
+        },
+        {
+          "claim": "Vendor recommends uninstalling 12.5.1 (free) installed during the affected period, running a full trusted antivirus/security scan, and downloading 12.6 from the official website.",
+          "kind": "remediation",
+          "source_url": "https://blog.daemon-tools.cc/post/security-incident"
+        },
+        {
+          "claim": "Vendor states affected 12.5.1 was removed, currently available official versions were verified, and 12.6.0.2445 is the rebuilt safe release.",
+          "kind": "verification",
+          "source_url": "https://blog.daemon-tools.cc/post/security-incident"
         }
       ],
       "exposure_conditions": [
-        "A Windows system downloaded or installed DAEMON Tools Lite versions 12.5.0.2421 through 12.5.0.2434 from the legitimate DAEMON Tools website during approximately April 8, 2026 through May 5, 2026.",
-        "The affected installers contained compromised DTHelper.exe, DiscSoftBusServiceLite.exe, and DTShellHlp.exe binaries, which were digitally signed with the legitimate AVB Disc Soft certificate.",
-        "The vendor states that DAEMON Tools Lite version 12.5.1 was affected; the Kaspersky technical analysis identifies the affected package range as 12.5.0.2421 through 12.5.0.2434."
+        "Windows DAEMON Tools Lite obtained from the official daemon-tools.cc distribution during approximately 8 April 2026 through 5 May 2026.",
+        "CNA/NVD describe compromised Windows installer versions 12.5.0.2421 through 12.5.0.2434, with three installer binaries trojanized and still signed with the legitimate AVB Disc Soft code-signing certificate.",
+        "Vendor advisory describes impact to the free DAEMON Tools Lite 12.5.1 build during the incident window and states paid DAEMON Tools Lite, DAEMON Tools Ultra, and DAEMON Tools Pro were not affected.",
+        "Digital signatures on installers from that period are not a reliable integrity signal because the malicious files used the legitimate vendor certificate."
       ],
       "gaps": [],
-      "generated_at": "2026-07-25T21:03:57Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-09-27T14:56:40Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [
-        "Immediately isolate systems known or suspected to have installed an affected package and begin organizational incident-response procedures.",
-        "Uninstall the affected DAEMON Tools Lite installation.",
-        "Run a full system scan using trusted, updated security or antivirus software.",
-        "Reinstall DAEMON Tools Lite only from the official vendor source, using version 12.6.0.2445, which the vendor and Kaspersky identify as not containing the malicious behavior.",
-        "Review endpoint and network telemetry for follow-on payload deployment or other signs of compromise; escalate confirmed or suspected compromise for forensic investigation and credential/session remediation according to organizational policy."
+        "If free DAEMON Tools Lite 12.5.1 (or other builds from the April–May 2026 incident window) was downloaded or installed, uninstall the application.",
+        "Run a full system scan with trusted security or antivirus software.",
+        "Obtain a replacement only from the official vendor website; vendor and CNA state version 12.6 / 12.6.0.2445 does not contain the compromised files.",
+        "Follow CISA KEV required action: apply mitigations per vendor instructions, follow applicable BOD 22-01 guidance for cloud services, or discontinue use if mitigations are unavailable.",
+        "Treat hosts that had DAEMON Tools installed on or after 8 April 2026 as potentially compromised and review them for abnormal security-relevant activity, not merely as a version-upgrade task."
       ],
       "retrieved_source_urls": [
+        "https://www.cve.org/CVERecord?id=CVE-2026-83998",
+        "https://cvepremium.circl.lu/vuln/rhsa-2026:33574?page=2",
+        "https://portal.msrc.microsoft.com/en-US/security-guidance/advisory/CVE-2026-83998",
+        "https://cvepremium.circl.lu/search?vendor=microsoft&product=windows_11_26h1",
+        "https://cvetodo.com/cve/CVE-2026-83998",
+        "https://cvepremium.circl.lu/vuln/ghsa-j5g9-f88f-gfj3",
+        "https://cvepremium.circl.lu/vuln/ghsa-c97x-2x9j-68c3",
+        "https://cvepremium.circl.lu/search?vendor=adobe&product=substance_3d_modeler",
+        "https://cyberstack.org/n/cve-2026-94127",
+        "https://vulnerability.circl.lu/vuln/opensuse-su-2026:10979-1",
+        "https://vulnerability.circl.lu/vuln/rhsa-2026:7329",
+        "https://cvepremium.circl.lu/vuln/rhsa-2026:9742",
+        "https://blog.checkpoint.com/security/security-advisory-action-required-active-exploitation-of-cve-2026-85102-and-a-management-pre-authentication-vulnerability-cve-2026-93616/",
+        "https://www.cve.org/CVERecord?id=CVE-2026-90939",
+        "https://vulnerability.circl.lu/vuln/fkie_cve-2026-83997",
         "https://nvd.nist.gov/vuln/detail/CVE-2026-8398",
-        "https://nvd.nist.gov/vuln/detail/cve-2026-33908",
-        "https://nvd.nist.gov/vuln/detail/CVE-2018-8398/change-record?changeRecordedOn=06%2F16%2F2026T22%3A04%3A46.593-0400",
-        "https://nvd.nist.gov/vuln/detail/CVE-2026-28389",
-        "https://nvd.nist.gov/vuln/detail/CVE-2026-8390",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=0",
-        "https://nvd.nist.gov/vuln-metrics/cvss/v4-calculator?name=CVE-2026-8398&source=Kaspersky+Labs&vector=AV%3AN%2FAC%3AL%2FAT%3AN%2FPR%3AN%2FUI%3AN%2FVC%3AH%2FVI%3AH%2FVA%3AH%2FSC%3AN%2FSI%3AN%2FSA%3AN&version=4.0",
-        "https://nvd.nist.gov/vuln/detail/CVE-2026-40398",
-        "https://nvd.nist.gov/vuln/detail/CVE-2026-58598",
-        "https://nvd.nist.gov/vuln/detail/CVE-2026-53962",
-        "https://nvd.nist.gov/vuln/detail/CVE-2026-31938",
-        "https://nvd.nist.gov/vuln/detail/CVE-2026-8092",
-        "https://www.cisa.gov/sites/default/files/2025-02/aa25-022a-threat-actors-chained-vulnerabilities-in-ivanti-cloud-service-applications_2.pdf",
-        "https://www.cisa.gov/sites/default/files/2025-08/CSA_COUNTERING_CHINA_STATE_ACTORS_COMPROMISE_OF_NETWORKS.pdf",
-        "https://www.cisa.gov/sites/default/files/2023-10/aa23-289a-threat-actors-exploit-atlassian-confluence-cve-2023-22515-for-initial-access.pdf",
-        "https://www.cisa.gov/sites/default/files/2023-03/aa23-074a-threat-actors-exploit-telerik-vulnerability-in-us-government-iis-server.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/AA22-138A-Threat_Actors_Exploiting_F5_BIG-IP_CVE-2022-1388_F5.pdf"
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2026-23427",
+        "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2026-80839",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog-print",
+        "https://www.cisa.gov/news-events/bulletins/sb26-257",
+        "https://www.cisa.gov/news-events/alerts/2026/09/22/cisa-adds-four-known-exploited-vulnerabilities-catalog",
+        "https://www.cisa.gov/news-events/bulletins/sb26-250",
+        "https://blog.daemon-tools.cc/post/security-incident",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog"
       ],
       "schema_version": 2,
       "source_fingerprint": "bd76781db1c621ac298c54e3c3d369704da3f756ab27e3708a61296573a1257e",
       "source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2026-8398"
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-8398",
+        "https://blog.daemon-tools.cc/post/security-incident"
       ],
       "status": "complete",
       "uncertainty": [
-        "The NVD affected-product record contains an apparently inconsistent CPE/version representation and does not itself provide a conventional patched-version range. The package range and remediation version in this enrichment are based on the Kaspersky analysis and the vendor incident advisory.",
-        "The vendor states that version 12.6.0.2445 no longer exhibits the reported behavior, but the available sources do not establish that installing the fixed version alone remediates a system that was already compromised.",
-        "The sources do not establish a complete set of indicators of compromise or guarantee that all affected downloads were limited to the stated period."
+        "Authoritative sources disagree on the affected version identifier: CNA/NVD list Windows 12.5.0.2421 through 12.5.0.2434, while the vendor advisory names free 12.5.1; NVD also shows a likely malformed range (12.5.0.2421 less than 2.6.0.*).",
+        "No authoritative source provided a concrete, inert host-level version-check procedure (for example a documented About-dialog path) independent of vendor version statements.",
+        "CISA KEV text is high-level (unspecified vulnerability; apply vendor mitigations) and does not independently enumerate fixed versions.",
+        "Vendor release-notes dates for 12.5.x versus 12.6.0 appear internally inconsistent; remediation should follow the security-incident advisory and the 12.6.0.2445 statement rather than the historical table alone."
       ],
       "verification_steps": [
-        "Confirm that the installed DAEMON Tools Lite version is 12.6.0.2445 and that no affected 12.5.0.2421–12.5.0.2434 or 12.5.1 installation remains.",
-        "Confirm that the replacement package was obtained from the official DAEMON Tools distribution source.",
-        "Confirm completion of a full security-product scan and review its results for detections associated with the incident.",
-        "For systems that had an affected package installed, verify through endpoint and network monitoring that no suspicious follow-on activity remains; absence of detections is not proof that a prior compromise did not occur."
+        "Confirm any remaining or reinstalled DAEMON Tools Lite is the vendor-published 12.6 line (vendor cites 12.6.0.2445) obtained from official sources after the 5 May 2026 rebuild, using the product’s own version information rather than installer signatures.",
+        "Confirm the vendor has removed the affected 12.5.1 distribution and that current official downloads are the rebuilt 12.6 packages described in the vendor advisory and release notes."
       ]
     },
     "CVE-2026-85102": {
