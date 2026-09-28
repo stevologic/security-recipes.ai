@@ -117,7 +117,8 @@
             "nist-ai-agent-standards-initiative-2026",
             "nist-caisi-ai-agent-security-rfi-2026",
             "nist-ai-rmf-2026",
-            "nist-ai-600-1"
+            "nist-ai-600-1",
+            "nist-agentic-identity-foundation-2026"
           ],
           "sources": [
             {
@@ -151,15 +152,23 @@
               "publisher": "NIST",
               "source_class": "government_framework",
               "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence"
+            },
+            {
+              "id": "nist-agentic-identity-foundation-2026",
+              "name": "Back to the Future: Why Agentic AI Needs a Strong Identity Foundation",
+              "published": "2026-08-27",
+              "publisher": "NIST",
+              "source_class": "government_security_signal",
+              "url": "https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation"
             }
           ],
           "status": "ready",
           "title": "NIST AI Agent, AI RMF, CAISI, and GenAI Risk Guidance"
         },
         {
-          "buyer_question": "Can protected MCP calls enforce identity, audience, resource, scope, sandbox, and session safety requirements before tool execution?",
+          "buyer_question": "Can protected MCP calls enforce identity, audience, resource, scope, sandbox, and state-handle binding requirements before tool execution?",
           "capability_count": 10,
-          "control_count": 6,
+          "control_count": 7,
           "coverage_score": 100.0,
           "id": "mcp-authorization-and-security",
           "kind": "protocol_security",
@@ -175,12 +184,22 @@
             "recipes_mcp_gateway_policy",
             "recipes_mcp_stdio_launch_boundary_pack"
           ],
-          "ready_control_count": 6,
+          "ready_control_count": 7,
           "source_ids": [
+            "mcp-authorization-2026-07-28",
             "mcp-authorization-2025-11-25",
+            "mcp-security-best-practices-2026-07-28",
             "mcp-security-best-practices-2025"
           ],
           "sources": [
+            {
+              "id": "mcp-authorization-2026-07-28",
+              "name": "Model Context Protocol Authorization Specification (2026-07-28 current revision)",
+              "published": "2026-07-28",
+              "publisher": "Model Context Protocol",
+              "source_class": "protocol_specification",
+              "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization"
+            },
             {
               "id": "mcp-authorization-2025-11-25",
               "name": "Model Context Protocol Authorization Specification",
@@ -190,8 +209,16 @@
               "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization"
             },
             {
+              "id": "mcp-security-best-practices-2026-07-28",
+              "name": "Model Context Protocol Security Best Practices (2026-07-28 current revision)",
+              "published": "2026-07-28",
+              "publisher": "Model Context Protocol",
+              "source_class": "protocol_guidance",
+              "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices"
+            },
+            {
               "id": "mcp-security-best-practices-2025",
-              "name": "Model Context Protocol Security Best Practices",
+              "name": "Model Context Protocol Security Best Practices (2025-06-18 prior revision)",
               "published": "2025-06-18",
               "publisher": "Model Context Protocol",
               "source_class": "protocol_guidance",
@@ -360,9 +387,9 @@
       ],
       "standards": [
         {
-          "buyer_question": "Can protected MCP calls enforce identity, audience, resource, scope, sandbox, and session safety requirements before tool execution?",
+          "buyer_question": "Can protected MCP calls enforce identity, audience, resource, scope, sandbox, and state-handle binding requirements before tool execution?",
           "capability_count": 10,
-          "control_count": 6,
+          "control_count": 7,
           "coverage_score": 100.0,
           "id": "mcp-authorization-and-security",
           "kind": "protocol_security",
@@ -378,12 +405,22 @@
             "recipes_mcp_gateway_policy",
             "recipes_mcp_stdio_launch_boundary_pack"
           ],
-          "ready_control_count": 6,
+          "ready_control_count": 7,
           "source_ids": [
+            "mcp-authorization-2026-07-28",
             "mcp-authorization-2025-11-25",
+            "mcp-security-best-practices-2026-07-28",
             "mcp-security-best-practices-2025"
           ],
           "sources": [
+            {
+              "id": "mcp-authorization-2026-07-28",
+              "name": "Model Context Protocol Authorization Specification (2026-07-28 current revision)",
+              "published": "2026-07-28",
+              "publisher": "Model Context Protocol",
+              "source_class": "protocol_specification",
+              "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization"
+            },
             {
               "id": "mcp-authorization-2025-11-25",
               "name": "Model Context Protocol Authorization Specification",
@@ -393,8 +430,16 @@
               "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization"
             },
             {
+              "id": "mcp-security-best-practices-2026-07-28",
+              "name": "Model Context Protocol Security Best Practices (2026-07-28 current revision)",
+              "published": "2026-07-28",
+              "publisher": "Model Context Protocol",
+              "source_class": "protocol_guidance",
+              "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices"
+            },
+            {
               "id": "mcp-security-best-practices-2025",
-              "name": "Model Context Protocol Security Best Practices",
+              "name": "Model Context Protocol Security Best Practices (2025-06-18 prior revision)",
               "published": "2025-06-18",
               "publisher": "Model Context Protocol",
               "source_class": "protocol_guidance",
@@ -668,7 +713,8 @@
             "nist-ai-agent-standards-initiative-2026",
             "nist-caisi-ai-agent-security-rfi-2026",
             "nist-ai-rmf-2026",
-            "nist-ai-600-1"
+            "nist-ai-600-1",
+            "nist-agentic-identity-foundation-2026"
           ],
           "sources": [
             {
@@ -702,6 +748,14 @@
               "publisher": "NIST",
               "source_class": "government_framework",
               "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence"
+            },
+            {
+              "id": "nist-agentic-identity-foundation-2026",
+              "name": "Back to the Future: Why Agentic AI Needs a Strong Identity Foundation",
+              "published": "2026-08-27",
+              "publisher": "NIST",
+              "source_class": "government_security_signal",
+              "url": "https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation"
             }
           ],
           "status": "ready",
@@ -1231,12 +1285,13 @@
         "title": "Agent Identity and Delegation Ledger"
       },
       "capability_id": "agent-identity-ledger",
-      "control_count": 10,
+      "control_count": 11,
       "control_ids": [
         "owasp-agentic-top-10-2026::ASI03",
         "owasp-agentic-top-10-2026::ASI07",
         "owasp-agentic-top-10-2026::ASI10",
         "mcp-authorization-and-security::MCP-SEC-05",
+        "mcp-authorization-and-security::MCP-SEC-07",
         "nist-agentic-ai-risk-management::NIST-AGENT-01",
         "nist-agentic-ai-risk-management::NIST-CAISI-04",
         "frontier-lab-prompt-injection-defenses::LAB-PI-05",
@@ -1578,13 +1633,14 @@
         "title": "Agentic Run Receipt Pack"
       },
       "capability_id": "agentic-run-receipt-pack",
-      "control_count": 12,
+      "control_count": 13,
       "control_ids": [
         "owasp-agentic-top-10-2026::ASI03",
         "owasp-agentic-top-10-2026::ASI08",
         "owasp-agentic-top-10-2026::ASI09",
         "owasp-agentic-top-10-2026::ASI10",
         "mcp-authorization-and-security::MCP-AUTH-02",
+        "mcp-authorization-and-security::MCP-SEC-07",
         "nist-agentic-ai-risk-management::NIST-CAISI-04",
         "frontier-lab-prompt-injection-defenses::LAB-PI-02",
         "frontier-lab-prompt-injection-defenses::LAB-PI-06",
@@ -1803,7 +1859,7 @@
         "title": "MCP Authorization Conformance"
       },
       "capability_id": "mcp-authorization-conformance",
-      "control_count": 14,
+      "control_count": 15,
       "control_ids": [
         "owasp-agentic-top-10-2026::ASI02",
         "owasp-agentic-top-10-2026::ASI03",
@@ -1813,6 +1869,7 @@
         "mcp-authorization-and-security::MCP-AUTH-03",
         "mcp-authorization-and-security::MCP-AUTH-04",
         "mcp-authorization-and-security::MCP-SEC-05",
+        "mcp-authorization-and-security::MCP-SEC-07",
         "nist-agentic-ai-risk-management::NIST-AGENT-01",
         "frontier-lab-prompt-injection-defenses::LAB-PI-03",
         "frontier-lab-prompt-injection-defenses::LAB-PI-05",
@@ -1888,7 +1945,7 @@
         "title": "MCP Gateway Policy"
       },
       "capability_id": "mcp-gateway-policy",
-      "control_count": 14,
+      "control_count": 15,
       "control_ids": [
         "owasp-agentic-top-10-2026::ASI01",
         "owasp-agentic-top-10-2026::ASI02",
@@ -1897,6 +1954,7 @@
         "owasp-agentic-top-10-2026::ASI10",
         "mcp-authorization-and-security::MCP-AUTH-02",
         "mcp-authorization-and-security::MCP-SEC-05",
+        "mcp-authorization-and-security::MCP-SEC-07",
         "nist-agentic-ai-risk-management::NIST-CAISI-04",
         "frontier-lab-prompt-injection-defenses::LAB-PI-02",
         "frontier-lab-prompt-injection-defenses::LAB-PI-03",
@@ -3297,10 +3355,20 @@
         "mcp-connector-trust-pack"
       ],
       "source_ids": [
+        "mcp-authorization-2026-07-28",
         "mcp-authorization-2025-11-25",
+        "mcp-security-best-practices-2026-07-28",
         "mcp-security-best-practices-2025"
       ],
       "sources": [
+        {
+          "id": "mcp-authorization-2026-07-28",
+          "name": "Model Context Protocol Authorization Specification (2026-07-28 current revision)",
+          "published": "2026-07-28",
+          "publisher": "Model Context Protocol",
+          "source_class": "protocol_specification",
+          "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization"
+        },
         {
           "id": "mcp-authorization-2025-11-25",
           "name": "Model Context Protocol Authorization Specification",
@@ -3310,8 +3378,16 @@
           "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization"
         },
         {
+          "id": "mcp-security-best-practices-2026-07-28",
+          "name": "Model Context Protocol Security Best Practices (2026-07-28 current revision)",
+          "published": "2026-07-28",
+          "publisher": "Model Context Protocol",
+          "source_class": "protocol_guidance",
+          "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices"
+        },
+        {
           "id": "mcp-security-best-practices-2025",
-          "name": "Model Context Protocol Security Best Practices",
+          "name": "Model Context Protocol Security Best Practices (2025-06-18 prior revision)",
           "published": "2025-06-18",
           "publisher": "Model Context Protocol",
           "source_class": "protocol_guidance",
@@ -3382,10 +3458,20 @@
         "agentic-run-receipt-pack"
       ],
       "source_ids": [
+        "mcp-authorization-2026-07-28",
         "mcp-authorization-2025-11-25",
+        "mcp-security-best-practices-2026-07-28",
         "mcp-security-best-practices-2025"
       ],
       "sources": [
+        {
+          "id": "mcp-authorization-2026-07-28",
+          "name": "Model Context Protocol Authorization Specification (2026-07-28 current revision)",
+          "published": "2026-07-28",
+          "publisher": "Model Context Protocol",
+          "source_class": "protocol_specification",
+          "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization"
+        },
         {
           "id": "mcp-authorization-2025-11-25",
           "name": "Model Context Protocol Authorization Specification",
@@ -3395,8 +3481,16 @@
           "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization"
         },
         {
+          "id": "mcp-security-best-practices-2026-07-28",
+          "name": "Model Context Protocol Security Best Practices (2026-07-28 current revision)",
+          "published": "2026-07-28",
+          "publisher": "Model Context Protocol",
+          "source_class": "protocol_guidance",
+          "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices"
+        },
+        {
           "id": "mcp-security-best-practices-2025",
-          "name": "Model Context Protocol Security Best Practices",
+          "name": "Model Context Protocol Security Best Practices (2025-06-18 prior revision)",
           "published": "2025-06-18",
           "publisher": "Model Context Protocol",
           "source_class": "protocol_guidance",
@@ -3467,10 +3561,20 @@
         "mcp-connector-trust-pack"
       ],
       "source_ids": [
+        "mcp-authorization-2026-07-28",
         "mcp-authorization-2025-11-25",
+        "mcp-security-best-practices-2026-07-28",
         "mcp-security-best-practices-2025"
       ],
       "sources": [
+        {
+          "id": "mcp-authorization-2026-07-28",
+          "name": "Model Context Protocol Authorization Specification (2026-07-28 current revision)",
+          "published": "2026-07-28",
+          "publisher": "Model Context Protocol",
+          "source_class": "protocol_specification",
+          "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization"
+        },
         {
           "id": "mcp-authorization-2025-11-25",
           "name": "Model Context Protocol Authorization Specification",
@@ -3480,8 +3584,16 @@
           "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization"
         },
         {
+          "id": "mcp-security-best-practices-2026-07-28",
+          "name": "Model Context Protocol Security Best Practices (2026-07-28 current revision)",
+          "published": "2026-07-28",
+          "publisher": "Model Context Protocol",
+          "source_class": "protocol_guidance",
+          "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices"
+        },
+        {
           "id": "mcp-security-best-practices-2025",
-          "name": "Model Context Protocol Security Best Practices",
+          "name": "Model Context Protocol Security Best Practices (2025-06-18 prior revision)",
           "published": "2025-06-18",
           "publisher": "Model Context Protocol",
           "source_class": "protocol_guidance",
@@ -3552,10 +3664,20 @@
         "mcp-connector-intake-pack"
       ],
       "source_ids": [
+        "mcp-authorization-2026-07-28",
         "mcp-authorization-2025-11-25",
+        "mcp-security-best-practices-2026-07-28",
         "mcp-security-best-practices-2025"
       ],
       "sources": [
+        {
+          "id": "mcp-authorization-2026-07-28",
+          "name": "Model Context Protocol Authorization Specification (2026-07-28 current revision)",
+          "published": "2026-07-28",
+          "publisher": "Model Context Protocol",
+          "source_class": "protocol_specification",
+          "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization"
+        },
         {
           "id": "mcp-authorization-2025-11-25",
           "name": "Model Context Protocol Authorization Specification",
@@ -3565,8 +3687,16 @@
           "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization"
         },
         {
+          "id": "mcp-security-best-practices-2026-07-28",
+          "name": "Model Context Protocol Security Best Practices (2026-07-28 current revision)",
+          "published": "2026-07-28",
+          "publisher": "Model Context Protocol",
+          "source_class": "protocol_guidance",
+          "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices"
+        },
+        {
           "id": "mcp-security-best-practices-2025",
-          "name": "Model Context Protocol Security Best Practices",
+          "name": "Model Context Protocol Security Best Practices (2025-06-18 prior revision)",
           "published": "2025-06-18",
           "publisher": "Model Context Protocol",
           "source_class": "protocol_guidance",
@@ -3652,10 +3782,20 @@
         "agent-capability-risk-register"
       ],
       "source_ids": [
+        "mcp-authorization-2026-07-28",
         "mcp-authorization-2025-11-25",
+        "mcp-security-best-practices-2026-07-28",
         "mcp-security-best-practices-2025"
       ],
       "sources": [
+        {
+          "id": "mcp-authorization-2026-07-28",
+          "name": "Model Context Protocol Authorization Specification (2026-07-28 current revision)",
+          "published": "2026-07-28",
+          "publisher": "Model Context Protocol",
+          "source_class": "protocol_specification",
+          "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization"
+        },
         {
           "id": "mcp-authorization-2025-11-25",
           "name": "Model Context Protocol Authorization Specification",
@@ -3665,8 +3805,16 @@
           "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization"
         },
         {
+          "id": "mcp-security-best-practices-2026-07-28",
+          "name": "Model Context Protocol Security Best Practices (2026-07-28 current revision)",
+          "published": "2026-07-28",
+          "publisher": "Model Context Protocol",
+          "source_class": "protocol_guidance",
+          "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices"
+        },
+        {
           "id": "mcp-security-best-practices-2025",
-          "name": "Model Context Protocol Security Best Practices",
+          "name": "Model Context Protocol Security Best Practices (2025-06-18 prior revision)",
           "published": "2025-06-18",
           "publisher": "Model Context Protocol",
           "source_class": "protocol_guidance",
@@ -3737,10 +3885,20 @@
         "agent-skill-supply-chain-pack"
       ],
       "source_ids": [
+        "mcp-authorization-2026-07-28",
         "mcp-authorization-2025-11-25",
+        "mcp-security-best-practices-2026-07-28",
         "mcp-security-best-practices-2025"
       ],
       "sources": [
+        {
+          "id": "mcp-authorization-2026-07-28",
+          "name": "Model Context Protocol Authorization Specification (2026-07-28 current revision)",
+          "published": "2026-07-28",
+          "publisher": "Model Context Protocol",
+          "source_class": "protocol_specification",
+          "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization"
+        },
         {
           "id": "mcp-authorization-2025-11-25",
           "name": "Model Context Protocol Authorization Specification",
@@ -3750,8 +3908,16 @@
           "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization"
         },
         {
+          "id": "mcp-security-best-practices-2026-07-28",
+          "name": "Model Context Protocol Security Best Practices (2026-07-28 current revision)",
+          "published": "2026-07-28",
+          "publisher": "Model Context Protocol",
+          "source_class": "protocol_guidance",
+          "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices"
+        },
+        {
           "id": "mcp-security-best-practices-2025",
-          "name": "Model Context Protocol Security Best Practices",
+          "name": "Model Context Protocol Security Best Practices (2025-06-18 prior revision)",
           "published": "2025-06-18",
           "publisher": "Model Context Protocol",
           "source_class": "protocol_guidance",
@@ -3762,6 +3928,124 @@
       "standard_title": "MCP Authorization and Security Best Practices",
       "status": "ready",
       "title": "Local Server Sandbox and STDIO Boundary"
+    },
+    {
+      "capabilities": [
+        {
+          "commercial_value": "Checks resource indicators, token audience, PKCE, token passthrough, session binding, and scope drift.",
+          "evidence_paths": [
+            "data/evidence/mcp-authorization-conformance-pack.json"
+          ],
+          "id": "mcp-authorization-conformance",
+          "mcp_tools": [
+            "recipes_mcp_authorization_conformance_pack"
+          ],
+          "status": "implemented",
+          "title": "MCP Authorization Conformance"
+        },
+        {
+          "commercial_value": "Enforces default-deny MCP tool access, approval holds, scoped branch writes, and runtime kill decisions.",
+          "evidence_paths": [
+            "data/policy/mcp-gateway-policy.json"
+          ],
+          "id": "mcp-gateway-policy",
+          "mcp_tools": [
+            "recipes_mcp_gateway_policy"
+          ],
+          "status": "implemented",
+          "title": "MCP Gateway Policy"
+        },
+        {
+          "commercial_value": "Defines non-human identity contracts, delegated MCP scopes, explicit denies, owners, and revocation triggers.",
+          "evidence_paths": [
+            "data/evidence/agent-identity-delegation-ledger.json"
+          ],
+          "id": "agent-identity-ledger",
+          "mcp_tools": [
+            "recipes_agent_identity_ledger"
+          ],
+          "status": "implemented",
+          "title": "Agent Identity and Delegation Ledger"
+        },
+        {
+          "commercial_value": "Creates portable run proof for identity, context, tools, egress, approvals, verifiers, evidence, and revocation.",
+          "evidence_paths": [
+            "data/evidence/agentic-run-receipt-pack.json"
+          ],
+          "id": "agentic-run-receipt-pack",
+          "mcp_tools": [
+            "recipes_agentic_run_receipt_pack"
+          ],
+          "status": "implemented",
+          "title": "Agentic Run Receipt Pack"
+        }
+      ],
+      "diligence_question": "What stops a stolen state handle or a static-client-ID proxy from skipping user consent?",
+      "evidence_expectation": "Authorization conformance, gateway policy, identity ledger, and run receipts record state-handle owner binding, per-client consent, and token-passthrough denial.",
+      "evidence_paths": [
+        "data/evidence/agent-identity-delegation-ledger.json",
+        "data/evidence/agentic-run-receipt-pack.json",
+        "data/evidence/mcp-authorization-conformance-pack.json",
+        "data/policy/mcp-gateway-policy.json"
+      ],
+      "id": "MCP-SEC-07",
+      "mcp_tools": [
+        "recipes_agent_identity_ledger",
+        "recipes_agentic_run_receipt_pack",
+        "recipes_mcp_authorization_conformance_pack",
+        "recipes_mcp_gateway_policy"
+      ],
+      "objective": "Bind multi-request MCP state handles to the authenticated user and require per-client consent on OAuth proxies before third-party authorization.",
+      "required_capability_ids": [
+        "mcp-authorization-conformance",
+        "mcp-gateway-policy",
+        "agent-identity-ledger",
+        "agentic-run-receipt-pack"
+      ],
+      "source_ids": [
+        "mcp-authorization-2026-07-28",
+        "mcp-authorization-2025-11-25",
+        "mcp-security-best-practices-2026-07-28",
+        "mcp-security-best-practices-2025"
+      ],
+      "sources": [
+        {
+          "id": "mcp-authorization-2026-07-28",
+          "name": "Model Context Protocol Authorization Specification (2026-07-28 current revision)",
+          "published": "2026-07-28",
+          "publisher": "Model Context Protocol",
+          "source_class": "protocol_specification",
+          "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization"
+        },
+        {
+          "id": "mcp-authorization-2025-11-25",
+          "name": "Model Context Protocol Authorization Specification",
+          "published": "2025-11-25",
+          "publisher": "Model Context Protocol",
+          "source_class": "protocol_specification",
+          "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization"
+        },
+        {
+          "id": "mcp-security-best-practices-2026-07-28",
+          "name": "Model Context Protocol Security Best Practices (2026-07-28 current revision)",
+          "published": "2026-07-28",
+          "publisher": "Model Context Protocol",
+          "source_class": "protocol_guidance",
+          "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices"
+        },
+        {
+          "id": "mcp-security-best-practices-2025",
+          "name": "Model Context Protocol Security Best Practices (2025-06-18 prior revision)",
+          "published": "2025-06-18",
+          "publisher": "Model Context Protocol",
+          "source_class": "protocol_guidance",
+          "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices"
+        }
+      ],
+      "standard_id": "mcp-authorization-and-security",
+      "standard_title": "MCP Authorization and Security Best Practices",
+      "status": "ready",
+      "title": "State-Handle Binding and Confused-Deputy Consent"
     },
     {
       "capabilities": [
@@ -3840,7 +4124,8 @@
         "nist-ai-agent-standards-initiative-2026",
         "nist-caisi-ai-agent-security-rfi-2026",
         "nist-ai-rmf-2026",
-        "nist-ai-600-1"
+        "nist-ai-600-1",
+        "nist-agentic-identity-foundation-2026"
       ],
       "sources": [
         {
@@ -3874,6 +4159,14 @@
           "publisher": "NIST",
           "source_class": "government_framework",
           "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence"
+        },
+        {
+          "id": "nist-agentic-identity-foundation-2026",
+          "name": "Back to the Future: Why Agentic AI Needs a Strong Identity Foundation",
+          "published": "2026-08-27",
+          "publisher": "NIST",
+          "source_class": "government_security_signal",
+          "url": "https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation"
         }
       ],
       "standard_id": "nist-agentic-ai-risk-management",
@@ -3958,7 +4251,8 @@
         "nist-ai-agent-standards-initiative-2026",
         "nist-caisi-ai-agent-security-rfi-2026",
         "nist-ai-rmf-2026",
-        "nist-ai-600-1"
+        "nist-ai-600-1",
+        "nist-agentic-identity-foundation-2026"
       ],
       "sources": [
         {
@@ -3992,6 +4286,14 @@
           "publisher": "NIST",
           "source_class": "government_framework",
           "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence"
+        },
+        {
+          "id": "nist-agentic-identity-foundation-2026",
+          "name": "Back to the Future: Why Agentic AI Needs a Strong Identity Foundation",
+          "published": "2026-08-27",
+          "publisher": "NIST",
+          "source_class": "government_security_signal",
+          "url": "https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation"
         }
       ],
       "standard_id": "nist-agentic-ai-risk-management",
@@ -4076,7 +4378,8 @@
         "nist-ai-agent-standards-initiative-2026",
         "nist-caisi-ai-agent-security-rfi-2026",
         "nist-ai-rmf-2026",
-        "nist-ai-600-1"
+        "nist-ai-600-1",
+        "nist-agentic-identity-foundation-2026"
       ],
       "sources": [
         {
@@ -4110,6 +4413,14 @@
           "publisher": "NIST",
           "source_class": "government_framework",
           "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence"
+        },
+        {
+          "id": "nist-agentic-identity-foundation-2026",
+          "name": "Back to the Future: Why Agentic AI Needs a Strong Identity Foundation",
+          "published": "2026-08-27",
+          "publisher": "NIST",
+          "source_class": "government_security_signal",
+          "url": "https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation"
         }
       ],
       "standard_id": "nist-agentic-ai-risk-management",
@@ -4194,7 +4505,8 @@
         "nist-ai-agent-standards-initiative-2026",
         "nist-caisi-ai-agent-security-rfi-2026",
         "nist-ai-rmf-2026",
-        "nist-ai-600-1"
+        "nist-ai-600-1",
+        "nist-agentic-identity-foundation-2026"
       ],
       "sources": [
         {
@@ -4228,6 +4540,14 @@
           "publisher": "NIST",
           "source_class": "government_framework",
           "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence"
+        },
+        {
+          "id": "nist-agentic-identity-foundation-2026",
+          "name": "Back to the Future: Why Agentic AI Needs a Strong Identity Foundation",
+          "published": "2026-08-27",
+          "publisher": "NIST",
+          "source_class": "government_security_signal",
+          "url": "https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation"
         }
       ],
       "standard_id": "nist-agentic-ai-risk-management",
@@ -4312,7 +4632,8 @@
         "nist-ai-agent-standards-initiative-2026",
         "nist-caisi-ai-agent-security-rfi-2026",
         "nist-ai-rmf-2026",
-        "nist-ai-600-1"
+        "nist-ai-600-1",
+        "nist-agentic-identity-foundation-2026"
       ],
       "sources": [
         {
@@ -4346,6 +4667,14 @@
           "publisher": "NIST",
           "source_class": "government_framework",
           "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence"
+        },
+        {
+          "id": "nist-agentic-identity-foundation-2026",
+          "name": "Back to the Future: Why Agentic AI Needs a Strong Identity Foundation",
+          "published": "2026-08-27",
+          "publisher": "NIST",
+          "source_class": "government_security_signal",
+          "url": "https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation"
         }
       ],
       "standard_id": "nist-agentic-ai-risk-management",
@@ -7018,9 +7347,9 @@
   ],
   "crosswalk_summary": {
     "capability_count": 34,
-    "control_count": 44,
+    "control_count": 45,
     "control_status_counts": {
-      "ready": 44
+      "ready": 45
     },
     "covered_capability_count": 34,
     "distinct_mcp_tool_count": 34,
@@ -7028,13 +7357,14 @@
     "source_class_counts": {
       "frontier_lab_guidance": 4,
       "government_framework": 5,
+      "government_security_signal": 1,
       "incident_intelligence": 1,
       "industry_framework": 1,
       "industry_standard": 5,
-      "protocol_guidance": 1,
+      "protocol_guidance": 2,
       "protocol_specification": 2
     },
-    "source_reference_count": 19,
+    "source_reference_count": 21,
     "standard_count": 8,
     "standard_status_counts": {
       "ready": 8
@@ -7054,7 +7384,7 @@
     "sales_motion": "Lead with open standards coverage, then sell hosted customer-specific evidence mapping, standards drift alerts, conformance APIs, and trust-center exports."
   },
   "failures": [],
-  "generated_at": "2026-08-21",
+  "generated_at": "2026-09-28",
   "intent": "Create an enterprise buyer and AI-platform standards crosswalk for SecurityRecipes so OWASP Agentic Top 10, CSA AI Controls Matrix, NIST AI agent guidance, MCP authorization requirements, critical-infrastructure AI expectations, and frontier-lab prompt-injection defenses map directly to generated evidence packs, MCP tools, and runtime decision surfaces.",
   "positioning": {
     "buyer": "AI Platform, Product Security, AppSec, GRC, procurement security, model-risk, and acquisition diligence teams",
@@ -7066,24 +7396,24 @@
   "source_artifacts": {
     "agentic_standards_crosswalk_profile": {
       "path": "data/assurance/agentic-standards-crosswalk.json",
-      "sha256": "ba7ab6a4f1ef7930a451534645f17b1e839820c3f40ab60cd0d75d3c2de444bd"
+      "sha256": "81c14fffbb117b4e4b78e5e8837092e8b64d8164c2d45e8e3d691da43750dbf5"
     },
     "capability_evidence": [
       {
         "path": "content/security-remediation/agent-trust-fabric/_index.md",
-        "sha256": "c8c3fddf35ee038bc55a405ead7204946a7fb461b751f62fab2b3a34457c1679"
+        "sha256": "24576edc39a825b206e32f4805a88387134b10068c0218f92977e96778d12255"
       },
       {
         "path": "content/security-remediation/agentic-standards-crosswalk/_index.md",
-        "sha256": "d789179635df84b0292025c377174fd7bed038d88d75692e303db262e2519256"
+        "sha256": "cdd0d9d93992efb283e6c89552d1245ddd4e5fa02e5085d8f3833bc3e8ff7621"
       },
       {
         "path": "data/assurance/agent-trust-fabric-profile.json",
-        "sha256": "7c3ef80749ccdfc2398b335ba1f9b0fab4d1b2a7d244daee5aabc3f5223b9ff7"
+        "sha256": "f124d34f3a598674c767654b7851dc01a20550aa91bd9e98f5eadd3216b50aea"
       },
       {
         "path": "data/assurance/agentic-catastrophic-risk-annex.json",
-        "sha256": "a46134a936e3947190ed6f19f7cb3272c24c2a307cb8d6c308944f8933b0d142"
+        "sha256": "1c7abfb59da8516a3ef1043d39f65651d96a5fb6bd2ee536dc434d87a4c50cd1"
       },
       {
         "path": "data/assurance/agentic-control-plane-blueprint.json",
@@ -7091,7 +7421,7 @@
       },
       {
         "path": "data/assurance/agentic-standards-crosswalk.json",
-        "sha256": "ba7ab6a4f1ef7930a451534645f17b1e839820c3f40ab60cd0d75d3c2de444bd"
+        "sha256": "81c14fffbb117b4e4b78e5e8837092e8b64d8164c2d45e8e3d691da43750dbf5"
       },
       {
         "path": "data/assurance/enterprise-trust-center-profile.json",
@@ -7107,7 +7437,7 @@
       },
       {
         "path": "data/evidence/agent-handoff-boundary-pack.json",
-        "sha256": "fbde782afbf6c2f7f0f0660b78d96d0bffcc27db870f8f374c8e7182bcb5478d"
+        "sha256": "b67b7ac9d473bc83b4d1eeaa26554f8f928cad87aacf4a0ac2bea6595dcf67fc"
       },
       {
         "path": "data/evidence/agent-identity-delegation-ledger.json",
@@ -7119,15 +7449,15 @@
       },
       {
         "path": "data/evidence/agent-skill-supply-chain-pack.json",
-        "sha256": "df9a3ede8c3ec314960a2ecc939d90546d9d07b8b9f21fb6b8da7c92938885a1"
+        "sha256": "ab0b55cc50885c561218953df5545c8b6198990b269d6869d54902e488262661"
       },
       {
         "path": "data/evidence/agentic-action-runtime-pack.json",
-        "sha256": "e0e079a941763f817f5e02ff5beac42b407b3cd9a1ceb4abeeed91420ffdf4a4"
+        "sha256": "be0bacecb12fa38aab96acda5ba4e58de1be59afa9f682c4ce954b88fae955f4"
       },
       {
         "path": "data/evidence/agentic-approval-receipt-pack.json",
-        "sha256": "2961fa9b09877fa05fc833a7be380a0d19f9b56d6ee49519ba457eee3dd0dd44"
+        "sha256": "982357329f1f9fc781a5e6a86b6cf2b7fd7f2ace194656ddfa2ff3d3bfc0398d"
       },
       {
         "path": "data/evidence/agentic-assurance-pack.json",
@@ -7135,19 +7465,19 @@
       },
       {
         "path": "data/evidence/agentic-catastrophic-risk-annex.json",
-        "sha256": "17675916085233fde5642c982566d911142dd1897db2b4a57a3e84f28d3b8a43"
+        "sha256": "6fabae5e140a85b377f8ed1b1e5037f108b051304b4a6209ee35fb906d85ed5e"
       },
       {
         "path": "data/evidence/agentic-entitlement-review-pack.json",
-        "sha256": "a1c535dc0ecf59d88ffa83a0108fd421a81dcc4a52f6d5541a12ee2844c8ac90"
+        "sha256": "cde39908d739f947e09ad063cc529785fc5c55bcf959a6a165693edef39b44f7"
       },
       {
         "path": "data/evidence/agentic-incident-response-pack.json",
-        "sha256": "a6511586e74ebea5b44179786721b5f583a1375c81d912b950419448ae59d2fb"
+        "sha256": "900a90990ccedc8adb780c7b0890d8594c7bfa2456eb8b098848bf5c924a63d5"
       },
       {
         "path": "data/evidence/agentic-measurement-probe-pack.json",
-        "sha256": "88cff3f3dddd543558d0d036a97896980511cafac9397360d4cdb7d576e3879b"
+        "sha256": "1d028455b2fe8cd036c9a22fb6f7daad2815c596f60ec65a67809cb14c0943fe"
       },
       {
         "path": "data/evidence/agentic-readiness-scorecard.json",
@@ -7159,11 +7489,11 @@
       },
       {
         "path": "data/evidence/agentic-run-receipt-pack.json",
-        "sha256": "d3c52852b7e5db5742e46f826403a548a0f8d4095a4e2622243d3674f077ef36"
+        "sha256": "472d71078c2e09e637744b4cd870f91b6d5b0c006749b20884630e95638620e3"
       },
       {
         "path": "data/evidence/agentic-soc-detection-pack.json",
-        "sha256": "1d8921c7ac7880d2af08578bea83e344fa345936da98dab26e5e37ed666f8bee"
+        "sha256": "de226624f780f6de8757a8bff827a677433b15fa3dcf47e41604652ae0b5c1b0"
       },
       {
         "path": "data/evidence/agentic-system-bom.json",
@@ -7171,23 +7501,23 @@
       },
       {
         "path": "data/evidence/agentic-telemetry-contract.json",
-        "sha256": "145e9c23d3e215ced974c0f5b5d10c0dd321ff047f9b8bfc85448dcb49f8d849"
+        "sha256": "303a1dc35e11d7201d9f1476f28bb98a97e0ac120689673f948af72efca52a64"
       },
       {
         "path": "data/evidence/agentic-threat-radar.json",
-        "sha256": "2387e2a531730c619531ed275e8547c8e0cd32575a5737fe40d6e28005f0cc7a"
+        "sha256": "f87eda51d1611335ad02a24b617de6801fbabbc3846b8be5158fa5f56d8dce60"
       },
       {
         "path": "data/evidence/context-egress-boundary-pack.json",
-        "sha256": "ecc2932bd59e20f5d169a462d6ce7e0adae4522df87b40a2d2988d86ebcfbc2c"
+        "sha256": "cdcea804528ed7146dbc223213101aa5e8fcd40446bb48694f417379a0298317"
       },
       {
         "path": "data/evidence/context-poisoning-guard-pack.json",
-        "sha256": "ecefe0ce8d25171214f56f65fe49b91253471079e7b5b958cc9f6929b88f9bec"
+        "sha256": "9f078ad6126c70aa6e88ce7e4b6a3100fd9e0a5b4bcd4d75bfe4f55bc1617bd7"
       },
       {
         "path": "data/evidence/mcp-authorization-conformance-pack.json",
-        "sha256": "2b6e49246a6d628872daa9980c62b329952278251d58d8643eb65377e03610de"
+        "sha256": "773ba4eabf87489efab0b91ff2a6777787e78311303551770865c47182250b30"
       },
       {
         "path": "data/evidence/mcp-connector-intake-pack.json",
@@ -7203,15 +7533,15 @@
       },
       {
         "path": "data/evidence/secure-context-attestation-pack.json",
-        "sha256": "5c4d8effbbc690aa68041414ce512d86d400f2849a2ffa3a26f68939e5417e68"
+        "sha256": "262e094ee354f03f0a74b4bf841700c34f19fca9ade096cd8a34daf93c6280d2"
       },
       {
         "path": "data/evidence/secure-context-eval-pack.json",
-        "sha256": "a6b01392e7c2a1bb14f728410fe088cc7ee451dd60ece4d1b43880b02e534271"
+        "sha256": "8b1497282e621b45d2be2bd1dd4327a91e9ed82edb3568ead517cf66dd3768ea"
       },
       {
         "path": "data/evidence/secure-context-trust-pack.json",
-        "sha256": "6eb3b31365496857674f67c0479667dd06c6773bed39ba9a7cc3be4f7d015761"
+        "sha256": "cdd00727a7ad57a28df45c628d9703b4ca8c1b48a96c96305afec893e28a6f6a"
       },
       {
         "path": "data/intelligence/agentic-threat-radar-sources.json",
@@ -7339,16 +7669,34 @@
       "publisher": "Model Context Protocol",
       "source_class": "protocol_specification",
       "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization",
-      "why_it_matters": "The current MCP authorization specification requires protected resource metadata, OAuth 2.1 alignment, resource indicators, token audience validation, PKCE support, and token-passthrough denial for protected MCP servers."
+      "why_it_matters": "Prior MCP 2025-11-25 authorization revision kept as a historical source ID. Prefer the 2026-07-28 resource-indicator, audience, PKCE, and token-passthrough rules."
+    },
+    {
+      "id": "mcp-security-best-practices-2026-07-28",
+      "name": "Model Context Protocol Security Best Practices (2026-07-28 current revision)",
+      "published": "2026-07-28",
+      "publisher": "Model Context Protocol",
+      "source_class": "protocol_guidance",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices",
+      "why_it_matters": "Current MCP 2026-07-28 security guidance replaces session-hijacking assumptions with state-handle binding, forbids token passthrough, requires confused-deputy consent on proxies, and tightens SSRF controls during metadata and Client ID Metadata Document fetches."
     },
     {
       "id": "mcp-security-best-practices-2025",
-      "name": "Model Context Protocol Security Best Practices",
+      "name": "Model Context Protocol Security Best Practices (2025-06-18 prior revision)",
       "published": "2025-06-18",
       "publisher": "Model Context Protocol",
       "source_class": "protocol_guidance",
       "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices",
-      "why_it_matters": "MCP guidance covers confused deputy attacks, token passthrough, SSRF, session safety, local-server sandboxing, scope minimization, auditability, and least-privilege access."
+      "why_it_matters": "Prior MCP security-best-practices revision kept as a historical source ID. Session-hijacking guidance applies only to 2025-11-25 and earlier protocol versions; prefer the 2026-07-28 state-handle controls."
+    },
+    {
+      "id": "nist-agentic-identity-foundation-2026",
+      "name": "Back to the Future: Why Agentic AI Needs a Strong Identity Foundation",
+      "published": "2026-08-27",
+      "publisher": "NIST",
+      "source_class": "government_security_signal",
+      "url": "https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation",
+      "why_it_matters": "NIST warns that agent rollouts are repeating IAM mistakes: shared human credentials, long-lived API keys and bearer tokens, overly broad access, local user-account impersonation, and over-reliance on human-in-the-loop approvals."
     },
     {
       "id": "openai-prompt-injections-2025",
@@ -7471,9 +7819,9 @@
       "title": "OWASP Top 10 for Agentic Applications 2026"
     },
     {
-      "buyer_question": "Can protected MCP calls enforce identity, audience, resource, scope, sandbox, and session safety requirements before tool execution?",
+      "buyer_question": "Can protected MCP calls enforce identity, audience, resource, scope, sandbox, and state-handle binding requirements before tool execution?",
       "capability_count": 10,
-      "control_count": 6,
+      "control_count": 7,
       "coverage_score": 100.0,
       "id": "mcp-authorization-and-security",
       "kind": "protocol_security",
@@ -7489,12 +7837,22 @@
         "recipes_mcp_gateway_policy",
         "recipes_mcp_stdio_launch_boundary_pack"
       ],
-      "ready_control_count": 6,
+      "ready_control_count": 7,
       "source_ids": [
+        "mcp-authorization-2026-07-28",
         "mcp-authorization-2025-11-25",
+        "mcp-security-best-practices-2026-07-28",
         "mcp-security-best-practices-2025"
       ],
       "sources": [
+        {
+          "id": "mcp-authorization-2026-07-28",
+          "name": "Model Context Protocol Authorization Specification (2026-07-28 current revision)",
+          "published": "2026-07-28",
+          "publisher": "Model Context Protocol",
+          "source_class": "protocol_specification",
+          "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization"
+        },
         {
           "id": "mcp-authorization-2025-11-25",
           "name": "Model Context Protocol Authorization Specification",
@@ -7504,8 +7862,16 @@
           "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization"
         },
         {
+          "id": "mcp-security-best-practices-2026-07-28",
+          "name": "Model Context Protocol Security Best Practices (2026-07-28 current revision)",
+          "published": "2026-07-28",
+          "publisher": "Model Context Protocol",
+          "source_class": "protocol_guidance",
+          "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices"
+        },
+        {
           "id": "mcp-security-best-practices-2025",
-          "name": "Model Context Protocol Security Best Practices",
+          "name": "Model Context Protocol Security Best Practices (2025-06-18 prior revision)",
           "published": "2025-06-18",
           "publisher": "Model Context Protocol",
           "source_class": "protocol_guidance",
@@ -7547,7 +7913,8 @@
         "nist-ai-agent-standards-initiative-2026",
         "nist-caisi-ai-agent-security-rfi-2026",
         "nist-ai-rmf-2026",
-        "nist-ai-600-1"
+        "nist-ai-600-1",
+        "nist-agentic-identity-foundation-2026"
       ],
       "sources": [
         {
@@ -7581,6 +7948,14 @@
           "publisher": "NIST",
           "source_class": "government_framework",
           "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence"
+        },
+        {
+          "id": "nist-agentic-identity-foundation-2026",
+          "name": "Back to the Future: Why Agentic AI Needs a Strong Identity Foundation",
+          "published": "2026-08-27",
+          "publisher": "NIST",
+          "source_class": "government_security_signal",
+          "url": "https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation"
         }
       ],
       "status": "ready",

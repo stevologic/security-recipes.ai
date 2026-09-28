@@ -3,7 +3,7 @@ title: Agentic Standards Crosswalk
 linkTitle: Standards Crosswalk
 weight: 19
 date: 2026-05-04
-lastmod: 2026-08-21
+lastmod: 2026-09-28
 toc: true
 description: >
   Generate a standards-to-evidence map linking OWASP Agentic Top 10, CSA AI
@@ -20,6 +20,8 @@ map for SecurityRecipes. It answers which current agentic AI standards
 and guidance are tracked, which SecurityRecipes capability covers each
 control, and which generated JSON or MCP tool proves it.
 {{< /callout >}}
+
+Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28), the current [security best practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices), and NIST's [August 27, 2026 agent identity guidance](https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation) on September 28, 2026. MCP `latest` still redirects to 2026-07-28. The 2025-06-18 security-best-practices page is kept as a historical source ID.
 
 SecurityRecipes is positioned as **the secure context layer for
 agentic AI**. That claim needs more than a strong homepage. Enterprise

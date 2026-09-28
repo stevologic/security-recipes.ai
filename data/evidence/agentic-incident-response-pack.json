@@ -23,7 +23,7 @@
     "recommended_first_use": "Attach the pack to AI platform incident response, SOC runbooks, agent production-readiness reviews, MCP server approval, tabletop exercises, and acquisition diligence."
   },
   "failures": [],
-  "generated_at": "2026-08-21",
+  "generated_at": "2026-09-28",
   "incident_classes": [
     {
       "default_decision": "contain_and_open_war_room",
@@ -91,7 +91,7 @@
       "id": "identity-scope-abuse",
       "kill_signals": [
         "identity is missing, expired, over-scoped, used after revocation, or acting outside workflow contract",
-        "implicit user token is used where a scoped non-human identity is required"
+        "implicit user token, shared human credential, long-lived API key, or local user-account impersonation is used where a unique short-lived non-human identity is required"
       ],
       "linked_evidence": [
         "agent_identity_ledger",
@@ -115,8 +115,8 @@
       ],
       "id": "mcp-authorization-confused-deputy",
       "kill_signals": [
-        "token audience, resource indicator, issuer, session binding, or scope does not match the protected MCP server",
-        "raw access token is forwarded to an upstream MCP server or remote agent"
+        "token audience, resource indicator, issuer, state-handle binding, or scope does not match the protected MCP server",
+        "raw access token is forwarded to an upstream MCP server or remote agent, or an OAuth proxy skips per-client consent"
       ],
       "linked_evidence": [
         "mcp_authorization_conformance",
@@ -464,7 +464,7 @@
       "failure_count": 0,
       "path": "data/evidence/a2a-agent-card-trust-profile.json",
       "schema_version": "1.0",
-      "sha256": "620a4570ab36606a35891fd12e3d43b92b7dd61aaef92ad7c33c605c1794f575",
+      "sha256": "df1d27894ac7d16226e272447e09b66d15e4195d22c4367c79ccc86410e71130",
       "summary_keys": [
         "agent_card_trust_summary"
       ]
@@ -482,7 +482,7 @@
       "failure_count": 0,
       "path": "data/evidence/agent-handoff-boundary-pack.json",
       "schema_version": "1.0",
-      "sha256": "fbde782afbf6c2f7f0f0660b78d96d0bffcc27db870f8f374c8e7182bcb5478d",
+      "sha256": "b67b7ac9d473bc83b4d1eeaa26554f8f928cad87aacf4a0ac2bea6595dcf67fc",
       "summary_keys": [
         "handoff_boundary_summary"
       ]
@@ -509,7 +509,7 @@
       "failure_count": 0,
       "path": "data/evidence/agent-skill-supply-chain-pack.json",
       "schema_version": "1.0",
-      "sha256": "df9a3ede8c3ec314960a2ecc939d90546d9d07b8b9f21fb6b8da7c92938885a1",
+      "sha256": "ab0b55cc50885c561218953df5545c8b6198990b269d6869d54902e488262661",
       "summary_keys": [
         "skill_supply_chain_summary"
       ]
@@ -518,7 +518,7 @@
       "failure_count": 0,
       "path": "data/evidence/agentic-catastrophic-risk-annex.json",
       "schema_version": "1.0",
-      "sha256": "17675916085233fde5642c982566d911142dd1897db2b4a57a3e84f28d3b8a43",
+      "sha256": "6fabae5e140a85b377f8ed1b1e5037f108b051304b4a6209ee35fb906d85ed5e",
       "summary_keys": [
         "annex_summary"
       ]
@@ -527,7 +527,7 @@
       "failure_count": 0,
       "path": "data/evidence/agentic-exposure-graph.json",
       "schema_version": "1.0",
-      "sha256": "be98ed647e6db6fbfd15af699dc80b12818943d3fdc2b15f59f26bd39598c267",
+      "sha256": "f5cd2a51f8cce7d56d439c6de402399583e16fd6609d4e6b375dead7e683367c",
       "summary_keys": [
         "exposure_graph_summary"
       ]
@@ -536,7 +536,7 @@
       "failure_count": 0,
       "path": "data/evidence/agentic-measurement-probe-pack.json",
       "schema_version": "1.0",
-      "sha256": "88cff3f3dddd543558d0d036a97896980511cafac9397360d4cdb7d576e3879b",
+      "sha256": "1d028455b2fe8cd036c9a22fb6f7daad2815c596f60ec65a67809cb14c0943fe",
       "summary_keys": [
         "measurement_probe_summary"
       ]
@@ -563,7 +563,7 @@
       "failure_count": 0,
       "path": "data/evidence/agentic-run-receipt-pack.json",
       "schema_version": "1.0",
-      "sha256": "d3c52852b7e5db5742e46f826403a548a0f8d4095a4e2622243d3674f077ef36",
+      "sha256": "472d71078c2e09e637744b4cd870f91b6d5b0c006749b20884630e95638620e3",
       "summary_keys": [
         "receipt_summary"
       ]
@@ -572,7 +572,7 @@
       "failure_count": 0,
       "path": "data/evidence/context-egress-boundary-pack.json",
       "schema_version": "1.0",
-      "sha256": "ecc2932bd59e20f5d169a462d6ce7e0adae4522df87b40a2d2988d86ebcfbc2c",
+      "sha256": "cdcea804528ed7146dbc223213101aa5e8fcd40446bb48694f417379a0298317",
       "summary_keys": [
         "egress_boundary_summary"
       ]
@@ -581,7 +581,7 @@
       "failure_count": 0,
       "path": "data/evidence/context-poisoning-guard-pack.json",
       "schema_version": "1.0",
-      "sha256": "ecefe0ce8d25171214f56f65fe49b91253471079e7b5b958cc9f6929b88f9bec",
+      "sha256": "9f078ad6126c70aa6e88ce7e4b6a3100fd9e0a5b4bcd4d75bfe4f55bc1617bd7",
       "summary_keys": [
         "guard_summary"
       ]
@@ -590,7 +590,7 @@
       "failure_count": 0,
       "path": "data/evidence/mcp-authorization-conformance-pack.json",
       "schema_version": "1.0",
-      "sha256": "2b6e49246a6d628872daa9980c62b329952278251d58d8643eb65377e03610de",
+      "sha256": "773ba4eabf87489efab0b91ff2a6777787e78311303551770865c47182250b30",
       "summary_keys": [
         "authorization_summary"
       ]
@@ -617,7 +617,7 @@
       "failure_count": 0,
       "path": "data/evidence/secure-context-eval-pack.json",
       "schema_version": "1.0",
-      "sha256": "a6b01392e7c2a1bb14f728410fe088cc7ee451dd60ece4d1b43880b02e534271",
+      "sha256": "8b1497282e621b45d2be2bd1dd4327a91e9ed82edb3568ead517cf66dd3768ea",
       "summary_keys": [
         "eval_summary"
       ]
@@ -626,7 +626,7 @@
       "failure_count": 0,
       "path": "data/evidence/secure-context-trust-pack.json",
       "schema_version": "1.0",
-      "sha256": "6eb3b31365496857674f67c0479667dd06c6773bed39ba9a7cc3be4f7d015761",
+      "sha256": "cdd00727a7ad57a28df45c628d9703b4ca8c1b48a96c96305afec893e28a6f6a",
       "summary_keys": [
         "context_trust_summary"
       ]
@@ -671,7 +671,19 @@
       "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization"
     },
     {
-      "coverage": "Protected resource metadata, OAuth 2.1, resource indicators, token audience validation, PKCE, scope handling, token theft, confused deputy prevention, and token privilege restriction.",
+      "coverage": "Current MCP 2026-07-28 security guidance for incident classification: state-handle binding instead of session-hijacking assumptions, token-passthrough denial, confused-deputy consent on OAuth proxies, and SSRF-sensitive metadata fetches.",
+      "id": "mcp-security-best-practices-2026-07-28",
+      "name": "Model Context Protocol Security Best Practices (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices"
+    },
+    {
+      "coverage": "NIST's August 27, 2026 identity guidance: treat shared human credentials, long-lived API keys, local user-account impersonation, and unstructured HITL approvals as identity-incident signals, not generic IAM gaps.",
+      "id": "nist-agentic-identity-foundation-2026",
+      "name": "Back to the Future: Why Agentic AI Needs a Strong Identity Foundation",
+      "url": "https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation"
+    },
+    {
+      "coverage": "Prior MCP 2025-11-25 authorization revision kept as a historical source ID. Prefer the 2026-07-28 resource-indicator, audience, PKCE, and token-passthrough rules.",
       "id": "mcp-authorization-2025-11-25",
       "name": "Model Context Protocol Authorization Specification",
       "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization"
