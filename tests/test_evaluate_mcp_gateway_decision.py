@@ -148,5 +148,95 @@ class MCPGatewayHeaderMismatchTests(unittest.TestCase):
         )
 
 
+class MCPGatewayOriginDnsRebindTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.policy = json.loads(POLICY_PATH.read_text(encoding="utf-8"))
+
+    def test_unspecified_origin_stays_on_the_allow_path(self) -> None:
+        result = evaluate_policy_decision(self.policy, _bounded_read())
+        self.assertEqual(result["decision"], "allow")
+        self.assertTrue(result["allowed"])
+
+    def test_matching_origin_stays_on_the_allow_path(self) -> None:
+        result = evaluate_policy_decision(
+            self.policy,
+            _bounded_read(
+                origin="https://mcp.security-recipes.ai",
+                allowed_origins=["https://mcp.security-recipes.ai"],
+            ),
+        )
+        self.assertEqual(result["decision"], "allow")
+        self.assertTrue(result["allowed"])
+
+    def test_default_https_port_matches_allowlist_without_port(self) -> None:
+        result = evaluate_policy_decision(
+            self.policy,
+            _bounded_read(
+                origin="https://mcp.security-recipes.ai:443",
+                expected_origin="https://mcp.security-recipes.ai",
+            ),
+        )
+        self.assertEqual(result["decision"], "allow")
+        self.assertTrue(result["allowed"])
+
+    def test_attacker_origin_denies_instead_of_reaching_a_local_server(self) -> None:
+        result = evaluate_policy_decision(
+            self.policy,
+            _bounded_read(
+                origin="https://attacker.example",
+                allowed_origins=["https://mcp.security-recipes.ai"],
+            ),
+        )
+        self.assertEqual(result["decision"], "deny")
+        self.assertFalse(result["allowed"])
+        self.assertTrue(any("HTTP 403" in item and "attacker.example" in item for item in result["violations"]))
+
+    def test_origin_without_allowlist_fails_closed(self) -> None:
+        result = evaluate_policy_decision(
+            self.policy,
+            _bounded_read(origin="https://attacker.example"),
+        )
+        self.assertEqual(result["decision"], "deny")
+        self.assertFalse(result["allowed"])
+        self.assertTrue(any("without an allowlist" in item for item in result["violations"]))
+
+    def test_null_origin_denies(self) -> None:
+        result = evaluate_policy_decision(
+            self.policy,
+            _bounded_read(
+                origin="null",
+                allowed_origins=["https://mcp.security-recipes.ai"],
+            ),
+        )
+        self.assertEqual(result["decision"], "deny")
+        self.assertFalse(result["allowed"])
+        self.assertTrue(any("not a valid http(s) origin" in item for item in result["violations"]))
+
+    def test_file_origin_denies(self) -> None:
+        result = evaluate_policy_decision(
+            self.policy,
+            _bounded_read(
+                origin="file://",
+                allowed_origins=["https://mcp.security-recipes.ai"],
+            ),
+        )
+        self.assertEqual(result["decision"], "deny")
+        self.assertFalse(result["allowed"])
+        self.assertTrue(any("not a valid http(s) origin" in item for item in result["violations"]))
+
+    def test_origin_with_path_denies(self) -> None:
+        result = evaluate_policy_decision(
+            self.policy,
+            _bounded_read(
+                origin="https://mcp.security-recipes.ai/mcp",
+                allowed_origins=["https://mcp.security-recipes.ai"],
+            ),
+        )
+        self.assertEqual(result["decision"], "deny")
+        self.assertFalse(result["allowed"])
+        self.assertTrue(any("not a valid http(s) origin" in item for item in result["violations"]))
+
+
 if __name__ == "__main__":
     unittest.main()
