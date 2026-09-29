@@ -15826,98 +15826,105 @@
       ]
     },
     "CVE-2024-0012": {
-      "business_risk": "Critical, actively exploited authentication bypass. An unauthenticated attacker with network access to the PAN-OS management web interface can obtain administrator privileges, alter configuration, and potentially chain additional vulnerabilities. Risk is highest when the management interface is internet-facing or reachable from an untrusted network.",
+      "business_risk": "Critical authentication bypass (CVSS 9.3) that lets an unauthenticated attacker with network access to the PAN-OS management web interface obtain administrator privileges, tamper with configuration, or chain to other issues. Actively exploited in the wild with known ransomware campaign use; risk is highest when the management interface is reachable from the internet or untrusted networks.",
       "claim_evidence": [
         {
-          "claim": "The vulnerability affects PAN-OS 10.2, 11.0, 11.1, and 11.2 on PA-Series, VM-Series, and CN-Series firewalls and Panorama; Cloud NGFW and Prisma Access are not impacted.",
+          "claim": "This issue is applicable only to PAN-OS 10.2, PAN-OS 11.0, PAN-OS 11.1, and PAN-OS 11.2 software on PA-Series, VM-Series, and CN-Series firewalls and on Panorama (virtual and M-Series). Cloud NGFW and Prisma Access are not impacted.",
           "kind": "affected_product",
-          "source_url": "https://security.paloaltonetworks.com/CVE-2024-0012"
+          "source_url": "https://security.paloaltonetworks.com/CVE-2024-0012/"
         },
         {
-          "claim": "Palo Alto Networks lists affected releases below the corresponding fixed thresholds in PAN-OS 10.2, 11.0, 11.1, and 11.2.",
+          "claim": "Affected: PAN-OS 11.2.0 < 11.2.4-h1, 11.1.0 < 11.1.5-h1, 11.0.0 < 11.0.6-h1, 10.2.0 < 10.2.12-h2; unaffected 10.1.0 and Cloud NGFW (all).",
           "kind": "affected_version",
-          "source_url": "https://security.paloaltonetworks.com/CVE-2024-0012"
-        },
-        {
-          "claim": "Exposure is greatest when the management interface is accessible from the internet or an untrusted network, including through a dataplane interface with a management interface profile; a management profile on a GlobalProtect interface can expose the management web interface.",
-          "kind": "exposure",
-          "source_url": "https://security.paloaltonetworks.com/CVE-2024-0012"
-        },
-        {
-          "claim": "The issue is fixed in PAN-OS 10.2.12-h2, 11.0.6-h1, 11.1.5-h1, 11.2.4-h1, and later versions, with additional fixed maintenance releases listed by branch.",
-          "kind": "fixed_version",
-          "source_url": "https://security.paloaltonetworks.com/CVE-2024-0012"
-        },
-        {
-          "claim": "Palo Alto Networks recommends restricting management-interface access to trusted internal IP addresses and documents Threat Prevention mitigations using specified Threat IDs and prerequisites.",
-          "kind": "remediation",
-          "source_url": "https://security.paloaltonetworks.com/CVE-2024-0012"
-        },
-        {
-          "claim": "For potentially exposed devices, Palo Alto Networks advises monitoring for suspicious threat activity, unrecognized configuration changes, and suspicious users, and describes telemetry and technical-support-file review.",
-          "kind": "verification",
-          "source_url": "https://security.paloaltonetworks.com/CVE-2024-0012"
-        },
-        {
-          "claim": "CISA lists CVE-2024-0012 as a Known Exploited Vulnerability and requires mitigation or discontinuation when mitigations are unavailable; affected management interfaces should not be exposed to untrusted networks, including the internet.",
-          "kind": "exposure",
           "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-0012"
+        },
+        {
+          "claim": "Vendor product-status table enumerates additional earlier hotfixes that are also unaffected (for example 11.2.0-h1, 11.1.0-h4, 11.0.0-h4, 10.2.0-h4 and corresponding later hotfixes per branch).",
+          "kind": "affected_version",
+          "source_url": "https://security.paloaltonetworks.com/CVE-2024-0012/"
+        },
+        {
+          "claim": "An unauthenticated attacker with network access to the management web interface can gain PAN-OS administrator privileges. The risk is greatest if the management interface is configured for access from the internet or any untrusted network (directly or via a dataplane interface with a management profile).",
+          "kind": "exposure",
+          "source_url": "https://security.paloaltonetworks.com/CVE-2024-0012/"
+        },
+        {
+          "claim": "Management interface for affected devices should not be exposed to untrusted networks, including the internet.",
+          "kind": "exposure",
+          "source_url": "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2024-0012"
+        },
+        {
+          "claim": "This issue is fixed in PAN-OS 10.2.12-h2, PAN-OS 11.0.6-h1, PAN-OS 11.1.5-h1, PAN-OS 11.2.4-h1, and all later PAN-OS versions, plus additional listed hotfixes for other TAC-preferred and commonly deployed maintenance releases.",
+          "kind": "fixed_version",
+          "source_url": "https://security.paloaltonetworks.com/CVE-2024-0012/"
+        },
+        {
+          "claim": "Upgrade to a fixed version and strongly recommend securing the management interface by restricting access to only trusted internal IP addresses per best-practice deployment guidelines. Optional Threat Prevention signatures (IDs 95746, 95747, 95752, 95753, 95759, 95763) can block attacks when additional routing, decryption, and inspection steps are in place.",
+          "kind": "remediation",
+          "source_url": "https://security.paloaltonetworks.com/CVE-2024-0012/"
+        },
+        {
+          "claim": "Visit the Assets section of the Customer Support Portal (Products → Assets → All Assets → Remediation Required) to find known devices with an internet-facing management interface tagged PAN-SA-2024-0015. Confirm installed version against the vendor fixed-version list and that management access is limited to trusted internal addresses.",
+          "kind": "verification",
+          "source_url": "https://security.paloaltonetworks.com/CVE-2024-0012/"
         }
       ],
       "exposure_conditions": [
-        "PAN-OS 10.2, 11.0, 11.1, or 11.2 running an affected release on PA-Series, VM-Series, or CN-Series firewalls, or Panorama.",
-        "The management web interface is reachable from the internet or another untrusted network, either directly or through a dataplane interface with a management interface profile.",
-        "A management profile on an interface hosting a GlobalProtect portal or gateway can expose the device through the management web interface, typically on port 4443.",
-        "Cloud NGFW, Prisma Access, PAN-OS 10.1, and GlobalProtect portal/gateway services themselves are not affected; however, management access configured on those interfaces can still create exposure."
+        "Unauthenticated network access to the PAN-OS management web interface.",
+        "Management interface enabled for access from the internet or any untrusted network, either directly or through a dataplane interface that includes a management interface profile.",
+        "Running PAN-OS 10.2, 11.0, 11.1, or 11.2 (unpatched releases) on PA-Series, VM-Series, or CN-Series firewalls or Panorama (virtual and M-Series); Cloud NGFW and Prisma Access are not affected."
       ],
       "gaps": [],
-      "generated_at": "2026-08-04T12:16:01Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-09-29T16:15:34Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
-      "recipe_specificity": "specific",
+      "recipe_specificity": "not_specific",
       "remediation_steps": [
-        "Upgrade PAN-OS to the applicable vendor-fixed release: 10.2.12-h2 or later; 11.0.6-h1 or later; 11.1.5-h1 or later; or 11.2.4-h1 or later.",
-        "Where an in-branch maintenance release is required, use the vendor-listed fixed maintenance release for that branch, such as 10.2.0-h4, 11.0.0-h4, 11.1.0-h4, or 11.2.0-h1, as applicable.",
-        "Immediately restrict management-interface access to trusted internal IP addresses or an approved jump host; do not expose it to the internet or other untrusted networks.",
-        "If a Threat Prevention subscription is available, configure the vendor-specified Threat IDs 95746, 95747, 95752, 95753, 95759, and 95763 in block mode and meet the vendor's traffic-inspection prerequisites.",
-        "If timely upgrade or mitigation is unavailable, follow CISA guidance to discontinue use of the affected product."
+        "Upgrade to a fixed PAN-OS release: 10.2.12-h2 or later, 11.0.6-h1 or later, 11.1.5-h1 or later, 11.2.4-h1 or later, or one of the additional vendor-listed hotfixes for other maintenance releases.",
+        "Restrict the management web interface so that only trusted internal IP addresses can reach it, following vendor best-practice deployment guidelines.",
+        "If a Threat Prevention subscription is present, set Threat IDs 95746, 95747, 95752, 95753, 95759, and 95763 to block (Applications and Threats content 8915-9075 or later) after routing management traffic through a dataplane interface, replacing the inbound management certificate, decrypting inbound management traffic, and enabling threat prevention on that traffic."
       ],
       "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/cve-2024-0012",
         "https://nvd.nist.gov/vuln/detail/CVE-2024-0012",
-        "https://security.paloaltonetworks.com/CVE-2024-0012",
-        "https://nvd.nist.gov/vuln/detail/CVE-2024-0012/change-record?changeRecordedOn=06%2F17%2F2026T02%3A52%3A36.007-0400",
-        "https://nvd.nist.gov/vuln/detail/CVE-2024-0012/change-record?changeRecordedOn=11%2F04%2F2025T11%3A49%3A23.110-0500",
-        "https://security.paloaltonetworks.com/CVE-2024-0010",
-        "https://security.paloaltonetworks.com/CVE-2022-0012",
-        "https://security.paloaltonetworks.com/?product=PAN-OS&version=PAN-OS+",
-        "https://security.paloaltonetworks.com/?product=PAN-OS&severity=CRITICAL&sort=-date",
-        "https://nvd.nist.gov/vuln/detail/cve-2022-0012",
-        "https://security.paloaltonetworks.com/CVE-2024-2432",
-        "https://nvd.nist.gov/vuln/detail/CVE-2023-41712",
-        "https://security.paloaltonetworks.com/?limit=300&sort=-date",
-        "https://www.cisa.gov/sites/default/files/2024-10/24_0424_NECP_Webinar_MFA_Slide_Presentation_24_1015_508C.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
-        "https://www.cisa.gov/sites/default/files/2024-05/Secure_by_Design_Alert_Eliminating_Directory_Traversal_Vulnerabilities_in_Software_508c%20%283%29.pdf",
-        "https://www.cisa.gov/sites/default/files/2024-07/csa-cisa-red-team%27s-operations-against-a-fceb-organization-highlights-the-necessity-of-defense-in-depth_0.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/web-metrics/CISA.gov-Apr-2024-Web-Metrics-508.pdf"
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-0012/change-record?changeRecordedOn=11/04/2025T11:49:23.110-0500",
+        "https://nvd.nist.gov/vuln/detail/cve-2024-34112",
+        "https://nvd.nist.gov/vuln/detail/cve-2024-45012",
+        "https://security.paloaltonetworks.com/CVE-2024-0012/",
+        "https://security.paloaltonetworks.com/PAN-SA-2024-0012",
+        "https://security.paloaltonetworks.com/PAN-SA-2024-0001",
+        "https://security.paloaltonetworks.com/CVE-2024-0011",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-24-338-02",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-24-135-04",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2024-1212",
+        "https://cisa.gov/news-events/cybersecurity-advisories/aa25-266a",
+        "https://www.cve.org/CVERecord?id=CVE-2024-0012",
+        "https://ncsc.gov.ie/pdfs/2411190160_Palo_Alto_vulns.pdf",
+        "https://digital.nhs.uk/cyber-alerts/2024/cc-4578",
+        "https://cvetodo.com/cve/CVE-2024-0012",
+        "https://cve.report/CVE-2024-0012",
+        "https://beazley.security/alerts-advisories/critical-vulnerability-in-palo-alto-pan-os-cve-2024-0012",
+        "https://socradar.io/free-tools/cve-radar/CVE-2024-0012",
+        "https://avd.aquasec.com/nvd/2024/cve-2024-0012/",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2024-0012"
       ],
       "schema_version": 2,
       "source_fingerprint": "c56bb05de532d969d4393c9a07b6611ceb62bf2732621f51d264e7fa3d86b5c2",
       "source_urls": [
-        "https://security.paloaltonetworks.com/CVE-2024-0012",
-        "https://nvd.nist.gov/vuln/detail/CVE-2024-0012"
+        "https://security.paloaltonetworks.com/CVE-2024-0012/",
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-0012",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2024-0012"
       ],
       "status": "complete",
       "uncertainty": [
-        "The supplied record's affected CPE list is truncated, so individual hotfix applicability should be checked against the vendor's complete product-status table.",
-        "The record includes a last_modified timestamp of August 4, 2026, while the vendor advisory returned by search states it was updated March 3, 2025; this enrichment relies on the current authoritative advisory content returned from Palo Alto Networks and NVD.",
-        "Successful remediation or absence of compromise cannot be established without the device's actual version, management-interface configuration, and logs."
+        "Vendor advisory lists both primary fixed versions and a larger set of additional hotfixes for earlier maintenance releases; NVD CPE data uses coarser ranges that overlap but do not enumerate every hotfix.",
+        "Threat Prevention signature effectiveness depends on additional configuration steps (routing, decryption, certificate replacement) that must be present."
       ],
       "verification_steps": [
-        "Confirm the installed PAN-OS version and hotfix meet the applicable vendor-fixed threshold for the release branch.",
-        "Confirm that the management interface is reachable only from trusted administrative networks or the designated jump host, and that no internet-facing dataplane management profile remains enabled.",
-        "If the management interface was externally exposed, review administrative logs and configuration history for unrecognized users, suspicious activity, or unexpected configuration changes; consult Palo Alto Networks telemetry or uploaded technical-support-file analysis where available.",
-        "Do not perform exploit attempts or unauthenticated probing against production devices."
+        "Confirm the installed PAN-OS version matches a vendor-listed fixed version or hotfix for the running major/minor release.",
+        "Confirm the management web interface is reachable only from trusted internal IP addresses and is not exposed to untrusted networks or the internet.",
+        "If the management interface was previously internet-exposed, review configuration and logs for unrecognized administrative changes or users; check the Customer Support Portal Assets section for devices tagged PAN-SA-2024-0015."
       ]
     },
     "CVE-2024-11667": {
@@ -16018,39 +16025,18 @@
       "claim_evidence": [],
       "exposure_conditions": [],
       "gaps": [],
-      "generated_at": "2026-07-25T21:33:34Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-09-29T16:14:46Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [],
-      "retrieved_source_urls": [
-        "https://nvd.nist.gov/vuln",
-        "https://nvd.nist.gov/vuln/data-feeds",
-        "https://docs.projectsend.org/about",
-        "https://www.projectsend.org/",
-        "https://nvd.nist.gov/search",
-        "https://github.com/projectsend/projectsend",
-        "https://projectsend.org/",
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-30833",
-        "https://nvd.nist.gov/vuln/search",
-        "https://nvd.nist.gov/developers/vulnerabilities",
-        "https://github.com/projectsend/projectsend/pulls",
-        "https://www.projectsend.org/new-release-r1605/",
-        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
-        "https://www.cisa.gov/sites/default/files/2024-05/Secure_by_Design_Alert_Eliminating_Directory_Traversal_Vulnerabilities_in_Software_508c%20%283%29.pdf",
-        "https://www.cisa.gov/sites/default/files/2024-08/CISA.gov-Jul-2024-Web-Metrics-508.pdf.pdf",
-        "https://www.cisa.gov/sites/default/files/2024-07/csa-cisa-red-team%27s-operations-against-a-fceb-organization-highlights-the-necessity-of-defense-in-depth_0.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/web-metrics/CISA.gov-Mar-2025-Web-Metrics-508.pdf",
-        "https://www.cisa.gov/sites/default/files/2024-05/Final%20approved%20CSSO-VDP%20Platform-FAQ-Final.pdf"
-      ],
+      "retrieved_source_urls": [],
       "schema_version": 2,
       "source_fingerprint": "6210455518cf8deb277e72dd4d067cc78bbb8ddd65aeacbfe168f0a4c238a6c8",
       "source_urls": [],
       "status": "insufficient_evidence",
       "uncertainty": [
-        "The authoritative sources establish the affected boundary and upstream patch, but do not provide a vendor-specific operational procedure for identifying the installed version in every deployment method.",
-        "The supplied record identifies active exploitation through CISA KEV, but the reviewed sources do not establish whether a particular deployment has been compromised.",
-        "The model did not return a fully sourced exposure, remediation, and verification set; consult the linked NVD and vendor sources before acting."
+        "No authoritative ource page have been retrieved yet for CVE-2024-11680."
       ],
       "verification_steps": []
     },
@@ -16138,29 +16124,36 @@
       "claim_evidence": [],
       "exposure_conditions": [],
       "gaps": [],
-      "generated_at": "2026-07-25T21:33:09Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-09-29T16:14:43Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [],
       "retrieved_source_urls": [
         "https://nvd.nist.gov/vuln/detail/CVE-2024-12987",
-        "https://www.cisa.gov/news-events/alerts/2024/10/22/cisa-adds-one-known-exploited-vulnerability-catalog",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=0",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=24",
-        "https://www.cisa.gov/news-events/ics-advisories/icsa-24-205-03",
-        "https://www.cisa.gov/news-events/ics-advisories/icsa-24-345-02",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?_cldee=jpUNG-sft0Lr74jsazzEoZ17jTSFEy6lQDvCJArCUYT0C1B4SWuT29F0dx7GSSfN&esid=f8736f67-efb4-ec11-983e-000d3a5a7186&f%5B0%5D=vendor_project%3A813&f%5B1%5D=vendor_project%3A829&f%5B2%5D=vendor_project%3A849&f%5B3%5D=vendor_project%3A911&f%5B4%5D=vendor_project%3A1320&page=1&recipientid=contact-41de9e007aace811a963000d3a363879-a794569726594743b07ecd7aaff0e97c",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?_cldee=jpUNG-sft0Lr74jsazzEoZ17jTSFEy6lQDvCJArCUYT0C1B4SWuT29F0dx7GSSfN&esid=f8736f67-efb4-ec11-983e-000d3a5a7186&f%5B0%5D=vendor_project%3A813&f%5B1%5D=vendor_project%3A855&f%5B2%5D=vendor_project%3A924&f%5B3%5D=vendor_project%3A1277&f%5B4%5D=vendor_project%3A1320&page=1&recipientid=contact-41de9e007aace811a963000d3a363879-a794569726594743b07ecd7aaff0e97c",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A801&f%5B10%5D=vendor_project%3A851&f%5B11%5D=vendor_project%3A854&f%5B12%5D=vendor_project%3A861&f%5B13%5D=vendor_project%3A866&f%5B14%5D=vendor_project%3A877&f%5B15%5D=vendor_project%3A886&f%5B16%5D=vendor_project%3A892&f%5B17%5D=vendor_project%3A893&f%5B18%5D=vendor_project%3A900&f%5B19%5D=vendor_project%3A904&f%5B1%5D=vendor_project%3A802&f%5B20%5D=vendor_project%3A910&f%5B21%5D=vendor_project%3A917&f%5B22%5D=vendor_project%3A931&f%5B23%5D=vendor_project%3A938&f%5B24%5D=vendor_project%3A940&f%5B2%5D=vendor_project%3A803&f%5B3%5D=vendor_project%3A816&f%5B4%5D=vendor_project%3A820&f%5B5%5D=vendor_project%3A823&f%5B6%5D=vendor_project%3A837&f%5B7%5D=vendor_project%3A842&f%5B8%5D=vendor_project%3A845&f%5B9%5D=vendor_project%3A846&page=1",
-        "https://www.cisa.gov/news-events/alerts/2024/04/24/cisco-releases-security-updates-addressing-arcanedoor-vulnerabilities-cisco-firewall-platforms",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A800&f%5B10%5D=vendor_project%3A851&f%5B11%5D=vendor_project%3A854&f%5B12%5D=vendor_project%3A861&f%5B13%5D=vendor_project%3A866&f%5B14%5D=vendor_project%3A872&f%5B15%5D=vendor_project%3A886&f%5B16%5D=vendor_project%3A892&f%5B17%5D=vendor_project%3A893&f%5B18%5D=vendor_project%3A900&f%5B19%5D=vendor_project%3A902&f%5B1%5D=vendor_project%3A801&f%5B20%5D=vendor_project%3A909&f%5B21%5D=vendor_project%3A917&f%5B22%5D=vendor_project%3A927&f%5B23%5D=vendor_project%3A931&f%5B24%5D=vendor_project%3A938&f%5B25%5D=vendor_project%3A940&f%5B2%5D=vendor_project%3A809&f%5B3%5D=vendor_project%3A813&f%5B4%5D=vendor_project%3A817&f%5B5%5D=vendor_project%3A820&f%5B6%5D=vendor_project%3A823&f%5B7%5D=vendor_project%3A837&f%5B8%5D=vendor_project%3A845&f%5B9%5D=vendor_project%3A848&page=1",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A792&f%5B10%5D=vendor_project%3A846&f%5B11%5D=vendor_project%3A851&f%5B12%5D=vendor_project%3A852&f%5B13%5D=vendor_project%3A854&f%5B14%5D=vendor_project%3A861&f%5B15%5D=vendor_project%3A864&f%5B16%5D=vendor_project%3A866&f%5B17%5D=vendor_project%3A877&f%5B18%5D=vendor_project%3A886&f%5B19%5D=vendor_project%3A892&f%5B1%5D=vendor_project%3A796&f%5B20%5D=vendor_project%3A893&f%5B21%5D=vendor_project%3A900&f%5B22%5D=vendor_project%3A904&f%5B23%5D=vendor_project%3A910&f%5B24%5D=vendor_project%3A917&f%5B25%5D=vendor_project%3A931&f%5B26%5D=vendor_project%3A938&f%5B27%5D=vendor_project%3A940&f%5B28%5D=vendor_project%3A953&f%5B2%5D=vendor_project%3A801&f%5B3%5D=vendor_project%3A816&f%5B4%5D=vendor_project%3A819&f%5B5%5D=vendor_project%3A820&f%5B6%5D=vendor_project%3A823&f%5B7%5D=vendor_project%3A837&f%5B8%5D=vendor_project%3A843&f%5B9%5D=vendor_project%3A845&page=2",
-        "https://www.cisa.gov/sites/default/files/2024-05/Secure_by_Design_Alert_Eliminating_Directory_Traversal_Vulnerabilities_in_Software_508c%20%283%29.pdf",
-        "https://www.cisa.gov/sites/default/files/2024-08/SECURING_THE_SOFTWARE_SUPPLY_CHAIN_RECOMMENDED_PRACTICES_FOR_SOFTWARE_BILL_OF_MATERIALS_CONSUMPTION-508.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/web-metrics/CISA.gov-Apr-2024-Web-Metrics-508.pdf",
-        "https://www.cisa.gov/sites/default/files/2025-08/CSA_COUNTERING_CHINA_STATE_ACTORS_COMPROMISE_OF_NETWORKS.pdf"
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-1298",
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-12967",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2024-26987",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2024-53687",
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-46687",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-68787",
+        "https://nvd.nist.gov/vuln/detail/cve-2024-28987",
+        "https://nvd.nist.gov/vuln/detail/cve-2024-47887",
+        "https://nvd.nist.gov/vuln/detail/cve-2017-12987",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2024-28987",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-26-134-15",
+        "https://www.cisa.gov/news-events/bulletins/sb25-083",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-25-226-07",
+        "https://www.cisa.gov/news-events/bulletins/sb24-365",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-25-226-15",
+        "https://www.cisa.gov/news-events/bulletins/sb24-281",
+        "https://www.cisa.gov/news-events/bulletins/sb26-271",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-24-347-04",
+        "https://www.cisa.gov/news-events/bulletins/sb24-351",
+        "https://vulnerability.circl.lu/known-exploited-vulnerabilities-catalog/4307b145-b847-4e6e-95e2-73fbac1d3256",
+        "https://dbugs.ptsecurity.com/vulnerability/PT-2024-9899",
+        "https://stack.watch/vuln/CVE-2024-12987/",
+        "https://avd.aquasec.com/nvd/2024/cve-2024-12987/"
       ],
       "schema_version": 2,
       "source_fingerprint": "15d9734124d838419b57af68a02899f798773099f8b98e61a4200b435db1b9b1",
@@ -16169,9 +16162,10 @@
       ],
       "status": "insufficient_evidence",
       "uncertainty": [
-        "The authoritative sources establish affected version 1.5.1.4 and remediation via version 1.5.1.5, but do not specify whether later versions remain unaffected beyond the stated upgrade target.",
-        "The sources identify the Web Management Interface and affected endpoint, but do not provide deployment-specific conditions such as Internet exposure, authentication requirements, or network segmentation effects.",
-        "The vendor release notes do not provide a detailed, product-specific safe verification procedure for confirming remediation."
+        "Exact affected firmware versions are not stated in the retrieved CISA KEV entry or the vendor 1.5.1.5 release notes",
+        "NVD and CVE.org page contents could not be retrieved",
+        "It is unclear from retrieved sources whether versions other than those around the 1.5.1.5 release are affected",
+        "Vigor3900 is listed by CISA and has a vendor release note mentioning the CVE, while some NVD reference tagging indicated Not Applicable"
       ],
       "verification_steps": []
     },
@@ -16912,41 +16906,51 @@
       "claim_evidence": [],
       "exposure_conditions": [],
       "gaps": [],
-      "generated_at": "2026-07-25T21:57:14Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-09-29T16:20:55Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [],
       "retrieved_source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2024-28986",
-        "https://nvd.nist.gov/vuln/detail/CVE-2024-20286",
-        "https://www.solarwinds.com/trust-center",
-        "https://www.cisa.gov/news-events/alerts/2024/09/13/cisa-adds-one-known-exploited-vulnerability-catalog",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=0",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?_cldee=jpUNG-sft0Lr74jsazzEoZ17jTSFEy6lQDvCJArCUYT0C1B4SWuT29F0dx7GSSfN&esid=f8736f67-efb4-ec11-983e-000d3a5a7186&f%5B0%5D=vendor_project%3A813&f%5B1%5D=vendor_project%3A829&f%5B2%5D=vendor_project%3A849&f%5B3%5D=vendor_project%3A911&f%5B4%5D=vendor_project%3A1320&page=1&recipientid=contact-41de9e007aace811a963000d3a363879-a794569726594743b07ecd7aaff0e97c",
-        "https://www.solarwinds.com/trust-center/security-research",
-        "https://www.cisa.gov/news-events/alerts/2024/04/24/cisco-releases-security-updates-addressing-arcanedoor-vulnerabilities-cisco-firewall-platforms",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=16",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=24",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=23",
-        "https://www.cisa.gov/sites/default/files/2024-10/24_0424_NECP_Webinar_MFA_Slide_Presentation_24_1015_508C.pdf",
-        "https://www.solarwinds.com/trust-center/security-advisories/cve-2026-28298",
-        "https://www.cisa.gov/sites/default/files/2024-05/Secure_by_Design_Alert_Eliminating_Directory_Traversal_Vulnerabilities_in_Software_508c%20%283%29.pdf",
-        "https://www.cisa.gov/sites/default/files/2024-08/SECURING_THE_SOFTWARE_SUPPLY_CHAIN_RECOMMENDED_PRACTICES_FOR_SOFTWARE_BILL_OF_MATERIALS_CONSUMPTION-508.pdf",
-        "https://www.solarwinds.com/legacy-assets/solarwinds/swdcv2/landing-pages/trust-center/security-vulnerability/solarwinds-trust-center-security-advisories-_-cve-2023-23838.ashx?rev=2fda9ff7948a4fe3bcc5e36242dc8b01%3Frev%3D2fda9ff7948a4fe3bcc5e36242dc8b01",
-        "https://www.solarwinds.com/assets/solarwinds/swdcv2/landing-pages/trust-center/security-vulnerability/solarwinds-trust-center-security-advisories-_cve-2021-25275.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/web-metrics/CISA.gov-Apr-2024-Web-Metrics-508.pdf"
+        "https://nvd.nist.gov/vuln/detail/cve-2024-28986",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-28986",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2024-49886",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2026-23286",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2024-26589",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2026-52986",
+        "https://nvd.nist.gov/nvd.cfm?cvename=CVE-2025-2886",
+        "https://nvd.nist.gov/nvd.cfm?cvename=CVE-2024-29186",
+        "https://nvd.nist.gov/vuln/detail/cve-2025-21986",
+        "https://nvd.nist.gov/vuln/detail/cve-2024-26886",
+        "https://www.solarwinds.com/trust-center/security-advisories/cve-2024-28986",
+        "https://support.solarwinds.com/SuccessCenter/s/article/SolarWinds-Web-Help-Desk-12-8-3-Hotfix-2",
+        "https://www.solarwinds.com/trust-center/security-advisories/cve-2024-28992",
+        "https://documentation.solarwinds.com/en/success_center/orionplatform/content/release_notes/release_notes_aggregator.htm?p=ets-web&v=2026-2-2&vto=2026-2-3&sort=product&expand=false",
+        "https://www.solarwinds.com/trust-center/security-advisories/cve-2024-28995",
+        "https://documentation.solarwinds.com/en/success_center/sem/content/release_notes/sem_2024-2-1_release_notes.htm",
+        "https://support.solarwinds.com/SuccessCenter/s/article/SolarWinds-Products-and-Oracle-Java-SE-Vulnerabilities-CVE-2023-21830-CVE-2023-21835-and-CVE-2023-21843",
+        "https://www.solarwinds.com/blog/enterprise-service-management-is-for-more-than-it-hr-facilities-and-finance-use-cases",
+        "https://thwack.solarwinds.com/profile/discussions/joeybrown",
+        "https://www.solarwinds.com/blog/tag/itsm",
+        "https://www.cisa.gov/news-events/bulletins/sb26-180",
+        "https://www.cisa.gov/news-events/bulletins/sb26-250",
+        "https://www.cisa.gov/news-events/bulletins/sb24-176",
+        "https://www.cisa.gov/news-events/bulletins/sb25-083"
       ],
       "schema_version": 2,
       "source_fingerprint": "f2c9c9f84d1d6b08016de7fc4380976582dc1c1a70711c436e39ce36536fa6ef",
       "source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2024-28986"
+        "https://www.solarwinds.com/trust-center/security-advisories/cve-2024-28986",
+        "https://support.solarwinds.com/SuccessCenter/s/article/SolarWinds-Web-Help-Desk-12-8-3-Hotfix-2"
       ],
       "status": "insufficient_evidence",
       "uncertainty": [
-        "The vendor advisory states that exploitation was reported as unauthenticated, but SolarWinds could not reproduce exploitation without authentication.",
-        "The returned sources do not provide exact installation instructions, package identifiers, checksums, file paths, configuration-based mitigations, or a detailed safe verification method.",
-        "The vendor support hotfix reference was inaccessible during retrieval, so hotfix-specific procedural details could not be independently confirmed."
+        "NVD detail page content was not retrieved by the fetch tools.",
+        "Vendor could not reproduce unauthenticated exploitation, while the published CVSS vector uses PR:N and CISA listed the CVE in KEV.",
+        "Authoritative sources do not specify a concrete exposure trigger (endpoint, protocol details, or required configuration).",
+        "The original Hotfix 1 support article is referenced as a broken link in NVD-related records; later hotfixes document that they include the Hotfix 1 fix.",
+        "No vendor source in the retrieved pages provides a specific inert version-check procedure beyond consulting product/hotfix documentation.",
+        "Hotfix 3 release notes also list a related subsequent Java deserialization CVE, so this enrichment is limited to CVE-2024-28986 as documented by the vendor for HF 1."
       ],
       "verification_steps": []
     },
@@ -17706,6 +17710,146 @@
         "Do not perform exploit testing against production systems; rely on version evidence and vendor update status."
       ]
     },
+    "CVE-2024-40766": {
+      "business_risk": "No additional source-verified CVE-specific business impact was established.",
+      "claim_evidence": [],
+      "exposure_conditions": [],
+      "gaps": [],
+      "generated_at": "2026-09-29T16:18:17Z",
+      "model": "grok-4.6",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [],
+      "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-40766",
+        "https://nvd.nist.gov/vuln/detail/cve-2024-40774",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-40766",
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-40711",
+        "https://nvd.nist.gov/vuln/detail/cve-2024-0407",
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-40866",
+        "https://psirt.global.sonicwall.com/vuln-detail/SNWLID-2024-0015",
+        "https://psirt.global.sonicwall.com/",
+        "https://psirt.global.sonicwall.com/vuln-detail/snwlid-2024-0013",
+        "https://psirt.global.sonicwall.com/vuln-detail/SNWLID-2025-0003",
+        "https://www.tenable.com/plugins/nessus/206801",
+        "https://www.ncsc.gov.ie/pdfs/2409060147_SonicOS_Vuln.pdf",
+        "https://securityaffairs.com/167595/security/sonicwall-sonicos-cve-2024-40766.html",
+        "https://www.cvedetails.com/cve/CVE-2024-40766/",
+        "https://socradar.io/free-tools/cve-radar/CVE-2024-40766",
+        "https://its.ny.gov/2024-097",
+        "https://dbugs.ptsecurity.com/vulnerability/CVE-2024-40766",
+        "https://www.rapid7.com/db/vulnerabilities/sonicwall-sonicos-snwlid-2024-0015/",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2024-40766",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-24-205-03",
+        "https://www.cisa.gov/news-events/bulletins/sb24-218",
+        "https://www.cve.org/CVERecord?id=CVE-2024-40766",
+        "https://open.library.ubc.ca/media/download/pdf/24/1.0228781/4",
+        "https://www.sonicwall.com/blog/ssl-vpn-activity-what-we-know-and-whats-next"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "c8a91a678b0daf7ceb835f8b8fff63dbf53b4a212780dd5c4a3a6b04d7d3f97f",
+      "source_urls": [],
+      "status": "insufficient_evidence",
+      "uncertainty": [
+        "Need full vendor advisory, NVD CPE/fixed versions, and CISA notes before asserting recipe facts."
+      ],
+      "verification_steps": []
+    },
+    "CVE-2024-41713": {
+      "business_risk": "Critical unauthenticated path traversal in the NuPoint Unified Messaging component of Mitel MiCollab that can enable unauthorized access to provisioning information, user data, system configurations, and administrative actions. The vulnerability is listed in CISA's Known Exploited Vulnerabilities catalog with known ransomware campaign use.",
+      "claim_evidence": [
+        {
+          "claim": "Mitel MiCollab NuPoint Unified Messaging (NPM) component",
+          "kind": "affected_product",
+          "source_url": "https://www.mitel.com/support/security-advisories/mitel-product-security-advisory-misa-2024-0029"
+        },
+        {
+          "claim": "MiCollab 9.8 SP1 FP2 (9.8.1.201) and earlier",
+          "kind": "affected_version",
+          "source_url": "https://www.mitel.com/support/security-advisories/mitel-product-security-advisory-misa-2024-0029"
+        },
+        {
+          "claim": "Mitel MiCollab through 9.8 SP1 FP2 (9.8.1.201)",
+          "kind": "affected_version",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-41713"
+        },
+        {
+          "claim": "Unauthenticated attacker can conduct a path traversal attack due to insufficient input validation, potentially gaining unauthorized access to provisioning information including non-sensitive user and network information and performing unauthorized administrative actions",
+          "kind": "exposure",
+          "source_url": "https://www.mitel.com/support/security-advisories/mitel-product-security-advisory-misa-2024-0029"
+        },
+        {
+          "claim": "MiCollab 9.8 SP2 (9.8.2.12) or later",
+          "kind": "fixed_version",
+          "source_url": "https://www.mitel.com/support/security-advisories/mitel-product-security-advisory-misa-2024-0029"
+        },
+        {
+          "claim": "Upgrade to MiCollab 9.8 SP2 (9.8.2.12) or later; a patch is also available for releases 6.0 and above",
+          "kind": "remediation",
+          "source_url": "https://www.mitel.com/support/security-advisories/mitel-product-security-advisory-misa-2024-0029"
+        },
+        {
+          "claim": "CVE-2024-41713 is corrected in MiCollab 9.8 SP2 (9.8.2.12)",
+          "kind": "verification",
+          "source_url": "https://www.mitel.com/support/security-advisories/mitel-product-security-advisory-misa-2024-0029"
+        }
+      ],
+      "exposure_conditions": [
+        "Mitel MiCollab running the NuPoint Unified Messaging (NPM) component",
+        "Versions 9.8 SP1 FP2 (9.8.1.201) and earlier",
+        "Unauthenticated network access to the MiCollab server"
+      ],
+      "gaps": [],
+      "generated_at": "2026-09-29T16:16:22Z",
+      "model": "grok-4.6",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [
+        "Upgrade to Mitel MiCollab 9.8 SP2 (9.8.2.12) or later",
+        "If an immediate upgrade is not possible, apply the vendor-provided patch available for releases 6.0 and above, following the Mitel Knowledge Base article referenced in the advisory"
+      ],
+      "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-41713",
+        "https://www.cve.org/CVERecord?id=CVE-2024-41713&ref=thestack.technology",
+        "https://www.cvedetails.com/cve/CVE-2024-41713/",
+        "https://cve.report/CVE-2024-41713",
+        "https://app.opencve.io/cve/CVE-2024-41713",
+        "https://vulnerability.circl.lu/known-exploited-vulnerabilities-catalog/0ab46cb6-d5dd-4a30-b226-fa790552237c",
+        "https://www.cloudanix.com/vulndb/cve/CVE-2024-41713",
+        "https://socradar.io/free-tools/cve-radar/CVE-2024-41713",
+        "https://ismalicious.com/cve/CVE-2024-41713",
+        "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2024/CVE-2024-41713.yaml",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-41713",
+        "https://nvd.nist.gov/vuln/detail/cve-2024-41797",
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-54013",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2024-58013",
+        "https://www.mitel.com/support/security-advisories/mitel-product-security-advisory-misa-2024-0029",
+        "https://www.mitel.com/support/security-advisories?page=1&order=field_severity&sort=asc",
+        "https://www.mitel.com/sites/default/files/2026-02/24-0020_24-0020-001.pdf",
+        "https://www.mitel.com/support/security-advisories/mitel-product-security-advisory-24-0020",
+        "https://www.mitel.com/de-de/blog/modernisierung-der-klinikkommunikation-ohne-unterbrechungen-universitares-medizinisches-zentrum",
+        "https://fortiguard.fortinet.com/%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20cn/outbreak-alert/mitel-micollab-unauthorized-access",
+        "https://www.tenable.com/plugins/nessus/233866",
+        "https://www.ncsc.govt.nz/alerts/active-exploitation-affecting-mitel-micollab/",
+        "https://eztoolset.com/watchtowr-published-a-poc-for-a-previously-unpatched-mitel-micollab-vulnerability/",
+        "https://www.cisa.gov/news-events/bulletins/sb24-302"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "c84a2ca86fb4ee226cc8a4a855cab8e1a1bd9df3f6b9f96df60dab4705f639d6",
+      "source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-41713",
+        "https://www.mitel.com/support/security-advisories/mitel-product-security-advisory-misa-2024-0029"
+      ],
+      "status": "complete",
+      "uncertainty": [
+        "Detailed upgrade, patch, and confirmation instructions reside in a Mitel KMS article that requires authorized access",
+        "NVD detail page content could not be fully retrieved",
+        "Vendor advisory describes access to non-sensitive provisioning information and unauthorized administrative actions while NVD describes viewing, corrupting, or deleting users' data and system configurations"
+      ],
+      "verification_steps": [
+        "After upgrade or patch application, confirm the installed MiCollab version is 9.8 SP2 (9.8.2.12) or later per vendor documentation in the security advisory"
+      ]
+    },
     "CVE-2024-42009": {
       "business_risk": "Critical risk to confidentiality and integrity of email accounts. A remote attacker can exploit a crafted email to execute cross-site scripting in a victim's Roundcube session, potentially enabling email theft and sending messages as the victim. The CVE is listed in CISA's Known Exploited Vulnerabilities Catalog.",
       "claim_evidence": [
@@ -18066,6 +18210,90 @@
         "Compare the recorded version with the applicable fixed baseline: 8.8.15 Patch 46 or later, 9.0.0 Patch 41 or later, 10.0.9 or later, or 10.1.1 or later within the corresponding release line.",
         "Confirm that the postjournal service is not externally reachable unless required, using an approved inventory or network-architecture review rather than an exploit test.",
         "Recheck the vendor release notes and security advisory after maintenance to confirm that the deployed release contains the CVE-2024-45519 fix."
+      ]
+    },
+    "CVE-2024-4577": {
+      "business_risk": "Critical unauthenticated remote code execution (CVSS 9.8) in Windows PHP-CGI that is listed in CISA KEV with known ransomware campaign use, allowing attackers to pass options to the PHP binary and run arbitrary PHP code or disclose script source.",
+      "claim_evidence": [
+        {
+          "claim": "PHP when using Apache and PHP-CGI on Windows",
+          "kind": "affected_product",
+          "source_url": "https://nvd.nist.gov/vuln/detail/cve-2024-4577"
+        },
+        {
+          "claim": "PHP versions 8.1.* before 8.1.29, 8.2.* before 8.2.20, 8.3.* before 8.3.8",
+          "kind": "affected_version",
+          "source_url": "https://nvd.nist.gov/vuln/detail/cve-2024-4577"
+        },
+        {
+          "claim": "when using Apache and PHP-CGI on Windows, if the system is set up to use certain code pages, Windows may use Best-Fit behavior so the PHP CGI module may misinterpret characters as PHP options",
+          "kind": "exposure",
+          "source_url": "https://nvd.nist.gov/vuln/detail/cve-2024-4577"
+        },
+        {
+          "claim": "Version 8.1.29, 8.2.20, and 8.3.8 each list a fix for GHSA-3qgc-jrrr-25jv (CVE-2024-4577)",
+          "kind": "fixed_version",
+          "source_url": "https://www.php.net/ChangeLog-8.php"
+        },
+        {
+          "claim": "Apply mitigations per vendor instructions or discontinue use of the product if mitigations are unavailable",
+          "kind": "remediation",
+          "source_url": "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2024-4577"
+        }
+      ],
+      "exposure_conditions": [
+        "PHP used with Apache and PHP-CGI on Windows",
+        "Windows system configured with certain code pages that apply Best-Fit character mapping to command-line arguments passed to Win32 APIs",
+        "PHP built for Windows and running in CGI mode (including cases where php-cgi.exe is reachable via the web server)"
+      ],
+      "gaps": [],
+      "generated_at": "2026-09-29T16:21:42Z",
+      "model": "grok-4.6",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [
+        "Upgrade PHP to a patched release: 8.1.29, 8.2.20, or 8.3.8 or later as documented in the PHP 8 changelog.",
+        "Apply mitigations per vendor instructions or discontinue use of the product if mitigations are unavailable."
+      ],
+      "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/cve-2024-4577",
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-45777",
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-45779",
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-45787",
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-45797",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-4577",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2024-40957",
+        "https://nvd.nist.gov/vuln/detail/cve-2024-44977",
+        "https://news-web.php.net/php.bugs/251153",
+        "https://news-web.php.net/php.cvs/128814",
+        "https://news-web.php.net/php.webmaster/32134",
+        "https://www.php.net/ChangeLog-8.php",
+        "https://news-web.php.net/php.general/328689",
+        "https://php.net/ChangeLog-7.php",
+        "https://arstechnica.com/security/2024/06/php-vulnerability-allows-attackers-to-run-malicious-code-on-windows-servers/",
+        "https://www.stack.watch/vuln/CVE-2024-4577/",
+        "https://secalerts.co/vulnerability/CVE-2024-4577",
+        "https://github.com/advisories/GHSA-vxpp-6299-mxw3",
+        "https://www.hhs.gov/sites/default/files/php-programming-language-sector-alert-tlpclear-r1.pdf",
+        "https://socradar.io/free-tools/cve-radar/CVE-2024-4577",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2024-4577"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "64189f4c794bbcd2049b0f06a010848b393164af30fcc7620b30194c2a111f38",
+      "source_urls": [
+        "https://nvd.nist.gov/vuln/detail/cve-2024-4577",
+        "https://www.php.net/ChangeLog-8.php",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2024-4577"
+      ],
+      "status": "complete",
+      "uncertainty": [
+        "NVD and the PHP CNA advisory describe the 8.1, 8.2, and 8.3 branches; older unsupported PHP branches on Windows are referenced in some third-party coverage but are not given patched versions by the vendor changelog.",
+        "The precise set of Windows code pages that trigger Best-Fit mapping is described only as 'certain code pages' in the NVD/CNA text.",
+        "No vendor source provides an inert, non-exploitative runtime probe beyond version and configuration review."
+      ],
+      "verification_steps": [
+        "Confirm the installed PHP version is 8.1.29, 8.2.20, 8.3.8 or later by reviewing vendor release information against the running installation.",
+        "Confirm whether the deployment uses Apache with PHP-CGI on Windows rather than an alternative SAPI."
       ]
     },
     "CVE-2024-4671": {
@@ -19090,53 +19318,93 @@
       ]
     },
     "CVE-2024-54085": {
-      "business_risk": "No additional source-verified CVE-specific business impact was established.",
-      "claim_evidence": [],
-      "exposure_conditions": [],
+      "business_risk": "Critical (CVSS 4.0 score 10.0) unauthenticated remote authentication bypass in BMC firmware that can cause loss of confidentiality, integrity, and availability. Listed in the CISA Known Exploited Vulnerabilities catalog.",
+      "claim_evidence": [
+        {
+          "claim": "AMI MegaRAC-SPx / MegaRAC SPx",
+          "kind": "affected_product",
+          "source_url": "https://nvd.nist.gov/vuln/detail/cve-2024-54085"
+        },
+        {
+          "claim": "Affected from 12.0 before 12.7 and from 13.0 before 13.5 (default status unaffected)",
+          "kind": "affected_version",
+          "source_url": "https://www.cve.org/CVERecord?id=CVE-2024-54085"
+        },
+        {
+          "claim": "An attacker may bypass authentication remotely through the Redfish Host Interface",
+          "kind": "exposure",
+          "source_url": "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2024-54085"
+        },
+        {
+          "claim": "Apply mitigations per vendor instructions, follow applicable BOD 22-01 guidance for cloud services, or discontinue use of the product if mitigations are unavailable",
+          "kind": "remediation",
+          "source_url": "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2024-54085"
+        },
+        {
+          "claim": "AMI MegaRAC SPx versions 12.0 prior to 12.7 and 13.0 prior to 13.5; NetApp products that incorporate the component should follow the NetApp advisory",
+          "kind": "remediation",
+          "source_url": "https://security.netapp.com/advisory/ntap-20250328-0003/"
+        }
+      ],
+      "exposure_conditions": [
+        "AMI MegaRAC SPx (MegaRAC-SPx) firmware in the 12.0-before-12.7 or 13.0-before-13.5 ranges",
+        "Redfish Host Interface reachable by a remote unauthenticated attacker"
+      ],
       "gaps": [],
-      "generated_at": "2026-07-29T08:52:36Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-09-29T16:10:28Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
-      "remediation_steps": [],
+      "remediation_steps": [
+        "Update AMI MegaRAC SPx to the vendor-listed fix versions SPx 12.7 or later (12.x) or SPx 13.5 (13.x).",
+        "For OEM/integrator BMC implementations (including listed NetApp StorageGRID models), obtain and apply the corresponding patched firmware from the hardware vendor.",
+        "If a patch is unavailable, apply mitigations per vendor instructions, follow applicable BOD 22-01 guidance for cloud services, or discontinue use of the product."
+      ],
       "retrieved_source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2024-54085",
-        "https://go.ami.com/hubfs/Security%20Advisories/2025/AMI-SA-2025003.pdf",
-        "https://security.netapp.com/advisory/",
-        "https://security.netapp.com/advisory/ntap-20240621-0003/",
-        "https://security.netapp.com/advisory/ntap-20250131-0003/",
-        "https://security.netapp.com/advisory/ntap-20240712-0001/",
-        "https://security.netapp.com/advisory/ntap-20240415-0013/",
-        "https://security.netapp.com/advisory/ntap-20240920-0003/",
-        "https://security.netapp.com/advisory/ntap-20241227-0001/",
-        "https://security.netapp.com/advisory/ntap-20240126-0001/",
-        "https://security.netapp.com/advisory/ntap-20240202-0002/",
-        "https://security.netapp.com/advisory/ntap-20240524-0002/",
-        "https://security.netapp.com/advisory/ntap-20240307-0012/",
-        "https://go.ami.com/hubfs/Security%20Advisories/2025/AMI-SA-2025004.pdf",
-        "https://go.ami.com/hubfs/Security%20Advisories/2025/AMI-SA-2025001.pdf",
-        "https://go.ami.com/hubfs/Security%20Advisories/2025/AMI-SA-2025005.pdf",
-        "https://go.ami.com/hubfs/Security%20Advisories/2025/AMI-SA-2025008.pdf",
-        "https://go.ami.com/hubfs/AMI_DCM_Free_Trial/DCM%206.0/Documentation/DCM_ReleaseNotes_6.0.0.pdf?hsLang=en",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=0",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=51",
-        "https://security.netapp.com/advisory/ntap-20250228-0002/",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A800&f%5B10%5D=vendor_project%3A893&f%5B11%5D=vendor_project%3A902&f%5B12%5D=vendor_project%3A904&f%5B13%5D=vendor_project%3A917&f%5B14%5D=vendor_project%3A923&f%5B15%5D=vendor_project%3A938&f%5B16%5D=vendor_project%3A948&f%5B17%5D=vendor_project%3A949&f%5B18%5D=vendor_project%3A1168&f%5B1%5D=vendor_project%3A808&f%5B2%5D=vendor_project%3A823&f%5B3%5D=vendor_project%3A837&f%5B4%5D=vendor_project%3A842&f%5B5%5D=vendor_project%3A845&f%5B6%5D=vendor_project%3A848&f%5B7%5D=vendor_project%3A870&f%5B8%5D=vendor_project%3A878&f%5B9%5D=vendor_project%3A886&page=1",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=23"
+        "https://nvd.nist.gov/vuln/detail/cve-2024-54085",
+        "https://nvd.nist.gov/nvd.cfm?cvename=CVE-2024-54085",
+        "https://nvd.nist.gov/nvd.cfm?cvename=CVE-2024-54000",
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-54021",
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-54015",
+        "https://nvd.nist.gov/nvd.cfm?cvename=CVE-2024-53685",
+        "https://nvd.nist.gov/vuln/detail/cve-2024-54485",
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-53985",
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-54015/change-record?changeRecordedOn=02/11/2025T06:15:15.227-0500",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2024-57885",
+        "https://security.netapp.com/advisory/ntap-20250328-0003/",
+        "https://arstechnica.com/security/2025/06/active-exploitation-of-ami-management-tool-imperils-thousands-of-servers/",
+        "https://www.cve.org/CVERecord?id=CVE-2024-54085",
+        "https://www.gigabyte.com/Support/Security/2273",
+        "https://secalerts.co/vulnerability/CVE-2024-54085",
+        "https://avd.aquasec.com/nvd/2024/cve-2024-54085/",
+        "https://dailysecurityreview.com/security-spotlight/critical-megarac-bug-lets-attackers-hijack-and-brick-servers/",
+        "https://www.broadcom.com/support/security-center/protection-bulletin/cve-2024-54085-ami-megarac-bmc-authentication-bypass-vulnerability",
+        "https://censys.com/advisory/cve-2024-54085/",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-25-135-07",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2024-54085",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-26-134-13",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?search_api_fulltext=Fortinet&field_date_added_wrapper=year&field_cve=&sort_by=field_date_added&items_per_page=20&url=",
+        "https://www.ami.com/megarac/"
       ],
       "schema_version": 2,
       "source_fingerprint": "5e9adfd8e14e51caeabaf7a88b58121bdfc4370baab7d9222eabd60a384e7da6",
       "source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2024-54085",
-        "https://go.ami.com/hubfs/Security%20Advisories/2025/AMI-SA-2025003.pdf"
+        "https://nvd.nist.gov/vuln/detail/cve-2024-54085",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2024-54085",
+        "https://security.netapp.com/advisory/ntap-20250328-0003/",
+        "https://www.cve.org/CVERecord?id=CVE-2024-54085"
       ],
-      "status": "insufficient_evidence",
+      "status": "complete",
       "uncertainty": [
-        "The reviewed AMI advisory specifies fixed versions but does not provide a detailed safe verification procedure, firmware package identifiers, or deployment-specific instructions. ([go.ami.com](https://go.ami.com/hubfs/Security%20Advisories/2025/AMI-SA-2025003.pdf?utm_source=openai))",
-        "The supplied record lists several NetApp appliance firmware CPEs, but the reviewed authoritative sources did not establish appliance-specific fixed releases for those products.",
-        "No independently verified mitigation was identified beyond applying the applicable vendor firmware fix."
+        "OEM and server-vendor firmware version strings and patch availability are not fully enumerated in the core AMI/NVD/CISA sources.",
+        "Some NetApp products that incorporate AMI MegaRAC are documented as not affected.",
+        "Whether the Redfish Host Interface is network-reachable depends on deployment and configuration.",
+        "In-the-wild exploitation details beyond the CISA KEV listing are not provided in the consulted sources."
       ],
-      "verification_steps": []
+      "verification_steps": [
+        "Obtain the running MegaRAC SPx or OEM BMC firmware version from the vendor-provided management interface, inventory records, or support documentation.",
+        "Compare that version to the AMI fix versions (12.7+ or 13.5) or the OEM published patched firmware version."
+      ]
     },
     "CVE-2024-55591": {
       "business_risk": "Critical, remotely exploitable authentication bypass allowing an unauthenticated attacker to obtain super-admin privileges, with potential for full confidentiality, integrity, and availability impact. The vulnerability is listed in CISA's Known Exploited Vulnerabilities catalog, indicating active exploitation risk and requiring expedited remediation.",
@@ -19642,6 +19910,57 @@
       ],
       "verification_steps": []
     },
+    "CVE-2024-7262": {
+      "business_risk": "No additional source-verified CVE-specific business impact was established.",
+      "claim_evidence": [],
+      "exposure_conditions": [],
+      "gaps": [],
+      "generated_at": "2026-09-29T16:20:01Z",
+      "model": "grok-4.6",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [],
+      "retrieved_source_urls": [
+        "https://www.cve.org/CVERecord?id=CVE-2024-7262",
+        "https://github.com/advisories/ghsa-p736-fp6q-qr5j",
+        "https://socradar.io/free-tools/cve-radar/CVE-2024-7262",
+        "https://www.cloudanix.com/vulndb/cve/CVE-2024-7262",
+        "https://www.cvedetails.com/cve/CVE-2024-7262/",
+        "https://www.wiz.io/vulnerability-database/cve/cve-2024-7262",
+        "https://osv.dev/vulnerability/CVE-2024-7262",
+        "https://www.incibe.es/incibe-cert/alerta-temprana/vulnerabilidades/cve-2024-7262",
+        "https://sara-open.sirp.io/kev/CVE-2024-7262",
+        "https://www.sentinelone.com/vulnerability-database/cve-2024-7262/",
+        "https://www.tenable.com/cve/CVE-2024-7262",
+        "https://app.opencve.io/cve/CVE-2024-7262",
+        "https://cvepremium.circl.lu/known-exploited-vulnerabilities-catalog/d5a88f2c-23b2-4110-a813-8c6267c63fe5",
+        "https://socradar.io/labs/app/cve-radar/CVE-2024-7262",
+        "https://eztoolset.com/south-korea-aligned-apt-used-a-one-click-wps-office-flaw-against-chinese-targets/",
+        "https://nvd.nist.gov/vuln/detail/cve-2024-7262",
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-20262",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-7262",
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-32962",
+        "https://nvd.nist.gov/vuln/detail/cve-2024-32662",
+        "https://ir.kingsoft.com/system/files-encrypted/nasdaq_kms/assets/2025/07/14/23-29-49/%E9%87%91%E5%B1%B1%E8%BB%9F%E4%BB%B6%E6%9C%89%E9%99%90%E5%85%AC%E5%8F%B82023%E5%B9%B4%E7%92%B0%E5%A2%83%E3%80%81%E7%A4%BE%E6%9C%83%E5%8F%8A%E7%AE%A1%E6%B2%BB%E5%A0%B1%E5%91%8A.pdf",
+        "https://www.wps.com/blog/best-spreadsheet-software-for-data-analysis/",
+        "https://ir.kingsoft.com/system/files-encrypted/nasdaq_kms/assets/2024/08/20/5-48-29/ANNOUNCEMENT%20OF%20THE%20RESULTS%20FOR%20THE%20THREE%20AND%20SIX%20MONTHS%20ENDED%2030%20JUNE%202024.pdf",
+        "https://www.wps.com/blog/how-to-safely-get-photoshop-for-free-on-windows-10/"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "8b45d0c86fc638dc3a22bf68907b582e81dbf2770d4c51d7da84a382f8264b65",
+      "source_urls": [
+        "https://www.cve.org/CVERecord?id=CVE-2024-7262"
+      ],
+      "status": "insufficient_evidence",
+      "uncertainty": [
+        "The URL tagged as vendor advisory is a 2024-04-22 feature changelog and does not mention CVE-2024-7262, security fixes, or version ranges",
+        "CNA CVE product status uses 12.2.0.13110 before 12.2.0.16412 while the CNA research write-up describes a March 2024 patch as 12.1.0.16412",
+        "CISA states it cannot confirm the effectiveness of patches",
+        "Silent vendor patches and subsequent CVE-2024-7263 mean a build that only addresses CVE-2024-7262 may remain exposed",
+        "No vendor CVE-specific bulletin with installation, version-identification, or verification instructions was located"
+      ],
+      "verification_steps": []
+    },
     "CVE-2024-7399": {
       "business_risk": "High to critical. Samsung MagicINFO 9 Server versions before 21.1050 are affected by a path-traversal vulnerability that can allow arbitrary file writes with system-level authority. The CVE is listed in CISA's Known Exploited Vulnerabilities Catalog, indicating active exploitation and requiring expedited remediation.",
       "claim_evidence": [
@@ -19798,189 +20117,185 @@
       ]
     },
     "CVE-2024-7971": {
-      "business_risk": "Critical browser compromise risk: CVE-2024-7971 is a remotely exploitable V8 type-confusion issue, and Microsoft documented in-the-wild exploitation leading to remote code execution. CISA lists it in the Known Exploited Vulnerabilities Catalog.",
+      "business_risk": "CISA KEV-listed critical type-confusion flaw in Chromium V8 enabling remote heap corruption when a user loads a crafted HTML page; it can affect Google Chrome and other Chromium-based browsers and has known in-the-wild exploitation.",
       "claim_evidence": [
         {
-          "claim": "Google Chrome is affected prior to version 128.0.6613.84; Microsoft Edge is affected prior to version 128.0.2739.42.",
+          "claim": "Google Chrome (Chromium V8)",
           "kind": "affected_product",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-7971"
+          "source_url": "https://nvd.nist.gov/vuln/detail/cve-2024-7971"
         },
         {
-          "claim": "The vulnerability affects Chromium versions prior to 128.0.6613.84 and is identified as a V8 type-confusion vulnerability.",
+          "claim": "Microsoft Edge (Chromium-based) ingests Chromium and was addressed in the corresponding Edge release",
+          "kind": "affected_product",
+          "source_url": "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2024-7971"
+        },
+        {
+          "claim": "Google Chrome prior to 128.0.6613.84 (NVD: up to excluding 128.0.6613.84)",
           "kind": "affected_version",
-          "source_url": "https://www.microsoft.com/en-us/security/blog/2024/08/30/north-korean-threat-actor-citrine-sleet-exploiting-chromium-zero-day/"
+          "source_url": "https://nvd.nist.gov/vuln/detail/cve-2024-7971"
         },
         {
-          "claim": "A remote attacker can exploit heap corruption through a crafted HTML page; observed exploitation involved attacker-controlled web content.",
+          "claim": "Type confusion in V8 allowed a remote attacker to exploit heap corruption via a crafted HTML page",
           "kind": "exposure",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-7971"
+          "source_url": "https://nvd.nist.gov/vuln/detail/cve-2024-7971"
         },
         {
-          "claim": "Microsoft observed exploitation of CVE-2024-7971 in the wild and assessed that exploitation could provide remote code execution in the Chromium renderer process.",
+          "claim": "Google Chromium V8 type confusion allowing a remote attacker to exploit heap corruption via a crafted HTML page; could affect Chrome, Edge, Opera and other Chromium browsers",
           "kind": "exposure",
-          "source_url": "https://www.microsoft.com/en-us/security/blog/2024/08/30/north-korean-threat-actor-citrine-sleet-exploiting-chromium-zero-day/"
+          "source_url": "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2024-7971"
         },
         {
-          "claim": "Google Chrome should be updated to 128.0.6613.84 or later.",
+          "claim": "Microsoft Edge Stable 128.0.2739.42 based on Chromium 128.0.6613.84/.85",
           "kind": "fixed_version",
-          "source_url": "https://www.microsoft.com/en-us/security/blog/2024/08/30/north-korean-threat-actor-citrine-sleet-exploiting-chromium-zero-day/"
+          "source_url": "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2024-7971"
         },
         {
-          "claim": "Microsoft Edge should be updated to 128.0.2739.42 or later; Microsoft lists that Edge release as containing a fix for CVE-2024-7971.",
-          "kind": "fixed_version",
-          "source_url": "https://learn.microsoft.com/en-us/deployedge/microsoft-edge-relnote-archive-stable-channel"
-        },
-        {
-          "claim": "CISA's required action for this known-exploited vulnerability is to apply vendor mitigations or discontinue use if mitigations are unavailable.",
+          "claim": "Apply mitigations per vendor instructions or discontinue use of the product if mitigations are unavailable",
           "kind": "remediation",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-7971"
+          "source_url": "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2024-7971"
         },
         {
-          "claim": "Vendor guidance provides concrete target versions for Chrome and Edge, supporting inert verification by checking installed browser versions against those thresholds.",
+          "claim": "In Microsoft Edge, use the three-dot menu > Help and feedback > About Microsoft Edge to view the version",
           "kind": "verification",
-          "source_url": "https://www.microsoft.com/en-us/security/blog/2024/08/30/north-korean-threat-actor-citrine-sleet-exploiting-chromium-zero-day/"
+          "source_url": "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2024-7971"
         }
       ],
       "exposure_conditions": [
-        "Google Chrome versions earlier than 128.0.6613.84 are affected.",
-        "Microsoft Edge versions earlier than 128.0.2739.42 are affected.",
-        "A user must load or interact with attacker-controlled web content; the vulnerability can be triggered through a crafted HTML page.",
-        "The issue is relevant to Chromium-based browsers that incorporate the affected V8 code, but other Chromium derivatives should be confirmed against their respective vendor advisories."
+        "A remote attacker can exploit heap corruption by causing a user to load a crafted HTML page.",
+        "User interaction is required (CVSS UI:R).",
+        "Unpatched Google Chrome prior to 128.0.6613.84 and Chromium-based browsers that have not ingested the corresponding Chromium fix are in scope."
       ],
       "gaps": [],
-      "generated_at": "2026-07-29T08:52:50Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-09-29T16:19:06Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [
-        "Update Google Chrome to version 128.0.6613.84 or later through the vendor-supported browser update process.",
-        "Update Microsoft Edge to version 128.0.2739.42 or later through the vendor-supported browser update process.",
-        "Prioritize remediation because the vulnerability is listed by CISA as actively exploited.",
-        "Until updates are confirmed, reduce exposure to untrusted websites and web content where operationally feasible; do not treat this as a substitute for patching.",
-        "For managed environments, confirm that browser update policies and software deployment controls have successfully delivered the fixed versions."
+        "Update Google Chrome to 128.0.6613.84 or later (Linux 128.0.6613.84; Windows/Mac 128.0.6613.84/.85).",
+        "Update Microsoft Edge (Chromium-based) to 128.0.2739.42 or later.",
+        "Apply vendor updates for other Chromium-based browsers per their advisories.",
+        "Follow CISA required action: apply mitigations per vendor instructions or discontinue use if mitigations are unavailable."
       ],
       "retrieved_source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2024-7971",
-        "https://learn.microsoft.com/en-us/deployedge/microsoft-edge-relnote-archive-stable-channel",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A799&f%5B10%5D=vendor_project%3A919&f%5B11%5D=vendor_project%3A920&f%5B12%5D=vendor_project%3A932&f%5B13%5D=vendor_project%3A943&f%5B14%5D=vendor_project%3A1168&f%5B1%5D=vendor_project%3A806&f%5B2%5D=vendor_project%3A814&f%5B3%5D=vendor_project%3A817&f%5B4%5D=vendor_project%3A828&f%5B5%5D=vendor_project%3A830&f%5B6%5D=vendor_project%3A842&f%5B7%5D=vendor_project%3A887&f%5B8%5D=vendor_project%3A897&f%5B9%5D=vendor_project%3A917&page=1",
-        "https://www.cisa.gov/news-events/alerts/2024/11/04/cisa-adds-two-known-exploited-vulnerabilities-catalog",
-        "https://learn.microsoft.com/en-us/deployedge/microsoft-edge-known-issues",
-        "https://learn.microsoft.com/en-us/deployedge/microsoft-edge-relnotes-security",
-        "https://www.cisa.gov/news-events/alerts/2024/04/24/cisco-releases-security-updates-addressing-arcanedoor-vulnerabilities-cisco-firewall-platforms",
-        "https://learn.microsoft.com/en-us/deployedge/microsoft-edge-release-schedule",
-        "https://www.cisa.gov/news-events/ics-advisories/icsa-24-205-03",
-        "https://learn.microsoft.com/en-us/answers/questions/2360079/keep-edge-up-to-date?page=63",
-        "https://learn.microsoft.com/en-sg/deployedge/microsoft-edge-relnote-archive-mobile-stable-channel",
-        "https://www.microsoft.com/en-us/security/blog/2024/08/30/north-korean-threat-actor-citrine-sleet-exploiting-chromium-zero-day/",
-        "https://www.cisa.gov/sites/default/files/2024-05/Secure_by_Design_Alert_Eliminating_Directory_Traversal_Vulnerabilities_in_Software_508c%20%283%29.pdf",
-        "https://www.cisa.gov/sites/default/files/2024-08/SECURING_THE_SOFTWARE_SUPPLY_CHAIN_RECOMMENDED_PRACTICES_FOR_SOFTWARE_BILL_OF_MATERIALS_CONSUMPTION-508.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/web-metrics/CISA.gov-Apr-2024-Web-Metrics-508.pdf",
-        "https://www.cisa.gov/sites/default/files/2025-09/AA25-266A_advisory_cisa_shares_lessons_learned_from_ir_engagement.pdf",
-        "https://www.cisa.gov/sites/default/files/2024-01/aa24-016a-known-indicators-of-compromise-associated-with-adroxgh0st-malware_0.pdf"
+        "https://nvd.nist.gov/vuln/detail/cve-2024-7971",
+        "https://www.cve.org/CVERecord?id=CVE-2024-7971",
+        "https://www.suse.com/security/cve/CVE-2024-7971.html",
+        "https://avd.aquasec.com/nvd/2024/cve-2024-7971/",
+        "https://ubuntu.com/security/CVE-2024-7971",
+        "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2024-7971",
+        "https://www.rapid7.com/db/vulnerabilities/cve-2024-7971/",
+        "https://security.alpinelinux.org/vuln/CVE-2024-7971",
+        "https://cvetodo.com/cve/CVE-2024-7971",
+        "https://secalerts.co/vulnerability/CVE-2024-7971",
+        "https://feedly.com/cve/CVE-2024-7971",
+        "https://socradar.io/free-tools/cve-radar/CVE-2024-7971",
+        "https://www.rapid7.com/db/vulnerabilities/google-chrome-cve-2024-7971/",
+        "https://www.mend.io/vulnerability-database/CVE-2024-7971/",
+        "https://app.opencve.io/cve/CVE-2024-7971",
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-7871",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-49771",
+        "https://nvd.nist.gov/vuln/detail/cve-2024-4741",
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-39371",
+        "https://chromereleases.googleblog.com/2024/08/stable-channel-update-for-desktop_21.html?m=1",
+        "https://chromereleases.googleblog.com/search/label/Flex",
+        "https://chromereleases.googleblog.com/",
+        "https://chromereleases.googleblog.com/search/label/Stable%20updates%2BChrome%20for%20Android",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2024-7971"
       ],
       "schema_version": 2,
       "source_fingerprint": "ccf9487656642c587dc60f513b30c35a88197beea3ec6b805c34c4e282b9844c",
       "source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2024-7971",
-        "https://www.microsoft.com/en-us/security/blog/2024/08/30/north-korean-threat-actor-citrine-sleet-exploiting-chromium-zero-day/",
-        "https://learn.microsoft.com/en-us/deployedge/microsoft-edge-relnote-archive-stable-channel"
+        "https://nvd.nist.gov/vuln/detail/cve-2024-7971",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2024-7971",
+        "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2024-7971"
       ],
       "status": "complete",
       "uncertainty": [
-        "The authoritative sources establish fixed versions for Google Chrome and Microsoft Edge, but do not provide a universal fixed-version mapping for every Chromium-derived browser.",
-        "The sources do not establish that version-only verification proves successful deployment across all user profiles, portable installations, or unmanaged endpoints.",
-        "No product-specific mitigation is provided that can safely replace updating the affected browser."
+        "Consulted vendor notes emphasize desktop Chrome 128.0.6613.84/.85; equivalent Android, ChromeOS, or third-party Chromium distribution versions are not specified in those sources.",
+        "CISA states the issue could affect additional Chromium-based browsers such as Opera without listing product-specific fixed versions."
       ],
       "verification_steps": [
-        "Use the browser's built-in About/version interface or an approved software inventory tool to confirm Google Chrome is at least 128.0.6613.84.",
-        "Use the browser's built-in About/version interface or an approved software inventory tool to confirm Microsoft Edge is at least 128.0.2739.42.",
-        "Re-scan affected assets after deployment and verify that no installed browser instances remain below the applicable fixed version.",
-        "Review browser and endpoint security telemetry for exploitation-related activity if vulnerable versions were present during the period of known exploitation."
+        "Confirm the installed version meets or exceeds the vendor-published fixed version by inspecting the version shown in the browser About or Help dialog (Microsoft documents Help and feedback > About Microsoft Edge for Edge 128.0.2739.42 or later)."
       ]
     },
     "CVE-2024-8956": {
-      "business_risk": "Critical remote, unauthenticated attackers may access sensitive camera information, including usernames, password hashes, and configuration data, and may modify configuration values or overwrite the configuration file. CISA lists CVE-2024-8956 in the Known Exploited Vulnerabilities Catalog, indicating active exploitation and requiring prioritized remediation.",
+      "business_risk": "CISA KEV-listed critical authentication bypass on network-reachable PTZOptics PT30X-SDI/NDI cameras allows unauthenticated disclosure and modification of configuration, including credential material, and can be chained with CVE-2024-8957 to root-level remote code execution.",
       "claim_evidence": [
         {
-          "claim": "NVD identifies PTZOptics PT30X-SDI firmware and PTZOptics PT30X-NDI-xx-G2 firmware as affected product configurations.",
-          "kind": "affected_product",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-8956"
-        },
-        {
-          "claim": "Firmware versions before 6.3.40 are affected.",
-          "kind": "affected_version",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-8956"
-        },
-        {
-          "claim": "The vulnerability is remotely exploitable without authentication when requests reach /cgi-bin/param.cgi without an HTTP Authorization header; it can expose sensitive data and permit configuration modification.",
-          "kind": "exposure",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-8956"
-        },
-        {
-          "claim": "NVD defines the affected range as versions up to, but excluding, 6.3.40.",
+          "claim": "Vendor firmware changelog for SOC ver 6.3.40 dated 9/17/2024 added HTTP Authentication in System Settings, implemented Digest Authentication, and included general security fixes.",
           "kind": "fixed_version",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-8956"
+          "source_url": "https://ptzoptics.com/firmware-changelog/"
         },
         {
-          "claim": "CISA recommends applying vendor mitigations or discontinuing use when mitigations are unavailable, and lists CVE-2024-8956 as a known exploited vulnerability.",
+          "claim": "PTZOptics states it enforced authentication across API routes and produced firmware updates; customers should update firmware, including G2 PT30X-SDI/NDI-xx.",
           "kind": "remediation",
-          "source_url": "https://www.cisa.gov/news-events/alerts/2024/11/04/cisa-adds-two-known-exploited-vulnerabilities-catalog"
+          "source_url": "https://ptzoptics.com/known-vulnerabilities-and-fixes/"
+        },
+        {
+          "claim": "Confirm the camera is running firmware 6.3.40 or later and that the HTTP Authentication option added in 6.3.40 is present and enabled in System Settings.",
+          "kind": "verification",
+          "source_url": "https://ptzoptics.com/firmware-changelog/"
         }
       ],
       "exposure_conditions": [
-        "PTZOptics PT30X-SDI or PT30X-NDI/NDI-xx camera firmware earlier than 6.3.40 is installed.",
-        "The camera management interface is reachable by an attacker over the network.",
-        "Requests can reach /cgi-bin/param.cgi without an HTTP Authorization header, allowing authentication enforcement to be bypassed."
+        "PTZOptics PT30X-SDI or PT30X-NDI-xx-G2 cameras running firmware before 6.3.40",
+        "Camera HTTP management or API reachable by an untrusted network path",
+        "Authentication not enforced for /cgi-bin/param.cgi when requests omit an HTTP Authorization header"
       ],
       "gaps": [],
-      "generated_at": "2026-07-25T21:34:28Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-09-29T16:17:24Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [
-        "Upgrade affected PTZOptics PT30X-SDI and PT30X-NDI/NDI-xx cameras to firmware 6.3.40 or later.",
-        "After upgrading, enable the camera's HTTP Authentication option in System Settings and use the implemented Digest Authentication mechanism.",
-        "Until firmware remediation is complete, restrict network access to the camera management interface to trusted administrative networks and prevent exposure to untrusted or Internet-accessible networks.",
-        "If the vendor-supported firmware cannot be applied, follow CISA guidance to apply vendor mitigations or discontinue use of the affected product."
+        "Update affected PT30X-SDI and PT30X-NDI-xx-G2 cameras to firmware 6.3.40 or later using PTZOptics firmware guidance.",
+        "Apply the SKU-specific CVE/PSTI approved firmware listed on the vendor known-vulnerabilities page; for PT30X-SDI/NDI-xx the vendor later lists 6.3.43 as approved.",
+        "Keep the HTTP Authentication control introduced in 6.3.40 enabled in System Settings so API routes remain authenticated.",
+        "If vendor mitigations cannot be applied, discontinue use of the product per the CISA KEV required action."
       ],
       "retrieved_source_urls": [
         "https://nvd.nist.gov/vuln/detail/CVE-2024-8956",
-        "https://www.cisa.gov/news-events/alerts/2024/11/04/cisa-adds-two-known-exploited-vulnerabilities-catalog",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=0",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?_cldee=jpUNG-sft0Lr74jsazzEoZ17jTSFEy6lQDvCJArCUYT0C1B4SWuT29F0dx7GSSfN&esid=f8736f67-efb4-ec11-983e-000d3a5a7186&f%5B0%5D=vendor_project%3A813&f%5B1%5D=vendor_project%3A829&f%5B2%5D=vendor_project%3A849&f%5B3%5D=vendor_project%3A911&f%5B4%5D=vendor_project%3A1320&page=1&recipientid=contact-41de9e007aace811a963000d3a363879-a794569726594743b07ecd7aaff0e97c",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=24",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A800&f%5B10%5D=vendor_project%3A863&f%5B11%5D=vendor_project%3A872&f%5B12%5D=vendor_project%3A875&f%5B13%5D=vendor_project%3A886&f%5B14%5D=vendor_project%3A893&f%5B15%5D=vendor_project%3A908&f%5B16%5D=vendor_project%3A912&f%5B17%5D=vendor_project%3A917&f%5B18%5D=vendor_project%3A932&f%5B19%5D=vendor_project%3A938&f%5B1%5D=vendor_project%3A801&f%5B20%5D=vendor_project%3A949&f%5B21%5D=vendor_project%3A1005&f%5B22%5D=vendor_project%3A1147&f%5B23%5D=vendor_project%3A1267&f%5B2%5D=vendor_project%3A817&f%5B3%5D=vendor_project%3A823&f%5B4%5D=vendor_project%3A830&f%5B5%5D=vendor_project%3A834&f%5B6%5D=vendor_project%3A837&f%5B7%5D=vendor_project%3A840&f%5B8%5D=vendor_project%3A842&f%5B9%5D=vendor_project%3A854&page=1",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A800&f%5B10%5D=vendor_project%3A851&f%5B11%5D=vendor_project%3A854&f%5B12%5D=vendor_project%3A857&f%5B13%5D=vendor_project%3A886&f%5B14%5D=vendor_project%3A893&f%5B15%5D=vendor_project%3A901&f%5B16%5D=vendor_project%3A902&f%5B17%5D=vendor_project%3A908&f%5B18%5D=vendor_project%3A917&f%5B19%5D=vendor_project%3A925&f%5B1%5D=vendor_project%3A801&f%5B20%5D=vendor_project%3A938&f%5B21%5D=vendor_project%3A1266&f%5B2%5D=vendor_project%3A809&f%5B3%5D=vendor_project%3A820&f%5B4%5D=vendor_project%3A823&f%5B5%5D=vendor_project%3A837&f%5B6%5D=vendor_project%3A842&f%5B7%5D=vendor_project%3A845&f%5B8%5D=vendor_project%3A846&f%5B9%5D=vendor_project%3A849&page=0",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A800&f%5B10%5D=vendor_project%3A867&f%5B11%5D=vendor_project%3A875&f%5B12%5D=vendor_project%3A886&f%5B13%5D=vendor_project%3A888&f%5B14%5D=vendor_project%3A893&f%5B15%5D=vendor_project%3A902&f%5B16%5D=vendor_project%3A905&f%5B17%5D=vendor_project%3A917&f%5B18%5D=vendor_project%3A932&f%5B19%5D=vendor_project%3A938&f%5B1%5D=vendor_project%3A801&f%5B20%5D=vendor_project%3A949&f%5B21%5D=vendor_project%3A1147&f%5B22%5D=vendor_project%3A1267&f%5B2%5D=vendor_project%3A802&f%5B3%5D=vendor_project%3A817&f%5B4%5D=vendor_project%3A819&f%5B5%5D=vendor_project%3A827&f%5B6%5D=vendor_project%3A837&f%5B7%5D=vendor_project%3A840&f%5B8%5D=vendor_project%3A854&f%5B9%5D=vendor_project%3A859&page=1",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=16",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A801&f%5B10%5D=vendor_project%3A860&f%5B11%5D=vendor_project%3A877&f%5B12%5D=vendor_project%3A888&f%5B13%5D=vendor_project%3A890&f%5B14%5D=vendor_project%3A895&f%5B15%5D=vendor_project%3A913&f%5B16%5D=vendor_project%3A919&f%5B17%5D=vendor_project%3A942&f%5B18%5D=vendor_project%3A1284&f%5B1%5D=vendor_project%3A804&f%5B2%5D=vendor_project%3A811&f%5B3%5D=vendor_project%3A814&f%5B4%5D=vendor_project%3A821&f%5B5%5D=vendor_project%3A822&f%5B6%5D=vendor_project%3A826&f%5B7%5D=vendor_project%3A829&f%5B8%5D=vendor_project%3A830&f%5B9%5D=vendor_project%3A857&page=2",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A800&f%5B10%5D=vendor_project%3A854&f%5B11%5D=vendor_project%3A859&f%5B12%5D=vendor_project%3A886&f%5B13%5D=vendor_project%3A893&f%5B14%5D=vendor_project%3A897&f%5B15%5D=vendor_project%3A902&f%5B16%5D=vendor_project%3A917&f%5B17%5D=vendor_project%3A922&f%5B18%5D=vendor_project%3A939&f%5B19%5D=vendor_project%3A942&f%5B1%5D=vendor_project%3A801&f%5B20%5D=vendor_project%3A955&f%5B21%5D=vendor_project%3A1147&f%5B22%5D=vendor_project%3A1172&f%5B23%5D=vendor_project%3A1267&f%5B2%5D=vendor_project%3A810&f%5B3%5D=vendor_project%3A817&f%5B4%5D=vendor_project%3A823&f%5B5%5D=vendor_project%3A827&f%5B6%5D=vendor_project%3A837&f%5B7%5D=vendor_project%3A842&f%5B8%5D=vendor_project%3A845&f%5B9%5D=vendor_project%3A852&page=1",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=17",
-        "https://www.cisa.gov/sites/default/files/2024-05/Secure_by_Design_Alert_Eliminating_Directory_Traversal_Vulnerabilities_in_Software_508c%20%283%29.pdf",
-        "https://www.cisa.gov/sites/default/files/2024-08/SECURING_THE_SOFTWARE_SUPPLY_CHAIN_RECOMMENDED_PRACTICES_FOR_SOFTWARE_BILL_OF_MATERIALS_CONSUMPTION-508.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/web-metrics/CISA.gov-Apr-2024-Web-Metrics-508.pdf",
-        "https://www.cisa.gov/sites/default/files/2025-08/CSA_COUNTERING_CHINA_STATE_ACTORS_COMPROMISE_OF_NETWORKS.pdf",
-        "https://www.cisa.gov/sites/default/files/2025-09/AA25-266A_advisory_cisa_shares_lessons_learned_from_ir_engagement.pdf"
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2026-8956",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-8956",
+        "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2026-89596",
+        "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2026-89557",
+        "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-48956",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2026-45856",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2026-31456",
+        "https://nvd.nist.gov/vuln/detail/cve-2024-28956",
+        "https://nvd.nist.gov/vuln/detail/CVE-2018-8956",
+        "https://ptzoptics.com/known-vulnerabilities-and-fixes/",
+        "https://ptzoptics.com/visual-reasoning-ai-teaching-ptzoptics-cameras-to-understand-what-they-see",
+        "https://ptzoptics.com/wp-content/uploads/2023/08/Flag-Football-Case-Study.pdf",
+        "https://community.ptzoptics.com/s/article/PTZOptics-Third-Generation-Camera-Network-Setup-Guide",
+        "https://ptzoptics.com/firmware-changelog/",
+        "https://ptzoptics.com/category/ise/",
+        "https://ptzoptics.com/category/remote-production/",
+        "https://ptzoptics.com/wp-content/uploads/2026/04/PTZOptics-and-HuddleCamHD-Warranty-Statement-3.6.2026-2.pdf",
+        "https://ptzoptics.com/wp-content/uploads/2020/11/RADIO-BROADCAST-SETUP-NDI.pdf",
+        "https://community.ptzoptics.com/s/article/I-have-a-HuddleCamHD-camera-and-need-help-setting-it-up",
+        "https://www.cisa.gov/news-events/bulletins/sb26-166",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-25-226-07",
+        "https://www.cisa.gov/news-events/bulletins/sb26-257",
+        "https://www.cisa.gov/news-events/bulletins/sb26-201"
       ],
       "schema_version": 2,
       "source_fingerprint": "c44abd4ce33a6b7f128f1073d6f4af3ea234b824724a7edc48511408a5659c3f",
       "source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2024-8956",
-        "https://www.cisa.gov/news-events/alerts/2024/11/04/cisa-adds-two-known-exploited-vulnerabilities-catalog"
+        "https://ptzoptics.com/firmware-changelog/",
+        "https://ptzoptics.com/known-vulnerabilities-and-fixes/"
       ],
       "status": "complete",
       "uncertainty": [
-        "The vendor changelog documents security changes in firmware 6.3.40 but does not explicitly identify CVE-2024-8956 by number; the fixed-version association is established by NVD's affected-version range and linked vendor release notes.",
-        "The sources do not provide a vendor-specific compromise-assessment procedure or forensic indicators for this CVE.",
-        "The exact support status and upgrade path for every PT30X hardware revision is not established by the returned sources."
+        "The CNA advisory also mentions unspecified white-label ValueHD-based equipment without concrete version mapping.",
+        "The vendor Q1 2025 table covers additional SKUs and later approved builds; this CVE’s CNA fixed line remains 6.3.40.",
+        "Firmware 6.3.40 describes HTTP Authentication as a System Settings option; residual exposure if that control is later disabled is not fully specified in the CNA record.",
+        "The NVD detail page did not return usable content in this session; product and version facts are taken from the CNA/CVE record, vendor pages, and CISA KEV."
       ],
       "verification_steps": [
-        "Using the normal administrative interface, confirm that the installed firmware version is 6.3.40 or later.",
-        "Confirm in System Settings that HTTP Authentication is enabled and that Digest Authentication is implemented for the camera API.",
-        "Review network access controls to confirm that the camera management interface is not reachable from untrusted or unnecessary networks.",
-        "Do not treat version or configuration review alone as proof that historical compromise did not occur; review relevant device and network logs separately if available."
+        "Using the camera management interface only, confirm the installed firmware version is 6.3.40 or later.",
+        "In System Settings, confirm HTTP Authentication remains enabled as described in the 6.3.40 firmware changelog.",
+        "Compare the device SKU and firmware against the vendor known-vulnerabilities firmware table."
       ]
     },
     "CVE-2024-8963": {
@@ -20238,6 +20553,97 @@
         "Record the installed product and exact version from a trusted local product-information interface or software inventory.",
         "Confirm that Firefox is at least 131.0.2, Firefox ESR is at least 128.3.1 or 115.16.1 for the applicable branch, and Thunderbird is at least 131.0.1, 128.3.1, or 115.16.0 for the applicable branch.",
         "Recheck inventory after the update to ensure the vulnerable version is no longer present. Do not attempt exploit-based validation."
+      ]
+    },
+    "CVE-2025-0108": {
+      "business_risk": "Authentication bypass (CWE-306) in the PAN-OS management web interface lets an unauthenticated network attacker invoke certain PHP scripts, with high impact to confidentiality and integrity (no RCE by itself). The issue is actively exploited, listed in CISA KEV (added 2025-02-18), and is highest-risk when the management interface is reachable from the internet or untrusted networks.",
+      "claim_evidence": [
+        {
+          "claim": "Palo Alto Networks PAN-OS is affected; Cloud NGFW and Prisma Access software are not affected.",
+          "kind": "affected_product",
+          "source_url": "https://security.paloaltonetworks.com/CVE-2025-0108"
+        },
+        {
+          "claim": "Affected: PAN-OS 11.2 < 11.2.4-h4 and < 11.2.5; PAN-OS 11.1 < 11.1.2-h18, < 11.1.4-h13 and < 11.1.6-h1; PAN-OS 10.2 < 10.2.7-h24, < 10.2.8-h21, < 10.2.9-h21, < 10.2.10-h14, < 10.2.11-h12, < 10.2.12-h6 and < 10.2.13-h3; PAN-OS 10.1 < 10.1.14-h9. PAN-OS 11.0 and older EoL releases are presumed affected.",
+          "kind": "affected_version",
+          "source_url": "https://security.paloaltonetworks.com/CVE-2025-0108"
+        },
+        {
+          "claim": "An unauthenticated attacker with network access to the management web interface can bypass authentication and invoke certain PHP scripts. Risk is greatest if the management interface is reachable from the internet or an untrusted network (directly or via a dataplane interface with a management profile).",
+          "kind": "exposure",
+          "source_url": "https://security.paloaltonetworks.com/CVE-2025-0108"
+        },
+        {
+          "claim": "Unaffected/fixed: PAN-OS 10.1.14-h9 or later; PAN-OS 10.2.7-h24, 10.2.8-h21, 10.2.9-h21, 10.2.10-h14, 10.2.11-h12, 10.2.12-h6, 10.2.13-h3 or later; PAN-OS 11.1.2-h18, 11.1.4-h13, 11.1.6-h1 or later; PAN-OS 11.2.4-h4 or 11.2.5 or later.",
+          "kind": "fixed_version",
+          "source_url": "https://security.paloaltonetworks.com/CVE-2025-0108"
+        },
+        {
+          "claim": "Upgrade to the listed fixed versions. Restrict management interface access to trusted internal IP addresses using the vendor critical deployment guidelines. Threat Prevention customers can enable Threat IDs 510000 and 510001 (content version 8943).",
+          "kind": "remediation",
+          "source_url": "https://security.paloaltonetworks.com/CVE-2025-0108"
+        },
+        {
+          "claim": "Use the Customer Support Portal Assets → Remediation Required list to identify internet-facing management interfaces. Confirm the installed PAN-OS version is one of the advisory's unaffected versions and that management access is limited to trusted internal addresses.",
+          "kind": "verification",
+          "source_url": "https://security.paloaltonetworks.com/CVE-2025-0108"
+        }
+      ],
+      "exposure_conditions": [
+        "An unauthenticated attacker has network access to the PAN-OS management web interface",
+        "Management interface access is enabled from the internet or any untrusted network, either directly or through a dataplane interface that has a management profile",
+        "A management profile is configured on an interface that also hosts GlobalProtect portals or gateways (typically exposing the management web interface on port 4443)",
+        "The device runs an affected PAN-OS version (including presumed-affected EoL releases) and has not been upgraded to a listed fixed hotfix"
+      ],
+      "gaps": [],
+      "generated_at": "2026-09-29T16:12:05Z",
+      "model": "grok-4.6",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "specific",
+      "remediation_steps": [
+        "Upgrade to a vendor-listed fixed version for the installed PAN-OS branch (for example 10.1.14-h9 or later, 10.2.13-h3 or the listed 10.2.x hotfixes, 11.1.6-h1 or the listed 11.1.x hotfixes, 11.2.4-h4 or 11.2.5 or later)",
+        "Restrict management web interface access to only trusted internal IP addresses per Palo Alto Networks critical deployment guidelines",
+        "If a Threat Prevention subscription is present, enable Threat IDs 510000 and 510001 after Applications and Threats content version 8943",
+        "For end-of-life PAN-OS versions (11.0, 10.0, 9.1, 9.0 and older), upgrade to a currently supported fixed version"
+      ],
+      "retrieved_source_urls": [
+        "https://security.paloaltonetworks.com/CVE-2025-0108",
+        "https://security.paloaltonetworks.com/?version=PAN-OS+11.1.6&product=PAN-OS&sort=-date",
+        "https://security.paloaltonetworks.com/csv?sort=-date&limit=300",
+        "https://security.paloaltonetworks.com/?product=PAN-OS&sort=-cvss&version=PAN-OS+10.2.8",
+        "https://security.paloaltonetworks.com/PAN-SA-2025-0001",
+        "https://security.paloaltonetworks.com/PAN-SA-2026-0010",
+        "https://nvd.nist.gov/nvd.cfm?cvename=CVE-2025-0108",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-0108/change-record?changeRecordedOn=04%2F17%2F2025T14%3A30%3A29.477-0400",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-0107",
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-0108",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-10108",
+        "https://www.cisa.gov/news-events/alerts/2025/12/08/cisa-adds-two-known-exploited-vulnerabilities-catalog",
+        "https://www.cisa.gov/news-events/bulletins/sb25-230",
+        "https://www.cisa.gov/news-events/alerts/2025/11/14/fortinet-releases-security-advisory-relative-path-traversal-vulnerability-affecting-fortiweb",
+        "https://www.cisa.gov/news-events/bulletins/sb25-342",
+        "https://www.cisa.gov/news-events/bulletins/sb25-328",
+        "https://www.cve.org/CVERecord?id=CVE-2025-0108",
+        "https://www.csirt.cy/images/upload/CVEs_pdf_2025/CVE-2025-0108.pdf",
+        "https://stack.watch/vuln/CVE-2025-0108/",
+        "https://arcticwolf.com/resources/blog/cve-2025-0108/"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "b9e1dabc58d73493a4a60da2602e6229e98ea6bb93db62772c43369af4a9639e",
+      "source_urls": [
+        "https://security.paloaltonetworks.com/CVE-2025-0108",
+        "https://www.cve.org/CVERecord?id=CVE-2025-0108"
+      ],
+      "status": "complete",
+      "uncertainty": [
+        "NVD HTML content was not fully retrieved in this session; version and CPE details are taken from the CNA vendor advisory",
+        "Which hotfix applies depends on the exact installed minor version (multiple 10.2.x and 11.1.x hotfixes are listed)",
+        "EoL PAN-OS releases are presumed affected with no planned vendor fixes"
+      ],
+      "verification_steps": [
+        "In the Palo Alto Networks Customer Support Portal, open Products → Assets → All Assets → Remediation Required and review devices tagged as having an internet-facing management interface",
+        "Compare the running PAN-OS software version to the unaffected versions published in the vendor advisory",
+        "Confirm that only trusted internal IP addresses are permitted to reach the management web interface"
       ]
     },
     "CVE-2025-0282": {
@@ -21369,100 +21775,75 @@
       ]
     },
     "CVE-2025-22224": {
-      "business_risk": "Critical host-escape risk: a malicious actor with local administrative privileges inside a guest virtual machine may exploit the TOCTOU flaw to execute code as the VMX process on the ESXi or Workstation host. Broadcom states it has information suggesting exploitation occurred in the wild, and NVD records the CVE in CISA's Known Exploited Vulnerabilities catalog.",
+      "business_risk": "Critical guest-to-host VM escape: an attacker with local administrative privileges inside a virtual machine can execute code as the VMX process on the ESXi or Workstation host. The issue is known to be exploited in the wild and is listed in the CISA Known Exploited Vulnerabilities catalog.",
       "claim_evidence": [
         {
-          "claim": "VMware ESXi 7.0 and 8.0, VMware Workstation 17.x, VMware Cloud Foundation 5.x and 4.5.x, VMware Telco Cloud Platform 5.x through 2.x, and VMware Telco Cloud Infrastructure 3.x and 2.x are identified as affected in the vendor advisory or NVD record.",
-          "kind": "affected_product",
-          "source_url": "https://support.broadcom.com/web/ecx/support-content-notification/-/external/content/SecurityAdvisories/0/25390"
-        },
-        {
-          "claim": "The vendor response matrix identifies ESXi 8.0, ESXi 7.0, and Workstation 17.x as affected product lines, with additional affected Cloud Foundation and Telco Cloud product lines.",
+          "claim": "Affected 8.0 < ESXi80U3d-24585383; Affected 8.0 < ESXi80U2d-24585300; Affected 7.0 < ESXi70U3s-24585291; Workstation Affected 17.x < 17.6.3",
           "kind": "affected_version",
-          "source_url": "https://support.broadcom.com/web/ecx/support-content-notification/-/external/content/SecurityAdvisories/0/25390"
-        },
-        {
-          "claim": "A malicious actor with local administrative privileges on a virtual machine may exploit the TOCTOU vulnerability to execute code as the VMX process running on the host.",
-          "kind": "exposure",
-          "source_url": "https://support.broadcom.com/web/ecx/support-content-notification/-/external/content/SecurityAdvisories/0/25390"
-        },
-        {
-          "claim": "Broadcom lists ESXi80U3d-24585383 and ESXi80U2d-24585300 as fixed versions for ESXi 8.0, ESXi70U3s-24585291 for ESXi 7.0, and 17.6.3 for VMware Workstation 17.x.",
-          "kind": "fixed_version",
-          "source_url": "https://support.broadcom.com/web/ecx/support-content-notification/-/external/content/SecurityAdvisories/0/25390"
-        },
-        {
-          "claim": "Broadcom directs administrators to apply the patches in the Response Matrix and states that no workaround is available for CVE-2025-22224.",
-          "kind": "remediation",
-          "source_url": "https://support.broadcom.com/web/ecx/support-content-notification/-/external/content/SecurityAdvisories/0/25390"
-        },
-        {
-          "claim": "Installed versions can be checked against the vendor's published fixed ESXi builds and Workstation 17.6.3 remediation target; Cloud Foundation and Telco Cloud deployments require confirmation of the referenced asynchronous or product-specific patch.",
-          "kind": "verification",
-          "source_url": "https://support.broadcom.com/web/ecx/support-content-notification/-/external/content/SecurityAdvisories/0/25390"
-        },
-        {
-          "claim": "NVD identifies CVE-2025-22224 as a TOCTOU vulnerability affecting VMware ESXi and Workstation and records it in CISA's Known Exploited Vulnerabilities catalog.",
-          "kind": "exposure",
           "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-22224"
         }
       ],
       "exposure_conditions": [
-        "VMware ESXi 7.0 or 8.0 is below the applicable vendor build listed as fixed.",
-        "VMware Workstation 17.x is below version 17.6.3 on Windows or Linux.",
-        "An attacker has local administrative privileges within a virtual machine.",
-        "VMware Cloud Foundation, Telco Cloud Platform, or Telco Cloud Infrastructure includes an affected ESXi or platform component and has not received the applicable asynchronous or product-specific patch."
+        "A malicious actor already has local administrative privileges on a guest virtual machine.",
+        "The host runs VMware ESXi 7.0 or 8.0, VMware Workstation 17.x, or an embedding product (Cloud Foundation or Telco Cloud) that includes an affected ESXi build.",
+        "No vendor workarounds are documented."
       ],
       "gaps": [],
-      "generated_at": "2026-07-25T21:31:36Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-09-29T16:11:23Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [
-        "Prioritize remediation because the vulnerability is rated critical and is listed in CISA's Known Exploited Vulnerabilities catalog.",
-        "For ESXi 8.0, update to ESXi80U3d-24585383 or ESXi80U2d-24585300, as applicable to the installed update line.",
-        "For ESXi 7.0, update to ESXi70U3s-24585291.",
-        "For VMware Workstation 17.x, update to version 17.6.3 or later.",
-        "For VMware Cloud Foundation 5.x, apply the asynchronous patch based on ESXi80U3d-24585383; for 4.5.x, apply the asynchronous patch based on ESXi70U3s-24585291, following Broadcom's asynchronous patching guidance.",
-        "For VMware Telco Cloud Platform and Telco Cloud Infrastructure, apply the product-specific remediation identified in Broadcom KB389385.",
-        "Broadcom lists no workaround for this CVE; if the applicable remediation cannot be applied, follow organizational risk-acceptance or product-discontinuation procedures."
+        "Apply the patches listed in the Fixed Version column of the VMSA-2025-0004 Response Matrix for the installed product.",
+        "For ESXi 8.0, install ESXi80U3d-24585383 or ESXi80U2d-24585300 as applicable to the running update stream.",
+        "For ESXi 7.0, install ESXi70U3s-24585291.",
+        "For Workstation 17.x, upgrade to 17.6.3.",
+        "For VMware Cloud Foundation 5.x and 4.5.x, apply the asynchronous ESXi patch described in the advisory.",
+        "For Telco Cloud Platform and Telco Cloud Infrastructure, follow the product-specific guidance in the advisory.",
+        "If vendor patches cannot be applied, discontinue use of the product per CISA KEV required action. No workarounds are available."
       ],
       "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-22224/change-record?changeRecordedOn=03/05/2025T11:18:36.103-0500",
         "https://nvd.nist.gov/vuln/detail/CVE-2025-22224",
-        "https://nvd.nist.gov/vuln/detail/CVE-2025-20224",
-        "https://support.broadcom.com/web/ecx/support-content-notification/-/external/content/SecurityAdvisories/0/25390",
-        "https://www.cisa.gov/news-events/alerts/2025/07/28/cisa-adds-three-known-exploited-vulnerabilities-catalog",
-        "https://nvd.nist.gov/vuln/detail/CVE-2024-2224",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=0",
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-22224",
-        "https://nvd.nist.gov/vuln/detail/cve-2024-2224",
-        "https://nvd.nist.gov/vuln/detail/CVE-2024-22274",
-        "https://nvd.nist.gov/vuln/detail/cve-2022-22224",
-        "https://nvd.nist.gov/vuln/detail/CVE-2025-24224",
+        "https://nvd.nist.gov/vuln/search?cpeFilterMode=cpe&cpeName=cpe:2.3:a:vmware:workstation:17.5.0:*:*:*:*:*:*:*&resultType=records",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-0224",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-22233",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-21824",
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-22224/change-record?changeRecordedOn=10/20/2022T16:08:09.737-0400",
+        "https://nvd.nist.gov/vuln/detail/cve-2025-21224",
         "https://nvd.nist.gov/vuln/detail/CVE-2025-22024",
-        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
-        "https://www.cisa.gov/sites/default/files/2024-10/24_0424_NECP_Webinar_MFA_Slide_Presentation_24_1015_508C.pdf",
-        "https://www.cisa.gov/sites/default/files/2025-09/AA25-266A_advisory_cisa_shares_lessons_learned_from_ir_engagement.pdf",
-        "https://www.cisa.gov/sites/default/files/2025-08/CSA_COUNTERING_CHINA_STATE_ACTORS_COMPROMISE_OF_NETWORKS.pdf",
-        "https://www.cisa.gov/sites/default/files/2024-05/Secure_by_Design_Alert_Eliminating_Directory_Traversal_Vulnerabilities_in_Software_508c%20%283%29.pdf"
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-22422",
+        "https://support.broadcom.com/web/ecx/support-content-notification/-/external/content/SecurityAdvisories/VMSA-2025-0004--VMware-ESXi--Workstation--and-Fusion-updates-address-multiple-vulnerabilities--CVE-2025-22224--CVE-2025-22225--CVE-2025-22226-/25390",
+        "https://support.broadcom.com/web/ecx/support-content-notification/-/external/content/SecurityAdvisories/0/36320",
+        "https://support.broadcom.com/web/ecx/support-content-notification/-/external/content/SecurityAdvisories/0/25312",
+        "https://support.broadcom.com/web/ecx/support-content-notification/-/external/content/SecurityAdvisories/0/25329",
+        "https://support.broadcom.com/web/ecx/support-content-notification/-/external/content/SecurityAdvisories/0/37260",
+        "https://support.broadcom.com/web/ecx/support-content-notification/-/external/content/SecurityAdvisories/0/35972",
+        "https://support.broadcom.com/web/ecx/support-content-notification/-/external/content/SecurityAdvisories/0/35969",
+        "https://support.broadcom.com/web/ecx/support-content-notification/-/external/content/SecurityAdvisories/0/25738",
+        "https://support.broadcom.com/web/ecx/support-content-notification/-/external/content/SecurityAdvisories/0/36909",
+        "https://support.broadcom.com/web/ecx/support-content-notification/-/external/content/SecurityAdvisories/0/24999",
+        "https://www.cve.org/CVERecord?id=CVE-2025-22224&ref=security.land",
+        "https://digital.nhs.uk/cyber-alerts/2025/cc-4627",
+        "https://web.archive.org/web/20250306215329/https://www.theregister.com/2025/03/04/vmware_plugs_three_hypervisorhijack_holes/",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-25-077-02"
       ],
       "schema_version": 2,
       "source_fingerprint": "e07da9e7bf39bf30cedae255c165d11e751851a7e7adb0847d7ee38c0f4f2d56",
       "source_urls": [
-        "https://support.broadcom.com/web/ecx/support-content-notification/-/external/content/SecurityAdvisories/0/25390",
         "https://nvd.nist.gov/vuln/detail/CVE-2025-22224"
       ],
       "status": "complete",
       "uncertainty": [
-        "The Broadcom advisory does not provide a single concrete fixed product version for VMware Cloud Foundation, Telco Cloud Platform, or Telco Cloud Infrastructure; it refers to asynchronous or product-specific patches and supporting knowledge-base documentation.",
-        "The supplied record includes an NVD CVSS vector with PR:N, while the advisory's attack-vector narrative states that local administrative privileges within a virtual machine are required. This enrichment uses the vendor's narrative for the exposure condition.",
-        "No workaround is documented by Broadcom, so temporary risk reduction beyond applying the vendor remediation is not asserted."
+        "ESXi 6.5 and 6.7 are discussed in supplemental vendor FAQ material but are not listed in the official VMSA Response Matrix because they are past End of General Support.",
+        "VMware Fusion is addressed in the same advisory for a related CVE but is not listed as affected by CVE-2025-22224.",
+        "Hosted or cloud-managed instances may be updated by the service provider rather than the customer.",
+        "No additional configuration-specific exposure conditions beyond guest administrative privileges are documented in the advisory."
       ],
       "verification_steps": [
-        "After maintenance, confirm the ESXi host inventory reports the applicable fixed build: ESXi80U3d-24585383, ESXi80U2d-24585300, or ESXi70U3s-24585291.",
-        "Confirm VMware Workstation reports version 17.6.3 or later on each affected Windows or Linux installation.",
-        "For Cloud Foundation and Telco Cloud deployments, confirm the relevant asynchronous or product-specific patch is recorded as installed and that the underlying ESXi or platform component matches the vendor remediation guidance.",
-        "Review vulnerability-management results after the update to ensure the affected pre-fix versions are no longer detected."
+        "In the vSphere Client, review the ESXi build number shown on the host Summary tab and confirm it matches a fixed build published in VMSA-2025-0004.",
+        "For Workstation, confirm the installed product version shown in the application is 17.6.3 or later.",
+        "Compare the observed version or build against the Fixed Version column and linked release notes in the vendor advisory."
       ]
     },
     "CVE-2025-22225": {
@@ -21701,186 +22082,237 @@
       "verification_steps": []
     },
     "CVE-2025-24016": {
-      "business_risk": "No additional source-verified CVE-specific business impact was established.",
-      "claim_evidence": [],
-      "exposure_conditions": [],
-      "gaps": [],
-      "generated_at": "2026-07-25T21:32:00Z",
-      "model": "gpt-5.6-luna",
-      "prompt_version": "2026-07-14.2",
-      "recipe_specificity": "not_specific",
-      "remediation_steps": [],
-      "retrieved_source_urls": [],
-      "schema_version": 2,
-      "source_fingerprint": "12f84a7c77a4b87857544ec9cd8bb5580ec132f26eb9c80fe542e8fae9d6c719",
-      "source_urls": [],
-      "status": "insufficient_evidence",
-      "uncertainty": [
-        "The supplied record identifies Wazuh broadly; the vendor advisory names the affected package as wazuh-manager and discusses Wazuh servers. Confirm the installed component and deployment topology before remediation.",
-        "The advisory describes additional possible request paths and certain compromised-agent scenarios; the exact applicability depends on the deployment’s cluster, dashboard, API, and agent configuration.",
-        "No source reviewed here establishes a complete forensic procedure for determining prior compromise; perform incident-response review separately if exposure or credential compromise is suspected.",
-        "The model did not return a fully sourced exposure, remediation, and verification set; consult the linked NVD and vendor sources before acting."
-      ],
-      "verification_steps": []
-    },
-    "CVE-2025-24085": {
-      "business_risk": "Critical. CVE-2025-24085 is a use-after-free vulnerability that may allow a malicious application to elevate privileges. Apple reported possible active exploitation against iOS versions before iOS 17.2, and the vulnerability is listed in CISA's Known Exploited Vulnerabilities catalog.",
+      "business_risk": "Critical remote code execution on Wazuh servers via unsafe deserialization, listed in CISA Known Exploited Vulnerabilities Catalog and associated by the vendor with botnet activity.",
       "claim_evidence": [
         {
-          "claim": "NVD lists affected Apple products including iOS/iPadOS, macOS, tvOS, visionOS, and watchOS.",
+          "claim": "Wazuh Server (package wazuh-manager)",
           "kind": "affected_product",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-24085"
+          "source_url": "https://github.com/wazuh/wazuh/security/advisories/GHSA-hcrc-79hj-m3qh"
         },
         {
-          "claim": "NVD identifies affected versions below iOS/iPadOS 18.3, iPadOS 17.7.6, macOS 13.7.5, macOS 14.7.5, macOS 15.3, tvOS 18.3, visionOS 2.3, and watchOS 11.3.",
+          "claim": "Affected versions are >= 4.4.0 and prior to 4.9.1 (explicitly 4.4.0 to 4.9.0)",
           "kind": "affected_version",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-24085"
+          "source_url": "https://wazuh.com/blog/addressing-the-cve-2025-24016-vulnerability/"
         },
         {
-          "claim": "NVD records the fixed versions for iOS/iPadOS, iPadOS 17, macOS Ventura, macOS Sonoma, macOS Sequoia, tvOS, visionOS, and watchOS.",
+          "claim": "The vulnerability can be triggered by anybody with API access (compromised dashboard or Wazuh servers in the cluster) or, in certain configurations, even by a compromised agent; it requires valid administrator-level API credentials and API accessibility",
+          "kind": "exposure",
+          "source_url": "https://github.com/wazuh/wazuh/security/advisories/GHSA-hcrc-79hj-m3qh"
+        },
+        {
+          "claim": "Version 4.9.1 contains a fix; patched versions are >= 4.9.1",
           "kind": "fixed_version",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-24085"
+          "source_url": "https://github.com/wazuh/wazuh/security/advisories/GHSA-hcrc-79hj-m3qh"
         },
         {
-          "claim": "Apple's tvOS advisory documents tvOS 18.3 as containing the relevant fix.",
+          "claim": "Upgrade if using a version between 4.4.0 and 4.9.0; change default credentials; do not expose Wazuh APIs to the internet",
           "kind": "remediation",
-          "source_url": "https://support.apple.com/en-us/122072"
+          "source_url": "https://wazuh.com/blog/addressing-the-cve-2025-24016-vulnerability/"
         },
         {
-          "claim": "Apple and NVD provide concrete fixed release versions, supporting non-invasive verification by comparing an installed operating-system version with the applicable fixed release.",
+          "claim": "Any instance running 4.9.1 or later is fully patched and secure",
           "kind": "verification",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-24085"
+          "source_url": "https://wazuh.com/blog/addressing-the-cve-2025-24016-vulnerability/"
         }
       ],
       "exposure_conditions": [
-        "An affected Apple operating-system version is installed.",
-        "A malicious application is executed on the device; Apple describes privilege elevation through a malicious application.",
-        "iOS devices running versions before iOS 17.2 were specifically reported by Apple as potentially subject to active exploitation."
+        "Wazuh server running a version from 4.4.0 through 4.9.0",
+        "Attacker has API access, such as via a compromised dashboard or other Wazuh servers in the cluster",
+        "In certain configurations, a compromised agent can trigger the issue",
+        "Valid administrator-level API credentials are required",
+        "Wazuh server API is accessible to the attacker (vendor strongly discourages internet exposure)"
       ],
       "gaps": [],
-      "generated_at": "2026-07-25T21:32:14Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-09-29T16:12:44Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [
-        "Update iOS and iPadOS to version 18.3 or later where supported.",
-        "For devices maintained on the iPadOS 17 branch, update to iPadOS 17.7.6 or later.",
-        "Update macOS Ventura to 13.7.5 or later, macOS Sonoma to 14.7.5 or later, or macOS Sequoia to 15.3 or later.",
-        "Update tvOS to 18.3 or later, visionOS to 2.3 or later, and watchOS to 11.3 or later.",
-        "Prioritize remediation for iOS devices, particularly those running versions older than iOS 17.2, because Apple reported possible active exploitation."
+        "Upgrade the Wazuh deployment to version 4.9.1 or later",
+        "Change default credentials during or after Wazuh deployment",
+        "Do not expose Wazuh APIs to the internet"
+      ],
+      "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-24016",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-24016/change-record?changeRecordedOn=02%2F10%2F2025T15%3A15%3A42.540-0500",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2026-31616",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-25916",
+        "https://nvd.nist.gov/vuln/detail/cve-2025-38616",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-40016",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-37816/change-record?changeRecordedOn=05/08/2025T03:15:52.837-0400",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-38016",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-38016/change-record?changeRecordedOn=06/18/2025T06:15:33.187-0400",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-38716",
+        "https://github.com/wazuh/wazuh/security/advisories/GHSA-hcrc-79hj-m3qh",
+        "https://wazuh.com/blog/addressing-the-cve-2025-24016-vulnerability/",
+        "https://cti.wazuh.com/vulnerabilities/cves/CVE-2025-24016",
+        "https://wazuh.com/blog/addressing-the-cve-2025-24016-vulnerability/embed/",
+        "https://wazuh.com/blog/securing-web-applications-with-coraza-waf-and-wazuh/",
+        "https://wazuh.com/blog/detecting-common-windows-privilege-escalation-techniques-with-wazuh/",
+        "https://wazuh.com/blog/detecting-peaklight-malware-with-wazuh/",
+        "https://wazuh.com/blog/detecting-cve-2026-33017-exploitation-in-langflow-with-wazuh/",
+        "https://wazuh.com/blog/wazuh-and-ai-cyber-consulting-announce-partnership-to-strengthen-soc-services/",
+        "https://wazuh.com/blog/detecting-next-js-cve-2025-66478-rce-vulnerability-with-wazuh/",
+        "https://cti.wazuh.com/vulnerabilities/cves/CVE-2025-21864",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2025-24016",
+        "https://www.cisa.gov/news-events/bulletins/sb25-097",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-26-181-01"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "12f84a7c77a4b87857544ec9cd8bb5580ec132f26eb9c80fe542e8fae9d6c719",
+      "source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-24016",
+        "https://github.com/wazuh/wazuh/security/advisories/GHSA-hcrc-79hj-m3qh",
+        "https://wazuh.com/blog/addressing-the-cve-2025-24016-vulnerability/",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2025-24016"
+      ],
+      "status": "complete",
+      "uncertainty": [
+        "Full NVD page content could not be retrieved; details were corroborated from the GitHub CNA advisory, vendor blog, CISA KEV entry, and 4.9.1 release notes",
+        "Exact configurations that allow triggering via a compromised agent are described only as 'certain configurations'",
+        "Vendor describes exploitation likelihood as low due to authentication and access requirements, while CISA lists the CVE as known exploited"
+      ],
+      "verification_steps": [
+        "Confirm the Wazuh instance is running version 4.9.1 or later"
+      ]
+    },
+    "CVE-2025-24085": {
+      "business_risk": "Critical use-after-free in CoreMedia on multiple Apple operating systems that can allow a malicious application to elevate privileges; listed in the CISA Known Exploited Vulnerabilities catalog based on evidence of active exploitation, including a vendor report of possible exploitation against iOS versions before iOS 17.2.",
+      "claim_evidence": [],
+      "exposure_conditions": [
+        "A malicious application is able to execute on the device",
+        "The device runs an Apple OS release that had not yet received the CoreMedia memory-management fix documented in the January 2025 and March 2025 Apple security content pages"
+      ],
+      "gaps": [],
+      "generated_at": "2026-09-29T16:13:43Z",
+      "model": "grok-4.6",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [
+        "Install the Apple releases that address the issue: iOS 18.3 and iPadOS 18.3, iPadOS 17.7.6, macOS Sequoia 15.3, macOS Sonoma 14.7.5, macOS Ventura 13.7.5, tvOS 18.3, visionOS 2.3, and watchOS 11.3, as applicable to the device.",
+        "Apply mitigations per vendor instructions or discontinue use of the product if mitigations are unavailable."
       ],
       "retrieved_source_urls": [
         "https://nvd.nist.gov/vuln/detail/CVE-2025-24085",
-        "https://support.apple.com/en-us/122072",
-        "https://support.apple.com/en-lamr/122068",
-        "https://support.apple.com/en-us/125884",
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-24085",
-        "https://support.apple.com/en-us/122345",
-        "https://support.apple.com/en-us/125633",
-        "https://nvd.nist.gov/vuln/detail/CVE-2025-20085",
-        "https://support.apple.com/en-us/122720",
-        "https://support.apple.com/en-la/122282",
-        "https://nvd.nist.gov/vuln/detail/CVE-2025-24485",
         "https://nvd.nist.gov/vuln/detail/CVE-2025-24086",
-        "https://support.apple.com/content/dam/edam/applecare/images/en_US/otherassets/accessibility/vpat_ipad_a16_2025.pdf",
-        "https://support.apple.com/content/dam/edam/applecare/images/en_US/otherassets/accessibility/vpat_macbookair_m4_2025.pdf",
-        "https://support.apple.com/content/dam/edam/applecare/images/en_US/programsservices/serviceandrepair/aasp-notification-of-interest-application-form-es-lamr.pdf",
-        "https://support.apple.com/content/dam/edam/applecare/images/en_US/programsservices/serviceandrepair/irp-pre-screen-application-nov2019-09-DA-DK.pdf",
-        "https://support.apple.com/content/dam/edam/applecare/images/en_US/otherassets/accessibility/VPAT_Keynote_4.1_for_iOS.pdf",
-        "https://support.apple.com/content/dam/edam/applecare/images/en_US/programsservices/serviceandrepair/independent-repair-provider-notification-of-interest-application-form-es-cl.pdf"
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-24084",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2025-71085",
+        "https://nvd.nist.gov/vuln/detail/cve-2025-24185",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2025-22085",
+        "https://nvd.nist.gov/vuln/detail/cve-2025-39885",
+        "https://nvd.nist.gov/vuln/detail/cve-2025-68285",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-24985/change-record?changeRecordedOn=10%2F27%2F2025T13%3A14%3A06.520-0400",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-38085",
+        "https://support.apple.com/zh-cn/122068",
+        "https://support.apple.com/ar-ae/122073",
+        "https://support.apple.com/ko-kr/122068",
+        "https://support.apple.com/en-eg/122068",
+        "https://support.apple.com/cs-cz/122068",
+        "https://support.apple.com/da-dk/122068",
+        "https://support.apple.com/pt-pt/122068",
+        "https://support.apple.com/pl-pl/122068",
+        "https://support.apple.com/ko-kr/122375",
+        "https://support.apple.com/ro-md/122068",
+        "https://support.apple.com/id-id/122073",
+        "https://support.apple.com/sk-sk/122068",
+        "https://support.apple.com/sv-se/122068",
+        "https://support.apple.com/id-id/122374"
       ],
       "schema_version": 2,
       "source_fingerprint": "6f7d7253a05d8e28bb73dfea424128a189d65eee226959605233d2ad2269ae29",
       "source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2025-24085",
-        "https://support.apple.com/en-us/122072"
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-24085"
       ],
       "status": "complete",
       "uncertainty": [
-        "Apple's advisory describes the issue and fixed releases but does not disclose exploit details, vulnerable implementation paths, or a vendor-specified configuration-level mitigation.",
-        "The exact applicable fixed version depends on the device's operating-system branch and supported upgrade path.",
-        "The supplied record contains a future-dated last-modified value relative to the current date; this enrichment relies on the returned NVD and Apple advisory content rather than that metadata."
+        "The NVD detail page did not return content.",
+        "The CVE.org record page requires JavaScript and did not return full content.",
+        "Apple security content pages name the releases that address the issue but do not enumerate complete prior affected version ranges.",
+        "Consulted advisories do not provide device UI paths or other inert verification procedures beyond identifying the listed fixed releases."
       ],
       "verification_steps": [
-        "Confirm that each device reports an installed operating-system version at or above the applicable fixed version: iOS/iPadOS 18.3, iPadOS 17.7.6, macOS 13.7.5, 14.7.5, or 15.3, tvOS 18.3, visionOS 2.3, or watchOS 11.3.",
-        "Reconcile device inventory against the applicable affected-version ranges and record devices that remain below the relevant fixed version.",
-        "Do not treat application-level testing or exploit reproduction as necessary for verification; version validation against Apple's stated fixed releases is the supported non-invasive check."
+        "Compare the operating-system version displayed by the device against the fixed releases named in the Apple security content documents for CVE-2025-24085."
       ]
     },
     "CVE-2025-24201": {
-      "business_risk": "Critical WebKit out-of-bounds write vulnerability allowing malicious web content to potentially escape the Web Content sandbox. The vulnerability is listed in CISA's Known Exploited Vulnerabilities Catalog, and NVD records a CVSS 3.1 score of 10.0 with potential impact to confidentiality, integrity, and availability.",
+      "business_risk": "Known-exploited WebKit out-of-bounds write (CISA KEV) that can allow maliciously crafted web content to break out of the Web Content sandbox on multiple Apple products; Apple reports a possible extremely sophisticated targeted attack on iOS versions before iOS 17.2.",
       "claim_evidence": [
         {
-          "claim": "Apple identifies CVE-2025-24201 in WebKit security advisories for iOS/iPadOS, macOS Sequoia, visionOS, Safari, iPadOS 17.7.6, and watchOS.",
+          "claim": "Apple Safari on macOS Ventura and macOS Sonoma",
           "kind": "affected_product",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-24201"
+          "source_url": "https://support.apple.com/en-us/122285"
         },
         {
-          "claim": "The NVD record identifies affected releases below Safari 18.3.1, iOS/iPadOS 15.8.4, iOS/iPadOS 16.7.11, iPadOS 17.7.6, iOS/iPadOS 18.3.2, macOS 15.3.2, visionOS 2.3.2, and watchOS 11.4.",
-          "kind": "affected_version",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-24201"
+          "claim": "Safari 18.3.1",
+          "kind": "fixed_version",
+          "source_url": "https://support.apple.com/en-us/122285"
         },
         {
-          "claim": "NVD records this CVE as present in CISA's Known Exploited Vulnerabilities Catalog and provides the vendor remediation requirement to apply mitigations per vendor instructions.",
-          "kind": "verification",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-24201"
+          "claim": "Maliciously crafted web content may be able to break out of Web Content sandbox",
+          "kind": "exposure",
+          "source_url": "https://support.apple.com/en-us/122285"
         }
       ],
       "exposure_conditions": [
-        "The affected WebKit component processes maliciously crafted web content.",
-        "On affected iOS, iPadOS, macOS, visionOS, watchOS, or Safari releases, visiting or processing attacker-controlled web content may permit a Web Content sandbox escape.",
-        "Apple reported possible exploitation in highly sophisticated attacks against specifically targeted individuals on iOS versions before iOS 17.2."
+        "Maliciously crafted web content processed by WebKit (Safari or Web Content)",
+        "Unpatched Apple Safari, iOS, iPadOS, macOS Sequoia, visionOS, or watchOS as listed in vendor security content documents",
+        "CISA notes possible impact to other HTML parsers that use WebKit"
       ],
       "gaps": [],
-      "generated_at": "2026-07-25T21:31:12Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-09-29T16:09:39Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [
-        "Apply the applicable Apple security update and reboot if requested.",
-        "Update Safari to 18.3.1 or later.",
-        "Update iOS or iPadOS 15.8 branch to 15.8.4 or later, 16.7 branch to 16.7.11 or later, 17.x branch to iPadOS 17.7.6 or later, and 18.x branch to 18.3.2 or later.",
-        "Update macOS Sequoia to 15.3.2 or later.",
-        "Update visionOS to 2.3.2 or later.",
-        "Update watchOS to 11.4 or later.",
-        "Prioritize remediation for internet-connected Apple devices and systems used to browse untrusted web content, consistent with CISA KEV guidance."
+        "Install Safari 18.3.1 on macOS Ventura and macOS Sonoma",
+        "Install iOS 18.3.2 and iPadOS 18.3.2 on supported devices",
+        "Install macOS Sequoia 15.3.2",
+        "Install visionOS 2.3.2 on Apple Vision Pro",
+        "Install iOS 15.8.4 and iPadOS 15.8.4 on supported older devices",
+        "Install iOS 16.7.11 and iPadOS 16.7.11 on supported devices",
+        "Install iPadOS 17.7.6 on supported iPads",
+        "Install watchOS 11.4 on Apple Watch Series 6 and later"
       ],
       "retrieved_source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2025-24201",
-        "https://nvd.nist.gov/vuln/detail/CVE-2025-20241",
-        "https://support.apple.com/en-us/125884",
-        "https://nvd.nist.gov/vuln/detail/CVE-2025-2421",
-        "https://nvd.nist.gov/vuln/detail/CVE-2025-20246",
-        "https://support.apple.com/en-la/122282",
-        "https://support.apple.com/en-ca/122372",
-        "https://nvd.nist.gov/vuln/detail/CVE-2025-2021",
-        "https://nvd.nist.gov/vuln/detail/CVE-2024-12686",
-        "https://support.apple.com/en-la/122174",
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-24001",
-        "https://nvd.nist.gov/vuln/detail/CVE-2025-24200",
-        "https://support.apple.com/content/dam/edam/applecare/images/en_US/otherassets/accessibility/vpat_ipad_a16_2025.pdf",
-        "https://support.apple.com/content/dam/edam/applecare/images/en_US/otherassets/accessibility/vpat_macbookair_m4_2025.pdf",
-        "https://support.apple.com/content/dam/edam/applecare/images/en_US/programsservices/serviceandrepair/aasp-notification-of-interest-application-form-es-lamr.pdf",
-        "https://support.apple.com/content/dam/edam/applecare/images/en_US/programsservices/serviceandrepair/irp-pre-screen-application-nov2019-09-DA-DK.pdf",
-        "https://support.apple.com/content/dam/edam/applecare/images/en_US/programsservices/serviceandrepair/irp-pre-screen-application-nov2019-09-NO-NO.pdf"
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-24201/change-record?changeRecordedOn=04/11/2025T10:15:24.497-0400",
+        "https://nvd.nist.gov/nvd.cfm?cvename=CVE-2025-24201",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-21701",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2025-38201",
+        "https://nvd.nist.gov/vuln/detail/cve-2025-26601",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-34201",
+        "https://nvd.nist.gov/nvd.cfm?cvename=CVE-2025-21901",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2025-21801",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2025-71201",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-0201",
+        "https://support.apple.com/en-us/122285",
+        "https://support.apple.com/zh-mo/122285",
+        "https://support.apple.com/no-no/122285",
+        "https://support.apple.com/ko-kr/122285",
+        "https://support.apple.com/de-de/122285",
+        "https://support.apple.com/es-es/122285",
+        "https://support.apple.com/ro-ro/122285",
+        "https://support.apple.com/ru-ru/122285",
+        "https://support.apple.com/tr-tr/122285",
+        "https://support.apple.com/it-it/122285",
+        "https://support.apple.com/sv-se/122285",
+        "https://support.apple.com/he-il/122285",
+        "https://support.apple.com/el-gr/122285",
+        "https://support.apple.com/nl-nl/122285"
       ],
       "schema_version": 2,
       "source_fingerprint": "070f12443a8ee196300b8786d86b5dff1533d8313ebefeae747ff69fb4974db2",
       "source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2025-24201"
+        "https://support.apple.com/en-us/122285"
       ],
       "status": "complete",
       "uncertainty": [
-        "The Apple advisories establish fixed releases and the web-content exposure, but do not provide a product-independent asset-discovery procedure.",
-        "The supplied data includes a Debian CPE, but the authoritative Apple advisories reviewed here do not establish a Debian fixed version for this CVE; no Debian remediation is asserted.",
-        "Apple's advisories do not provide a safe exploit-based validation test, so verification is limited to installed-version confirmation.",
-        "The exact affected-version boundaries for every legacy Apple branch are taken from the NVD/CVE record; the Apple advisories primarily document the corresponding fixed releases."
+        "NVD detail page content was not retrieved by the search tools",
+        "Apple advisories name the fixed releases and supported devices rather than exhaustive lower-bound version ranges",
+        "CISA notes possible impact on non-Apple WebKit HTML parsers; no third-party product versions were confirmed from the consulted sources"
       ],
       "verification_steps": [
-        "Using the normal Apple Software Update or About interface, confirm the installed product reports a version at or above the applicable fixed version.",
-        "For Safari, confirm Safari 18.3.1 or later; for the operating systems, compare the reported version with the applicable Apple fixed version listed in the advisories.",
-        "Do not use crafted web content or exploit attempts as a verification method.",
-        "Confirm that devices unable to receive the applicable fixed release are removed from exposure to untrusted web content or replaced according to organizational policy."
+        "On the device, open Settings then General then About (or the equivalent About screen) and confirm the OS or Safari version is at or above the fixed version named in the matching Apple security content advisory",
+        "Confirm no remaining vendor security update for this CVE is offered in Software Update"
       ]
     },
     "CVE-2025-24813": {
@@ -22781,124 +23213,157 @@
       ]
     },
     "CVE-2025-31200": {
-      "business_risk": "Critical. CVE-2025-31200 is a memory-corruption vulnerability in Apple audio processing that may permit code execution when a maliciously crafted media file is processed. Apple reported possible exploitation in highly targeted attacks, and CISA lists the vulnerability in its Known Exploited Vulnerabilities Catalog.",
+      "business_risk": "Memory corruption in CoreAudio can allow code execution when a maliciously crafted media file's audio stream is processed. Apple reported awareness of possible exploitation in extremely sophisticated targeted attacks on iOS before the patch. CISA added the CVE to the Known Exploited Vulnerabilities catalog.",
       "claim_evidence": [
         {
-          "claim": "Apple identifies iOS, iPadOS, macOS Sequoia, tvOS, visionOS, and watchOS as affected product families for CVE-2025-31200.",
-          "kind": "affected_product",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-31200"
+          "claim": "Apple iOS, iPadOS, macOS, and other Apple products contain a memory corruption vulnerability that allows for code execution when processing an audio stream in a maliciously crafted media file",
+          "kind": "exposure",
+          "source_url": "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2025-31200"
         },
         {
-          "claim": "NVD lists affected versions before iOS/iPadOS 18.4.1, macOS Sequoia 15.4.1, tvOS 18.4.1, visionOS 2.4.1, and watchOS 11.5.",
-          "kind": "affected_version",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-31200"
-        },
-        {
-          "claim": "Apple states that the issue is fixed in macOS Sequoia 15.4.1.",
-          "kind": "fixed_version",
-          "source_url": "https://support.apple.com/en-us/122400"
-        },
-        {
-          "claim": "Apple states that the issue is fixed in visionOS 2.4.1.",
-          "kind": "fixed_version",
-          "source_url": "https://support.apple.com/en-us/122402"
-        },
-        {
-          "claim": "CISA recommends applying vendor mitigations for this known-exploited vulnerability and prioritizing remediation.",
+          "claim": "Apply mitigations per vendor instructions, follow applicable BOD 22-01 guidance for cloud services, or discontinue use of the product if mitigations are unavailable",
           "kind": "remediation",
-          "source_url": "https://www.cisa.gov/news-events/alerts/2025/04/17/cisa-adds-three-known-exploited-vulnerabilities-catalog"
-        },
-        {
-          "claim": "The vendor release notes identify the applicable fixed operating-system versions that can be compared against installed-version inventory.",
-          "kind": "verification",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-31200"
+          "source_url": "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2025-31200"
         }
       ],
       "exposure_conditions": [
-        "An affected Apple operating-system version processes an audio stream contained in a maliciously crafted media file.",
-        "Potential exploitation is particularly relevant to iOS and iPadOS users because Apple reported observed exploitation against specifically targeted individuals."
+        "Processing an audio stream in a maliciously crafted media file",
+        "Unpatched iOS, iPadOS, macOS Sequoia, tvOS, visionOS, or watchOS"
       ],
       "gaps": [],
-      "generated_at": "2026-07-25T21:30:53Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-09-29T16:08:52Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [
-        "Upgrade iOS and iPadOS devices to version 18.4.1 or later.",
-        "Upgrade macOS Sequoia devices to version 15.4.1 or later.",
-        "Upgrade tvOS devices to version 18.4.1 or later.",
-        "Upgrade visionOS devices to version 2.4.1 or later.",
-        "Upgrade watchOS devices to version 11.5 or later.",
-        "Prioritize remediation because CISA has identified the vulnerability as exploited in the wild."
+        "Install iOS 18.4.1 and iPadOS 18.4.1 (or later) on supported iPhone and iPad hardware.",
+        "Install macOS Sequoia 15.4.1 (or later).",
+        "Install tvOS 18.4.1 (or later) on Apple TV HD and Apple TV 4K.",
+        "Install visionOS 2.4.1 (or later) on Apple Vision Pro.",
+        "Install watchOS 11.5 (or later) on Apple Watch Series 6 and later.",
+        "Apply vendor updates per Apple security content documents, or follow CISA KEV required action if mitigations are unavailable."
       ],
       "retrieved_source_urls": [
-        "https://support.apple.com/en-us/122400",
-        "https://support.apple.com/en-la/122282",
-        "https://support.apple.com/en-us/122720",
-        "https://support.apple.com/en-us/125884",
-        "https://support.apple.com/en-al/122282",
-        "https://support.apple.com/sv-se/122401",
-        "https://support.apple.com/nl-nl/122401",
-        "https://support.apple.com/en-lamr/122405",
-        "https://support.apple.com/id-id/122282",
-        "https://support.apple.com/en-la/100100",
-        "https://support.apple.com/es-lamr/122282",
-        "https://support.apple.com/pt-br/122282",
-        "https://support.apple.com/content/dam/edam/applecare/images/en_US/otherassets/accessibility/vpat_ipad_a16_2025.pdf",
-        "https://support.apple.com/content/dam/edam/applecare/images/en_US/otherassets/accessibility/vpat_macbookair_m4_2025.pdf",
-        "https://support.apple.com/content/dam/edam/applecare/images/en_US/programsservices/serviceandrepair/aasp-notification-of-interest-application-form-es-lamr.pdf",
-        "https://support.apple.com/content/dam/edam/applecare/images/en_US/otherassets/accessibility/VPAT_16-inch_MacBook_Pro_2024.pdf",
-        "https://support.apple.com/content/dam/edam/applecare/images/en_US/otherassets/accessibility/vpat_ipad_pro_12_6th_generation.pdf",
-        "https://support.apple.com/content/dam/edam/applecare/images/en_US/programsservices/serviceandrepair/irp-pre-screen-application-nov2019-09-DA-DK.pdf",
-        "https://support.apple.com/en-us/122402",
-        "https://nvd.nist.gov/vuln/detail/CVE-2025-31200",
-        "https://www.cisa.gov/news-events/alerts/2025/04/17/cisa-adds-three-known-exploited-vulnerabilities-catalog",
-        "https://support.apple.com/en-us/121843",
-        "https://support.apple.com/en-ca/122722",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=0"
+        "https://nvd.nist.gov/vuln/detail/cve-2025-31200",
+        "https://nvd.nist.gov/vuln/detail/cve-2025-3120",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2025-21700",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-3160",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-31120",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-38500",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-32800",
+        "https://nvd.nist.gov/vuln/detail/cve-2025-30400",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2025-68800",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2025-40320",
+        "https://support.apple.com/zh-tw/122400",
+        "https://support.apple.com/zh-hk/122402",
+        "https://support.apple.com/ja-jp/122400",
+        "https://support.apple.com/ko-kr/122400",
+        "https://support.apple.com/ru-ru/122401",
+        "https://support.apple.com/fr-ca/122402",
+        "https://support.apple.com/de-de/122400",
+        "https://support.apple.com/no-no/122402",
+        "https://support.apple.com/pl-pl/122722",
+        "https://support.apple.com/he-il/122402",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2025-31200",
+        "https://www.cisa.gov/news-events/bulletins/sb25-111",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-26-181-05",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-24-319-08"
       ],
       "schema_version": 2,
       "source_fingerprint": "bf5197a744d26210105f6a0969ecf163a8aeeb306cc3e7e5f75f904d11ce3f3e",
       "source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2025-31200",
-        "https://support.apple.com/en-us/122400",
-        "https://support.apple.com/en-us/122402",
-        "https://www.cisa.gov/news-events/alerts/2025/04/17/cisa-adds-three-known-exploited-vulnerabilities-catalog"
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2025-31200"
       ],
       "status": "complete",
       "uncertainty": [
-        "Apple's advisories establish the affected and fixed versions and describe the malicious-media exposure, but do not provide a product-specific enterprise verification procedure.",
-        "The supplied record identifies macOS as macOS 15.0 through versions before 15.4.1 in its CPE data; the broader Apple/NVD affected-product statement should be treated as authoritative for remediation scope.",
-        "No evidence was found establishing that every affected product has the same exploitation pathway or attack prerequisites as iOS."
+        "Apple security content documents list the versions that contain the fix and the hardware for which updates are available, but do not publish a complete lower-bound affected-version range.",
+        "The NVD detail page could not be retrieved.",
+        "Advisories do not describe a procedure to verify the CoreAudio bounds-checking change beyond OS version.",
+        "watchOS 11.5 was released later than the April 16 2025 updates for the other platforms."
       ],
       "verification_steps": [
-        "Using the device's normal software-information interface, confirm that the installed operating-system version meets or exceeds the applicable fixed version: iOS/iPadOS 18.4.1, macOS Sequoia 15.4.1, tvOS 18.4.1, visionOS 2.4.1, or watchOS 11.5.",
-        "Confirm that managed-device inventory or endpoint reporting reflects the updated version after remediation.",
-        "Do not use crafted media files or active exploitation attempts for verification."
+        "Confirm each device reports an OS version at or above the Apple-listed fixed release in the corresponding security content document."
       ]
     },
     "CVE-2025-31201": {
-      "business_risk": "No additional source-verified CVE-specific business impact was established.",
-      "claim_evidence": [],
-      "exposure_conditions": [],
+      "business_risk": "CISA Known Exploited Vulnerability in multiple Apple operating systems. An attacker who already has arbitrary read and write capability may bypass Pointer Authentication. Apple reported awareness of possible use in an extremely sophisticated targeted attack against specific individuals on iOS. Pointer Authentication bypass can enable further compromise of device integrity.",
+      "claim_evidence": [
+        {
+          "claim": "iOS, iPadOS, macOS Sequoia, tvOS, and visionOS",
+          "kind": "affected_product",
+          "source_url": "https://www.cve.org/CVERecord?id=CVE-2025-31201"
+        },
+        {
+          "claim": "affected from 0 before 18.4.1 for iOS/iPadOS/tvOS, before 15.4.1 for macOS, and before 2.4.1 for visionOS",
+          "kind": "affected_version",
+          "source_url": "https://www.cve.org/CVERecord?id=CVE-2025-31201"
+        },
+        {
+          "claim": "iOS 18.4.1 and iPadOS 18.4.1, macOS Sequoia 15.4.1, tvOS 18.4.1, visionOS 2.4.1",
+          "kind": "fixed_version",
+          "source_url": "https://www.cve.org/CVERecord?id=CVE-2025-31201"
+        }
+      ],
+      "exposure_conditions": [
+        "iOS, iPadOS, or tvOS versions before 18.4.1, macOS Sequoia before 15.4.1, or visionOS before 2.4.1",
+        "Attacker already possesses arbitrary read and write capability",
+        "Possible targeting of specific individuals on iOS per Apple advisory language"
+      ],
       "gaps": [],
-      "generated_at": "2026-07-25T21:30:35Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-09-29T16:08:03Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
-      "remediation_steps": [],
-      "retrieved_source_urls": [],
+      "remediation_steps": [
+        "Install iOS 18.4.1 and iPadOS 18.4.1 on eligible devices listed in the Apple iOS/iPadOS security content document",
+        "Install macOS Sequoia 15.4.1",
+        "Install tvOS 18.4.1 on Apple TV HD and Apple TV 4K",
+        "Install visionOS 2.4.1 on Apple Vision Pro",
+        "Apply mitigations per vendor instructions as stated in the CISA KEV required action"
+      ],
+      "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/cve-2025-31201",
+        "https://nvd.nist.gov/vuln/detail/cve-2025-31001",
+        "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2025-68301",
+        "https://nvd.nist.gov/vuln/detail/cve-2021-31201",
+        "https://nvd.nist.gov/vuln/detail/cve-2025-21701",
+        "https://support.apple.com/en-us/122402",
+        "https://support.apple.com/ja-jp/122400",
+        "https://support.apple.com/zh-tw/122402",
+        "https://support.apple.com/ko-kr/122400",
+        "https://support.apple.com/fr-ca/122402",
+        "https://support.apple.com/es-es/122400",
+        "https://support.apple.com/da-dk/122402",
+        "https://support.apple.com/de-de/122400",
+        "https://support.apple.com/ru-ru/122400",
+        "https://support.apple.com/tr-tr/122402",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog-print",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-26-181-05",
+        "https://www.cisa.gov/news-events/bulletins/sb25-342",
+        "https://www.cisa.gov/news-events/bulletins/sb25-021",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-25-345-05",
+        "https://www.notebookcheck.net/Apple-patches-exploited-iOS-26-flaw-for-anyone-skipping-iOS-27.1410971.0.html",
+        "https://www.cve.org/CVERecord?id=CVE-2025-31201",
+        "https://www.techradar.com/pro/security/apple-patches-coregraphics-zero-day-used-in-extremely-sophisticated-targeted-attacks-on-ios-devices",
+        "https://www.bleepingcomputer.com/news/security/apple-patches-coregraphics-zero-day-flaw-exploited-in-attacks/"
+      ],
       "schema_version": 2,
       "source_fingerprint": "32c74d675dc8f67ac86f99cd50f19f580ae1254753e85fcbb5fd20ca435d4e3a",
-      "source_urls": [],
-      "status": "insufficient_evidence",
-      "uncertainty": [
-        "The supplied and consulted authoritative sources identify the vulnerable products and fixed versions but do not provide a product-specific administrative verification procedure.",
-        "The arbitrary-read/write prerequisite is described by Apple, but the sources do not identify the prerequisite's origin, exploit chain, or whether it is remotely obtainable in a particular deployment.",
-        "Apple's advisories report possible targeted exploitation on iOS but do not establish affected device identities, exploitation volume, or compromise indicators.",
-        "The Apple advisories describe remediation as removal of vulnerable code but do not provide a standalone workaround or configuration-based mitigation."
+      "source_urls": [
+        "https://support.apple.com/en-us/122402",
+        "https://www.cve.org/CVERecord?id=CVE-2025-31201",
+        "https://nvd.nist.gov/vuln/detail/cve-2025-31201"
       ],
-      "verification_steps": []
+      "status": "complete",
+      "uncertainty": [
+        "Full NVD record (including any CVSS or CWE details) could not be retrieved from the NVD page",
+        "CVE product status describes affected versions as from 0 before the listed fixed releases without additional lower bounds for every product",
+        "Advisories do not describe a detailed verification procedure beyond naming the fixed releases",
+        "No additional technical conditions for obtaining the prerequisite arbitrary read/write access are provided in the consulted vendor or CISA sources"
+      ],
+      "verification_steps": [
+        "Compare the installed operating system version on each device against the fixed versions named in the Apple security content documents for iOS 18.4.1 and iPadOS 18.4.1, macOS Sequoia 15.4.1, tvOS 18.4.1, and visionOS 2.4.1"
+      ]
     },
     "CVE-2025-31324": {
       "business_risk": "No additional source-verified CVE-specific business impact was established.",
@@ -24029,27 +24494,80 @@
       "verification_steps": []
     },
     "CVE-2025-43300": {
-      "business_risk": "No additional source-verified CVE-specific business impact was established.",
-      "claim_evidence": [],
-      "exposure_conditions": [],
+      "business_risk": "Known-exploited out-of-bounds write in ImageIO can cause memory corruption when a malicious image is processed, with Apple reporting possible use in extremely sophisticated targeted attacks; CISA added it to the KEV catalog.",
+      "claim_evidence": [
+        {
+          "claim": "Apple iOS, iPadOS, and macOS contain an out-of-bounds write vulnerability in the Image I/O framework",
+          "kind": "affected_product",
+          "source_url": "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2025-43300"
+        },
+        {
+          "claim": "macOS Sequoia 15.6.1",
+          "kind": "fixed_version",
+          "source_url": "https://support.apple.com/en-us/124927"
+        },
+        {
+          "claim": "Apply mitigations per vendor instructions, follow applicable BOD 22-01 guidance for cloud services, or discontinue use of the product if mitigations are unavailable",
+          "kind": "remediation",
+          "source_url": "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2025-43300"
+        }
+      ],
+      "exposure_conditions": [
+        "Processing a malicious image file on unpatched iOS, iPadOS, or macOS",
+        "Image I/O framework handling of untrusted images"
+      ],
       "gaps": [],
-      "generated_at": "2026-07-25T21:30:02Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-09-29T16:07:06Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
-      "remediation_steps": [],
-      "retrieved_source_urls": [],
+      "remediation_steps": [
+        "Install the applicable Apple security update: iOS 18.6.2 and iPadOS 18.6.2, iPadOS 17.7.10, iOS 16.7.12 and iPadOS 16.7.12, iOS 15.8.5 and iPadOS 15.8.5, macOS Sequoia 15.6.1, macOS Sonoma 14.7.8, or macOS Ventura 13.7.8",
+        "Apply mitigations per vendor instructions or discontinue use if updates are unavailable"
+      ],
+      "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-43300",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-4330",
+        "https://nvd.nist.gov/vuln/detail/cve-2025-43350",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-43302",
+        "https://nvd.nist.gov/vuln/detail/cve-2025-43306",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-43330",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-43300",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-43200/change-record?changeRecordedOn=06%2F16%2F2025T18%3A16%3A41.120-0400",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-43200",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2026-43303",
+        "https://support.apple.com/en-us/124927",
+        "https://support.apple.com/ja-jp/124929",
+        "https://support.apple.com/ko-kr/124926",
+        "https://support.apple.com/zh-mo/124929",
+        "https://support.apple.com/ro-ro/125142",
+        "https://support.apple.com/no-no/124929",
+        "https://support.apple.com/pt-pt/125141",
+        "https://support.apple.com/fr-ca/124929",
+        "https://support.apple.com/ru-ru/125141",
+        "https://support.apple.com/es-es/124929",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2025-43300",
+        "https://www.cisa.gov/news-events/bulletins/sb25-265",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-25-142-01",
+        "https://www.cisa.gov/news-events/bulletins/sb25-349"
+      ],
       "schema_version": 2,
       "source_fingerprint": "e9d2ed2d8f6e1dae6e2c1a2adb5e0bf52dacb9ca903e102ae0793bed43dc20db",
-      "source_urls": [],
-      "status": "insufficient_evidence",
-      "uncertainty": [
-        "The authoritative advisories identify the vulnerable ImageIO behavior and fixed releases but do not provide a detailed operational verification procedure.",
-        "The sources do not establish whether every release newer than the listed fixed version remains affected or unaffected beyond the stated fixed-version boundary.",
-        "The sources do not provide a supported compensating-control configuration or inert test procedure.",
-        "Device applicability varies by supported hardware and operating-system branch."
+      "source_urls": [
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2025-43300",
+        "https://support.apple.com/en-us/124927",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-43300"
       ],
-      "verification_steps": []
+      "status": "complete",
+      "uncertainty": [
+        "NVD page content including CVSS, CWE, and full CPE ranges was not retrievable",
+        "Apple advisories list only the fixing releases and eligible hardware, not exhaustive prior affected version ranges",
+        "No source describes additional non-patch mitigations or explicit verification procedures beyond applying the listed updates",
+        "Exploitation details are limited to reports of targeted sophisticated attacks"
+      ],
+      "verification_steps": [
+        "Confirm the device OS version shown in Settings (iOS/iPadOS) or System Settings/About This Mac (macOS) matches or exceeds the patched release listed in the corresponding Apple security content advisory"
+      ]
     },
     "CVE-2025-43510": {
       "business_risk": "High-priority local compromise risk: a malicious application may cause unexpected changes in memory shared between processes. NVD records a CVSS 3.1 score of 7.8 (High) with local attack vector and high confidentiality, integrity, and availability impact.",
