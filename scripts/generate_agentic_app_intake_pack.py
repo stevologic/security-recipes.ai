@@ -414,6 +414,10 @@ def build_pack(
             {
                 "risk": "An approved pilot can still be unsafe if humans approve broad actions without context.",
                 "treatment": "Use typed approvals, two-key review for high-impact classes, policy receipts, and session kill signals."
+            },
+            {
+                "risk": "A production-looking agent host can still render javascript:, file:, or credentialed MCP icons, or execute unsandboxed SVG, after launch approval.",
+                "treatment": "Evaluate icon src URIs at intake: allow only HTTPS or data: image types, fetch without credentials, require same-origin when the server origin is known, and sandbox or disallow SVG."
             }
         ],
         "schema_version": SCHEMA_VERSION,
