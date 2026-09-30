@@ -1403,7 +1403,7 @@
       "title": "Agentic App Intake Gate",
       "page": "/security-remediation/agentic-app-intake-gate/",
       "category": "agent-runtime",
-      "summary": "Assess a new agentic application across autonomy, data, tools, memory, handoffs, controls, and production evidence before launch.",
+      "summary": "Assess a new agentic application across autonomy, data, tools, MCP icon URIs, memory, handoffs, controls, and production evidence before launch.",
       "phases": [
         {
           "label": "Signal",
@@ -1418,7 +1418,7 @@
         {
           "label": "Decision",
           "title": "Verify launch controls",
-          "detail": "Check guardrail evals, authorization, egress, telemetry, receipts, incident response, approvals, and two-key review."
+          "detail": "Check guardrail evals, authorization, egress, telemetry, receipts, incident response, approvals, two-key review, and MCP icon URI scheme, credential, and SVG rules."
         },
         {
           "label": "Action",
@@ -1434,7 +1434,7 @@
       "gate": {
         "question": "Does the application have controls and evidence proportionate to its autonomy, data, and action impact?",
         "pass": "Launch only in the approved environment and operating profile.",
-        "stop": "Hold or deny until controls exist; kill requests containing signer, token-passthrough, or approval-bypass signals."
+        "stop": "Hold or deny until controls exist; deny unsafe MCP icon URIs; kill requests containing signer, token-passthrough, or approval-bypass signals."
       },
       "evidence": [
         "application inventory and threat surface",

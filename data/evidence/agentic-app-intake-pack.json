@@ -417,6 +417,7 @@
       "raw_risk_score": 81,
       "recommended_controls": [
         "Restrict writes to branch-only remediation paths.",
+        "Reject javascript:, file:, ftp:, ws:, and other non-HTTPS MCP icon URIs before the agent host renders them.",
         "Require human review before merge or ticket closure.",
         "Block private-data plus untrusted-content plus external-write sessions without explicit approval."
       ],
@@ -553,6 +554,7 @@
       "raw_risk_score": 33,
       "recommended_controls": [
         "Keep the MCP server read-only.",
+        "Treat MCP icon metadata and bytes as untrusted: HTTPS or data: only, no credentialed fetches, and sandbox or disallow SVG.",
         "Keep generated packs fresh in CI before publication.",
         "Require signed production context releases before enterprise hosting."
       ],
@@ -658,7 +660,8 @@
       "autonomous_live_funds_or_production_deploy",
       "unregistered_agent_host",
       "tool_or_skill_changed_after_approval",
-      "approval_bypass_attempt"
+      "approval_bypass_attempt",
+      "unsafe_mcp_icon_uri"
     ],
     "score_thresholds": {
       "approve_guarded_pilot_max": 39,
@@ -717,11 +720,12 @@
       "autonomous_live_funds_or_production_deploy",
       "unregistered_agent_host",
       "tool_or_skill_changed_after_approval",
-      "approval_bypass_attempt"
+      "approval_bypass_attempt",
+      "unsafe_mcp_icon_uri"
     ]
   },
   "failures": [],
-  "generated_at": "2026-08-21",
+  "generated_at": "2026-09-30",
   "intent": "Define a repeatable SecurityRecipes intake gate for new agentic applications, agent hosts, and enterprise MCP rollouts so AI platform, security architecture, GRC, procurement, and acquisition diligence teams can decide whether an agentic app can launch as open reference, guarded pilot, architecture review, or blocked high-impact autonomy.",
   "positioning": {
     "buyer": "AI Platform, Product Security, AppSec, IAM, GRC, procurement security, model-risk, vendor-risk, and acquisition diligence teams",
@@ -741,6 +745,10 @@
     {
       "risk": "An approved pilot can still be unsafe if humans approve broad actions without context.",
       "treatment": "Use typed approvals, two-key review for high-impact classes, policy receipts, and session kill signals."
+    },
+    {
+      "risk": "A production-looking agent host can still render javascript:, file:, or credentialed MCP icons, or execute unsandboxed SVG, after launch approval.",
+      "treatment": "Evaluate icon src URIs at intake: allow only HTTPS or data: image types, fetch without credentials, require same-origin when the server origin is known, and sandbox or disallow SVG."
     }
   ],
   "schema_version": "1.0",
@@ -802,31 +810,31 @@
   "source_artifacts": {
     "agent_skill_supply_chain_pack": {
       "path": "data/evidence/agent-skill-supply-chain-pack.json",
-      "sha256": "ff7d3f26dbcf601943e697b3bb5cc048fd4e9b84df27f422983de5d1b1c64674"
+      "sha256": "83660fba3e7e3974e23cdd64d659b5ad107da1ff0e247c5d3d69a5db41738ec7"
     },
     "agentic_app_intake_profile": {
       "path": "data/assurance/agentic-app-intake-profile.json",
-      "sha256": "42de52b863463e52e5afab1e6ab208c5cd114a15dc308dc4d160ef26b7ce80c1"
+      "sha256": "cd3fb8682cb3564769edad8302c2cc99b5a24bafc6d8dd0bdfec505792f9eaf5"
     },
     "agentic_incident_response_pack": {
       "path": "data/evidence/agentic-incident-response-pack.json",
-      "sha256": "a291f0e9c6aa0f94725e0be46624b586bfe532833606c2f8fc34f3746fc07e0e"
+      "sha256": "7833102f2f10cf52051aec6dd5bb381e7d9f6cd92affd9d151cf6e8c985f1aae"
     },
     "agentic_posture_snapshot": {
       "path": "data/evidence/agentic-posture-snapshot.json",
-      "sha256": "8f16ada26667f41716551ad7c839e9994475395e99fdc0f8cc2b1bc6d4ae6d6e"
+      "sha256": "e5d3aaa9938aa51af291c269c4877c71ec9944eb0ca4870a524785d2d767a81b"
     },
     "agentic_run_receipt_pack": {
       "path": "data/evidence/agentic-run-receipt-pack.json",
-      "sha256": "8f32fa5aef5522e8463f4e5bffd3d75912c89a55fee3c96267316a850a0deb4d"
+      "sha256": "3241b9ba6ef30e43561b13b22057f9f3fc83474dd06a293c94dd188830663fa9"
     },
     "agentic_telemetry_contract": {
       "path": "data/evidence/agentic-telemetry-contract.json",
-      "sha256": "b0270e8d2521053da15a16b127a3c7bebef643ad077aa13acaf31b5a50da1537"
+      "sha256": "893ddc38e305adf30217b6695821827280589a3e8f3a5a1ba446bf00a373734e"
     },
     "context_egress_boundary_pack": {
       "path": "data/evidence/context-egress-boundary-pack.json",
-      "sha256": "c05ab5d4d9f86d699169c8cd2f28ca08b6e1f04ebd6dff34846309c2b1f26e95"
+      "sha256": "0619710757ebe87ae594448635374e1a96e5f0e18d1fed59206433755fd12a60"
     },
     "mcp_authorization_conformance_pack": {
       "path": "data/evidence/mcp-authorization-conformance-pack.json",
@@ -838,7 +846,7 @@
     },
     "secure_context_eval_pack": {
       "path": "data/evidence/secure-context-eval-pack.json",
-      "sha256": "088c9a130ce3d488a80e7c290a954c653470d4b89988f4a1899fdb98fc78edbe"
+      "sha256": "ed69ca7c09481bcfb11edc4b2451d68992a9527da5060a362fe01646632e3a76"
     },
     "workflow_manifest": {
       "path": "data/control-plane/workflow-manifests.json",
@@ -875,6 +883,12 @@
       "id": "mcp-security-best-practices-2026-07-28",
       "name": "Model Context Protocol Security Best Practices (2026-07-28 current revision)",
       "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices"
+    },
+    {
+      "coverage": "Current public MCP 2026-07-28 revision. Icon metadata and bytes are untrusted. Clients MUST use HTTPS or data: URIs, MUST reject javascript:, file:, ftp:, ws:, and local app schemes plus unsafe redirects, MUST fetch without cookies or Authorization headers, SHOULD verify same-origin, and MUST treat SVG as potentially executable.",
+      "id": "mcp-icons-2026-07-28",
+      "name": "Model Context Protocol Icons (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic"
     },
     {
       "coverage": "Confused-deputy prevention, token-passthrough denial, least-privilege scopes, SSRF controls, session safety, and audit trails for MCP implementations.",

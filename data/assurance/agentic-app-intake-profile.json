@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-08-21",
+  "last_reviewed": "2026-09-30",
   "intent": "Define a repeatable SecurityRecipes intake gate for new agentic applications, agent hosts, and enterprise MCP rollouts so AI platform, security architecture, GRC, procurement, and acquisition diligence teams can decide whether an agentic app can launch as open reference, guarded pilot, architecture review, or blocked high-impact autonomy.",
   "positioning": {
     "buyer": "AI Platform, Product Security, AppSec, IAM, GRC, procurement security, model-risk, vendor-risk, and acquisition diligence teams",
@@ -38,6 +38,12 @@
       "name": "Model Context Protocol Security Best Practices (2026-07-28 current revision)",
       "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices",
       "coverage": "Current public MCP 2026-07-28 revision. Confused-deputy prevention, token-passthrough denial, least-privilege scopes, SSRF controls, session safety, and audit trails for MCP implementations."
+    },
+    {
+      "id": "mcp-icons-2026-07-28",
+      "name": "Model Context Protocol Icons (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic",
+      "coverage": "Current public MCP 2026-07-28 revision. Icon metadata and bytes are untrusted. Clients MUST use HTTPS or data: URIs, MUST reject javascript:, file:, ftp:, ws:, and local app schemes plus unsafe redirects, MUST fetch without cookies or Authorization headers, SHOULD verify same-origin, and MUST treat SVG as potentially executable."
     },
     {
       "id": "mcp-security-best-practices",
@@ -141,7 +147,8 @@
       "autonomous_live_funds_or_production_deploy",
       "unregistered_agent_host",
       "tool_or_skill_changed_after_approval",
-      "approval_bypass_attempt"
+      "approval_bypass_attempt",
+      "unsafe_mcp_icon_uri"
     ],
     "prohibited_without_two_key_review": [
       "live_funds_movement",
@@ -237,6 +244,7 @@
       ],
       "recommended_controls": [
         "Keep the MCP server read-only.",
+        "Treat MCP icon metadata and bytes as untrusted: HTTPS or data: only, no credentialed fetches, and sandbox or disallow SVG.",
         "Keep generated packs fresh in CI before publication.",
         "Require signed production context releases before enterprise hosting."
       ]
@@ -288,6 +296,7 @@
       ],
       "recommended_controls": [
         "Restrict writes to branch-only remediation paths.",
+        "Reject javascript:, file:, ftp:, ws:, and other non-HTTPS MCP icon URIs before the agent host renders them.",
         "Require human review before merge or ticket closure.",
         "Block private-data plus untrusted-content plus external-write sessions without explicit approval."
       ]
