@@ -15825,6 +15825,163 @@
         "Reassess external and internal network reachability to the Qlik Sense service through approved asset-inventory and configuration-review procedures; do not perform exploit testing or send crafted HTTP requests."
       ]
     },
+    "CVE-2023-6345": {
+      "business_risk": "Critical-severity (CVSS 9.6) integer overflow in the Skia library that can allow sandbox escape after renderer compromise; confirmed exploited in the wild and listed in CISA KEV, creating high risk of full browser-host compromise for unpatched Chromium-based products.",
+      "claim_evidence": [
+        {
+          "claim": "Integer overflow in Skia in Google Chrome",
+          "kind": "affected_product",
+          "source_url": "https://nvd.nist.gov/vuln/detail/cve-2023-6345"
+        },
+        {
+          "claim": "Google Chrome prior to 119.0.6045.199",
+          "kind": "affected_version",
+          "source_url": "https://nvd.nist.gov/vuln/detail/cve-2023-6345"
+        },
+        {
+          "claim": "a remote attacker who had compromised the renderer process to potentially perform a sandbox escape via a malicious file",
+          "kind": "exposure",
+          "source_url": "https://nvd.nist.gov/vuln/detail/cve-2023-6345"
+        },
+        {
+          "claim": "The Stable channel has been updated to 119.0.6045.199 for Mac and Linux and 119.0.6045.199 /.200 for Windows",
+          "kind": "fixed_version",
+          "source_url": "https://chromereleases.googleblog.com/2023/11/stable-channel-update-for-desktop_28.html"
+        },
+        {
+          "claim": "chromium bullseye 119.0.6045.199-1~deb11u1 and bookworm 119.0.6045.199-1~deb12u1",
+          "kind": "fixed_version",
+          "source_url": "https://security-tracker.debian.org/tracker/CVE-2023-6345"
+        }
+      ],
+      "exposure_conditions": [
+        "Google Chrome versions prior to 119.0.6045.199",
+        "Remote attacker who has already compromised the renderer process",
+        "Malicious file",
+        "User interaction required"
+      ],
+      "gaps": [],
+      "generated_at": "2026-09-30T16:21:49Z",
+      "model": "grok-4.6",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [
+        "Update Google Chrome to the Stable channel release 119.0.6045.199 (Mac and Linux) or 119.0.6045.199/.200 (Windows) or later.",
+        "For Debian chromium on bullseye and bookworm, install the DSA-5569 packages 119.0.6045.199-1~deb11u1 or 119.0.6045.199-1~deb12u1 or later.",
+        "For Microsoft Edge (Chromium-based) Stable, update to 119.0.2151.97 or later.",
+        "Consult CISA KEV notes and individual vendors for other Skia consumers such as ChromeOS, Android, and Flutter.",
+        "If vendor mitigations are unavailable, discontinue use of the affected product."
+      ],
+      "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/cve-2023-6345",
+        "https://www.cve.org/CVERecord?id=CVE-2023-6345",
+        "https://ubuntu.com/security/CVE-2023-6345",
+        "https://avd.aquasec.com/nvd/2023/cve-2023-6345/",
+        "https://www.cvedetails.com/cve/CVE-2023-6345/",
+        "https://security-tracker.debian.org/tracker/CVE-2023-6345",
+        "https://www.suse.com/security/cve/CVE-2023-6345.html",
+        "https://secalerts.co/vulnerability/CVE-2023-6345",
+        "https://app.opencve.io/cve/CVE-2023-6345",
+        "https://cvetodo.com/cve/CVE-2023-6345",
+        "https://www.incibe.es/incibe-cert/alerta-temprana/vulnerabilidades/cve-2023-6345",
+        "https://security.alpinelinux.org/vuln/CVE-2023-6345",
+        "https://osv.dev/vulnerability/CVE-2023-6345",
+        "https://googleprojectzero.github.io/0days-in-the-wild/0day-RCAs/2023/CVE-2023-6345.html",
+        "https://www.wiz.io/vulnerability-database/cve/cve-2023-6345",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-6345",
+        "https://nvd.nist.gov/vuln/detail/CVE-2023-53045",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2023-53454",
+        "https://nvd.nist.gov/vuln/detail/cve-2023-53445",
+        "https://chromereleases.googleblog.com/2023/11/stable-channel-update-for-desktop_28.html",
+        "https://chromereleases.googleblog.com/search/label/Early%20Stable%20Updates",
+        "https://chromereleases.googleblog.com/search/label/Stable%20updates?updated-max=2023-08-02T12:52:00-07:00&max-results=20&start=166&by-date=false",
+        "https://chromereleases.googleblog.com/2026/",
+        "https://www.cisa.gov/news-events/alerts/2023/11/30/cisa-adds-two-known-exploited-vulnerabilities-catalog"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "e2da5370368527f87f77ecd054895bf12a4c30ebfd8f505e2af8a4b691c8de2a",
+      "source_urls": [
+        "https://nvd.nist.gov/vuln/detail/cve-2023-6345",
+        "https://chromereleases.googleblog.com/2023/11/stable-channel-update-for-desktop_28.html",
+        "https://security-tracker.debian.org/tracker/CVE-2023-6345"
+      ],
+      "status": "complete",
+      "uncertainty": [
+        "Patch availability and fixed versions for Android, ChromeOS, Flutter, and other Skia-using products are not specified in the Chrome CNA, NVD, or CISA records and require separate vendor confirmation.",
+        "Full NVD CPE configurations could not be retrieved from the NVD page.",
+        "Google Chrome advisory does not document an explicit user-facing version-check procedure."
+      ],
+      "verification_steps": [
+        "In Microsoft Edge, select the three-dot menu, choose Help and feedback, then About Microsoft Edge, and confirm the displayed version is 119.0.2151.97 or later.",
+        "Confirm Google Chrome or other Chromium-based products report a version at or above the vendor-stated fixed release using the application's built-in About or version information page."
+      ]
+    },
+    "CVE-2023-6448": {
+      "business_risk": "Critical (CVSS 9.8) known-exploited vulnerability enabling unauthenticated network attackers to gain full administrative control of industrial PLCs and HMIs, with documented targeting of water and wastewater systems.",
+      "claim_evidence": [],
+      "exposure_conditions": [
+        "VisiLogic versions prior to 9.9.00 used to program Vision or Samba series devices",
+        "PLC/HMI OS or firmware versions prior to 12.38",
+        "Default administrative password left unchanged",
+        "Device reachable over the network without isolation, firewall, VPN, or IP allowlisting"
+      ],
+      "gaps": [],
+      "generated_at": "2026-09-30T16:20:04Z",
+      "model": "grok-4.6",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [
+        "Update VisiLogic to version 9.9.00 or later",
+        "Update affected PLC and HMI OS/firmware to 12.38 or later",
+        "Change the default administrative password to a strong unique value",
+        "Disconnect devices from unauthorized internet access",
+        "If remote access is required, place a firewall or VPN in front of the PLC and use an IP allowlist",
+        "Set a password on PCOM-enabled sockets and restrict remote PCOM operations using SDW10 roles",
+        "Follow additional Unitronics cybersecurity guidelines for Vision and Samba series"
+      ],
+      "retrieved_source_urls": [
+        "https://www.cve.org/CVERecord?id=CVE-2023-6448",
+        "https://cve.yack.one/cve/CVE-2023-6448",
+        "https://cvetodo.com/cve/CVE-2023-6448",
+        "https://www.cvedetails.com/cve/CVE-2023-6448/",
+        "https://www.rainforest.tech/en/cves/CVE-2023-6448",
+        "https://www.tenable.com/cve/CVE-2023-6448",
+        "https://www.incibe.es/incibe-cert/alerta-temprana/vulnerabilidades/cve-2023-6448",
+        "https://www.sentinelone.com/vulnerability-database/cve-2023-6448/",
+        "https://app.opencve.io/cve/CVE-2023-6448",
+        "https://www.thehackerwire.com/vulnerability/CVE-2023-6448/",
+        "https://www.rainforest.tech/es/cves/CVE-2023-6448",
+        "https://cve.akaoma.com/cve-2023-6448",
+        "https://nki.gov.hu/figyelmeztetesek/serulekenysegek/cve-2023-6448/",
+        "https://turingpoint.de/cve/CVE-2023-6448/",
+        "https://cvepremium.circl.lu/vuln/cve-2023-6448",
+        "https://nvd.nist.gov/vuln/detail/CVE-2023-6448",
+        "https://nvd.nist.gov/vuln/detail/cve-2023-6449",
+        "https://nvd.nist.gov/vuln/detail/CVE-2023-6449/change-record?changeRecordedOn=12/01/2023T06:15:08.310-0500",
+        "https://nvd.nist.gov/vuln/detail/cve-2026-64448",
+        "https://nvd.nist.gov/vuln/detail/CVE-2023-6444",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-23-348-15?ref=blog.sicuranext.com",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-24-046-11",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-25-226-15",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-24-331-03"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "54e931ab6c8affa7b0d0b7a4bbbad5f388c954199d325acf3013faadec1bace6",
+      "source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2023-6448"
+      ],
+      "status": "complete",
+      "uncertainty": [
+        "NVD detail page content could not be retrieved",
+        "OS/firmware version is reported as 12.38 in CISA and vendor advisory versus 4.12.38 in VisiLogic 9.9.00 release notes",
+        "Exhaustive hardware model list beyond Vision and Samba series is not fully enumerated in the retrieved advisories"
+      ],
+      "verification_steps": [
+        "Confirm the installed VisiLogic version is 9.9.00 or later against the vendor release notes",
+        "Confirm PLC/HMI OS or firmware version is 12.38 or later per vendor documentation",
+        "Review device configuration to ensure the default administrative password is no longer in use"
+      ]
+    },
     "CVE-2024-0012": {
       "business_risk": "Critical authentication bypass (CVSS 9.3) that lets an unauthenticated attacker with network access to the PAN-OS management web interface obtain administrator privileges, tamper with configuration, or chain to other issues. Actively exploited in the wild with known ransomware campaign use; risk is highest when the management interface is reachable from the internet or untrusted networks.",
       "claim_evidence": [
@@ -15926,6 +16083,56 @@
         "Confirm the management web interface is reachable only from trusted internal IP addresses and is not exposed to untrusted networks or the internet.",
         "If the management interface was previously internet-exposed, review configuration and logs for unrecognized administrative changes or users; check the Customer Support Portal Assets section for devices tagged PAN-SA-2024-0015."
       ]
+    },
+    "CVE-2024-0769": {
+      "business_risk": "No additional source-verified CVE-specific business impact was established.",
+      "claim_evidence": [],
+      "exposure_conditions": [],
+      "gaps": [],
+      "generated_at": "2026-09-30T16:18:40Z",
+      "model": "grok-4.6",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [],
+      "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/cve-2024-0769",
+        "https://nvd.nist.gov/vuln/detail/cve-2024-0760",
+        "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2024-47669",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2024-26804",
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-32876",
+        "https://nvd.nist.gov/vuln/detail/cve-2024-2698",
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-35969",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2024-47076",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2026-23469",
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-56769",
+        "https://supportannouncement.us.dlink.com/announcement/publication.aspx?name=SAP10204",
+        "https://supportannouncement.us.dlink.com/security/publication.aspx?name=SAP10385",
+        "https://supportannouncement.us.dlink.com/security/publication.aspx?name=SAP10478",
+        "https://supportannouncement.us.dlink.com/announcement/publication.aspx?name=SAP10320",
+        "https://supportannouncement.us.dlink.com/security/publication.aspx?name=SAP10022",
+        "https://supportannouncement.us.dlink.com/security/publication.aspx?name=SAP10399",
+        "https://supportannouncement.us.dlink.com/security/publication.aspx?name=SAP10412",
+        "https://supportannouncement.us.dlink.com/security/publication.aspx?name=SAP10413",
+        "https://supportannouncement.us.dlink.com/security/publication.aspx?name=SAP10386",
+        "https://supportannouncement.us.dlink.com/security/publication.aspx?name=SAP10483",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2024-0769",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-24-319-08",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-25-105-08",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-25-226-07"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "5c612b3d75e1b3acc7523163665a55cd9be8ff4b077f8fc1682e08ed23d916cb",
+      "source_urls": [
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2024-0769"
+      ],
+      "status": "insufficient_evidence",
+      "uncertainty": [
+        "The NVD detail page could not be retrieved",
+        "No patched or fixed firmware version is published because the product is end-of-life",
+        "CNA description names firmware 1.06B01 while the vendor advisory states all firmware and all hardware revisions are affected",
+        "CNA CVSS (confidentiality low) differs from the high-impact vector quoted by the vendor"
+      ],
+      "verification_steps": []
     },
     "CVE-2024-11667": {
       "business_risk": "Critical, actively exploited path-traversal vulnerability in the web management interface. An unauthenticated network attacker may be able to download or upload files through a crafted URL, creating confidentiality and integrity risk. CISA lists CVE-2024-11667 in its Known Exploited Vulnerabilities Catalog.",
@@ -16041,82 +16248,108 @@
       "verification_steps": []
     },
     "CVE-2024-1212": {
-      "business_risk": "Critical risk: CVE-2024-1212 permits unauthenticated remote attackers who can reach the LoadMaster management interface to execute arbitrary system commands, potentially causing confidentiality, integrity, and availability impact. CISA lists the vulnerability in its Known Exploited Vulnerabilities Catalog, so remediation should be prioritized.",
+      "business_risk": "Critical unauthenticated OS command injection allowing arbitrary system command execution on Progress Kemp LoadMaster via the management interface. CISA KEV-listed with known exploitation; CNA CVSS 10.0. Successful exploitation of a reachable load-balancer management plane can yield full appliance compromise.",
       "claim_evidence": [
         {
-          "claim": "The affected product is Progress/Kemp LoadMaster running LMOS on Linux.",
+          "claim": "Progress Software LoadMaster (Kemp LoadMaster / LMOS) on Linux",
           "kind": "affected_product",
           "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-1212"
         },
         {
-          "claim": "Affected ranges are 7.2.48.1 through versions before 7.2.48.10, 7.2.54.0 through versions before 7.2.54.8, and 7.2.55.0 through versions before 7.2.59.2.",
+          "claim": "Affected: 7.2.48.1 before 7.2.48.10; 7.2.54.0 before 7.2.54.8; 7.2.55.0 before 7.2.59.2",
           "kind": "affected_version",
           "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-1212"
         },
         {
-          "claim": "Unauthenticated remote attackers can access the system through the LoadMaster management interface and execute arbitrary system commands.",
+          "claim": "Unauthenticated remote attackers can access the system through the LoadMaster management interface, enabling arbitrary system command execution",
           "kind": "exposure",
           "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-1212"
         },
         {
-          "claim": "The NVD affected-configuration ranges establish fixed thresholds of 7.2.48.10, 7.2.54.8, and 7.2.59.2 for the corresponding release branches.",
-          "kind": "fixed_version",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-1212"
+          "claim": "A user with access to the management network on which the LoadMaster administrative IP address resides can, using a carefully crafted RESTful API command, log into LoadMaster without credentials and execute privileged API commands",
+          "kind": "exposure",
+          "source_url": "https://docs.progress.com/bundle/release-notes_loadmaster-7-2-54-8/page/Security-Updates-Fix-for-CVE-2024-1212.html"
         },
         {
-          "claim": "Comparing the installed LMOS version against the NVD affected ranges provides a non-exploitative verification that the deployment is outside the specified vulnerable ranges.",
+          "claim": "Fixed in LMOS 7.2.48.10, 7.2.54.8 and 7.2.59.2",
+          "kind": "fixed_version",
+          "source_url": "https://community.progress.com/s/article/Release-Notice-LMOS-7-2-59-2-7-2-54-8-7-2-48-10-CVE-2024-1212"
+        },
+        {
+          "claim": "Firmware upgrade patches are available for all active LoadMaster versions; update to one of these releases as soon as possible",
+          "kind": "remediation",
+          "source_url": "https://community.progress.com/s/article/Release-Notice-LMOS-7-2-59-2-7-2-54-8-7-2-48-10-CVE-2024-1212"
+        },
+        {
+          "claim": "Apply mitigations per vendor instructions or discontinue use of the product if mitigations are unavailable",
+          "kind": "remediation",
+          "source_url": "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2024-1212"
+        },
+        {
+          "claim": "The 7.2.54.8 (and corresponding) updates contain a fix that closes the vulnerability; confirm via vendor release notice after upgrade",
           "kind": "verification",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-1212"
+          "source_url": "https://docs.progress.com/bundle/release-notes_loadmaster-7-2-54-8/page/Security-Updates-Fix-for-CVE-2024-1212.html"
         }
       ],
       "exposure_conditions": [
-        "A Progress/Kemp LoadMaster appliance is running one of the affected LMOS ranges: 7.2.48.1 through versions before 7.2.48.10; 7.2.54.0 through versions before 7.2.54.8; or 7.2.55.0 through versions before 7.2.59.2.",
-        "The LoadMaster management interface is reachable by an unauthenticated remote attacker."
+        "Unauthenticated remote attackers can reach the LoadMaster management interface or the network and port on which RESTful API access is configured",
+        "Access to the management network containing the LoadMaster administrative IP address",
+        "Ability to issue a crafted RESTful API command that authenticates without credentials and runs privileged commands"
       ],
       "gaps": [],
-      "generated_at": "2026-07-25T21:58:39Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-09-30T16:15:32Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [
-        "Upgrade LMOS to 7.2.48.10 or later within the 7.2.48 branch, 7.2.54.8 or later within the 7.2.54 branch, or 7.2.59.2 or later within the 7.2.55-and-later branch, as applicable to the deployed release path.",
-        "If the vendor-provided mitigation or update cannot be applied, follow CISA's stated action to apply vendor mitigations or discontinue use of the product if mitigations are unavailable.",
-        "Restrict access to the LoadMaster management interface to trusted administrative networks while remediation is pending; this is a defensive exposure-reduction measure and is not a substitute for upgrading."
+        "Upgrade LoadMaster firmware to a patched release for the installed branch (7.2.48.10, 7.2.54.8 or 7.2.59.2) using vendor firmware upgrade patches as soon as possible",
+        "If a patch cannot be applied, restrict access to the management interface to trusted networks only or discontinue use of the product per CISA required action"
       ],
       "retrieved_source_urls": [
         "https://nvd.nist.gov/vuln/detail/CVE-2024-1212",
-        "https://www.cisa.gov/news-events/alerts/2024/07/09/cisa-adds-three-known-exploited-vulnerabilities-catalog",
-        "https://nvd.nist.gov/vuln/detail/cve-2024-20292",
-        "https://nvd.nist.gov/vuln/detail/CVE-2024-1211",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=24",
-        "https://nvd.nist.gov/vuln/detail/CVE-2024-12024",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?_cldee=jpUNG-sft0Lr74jsazzEoZ17jTSFEy6lQDvCJArCUYT0C1B4SWuT29F0dx7GSSfN&esid=f8736f67-efb4-ec11-983e-000d3a5a7186&f%5B0%5D=vendor_project%3A813&f%5B1%5D=vendor_project%3A855&f%5B2%5D=vendor_project%3A924&f%5B3%5D=vendor_project%3A1277&f%5B4%5D=vendor_project%3A1320&page=1&recipientid=contact-41de9e007aace811a963000d3a363879-a794569726594743b07ecd7aaff0e97c",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?_cldee=jpUNG-sft0Lr74jsazzEoZ17jTSFEy6lQDvCJArCUYT0C1B4SWuT29F0dx7GSSfN&esid=f8736f67-efb4-ec11-983e-000d3a5a7186&f%5B0%5D=vendor_project%3A813&f%5B1%5D=vendor_project%3A829&f%5B2%5D=vendor_project%3A849&f%5B3%5D=vendor_project%3A911&f%5B4%5D=vendor_project%3A1320&page=1&recipientid=contact-41de9e007aace811a963000d3a363879-a794569726594743b07ecd7aaff0e97c",
-        "https://www.cisa.gov/news-events/alerts/2024/04/24/cisco-releases-security-updates-addressing-arcanedoor-vulnerabilities-cisco-firewall-platforms",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A793&f%5B10%5D=vendor_project%3A845&f%5B11%5D=vendor_project%3A854&f%5B12%5D=vendor_project%3A867&f%5B13%5D=vendor_project%3A884&f%5B14%5D=vendor_project%3A886&f%5B15%5D=vendor_project%3A893&f%5B16%5D=vendor_project%3A902&f%5B17%5D=vendor_project%3A905&f%5B18%5D=vendor_project%3A917&f%5B19%5D=vendor_project%3A938&f%5B1%5D=vendor_project%3A800&f%5B2%5D=vendor_project%3A801&f%5B3%5D=vendor_project%3A820&f%5B4%5D=vendor_project%3A823&f%5B5%5D=vendor_project%3A826&f%5B6%5D=vendor_project%3A828&f%5B7%5D=vendor_project%3A830&f%5B8%5D=vendor_project%3A837&f%5B9%5D=vendor_project%3A842&page=1",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2024-40766",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A801&f%5B10%5D=vendor_project%3A851&f%5B11%5D=vendor_project%3A854&f%5B12%5D=vendor_project%3A861&f%5B13%5D=vendor_project%3A866&f%5B14%5D=vendor_project%3A877&f%5B15%5D=vendor_project%3A886&f%5B16%5D=vendor_project%3A892&f%5B17%5D=vendor_project%3A893&f%5B18%5D=vendor_project%3A900&f%5B19%5D=vendor_project%3A904&f%5B1%5D=vendor_project%3A802&f%5B20%5D=vendor_project%3A910&f%5B21%5D=vendor_project%3A917&f%5B22%5D=vendor_project%3A931&f%5B23%5D=vendor_project%3A938&f%5B24%5D=vendor_project%3A940&f%5B2%5D=vendor_project%3A803&f%5B3%5D=vendor_project%3A816&f%5B4%5D=vendor_project%3A820&f%5B5%5D=vendor_project%3A823&f%5B6%5D=vendor_project%3A837&f%5B7%5D=vendor_project%3A842&f%5B8%5D=vendor_project%3A845&f%5B9%5D=vendor_project%3A846&page=1",
-        "https://www.cisa.gov/sites/default/files/2024-05/Secure_by_Design_Alert_Eliminating_Directory_Traversal_Vulnerabilities_in_Software_508c%20%283%29.pdf",
-        "https://www.cisa.gov/sites/default/files/2024-08/SECURING_THE_SOFTWARE_SUPPLY_CHAIN_RECOMMENDED_PRACTICES_FOR_SOFTWARE_BILL_OF_MATERIALS_CONSUMPTION-508.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/web-metrics/CISA.gov-Apr-2024-Web-Metrics-508.pdf",
-        "https://www.cisa.gov/sites/default/files/2025-08/CSA_COUNTERING_CHINA_STATE_ACTORS_COMPROMISE_OF_NETWORKS.pdf"
+        "https://nvd.nist.gov/vuln/detail/cve-2024-38112",
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-12172",
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-0012",
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-44212",
+        "https://www.cyber.gov.au/about-us/view-all-content/alerts-and-advisories/vulnerability-in-progress-kemp-products",
+        "https://www.cvedetails.com/cve/CVE-2024-1212/",
+        "https://soc.cyber.wa.gov.au/advisories/20240223001-Progress-Kemp-products-vulnerability/",
+        "https://rhinosecuritylabs.com/research/cve-2024-1212unauthenticated-command-injection-in-progress-kemp-loadmaster/",
+        "https://cve.report/CVE-2024-1212",
+        "https://secalerts.co/vulnerability/CVE-2024-1212",
+        "https://www.securityweek.com/cisa-warns-of-progress-kemp-loadmaster-vulnerability-exploitation/",
+        "https://stack.watch/vuln/CVE-2024-1212/",
+        "https://www.tenable.com/plugins/was/114384",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2024-1212",
+        "https://cisa.gov/news-events/ics-advisories/icsa-25-035-06",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog-print",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-25-226-07",
+        "https://www.cisa.gov/news-events/bulletins/sb24-351",
+        "https://community.progress.com/s/article/Release-Notice-LMOS-7-2-59-2-7-2-54-8-7-2-48-10-CVE-2024-1212",
+        "https://community.progress.com/s/article/MOVEit-Automation-Vulnerability-Scanner-Penetration-Testing-and-Hardening-FAQ-s",
+        "https://community.progress.com/s/article/LoadMaster-Vulnerabilities",
+        "https://support.kemptechnologies.com/hc/en-us/articles/23878931058445-LoadMaster-Security-Vulnerability-CVE-2024-1212",
+        "https://docs.progress.com/bundle/release-notes_loadmaster-7-2-54-8/page/Security-Updates-Fix-for-CVE-2024-1212.html"
       ],
       "schema_version": 2,
       "source_fingerprint": "d4df7c89337c2b747e645267094783510963097329dd7d9afde3d4098b0e5664",
       "source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2024-1212"
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-1212",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2024-1212",
+        "https://community.progress.com/s/article/Release-Notice-LMOS-7-2-59-2-7-2-54-8-7-2-48-10-CVE-2024-1212",
+        "https://docs.progress.com/bundle/release-notes_loadmaster-7-2-54-8/page/Security-Updates-Fix-for-CVE-2024-1212.html",
+        "https://community.progress.com/s/article/LoadMaster-Vulnerabilities"
       ],
       "status": "complete",
       "uncertainty": [
-        "The retrieved vendor release-notice page was not readable in the available source view; the fixed-version ranges are corroborated by the NVD record, which cites the vendor release notice.",
-        "The supplied record does not identify the deployed LMOS version or whether the management interface is reachable from untrusted networks.",
-        "No additional vendor-specific mitigation details or administrative verification procedure were confirmed from the retrieved source content."
+        "Full NVD HTML content could not be retrieved by page fetch; affected-version ranges rely on NVD search excerpts plus vendor documentation",
+        "Some Progress/Kemp knowledge-base articles failed to load or appear to require authentication",
+        "Secondary sources mention ECS Connection Manager; primary retrieved LoadMaster advisories do not fully detail that product",
+        "Retrieved sources do not publish a detailed post-upgrade verification procedure beyond confirming the firmware version"
       ],
       "verification_steps": [
-        "Record the installed LMOS version using the product's normal administrative interface or approved asset-management inventory, without sending exploitative requests.",
-        "Confirm that the installed version is not within any affected range and meets the corresponding fixed-version threshold: 7.2.48.10, 7.2.54.8, or 7.2.59.2, as applicable.",
-        "Confirm that access to the management interface is limited to intended administrative networks and that no unauthenticated external reachability remains."
+        "After applying the vendor firmware upgrade, confirm the running LMOS version against the patched releases published in the Progress release notice",
+        "Review the CISA KEV catalog entry for CVE-2024-1212 to confirm the required action has been completed"
       ]
     },
     "CVE-2024-12987": {
@@ -16440,56 +16673,93 @@
       ]
     },
     "CVE-2024-21410": {
-      "business_risk": "No additional source-verified CVE-specific business impact was established.",
-      "claim_evidence": [],
-      "exposure_conditions": [],
+      "business_risk": "Critical Microsoft Exchange Server elevation of privilege (CWE-287 improper authentication, CVSS 3.1 9.8) that CISA lists as known-exploited. When Extended Protection for Authentication is not enabled, leaked Net-NTLMv2 credentials from an NTLM client such as Outlook can be relayed to Exchange so the attacker authenticates as the victim and acts on the server. Impact is high for confidentiality, integrity, and availability of on-premises mail.",
+      "claim_evidence": [
+        {
+          "claim": "Affected products are Microsoft Exchange Server 2016 Cumulative Update 23, Microsoft Exchange Server 2019 Cumulative Update 13, and Microsoft Exchange Server 2019 Cumulative Update 14 on x64-based systems.",
+          "kind": "affected_product",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-21410"
+        },
+        {
+          "claim": "CNA/NVD affected ranges: Exchange 2016 CU23 from 15.01.0 before 15.01.2507.037; Exchange 2019 CU13 and CU14 from 15.02.0 before 15.2.1544.004.",
+          "kind": "affected_version",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-21410"
+        },
+        {
+          "claim": "Prior to Exchange 2019 CU14, NTLM credential relay protection (Extended Protection for Authentication) was not enabled by default, allowing leaked NTLM credentials from clients such as Outlook to be relayed to Exchange.",
+          "kind": "exposure",
+          "source_url": "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2024-21410"
+        },
+        {
+          "claim": "CISA KEV: Microsoft Exchange Server privilege escalation, added 2024-02-15, due 2024-03-07, ransomware use Unknown.",
+          "kind": "exposure",
+          "source_url": "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2024-21410"
+        }
+      ],
+      "exposure_conditions": [
+        "On-premises Microsoft Exchange Server 2016 Cumulative Update 23, Exchange Server 2019 Cumulative Update 13, or Exchange Server 2019 Cumulative Update 14 on x64-based systems in the CNA/NVD affected ranges.",
+        "Extended Protection for Authentication (EPA/EP) is not enabled. Before Exchange 2019 CU14, EPA was not enabled by default.",
+        "An attacker can obtain leaked NTLM credentials from a client (for example Outlook) and relay them to the Exchange server.",
+        "The Exchange server is reachable over the network; the vendor CVSS vector is AV:N/AC:L/PR:N/UI:N."
+      ],
       "gaps": [],
-      "generated_at": "2026-07-26T11:00:53Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-09-30T16:17:18Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
-      "remediation_steps": [],
+      "remediation_steps": [
+        "Follow the Microsoft Security Update Guide for CVE-2024-21410 and CISA KEV required action: apply vendor mitigations or discontinue use if mitigations are unavailable.",
+        "For Exchange Server 2019, install Cumulative Update 14 (KB5035606, build 15.02.1544.004) and allow Setup to enable Windows Extended Protection by default. Do not use the documented opt-out switches unless a documented prerequisite exception applies.",
+        "For Exchange Server 2016 CU23 and other supported versions that already have the August 2022 or later Security Update, enable Extended Protection using Microsoft’s Configure Windows Extended Protection in Exchange Server guidance (ExchangeExtendedProtectionManagement.ps1). Microsoft did not ship a 2016 update for this CVE on 13 February 2024.",
+        "Meet EPA prerequisites before enabling it: disable SSL offloading (use SSL bridging with the same certificate as the Exchange IIS front end), use NTLMv2, keep TLS settings consistent, and review Hybrid Agent / public folder exceptions in Microsoft documentation.",
+        "After installing a CU, install the latest Security Update available for that CU and re-check remaining security actions with the Exchange Server Health Checker."
+      ],
       "retrieved_source_urls": [
-        "https://learn.microsoft.com/en-us/exchange/plan-and-deploy/post-installation-tasks/security-best-practices/exchange-extended-protection",
-        "https://msrc.microsoft.com/update-guide/en-us/",
-        "https://msrc.microsoft.com/update-guide/vulnerability/CV",
-        "https://learn.microsoft.com/en-us/answers/questions/1564024/known-issues-with-exchange-servers-and-clients-aft",
-        "https://support.microsoft.com/en-US/servicing/Exchange/server/update/2024/cumulative-update-14-for-exchange-server-2019-kb5035606",
-        "https://learn.microsoft.com/en-us/answers/questions/1571418/microsoft-exchange-server-vulnerability",
-        "https://learn.microsoft.com/en-us/exchange/plan-and-deploy/post-installation-tasks/security-best-practices/exchange-server-update-faq",
-        "https://learn.microsoft.com/en-us/answers/questions/1539319/exchange-update-cu14-defender-found-potentially",
-        "https://support.microsoft.com/en-US/servicing/Exchange/server/hotfix/2024/description-of-version-2-of-the-security-update-for-microsoft-exchange-server-2019-and-2016-november",
-        "https://learn.microsoft.com/ja-jp/exchange/plan-and-deploy/post-installation-tasks/security-best-practices/exchange-extended-protection",
-        "https://learn.microsoft.com/en-us/answers/questions/2181407/security-update-for-exchange",
-        "https://learn.microsoft.com/en-us/iis/configuration/system.webserver/security/authentication/windowsauthentication/extendedprotection/",
-        "https://learn.microsoft.com/en-us/office365/enterprise/downloads/office2010windows7endofsupport.pdf",
-        "https://learn.microsoft.com/zh-cn/microsoft-365/enterprise/media/migration-microsoft-365-enterprise-workload/office2010windows7endofsupport.pdf",
-        "https://learn.microsoft.com/services-hub/health/pdfs/assessment_prereq_docs/Prerequisites_Offline_EX.pdf",
-        "https://learn.microsoft.com/ms-my/services-hub/unified/health/getting-started-office365exchange/exo-oda-remote.pdf",
-        "https://learn.microsoft.com/en-us/microsoft-365/enterprise/media/deploy-microsoft-365-enterprise/transitionorgtom365.pdf",
-        "https://learn.microsoft.com/Office365/Enterprise/downloads/Microsoft-365-tenant-to-tenant-migration.pdf",
-        "https://support.microsoft.com/en-us/servicing/office/description-of-the-security-update-for-microsoft-exchange-server-2016-cu23-june-09-2026-kb5094144",
-        "https://support.microsoft.com/hr-hr/servicing/office/description-of-the-security-update-for-microsoft-exchange-server-2016-cu23-june-09-2026-kb5094144",
-        "https://support.microsoft.com/sr-latn-rs/servicing/exchange/server/hotfix/2024/description-of-security-update-12-for-exchange-server-2016-march-12-2024-kb5036386",
-        "https://support.microsoft.com/en-gb/topic/description-of-the-security-update-for-microsoft-exchange-server-2016-cu23-february-10-2026-kb5074995-6f19ac7f-fd49-46b9-bd21-66528203a41d",
-        "https://support.microsoft.com/en-us/topic/description-of-the-security-update-for-microsoft-exchange-server-2016-cu23-october-14-2025-kb5066369-8ca2ab99-dfde-4329-896a-3faa677d2603",
-        "https://support.microsoft.com/en-US/servicing/Exchange/server/hotfix/2024/hotfix-update-for-exchange-server-2016-cu23-april-18-2025-kb5050674"
+        "https://nvd.nist.gov/vuln/detail/cve-2024-21410",
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-21410",
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-21410",
+        "https://nvd.nist.gov/vuln/detail/cve-2024-45310",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-21710",
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-21610/change-record?changeRecordedOn=05/16/2024T16:15:09.170-0400",
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-21210",
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-36010",
+        "https://nvd.nist.gov/vuln/detail/cve-2024-8770",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2024-26910",
+        "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2024-21410",
+        "https://msrc.microsoft.com/update-guide/zh-cn/vulnerability/CVE-2024-21410",
+        "https://msrc.microsoft.com/update-guide/ja-jp/vulnerability/CVE-2024-21410",
+        "https://msrc.microsoft.com/update-guide/zh-tw/vulnerability/CVE-2024-21410",
+        "https://portal.msrc.microsoft.com/en-us/security-guidance/releasenotedetail/2024-Feb",
+        "https://msrc.microsoft.com/en-US/security-guidance/advisory/CVE-2024-21412",
+        "https://msrc.microsoft.com/update-guide/releaseNote/2024-oct",
+        "https://msrc.microsoft.com/update-guide/fr-fr/vulnerability/CVE-2024-21409",
+        "https://msrc.microsoft.com/csaf/advisories/2024/msrc_cve-2024-21418.json",
+        "https://portal.msrc.microsoft.com/ja-JP/security-guidance/advisory/CVE-2025-21410",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2024-21410",
+        "https://www.cisa.gov/news-events/alerts/2024/02/13/cisa-adds-two-known-exploited-vulnerabilities-catalog",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog-print",
+        "https://www.cisa.gov/news-events/bulletins/sb24-295"
       ],
       "schema_version": 2,
       "source_fingerprint": "9df882e82c9c4bf0b313da9e8946a1dc505d6c84678a7cace8185101bd88cec8",
       "source_urls": [
-        "https://support.microsoft.com/en-US/servicing/Exchange/server/update/2024/cumulative-update-14-for-exchange-server-2019-kb5035606",
-        "https://learn.microsoft.com/en-us/exchange/plan-and-deploy/post-installation-tasks/security-best-practices/exchange-extended-protection",
-        "https://learn.microsoft.com/en-us/exchange/plan-and-deploy/post-installation-tasks/security-best-practices/exchange-server-update-faq"
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-21410",
+        "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2024-21410",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2024-21410"
       ],
-      "status": "insufficient_evidence",
+      "status": "complete",
       "uncertainty": [
-        "The supplied affected-product data appears inconsistent for Exchange Server 2019 CU13: it pairs CU13 with a CU14 build threshold (15.2.1544.004).",
-        "The returned authoritative Microsoft sources establish the CU14 fixed build and the Exchange 2016 CU23 build, but do not establish a separate exact CVE-2024-21410 fixed build for CU13.",
-        "No source returned a CVE-specific inert network verification procedure; verification is therefore limited to Microsoft-documented build and Health Checker validation.",
-        "The supplied record’s CVSS, KEV, and affected-version assertions were not independently reproduced from a directly rendered CVE-specific MSRC page because the MSRC page was unavailable for structured retrieval."
+        "The operational fix is enabling Extended Protection, not only installing a build. CU14 remains exposed if Setup is run with /DoNotEnableEP or /DoNotEnableEP_FEEWS.",
+        "For Exchange 2016, Microsoft stated no 13 February 2024 update was released; CNA/NVD still mark 2016 CU23 affected before 15.01.2507.037 (the later March 2024 SU build), so version-only checks can disagree with the EPA configuration state.",
+        "Microsoft said it was not aware of then-current NTLM-relay exploitation against Exchange while also marking Exploitation Detected; CISA KEV ransomware-campaign use is Unknown.",
+        "Exchange Server 2016 and 2019 later reached end of support; subsequent security updates may require the Extended Security Update program."
       ],
-      "verification_steps": []
+      "verification_steps": [
+        "Compare the installed Exchange build to Microsoft’s published build-number table. Exchange 2019 CU14 is 15.2.1544.4 / 15.02.1544.004.",
+        "Use the Microsoft-documented Exchange Server Health Checker to confirm the build and whether additional security actions remain.",
+        "Confirm Extended Protection is actually enabled on the Exchange virtual directories per Microsoft Extended Protection documentation, including that CU14 Setup was not run with EPA opt-out.",
+        "Do not attempt NTLM-relay or credential-leak tests to prove exploitability."
+      ]
     },
     "CVE-2024-21413": {
       "business_risk": "No additional source-verified CVE-specific business impact was established.",
@@ -17102,90 +17372,119 @@
       "claim_evidence": [],
       "exposure_conditions": [],
       "gaps": [],
-      "generated_at": "2026-07-25T21:58:24Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-09-30T16:13:35Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [],
       "retrieved_source_urls": [
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=16",
-        "https://www.cisa.gov/news-events/alerts/2024/02/09/cisa-adds-one-known-exploited-vulnerability-catalog",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A800&f%5B10%5D=vendor_project%3A848&f%5B11%5D=vendor_project%3A850&f%5B12%5D=vendor_project%3A851&f%5B13%5D=vendor_project%3A854&f%5B14%5D=vendor_project%3A857&f%5B15%5D=vendor_project%3A869&f%5B16%5D=vendor_project%3A886&f%5B17%5D=vendor_project%3A893&f%5B18%5D=vendor_project%3A901&f%5B19%5D=vendor_project%3A904&f%5B1%5D=vendor_project%3A801&f%5B20%5D=vendor_project%3A907&f%5B21%5D=vendor_project%3A908&f%5B22%5D=vendor_project%3A917&f%5B23%5D=vendor_project%3A921&f%5B24%5D=vendor_project%3A925&f%5B25%5D=vendor_project%3A927&f%5B26%5D=vendor_project%3A938&f%5B27%5D=vendor_project%3A941&f%5B28%5D=vendor_project%3A955&f%5B29%5D=vendor_project%3A1001&f%5B2%5D=vendor_project%3A803&f%5B30%5D=vendor_project%3A1041&f%5B31%5D=vendor_project%3A1286&f%5B3%5D=vendor_project%3A820&f%5B4%5D=vendor_project%3A823&f%5B5%5D=vendor_project%3A831&f%5B6%5D=vendor_project%3A834&f%5B7%5D=vendor_project%3A837&f%5B8%5D=vendor_project%3A842&f%5B9%5D=vendor_project%3A845&page=1",
-        "https://nvd.nist.gov/vuln",
-        "https://supportannouncement.us.dlink.com/security/publication.aspx?name=SAP10383",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=0",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?_cldee=jpUNG-sft0Lr74jsazzEoZ17jTSFEy6lQDvCJArCUYT0C1B4SWuT29F0dx7GSSfN&esid=f8736f67-efb4-ec11-983e-000d3a5a7186&f%5B0%5D=vendor_project%3A813&f%5B1%5D=vendor_project%3A829&f%5B2%5D=vendor_project%3A849&f%5B3%5D=vendor_project%3A911&f%5B4%5D=vendor_project%3A1320&page=1&recipientid=contact-41de9e007aace811a963000d3a363879-a794569726594743b07ecd7aaff0e97c",
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-20272",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=24",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=23",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A800&f%5B10%5D=vendor_project%3A854&f%5B11%5D=vendor_project%3A859&f%5B12%5D=vendor_project%3A886&f%5B13%5D=vendor_project%3A893&f%5B14%5D=vendor_project%3A897&f%5B15%5D=vendor_project%3A902&f%5B16%5D=vendor_project%3A917&f%5B17%5D=vendor_project%3A922&f%5B18%5D=vendor_project%3A939&f%5B19%5D=vendor_project%3A942&f%5B1%5D=vendor_project%3A801&f%5B20%5D=vendor_project%3A955&f%5B21%5D=vendor_project%3A1147&f%5B22%5D=vendor_project%3A1172&f%5B23%5D=vendor_project%3A1267&f%5B2%5D=vendor_project%3A810&f%5B3%5D=vendor_project%3A817&f%5B4%5D=vendor_project%3A823&f%5B5%5D=vendor_project%3A827&f%5B6%5D=vendor_project%3A837&f%5B7%5D=vendor_project%3A842&f%5B8%5D=vendor_project%3A845&f%5B9%5D=vendor_project%3A852&page=1",
-        "https://nvd.nist.gov/vuln/data-feeds",
-        "https://www.cisa.gov/sites/default/files/2024-05/Secure_by_Design_Alert_Eliminating_Directory_Traversal_Vulnerabilities_in_Software_508c%20%283%29.pdf",
-        "https://www.cisa.gov/sites/default/files/2024-08/SECURING_THE_SOFTWARE_SUPPLY_CHAIN_RECOMMENDED_PRACTICES_FOR_SOFTWARE_BILL_OF_MATERIALS_CONSUMPTION-508.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/web-metrics/CISA.gov-Apr-2024-Web-Metrics-508.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
-        "https://www.cisa.gov/sites/default/files/2025-08/CSA_COUNTERING_CHINA_STATE_ACTORS_COMPROMISE_OF_NETWORKS.pdf"
+        "https://nvd.nist.gov/vuln/detail/cve-2024-3272",
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-3272?ref=news.risky.biz",
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-3272/change-record?changeRecordedOn=04/03/2024T21:15:50.123-0400",
+        "https://nvd.nist.gov/vuln/detail/cve-2024-32752",
+        "https://nvd.nist.gov/nvd.cfm?cvename=CVE-2024-32752",
+        "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2025-68372",
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-3272",
+        "https://nvd.nist.gov/vuln/detail/cve-2024-32002",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2024-56372",
+        "https://nvd.nist.gov/vuln/detail/cve-2024-3332",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-24-158-04",
+        "https://www.cisa.gov/news-events/bulletins/sb26-166",
+        "https://www.cisa.gov/news-events/bulletins/sb24-149",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-24-319-08",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-24-046-11",
+        "https://www.cve.org/CVERecord?id=CVE-2024-3272",
+        "https://turingpoint.de/en/cve/CVE-2024-3272/",
+        "https://socradar.io/free-tools/cve-radar/CVE-2024-3272",
+        "https://www.cyber-defence.io/tools/cve/CVE-2024-3272",
+        "https://supportannouncement.us.dlink.com/security/publication.aspx?name=sap10383",
+        "https://supportannouncement.us.dlink.com/announcement/publication.aspx?name=sap10349",
+        "https://supportannouncement.us.dlink.com/security/publication.aspx?name=SAP10479",
+        "https://supportannouncement.us.dlink.com/announcement/publication.aspx?name=SAP10320"
       ],
       "schema_version": 2,
       "source_fingerprint": "35c5cc43859780a4e8db2612e86ea65a7ad2c51afb8508ba38e4c818c1b11a94",
       "source_urls": [
-        "https://supportannouncement.us.dlink.com/security/publication.aspx?name=SAP10383",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=16"
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-3272?ref=news.risky.biz",
+        "https://supportannouncement.us.dlink.com/security/publication.aspx?name=sap10383",
+        "https://www.cve.org/CVERecord?id=CVE-2024-3272"
       ],
       "status": "insufficient_evidence",
       "uncertainty": [
-        "The authoritative vendor advisory does not provide a concrete fixed firmware version; it directs owners to retire and replace the affected products.",
-        "The supplied record lists additional product/version data beyond the vendor’s explicitly named models, but the authoritative D-Link advisory should control product scope.",
-        "No authoritative source located here provides a non-invasive, product-specific verification test or confirms that a particular firmware version remediates CVE-2024-3272.",
-        "CVE-2024-3272 is discussed together with CVE-2024-3273 in the D-Link advisory; remediation of one issue should not be treated as remediation of the other."
+        "Authoritative sources do not publish enumerated firmware version ranges or any fixed versions because the products are end-of-life with no patches.",
+        "The vendor advisory enumerates many additional NAS models beyond the four named in the CVE description.",
+        "No source provides device-specific configuration, interface, or post-replacement checks."
       ],
       "verification_steps": []
     },
     "CVE-2024-3273": {
-      "business_risk": "No additional source-verified CVE-specific business impact was established.",
-      "claim_evidence": [],
-      "exposure_conditions": [],
+      "business_risk": "Critical remotely exploitable command injection on unsupported legacy D-Link NAS devices that CISA has added to the Known Exploited Vulnerabilities catalog, with vendor and CISA directing retirement rather than patching.",
+      "claim_evidence": [
+        {
+          "claim": "D-Link DNS-320L, DNS-325, DNS-327L, and DNS-340L contain a command injection vulnerability",
+          "kind": "affected_product",
+          "source_url": "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2024-3273"
+        },
+        {
+          "claim": "When combined with CVE-2024-3272, this can lead to remote, unauthorized code execution",
+          "kind": "exposure",
+          "source_url": "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2024-3273"
+        },
+        {
+          "claim": "All associated hardware revisions have reached their end-of-life (EOL) or end-of-service (EOS) life cycle and should be retired and replaced per vendor instructions",
+          "kind": "remediation",
+          "source_url": "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2024-3273"
+        }
+      ],
+      "exposure_conditions": [
+        "D-Link DNS-320L, DNS-325, DNS-327L, or DNS-340L NAS devices that remain in operation",
+        "Network-reachable devices, as the vulnerability can be exploited remotely",
+        "Legacy products that have reached end-of-life or end-of-service with no further vendor security updates"
+      ],
       "gaps": [],
-      "generated_at": "2026-07-25T21:58:12Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-09-30T16:12:00Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
-      "remediation_steps": [],
+      "remediation_steps": [
+        "Retire and replace affected devices; D-Link and CISA state that all associated hardware revisions have reached EOL/EOS and should be retired and replaced per vendor instructions because no firmware updates or patches will be issued."
+      ],
       "retrieved_source_urls": [
-        "https://supportannouncement.us.dlink.com/security/publication.aspx?name=SAP10383",
-        "https://nvd.nist.gov/vuln/detail/CVE-2024-3273",
         "https://nvd.nist.gov/vuln/detail/cve-2024-3273",
-        "https://supportannouncement.us.dlink.com/",
-        "https://supportannouncement.us.dlink.com/security/publication.aspx?name=SAP10398",
-        "https://supportannouncement.us.dlink.com/security/publication.aspx?name=SAP10388",
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-3273?ref=news.risky.biz",
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-3273/change-record?changeRecordedOn=04/04/2024T00:15:08.763-0400",
+        "https://nvd.nist.gov/vuln/detail/cve-2024-32730",
+        "https://nvd.nist.gov/vuln/detail/cve-2024-3274",
+        "https://supportannouncement.us.dlink.com/security/publication.aspx?name=sap10383",
+        "https://supportannouncement.us.dlink.com/security/publication.aspx?name=SAP10022",
+        "https://supportannouncement.us.dlink.com/security/publication.aspx?name=SAP10320",
+        "https://supportannouncement.us.dlink.com/security/publication.aspx?name=SAP10504",
         "https://supportannouncement.us.dlink.com/security/publication.aspx?name=SAP10399",
-        "https://supportannouncement.us.dlink.com/security/publication.aspx?name=SAP10503",
-        "https://supportannouncement.us.dlink.com/security/publication.aspx?name=SAP10413",
-        "https://supportannouncement.us.dlink.com/security/publication.aspx?name=SAP10494",
-        "https://supportannouncement.us.dlink.com/security/publication.aspx?name=SAP10358",
-        "https://supportannouncement.us.dlink.com/security/publication.aspx?name=SAP10385",
-        "https://www.cisa.gov/sites/default/files/publications/web-metrics/CISA.gov-Apr-2024-Web-Metrics-508.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
-        "https://www.cisa.gov/sites/default/files/2024-01/aa24-016a-known-indicators-of-compromise-associated-with-adroxgh0st-malware_0.pdf",
-        "https://www.cisa.gov/sites/default/files/2024-05/Secure_by_Design_Alert_Eliminating_Directory_Traversal_Vulnerabilities_in_Software_508c%20%283%29.pdf",
-        "https://www.cisa.gov/sites/default/files/2025-09/AA25-266A_advisory_cisa_shares_lessons_learned_from_ir_engagement.pdf",
-        "https://www.cisa.gov/sites/default/files/2025-05/CSSO-VDP%20Platform%20FAQ%202024.pdf",
-        "https://nvd.nist.gov/vuln/detail/CVE-2024-3273?utm_source=openai",
-        "https://supportannouncement.us.dlink.com/security/publication.aspx?name=SAP10383&utm_source=openai"
+        "https://www.cve.org/CVERecord?id=CVE-2024-3273",
+        "https://turingpoint.de/en/cve/CVE-2024-3273/",
+        "https://www.helpnetsecurity.com/2024/04/08/cve-2024-3273/",
+        "https://cve.armis.com/cve-2024-3273",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2024-3273",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-24-214-01",
+        "https://www.cisa.gov/news-events/bulletins/sb26-166",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-24-319-08",
+        "https://www.cisa.gov/news-events/bulletins/sb26-271"
       ],
       "schema_version": 2,
       "source_fingerprint": "7066cb1ee507721eeffec457a0ce680348dacc499f4e281ca56bf7bcdc409b1a",
       "source_urls": [
-        "https://supportannouncement.us.dlink.com/security/publication.aspx?name=SAP10383",
-        "https://nvd.nist.gov/vuln/detail/CVE-2024-3273"
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2024-3273"
       ],
-      "status": "insufficient_evidence",
+      "status": "complete",
       "uncertainty": [
-        "No authoritative source identified a patched or fixed firmware version for CVE-2024-3273.",
-        "The supplied record lists additional CPE/product entries beyond the four models explicitly named in the D-Link advisory and NVD description; those additional products should not be treated as confirmed affected without further authoritative confirmation.",
-        "The exact deployment-specific exposure of an individual device cannot be determined from the CVE record alone."
+        "NVD describes the four named models as affected 'up to 20240403', which is not presented as a conventional firmware version string.",
+        "The vendor announcement lists a broader set of legacy D-Link NAS models for retirement in the same publication covering this CVE.",
+        "No patched or fixed firmware versions are identified by NVD, the CNA, D-Link, or CISA.",
+        "No vendor-documented inert check is given for confirming the vulnerability on a specific running device."
       ],
-      "verification_steps": []
+      "verification_steps": [
+        "Identify deployed NAS models and hardware revisions and compare them to the D-Link SAP10383 affected-models table and EOL dates to confirm they are listed for retirement."
+      ]
     },
     "CVE-2024-37079": {
       "business_risk": "Critical. CVE-2024-37079 is a heap-overflow in VMware vCenter Server's DCERPC implementation. A network-accessible attacker may send a specially crafted packet and potentially achieve remote code execution. Broadcom reports that exploitation has occurred in the wild, and CISA lists the vulnerability in its Known Exploited Vulnerabilities catalog.",
@@ -18301,29 +18600,49 @@
       "claim_evidence": [],
       "exposure_conditions": [],
       "gaps": [],
-      "generated_at": "2026-07-25T21:58:02Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-09-30T16:10:26Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [],
       "retrieved_source_urls": [
-        "https://packages.fedoraproject.org/pkgs/chromium/chromium/",
-        "https://packages.fedoraproject.org/pkgs/cros-guest-tools/cros-guest-tools",
-        "https://packages.fedoraproject.org/pkgs/chromium",
-        "https://packages.fedoraproject.org/pkgs/cros-guest-tools/",
-        "https://packages.fedoraproject.org/pkgs/chromium/chromium/fedora-44.html",
-        "https://packages.fedoraproject.org/pkgs/chromium/chromium/fedora-43-updates.html",
-        "https://packages.fedoraproject.org/pkgs/chromium-bsu/chromium-bsu/fedora-44.html",
-        "https://packages.fedoraproject.org/pkgs/chromium/chromium-common/fedora-42-updates.html"
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-4671",
+        "https://www.cve.org/CVERecord?id=CVE-2024-4671",
+        "https://www.suse.com/security/cve/CVE-2024-4671.html",
+        "https://security-tracker.debian.org/tracker/CVE-2024-4671",
+        "https://cvetodo.com/cve/CVE-2024-4671",
+        "https://secalerts.co/vulnerability/CVE-2024-4671",
+        "https://security.alpinelinux.org/vuln/CVE-2024-4671",
+        "https://osv.dev/vulnerability/CVE-2024-4671",
+        "https://socradar.io/free-tools/cve-radar/CVE-2024-4671",
+        "https://www.incibe.es/en/incibe-cert/early-warning/vulnerabilities/cve-2024-4671",
+        "https://cve.circl.lu/cve/CVE-2024-4671",
+        "https://vulners.com/cve/CVE-2024-4671",
+        "https://www.sentinelone.com/vulnerability-database/cve-2024-4671/",
+        "https://www.tenable.com/cve/CVE-2024-4671",
+        "https://www.wiz.io/vulnerability-database/cve/cve-2024-4671",
+        "https://nvd.nist.gov/vuln/detail/cve-2024-4671",
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-46701/change-record?changeRecordedOn=09/13/2024T03:15:05.127-0400",
+        "https://nvd.nist.gov/vuln/detail/cve-2024-46701",
+        "https://nvd.nist.gov/vuln/detail/cve-2024-46711",
+        "https://chromereleases.googleblog.com/search/label/Stable%20updates%2BDesktop%20Update?updated-max=2024-05-15T13:24:00-07:00&max-results=20&start=80&by-date=false",
+        "https://chromereleases.googleblog.com/search/label/Early%20Stable%20Updates",
+        "https://chromereleases.googleblog.com/search/label/Desktop%20Update?updated-max=2026-09-22T11:19:00-07:00&max-results=20&start=4&by-date=false",
+        "https://chromereleases.googleblog.com/search?q=security&updated-max=2019-12-10T11:49:00-08:00&max-results=20&start=5&by-date=false",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2024-4671"
       ],
       "schema_version": 2,
       "source_fingerprint": "a6033d733cfe525f8893280641664976e1c7a9e81ece8833467774fd1f182480",
-      "source_urls": [],
+      "source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-4671",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2024-4671"
+      ],
       "status": "insufficient_evidence",
       "uncertainty": [
-        "The supplied record includes Fedora 38, 39, and 40 as affected, but the reviewed authoritative sources do not provide concrete Fedora package fixed versions.",
-        "The Google advisory establishes the Chrome fixed version and release-channel rollout, but does not define a separate Fedora package mapping.",
-        "No safe, source-backed method was found to verify remediation of Fedora package builds beyond confirming a vendor-issued security update."
+        "Consulted vendor and NVD sources do not publish an explicit inert verification procedure (for example how to inspect the running Chrome version).",
+        "CISA notes possible impact on other Chromium-based browsers (Edge, Opera) but the CNA record and Chrome advisory address Google Chrome.",
+        "Fedora-specific fixed package versions appear only in mailing-list announcements that were not fully retrieved.",
+        "The model did not return a fully sourced exposure, remediation, and verification set; consult the linked NVD and vendor sources before acting."
       ],
       "verification_steps": []
     },
@@ -18613,48 +18932,84 @@
       "verification_steps": []
     },
     "CVE-2024-4947": {
-      "business_risk": "No additional source-verified CVE-specific business impact was established.",
-      "claim_evidence": [],
-      "exposure_conditions": [],
+      "business_risk": "Critical CVSS 9.6 known-exploited V8 type confusion. A remote attacker who gets a user to open a crafted HTML page can execute arbitrary code inside the Chrome sandbox. CISA added it to KEV with a short due date; unpatched browsers present high compromise risk.",
+      "claim_evidence": [
+        {
+          "claim": "Google Chrome (Chromium V8)",
+          "kind": "affected_product",
+          "source_url": "https://nvd.nist.gov/vuln/detail/cve-2024-4947"
+        },
+        {
+          "claim": "Google Chrome prior to 125.0.6422.60",
+          "kind": "affected_version",
+          "source_url": "https://nvd.nist.gov/vuln/detail/cve-2024-4947"
+        },
+        {
+          "claim": "Type confusion in V8 allowed a remote attacker to execute arbitrary code inside a sandbox via a crafted HTML page",
+          "kind": "exposure",
+          "source_url": "https://nvd.nist.gov/vuln/detail/cve-2024-4947"
+        },
+        {
+          "claim": "Apply mitigations per vendor instructions or discontinue use of the product if mitigations are unavailable",
+          "kind": "remediation",
+          "source_url": "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2024-4947"
+        }
+      ],
+      "exposure_conditions": [
+        "Google Chrome prior to 125.0.6422.60 is affected.",
+        "Exploitation requires a user to visit or open a crafted HTML page (user interaction).",
+        "The flaw is type confusion in V8 and was known to be exploited in the wild at disclosure."
+      ],
       "gaps": [],
-      "generated_at": "2026-07-29T08:53:21Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-09-30T16:09:13Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
-      "remediation_steps": [],
+      "remediation_steps": [
+        "Update Google Chrome to the 125 stable-channel release that contains the fix: 125.0.6422.60 on Linux and 125.0.6422.60/.61 on Windows and Mac.",
+        "Apply mitigations per the vendor advisory or discontinue use of the product if mitigations are unavailable."
+      ],
       "retrieved_source_urls": [
         "https://nvd.nist.gov/vuln/detail/cve-2024-4947",
-        "https://nvd.nist.gov/vuln/detail/CVE-2024-4947",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=0",
-        "https://nvd.nist.gov/vuln/detail/CVE-2024-47497",
-        "https://www.cisa.gov/news-events/alerts/2025/04/09/cisa-adds-two-known-exploited-vulnerabilities-catalog",
-        "https://chromereleases.googleblog.com/2024/05/stable-channel-update-for-desktop_15.html",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A800&f%5B10%5D=vendor_project%3A863&f%5B11%5D=vendor_project%3A872&f%5B12%5D=vendor_project%3A875&f%5B13%5D=vendor_project%3A886&f%5B14%5D=vendor_project%3A893&f%5B15%5D=vendor_project%3A908&f%5B16%5D=vendor_project%3A912&f%5B17%5D=vendor_project%3A917&f%5B18%5D=vendor_project%3A932&f%5B19%5D=vendor_project%3A938&f%5B1%5D=vendor_project%3A801&f%5B20%5D=vendor_project%3A949&f%5B21%5D=vendor_project%3A1005&f%5B22%5D=vendor_project%3A1147&f%5B23%5D=vendor_project%3A1267&f%5B2%5D=vendor_project%3A817&f%5B3%5D=vendor_project%3A823&f%5B4%5D=vendor_project%3A830&f%5B5%5D=vendor_project%3A834&f%5B6%5D=vendor_project%3A837&f%5B7%5D=vendor_project%3A840&f%5B8%5D=vendor_project%3A842&f%5B9%5D=vendor_project%3A854&page=1",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A800&f%5B10%5D=vendor_project%3A840&f%5B11%5D=vendor_project%3A842&f%5B12%5D=vendor_project%3A854&f%5B13%5D=vendor_project%3A859&f%5B14%5D=vendor_project%3A864&f%5B15%5D=vendor_project%3A875&f%5B16%5D=vendor_project%3A882&f%5B17%5D=vendor_project%3A886&f%5B18%5D=vendor_project%3A889&f%5B19%5D=vendor_project%3A893&f%5B1%5D=vendor_project%3A801&f%5B20%5D=vendor_project%3A902&f%5B21%5D=vendor_project%3A905&f%5B22%5D=vendor_project%3A917&f%5B23%5D=vendor_project%3A932&f%5B24%5D=vendor_project%3A938&f%5B25%5D=vendor_project%3A949&f%5B26%5D=vendor_project%3A1143&f%5B27%5D=vendor_project%3A1147&f%5B28%5D=vendor_project%3A1267&f%5B2%5D=vendor_project%3A809&f%5B3%5D=vendor_project%3A817&f%5B4%5D=vendor_project%3A819&f%5B5%5D=vendor_project%3A821&f%5B6%5D=vendor_project%3A822&f%5B7%5D=vendor_project%3A823&f%5B8%5D=vendor_project%3A827&f%5B9%5D=vendor_project%3A837&page=4",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A837&wtime=30s",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=16",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=24",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=18",
-        "https://www.cisa.gov/sites/default/files/2024-08/SECURING_THE_SOFTWARE_SUPPLY_CHAIN_RECOMMENDED_PRACTICES_FOR_SOFTWARE_BILL_OF_MATERIALS_CONSUMPTION-508.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
-        "https://www.cisa.gov/sites/default/files/2024-09/aa24-249a-russian-military-cyber-actors-target-us-and-global-critical-infrastructure.pdf",
-        "https://www.cisa.gov/sites/default/files/2024-08/CISA.gov-Jul-2024-Web-Metrics-508.pdf.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/web-metrics/CISA.gov-Apr-2024-Web-Metrics-508.pdf",
-        "https://www.cisa.gov/sites/default/files/2024-05/Secure_by_Design_Alert_Eliminating_Directory_Traversal_Vulnerabilities_in_Software_508c%20%283%29.pdf"
+        "https://nvd.nist.gov/nvd.cfm?cvename=CVE-2024-4947",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2024-50047",
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-56547",
+        "https://nvd.nist.gov/vuln/detail/cve-2024-0407",
+        "https://nvd.nist.gov/nvd.cfm?cvename=CVE-2024-55947",
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-9487",
+        "https://nvd.nist.gov/vuln/detail/cve-2024-9407",
+        "https://nvd.nist.gov/vuln/detail/cve-2024-21147",
+        "https://nvd.nist.gov/vuln/detail/cve-2024-2947",
+        "https://chromereleases.googleblog.com/search/label/Chrome%20for%20Android?max-results=56",
+        "https://chromereleases.googleblog.com/search/label/Extended%20Stable%20updates?updated-max=2024-07-16T13:37:00-07:00&max-results=20&start=59&by-date=false",
+        "https://chromereleases.googleblog.com/",
+        "https://chromereleases.googleblog.com/search/label/Beta%20updates?max-results=100",
+        "https://chromereleases.googleblog.com/2024/07/",
+        "https://cisa.gov/news-events/cybersecurity-advisories/aa25-266a",
+        "https://www.cisa.gov/news-events/bulletins/sb24-302",
+        "https://www.cisa.gov/news-events/bulletins/sb26-215",
+        "https://www.cisa.gov/news-events/bulletins/sb24-204",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-25-203-04",
+        "https://sploitus.com/exploit?id=5000AE00-F349-51E8-B11F-591961ECEC94",
+        "https://www.stack.watch/vuln/CVE-2024-4947/",
+        "https://github.com/advisories/GHSA-p8v3-5hqq-7c5r",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2024-4947"
       ],
       "schema_version": 2,
       "source_fingerprint": "7cbd6246e398aa93a0e03649e920169f8ce8dde5a96a8d0ff800baec9e664e7f",
       "source_urls": [
-        "https://chromereleases.googleblog.com/2024/05/stable-channel-update-for-desktop_15.html",
-        "https://nvd.nist.gov/vuln/detail/CVE-2024-4947"
+        "https://nvd.nist.gov/vuln/detail/cve-2024-4947",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2024-4947"
       ],
-      "status": "insufficient_evidence",
+      "status": "complete",
       "uncertainty": [
-        "The reviewed authoritative sources establish fixed Chrome desktop versions but do not establish fixed Fedora package versions for Fedora 38, 39, or 40.",
-        "The provided record includes a later NVD modification date of June 17, 2026; this enrichment relies only on the affected-version and remediation facts visible in the reviewed sources.",
-        "No exploit reproduction or environment-specific exposure assessment was performed."
+        "The consulted desktop advisory does not specify corresponding Chrome for Android, iOS, or ChromeOS build numbers.",
+        "Fedora and other distribution packages are listed as affected in NVD but their exact chromium package versions are not given in the primary vendor or NVD records consulted."
       ],
-      "verification_steps": []
+      "verification_steps": [
+        "Confirm the installed Chrome version is 125.0.6422.60 or later (125.0.6422.61 on Windows/Mac as applicable) using the browser's own version information display.",
+        "Cross-check that the running build matches the version announced in the 15 May 2024 stable-channel update."
+      ]
     },
     "CVE-2024-50603": {
       "business_risk": "Critical remote OS command injection in Aviatrix Controller. An unauthenticated network attacker may execute arbitrary commands, potentially resulting in complete compromise of controller confidentiality, integrity, and availability. The vulnerability is listed in CISA's Known Exploited Vulnerabilities Catalog, so remediation should be prioritized urgently.",
@@ -19143,86 +19498,97 @@
       ]
     },
     "CVE-2024-5274": {
-      "business_risk": "Critical risk for users running vulnerable Google Chrome versions: a remote attacker can use a crafted HTML page to trigger V8 type confusion and execute arbitrary code inside the browser sandbox. Google stated that exploitation existed in the wild. ([nvd.nist.gov](https://nvd.nist.gov/vuln/detail/CVE-2024-5274?utm_source=openai))",
+      "business_risk": "Critical known-exploited V8 type confusion in Google Chrome/Chromium. A remote attacker can execute arbitrary code inside the browser sandbox if a user opens a crafted HTML page. Google stated an in-the-wild exploit exists. CISA listed the CVE in KEV (added 2024-05-28, due 2024-06-18). NVD rates CVSS 3.1 9.6 (AV:N/AC:L/PR:N/UI:R/S:C/C:H/I:H/A:H).",
       "claim_evidence": [
         {
-          "claim": "Google Chrome is affected by CVE-2024-5274 through versions earlier than 125.0.6422.112.",
+          "claim": "Google Chrome (Chromium V8)",
           "kind": "affected_product",
           "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-5274"
         },
         {
-          "claim": "NVD lists Google Chrome versions up to, but excluding, 125.0.6422.112 as affected.",
+          "claim": "Google Chrome prior to 125.0.6422.112",
           "kind": "affected_version",
           "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-5274"
         },
         {
-          "claim": "The vulnerability can be triggered remotely through a crafted HTML page, requires user interaction, and Google reported exploitation in the wild.",
-          "kind": "exposure",
-          "source_url": "https://chromereleases.googleblog.com/2024/05/stable-channel-update-for-desktop_23.html"
-        },
-        {
-          "claim": "Google’s stable desktop release included the fix in Chrome 125.0.6422.112 for Linux and 125.0.6422.112/.113 for Windows and macOS.",
-          "kind": "fixed_version",
-          "source_url": "https://chromereleases.googleblog.com/2024/05/stable-channel-update-for-desktop_23.html"
-        },
-        {
-          "claim": "Remediation is to apply the vendor update or, if unavailable, discontinue use of the vulnerable product, consistent with the CISA KEV action recorded by NVD.",
-          "kind": "remediation",
+          "claim": "CISA-ADP lists google chrome affected 0 < 125.0.6422.112",
+          "kind": "affected_version",
           "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-5274"
         },
         {
-          "claim": "A safe version-based verification is to confirm the installed Chrome version is at least the vendor’s fixed threshold of 125.0.6422.112.",
-          "kind": "verification",
-          "source_url": "https://chromereleases.googleblog.com/2024/05/stable-channel-update-for-desktop_23.html"
+          "claim": "Type Confusion in V8 allowed a remote attacker to execute arbitrary code inside a sandbox via a crafted HTML page",
+          "kind": "exposure",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-5274"
+        },
+        {
+          "claim": "CISA KEV: Google Chromium V8 type confusion allows a remote attacker to execute code via a crafted HTML page; may affect Chromium-based browsers including Chrome, Edge, and Opera",
+          "kind": "exposure",
+          "source_url": "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2024-5274"
+        },
+        {
+          "claim": "Apply mitigations per vendor instructions or discontinue use of the product if mitigations are unavailable",
+          "kind": "remediation",
+          "source_url": "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2024-5274"
         }
       ],
       "exposure_conditions": [
-        "Google Chrome versions earlier than 125.0.6422.112 are affected. ([nvd.nist.gov](https://nvd.nist.gov/vuln/detail/CVE-2024-5274?utm_source=openai))",
-        "Successful exploitation requires remote delivery of a crafted HTML page and user interaction with the page. ([nvd.nist.gov](https://nvd.nist.gov/vuln/detail/CVE-2024-5274?utm_source=openai))",
-        "The CVE is listed in CISA's Known Exploited Vulnerabilities catalog, with a required action to apply vendor mitigations or discontinue use if mitigations are unavailable. ([nvd.nist.gov](https://nvd.nist.gov/vuln/detail/CVE-2024-5274?utm_source=openai))"
+        "Google Chrome versions prior to 125.0.6422.112",
+        "User interaction: a remote attacker serves a crafted HTML page that the user opens",
+        "CISA states Chromium-based browsers that use V8 may also be exposed, including Google Chrome, Microsoft Edge, and Opera"
       ],
       "gaps": [],
-      "generated_at": "2026-07-29T08:53:04Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-09-30T16:07:48Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [
-        "Update Google Chrome to version 125.0.6422.112 or a later version. Google’s desktop stable-channel update published version 125.0.6422.112 for Linux and 125.0.6422.112/.113 for Windows and macOS, including the fix for CVE-2024-5274. ([chromereleases.googleblog.com](https://chromereleases.googleblog.com/2024/05/stable-channel-update-for-desktop_23.html?utm_source=openai))",
-        "If Chrome is managed through an operating-system distribution, apply the distribution’s corresponding security update and confirm its package maps to a Chrome/Chromium build containing the vendor fix.",
-        "Until updating is complete, reduce exposure to untrusted HTML content and prioritize remediation for internet-facing or actively used browser installations."
+        "Update Google Chrome desktop Stable channel to the vendor-published builds: 125.0.6422.112/.113 for Windows and Mac, and 125.0.6422.112 for Linux",
+        "For Microsoft Edge (Chromium-based), apply the Microsoft update that ingest Chromium 125.0.6422.112 (Microsoft listed Edge Stable 125.0.2535.67)",
+        "If vendor updates cannot be applied, discontinue use of the affected product per CISA KEV required action"
       ],
       "retrieved_source_urls": [
         "https://nvd.nist.gov/vuln/detail/CVE-2024-5274",
-        "https://nvd.nist.gov/vuln/detail/cve-2024-5274",
-        "https://chromereleases.googleblog.com/2024/05/stable-channel-update-for-desktop_23.html",
-        "https://nvd.nist.gov/vuln/detail/CVE-2024-5374",
-        "https://nvd.nist.gov/vuln/detail/CVE-2024-2174",
-        "https://nvd.nist.gov/vuln/detail/CVE-2023-48733",
-        "https://nvd.nist.gov/vuln/detail/CVE-2024-4974",
-        "https://nvd.nist.gov/vuln/detail/CVE-2022-46152",
-        "https://nvd.nist.gov/vuln/detail/CVE-2020-7248",
-        "https://nvd.nist.gov/vuln/detail/CVE-2024-8770",
-        "https://nvd.nist.gov/vuln/detail/CVE-2022-23006",
-        "https://nvd.nist.gov/vuln/detail/CVE-2024-20674",
-        "https://nvd.nist.gov/vuln/detail/CVE-2024-5274?utm_source=openai",
-        "https://chromereleases.googleblog.com/2024/05/stable-channel-update-for-desktop_23.html?utm_source=openai"
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-52797/change-record?changeRecordedOn=11/21/2024T06:15:35.480-0500",
+        "http://nvd.nist.gov/vuln/detail/CVE-2024-20274",
+        "https://nvd.nist.gov/vuln/detail/CVE-2023-52854",
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-47174",
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-53027",
+        "https://www.cve.org/CVERecord?id=CVE-2024-5274",
+        "https://security.alpinelinux.org/vuln/CVE-2024-5274",
+        "https://cve.yack.one/cve/CVE-2024-5274",
+        "https://www.strix.ai/cve/CVE-2024-5274",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2024-5274",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-25-226-07",
+        "https://cisa.gov/news-events/cybersecurity-advisories/aa25-266a",
+        "https://www.cisa.gov/news-events/bulletins/sb24-351",
+        "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-25-345-02",
+        "https://www.suse.com/security/cve/CVE-2024-5274.html",
+        "https://www.stack.watch/vuln/CVE-2024-5274/",
+        "https://security-tracker.debian.org/tracker/CVE-2024-5274",
+        "https://www.cvedetails.com/cve/CVE-2024-5274/",
+        "https://avd.aquasec.com/nvd/2024/cve-2024-5274/",
+        "https://security.snyk.io/vuln/SNYK-WOLFILATEST-CHROMIUM-7151897",
+        "https://chromereleases.googleblog.com/2024/05/stable-channel-update-for-chromeos.html",
+        "https://support.google.com/chrome/a/answer/10314655?hl=en-gb&ref_topic=7679105"
       ],
       "schema_version": 2,
       "source_fingerprint": "ba1686dff3f16dc8a2014055aab10cc7b912de72100247ffa84a0d074e6d6772",
       "source_urls": [
         "https://nvd.nist.gov/vuln/detail/CVE-2024-5274",
-        "https://chromereleases.googleblog.com/2024/05/stable-channel-update-for-desktop_23.html"
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2024-5274",
+        "https://www.cve.org/CVERecord?id=CVE-2024-5274"
       ],
       "status": "complete",
       "uncertainty": [
-        "The supplied record and NVD identify Fedora 39 and Fedora 40 as affected configurations, but the returned sources do not establish exact Fedora package names, fixed package versions, or update procedures. ([nvd.nist.gov](https://nvd.nist.gov/vuln/detail/CVE-2024-5274?utm_source=openai))",
-        "The Chromium issue page is referenced by the authoritative records, but its detailed contents were not available in the returned search results; exploit mechanics beyond the published type-confusion description are therefore not asserted.",
-        "The version-threshold verification guidance is a direct comparison against Google’s published fixed release, not a claim that a specific endpoint has been successfully tested."
+        "The NVD HTML page could not be fully retrieved; NVD facts are taken from NVD search excerpts plus vendor and CISA pages",
+        "Chrome CNA version tables are internally inconsistent (affected from 125.0.6422.112 before 125.0.6422.112); the CVE description and Chrome blog are used instead",
+        "The retrieved Chrome advisory covers desktop Stable only; Android, iOS, and ChromeOS fixed versions for this CVE were not established in retrieved sources",
+        "No vendor-published Chrome UI path for version checking was found; only Microsoft documented an About-page check for Edge",
+        "Distro package versions (Fedora, Debian, SUSE, Opera) were not treated as primary fixed versions"
       ],
       "verification_steps": [
-        "In each affected installation, inspect the browser’s reported version and confirm it is at least 125.0.6422.112; do not treat an installation as remediated when the version is earlier than that threshold. ([nvd.nist.gov](https://nvd.nist.gov/vuln/detail/CVE-2024-5274?utm_source=openai))",
-        "Confirm that the organization’s software inventory records the updated Chrome version for all relevant endpoints.",
-        "For Fedora 39 and Fedora 40 packages listed by NVD, obtain the exact fixed package/build from the applicable Fedora security advisory before declaring those installations remediated; the returned authoritative sources do not provide that package-level fixed version. ([nvd.nist.gov](https://nvd.nist.gov/vuln/detail/CVE-2024-5274?utm_source=openai))"
+        "Compare the installed Google Chrome desktop version to the Chrome Releases Stable channel builds 125.0.6422.112/.113 (Windows/Mac) or 125.0.6422.112 (Linux). Do not use crafted pages or exploit tests.",
+        "For Microsoft Edge, use the in-product About view: menu (three dots) > Help and feedback > About Microsoft Edge, and confirm the version is at least 125.0.2535.67 as listed by Microsoft"
       ]
     },
     "CVE-2024-53704": {
@@ -28830,102 +29196,6 @@
         "Confirm that all production SmarterMail nodes or instances have been upgraded, including high-availability or standby nodes where applicable.",
         "Review security and administrative logs for unexpected password-reset activity, administrator-account changes, unfamiliar logins, and post-authentication administrative actions after the earliest suspected exposure date.",
         "If compromise is suspected, follow the organization's incident-response process, preserve relevant evidence, reset affected administrator credentials through trusted procedures, and assess the underlying host for unauthorized changes."
-      ]
-    },
-    "CVE-2026-24061": {
-      "business_risk": "Critical remote authentication bypass in GNU Inetutils telnetd can permit unauthenticated remote access as root when the vulnerable daemon is enabled and reachable. CISA lists CVE-2026-24061 in the Known Exploited Vulnerabilities Catalog.",
-      "claim_evidence": [
-        {
-          "claim": "GNU InetUtils telnetd versions 1.9.3 through 2.7 are affected by CVE-2026-24061.",
-          "kind": "affected_product",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-24061"
-        },
-        {
-          "claim": "The GNU security advisory identifies vulnerable versions as GNU InetUtils since 1.9.3 through and including 2.7.",
-          "kind": "affected_version",
-          "source_url": "https://lists.gnu.org/r/bug-inetutils/2026-01/msg00004.html"
-        },
-        {
-          "claim": "The issue is relevant when telnetd is enabled and exposed; Debian describes the impact as remote login as root through authentication bypass.",
-          "kind": "exposure",
-          "source_url": "https://lists.debian.org/debian-lts-announce/2026/01/msg00025.html"
-        },
-        {
-          "claim": "The GNU advisory recommends not running a telnetd server; if it remains deployed, network access should be restricted to trusted clients.",
-          "kind": "remediation",
-          "source_url": "https://lists.gnu.org/r/bug-inetutils/2026-01/msg00004.html"
-        },
-        {
-          "claim": "For Debian 11 Bullseye, the issue is fixed in inetutils version 2:2.0-1+deb11u3.",
-          "kind": "fixed_version",
-          "source_url": "https://lists.debian.org/debian-lts-announce/2026/01/msg00025.html"
-        }
-      ],
-      "exposure_conditions": [
-        "GNU Inetutils telnetd version 1.9.3 through 2.7 is installed.",
-        "The telnetd service is enabled or running.",
-        "The telnet service is reachable by an attacker, especially from untrusted or Internet-accessible networks.",
-        "The vulnerable USER environment handling reaches the system login program."
-      ],
-      "gaps": [
-        "generic_ecosystem"
-      ],
-      "generated_at": "2026-07-31T11:52:00Z",
-      "model": "gpt-5.6-luna",
-      "prompt_version": "2026-07-14.2",
-      "recipe_specificity": "not_specific",
-      "remediation_steps": [
-        "Preferred mitigation: decommission and disable the telnetd service; use a secure remote-access alternative instead.",
-        "If telnetd cannot immediately be removed, restrict access to trusted client addresses and do not expose the service directly to the Internet.",
-        "Upgrade GNU InetUtils to version 2.8 or later, which includes the upstream fix.",
-        "For Debian 11 Bullseye, upgrade the inetutils package to version 2:2.0-1+deb11u3 or later.",
-        "For Debian 12 Bookworm, upgrade to 2:2.4-2+deb12u2 or later; for Debian 13 Trixie, upgrade to 2:2.6-3+deb13u1 or later."
-      ],
-      "retrieved_source_urls": [
-        "https://lists.gnu.org/archive/html/bug-inetutils/",
-        "https://lists.gnu.org/r/bug-inetutils/2026-01/msg00004.html",
-        "https://nvd.nist.gov/vuln/detail/CVE-2026-24061",
-        "https://nvd.nist.gov/vuln/detail/CVE-2025-24061",
-        "https://lists.gnu.org/mailman/listinfo/bug-inetutils",
-        "https://lists.gnu.org/r/bug-inetutils/2026-03/msg00037.html",
-        "https://lists.gnu.org/r/bug-inetutils/2026-01/msg00003.html",
-        "https://lists.gnu.org/r/bug-inetutils/2026-03/index.html",
-        "https://lists.gnu.org/archive/html/bug-inetutils/2021-12/msg00004.html",
-        "https://lists.gnu.org/archive/html/commit-inetutils/",
-        "https://nvd.nist.gov/vuln/detail/CVE-2025-40601",
-        "https://nvd.nist.gov/search",
-        "https://lists.gnu.org/archive/html/help-recutils/2019-09/pdf7J_Y7TBwfs.pdf",
-        "https://lists.gnu.org/archive/html/bug-aris/2026-03/pdf8jd6coccHD.pdf",
-        "https://lists.gnu.org/archive/html/help-texinfo/2021-06/pdfuYCpciUBJg.pdf",
-        "https://lists.gnu.org/archive/html/emacs-orgmode/2024-11/pdfTSsZ88uIDc.pdf",
-        "https://lists.gnu.org/archive/html/groff/attachments/20240324/d938b3d6/attachment.pdf",
-        "https://lists.gnu.org/archive/html/bug-gawk/2022-08/pdfIO6BWyT0nj.pdf",
-        "https://lists.debian.org/debian-lts-announce/2026/01/msg00025.html",
-        "https://www.broadcom.com/support/security-center/protection-bulletin/cve-2026-24061-gnu-inetutils-vulnerability",
-        "https://lists.debian.org/debian-lts-announce/2026/07/msg00025.html",
-        "https://lists.debian.org/debian-lts/2026/01/msg00039.html",
-        "https://nvd.nist.gov/vuln/detail/cve-2026-24061"
-      ],
-      "schema_version": 2,
-      "source_fingerprint": "9d472137159baa578c7fec01f92dcce0a68a9b7bd812fc7bf75deb33dfc2ea32",
-      "source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2026-24061",
-        "https://lists.gnu.org/r/bug-inetutils/2026-01/msg00004.html",
-        "https://lists.debian.org/debian-lts-announce/2026/01/msg00025.html"
-      ],
-      "status": "complete",
-      "uncertainty": [
-        "The upstream advisory recommends applying the patch or upgrading, but does not identify a release version; CERT-FR states that the fix is included in GNU InetUtils 2.8.",
-        "Package names and fixed versions are distribution-specific. Only Debian 11, Debian 12, and Debian 13 fixed package versions are evidenced here.",
-        "No evidence was returned establishing fixed versions for other operating systems or vendor distributions.",
-        "A vulnerable package alone does not establish exposure unless telnetd is enabled and reachable."
-      ],
-      "verification_steps": [
-        "Confirm through approved software inventory that GNU InetUtils is not within the affected range 1.9.3 through 2.7.",
-        "Confirm that telnetd is disabled or absent from the system's service and network-service inventory.",
-        "If telnetd must remain deployed, confirm that the installed version is GNU InetUtils 2.8 or later, or that the distribution-specific fixed package version is installed.",
-        "Review firewall, access-control, and service-exposure inventories to confirm that telnet access is not Internet-facing and is limited to explicitly trusted clients.",
-        "Do not validate this issue by attempting authentication bypass or root access against a production service."
       ]
     },
     "CVE-2026-2441": {
