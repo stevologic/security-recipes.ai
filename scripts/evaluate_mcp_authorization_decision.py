@@ -11,7 +11,11 @@ issuer checks before a code is redeemed; this evaluator applies the
 same mix-up rule to the stored grant evidence on a tool call. The same
 revision treats OAuth metadata and Client ID Metadata Document fetches
 as SSRF-capable, so this evaluator also rejects HTTP, loopback, and
-private or link-local metadata URLs.
+private or link-local metadata URLs. Clients MUST validate authorization
+URLs with an http/https allowlist, reject javascript:, data:, file:, and
+vbscript: schemes, and allow http:// only for loopback during local
+development. Unspecified authorization endpoints stay on the prior allow
+path so existing CLI and CI admission checks remain valid.
 """
 
 from __future__ import annotations
@@ -35,6 +39,7 @@ VALID_DECISIONS = {
     "deny_unbound_token",
     "deny_authorization_issuer_mismatch",
     "deny_oauth_metadata_ssrf",
+    "deny_unsafe_authorization_url",
     "deny_scope_challenge_mismatch",
     "deny_scope_drift",
     "kill_session_on_secret_or_signer_scope",
@@ -99,7 +104,13 @@ OAUTH_METADATA_URL_FIELDS = (
     "client_metadata_document_url",
     "client_id",
 )
+AUTHORIZATION_URL_FIELDS = (
+    "authorization_endpoint",
+    "authorization_endpoint_url",
+    "authorization_url",
+)
 LOOPBACK_METADATA_HOSTS = {"localhost", "localhost."}
+LOOPBACK_AUTHORIZATION_HOSTS = {"localhost", "localhost."}
 
 
 def _url_ip_address(hostname: str) -> ipaddress.IPv4Address | ipaddress.IPv6Address | None:
@@ -169,6 +180,70 @@ def oauth_metadata_ssrf_violations(request: dict[str, Any]) -> list[str]:
         if is_blocked_oauth_metadata_destination(hostname):
             violations.append(
                 f"{field} points at a private, loopback, or link-local destination"
+            )
+    return violations
+
+
+def is_loopback_authorization_host(hostname: str) -> bool:
+    """Return True when an authorization-URL host is a loopback name or address.
+
+    MCP Security Best Practices (2026-07-28) allow http:// authorization
+    URLs only for loopback addresses such as localhost, 127.0.0.1, or ::1
+    during local development. Hostname checks use ``ipaddress``.
+    """
+    lowered = hostname.strip("[]").lower().rstrip(".")
+    if lowered in LOOPBACK_AUTHORIZATION_HOSTS or lowered.endswith(".localhost"):
+        return True
+    ip = _url_ip_address(hostname)
+    if ip is None:
+        return False
+    mapped = getattr(ip, "ipv4_mapped", None)
+    if mapped is not None:
+        ip = mapped
+    return bool(ip.is_loopback)
+
+
+def authorization_url_scheme_violations(request: dict[str, Any]) -> list[str]:
+    """Return failures for unsafe OAuth authorization URLs a client would open.
+
+    MCP 2026-07-28 Security Best Practices require clients to validate
+    authorization URLs with an http/https allowlist. javascript:, data:,
+    file:, vbscript:, and other non-http(s) schemes MUST be rejected.
+    http:// is acceptable only for loopback during local development.
+    Unspecified authorization endpoints stay on the prior allow path.
+    """
+    violations: list[str] = []
+    seen: set[str] = set()
+    for field in AUTHORIZATION_URL_FIELDS:
+        value = str(request.get(field) or "").strip()
+        if not value or value in seen:
+            continue
+        seen.add(value)
+        parsed = urlparse(value)
+        scheme = parsed.scheme.lower()
+        if not scheme:
+            violations.append(
+                f"{field} {value!r} is missing a scheme; clients MUST only allow http:// and https://"
+            )
+            continue
+        if scheme not in {"http", "https"}:
+            violations.append(
+                f"{field} {value!r} uses unsafe scheme {scheme}:; "
+                "clients MUST reject javascript:, data:, file:, vbscript:, and other dangerous schemes"
+            )
+            continue
+        try:
+            hostname = parsed.hostname or ""
+        except ValueError:
+            violations.append(f"{field} {value!r} has a malformed hostname")
+            continue
+        if not hostname:
+            violations.append(f"{field} {value!r} is missing a hostname")
+            continue
+        if scheme == "http" and not is_loopback_authorization_host(hostname):
+            violations.append(
+                f"{field} {value!r} uses http:// for a non-loopback host; "
+                "production authorization servers MUST use https://"
             )
     return violations
 
@@ -253,6 +328,9 @@ def normalize_request(runtime_request: dict[str, Any]) -> dict[str, Any]:
         "authorization_server_discovery_method",
         "protected_resource_metadata_url",
         "authorization_server_metadata_url",
+        "authorization_endpoint",
+        "authorization_endpoint_url",
+        "authorization_url",
         "expected_authorization_issuer",
         "authorization_response_iss",
         "resource_indicator",
@@ -313,6 +391,9 @@ def decision_result(
             "observed_runtime_attributes": sorted(k for k, v in request.items() if v not in (None, "", [], {}, False)),
             "protected_resource_metadata_url": request.get("protected_resource_metadata_url"),
             "authorization_server_metadata_url": request.get("authorization_server_metadata_url"),
+            "authorization_endpoint": request.get("authorization_endpoint")
+            or request.get("authorization_endpoint_url")
+            or request.get("authorization_url"),
             "source_artifacts": pack.get("source_artifacts"),
         },
         "matched_connector": connector,
@@ -331,6 +412,9 @@ def decision_result(
             "expected_authorization_issuer": request.get("expected_authorization_issuer"),
             "protected_resource_metadata_url": request.get("protected_resource_metadata_url"),
             "authorization_server_metadata_url": request.get("authorization_server_metadata_url"),
+            "authorization_endpoint": request.get("authorization_endpoint")
+            or request.get("authorization_endpoint_url")
+            or request.get("authorization_url"),
             "namespace": request.get("namespace"),
             "requested_access_mode": request.get("requested_access_mode"),
             "resource_indicator": request.get("resource_indicator"),
@@ -439,6 +523,17 @@ def evaluate_mcp_authorization_decision(
                 connector=connector,
                 workflow=workflow,
                 violations=ssrf_violations,
+            )
+        authorization_url_violations = authorization_url_scheme_violations(request)
+        if authorization_url_violations:
+            return decision_result(
+                decision="deny_unsafe_authorization_url",
+                reason="OAuth authorization URL is not safe for a client to open",
+                pack=authorization_pack,
+                request=request,
+                connector=connector,
+                workflow=workflow,
+                violations=authorization_url_violations,
             )
         missing = missing_fields(
             request,
@@ -594,6 +689,7 @@ def request_from_args(args: argparse.Namespace) -> dict[str, Any]:
         "authorization_server_discovery_method",
         "protected_resource_metadata_url",
         "authorization_server_metadata_url",
+        "authorization_endpoint",
         "expected_authorization_issuer",
         "authorization_response_iss",
         "resource_indicator",
@@ -641,6 +737,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--authorization-server-discovery-method", dest="authorization_server_discovery_method")
     parser.add_argument("--protected-resource-metadata-url", dest="protected_resource_metadata_url")
     parser.add_argument("--authorization-server-metadata-url", dest="authorization_server_metadata_url")
+    parser.add_argument("--authorization-endpoint", dest="authorization_endpoint")
     parser.add_argument("--expected-authorization-issuer", dest="expected_authorization_issuer")
     parser.add_argument("--authorization-response-iss", dest="authorization_response_iss")
     parser.add_argument(
