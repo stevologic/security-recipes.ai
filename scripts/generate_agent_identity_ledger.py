@@ -63,6 +63,30 @@ REQUIRED_RUNTIME_ATTRIBUTES = {
     "workflow_id",
 }
 
+IDENTITY_TOKEN_RULES = [
+    "issue tokens just in time",
+    "bind tokens to workflow_id and run_id",
+    "restrict token audience to the intended MCP resource or workflow",
+    "prefer sender-constrained presentation (DPoP or mTLS) over bearer reuse",
+    "deny token passthrough to downstream tools",
+    "expire tokens at one hour or run end, whichever is sooner",
+    "reject expired tokens at the gateway",
+    "never write tokens to logs, console output, cache directories, or artifact stores",
+    "treat detected token exposure as a revocation and incident signal",
+    "revoke tokens when a kill signal fires",
+]
+
+ENTERPRISE_TOKEN_RULES = [
+    "no shared long-lived credentials",
+    "no token passthrough from user session to downstream MCP tools",
+    "issue audience-restricted tokens with sender-constrained presentation when feasible",
+    "expire identity at one hour or run completion, whichever is sooner",
+    "reject expired tokens at the policy enforcement point",
+    "never write tokens to logs, console output, cache directories, or artifact stores",
+    "treat detected token exposure as a security incident and revoke the identity",
+    "revoke identity when a runtime kill signal fires",
+]
+
 
 class LedgerGenerationError(RuntimeError):
     """Raised when the identity ledger cannot be generated."""
@@ -322,12 +346,7 @@ def build_identity_record(
                 "run_id",
                 "human_approval_record",
             ],
-            "token_rules": [
-                "issue tokens just in time",
-                "bind tokens to workflow_id and run_id",
-                "deny token passthrough to downstream tools",
-                "expire tokens when the run ends or a kill signal fires",
-            ],
+            "token_rules": list(IDENTITY_TOKEN_RULES),
         },
         "identity_id": identity_id(workflow_id, agent_class),
         "kpi_contract": policy.get("kpi_contract", []),
@@ -407,6 +426,11 @@ def validate_ledger(ledger: dict[str, Any]) -> list[str]:
         denied_actions = set(as_list(explicit_denies.get("actions"), f"{identity_key}: denied actions"))
         require({"merge_pull_request", "deploy_or_release", "read_secret_store"}.issubset(denied_actions), failures, f"{identity_key}: critical denied actions are missing")
 
+        identity_controls = as_dict(record.get("identity_controls"), f"{identity_key}: identity_controls")
+        token_rules = [str(item) for item in as_list(identity_controls.get("token_rules"), f"{identity_key}: token_rules")]
+        missing_token_rules = [rule for rule in IDENTITY_TOKEN_RULES if rule not in token_rules]
+        require(not missing_token_rules, failures, f"{identity_key}: missing token rules: {missing_token_rules}")
+
         runtime = as_dict(record.get("runtime_contract"), f"{identity_key}: runtime_contract")
         require(runtime.get("session_disablement_required") is True, failures, f"{identity_key}: session disablement is required")
         runtime_attributes = {str(item) for item in as_list(runtime.get("required_runtime_attributes"), f"{identity_key}: runtime attributes")}
@@ -423,6 +447,17 @@ def validate_ledger(ledger: dict[str, Any]) -> list[str]:
             require(str(repo_scope.get("required_pr_label", "")).strip(), failures, f"{identity_key}: PR label is required")
 
     require(summary.get("identity_count") == len(identities), failures, "identity_summary.identity_count is stale")
+
+    iam_contract = as_dict(ledger.get("enterprise_iam_contract"), "enterprise_iam_contract")
+    iam_token_rules = [str(item) for item in as_list(iam_contract.get("token_rules"), "enterprise_iam_contract.token_rules")]
+    missing_iam_token_rules = [rule for rule in ENTERPRISE_TOKEN_RULES if rule not in iam_token_rules]
+    require(not missing_iam_token_rules, failures, f"enterprise IAM contract missing token rules: {missing_iam_token_rules}")
+    alignment_ids = {
+        str(item.get("id"))
+        for item in as_list(ledger.get("standards_alignment"), "standards_alignment")
+        if isinstance(item, dict)
+    }
+    require("nist-ir-8587" in alignment_ids, failures, "ledger must align to NIST IR 8587 token protection")
     return failures
 
 
@@ -493,6 +528,8 @@ def build_ledger(
                 "branch_write",
                 "human_approval_recorded",
                 "evidence_record_attached",
+                "token_rejected_expired",
+                "token_exposure_detected",
                 "kill_signal_triggered",
                 "identity_revoked",
             ],
@@ -508,15 +545,12 @@ def build_ledger(
             "issuance_requirements": [
                 "service principal or workload identity is unique to the workflow and agent class",
                 "runtime token is bound to workflow_id, agent_class, and run_id",
+                "runtime token is audience-restricted and sender-constrained when feasible",
+                "runtime token lifetime is one hour or run end, whichever is sooner",
                 "tool calls are evaluated by the MCP gateway policy before execution",
                 "human approval is required before merge, release, deployment, or approval-required MCP scopes",
             ],
-            "token_rules": [
-                "no shared long-lived credentials",
-                "no token passthrough from user session to downstream MCP tools",
-                "expire identity at run completion",
-                "revoke identity when a runtime kill signal fires",
-            ],
+            "token_rules": list(ENTERPRISE_TOKEN_RULES),
         },
         "failures": failures,
         "generated_at": generated_at or str(manifest.get("last_reviewed", "")),
@@ -545,6 +579,10 @@ def build_ledger(
             {
                 "risk": "The ledger defines approved delegation, but the deploying enterprise still has to enforce it in IAM and the MCP gateway.",
                 "treatment": "Bind runtime credentials to workflow_id, agent_class, and run_id; deny tool calls without a matching ledger identity.",
+            },
+            {
+                "risk": "A production-looking run token can still be an unconstrained bearer secret if IAM issues it without audience, sender constraint, or a one-hour ceiling.",
+                "treatment": "Issue audience-restricted, sender-constrained, short-lived tokens; reject expired tokens; never log tokens; treat exposure as an incident.",
             },
             {
                 "risk": "Human approval records are external to this repository.",
@@ -580,14 +618,20 @@ def build_ledger(
             {
                 "id": "mcp-authorization",
                 "name": "Model Context Protocol Authorization",
-                "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization",
-                "coverage": "HTTP transport authorization, resource-owner consent, and restricted MCP server access.",
+                "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization",
+                "coverage": "HTTP transport authorization, resource indicators, token audience, PKCE, and restricted MCP server access.",
             },
             {
                 "id": "mcp-security-best-practices",
                 "name": "Model Context Protocol Security Best Practices",
-                "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices",
-                "coverage": "Confused-deputy prevention, token-passthrough avoidance, scope minimization, and session safety.",
+                "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices",
+                "coverage": "Confused-deputy prevention, token-passthrough avoidance, scope minimization, and state-handle binding.",
+            },
+            {
+                "id": "nist-ir-8587",
+                "name": "NIST IR 8587 Protecting Tokens and Assertions from Forgery, Theft, and Misuse",
+                "url": "https://csrc.nist.gov/pubs/ir/8587/final",
+                "coverage": "Workload and AI-agent tokens must be tightly scoped and short-lived, audience-restricted, rejected when expired, sender-constrained when feasible, and never written to logs or build artifacts.",
             },
             {
                 "id": "nist-ai-rmf-1.0",

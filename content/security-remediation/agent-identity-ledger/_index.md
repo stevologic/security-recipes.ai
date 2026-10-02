@@ -3,7 +3,7 @@ title: Agent Identity & Delegation Ledger
 linkTitle: Identity Ledger
 weight: 7
 date: 2026-05-02
-lastmod: 2026-08-21
+lastmod: 2026-10-02
 sidebar:
   exclude: true
 description: >
@@ -46,6 +46,23 @@ This makes AI easier for adopters because the model does not have to
 remember identity policy. The host, gateway, or orchestrator can load
 one JSON artifact and make a default-deny decision.
 
+Rechecked October 2, 2026 against NIST IR 8587
+([final, 2026-09-15](https://csrc.nist.gov/pubs/ir/8587/final))
+and the public MCP specification
+[2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28).
+IR 8587 section 1.1.1 says organizations should apply these token
+guidelines when AI agents use signed tokens to access systems, data,
+tools, or APIs. Workload and non-person identities **MUST** use tightly
+scoped, short-lived tokens issued through approved identity platforms
+and **SHOULD** use sender-constrained mechanisms such as DPoP or mTLS
+whenever feasible. Access and identity tokens **MUST** have defined
+short lifetimes, **SHOULD** be valid for no more than one hour, and
+expired tokens **MUST** be rejected. Tokens **MUST** include an
+audience and **MUST NOT** be written to logs, console output, cache
+directories, or artifact stores; detected exposure is an incident.
+Conformance with IR 8587 remains voluntary unless required by policy or
+contract. This pass does not claim human review of the pack.
+
 {{< playbook-workflow >}}
 
 ## What was added
@@ -76,7 +93,7 @@ gateway policy pack, and assurance pack checks.
 | `agent_identities` | One identity contract per workflow and agent class, such as `sr-agent::sast-finding-remediation::codex`. |
 | `delegated_authority` | Allowed actions, MCP scopes, eligible findings, repository scope, branch prefix, and approval-required namespaces. |
 | `explicit_denies` | Actions an agent cannot perform: merge, deploy, release, publish, secret-store access, default-branch push, and policy edits without review. |
-| `identity_controls` | Credential model, no shared tokens, no model-visible secrets, run-bound token rules, and required delegation-chain fields. |
+| `identity_controls` | Credential model, no shared tokens, no model-visible secrets, audience-restricted sender-constrained run tokens, one-hour-or-run-end expiry, and required delegation-chain fields. |
 | `runtime_contract` | Required runtime attributes, egress default, session disablement, and kill signals. |
 | `enterprise_iam_contract` | The portable IAM checklist for issuing, auditing, and revoking agent identities. |
 | `delegation_graph` | A compact graph from accountable team to agent identity to MCP namespaces and reviewer pools. |
@@ -94,8 +111,16 @@ true:
 - Branch writes use the declared remediation branch prefix and PR label.
 - Ticket writes are limited to the declared security or incident workspace.
 - Approval-required namespaces carry a typed human approval record.
-- Runtime tokens expire at run completion or when a kill signal fires.
+- Runtime tokens are audience-restricted and, when feasible,
+  sender-constrained with DPoP or mTLS rather than reusable bearer
+  secrets.
+- Runtime tokens expire at one hour or run completion, whichever is
+  sooner, and are revoked when a kill signal fires.
+- Expired tokens are rejected at the gateway.
 - No user token is passed through to downstream tools.
+- Tokens are never written to logs, console output, cache directories,
+  or artifact stores; detected exposure is a revocation and incident
+  signal.
 
 The ledger intentionally separates delegation from execution. It tells
 the platform what may be issued. The MCP gateway and IAM layer still
@@ -116,6 +141,11 @@ This feature is aligned to primary industry direction:
   token-passthrough avoidance, and session safety.
 - [NIST AI RMF](https://www.nist.gov/itl/ai-risk-management-framework)
   frames AI systems as governed, mapped, measured, and managed assets.
+- [NIST IR 8587](https://csrc.nist.gov/pubs/ir/8587/final)
+  (*Protecting Tokens and Assertions from Forgery, Theft, and Misuse*,
+  final 2026-09-15) requires short-lived, audience-restricted workload
+  tokens, expired-token rejection, sender-constrained presentation when
+  feasible, and a ban on writing tokens into logs or build artifacts.
 - [CISA Secure by Design](https://www.cisa.gov/securebydesign)
   anchors the product in secure defaults, transparency, accountability,
   and measurable security outcomes.
@@ -131,11 +161,14 @@ first tool call:
 1. Match the finding to a workflow.
 2. Select the agent class and derive `identity_id`.
 3. Confirm the identity exists and the workflow status allows execution.
-4. Bind the run token to `workflow_id`, `agent_class`, and `run_id`.
+4. Bind the run token to `workflow_id`, `agent_class`, and `run_id`,
+   restrict its audience, prefer sender-constrained presentation, and
+   expire it at one hour or run end, whichever is sooner.
 5. Evaluate every tool call against `delegated_authority.mcp_scopes`.
-6. Block every action in `explicit_denies`.
+6. Reject expired tokens and block every action in `explicit_denies`.
 7. Attach the required evidence records before the PR is reviewable.
-8. Revoke the identity when a runtime kill signal fires.
+8. Revoke the identity when a runtime kill signal fires or when token
+   exposure is detected.
 
 The local MCP server exposes this flow through
 `recipes_agent_identity_ledger`. Query it with:
@@ -153,6 +186,9 @@ The generator fails if:
 - Gateway policy is not default-deny.
 - Manifest defaults stop requiring human review.
 - An agent identity lacks reviewer pools, evidence records, or kill signals.
+- Identity token rules omit audience restriction, sender constraint,
+  one-hour-or-run-end expiry, expired-token rejection, or the ban on
+  writing tokens to logs and artifacts.
 - MCP namespaces use wildcards.
 - Branch-writing identities lack branch prefix or PR label controls.
 - Approval-required namespaces lack human approval metadata.
