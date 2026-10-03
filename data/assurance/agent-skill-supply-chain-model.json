@@ -1,12 +1,12 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-08-28",
-  "intent": "Define an enterprise-ready supply-chain model for agentic skills, rules files, hooks, and tool bundles so SecurityRecipes can govern the behavior layer between model prompts and MCP tool execution. The model turns skill provenance, permissions, registry trust, version pinning, isolation, referenced-instruction integrity, and runtime evidence into deterministic install, update, and run decisions.",
+  "last_reviewed": "2026-10-03",
+  "intent": "Define an enterprise-ready supply-chain model for agentic skills, rules files, hooks, and tool bundles so SecurityRecipes can govern the behavior layer between model prompts and MCP tool execution. The model turns skill provenance, permissions, registry trust, version pinning, isolation, referenced-instruction integrity, runtime permission enforcement, and runtime evidence into deterministic install, update, and run decisions.",
   "positioning": {
     "buyer": "AI Platform, Security Engineering, Product Security, AppSec, GRC, procurement security, vendor-risk, and acquisition diligence teams",
     "category": "Agent skill provenance, permission, and isolation firewall",
     "enterprise_promise": "SecurityRecipes can inventory agent skills across Claude Code, Cursor, Codex, Devin, VS Code, and MCP-adjacent ecosystems, prove which behaviors are pinned and reviewed, and block untrusted skills before they reach agents with filesystem, network, memory, shell, or MCP authority.",
-    "why_now": "Agentic AI risk is moving from isolated prompts to reusable behavior packages. Skills, rules files, hooks, extensions, and MCP tool bundles can quietly combine private data, untrusted instructions, and external egress. OWASP AST05 names a distinct skill failure: a URL or remote file that the agent treats as trusted instructions after the signed package has already been reviewed. Enterprises need a default-deny admission layer before these packages become trusted execution context."
+    "why_now": "Agentic AI risk is moving from isolated prompts to reusable behavior packages. Skills, rules files, hooks, extensions, and MCP tool bundles can quietly combine private data, untrusted instructions, and external egress. OWASP AST05 names a distinct skill failure: a URL or remote file that the agent treats as trusted instructions after the signed package has already been reviewed. OWASP AST03 names a second failure: a reviewed permission manifest that is never enforced at runtime, so a pinned read-only skill can later request shell, identity-file write, extra filesystem paths, extra egress, or an extra MCP namespace. Enterprises need a default-deny admission layer before these packages become trusted execution context."
   },
   "standards_alignment": [
     {
@@ -14,6 +14,12 @@
       "name": "OWASP Agentic Skills Top 10",
       "url": "https://owasp.org/www-project-agentic-skills-top-10/",
       "coverage": "Malicious skills, supply-chain compromise, over-privileged manifests, insecure metadata, untrusted external instructions, weak isolation, update drift, poor scanning, missing governance, and cross-platform reuse."
+    },
+    {
+      "id": "owasp-agentic-skills-ast03-2026",
+      "name": "OWASP Agentic Skills Top 10 AST03 Over-Privileged Skills",
+      "url": "https://owasp.org/www-project-agentic-skills-top-10/ast03",
+      "coverage": "Skills granted broader filesystem, network, shell, identity, or tool permissions than their stated function requires. Require an explicit permission manifest, enforce that manifest at runtime rather than treating it as documentation, use domain-scoped egress allowlists instead of a binary network flag, flag identity-file writes, and deny any later request that is not a subset of the reviewed grant."
     },
     {
       "id": "owasp-agentic-skills-ast05-2026",
@@ -126,7 +132,8 @@
       "external_egress_without_allowlist",
       "install_unpinned_update",
       "load_untrusted_serialized_skill_config",
-      "fetch_unpinned_external_instructions"
+      "fetch_unpinned_external_instructions",
+      "request_permissions_beyond_reviewed_manifest"
     ],
     "required_install_evidence": [
       "publisher_identity",
@@ -148,7 +155,8 @@
       "skill combines private data access, untrusted content ingestion, and external network egress",
       "skill package hash changes without version bump, review, and pack regeneration",
       "skill invokes shell, package manager, curl, wget, PowerShell, or bash through untrusted retrieved context",
-      "skill treats an unpinned, unhashed, or drifted URL or remote file as runtime instructions"
+      "skill treats an unpinned, unhashed, or drifted URL or remote file as runtime instructions",
+      "skill requests shell, identity-file write, extra filesystem paths, extra egress domains, extra MCP namespaces, or extra data classes beyond the reviewed permission manifest"
     ]
   },
   "risk_model": {
@@ -322,6 +330,7 @@
       "external_instruction_sources": [],
       "mapped_ast_risks": [
         "AST02",
+        "AST03",
         "AST05",
         "AST07",
         "AST09",
@@ -339,7 +348,8 @@
         "hash verification",
         "retrieved text demoted from instruction to evidence",
         "no external instruction URLs",
-        "default-deny egress"
+        "default-deny egress",
+        "runtime enforcement of reviewed permission manifest"
       ]
     },
     {
@@ -458,7 +468,8 @@
         "branch-only writes",
         "no package publish authority",
         "scanner before/after evidence",
-        "advisory fetches treated as evidence not instructions"
+        "advisory fetches treated as evidence not instructions",
+        "runtime enforcement of reviewed permission manifest"
       ]
     },
     {
@@ -559,7 +570,8 @@
         "pinned version",
         "hash verification",
         "registry write denial unless approved",
-        "incident evidence retention"
+        "incident evidence retention",
+        "runtime enforcement of reviewed permission manifest"
       ]
     },
     {
@@ -644,7 +656,8 @@
         "provenance hash required",
         "memory TTL enforced",
         "rollback evidence",
-        "session kill on prohibited data class"
+        "session kill on prohibited data class",
+        "runtime enforcement of reviewed permission manifest"
       ]
     },
     {
@@ -846,6 +859,7 @@
       "Which skills are pinned, signed, scanned, and hash verified?",
       "Which skills combine private data access, untrusted content, and network egress?",
       "Which skills fetch external documents as instructions, and are those sources pinned, hashed, allowlisted, or inlined?",
+      "Does runtime enforcement refuse shell, identity-file write, extra filesystem, extra egress, extra MCP namespaces, or extra data classes beyond the reviewed permission manifest?",
       "Which skills require human approval, sandboxing, or denial?",
       "Which runtime decision should an MCP gateway make before install, update, or run?"
     ],

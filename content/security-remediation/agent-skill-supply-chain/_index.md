@@ -3,7 +3,7 @@ title: Agent Skill Supply Chain
 linkTitle: Agent Skill Supply Chain
 weight: 18
 date: 2026-05-02
-lastmod: 2026-08-28
+lastmod: 2026-10-03
 sidebar:
   exclude: true
 description: >
@@ -19,7 +19,7 @@ before those calls. This pack governs that behavior layer as a software
 supply chain.
 {{< /callout >}}
 
-Rechecked August 28, 2026: skills are the portable
+Rechecked October 3, 2026: skills are the portable
 [agentskills.io](https://agentskills.io) shape used by Claude Code,
 Codex, Cursor, Hermes, and others — not a Claude-only package. OWASP
 [MCP Top 10](https://owasp.org/www-project-mcp-top-10/) remains
@@ -27,9 +27,14 @@ Codex, Cursor, Hermes, and others — not a Claude-only package. OWASP
 **October 2026**). OWASP
 [Agentic Skills Top 10](https://owasp.org/www-project-agentic-skills-top-10/)
 remains a **public-review v1** draft. Do not claim v1.0 is final.
-AST05 is **Untrusted External Instructions**: a skill that points the
-agent at a URL or remote file can turn mutable documentation into
-trusted instructions after the signed package has already been reviewed.
+AST03 is **Over-Privileged Skills**: a reviewed permission manifest is
+not enough. Runtime must refuse shell, identity-file write, extra
+filesystem paths, extra egress, extra MCP namespaces, and extra data
+classes that were not in the grant, and must use domain allowlists
+instead of a binary network flag. AST05 is **Untrusted External
+Instructions**: a skill that points the agent at a URL or remote file
+can turn mutable documentation into trusted instructions after the
+signed package has already been reviewed.
 `kill_session_on_malicious_skill_signal` is a host-session kill
 switch, not `Mcp-Session-Id`. MCP
 [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28)
@@ -94,6 +99,18 @@ python3 scripts/evaluate_agent_skill_supply_chain_decision.py \
   --expect-decision deny_untrusted_skill
 ```
 
+Refuse a pinned read-only skill that later requests shell:
+
+```bash
+python3 scripts/evaluate_agent_skill_supply_chain_decision.py \
+  --skill-id sr-secure-context-retrieval-skill \
+  --operation run \
+  --workflow-id vulnerable-dependency-remediation \
+  --platform codex \
+  --permission shell=true \
+  --expect-decision deny_untrusted_skill
+```
+
 The MCP server exposes the pack through
 `recipes_agent_skill_supply_chain_pack`. Runtime allow, hold, deny, or
 kill-session decisions stay with
@@ -120,6 +137,7 @@ The 2026 agent security market is shifting from "prompt injection" to
 - Are versions pinned and package hashes recorded?
 - Which skills can write memory, identity files, hooks, or rules?
 - Which skills have shell, network, or approval-required MCP access?
+- Does runtime refuse extra shell, identity-file write, filesystem, egress, MCP, or data-class requests after the manifest was reviewed?
 - Which skills fetch URLs or remote files and treat that text as instructions?
 - Are those referenced documents inlined, hash-pinned, allowlisted, and rescanned?
 - What happens when a skill update changes the hash or permission set?
@@ -135,6 +153,10 @@ This feature follows current primary guidance:
   for malicious skills, supply-chain compromise, over-privileged skills,
   insecure metadata, untrusted external instructions, weak isolation,
   update drift, scanning gaps, governance gaps, and cross-platform reuse.
+- [OWASP AST03 Over-Privileged Skills](https://owasp.org/www-project-agentic-skills-top-10/ast03)
+  for permission manifests, runtime enforcement of those manifests,
+  domain-scoped egress allowlists, identity-file write review, and
+  denying later requests that are not a subset of the reviewed grant.
 - [OWASP AST05 Untrusted External Instructions](https://owasp.org/www-project-agentic-skills-top-10/ast05)
   for pin-and-hash, inlining, domain allowlists, transitive reference
   audit, fleet source inventory, and continuous rescan of documents a
@@ -176,7 +198,8 @@ recipes_playbook_plan(
 ```
 
 An unregistered marketplace skill, a changed package hash, a wildcard
-egress request, an unpinned instruction URL, or a private-data-plus-egress
+egress request, an unpinned instruction URL, a runtime request that
+exceeds the reviewed permission manifest, or a private-data-plus-egress
 pattern fails closed.
 
 ## CI contract

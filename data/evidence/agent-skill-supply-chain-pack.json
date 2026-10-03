@@ -33,7 +33,8 @@
       "skill combines private data access, untrusted content ingestion, and external network egress",
       "skill package hash changes without version bump, review, and pack regeneration",
       "skill invokes shell, package manager, curl, wget, PowerShell, or bash through untrusted retrieved context",
-      "skill treats an unpinned, unhashed, or drifted URL or remote file as runtime instructions"
+      "skill treats an unpinned, unhashed, or drifted URL or remote file as runtime instructions",
+      "skill requests shell, identity-file write, extra filesystem paths, extra egress domains, extra MCP namespaces, or extra data classes beyond the reviewed permission manifest"
     ],
     "prohibited_capabilities": [
       "read_private_keys",
@@ -46,7 +47,8 @@
       "external_egress_without_allowlist",
       "install_unpinned_update",
       "load_untrusted_serialized_skill_config",
-      "fetch_unpinned_external_instructions"
+      "fetch_unpinned_external_instructions",
+      "request_permissions_beyond_reviewed_manifest"
     ],
     "required_install_evidence": [
       "publisher_identity",
@@ -88,6 +90,7 @@
       "Which skills are pinned, signed, scanned, and hash verified?",
       "Which skills combine private data access, untrusted content, and network egress?",
       "Which skills fetch external documents as instructions, and are those sources pinned, hashed, allowlisted, or inlined?",
+      "Does runtime enforcement refuse shell, identity-file write, extra filesystem, extra egress, extra MCP namespaces, or extra data classes beyond the reviewed permission manifest?",
       "Which skills require human approval, sandboxing, or denial?",
       "Which runtime decision should an MCP gateway make before install, update, or run?"
     ],
@@ -95,13 +98,13 @@
     "sales_motion": "Lead with open skill provenance and runtime decisions, then sell hosted skill inventory ingestion, registry transparency checks, semantic skill scanning, signed package admission, sandbox policies, and trust-center exports."
   },
   "failures": [],
-  "generated_at": "2026-08-28",
-  "intent": "Define an enterprise-ready supply-chain model for agentic skills, rules files, hooks, and tool bundles so SecurityRecipes can govern the behavior layer between model prompts and MCP tool execution. The model turns skill provenance, permissions, registry trust, version pinning, isolation, referenced-instruction integrity, and runtime evidence into deterministic install, update, and run decisions.",
+  "generated_at": "2026-10-03",
+  "intent": "Define an enterprise-ready supply-chain model for agentic skills, rules files, hooks, and tool bundles so SecurityRecipes can govern the behavior layer between model prompts and MCP tool execution. The model turns skill provenance, permissions, registry trust, version pinning, isolation, referenced-instruction integrity, runtime permission enforcement, and runtime evidence into deterministic install, update, and run decisions.",
   "positioning": {
     "buyer": "AI Platform, Security Engineering, Product Security, AppSec, GRC, procurement security, vendor-risk, and acquisition diligence teams",
     "category": "Agent skill provenance, permission, and isolation firewall",
     "enterprise_promise": "SecurityRecipes can inventory agent skills across Claude Code, Cursor, Codex, Devin, VS Code, and MCP-adjacent ecosystems, prove which behaviors are pinned and reviewed, and block untrusted skills before they reach agents with filesystem, network, memory, shell, or MCP authority.",
-    "why_now": "Agentic AI risk is moving from isolated prompts to reusable behavior packages. Skills, rules files, hooks, extensions, and MCP tool bundles can quietly combine private data, untrusted instructions, and external egress. OWASP AST05 names a distinct skill failure: a URL or remote file that the agent treats as trusted instructions after the signed package has already been reviewed. Enterprises need a default-deny admission layer before these packages become trusted execution context."
+    "why_now": "Agentic AI risk is moving from isolated prompts to reusable behavior packages. Skills, rules files, hooks, extensions, and MCP tool bundles can quietly combine private data, untrusted instructions, and external egress. OWASP AST05 names a distinct skill failure: a URL or remote file that the agent treats as trusted instructions after the signed package has already been reviewed. OWASP AST03 names a second failure: a reviewed permission manifest that is never enforced at runtime, so a pinned read-only skill can later request shell, identity-file write, extra filesystem paths, extra egress, or an extra MCP namespace. Enterprises need a default-deny admission layer before these packages become trusted execution context."
   },
   "residual_risks": [
     {
@@ -119,13 +122,17 @@
     {
       "risk": "A skill can keep a pinned package hash while a referenced URL or remote file changes and is treated as trusted instructions.",
       "treatment": "Inventory external instruction sources, inline snapshots or pin review-time content hashes, allowlist fetch hosts, refuse unpinned or drifted documents, and rescan referenced content continuously."
+    },
+    {
+      "risk": "A pinned skill can request shell, identity-file write, extra filesystem paths, extra egress, extra MCP namespaces, or extra data classes after the permission manifest was reviewed.",
+      "treatment": "Enforce the reviewed permission manifest at runtime. Deny any request whose shell, identity-file write, filesystem, network, MCP namespace, or data-class set is not a subset of the registered grant. Use domain allowlists, not a binary network flag."
     }
   ],
   "risk_coverage": {
     "ast_risk_counts": {
       "AST01": 2,
       "AST02": 6,
-      "AST03": 4,
+      "AST03": 5,
       "AST04": 1,
       "AST05": 5,
       "AST06": 4,
@@ -722,7 +729,8 @@
         "inventory.example"
       ],
       "next_actions": [
-        "Require sandbox profile, explicit egress allow-list, and run receipt evidence."
+        "Require sandbox profile, explicit egress allow-list, and run receipt evidence.",
+        "Enforce the reviewed permission manifest at runtime; deny extra shell, identity-file write, filesystem, egress, MCP, or data-class requests."
       ],
       "owner": {
         "accountable_team": "Supply Chain Security",
@@ -791,7 +799,8 @@
         "pinned version",
         "hash verification",
         "registry write denial unless approved",
-        "incident evidence retention"
+        "incident evidence retention",
+        "runtime enforcement of reviewed permission manifest"
       ],
       "residual_risk_score": 4,
       "risk_factors": [
@@ -912,7 +921,8 @@
         "osv.dev"
       ],
       "next_actions": [
-        "Require sandbox profile, explicit egress allow-list, and run receipt evidence."
+        "Require sandbox profile, explicit egress allow-list, and run receipt evidence.",
+        "Enforce the reviewed permission manifest at runtime; deny extra shell, identity-file write, filesystem, egress, MCP, or data-class requests."
       ],
       "owner": {
         "accountable_team": "Product Security",
@@ -997,7 +1007,8 @@
         "branch-only writes",
         "no package publish authority",
         "scanner before/after evidence",
-        "advisory fetches treated as evidence not instructions"
+        "advisory fetches treated as evidence not instructions",
+        "runtime enforcement of reviewed permission manifest"
       ],
       "residual_risk_score": 4,
       "risk_factors": [
@@ -1111,7 +1122,8 @@
       ],
       "network_egress": [],
       "next_actions": [
-        "Require sandbox profile, explicit egress allow-list, and run receipt evidence."
+        "Require sandbox profile, explicit egress allow-list, and run receipt evidence.",
+        "Enforce the reviewed permission manifest at runtime; deny extra shell, identity-file write, filesystem, egress, MCP, or data-class requests."
       ],
       "owner": {
         "accountable_team": "AI Platform",
@@ -1161,7 +1173,8 @@
         "provenance hash required",
         "memory TTL enforced",
         "rollback evidence",
-        "session kill on prohibited data class"
+        "session kill on prohibited data class",
+        "runtime enforcement of reviewed permission manifest"
       ],
       "residual_risk_score": 0,
       "risk_factors": [
@@ -1242,6 +1255,7 @@
       "lethal_trifecta": false,
       "mapped_ast_risks": [
         "AST02",
+        "AST03",
         "AST05",
         "AST07",
         "AST09",
@@ -1256,7 +1270,8 @@
         "security-recipes.ai"
       ],
       "next_actions": [
-        "Run under standard MCP gateway audit and context citation controls."
+        "Run under standard MCP gateway audit and context citation controls.",
+        "Enforce the reviewed permission manifest at runtime; deny extra shell, identity-file write, filesystem, egress, MCP, or data-class requests."
       ],
       "owner": {
         "accountable_team": "AI Platform",
@@ -1310,7 +1325,8 @@
         "hash verification",
         "retrieved text demoted from instruction to evidence",
         "no external instruction URLs",
-        "default-deny egress"
+        "default-deny egress",
+        "runtime enforcement of reviewed permission manifest"
       ],
       "residual_risk_score": 0,
       "risk_factors": [
@@ -1412,7 +1428,7 @@
     },
     "agent_skill_supply_chain_model": {
       "path": "data/assurance/agent-skill-supply-chain-model.json",
-      "sha256": "856d4fa8e1458e4ed81e99d54994af9c7beb4875872c1e2a675d0ba2a132543f"
+      "sha256": "0c6ca631c055a69033d5e4b342f63782bea384b063be5f755764f8a217ca75d8"
     },
     "mcp_connector_trust_pack": {
       "path": "data/evidence/mcp-connector-trust-pack.json",
@@ -1420,7 +1436,7 @@
     },
     "secure_context_trust_pack": {
       "path": "data/evidence/secure-context-trust-pack.json",
-      "sha256": "1c67b74f4375036a5fc02153e2a602b28615852373ad5420990551b278180845"
+      "sha256": "b38ff16951c8deab5130e0f7b9070767e06cf1c4faf751733eba37d55a878422"
     },
     "workflow_manifest": {
       "path": "data/control-plane/workflow-manifests.json",
@@ -1433,6 +1449,12 @@
       "id": "owasp-agentic-skills-top-10-2026",
       "name": "OWASP Agentic Skills Top 10",
       "url": "https://owasp.org/www-project-agentic-skills-top-10/"
+    },
+    {
+      "coverage": "Skills granted broader filesystem, network, shell, identity, or tool permissions than their stated function requires. Require an explicit permission manifest, enforce that manifest at runtime rather than treating it as documentation, use domain-scoped egress allowlists instead of a binary network flag, flag identity-file writes, and deny any later request that is not a subset of the reviewed grant.",
+      "id": "owasp-agentic-skills-ast03-2026",
+      "name": "OWASP Agentic Skills Top 10 AST03 Over-Privileged Skills",
+      "url": "https://owasp.org/www-project-agentic-skills-top-10/ast03"
     },
     {
       "coverage": "Skills that point an agent at a URL or remote file treat mutable documentation as trusted instructions. Pin and hash referenced content at review time, prefer inlining snapshots into the signed package, allowlist fetch domains, audit transitive references, inventory fleet sources, and rescan continuously.",
