@@ -11,6 +11,7 @@ filesystem, network, memory, shell, or MCP authority.
 from __future__ import annotations
 
 import argparse
+import fnmatch
 import json
 import sys
 from pathlib import Path
@@ -36,6 +37,8 @@ PRIVATE_DATA_CLASSES = {
     "browser_password",
     "production_credential",
 }
+UNRESTRICTED_NETWORK = {"*", "0.0.0.0/0", "internet"}
+UNRESTRICTED_PATHS = {"*", "/**", "~/**", "**/*", "**"}
 
 
 class SkillDecisionError(RuntimeError):
@@ -151,6 +154,121 @@ def pinned_instruction_urls(skill: dict[str, Any]) -> set[str]:
         for row in external_instruction_sources(skill)
         if instruction_source_is_pinned(row) and str(row.get("url") or "").strip()
     }
+
+
+def path_is_within_allowlist(requested: str, allowed: list[str]) -> bool:
+    requested = requested.strip()
+    if not requested:
+        return True
+    if requested in UNRESTRICTED_PATHS:
+        return requested in allowed
+    for pattern in allowed:
+        candidate = str(pattern).strip()
+        if not candidate:
+            continue
+        if requested == candidate:
+            return True
+        if candidate.endswith("/**"):
+            prefix = candidate[:-3]
+            if prefix and (requested == prefix or requested.startswith(prefix + "/")):
+                return True
+        if fnmatch.fnmatch(requested, candidate):
+            return True
+    return False
+
+
+def extra_list_items(
+    requested: Any,
+    allowed: Any,
+    *,
+    matcher: Any | None = None,
+) -> list[str]:
+    extras: list[str] = []
+    allowed_items = [str(item).strip() for item in as_list(allowed) if str(item).strip()]
+    for item in as_list(requested):
+        value = str(item).strip()
+        if not value:
+            continue
+        if matcher is not None:
+            if not matcher(value, allowed_items):
+                extras.append(value)
+        elif value not in allowed_items:
+            extras.append(value)
+    return extras
+
+
+def mcp_namespace_key(row: Any) -> tuple[str, str]:
+    if isinstance(row, dict):
+        return (str(row.get("namespace") or "").strip(), str(row.get("access") or "").strip())
+    return (str(row).strip(), "")
+
+
+def extra_mcp_namespaces(requested: Any, allowed: Any) -> list[str]:
+    allowed_keys = {mcp_namespace_key(row) for row in as_list(allowed)}
+    extras: list[str] = []
+    for row in as_list(requested):
+        namespace, access = mcp_namespace_key(row)
+        if not namespace:
+            continue
+        if (namespace, access) not in allowed_keys:
+            extras.append(f"{namespace}:{access or 'unspecified'}")
+    return extras
+
+
+def requested_network_domains(request: dict[str, Any], requested_permissions: dict[str, Any]) -> list[str]:
+    domains: list[str] = []
+    raw_egress = requested_permissions.get("network_egress")
+    if isinstance(raw_egress, bool):
+        if raw_egress:
+            domains.append("*")
+    else:
+        domains.extend(str(item).strip() for item in as_list(raw_egress) if str(item).strip())
+    domains.extend(str(item).strip() for item in as_list(request.get("network_egress_domains")) if str(item).strip())
+    return domains
+
+
+def permission_subset_violations(
+    request: dict[str, Any],
+    requested_permissions: dict[str, Any],
+    registered_permissions: dict[str, Any] | None,
+) -> list[str]:
+    """Return AST03 violations when the runtime request exceeds the reviewed manifest."""
+    registered = registered_permissions if isinstance(registered_permissions, dict) else {}
+    violations: list[str] = []
+
+    if as_bool(requested_permissions.get("shell")) and not as_bool(registered.get("shell")):
+        violations.append("requested shell exceeds reviewed permission manifest")
+    if as_bool(requested_permissions.get("identity_file_write")) and not as_bool(registered.get("identity_file_write")):
+        violations.append("requested identity_file_write exceeds reviewed permission manifest")
+    if as_bool(requested_permissions.get("persistent_memory")) and not as_bool(registered.get("persistent_memory")):
+        violations.append("requested persistent_memory exceeds reviewed permission manifest")
+
+    for extra in extra_list_items(
+        requested_permissions.get("filesystem_read"),
+        registered.get("filesystem_read"),
+        matcher=path_is_within_allowlist,
+    ):
+        violations.append(f"requested filesystem_read exceeds reviewed permission manifest: {extra}")
+    for extra in extra_list_items(
+        requested_permissions.get("filesystem_write"),
+        registered.get("filesystem_write"),
+        matcher=path_is_within_allowlist,
+    ):
+        violations.append(f"requested filesystem_write exceeds reviewed permission manifest: {extra}")
+
+    registered_egress = [str(item).strip() for item in as_list(registered.get("network_egress")) if str(item).strip()]
+    unrestricted_registered = any(item in UNRESTRICTED_NETWORK for item in registered_egress)
+    for domain in requested_network_domains(request, requested_permissions):
+        if unrestricted_registered:
+            continue
+        if domain in UNRESTRICTED_NETWORK or domain not in registered_egress:
+            violations.append(f"requested network_egress exceeds reviewed permission manifest: {domain}")
+
+    for extra in extra_list_items(requested_permissions.get("data_access_classes"), registered.get("data_access_classes")):
+        violations.append(f"requested data_access_class exceeds reviewed permission manifest: {extra}")
+    for extra in extra_mcp_namespaces(requested_permissions.get("mcp_namespaces"), registered.get("mcp_namespaces")):
+        violations.append(f"requested mcp_namespace exceeds reviewed permission manifest: {extra}")
+    return violations
 
 
 def decision_result(
@@ -306,6 +424,21 @@ def evaluate_agent_skill_supply_chain_decision(
             pack=skill_pack,
             skill=skill,
             violations=[f"undeclared_external_instruction_url: {url}" for url in undeclared_instruction_urls],
+        )
+
+    extra_permissions = permission_subset_violations(
+        request,
+        requested_permissions,
+        skill.get("permissions") if isinstance(skill.get("permissions"), dict) else {},
+    )
+    if extra_permissions:
+        return decision_result(
+            decision="deny_untrusted_skill",
+            reason="runtime request exceeds the reviewed permission manifest",
+            request=request,
+            pack=skill_pack,
+            skill=skill,
+            violations=extra_permissions,
         )
 
     registered_decision = str(skill.get("decision") or "")

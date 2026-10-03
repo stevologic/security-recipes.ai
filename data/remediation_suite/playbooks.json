@@ -1855,7 +1855,7 @@
       "title": "Agent Skill Supply Chain",
       "page": "/security-remediation/agent-skill-supply-chain/",
       "category": "agent-runtime",
-      "summary": "Verify a skill's provenance, code, dependencies, permissions, package hash, referenced instruction sources, and runtime controls before installation or execution.",
+      "summary": "Verify a skill's provenance, code, dependencies, permissions, package hash, referenced instruction sources, and runtime controls before installation or execution, then enforce the reviewed permission manifest at run time.",
       "phases": [
         {
           "label": "Signal",
@@ -1870,12 +1870,12 @@
         {
           "label": "Decision",
           "title": "Score capability risk",
-          "detail": "Classify file, network, shell, browser, secret, identity, deployment, irreversible-action, and unpinned-instruction-fetch permissions."
+          "detail": "Classify file, network, shell, browser, secret, identity, deployment, irreversible-action, and unpinned-instruction-fetch permissions, and compare the runtime request to the reviewed manifest."
         },
         {
           "label": "Action",
           "title": "Choose a trust mode",
-          "detail": "Allow pinned read-only use, sandbox a pilot, require approval, quarantine, deny unpinned instruction fetches, or disable a changed skill."
+          "detail": "Allow pinned read-only use, sandbox a pilot, require approval, quarantine, deny unpinned instruction fetches, deny extra runtime privileges, or disable a changed skill."
         },
         {
           "label": "Proof",
@@ -1884,15 +1884,16 @@
         }
       ],
       "gate": {
-        "question": "Is the skill authentic, pinned, scanned, minimally privileged, owned, and free of unpinned documents treated as instructions?",
+        "question": "Is the skill authentic, pinned, scanned, minimally privileged, owned, free of unpinned documents treated as instructions, and limited at runtime to the reviewed permission manifest?",
         "pass": "Register it for the approved sandbox, scope, and trust tier.",
-        "stop": "Quarantine or deny unverified, changed, overprivileged, malicious, unpinned-instruction, or high-consequence skills without approval."
+        "stop": "Quarantine or deny unverified, changed, overprivileged, extra-privilege, malicious, unpinned-instruction, or high-consequence skills without approval."
       },
       "evidence": [
         "skill manifest/package hash",
         "provenance and scan results",
         "capability-risk decision",
-        "external instruction source inventory and content hashes"
+        "external instruction source inventory and content hashes",
+        "runtime permission subset decision"
       ],
       "outputs": [
         "trusted skill record",
@@ -1915,6 +1916,7 @@
         "skill supply chain",
         "plugin provenance",
         "skill permissions",
+        "over-privileged skills",
         "untrusted external instructions"
       ]
     },
