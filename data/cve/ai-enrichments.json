@@ -421,72 +421,64 @@
       ]
     },
     "CVE-2016-20017": {
-      "business_risk": "Critical risk for affected D-Link DSL-2750B deployments: a remote, unauthenticated attacker may inject operating-system commands through the device management interface, potentially compromising confidentiality, integrity, and availability. CISA lists the vulnerability in its Known Exploited Vulnerabilities catalog.",
-      "claim_evidence": [
-        {
-          "claim": "NVD identifies D-Link DSL-2750B firmware versions before 1.05 as affected; D-Link specifically lists DSL-2750B Dx non-US firmware v1.04.xx and older as affected.",
-          "kind": "affected_version",
-          "source_url": "https://nvd.nist.gov/vuln/detail/cve-2016-20017"
-        },
-        {
-          "claim": "The vulnerability permits remote unauthenticated command injection through the login.cgi cli parameter.",
-          "kind": "exposure",
-          "source_url": "https://nvd.nist.gov/vuln/detail/cve-2016-20017"
-        }
-      ],
+      "business_risk": "Critical unauthenticated remote command injection on certain D-Link DSL-2750B devices that has been exploited in the wild and is listed in CISA KEV, enabling full device compromise.",
+      "claim_evidence": [],
       "exposure_conditions": [
-        "The device is a D-Link DSL-2750B or applicable hardware/firmware variant.",
-        "The installed firmware is affected; NVD identifies firmware versions before 1.05, while D-Link specifies DSL-2750B Dx non-US devices running v1.04.xx or older.",
-        "The device management interface is reachable by an attacker over the network.",
-        "The vulnerable login.cgi cli parameter is processed without requiring authentication."
+        "D-Link DSL-2750B devices reachable over the network without authentication",
+        "Command injection via the login.cgi cli parameter on affected firmware"
       ],
       "gaps": [],
-      "generated_at": "2026-07-27T12:47:38Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-10-03T14:37:45Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [
-        "Identify the device model, hardware revision, deployment channel, and installed firmware using the product label or the device web configuration interface.",
-        "For D-Link-only, non-US DSL-2750B Dx devices running v1.04.xx or older, apply the corresponding D-Link EU v1.05 firmware update after confirming hardware-revision compatibility.",
-        "For US service-provider deployments or other hardware revisions, consult the responsible service provider or regional D-Link support because D-Link states that firmware and affected status vary by deployment and hardware revision.",
-        "If an applicable vendor mitigation or firmware update is unavailable, remove the device from service or discontinue its use, consistent with CISA guidance.",
-        "Until remediation is confirmed, restrict exposure of the device management interface to trusted administrative networks and avoid exposing it to untrusted networks where operationally feasible."
+        "Identify the device hardware revision using the vendor table in the D-Link support announcement.",
+        "For DSL-2750B hardware revision Dx (non-US D-Link branded) running firmware v1.04.xx or older, apply the listed EU v1.05 firmware.",
+        "If the hardware revision is listed as not affected, no firmware change is required.",
+        "If vendor mitigations cannot be applied, discontinue use of the product."
       ],
       "retrieved_source_urls": [
         "https://nvd.nist.gov/vuln/detail/cve-2016-20017",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A792&f%5B10%5D=vendor_project%3A836&f%5B11%5D=vendor_project%3A837&f%5B12%5D=vendor_project%3A842&f%5B13%5D=vendor_project%3A843&f%5B14%5D=vendor_project%3A845&f%5B15%5D=vendor_project%3A854&f%5B16%5D=vendor_project%3A860&f%5B17%5D=vendor_project%3A865&f%5B18%5D=vendor_project%3A873&f%5B19%5D=vendor_project%3A876&f%5B1%5D=vendor_project%3A800&f%5B20%5D=vendor_project%3A877&f%5B21%5D=vendor_project%3A878&f%5B22%5D=vendor_project%3A880&f%5B23%5D=vendor_project%3A886&f%5B24%5D=vendor_project%3A893&f%5B25%5D=vendor_project%3A899&f%5B26%5D=vendor_project%3A902&f%5B27%5D=vendor_project%3A917&f%5B28%5D=vendor_project%3A931&f%5B29%5D=vendor_project%3A932&f%5B2%5D=vendor_project%3A801&f%5B30%5D=vendor_project%3A933&f%5B31%5D=vendor_project%3A938&f%5B32%5D=vendor_project%3A941&f%5B33%5D=vendor_project%3A942&f%5B34%5D=vendor_project%3A951&f%5B35%5D=vendor_project%3A1005&f%5B36%5D=vendor_project%3A1174&f%5B37%5D=vendor_project%3A1279&f%5B38%5D=vendor_project%3A1285&f%5B3%5D=vendor_project%3A803&f%5B4%5D=vendor_project%3A804&f%5B5%5D=vendor_project%3A813&f%5B6%5D=vendor_project%3A820&f%5B7%5D=vendor_project%3A822&f%5B8%5D=vendor_project%3A823&f%5B9%5D=vendor_project%3A828&page=4",
-        "https://nvd.nist.gov/vuln/detail/CVE-2017-20017",
-        "https://nvd.nist.gov/vuln/detail/CVE-2026-20117",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=52",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A799&f%5B10%5D=vendor_project%3A932&f%5B11%5D=vendor_project%3A933&f%5B12%5D=vendor_project%3A939&f%5B13%5D=vendor_project%3A943&f%5B14%5D=vendor_project%3A1151&f%5B15%5D=vendor_project%3A1168&f%5B1%5D=vendor_project%3A816&f%5B2%5D=vendor_project%3A817&f%5B3%5D=vendor_project%3A818&f%5B4%5D=vendor_project%3A823&f%5B5%5D=vendor_project%3A842&f%5B6%5D=vendor_project%3A862&f%5B7%5D=vendor_project%3A887&f%5B8%5D=vendor_project%3A917&f%5B9%5D=vendor_project%3A920&page=2",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=53",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A800&f%5B10%5D=vendor_project%3A848&f%5B11%5D=vendor_project%3A850&f%5B12%5D=vendor_project%3A851&f%5B13%5D=vendor_project%3A854&f%5B14%5D=vendor_project%3A857&f%5B15%5D=vendor_project%3A869&f%5B16%5D=vendor_project%3A886&f%5B17%5D=vendor_project%3A893&f%5B18%5D=vendor_project%3A901&f%5B19%5D=vendor_project%3A904&f%5B1%5D=vendor_project%3A801&f%5B20%5D=vendor_project%3A907&f%5B21%5D=vendor_project%3A908&f%5B22%5D=vendor_project%3A917&f%5B23%5D=vendor_project%3A921&f%5B24%5D=vendor_project%3A925&f%5B25%5D=vendor_project%3A927&f%5B26%5D=vendor_project%3A938&f%5B27%5D=vendor_project%3A941&f%5B28%5D=vendor_project%3A955&f%5B29%5D=vendor_project%3A1001&f%5B2%5D=vendor_project%3A803&f%5B30%5D=vendor_project%3A1041&f%5B31%5D=vendor_project%3A1286&f%5B3%5D=vendor_project%3A820&f%5B4%5D=vendor_project%3A823&f%5B5%5D=vendor_project%3A831&f%5B6%5D=vendor_project%3A834&f%5B7%5D=vendor_project%3A837&f%5B8%5D=vendor_project%3A842&f%5B9%5D=vendor_project%3A845&page=1",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=56",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=55",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=50",
-        "https://www.cisa.gov/sites/default/files/publications/AA20-133A_Top_10_Routinely_Exploited_Vulnerabilities_S508C.pdf",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=24",
-        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/AA22-117A_Joint_CSA_2021_Top_Routinely_Exploited_Vulnerabilities_Final.pdf",
-        "https://www.cisa.gov/sites/default/files/2024-05/Secure_by_Design_Alert_Eliminating_Directory_Traversal_Vulnerabilities_in_Software_508c%20%283%29.pdf",
-        "https://www.cisa.gov/sites/default/files/2023-08/aa23-215a_joint_csa_2022_top_routinely_exploited_vulnerabilities.pdf"
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2016-5417",
+        "https://nvd.nist.gov/vuln/detail/cve-2016-7417",
+        "https://nvd.nist.gov/vuln/detail/CVE-2016-1817",
+        "https://nvd.nist.gov/vuln/detail/cve-2017-20006",
+        "https://nvd.nist.gov/vuln/detail/cve-2024-20017",
+        "https://nvd.nist.gov/vuln/detail/cve-2016-10217",
+        "https://nvd.nist.gov/vuln/detail/CVE-2017-11617",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2026-80717",
+        "https://nvd.nist.gov/vuln/detail/CVE-2017-11817",
+        "https://www.cve.org/CVERecord?id=CVE-2016-20017",
+        "https://psirt.com/cve/CVE-2016-20017",
+        "https://www.vulncheck.com/advisories/dlink-dsl-command-injection",
+        "https://avd.aquasec.com/nvd/2016/cve-2016-20017/",
+        "https://cve.yack.one/cve/CVE-2016-20017",
+        "https://cvefeed.io/vuln/detail/CVE-2016-20017",
+        "https://www.cvedetails.com/cve/CVE-2016-20017/",
+        "https://stack.watch/vuln/CVE-2016-20017/",
+        "https://cvedatabase.com/cve/CVE-2016-20017",
+        "https://secalerts.co/vulnerability/CVE-2016-20017",
+        "https://www.cisa.gov/news-events/bulletins/sb16-200",
+        "https://www.cisa.gov/news-events/bulletins/sb17-016",
+        "https://www.cisa.gov/news-events/alerts/2016/07/05/symantec-and-norton-security-products-contain-critical-vulnerabilities",
+        "https://www.cisa.gov/news-events/bulletins/sb16-074"
       ],
       "schema_version": 2,
       "source_fingerprint": "752643738cad4f94f886a0888cb0746ca74f1572e1390cbadff205e0d7400e19",
       "source_urls": [
-        "https://nvd.nist.gov/vuln/detail/cve-2016-20017"
+        "https://nvd.nist.gov/vuln/detail/cve-2016-20017",
+        "https://www.cve.org/CVERecord?id=CVE-2016-20017"
       ],
       "status": "complete",
       "uncertainty": [
-        "D-Link's advisory is hardware-revision and deployment-channel specific and states that many devices sharing the DSL-2750B model name are not affected.",
-        "NVD provides a generalized firmware boundary of versions before 1.05, whereas D-Link identifies DSL-2750B Dx non-US devices running v1.04.xx and older as affected.",
-        "The supplied record does not identify the device hardware revision, deployment channel, or installed firmware, so applicability to a particular asset cannot be determined from the record alone."
+        "The CVE description states devices before 1.05 while the vendor advisory states only hardware revision Dx with v1.04.xx and older is affected and that the original disclosure contained inaccuracies.",
+        "Full NVD page content could not be retrieved."
       ],
       "verification_steps": [
-        "Confirm the hardware revision and installed firmware through the device label or web configuration interface.",
-        "For the affected DSL-2750B Dx path, verify that the installed firmware is v1.05 or later and matches the applicable hardware revision.",
-        "Do not perform exploit testing against the management interface; rely on version, hardware-revision, and vendor-support confirmation.",
-        "Record the device model, hardware revision, firmware version, update status, and any service-provider-specific applicability determination."
+        "Inspect the product label on the underside of the device next to the serial number to determine the hardware revision.",
+        "Check the currently running firmware version through the device web configuration interface.",
+        "Compare the hardware revision and firmware version against the affected-products table in the vendor announcement."
       ]
     },
     "CVE-2016-7836": {
@@ -14118,6 +14110,77 @@
         "Review checkout-related application and security monitoring for suspicious activity after remediation; do not perform exploit attempts or destructive testing against production systems."
       ]
     },
+    "CVE-2022-24816": {
+      "business_risk": "Critical unauthenticated remote code execution via Jiffle script compilation in JAI-EXT, listed on the CISA Known Exploited Vulnerabilities catalog. Downstream GeoServer installations that accept Jiffle via OGC requests or SLD editing are particularly exposed.",
+      "claim_evidence": [
+        {
+          "claim": "JAI-EXT Maven packages it.geosolutions.jaiext.jiffle:jt-jiffle and it.geosolutions.jaiext.jiffle:jt-jiffle-language; downstream GeoServer is affected",
+          "kind": "affected_product",
+          "source_url": "https://github.com/advisories/GHSA-v92f-jx6p-73rx"
+        },
+        {
+          "claim": "jai-ext versions prior to 1.1.22 are affected",
+          "kind": "affected_version",
+          "source_url": "https://github.com/advisories/GHSA-v92f-jx6p-73rx"
+        }
+      ],
+      "exposure_conditions": [
+        "Applications that use jt-jiffle and allow Jiffle scripts to be supplied via network requests",
+        "GeoServer deployments that embed Jiffle in the base WAR and accept crafted OGC requests or SLD edits that invoke Jiffle as a rendering transformation"
+      ],
+      "gaps": [],
+      "generated_at": "2026-10-03T14:44:16Z",
+      "model": "grok-4.6",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [
+        "Upgrade JAI-EXT to the patched release 1.1.22",
+        "For GeoServer, upgrade to 2.20.4, 2.19.6, or 2.18.6, which incorporate JAI-EXT 1.1.22",
+        "If an immediate upgrade is not possible, disable Jiffle Java compilation by removing the janino jar from the application classpath as described by the vendor"
+      ],
+      "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-24816",
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-24817",
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-24808",
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-24818",
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-24800",
+        "https://nvd.nist.gov/vuln/detail/cve-2023-24816",
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-24848",
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-24826",
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-24856",
+        "https://nvd.nist.gov/vuln/detail/cve-2022-24803",
+        "https://github.com/advisories/GHSA-v92f-jx6p-73rx",
+        "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2022/CVE-2022-24816.yaml",
+        "https://github.com/Threekiii/Awesome-POC/blob/master/%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%BC%8F%E6%B4%9E/GeoServer%20JAI-EXT%20%E5%AF%BC%E8%87%B4%E8%BF%9C%E7%A8%8B%E4%BB%A3%E7%A0%81%E6%B3%A8%E5%85%A5%E6%BC%8F%E6%B4%9E%20CVE-2022-24816%20CVE-2023-35042.md",
+        "https://github.com/grafana/grafana/security/advisories/GHSA-82gq-xfg3-5j7v",
+        "https://github.com/advisories/GHSA-8v7h-cpc2-r8jp",
+        "https://github.com/advisories/GHSA-c2jg-hw38-jrqq",
+        "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2022/CVE-2022-24856.yaml",
+        "https://github.com/advisories/GHSA-mw2c-vx6j-mg76",
+        "https://github.com/advisories/GHSA-269q-hmxg-m83q",
+        "https://github.com/redis/redis/security/advisories/GHSA-p8x2-9v9q-c838",
+        "https://secure.dshield.org/vuln.html?cve=2022-24816",
+        "https://www.cve.org/CVERecord?id=CVE-2022-24816",
+        "https://www.cisa.gov/news-events/bulletins/sb22-108",
+        "https://github.com/geoserver/geoserver/security"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "c0998d1beda1fad5d2e621784875f8d5b42c34015b032096bc8c2aa2132049eb",
+      "source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-24816",
+        "https://github.com/advisories/GHSA-v92f-jx6p-73rx",
+        "https://www.cve.org/CVERecord?id=CVE-2022-24816"
+      ],
+      "status": "complete",
+      "uncertainty": [
+        "The original CNA advisory description text states that version 1.2.22 will contain the patch, while advisory metadata, CISA KEV notes, NVD CPE data, the 1.1.22 release tag, and the GeoServer vendor blog all identify 1.1.22 as the patched JAI-EXT version",
+        "Consulted sources do not fully enumerate every downstream product that may embed JAI-EXT besides GeoServer"
+      ],
+      "verification_steps": [
+        "Confirm the deployed JAI-EXT version is 1.1.22 or later using vendor release information",
+        "For GeoServer, confirm the installed version is 2.20.4, 2.19.6, 2.18.6, or a later release identified in the April 2022 vendor advisory"
+      ]
+    },
     "CVE-2022-24990": {
       "business_risk": "CISA lists this as a known-exploited TerraMaster OS remote command execution vulnerability used in ransomware campaigns; MITRE describes unauthenticated remote disclosure of the administrative password on TOS 4.2.29 and earlier.",
       "claim_evidence": [
@@ -14662,89 +14725,174 @@
       ]
     },
     "CVE-2022-30525": {
-      "business_risk": "Critical. This is an OS command-injection flaw in Zyxel firewall CGI functionality that may allow an attacker to modify specific files and execute operating-system commands. CVE-2022-30525 is listed in CISA's Known Exploited Vulnerabilities catalog, indicating prioritized remediation. [Source: https://nvd.nist.gov/vuln/detail/CVE-2022-30525]",
+      "business_risk": "Critical unauthenticated remote OS command injection (CVSS 9.8) on Zyxel firewalls that is listed in the CISA Known Exploited Vulnerabilities catalog, enabling attackers to execute OS commands on affected devices.",
       "claim_evidence": [
         {
-          "claim": "Zyxel identifies USG FLEX 100(W), 200, 500, 700, USG FLEX 50(W), USG20(W)-VPN, ATP series, and VPN series firewalls as affected product groups.",
+          "claim": "Zyxel USG FLEX 100(W), 200, 500, 700; USG FLEX 50(W)/USG20(W)-VPN; ATP series; VPN series",
           "kind": "affected_product",
           "source_url": "https://www.zyxel.com/global/en/support/security-advisories/zyxel-security-advisory-for-os-command-injection-vulnerability-of-firewalls"
         },
         {
-          "claim": "Affected firmware ranges are ZLD 5.00 through 5.21 Patch 1 for USG FLEX 100(W)/200/500/700; ZLD 5.10 through 5.21 Patch 1 for USG FLEX 50(W), USG20(W)-VPN, and ATP series; and ZLD 4.60 through 5.21 Patch 1 for VPN series.",
+          "claim": "USG FLEX 100(W), 200, 500, 700: ZLD V5.00 through ZLD V5.21 Patch 1; USG FLEX 50(W)/USG20(W)-VPN and ATP series: ZLD V5.10 through ZLD V5.21 Patch 1; VPN series: ZLD V4.60 through ZLD V5.21 Patch 1",
           "kind": "affected_version",
           "source_url": "https://www.zyxel.com/global/en/support/security-advisories/zyxel-security-advisory-for-os-command-injection-vulnerability-of-firewalls"
         },
         {
-          "claim": "The vulnerability is in the firewall CGI program and could allow an attacker to modify specific files and execute operating-system commands; NVD records network access, no privileges required, and no user interaction required in the CVSS vector.",
+          "claim": "A command injection vulnerability in the CGI program of some firewall versions could allow an attacker to modify specific files and then execute some OS commands on a vulnerable device",
           "kind": "exposure",
           "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-30525"
         },
         {
-          "claim": "Zyxel lists ZLD V5.30 as the patch availability for each affected product group.",
+          "claim": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+          "kind": "exposure",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-30525"
+        },
+        {
+          "claim": "ZLD V5.30",
           "kind": "fixed_version",
           "source_url": "https://www.zyxel.com/global/en/support/security-advisories/zyxel-security-advisory-for-os-command-injection-vulnerability-of-firewalls"
         },
         {
-          "claim": "Zyxel released patches and urges users to install them; the applicable patch listed for the affected firewall groups is ZLD V5.30.",
+          "claim": "Zyxel has released patches for an OS command injection vulnerability and urges users to install them; patch availability is ZLD V5.30",
           "kind": "remediation",
           "source_url": "https://www.zyxel.com/global/en/support/security-advisories/zyxel-security-advisory-for-os-command-injection-vulnerability-of-firewalls"
         },
         {
-          "claim": "A safe remediation check is to compare the authorized device firmware inventory or administrative-interface version against Zyxel's listed patched version, ZLD V5.30; the sources do not specify an exploit-based verification procedure.",
+          "claim": "Identified the vulnerable products that are within their vulnerability support period and released patches as shown in the table of affected models, firmware versions, and patch availability",
           "kind": "verification",
           "source_url": "https://www.zyxel.com/global/en/support/security-advisories/zyxel-security-advisory-for-os-command-injection-vulnerability-of-firewalls"
         }
       ],
       "exposure_conditions": [
-        "The device uses an affected Zyxel firewall product and firmware range: USG FLEX 100(W)/200/500/700 ZLD 5.00 through 5.21 Patch 1; USG FLEX 50(W), USG20(W)-VPN, and ATP series ZLD 5.10 through 5.21 Patch 1; or VPN series ZLD 4.60 through 5.21 Patch 1.",
-        "The vulnerable CGI functionality is reachable by an attacker. NVD characterizes the vulnerability as network-accessible and requiring no privileges or user interaction. [Source: https://nvd.nist.gov/vuln/detail/CVE-2022-30525]"
+        "Device is running one of the vendor-listed affected firmware versions on USG FLEX, ATP, or VPN series models",
+        "The CGI program is reachable over the network (CVSS 3.1 attack vector Network with privileges required None)"
       ],
       "gaps": [],
-      "generated_at": "2026-07-27T12:48:14Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-10-03T14:42:25Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [
-        "Upgrade affected devices to Zyxel ZLD V5.30, which Zyxel identifies as the patch availability for all affected product groups.",
-        "Prioritize remediation for internet-reachable or otherwise attacker-accessible firewalls because CVE-2022-30525 is included in CISA's Known Exploited Vulnerabilities catalog.",
-        "If an affected device cannot be upgraded to ZLD V5.30, obtain current vendor guidance from Zyxel support; do not treat network isolation or access restrictions as a substitute for the vendor patch."
+        "Upgrade affected models to firmware ZLD V5.30 as listed in the vendor security advisory"
       ],
       "retrieved_source_urls": [
-        "https://www.zyxel.com/global/en/support/security-advisories/zyxel-security-advisory-for-os-command-injection-vulnerability-of-firewalls",
-        "https://www.zyxel.com/global/en/support/security-advisories/zyxel-security-advisory-for-os-command-injection-vulnerabilities-of-gs1900-xgs1210-and-xgs1250-series-switches",
-        "https://www.zyxel.com/global/en/support/security-advisories",
-        "https://www.zyxel.com/global/en/support/security-advisories/zyxel-security-advisory-for-os-command-injection-vulnerability-in-aps-and-security-router-devices-09-03-2024",
-        "https://www.zyxel.com/global/en/support/security-advisories/zyxel-security-advisory-for-os-command-injection-and-buffer-overflow-vulnerabilities-of-cpe-and-onts",
         "https://nvd.nist.gov/vuln/detail/CVE-2022-30525",
-        "https://www.zyxel.com/global/en/support/security-advisories/zyxel-security-advisory-for-os-command-injection-vulnerability-of-nwa1100-nh-access-point",
-        "https://www.zyxel.com/global/en/support/security-advisories/zyxel-security-advisory-for-command-injection-and-cross-site-request-forgery-vulnerabilities-of-select-armor-home-routers",
-        "https://www.zyxel.com/global/en/support/security-advisories/zyxel-security-advisory-for-remote-command-injection-vulnerability-of-firewalls",
         "https://nvd.nist.gov/vuln/detail/cve-2022-30525",
-        "https://www.zyxel.com/global/en/support/security-advisories/zyxel-security-advisory-for-command-injection-vulnerability-of-firewalls",
-        "https://www.zyxel.com/global/en/support/security-advisories/zyxel-security-advisory-for-command-injection-and-buffer-overflow-vulnerabilities-of-cpe-fiber-onts-and-wifi-extenders",
-        "https://spdl.zyxel.com/EX7501-B0/firmware%28public_version%29/EX7501-B0_5.18%28ACHN.2%29C0.pdf",
-        "https://static.us.zyxel.com/pdf/2020/Zyxel_security-advisory_%28Zyxel-SA-1235%29-v1_20200509.pdf",
-        "https://spdl.zyxel.com/AX7501-B1/firmware%28public_version%29/AX7501-B1_5.17%28ABPC.6%29C0.pdf",
-        "https://spdl.zyxel.com/EX3600-T0/firmware%28public_version%29/EX3600-T0_5.70%28ACIF.1%29C0.pdf",
-        "https://spdl.zyxel.com/EX5601-T0/firmware%28public_version%29/EX5601-T0_5.70%28ACDZ.4%29C0.pdf",
-        "https://spdl.zyxel.com/WX5600-T0/firmware%28public_version%29/WX5600-T0_5.70%28ACEB.4%29C0.pdf"
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-30524",
+        "https://nvd.nist.gov/vuln/detail/cve-2022-20225",
+        "https://nvd.nist.gov/nvd.cfm?cvename=CVE-2022-32525",
+        "https://nvd.nist.gov/vuln/detail/cve-2022-31025",
+        "https://nvd.nist.gov/vuln/detail/cve-2022-50725",
+        "https://nvd.nist.gov/vuln/detail/cve-2022-36025",
+        "https://nvd.nist.gov/vuln/detail/cve-2022-26925",
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-50525",
+        "https://www.zyxel.com/global/en/support/security-advisories/zyxel-security-advisory-for-os-command-injection-vulnerability-of-firewalls",
+        "https://community.zyxel.com/en/discussion/13414/zyxel-security-advisory-for-os-command-injection-vulnerability-of-firewalls",
+        "https://www.zyxel.com/tw/zh/support/security-advisories/zyxel-security-advisory-for-os-command-injection-vulnerability-of-firewalls",
+        "https://community.zyxel.com/en/discussion/15250/zerobot-usg-flex-100-w-cve-2022-30525-something-for-update-sooner-than-later",
+        "https://community.zyxel.com/en/discussion/13559/new-firmware-usg-flex",
+        "https://community.zyxel.com/tw/discussion/13421/cve-2022-30525-%E9%87%9D%E5%B0%8D%E9%98%B2%E7%81%AB%E7%89%86%E7%B3%BB%E7%B5%B1%E5%91%BD%E4%BB%A4%E6%B3%A8%E5%85%A5%E6%BC%8F%E6%B4%9E-command-injection",
+        "https://community.zyxel.com/en/discussion/13439/zyxel-has-released-a-new-firmware-zld-v5-30-to-patch-the-latest-vulnerability-cve-2022-30525zyxel-ha",
+        "https://community.zyxel.com/tw/profile/discussions/Emax_Tony",
+        "https://www.zyxel.com/tw/zh/support/security-advisories/zyxel-security-advisory-for-local-privilege-escalation-and",
+        "https://www.zyxel.com/service-provider/apac/en/security-advisories/zyxel-command-injection-and-buffer-overflow-vulnerabilities-cpe-fiber-onts-and-wifi-extenders",
+        "https://www.cve.org/CVERecord?id=CVE-2022-30525",
+        "https://www.rapid7.com/blog/post/2022/05/12/cve-2022-30525-fixed-zyxel-firewall-unauthenticated-remote-command-injection/",
+        "https://us-cert.cisa.gov/ncas/bulletins/sb22-171",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2022-26925"
       ],
       "schema_version": 2,
       "source_fingerprint": "c6f3045ace9f7499284ef312b64b3d9231770dd7bbd6029497f1381a7d525182",
       "source_urls": [
-        "https://www.zyxel.com/global/en/support/security-advisories/zyxel-security-advisory-for-os-command-injection-vulnerability-of-firewalls",
-        "https://nvd.nist.gov/vuln/detail/CVE-2022-30525"
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-30525",
+        "https://www.zyxel.com/global/en/support/security-advisories/zyxel-security-advisory-for-os-command-injection-vulnerability-of-firewalls"
       ],
       "status": "complete",
       "uncertainty": [
-        "The supplied and retrieved authoritative sources identify ZLD V5.30 as the patch availability, but do not provide a detailed vendor-specific procedure for safely verifying the installed version.",
-        "The sources do not establish whether every later firmware branch remains supported for every model; use the exact firmware package and lifecycle guidance applicable to the device model.",
-        "The advisory describes attacker capability but does not document the full deployment-specific exposure path, such as WAN exposure, management-plane access controls, or compensating network restrictions."
+        "Vendor advisory and NVD description do not detail whether the CGI endpoint is exposed on WAN interfaces by default",
+        "Full NVD CPE configuration details were not retrievable from the NVD page"
       ],
       "verification_steps": [
-        "From the device's authorized administrative interface or asset-management records, confirm that the running firmware is ZLD V5.30 or a later vendor-supported release.",
-        "Confirm that the device model and firmware no longer fall within the affected ranges listed in Zyxel's advisory.",
-        "Record the installed firmware version and upgrade result in change-management or vulnerability-management records. Do not conduct exploit testing or command-injection probes."
+        "Compare the device firmware version shown in the management interface against the affected versions and patch availability table in the vendor advisory to confirm ZLD V5.30 is installed"
+      ]
+    },
+    "CVE-2022-3075": {
+      "business_risk": "Critical CVSS 3.1 score of 9.6 sandbox-escape issue in Google Chrome Mojo that is listed in CISA KEV as known exploited. A remote attacker who already compromised the renderer can potentially escape the sandbox via crafted HTML, with high impact to confidentiality, integrity, and availability across Chromium-based browsers.",
+      "claim_evidence": [
+        {
+          "claim": "Google Chrome prior to 105.0.5195.102",
+          "kind": "affected_version",
+          "source_url": "https://www.cve.org/CVERecord?id=CVE-2022-3075"
+        },
+        {
+          "claim": "Insufficient data validation in Mojo allowed a remote attacker who had compromised the renderer process to potentially perform a sandbox escape via a crafted HTML page",
+          "kind": "exposure",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-3075"
+        },
+        {
+          "claim": "Google Chrome users on Windows, Mac and Linux are advised to install the latest security updates immediately and enable the automatic update function",
+          "kind": "verification",
+          "source_url": "https://www.csa.gov.sg/alerts-and-advisories/alerts/al-2022-045/"
+        }
+      ],
+      "exposure_conditions": [
+        "Google Chrome versions prior to 105.0.5195.102 on Windows, Mac, and Linux",
+        "Requires prior compromise of the renderer process",
+        "Exploitation via a crafted HTML page (user interaction required)",
+        "Chromium-based browsers that ingest the affected Mojo component, including Microsoft Edge"
+      ],
+      "gaps": [],
+      "generated_at": "2026-10-03T14:39:26Z",
+      "model": "grok-4.6",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [
+        "Update Google Chrome on Windows, Mac, and Linux to the stable-channel release 105.0.5195.102 or later.",
+        "Apply vendor updates for other Chromium-based browsers per their instructions.",
+        "Enable the browser automatic-update function so subsequent security releases are applied promptly."
+      ],
+      "retrieved_source_urls": [
+        "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-3075",
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-3075",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-3075",
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-30708",
+        "https://nvd.nist.gov/vuln/detail/cve-2022-3072",
+        "https://nvd.nist.gov/vuln/detail/cve-2017-3075",
+        "https://nvd.nist.gov/vuln/detail/cve-2022-20775",
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-30075",
+        "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-30275",
+        "https://nvd.nist.gov/vuln/detail/CVE-2009-3075",
+        "https://chromereleases.googleblog.com/2022/09/long-term-support-candidate-channel-for.html",
+        "https://chromereleases.googleblog.com/search/label/LTS?updated-max=2023-01-05T08:15:00-08:00&max-results=20&start=97&by-date=false",
+        "https://chromereleases.googleblog.com/search/label/Beta%20updates?max-results=100",
+        "https://chromereleases.googleblog.com/2022/08/",
+        "https://chromereleases.googleblog.com/2022/04/",
+        "https://www.cve.org/CVERecord?id=CVE-2022-3075",
+        "https://portal.msrc.microsoft.com/en-US/security-guidance/advisory/CVE-2022-3075",
+        "https://www.csa.gov.sg/alerts-and-advisories/alerts/al-2022-045/",
+        "https://www.cvedetails.com/cve/CVE-2022-3075/",
+        "https://cvefeed.io/vuln/detail/CVE-2022-3075",
+        "https://cve.report/CVE-2022-3075",
+        "https://cvetodo.com/cve/CVE-2022-3075",
+        "https://socradar.io/free-tools/cve-radar/CVE-2022-3075",
+        "https://www.cisa.gov/news-events/bulletins/sb22-276"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "7fb9043840f1f32f07094f107fca6156db58ff2ac501cfba68d2c4e03ab1c3fe",
+      "source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-3075",
+        "https://www.cve.org/CVERecord?id=CVE-2022-3075",
+        "https://www.csa.gov.sg/alerts-and-advisories/alerts/al-2022-045/",
+        "https://portal.msrc.microsoft.com/en-US/security-guidance/advisory/CVE-2022-3075"
+      ],
+      "status": "complete",
+      "uncertainty": [
+        "The NVD detail page did not return full rendered content in this session; description, CPE, and scoring were corroborated from the CNA record, Chrome release notes, and CISA KEV.",
+        "Google Chrome vendor notes announce the fixed build but do not spell out exact UI steps for displaying the version string."
+      ],
+      "verification_steps": [
+        "Confirm the installed Google Chrome version is 105.0.5195.102 or later using the browser version-information display.",
+        "For Microsoft Edge, open the three-dot menu, choose Help and feedback, then About Microsoft Edge, and confirm the Chromium base version is 105.0.5195.102 or later."
       ]
     },
     "CVE-2022-37055": {
@@ -14752,43 +14900,97 @@
       "claim_evidence": [],
       "exposure_conditions": [],
       "gaps": [],
-      "generated_at": "2026-07-27T12:48:02Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-10-03T14:41:03Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [],
       "retrieved_source_urls": [
-        "https://supportannouncement.us.dlink.com/security/publication.aspx?name=SAP10308",
-        "https://nvd.nist.gov/vuln/detail/CVE-2022-37055",
-        "https://supportannouncement.us.dlink.com/",
-        "https://supportannouncement.us.dlink.com/announcement/publication.aspx?name=SAP10302",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=0",
-        "https://supportannouncement.us.dlink.com/security/publication.aspx?name=SAP10482",
-        "https://supportannouncement.us.dlink.com/security/publication.aspx?name=SAP10006",
-        "https://supportannouncement.us.dlink.com/security/publication.aspx?name=SAP10025",
-        "https://supportannouncement.us.dlink.com/security/publication.aspx?name=SAP10488",
-        "https://supportannouncement.us.dlink.com/security/publication.aspx?name=SAP10010",
-        "https://supportannouncement.us.dlink.com/announcement/publication.aspx?name=SAP10150",
-        "https://supportannouncement.us.dlink.com/announcement/publication.aspx?name=SAP10093",
-        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
-        "https://www.cisa.gov/sites/default/files/2024-05/Secure_by_Design_Alert_Eliminating_Directory_Traversal_Vulnerabilities_in_Software_508c%20%283%29.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/AA22-117A_Joint_CSA_2021_Top_Routinely_Exploited_Vulnerabilities_Final.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/aa22-228a-threat-actors-exploiting-multiple-cves-against-zimbra.pdf",
-        "https://supportannouncement.us.dlink.com/security/publication.aspx?name=SAP10308&utm_source=openai",
-        "https://nvd.nist.gov/vuln/detail/CVE-2022-37055?utm_source=openai"
+        "https://nvd.nist.gov/vuln/detail/cve-2022-37055",
+        "https://nvd.nist.gov/vuln/detail/cve-2022-3705",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-37051@https:/redos.red-soft.ru/support/secure/@https:/gitlab.freedesktop.org/poppler/poppler/-/commit/4631115647c1e4f0482ffe0491c2f38d2231337b@https:/gitlab.freedesktop.org/poppler/poppler/-/issues/1276@https:/%D0%BF%D0%BE%D0%B4%D0%B4%D0%B5%D1%80%D0%B6%D0%BA%D0%B0.%D0%BD%D0%BF%D0%BF%D0%BA%D1%82.%D1%80%D1%84/bin/view/%D0%9E%D0%A1%D0%BD%D0%BE%D0%B2%D0%B0/%D0%9E%D0%B1%D0%BD%D0%BE%D0%B2%D0%BB%D0%B5%D0%BD%D0%B8%D1%8F/2.9/@https:/wiki.astralinux.ru/astra-linux-se17-bulletin-2024-0212SE17@https:/wiki.astralinux.ru/astra-linux-se47-bulletin-2024-1031SE47",
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-37050?ref=cve.news",
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-37052",
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-37035",
+        "https://nvd.nist.gov/vuln/detail/cve-2022-37032",
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-37155",
+        "https://nvd.nist.gov/vuln/detail/cve-2022-0355",
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-36955",
+        "https://www.cisa.gov/news-events/bulletins/sb22-234",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog",
+        "https://www.cisa.gov/news-events/bulletins/sb22-251",
+        "https://www.cisa.gov/news-events/bulletins/sb22-157",
+        "https://www.cisa.gov/news-events/bulletins/sb22-244",
+        "https://www.cisa.gov/news-events/bulletins/sb23-093",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-23-348-10",
+        "https://www.cisa.gov/news-events/bulletins/sb22-262",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-22-342-03",
+        "https://www.cisa.gov/news-events/bulletins/sb22-269",
+        "https://www.manualslib.com/products/D-Link-Go-Rt-Ac750-3744432.html",
+        "https://supportannouncement.us.dlink.com/announcement/publication.aspx?name=SAP10308",
+        "https://www.dlink.com/-/media/Consumer_Products/GO/GO%20RT%20AC750/Manual/GO_RT_AC750_B1_Manual_v2_00_EU.pdf",
+        "https://sechub.in/view/2707687"
       ],
       "schema_version": 2,
       "source_fingerprint": "57a68cf139f5a9db2005ff91aa392e31288cbc3f25d8ba2e5c750d3a0e99ec0f",
       "source_urls": [
-        "https://supportannouncement.us.dlink.com/security/publication.aspx?name=SAP10308",
-        "https://nvd.nist.gov/vuln/detail/CVE-2022-37055"
+        "https://www.cisa.gov/news-events/bulletins/sb22-251"
       ],
       "status": "insufficient_evidence",
       "uncertainty": [
-        "No authoritative source reviewed identifies a concrete fixed firmware version.",
-        "The available vendor guidance recommends retirement/replacement rather than patching.",
-        "The precise network exposure conditions beyond the remotely reachable attack vector and affected components are not fully specified.",
-        "The supplied record contains a future-dated modification relative to the advisory publication, but the remediation conclusion is based on the returned vendor, NVD, and CISA sources."
+        "NVD detail page content (description, CVSS vector, full CPE list) could not be retrieved",
+        "No concrete fixed firmware version is published by the vendor",
+        "Technical exposure details beyond buffer overflow via cgibin/hnap_main and KEV listing are limited",
+        "Advisory is scoped to Non-US product"
+      ],
+      "verification_steps": []
+    },
+    "CVE-2022-4135": {
+      "business_risk": "No additional source-verified CVE-specific business impact was established.",
+      "claim_evidence": [],
+      "exposure_conditions": [],
+      "gaps": [],
+      "generated_at": "2026-10-03T14:36:16Z",
+      "model": "grok-4.6",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [],
+      "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/cve-2022-4135",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-4135",
+        "https://ubuntu.com/security/CVE-2022-4135",
+        "https://www.cvedetails.com/cve/CVE-2022-4135/",
+        "https://www.suse.com/security/cve/CVE-2022-4135.html",
+        "https://cvefeed.io/vuln/detail/CVE-2022-4135",
+        "https://cve.report/CVE-2022-4135.pdf",
+        "https://security-tracker.debian.org/tracker/CVE-2022-4135",
+        "https://cvetodo.com/cve/CVE-2022-4135",
+        "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2022-4135",
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-41352?utm_cta=website-webinars-office-hours-feature%253Fwtime",
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-41352/change-record?changeRecordedOn=10/09/2023T20:15:10.357-0400",
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-41326",
+        "https://chromereleases.googleblog.com/2023/02/long-term-support-channel-update-for_23.html",
+        "https://chromereleases.googleblog.com/search/label/Beta%20updates?max-results=100",
+        "https://chromereleases.googleblog.com/2022/04/",
+        "https://chromereleases.googleblog.com/search/label/Stable%20updates%2BDesktop%20Update?updated-max=2021-11-15T00:59:00-08:00&max-results=20&start=196&by-date=false",
+        "https://chromereleases.googleblog.com/2022/08/",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-23-073-02",
+        "https://www.cisa.gov/news-events/bulletins/sb22-276",
+        "https://www.cisa.gov/news-events/bulletins/sb22-290",
+        "https://www.cisa.gov/news-events/bulletins/sb23-045"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "e0127435cc3f35966c168ed369afb0b0b24d1ccc6e4c9b1485d3ed4f4b609445",
+      "source_urls": [
+        "https://nvd.nist.gov/vuln/detail/cve-2022-4135"
+      ],
+      "status": "insufficient_evidence",
+      "uncertainty": [
+        "No consulted source provides an explicit inert verification procedure for confirming the installed version",
+        "Google release notes address the desktop stable channel only; other Chrome platforms are not detailed in these sources",
+        "Microsoft MSRC page content was not retrievable",
+        "Full NVD page body was not returned by browse; version and CPE details are taken from search result excerpts",
+        "The model did not return a fully sourced exposure, remediation, and verification set; consult the linked NVD and vendor sources before acting."
       ],
       "verification_steps": []
     },
@@ -20449,95 +20651,97 @@
       ]
     },
     "CVE-2024-53704": {
-      "business_risk": "Critical remote authentication bypass in SonicOS SSLVPN can permit an unauthenticated network attacker to bypass VPN authentication, with potentially severe confidentiality, integrity, and availability consequences. CISA lists the CVE in its Known Exploited Vulnerabilities Catalog and identifies active exploitation. Prioritize remediation immediately. ([sonicwall.com](https://www.sonicwall.com/support/notices/kA1VN0000000RBZ0A2))",
+      "business_risk": "Critical unauthenticated remote authentication bypass in the SonicOS SSLVPN mechanism (CVSS 9.8 per NVD) enabling unauthorized access; listed in CISA KEV since 2025-02-18 with known ransomware campaign use.",
       "claim_evidence": [
         {
-          "claim": "The vulnerability affects SonicOS on SonicWall Gen 7 devices, Gen7 NSv, and TZ80 series products.",
+          "claim": "SonicWall SonicOS on Gen7 Hardware, Gen7 NSv, and TZ80",
           "kind": "affected_product",
-          "source_url": "https://www.sonicwall.com/support/notices/kA1VN0000000RBZ0A2"
+          "source_url": "https://www.cve.org/CVERecord?id=CVE-2024-53704"
         },
         {
-          "claim": "Affected versions include Gen 7 SonicOS 7.1.2-7019 and earlier, and TZ80 SonicOS 8.0.0-8035 and earlier; NVD also identifies the 7.1.1-7040 through 7.1.1-7058 range.",
+          "claim": "Affected versions include 7.1.1-7058 and older versions, 7.1.2-7019, and 8.0.0-8035",
           "kind": "affected_version",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-53704"
+          "source_url": "https://nvd.nist.gov/vuln/detail/cve-2024-53704"
         },
         {
-          "claim": "The flaw is in the SSLVPN authentication mechanism and allows a remote attacker to bypass authentication; SonicWall advises restricting SSLVPN to trusted sources or disabling Internet access to SSLVPN.",
+          "claim": "An Improper Authentication vulnerability in the SSLVPN authentication mechanism allows a remote attacker to bypass authentication when SSLVPN is enabled",
           "kind": "exposure",
-          "source_url": "https://www.sonicwall.com/support/notices/kA1VN0000000RBZ0A2"
+          "source_url": "https://www.sonicwall.com/support/notices/product-notice-sslvpn-and-ssh-vulnerability-in-sonicos/kA1VN0000000RBZ0A2"
         },
         {
-          "claim": "SonicWall lists SonicOS 7.1.3-7015 and higher, or 7.0.1-5165 where applicable, as fixed Gen 7 versions, and SonicOS 8.0.0-8037 and higher as fixed for TZ80.",
+          "claim": "Fixed versions include SonicOS 7.0.1-5165, SonicOS 7.1.3-7015 and higher for Gen 7, and SonicOS 8.0.0-8037 and higher for TZ80",
           "kind": "fixed_version",
-          "source_url": "https://www.sonicwall.com/support/notices/kA1VN0000000RBZ0A2"
+          "source_url": "https://www.sonicwall.com/support/notices/product-notice-sslvpn-and-ssh-vulnerability-in-sonicos/kA1VN0000000RBZ0A2"
         },
         {
-          "claim": "SonicWall directs users to apply the patch as soon as possible and obtain the latest patch builds through MySonicWall.",
+          "claim": "Upgrade impacted models to the listed fixed SonicOS versions; as a workaround restrict SSLVPN to trusted sources or disable SSLVPN access from the Internet",
           "kind": "remediation",
-          "source_url": "https://www.sonicwall.com/support/notices/kA1VN0000000RBZ0A2"
+          "source_url": "https://www.sonicwall.com/support/notices/product-notice-sslvpn-and-ssh-vulnerability-in-sonicos/kA1VN0000000RBZ0A2"
         },
         {
-          "claim": "Verification should confirm that the running device version is no longer within the affected ranges and that SSLVPN access is restricted or disabled when patching is pending; the source does not define a detailed verification workflow.",
+          "claim": "Review the appliance firmware version against the vendor impacted and fixed version tables to determine whether the device remains on an affected build",
           "kind": "verification",
-          "source_url": "https://www.sonicwall.com/support/notices/kA1VN0000000RBZ0A2"
+          "source_url": "https://www.sonicwall.com/support/notices/product-notice-sslvpn-and-ssh-vulnerability-in-sonicos/kA1VN0000000RBZ0A2"
         }
       ],
       "exposure_conditions": [
-        "The device runs an affected SonicOS version: Gen 7 versions 7.1.1-7058 or earlier, 7.1.2-7019, or TZ80 version 8.0.0-8035 or earlier.",
-        "SSLVPN is enabled and reachable by the attacker, particularly from untrusted or Internet sources. SonicWall recommends restricting access to trusted sources or disabling SSLVPN access from the Internet until patched."
+        "SSLVPN is enabled on an affected SonicWall firewall running SonicOS",
+        "The SSLVPN service is reachable by a remote unauthenticated attacker",
+        "The appliance is a Gen 7 hardware firewall, Gen 7 NSv, or TZ80 on an affected SonicOS build"
       ],
       "gaps": [],
-      "generated_at": "2026-08-04T12:15:42Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-10-03T14:33:24Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [
-        "Upgrade affected Gen 7 firewall and Gen7 NSv models to SonicOS 7.1.3-7015 or higher, or to SonicOS 7.0.1-5165 where that supported branch applies.",
-        "Upgrade affected TZ80 devices to SonicOS 8.0.0-8037 or higher.",
-        "If immediate patching is not possible, restrict SSLVPN access to trusted source addresses or disable SSLVPN access from the Internet. Treat this as temporary risk reduction, not a replacement for patching.",
-        "Because the vulnerability is listed in CISA's Known Exploited Vulnerabilities Catalog, follow applicable organizational or regulatory KEV remediation deadlines and incident-response procedures."
+        "Upgrade the firewall to a vendor-fixed SonicOS release for the platform (Gen 7: 7.0.1-5165 or 7.1.3-7015 and higher; TZ80: 8.0.0-8037 and higher)",
+        "If upgrade cannot be performed immediately, restrict SSLVPN access to trusted sources only or disable SSLVPN from the Internet",
+        "Apply mitigations per the vendor advisory or discontinue use of the product if mitigations are unavailable"
       ],
       "retrieved_source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2024-53704",
         "https://nvd.nist.gov/vuln/detail/cve-2024-53704",
-        "https://nvd.nist.gov/vuln/detail/CVE-2024-5374",
-        "https://psirt.global.sonicwall.com/vuln-detail/SNWLID-2024-0001",
-        "https://psirt.global.sonicwall.com/vuln-detail/SNWLID-2024-0018",
+        "https://www.cve.org/CVERecord?id=CVE-2024-53704",
+        "https://avd.aquasec.com/nvd/2024/cve-2024-53704/",
+        "https://cve.report/CVE-2024-53704",
+        "https://www.cvedetails.com/cve/CVE-2024-53704/",
+        "https://sploitus.com/cve/CVE-2024-53704",
+        "https://www.tenable.com/cve/CVE-2024-53704",
+        "https://arcticwolf.com/resources/blog/cve-2024-53704/",
+        "https://socradar.io/free-tools/cve-radar/CVE-2024-53704",
+        "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2024/CVE-2024-53704.yaml",
+        "https://cvepremium.circl.lu/vuln/CVE-2024-53704",
+        "https://vulnerability.circl.lu/vuln/CVE-2024-53704",
+        "https://www.cyber-defence.io/tools/cve/CVE-2024-53704",
+        "https://sec-certs.org/vuln/cve/CVE-2024-53704",
+        "https://cvetodo.com/cve/CVE-2024-53704",
+        "https://nvd.nist.gov/nvd.cfm?cvename=CVE-2024-53504",
+        "https://nvd.nist.gov/nvd.cfm?cvename=CVE-2024-5304",
         "https://nvd.nist.gov/vuln/detail/CVE-2024-53104",
-        "https://nvd.nist.gov/vuln/detail/CVE-2023-37304",
-        "https://nvd.nist.gov/vuln/detail/CVE-2024-20754",
-        "https://nvd.nist.gov/vuln/detail/CVE-2022-46487",
-        "https://nvd.nist.gov/vuln/detail/cve-2024-53204",
-        "https://psirt.global.sonicwall.com/vuln-detail/SNWLID-2025-0007",
-        "https://nvd.nist.gov/vuln/detail/CVE-2023-49721",
-        "https://www.cisa.gov/sites/default/files/2024-10/24_0424_NECP_Webinar_MFA_Slide_Presentation_24_1015_508C.pdf",
-        "https://www.cisa.gov/sites/default/files/2024-05/Secure_by_Design_Alert_Eliminating_Directory_Traversal_Vulnerabilities_in_Software_508c%20%283%29.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
-        "https://www.cisa.gov/sites/default/files/2024-09/aa24-249a-russian-military-cyber-actors-target-us-and-global-critical-infrastructure.pdf",
-        "https://www.cisa.gov/sites/default/files/2025-09/AA25-266A_advisory_cisa_shares_lessons_learned_from_ir_engagement.pdf",
-        "https://www.sonicwall.com/support/notices/kA1VN0000000RBZ0A2",
-        "https://www.sonicwall.com/support/knowledge-base/product-notice-sma-1000-series-affected-by-remote-code-execution-in-ssh-vulnerability/240724123629003",
-        "https://software.sonicwall.com/Firmware/Documentation/232-005888-00_RevE_SOS_7.1_ReleaseNotes.pdf",
-        "https://digital.nhs.uk/cyber-alerts/2025/cc-4619",
-        "https://www.sonicwall.com/support/notices/ssl-vpn-mfa-bypass-cve-2024-12802/kA1VN0000000RBd0AM",
-        "https://www.sonicwall.com/support/technical-documentation/docs/sonicos-7-1-release_notes/Content/sonicos-7-1-1-7047.htm"
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2024-26804",
+        "https://psirt.global.sonicwall.com/vuln-detail/SNWLID-2025-0003",
+        "https://www.sonicwall.com/support/notices/product-notice-sslvpn-and-ssh-vulnerability-in-sonicos/kA1VN0000000RBZ0A2",
+        "https://psirt.global.sonicwall.com/vuln-detail/SNWLID-2024-0018",
+        "https://www.sonicwall.com/blog/the-soc-van-pelt-report-you-know-the-threat-you-know-how-it-operates-it-still-took-you-down-",
+        "https://nydus.org/news/132793-sicherheitswarnung-zero-day-lucke-in-sonicwall-ssl-vpn.html"
       ],
       "schema_version": 2,
       "source_fingerprint": "3d096e549eb9702283feec2f3b1bc8f4407822850af188e3cccc3276accb1400",
       "source_urls": [
-        "https://www.sonicwall.com/support/notices/kA1VN0000000RBZ0A2",
-        "https://nvd.nist.gov/vuln/detail/CVE-2024-53704"
+        "https://nvd.nist.gov/vuln/detail/cve-2024-53704",
+        "https://www.cve.org/CVERecord?id=CVE-2024-53704",
+        "https://psirt.global.sonicwall.com/vuln-detail/SNWLID-2025-0003",
+        "https://www.sonicwall.com/support/notices/product-notice-sslvpn-and-ssh-vulnerability-in-sonicos/kA1VN0000000RBZ0A2"
       ],
       "status": "complete",
       "uncertainty": [
-        "The authoritative SonicWall notice provides fixed-version guidance for the affected product families but does not provide a detailed, CVE-specific administrative verification procedure.",
-        "The exact applicable fixed branch depends on the appliance model and supported SonicOS release path; select the branch published by SonicWall for that model rather than assuming every device can use every listed version.",
-        "The PSIRT advisory page was referenced by NVD but did not expose readable advisory content during retrieval; remediation details therefore rely primarily on SonicWall's public product notice and NVD/CISA records."
+        "NVD CPE data lists SonicOS 7.1.1 from 7.1.1-7040 through 7.1.1-7058 plus the exact builds 7.1.2-7019 and 8.0.0-8035, while CNA and vendor text use broader phrasing such as 7.1.1-7058 and older versions or 7.1.2-7019 and all earlier versions",
+        "The multi-CVE product notice lists Gen 6 platforms among impacted devices, but CNA product status and PSIRT comments for this CVE emphasize 7.1.x / 8.0.0 on Gen 7 hardware, Gen 7 NSv, and TZ80",
+        "The full PSIRT advisory page timed out on retrieval"
       ],
       "verification_steps": [
-        "Using the device's normal administrative software inventory or management interface, confirm that the installed SonicOS version is at or above the applicable SonicWall fixed version: 7.1.3-7015 or higher, 7.0.1-5165 where applicable, or 8.0.0-8037 or higher for TZ80.",
-        "Confirm that SSLVPN exposure is limited to trusted sources or disabled if the appliance remains on an affected version.",
-        "Record the appliance model, SonicOS version, patch date, and SSLVPN access policy for remediation evidence."
+        "In the SonicWall management interface, identify the appliance model/generation and the currently running SonicOS firmware version",
+        "Compare the running version to the impacted-version and fixed-version tables published by the vendor to confirm the device is no longer on an affected build"
       ]
     },
     "CVE-2024-54085": {
@@ -21621,94 +21825,89 @@
       "verification_steps": []
     },
     "CVE-2024-9680": {
-      "business_risk": "Critical. Mozilla reports code execution in the content process and exploitation in the wild. CISA lists CVE-2024-9680 in its Known Exploited Vulnerabilities Catalog, so vulnerable deployments should receive expedited remediation.",
+      "business_risk": "Critical use-after-free allowing code execution in the Firefox or Thunderbird content process; confirmed exploited in the wild, listed in CISA KEV, and associated with known ransomware campaign use.",
       "claim_evidence": [
         {
-          "claim": "CVE-2024-9680 affects Firefox and Firefox ESR; Mozilla separately identifies Thunderbird as affected.",
+          "claim": "This vulnerability affects Firefox and Firefox ESR.",
           "kind": "affected_product",
           "source_url": "https://www.mozilla.org/en-US/security/advisories/mfsa2024-51/"
         },
         {
-          "claim": "Affected versions are Firefox <131.0.2, Firefox ESR <128.3.1 or <115.16.1, and Thunderbird <131.0.1, <128.3.1, or <115.16.0, depending on the release branch.",
+          "claim": "This vulnerability affects Firefox < 131.0.2, Firefox ESR < 128.3.1, Firefox ESR < 115.16.1, Thunderbird < 131.0.1, Thunderbird < 128.3.1, and Thunderbird < 115.16.0.",
           "kind": "affected_version",
           "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-9680"
         },
         {
-          "claim": "An attacker can achieve code execution in the content process by exploiting a use-after-free in Animation timelines; exploitation in the wild has been reported.",
+          "claim": "An attacker was able to achieve code execution in the content process by exploiting a use-after-free in Animation timelines. We have had reports of this vulnerability being exploited in the wild.",
           "kind": "exposure",
           "source_url": "https://www.mozilla.org/en-US/security/advisories/mfsa2024-51/"
         },
         {
-          "claim": "Mozilla fixed the issue in Firefox 131.0.2, Firefox ESR 128.3.1, and Firefox ESR 115.16.1.",
+          "claim": "Fixed in Firefox 131.0.2, Firefox ESR 115.16.1, and Firefox ESR 128.3.1.",
           "kind": "fixed_version",
           "source_url": "https://www.mozilla.org/en-US/security/advisories/mfsa2024-51/"
         },
         {
-          "claim": "CISA requires applying vendor mitigations or discontinuing use if mitigations are unavailable.",
-          "kind": "remediation",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-9680"
-        },
-        {
-          "claim": "Version verification can be performed by comparing the installed product version with Mozilla's published fixed-version thresholds; exploit testing is unnecessary and unsupported by the advisories.",
+          "claim": "Confirm the running product version matches a Mozilla-published fixed release listed in MFSA 2024-51 or MFSA 2024-52.",
           "kind": "verification",
           "source_url": "https://www.mozilla.org/en-US/security/advisories/mfsa2024-51/"
         }
       ],
       "exposure_conditions": [
-        "Firefox versions earlier than 131.0.2 are affected.",
-        "Firefox ESR versions earlier than 128.3.1 or 115.16.1 are affected, depending on the ESR branch.",
-        "Thunderbird versions earlier than 131.0.1, 128.3.1, or 115.16.0 are affected, depending on the release branch.",
-        "Risk arises when the vulnerable product processes attacker-controlled content involving Animation timelines. Mozilla states that exploitation can achieve code execution in the content process.",
-        "Mozilla states that the issue generally cannot be exploited through email while Thunderbird scripting is disabled for mail reading, but browser-like or other scripting-enabled contexts may remain risky."
+        "Mozilla Firefox or Firefox ESR prior to the vendor fixed versions processing untrusted web content that exercises Animation timelines",
+        "Mozilla Thunderbird prior to the vendor fixed versions, in browser or browser-like contexts (Mozilla states these flaws generally cannot be exploited through email because scripting is disabled when reading mail)"
       ],
       "gaps": [],
-      "generated_at": "2026-08-04T12:16:34Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-10-03T14:34:38Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [
-        "Upgrade Firefox to version 131.0.2 or later.",
-        "Upgrade Firefox ESR to version 128.3.1 or later, or to 115.16.1 or later for the 115 ESR branch.",
-        "Upgrade Thunderbird to version 131.0.1 or later, 128.3.1 or later, or 115.16.0 or later for the applicable release branch.",
-        "Prioritize remediation because exploitation in the wild is reported and CISA has cataloged the CVE as known exploited.",
-        "If the affected product cannot be mitigated or upgraded, discontinue its use in accordance with CISA guidance."
+        "Update Firefox to 131.0.2 or later as published by Mozilla",
+        "Update Firefox ESR to 128.3.1 or 115.16.1 as applicable to the ESR branch",
+        "Update Thunderbird to 131.0.1, 128.3.1, or 115.16 as applicable",
+        "Apply vendor or operating-system distributor packages that incorporate those Mozilla fixes, or discontinue use if mitigations are unavailable per CISA KEV required action"
       ],
       "retrieved_source_urls": [
-        "https://www.mozilla.org/en-US/security/advisories/mfsa2024-51/",
         "https://nvd.nist.gov/vuln/detail/CVE-2024-9680",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=0",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A800&f%5B10%5D=vendor_project%3A851&f%5B11%5D=vendor_project%3A854&f%5B12%5D=vendor_project%3A857&f%5B13%5D=vendor_project%3A886&f%5B14%5D=vendor_project%3A893&f%5B15%5D=vendor_project%3A901&f%5B16%5D=vendor_project%3A902&f%5B17%5D=vendor_project%3A908&f%5B18%5D=vendor_project%3A917&f%5B19%5D=vendor_project%3A925&f%5B1%5D=vendor_project%3A801&f%5B20%5D=vendor_project%3A938&f%5B21%5D=vendor_project%3A1266&f%5B2%5D=vendor_project%3A809&f%5B3%5D=vendor_project%3A820&f%5B4%5D=vendor_project%3A823&f%5B5%5D=vendor_project%3A837&f%5B6%5D=vendor_project%3A842&f%5B7%5D=vendor_project%3A845&f%5B8%5D=vendor_project%3A846&f%5B9%5D=vendor_project%3A849&page=0",
-        "https://www.mozilla.org/en-US/security/advisories/",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A792&f%5B10%5D=vendor_project%3A836&f%5B11%5D=vendor_project%3A837&f%5B12%5D=vendor_project%3A842&f%5B13%5D=vendor_project%3A843&f%5B14%5D=vendor_project%3A845&f%5B15%5D=vendor_project%3A854&f%5B16%5D=vendor_project%3A860&f%5B17%5D=vendor_project%3A865&f%5B18%5D=vendor_project%3A873&f%5B19%5D=vendor_project%3A876&f%5B1%5D=vendor_project%3A800&f%5B20%5D=vendor_project%3A877&f%5B21%5D=vendor_project%3A878&f%5B22%5D=vendor_project%3A880&f%5B23%5D=vendor_project%3A886&f%5B24%5D=vendor_project%3A893&f%5B25%5D=vendor_project%3A899&f%5B26%5D=vendor_project%3A902&f%5B27%5D=vendor_project%3A917&f%5B28%5D=vendor_project%3A931&f%5B29%5D=vendor_project%3A932&f%5B2%5D=vendor_project%3A801&f%5B30%5D=vendor_project%3A933&f%5B31%5D=vendor_project%3A938&f%5B32%5D=vendor_project%3A941&f%5B33%5D=vendor_project%3A942&f%5B34%5D=vendor_project%3A951&f%5B35%5D=vendor_project%3A1005&f%5B36%5D=vendor_project%3A1174&f%5B37%5D=vendor_project%3A1279&f%5B38%5D=vendor_project%3A1285&f%5B3%5D=vendor_project%3A803&f%5B4%5D=vendor_project%3A804&f%5B5%5D=vendor_project%3A813&f%5B6%5D=vendor_project%3A820&f%5B7%5D=vendor_project%3A822&f%5B8%5D=vendor_project%3A823&f%5B9%5D=vendor_project%3A828&page=4",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=23",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=21",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=16",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=19",
-        "https://www.mozilla.org/en-US/security/advisories/mfsa2024-08/",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A793&f%5B1%5D=vendor_project%3A811&f%5B2%5D=vendor_project%3A822&f%5B3%5D=vendor_project%3A823&f%5B4%5D=vendor_project%3A826&f%5B5%5D=vendor_project%3A877&f%5B6%5D=vendor_project%3A895&f%5B7%5D=vendor_project%3A907&f%5B8%5D=vendor_project%3A1001&page=1",
-        "https://www.cisa.gov/sites/default/files/2024-08/SECURING_THE_SOFTWARE_SUPPLY_CHAIN_RECOMMENDED_PRACTICES_FOR_SOFTWARE_BILL_OF_MATERIALS_CONSUMPTION-508.pdf",
-        "https://www.cisa.gov/sites/default/files/2024-09/aa24-249a-russian-military-cyber-actors-target-us-and-global-critical-infrastructure.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/web-metrics/CISA.gov-Apr-2024-Web-Metrics-508.pdf",
-        "https://www.cisa.gov/sites/default/files/2024-07/csa-cisa-red-team%27s-operations-against-a-fceb-organization-highlights-the-necessity-of-defense-in-depth_0.pdf",
-        "https://www.cisa.gov/sites/default/files/2024-05/Secure_by_Design_Alert_Eliminating_Directory_Traversal_Vulnerabilities_in_Software_508c%20%283%29.pdf"
+        "https://access.redhat.com/security/cve/CVE-2024-9680",
+        "https://ubuntu.com/security/CVE-2024-9680",
+        "https://cve.report/CVE-2024-9680",
+        "https://avd.aquasec.com/nvd/2024/cve-2024-9680/",
+        "https://cve.enginsight.com/2024/9680/index.html",
+        "https://linux.oracle.com/cve/CVE-2024-9680.html",
+        "https://www.cvedetails.com/cve/CVE-2024-9680/",
+        "https://www.broadcom.com/support/security-center/protection-bulletin/cve-2024-9680-mozilla-firefox-remote-code-execution-vulnerability",
+        "https://www.wiz.io/vulnerability-database/cve/cve-2024-9680",
+        "https://socradar.io/free-tools/cve-radar/CVE-2024-9680",
+        "https://www.suse.com/security/cve/CVE-2024-9680.html",
+        "https://cve.circl.lu/vuln/CVE-2024-9680",
+        "https://rottenwifi.com/firefox-cve-2024-9680-explained-what-the-critical-zero-day-did-and-how-mozilla-fixed-it/",
+        "https://osv.dev/vulnerability/CVE-2024-9680",
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-9680/change-record?changeRecordedOn=11/19/2024T12:29:12.233-0500",
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-9681/change-record?changeRecordedOn=11/06/2024T03:15:03.740-0500",
+        "https://nvd.nist.gov/vuln/detail/cve-2024-9780",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-9680",
+        "https://www.mozilla.org/en-US/security/advisories/mfsa2024-51/",
+        "https://bugzilla.mozilla.org/1923344",
+        "https://bugzilla.mozilla.org/show_bug.cgi?id=1984552",
+        "https://bugzilla.mozilla.org/show_bug.cgi?id=1984551",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-26-043-06"
       ],
       "schema_version": 2,
       "source_fingerprint": "205a38e47d0b61fd7ffbd83f0901e4b5820ac2a734b41fa58070c9c44ff38160",
       "source_urls": [
-        "https://www.mozilla.org/en-US/security/advisories/mfsa2024-51/",
-        "https://nvd.nist.gov/vuln/detail/CVE-2024-9680"
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-9680",
+        "https://www.mozilla.org/en-US/security/advisories/mfsa2024-51/"
       ],
       "status": "complete",
       "uncertainty": [
-        "The supplied record includes a Debian Linux CPE, but the consulted Mozilla advisories do not establish Debian package names, backported patch status, or distribution-specific fixed package versions.",
-        "The advisories identify the vulnerable code path and fixed upstream versions but do not provide a product-independent method for determining whether a particular installation is exposed.",
-        "No remediation-specific configuration workaround was established by the consulted authoritative sources."
+        "Mozilla Thunderbird advisory lists the 115 branch fix as Thunderbird 115.16 while NVD description uses Thunderbird < 115.16.0",
+        "Linux distribution packages (Debian, Ubuntu, Red Hat, and others) may use different package version strings than upstream Mozilla releases"
       ],
       "verification_steps": [
-        "Record the installed product and exact version from a trusted local product-information interface or software inventory.",
-        "Confirm that Firefox is at least 131.0.2, Firefox ESR is at least 128.3.1 or 115.16.1 for the applicable branch, and Thunderbird is at least 131.0.1, 128.3.1, or 115.16.0 for the applicable branch.",
-        "Recheck inventory after the update to ensure the vulnerable version is no longer present. Do not attempt exploit-based validation."
+        "In Firefox or Firefox ESR, open Help then About Firefox and confirm the displayed version is 131.0.2 or later, or the applicable ESR fixed version 128.3.1 or 115.16.1",
+        "In Thunderbird, open Help then About Thunderbird and confirm the displayed version is 131.0.1, 128.3.1, or 115.16 as applicable"
       ]
     },
     "CVE-2025-0108": {
@@ -26254,74 +26453,80 @@
       "verification_steps": []
     },
     "CVE-2025-53770": {
-      "business_risk": "Critical remote code execution risk in on-premises Microsoft SharePoint Server. The vulnerability is exploitable over the network without authentication, has a CVSS 3.1 score of 9.8, is listed in CISA's Known Exploited Vulnerabilities Catalog, and Microsoft reported exploitation in the wild.",
+      "business_risk": "Critical unauthenticated remote code execution (CVSS 9.8) in on-premises SharePoint Server via deserialization of untrusted data; actively exploited in the wild, including by named threat actors and in known ransomware campaigns; added to CISA KEV with a one-day due date.",
       "claim_evidence": [
         {
-          "claim": "Microsoft's SharePoint update history lists the July 21, 2025 builds 16.0.5513.1001 for SharePoint 2016, 16.0.10417.20037 for SharePoint 2019, and 16.0.18526.20508 for SharePoint Server Subscription Edition.",
-          "kind": "fixed_version",
-          "source_url": "https://learn.microsoft.com/en-us/officeupdates/sharepoint-updates"
+          "claim": "SharePoint Enterprise Server 2016 versions from 16.0.0 before 16.0.5513.1001; SharePoint Server 2019 from 16.0.0 before 16.0.10417.20037; SharePoint Server Subscription Edition from 16.0.0 before 16.0.18526.20508",
+          "kind": "affected_version",
+          "source_url": "https://www.cve.org/CVERecord?id=CVE-2025-53770"
         },
         {
-          "claim": "Microsoft states that SharePoint updates are cumulative and publishes product build numbers and KB identifiers, supporting verification by comparing the installed farm build with the fixed build threshold.",
-          "kind": "verification",
-          "source_url": "https://learn.microsoft.com/en-us/officeupdates/sharepoint-updates"
+          "claim": "Deserialization of untrusted data allows an unauthorized attacker to execute code over a network on on-premises SharePoint Server; exploit exists in the wild and the issue is a patch bypass that can be chained with related CVEs; known ransomware use",
+          "kind": "exposure",
+          "source_url": "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2025-53770"
         }
       ],
       "exposure_conditions": [
-        "The affected on-premises SharePoint Server 2016, SharePoint Server 2019, or SharePoint Server Subscription Edition is installed.",
-        "The server is reachable by an attacker over the network; public internet exposure materially increases risk.",
-        "SharePoint Server 2013 or earlier is public-facing and has reached end of life or end of service; CISA recommends disconnecting such systems."
+        "On-premises Microsoft SharePoint Server only (SharePoint Online / Microsoft 365 is not affected)",
+        "Unauthorized attacker over the network with no privileges or user interaction required",
+        "Internet-facing or public-facing instances are at highest risk",
+        "Can be chained with related SharePoint spoofing and authentication issues; patch bypass of earlier CVEs"
       ],
       "gaps": [],
-      "generated_at": "2026-08-04T12:15:15Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-10-03T14:31:38Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [
-        "Apply the July 21, 2025 security update or any later cumulative SharePoint update to every server in the farm.",
-        "For SharePoint Server 2016, update to build 16.0.5513.1001 or later; the July 21, 2025 updates were KB5002760 and KB5002759.",
-        "For SharePoint Server 2019, update to build 16.0.10417.20037 or later; the July 21, 2025 updates were KB5002754 and KB5002753.",
-        "For SharePoint Server Subscription Edition, update to build 16.0.18526.20508 or later; the July 21, 2025 update was KB5002768.",
-        "Configure SharePoint AMSI integration and deploy Microsoft Defender Antivirus on all SharePoint servers as defense-in-depth. If required mitigations cannot be enabled, disconnect affected public-facing systems from the internet until mitigations or updates are applied.",
-        "Remove or isolate unsupported, public-facing SharePoint Server 2013 and earlier deployments."
+        "Apply the Microsoft security updates for supported versions immediately: KB5002768 (Subscription Edition), KB5002754 plus language pack KB5002753 (2019), KB5002760 plus language pack KB5002759 (2016)",
+        "Enable and correctly configure AMSI integration with SharePoint (Full Mode where available) together with Microsoft Defender Antivirus or equivalent on all SharePoint servers",
+        "Rotate SharePoint Server ASP.NET machine keys after applying updates (or enabling AMSI) and restart IIS on all servers",
+        "Disconnect public-facing end-of-life/end-of-service SharePoint Server versions (2013 and earlier) from the internet",
+        "Deploy Microsoft Defender for Endpoint or equivalent EDR for post-exploitation detection and hunting"
       ],
       "retrieved_source_urls": [
-        "https://learn.microsoft.com/en-us/officeupdates/sharepoint-updates",
-        "https://learn.microsoft.com/en-us/officeupdates/microsoft365-apps-security-updates",
-        "https://learn.microsoft.com/en-us/dotnet/framework/release-notes/2025/07-08-july-cumulative-update",
-        "https://learn.microsoft.com/en-us/answers/questions/2138695/in-sharepoint-2019-after-applying-kb5002639-and-su",
-        "https://support.microsoft.com/en-US/servicing/Office/hotfix/sharepoint/description-of-the-security-update-for-sharepoint-server-subscription-edition-may-13-2025-kb5002709",
-        "https://support.microsoft.com/es-es/topic/descripci%C3%B3n-de-la-actualizaci%C3%B3n-de-seguridad-de-sharepoint-server-edici%C3%B3n-de-suscripci%C3%B3n-21-de-julio-de-2025-kb5002768-26460cc8-af97-4ccf-ad90-d9225d63d1bc",
-        "https://learn.microsoft.com/en-us/sharepoint/sync-release-notes",
-        "https://support.microsoft.com/it-it/servicing/office/hotfix/sharepoint/description-of-the-security-update-for-sharepoint-server-subscription-edition-july-21-2025-kb5002768",
-        "https://support.microsoft.com/cs-cz/topic/popis-aktualizace-zabezpe%C4%8Den%C3%AD-pro-sharepoint-server-vyd%C3%A1n%C3%AD-s-p%C5%99edplatn%C3%BDm-21-%C4%8Dervence-2025-kb5002768-26460cc8-af97-4ccf-ad90-d9225d63d1bc",
-        "https://support.microsoft.com/da-dk/topic/beskrivelse-af-sikkerhedsopdateringen-til-sharepoint-server-subscription-edition-21-juli-2025-kb5002768-26460cc8-af97-4ccf-ad90-d9225d63d1bc",
-        "https://support.microsoft.com/en-us/servicing/office/hotfix/sharepoint/description-of-the-security-update-for-sharepoint-server-2016-language-pack-august-12-2025-kb5002772",
-        "https://support.microsoft.com/zh-TW/servicing/Office/hotfix/sharepoint/description-of-the-security-update-for-sharepoint-server-subscription-edition-july-21-2025-kb5002768",
-        "https://learn.microsoft.com/en-us/microsoft-365/media/teams-sharepoint-online-sites-highly-regulated-data/sharepointsiteshighlyregulateddata.pdf",
-        "https://learn.microsoft.com/en-us/microsoft-365/downloads/microsoft365enterprise.pdf?view=o365-worldwide",
-        "https://learn.microsoft.com/en-us/services-hub/health/assessment_prereq_docs/PrereqsSPAssessment.pdf",
-        "https://learn.microsoft.com/en-us/microsoft-365/enterprise/media/m365-poster/Microsoft365Enterprise.pdf",
-        "https://learn.microsoft.com/en-us/microsoft-365/enterprise/media/m365-poster/microsoft365enterprise.pdf",
-        "https://learn.microsoft.com/en-us/services-hub/health/assessment_prereq_docs/Prerequisites_Offline_SP.pdf",
-        "https://support.microsoft.com/en-us/servicing/office/hotfix/sharepoint/description-of-the-security-update-for-sharepoint-server-2019-language-pack-july-21-2025-kb5002753"
+        "https://nvd.nist.gov/vuln/detail/cve-2025-53770",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2025-53766",
+        "https://nvd.nist.gov/vuln/detail/CVE-2023-53770",
+        "https://nvd.nist.gov/vuln/detail/cve-2025-61770",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-53370",
+        "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2025-53770",
+        "https://msrc.microsoft.com/blog/2025/07/customer-guidance-for-sharepoint-vulnerability-cve-2025-53770",
+        "https://msrc.microsoft.com/blog/2025/07/customer-guidance-for-sharepoint-vulnerability-cve-2025-53770-ja/",
+        "https://portal.msrc.microsoft.com/en-us/security-guidance/advisory/CVE-2025-53766",
+        "https://msrc.microsoft.com/csaf/advisories/2025/msrc_cve-2025-53766.json",
+        "https://msrc.microsoft.com/update-guide/ja-jp/vulnerability/CVE-2025-53766",
+        "https://msrc.microsoft.com/update-guide/ja-jp/vulnerability/CVE-2025-53730",
+        "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2025-62570,Windows",
+        "https://msrc.microsoft.com/csaf/vex/2025/msrc_cve-2025-12970.json",
+        "https://www.cisa.gov/news-events/alerts/2025/07/20/cisa-adds-one-known-exploited-vulnerability-cve-2025-53770-toolshell-catalog",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2025-53770",
+        "https://www.cisa.gov/news-events/analysis-reports/ar25-218a",
+        "https://www.cisa.gov/sites/default/files/2025-08/CMA_SIGMA_251132_1_CVE_2025_53770_ToolShell_TLP_CLEAR.pdf",
+        "https://www.cisa.gov/sites/default/files/2025-08/CMA_SIGMA_251132_2_CVE_2025_53770_ToolShell_TLP_CLEAR.pdf",
+        "https://www.cisa.gov/sites/default/files/2025-08/CMA_SIGMA_251132_CVE_2025_53770_ToolShell_IOCs_TLP_CLEAR.pdf",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog",
+        "https://www.cisa.gov/news-events/alerts/2025/08/06/microsoft-releases-guidance-high-severity-vulnerability-cve-2025-53786-hybrid-exchange-deployments",
+        "https://www.cve.org/CVERecord?id=CVE-2025-53770",
+        "https://nhimg.org/toolshell-sharepoint-exploitation-2025-stolen-aspnet-machine-keys"
       ],
       "schema_version": 2,
       "source_fingerprint": "ad959b5c0737becfba5553feb51f3b0f7fa5f645170440b301b66cd05de4c8c6",
       "source_urls": [
-        "https://learn.microsoft.com/en-us/officeupdates/sharepoint-updates"
+        "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2025-53770",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2025-53770",
+        "https://www.cve.org/CVERecord?id=CVE-2025-53770"
       ],
       "status": "complete",
       "uncertainty": [
-        "The supplied record and NVD identify fixed-build thresholds, but they do not establish whether a particular environment is patched, internet-facing, or protected by AMSI and Defender.",
-        "A build-number check should be performed using the organization's approved SharePoint inventory or administrative interface; no exploit testing or production probing is necessary.",
-        "The NVD description still contains transitional wording about Microsoft preparing an update, while Microsoft's SharePoint update history documents the July 21, 2025 fixes. The update history is used for the remediation thresholds."
+        "NVD and MSRC Security Update Guide pages did not fully render (JavaScript required), so some details rely on CNA product status, Microsoft customer guidance, and CISA KEV/alert text",
+        "Exact UI or administrative steps to read SharePoint build numbers are not specified in the retrieved pages",
+        "Some CISA and Microsoft pages have been iteratively updated; later hunting or IOC details may exist beyond the retrieved snapshots"
       ],
       "verification_steps": [
-        "Confirm that every SharePoint server in the farm reports a build at or above its product-specific fixed-build threshold: 16.0.5513.1001 for SharePoint 2016, 16.0.10417.20037 for SharePoint 2019, or 16.0.18526.20508 for Subscription Edition.",
-        "Confirm that the applicable July 21, 2025 security update or a later cumulative update is installed across the farm, including required language-dependent updates where applicable.",
-        "Confirm that AMSI integration is enabled for SharePoint and that Defender Antivirus protection is deployed on each SharePoint server, if using the interim mitigation.",
-        "Review external access controls and confirm that unsupported or unpatched SharePoint systems are not internet-facing."
+        "Confirm the installed SharePoint build meets or exceeds the first patched versions documented by Microsoft using the product version information and the Security Update Guide",
+        "Use Microsoft Defender Vulnerability Management to filter on CVE-2025-53770 (and related CVEs) and review exposed devices plus remediation status",
+        "Follow CISA and Microsoft guidance to review logs and indicators for signs of prior exploitation without performing active or destructive tests"
       ]
     },
     "CVE-2025-54068": {
@@ -31322,50 +31527,52 @@
       "claim_evidence": [],
       "exposure_conditions": [],
       "gaps": [],
-      "generated_at": "2026-08-04T12:14:46Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-10-03T14:29:52Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [],
       "retrieved_source_urls": [
-        "https://blog.checkpoint.com/security/check-point-releases-important-hotfix-for-vulnerabilities-in-deprecated-ikev1-vpn-protocol/",
+        "https://www.cve.org/cverecord?id=CVE-2026-50751",
         "https://nvd.nist.gov/vuln/detail/CVE-2026-50751",
-        "https://blog.checkpoint.com/security/",
-        "https://blog.checkpoint.com/security/important-security-reminder-install-the-fix-to-stay-protected/",
-        "https://blog.checkpoint.com/security/security-advisory-action-required-active-exploitation-of-check-point-smartconsole-authentication-bypass-cve-2026-16232",
-        "https://blog.checkpoint.com/security/the-network-security-problem-no-one-could-solve-until-now/",
-        "https://blog.checkpoint.com/security/embrace-the-future-of-remote-access-transitioning-from-legacy-vpns-to-sase/",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=0",
-        "https://blog.checkpoint.com/security/enhance-your-vpn-security-posture/amp/",
-        "https://blog.checkpoint.com/security/openai-frontier-ai-models-powering-check-points-leading-cyber-security-solutions/",
-        "https://blog.checkpoint.com/security/understanding-and-minimizing-the-security-risks-of-the-quantum-revolution-in-computing/",
-        "https://nvd.nist.gov/vuln/detail/CVE-2022-50751",
-        "https://blog.checkpoint.com/wp-content/uploads/2025/11/2025-Q4-EFW-NSS-Comparative-Report.pdf",
-        "https://support.checkpoint.com/results/download/140658",
-        "https://support.checkpoint.com/results/download/143463",
-        "https://support.checkpoint.com/results/download/142367",
-        "https://support.checkpoint.com/results/download/140660",
-        "https://support.checkpoint.com/results/download/135254",
-        "https://support.checkpoint.com/results/download/139085",
-        "https://support.checkpoint.com/results/download/143663",
-        "https://support.checkpoint.com/results/download/144177",
-        "https://support.checkpoint.com/results/download/143414",
-        "https://support.checkpoint.com/results/download/143461",
-        "https://support.checkpoint.com/results/download/143466"
+        "https://shattered.io/check-point-vpn-zero-day-cve-2026-50751/",
+        "https://www.cvedetails.com/cve/CVE-2026-50751/",
+        "https://cipherssecurity.com/cve/CVE-2026-50751",
+        "https://www.incibe.es/incibe-cert/alerta-temprana/vulnerabilidades/cve-2026-50751",
+        "https://www.cyber-defence.io/tools/cve/CVE-2026-50751",
+        "https://mefmobile.org/check-point-vpns-targeted-in-attacks-what-enterprises-need-to-do/",
+        "https://blog.halosecurity.com/cve-2026-50751-check-point-vpn-authentication-bypass/",
+        "https://socradar.io/free-tools/cve-radar/CVE-2026-50751",
+        "https://cvefeed.io/vuln/detail/CVE-2026-50751",
+        "https://github.com/advisories/GHSA-jqxh-x9f5-wcgw",
+        "https://www.tenable.com/cve/CVE-2026-50751",
+        "https://arcticwolf.com/resources/blog/cve-2026-50751/",
+        "https://nvd.nist.gov/vuln/detail/cve-2022-50751",
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-50751/change-record?changeRecordedOn=12/24/2025T08:16:01.823-0500",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-12751",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2026-80851",
+        "https://advisories.checkpoint.com/defense/advisories/public/2026/cpai-2026-7105.html/",
+        "https://blog.checkpoint.com/security/check-point-releases-important-hotfix-for-vulnerabilities-in-deprecated-ikev1-vpn-protocol/",
+        "https://pages.checkpoint.com/index.php/email/emailWebview?email=NzUwLURRSC01MjgAAAGiR4bd7G0Yl0wDkTF4W0-s-cUMcknigzO2Pp72DBOZt9PCDZcogd9ElSKq19X9vFfce1xUM79RHBFm0ujVuK5bJRFhUOr2lYkeVfw",
+        "https://community.checkpoint.com/t5/General-Topics/ACTION-REQUIRED-Active-Exploitation-of-Check-Point-VPN/td-p/277948/page/3",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog-print",
+        "https://www.tenable.com/plugins/nessus/321197"
       ],
       "schema_version": 2,
       "source_fingerprint": "4c825d48e84127706060aac10ca5354e409b99bbe8ce5c79e5dc5b728c4e9914",
       "source_urls": [
         "https://nvd.nist.gov/vuln/detail/CVE-2026-50751",
+        "https://www.cve.org/cverecord?id=CVE-2026-50751",
         "https://blog.checkpoint.com/security/check-point-releases-important-hotfix-for-vulnerabilities-in-deprecated-ikev1-vpn-protocol/",
-        "https://support.checkpoint.com/results/download/143463"
+        "https://advisories.checkpoint.com/defense/advisories/public/2026/cpai-2026-7105.html/"
       ],
       "status": "insufficient_evidence",
       "uncertainty": [
-        "The Check Point SK185033 advisory was referenced by authoritative sources but its contents were not retrievable during this enrichment, so exact per-branch hotfix levels and alternative mitigation settings could not be fully validated.",
-        "The retrieved evidence establishes R81.10.17 as a fixed Gaia Embedded/Spark version and records R82.00.10 in NVD CPE configuration data, but it does not provide a complete authoritative fixed-version matrix for Quantum Security Gateway R82.10, R82, R81.20, R81, R81.10, and R80.40.",
-        "No vendor-provided, non-invasive command or exact validation procedure was available in the retrieved sources.",
-        "The supplied record contains future-dated metadata relative to many public records; this response relies on the retrieved Check Point and NVD pages available as of August 4, 2026."
+        "The primary vendor patch article sk185033 did not return usable body content (title-only), so exact hotfix packages, jumbo-take fixed versions, Spark builds, and step-by-step install or version-check procedures for this CVE were not confirmed from that source.",
+        "NVD and CVE.org full pages were not fully retrievable; affected-version strings are taken from search snippets of those records and may be incomplete relative to the live pages.",
+        "No authoritative retrieved source for CVE-2026-50751 stated a concrete fixed_version such as a specific Jumbo Hotfix Take that is confirmed fixed rather than merely listed as a hotfix base. Sibling advisory sk185035 (CVE-2026-50752) jumbo takes must not be assumed to remediate CVE-2026-50751.",
+        "Detailed preconditions reported by third parties (legacy Remote Access clients, machine-certificate settings) were not present in the retrieved vendor blog, CISA KEV, or CNA snippets and are omitted.",
+        "Safe inert verification of installed take/build cannot be specified without inventing commands or unconfirmed UI paths."
       ],
       "verification_steps": []
     },
