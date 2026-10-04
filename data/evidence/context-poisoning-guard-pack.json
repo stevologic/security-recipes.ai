@@ -208,7 +208,7 @@
     {
       "actionable": true,
       "disposition": "actionable_context_poisoning_risk",
-      "line": 101,
+      "line": 109,
       "match": "\"description\": \"Detects text that asks an agent to ignore, forget, or disregard higher-priority instructions.\"",
       "path": "data/assurance/context-poisoning-guard-profile.json",
       "risk_family": "prompt_injection",
@@ -219,7 +219,7 @@
     {
       "actionable": true,
       "disposition": "actionable_context_poisoning_risk",
-      "line": 113,
+      "line": 121,
       "match": "\"description\": \"Detects text that asks an agent to skip, bypass, remove, or disable approval, review, CI, policy, or guardrail controls.\"",
       "path": "data/assurance/context-poisoning-guard-profile.json",
       "risk_family": "approval_bypass",
@@ -1473,7 +1473,7 @@
     {
       "actionable": false,
       "disposition": "documented_adversarial_example",
-      "line": 66,
+      "line": 80,
       "match": "| Direct instruction override | Critical | Detects text that asks an agent to ignore or override higher-priority instructions. |",
       "path": "content/security-remediation/context-poisoning-guard/_index.md",
       "risk_family": "prompt_injection",
@@ -1484,7 +1484,7 @@
     {
       "actionable": false,
       "disposition": "documented_adversarial_example",
-      "line": 68,
+      "line": 82,
       "match": "| Approval bypass request | High | Detects requests to skip, bypass, remove, or disable review, approval, policy, CI, or guardrails. |",
       "path": "content/security-remediation/context-poisoning-guard/_index.md",
       "risk_family": "approval_bypass",
@@ -1812,7 +1812,7 @@
       "source_id": "security-remediation-workflows"
     }
   ],
-  "generated_at": "2026-08-21",
+  "generated_at": "2026-10-04",
   "guard_summary": {
     "actionable_finding_count": 96,
     "blocking_source_count": 2,
@@ -1820,7 +1820,7 @@
       "agentic-assurance-models",
       "recipes"
     ],
-    "byte_count": 15037611,
+    "byte_count": 15039961,
     "decision_counts": {
       "allow_with_adversarial_examples": 1,
       "block_until_removed": 2,
@@ -1863,6 +1863,7 @@
     "Demote retrieved text to evidence before model use.",
     "Label documented attack payloads as adversarial examples.",
     "Hold normal guidance for review when it contains instruction-override, approval-bypass, or exfiltration markers.",
+    "Hold or strip Unicode tag-block and variation-selector smuggling at ingest, matching OWASP LLM01:2026 mitigation #5.",
     "Block critical actionable findings from MCP retrieval until source owners remove or explicitly recertify them.",
     "Regenerate the pack before secure context trust-pack generation so source hashes include the current scan result."
   ],
@@ -1908,13 +1909,19 @@
       "id": "zero-width-control",
       "risk_family": "hidden_instruction",
       "severity": "medium"
+    },
+    {
+      "description": "Detects Unicode tag-block characters (U+E0000 to U+E007F) and runs of three or more variation selectors (U+FE00 to U+FE0F) that can smuggle instructions or exfiltration bytes while remaining invisible in review UIs.",
+      "id": "invisible-unicode-smuggling",
+      "risk_family": "hidden_instruction",
+      "severity": "high"
     }
   ],
   "schema_version": "1.0",
   "source_artifacts": {
     "context_poisoning_guard_profile": {
       "path": "data/assurance/context-poisoning-guard-profile.json",
-      "sha256": "6e1b5928323859cd56be08a41650032276d1ad34400207ab994edc086e67db79"
+      "sha256": "a11f80c99b163a52e3bb4c5ee336ca107417a2513009002056f262e40c4252ff"
     },
     "secure_context_registry": {
       "path": "data/context/secure-context-registry.json",
@@ -1969,7 +1976,7 @@
         "critical": 8,
         "high": 12
       },
-      "source_hash": "eec9280e4be206a57f1322072700842e9e98090e803b8af3ae08761a9dfe962b",
+      "source_hash": "3d5b501266c13bd7e85c79b39fec11a952a3e8620151683e4e59d4db4275aefd",
       "source_id": "agentic-assurance-models",
       "title": "Agentic Assurance Source Models",
       "trust_tier": "tier_2_policy_context"
@@ -2195,7 +2202,7 @@
         "high": 8,
         "medium": 59
       },
-      "source_hash": "3ae5c49d57c77870f093c54ef51b98df8220409675a037fc65b48012e1cf781e",
+      "source_hash": "02cdc89924d0bbaa55ec7ce252e912bd790de8a35920a5721b84abb29040da31",
       "source_id": "security-remediation-workflows",
       "title": "Security Remediation Workflow Docs",
       "trust_tier": "tier_1_curated_guidance"
@@ -2232,6 +2239,14 @@
       "published": "2026-03-11",
       "publisher": "OpenAI",
       "url": "https://openai.com/index/designing-agents-to-resist-prompt-injection/"
+    },
+    {
+      "coverage": "Common Example #5 is invisible-character injection and exfiltration. Mitigation #5 requires stripping tag-block (U+E0000 to U+E007F), variation-selector (U+FE00 to U+FE0F), and zero-width characters at every ingest and render boundary.",
+      "id": "owasp-llm01-2026",
+      "name": "OWASP LLM01:2026 Prompt Injection",
+      "published": "2026-08-04",
+      "publisher": "OWASP GenAI Security Project",
+      "url": "https://github.com/GenAI-Security-Project/GenAI-LLM-Top10/blob/main/2026/final/LLM01_PromptInjection.md"
     },
     {
       "coverage": "Tool responses and MCP metadata can carry hidden instructions that exploit trust gaps between connection-time review and runtime context.",
