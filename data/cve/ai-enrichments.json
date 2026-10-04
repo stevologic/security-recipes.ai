@@ -13237,545 +13237,511 @@
       "verification_steps": []
     },
     "CVE-2022-20699": {
-      "business_risk": "Critical. An unauthenticated remote attacker can send malicious HTTP requests to the SSL VPN module of an affected Cisco RV340, RV340W, RV345, or RV345P router and execute arbitrary code with root privileges. CISA lists this vulnerability in its Known Exploited Vulnerabilities Catalog.",
+      "business_risk": "Critical unauthenticated remote code execution as root on Cisco RV340/RV345 series Small Business routers used as SSL VPN gateways; listed in CISA KEV as known exploited.",
       "claim_evidence": [
         {
-          "claim": "CVE-2022-20699 affects Cisco RV340, RV340W, RV345, and RV345P Dual WAN Gigabit VPN Routers.",
+          "claim": "Cisco RV340 Dual WAN Gigabit VPN Routers, RV340W Dual WAN Gigabit Wireless-AC VPN Routers, RV345 Dual WAN Gigabit VPN Routers, and RV345P Dual WAN Gigabit POE VPN Routers",
           "kind": "affected_product",
-          "source_url": "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-smb-mult-vuln-KA9PK6D"
+          "source_url": "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-smb-mult-vuln-KA9PK6D.html"
         },
         {
-          "claim": "Cisco identifies RV340 and RV345 Series Router releases 1.0.03.24 and earlier as vulnerable in the fixed-release table.",
+          "claim": "1.0.03.24 and earlier for RV340 and RV345 Series Routers",
           "kind": "affected_version",
-          "source_url": "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-smb-mult-vuln-KA9PK6D"
+          "source_url": "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-smb-mult-vuln-KA9PK6D.html"
         },
         {
-          "claim": "An unauthenticated remote attacker can send malicious HTTP requests to an affected device acting as an SSL VPN gateway and execute arbitrary code with root privileges.",
+          "claim": "Up to (including) 1.0.03.24 for cisco rv340_firmware, rv340w_firmware, rv345_firmware, and rv345p_firmware",
+          "kind": "affected_version",
+          "source_url": "https://nvd.nist.gov/vuln/detail/cve-2022-20699"
+        },
+        {
+          "claim": "Unauthenticated remote attacker sending malicious HTTP requests to a device acting as an SSL VPN Gateway due to insufficient boundary checks, allowing root code execution",
           "kind": "exposure",
-          "source_url": "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-smb-mult-vuln-KA9PK6D"
+          "source_url": "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-smb-mult-vuln-KA9PK6D.html"
         },
         {
-          "claim": "Cisco lists software release 1.0.03.26 as the first fixed release for RV340 and RV345 Series Routers.",
+          "claim": "1.0.03.26",
           "kind": "fixed_version",
-          "source_url": "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-smb-mult-vuln-KA9PK6D"
+          "source_url": "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-smb-mult-vuln-KA9PK6D.html"
         },
         {
-          "claim": "Cisco released software updates addressing the vulnerabilities and states that no workaround addresses them.",
+          "claim": "Upgrade to an appropriate fixed software release as indicated in the Fixed Software table; there are no workarounds",
           "kind": "remediation",
-          "source_url": "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-smb-mult-vuln-KA9PK6D"
+          "source_url": "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-smb-mult-vuln-KA9PK6D.html"
         },
         {
-          "claim": "Cisco provides an affected-release and first-fixed-release table that supports verifying remediation by comparing the device's installed release with 1.0.03.26.",
+          "claim": "Customers are advised to upgrade to an appropriate fixed software release as indicated in the Fixed Software table",
           "kind": "verification",
-          "source_url": "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-smb-mult-vuln-KA9PK6D"
+          "source_url": "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-smb-mult-vuln-KA9PK6D.html"
         }
       ],
       "exposure_conditions": [
-        "The device is a Cisco RV340, RV340W, RV345, or RV345P Dual WAN Gigabit VPN Router.",
-        "The affected software release is 1.0.03.24 or earlier, according to Cisco's fixed-release table.",
-        "The device is functioning as an SSL VPN gateway and can receive the relevant malicious HTTP requests.",
-        "Authentication is not required for exploitation."
+        "Cisco RV340, RV340W, RV345, or RV345P Dual WAN Gigabit VPN Routers running firmware 1.0.03.24 or earlier",
+        "The device is acting as an SSL VPN Gateway",
+        "Unauthenticated remote network reachability to the SSL VPN HTTP interface"
       ],
       "gaps": [],
-      "generated_at": "2026-07-29T08:55:17Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-10-04T15:10:08Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [
-        "Upgrade RV340 and RV345 Series Routers, including RV340W and RV345P variants, to Cisco software release 1.0.03.26 or later.",
-        "Obtain the update through Cisco's normal support and download channels, subject to applicable licensing and support entitlement.",
-        "Prioritize remediation because the vulnerability is listed in CISA's Known Exploited Vulnerabilities Catalog.",
-        "If the fixed software cannot be obtained through normal channels, contact Cisco TAC as directed in the advisory.",
-        "Cisco states that no workaround addresses these vulnerabilities; do not treat configuration changes as a substitute for the software update."
+        "Upgrade firmware for RV340 and RV345 Series Routers to 1.0.03.26 or later per the Cisco Security Advisory Fixed Software table",
+        "No workarounds are available; apply updates per vendor instructions"
       ],
       "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/cve-2022-20699",
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-20679/change-record?changeRecordedOn=04/25/2022T12:24:51.803-0400",
+        "https://nvd.nist.gov/vuln/detail/cve-2026-20699",
+        "https://nvd.nist.gov/vuln/detail/cve-2022-0699",
+        "https://nvd.nist.gov/vuln/detail/cve-2022-50299",
+        "https://nvd.nist.gov/vuln/detail/cve-2022-23199",
+        "https://nvd.nist.gov/vuln/detail/cve-2022-23469",
+        "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-48969",
+        "https://nvd.nist.gov/vuln/detail/CVE-2018-20699",
+        "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-1899",
+        "https://www.cve.org/CVERecord?id=CVE-2022-20699",
+        "https://cve.yack.one/cve/CVE-2022-20699",
+        "https://tools.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-smb-mult-vuln-KA9PK6D?emailclick=CNSemail",
+        "https://socradar.io/free-tools/cve-radar/CVE-2022-20699",
+        "https://www.cvedetails.com/cve/CVE-2022-20699/",
+        "https://avd.aquasec.com/nvd/2022/cve-2022-20699/",
+        "https://cvetodo.com/cve/CVE-2022-20699",
+        "https://www.tenable.com/cve/CVE-2022-20699",
+        "https://vulnerability.circl.lu/vuln/cve-2022-20699",
         "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-smb-mult-vuln-KA9PK6D.html",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-smb-mult-vuln-KA9PK6D",
-        "https://nvd.nist.gov/vuln/detail/CVE-2022-20699",
-        "https://www.cisco.com/c/ja_jp/support/docs/csa/2022/cisco-sa-smb-mult-vuln-KA9PK6D.html",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A798&f%5B10%5D=vendor_project%3A845&f%5B11%5D=vendor_project%3A854&f%5B12%5D=vendor_project%3A858&f%5B13%5D=vendor_project%3A865&f%5B14%5D=vendor_project%3A877&f%5B15%5D=vendor_project%3A880&f%5B16%5D=vendor_project%3A886&f%5B17%5D=vendor_project%3A887&f%5B18%5D=vendor_project%3A888&f%5B19%5D=vendor_project%3A893&f%5B1%5D=vendor_project%3A800&f%5B20%5D=vendor_project%3A901&f%5B21%5D=vendor_project%3A902&f%5B22%5D=vendor_project%3A917&f%5B23%5D=vendor_project%3A929&f%5B24%5D=vendor_project%3A931&f%5B25%5D=vendor_project%3A932&f%5B26%5D=vendor_project%3A933&f%5B27%5D=vendor_project%3A938&f%5B28%5D=vendor_project%3A951&f%5B29%5D=vendor_project%3A954&f%5B2%5D=vendor_project%3A801&f%5B30%5D=vendor_project%3A1174&f%5B3%5D=vendor_project%3A803&f%5B4%5D=vendor_project%3A805&f%5B5%5D=vendor_project%3A820&f%5B6%5D=vendor_project%3A823&f%5B7%5D=vendor_project%3A828&f%5B8%5D=vendor_project%3A837&f%5B9%5D=vendor_project%3A842&page=6",
-        "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-20180328-snmp.html",
-        "https://www.cisco.com/c/en/us/support/security/identity-services-engine/products-security-advisories-list.html",
-        "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-cmm-file-up-kY47n8kK.html",
-        "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-sb-mult-vuln-CbVp4SUR.html",
-        "https://www.cisco.com/c/en/us/support/security/security-manager/products-security-advisories-list.html",
-        "https://nvd.nist.gov/vuln/detail/CVE-2022-2069",
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-20699",
-        "https://www.cisa.gov/sites/default/files/publications/AA22-138B_Threat_Actors_Chaining_VMware_Unpatched_Vulnerabilities_for_Full_System_Control.pdf",
-        "https://www.cisco.com/c/en/us/td/docs/security/secure-firewall/release-notes/threat-defense/720/threat-defense-release-notes-72.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/AA22-117A_Joint_CSA_2021_Top_Routinely_Exploited_Vulnerabilities_Final.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/AA22-174A_Joint_CSA_Malicious_Cyber_Actors_Exploiting_Log4Shell_in_Unpatched_VMware_Horizon_Systems_FINAL.pdf",
-        "https://www.cisco.com/c/dam/en/us/td/docs/security/cyber_vision/Cisco-Cyber-Vision_KDB_Release-Note-202202.pdf",
-        "https://www.cisco.com/c/en/us/td/docs/security/secure-firewall/release-notes/threat-defense/760/threat-defense-release-notes-76.pdf"
+        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-smb-mult-vuln-KA9PK6D?emailclick=CNSemail",
+        "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-http-dos-svOdkdBS.html",
+        "https://www.cisco.com/c/ja_jp/support/docs/csa/2022/cisco-sa-http-dos-svOdkdBS.html",
+        "https://www.cisa.gov/uscert/ics/advisories/icsa-22-195-07"
       ],
       "schema_version": 2,
       "source_fingerprint": "329201920a274a278f85b964803c740a0c5c618643ebba58d52316968e5af522",
       "source_urls": [
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-smb-mult-vuln-KA9PK6D",
-        "https://nvd.nist.gov/vuln/detail/CVE-2022-20699"
+        "https://nvd.nist.gov/vuln/detail/cve-2022-20699",
+        "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-smb-mult-vuln-KA9PK6D.html"
       ],
       "status": "complete",
       "uncertainty": [
-        "Cisco's advisory groups CVE-2022-20699 with the RV340/RV345 Series fixed-release table rather than listing a separate fixed version for each hardware variant.",
-        "The advisory identifies vulnerable releases as 1.0.03.24 and earlier and the first fixed release as 1.0.03.26; it does not establish the status of any intervening release.",
-        "No product-specific, non-disruptive active test for this vulnerability was identified or recommended; verification should rely on authorized version inventory rather than exploit attempts."
+        "CISA KEV and the advisory overview name RV160, RV260, RV340, and RV345 series, but vendor details for this CVE limit affected products to RV340, RV340W, RV345, and RV345P",
+        "Consulted sources do not specify an exact management-interface label or non-interactive method for displaying the firmware version"
       ],
       "verification_steps": [
-        "Review the device's normally reported software version through authorized administrative inventory or management records.",
-        "Confirm that the installed release is 1.0.03.26 or later for the RV340/RV345 Series product family.",
-        "Record the device model and installed release, and compare them with Cisco's affected-release and first-fixed-release table.",
-        "After the approved upgrade, confirm that the device reports the intended fixed release and that normal SSL VPN service remains operational through routine administrative checks."
+        "Compare the device-reported firmware version to the First Fixed Release of 1.0.03.26 listed for RV340 and RV345 Series Routers in the Cisco advisory Fixed Software table",
+        "Obtain the update through Cisco or an authorized channel as described in the advisory"
       ]
     },
     "CVE-2022-20700": {
-      "business_risk": "Critical. CVE-2022-20700 affects the web-based management interface and may allow a remote attacker to elevate privileges to root and execute arbitrary commands. The vulnerability is listed in CISA's Known Exploited Vulnerabilities Catalog, so affected devices should be prioritized for remediation.",
+      "business_risk": "Critical known-exploited vulnerability (CISA KEV) enabling unauthenticated remote privilege escalation to root, arbitrary command execution, and related impacts on Cisco Small Business RV Series edge routers, with potential full device and network compromise.",
       "claim_evidence": [
         {
-          "claim": "CVE-2022-20700 affects Cisco RV160, RV160W, RV260, RV260P, RV260W, RV340, RV340W, RV345, and RV345P Series Routers.",
+          "claim": "CVE-2022-20700 affects Cisco Small Business RV160 VPN Routers, RV160W Wireless-AC VPN Routers, RV260 VPN Routers, RV260P VPN Routers with PoE, RV260W Wireless-AC VPN Routers, RV340 Dual WAN Gigabit VPN Routers, RV340W Dual WAN Gigabit Wireless-AC VPN Routers, RV345 Dual WAN Gigabit VPN Routers, and RV345P Dual WAN Gigabit POE VPN Routers.",
           "kind": "affected_product",
           "source_url": "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-smb-mult-vuln-KA9PK6D.html"
         },
         {
-          "claim": "Cisco identifies RV160 and RV260 Series Router releases 1.0.01.05 and earlier, and RV340 and RV345 Series Router releases 1.0.03.24 and earlier, as vulnerable releases for the advisory.",
+          "claim": "Vulnerable releases are RV160 and RV260 Series Routers 1.0.01.05 and earlier, and RV340 and RV345 Series Routers 1.0.03.24 and earlier.",
           "kind": "affected_version",
           "source_url": "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-smb-mult-vuln-KA9PK6D.html"
         },
         {
-          "claim": "The vulnerability is in the web-based management interface and could allow a remote attacker to elevate privileges to root and execute arbitrary commands.",
+          "claim": "Multiple vulnerabilities in the web-based management interface of Cisco Small Business RV Series Routers could allow a remote attacker to elevate privileges to root by submitting specific commands to an affected device.",
           "kind": "exposure",
           "source_url": "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-smb-mult-vuln-KA9PK6D.html"
         },
         {
-          "claim": "Cisco lists 1.0.01.07 as the first fixed release for RV160/RV260 Series Routers and 1.0.03.26 as the first fixed release for RV340/RV345 Series Routers.",
+          "claim": "First fixed release is 1.0.01.07 for RV160 and RV260 Series Routers and 1.0.03.26 for RV340 and RV345 Series Routers.",
           "kind": "fixed_version",
           "source_url": "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-smb-mult-vuln-KA9PK6D.html"
         },
         {
-          "claim": "Cisco released software updates addressing the vulnerability and states that no workaround addresses these vulnerabilities.",
+          "claim": "Cisco has released software updates that address these vulnerabilities. There are no workarounds that address these vulnerabilities. Customers are advised to upgrade to an appropriate fixed software release as indicated in the Fixed Software table.",
           "kind": "remediation",
           "source_url": "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-smb-mult-vuln-KA9PK6D.html"
         },
         {
-          "claim": "Cisco provides a fixed-release table that can be used to compare the installed firmware version with the applicable first fixed release, but the advisory does not specify a particular non-invasive version-query procedure.",
+          "claim": "Customers are advised to upgrade to an appropriate fixed software release as indicated in the following table and the Cisco PSIRT validates only the affected and fixed release information that is documented in this advisory.",
           "kind": "verification",
           "source_url": "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-smb-mult-vuln-KA9PK6D.html"
         }
       ],
       "exposure_conditions": [
-        "Cisco Small Business RV160, RV160W, RV260, RV260P, RV260W, RV340, RV340W, RV345, or RV345P routers are deployed with firmware in the vendor-designated vulnerable ranges.",
-        "An attacker can reach the router's web-based management interface from a network path available to the attacker.",
-        "The device is running an affected firmware release; Cisco identifies RV160/RV260 releases 1.0.01.05 and earlier, and RV340/RV345 releases 1.0.03.24 and earlier, as vulnerable for this advisory."
+        "Cisco Small Business RV160, RV160W, RV260, RV260P, RV260W, RV340, RV340W, RV345, and RV345P routers",
+        "Web-based management interface reachable by a remote attacker",
+        "Unauthenticated remote access (network vector, no privileges or user interaction required)"
       ],
       "gaps": [],
-      "generated_at": "2026-07-27T12:50:40Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-10-04T15:08:19Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [
-        "Upgrade RV160 and RV260 Series Routers to at least firmware release 1.0.01.07.",
-        "Upgrade RV340 and RV345 Series Routers to at least firmware release 1.0.03.26.",
-        "Use Cisco's vendor-supported update channel or fixed-software process, and confirm that the device has sufficient memory and that its hardware and configuration remain supported after the upgrade.",
-        "Because Cisco states that no workaround addresses these vulnerabilities, do not treat management-interface isolation as a substitute for firmware remediation."
+        "Upgrade RV160 and RV260 Series Routers firmware from 1.0.01.05 and earlier to 1.0.01.07 or later.",
+        "Upgrade RV340 and RV345 Series Routers firmware from 1.0.03.24 and earlier to 1.0.03.26 or later.",
+        "Apply updates per vendor instructions; no workarounds are available."
       ],
       "retrieved_source_urls": [
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-20700@https:/tools.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-smb-mult-vuln-KA9PK6D@https:/www.cybersecurity-help.cz/vdb/SB2022020302@https:/www.cisa.gov/sites/default/files/csv/known_exploited_vulnerabilities.csv",
+        "https://www.cve.org/CVERecord?id=CVE-2022-20700",
+        "https://www.cvedetails.com/cve/CVE-2022-20700",
+        "https://cve.yack.one/cve/CVE-2022-20700",
+        "https://cve.report/CVE-2022-20700",
+        "https://cvefeed.io/vuln/detail/CVE-2022-20700",
+        "https://socradar.io/free-tools/cve-radar/CVE-2022-20700",
+        "https://cvetodo.com/cve/CVE-2022-20700",
+        "https://www.tenable.com/cve/CVE-2022-20700",
+        "https://www.cloudanix.com/vulndb/cve/CVE-2022-20700",
+        "https://www.rainforest.tech/en/cves/CVE-2022-20700",
+        "https://turingpoint.de/en/cve/CVE-2022-20700/",
+        "https://www.manageengine.com/vulnerability-management/vulnerability-database/CVE-2022-20700.html",
+        "https://app.opencve.io/cve/CVE-2022-20700",
+        "https://vulnerability.circl.lu/vuln/CVE-2022-20700",
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-2070",
+        "https://nvd.nist.gov/vuln/detail/cve-2022-20707",
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-20702",
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-20724/change-record?changeRecordedOn=04/22/2022T17:09:35.647-0400",
         "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-smb-mult-vuln-KA9PK6D.html",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-smb-mult-vuln-KA9PK6D",
-        "https://nvd.nist.gov/vuln/detail/cve-2022-20700",
-        "https://www.cisco.com/c/ja_jp/support/docs/csa/2022/cisco-sa-smb-mult-vuln-KA9PK6D.html",
-        "https://nvd.nist.gov/vuln/detail/cve-2022-20770",
-        "https://nvd.nist.gov/vuln/detail/CVE-2026-20700",
-        "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-clamav-dos-prVGcHLd.html",
-        "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-sma-esa-auth-bypass-66kEcxQD.html",
-        "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-expressway-filewrite-bsFVwueV.html",
-        "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-ESA-SNMP-JLAJksWK.html",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-sb-mult-vuln-CbVp4SUR",
-        "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-roomos-trav-beFvCcyu.html",
-        "https://www.cisco.com/c/en/us/td/docs/security/secure-firewall/release-notes/threat-defense/760/threat-defense-release-notes-76.pdf",
-        "https://www.cisco.com/c/en/us/td/docs/security/secure-firewall/release-notes/threat-defense/740/threat-defense-release-notes-74.pdf",
-        "https://www.cisco.com/c/en/us/td/docs/security/secure-firewall/release-notes/threat-defense/720/threat-defense-release-notes-72.pdf",
-        "https://www.cisco.com/c/dam/en/us/td/docs/security/cyber_vision/Cisco-Cyber-Vision_KDB_Release-Note-202202.pdf"
+        "https://tools.cisco.com/security/center/viewErp.x?alertId=ERP-74836",
+        "https://www.cisa.gov/ncas/bulletins/sb22-129",
+        "https://www.cisa.gov/news-events/bulletins/sb21-095"
       ],
       "schema_version": 2,
       "source_fingerprint": "393ce9b0f2e526509d08917c402eac1f2afa4a27fcdf4cf68f7ccd3c373792a7",
-      "source_urls": [
-        "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-smb-mult-vuln-KA9PK6D.html",
-        "https://nvd.nist.gov/vuln/detail/cve-2022-20700"
-      ],
-      "status": "complete",
-      "uncertainty": [
-        "The supplied CPE data identifies affected releases, but the Cisco advisory groups products into RV160/RV260 and RV340/RV345 families rather than documenting every hardware variant separately in the fixed-release table.",
-        "The reviewed authoritative sources do not provide a product-specific, non-invasive command or exact administrative-interface procedure for verifying the installed firmware version.",
-        "The sources establish remote reachability of the management interface as relevant, but they do not determine whether a particular deployment exposes that interface to the Internet or another untrusted network."
-      ],
-      "verification_steps": [
-        "Using the device's normal administrative management process, record the installed firmware version without sending exploitative or destructive requests.",
-        "Confirm that RV160/RV260 devices report version 1.0.01.07 or later, and that RV340/RV345 devices report version 1.0.03.26 or later.",
-        "Confirm that the upgrade completed successfully and that the device remains operational according to routine administrative and monitoring checks.",
-        "If the installed version cannot be mapped confidently to Cisco's fixed-release table, obtain confirmation through Cisco support rather than assuming remediation."
-      ]
-    },
-    "CVE-2022-20701": {
-      "business_risk": "Critical. Cisco identifies CVE-2022-20701 as a privilege-escalation vulnerability in the web-based management interface that may allow elevation to root and arbitrary command execution. The vulnerability is also listed in CISA's Known Exploited Vulnerabilities Catalog, indicating confirmed exploitation in the wild.",
-      "claim_evidence": [
-        {
-          "claim": "CVE-2022-20701 affects Cisco RV340, RV340W, RV345, and RV345P Dual WAN Gigabit VPN Routers.",
-          "kind": "affected_product",
-          "source_url": "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-smb-mult-vuln-KA9PK6D.html"
-        },
-        {
-          "claim": "Cisco's advisory lists RV340 and RV345 Series firmware releases 1.0.03.24 and earlier as vulnerable.",
-          "kind": "affected_version",
-          "source_url": "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-smb-mult-vuln-KA9PK6D.html"
-        },
-        {
-          "claim": "Cisco describes CVE-2022-20701 as a vulnerability in the web-based management interface that could allow a remote attacker to elevate privileges to root and execute arbitrary commands; the advisory assigns CVE-2022-20701 a CVSS base score of 9.0.",
-          "kind": "exposure",
-          "source_url": "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-smb-mult-vuln-KA9PK6D"
-        },
-        {
-          "claim": "Cisco identifies firmware release 1.0.03.26 as the first fixed release for RV340 and RV345 Series Routers.",
-          "kind": "fixed_version",
-          "source_url": "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-smb-mult-vuln-KA9PK6D.html"
-        },
-        {
-          "claim": "Cisco states that software updates address the vulnerabilities and that no workarounds are available.",
-          "kind": "remediation",
-          "source_url": "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-smb-mult-vuln-KA9PK6D.html"
-        },
-        {
-          "claim": "Firmware-version verification against Cisco's fixed-release table is an appropriate non-invasive check: the installed RV340/RV345 Series firmware should be 1.0.03.26 or later.",
-          "kind": "verification",
-          "source_url": "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-smb-mult-vuln-KA9PK6D.html"
-        }
-      ],
-      "exposure_conditions": [
-        "The affected products are Cisco RV340, RV340W, RV345, and RV345P Dual WAN Gigabit VPN Routers.",
-        "Exposure requires the affected router to run a vulnerable firmware release and have the web-based management interface reachable through the applicable access path.",
-        "Cisco describes exploitation through submission of specific commands to the affected web-based management interface; the advisory's CVSS characterization for this CVE differs from the NVD-enriched network vector, so deployment-specific reachability should be confirmed."
-      ],
-      "gaps": [],
-      "generated_at": "2026-07-27T12:50:24Z",
-      "model": "gpt-5.6-luna",
-      "prompt_version": "2026-07-14.2",
-      "recipe_specificity": "not_specific",
-      "remediation_steps": [
-        "Upgrade affected RV340/RV345 Series Routers, including RV340W and RV345P variants, from firmware release 1.0.03.24 or earlier to Cisco firmware release 1.0.03.26 or later.",
-        "Use Cisco's authorized software-update channel. Cisco states that no workaround addresses these vulnerabilities.",
-        "If a fixed release cannot be obtained through the normal entitlement channel, contact Cisco TAC with the device serial number and advisory URL."
-      ],
-      "retrieved_source_urls": [
-        "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-smb-mult-vuln-KA9PK6D.html",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-smb-mult-vuln-KA9PK6D",
-        "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-sb-rv34x-rce-7pqFU2e.html",
-        "https://www.cisco.com/c/ja_jp/support/docs/csa/2022/cisco-sa-smb-mult-vuln-KA9PK6D.html",
-        "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-20170816-crr.html",
-        "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-rv340-cmdinj-rcedos-pY8J3qfy.html",
-        "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-sb-rv34x-rce-8bfG2h6b.html",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-rv34x-privesc-rce-qE33TCms",
-        "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-sb-rv-afu-EXxwA65V.html",
-        "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-sb-rv-rcedos-7HjP74jD.html",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-rv-osinj-rce-pwTkPCJv",
-        "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-sb-rce-dos-9ZAjkx4.html",
-        "https://www.cisco.com/c/dam/en/us/td/docs/routers/csbr/RV340/Release_Note/RV34xx_relnote_v1_0_03_29.pdf",
-        "https://www.cisco.com/c/dam/en/us/td/docs/routers/csbr/RV340/Release_Note/RV34xx_relnote_v1_0_03_28.pdf"
-      ],
-      "schema_version": 2,
-      "source_fingerprint": "d4a3b7cf2d2a1935a285acd160c30f8350a05c7fb1e74e3457811398246cf4cd",
-      "source_urls": [
-        "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-smb-mult-vuln-KA9PK6D.html",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-smb-mult-vuln-KA9PK6D"
-      ],
-      "status": "complete",
-      "uncertainty": [
-        "The supplied source record labels the issue as a stack-based buffer overflow, while Cisco's advisory identifies CVE-2022-20701 within a group of privilege-escalation vulnerabilities and assigns it a different CVSS characterization.",
-        "NVD lists a CNA score of 10.0 with a network vector, while Cisco's advisory lists 9.0 with a local vector for this CVE. The actual exposure depends on the router's management-interface reachability and deployment configuration.",
-        "Cisco's fixed-release table is provided for the advisory's vulnerability set rather than as a separate per-CVE firmware table; the 1.0.03.26 fixed release is therefore the authoritative advisory-level remediation for the affected RV340/RV345 product family."
-      ],
-      "verification_steps": [
-        "Review the router's installed firmware version through the normal administrative inventory or management interface.",
-        "Confirm that the reported firmware version is 1.0.03.26 or later for RV340/RV345 Series devices.",
-        "Confirm that the device model is within the affected RV340, RV340W, RV345, or RV345P family and record the firmware version and update date for remediation evidence.",
-        "Do not perform exploit attempts or crafted-request testing; version validation against Cisco's fixed-release table is the supported non-invasive verification."
-      ]
-    },
-    "CVE-2022-20703": {
-      "business_risk": "Critical. An attacker with local access to an affected Cisco Small Business RV router may bypass software-image signature verification, install and boot a malicious image, or execute unsigned binaries. Cisco reports that proof-of-concept exploit code is available for several vulnerabilities in the advisory, and NVD records CVE-2022-20703 in CISA's Known Exploited Vulnerabilities Catalog.",
-      "claim_evidence": [
-        {
-          "claim": "CVE-2022-20703 affects Cisco RV160, RV160W, RV260, RV260P, RV260W, RV340, RV340W, RV345, and RV345P Series Routers.",
-          "kind": "affected_product",
-          "source_url": "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-smb-mult-vuln-KA9PK6D.html"
-        },
-        {
-          "claim": "Cisco identifies RV160/RV260 Series firmware 1.0.01.05 and earlier, and RV340/RV345 Series firmware 1.0.03.24 and earlier, as vulnerable releases in the advisory's fixed-release table.",
-          "kind": "affected_version",
-          "source_url": "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-smb-mult-vuln-KA9PK6D.html"
-        },
-        {
-          "claim": "The vulnerability is an improper software-image verification issue that can allow an unauthenticated local attacker to install and boot a malicious software image or execute unsigned binaries.",
-          "kind": "exposure",
-          "source_url": "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-smb-mult-vuln-KA9PK6D.html"
-        },
-        {
-          "claim": "Cisco lists first fixed release 1.0.01.07 for RV160/RV260 Series Routers and 1.0.03.26 for RV340/RV345 Series Routers.",
-          "kind": "fixed_version",
-          "source_url": "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-smb-mult-vuln-KA9PK6D.html"
-        },
-        {
-          "claim": "Cisco has released software updates addressing the vulnerability and states that no workaround is available.",
-          "kind": "remediation",
-          "source_url": "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-smb-mult-vuln-KA9PK6D.html"
-        },
-        {
-          "claim": "Cisco's fixed-release table provides concrete version thresholds against which the device's reported firmware version can be checked.",
-          "kind": "verification",
-          "source_url": "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-smb-mult-vuln-KA9PK6D.html"
-        }
-      ],
-      "exposure_conditions": [
-        "The device is one of the affected Cisco RV160, RV160W, RV260, RV260P, RV260W, RV340, RV340W, RV345, or RV345P routers.",
-        "The device runs firmware 1.0.01.05 or earlier for RV160/RV260 Series models, or firmware 1.0.03.24 or earlier for RV340/RV345 Series models.",
-        "Exploitation requires an attacker to have local access sufficient to load unsigned software onto the device."
-      ],
-      "gaps": [],
-      "generated_at": "2026-07-27T12:50:03Z",
-      "model": "gpt-5.6-luna",
-      "prompt_version": "2026-07-14.2",
-      "recipe_specificity": "not_specific",
-      "remediation_steps": [
-        "Upgrade RV160 and RV260 Series Routers from firmware 1.0.01.05 or earlier to Cisco first fixed release 1.0.01.07 or later.",
-        "Upgrade RV340 and RV345 Series Routers from firmware 1.0.03.24 or earlier to Cisco first fixed release 1.0.03.26 or later.",
-        "Obtain the update through Cisco's authorized software-update channels and confirm that the target hardware and licensed feature set are supported.",
-        "Because Cisco documents no workaround for this vulnerability, prioritize firmware updates for exposed or business-critical routers."
-      ],
-      "retrieved_source_urls": [
-        "https://nvd.nist.gov/vuln/detail/cve-2022-20703",
-        "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-smb-mult-vuln-KA9PK6D.html",
-        "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-broadworks-xss-xbhfr4cD.html",
-        "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-ise-7Q4TNYUx.html",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-qfp-ipsec-GQmqvtqV",
-        "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-xr-cdp-wnALzvT2.html",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-alg-dos-KU9Z8kFX",
-        "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-VU855201-J3z8CKTX.html",
-        "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-nxos-cdp-dos-ce-wWvPucC9.html",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-iosxe-priv-esc-grbtubU",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-vpndtls-dos-TunzLEV",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-ssh-excpt-dos-FzOBQTnk",
-        "https://community.cisco.com/legacyfs/online/attachments/discussion/cisco_ios_and_cisco_ios_xe_software_openssh_tcp_denial_of_service_vulnerability.pdf",
-        "https://www.cisco.com/c/dam/en/us/td/docs/security/cyber_vision/Cisco-Cyber-Vision_KDB_Release-Note-202509.pdf",
-        "https://www.cisco.com/c/dam/en/us/td/docs/security/cyber_vision/Cisco-Cyber-Vision_KDB_Release-Note-20250602.pdf",
-        "https://www.cisco.com/c/dam/en/us/td/docs/security/cyber_vision/Cisco-Cyber-Vision_KDB_Release-Note-202510.pdf",
-        "https://www.cisco.com/c/en/us/support/docs/routers/sd-wan/225842-remediate-catalyst-sd-wan-security.pdf",
-        "https://www.cisco.com/c/dam/en/us/td/docs/security/cyber_vision/Cisco-Cyber-Vision_KDB_Release-Note-202310.pdf"
-      ],
-      "schema_version": 2,
-      "source_fingerprint": "749e26ba0ead27f2c95580a04d15e4e9c222b18c371c792c224a159dcf2e74c6",
       "source_urls": [
         "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-smb-mult-vuln-KA9PK6D.html"
       ],
       "status": "complete",
       "uncertainty": [
-        "Cisco's advisory groups CVE-2022-20703 with multiple RV Series vulnerabilities; the fixed-release table is advisory-wide rather than presented as a CVE-specific build matrix.",
-        "The supplied record lists firmware version as n/a, so the actual device exposure cannot be determined without the device model and running firmware version.",
-        "The sources establish the fixed releases and a safe version-based verification method, but do not establish a more granular CVE-specific verification procedure."
+        "NVD detail page content could not be retrieved in full; version ranges and product list were taken from the vendor advisory and corroborated by NVD search snippets and CISA KEV."
       ],
       "verification_steps": [
-        "Confirm the router's reported firmware version is at least 1.0.01.07 for RV160/RV260 Series models or at least 1.0.03.26 for RV340/RV345 Series models.",
-        "Confirm the device model is covered by the corresponding fixed-release table and that the installed version is not within the vulnerable range.",
-        "Record the post-update firmware version from the device's normal administrative inventory or management interface; do not attempt to load unsigned software or otherwise test exploit behavior."
+        "Confirm the installed firmware version on each device against the first fixed release listed for the product series in the Cisco advisory Fixed Software table."
       ]
     },
-    "CVE-2022-20708": {
-      "business_risk": "Critical. CVE-2022-20708 can allow an unauthenticated remote attacker to inject and execute arbitrary commands on the underlying Linux operating system of affected Cisco RV340-series routers. The vulnerability is listed in CISA's Known Exploited Vulnerabilities Catalog, so exploitation risk should be treated as active and urgent.",
+    "CVE-2022-20701": {
+      "business_risk": "Critical (CNA CVSS 9.0–10.0) privilege-escalation issue in the web-based management interface of Cisco RV340/RV340W/RV345/RV345P routers that can yield root-level command execution; listed in CISA KEV as known-exploited with a 2022 remediation deadline.",
       "claim_evidence": [
         {
-          "claim": "CVE-2022-20708 affects Cisco RV340, RV340W, RV345, and RV345P Dual WAN Gigabit VPN Routers.",
+          "claim": "CVE-2022-20701 affects only Cisco RV340 Dual WAN Gigabit VPN Routers, RV340W Dual WAN Gigabit Wireless-AC VPN Routers, RV345 Dual WAN Gigabit VPN Routers, and RV345P Dual WAN Gigabit POE VPN Routers.",
           "kind": "affected_product",
           "source_url": "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-smb-mult-vuln-KA9PK6D.html"
         },
         {
-          "claim": "Cisco identifies RV340 and RV345 Series Router firmware releases 1.0.03.24 and earlier as vulnerable for the advisory covering CVE-2022-20708.",
+          "claim": "Vulnerable releases for RV340 and RV345 Series Routers are 1.0.03.24 and earlier.",
           "kind": "affected_version",
           "source_url": "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-smb-mult-vuln-KA9PK6D.html"
         },
         {
-          "claim": "Cisco describes CVE-2022-20708 as an unauthenticated remote command-injection vulnerability in the web-based management interface that can execute arbitrary commands on the underlying Linux operating system.",
-          "kind": "exposure",
-          "source_url": "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-smb-mult-vuln-KA9PK6D.html"
-        },
-        {
-          "claim": "Cisco lists firmware release 1.0.03.26 as the first fixed release for RV340 and RV345 Series Routers.",
+          "claim": "First fixed release for RV340 and RV345 Series Routers is 1.0.03.26.",
           "kind": "fixed_version",
           "source_url": "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-smb-mult-vuln-KA9PK6D.html"
         },
         {
-          "claim": "Cisco states that software updates address the vulnerabilities and that no workaround addresses them.",
-          "kind": "remediation",
+          "claim": "Multiple vulnerabilities in the web-based management interface of Cisco Small Business RV Series Routers could allow a remote attacker to elevate privileges to root due to insufficient authorization enforcement mechanisms; an attacker could exploit these vulnerabilities by submitting specific commands to an affected device.",
+          "kind": "exposure",
           "source_url": "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-smb-mult-vuln-KA9PK6D.html"
         },
         {
-          "claim": "Firmware remediation can be verified by confirming that the affected RV340-series device reports release 1.0.03.26 or later, based on Cisco's vulnerable-release and first-fixed-release table.",
-          "kind": "verification",
+          "claim": "Cisco has released software updates that address these vulnerabilities. There are no workarounds that address these vulnerabilities. Customers are advised to upgrade to an appropriate fixed software release as indicated in the advisory table.",
+          "kind": "remediation",
           "source_url": "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-smb-mult-vuln-KA9PK6D.html"
         }
       ],
       "exposure_conditions": [
-        "The device is a Cisco RV340, RV340W, RV345, or RV345P router.",
-        "The device is running firmware version 1.0.03.24 or earlier.",
-        "The router's web-based management interface is reachable by an attacker who can submit malicious input without authentication."
+        "Device is one of the RV340, RV340W, RV345, or RV345P Dual WAN Gigabit VPN Routers running vulnerable firmware",
+        "Web-based management interface is reachable so that an attacker can submit specific commands",
+        "Insufficient authorization enforcement in the management interface (CNA CVSS attack vector Local for this CVE)"
       ],
       "gaps": [],
-      "generated_at": "2026-07-27T12:49:47Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-10-04T15:06:58Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [
-        "Upgrade affected RV340, RV340W, RV345, or RV345P routers to firmware release 1.0.03.26 or later, using Cisco's authorized software distribution process.",
-        "Prioritize internet-reachable or otherwise externally accessible management interfaces because Cisco describes the issue as remotely exploitable and unauthenticated.",
-        "Cisco states that no workaround addresses these vulnerabilities; do not treat access restrictions as a replacement for firmware remediation."
+        "Upgrade RV340, RV340W, RV345, and RV345P series firmware from 1.0.03.24 or earlier to the first fixed release 1.0.03.26 or later per the Cisco advisory",
+        "There are no workarounds; apply updates per vendor instructions as required by CISA KEV"
       ],
       "retrieved_source_urls": [
-        "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-sb-rv-bypass-inject-Rbhgvfdx.html",
-        "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-rv-multi-lldp-u7e4chCe.html",
-        "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-sbrv-rce-OYLQbL9u.html",
-        "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-sb-mult-vuln-CbVp4SUR.html",
-        "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-rv-info-dis-FEWBWgsD.html",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-rv-overflow-WUnUgv4U",
-        "https://nvd.nist.gov/vuln/detail/cve-2022-20708",
-        "https://www.cisco.com/c/en/us/support/routers/small-business-rv-series-routers/products-security-advisories-list.html",
-        "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-20141105-rv.html",
-        "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-smb-mult-vuln-KA9PK6D.html",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-smb-mult-vuln-KA9PK6D",
-        "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-smb-sxss-OPYJZUmE.html",
-        "https://www.cisco.com/c/dam/en/us/td/docs/routers/csbr/RV260/Release_notes/RV16x_Rv26x_relnote_v1_0_01_07.pdf",
-        "https://www.cisco.com/c/dam/en/us/td/docs/routers/csbr/rv0xx/release/RV0xx_V_4-2-3-14.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
-        "https://www.cisco.com/c/dam/en/us/td/docs/routers/csbr/rv320/release_notes/rv32x_relnote_v1_5_1_11.pdf",
-        "https://www.cisco.com/c/dam/en/us/td/docs/routers/csbr/rv320/release_notes/rv32x_relnote-V1_5_1_13.pdf",
-        "https://www.cisco.com/c/dam/en/us/td/docs/routers/csbr/RV260/Release_notes/RV16x_Rv26x_relnote_v1_0_01_04.pdf"
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-20701",
+        "https://www.cvedetails.com/cve/CVE-2022-20701/",
+        "https://cvefeed.io/vuln/detail/CVE-2022-20701",
+        "https://cve.yack.one/cve/CVE-2022-20701",
+        "https://cvetodo.com/cve/CVE-2022-20701",
+        "https://ctid.mitre.org/mappings/external/kev/attack-16.1/domain-enterprise/kev-07.28.2025/CVE-2022-20701/",
+        "https://socradar.io/free-tools/cve-radar/CVE-2022-20701",
+        "https://www.incibe.es/incibe-cert/alerta-temprana/vulnerabilidades/cve-2022-20701",
+        "https://www.cloudanix.com/vulndb/cve/CVE-2022-20701",
+        "https://www.rainforest.tech/en/cves/CVE-2022-20701",
+        "https://www.sentinelone.com/vulnerability-database/cve-2022-20701/",
+        "https://otx.alienvault.com/indicator/cve/CVE-2022-20701",
+        "https://app.opencve.io/cve/CVE-2022-20701",
+        "https://vulners.com/cve/CVE-2022-20701",
+        "https://www.manageengine.com/vulnerability-management/vulnerability-database/CVE-2022-20701.html",
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-20703",
+        "https://nvd.nist.gov/nvd.cfm?cvename=CVE-2019-20701",
+        "https://nvd.nist.gov/vuln/detail/cve-2022-20501",
+        "https://nvd.nist.gov/vuln/detail/cve-2022-20001",
+        "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-asa-dos-tL4uA4AA.html",
+        "https://www.cisco.com/c/ja_jp/support/docs/csa/2022/cisco-sa-cucm-imp-afr-YBFLNyzd.html",
+        "https://www.cisco.com/c/ja_jp/support/docs/csa/2022/cisco-sa-expressway-filewrite-87Q5YRk.html",
+        "https://www.cisco.com/c/ja_jp/support/docs/csa/2022/cisco-sa-ftd-snort-dos-hd2hFgM.pdf",
+        "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-smb-mult-vuln-KA9PK6D.html"
       ],
       "schema_version": 2,
-      "source_fingerprint": "77517d7fdf7d84c8c2e91b89fd4ad3fdd1e6c25ca04b47b848c0120d5e51d219",
+      "source_fingerprint": "d4a3b7cf2d2a1935a285acd160c30f8350a05c7fb1e74e3457811398246cf4cd",
       "source_urls": [
         "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-smb-mult-vuln-KA9PK6D.html",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-smb-mult-vuln-KA9PK6D"
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-20701"
       ],
       "status": "complete",
       "uncertainty": [
-        "Cisco's advisory covers multiple CVEs in one grouped advisory; the first fixed release of 1.0.03.26 is documented for the RV340 and RV345 series as a group rather than in a CVE-specific table.",
-        "The supplied source record reports an affected version of n/a, while Cisco's advisory and NVD identify the affected RV340-series firmware range as 1.0.03.24 and earlier.",
-        "No product-specific safe scanning method or configuration-level workaround was established by the reviewed authoritative sources."
+        "NVD page content could not be retrieved in full; NVD and CISA descriptions reuse the generic multi-CVE advisory summary",
+        "CISA KEV product list includes RV160/RV260 series which the vendor advisory explicitly states are not affected by CVE-2022-20701",
+        "CNA CVSS for this CVE is AV:L while the grouped privilege-escalation text refers to a remote attacker; NVD/CNA scores also differ",
+        "No vendor-documented inert procedure beyond checking the software version against the advisory table"
       ],
       "verification_steps": [
-        "Confirm the device model is not outside the Cisco product scope for this CVE.",
-        "Review the device's reported firmware version through the normal administrative inventory process and confirm it is 1.0.03.26 or later.",
-        "Record the firmware version and update status for each RV340-series device, then recheck any device that remains at 1.0.03.24 or earlier."
+        "Compare the firmware version displayed in the device management interface against the Cisco advisory fixed-release table (1.0.03.26 or later for RV340/RV345 series)"
       ]
     },
-    "CVE-2022-22587": {
-      "business_risk": "Critical local privilege-escalation risk on affected Apple operating systems. A malicious application may execute arbitrary code with kernel privileges. Apple reported possible active exploitation, and CISA lists this CVE in the Known Exploited Vulnerabilities Catalog.",
+    "CVE-2022-20703": {
+      "business_risk": "Listed in CISA KEV as known exploited. Cisco rates related issues in the same advisory as critical (CVSS 10.0 network). CVE-2022-20703 specifically enables an unauthenticated local attacker to install and boot malicious or unsigned software images, which can lead to persistent full device compromise.",
       "claim_evidence": [
         {
-          "claim": "NVD identifies iOS/iPadOS and macOS as affected product families for CVE-2022-22587.",
+          "claim": "Cisco Small Business RV160, RV260, RV340, and RV345 Series Routers (RV160 VPN Routers, RV160W, RV260, RV260P, RV260W, RV340 Dual WAN Gigabit VPN Routers, RV340W, RV345, RV345P)",
           "kind": "affected_product",
-          "source_url": "https://nvd.nist.gov/vuln/detail/cve-2022-22587"
+          "source_url": "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-smb-mult-vuln-KA9PK6D.html"
         },
         {
-          "claim": "NVD identifies iPadOS and iPhone OS versions before 15.3, macOS Big Sur versions before 11.6.3, and macOS Monterey versions from 12.0 through before 12.2 as affected configurations.",
+          "claim": "RV160 and RV260 Series Routers: 1.0.01.05 and earlier; RV340 and RV345 Series Routers: 1.0.03.24 and earlier",
           "kind": "affected_version",
-          "source_url": "https://nvd.nist.gov/vuln/detail/cve-2022-22587"
+          "source_url": "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-smb-mult-vuln-KA9PK6D.html"
         },
         {
-          "claim": "Apple describes a malicious application potentially executing arbitrary code with kernel privileges and states that it was aware of a report of possible active exploitation.",
+          "claim": "A vulnerability in the software image verification feature could allow an unauthenticated, local attacker to install and boot a malicious software image or execute unsigned binaries due to improper verification of software images as they are installed",
           "kind": "exposure",
-          "source_url": "https://support.apple.com/en-us/103172"
+          "source_url": "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-smb-mult-vuln-KA9PK6D.html"
         },
         {
-          "claim": "Apple describes the same impact and possible active exploitation for macOS Monterey.",
-          "kind": "exposure",
-          "source_url": "https://support.apple.com/en-us/102848"
-        },
-        {
-          "claim": "Apple's iOS and iPadOS security content page identifies the fix in iOS 15.3 and iPadOS 15.3.",
+          "claim": "First fixed release 1.0.01.07 for RV160 and RV260 Series Routers; first fixed release 1.0.03.26 for RV340 and RV345 Series Routers",
           "kind": "fixed_version",
-          "source_url": "https://support.apple.com/en-us/103172"
+          "source_url": "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-smb-mult-vuln-KA9PK6D.html"
         },
         {
-          "claim": "Apple's macOS Monterey security content page identifies the fix in macOS Monterey 12.2.",
-          "kind": "fixed_version",
-          "source_url": "https://support.apple.com/en-us/102848"
-        },
-        {
-          "claim": "NVD records the vendor-fixed versions and CISA's required action as applying updates according to vendor instructions.",
+          "claim": "Cisco has released software updates that address these vulnerabilities. There are no workarounds. Customers are advised to upgrade to an appropriate fixed software release as indicated in the Fixed Software table",
           "kind": "remediation",
-          "source_url": "https://nvd.nist.gov/vuln/detail/cve-2022-22587"
+          "source_url": "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-smb-mult-vuln-KA9PK6D.html"
         },
         {
-          "claim": "A safe version-based verification can compare the installed operating-system version against Apple's documented fixed versions; the sources do not provide a separate fleet-attestation procedure.",
+          "claim": "For information about which Cisco software releases are vulnerable, see the Fixed Software section of this advisory; the Cisco PSIRT validates only the affected and fixed release information documented in this advisory",
           "kind": "verification",
-          "source_url": "https://nvd.nist.gov/vuln/detail/cve-2022-22587"
+          "source_url": "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-smb-mult-vuln-KA9PK6D.html"
         }
       ],
       "exposure_conditions": [
-        "The device runs iOS or iPadOS earlier than 15.3.",
-        "The device runs macOS Big Sur earlier than 11.6.3.",
-        "The device runs macOS Monterey 12.0 through versions earlier than 12.2.",
-        "A malicious application is executed on the affected device."
+        "Unauthenticated local attacker able to load unsigned software on the device",
+        "Improper verification of software images during installation on affected RV series routers",
+        "RV160 and RV260 Series running 1.0.01.05 and earlier",
+        "RV340 and RV345 Series running 1.0.03.24 and earlier"
       ],
       "gaps": [],
-      "generated_at": "2026-07-27T12:49:31Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-10-04T15:05:30Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [
-        "Update iOS and iPadOS devices to version 15.3 or later, or to the latest Apple-supported release.",
-        "Update macOS Big Sur devices to 11.6.3 or later, or to the latest Apple-supported release.",
-        "Update macOS Monterey devices to 12.2 or later, or to the latest Apple-supported release.",
-        "Prioritize remediation because the vulnerability is listed in CISA's Known Exploited Vulnerabilities Catalog."
+        "Upgrade RV160 and RV260 Series Routers to firmware 1.0.01.07 or later",
+        "Upgrade RV340 and RV345 Series Routers to firmware 1.0.03.26 or later",
+        "Apply updates per vendor instructions (CISA KEV required action); no workarounds are available"
       ],
       "retrieved_source_urls": [
-        "https://nvd.nist.gov/vuln/detail/cve-2022-22587",
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-20703",
+        "https://nvd.nist.gov/vuln/detail/cve-2022-20703",
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-2070",
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-20727/change-record?changeRecordedOn=04/22/2022T16:40:48.237-0400",
+        "https://nvd.nist.gov/nvd.cfm?cvename=CVE-2019-20703",
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-21703",
+        "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-iox-yuXQ6hFj.html",
+        "https://tools.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-asa-webvpn-LOeKsNmO?vs_f=Cisco%20Security%20Advisory&vs_cat=Security%20Intelligence&vs_type=RSS&vs_p=Cisco%20Adaptive%20Security%20Appliance%20and%20Firepower%20Threat%20Defense%20Software%20VPN%20Web%20Client%20Services%20Client-Side%20Request%20Smuggling%20Vulnerability&vs_k=1",
+        "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-expressway-filewrite-87Q5YRk.html",
+        "https://tools.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-webuiapi-inj-Nyrq92Od?vs_f=Cisco+Security+Advisory&vs_cat=Security+Intelligence&vs_type=RSS&vs_p=Cisco+IOS+XE+Software+Web+UI+API+Injection+Vulnerability&vs_k=1",
+        "https://www.cisco.com/c/en/us/td/docs/switches/datacenter/nexus7000/sw/release/notes/cisco_nexus7000_release_notes_84.html",
+        "https://www.cisco.com/c/en/us/td/docs/routers/access/1100/release/isr1k-release-notes-xe-26-2-x.html",
+        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-sb-rv-rce-overflow-ygHByAK",
+        "https://www.cisco.com/c/ja_jp/support/docs/csa/2022/cisco-sa-sd-wan-file-access-VW36d28P.html",
+        "https://www.cisco.com/c/ja_jp/support/docs/csa/2022/cisco-sa-asa-webvpn-LOeKsNmO.pdf",
+        "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-meraki-mx-vpn-dos-vnESbgBf.html",
+        "https://www.cve.org/CVERecord?id=CVE-2022-20703",
+        "https://socradar.io/free-tools/cve-radar/CVE-2022-20703",
+        "https://cve.yack.one/cve/CVE-2022-20703",
+        "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-smb-mult-vuln-KA9PK6D.html",
+        "https://cvetodo.com/cve/CVE-2022-20703",
+        "https://cve.report/CVE-2022-20703",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog-print"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "749e26ba0ead27f2c95580a04d15e4e9c222b18c371c792c224a159dcf2e74c6",
+      "source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-20703",
+        "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-smb-mult-vuln-KA9PK6D.html"
+      ],
+      "status": "complete",
+      "uncertainty": [
+        "CISA KEV catalog names this CVE a stack-based buffer overflow while the Cisco advisory details CVE-2022-20703 as a digital signature / software image verification bypass",
+        "NVD description uses the multi-vulnerability advisory summary and enumerates both CWE-121 and CWE-295"
+      ],
+      "verification_steps": [
+        "Consult the Fixed Software table in the Cisco security advisory and confirm the device firmware is the first fixed release or later for the applicable product series"
+      ]
+    },
+    "CVE-2022-20708": {
+      "business_risk": "No additional source-verified CVE-specific business impact was established.",
+      "claim_evidence": [],
+      "exposure_conditions": [],
+      "gaps": [],
+      "generated_at": "2026-10-04T15:03:35Z",
+      "model": "grok-4.6",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [],
+      "retrieved_source_urls": [],
+      "schema_version": 2,
+      "source_fingerprint": "77517d7fdf7d84c8c2e91b89fd4ad3fdd1e6c25ca04b47b848c0120d5e51d219",
+      "source_urls": [],
+      "status": "insufficient_evidence",
+      "uncertainty": [
+        "Authoritative NVD, Cisco PSIRT, and CISA KEV pages have not been retrieved yet."
+      ],
+      "verification_steps": []
+    },
+    "CVE-2022-22536": {
+      "business_risk": "No additional source-verified CVE-specific business impact was established.",
+      "claim_evidence": [],
+      "exposure_conditions": [],
+      "gaps": [],
+      "generated_at": "2026-10-04T15:11:55Z",
+      "model": "grok-4.6",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [],
+      "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/cve-2022-22536",
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-22536/change-record?changeRecordedOn=02/11/2022T10:05:00.707-0500",
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-22536/change-record?changeRecordedOn=01%2F09%2F2023T15%3A29%3A24.867-0500",
+        "https://nvd.nist.gov/vuln/detail/cve-2022-22936",
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-22336",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-25236",
+        "https://nvd.nist.gov/vuln/detail/cve-2022-21936",
+        "https://nvd.nist.gov/vuln/detail/cve-2022-23536",
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-22236/change-record?changeRecordedOn=10/21/2022T14:38:25.657-0400",
+        "https://nvd.nist.gov/vuln/detail/cve-2022-24936",
+        "https://userapps.support.sap.com/sap/support/knowledge/en/3148968",
+        "https://userapps.support.sap.com/sap/support/knowledge/en/3151462",
+        "https://community.sap.com/t5/application-development-and-automation-blog-posts/sap-partners-with-onapsis-to-identify-and-patch-cybersecurity/ba-p/13547694",
+        "https://support.sap.com/content/dam/support/en_us/library/ssp/my-support/knowledge-base/security-notes-news/2022%20Patch%20Day%20Bulletin.pdf",
+        "https://learning.sap.com/courses/sap-integrated-business-planning-for-supply-chain/cross-topics_cbd6dfe7-4fc7-4624-9a5b-273340eebb70",
+        "https://help.sap.com/docs/SAP_Solution_Manager/10e6d9cb3bc740e6a4c41588d9fc07a3/83b76f637a40453180023b1df238f3ae.html",
+        "https://community.sap.com/t5/developer-news/sap-developer-news-september-24th-2026/ba-p/14491616",
+        "https://support.sap.com/content/dam/support/en_us/library/ssp/my-support/knowledge-base/security-notes-news/2022%20Patch%20Day%20Bulletin_new.pdf",
+        "https://help.sap.com/docs/SAP_Solution_Manager/10e6d9cb3bc740e6a4c41588d9fc07a3/83b76f637a40453180023b1df238f3ae.html?locale=de-DE",
+        "https://us-cert.cisa.gov/ncas/bulletins/sb22-080",
+        "https://www.cisa.gov/news-events/bulletins/sb22-269",
+        "https://us-cert.cisa.gov/ncas/bulletins/sb22-206",
+        "https://www.cisa.gov/news-events/bulletins/sb22-157",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog-print"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "2ab0406f6522a5a2691b8abb4cdaa1e7c397a1e2823c74109ed315aa1359c0c0",
+      "source_urls": [
+        "https://nvd.nist.gov/vuln/detail/cve-2022-22536",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog-print",
+        "https://userapps.support.sap.com/sap/support/knowledge/en/3148968"
+      ],
+      "status": "insufficient_evidence",
+      "uncertainty": [
+        "Concrete fixed kernel patch levels are published only inside SAP Note 3123396, which requires a logged-in SAP support account and is not available in open sources.",
+        "NVD CPEs and vendor bulletins list specific affected versions without public upper-bound or patched-release identifiers.",
+        "No open-source inert verification procedure (version check, configuration review, or non-destructive test) is published by NVD, CISA or SAP.",
+        "Workaround parameter and rewrite-rule details are behind additional login-walled notes."
+      ],
+      "verification_steps": []
+    },
+    "CVE-2022-22587": {
+      "business_risk": "Critical kernel-level memory corruption (CWE-787) in IOMobileFrameBuffer that can allow a malicious application to execute arbitrary code with kernel privileges. Apple reported possible active exploitation; the CVE is in the CISA Known Exploited Vulnerabilities catalog.",
+      "claim_evidence": [
+        {
+          "claim": "iOS and iPadOS versions prior to 15.3 are affected.",
+          "kind": "affected_version",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-22587"
+        },
+        {
+          "claim": "macOS versions prior to Monterey 12.2 and Big Sur 11.6.3 are affected.",
+          "kind": "affected_version",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-22587"
+        },
+        {
+          "claim": "The issue is fixed in macOS Monterey 12.2.",
+          "kind": "fixed_version",
+          "source_url": "https://support.apple.com/en-us/102848"
+        }
+      ],
+      "exposure_conditions": [
+        "A malicious application is installed and run on an affected device",
+        "The device runs iOS, iPadOS, or macOS prior to the versions that contain the fix",
+        "Apple has stated it is aware of a report that the issue may have been actively exploited"
+      ],
+      "gaps": [],
+      "generated_at": "2026-10-04T15:03:25Z",
+      "model": "grok-4.6",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [
+        "Update iOS and iPadOS to 15.3 or later",
+        "Update macOS Monterey to 12.2 or later",
+        "Update macOS Big Sur to 11.6.3 or later",
+        "Apply updates per vendor instructions"
+      ],
+      "retrieved_source_urls": [
         "https://nvd.nist.gov/vuln/detail/CVE-2022-22587",
-        "https://nvd.nist.gov/nvd.cfm?cvename=CVE-2022-22587",
-        "https://support.apple.com/en-us/103172",
-        "https://nvd.nist.gov/vuln/detail/cve-2022-0225",
-        "https://support.apple.com/en-us/103176",
-        "https://support.apple.com/en-us/102807",
-        "https://support.apple.com/en-us/103157",
-        "https://nvd.nist.gov/vuln/detail/CVE-2022-22387",
-        "https://support.apple.com/en-us/120323",
-        "https://nvd.nist.gov/vuln/detail/CVE-2022-22687",
-        "https://nvd.nist.gov/vuln/detail/CVE-2022-22087",
-        "https://support.apple.com/content/dam/edam/applecare/images/en_US/otherassets/accessibility/vpat_macbookair_m2_2022.pdf",
-        "https://support.apple.com/content/dam/edam/applecare/images/en_US/otherassets/accessibility/vpat_ipad_10th_2022.pdf",
-        "https://support.apple.com/content/dam/edam/applecare/images/en_US/otherassets/accessibility/vpat_macbookpro_m2_2022.pdf",
-        "https://support.apple.com/content/dam/edam/applecare/images/en_US/otherassets/accessibility/VPAT_Pages_7.1_for_macOS.pdf",
-        "https://support.apple.com/content/dam/edam/applecare/images/en_US/otherassets/accessibility/vpat_macbookpro_14_2023.pdf",
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-22597/change-record?changeRecordedOn=03/25/2022T15:49:08.840-0400",
+        "https://nvd.nist.gov/vuln/detail/cve-2022-22487",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-22587?ref=cvefinder.io",
+        "https://nvd.nist.gov/vuln/detail/cve-2022-22187",
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-22787",
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-48987",
         "https://support.apple.com/en-us/102848",
-        "https://support.apple.com/en-mide/103147",
-        "https://support.apple.com/en-us/103131",
-        "https://support.apple.com/en-us/102899",
-        "https://support.apple.com/en-us/102873",
-        "https://support.apple.com/en-us/103066",
-        "https://support.apple.com/en-us/102806"
+        "https://support.apple.com/zh-cn/102848",
+        "https://support.apple.com/zh-tw/102848",
+        "https://support.apple.com/de-de/102848",
+        "https://support.apple.com/ja-jp/102848",
+        "https://support.apple.com/ru-ru/102848",
+        "https://support.apple.com/fr-fr/102848",
+        "https://support.apple.com/es-es/102848",
+        "https://support.apple.com/tr-tr/102848",
+        "https://support.apple.com/en-us/100100",
+        "https://www.cisa.gov/news-events/alerts/2022/01/28/cisa-adds-eight-known-exploited-vulnerabilities-catalog",
+        "https://us-cert.cisa.gov/ncas/bulletins/sb22-080",
+        "https://www.cisa.gov/ncas/bulletins/sb22-080",
+        "http://cisa.gov/news-events/ics-advisories/icsa-25-273-04",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog",
+        "https://www.cve.org/CVERecord?id=CVE-2022-22587",
+        "https://www.wiz.io/vulnerability-database/cve/cve-2022-22587"
       ],
       "schema_version": 2,
       "source_fingerprint": "651f1dc4c9b79d78cb9d5a805a81259106533c25437b3245b9c653204aaaff5c",
       "source_urls": [
-        "https://nvd.nist.gov/vuln/detail/cve-2022-22587",
-        "https://support.apple.com/en-us/103172",
-        "https://support.apple.com/en-us/102848"
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-22587",
+        "https://support.apple.com/en-us/102848",
+        "https://www.cisa.gov/news-events/alerts/2022/01/28/cisa-adds-eight-known-exploited-vulnerabilities-catalog"
       ],
       "status": "complete",
       "uncertainty": [
-        "The authoritative sources establish fixed release versions and impact, but do not provide a vendor-specific fleet-query or attestation procedure.",
-        "The affected macOS range is represented differently across the supplied record and NVD: the Apple CNA data uses macOS versions below 12.2 and below 11.6, while NVD CPE matching identifies Big Sur versions below 11.6.3 and Monterey 12.0 through below 12.2. Use the explicit Apple security-release pages and NVD CPE data when normalizing inventory.",
-        "The sources do not establish whether any particular endpoint was exploited; they establish only Apple's report of possible active exploitation and CISA catalog inclusion."
+        "NVD lists one macOS affected range as unspecified versions less than 11.6 while Apple documents the fix in 11.6.3",
+        "Lower bounds of affected versions are described as unspecified",
+        "NVD CVSS vector uses a network attack vector while vendor text describes a malicious application"
       ],
       "verification_steps": [
-        "In device-management inventory or the local operating-system version screen, confirm that iOS/iPadOS is at least 15.3, macOS Big Sur is at least 11.6.3, or macOS Monterey is at least 12.2.",
-        "Confirm that the installed operating-system version is reported as successfully updated and that no affected pre-fix version remains in inventory.",
-        "Do not use exploit attempts or production probes to validate remediation."
+        "Confirm the device operating-system version matches or exceeds the fixed releases published in the Apple security-content advisories for iOS 15.3 and iPadOS 15.3, macOS Monterey 12.2, and macOS Big Sur 11.6.3"
       ]
     },
     "CVE-2022-22947": {
@@ -13887,65 +13853,102 @@
       "verification_steps": []
     },
     "CVE-2022-22965": {
-      "business_risk": "Critical remote-code-execution risk for qualifying Spring MVC or Spring WebFlux applications. The vulnerability is listed in CISA's Known Exploited Vulnerabilities Catalog, so internet-exposed qualifying applications should be prioritized for immediate remediation and follow-up compromise assessment.",
+      "business_risk": "Critical unauthenticated remote code execution (CVSS 9.8) via data binding in Spring MVC or WebFlux applications, listed in CISA Known Exploited Vulnerabilities catalog.",
       "claim_evidence": [
         {
-          "claim": "Spring MVC or Spring WebFlux applications may be vulnerable to remote code execution via data binding; a Spring Boot executable JAR is not vulnerable to the specifically documented exploit path, although other paths may exist.",
+          "claim": "Spring Framework",
+          "kind": "affected_product",
+          "source_url": "https://spring.io/security/cve-2022-22965"
+        },
+        {
+          "claim": "Spring Framework 5.3.0 - 5.3.17 and 5.2.19.RELEASE and earlier",
+          "kind": "affected_version",
+          "source_url": "https://spring.io/security/cve-2022-22965"
+        },
+        {
+          "claim": "A Spring MVC or Spring WebFlux application running on JDK 9+ may be vulnerable to remote code execution (RCE) via data binding. The specific exploit requires the application to run on Tomcat as a WAR deployment. Prerequisites: JDK 9 or higher, Apache Tomcat as the Servlet container, packaged as WAR, spring-webmvc or spring-webflux dependency.",
           "kind": "exposure",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-22965"
+          "source_url": "https://spring.io/security/cve-2022-22965"
+        },
+        {
+          "claim": "5.3.18 and 5.2.20.RELEASE",
+          "kind": "fixed_version",
+          "source_url": "https://spring.io/security/cve-2022-22965"
+        },
+        {
+          "claim": "Users of affected versions should upgrade to the corresponding fixed version (5.3.18 or 5.2.20.RELEASE). No other steps are necessary.",
+          "kind": "remediation",
+          "source_url": "https://spring.io/security/cve-2022-22965"
+        },
+        {
+          "claim": "Spring Framework versions 5.3.0 to 5.3.17, 5.2.0 to 5.2.19, and older versions",
+          "kind": "affected_version",
+          "source_url": "https://spring.io/blog/2022/03/31/spring-framework-rce-early-announcement"
+        },
+        {
+          "claim": "Spring Framework 5.3.18 and 5.2.20; Spring Boot 2.6.6 and 2.5.12",
+          "kind": "fixed_version",
+          "source_url": "https://spring.io/blog/2022/03/31/spring-framework-rce-early-announcement"
         }
       ],
       "exposure_conditions": [
-        "Spring Framework 5.3.0 through 5.3.17, 5.2.0 through 5.2.19, or older unsupported versions.",
-        "The application uses Spring MVC or Spring WebFlux, including the spring-webmvc or spring-webflux dependency.",
-        "For the specifically documented exploit path: JDK 9 or later, Apache Tomcat as the servlet container, and deployment as a traditional WAR.",
-        "A Spring Boot executable JAR is not vulnerable to the specifically documented exploit path, but the advisory states that other exploitation paths may exist."
+        "Spring MVC or Spring WebFlux application with spring-webmvc or spring-webflux dependency",
+        "Running on JDK 9 or higher",
+        "Packaged as a traditional WAR and deployed on Apache Tomcat as the Servlet container",
+        "Spring Framework versions 5.3.0 through 5.3.17 or 5.2.19.RELEASE and earlier (including older unsupported versions)",
+        "Application not deployed as a Spring Boot executable JAR (default Boot packaging is not vulnerable to the documented exploit)"
       ],
       "gaps": [],
-      "generated_at": "2026-07-27T12:48:42Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-10-04T14:59:34Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [
-        "Upgrade Spring Framework 5.3.x deployments to 5.3.18 or later.",
-        "Upgrade Spring Framework 5.2.x deployments to 5.2.20 or later.",
-        "Prioritize replacing older unsupported Spring Framework versions with a currently supported release line.",
-        "If an immediate Spring upgrade is not possible, apply vendor-documented compensating measures such as upgrading the applicable Tomcat release or using the documented data-binding restrictions; treat these as temporary defense-in-depth measures, not substitutes for upgrading Spring Framework."
+        "Upgrade Spring Framework to 5.3.18 or 5.2.20.RELEASE",
+        "For Spring Boot applications, use a release that depends on a fixed Spring Framework version such as Spring Boot 2.6.6 or 2.5.12"
       ],
       "retrieved_source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2022-22965",
-        "https://nvd.nist.gov/vuln/detail/cve-2022-22965",
-        "https://www.cisa.gov/news-events/alerts/2022/02/10/cisa-adds-15-known-exploited-vulnerabilities-catalog",
-        "https://nvd.nist.gov/vuln/detail/CVE-2022-22965/change-record?changeRecordedOn=04%2F21%2F2022T10%3A40%3A23.013-0400",
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-22965",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A821&f%5B10%5D=vendor_project%3A886&f%5B11%5D=vendor_project%3A905&f%5B12%5D=vendor_project%3A917&f%5B13%5D=vendor_project%3A921&f%5B14%5D=vendor_project%3A953&f%5B15%5D=vendor_project%3A1004&f%5B1%5D=vendor_project%3A842&f%5B2%5D=vendor_project%3A845&f%5B3%5D=vendor_project%3A849&f%5B4%5D=vendor_project%3A851&f%5B5%5D=vendor_project%3A855&f%5B6%5D=vendor_project%3A859&f%5B7%5D=vendor_project%3A870&f%5B8%5D=vendor_project%3A878&f%5B9%5D=vendor_project%3A881&page=1",
-        "https://www.cisa.gov/news-events/alerts/2023/12/05/cisa-adds-four-known-exploited-vulnerabilities-catalog",
-        "https://nvd.nist.gov/vuln/detail/CVE-2022-23065",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?_cldee=jpUNG-sft0Lr74jsazzEoZ17jTSFEy6lQDvCJArCUYT0C1B4SWuT29F0dx7GSSfN&esid=f8736f67-efb4-ec11-983e-000d3a5a7186&f%5B0%5D=vendor_project%3A813&f%5B1%5D=vendor_project%3A829&f%5B2%5D=vendor_project%3A849&f%5B3%5D=vendor_project%3A911&f%5B4%5D=vendor_project%3A1320&page=1&recipientid=contact-41de9e007aace811a963000d3a363879-a794569726594743b07ecd7aaff0e97c",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=38",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A924&field_cve=&field_date_added_wrapper=all&items_per_page=20&search_api_fulltext=Chrome&sort_by=field_date_added&url=",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=0",
-        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
-        "https://www.cisa.gov/sites/default/files/2024-05/Secure_by_Design_Alert_Eliminating_Directory_Traversal_Vulnerabilities_in_Software_508c%20%283%29.pdf",
-        "https://www.cisa.gov/sites/default/files/2023-08/aa23-215a_joint_csa_2022_top_routinely_exploited_vulnerabilities.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/AA22-117A_Joint_CSA_2021_Top_Routinely_Exploited_Vulnerabilities_Final.pdf"
+        "http://web.nvd.nist.gov/vuln/detail/CVE-2022-22965",
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-22965/change-record?changeRecordedOn=02%2F08%2F2023T21%3A07%3A02.307-0500",
+        "https://nvd.nist.gov/nvd.cfm?cvename=CVE-2022-22965",
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-22965/change-record?changeRecordedOn=04/21/2022T10:19:06.877-0400",
+        "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-22995",
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-22665",
+        "https://nvd.nist.gov/vuln/detail/cve-2022-23065",
+        "https://nvd.nist.gov/vuln/detail/cve-2022-49865",
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-23565",
+        "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-29965",
+        "https://spring.io/security/cve-2022-22965",
+        "https://spring.io/blog/2022/03/31/spring-framework-rce-early-announcement",
+        "https://spring.io/blog/2022/04/01/spring-framework-rce-mitigation-alternative",
+        "https://spring.io/blog/2022/03/31/spring-boot-2-6-6-available-now",
+        "https://spring.io/blog/2022/04/13/spring-framework-data-binding-rules-vulnerability-cve-2022-22968/",
+        "https://spring.io/security/page-9",
+        "https://spring.io/security/cve-2022-22963/?ref=deep-kondah.com",
+        "https://spring.io/security/cve-2022-22976",
+        "https://spring.io/security/cve-2022-22978/",
+        "https://spring.io/security/cve-2022-22970/",
+        "https://www.cve.org/CVERecord?id=CVE-2022-22965",
+        "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-java-spring-rce-Zx9GUc67.html",
+        "https://access.redhat.com/security/cve/CVE-2022-22965",
+        "https://github.com/advisories/GHSA-36p3-wjmg-h94x"
       ],
       "schema_version": 2,
       "source_fingerprint": "041d6f51a756bebc7536bde37b3091f16b3efe70c3b696f760171a32f30a9f9b",
       "source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2022-22965"
+        "https://spring.io/security/cve-2022-22965",
+        "https://spring.io/blog/2022/03/31/spring-framework-rce-early-announcement",
+        "https://spring.io/blog/2022/04/01/spring-framework-rce-mitigation-alternative"
       ],
       "status": "complete",
       "uncertainty": [
-        "The NVD description and Spring advisory identify a specific exploit path, but both state that the vulnerability may be more general and that other exploitation paths may exist.",
-        "The supplied record includes many downstream products with separate affected-version claims; this enrichment is specific to the Spring Framework advisory and does not establish remediation versions for Cisco, Oracle, Siemens, Veritas, or other bundled products.",
-        "The advisory does not establish that every application using an affected Spring Framework version is remotely exploitable; actual exposure depends on application architecture, runtime, deployment packaging, servlet container, and data-binding usage."
+        "The vendor notes the vulnerability is more general and other exploitation methods besides the documented Tomcat WAR scenario may exist",
+        "NVD lists additional downstream products from other vendors with their own version ranges; this enrichment focuses on the primary Spring Framework product",
+        "Workarounds (Tomcat upgrade, Java 8, or data-binder configuration) are described as tactical only and are not a substitute for upgrading Spring Framework"
       ],
       "verification_steps": [
-        "Review the resolved Maven dependency graph or deployed artifact inventory and confirm that Spring Framework components are at least 5.3.18 on the 5.3 line or 5.2.20 on the 5.2 line.",
-        "Confirm that no older transitive Spring Framework components remain packaged in the deployed application.",
-        "Record whether the application runs on JDK 9 or later, uses Tomcat, is deployed as a traditional WAR, and includes spring-webmvc or spring-webflux; these conditions determine applicability of the specifically documented exploit path.",
-        "Use normal application and deployment validation after the upgrade; do not perform exploit testing against production systems."
+        "Confirm the Spring Framework version used by the application matches or exceeds the fixed versions 5.3.18 or 5.2.20.RELEASE stated in the vendor advisory",
+        "Confirm whether the application meets the documented exposure prerequisites (JDK 9+, WAR deployment on Tomcat, spring-webmvc or spring-webflux)"
       ]
     },
     "CVE-2022-23131": {
@@ -14299,6 +14302,54 @@
         "A concrete fixed version for MiVoice Business Express was not established from an authoritative returned source.",
         "The exact service exposure mechanism and port were not established from the authoritative NVD or Mitel sources reviewed.",
         "The supplied record's generic ecosystem classification does not identify the deployed product or version, so applicability cannot be confirmed for a specific asset."
+      ],
+      "verification_steps": []
+    },
+    "CVE-2022-26258": {
+      "business_risk": "No additional source-verified CVE-specific business impact was established.",
+      "claim_evidence": [],
+      "exposure_conditions": [],
+      "gaps": [],
+      "generated_at": "2026-10-04T15:01:44Z",
+      "model": "grok-4.6",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [],
+      "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/cve-2022-26258",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-2625",
+        "https://nvd.nist.gov/vuln/detail/cve-2020-26258",
+        "http://nvd.nist.gov/vuln/cvmap/report/5440",
+        "https://nvd.nist.gov/vuln/detail/cve-2022-2598",
+        "https://nvd.nist.gov/vuln/detail/CVE-2020-26258/change-record?changeRecordedOn=12%2F15%2F2020T21%3A15%3A12.913-0500",
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-26358",
+        "https://nvd.nist.gov/vuln/detail/cve-2022-25878",
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-2758",
+        "https://nvd.nist.gov/nvd.cfm?cvename=CVE-2022-25858",
+        "https://www.cisa.gov/news-events/bulletins/sb22-094",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog",
+        "https://us-cert.cisa.gov/ncas/bulletins/sb22-206",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-22-139-01",
+        "https://www.cisa.gov/news-events/bulletins/sb23-002",
+        "https://www.cisa.gov/news-events/bulletins/sb22-108",
+        "https://www.cisa.gov/news-events/bulletins/sb22-101",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-23-348-10",
+        "https://www.cisa.gov/ncas/bulletins/sb22-087",
+        "https://cve.report/CVE-2022-26258",
+        "https://www.cvedetails.com/cve/CVE-2022-26258/",
+        "https://www.cve.org/CVERecord?id=CVE-2022-26258",
+        "https://www.cyber-defence.io/tools/cve/CVE-2022-26258",
+        "https://supportannouncement.us.dlink.com/announcement/publication.aspx?name=SAP10204"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "25be5087c883faa2bc3164aaa1b8ce72f40033386077fdfb533f428d3adc5a1a",
+      "source_urls": [],
+      "status": "insufficient_evidence",
+      "uncertainty": [
+        "Full NVD description, CPE, and scoring details could not be extracted from nvd.nist.gov.",
+        "No concrete fixed firmware version is identified; the vendor states firmware development has ceased.",
+        "Neither CISA nor the vendor documents an inert verification procedure.",
+        "CISA KEV text for this CVE refers to a Device Name parameter while the vendor announcement also cites related get_set.ccp reporting."
       ],
       "verification_steps": []
     },
@@ -17194,96 +17245,91 @@
       "verification_steps": []
     },
     "CVE-2024-11667": {
-      "business_risk": "Critical, actively exploited path-traversal vulnerability in the web management interface. An unauthenticated network attacker may be able to download or upload files through a crafted URL, creating confidentiality and integrity risk. CISA lists CVE-2024-11667 in its Known Exploited Vulnerabilities Catalog.",
+      "business_risk": "CISA KEV entry with known ransomware campaign use for a path-traversal issue in Zyxel firewall web management that can allow unauthenticated file download or upload, enabling device compromise.",
       "claim_evidence": [
         {
-          "claim": "The affected products are Zyxel ATP, USG FLEX, USG FLEX 50(W), and USG20(W)-VPN firewall firmware.",
+          "claim": "Zyxel ATP series firmware, USG FLEX series firmware, USG FLEX 50(W) series firmware, and USG20(W)-VPN series firmware",
           "kind": "affected_product",
           "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-11667"
         },
         {
-          "claim": "Affected versions are ATP and USG FLEX V5.00 through V5.38, and USG FLEX 50(W) and USG20(W)-VPN V5.10 through V5.38.",
+          "claim": "ATP and USG FLEX series firmware versions V5.00 through V5.38; USG FLEX 50(W) and USG20(W)-VPN series firmware versions V5.10 through V5.38",
           "kind": "affected_version",
+          "source_url": "https://www.cve.org/CVERecord?id=CVE-2024-11667"
+        },
+        {
+          "claim": "Directory traversal in the web management interface could allow an attacker to download or upload files via a crafted URL",
+          "kind": "exposure",
           "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-11667"
         },
         {
-          "claim": "The vulnerability is in the web management interface and can allow an attacker to download or upload files via a crafted URL.",
-          "kind": "exposure",
-          "source_url": "https://www.zyxel.com/us/en-us/support/security-advisories/zyxel-security-advisory-protecting-against-recent-firewall-threats-11-27-2024"
-        },
-        {
-          "claim": "Zyxel recommends temporarily disabling remote access if updates cannot be applied immediately.",
-          "kind": "exposure",
-          "source_url": "https://www.zyxel.com/us/en-us/support/security-advisories/zyxel-security-advisory-protecting-against-recent-firewall-threats-11-27-2024"
-        },
-        {
-          "claim": "Zyxel states that firewall firmware version 5.39, released September 3, 2024, and later versions are immune to the mentioned exploitation, including CVE-2024-11667.",
-          "kind": "fixed_version",
-          "source_url": "https://www.zyxel.com/us/en-us/support/security-advisories/zyxel-security-advisory-protecting-against-recent-firewall-threats-11-27-2024"
-        },
-        {
-          "claim": "Zyxel recommends immediately updating the device firmware and changing administrative passwords.",
+          "claim": "Immediately update the device to the latest firmware version; change admin passwords; if updates cannot be applied immediately, temporarily disable remote access until patched",
           "kind": "remediation",
           "source_url": "https://www.zyxel.com/us/en-us/support/security-advisories/zyxel-security-advisory-protecting-against-recent-firewall-threats-11-27-2024"
         },
         {
-          "claim": "Firmware version 5.39 or later is the vendor-established patched/immunity threshold and can be used as the post-update version check.",
-          "kind": "verification",
-          "source_url": "https://www.zyxel.com/us/en-us/support/security-advisories/zyxel-security-advisory-protecting-against-recent-firewall-threats-11-27-2024"
+          "claim": "Apply mitigations per vendor instructions or discontinue use of the product if mitigations are unavailable",
+          "kind": "remediation",
+          "source_url": "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2024-11667"
         }
       ],
       "exposure_conditions": [
-        "Zyxel ATP, USG FLEX, USG FLEX 50(W), or USG20(W)-VPN firewall firmware is within the affected ranges: V5.00 through V5.38 for ATP and USG FLEX, or V5.10 through V5.38 for USG FLEX 50(W) and USG20(W)-VPN.",
-        "The device's web management interface is reachable by an attacker, particularly when remote/WAN management access is enabled.",
-        "The attacker can send a crafted URL to the web management interface."
+        "Web management interface of affected ZLD firmware is reachable by an attacker",
+        "Remote access to the device is enabled"
       ],
       "gaps": [],
-      "generated_at": "2026-08-05T12:05:06Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-10-04T14:58:13Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [
-        "Upgrade the firewall firmware to version 5.39 or later, following Zyxel's model-specific firmware process. Zyxel states that version 5.39 and later address CVE-2024-11667.",
-        "If immediate patching is not possible, temporarily disable remote access to the device until the firmware is updated.",
-        "Change administrative passwords as a precaution, consistent with Zyxel's advisory guidance.",
-        "Prioritize remediation because the vulnerability is listed in CISA's Known Exploited Vulnerabilities Catalog."
+        "Update firmware to version 5.39 or later",
+        "Change administrator passwords",
+        "If an immediate update is not possible, temporarily disable remote access until the firmware is patched",
+        "Apply mitigations per vendor instructions or discontinue use if mitigations are unavailable"
       ],
       "retrieved_source_urls": [
-        "https://www.zyxel.com/us/en-us/support/security-advisories/zyxel-security-advisory-protecting-against-recent-firewall-threats-11-27-2024",
         "https://nvd.nist.gov/vuln/detail/CVE-2024-11667",
-        "https://www.zyxel.com/global/en/support/security-advisories?page=1",
-        "https://www.zyxel.com/global/en/support/security-advisories/zyxel-security-advisory-for-authentication-bypass-and-command-injection-vulnerabilities-in-nas-products",
-        "https://www.zyxel.com/global/en/support/security-advisories/zyxels-guidance-for-the-recent-attacks-on-the-zywall-devices",
-        "https://www.zyxel.com/global/en/support/security-vulnerability",
-        "https://www.zyxel.com/global/en/support/security-advisories/zyxel-security-advisory-for-os-command-injection-vulnerability-in-aps-and-security-router-devices-09-03-2024",
-        "https://www.zyxel.com/global/en/support/security-advisories/zyxel-security-advisory-for-buffer-overflow-and-post-authentication-command-injection-vulnerabilities-in-some-4g-lte-5g-nr-cpe-dsl-ethernet-cpe-fiber-onts-and-wifi-extenders-12-03-2024",
-        "https://www.zyxel.com/global/en/support/security-advisories/zyxel-security-advisory-for-multiple-vulnerabilities-in-firewalls-and-aps",
-        "https://www.zyxel.com/global/en/support/security-advisories/zyxel-security-advisory-for-multiple-vulnerabilities-in-firewalls-and-aps-02-21-2024",
-        "https://www.zyxel.com/global/en/support/security-advisories/zyxel-security-advisory-for-multiple-vulnerabilities-in-firewalls-and-wlan-controllers",
-        "https://www.zyxel.com/global/en/support/security-advisories/zyxel-security-advisory-for-command-injection-and-buffer-overflow-vulnerabilities-of-cpe-fiber-onts-and-wifi-extenders",
-        "https://www.cisa.gov/sites/default/files/2024-05/Secure_by_Design_Alert_Eliminating_Directory_Traversal_Vulnerabilities_in_Software_508c%20%283%29.pdf",
-        "https://www.cisa.gov/sites/default/files/2024-07/csa-cisa-red-team%27s-operations-against-a-fceb-organization-highlights-the-necessity-of-defense-in-depth_0.pdf",
-        "https://www.cisa.gov/sites/default/files/2024-08/CISA.gov-Jul-2024-Web-Metrics-508.pdf.pdf",
-        "https://www.cisa.gov/sites/default/files/2024-10/24_0424_NECP_Webinar_MFA_Slide_Presentation_24_1015_508C.pdf",
-        "https://www.cisa.gov/sites/default/files/2025-05/CSSO-VDP%20Platform%20FAQ%202024.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf"
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-11667/change-record?changeRecordedOn=12/05/2024T13:41:12.147-0500",
+        "https://web.nvd.nist.gov/vuln/detail/CVE-2024-11666",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-11667",
+        "https://nvd.nist.gov/vuln/detail/cve-2024-46767",
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-41667",
+        "https://nvd.nist.gov/nvd.cfm?cvename=CVE-2025-1167",
+        "https://www.zyxel.com/us/en-us/support/security-advisories/zyxel-security-advisory-protecting-against-recent-firewall-threats-11-27-2024",
+        "https://www.zyxel.com/tw/zh/support/security-advisories/zyxel-security-advisory-protecting-against-recent-firewall-threats-11-27-2024",
+        "https://www.zyxel.com/global/en/support/security-advisories/zyxel-security-advisory-for-null-pointer-dereference-and-command-injection-vulnerabilities-in-certain-4g-lte-5g-nr-cpe-dsl-ethernet-cpe-fiber-onts-security-routers-and-wireless-extenders-02-24-2026",
+        "https://www.zyxel.com/global/en/support/security-advisories/zyxel-security-advisory-for-post-authentication-command-injection-vulnerabilities-in-certain-dsl-ethernet-cpe-fiber-ont-and-wifi-extender-devices-03-11-2025",
+        "https://www.zyxel.com/fi/fi/newsroom/press-releases",
+        "https://community.zyxel.com/ru/profile/discussions/Zyxel_Melen",
+        "https://community.zyxel.com/en/categories/security-advisories/p1",
+        "https://community.zyxel.com/en/discussion/comment/71051",
+        "https://www.zyxel.com/us/en-us/support/download",
+        "https://www.zyxel.com/us/en-us/newsroom/press-releases/zyxel-partners-with-streakwave-to-expand-access-to-outdoor-wireless-solutions",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2024-11667",
+        "https://www.cisa.gov/news-events/alerts/2024/12/03/cisa-adds-three-known-exploited-vulnerabilities-catalog",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-24-016-01?ref=cybernewscentre.com",
+        "https://www.cisa.gov/news-events/bulletins/sb26-159",
+        "https://www.cisa.gov/news-events/bulletins/sb24-331",
+        "https://www.cve.org/CVERecord?id=CVE-2024-11667"
       ],
       "schema_version": 2,
       "source_fingerprint": "f689cae75600096e7713a6909670ebcb997c69d734fb3b1b72e066c49b7fd1ab",
       "source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-11667",
+        "https://www.cve.org/CVERecord?id=CVE-2024-11667",
         "https://www.zyxel.com/us/en-us/support/security-advisories/zyxel-security-advisory-protecting-against-recent-firewall-threats-11-27-2024",
-        "https://nvd.nist.gov/vuln/detail/CVE-2024-11667"
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2024-11667"
       ],
       "status": "complete",
       "uncertainty": [
-        "The vendor advisory establishes version 5.39 or later as immune but does not provide a model-by-model patch filename or detailed upgrade procedure on the cited page.",
-        "The supplied record includes CPE and product mappings that may not enumerate every hardware model; validate the exact device model and supported firmware through Zyxel before upgrading.",
-        "No evidence was returned establishing whether a particular deployment is currently exposed or has been exploited."
+        "NVD/CISA-ADP CPE ranges differ slightly from the CNA description for some products such as USG FLEX 50W",
+        "Vendor advisory identifies 5.39 (released 3 September 2024) and later as addressing the issue; later patches may exist for other defects",
+        "Consulted sources do not document a detailed inert procedure for checking firmware version beyond vendor documentation",
+        "Full NVD HTML could not be retrieved; product details taken from search snippets, CVE.org, and vendor advisory"
       ],
       "verification_steps": [
-        "Using the device's supported administrative interface, confirm that the installed firewall firmware is version 5.39 or later.",
-        "If the device remains on an affected version during the remediation window, confirm that remote management access has been disabled.",
-        "Confirm that the deployed model and firmware version correspond to the intended Zyxel firmware update and that the device reports the updated version after the upgrade."
+        "Confirm the running firmware is version 5.39 or later as identified in the vendor advisory"
       ]
     },
     "CVE-2024-11680": {
@@ -20834,128 +20880,74 @@
       ]
     },
     "CVE-2024-55591": {
-      "business_risk": "Critical, remotely exploitable authentication bypass allowing an unauthenticated attacker to obtain super-admin privileges, with potential for full confidentiality, integrity, and availability impact. The vulnerability is listed in CISA's Known Exploited Vulnerabilities catalog, indicating active exploitation risk and requiring expedited remediation.",
+      "business_risk": "Critical unauthenticated authentication bypass on FortiOS and FortiProxy that can grant super-admin privileges, enabling full device control, rogue admin or VPN user creation, and policy changes. CISA lists it as known exploited, including ransomware campaigns.",
       "claim_evidence": [
         {
-          "claim": "CVE-2024-55591 affects FortiOS and FortiProxy.",
-          "kind": "affected_product",
-          "source_url": "https://nvd.nist.gov/vuln/detail/cve-2024-55591"
-        },
-        {
-          "claim": "Affected versions are FortiOS 7.0.0 through 7.0.16, FortiProxy 7.0.0 through 7.0.19, and FortiProxy 7.2.0 through 7.2.12.",
+          "claim": "NVD lists FortiOS 7.0.0 up to excluding 7.0.17, FortiProxy 7.0.0 up to excluding 7.0.20, and FortiProxy 7.2.0 up to excluding 7.2.13.",
           "kind": "affected_version",
           "source_url": "https://nvd.nist.gov/vuln/detail/cve-2024-55591"
-        },
-        {
-          "claim": "The vulnerability allows a remote attacker to gain super-admin privileges through crafted requests to the Node.js websocket module.",
-          "kind": "exposure",
-          "source_url": "https://nvd.nist.gov/vuln/detail/cve-2024-55591"
-        },
-        {
-          "claim": "Disabling the HTTP/HTTPS administrative interface or restricting access to trusted addresses is identified as a temporary mitigation.",
-          "kind": "exposure",
-          "source_url": "https://digital.nhs.uk/cyber-alerts/2025/cc-4604"
-        },
-        {
-          "claim": "FortiOS 7.0.17 is no longer vulnerable to CVE-2024-55591.",
-          "kind": "fixed_version",
-          "source_url": "https://docs.fortinet.com/document/fortigate/7.0.17/fortios-release-notes/289806/resolved-issues"
-        },
-        {
-          "claim": "FortiProxy 7.0.20 is no longer vulnerable to CVE-2024-55591.",
-          "kind": "fixed_version",
-          "source_url": "https://docs.fortinet.com/document/fortiproxy/7.0.20/release-notes/534553"
-        },
-        {
-          "claim": "The resolved versions are FortiOS 7.0.17 or later, FortiProxy 7.0.20 or later, and FortiProxy 7.2.13 or later.",
-          "kind": "fixed_version",
-          "source_url": "https://digital.nhs.uk/cyber-alerts/2025/cc-4604"
-        },
-        {
-          "claim": "CISA's required action for this known-exploited vulnerability is to apply vendor mitigations or discontinue use if mitigations are unavailable.",
-          "kind": "remediation",
-          "source_url": "https://nvd.nist.gov/vuln/detail/cve-2024-55591"
-        },
-        {
-          "claim": "Fortinet's FortiOS 7.0.17 release notes explicitly list CVE-2024-55591 as no longer vulnerable in that release.",
-          "kind": "verification",
-          "source_url": "https://docs.fortinet.com/document/fortigate/7.0.17/fortios-release-notes/289806/resolved-issues"
-        },
-        {
-          "claim": "Fortinet's FortiProxy 7.0.20 release notes explicitly list CVE-2024-55591 as no longer vulnerable in that release.",
-          "kind": "verification",
-          "source_url": "https://docs.fortinet.com/document/fortiproxy/7.0.20/release-notes/534553"
-        },
-        {
-          "claim": "A compromise assessment using indicators from the Fortinet advisory is recommended for affected organizations.",
-          "kind": "verification",
-          "source_url": "https://digital.nhs.uk/cyber-alerts/2025/cc-4604"
         }
       ],
       "exposure_conditions": [
-        "FortiOS 7.0.0 through 7.0.16 is vulnerable.",
-        "FortiProxy 7.0.0 through 7.0.19 and 7.2.0 through 7.2.12 is vulnerable.",
-        "An attacker may exploit the vulnerable Node.js websocket functionality through crafted requests when the relevant administrative service is reachable.",
-        "If immediate patching is unavailable, exposure can be reduced by disabling the HTTP/HTTPS administrative interface or restricting access to trusted source addresses."
+        "FortiOS 7.0.0 through 7.0.16, FortiProxy 7.0.0 through 7.0.19, or FortiProxy 7.2.0 through 7.2.12",
+        "HTTP/HTTPS administrative interface reachable by an untrusted remote party",
+        "Node.js websocket module reachable via crafted requests",
+        "Security Fabric (CSF) enabled, which the vendor also associates with crafted CSF proxy requests"
       ],
       "gaps": [],
-      "generated_at": "2026-08-05T12:04:49Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-10-04T14:56:38Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [
-        "Upgrade FortiOS to version 7.0.17 or later.",
-        "Upgrade FortiProxy 7.0.x to version 7.0.20 or later.",
-        "Upgrade FortiProxy 7.2.x to version 7.2.13 or later.",
-        "If upgrading cannot be completed immediately, disable the HTTP/HTTPS administrative interface or restrict administrative access to approved source addresses using the vendor-supported controls.",
-        "Because the CVE is listed in CISA's Known Exploited Vulnerabilities catalog, prioritize remediation and perform a compromise assessment using the indicators and guidance in Fortinet's advisory."
+        "Upgrade FortiOS 7.0.0 through 7.0.16 to FortiOS 7.0.17 or later using the vendor-recommended upgrade path.",
+        "Upgrade FortiProxy 7.2.0 through 7.2.12 to FortiProxy 7.2.13 or later.",
+        "Upgrade FortiProxy 7.0.0 through 7.0.19 to FortiProxy 7.0.20 or later.",
+        "Until upgraded, disable the HTTP/HTTPS administrative interface, or restrict which addresses can reach that interface with local-in policies as described by the vendor.",
+        "If the CSF-related path is in use, disable Security Fabric until patched.",
+        "After patching, hunt for compromise using the vendor-published log indicators and unexpected admin or local-user creation."
       ],
       "retrieved_source_urls": [
         "https://nvd.nist.gov/vuln/detail/cve-2024-55591",
-        "https://nvd.nist.gov/vuln/detail/CVE-2024-55591",
-        "https://fortiguard.fortinet.com/psirt",
-        "https://fortiguard.fortinet.com/psirt/FG-IR-24-012",
-        "https://fortiguard.fortinet.com/psirt_policy",
-        "https://fortiguard.fortinet.com/psirt/FG-IR-24-205",
-        "https://fortiguard.fortinet.com/psirt/FG-IR-23-204",
-        "https://fortiguard.fortinet.com/psirt/FG-IR-24-123",
-        "https://fortiguard.fortinet.com/psirt/FG-IR-24-011",
-        "https://fortiguard.fortinet.com/psirt/FG-IR-24-255",
-        "https://fortiguard.fortinet.com/psirt/FG-IR-24-052",
-        "https://fortiguard.fortinet.com/psirt/FG-IR-24-128",
-        "https://www.cisa.gov/sites/default/files/2024-10/24_0424_NECP_Webinar_MFA_Slide_Presentation_24_1015_508C.pdf",
-        "https://www.cisa.gov/sites/default/files/2024-05/Secure_by_Design_Alert_Eliminating_Directory_Traversal_Vulnerabilities_in_Software_508c%20%283%29.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
-        "https://www.cisa.gov/sites/default/files/2025-09/AA25-266A_advisory_cisa_shares_lessons_learned_from_ir_engagement.pdf",
-        "https://www.cisa.gov/sites/default/files/2024-01/aa24-016a-known-indicators-of-compromise-associated-with-adroxgh0st-malware_0.pdf",
-        "https://docs.fortinet.com/document/fortiproxy/7.0.20/release-notes/534553",
-        "https://nvd.nist.gov/products/cpe/detail/8B4477BB-B984-4353-B382-B394329109A6",
-        "https://digital.nhs.uk/cyber-alerts/2025/cc-4604",
-        "https://nvd.nist.gov/vuln/detail/cve-2025-24472?apcid=00654a78dfc03aff50092700",
-        "https://docs.fortinet.com/document/fortigate/7.0.17/fortios-release-notes/289806/resolved-issues",
-        "https://www.sangfor.com/farsight-labs-threat-intelligence/cybersecurity/cve-2024-55591-fortios-and-fortiproxy",
-        "https://community.fortinet.com/support-forum-92/should-i-upgrade-fortios-for-vulnerability-cve-2024-55591-196234"
+        "https://cve.report/CVE-2024-55591",
+        "https://www.cvedetails.com/cve/CVE-2024-55591/",
+        "https://avd.aquasec.com/nvd/2024/cve-2024-55591/",
+        "https://sploitus.com/cve/CVE-2024-55591",
+        "https://secalerts.co/vulnerability/CVE-2024-55591",
+        "https://socradar.io/free-tools/cve-radar/CVE-2024-55591",
+        "https://www.cyber-defence.io/tools/cve/CVE-2024-55591",
+        "https://www.cloudanix.com/vulndb/cve/CVE-2024-55591",
+        "https://github.com/advisories/GHSA-v4mr-pqhx-vpm2",
+        "https://inthewild.io/vuln/CVE-2024-55591",
+        "https://csirt.cy/images/upload/CVEs_pdf_2025/CVE-2024-55591.pdf",
+        "https://cvefeed.io/vuln/detail/CVE-2024-55591",
+        "https://app.opencve.io/cve/CVE-2024-55591",
+        "https://vulnerability.circl.lu/vuln/CVE-2024-55591",
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-53191",
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-56591",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2024-56591",
+        "https://fortiguard.fortinet.com/encyclopedia/ips/57082",
+        "https://fortiguard.fortinet.com/psirt?page=2&date=&severity=5,4&product=FortiOS,FortiOS-6K7K,FortiSandbox&component=&version=",
+        "https://fortiguard.fortinet.com/psirt/FG-IR-24-178",
+        "https://fortiguard.fortinet.com/encyclopedia/ips/58233",
+        "https://fortiguard.fortinet.com/encyclopedia/endpoint-vuln/82664",
+        "https://www.triskelelabs.com/resources/cve-2024-55591-authentication-bypass-in-fortios-and-fortiproxy"
       ],
       "schema_version": 2,
       "source_fingerprint": "8bab9d9e09b6fedc72f1cdb6739795e9164bef289ea4445be6f6c687d1d418b3",
       "source_urls": [
-        "https://nvd.nist.gov/vuln/detail/cve-2024-55591",
-        "https://docs.fortinet.com/document/fortigate/7.0.17/fortios-release-notes/289806/resolved-issues",
-        "https://docs.fortinet.com/document/fortiproxy/7.0.20/release-notes/534553",
-        "https://digital.nhs.uk/cyber-alerts/2025/cc-4604"
+        "https://nvd.nist.gov/vuln/detail/cve-2024-55591"
       ],
       "status": "complete",
       "uncertainty": [
-        "The Fortinet PSIRT advisory page was not directly retrievable during this enrichment; affected ranges and fixed versions were corroborated through NVD, Fortinet release notes, and a government security advisory.",
-        "Specific Fortinet local-in policy configuration syntax, advisory indicators of compromise, and product-specific upgrade-path constraints were not independently verified here.",
-        "A version check alone does not establish whether a device was previously compromised."
+        "The NVD detail page did not return full content through browse; affected and fixed ranges were taken from the Fortinet PSIRT advisory and NVD search excerpts.",
+        "The vendor advisory FG-IR-24-535 also references CVE-2025-24472 on the same page; this enrichment is limited to CVE-2024-55591 facts stated for FortiOS and FortiProxy.",
+        "Safe verification is limited to version confirmation and log review; no exploit, probe, or configuration-test procedure is provided."
       ],
       "verification_steps": [
-        "Confirm the deployed product and running version through the authorized administrative interface or asset inventory.",
-        "Confirm that FortiOS is version 7.0.17 or later, or that FortiProxy is version 7.0.20 or later on the 7.0 branch or 7.2.13 or later on the 7.2 branch.",
-        "Confirm that the applicable product release notes identify the installed version as no longer vulnerable to CVE-2024-55591.",
-        "Confirm that HTTP/HTTPS administrative access is disabled or limited to intended trusted management sources when the permanent upgrade is not yet complete.",
-        "Review the Fortinet advisory's compromise-assessment guidance and indicators for evidence of unauthorized administrative access or configuration changes."
+        "Using the product's supported version-display method, confirm FortiOS 7.0 is 7.0.17 or later, FortiProxy 7.0 is 7.0.20 or later, or FortiProxy 7.2 is 7.2.13 or later.",
+        "Review system event logs for vendor-described jsconsole login success with a super_admin profile and unexpected system.admin additions.",
+        "Treat the IP values shown in those example logs as attacker-supplied parameters, not as source addresses to block."
       ]
     },
     "CVE-2024-55956": {
@@ -28498,41 +28490,18 @@
       "claim_evidence": [],
       "exposure_conditions": [],
       "gaps": [],
-      "generated_at": "2026-08-05T12:04:23Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-10-04T14:55:26Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [],
-      "retrieved_source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2026-15409",
-        "https://nvd.nist.gov/vuln/detail/cve-2017-15409",
-        "https://nvd.nist.gov/vuln/detail/CVE-2018-15409",
-        "https://nvd.nist.gov/vuln/detail/CVE-2023-27178",
-        "https://psirt.global.sonicwall.com/vuln-detail/SNWLID-2025-0007",
-        "https://nvd.nist.gov/vuln/detail/CVE-2026-15410",
-        "https://nvd.nist.gov/vuln/detail/CVE-2022-46487",
-        "https://nvd.nist.gov/vuln/detail/CVE-2022-4988",
-        "https://nvd.nist.gov/vuln/detail/CVE-2025-71179",
-        "https://psirt.global.sonicwall.com/vuln-detail/SNWLID-2018-0008",
-        "https://nvd.nist.gov/vuln/detail/CVE-2024-12686",
-        "https://nvd.nist.gov/vuln/detail/CVE-2024-8258",
-        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
-        "https://www.cisa.gov/sites/default/files/2024-08/SECURING_THE_SOFTWARE_SUPPLY_CHAIN_RECOMMENDED_PRACTICES_FOR_SOFTWARE_BILL_OF_MATERIALS_CONSUMPTION-508.pdf",
-        "https://www.cisa.gov/sites/default/files/2025-01/joint-guidance-product-security-bad-practices-508c_0.pdf",
-        "https://www.cisa.gov/sites/default/files/2025-09/AA25-266A_advisory_cisa_shares_lessons_learned_from_ir_engagement.pdf",
-        "https://www.cisa.gov/sites/default/files/2025-05/CSSO-VDP%20Platform%20FAQ%202024.pdf"
-      ],
+      "retrieved_source_urls": [],
       "schema_version": 2,
       "source_fingerprint": "13c1fbaf3cf99566f1645155cddfdaf1b3039012144b6d5e2f5cb3baef8fc119",
-      "source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2026-15409"
-      ],
+      "source_urls": [],
       "status": "insufficient_evidence",
       "uncertainty": [
-        "The SonicWall advisory URL was reachable but did not expose readable advisory content in the retrieved source, so specific remediation instructions could not be validated.",
-        "No authoritative fixed version was available in the retrieved NVD content; a fixed version must not be inferred from the upper affected-version bounds.",
-        "No safe, product-specific validation procedure or documented configuration mitigation was available from the retrieved authoritative sources.",
-        "The supplied record identifies the issue as KEV-listed and actively exploited, but the enrichment sources do not establish whether any particular asset has been compromised."
+        "Authoritative sources have not been retrieved yet; no affected versions, fixed versions, exposure conditions, or remediation steps can be asserted."
       ],
       "verification_steps": []
     },
