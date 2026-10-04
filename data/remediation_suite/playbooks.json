@@ -4073,7 +4073,7 @@
       "title": "Context Poisoning Guard",
       "page": "/security-remediation/context-poisoning-guard/",
       "category": "secure-context",
-      "summary": "Detect hidden instructions, exfiltration cues, authority spoofing, malicious markup, and trust-boundary violations before context reaches an agent.",
+      "summary": "Detect hidden instructions, invisible Unicode smuggling, exfiltration cues, authority spoofing, malicious markup, and trust-boundary violations before context reaches an agent.",
       "phases": [
         {
           "label": "Signal",
@@ -4088,7 +4088,7 @@
         {
           "label": "Decision",
           "title": "Scan poisoning signals",
-          "detail": "Detect instruction override, secret requests, tool abuse, authority claims, data exfiltration, encoded payloads, and cross-boundary redirects."
+          "detail": "Detect instruction override, secret requests, tool abuse, authority claims, data exfiltration, encoded payloads, invisible Unicode tag-block or variation-selector smuggling, and cross-boundary redirects."
         },
         {
           "label": "Action",
@@ -4130,6 +4130,8 @@
         "context poisoning",
         "indirect prompt injection",
         "malicious retrieved content",
+        "unicode tag smuggling",
+        "invisible character injection",
         "agent context guard"
       ]
     },
