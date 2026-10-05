@@ -9306,142 +9306,102 @@
       ]
     },
     "CVE-2021-20028": {
-      "business_risk": "Critical, remotely exploitable SQL injection affecting end-of-life SonicWall SRA/SMA100 appliances. The vulnerability requires no authentication or user interaction and can affect confidentiality, integrity, and availability. It is listed in CISA's Known Exploited Vulnerabilities catalog, with active exploitation recorded in the NVD enrichment data.",
-      "claim_evidence": [
-        {
-          "claim": "The affected product is SonicWall SRA/SMA100, including SRA 1600, SRA 4600, SRA VA, SMA 210, SMA 410, and SMA 500v firmware configurations.",
-          "kind": "affected_product",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2021-20028"
-        },
-        {
-          "claim": "The CNA describes all 8.x firmware and 9.0.0.9-26sv or earlier as affected; NVD CPE data specifies versions from 8.0.0.0 up to, but excluding, 9.0.0.10-28sv.",
-          "kind": "affected_version",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2021-20028"
-        },
-        {
-          "claim": "The vulnerability is network exploitable with low attack complexity, no privileges required, and no user interaction required, according to the CVSS vector AV:N/AC:L/PR:N/UI:N.",
-          "kind": "exposure",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2021-20028"
-        },
-        {
-          "claim": "NVD's affected-version boundary excludes 9.0.0.10-28sv, supporting use of 9.0.0.10-28sv or later as the minimum version boundary for remediation.",
-          "kind": "fixed_version",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2021-20028"
-        },
-        {
-          "claim": "CISA's catalog action, reproduced by NVD, states that the impacted product is end-of-life and should be disconnected if still in use.",
-          "kind": "remediation",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2021-20028"
-        },
-        {
-          "claim": "A safe version-based verification can compare the appliance's authorized administrative inventory or displayed firmware version with the NVD affected-version boundary; no exploit testing is required.",
-          "kind": "verification",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2021-20028"
-        }
-      ],
-      "exposure_conditions": [
-        "SonicWall SRA/SMA100 hardware or virtual appliances are deployed, including SRA 1600, SRA 4600, SRA VA, SMA 210, SMA 410, or SMA 500v.",
-        "The appliance runs 8.x firmware or firmware earlier than 9.0.0.10-28sv.",
-        "The appliance is reachable over a network path through an exposed service; the CVSS vector indicates network attackability without privileges or user interaction."
-      ],
+      "business_risk": "No additional source-verified CVE-specific business impact was established.",
+      "claim_evidence": [],
+      "exposure_conditions": [],
       "gaps": [],
-      "generated_at": "2026-07-28T11:57:06Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-10-05T18:57:24Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
-      "remediation_steps": [
-        "If an affected, end-of-life appliance is still in use, disconnect it from accessible networks as directed by CISA.",
-        "Prefer replacement or migration to a currently supported SonicWall product because the impacted SRA product line is end-of-life.",
-        "If the appliance must be retained temporarily, upgrade to firmware 9.0.0.10-28sv or later, subject to SonicWall's compatibility and lifecycle guidance.",
-        "After replacement or upgrade, review access controls and monitoring for the affected appliance and investigate potentially unauthorized activity because the vulnerability is known to have been exploited."
-      ],
+      "remediation_steps": [],
       "retrieved_source_urls": [
         "https://nvd.nist.gov/vuln/detail/CVE-2021-20028",
-        "https://nvd.nist.gov/vuln/detail/cve-2021-20228",
-        "https://nvd.nist.gov/vuln/detail/cve-2021-20028",
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-20208",
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-20288",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=0",
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-2028",
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-20280",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=68",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=55",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=56",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A802&f%5B1%5D=vendor_project%3A804&f%5B2%5D=vendor_project%3A811&f%5B3%5D=vendor_project%3A822&f%5B4%5D=vendor_project%3A826&f%5B5%5D=vendor_project%3A877&f%5B6%5D=vendor_project%3A880&f%5B7%5D=vendor_project%3A887&f%5B8%5D=vendor_project%3A927&f%5B9%5D=vendor_project%3A1249&page=14",
-        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/AA22-117A_Joint_CSA_2021_Top_Routinely_Exploited_Vulnerabilities_Final.pdf",
-        "https://www.cert.ssi.gouv.fr/alerte/CERTFR-2021-ALE-016/",
-        "https://nvd.nist.gov/products/cpe/detail/20C33D5F-5C77-4913-82E3-77BA46FC7049?keyword=cpe%3A2.3%3Ao%3Asonicwall%3Asra_4600_firmware%3A9.0.0.10-28sv&namingFormat=2.3&orderBy=CPEURI&status=FINAL",
-        "https://www.csa.gov.sg/alerts-and-advisories/alerts/al-2021-058/",
-        "https://software.sonicwall.com/Firmware/Documentation/232-005593-00_RevB_SMA_9.0.0.10_ReleaseNotes.pdf",
-        "https://synscan.net/vuln/cve-2021-20028",
-        "https://www.csa.gov.sg/alerts-and-advisories/alerts/al-2021-005/",
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-20034",
-        "https://www.cvedetails.com/cve/CVE-2021-20028"
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-20228",
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-20278",
+        "https://nvd.nist.gov/vuln/detail/CVE-2018-20028",
+        "https://nvd.nist.gov/vuln/detail/cve-2021-32028",
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-20828",
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-24028",
+        "https://nvd.nist.gov/vuln/detail/CVE-2001-0028",
+        "https://nvd.nist.gov/vuln/detail/cve-2021-25228",
+        "https://nvd.nist.gov/vuln/detail/cve-2021-39928",
+        "https://psirt.global.sonicwall.com/vuln-detail/SNWLID-2021-0017",
+        "https://psirt.global.sonicwall.com/vuln-detail/SNWLID-2022-0001",
+        "https://psirt.global.sonicwall.com/vuln-detail/SNWLID-2021-0016",
+        "https://community.sonicwall.com/s/question/0D5VN00000YekPK0AZ/security-advisory-sonicos-vulnerability-in-firewall-web-management-interface",
+        "https://psirt.global.sonicwall.com/vuln-detail/SNWLID-2021-0028",
+        "https://www.sonicwall.com/blog/soctoberfest-kickoff-the-7-deadly-sins-of-cybersecurity-meet-cisa-s-core-steps",
+        "https://www.sonicwall.com/blog/buffalo-routers-path-traversal-vulnerability",
+        "https://psirt.global.sonicwall.com/vuln-detail/SNWLID-2021-0026",
+        "https://psirt.global.sonicwall.com/vuln-detail/SNWLID-2021-0011",
+        "https://www.sonicwall.com/blog/partner-power-news-october-2026-get-ready-build-your-pitch-keep-customers-moving",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2021-20028",
+        "https://www.cisa.gov/ncas/bulletins/sb21-102",
+        "https://www.cisa.gov/news-events/cybersecurity-advisories/aa22-117a",
+        "https://www.cisa.gov/news-events/cybersecurity-advisories/aa25-141a"
       ],
       "schema_version": 2,
       "source_fingerprint": "7e18ad27987b79acebed2ad7df2374119aafbd86b1ce112290118a9b69da66ec",
       "source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-20028"
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-20028",
+        "https://psirt.global.sonicwall.com/vuln-detail/SNWLID-2021-0017",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2021-20028"
       ],
-      "status": "complete",
+      "status": "insufficient_evidence",
       "uncertainty": [
-        "The CNA description identifies all 8.x firmware and 9.0.0.9-26sv or earlier as affected, while NVD CPE data expresses the boundary as versions starting at 8.0.0.0 and excluding 9.0.0.10-28sv.",
-        "The affected product line is end-of-life; availability and supportability of the stated firmware may depend on the appliance model and SonicWall access requirements.",
-        "The reviewed sources do not provide forensic indicators or a non-invasive compromise-detection procedure specific to this CVE."
+        "Authoritative NVD, CNA, and vendor sources do not describe a precise attack surface, parameter, or endpoint, nor any inert verification procedure such as a version-check method or configuration review",
+        "CISA KEV required action is disconnection because the product is end-of-life; vendor still documents a 9.0.0.10-28sv firmware as fixed but 9.x support has ended",
+        "NVD CPE configurations enumerate specific SMA 210/410/500v and SRA 1600/4600/VA firmware while the vendor advisory uses the broader SMA/SRA label"
       ],
-      "verification_steps": [
-        "Identify the appliance model and installed firmware version from the authorized administrative inventory or management interface.",
-        "Confirm that the installed firmware is not in the affected 8.x range and is at least 9.0.0.10-28sv, using the vendor/NVD version boundary.",
-        "Confirm that obsolete affected appliances are disconnected or removed from externally reachable network paths.",
-        "Do not perform exploit testing or active SQL-injection probing against production systems."
-      ]
+      "verification_steps": []
     },
     "CVE-2021-20038": {
       "business_risk": "No additional source-verified CVE-specific business impact was established.",
       "claim_evidence": [],
       "exposure_conditions": [],
       "gaps": [],
-      "generated_at": "2026-07-27T12:52:22Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-10-05T18:47:26Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [],
       "retrieved_source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-20038",
         "https://nvd.nist.gov/vuln/detail/cve-2021-20038",
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-21038",
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-20236",
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-22238",
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-24038",
-        "https://psirt.global.sonicwall.com/vuln-detail/SNWLID-2021-0006",
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-0238",
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-44038",
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-26038",
-        "https://psirt.global.sonicwall.com/vuln-detail/SNWLID-2021-0015",
-        "https://psirt.global.sonicwall.com/vuln-detail/SNWLID-2019-0004",
-        "https://www.sonicwall.com/techdocs/pdf/sma_100-10-2-release_notes.pdf",
-        "https://software.sonicwall.com/Firmware/Documentation/232-005681-00_RevL_SMA_10.2.1.8_ReleaseNotes.pdf",
-        "https://software.sonicwall.com/Firmware/Documentation/232-005681-00_RevN_SMA_10.2.1.10_ReleaseNotes.pdf",
-        "https://software.sonicwall.com/Firmware/Documentation/232-005681-00_RevJ_SMA_10.2.1.6_ReleaseNotes.pdf",
-        "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-20038",
-        "https://cert.europa.eu/publications/security-advisories/2021-066/",
-        "https://www.cisa.gov/sites/default/files/publications/AA22-117A_Joint_CSA_2021_Top_Routinely_Exploited_Vulnerabilities_Final.pdf",
-        "https://media.defense.gov/2023/Feb/09/2003159161/-1/-1/0/CSA_RANSOMWARE_ATTACKS_ON_CI_FUND_DPRK_ACTIVITIES.PDF",
-        "https://advisories.checkpoint.com/defense/advisories/public/2022/cpai-2021-1065.html",
-        "https://cve.report/CVE-2021-20038"
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-20238",
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-20838",
+        "https://nvd.nist.gov/nvd.cfm?cvename=CVE-2021-30838",
+        "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2021-47638",
+        "https://psirt.global.sonicwall.com/vuln-detail/SNWLID-2021-0026",
+        "https://psirt.global.sonicwall.com/vuln-detail/snwlid-2021-0025",
+        "https://psirt.global.sonicwall.com/vuln-detail/SNWLID-2021-0028",
+        "https://psirt.global.sonicwall.com/vuln-detail/SNWLID-2021-0017",
+        "https://psirt.global.sonicwall.com/vuln-detail/SNWLID-2021-0011",
+        "https://www.cisa.gov/news-events/bulletins/sb21-347",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2020-1938",
+        "https://www.cisa.gov/news-events/bulletins/sb21-074",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-21-103-07",
+        "https://www.cisa.gov/ncas/bulletins/sb21-284",
+        "https://www.cloudanix.com/vulndb/cve/CVE-2021-20038",
+        "https://itcsecure.com/threat-horizon/cve-2021-20038-42-sonicwall-sma-100-multiple-vulnerabilities-fixed/",
+        "https://cvetodo.com/cve/CVE-2021-20038",
+        "https://avd.aquasec.com/nvd/2021/cve-2021-20038/",
+        "https://www.jpcert.or.jp/at/2022/at220004.html",
+        "https://canon.jp/biz/solution/security/it-sec/info/211217",
+        "https://cve.report/CVE-2021-20038",
+        "https://arcticwolf.com/resources/blog/cve-2021-20038-remote-code-execution-vulnerability/",
+        "https://feedly.com/cve/CVE-2021-20038"
       ],
       "schema_version": 2,
       "source_fingerprint": "42cc2f5e25e3edb743b78e8b7694b7a6050af745962b2ca32d7e3cb8addd961d",
       "source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-20038",
-        "https://software.sonicwall.com/Firmware/Documentation/232-005681-00_RevL_SMA_10.2.1.8_ReleaseNotes.pdf"
+        "https://psirt.global.sonicwall.com/vuln-detail/SNWLID-2021-0026"
       ],
       "status": "insufficient_evidence",
       "uncertainty": [
-        "The returned authoritative sources identify affected versions and recommend applying vendor updates, but they do not expose a directly verifiable SonicWall fixed-version field for each affected firmware branch.",
-        "A SonicWall release-notes document confirms later 10.2.1 releases exist, but the returned material does not explicitly map CVE-2021-20038 to a fixed build.",
-        "The supplied CPE list is truncated and should not be interpreted as an exhaustive hardware or firmware inventory."
+        "NVD and full vendor advisory page content could not be retrieved (JavaScript-dependent or empty tool responses)",
+        "No concrete fixed firmware version strings appear in the retrieved authoritative CISA or SonicWall advisory excerpts",
+        "Affected version identifiers from the original CVE description were not confirmed in the retrieved vendor or CISA page text"
       ],
       "verification_steps": []
     },
@@ -10392,49 +10352,67 @@
       "verification_steps": []
     },
     "CVE-2021-27860": {
-      "business_risk": "No additional source-verified CVE-specific business impact was established.",
-      "claim_evidence": [],
-      "exposure_conditions": [],
+      "business_risk": "Critical unrestricted file-upload vulnerability in the web management interface of FatPipe WAN/VPN appliances that is listed in the CISA Known Exploited Vulnerabilities catalog; a remote unauthenticated attacker can write a file to any filesystem location.",
+      "claim_evidence": [
+        {
+          "claim": "Version 10 prior to the fixed releases; version 9 is not affected. CNA records 10.1 before 10.1.2r60p92 and 10.2 before 10.2.2r44p1",
+          "kind": "affected_version",
+          "source_url": "https://www.cve.org/CVERecord?id=CVE-2021-27860"
+        }
+      ],
+      "exposure_conditions": [
+        "Web management interface of FatPipe WARP, IPVPN, or MPVPN is reachable",
+        "Software is a version 10.1 release before 10.1.2r60p92 or a version 10.2 release before 10.2.2r44p1"
+      ],
       "gaps": [],
-      "generated_at": "2026-07-27T12:51:59Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-10-05T18:46:00Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
-      "remediation_steps": [],
+      "remediation_steps": [
+        "Upgrade WARP, IPVPN, and MPVPN software to 10.1.2r60p92 or later, or to 10.2.2r44p1 or later, following FatPipe advisory FPSA006",
+        "Disable UI access on WAN interfaces or configure access lists so the management interface is reachable only from trusted sources"
+      ],
       "retrieved_source_urls": [
         "https://nvd.nist.gov/vuln/detail/CVE-2021-27860",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=55",
-        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
-        "https://www.cisa.gov/news-events/alerts/2025/09/29/cisa-adds-five-known-exploited-vulnerabilities-catalog",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=0",
-        "https://www.ic3.gov/CSA/2021/211117-2.pdf",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A800&f%5B10%5D=vendor_project%3A842&f%5B11%5D=vendor_project%3A845&f%5B12%5D=vendor_project%3A854&f%5B13%5D=vendor_project%3A858&f%5B14%5D=vendor_project%3A865&f%5B15%5D=vendor_project%3A872&f%5B16%5D=vendor_project%3A877&f%5B17%5D=vendor_project%3A880&f%5B18%5D=vendor_project%3A885&f%5B19%5D=vendor_project%3A886&f%5B1%5D=vendor_project%3A801&f%5B20%5D=vendor_project%3A888&f%5B21%5D=vendor_project%3A893&f%5B22%5D=vendor_project%3A902&f%5B23%5D=vendor_project%3A917&f%5B24%5D=vendor_project%3A919&f%5B25%5D=vendor_project%3A923&f%5B26%5D=vendor_project%3A931&f%5B27%5D=vendor_project%3A932&f%5B28%5D=vendor_project%3A933&f%5B29%5D=vendor_project%3A938&f%5B2%5D=vendor_project%3A803&f%5B30%5D=vendor_project%3A951&f%5B31%5D=vendor_project%3A1043&f%5B32%5D=vendor_project%3A1174&f%5B33%5D=vendor_project%3A1287&f%5B3%5D=vendor_project%3A813&f%5B4%5D=vendor_project%3A820&f%5B5%5D=vendor_project%3A823&f%5B6%5D=vendor_project%3A825&f%5B7%5D=vendor_project%3A828&f%5B8%5D=vendor_project%3A834&f%5B9%5D=vendor_project%3A837&page=5",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=58",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=42",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=24",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=52",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=38",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A800&f%5B10%5D=vendor_project%3A842&f%5B11%5D=vendor_project%3A845&f%5B12%5D=vendor_project%3A847&f%5B13%5D=vendor_project%3A853&f%5B14%5D=vendor_project%3A854&f%5B15%5D=vendor_project%3A865&f%5B16%5D=vendor_project%3A877&f%5B17%5D=vendor_project%3A880&f%5B18%5D=vendor_project%3A886&f%5B19%5D=vendor_project%3A888&f%5B1%5D=vendor_project%3A801&f%5B20%5D=vendor_project%3A893&f%5B21%5D=vendor_project%3A902&f%5B22%5D=vendor_project%3A917&f%5B23%5D=vendor_project%3A931&f%5B24%5D=vendor_project%3A932&f%5B25%5D=vendor_project%3A933&f%5B26%5D=vendor_project%3A938&f%5B27%5D=vendor_project%3A941&f%5B28%5D=vendor_project%3A951&f%5B29%5D=vendor_project%3A1174&f%5B2%5D=vendor_project%3A802&f%5B3%5D=vendor_project%3A803&f%5B4%5D=vendor_project%3A807&f%5B5%5D=vendor_project%3A820&f%5B6%5D=vendor_project%3A823&f%5B7%5D=vendor_project%3A828&f%5B8%5D=vendor_project%3A837&f%5B9%5D=vendor_project%3A839&page=9",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=56",
-        "https://www.cisa.gov/sites/default/files/2024-05/Secure_by_Design_Alert_Eliminating_Directory_Traversal_Vulnerabilities_in_Software_508c%20%283%29.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/AA21-209A_Joint_CSA%20Top%20Routinely%20Exploited%20Vulnerabilities.pdf",
-        "https://www.ic3.gov/CSA/2023/230524.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/AA22-011A_Joint_CSA_Understanding_and_Mitigating%20_Russian_Cyber_Threats_to_US_Critical_Infrastructure_TLP-WHITE_01-10-22_v1.pdf"
+        "https://www.cve.org/CVERecord?id=CVE-2021-27860",
+        "https://cvetodo.com/cve/CVE-2021-27860",
+        "https://cvefeed.io/vuln/detail/CVE-2021-27860",
+        "https://ctid.mitre.org/mappings/external/kev/attack-15.1/domain-enterprise/kev-02.13.2025/CVE-2021-27860/",
+        "https://socradar.io/free-tools/cve-radar/CVE-2021-27860",
+        "https://avd.aquasec.com/nvd/2021/cve-2021-27860/",
+        "https://stack.watch/vuln/CVE-2021-27860/",
+        "https://turingpoint.de/en/cve/CVE-2021-27860/",
+        "https://de.tenable.com/cve/CVE-2021-27860",
+        "https://cve.report/CVE-2021-27860",
+        "https://www.incibe.es/index.php/incibe-cert/alerta-temprana/vulnerabilidades/cve-2021-27860",
+        "https://www.tenable.com/cve/CVE-2021-27860",
+        "https://sploitus.com/cve/CVE-2021-27860",
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-27860/change-record?changeRecordedOn=07%2F24%2F2024T12%3A53%3A08.017-0400",
+        "https://nvd.nist.gov/nvd.cfm?cvename=CVE-2020-27860",
+        "https://nvd.nist.gov/vuln/detail/CVE-2023-27860",
+        "https://nvd.nist.gov/nvd.cfm?cvename=CVE-2024-27860",
+        "https://fatpipeinc.com/blog/tag/load-balancing/page/2/",
+        "https://www.fatpipeinc.com/about/articles/articles-2017/5-things-5-channel-partner-updates-20-march-2017.pdf",
+        "https://www.fatpipeinc.com/track_pdf.php?f=Fatpipe_Total_security_360_on_Premise_for_SMBs.pdf",
+        "https://www.fatpipeinc.com/about/articles/articles-2006/Transport_Topics.pdf",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog"
       ],
       "schema_version": 2,
       "source_fingerprint": "32dd67a5022818f4e89d9b0c131adcbb4fc0eb66c2ee636f00cc74dfb42df725",
       "source_urls": [
         "https://nvd.nist.gov/vuln/detail/CVE-2021-27860",
-        "https://www.ic3.gov/CSA/2021/211117-2.pdf"
+        "https://www.cve.org/CVERecord?id=CVE-2021-27860"
       ],
-      "status": "insufficient_evidence",
+      "status": "complete",
       "uncertainty": [
-        "The authoritative sources disagree on the 10.1 branch boundary: FatPipe lists 10.1.2r60p92 or later as fixed, while the FBI advisory states that versions prior to 10.1.2r60p93 are vulnerable.",
-        "The provided record contains CPE mappings for older firmware releases, but the authoritative vendor page describes the affected scope at the major-version level and does not enumerate every release.",
-        "No source reviewed here establishes a non-upgrade workaround that removes the vulnerability; interface restriction is only a mitigation.",
-        "Safe verification is limited to version review, configuration review, and log analysis; no active exploit or production probing should be performed."
+        "The NVD detail page and IC3 PDF could not be fully retrieved in this session",
+        "Vendor advisory states version 9 is unaffected and version 10 prior to the listed fixes is affected; CNA records specify the 10.1 and 10.2 lines only"
       ],
-      "verification_steps": []
+      "verification_steps": [
+        "Identify the installed software version from the product management interface or vendor support documentation and confirm it is 10.1.2r60p92 or later or 10.2.2r44p1 or later",
+        "Confirm the web management interface is not reachable from untrusted networks"
+      ]
     },
     "CVE-2021-27877": {
       "business_risk": "Critical remote compromise risk for Veritas Backup Exec Agent deployments. An unauthenticated remote attacker may abuse the legacy SHA authentication scheme to obtain unauthorized Agent access and execute privileged commands. CISA identifies the vulnerability as known exploited and known to be used in ransomware campaigns.",
@@ -10697,99 +10675,87 @@
       ]
     },
     "CVE-2021-30633": {
-      "business_risk": "Critical browser memory-safety vulnerability in Chrome's Indexed DB API. NVD describes potential sandbox escape after a remote attacker compromises the renderer process and delivers a crafted HTML page. The issue is listed in CISA's Known Exploited Vulnerabilities Catalog, and Google reported exploitation in the wild. Prioritize remediation on internet-facing endpoints and managed user workstations.",
+      "business_risk": "Critical use-after-free in Chromium Indexed DB API enabling sandbox escape after renderer compromise; Google confirmed in-the-wild exploits; CISA Known Exploited Vulnerability.",
       "claim_evidence": [
         {
-          "claim": "NVD identifies Google Chrome as affected and describes a use-after-free in the Indexed DB API.",
-          "kind": "affected_product",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2021-30633"
-        },
-        {
-          "claim": "Chrome versions prior to 93.0.4577.82 are affected.",
+          "claim": "Google Chrome prior to 93.0.4577.82",
           "kind": "affected_version",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2021-30633"
+          "source_url": "https://www.cisa.gov/ncas/bulletins/sb21-284"
         },
         {
-          "claim": "A remote attacker who has compromised the renderer process may potentially perform a sandbox escape through a crafted HTML page; Google also states that exploitation existed in the wild.",
-          "kind": "exposure",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2021-30633"
-        },
-        {
-          "claim": "Google's stable desktop channel update moved Chrome to 93.0.4577.82 and lists CVE-2021-30633 among the security fixes.",
+          "claim": "Chrome Stable channel updated to 93.0.4577.82",
           "kind": "fixed_version",
           "source_url": "https://chromereleases.googleblog.com/2021/09/stable-channel-update-for-desktop.html"
         },
         {
-          "claim": "CISA's catalog entry requires applying updates according to vendor instructions, and Google provides the Chrome update mechanism.",
+          "claim": "The Stable channel has been updated to 93.0.4577.82 for Windows, Mac and Linux",
           "kind": "remediation",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2021-30633"
+          "source_url": "https://chromereleases.googleblog.com/2021/09/stable-channel-update-for-desktop.html"
         },
         {
-          "claim": "Google documents checking the current Chrome version from Help > About Google Chrome and relaunching to apply an available update.",
+          "claim": "In Microsoft Edge, click the 3 dots, Help and Feedback, About Microsoft Edge; Edge 93.0.961.52 is based on Chromium 93.0.4577.82",
           "kind": "verification",
-          "source_url": "https://support.google.com/chrome/answer/95414?co=GENIE.Platform%3DDesktop&hl=en"
+          "source_url": "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2021-30633"
         }
       ],
       "exposure_conditions": [
-        "The affected product is Google Chrome versions earlier than 93.0.4577.82.",
-        "Exploitation requires a remote attacker to have compromised the renderer process and induce processing of a crafted HTML page.",
-        "The vulnerability affects the Indexed DB API and is classified as CWE-416, use after free."
+        "Google Chrome prior to 93.0.4577.82",
+        "Chromium-based browsers (including Microsoft Edge and Opera) that ingest unpatched Chromium",
+        "Remote attacker who has already compromised the renderer process",
+        "Victim loads a crafted HTML page"
       ],
       "gaps": [],
-      "generated_at": "2026-07-27T12:52:51Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-10-05T18:50:28Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [
-        "Update Google Chrome to version 93.0.4577.82 or later using the normal Chrome update mechanism.",
-        "After the update is offered, relaunch Chrome so the update is applied.",
-        "For managed environments, use the organization's approved Chrome update or endpoint-management process and prioritize devices reporting versions below 93.0.4577.82.",
-        "Do not rely on disabling Indexed DB or browser features as a substitute for patching; the authoritative sources support updating Chrome, not a configuration workaround."
+        "Update Google Chrome Stable channel to 93.0.4577.82 or later",
+        "Update Microsoft Edge and other Chromium-based browsers to builds based on Chromium 93.0.4577.82 or later",
+        "Apply updates per vendor instructions"
       ],
       "retrieved_source_urls": [
-        "https://chromereleases.googleblog.com/2021/09/stable-channel-update-for-desktop.html",
-        "https://chromereleases.googleblog.com/2021/09/stable-channel-update-for-desktop_21.html",
-        "https://chromereleases.googleblog.com/2021/09/",
-        "https://chromereleases.googleblog.com/2021/08/stable-channel-update-for-desktop.html",
-        "https://chromereleases.googleblog.com/2021/01/stable-channel-update-for-desktop.html",
         "https://nvd.nist.gov/vuln/detail/CVE-2021-30633",
-        "https://chromereleases.googleblog.com/2021/06/stable-channel-update-for-desktop.html",
-        "https://chromereleases.googleblog.com/2021/03/stable-channel-update-for-desktop.html",
-        "https://chromereleases.googleblog.com/2021/12/stable-channel-update-for-desktop.html",
-        "https://chromereleases.googleblog.com/2021/11/stable-channel-update-for-desktop.html",
-        "https://chromereleases.googleblog.com/2021/01/stable-channel-update-for-desktop_19.html",
-        "https://chromereleases.googleblog.com/2021/",
-        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/AA22-117A_Joint_CSA_2021_Top_Routinely_Exploited_Vulnerabilities_Final.pdf",
-        "https://www.cisa.gov/sites/default/files/2024-05/Secure_by_Design_Alert_Eliminating_Directory_Traversal_Vulnerabilities_in_Software_508c%20%283%29.pdf",
-        "https://support.google.com/chrome/a/answer/10025748?hl=en",
-        "https://support.google.com/chrome/answer/95414?co=GENIE.Platform%3DDesktop&hl=en",
-        "https://support.google.com/chrome/answer/16737843",
-        "https://support.google.com/chrome/answer/111996?hl=en",
-        "https://support.google.com/chrome/answer/16737616?hl=en",
-        "https://support.google.com/chrome/answer/16737843?hl=en",
-        "https://support.google.com/chrome/answer/16738344?hl=en",
-        "https://support.google.com/chrome/answer/16737628?hl=en",
-        "https://support.google.com/chrome/answer/6315198?hl=en"
+        "https://nvd.nist.gov/vuln/detail/cve-2021-3063",
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-3063/change-record?changeRecordedOn=11/15/2021T11:26:36.697-0500",
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-3063/change-record?changeRecordedOn=11/10/2021T13:15:09.297-0500",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2021-30663",
+        "https://nvd.nist.gov/vuln/detail/cve-2022-30633",
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-30683/change-record?changeRecordedOn=09/20/2021T10:17:02.330-0400",
+        "https://nvd.nist.gov/vuln/detail/cve-2021-0333",
+        "https://nvd.nist.gov/nvd.cfm?cvename=CVE-2023-30633",
+        "https://nvd.nist.gov/nvd.cfm?cvename=CVE-2021-30833",
+        "https://chromereleases.googleblog.com/2021/09/stable-channel-update-for-desktop.html",
+        "https://chromereleases.googleblog.com/search/label/Beta%20updates?max-results=100",
+        "https://chromereleases.googleblog.com/2021/05/",
+        "https://chromereleases.googleblog.com/search/label/Stable%20updates%2BChrome%20for%20Android",
+        "https://chromereleases.googleblog.com/search/label/ChromeOS%20Flex",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-21-119-04",
+        "https://www.cisa.gov/ncas/bulletins/sb21-284",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-24-074-07",
+        "https://www.cisa.gov/news-events/bulletins/sb21-186",
+        "https://www.cisa.gov/news-events/bulletins/sb21-032",
+        "https://github.com/advisories/ghsa-7pph-hp2f-gxfg",
+        "https://avd.aquasec.com/nvd/2021/cve-2021-30633/",
+        "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2021-30633",
+        "https://www.cvedetails.com/cve/CVE-2021-30633/"
       ],
       "schema_version": 2,
       "source_fingerprint": "544bfcee4b6ec51b3ee6b9c244e198402272af5b0603cdd3333be46024c5aa6a",
       "source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-30633",
         "https://chromereleases.googleblog.com/2021/09/stable-channel-update-for-desktop.html",
-        "https://support.google.com/chrome/answer/95414?co=GENIE.Platform%3DDesktop&hl=en"
+        "https://www.cisa.gov/ncas/bulletins/sb21-284",
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-30633",
+        "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2021-30633"
       ],
       "status": "complete",
       "uncertainty": [
-        "The supplied record includes Fedora CPE entries, but the reviewed authoritative sources do not establish Fedora package-specific fixed versions or whether those entries represent a directly affected Fedora package.",
-        "The sources do not provide a safe vulnerability-specific functional test; verification is therefore limited to installed-version and update-state checks.",
-        "No exploit reproduction or intrusive testing should be performed."
+        "Full NVD page body was not retrievable via fetch; description, versions, and CWE were corroborated by CISA and Chrome vendor sources",
+        "Exact version numbering for non-Chrome Chromium derivatives other than the documented Edge mapping was not independently confirmed in retrieved pages"
       ],
       "verification_steps": [
-        "Open Chrome's About Google Chrome page and record the displayed browser version.",
-        "Confirm that the installed Chrome version is 93.0.4577.82 or later.",
-        "If Chrome presents a Relaunch option, relaunch it and repeat the version check.",
-        "For centrally managed deployments, verify that device inventory or the Chrome version report shows no affected versions below 93.0.4577.82."
+        "Confirm the installed Google Chrome version is 93.0.4577.82 or later using the browser About page",
+        "For Microsoft Edge, open the three-dot menu, select Help and feedback, then About Microsoft Edge and confirm version 93.0.961.52 or later"
       ]
     },
     "CVE-2021-31166": {
@@ -10994,134 +10960,132 @@
       ]
     },
     "CVE-2021-33044": {
-      "business_risk": "Critical, remotely exploitable authentication bypass affecting certain Dahua cameras, video intercoms, PTZ cameras, and thermal cameras. Successful exploitation can bypass device identity authentication and may affect confidentiality, integrity, and availability. CISA lists CVE-2021-33044 as a Known Exploited Vulnerability with active exploitation status.",
-      "claim_evidence": [
-        {
-          "claim": "Dahua identifies IPC-HX1XXX/HX2XXX/HX3XXX, HX5-series, HUM7XXX, HX8XXX, VTO75X95X, VTO65XXX, VTH542XH, specified SD PTZ models, and specified thermal models as affected for CVE-2021-33044.",
-          "kind": "affected_product",
-          "source_url": "https://www.dahuasecurity.com/newsEvents/DahuaNotice/957"
-        },
-        {
-          "claim": "Dahua states that the affected version condition for CVE-2021-33044 is a device build time before June 2021.",
-          "kind": "affected_version",
-          "source_url": "https://www.dahuasecurity.com/newsEvents/DahuaNotice/957"
-        },
-        {
-          "claim": "The vulnerability occurs during the login process and permits bypass of device identity authentication by constructing malicious data packets; NVD rates the vector as network-accessible with no privileges or user interaction required.",
-          "kind": "exposure",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2021-33044"
-        },
-        {
-          "claim": "Dahua lists model-specific fix software, including IPC-HX3XXX releases 2.800.0000000.29.R.210630 or 2.820.0000000.18.R.210705, IPC-HUM7XXX release 2.820.0000000.5.R.210705, video-intercom releases 4.300.0000003.0.R.210714, 4.300.0000004.0.R.210715, and 4.500.0000002.0.R.210715, SD PTZ release 2.812.0000007.0.R.210706, and thermal releases ranging from 2.630.0000000.6.R.210707 through 2.630.0000000.14.R.210630 depending on model.",
-          "kind": "fixed_version",
-          "source_url": "https://www.dahuasecurity.com/newsEvents/DahuaNotice/957"
-        },
-        {
-          "claim": "Dahua instructs users to download the corresponding fix software or a newer version from its website, use cloud upgrade, or contact Dahua technical support.",
-          "kind": "remediation",
-          "source_url": "https://www.dahuasecurity.com/newsEvents/DahuaNotice/957"
-        },
-        {
-          "claim": "Dahua states that the device web interface exposes build time under Settings-System Information-Version Information.",
-          "kind": "verification",
-          "source_url": "https://www.dahuasecurity.com/newsEvents/DahuaNotice/957"
-        }
-      ],
-      "exposure_conditions": [
-        "The device is one of the Dahua models or product families identified by the vendor as affected.",
-        "The device uses firmware with a build time before June 2021 for CVE-2021-33044.",
-        "The device's login interface is reachable over a network; the vulnerability occurs during the login process and is rated network-accessible by NVD."
-      ],
-      "gaps": [],
-      "generated_at": "2026-07-28T11:56:35Z",
-      "model": "gpt-5.6-luna",
-      "prompt_version": "2026-07-14.2",
-      "recipe_specificity": "not_specific",
-      "remediation_steps": [
-        "Identify the exact device model, firmware identifier, and build time before changing firmware.",
-        "Upgrade to the corresponding Dahua fix software listed in the vendor advisory, or to a newer vendor-provided version. Dahua states that the corresponding fix software can be obtained through cloud upgrade, its download center, or local technical support.",
-        "If a supported fix is unavailable, apply CISA's stated mitigation direction by discontinuing use of the product or otherwise preventing its continued deployment."
-      ],
-      "retrieved_source_urls": [
-        "https://nvd.nist.gov/vuln/detail/cve-2021-33044",
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-33044",
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-33544",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A790&f%5B10%5D=vendor_project%3A837&f%5B11%5D=vendor_project%3A841&f%5B12%5D=vendor_project%3A842&f%5B13%5D=vendor_project%3A845&f%5B14%5D=vendor_project%3A854&f%5B15%5D=vendor_project%3A863&f%5B16%5D=vendor_project%3A866&f%5B17%5D=vendor_project%3A885&f%5B18%5D=vendor_project%3A886&f%5B19%5D=vendor_project%3A893&f%5B1%5D=vendor_project%3A795&f%5B20%5D=vendor_project%3A902&f%5B21%5D=vendor_project%3A913&f%5B22%5D=vendor_project%3A917&f%5B23%5D=vendor_project%3A919&f%5B24%5D=vendor_project%3A938&f%5B25%5D=vendor_project%3A1043&f%5B26%5D=vendor_project%3A1249&f%5B2%5D=vendor_project%3A800&f%5B3%5D=vendor_project%3A801&f%5B4%5D=vendor_project%3A820&f%5B5%5D=vendor_project%3A823&f%5B6%5D=vendor_project%3A826&f%5B7%5D=vendor_project%3A828&f%5B8%5D=vendor_project%3A830&f%5B9%5D=vendor_project%3A831&page=1",
-        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-23044",
-        "https://nvd.nist.gov/search",
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-33037",
-        "https://nvd.nist.gov/vuln/detail/cve-2021-33045",
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-4044",
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-33046",
-        "https://nvd.nist.gov/vuln/detail/cve-2021-21344",
-        "https://www.cisa.gov/sites/default/files/2024-09/aa24-249a-russian-military-cyber-actors-target-us-and-global-critical-infrastructure.pdf",
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-33436",
-        "https://www.cisa.gov/sites/default/files/publications/AA22-117A_Joint_CSA_2021_Top_Routinely_Exploited_Vulnerabilities_Final.pdf",
-        "https://www.dahuasecurity.com/newsEvents/DahuaNotice/957",
-        "https://www.cve.org/CVERecord?id=CVE-2021-33044",
-        "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-33044+CVE-2021-33045",
-        "https://nki.gov.hu/figyelmeztetesek/serulekenysegek/cve-2021-33044/",
-        "https://seclists.org/fulldisclosure/2021/Oct/13"
-      ],
-      "schema_version": 2,
-      "source_fingerprint": "637c22145307e211f279e2bd4874c34777300fd62d5aa2e842819ce8e0527f94",
-      "source_urls": [
-        "https://www.dahuasecurity.com/newsEvents/DahuaNotice/957",
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-33044"
-      ],
-      "status": "complete",
-      "uncertainty": [
-        "The vendor advisory identifies affected products by model family and build time, while the NVD record also provides CPE-specific version boundaries; these identifiers are not interchangeable for every model.",
-        "The supplied source record truncates the product list. The vendor advisory identifies additional affected families and model variants, so asset matching should use the complete vendor table.",
-        "No universal fixed version exists for all affected products; the applicable fixed software is model- and firmware-family-specific.",
-        "Verification guidance confirms where to view build time, but the sources do not provide a non-invasive independent test proving that authentication bypass is no longer possible."
-      ],
-      "verification_steps": [
-        "Using the device's authorized web interface, review Settings > System Information > Version Information, where Dahua states that the build time can be viewed.",
-        "Confirm that the installed firmware identifier matches the model-appropriate Dahua fix software or a newer vendor-provided release; do not infer applicability across models.",
-        "Confirm that the device is no longer running a build time before June 2021 for the affected product families.",
-        "Retain the model, firmware identifier, build time, upgrade date, and vendor download or support record as evidence of remediation."
-      ]
-    },
-    "CVE-2021-33045": {
       "business_risk": "No additional source-verified CVE-specific business impact was established.",
       "claim_evidence": [],
       "exposure_conditions": [],
       "gaps": [],
-      "generated_at": "2026-07-28T11:56:10Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-10-05T18:54:40Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [],
       "retrieved_source_urls": [
-        "https://nvd.nist.gov/vuln/detail/cve-2021-33045",
-        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
-        "https://nvd.nist.gov/search",
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-23445",
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-21345",
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-33046",
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-33037",
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-25845",
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-40450",
-        "https://nvd.nist.gov/vuln/detail/cve-2021-43545",
-        "https://www.cisa.gov/sites/default/files/publications/AA22-117A_Joint_CSA_2021_Top_Routinely_Exploited_Vulnerabilities_Final.pdf",
-        "https://nvd.nist.gov/vuln/detail/cve-2021-30554",
-        "https://nvd.nist.gov/vuln/detail?vulnId=CVE-2021-3450",
-        "https://nvd.nist.gov/vuln/detail/cve-2021-33037",
-        "https://www.cisa.gov/sites/default/files/2024-09/aa24-249a-russian-military-cyber-actors-target-us-and-global-critical-infrastructure.pdf"
+        "https://nvd.nist.gov/vuln/detail/cve-2021-33044",
+        "https://nvd.nist.gov/vuln/detail/cve-2021-20244",
+        "https://nvd.nist.gov/vuln/detail/cve-2021-33844",
+        "https://nvd.nist.gov/nvd.cfm?cvename=CVE-2021-32644",
+        "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2021-4044",
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-33445",
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-33644",
+        "https://nvd.nist.gov/vuln/detail/cve-2021-39144",
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-29044/change-record?changeRecordedOn=05/24/2021T16:22:09.467-0400",
+        "https://nvd.nist.gov/nvd.cfm?cvename=CVE-2021-31444",
+        "https://materialfile.dahuasecurity.com/uploads/soft/20231012/IPC-HF7442F-Z-X_S0_datasheet_20230214_RU.pdf",
+        "https://www.dahuasecurity.com/be/aboutUs/trustedCenter/trustworthy",
+        "https://materialfile.dahuasecurity.com/uploads/soft/20240522/SD8A440FA-HNT_S0_datasheet_20230506_PTBR.pdf",
+        "https://materialfile.dahuasecurity.com/uploads/soft/20250131/TPC-PT8441MA-T_S2_datasheet_20240805_RU.pdf",
+        "https://materialfile.dahuasecurity.com/uploads/cpq/88184/datasheet/DH-IPC-HFW7451Z1-Z30-X_S0_datasheet_20260811_English.pdf",
+        "https://www.dahuasecurity.com/it/products/All-Products/Telecamere-IP/WizMind-7-Series/Dual-Sight/IPC-MFW7442K1-Z7-T40",
+        "https://www.dahuasecurity.com/ea/products/All-Products/PTZ-Cameras/X-Spans-Series/SDT8C442-4P-GA-APV-0280",
+        "https://materialfile.dahuasecurity.com/uploads/soft/20230213/IPC-HFW3441T-AS-P_datasheet_20220428_RU.pdf",
+        "https://www.dahuasecurity.com/products/All-Products/Discontinued-Products/HDCVI-Cameras/HAC-HFW1801TH-I4",
+        "https://www.dahuasecurity.com/asset/upload/uploads/soft/20201030/DH-SD8A440WA-HNF(For-Project).pdf",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2021-33044",
+        "https://www.cisa.gov/news-events/alerts/2024/08/21/cisa-adds-four-known-exploited-vulnerabilities-catalog",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-21-245-02",
+        "https://us-cert.cisa.gov/ncas/bulletins/sb21-207"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "637c22145307e211f279e2bd4874c34777300fd62d5aa2e842819ce8e0527f94",
+      "source_urls": [
+        "https://nvd.nist.gov/vuln/detail/cve-2021-33044",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2021-33044"
+      ],
+      "status": "insufficient_evidence",
+      "uncertainty": [
+        "Vendor advisory pages at dahuasecurity.com did not return advisory body, patch lists, or upgrade procedures",
+        "NVD page fetches returned no body content although search snippets exist",
+        "No authoritative source provided an inert, non-probe verification procedure",
+        "Affected models and firmware thresholds are numerous and product-specific; not all CPE entries were fully retrieved"
+      ],
+      "verification_steps": []
+    },
+    "CVE-2021-33045": {
+      "business_risk": "Critical unauthenticated authentication bypass (CVSS 3.1 9.8) on network-reachable Dahua IP cameras, video intercoms, NVRs and XVRs that can yield full device control; listed in CISA KEV as known exploited.",
+      "claim_evidence": [
+        {
+          "claim": "Some Dahua IP Camera, Video Intercom, NVR, XVR devices including IPC-HX3XXX, IPC-HX5XXX, IPC-HUM7XXX, VTO75X95X, VTO65XXX, VTH542XH, NVR1XXX/NVR2XXX/NVR5XXX/NVR6XX and XVR4xxx/XVR5xxx/XVR7xxx",
+          "kind": "affected_product",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2021-33045"
+        },
+        {
+          "claim": "Authentication bypass when the loopback device is specified by the client during authentication",
+          "kind": "exposure",
+          "source_url": "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2021-33045"
+        },
+        {
+          "claim": "Apply mitigations per vendor instructions or discontinue use of the product if mitigations are unavailable",
+          "kind": "remediation",
+          "source_url": "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2021-33045"
+        }
+      ],
+      "exposure_conditions": [
+        "Network-accessible device login on affected series whose firmware Build time is before May 2020 (IPC-HX3XXX, IPC-HX5XXX, IPC-HUM7XXX) or before December 2019 (listed VTO/VTH, NVR and XVR series)",
+        "Client specifies the loopback device during the authentication/login process"
+      ],
+      "gaps": [],
+      "generated_at": "2026-10-05T18:53:30Z",
+      "model": "grok-4.6",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [
+        "Apply the model-series firmware listed as Fix Software in the vendor advisory (or a newer official release) via Dahua download center, cloud upgrade or local technical support",
+        "If vendor mitigations or updates cannot be applied, discontinue use of the product",
+        "Limit network exposure of device management interfaces pending update"
+      ],
+      "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-33045",
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-20245",
+        "https://nvd.nist.gov/vuln/detail/cve-2021-3345",
+        "https://nvd.nist.gov/nvd.cfm?cvename=CVE-2021-33745",
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-39045",
+        "https://nvd.nist.gov/nvd.cfm?cvename=CVE-2021-33945",
+        "https://nvd.nist.gov/nvd.cfm?cvename=CVE-2021-33445",
+        "https://nvd.nist.gov/nvd.cfm?cvename=CVE-2021-32645",
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-30045",
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-22945",
+        "https://www.dahuasecurity.com/be/aboutUs/trustedCenter/trustworthy",
+        "https://materialfile.dahuasecurity.com/uploads/cpq/86207/datasheet/DH-IPC-HFW7459Z1-Z-PV-X-ATC_S0_datasheet_20260129.pdf",
+        "https://www.dahuasecurity.com/mx/products/All-Products/PTZ-Cameras/X-Spans-Series/SDT5X405-4F-FA-0600",
+        "https://material.dahuasecurity.com/uploads/soft/20240306/DH-SD6CE445GB-HNR-L_datasheet_RU.pdf",
+        "https://materialfile.dahuasecurity.com/uploads/soft/20230213/IPC-HFW3441T-AS-P_datasheet_20220428_RU.pdf",
+        "https://us.dahuasecurity.com/dahua-releases-new-2mp-45x-laser-infrared-pan-tilt-zoom-camera/",
+        "https://materialfile.dahuasecurity.com/uploads/soft/20240313/SD8A845QA-HNF_datasheet_20220110.pdf",
+        "https://material.dahuasecurity.com/uploads/soft/20220310/SD5A445XA-HNR-1T_datasheet_20210913_RU.pdf",
+        "https://www.dahuasecurity.com/",
+        "https://www.dahuasecurity.com/products/All-Products/Network-Cameras/WizMind-5-Series/Smart-Dual-Light/4MP/IPC-HFW5459E1-ZHE-IL",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2021-33045",
+        "https://us-cert.cisa.gov/ncas/bulletins/sb21-151",
+        "https://us-cert.cisa.gov/ncas/bulletins/sb21-207",
+        "https://www.cisa.gov/ncas/bulletins/sb21-326"
       ],
       "schema_version": 2,
       "source_fingerprint": "0fdd33cef3a1ac61369df56e5c5335e03044ef2e02fffc650cec5ad09a5c1ad0",
-      "source_urls": [],
-      "status": "insufficient_evidence",
-      "uncertainty": [
-        "The vendor advisory URLs referenced by NVD were unavailable during retrieval, so vendor-specific update procedures and mitigation details could not be independently confirmed.",
-        "NVD lists XVR-4X04 firmware version '-' as affected without providing a concrete fixed version in the returned record.",
-        "The supplied source record truncates the affected-version description and product list; exact applicability must therefore be checked against the complete device model and firmware inventory.",
-        "The listed fixed versions are NVD CPE exclusion boundaries; they should not be interpreted as proof that every later firmware release is suitable for every hardware revision without vendor confirmation."
+      "source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-33045",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2021-33045"
       ],
-      "verification_steps": []
+      "status": "complete",
+      "uncertainty": [
+        "Live Dahua advisory URLs returned site errors rather than advisory text; firmware tables and UI check instructions are taken from a 2021 Wayback snapshot of the vendor advisory",
+        "NVD page fetch via tool returned no body content; high-level product/build-time data therefore rely on search snippets plus CVE.org and CISA",
+        "Per-model firmware strings and whether later official builds supersede the 2021 snapshot are not re-confirmed on a live vendor page",
+        "CISA KEV remediation due date has passed"
+      ],
+      "verification_steps": [
+        "On the device web interface open Settings > System Information > Version Information and record the displayed Build time",
+        "Compare that Build time to the affected thresholds published for the device series"
+      ]
     },
     "CVE-2021-34473": {
       "business_risk": "Critical. CVE-2021-34473 is a remotely exploitable Microsoft Exchange Server vulnerability with a CVSS 3.1 score of 9.8. The NVD record indicates network reachability, low attack complexity, no required privileges, and no user interaction. The vulnerability is listed in CISA's Known Exploited Vulnerabilities catalog, requiring vendor-directed updates. ([nvd.nist.gov](https://nvd.nist.gov/vuln/detail/CVE-2021-34473?utm_source=openai))",
@@ -11546,103 +11510,92 @@
       ]
     },
     "CVE-2021-35464": {
-      "business_risk": "Critical unauthenticated remote-code-execution risk affecting ForgeRock Access Management/OpenAM. Exploitation can provide complete impact to confidentiality, integrity, and availability, and the vulnerability has been listed in CISA's Known Exploited Vulnerabilities catalog. ([nvd.nist.gov](https://nvd.nist.gov/vuln/detail/CVE-2021-35464?utm_source=openai))",
+      "business_risk": "Critical unauthenticated remote code execution (CVSS 3.1 9.8) in ForgeRock Access Management (AM) and OpenAM that is listed in the CISA Known Exploited Vulnerabilities catalog with known ransomware campaign use.",
       "claim_evidence": [
         {
-          "claim": "NVD identifies ForgeRock Access Management and OpenAM as affected products for CVE-2021-35464.",
+          "claim": "ForgeRock Access Management and OpenAM",
           "kind": "affected_product",
           "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2021-35464"
         },
         {
-          "claim": "NVD lists ForgeRock Access Management versions before 6.5.4 and OpenAM versions from 9.0.0 through versions before 14.6.3 as affected ranges.",
+          "claim": "Access Management versions up to but excluding 6.5.4; OpenAM versions from 9.0.0 up to but excluding 14.6.3",
           "kind": "affected_version",
           "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2021-35464"
         },
         {
-          "claim": "Australian government guidance documents active exploitation of vulnerable internet-accessible ForgeRock AM/OpenAM servers and describes unauthenticated remote code execution.",
+          "claim": "Unauthenticated remote code execution via a crafted jato.pageSession parameter on /ccversion/* requests caused by Java deserialization in JATO",
           "kind": "exposure",
-          "source_url": "https://www.cyber.gov.au/about-us/advisories/advisory-2021-004-active-exploitation-forgerock-access-manager-openam-servers"
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2021-35464"
         },
         {
-          "claim": "The NVD affected-range boundaries support version 6.5.4 or later for the listed ForgeRock Access Management range and version 14.6.3 or later for the listed OpenAM range; separate government guidance recommends OpenAM version 7.",
+          "claim": "Access Management 6.5.4 (and later) and OpenAM 14.6.3 (and later)",
           "kind": "fixed_version",
           "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2021-35464"
         },
         {
-          "claim": "Government guidance recommends updating OpenAM to version 7 or applying the workaround identified in ForgeRock Security Advisory #202104; if neither is possible, isolate the service from the Internet or shut it down.",
+          "claim": "Apply updates per vendor instructions; prioritize an update to Access Management version 7 or apply the workaround",
           "kind": "remediation",
-          "source_url": "https://www.cyber.gov.au/about-us/alerts/forgerock-open-am-critical-vulnerability"
-        },
-        {
-          "claim": "Government guidance recommends reviewing systems and networks for vulnerable instances and provides advice for identifying potential successful exploitation.",
-          "kind": "verification",
-          "source_url": "https://www.cyber.gov.au/about-us/advisories/advisory-2021-004-active-exploitation-forgerock-access-manager-openam-servers"
+          "source_url": "https://www.cisa.gov/news-events/alerts/2021/07/12/critical-forgerock-access-management-vulnerability"
         }
       ],
       "exposure_conditions": [
-        "ForgeRock Access Management or OpenAM is deployed in an affected version range.",
-        "The server is reachable by an attacker over the network; government guidance specifically identifies internet-accessible vulnerable servers as being targeted. ([cyber.gov.au](https://www.cyber.gov.au/about-us/advisories/advisory-2021-004-active-exploitation-forgerock-access-manager-openam-servers?utm_source=openai))",
-        "The affected JATO-based request-processing functionality is available to the attacker. Exact deployment-specific endpoint exposure should be confirmed from vendor documentation and configuration."
+        "Unauthenticated network access to ForgeRock Access Management or OpenAM",
+        "Use of Sun ONE Application Framework (JATO) typically found with Java 8 or earlier",
+        "Reachable /ccversion/* endpoints that accept the jato.pageSession parameter"
       ],
       "gaps": [],
-      "generated_at": "2026-07-28T11:57:23Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-10-05T18:58:46Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [
-        "Upgrade ForgeRock Access Management 6.5.x deployments to version 6.5.4 or later, based on the NVD affected-range boundary. ([nvd.nist.gov](https://nvd.nist.gov/vuln/detail/CVE-2021-35464?utm_source=openai))",
-        "For OpenAM deployments in the NVD-listed 9.0.0 through 14.6.2 range, upgrade to version 14.6.3 or later; government guidance also recommends updating OpenAM to version 7. ([nvd.nist.gov](https://nvd.nist.gov/vuln/detail/CVE-2021-35464?utm_source=openai))",
-        "If immediate upgrade is not possible, apply the workaround specified in ForgeRock Security Advisory #202104. The exact workaround details were not available in the returned authoritative page content, so do not infer configuration changes from this record. ([cyber.gov.au](https://www.cyber.gov.au/about-us/advisories/advisory-2021-004-active-exploitation-forgerock-access-manager-openam-servers?utm_source=openai))",
-        "Until remediation is applied, restrict the affected service from Internet exposure using existing approved network controls, or isolate/shut down the server where operationally feasible. ([cyber.gov.au](https://www.cyber.gov.au/about-us/alerts/forgerock-open-am-critical-vulnerability?utm_source=openai))",
-        "Because active exploitation has been reported, review authentication, application, network, and host telemetry for suspicious activity before and after remediation. Do not treat patching alone as evidence that prior compromise did not occur. ([cyber.gov.au](https://www.cyber.gov.au/about-us/advisories/advisory-2021-004-active-exploitation-forgerock-access-manager-openam-servers?utm_source=openai))"
+        "Apply updates per vendor instructions",
+        "Upgrade Access Management to a fixed release such as 6.5.4 or 7.0 or later, or OpenAM to 14.6.3 or later",
+        "If immediate upgrade is not possible, apply the vendor workaround or prevent internet access to affected servers as temporary measures",
+        "Investigate previously exposed servers for signs of compromise"
       ],
       "retrieved_source_urls": [
         "https://nvd.nist.gov/vuln/detail/CVE-2021-35464",
-        "https://www.cyber.gov.au/about-us/advisories/advisory-2021-004-active-exploitation-forgerock-access-manager-openam-servers",
-        "https://www.cyber.gov.au/about-us/alerts/forgerock-open-am-critical-vulnerability",
-        "https://files-prod-us.backstage-storage.forgerock.com/files/oEQfKvz8SWSCaq8F2bfwhw/KQBEPmv2R-m9-VuV10JcMA?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=cloud-storage%40backstage-production.iam.gserviceaccount.com%2F20251024%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20251024T211732Z&X-Goog-Expires=604800&X-Goog-Signature=11fc50307bc351f2ee4282dbe44ce8d0580ad9bba4184d747af0d4e5c059ebdacdde4ae7dc3f687bd955a164b4670cc92e3a628b7b3fcbee7ab6e4cfcf631f86a2dd687cc325e571c49eb7eb6eb854d09256b914aee964d49383e398d1f62e1b5ea63abe7b1c5285c47a77c11d910dbc4b239550d74d26eed1c9432fc2438e3a3ce90ea0c376148aa4feecbd46394fe52e88487f806a67ef8688cc83d360a9e2449cfe3ba83b82f671d3a8efc695f38f36573ecf7f7607cd4dd66723ab957ed2ad5163523b952b875105b8adece74a1ac69a6c9eda0589851d996e130db0c5fc462b79759bced36763bc237390f333376ef8d0f9e38eed2da5b4da1c6d8f472b&X-Goog-SignedHeaders=host&response-content-disposition=attachment%3B+filename%3D%22Technical+Impact+Assessment+CVE-2021-35464.pdf%22",
-        "https://media.defense.gov/2022/Apr/27/2002984949/-1/-1/0/JOINT_CSA_2021_ROUTINELY_EXPLOITED_CVES_20220427.PDF",
-        "https://www.cyber.gc.ca/en/alerts-advisories/forgerock-security-advisory",
-        "https://www.cyber.gov.au/sites/default/files/2023-02/Advisory%202021-004%20Active%20exploitation%20of%20ForgeRock%20Access%20Management%20OpenAM%20servers.pdf",
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-3564",
-        "https://www.snort.org/rule_docs/1-57913",
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-35564",
-        "https://advisories.checkpoint.com/defense/advisories/public/2021/cpai-2021-0461.html",
-        "https://backstage.forgerock.com/docs/iot/7.4/release-notes/iot-7.4-release-notes.pdf",
-        "https://www.tenable.com/plugins/nessus/152139",
+        "https://www.cve.org/CVERecord?id=CVE-2021-35464",
+        "https://avd.aquasec.com/nvd/2021/cve-2021-35464/",
+        "https://cve.yack.one/cve/CVE-2021-35464",
+        "https://cve.report/CVE-2021-35464",
+        "https://www.cvedetails.com/cve/CVE-2021-35464/",
+        "https://inventivehq.com/tools/security/cve-lookup/cve-2021-35464",
+        "https://sploitus.com/cve/CVE-2021-35464",
+        "https://www.cloudanix.com/vulndb/cve/CVE-2021-35464",
+        "https://cvedatabase.com/cve/CVE-2021-35464",
+        "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2021/CVE-2021-35464.yaml",
+        "https://ismalicious.com/cve/CVE-2021-35464",
+        "https://www.cyber-defence.io/tools/cve/CVE-2021-35464",
+        "https://app.opencve.io/cve/CVE-2021-35464",
+        "https://socradar.io/free-tools/cve-radar/CVE-2021-35464",
         "https://nvd.nist.gov/vuln/detail/CVE-2021-35465",
-        "https://jvndb.jvn.jp/ja/contents/2021/JVNDB-2021-010128.html",
-        "https://www.reddit.com/r/SysAdminBlogs/comments/1uz3yb0/cve_lookup_that_shows_the_actual_fix_kb_package/",
-        "https://arxiv.org/abs/2107.08760",
-        "https://arxiv.org/abs/2101.01431",
-        "https://www.reddit.com/r/devops_cloud_news/comments/1toyv61/kubernetes_corrects_unfixed_cve_records_on_june_1/",
-        "https://www.reddit.com/r/Tidra/comments/1ustg9y/weekly_maintenance_radar_week_ending_july_10_2026/",
-        "https://www.reddit.com/r/cybersecurity/comments/1ujnlsn/cve_approval_timeline/",
-        "https://www.reddit.com/r/java/comments/u8p0ce",
-        "https://www.reddit.com/r/sysadmin/comments/1uxahvf/psa_cisco_identity_services_engine_path_traversal/",
-        "https://www.reddit.com/r/security/comments/1uxafps/cve202620146_cisco_identity_services_engine_path/"
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2021-41864",
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-35064",
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-45464",
+        "https://backstage.forgerock.com/docs/ds/7.2/log-reference/index.html",
+        "https://backstage.forgerock.com/docs/sdks/latest/release-notes/index.html",
+        "https://backstage.forgerock.com/docs/am/7.4/_attachments/apidocs/org/forgerock/openam/auth/node/api/ExternalRequestContext.html",
+        "https://community.forgerock.com/t/latest-security-advisories/1512",
+        "https://www.cisa.gov/news-events/alerts/2021/07/12/critical-forgerock-access-management-vulnerability"
       ],
       "schema_version": 2,
       "source_fingerprint": "f01cd3c9e8982614c2f53213afdf15ab8a3d694ca241a5a38d645dc2e4febd21",
       "source_urls": [
         "https://nvd.nist.gov/vuln/detail/CVE-2021-35464",
-        "https://www.cyber.gov.au/about-us/advisories/advisory-2021-004-active-exploitation-forgerock-access-manager-openam-servers",
-        "https://www.cyber.gov.au/about-us/alerts/forgerock-open-am-critical-vulnerability",
-        "https://www.cyber.gc.ca/en/alerts-advisories/forgerock-security-advisory"
+        "https://www.cisa.gov/news-events/alerts/2021/07/12/critical-forgerock-access-management-vulnerability",
+        "https://www.cve.org/CVERecord?id=CVE-2021-35464"
       ],
       "status": "complete",
       "uncertainty": [
-        "The supplied record contains a generic MITRE affected entry with product/version n/a, while NVD provides the actionable ForgeRock AM/OpenAM CPE ranges; the NVD ranges were used for version enrichment. ([nvd.nist.gov](https://nvd.nist.gov/vuln/detail/CVE-2021-35464?utm_source=openai))",
-        "The supplied summary says ForgeRock AM is vulnerable before 7.0, whereas NVD lists AM versions below 6.5.4 and OpenAM versions from 9.0.0 below 14.6.3. Product naming and upgrade-path differences should be resolved against the deployment's official ForgeRock support documentation.",
-        "The original ForgeRock advisory page was not returned with its detailed contents, so specific workaround configuration, package names, and vendor-specific validation procedures are intentionally omitted.",
-        "A version check and network-exposure review establish configuration status but do not prove that exploitation has or has not occurred."
+        "Full vendor workaround and patch-install steps are behind authenticated ForgeRock/Ping Backstage access",
+        "NVD description refers to AM server before 7.0 while NVD CPE analysis uses Access Management before 6.5.4 and OpenAM before 14.6.3",
+        "CISA lists specific 6.x AM versions and recommends version 7"
       ],
       "verification_steps": [
-        "Inventory the installed ForgeRock AM/OpenAM product and exact version on each deployment; compare it with the fixed-version boundaries above.",
-        "Confirm that all production instances, standby nodes, and replicated administrative components meet the applicable fixed-version boundary.",
-        "Verify through approved network-inventory or firewall records that Internet access is removed or restricted for any instance that cannot yet be upgraded. ([cyber.gov.au](https://www.cyber.gov.au/about-us/alerts/forgerock-open-am-critical-vulnerability?utm_source=openai))",
-        "After upgrade or workaround deployment, perform a normal authenticated administrative health check and review application logs for errors. Do not send exploit payloads or conduct destructive production testing.",
-        "Confirm that monitoring and incident-response review has been completed for potentially exposed instances, given the documented active exploitation. ([cyber.gov.au](https://www.cyber.gov.au/about-us/advisories/advisory-2021-004-active-exploitation-forgerock-access-manager-openam-servers?utm_source=openai))"
+        "Confirm the installed Access Management or OpenAM version falls outside the NVD-published affected ranges",
+        "Review historical HTTP access logs for requests to /ccversion paths containing jato.pageSession without generating new test traffic"
       ]
     },
     "CVE-2021-35587": {
@@ -11843,69 +11796,75 @@
       ]
     },
     "CVE-2021-37973": {
-      "business_risk": "Critical remote-code-execution impact is possible when a user loads crafted web content, because exploitation could enable a sandbox escape after renderer-process compromise. Google reported that an exploit existed in the wild, and CISA lists this CVE as known exploited.",
+      "business_risk": "Critical CVSS 9.6 use-after-free in Chrome Portals enabling sandbox escape after renderer compromise; listed in CISA KEV with confirmed in-the-wild exploitation requiring immediate vendor updates.",
       "claim_evidence": [
         {
-          "claim": "The vulnerability affects Google Chrome, specifically the Portals component.",
+          "claim": "Google Chrome",
           "kind": "affected_product",
           "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2021-37973"
         },
         {
-          "claim": "Google Chrome versions prior to 94.0.4606.61 are affected.",
+          "claim": "unspecified versions prior to 94.0.4606.61",
           "kind": "affected_version",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2021-37973"
-        },
-        {
-          "claim": "The NVD describes exploitation through a crafted HTML page after compromise of the renderer process; Google also reported that an exploit existed in the wild.",
-          "kind": "exposure",
           "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2021-37973"
         }
       ],
       "exposure_conditions": [
-        "Google Chrome versions prior to 94.0.4606.61 are affected.",
-        "Exploitation requires user interaction with a crafted HTML page and a compromised renderer process, according to the NVD description.",
-        "The vulnerability is in the Portals component and is classified as a use-after-free (CWE-416)."
+        "Google Chrome versions prior to 94.0.4606.61",
+        "Remote attacker who has already compromised the renderer process",
+        "Crafted HTML page (user interaction required)"
       ],
       "gaps": [],
-      "generated_at": "2026-07-27T12:52:40Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-10-05T18:49:06Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [
-        "Update Google Chrome to version 94.0.4606.61 or later using the vendor-supported update mechanism.",
-        "Because this CVE is listed in the Known Exploited Vulnerabilities catalog, prioritize remediation and confirm that managed endpoints have completed the update.",
-        "For Debian or Fedora Chromium packages, use the applicable distribution security update rather than assuming the Google Chrome version threshold maps directly to the distribution package version."
+        "Update Google Chrome to 94.0.4606.61 or later on Windows, Mac, and Linux.",
+        "On Debian 11 (bullseye), update the chromium package to 97.0.4692.71-0.1~deb11u1 or later.",
+        "Apply vendor updates for other Chromium-based browsers such as Microsoft Edge."
       ],
       "retrieved_source_urls": [
         "https://nvd.nist.gov/vuln/detail/CVE-2021-37973",
-        "https://security-tracker.debian.org/tracker/CVE-2021-37973",
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-3793",
-        "https://nvd.nist.gov/vuln/detail/cve-2022-37973",
-        "https://www.debian.org/security/",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=69&source=publication_recirc-----dcec9744cbe1----3----------------------------",
+        "https://www.cve.org/CVERecord?id=CVE-2021-37973",
+        "https://www.suse.com/security/cve/CVE-2021-37973.html",
+        "https://avd.aquasec.com/nvd/2021/cve-2021-37973/",
+        "https://www.cvedetails.com/cve/CVE-2021-37973/",
+        "https://cvetodo.com/cve/CVE-2021-37973",
+        "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2021-37973",
+        "https://www.wiz.io/vulnerability-database/cve/cve-2021-37973",
+        "https://cve.report/CVE-2021-37973.pdf",
+        "https://cve.circl.lu/cve/CVE-2021-37973",
+        "https://socradar.io/free-tools/cve-radar/CVE-2021-37973",
+        "https://www.whitesourcesoftware.com/vulnerability-database/CVE-2021-37973/",
+        "https://osv.dev/vulnerability/DEBIAN-CVE-2021-37973",
+        "https://security.alpinelinux.org/vuln/CVE-2021-37973",
+        "https://www.manageengine.com/vulnerability-management/vulnerability-database/CVE-2021-37973.html",
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-37993",
+        "https://nvd.nist.gov/nvd.cfm?cvename=CVE-2021-3793",
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-37973",
         "https://nvd.nist.gov/vuln/detail/CVE-2025-37973",
-        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
-        "https://security-tracker.debian.org/tracker/DSA-5046-1",
-        "https://nvd.nist.gov/vuln/detail/CVE-2024-37973",
-        "https://nvd.nist.gov/vuln/detail/cve-2021-30973",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=68&source=read_next_recirc---two_column_layout_sidebar------1---------------------7d6750f4_0650_49de_9ddb_8addfb93e174-------",
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-41973",
-        "https://www.cisa.gov/sites/default/files/publications/AA22-117A_Joint_CSA_2021_Top_Routinely_Exploited_Vulnerabilities_Final.pdf"
+        "https://chromereleases.googleblog.com/search/label/Extended%20Stable%20updates?updated-max=2021-10-07T12:18:00-07:00&max-results=20&start=219&by-date=false",
+        "https://chromereleases.googleblog.com/2021/10/stable-channel-update-for-desktop.html",
+        "https://chromereleases.googleblog.com/search/label/Chrome%20for%20Android?max-results=56",
+        "https://chromereleases.googleblog.com/search/label/Desktop%20Update?updated-max=2026-07-14T23:59:59-07:00&max-results=20&by-date=false",
+        "https://www.cisa.gov/ncas/bulletins/sb21-284"
       ],
       "schema_version": 2,
       "source_fingerprint": "07be22abd266c9a12a70eff1415e59ad3463f45b33e4caf073d592808ce8a482",
       "source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-37973"
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-37973",
+        "https://www.cve.org/CVERecord?id=CVE-2021-37973"
       ],
       "status": "complete",
       "uncertainty": [
-        "The supplied record includes Fedora and Debian operating-system CPEs, but the authoritative evidence consulted here does not establish a single cross-distribution fixed package version for every listed release.",
-        "The Chrome release advisory confirms the fixed desktop build and exploitation in the wild, but it does not provide a detailed operational verification procedure beyond identifying the installed build."
+        "Full NVD page body could not be retrieved.",
+        "Fedora 33/35 package versions could not be retrieved from mailing-list archives.",
+        "Debian 10 (buster) chromium is end-of-life and listed unfixed."
       ],
       "verification_steps": [
-        "Confirm the installed Chrome version is 94.0.4606.61 or later through the browser's built-in version information page or the organization's approved software-inventory tool.",
-        "Confirm that endpoint-management reporting shows the update installed and that no managed systems remain below the fixed version.",
-        "Do not treat package-version equivalence for Debian or Fedora as verified without consulting the relevant distribution advisory."
+        "In Google Chrome select Help then About Google Chrome and confirm the version is 94.0.4606.61 or higher.",
+        "Open chrome://version and confirm the displayed version is 94.0.4606.61 or higher."
       ]
     },
     "CVE-2021-38163": {
@@ -11913,45 +11872,48 @@
       "claim_evidence": [],
       "exposure_conditions": [],
       "gaps": [],
-      "generated_at": "2026-07-28T11:56:48Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-10-05T18:56:03Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [],
       "retrieved_source_urls": [
         "https://nvd.nist.gov/vuln/detail/CVE-2021-38163",
-        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A835&f%5B1%5D=vendor_project%3A879&f%5B2%5D=vendor_project%3A1041&f%5B3%5D=vendor_project%3A1328&update=August2022",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A827&f%5B1%5D=vendor_project%3A835&f%5B2%5D=vendor_project%3A841&f%5B3%5D=vendor_project%3A871&f%5B4%5D=vendor_project%3A876&f%5B5%5D=vendor_project%3A890&page=1",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A806&f%5B1%5D=vendor_project%3A808&f%5B2%5D=vendor_project%3A811&f%5B3%5D=vendor_project%3A822&f%5B4%5D=vendor_project%3A835&f%5B5%5D=vendor_project%3A842&f%5B6%5D=vendor_project%3A872&f%5B7%5D=vendor_project%3A874&f%5B8%5D=vendor_project%3A901&f%5B9%5D=vendor_project%3A952&page=6",
-        "https://nvd.nist.gov/vuln/detail/CVE-2025-38163",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=58",
-        "https://www.cisa.gov/news-events/alerts/2023/09/13/cisa-adds-three-known-vulnerabilities-catalog",
-        "https://www.cisa.gov/sites/default/files/publications/AA22-117A_Joint_CSA_2021_Top_Routinely_Exploited_Vulnerabilities_Final.pdf",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A791&f%5B10%5D=vendor_project%3A913&f%5B11%5D=vendor_project%3A947&f%5B1%5D=vendor_project%3A798&f%5B2%5D=vendor_project%3A804&f%5B3%5D=vendor_project%3A811&f%5B4%5D=vendor_project%3A822&f%5B5%5D=vendor_project%3A826&f%5B6%5D=vendor_project%3A830&f%5B7%5D=vendor_project%3A862&f%5B8%5D=vendor_project%3A877&f%5B9%5D=vendor_project%3A888&page=19",
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-28163",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A790&f%5B10%5D=vendor_project%3A845&f%5B11%5D=vendor_project%3A848&f%5B12%5D=vendor_project%3A854&f%5B13%5D=vendor_project%3A866&f%5B14%5D=vendor_project%3A877&f%5B15%5D=vendor_project%3A886&f%5B16%5D=vendor_project%3A892&f%5B17%5D=vendor_project%3A893&f%5B18%5D=vendor_project%3A895&f%5B19%5D=vendor_project%3A902&f%5B1%5D=vendor_project%3A792&f%5B20%5D=vendor_project%3A907&f%5B21%5D=vendor_project%3A911&f%5B22%5D=vendor_project%3A917&f%5B23%5D=vendor_project%3A938&f%5B24%5D=vendor_project%3A1042&f%5B2%5D=vendor_project%3A800&f%5B3%5D=vendor_project%3A801&f%5B4%5D=vendor_project%3A812&f%5B5%5D=vendor_project%3A820&f%5B6%5D=vendor_project%3A823&f%5B7%5D=vendor_project%3A831&f%5B8%5D=vendor_project%3A837&f%5B9%5D=vendor_project%3A842&page=6",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=56",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=24",
-        "https://www.cisa.gov/sites/default/files/2024-05/Secure_by_Design_Alert_Eliminating_Directory_Traversal_Vulnerabilities_in_Software_508c%20%283%29.pdf",
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-3813",
+        "https://nvd.nist.gov/vuln/detail/cve-2021-38165",
+        "https://nvd.nist.gov/vuln/detail/cve-2025-38163",
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-38163/change-record?changeRecordedOn=01%2F08%2F2025T15%3A50%3A00.893-0500",
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-37963",
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-38363",
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-47163",
+        "https://nvd.nist.gov/nvd.cfm?cvename=CVE-2021-39163",
+        "https://nvd.nist.gov/vuln/detail/cve-2021-23163",
+        "https://www.cisa.gov/ncas/bulletins/sb21-263",
+        "https://www.cisa.gov/news-events/bulletins/sb21-221",
+        "https://www.cisa.gov/news-events/bulletins/sb21-291",
+        "https://www.cisa.gov/ncas/bulletins/sb21-228",
+        "https://www.cve.org/CVERecord?id=CVE-2021-38163",
+        "https://www.cloudanix.com/vulndb/cve/CVE-2021-38163",
+        "https://avd.aquasec.com/nvd/2021/cve-2021-38163/",
+        "https://www.cvedetails.com/cve/CVE-2021-38163/",
+        "https://secalerts.co/vulnerability/CVE-2021-38163",
+        "https://socradar.io/free-tools/cve-radar/CVE-2021-38163",
+        "https://cvetodo.com/cve/CVE-2021-38163",
+        "https://cve.circl.lu/vuln/fkie_cve-2021-38163",
         "https://userapps.support.sap.com/sap/support/knowledge/en/3460650",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A792&f%5B10%5D=vendor_project%3A854&f%5B11%5D=vendor_project%3A866&f%5B12%5D=vendor_project%3A886&f%5B13%5D=vendor_project%3A889&f%5B14%5D=vendor_project%3A892&f%5B15%5D=vendor_project%3A893&f%5B16%5D=vendor_project%3A900&f%5B17%5D=vendor_project%3A902&f%5B18%5D=vendor_project%3A908&f%5B19%5D=vendor_project%3A917&f%5B1%5D=vendor_project%3A800&f%5B20%5D=vendor_project%3A920&f%5B21%5D=vendor_project%3A931&f%5B22%5D=vendor_project%3A938&f%5B23%5D=vendor_project%3A940&f%5B2%5D=vendor_project%3A801&f%5B3%5D=vendor_project%3A820&f%5B4%5D=vendor_project%3A823&f%5B5%5D=vendor_project%3A835&f%5B6%5D=vendor_project%3A837&f%5B7%5D=vendor_project%3A842&f%5B8%5D=vendor_project%3A845&f%5B9%5D=vendor_project%3A851&page=3",
-        "https://www.securityweek.com/sap-patches-critical-vulnerabilities-september-2021-security-updates/",
-        "https://o3.security/vulnerability/CVE-2021-38163",
-        "https://www.securityweek.com/sap-patches-high-severity-netweaver-vulnerabilities/",
-        "https://cloud.securitybridge.com/advisory/detail/3084487"
+        "https://securitybridge.com/blog/sap-security-patch-day-september-2021/"
       ],
       "schema_version": 2,
       "source_fingerprint": "63449955fcd50f83f237a2d38ff76ba1ef2541cd953e05660f8af79419896fc5",
       "source_urls": [
         "https://nvd.nist.gov/vuln/detail/CVE-2021-38163",
-        "https://userapps.support.sap.com/sap/support/knowledge/en/3460650"
+        "https://www.cve.org/CVERecord?id=CVE-2021-38163"
       ],
       "status": "insufficient_evidence",
       "uncertainty": [
-        "The returned authoritative sources identify SAP Security Note 3084487 but do not expose its correction instructions or concrete fixed-version values.",
-        "No authoritative source returned here establishes a fixed version for each affected NetWeaver release.",
-        "The NVD and CISA records describe the vulnerability and remediation direction but do not provide a safe, product-specific verification command or endpoint."
+        "Public NVD, CVE, CISA, and SAP Patch Day sources list affected versions 7.30/7.31/7.40/7.50 and point to SAP Note 3084487 but do not publish a concrete fixed support-package or patch level",
+        "The SAP security note and original vendor wiki require login or are a broken link, so detailed correction, workaround, and verification procedures are not available from open authoritative pages",
+        "No authoritative public source describes an inert, non-destructive verification procedure"
       ],
       "verification_steps": []
     },
@@ -12139,91 +12101,47 @@
       ]
     },
     "CVE-2021-40438": {
-      "business_risk": "Critical server-side request forgery risk. A remote user can potentially cause Apache HTTP Server's mod_proxy to forward a crafted request to an origin selected by that user, with the NVD-recorded impact rating indicating potential confidentiality, integrity, and availability impact.",
-      "claim_evidence": [
-        {
-          "claim": "The affected product is Apache HTTP Server, specifically the mod_proxy component.",
-          "kind": "affected_product",
-          "source_url": "https://httpd.apache.org/security/vulnerabilities_24.html"
-        },
-        {
-          "claim": "Apache HTTP Server versions 2.4.48 and earlier are affected.",
-          "kind": "affected_version",
-          "source_url": "https://httpd.apache.org/security/vulnerabilities_24.html"
-        },
-        {
-          "claim": "A crafted request URI path can cause mod_proxy to forward a request to an origin server chosen by the remote user.",
-          "kind": "exposure",
-          "source_url": "https://httpd.apache.org/security/vulnerabilities_24.html"
-        },
-        {
-          "claim": "mod_proxy provides proxy and gateway capabilities, and Apache warns that unsecured proxying is dangerous to internal networks and the Internet.",
-          "kind": "exposure",
-          "source_url": "https://httpd.apache.org/docs/current/mod/mod_proxy.html"
-        },
-        {
-          "claim": "Apache HTTP Server 2.4.49 is identified as the release that fixes CVE-2021-40438.",
-          "kind": "fixed_version",
-          "source_url": "https://httpd.apache.org/security/vulnerabilities_24.html"
-        },
-        {
-          "claim": "The vendor remediation is to update from affected Apache HTTP Server versions through 2.4.48 to the fixed 2.4.49 release or later.",
-          "kind": "remediation",
-          "source_url": "https://httpd.apache.org/security/vulnerabilities_24.html"
-        },
-        {
-          "claim": "A version and configuration review can verify whether the deployment is at or above the fixed upstream version and whether mod_proxy is enabled and configured.",
-          "kind": "verification",
-          "source_url": "https://httpd.apache.org/docs/current/mod/mod_proxy.html"
-        }
-      ],
-      "exposure_conditions": [
-        "Apache HTTP Server version 2.4.48 or earlier is deployed; the Apache advisory identifies versions through 2.4.48 as affected.",
-        "The request is processed by mod_proxy or related proxy functionality. Apache documents mod_proxy as providing proxy/gateway capabilities and warns that unsecured proxying can expose internal networks and the Internet.",
-        "A remote user can submit a crafted request URI to the affected server."
-      ],
+      "business_risk": "No additional source-verified CVE-specific business impact was established.",
+      "claim_evidence": [],
+      "exposure_conditions": [],
       "gaps": [],
-      "generated_at": "2026-08-06T12:08:31Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-10-05T18:51:51Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
-      "remediation_steps": [
-        "Upgrade Apache HTTP Server to version 2.4.49 or later; Apache identifies 2.4.49 as the fixing release for CVE-2021-40438.",
-        "If an immediate upgrade is not possible, restrict or disable unnecessary proxy functionality and review proxy rules and reachable origin destinations. Treat this as a temporary risk-reduction measure, not a substitute for the vendor fix.",
-        "For operating-system or vendor-packaged Apache installations, apply the vendor security update corresponding to this CVE and confirm whether the vendor backported the fix."
-      ],
+      "remediation_steps": [],
       "retrieved_source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-40438",
-        "https://httpd.apache.org/security/vulnerabilities_24.html",
-        "https://httpd.apache.org/security/",
-        "https://httpd.apache.org/docs/current/mod/mod_proxy.html",
-        "https://nvd.nist.gov/vuln/search/results?adv_search=true&isCpeNameSearch=true&query=cpe%3A2.3%3Ao%3Aredhat%3Aenterprise_linux_server_aus%3A7.2%3A%2A%3A%2A%3A%2A%3A%2A%3A%2A%3A%2A%3A%2A",
-        "https://httpd.apache.org/docs/current/mod/mod_proxy_http.html",
-        "https://httpd.apache.org/docs/2.4/mod/mod_proxy_http2.html",
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-4044",
-        "https://httpd.apache.org/docs/current/misc/relevant_standards.html",
-        "https://httpd.apache.org/docs/2.4/mod/mod_proxy_ajp.html",
-        "https://nvd.nist.gov/search",
-        "https://httpd.apache.org/docs/2.4/en/new_features_2_4.html"
+        "https://nvd.nist.gov/vuln/detail/cve-2021-40438",
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-40438/change-record?changeRecordedOn=10/04/2022T22:21:29.720-0400",
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-40438/change-record?changeRecordedOn=05/16/2025T11:27:13.890-0400",
+        "https://nvd.nist.gov/vuln/detail/CVE-2023-40438",
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-40338",
+        "https://httpd.apache.org/security/json/",
+        "https://socradar.io/free-tools/cve-radar/CVE-2021-40438",
+        "https://www.rapid7.com/blog/post/2021/11/30/active-exploitation-of-apache-http-server-cve-2021-40438/",
+        "https://avd.aquasec.com/nvd/2021/cve-2021-40438/",
+        "https://ubuntu.com/security/CVE-2021-40438",
+        "https://cve.report/CVE-2021-40438.pdf",
+        "https://access.redhat.com/errata/RHSA-2021:3754",
+        "https://www.ibm.com/support/pages/security-bulletin-apache-http-server-used-ibm-qradar-siem-vulnerable-server-side-request-forgery-ssrf-cve-2021-40438",
+        "https://www.sentinelone.com/vulnerability-database/cve-2021-40438/",
+        "https://www.rapid7.com/blog/post/ra-cve-2021-40438-analysis/",
+        "https://cvetodo.com/cve/CVE-2021-40438",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-22-167-06",
+        "https://www.cisa.gov/news-events/bulletins/sb21-291",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2020-1938"
       ],
       "schema_version": 2,
       "source_fingerprint": "1ff2746bcac0ad5ce3f8b1b2aaee95fb75d535bc40762651c905acf26e29b0c1",
-      "source_urls": [
-        "https://httpd.apache.org/security/vulnerabilities_24.html",
-        "https://httpd.apache.org/docs/current/mod/mod_proxy.html",
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-40438"
-      ],
-      "status": "complete",
+      "source_urls": [],
+      "status": "insufficient_evidence",
       "uncertainty": [
-        "The supplied record lists numerous operating-system CPE matches, but it does not establish the exact installed package, vendor backport status, enabled modules, or proxy configuration.",
-        "The Apache advisory establishes the upstream fixed release, but vendor-packaged systems may use a different package version while retaining the fix.",
-        "No safe, CVE-specific runtime test procedure was identified in the consulted authoritative sources."
+        "Consulted vendor and CISA sources do not describe an explicit inert verification procedure or configuration check.",
+        "NVD detail page content was not retrieved in this session.",
+        "Downstream vendor packages may use different version numbers than upstream 2.4.49.",
+        "The model did not return a fully sourced exposure, remediation, and verification set; consult the linked NVD and vendor sources before acting."
       ],
-      "verification_steps": [
-        "Verify the deployed Apache HTTP Server package or build reports version 2.4.49 or later, or verify the operating-system vendor's package advisory explicitly states that CVE-2021-40438 is fixed.",
-        "Confirm that mod_proxy is enabled only where required and review its proxy configuration for unintended external or internal origin reachability.",
-        "Use a configuration and package inventory review rather than sending exploit-like requests or probing production origin services."
-      ]
+      "verification_steps": []
     },
     "CVE-2021-40539": {
       "business_risk": "Critical. An unauthenticated remote attacker may bypass authentication on ADSelfService Plus REST API URLs and potentially achieve remote code execution. CISA and allied agencies reported active exploitation, including attacks against internet-accessible deployments.",
@@ -12880,97 +12798,63 @@
       ]
     },
     "CVE-2021-45046": {
-      "business_risk": "Critical risk. Apache Log4j2 CVE-2021-45046 can enable information disclosure and remote code execution in some environments, or local code execution, when the affected configuration and attacker-controlled Thread Context Map input are present. CISA lists the vulnerability in its Known Exploited Vulnerabilities catalog and reports known ransomware use.",
-      "claim_evidence": [
-        {
-          "claim": "Only the Apache Log4j log4j-core JAR is affected; applications using only log4j-api without log4j-core are not impacted.",
-          "kind": "affected_product",
-          "source_url": "https://logging.apache.org/security.html?s=09"
-        },
-        {
-          "claim": "Apache lists affected log4j-core versions as [2.0-beta9, 2.3.1) ∪ [2.4, 2.12.3) ∪ [2.13.0, 2.16.0).",
-          "kind": "affected_version",
-          "source_url": "https://logging.apache.org/security.html?s=09"
-        },
-        {
-          "claim": "Exposure requires a non-default Pattern Layout with a Thread Context Lookup and attacker control over Thread Context Map input; the issue can result in information leakage and code execution.",
-          "kind": "exposure",
-          "source_url": "https://logging.apache.org/security.html?s=09"
-        },
-        {
-          "claim": "Apache lists 2.3.1 for Java 6, 2.12.3 for Java 7, and 2.16.0 for Java 8 and later as fixed versions.",
-          "kind": "fixed_version",
-          "source_url": "https://logging.apache.org/security.html?s=09"
-        },
-        {
-          "claim": "Apache's mitigation is to upgrade to the applicable fixed Log4j version.",
-          "kind": "remediation",
-          "source_url": "https://logging.apache.org/security.html?s=09"
-        },
-        {
-          "claim": "Apache identifies the affected component as log4j-core and documents the configuration conditions that can be reviewed to determine exposure.",
-          "kind": "verification",
-          "source_url": "https://logging.apache.org/security.html?s=09"
-        },
-        {
-          "claim": "CISA lists CVE-2021-45046 as a known exploited vulnerability, reports known ransomware campaign use, and directs organizations to apply vendor updates.",
-          "kind": "exposure",
-          "source_url": "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=24"
-        }
-      ],
+      "business_risk": "Critical incomplete fix in Apache Log4j 2.15.0 enabling information leak plus remote code execution in some environments and local code execution in all environments via Thread Context lookups; CISA KEV entry with known ransomware campaign use.",
+      "claim_evidence": [],
       "exposure_conditions": [
-        "The application uses the affected log4j-core component.",
-        "The logging configuration uses a non-default Pattern Layout containing a Thread Context Lookup, such as a Context Lookup or Thread Context Map pattern.",
-        "An attacker can control Thread Context Map (MDC) input that is processed by the logging configuration.",
-        "Applications using only log4j-api without log4j-core are not affected by this vulnerability."
+        "Logging configuration uses a non-default Pattern Layout with a Thread Context Lookup or a Thread Context Map pattern (%X, %mdc, or %MDC)",
+        "Attacker has control over Thread Context Map (MDC) input data",
+        "The log4j-core component is present (log4j-api alone is not affected)"
       ],
       "gaps": [],
-      "generated_at": "2026-07-27T12:51:39Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-10-05T18:44:48Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [
-        "Upgrade Apache Log4j core to 2.3.1 for Java 6, 2.12.3 for Java 7, or 2.16.0 or later for Java 8 and later.",
-        "Prioritize remediation because the vulnerability is listed by CISA as known exploited and associated with known ransomware campaigns.",
-        "Inventory direct and transitive dependencies to identify every deployed log4j-core artifact, including copies packaged inside application archives or vendor products.",
-        "For packaged or vendor applications that cannot be independently upgraded, follow the respective vendor advisory and obtain a version containing the vendor's Log4j fix."
+        "Upgrade to Apache Log4j 2.16.0 or later (Java 8 and later), 2.12.3 or later (Java 7), or 2.3.1 or later (Java 6) as listed by the vendor",
+        "Apply updates per vendor instructions"
       ],
       "retrieved_source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-45046",
         "https://nvd.nist.gov/vuln/detail/cve-2021-45046",
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-45046?name=CVE-2021-45046",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=24",
-        "https://logging.apache.org/security.html?s=09",
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-45546",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=0",
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-45046?stbdtimeout=1",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=55",
-        "https://logging.apache.org/security.html",
-        "https://logging.apache.org/log4j/2.x/release-notes.html",
-        "https://www.cisa.gov/news-events/alerts/2021/12/22/mitigating-log4shell-and-other-log4j-related-vulnerabilities",
-        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/AA21-356A_Joint_CSA_Mitigating_Log4Shell_and_Other_Log4j-Related_Vulnerabilities.pdf",
-        "https://www.cisa.gov/sites/default/files/2023-08/aa23-215a_joint_csa_2022_top_routinely_exploited_vulnerabilities.pdf"
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-45046/change-record?changeRecordedOn=12/20/2021T06:15:08.607-0500",
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-45046/change-record?changeRecordedOn=12/15/2021T11:07:35.960-0500",
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-45043",
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-0446",
+        "https://news.apache.org/foundation/entry/apache-log4j-cves",
+        "https://flink.apache.org/2021/12/16/apache-flink-log4j-emergency-releases/",
+        "https://flink.apache.org/2021/12/22/apache-flink-statefun-log4j-emergency-release/",
+        "https://ignite.apache.org/blog/2021/12/21/apache-ignite-2-11-1/",
+        "https://issues.apache.org/jira/si/jira.issueviews:issue-html/HIVE-25810/HIVE-25810.html",
+        "https://www.cve.org/CVERecord?id=CVE-2021-45046",
+        "https://access.redhat.com/security/cve/cve-2021-45046",
+        "https://github.com/advisories/ghsa-7rjr-3q55-vv33",
+        "https://socradar.io/free-tools/cve-radar/CVE-2021-45046",
+        "https://raven.io/blog/log4j-cve-history",
+        "https://www.ibm.com/support/pages/security-bulletin-vulnerabilities-apache-log4j-affect-ibm-spectrum-control-cve-2021-45105-cve-2021-45046",
+        "https://www.mend.io/vulnerability-database/CVE-2021-45046/",
+        "https://ubuntu.com/security/CVE-2021-45046",
+        "https://www.ibm.com/support/pages/security-bulletin-ibm-cognos-controller-1042-if16-apache-log4j-vulnerability-cve-2021-45046",
+        "https://avd.aquasec.com/nvd/2021/cve-2021-45046/",
+        "https://www.cve.org/CVERecord?id=CVE-2021-0446",
+        "https://www.cve.org/Media/News/item/news/2026/09/24/CISA-CVE-Quality-Era-Framework",
+        "https://www.cisa.gov/news-events/bulletins/sb22-024",
+        "https://sploitus.com/cve/CVE-2021-45046"
       ],
       "schema_version": 2,
       "source_fingerprint": "0317825acf2725ff1d523c4b1c016409f29c7df4248dbfc38c289bf1e5564c34",
       "source_urls": [
-        "https://logging.apache.org/security.html?s=09",
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-45046",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=24"
+        "https://www.cve.org/CVERecord?id=CVE-2021-45046",
+        "https://news.apache.org/foundation/entry/apache-log4j-cves"
       ],
       "status": "complete",
       "uncertainty": [
-        "The supplied product matches are truncated and include downstream products; their remediation may require product-specific vendor advisories.",
-        "The vulnerability description establishes conditional exposure, but the supplied record does not identify whether a particular deployment uses the affected logging configuration or accepts attacker-controlled MDC input.",
-        "The Apache advisory lists branch-specific fixed versions; compatibility, support status, and later-version requirements for a specific application were not established."
+        "CNA description lists 2.12.2 as the Java 7 fix while the current Apache Logging Services security page lists 2.12.3 for Java 7",
+        "Full NVD page content was not retrievable",
+        "Later Log4j releases address additional related issues"
       ],
       "verification_steps": [
-        "Confirm through dependency or artifact inventory that each deployed log4j-core version is at or above the fixed version for its Java baseline: 2.3.1, 2.12.3, or 2.16.0.",
-        "Confirm that no vulnerable log4j-core copy remains inside application bundles, containers, or vendor-distributed components.",
-        "Review the effective logging configuration to determine whether a non-default Pattern Layout with Thread Context Lookup or Thread Context Map patterns is enabled.",
-        "Confirm whether the application contains only log4j-api and no log4j-core; such an application is not affected by this CVE according to Apache.",
-        "Use release or package inventory records to document the upgraded artifact version; do not perform exploit testing against production systems."
+        "Review logging configuration for any non-default Pattern Layout that uses Thread Context Lookups or Thread Context Map patterns with data that may originate from untrusted input",
+        "Confirm the deployed log4j-core version against the fixed releases published by Apache Logging Services"
       ]
     },
     "CVE-2021-45382": {
