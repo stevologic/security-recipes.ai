@@ -148,12 +148,26 @@ def validate_model(model: dict[str, Any]) -> list[str]:
     protocols = as_list(model.get("protocol_surfaces"), "protocol_surfaces")
     protocol_ids = {str(item.get("id")) for item in protocols if isinstance(item, dict)}
     require(REQUIRED_PROTOCOLS.issubset(protocol_ids), failures, "protocol_surfaces must include MCP, A2A, provider-native, and human approval bridges")
+    a2a_spec_urls = {
+        str(item.get("url", "")).strip()
+        for item in standards
+        if isinstance(item, dict)
+    }
+    require(
+        any("a2a-protocol.org" in url and "specification" in url for url in a2a_spec_urls),
+        failures,
+        "standards_alignment must include the current A2A protocol specification",
+    )
     for idx, protocol in enumerate(protocols):
         item = as_dict(protocol, f"protocol_surfaces[{idx}]")
         protocol_id = str(item.get("id", "")).strip()
         require(bool(protocol_id), failures, f"protocol_surfaces[{idx}].id is required")
         require(len(as_list(item.get("required_controls"), f"{protocol_id}.required_controls")) >= 3, failures, f"{protocol_id}: required_controls are incomplete")
         require(bool(as_list(item.get("allowed_target_trust_tiers"), f"{protocol_id}.allowed_target_trust_tiers")), failures, f"{protocol_id}: target trust tiers are required")
+        if protocol_id == "a2a_task_delegation":
+            controls = {str(control) for control in as_list(item.get("required_controls"), "a2a_task_delegation.required_controls")}
+            require("a2a_version_header" in controls, failures, "a2a_task_delegation must require a2a_version_header")
+            require("in_task_auth_out_of_band" in controls, failures, "a2a_task_delegation must require in_task_auth_out_of_band")
 
     profiles = as_list(model.get("handoff_profiles"), "handoff_profiles")
     profile_ids = {str(item.get("id")) for item in profiles if isinstance(item, dict)}
@@ -394,6 +408,10 @@ def build_pack(
             {
                 "risk": "A2A, MCP, and provider-native orchestration can compose into longer chains than one gateway can inspect.",
                 "treatment": "Propagate correlation IDs, require per-hop boundary decisions, and deny handoffs that omit prior hop evidence."
+            },
+            {
+                "risk": "An A2A client that omits A2A-Version is interpreted as 0.3, and AUTH_REQUIRED credentials in the message can leak across agent chains.",
+                "treatment": "Require A2A-Version 1.0, hold empty or 0.3, deny unsupported versions, and kill in-band credentials unless an extension negotiated in-band exchange."
             }
         ],
         "failures": failures,
