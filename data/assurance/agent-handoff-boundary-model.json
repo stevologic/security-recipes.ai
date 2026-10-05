@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-08-21",
+  "last_reviewed": "2026-10-05",
   "intent": "Define the SecurityRecipes agent handoff boundary for MCP, A2A, provider-native subagents, and human approval bridges so multi-agent workflows can exchange only approved context metadata, cited evidence, and explicit approval state while preserving least privilege and auditability.",
   "positioning": {
     "buyer": "AI Platform, Security Engineering, AppSec, GRC, procurement security, vendor-risk, model-risk, and acquisition diligence teams",
@@ -38,6 +38,12 @@
       "name": "Model Context Protocol 2025-11-25 Key Changes",
       "url": "https://modelcontextprotocol.io/specification/2025-11-25/changelog",
       "coverage": "OpenID Connect discovery, incremental scope consent, Client ID Metadata Documents, tool naming, task support, and updated security best practices."
+    },
+    {
+      "id": "a2a-protocol-1-0-0",
+      "name": "A2A Protocol Specification 1.0.0",
+      "url": "https://a2a-protocol.org/v1.0.0/specification/",
+      "coverage": "Current released A2A 1.0.0. Clients MUST send A2A-Version Major.Minor on each request; empty is 0.3; unsupported versions return VersionNotSupportedError. TASK_STATE_AUTH_REQUIRED credentials MUST arrive out of band unless an in-band mechanism was negotiated."
     },
     {
       "id": "a2a-enterprise-ready-2026",
@@ -78,7 +84,10 @@
       "resource_indicator",
       "token_audience",
       "human_approval_record",
-      "correlation_id"
+      "correlation_id",
+      "a2a_version",
+      "task_state",
+      "credential_channel"
     ],
     "prohibited_payload_fields": [
       "private_key",
@@ -135,11 +144,11 @@
       },
       {
         "decision": "hold_for_redaction_or_approval",
-        "meaning": "The handoff is potentially valid but requires redaction, DPA or residency checks, signed agent identity, or human approval."
+        "meaning": "The handoff is potentially valid but requires redaction, DPA or residency checks, signed agent identity, A2A-Version 1.0, an out-of-band AUTH_REQUIRED credential channel, or human approval."
       },
       {
         "decision": "deny_untrusted_agent_handoff",
-        "meaning": "The target agent, protocol, authentication, or trust tier is not approved for the requested payload or capability."
+        "meaning": "The target agent, protocol, authentication, trust tier, or requested A2A-Version is not approved for the requested payload or capability."
       },
       {
         "decision": "deny_unregistered_handoff",
@@ -147,7 +156,7 @@
       },
       {
         "decision": "kill_session_on_secret_handoff",
-        "meaning": "The handoff attempted to move credential material, raw tokens, private keys, signing material, internal memory, or hidden instructions."
+        "meaning": "The handoff attempted to move credential material, raw tokens, private keys, signing material, internal memory, hidden instructions, or AUTH_REQUIRED credentials inside the A2A message."
       }
     ],
     "global_rules": [
@@ -155,7 +164,9 @@
       "A remote agent is opaque; do not assume its memory, tools, model, or downstream connectors are visible to SecurityRecipes.",
       "Handoffs may carry cited conclusions, source IDs, source hashes, workflow IDs, approval state, and correlation IDs by default.",
       "Handoffs must not carry internal memory, raw tool traces, hidden prompts, unrestricted customer logs, credentials, or live signing material.",
-      "High-impact capabilities require explicit human approval and a scoped identity or delegated authority record before handoff."
+      "High-impact capabilities require explicit human approval and a scoped identity or delegated authority record before handoff.",
+      "A2A task delegations MUST send A2A-Version Major.Minor 1.0. An empty header is 0.3 and is held; unsupported versions are denied.",
+      "A2A TASK_STATE_AUTH_REQUIRED handoffs MUST receive credentials out of band unless an in-band mechanism was negotiated; credentials in the A2A message kill the session."
     ]
   },
   "protocol_surfaces": [
@@ -179,14 +190,16 @@
     {
       "id": "a2a_task_delegation",
       "title": "A2A task-delegation boundary",
-      "description": "An agent delegates a task to an opaque remote agent through HTTP and JSON-RPC style task exchange.",
+      "description": "An agent delegates a task to an opaque remote agent through HTTP and JSON-RPC style task exchange with A2A-Version 1.0 and out-of-band AUTH_REQUIRED credentials.",
       "required_controls": [
         "https_required",
         "server_identity_verified",
         "agent_card_reviewed",
         "skill_scope_authorized",
         "trace_context_propagated",
-        "payload_minimized"
+        "payload_minimized",
+        "a2a_version_header",
+        "in_task_auth_out_of_band"
       ],
       "allowed_target_trust_tiers": [
         "first_party",
@@ -389,7 +402,8 @@
       "Which payload fields are allowed by profile?",
       "Which data classes trigger redaction, approval, denial, or session termination?",
       "Which high-impact delegated capabilities require approval?",
-      "Which evidence proves workflow, source, identity, and egress state before handoff?"
+      "Which evidence proves workflow, source, identity, and egress state before handoff?",
+      "Does an A2A handoff carry A2A-Version 1.0 and keep AUTH_REQUIRED credentials out of band?"
     ],
     "recommended_first_use": "Attach this pack to A2A pilot intake, MCP gateway review, provider-native subagent rollout, and multi-agent workflow architecture reviews.",
     "sales_motion": "Lead with open handoff policies, then sell hosted agent-card trust, handoff replay, tenant evidence ingestion, signed approval receipts, and protocol gateway enforcement."
