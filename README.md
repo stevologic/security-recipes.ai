@@ -676,7 +676,11 @@ misses, and archive pagination misses do not consume the ban budget.
 Point both the apex and `www` DNS records at the Droplet before setup. Managed
 Caddy obtains certificates for both names and permanently redirects `www` to
 the apex canonical host; redirecting only at HTTP would leave HTTPS crawlers
-unable to complete the TLS handshake.
+unable to complete the TLS handshake. The same stack can serve
+`security-recipes.si` and `www.security-recipes.si` from those upstreams
+(`SECURITY_RECIPES_MIRROR_DOMAIN`); visible brand chrome follows the request
+`Host`, while SEO canonicals stay on `https://security-recipes.ai/`. See
+[README.caddy-deploy.md](README.caddy-deploy.md).
 
 Existing Droplets need this one-time, idempotent activation after deploying
 the commit that contains the jail:
