@@ -6391,92 +6391,55 @@
       ]
     },
     "CVE-2020-16017": {
-      "business_risk": "Critical browser vulnerability that can enable a sandbox escape after a renderer process has been compromised. Google reported that exploits existed in the wild, and CISA lists the CVE in its Known Exploited Vulnerabilities Catalog.",
-      "claim_evidence": [
-        {
-          "claim": "CVE-2020-16017 affects Google Chrome and is described as a use-after-free in site isolation.",
-          "kind": "affected_product",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2020-16017"
-        },
-        {
-          "claim": "Chrome versions prior to 86.0.4240.198 are affected.",
-          "kind": "affected_version",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2020-16017"
-        },
-        {
-          "claim": "The issue could be exploited by a remote attacker who had compromised the renderer process, using a crafted HTML page, to potentially perform a sandbox escape.",
-          "kind": "exposure",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2020-16017"
-        },
-        {
-          "claim": "Google documents checking the installed Chrome version and updates through Help > About Google Chrome, where Chrome checks for updates and displays the current version.",
-          "kind": "verification",
-          "source_url": "https://support.google.com/chrome/answer/95414?co=GENIE.Platform%3DDesktop&hl=en"
-        },
-        {
-          "claim": "Managed administrators can review installed Chrome browser versions through the Chrome Enterprise browser versions report.",
-          "kind": "verification",
-          "source_url": "https://support.google.com/chrome/a/answer/10025748?hl=en"
-        }
-      ],
-      "exposure_conditions": [
-        "Google Chrome versions earlier than 86.0.4240.198 are affected.",
-        "Exploitation requires a renderer process to have been compromised and involves a crafted HTML page.",
-        "The authoritative Google release notice specifically covers Chrome for Windows, Mac, and Linux; applicability to other Chrome-based products or platforms is not established by the reviewed sources."
-      ],
+      "business_risk": "No additional source-verified CVE-specific business impact was established.",
+      "claim_evidence": [],
+      "exposure_conditions": [],
       "gaps": [],
-      "generated_at": "2026-07-28T12:00:40Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-10-06T16:23:52Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
-      "remediation_steps": [
-        "Update Google Chrome to version 86.0.4240.198 or later.",
-        "Use Chrome's normal update workflow and relaunch the browser so the update is applied.",
-        "Prioritize remediation because the vulnerability is listed in CISA's Known Exploited Vulnerabilities Catalog."
-      ],
+      "remediation_steps": [],
       "retrieved_source_urls": [
         "https://nvd.nist.gov/vuln/detail/CVE-2020-16017",
-        "https://nvd.nist.gov/vuln/detail/CVE-2020-1617",
-        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=&field_date_added_wrapper=all&items_per_page=20&page=2&search_api_fulltext=Chrome&sort_by=field_date_added&url=",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=17",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=0",
-        "https://nvd.nist.gov/vuln/detail/CVE-2019-1617",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?_cldee=jpUNG-sft0Lr74jsazzEoZ17jTSFEy6lQDvCJArCUYT0C1B4SWuT29F0dx7GSSfN&esid=f8736f67-efb4-ec11-983e-000d3a5a7186&f%5B0%5D=vendor_project%3A813&f%5B1%5D=vendor_project%3A829&f%5B2%5D=vendor_project%3A849&f%5B3%5D=vendor_project%3A911&f%5B4%5D=vendor_project%3A1320&page=1&recipientid=contact-41de9e007aace811a963000d3a363879-a794569726594743b07ecd7aaff0e97c",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=55",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A800&f%5B10%5D=vendor_project%3A854&f%5B11%5D=vendor_project%3A870&f%5B12%5D=vendor_project%3A873&f%5B13%5D=vendor_project%3A879&f%5B14%5D=vendor_project%3A886&f%5B15%5D=vendor_project%3A893&f%5B16%5D=vendor_project%3A901&f%5B17%5D=vendor_project%3A902&f%5B18%5D=vendor_project%3A908&f%5B19%5D=vendor_project%3A917&f%5B1%5D=vendor_project%3A801&f%5B20%5D=vendor_project%3A921&f%5B21%5D=vendor_project%3A925&f%5B22%5D=vendor_project%3A938&f%5B23%5D=vendor_project%3A939&f%5B24%5D=vendor_project%3A941&f%5B25%5D=vendor_project%3A1143&f%5B2%5D=vendor_project%3A820&f%5B3%5D=vendor_project%3A823&f%5B4%5D=vendor_project%3A837&f%5B5%5D=vendor_project%3A842&f%5B6%5D=vendor_project%3A845&f%5B7%5D=vendor_project%3A848&f%5B8%5D=vendor_project%3A851&f%5B9%5D=vendor_project%3A853&page=1",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=69",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A791&f%5B10%5D=vendor_project%3A845&f%5B11%5D=vendor_project%3A854&f%5B12%5D=vendor_project%3A886&f%5B13%5D=vendor_project%3A893&f%5B14%5D=vendor_project%3A902&f%5B15%5D=vendor_project%3A917&f%5B16%5D=vendor_project%3A938&f%5B1%5D=vendor_project%3A796&f%5B2%5D=vendor_project%3A800&f%5B3%5D=vendor_project%3A801&f%5B4%5D=vendor_project%3A820&f%5B5%5D=vendor_project%3A823&f%5B6%5D=vendor_project%3A828&f%5B7%5D=vendor_project%3A830&f%5B8%5D=vendor_project%3A837&f%5B9%5D=vendor_project%3A842&page=6",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=52",
-        "https://www.cisa.gov/sites/default/files/publications/AA20-133A_Top_10_Routinely_Exploited_Vulnerabilities_S508C.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/AA22-117A_Joint_CSA_2021_Top_Routinely_Exploited_Vulnerabilities_Final.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/AA21-209A_Joint_CSA%20Top%20Routinely%20Exploited%20Vulnerabilities.pdf",
-        "https://support.google.com/chrome/answer/95414?co=GENIE.Platform%3DDesktop&hl=en",
-        "https://support.google.com/chrome/a/answer/10025748?hl=en",
-        "https://support.google.com/chrome/answer/16737843?hl=en",
-        "https://support.google.com/chrome/thread/11789666/what-version-of-chrome-am-i-using-and-how-do-i-find-out?hl=en",
-        "https://support.google.com/chrome/answer/9795973?hl=en",
-        "https://support.google.com/chrome/answer/9281740?co=GENIE.Platform%3DDesktop&hl=en-en",
-        "https://support.google.com/chrome/answer/95414?co=GENIE.Platform%3DAndroid&hl=en",
-        "https://support.google.com/chrome/answer/16738344?hl=en"
+        "https://access.redhat.com/security/cve/cve-2020-16017",
+        "https://www.cve.org/CVERecord?id=CVE-2020-16017",
+        "https://www.suse.com/security/cve/CVE-2020-16017.html",
+        "https://www.cvedetails.com/cve/CVE-2020-16017/",
+        "https://ubuntu.com/security/CVE-2020-16017",
+        "https://avd.aquasec.com/nvd/2020/cve-2020-16017/",
+        "https://cve.yack.one/cve/CVE-2020-16017",
+        "https://cve.report/CVE-2020-16017",
+        "https://security.archlinux.org/CVE-2020-16017",
+        "https://socradar.io/free-tools/cve-radar/CVE-2020-16017",
+        "https://www.manageengine.com/vulnerability-management/vulnerability-database/CVE-2020-16017.html",
+        "https://cve.circl.lu/cve/CVE-2020-16017",
+        "https://turingpoint.de/en/cve/CVE-2020-16017/",
+        "https://osv.dev/vulnerability/CVE-2020-16017",
+        "https://nvd.nist.gov/vuln/detail/CVE-2020-16008",
+        "https://nvd.nist.gov/vuln/detail/CVE-2020-1607/change-record?changeRecordedOn=01/24/2020T14:00:57.053-0500",
+        "https://nvd.nist.gov/nvd.cfm?cvename=CVE-2020-16087",
+        "https://nvd.nist.gov/vuln/detail/cve-2020-16117",
+        "https://chromereleases.googleblog.com/search/label/Stable%20updates%2BDesktop%20Update?updated-max=2020-11-17T13:35:00-08:00&max-results=20&start=230&by-date=false",
+        "https://chromereleases.googleblog.com/2020/11/stable-channel-update-for-desktop_17.html",
+        "https://chromereleases.googleblog.com/search/label/Beta%20updates?max-results=100",
+        "https://chromereleases.googleblog.com/search/label/Stable%20updates%2BDesktop%20Update?updated-max=2020-08-10T11:51:00-07:00&max-results=20&start=241&by-date=false",
+        "https://www.cisa.gov/ncas/bulletins/sb20-020"
       ],
       "schema_version": 2,
       "source_fingerprint": "8bd6f55c0a85a969f5a9ccbe678099b18d3f19f5356e8b1cf2b3a9a8d2dcc354",
       "source_urls": [
         "https://nvd.nist.gov/vuln/detail/CVE-2020-16017",
-        "https://support.google.com/chrome/answer/95414?co=GENIE.Platform%3DDesktop&hl=en",
-        "https://support.google.com/chrome/a/answer/10025748?hl=en"
+        "https://www.cve.org/CVERecord?id=CVE-2020-16017"
       ],
-      "status": "complete",
+      "status": "insufficient_evidence",
       "uncertainty": [
-        "The reviewed sources establish the fixed boundary for desktop Chrome but do not provide separate affected or fixed-version guidance for Android, iOS, ChromeOS, or other Chromium-based products.",
-        "The sources do not establish whether a particular installed Chrome instance is currently vulnerable; asset-specific version inventory is required."
+        "The NVD detail page body could not be retrieved (likely JavaScript rendering).",
+        "Consulted sources do not document a specific inert verification procedure such as a UI path or version-display method.",
+        "CWE and CVSS values are not taken from a fully loaded NVD or CNA page in this session.",
+        "The model did not return a fully sourced exposure, remediation, and verification set; consult the linked NVD and vendor sources before acting."
       ],
-      "verification_steps": [
-        "Open Chrome and select Help > About Google Chrome to display the installed version and check for updates.",
-        "Confirm that the installed Chrome version is 86.0.4240.198 or later; do not use exploit testing or crafted pages for validation.",
-        "For managed environments, review the Chrome Enterprise browser versions report to confirm affected versions are no longer deployed."
-      ]
+      "verification_steps": []
     },
     "CVE-2020-1631": {
       "business_risk": "Critical risk for exposed Junos OS management services. An unauthenticated network attacker may read sensitive files or configuration data, obtain J-Web session tokens, inject commands into logs, and potentially obtain the privileges of an active J-Web user. CISA lists CVE-2020-1631 in its Known Exploited Vulnerabilities Catalog.",
@@ -7037,28 +7000,78 @@
       ]
     },
     "CVE-2020-2509": {
-      "business_risk": "No additional source-verified CVE-specific business impact was established.",
-      "claim_evidence": [],
-      "exposure_conditions": [],
+      "business_risk": "Critical (CVSS 3.1 score 9.8) command injection in QNAP QTS and QuTS hero that enables unauthenticated remote execution of arbitrary commands on NAS devices; included in the CISA Known Exploited Vulnerabilities catalog.",
+      "claim_evidence": [
+        {
+          "claim": "Affects QTS and QuTS hero on all QNAP NAS",
+          "kind": "affected_product",
+          "source_url": "https://www.qnap.com/en-us/security-advisory/qsa-21-05"
+        },
+        {
+          "claim": "QTS unspecified versions before 4.5.2.1566 Build 20210202, 4.5.1.1495 Build 20201123, 4.3.6.1620 Build 20210322, 4.3.4.1632 Build 20210324, 4.3.3.1624 Build 20210416 and 4.2.6 Build 20210327; QuTS hero unspecified versions before h4.5.1.1491 build 20201119",
+          "kind": "affected_version",
+          "source_url": "https://nvd.nist.gov/vuln/detail/cve-2020-2509"
+        },
+        {
+          "claim": "Fixed in QTS 4.5.2.1566 Build 20210202 and later, QTS 4.5.1.1495 Build 20201123 and later, QTS 4.3.6.1620 Build 20210322 and later, QTS 4.3.4.1632 Build 20210324 and later, QTS 4.3.3.1624 Build 20210416 and later, QTS 4.2.6 Build 20210327 and later, and QuTS hero h4.5.1.1491 build 20201119 and later",
+          "kind": "fixed_version",
+          "source_url": "https://www.qnap.com/en-us/security-advisory/qsa-21-05"
+        },
+        {
+          "claim": "To secure the device update to the latest version; log on as administrator, go to Control Panel > System > Firmware Update, and under Live Update click Check for Update",
+          "kind": "remediation",
+          "source_url": "https://www.qnap.com/en-us/security-advisory/qsa-21-05"
+        }
+      ],
+      "exposure_conditions": [
+        "QNAP NAS devices running affected QTS or QuTS hero firmware",
+        "Network-accessible command injection allowing remote code execution without privileges or user interaction"
+      ],
       "gaps": [],
-      "generated_at": "2026-07-28T11:59:47Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-10-06T16:18:31Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
-      "remediation_steps": [],
-      "retrieved_source_urls": [],
+      "remediation_steps": [
+        "Update QTS or QuTS hero to a listed fixed version or later per the vendor advisory.",
+        "Log on to QTS or QuTS hero as administrator, go to Control Panel > System > Firmware Update, and under Live Update click Check for Update."
+      ],
+      "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/cve-2020-2509",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2020-2509",
+        "https://nvd.nist.gov/vuln/detail/CVE-2020-25097",
+        "https://nvd.nist.gov/vuln/detail/cve-2005-2509",
+        "https://nvd.nist.gov/vuln/detail/CVE-2018-25009",
+        "https://www.qnap.com/en-us/security-advisory/qsa-21-05",
+        "https://www.cisa.gov/news-events/bulletins/sb20-258",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-20-353-01",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-23-348-10",
+        "https://www.cisa.gov/news-events/bulletins/sb20-335",
+        "https://www.cve.org/CVERecord?id=CVE-2020-2509",
+        "https://cvefeed.io/vuln/detail/CVE-2020-2509",
+        "https://socradar.io/free-tools/cve-radar/CVE-2020-2509",
+        "https://turingpoint.de/en/cve/CVE-2020-2509/",
+        "https://cve.circl.lu/vuln/CVE-2020-2509",
+        "https://www.tenable.com/plugins/ot/502506",
+        "https://pentest-tools.com/vulnerabilities-exploits/qnap-qts-command-injection-vulnerability-qsa-21-05_5646",
+        "https://nvd.nist.gov/vuln/detail/CVE-2020-2509"
+      ],
       "schema_version": 2,
       "source_fingerprint": "abd8668dcdee0231f7be5df2b537092c6e138c82da3169e8a20cd6e9e06386d3",
-      "source_urls": [],
-      "status": "insufficient_evidence",
-      "uncertainty": [
-        "The authoritative advisory does not identify the vulnerable application component, endpoint, file path, or a safe functional test for the injection flaw.",
-        "The affected-version notation uses custom QNAP build strings and branch-specific thresholds; version comparison should follow QNAP's branch and build naming.",
-        "QNAP recommends the latest model-specific release, but the advisory does not enumerate current releases; no current-version claim is made here.",
-        "The supplied evidence identifies CISA KEV inclusion, but does not provide campaign or ransomware attribution.",
-        "The model did not return a fully sourced exposure, remediation, and verification set; consult the linked NVD and vendor sources before acting."
+      "source_urls": [
+        "https://nvd.nist.gov/vuln/detail/cve-2020-2509",
+        "https://www.qnap.com/en-us/security-advisory/qsa-21-05",
+        "https://www.cve.org/CVERecord?id=CVE-2020-2509"
       ],
-      "verification_steps": []
+      "status": "complete",
+      "uncertainty": [
+        "The precise application or input that triggers the command injection is described only as a compromised application.",
+        "NVD enumerates many historical QTS builds as affected; applicability depends on the installed firmware branch."
+      ],
+      "verification_steps": [
+        "Log on to QTS or QuTS hero as administrator and use Control Panel > System > Firmware Update to view the current version and build.",
+        "Confirm the installed firmware is at or later than the fixed builds documented in the QNAP advisory."
+      ]
     },
     "CVE-2020-25213": {
       "business_risk": "Critical. An unauthenticated remote attacker may upload and execute arbitrary PHP code through vulnerable WordPress File Manager plugin versions. The vulnerability is listed in CISA's Known Exploited Vulnerabilities catalog, so remediation should be prioritized and affected systems should be reviewed for compromise.",
@@ -7240,40 +7253,45 @@
       "claim_evidence": [],
       "exposure_conditions": [],
       "gaps": [],
-      "generated_at": "2026-07-28T12:00:22Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-10-06T16:22:03Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [],
       "retrieved_source_urls": [
+        "https://www.cve.org/CVERecord?id=CVE-2020-25506",
         "https://nvd.nist.gov/vuln/detail/CVE-2020-25506",
-        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
+        "https://cve.yack.one/cve/CVE-2020-25506",
+        "https://cve.report/CVE-2020-25506",
+        "https://www.sentinelone.com/vulnerability-database/cve-2020-25506/",
+        "https://raw.githubusercontent.com/projectdiscovery/nuclei-templates/master/cves/2020/CVE-2020-25506.yaml",
+        "https://cvefeed.io/vuln/detail/CVE-2020-25506",
+        "https://secalerts.co/vulnerability/CVE-2020-25506",
+        "https://cvepremium.circl.lu/known-exploited-vulnerabilities-catalog/1567108d-a94c-4545-8b2a-f20779290b05",
+        "https://cvepremium.circl.lu/known-exploited-vulnerabilities-catalog/aa3652eb-c8d3-48b2-8cc5-883075b91233",
+        "https://www.cvedetails.com/cve/CVE-2020-25506/",
+        "https://www.cvedetails.com/cve/cve-2020-25506",
+        "https://cvetodo.com/cve/CVE-2020-25506",
+        "https://www.tenable.com/cve/CVE-2020-25506",
+        "https://socradar.io/free-tools/cve-radar/CVE-2020-25506",
+        "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2020-2550",
         "https://nvd.nist.gov/vuln/detail/CVE-2026-25506",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=52",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=42",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=22",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=56",
-        "https://www.cisa.gov/sites/default/files/publications/AA22-117A_Joint_CSA_2021_Top_Routinely_Exploited_Vulnerabilities_Final.pdf",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=70",
-        "https://www.cisa.gov/sites/default/files/publications/AA21-209A_Joint_CSA%20Top%20Routinely%20Exploited%20Vulnerabilities.pdf",
-        "https://nvd.nist.gov/vuln/detail/CVE-2020-6506",
-        "https://www.cisa.gov/sites/default/files/2024-05/Secure_by_Design_Alert_Eliminating_Directory_Traversal_Vulnerabilities_in_Software_508c%20%283%29.pdf",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=55",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A791&f%5B10%5D=vendor_project%3A845&f%5B11%5D=vendor_project%3A854&f%5B12%5D=vendor_project%3A886&f%5B13%5D=vendor_project%3A893&f%5B14%5D=vendor_project%3A902&f%5B15%5D=vendor_project%3A917&f%5B16%5D=vendor_project%3A938&f%5B1%5D=vendor_project%3A796&f%5B2%5D=vendor_project%3A800&f%5B3%5D=vendor_project%3A801&f%5B4%5D=vendor_project%3A820&f%5B5%5D=vendor_project%3A823&f%5B6%5D=vendor_project%3A828&f%5B7%5D=vendor_project%3A830&f%5B8%5D=vendor_project%3A837&f%5B9%5D=vendor_project%3A842&page=6",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?af=11056&page=54",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?%3F%3Futm_source=adzuna&f%5B0%5D=vendor_project%3A795&f%5B1%5D=vendor_project%3A801&f%5B2%5D=vendor_project%3A814&f%5B3%5D=vendor_project%3A875&f%5B4%5D=vendor_project%3A879&page=8"
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-25506",
+        "https://nvd.nist.gov/vuln/detail/CVE-2020-2506",
+        "https://www.cisa.gov/news-events/bulletins/sb20-125",
+        "https://www.cisa.gov/news-events/bulletins/sb24-127",
+        "https://www.cisa.gov/ncas/bulletins/sb21-228",
+        "https://sploitus.com/exploit?id=PACKETSTORM:229136",
+        "https://supportannouncement.us.dlink.com/security/publication.aspx?name=SAP10482"
       ],
       "schema_version": 2,
       "source_fingerprint": "fb22552435d8102c02fdf40b519a0ba801f65e6f80c5cccff377ddf6d5124357",
-      "source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2020-25506"
-      ],
+      "source_urls": [],
       "status": "insufficient_evidence",
       "uncertainty": [
-        "No authoritative source returned a concrete fixed firmware version.",
-        "The D-Link advisory states that the DNS-320 Revision Ax reached end of support, firmware development ceased, and no fixes are offered.",
-        "The supplied record identifies firmware 2.06b01, while the D-Link advisory lists DNS-320 Revision Ax and firmware 2.06b01Beta; exact firmware-build applicability should be confirmed from device records.",
-        "The vendor advisory does not provide a CVE-specific safe validation procedure."
+        "Vendor advisory content and whether a concrete fixed firmware version exists have not yet been retrieved from the D-Link SAP10183 page",
+        "NVD CPE currently lists only firmware 2.06b01 on DNS-320 AX without a versionEndExcluding or fixed version",
+        "The model did not return a fully sourced exposure, remediation, and verification set; consult the linked NVD and vendor sources before acting."
       ],
       "verification_steps": []
     },
@@ -8867,113 +8885,156 @@
       "verification_steps": []
     },
     "CVE-2021-1497": {
-      "business_risk": "No additional source-verified CVE-specific business impact was established.",
-      "claim_evidence": [],
-      "exposure_conditions": [],
-      "gaps": [],
-      "generated_at": "2026-07-28T11:59:19Z",
-      "model": "gpt-5.6-luna",
-      "prompt_version": "2026-07-14.2",
-      "recipe_specificity": "not_specific",
-      "remediation_steps": [],
-      "retrieved_source_urls": [],
-      "schema_version": 2,
-      "source_fingerprint": "35057dac19d4bf681c2cbeca2e5c7245b31258fc58bca3a26a738378b2cbb942",
-      "source_urls": [],
-      "status": "insufficient_evidence",
-      "uncertainty": [
-        "The supplied record identifies Cisco HyperFlex HX Data Platform generically, while Cisco's advisory describes CVE-2021-1497 specifically as affecting the HyperFlex HX Installer Virtual Machine web-based management interface.",
-        "Cisco's advisory provides fixed releases and upgrade guidance but does not provide a dedicated non-invasive post-update detection procedure.",
-        "The fixed-release table covers the 4.0 and 4.5 branches; the appropriate supported target for other deployment details should be confirmed with Cisco or the contracted support provider.",
-        "The model did not return a fully sourced exposure, remediation, and verification set; consult the linked NVD and vendor sources before acting."
-      ],
-      "verification_steps": []
-    },
-    "CVE-2021-1498": {
-      "business_risk": "High risk. Cisco describes CVE-2021-1498 as an unauthenticated remote command-injection vulnerability in the Cisco HyperFlex HX Data Platform web-based management interface. Successful exploitation can allow arbitrary commands to execute as the tomcat8 user. NVD records the vulnerability as present in CISA's Known Exploited Vulnerabilities Catalog.",
+      "business_risk": "Critical unauthenticated remote command injection as root on Cisco HyperFlex HX Installer Virtual Machine (CVSS 9.8). Listed in CISA KEV with known in-the-wild exploitation attempts, enabling full device compromise.",
       "claim_evidence": [
         {
-          "claim": "CVE-2021-1498 affects the web-based management interface of Cisco HyperFlex HX Data Platform.",
+          "claim": "Cisco HyperFlex HX Installer Virtual Machine (Cisco HyperFlex HX Software)",
           "kind": "affected_product",
           "source_url": "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-hyperflex-rce-TjjNrkpR.html"
         },
         {
-          "claim": "NVD identifies affected HyperFlex HX Data Platform releases as earlier than 4.0(2e), and releases from 4.5 through before 4.5(2a).",
+          "claim": "Cisco HyperFlex HX releases earlier than 4.0, 4.0 (before 4.0(2e)), and 4.5 (before 4.5(2a))",
           "kind": "affected_version",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2021-1498"
+          "source_url": "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-hyperflex-rce-TjjNrkpR.html"
         },
         {
-          "claim": "Cisco states that the vulnerability can be exploited by an unauthenticated remote attacker through the web-based management interface, with successful exploitation allowing arbitrary command execution as the tomcat8 user.",
+          "claim": "Unauthenticated remote attacker can perform command injection by sending a crafted request to the web-based management interface and execute arbitrary commands as the root user.",
           "kind": "exposure",
           "source_url": "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-hyperflex-rce-TjjNrkpR.html"
         },
         {
-          "claim": "Cisco lists 4.0(2e) as the first fixed release for earlier-than-4.0 and 4.0 releases, and 4.5(2a) as the first fixed release for the 4.5 release train.",
+          "claim": "First fixed releases are 4.0(2e) (for 4.0 and earlier-than-4.0 trains) and 4.5(2a) (for 4.5 train)",
           "kind": "fixed_version",
           "source_url": "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-hyperflex-rce-TjjNrkpR.html"
         },
         {
-          "claim": "Cisco has released software updates that address CVE-2021-1498 and states that no workaround addresses the vulnerability.",
+          "claim": "Cisco has released software updates; customers should upgrade to an appropriate fixed software release. There are no workarounds.",
           "kind": "remediation",
           "source_url": "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-hyperflex-rce-TjjNrkpR.html"
         },
         {
-          "claim": "A safe verification is to compare each installed HyperFlex HX release with Cisco's listed first fixed releases for the applicable release train.",
+          "claim": "Compare the installed Cisco HyperFlex HX release against the First Fixed Release column in the advisory Fixed Software table.",
           "kind": "verification",
           "source_url": "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-hyperflex-rce-TjjNrkpR.html"
+        },
+        {
+          "claim": "Cisco HyperFlex HX Data Platform versions up to (excluding) 4.0(2e) and from 4.5 up to (excluding) 4.5(2a)",
+          "kind": "affected_version",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2021-1497"
         }
       ],
       "exposure_conditions": [
-        "Cisco HyperFlex HX Data Platform is running an affected release: earlier than 4.0(2e), or releases from 4.5 through before 4.5(2a).",
-        "The HyperFlex web-based management interface is reachable by an attacker who does not need authentication.",
-        "The deployment is one of the HyperFlex HX platforms covered by Cisco's advisory."
+        "Web-based management interface of Cisco HyperFlex HX Installer Virtual Machine is reachable by an unauthenticated remote attacker.",
+        "Attacker sends a crafted request to the web-based management interface due to insufficient validation of user-supplied input."
       ],
       "gaps": [],
-      "generated_at": "2026-07-28T11:59:07Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-10-06T16:16:28Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [
-        "Upgrade HyperFlex HX releases earlier than 4.0 to Cisco HyperFlex HX 4.0(2e) or later, following Cisco's supported upgrade process.",
-        "Upgrade the HyperFlex 4.0 release train to 4.0(2e) or later.",
-        "Upgrade the HyperFlex 4.5 release train to 4.5(2a) or later.",
-        "Prioritize remediation because Cisco states that software updates address the vulnerability, no workaround addresses it, and attempted exploitation was observed in the wild in November 2021."
+        "Upgrade Cisco HyperFlex HX software to a first fixed release listed in the vendor advisory (4.0(2e) for the 4.0 train, 4.5(2a) for the 4.5 train, or migrate releases earlier than 4.0 to 4.0(2e)).",
+        "There are no workarounds."
       ],
       "retrieved_source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-1498",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2021-1497",
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-1497",
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-1497/change-record?changeRecordedOn=07%2F25%2F2024T13%3A32%3A35.283-0400",
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-1497",
+        "https://nvd.nist.gov/vuln/detail/cve-2025-1497",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-1497",
+        "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2021-47597",
+        "https://nvd.nist.gov/vuln/detail/CVE-2010-1497",
+        "https://nvd.nist.gov/vuln/detail/CVE-2019-14907",
+        "https://nvd.nist.gov/vuln/detail/CVE-2017-1497",
         "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-hyperflex-rce-TjjNrkpR.html",
-        "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-20190220-hyper-xss.html",
-        "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-hyperflex-upload-KtCK8Ugz.html",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=0",
-        "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-20190220-chn-root-access.html",
-        "https://nvd.nist.gov/vuln/detail/cve-2020-1498",
-        "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-asaftd-xss-webui-gQLSFyPM.html",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=68",
-        "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-memc-dos-fncTyYKG.html",
-        "https://nvd.nist.gov/vuln/detail/CVE-2026-1498",
-        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=52",
-        "https://www.cisa.gov/sites/default/files/publications/AA22-117A_Joint_CSA_2021_Top_Routinely_Exploited_Vulnerabilities_Final.pdf",
-        "https://www.cisco.com/c/dam/en/us/td/docs/wireless/quantum-policy-suite/R18-0-0/pdf/CPS18-0-0ReleaseNote_1.pdf",
-        "https://www.cisco.com/c/en/us/support/docs/video/unified-conferencing-telepresence/221189-verify-http-2-rapid-reset-attack-vulnera.pdf"
+        "https://www.cisco.com/c/ja_jp/support/docs/csa/2021/cisco-sa-hyperflex-rce-TjjNrkpR.html",
+        "https://www.cisco.com/c/en/us/td/docs/routers/access/1100/release/isr1k-release-notes-xe-26-2-x.html",
+        "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-confd-priv-esc-LsGtCRx4.html",
+        "https://www.cisco.com/c/en/us/td/docs/switches/datacenter/nexus7000/sw/release/notes/cisco_nexus7000_release_notes_84.html",
+        "https://tools.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-sni-data-exfil-mFgzXqLN",
+        "https://www.cisco.com/c/en/us/support/field-notices/index.html",
+        "https://www-cisco-com.translate.goog/c/en/us/support/docs/csa/cisco-sa-hyperflex-rce-TjjNrkpR.html?_x_tr_sl=en&_x_tr_tl=es&_x_tr_hl=es&_x_tr_pto=tc",
+        "https://www.cve.org/CVERecord?id=CVE-2021-1497",
+        "https://cvetodo.com/cve/CVE-2021-1497",
+        "https://cvefeed.io/vuln/detail/CVE-2021-1497",
+        "https://socradar.io/free-tools/cve-radar/CVE-2021-1497",
+        "https://www.cisa.gov/ncas/bulletins/sb21-130",
+        "https://www.cisa.gov/uscert/ncas/alerts/aa22-279a"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "35057dac19d4bf681c2cbeca2e5c7245b31258fc58bca3a26a738378b2cbb942",
+      "source_urls": [
+        "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-hyperflex-rce-TjjNrkpR.html",
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-1497"
+      ],
+      "status": "complete",
+      "uncertainty": [
+        "NVD detail page could not be fully retrieved by browse, though search snippets and Cisco CNA/vendor advisory are consistent on affected trains and fixed releases.",
+        "The vendor advisory covers CVE-2021-1497 together with CVE-2021-1498; details specific to CVE-2021-1497 identify the Installer Virtual Machine and root execution."
+      ],
+      "verification_steps": [
+        "Identify the installed Cisco HyperFlex HX software release.",
+        "Compare the installed release to the First Fixed Release values in the Fixed Software table of Cisco advisory cisco-sa-hyperflex-rce-TjjNrkpR."
+      ]
+    },
+    "CVE-2021-1498": {
+      "business_risk": "Unauthenticated remote command injection on the Cisco HyperFlex HX Data Platform web-based management interface can allow arbitrary command execution as the tomcat8 user. The vulnerability is in CISA KEV (added 2021-11-03) with known attempted exploitation in the wild and a required action to apply vendor updates.",
+      "claim_evidence": [],
+      "exposure_conditions": [
+        "The web-based management interface of Cisco HyperFlex HX Data Platform is reachable by an unauthenticated remote attacker",
+        "The device is running a vulnerable Cisco HyperFlex HX Software release (earlier than 4.0, 4.0 before 4.0(2e), or 4.5 before 4.5(2a))"
+      ],
+      "gaps": [],
+      "generated_at": "2026-10-06T16:14:27Z",
+      "model": "grok-4.6",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [
+        "Upgrade Cisco HyperFlex HX Software to a first fixed release listed by the vendor: migrate releases earlier than 4.0 to 4.0(2e); upgrade 4.0 to 4.0(2e); upgrade 4.5 to 4.5(2a)",
+        "There are no workarounds; apply updates per vendor instructions as required by CISA KEV"
+      ],
+      "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/cve-2021-1498",
+        "https://nvd.nist.gov/vuln/detail/CVE-2001-1498",
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-1498?ref=cve.news",
+        "https://nvd.nist.gov/vuln/detail/CVE-2011-1498",
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-0898/change-record?changeRecordedOn=12/22/2021T10:55:33.017-0500",
+        "https://nvd.nist.gov/vuln/detail/CVE-2017-1498",
+        "https://nvd.nist.gov/vuln/detail/cve-2006-1498",
+        "https://nvd.nist.gov/vuln/detail/CVE-2018-1498",
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-1498",
+        "https://nvd.nist.gov/vuln/detail/CVE-2002-1498",
+        "https://tools.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-hyperflex-rce-TjjNrkpR",
+        "https://www.cisco.com/c/ja_jp/support/docs/csa/2021/cisco-sa-hyperflex-rce-TjjNrkpR.html",
+        "https://www.cisco.com/c/ja_jp/support/docs/csa/2021/cisco-sa-memc-dos-fncTyYKG.html",
+        "https://www.cisco.com/c/en/us/support/field-notices/index.html",
+        "https://community.cisco.com/t5/services-discussions/csaf-and-cve-record-list-different-affected-versions-for-same/td-p/5580129",
+        "https://community.cisco.com/t5/wireless/bd-p/discussions-wireless/page/1513",
+        "https://community.cisco.com/t5/network-security/bd-p/discussions-network-security/page/1741",
+        "https://community.cisco.com/t5/wireless/bd-p/discussions-wireless/label-name/Catalyst%20Wireless%20Controllers/page/115",
+        "https://www.cisco.com/c/ja_jp/support/docs/csa/2021/cisco-sa-asa-cmdinj-TKyQfDcU.html",
+        "https://community.cisco.com/t5/wireless/bd-p/discussions-wireless/page/314",
+        "https://www.cisa.gov/news-events/bulletins/sb21-347",
+        "https://www.cisa.gov/news-events/bulletins/sb18-344",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-23-129-02",
+        "https://us-cert.cisa.gov/ncas/bulletins/sb21-270"
       ],
       "schema_version": 2,
       "source_fingerprint": "e826d8c43c889e2f454d1cb2c34328a06854a6363663da70a69a73caaddb2f52",
       "source_urls": [
-        "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-hyperflex-rce-TjjNrkpR.html",
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-1498"
+        "https://tools.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-hyperflex-rce-TjjNrkpR",
+        "https://nvd.nist.gov/vuln/detail/cve-2021-1498"
       ],
       "status": "complete",
       "uncertainty": [
-        "Cisco's advisory gives fixed releases by release train but does not establish a universal command or GUI path for collecting the installed version in every deployment.",
-        "The supplied record reports a CVSS 3.1 score of 9.8, while Cisco's CVE-specific advisory lists a 7.3 score and rates the individual CVE High; the remediation recommendation is unaffected.",
-        "Exact hardware applicability should be checked against Cisco's current product and support records for the specific HyperFlex deployment."
+        "The NVD detail page for CVE-2021-1498 could not be retrieved in this session, so NVD CPE configurations and any NVD-specific scoring were not independently confirmed",
+        "The CISA KEV narrative mixes installer virtual machine wording with Data Platform / tomcat8 details from the related advisory",
+        "The Cisco advisory assigns CVSS 7.3 specifically to CVE-2021-1498 while the overall advisory score is 9.8"
       ],
       "verification_steps": [
-        "Using an approved, read-only inventory or management procedure, record the HyperFlex HX software release for each cluster.",
-        "Confirm that systems formerly running earlier than 4.0 are on 4.0(2e) or later, systems on the 4.0 train are on 4.0(2e) or later, and systems on the 4.5 train are on 4.5(2a) or later.",
-        "Confirm that the upgrade completed successfully through the organization's normal change-management and Cisco-supported validation process.",
-        "Do not perform exploit testing or send crafted requests to the management interface; version and deployment-state verification is sufficient."
+        "Identify the installed Cisco HyperFlex HX Software release and compare it to the vendor Fixed Software table (first fixed: 4.0(2e) for 4.0, 4.5(2a) for 4.5)",
+        "Confirm vendor updates have been applied consistent with the CISA KEV required action"
       ]
     },
     "CVE-2021-1870": {
@@ -10154,6 +10215,76 @@
         "Review security and application logs for suspicious unauthenticated activity associated with the remediation window; available sources do not define exact log locations, event patterns, or a definitive compromise test."
       ]
     },
+    "CVE-2021-26855": {
+      "business_risk": "Critical unauthenticated remote code execution in on-premises Microsoft Exchange Server, actively exploited in the wild as part of the ProxyLogon chain (including known ransomware use), allowing mailbox access, arbitrary file writes, SYSTEM-level code execution, and persistent network compromise.",
+      "claim_evidence": [
+        {
+          "claim": "Microsoft Exchange Server 2019 Cumulative Update 7 versions from 15.02.0 before 15.02.0721.013",
+          "kind": "affected_version",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2021-26855"
+        },
+        {
+          "claim": "Apply updates per vendor instructions; install the March 2021 security updates immediately on affected on-premises servers",
+          "kind": "remediation",
+          "source_url": "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2021-26855"
+        }
+      ],
+      "exposure_conditions": [
+        "On-premises Microsoft Exchange Server 2013, 2016, or 2019 that accepts untrusted connections on TCP port 443 (HTTPS), especially internet-facing servers exposing Outlook on the web or the Exchange Control Panel.",
+        "Unauthenticated SSRF against the Exchange Control Panel (ECP) that allows an attacker to send arbitrary HTTP requests and authenticate as the Exchange server."
+      ],
+      "gaps": [],
+      "generated_at": "2026-10-06T16:20:21Z",
+      "model": "grok-4.6",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [
+        "Install the March 2021 out-of-band security updates (KB5000871 and related packages for older cumulative updates) or a later Exchange Server cumulative update that includes those fixes, prioritizing internet-facing servers.",
+        "Apply Microsoft-documented interim network mitigations (restrict untrusted access to port 443) only until patches can be installed; they are not a complete substitute.",
+        "Investigate for prior compromise using Microsoft and CISA guidance in parallel with or immediately after patching."
+      ],
+      "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-26855",
+        "https://nvd.nist.gov/vuln/detail/cve-2024-26855",
+        "https://nvd.nist.gov/nvd.cfm?cvename=CVE-2021-22555",
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-27255",
+        "https://nvd.nist.gov/vuln/detail/cve-2021-30655",
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-27855/change-record?changeRecordedOn=12/21/2021T08:05:58.560-0500",
+        "https://nvd.nist.gov/nvd.cfm?cvename=CVE-2021-28955",
+        "https://nvd.nist.gov/vuln/detail/cve-2021-36955",
+        "https://nvd.nist.gov/vuln/detail/cve-2021-29155",
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-28055",
+        "https://portal.msrc.microsoft.com/en-US/security-guidance/advisory/CVE-2021-26855",
+        "https://msrc.microsoft.com/update-guide/zh-cn/vulnerability/CVE-2021-26855",
+        "https://msrc.microsoft.com/update-guide/fr-FR/vulnerability/CVE-2021-26855",
+        "https://msrc.microsoft.com/update-guide/de-de/vulnerability/CVE-2021-26855",
+        "https://portal.msrc.microsoft.com/en-US/security-guidance/advisory/CVE-2021-26854",
+        "https://msrc.microsoft.com/update-guide/ko-kr/vulnerability/CVE-2021-26857",
+        "https://portal.msrc.microsoft.com/ja-jp/security-guidance/advisory/CVE-2021-26857",
+        "https://msrc.microsoft.com/update-guide/fr-FR/vulnerability/CVE-2021-26854",
+        "https://portal.msrc.microsoft.com/ja-jp/security-guidance/advisory/CVE-2021-27055",
+        "https://www.cve.org/CVERecord?id=CVE-2021-26855",
+        "https://www.messageware.com/microsoft-reissues-september-2026-exchange-server-updates/",
+        "https://cipherssecurity.com/cve/CVE-2021-26855/",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2021-26855"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "51ee5851dffc4812e976dbe02b2f4c673247ca60ac75e70fecd7d4859d8bf285",
+      "source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-26855",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2021-26855"
+      ],
+      "status": "complete",
+      "uncertainty": [
+        "Later cumulative updates and security updates after March 2021 also contain the fixes; organizations should consult current Microsoft documentation for the newest supported builds.",
+        "Exchange Server 2010 received only a related defense-in-depth update and is not the primary affected product for this CVE.",
+        "Exchange Online / Microsoft 365 is not affected."
+      ],
+      "verification_steps": [
+        "Compare the installed Exchange Server version, cumulative update, and security-update packages against the products and download packages listed in Microsoft KB5000871 and the Exchange Team March 2021 security-update blog.",
+        "Confirm that untrusted external access to port 443 has been restricted if interim mitigations were used."
+      ]
+    },
     "CVE-2021-27101": {
       "business_risk": "No additional source-verified CVE-specific business impact was established.",
       "claim_evidence": [],
@@ -10674,6 +10805,81 @@
         "Do not treat HBS 2 or HBS 1.3 as affected by this CVE based on the QNAP advisory."
       ]
     },
+    "CVE-2021-30116": {
+      "business_risk": "Critical credential-disclosure vulnerability in on-premise Kaseya VSA that was exploited in the wild in the July 2021 REvil ransomware supply-chain attack. CISA lists it in the Known Exploited Vulnerabilities catalog with known ransomware campaign use. An attacker can obtain agent credentials and a session identifier usable for further compromise of the VSA server and managed clients.",
+      "claim_evidence": [
+        {
+          "claim": "Kaseya VSA before 9.5.7",
+          "kind": "affected_version",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2021-30116"
+        },
+        {
+          "claim": "By default on-premise Kaseya VSA offers an unauthenticated download page that leaks agent credentials usable to obtain a sessionId cookie",
+          "kind": "exposure",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2021-30116"
+        },
+        {
+          "claim": "9.5.7",
+          "kind": "fixed_version",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2021-30116"
+        }
+      ],
+      "exposure_conditions": [
+        "On-premise Kaseya VSA deployments that expose the default unauthenticated client download page",
+        "Network-reachable VSA servers from which Windows agent installation packages can be obtained without authentication"
+      ],
+      "gaps": [],
+      "generated_at": "2026-10-06T16:12:25Z",
+      "model": "grok-4.6",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [
+        "Apply updates per vendor instructions as required by CISA for this known-exploited vulnerability.",
+        "Upgrade on-premise Kaseya VSA following Kaseya release notes and on-premises hardening/startup guidance to a 9.5.7-series release."
+      ],
+      "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-30116",
+        "https://nvd.nist.gov/nvd.cfm?cvename=CVE-2021-30116",
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-30117",
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-30164",
+        "https://nvd.nist.gov/vuln/detail/cve-2012-3016",
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-3016",
+        "https://nvd.nist.gov/vuln/detail/CVE-2019-3016",
+        "https://nvd.nist.gov/vuln/detail/cve-2021-31916",
+        "https://nvd.nist.gov/vuln/detail/cve-2021-20316",
+        "https://nvd.nist.gov/nvd.cfm?cvename=CVE-2021-32616",
+        "https://www.cve.org/CVERecord?id=CVE-2021-30116",
+        "https://cve.report/CVE-2021-30116",
+        "https://avd.aquasec.com/nvd/2021/cve-2021-30116/",
+        "https://cve.yack.one/cve/CVE-2021-30116",
+        "https://cvefeed.io/vuln/detail/CVE-2021-30116",
+        "https://socradar.io/free-tools/cve-radar/CVE-2021-30116",
+        "https://app.opencve.io/cve/CVE-2021-30116",
+        "https://sara-open.sirp.io/kev/CVE-2021-30116",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-21-173-03",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-24-074-07",
+        "https://www.cisa.gov/news-events/bulletins/sb24-099",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-26-134-15",
+        "https://helpdesk.kaseya.com/hc/en-gb/articles/4408237610385-9-5-7g-9-5-7-3516-Maintenance-Release-13-November-2021",
+        "https://helpdesk.kaseya.com/hc/en-gb/articles/4404758240145-Kaseya-VSA-Planned-Patch-Updates"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "73906d73205c9aed984e49ae458a8be4e33adfbe430773de849ca103bdda0fa4",
+      "source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-30116",
+        "https://www.cve.org/CVERecord?id=CVE-2021-30116"
+      ],
+      "status": "complete",
+      "uncertainty": [
+        "NVD detail page content could not be fully retrieved via direct browse.",
+        "The original Kaseya vendor advisory URL now displays later incident-response updates rather than the initial July 2021 notice.",
+        "NVD/CNA describe the issue as affecting versions before 9.5.7 while some CPE records and secondary analyses cite 9.5.7a for the server component and a separate agent version bound."
+      ],
+      "verification_steps": [
+        "Review the installed VSA version and patch level displayed in the product administration interface.",
+        "Compare the reported version against Kaseya VSA release notes to confirm it is 9.5.7 or a later patched release."
+      ]
+    },
     "CVE-2021-30633": {
       "business_risk": "Critical use-after-free in Chromium Indexed DB API enabling sandbox escape after renderer compromise; Google confirmed in-the-wild exploits; CISA Known Exploited Vulnerability.",
       "claim_evidence": [
@@ -10763,50 +10969,18 @@
       "claim_evidence": [],
       "exposure_conditions": [],
       "gaps": [],
-      "generated_at": "2026-07-28T11:58:54Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-10-06T16:12:32Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [],
-      "retrieved_source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-31166",
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-21166",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A804&f%5B1%5D=vendor_project%3A806&f%5B2%5D=vendor_project%3A811&f%5B3%5D=vendor_project%3A822&f%5B4%5D=vendor_project%3A826&f%5B5%5D=vendor_project%3A863&f%5B6%5D=vendor_project%3A877&f%5B7%5D=vendor_project%3A939&f%5B8%5D=vendor_project%3A1143&f%5B9%5D=vendor_project%3A1168&page=8",
-        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=58",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=&field_date_added_wrapper=all&items_per_page=20&page=2&search_api_fulltext=Chrome&sort_by=field_date_added&url=",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=55",
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-30116",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=68",
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-30166",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A809&f%5B1%5D=vendor_project%3A811&f%5B2%5D=vendor_project%3A822&f%5B3%5D=vendor_project%3A829&f%5B4%5D=vendor_project%3A838&f%5B5%5D=vendor_project%3A877&f%5B6%5D=vendor_project%3A886&f%5B7%5D=vendor_project%3A922&page=14",
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-31566",
-        "https://www.cisa.gov/sites/default/files/publications/AA22-117A_Joint_CSA_2021_Top_Routinely_Exploited_Vulnerabilities_Final.pdf",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=56",
-        "https://www.cisa.gov/sites/default/files/2024-05/Secure_by_Design_Alert_Eliminating_Directory_Traversal_Vulnerabilities_in_Software_508c%20%283%29.pdf",
-        "https://support.microsoft.com/sr-latn-rs/topic/11-maj-2021-kb5003173-izdanja-operativnog-sistema-19041-985-19042-985-i-19043-985-2824ace2-eabe-4c3c-8a49-06e249f52527",
-        "https://support.microsoft.com/en-au/topic/may-11-2021-kb5003173-os-builds-19041-985-19042-985-and-19043-985-2824ace2-eabe-4c3c-8a49-06e249f52527",
-        "https://support.microsoft.com/id-ID/servicing/os/windows-10/2021/05/may-11-2021-kb5003173-os-builds-19041-985-19042-985-and-19043-985",
-        "https://support.microsoft.com/de-de/topic/11-mai-2021-kb5003173-betriebssystembuilds-19041-985-19042-985-und-19043-985-2824ace2-eabe-4c3c-8a49-06e249f52527",
-        "https://support.microsoft.com/hr-hr/topic/11-svibnja-2021-kb5003173-me%C4%91uverzije-os-a-19041-985-19042-985-i-19043-985-2824ace2-eabe-4c3c-8a49-06e249f52527",
-        "https://support.microsoft.com/ja-jp/topic/2021-%E5%B9%B4-5-%E6%9C%88-11-%E6%97%A5-kb5003173-os-%E3%83%93%E3%83%AB%E3%83%89-19041-985-19042-985-19043-985-2824ace2-eabe-4c3c-8a49-06e249f52527",
-        "https://support.microsoft.com/pl-pl/topic/11-maja-2021-r-kb5003173-kompilacje-systemu-operacyjnego-19041-985-19042-985-i-19043-985-2824ace2-eabe-4c3c-8a49-06e249f52527",
-        "https://support.microsoft.com/cs-cz/topic/11-kv%C4%9Btna-2021-kb5003173-buildy-opera%C4%8Dn%C3%ADho-syst%C3%A9mu-19041-985-19042-985-a-19043-985-2824ace2-eabe-4c3c-8a49-06e249f52527",
-        "https://support.microsoft.com/nb-no/servicing/os/windows-10/2021/05/may-11-2021-kb5003173-os-builds-19041-985-19042-985-and-19043-985"
-      ],
+      "retrieved_source_urls": [],
       "schema_version": 2,
       "source_fingerprint": "090815c01059d176014a2bbff86d1c70c4c41871a4463275299e1d5922b00ded",
-      "source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-31166",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A804&f%5B1%5D=vendor_project%3A806&f%5B2%5D=vendor_project%3A811&f%5B3%5D=vendor_project%3A822&f%5B4%5D=vendor_project%3A826&f%5B5%5D=vendor_project%3A863&f%5B6%5D=vendor_project%3A877&f%5B7%5D=vendor_project%3A939&f%5B8%5D=vendor_project%3A1143&f%5B9%5D=vendor_project%3A1168&page=8",
-        "https://support.microsoft.com/en-au/topic/may-11-2021-kb5003173-os-builds-19041-985-19042-985-and-19043-985-2824ace2-eabe-4c3c-8a49-06e249f52527"
-      ],
+      "source_urls": [],
       "status": "insufficient_evidence",
       "uncertainty": [
-        "The NVD record establishes affected products and version thresholds, but the accessible Microsoft Security Update Guide page requires JavaScript and did not expose a CVE-specific remediation table.",
-        "The retrieved Microsoft Support page for KB5003173 identifies OS builds 19041.985, 19042.985, and 19043.985, but its accessible content does not explicitly map that KB to CVE-2021-31166; therefore it is not used as the definitive fixed-version claim.",
-        "No authoritative source retrieved here establishes a specific vulnerable service, listener, port, configuration, or safe active probe for an individual host.",
-        "The supplied record contains a CPE inconsistency for Windows 10 version 2004; the NVD affected-product thresholds are used instead of relying on the inconsistent CPE string."
+        "Authoritative NVD, CNA, and vendor advisory pages have not been fetched yet."
       ],
       "verification_steps": []
     },
@@ -11290,77 +11464,84 @@
       ]
     },
     "CVE-2021-35211": {
-      "business_risk": "Critical remote unauthenticated code execution in SolarWinds Serv-U can provide privileged access to the Windows host, enabling installation or execution of programs and unauthorized viewing, modification, or deletion of data. CVE-2021-35211 is listed in CISA's Known Exploited Vulnerabilities catalog.",
+      "business_risk": "Critical remote code execution on Windows hosts running Serv-U that can yield privileged access to the machine. The issue was exploited as a 0-day in limited targeted attacks, is listed in the CISA KEV catalog, and has known ransomware campaign use.",
       "claim_evidence": [
         {
-          "claim": "Microsoft reports that successful exploitation is possible when Serv-U SSH is exposed to the internet and can allow remote arbitrary code execution with privileges.",
-          "kind": "exposure",
-          "source_url": "https://www.microsoft.com/en-us/security/blog/2021/07/13/microsoft-discovers-threat-actor-targeting-solarwinds-serv-u-software-with-0-day-exploit/"
-        },
-        {
-          "claim": "Microsoft identifies Serv-U DebugSocketLog.txt exceptions and anomalous Serv-U child processes as investigation indicators, while noting that an exception can also occur for unrelated reasons.",
-          "kind": "verification",
-          "source_url": "https://www.microsoft.com/en-us/security/blog/2021/07/13/microsoft-discovers-threat-actor-targeting-solarwinds-serv-u-software-with-0-day-exploit/"
-        },
-        {
-          "claim": "CVE-2021-35211 is classified by NVD as a SolarWinds Serv-U remote code execution vulnerability and is included in CISA's Known Exploited Vulnerabilities catalog.",
+          "claim": "Only SolarWinds Serv-U Managed File Transfer and Serv-U Secure FTP for Windows are affected; other SolarWinds and N-able products are not.",
           "kind": "affected_product",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2021-35211"
+          "source_url": "https://www.solarwinds.com/trust-center/security-advisories/cve-2021-35211"
+        },
+        {
+          "claim": "Serv-U 15.2.3 HF1 and all prior Serv-U versions are affected.",
+          "kind": "affected_version",
+          "source_url": "https://www.solarwinds.com/trust-center/security-advisories/cve-2021-35211"
+        },
+        {
+          "claim": "Serv-U 15.2.3 HF2 is the fixed software release.",
+          "kind": "fixed_version",
+          "source_url": "https://www.solarwinds.com/trust-center/security-advisories/cve-2021-35211"
+        },
+        {
+          "claim": "The vulnerability does not exist if SSH is not enabled; confirm the running version against the vendor fixed release 15.2.3 HF2.",
+          "kind": "verification",
+          "source_url": "https://www.solarwinds.com/trust-center/security-advisories/cve-2021-35211"
         }
       ],
       "exposure_conditions": [
-        "SolarWinds Serv-U Managed File Transfer Server or Serv-U Secured FTP on Windows is installed.",
-        "The installed version is Serv-U 15.2.3 HF1 or any earlier version; SolarWinds states that versions before 15.2.3 HF2 are affected.",
-        "Risk is materially increased when Serv-U SSH is enabled and reachable by an attacker, including from the internet.",
-        "Linux versions are not vulnerable to the reported RCE according to SolarWinds, although the Linux product may crash when exploitation is attempted."
+        "SSH is enabled on Serv-U Managed File Transfer or Serv-U Secure FTP",
+        "The product is running on Windows (Linux instances crash on attempted exploitation and are not subject to RCE)",
+        "The SSH service is network-accessible"
       ],
       "gaps": [],
-      "generated_at": "2026-07-28T11:57:37Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-10-06T16:10:23Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [
-        "Upgrade Serv-U to the vendor-fixed release, Serv-U 15.2.3 HF2, using the SolarWinds Customer Portal.",
-        "For Serv-U 15.2.3 HF1, apply HF2 directly.",
-        "For Serv-U 15.2.3, apply HF1 and then HF2.",
-        "For versions earlier than 15.2.3, upgrade to 15.2.3, then apply HF1 and HF2.",
-        "Until patching is complete, restrict or disable externally reachable Serv-U SSH where operationally feasible and apply compensating network controls."
+        "Install Serv-U 15.2.3 HF2 immediately, following the vendor upgrade path that matches the currently installed version (HF1 applies HF2 directly; 15.2.3 applies HF1 then HF2; earlier versions upgrade to 15.2.3 then apply both hotfixes).",
+        "If not on active maintenance, contact SolarWinds customer support for the update."
       ],
       "retrieved_source_urls": [
-        "https://www.microsoft.com/en-us/security/blog/2021/07/13/microsoft-discovers-threat-actor-targeting-solarwinds-serv-u-software-with-0-day-exploit/",
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-35211",
-        "https://www.microsoft.com/en-us/security/blog/2021/09/02/a-deep-dive-into-the-solarwinds-serv-u-ssh-vulnerability/",
-        "https://www.microsoft.com/en-us/security/blog/product/microsoft-defender/page/23/?sort-by=oldest-newest",
-        "https://www.microsoft.com/en-us/security/blog/2021/12/11/guidance-for-preventing-detecting-and-hunting-for-cve-2021-44228-log4j-2-exploitation//",
-        "https://www.solarwinds.com/trust-center",
+        "https://www.cve.org/CVERecord?id=CVE-2021-35211",
+        "https://avd.aquasec.com/nvd/2021/cve-2021-35211/",
+        "https://cve.report/CVE-2021-35211",
+        "https://www.cvedetails.com/cve/CVE-2021-35211/",
+        "https://cvetodo.com/cve/CVE-2021-35211",
+        "https://www.incibe.es/incibe-cert/alerta-temprana/vulnerabilidades/cve-2021-35211",
+        "https://socradar.io/free-tools/cve-radar/CVE-2021-35211",
+        "https://www.wiz.io/vulnerability-database/cve/cve-2021-35211",
+        "https://sploitus.com/cve/CVE-2021-35211",
+        "https://www.cyber-defence.io/tools/cve/CVE-2021-35211",
+        "https://www.cloudanix.com/vulndb/cve/CVE-2021-35211",
+        "https://www.sentinelone.com/vulnerability-database/cve-2021-35211/",
+        "https://turingpoint.de/en/cve/CVE-2021-35211/",
+        "https://www.solarwinds.com/trust-center/security-advisories/cve-2021-35211",
+        "https://www.tenable.com/cve/CVE-2021-35211",
+        "https://nvd.nist.gov/vuln/detail/cve-2021-35211",
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-20211",
+        "https://nvd.nist.gov/vuln/detail/cve-2026-35211",
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-35211",
+        "https://nvd.nist.gov/nvd.cfm?cvename=CVE-2021-35611",
+        "https://www.solarwinds.com/blog/tag/security-advisory",
         "https://www.solarwinds.com/blog/patch-available-for-serv-u-memory-escape-vulnerability",
-        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
-        "https://www.microsoft.com/en-us/security/blog/2021/02/18/turning-the-page-on-solorigate-and-opening-the-next-chapter-for-the-security-community/",
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-0211",
-        "https://www.microsoft.com/en-us/security/blog/2021/02/04/sophisticated-cybersecurity-threats-demand-collaborative-global-response/",
-        "https://www.solarwinds.com/assets/solarwinds/swdcv2/landing-pages/trust-center/security-vulnerability/solarwinds-trust-center-security-advisories-_-cve-2021-44228.pdf",
-        "https://www.microsoft.com/en-us/security/blog/2021/10/25/nobelium-targeting-delegated-administrative-privileges-to-facilitate-broader-attacks/",
-        "https://www.microsoft.com/en-us/security/blog/2021/07/15/protecting-customers-from-a-private-sector-offensive-actor-using-0-day-exploits-and-devilstongue-malware/",
-        "https://www.solarwinds.com/assets/solarwinds/swdcv2/landing-pages/trust-center/security-vulnerability/solarwinds-trust-center-security-advisories-_-cve-2021-45046.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/AA22-117A_Joint_CSA_2021_Top_Routinely_Exploited_Vulnerabilities_Final.pdf"
+        "https://thwack.solarwinds.com/discussion/149137/patch-available-for-serv-u-memory-escape-vulnerability",
+        "https://www.cisa.gov/news-events/alerts/2021/07/13/solarwinds-releases-advisory-serv-u-vulnerability"
       ],
       "schema_version": 2,
       "source_fingerprint": "241f59483d742a6f093db9bd4b9e2a899d5a9a0b2947c2a8a74a88db96f2fea8",
       "source_urls": [
-        "https://www.microsoft.com/en-us/security/blog/2021/07/13/microsoft-discovers-threat-actor-targeting-solarwinds-serv-u-software-with-0-day-exploit/",
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-35211"
+        "https://www.solarwinds.com/trust-center/security-advisories/cve-2021-35211",
+        "https://www.cisa.gov/news-events/alerts/2021/07/13/solarwinds-releases-advisory-serv-u-vulnerability",
+        "https://www.cve.org/CVERecord?id=CVE-2021-35211"
       ],
       "status": "complete",
       "uncertainty": [
-        "The supplied record contains inconsistent boundary wording, including a less-than value of 15.2.3 HF1 and CPE entries involving 15.2.3 and HF1. SolarWinds' advisory explicitly identifies Serv-U 15.2.3 HF1 and all prior versions as affected, and Serv-U 15.2.3 HF2 as fixed; that vendor statement is used here.",
-        "The advisory does not establish that every deployment with SSH enabled is internet-exposed; exposure depends on network reachability and access controls.",
-        "Log and telemetry indicators can support investigation but do not independently prove exploitation."
+        "Full NVD page content could not be retrieved due to rendering; version and CPE details are taken from the CNA/vendor advisory, CVE record description, and CISA KEV entry.",
+        "No vendor-published inert procedure (beyond version confirmation and SSH enablement status) is provided for verifying the hotfix after installation."
       ],
       "verification_steps": [
-        "Confirm the installed Serv-U version and hotfix level is Serv-U 15.2.3 HF2 or later according to the vendor's supported version-identification procedure.",
-        "Confirm that no affected Serv-U instance remains in the deployment inventory, including systems running Serv-U Managed File Transfer or Serv-U Secured FTP on Windows.",
-        "Review Serv-U DebugSocketlog.txt and relevant endpoint or network telemetry for suspicious exceptions, SSH activity, anomalous child processes, unexpected global users, or other indicators identified by SolarWinds and Microsoft. Treat individual exceptions as non-conclusive and investigate them in context.",
-        "If compromise indicators are present, isolate the host according to incident-response procedures and contact SolarWinds Support; patching alone should not be treated as evidence that prior compromise did not occur."
+        "Confirm the installed Serv-U version is 15.2.3 HF2 or later as stated in the vendor advisory.",
+        "Confirm whether SSH is enabled; the vendor states the vulnerability does not exist if SSH is not enabled."
       ]
     },
     "CVE-2021-35394": {
