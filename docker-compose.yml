@@ -26,7 +26,7 @@ x-security-recipes-mcp-runtime: &security-recipes-mcp-runtime
     RECIPES_MCP_PATH: "/mcp"
     RECIPES_MCP_REQUIRE_CVE_SEARCH_DATABASE: "true"
     RECIPES_MCP_SOURCE_INDEX_URL: "${RECIPES_MCP_SOURCE_INDEX_URL:-http://security-recipes/api/recipes-index.json}"
-    RECIPES_MCP_ALLOWED_SOURCE_HOSTS: "${RECIPES_MCP_ALLOWED_SOURCE_HOSTS:-caddy,security-recipes,security-recipes-green,security-recipes-dev,mcp-server,mcp-server-blue,mcp-server-green,security-recipes.ai,dev.security-recipes.ai}"
+    RECIPES_MCP_ALLOWED_SOURCE_HOSTS: "${RECIPES_MCP_ALLOWED_SOURCE_HOSTS:-caddy,security-recipes,security-recipes-green,security-recipes-dev,mcp-server,mcp-server-blue,mcp-server-green,security-recipes.ai,dev.security-recipes.ai,security-recipes.si,www.security-recipes.si}"
     RECIPES_MCP_PUBLIC_BASE_URL: "${RECIPES_MCP_PUBLIC_BASE_URL:-https://security-recipes.ai/mcp}"
     RECIPES_PUBLIC_SITE_BASE_URL: "${SECURITY_RECIPES_BASE_URL:-https://security-recipes.ai/}"
     RECIPES_MCP_PLAYBOOK_REGISTRY_PATH: "${RECIPES_MCP_PLAYBOOK_REGISTRY_PATH:-/app/data/remediation_suite/playbooks.json}"
@@ -112,6 +112,7 @@ services:
       - "443:443/udp"
     environment:
       SECURITY_RECIPES_DOMAIN: "${SECURITY_RECIPES_DOMAIN:-security-recipes.ai}"
+      SECURITY_RECIPES_MIRROR_DOMAIN: "${SECURITY_RECIPES_MIRROR_DOMAIN:-security-recipes.si}"
       SECURITY_RECIPES_ACME_EMAIL: "${SECURITY_RECIPES_ACME_EMAIL:-admin@security-recipes.ai}"
       SECURITY_RECIPES_PRIMARY_UPSTREAM: "${SECURITY_RECIPES_PRIMARY_UPSTREAM:-security-recipes:80}"
       SECURITY_RECIPES_FALLBACK_UPSTREAM: "${SECURITY_RECIPES_FALLBACK_UPSTREAM:-security-recipes-green:80}"

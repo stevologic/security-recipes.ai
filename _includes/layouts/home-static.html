@@ -328,9 +328,9 @@
 
   <header class="topbar">
     <div class="topbar-inner">
-      <a class="brand" href="/" aria-label="security-recipes.ai home">
+      <a class="brand" href="/" aria-label="{{ site.title }} home" data-brand-host="aria">
         <img src="/images/logo.svg" alt="" width="24" height="24">
-        <span>security-recipes.ai</span>
+        <span data-brand-host>{{ site.title }}</span>
       </a>
       <nav class="nav-links" aria-label="Primary navigation">
         <a href="/recipes/">Recipes</a>
@@ -348,6 +348,7 @@
       </div>
     </div>
   </header>
+  <script src="/js/brand-host.js?v=20261006"></script>
 
   <aside class="cve-ticker" aria-label="Recently reviewed CVEs" data-cve-ticker>
     <div class="site-shell cve-ticker__inner">
@@ -578,7 +579,7 @@
           <h2 id="mcp-connect-heading">There is an MCP server.</h2>
           <p>Read-only recipes, a CVE catalog, and playbook start plans for MCP-compatible agents.</p>
           <div class="mcp-connect__url">
-            <code data-home-mcp-source="url">https://security-recipes.ai/mcp</code>
+            <code data-home-mcp-source="url" data-brand-host>{{ site.mcpPublicUrl }}</code>
             <button type="button" class="mcp-connect__copy-btn" data-home-mcp-copy="url">Copy URL</button>
           </div>
           <a class="mcp-connect__more" href="/mcp-servers/">Docker, stdio, and the rest <span class="button-arrow" aria-hidden="true">&rarr;</span></a>
@@ -588,11 +589,11 @@
             <span>MCP client JSON</span>
             <button type="button" class="mcp-connect__copy-btn" data-home-mcp-copy="json">Copy JSON</button>
           </div>
-          <pre><code data-home-mcp-source="json">{
+          <pre><code data-home-mcp-source="json" data-brand-host>{
   "mcpServers": {
     "security-recipes": {
       "transport": "streamable-http",
-      "url": "https://security-recipes.ai/mcp"
+      "url": "{{ site.mcpPublicUrl }}"
     }
   }
 }</code></pre>
@@ -666,7 +667,7 @@
           <p class="section-kicker">Provenance and trust</p>
           <h2 id="trust-heading">Intelligence you can inspect. Guardrails you can keep.</h2>
           <p>
-            security-recipes.ai is an open, self-hostable layer between security findings and governed action. It connects source-backed research to bounded workflows without becoming a scanner, ticketing system, deployment platform, or unrestricted mutation surface.
+            <span data-brand-host>{{ site.title }}</span> is an open, self-hostable layer between security findings and governed action. It connects source-backed research to bounded workflows without becoming a scanner, ticketing system, deployment platform, or unrestricted mutation surface.
           </p>
           <div class="provenance-panel">
             <div class="provenance-panel__head">
@@ -748,7 +749,7 @@
           <p class="section-kicker">Read-first delivery</p>
           <h2 id="integration-heading">MCP is context, not authority.</h2>
           <p>
-            Existing security systems produce findings. security-recipes.ai helps humans and agents understand them, select bounded workflows, gather the right context, and return evidence without replacing the systems teams already trust.
+            Existing security systems produce findings. <span data-brand-host>{{ site.title }}</span> helps humans and agents understand them, select bounded workflows, gather the right context, and return evidence without replacing the systems teams already trust.
           </p>
           <div class="integration-principles">
             <div class="integration-principle">Human research and agent retrieval use the same source-backed knowledge layer.</div>

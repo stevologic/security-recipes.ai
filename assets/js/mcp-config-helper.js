@@ -37,6 +37,29 @@
     }
   }
 
+  function normalizeHost(hostname) {
+    return String(hostname || '')
+      .trim()
+      .toLowerCase()
+      .replace(/\.$/u, '');
+  }
+
+  function apexHost(hostname) {
+    var host = normalizeHost(hostname);
+    return host.indexOf('www.') === 0 ? host.slice(4) : host;
+  }
+
+  function brandHostFor(hostname) {
+    var host = apexHost(hostname);
+    if (host === 'security-recipes.si') return host;
+    if (host === 'security-recipes.ai') return host;
+    return '';
+  }
+
+  function isBrandHost(hostname) {
+    return Boolean(brandHostFor(hostname));
+  }
+
   function hostList(hostname, isLocal) {
     var hosts = ['security-recipes'];
     if (hostname) hosts.push(hostname);
@@ -46,6 +69,8 @@
       hosts.push('::1');
     }
     if (hostname !== 'security-recipes.ai') hosts.push('security-recipes.ai');
+    var brand = brandHostFor(hostname);
+    if (brand) hosts.push(brand);
     return hosts.filter(function (item, index, list) {
       return item && list.indexOf(item) === index;
     });
@@ -193,8 +218,13 @@
   function init(root) {
     var hostname = window.location.hostname;
     var isLocal = ['localhost', '127.0.0.1', '::1'].indexOf(hostname) !== -1;
-    var isProduction = hostname === 'security-recipes.ai' || hostname === 'www.security-recipes.ai';
-    var mcpUrl = mcpEndpointOverride(root, endpoint('/mcp'));
+    var brandHost = brandHostFor(hostname);
+    var isProduction = Boolean(brandHost);
+    // Known public brand hosts, including the .si mirror, use the request
+    // origin. Preview hosts keep data-mcp-config-endpoint pinned to .ai.
+    var mcpUrl = isProduction
+      ? endpoint('/mcp')
+      : mcpEndpointOverride(root, endpoint('/mcp'));
     var config = {
       origin: withoutTrailingSlash(window.location.origin),
       mcpUrl: mcpUrl,
@@ -204,7 +234,9 @@
         return host !== 'security-recipes';
       })
     };
-    var mode = isLocal ? 'Local MCP configuration' : (isProduction ? 'security-recipes.ai MCP configuration' : 'Hosted MCP configuration');
+    var mode = isLocal
+      ? 'Local MCP configuration'
+      : (isProduction ? brandHost + ' MCP configuration' : 'Hosted MCP configuration');
     var summary = isLocal
       ? 'Use the current localhost origin for clients; Compose keeps the MCP sidecar on the internal recipe feed.'
       : 'Use this host as the public MCP endpoint; standalone servers should read this host\'s recipe feed.';
@@ -236,7 +268,10 @@
   }
 
   var api = {
+    brandHostFor: brandHostFor,
     healthChecks: healthChecks,
+    hostList: hostList,
+    isBrandHost: isBrandHost,
     mcpEndpointOverride: mcpEndpointOverride,
     shellQuote: shellQuote,
     standaloneToml: standaloneToml,

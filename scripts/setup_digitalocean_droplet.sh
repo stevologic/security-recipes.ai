@@ -5,6 +5,7 @@ APP_NAME="security-recipes"
 APP_USER="security-recipes"
 APP_GROUP="security-recipes"
 DOMAIN="security-recipes.ai"
+MIRROR_DOMAIN="security-recipes.si"
 REPO_URL="https://github.com/stevologic/security-recipes.ai.git"
 APP_DIR=""
 EMAIL=""
@@ -47,6 +48,9 @@ origin.
 
 Options:
   --domain DOMAIN          Public hostname. Default: security-recipes.ai
+  --mirror-domain DOMAIN   Additional public hostname that shares the same
+                           blue/green upstreams. Default: security-recipes.si
+                           Pass an empty value to skip the mirror site.
   --repo-url URL           Git repository URL. Default: upstream repo
   --app-dir PATH           Checkout/deploy path. Default: current repo, or /opt/security-recipes.ai
   --app-user USER          Locked host account with no Docker access. Default: security-recipes
@@ -101,6 +105,10 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --domain)
       DOMAIN="${2:?Missing value for --domain}"
+      shift 2
+      ;;
+    --mirror-domain)
+      MIRROR_DOMAIN="${2-}"
       shift 2
       ;;
     --repo-url)
@@ -473,6 +481,7 @@ write_env_file() {
 # Managed by security-recipes.ai setup script.
 SECURITY_RECIPES_BASE_URL=https://${DOMAIN}/
 SECURITY_RECIPES_DOMAIN=${DOMAIN}
+SECURITY_RECIPES_MIRROR_DOMAIN=${MIRROR_DOMAIN}
 SECURITY_RECIPES_REPO_URL=${REPO_URL%.git}
 SECURITY_RECIPES_HTTP_PORT=${APP_BIND}
 SECURITY_RECIPES_GREEN_HTTP_PORT=${APP_GREEN_BIND}
@@ -482,7 +491,7 @@ SECURITY_RECIPES_LOG_MAX_FILES=5
 SECURITY_RECIPES_TRAFFIC_LOGS_SOURCE=${CADDY_LOG_DIR}
 
 RECIPES_MCP_SOURCE_INDEX_URL=https://${DOMAIN}/api/recipes-index.json
-RECIPES_MCP_ALLOWED_SOURCE_HOSTS=security-recipes,security-recipes-green,security-recipes-dev,${DOMAIN},dev.${DOMAIN}
+RECIPES_MCP_ALLOWED_SOURCE_HOSTS=security-recipes,security-recipes-green,security-recipes-dev,${DOMAIN},dev.${DOMAIN}${MIRROR_DOMAIN:+,${MIRROR_DOMAIN},www.${MIRROR_DOMAIN}}
 RECIPES_MCP_PUBLIC_BASE_URL=https://${DOMAIN}/mcp
 RECIPES_MCP_LOG_LEVEL=info
 RECIPES_MCP_EAGER_REFRESH=false
@@ -576,6 +585,54 @@ www.${DOMAIN} {
 	redir https://${DOMAIN}{uri} permanent
 }
 
+EOF
+    if [[ -n "${MIRROR_DOMAIN}" && "${MIRROR_DOMAIN}" != "${DOMAIN}" ]]; then
+      cat <<EOF
+# Brand mirror: same blue/green upstreams as ${DOMAIN}. Visible chrome is
+# host-aware; SEO canonicals stay on the .ai origin.
+${MIRROR_DOMAIN} {
+	encode zstd gzip
+
+	log {
+		output file ${CADDY_LOG_DIR}/access.log {
+			roll_size 50MiB
+			roll_keep 10
+			roll_keep_for 720h
+		}
+		format json
+	}
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		X-Frame-Options "DENY"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+	}
+
+	reverse_proxy {\$SECURITY_RECIPES_PRIMARY_UPSTREAM:${upstream}} {\$SECURITY_RECIPES_FALLBACK_UPSTREAM:${green_upstream}} {
+		lb_policy first
+		health_uri /
+		health_interval 5s
+		health_timeout 2s
+		health_status 200
+		health_fails 1
+		health_passes 2
+		fail_duration 30s
+		max_fails 1
+		lb_try_duration 5s
+		lb_try_interval 100ms
+		stream_close_delay 5m
+	}
+}
+
+www.${MIRROR_DOMAIN} {
+	redir https://${MIRROR_DOMAIN}{uri} permanent
+}
+
+EOF
+    fi
+    cat <<EOF
 # Staging hostname served from origin/development.
 dev.${DOMAIN} {
 	encode zstd gzip
