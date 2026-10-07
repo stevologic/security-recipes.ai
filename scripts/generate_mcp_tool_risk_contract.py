@@ -506,6 +506,7 @@ def build_pack(
                 "kill_session_on_tool_risk_signal",
                 "deny_scope_drift",
                 "deny_annotation_contradiction",
+                "deny_insecure_tool_list_cache",
                 "deny_session_exfiltration_path",
                 "hold_for_tool_risk_review",
                 "allow_with_confirmation",
@@ -529,6 +530,10 @@ def build_pack(
             {
                 "risk": "MCP annotation proposals are still evolving.",
                 "treatment": "Version the profile, keep standard annotations conservative, and use namespaced metadata only as deployment-specific evidence until ecosystem-wide annotations stabilize."
+            },
+            {
+                "risk": "A gateway can treat tools/list cacheScope as access control or share a public cache of a user-specific list.",
+                "treatment": "Deny public user-specific, mixed-page, access-control, and input_required tools/list caches; kill private-cache reuse across authorization contexts; hold complete lists that omit cacheScope."
             }
         ],
         "risk_tiers": profile.get("risk_tiers", []),

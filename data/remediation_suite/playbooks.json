@@ -3944,7 +3944,7 @@
       "title": "MCP Tool Risk Contract",
       "page": "/security-remediation/mcp-tool-risk-contract/",
       "category": "mcp-governance",
-      "summary": "Classify an MCP tool's data access, side effects, reversibility, authority, argument controls, and approval needs before exposure to agents.",
+      "summary": "Classify an MCP tool's data access, side effects, reversibility, authority, argument controls, tools/list cacheScope, and approval needs before exposure to agents.",
       "phases": [
         {
           "label": "Signal",
@@ -3959,7 +3959,7 @@
         {
           "label": "Decision",
           "title": "Define required controls",
-          "detail": "Specify argument/path validation, tenant isolation, auth, rate limits, dry-run, idempotency, approvals, telemetry, and rollback."
+          "detail": "Specify argument/path validation, tenant isolation, auth, tools/list cacheScope (public vs private, not access control), rate limits, dry-run, idempotency, approvals, telemetry, and rollback."
         },
         {
           "label": "Action",
@@ -3975,7 +3975,7 @@
       "gate": {
         "question": "Are tool capabilities fully declared and controlled for their maximum data and side-effect impact?",
         "pass": "Expose the tool only in its contracted operating mode and scope.",
-        "stop": "Hold or deny unknown, overbroad, unvalidated, destructive, or unowned capabilities."
+        "stop": "Hold or deny unknown, overbroad, unvalidated, destructive, or unowned capabilities. Deny public user-specific or access-control tools/list caches; kill private-cache reuse across authorization contexts."
       },
       "evidence": [
         "tool schema/capability inventory",

@@ -53,6 +53,12 @@
       "evidence_key": "notifications/tools/list_changed",
       "id": "tool_list_change_audit",
       "severity": "medium"
+    },
+    {
+      "control_reason": "Complete tools/list results must carry cacheScope. A public cache must not contain user-specific tools, a private cache must not be reused across authorization contexts, cacheScope must not replace per-primitive access control, and input_required results must not be cached.",
+      "evidence_key": "cacheScope",
+      "id": "tools_list_cache_scope",
+      "severity": "high"
     }
   ],
   "enterprise_adoption_packet": {
@@ -78,6 +84,7 @@
       "kill_session_on_tool_risk_signal",
       "deny_scope_drift",
       "deny_annotation_contradiction",
+      "deny_insecure_tool_list_cache",
       "deny_session_exfiltration_path",
       "hold_for_tool_risk_review",
       "allow_with_confirmation",
@@ -95,7 +102,7 @@
     }
   },
   "failures": [],
-  "generated_at": "2026-08-21",
+  "generated_at": "2026-10-07",
   "intent": "Define a SecurityRecipes MCP tool-risk contract that turns MCP tool annotations, connector trust, authorization conformance, workflow scope, and runtime session context into deterministic allow, hold, deny, or kill decisions before an agent invokes a tool.",
   "positioning": {
     "buyer": "AI Platform, Product Security, MCP platform, AppSec, IAM, observability, procurement security, and enterprise architecture teams",
@@ -115,6 +122,10 @@
     {
       "risk": "MCP annotation proposals are still evolving.",
       "treatment": "Version the profile, keep standard annotations conservative, and use namespaced metadata only as deployment-specific evidence until ecosystem-wide annotations stabilize."
+    },
+    {
+      "risk": "A gateway can treat tools/list cacheScope as access control or share a public cache of a user-specific list.",
+      "treatment": "Deny public user-specific, mixed-page, access-control, and input_required tools/list caches; kill private-cache reuse across authorization contexts; hold complete lists that omit cacheScope."
     }
   ],
   "risk_tiers": [
@@ -176,7 +187,7 @@
     },
     "mcp_tool_risk_contract_profile": {
       "path": "data/assurance/mcp-tool-risk-contract-profile.json",
-      "sha256": "c76371b22e698afa0cae4f33f861b8ee276648a8390738bf70ebfb6ae7d91955"
+      "sha256": "29132feb08dbb9d29a80be5d73175f26036c2a1693d8a24b41e7dd3073623506"
     },
     "workflow_manifest": {
       "path": "data/control-plane/workflow-manifests.json",
@@ -189,6 +200,12 @@
       "id": "mcp-tools-2026-07-28",
       "name": "Model Context Protocol Tools specification (2026-07-28 current revision)",
       "url": "https://modelcontextprotocol.io/specification/2026-07-28/server/tools"
+    },
+    {
+      "coverage": "Current public MCP 2026-07-28 revision. Complete tools/list results MUST carry ttlMs and cacheScope. public caches MAY be shared across callers and access tokens. private caches MUST NOT be shared across authorization contexts. cacheScope MUST NOT replace per-primitive access control. input_required results MUST NOT be cached.",
+      "id": "mcp-caching-2026-07-28",
+      "name": "Model Context Protocol Caching specification (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/server/utilities/caching"
     },
     {
       "coverage": "Tool discovery, invocation, input and output schemas, human confirmation expectations, tool result validation, logging, and the requirement that clients treat annotations as untrusted unless they come from trusted servers.",
@@ -1266,6 +1283,31 @@
         "condition": "trusted_server=false and tool reads private data, changes state, or can exfiltrate",
         "decision": "hold_for_tool_risk_review",
         "id": "untrusted_annotation_for_sensitive_tool"
+      },
+      {
+        "condition": "cached tools/list is cacheScope=public while the list is user-specific",
+        "decision": "deny_insecure_tool_list_cache",
+        "id": "public_user_specific_tools_list_cache"
+      },
+      {
+        "condition": "cacheScope is treated as the access-control lock for tools/list primitives",
+        "decision": "deny_insecure_tool_list_cache",
+        "id": "tools_list_cache_used_as_access_control"
+      },
+      {
+        "condition": "paginated tools/list pages do not share the same cacheScope",
+        "decision": "deny_insecure_tool_list_cache",
+        "id": "tools_list_cache_mixed_page_scope"
+      },
+      {
+        "condition": "a tools/list resultType=input_required result is retained in cache",
+        "decision": "deny_insecure_tool_list_cache",
+        "id": "cached_input_required_tools_list"
+      },
+      {
+        "condition": "a cached complete tools/list omits cacheScope",
+        "decision": "hold_for_tool_risk_review",
+        "id": "cached_complete_tools_list_missing_cache_scope"
       }
     ],
     "default_decision": "hold_for_tool_risk_review",
@@ -1287,7 +1329,8 @@
       "tool_list_changed_after_approval",
       "unapproved_external_destination",
       "private_network_or_metadata_ip_destination",
-      "approval_bypass_attempt"
+      "approval_bypass_attempt",
+      "private_tools_list_cache_reused_across_authorization"
     ],
     "required_runtime_attributes": [
       "workflow_id",
@@ -1340,6 +1383,7 @@
       "allow_with_confirmation",
       "hold_for_tool_risk_review",
       "deny_annotation_contradiction",
+      "deny_insecure_tool_list_cache",
       "deny_session_exfiltration_path",
       "deny_scope_drift",
       "kill_session_on_tool_risk_signal"
