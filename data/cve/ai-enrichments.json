@@ -2496,6 +2496,78 @@
         "Reassess the vulnerability after upgrade using an approved, non-destructive vulnerability-management check rather than attempting exploit validation."
       ]
     },
+    "CVE-2018-19949": {
+      "business_risk": "Critical unauthenticated remote command injection in QNAP NAS File Station (CVSS 9.8) that is listed in CISA KEV with known ransomware campaign use, enabling full device compromise and data impact.",
+      "claim_evidence": [
+        {
+          "claim": "QTS unspecified versions before 4.4.2.1231, 4.4.1.1201, 4.3.6.1218, 4.3.4.1190, 4.3.3.1161 and 4.2.6 (with additional NVD CPEs for selected 4.2.6 builds)",
+          "kind": "affected_version",
+          "source_url": "https://nvd.nist.gov/vuln/detail/cve-2018-19949"
+        },
+        {
+          "claim": "Command injection that could allow remote attackers to run arbitrary commands",
+          "kind": "exposure",
+          "source_url": "https://nvd.nist.gov/vuln/detail/cve-2018-19949"
+        },
+        {
+          "claim": "QTS 4.4.2.1231 on build 20200302, QTS 4.4.1.1201 on build 20200130, QTS 4.3.6.1218 on build 20200214, QTS 4.3.4.1190 on build 20200107, QTS 4.3.3.1161 on build 20200109, QTS 4.2.6 on build 20200109",
+          "kind": "fixed_version",
+          "source_url": "https://nvd.nist.gov/vuln/detail/cve-2018-19949"
+        }
+      ],
+      "exposure_conditions": [
+        "QNAP NAS devices running affected QTS versions",
+        "File Station component",
+        "remotely reachable over the network with no privileges or user interaction required"
+      ],
+      "gaps": [],
+      "generated_at": "2026-10-07T16:57:53Z",
+      "model": "grok-4.6",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [
+        "Apply QTS firmware updates per vendor instructions to a version that includes the fix.",
+        "Log on to QTS as administrator, go to Control Panel > System > Firmware Update, and use Live Update to check for and install the latest available update for the NAS model."
+      ],
+      "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/cve-2018-19949",
+        "https://nvd.nist.gov/vuln/detail/CVE-2018-19949",
+        "https://nvd.nist.gov/vuln/detail/CVE-2018-19969",
+        "https://nvd.nist.gov/vuln/detail/cve-2018-0049",
+        "https://nvd.nist.gov/vuln/detail/CVE-2018-20149",
+        "https://nvd.nist.gov/vuln/detail/CVE-2018-9849",
+        "https://nvd.nist.gov/vuln/detail/CVE-2018-15949",
+        "https://nvd.nist.gov/vuln/detail/CVE-2018-1000049",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2018-20749",
+        "https://nvd.nist.gov/vuln/detail/CVE-2019-19948",
+        "https://www.qnap.com/de-de/security-advisory/qsa-20-01",
+        "https://www.qnap.com/en-us/security-advisory/qsa-20-10",
+        "https://www.cisa.gov/news-events/bulletins/sb18-344",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-18-352-02",
+        "https://www.cisa.gov/news-events/bulletins/sb19-203",
+        "https://www.cisa.gov/news-events/bulletins/sb19-168",
+        "https://www.cve.org/CVERecord?id=CVE-2018-19949",
+        "https://cve.report/CVE-2018-19949",
+        "https://cve.yack.one/cve/CVE-2018-19949",
+        "https://www.qnap.com/en-au/security-advisory/qsa-22-03",
+        "https://www.qnap.com/en-us/security-advisory/qsa-23-05"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "46c948560b23db0405eacc25aa702ba0e4d9c6fbd6fe6f9b46c446e22a39ccbd",
+      "source_urls": [
+        "https://nvd.nist.gov/vuln/detail/cve-2018-19949",
+        "https://www.cve.org/CVERecord?id=CVE-2018-19949"
+      ],
+      "status": "complete",
+      "uncertainty": [
+        "The CNA/NVD description names specific QTS builds (such as 4.4.2.1231 build 20200302) as having the fix, while the referenced QSA-20-01 advisory lists later builds (such as 4.4.2.1270 build 20200410 and later) as already fixed.",
+        "Sources do not detail whether File Station must be explicitly installed or enabled, or any other configuration needed for exposure."
+      ],
+      "verification_steps": [
+        "After the firmware update, confirm in QTS Control Panel that the installed QTS version and build is at or beyond a vendor-listed fixed release.",
+        "Re-run the Live Update check to confirm no further updates are offered for the device model."
+      ]
+    },
     "CVE-2018-20753": {
       "business_risk": "Critical remote code execution in Kaseya VSA can allow an unprivileged remote attacker to execute PowerShell payloads across managed devices. The vulnerability was exploited in the wild and is listed in CISA's Known Exploited Vulnerabilities catalog, so affected internet-accessible or otherwise remotely reachable VSA deployments require urgent remediation. ([nvd.nist.gov](https://nvd.nist.gov/vuln/detail/CVE-2018-20753?utm_source=openai))",
       "claim_evidence": [
@@ -5670,6 +5742,84 @@
       ],
       "verification_steps": []
     },
+    "CVE-2020-12812": {
+      "business_risk": "Critical improper authentication allowing FortiToken 2FA bypass on SSL VPN (and potentially administrative access) under specific LDAP configurations; listed in CISA KEV with known ransomware campaign use.",
+      "claim_evidence": [
+        {
+          "claim": "To trigger this issue an organization must have local user entries on the FortiGate with 2FA referencing back to LDAP, the same users as members of a group on the LDAP server, and at least one such LDAP group configured on FortiGate and used in an authentication policy (administrative users, SSL or IPSEC VPN).",
+          "kind": "exposure",
+          "source_url": "https://www.fortinet.com/blog/psirt-blogs/product-security-advisory-and-analysis-observed-abuse-of-fg-ir-19-283"
+        },
+        {
+          "claim": "This blog analysis describes the observed abuse and provides additional context so that administrators can confirm that they are not impacted.",
+          "kind": "verification",
+          "source_url": "https://www.fortinet.com/blog/psirt-blogs/product-security-advisory-and-analysis-observed-abuse-of-fg-ir-19-283"
+        },
+        {
+          "claim": "Apply updates per vendor instructions.",
+          "kind": "remediation",
+          "source_url": "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2020-12812"
+        }
+      ],
+      "exposure_conditions": [
+        "FortiOS SSL VPN (or other authentication policies) in use",
+        "Local FortiGate user entries configured with two-factor authentication (FortiToken) and remote authentication type such as LDAP",
+        "LDAP directory treats usernames as case-insensitive while FortiGate local matching is case-sensitive by default",
+        "LDAP groups of which the users are members are also configured on the FortiGate and used in authentication policies, enabling fallback authentication when the local username case does not match"
+      ],
+      "gaps": [],
+      "generated_at": "2026-10-07T17:05:15Z",
+      "model": "grok-4.6",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [
+        "Upgrade FortiOS to 6.0.10 or later, 6.2.4 or later, or 6.4.1 or later per the vendor PSIRT advisory",
+        "If upgrade is not immediately possible, apply the vendor-described configuration change to disable username case sensitivity on local accounts that use remote authentication and two-factor authentication",
+        "Remove unnecessary secondary LDAP groups from authentication policies if they are not required"
+      ],
+      "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2020-12812",
+        "https://nvd.nist.gov/vuln/detail/CVE-2020-12862",
+        "https://nvd.nist.gov/vuln/detail/CVE-2020-12887",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2020-12829",
+        "https://nvd.nist.gov/vuln/detail/CVE-2020-12872",
+        "https://www.fortiguard.com/psirt/FG-IR-20-005",
+        "https://www.fortiguard.com/psirt/FG-IR-20-054",
+        "https://www.fortiguard.com/psirt/FG-IR-20-033",
+        "https://www.fortiguard.com/psirt/FG-IR-20-002",
+        "https://fortiguard.com/psirt/FG-IR-20-083",
+        "https://www.fortinet.com/blog/psirt-blogs/product-security-advisory-and-analysis-observed-abuse-of-fg-ir-19-283",
+        "https://feeds.fortinet.com/~/939266474/0/fortinet/blog/psirt~Product-Security-Advisory-and-Analysis-Observed-Abuse-of-FGIR&m=1",
+        "https://www.fortinet.com/jp/blog/psirt-blogs/product-security-advisory-and-analysis-observed-abuse-of-fg-ir-19-283",
+        "https://www.itsecuritynews.info/product-security-advisory-and-analysis-observed-abuse-of-fg-ir-19-283/",
+        "https://www.tenablecloud.cn/plugins/nessus/141122",
+        "https://www.cisa.gov/news-events/bulletins/sb20-167",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-20-170-02",
+        "https://www.cisa.gov/ncas/bulletins/sb20-321",
+        "https://www.cisa.gov/news-events/bulletins/sb21-060",
+        "https://www.cisa.gov/news-events/bulletins/sb26-271",
+        "https://www.cve.org/CVERecord?id=CVE-2020-12812",
+        "https://www.cvedetails.com/cve/CVE-2020-12812/",
+        "https://rottenwifi.com/fortinet-warns-cve-2020-12812-fortios-2fa-bypass-remains-under-attack/",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2020-12812"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "a7fd620c46d5a9cba053142e6f65679540813d6412ec034eca83a74a25501de9",
+      "source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2020-12812",
+        "https://www.fortinet.com/blog/psirt-blogs/product-security-advisory-and-analysis-observed-abuse-of-fg-ir-19-283",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2020-12812"
+      ],
+      "status": "complete",
+      "uncertainty": [
+        "Full NVD page content including CPE listings could not be retrieved due to JavaScript requirements; version ranges rely on the vendor advisory and NVD search snippets",
+        "Vendor blog describes a renamed configuration setting (username-sensitivity) on later FortiOS releases that is not present in the original 2020 PSIRT advisory"
+      ],
+      "verification_steps": [
+        "Confirm the installed FortiOS version using the device system information display and compare it to the fixed versions listed in the Fortinet PSIRT advisory FG-IR-19-283",
+        "Review whether local users with two-factor authentication and LDAP remote type exist together with LDAP groups assigned to SSL VPN or administrative authentication policies, as described in vendor analysis, to determine if the exposure conditions apply"
+      ]
+    },
     "CVE-2020-1350": {
       "business_risk": "No additional source-verified CVE-specific business impact was established.",
       "claim_evidence": [],
@@ -5911,91 +6061,56 @@
       "verification_steps": []
     },
     "CVE-2020-14871": {
-      "business_risk": "Critical. Oracle describes CVE-2020-14871 as remotely exploitable without authentication and capable of complete compromise of affected Solaris systems, including confidentiality, integrity, and availability impact. CISA lists the vulnerability in its Known Exploited Vulnerabilities Catalog, so unremediated exposed systems should be prioritized.",
-      "claim_evidence": [
-        {
-          "claim": "Oracle identifies CVE-2020-14871 in Oracle Solaris, specifically the Pluggable Authentication Module, with supported affected versions 10 and 11.",
-          "kind": "affected_product",
-          "source_url": "https://www.oracle.com/security-alerts/cpuoct2020traditional.html"
-        },
-        {
-          "claim": "NVD records the vulnerable Solaris range as versions from 10 up to, but excluding, 11.1, in addition to the Solaris 9 configuration recorded in its historical CPE data.",
-          "kind": "affected_version",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2020-14871"
-        },
-        {
-          "claim": "Oracle rates the Solaris issue as remotely exploitable without authentication over multiple protocols, with a CVSS 3.1 base score of 10.0.",
-          "kind": "exposure",
-          "source_url": "https://www.oracle.com/security-alerts/cpuoct2020traditional.html"
-        },
-        {
-          "claim": "Oracle states that CVE-2020-14871 is not exploitable for Solaris 11.1 and later releases.",
-          "kind": "fixed_version",
-          "source_url": "https://www.oracle.com/security-alerts/cpuoct2020traditional.html"
-        },
-        {
-          "claim": "Oracle addressed CVE-2020-14871 in the October 2020 Critical Patch Update and directs customers to apply the applicable vendor update.",
-          "kind": "remediation",
-          "source_url": "https://www.oracle.com/security-alerts/cpuoct2020traditional.html"
-        },
-        {
-          "claim": "A release-level verification can safely compare the installed Solaris release against Oracle's stated Solaris 11.1-or-later non-exploitability boundary; the returned sources do not define a specific verification command.",
-          "kind": "verification",
-          "source_url": "https://www.oracle.com/security-alerts/cpuoct2020traditional.html"
-        }
-      ],
-      "exposure_conditions": [
-        "The vulnerable Solaris Pluggable Authentication Module is reachable through applicable network protocols.",
-        "An attacker does not need authentication or user interaction; Oracle rates the issue as remotely exploitable without authentication.",
-        "The affected scope is Solaris 10 and Solaris 11 releases before Solaris 11.1. Oracle states that Solaris 11.1 and later are not exploitable for this issue."
-      ],
+      "business_risk": "No additional source-verified CVE-specific business impact was established.",
+      "claim_evidence": [],
+      "exposure_conditions": [],
       "gaps": [],
-      "generated_at": "2026-07-29T00:09:45Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-10-07T16:59:29Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
-      "remediation_steps": [
-        "Apply Oracle's October 2020 Critical Patch Update and the applicable Solaris vendor patch according to Oracle's installation and applicability guidance.",
-        "For Solaris 10 or pre-11.1 Solaris 11 systems that cannot be patched promptly, restrict network exposure to the affected authentication services using approved perimeter and host controls; treat this only as temporary risk reduction, not a substitute for patching.",
-        "Prefer migration or upgrade to Solaris 11.1 or later, which Oracle identifies as not exploitable for this CVE, where operationally supported.",
-        "Prioritize remediation because CISA identifies CVE-2020-14871 as a known exploited vulnerability."
-      ],
+      "remediation_steps": [],
       "retrieved_source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2020-14871",
-        "https://www.oracle.com/security-alerts/cpuoct2020traditional.html",
+        "https://nvd.nist.gov/vuln/detail/cve-2020-14871",
+        "https://nvd.nist.gov/vuln/detail/CVE-2020-14871/change-record?changeRecordedOn=12/09/2020T22:15:11.810-0500",
+        "https://nvd.nist.gov/vuln/detail/CVE-2019-14871",
+        "https://nvd.nist.gov/vuln/detail/CVE-2020-14971",
+        "https://nvd.nist.gov/vuln/detail/cve-2020-15871",
+        "https://nvd.nist.gov/vuln/detail/CVE-2020-15271",
+        "https://nvd.nist.gov/vuln/detail/cve-2020-26971",
+        "https://nvd.nist.gov/vuln/detail/cve-2020-10871",
+        "https://nvd.nist.gov/vuln/detail/CVE-2020-18171",
+        "https://nvd.nist.gov/nvd.cfm?cvename=CVE-2020-28471",
+        "https://www.oracle.com/security-alerts/cpuoct2020.html",
         "https://www.oracle.com/security-alerts/cpuoct2020verbose.html",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A800&f%5B10%5D=vendor_project%3A862&f%5B11%5D=vendor_project%3A875&f%5B12%5D=vendor_project%3A886&f%5B13%5D=vendor_project%3A888&f%5B14%5D=vendor_project%3A893&f%5B15%5D=vendor_project%3A902&f%5B16%5D=vendor_project%3A905&f%5B17%5D=vendor_project%3A911&f%5B18%5D=vendor_project%3A917&f%5B19%5D=vendor_project%3A932&f%5B1%5D=vendor_project%3A801&f%5B20%5D=vendor_project%3A938&f%5B21%5D=vendor_project%3A949&f%5B22%5D=vendor_project%3A1147&f%5B23%5D=vendor_project%3A1267&f%5B2%5D=vendor_project%3A817&f%5B3%5D=vendor_project%3A819&f%5B4%5D=vendor_project%3A823&f%5B5%5D=vendor_project%3A827&f%5B6%5D=vendor_project%3A837&f%5B7%5D=vendor_project%3A840&f%5B8%5D=vendor_project%3A854&f%5B9%5D=vendor_project%3A859&page=9",
-        "https://www.oracle.com/security-alerts/cpujul2020.html",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=52",
-        "https://www.oracle.com/security-alerts/public-vuln-to-advisory-mapping-archive.html",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=42",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=70",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=68",
-        "https://www.oracle.com/security-alerts/",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=22",
-        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
-        "https://www.oracle.com/a/ocom/docs/corporate/oracle-solaris11-4-certification-report.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/AA22-117A_Joint_CSA_2021_Top_Routinely_Exploited_Vulnerabilities_Final.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/AA21-209A_Joint_CSA%20Top%20Routinely%20Exploited%20Vulnerabilities.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/aa22-228a-threat-actors-exploiting-multiple-cves-against-zimbra.pdf"
+        "https://docs.oracle.com/iaas/releasenotes/services/conteng",
+        "https://docs.oracle.com/en/industries/communications/session-border-controller/10.1.0/configuration/sip-interfaces1.html",
+        "https://docs.oracle.com/en/industries/communications/session-border-controller/10.1.0/configuration/ims-support-private-header-extensions-3gpp.html",
+        "https://linux.oracle.com/errata/ELSA-2025-20471.html",
+        "https://docs.oracle.com/en/cloud/paas/visual-builder/visualbuilder-manage-development-process/check-security-vulnerabilities-your-projects-npm-packages-dependencies.html",
+        "https://www.oracle.com/corporate/pressrelease/oracle-buys-instantis-110812.html",
+        "https://docs.oracle.com/cd/E26924_01/html/E25934/rights-1.html",
+        "https://docs.oracle.com/cd/E27998_01/html/E48433/configuration__services__ftp.html",
+        "https://www.cisa.gov/ncas/bulletins/sb20-300",
+        "https://www.cisa.gov/news-events/bulletins/sb20-181",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-23-222-09",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-20-168-01"
       ],
       "schema_version": 2,
       "source_fingerprint": "59d883ee81f0a99feec0175f2dfbba81f38ef2627dbcfbd6ea0b9148703a695a",
       "source_urls": [
-        "https://www.oracle.com/security-alerts/cpuoct2020traditional.html",
-        "https://nvd.nist.gov/vuln/detail/CVE-2020-14871"
+        "https://www.oracle.com/security-alerts/cpuoct2020.html",
+        "https://www.oracle.com/security-alerts/cpuoct2020verbose.html"
       ],
-      "status": "complete",
+      "status": "insufficient_evidence",
       "uncertainty": [
-        "Oracle's public advisory identifies affected supported versions and the Solaris 11.1 non-exploitability boundary but does not provide a concrete Solaris 10 package identifier or universal patch revision in the returned material.",
-        "The supplied record says Solaris 11 is affected, while Oracle and NVD qualify the vulnerable range as releases before 11.1; exact exposure therefore depends on the installed Solaris 11 minor release and patch level.",
-        "The returned authoritative sources do not specify a single safe local command or package filename for verification."
+        "Public Oracle CPU advisory does not publish specific patch IDs, SRU numbers, or My Oracle Support document contents for the fix",
+        "No vendor-published inert verification procedure or configuration check is present in the consulted sources",
+        "NVD detail page content was not retrievable in this session",
+        "ZFSSA affected listing (8.8) versus the non-exploitable note (8.7 and later) is not further reconciled in the public text",
+        "No concrete post-patch version string (beyond the 11.1+/8.7+ non-exploitable note) is stated as the remediating release"
       ],
-      "verification_steps": [
-        "Use approved asset and package inventory to confirm that the installed Solaris release is Solaris 11.1 or later, or that the vendor-recommended October 2020 Solaris remediation has been applied.",
-        "Confirm that applicable network-facing authentication services are not exposed beyond the intended administrative or application trust boundary.",
-        "Record the Oracle patch or release evidence in change-management records; do not use exploit attempts or destructive probes as a validation method."
-      ]
+      "verification_steps": []
     },
     "CVE-2020-14882": {
       "business_risk": "No additional source-verified CVE-specific business impact was established.",
@@ -6227,167 +6342,151 @@
       "verification_steps": []
     },
     "CVE-2020-15999": {
-      "business_risk": "Critical remote exploitation risk for users running vulnerable Google Chrome versions. Google reported that exploitation of CVE-2020-15999 existed in the wild, and CISA lists it in the Known Exploited Vulnerabilities Catalog.",
+      "business_risk": "Critical known-exploited heap buffer overflow (CWE-787) in FreeType as used by Google Chrome; remote attacker can potentially cause heap corruption via a crafted HTML page requiring user interaction; listed in CISA KEV with exploit chains reported on Windows and Android.",
       "claim_evidence": [
         {
-          "claim": "Google Chrome is affected by CVE-2020-15999 before version 86.0.4240.111.",
+          "claim": "Google Chrome uses FreeType and is affected by a heap buffer overflow in Freetype",
           "kind": "affected_product",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2020-15999"
-        },
-        {
-          "claim": "The vulnerability affects Google Chrome versions prior to 86.0.4240.111.",
-          "kind": "affected_version",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2020-15999"
-        },
-        {
-          "claim": "The flaw is a FreeType heap buffer overflow that may be exploited through a crafted HTML page; Google reported exploitation in the wild.",
-          "kind": "exposure",
           "source_url": "https://chromereleases.googleblog.com/2020/10/stable-channel-update-for-desktop_20.html"
         },
         {
-          "claim": "Google’s stable desktop update released Chrome version 86.0.4240.111, and NVD identifies versions before that release as affected.",
+          "claim": "Google Chrome prior to 86.0.4240.111",
+          "kind": "affected_version",
+          "source_url": "https://chromereleases.googleblog.com/2020/10/stable-channel-update-for-desktop_20.html"
+        },
+        {
+          "claim": "Google Chrome 86.0.4240.111",
           "kind": "fixed_version",
           "source_url": "https://chromereleases.googleblog.com/2020/10/stable-channel-update-for-desktop_20.html"
         },
         {
-          "claim": "Installed Chrome can be verified by comparing its reported version with the fixed threshold of 86.0.4240.111; versions below that threshold remain within the affected range.",
+          "claim": "The stable channel has been updated to 86.0.4240.111",
           "kind": "verification",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2020-15999"
+          "source_url": "https://chromereleases.googleblog.com/2020/10/stable-channel-update-for-desktop_20.html"
         }
       ],
       "exposure_conditions": [
-        "Google Chrome versions prior to 86.0.4240.111 are affected.",
-        "A remote attacker can potentially trigger the flaw through a crafted HTML page that is rendered by vulnerable Chrome.",
-        "The attack requires user interaction consistent with opening or rendering attacker-controlled web content; the NVD CVSS vector specifies UI:R."
+        "Google Chrome prior to 86.0.4240.111",
+        "FreeType versions introducing PNG sbit handling (from 2.6) prior to 2.10.4 when FT_CONFIG_OPTION_USE_PNG is enabled",
+        "Processing of fonts containing embedded PNG bitmaps, typically triggered by visiting a crafted HTML page"
       ],
       "gaps": [],
-      "generated_at": "2026-07-29T00:09:18Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-10-07T16:55:41Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [
-        "Update Google Chrome to version 86.0.4240.111 or later using the organization’s approved browser update process.",
-        "Prioritize remediation because the vulnerability is listed in CISA’s Known Exploited Vulnerabilities Catalog.",
-        "Until updated, reduce exposure to untrusted or attacker-controlled web content where operationally feasible."
+        "Update Google Chrome to 86.0.4240.111 or later per the stable channel advisory",
+        "Update FreeType to 2.10.4 or a distribution-provided patched package (for example Debian buster freetype 2.9.1-3+deb10u2)",
+        "Apply vendor updates for other affected products as instructed by CISA"
       ],
       "retrieved_source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2020-15999",
+        "https://nvd.nist.gov/vuln/detail/cve-2020-15999",
         "https://nvd.nist.gov/vuln/detail/cve-2020-1599",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A814&f%5B10%5D=vendor_project%3A1266&f%5B1%5D=vendor_project%3A815&f%5B2%5D=vendor_project%3A826&f%5B3%5D=vendor_project%3A842&f%5B4%5D=vendor_project%3A864&f%5B5%5D=vendor_project%3A865&f%5B6%5D=vendor_project%3A917&f%5B7%5D=vendor_project%3A929&f%5B8%5D=vendor_project%3A942&f%5B9%5D=vendor_project%3A1000&page=3",
-        "https://www.cisa.gov/news-events/alerts/2022/02/10/cisa-adds-15-known-exploited-vulnerabilities-catalog",
-        "https://nvd.nist.gov/vuln/detail/CVE-2020-15959",
-        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
-        "https://nvd.nist.gov/vuln/detail/cve-2019-1599",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=55",
-        "https://nvd.nist.gov/vuln/detail/CVE-2020-1598",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=52",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=22",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2020-15900",
+        "https://nvd.nist.gov/vuln/detail/cve-2020-15900",
+        "https://nvd.nist.gov/vuln/detail/CVE-2020-15899",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2020-15099",
+        "https://nvd.nist.gov/vuln/detail/CVE-2020-16599",
+        "https://nvd.nist.gov/vuln/detail/CVE-2018-15999/change-record?changeRecordedOn=01/22/2019T11:54:31.797-0500",
+        "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2020-13999",
+        "https://nvd.nist.gov/vuln/detail/cve-2020-15199",
         "https://chromereleases.googleblog.com/2020/10/stable-channel-update-for-desktop_20.html",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=56",
-        "https://www.cisa.gov/sites/default/files/publications/AA20-133A_Top_10_Routinely_Exploited_Vulnerabilities_S508C.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/AA21-209A_Joint_CSA%20Top%20Routinely%20Exploited%20Vulnerabilities.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/AA22-117A_Joint_CSA_2021_Top_Routinely_Exploited_Vulnerabilities_Final.pdf"
+        "https://chromereleases.googleblog.com/search/label/Desktop%20Update?updated-max=2020-10-12T14:47:00-07:00&max-results=20&start=1028&by-date=false",
+        "https://chromereleases.googleblog.com/search/label/Chrome%20for%20Android?max-results=56",
+        "https://chromereleases.googleblog.com/2020/01/",
+        "https://chromereleases.googleblog.com/search/label/Beta%20updates?max-results=100",
+        "https://www.cisa.gov/ncas/bulletins/sb20-314",
+        "https://www.cisa.gov/ncas/bulletins/sb20-300",
+        "https://www.cisa.gov/news-events/bulletins/sb21-095",
+        "https://www.cisa.gov/news-events/bulletins/sb20-258",
+        "https://www.cvedetails.com/cve/CVE-2020-15999/",
+        "https://googleprojectzero.blogspot.com/p/rca-cve-2020-15999.html",
+        "https://access.redhat.com/security/cve/cve-2020-15999",
+        "https://socradar.io/free-tools/cve-radar/CVE-2020-15999",
+        "https://savannah.nongnu.org/bugs/?59308"
       ],
       "schema_version": 2,
       "source_fingerprint": "702fa58ec673f8faaf9dd963bedc1c6388ffd991465ae145e4217edf42439ecd",
       "source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2020-15999",
-        "https://chromereleases.googleblog.com/2020/10/stable-channel-update-for-desktop_20.html"
+        "https://chromereleases.googleblog.com/2020/10/stable-channel-update-for-desktop_20.html",
+        "https://savannah.nongnu.org/bugs/?59308"
       ],
       "status": "complete",
       "uncertainty": [
-        "NVD also associates this CVE with standalone FreeType and several Linux or NetApp product records, but the returned authoritative sources do not establish a single remediation or fixed version for every listed product.",
-        "The supplied evidence supports Chrome-specific remediation; it does not establish that every product mapped by CPE embeds or exposes the vulnerable FreeType code in the same way."
+        "NVD detail page content could not be fully retrieved by the fetch tool",
+        "Chrome for Android version mapping for this specific CVE is not stated in the desktop stable-channel advisory",
+        "NetApp and some Linux distribution package mappings are referenced but not fully enumerated here"
       ],
       "verification_steps": [
-        "Check the installed Google Chrome version through the browser’s built-in version/about interface or approved endpoint inventory.",
-        "Confirm that the reported Chrome version is 86.0.4240.111 or later.",
-        "Confirm that the endpoint’s browser update status reports no pending security update."
+        "Open Google Chrome and confirm the version shown in the About Google Chrome dialog (or chrome://version) is 86.0.4240.111 or later",
+        "Confirm the installed FreeType package version meets or exceeds the vendor-fixed release for the distribution"
       ]
     },
     "CVE-2020-16010": {
-      "business_risk": "Critical risk on affected Android Chrome installations. A remote attacker could potentially exploit a heap buffer overflow in the UI after compromising the renderer process, leading to a sandbox escape. Google reported that exploitation existed in the wild, and CISA lists the CVE in its Known Exploited Vulnerabilities catalog.",
+      "business_risk": "Critical CVSS 3.1 score of 9.6. CISA Known Exploited Vulnerability. Vendor stated an exploit existed in the wild. Heap buffer overflow in Chrome for Android UI can allow a sandbox escape after renderer compromise via crafted HTML, with high impact to confidentiality, integrity, and availability on Android devices.",
       "claim_evidence": [
         {
-          "claim": "The vulnerability affects Google Chrome on Android, specifically the UI component.",
-          "kind": "affected_product",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2020-16010"
-        },
-        {
-          "claim": "Chrome for Android versions prior to 86.0.4240.185 are affected.",
+          "claim": "Google Chrome on Android prior to 86.0.4240.185",
           "kind": "affected_version",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2020-16010"
-        },
-        {
-          "claim": "A remote attacker who has compromised the renderer process could potentially use a crafted HTML page to trigger the vulnerability and perform a sandbox escape.",
-          "kind": "exposure",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2020-16010"
-        },
-        {
-          "claim": "Google released Chrome 86.0.4240.185 for Android as the update containing the fix for CVE-2020-16010.",
-          "kind": "fixed_version",
-          "source_url": "https://chromereleases.googleblog.com/2020/11/chrome-for-android-update.html"
-        },
-        {
-          "claim": "The vendor remediation is to update Chrome for Android; CISA specifies applying updates according to vendor instructions.",
-          "kind": "remediation",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2020-16010"
-        },
-        {
-          "claim": "A safe version-based verification is to confirm that deployed Chrome for Android installations are at version 86.0.4240.185 or later, because versions before that release are identified as affected.",
-          "kind": "verification",
           "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2020-16010"
         }
       ],
       "exposure_conditions": [
-        "Google Chrome for Android is installed with a version earlier than 86.0.4240.185.",
-        "A user loads attacker-controlled or otherwise crafted HTML content.",
-        "Exploitation requires the renderer process to have been compromised, according to the vulnerability description."
+        "Google Chrome on Android prior to 86.0.4240.185",
+        "Remote attacker who has already compromised the renderer process",
+        "Crafted HTML page requiring user interaction",
+        "Android platform only"
       ],
       "gaps": [],
-      "generated_at": "2026-07-28T12:01:07Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-10-07T16:54:03Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [
-        "Update Google Chrome for Android to version 86.0.4240.185 or later.",
-        "Prioritize remediation because the vulnerability is listed by CISA as known exploited and Google reported exploitation in the wild.",
-        "Use the vendor-provided Chrome update mechanism and confirm that the update has been deployed across managed Android devices."
+        "Update Google Chrome for Android to 86.0.4240.185 or later via Google Play, as released in the vendor Chrome for Android advisory.",
+        "Apply updates per vendor instructions as required by CISA KEV."
       ],
       "retrieved_source_urls": [
         "https://nvd.nist.gov/vuln/detail/CVE-2020-16010",
-        "https://chromereleases.googleblog.com/2020/11/chrome-for-android-update.html",
-        "https://nvd.nist.gov/vuln/detail/CVE-2019-16010",
-        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?_cldee=jpUNG-sft0Lr74jsazzEoZ17jTSFEy6lQDvCJArCUYT0C1B4SWuT29F0dx7GSSfN&esid=f8736f67-efb4-ec11-983e-000d3a5a7186&f%5B0%5D=vendor_project%3A813&f%5B1%5D=vendor_project%3A829&f%5B2%5D=vendor_project%3A849&f%5B3%5D=vendor_project%3A911&f%5B4%5D=vendor_project%3A1320&page=1&recipientid=contact-41de9e007aace811a963000d3a363879-a794569726594743b07ecd7aaff0e97c",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=56",
-        "https://chromereleases.googleblog.com/2020/10/chrome-for-android-update_31.html",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=69",
-        "https://www.cisa.gov/sites/default/files/publications/AA20-133A_Top_10_Routinely_Exploited_Vulnerabilities_S508C.pdf",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=57",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=68",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A804&f%5B10%5D=vendor_project%3A913&f%5B11%5D=vendor_project%3A914&f%5B12%5D=vendor_project%3A1151&f%5B1%5D=vendor_project%3A811&f%5B2%5D=vendor_project%3A822&f%5B3%5D=vendor_project%3A826&f%5B4%5D=vendor_project%3A827&f%5B5%5D=vendor_project%3A830&f%5B6%5D=vendor_project%3A862&f%5B7%5D=vendor_project%3A877&f%5B8%5D=vendor_project%3A888&f%5B9%5D=vendor_project%3A908&page=16",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A798&f%5B10%5D=vendor_project%3A932&f%5B11%5D=vendor_project%3A933&f%5B12%5D=vendor_project%3A939&f%5B13%5D=vendor_project%3A943&f%5B14%5D=vendor_project%3A1151&f%5B15%5D=vendor_project%3A1168&f%5B16%5D=vendor_project%3A1172&f%5B17%5D=vendor_project%3A1275&f%5B1%5D=vendor_project%3A799&f%5B2%5D=vendor_project%3A801&f%5B3%5D=vendor_project%3A816&f%5B4%5D=vendor_project%3A823&f%5B5%5D=vendor_project%3A842&f%5B6%5D=vendor_project%3A905&f%5B7%5D=vendor_project%3A914&f%5B8%5D=vendor_project%3A917&f%5B9%5D=vendor_project%3A920&page=6",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A800&f%5B10%5D=vendor_project%3A842&f%5B11%5D=vendor_project%3A845&f%5B12%5D=vendor_project%3A847&f%5B13%5D=vendor_project%3A853&f%5B14%5D=vendor_project%3A854&f%5B15%5D=vendor_project%3A865&f%5B16%5D=vendor_project%3A877&f%5B17%5D=vendor_project%3A880&f%5B18%5D=vendor_project%3A886&f%5B19%5D=vendor_project%3A888&f%5B1%5D=vendor_project%3A801&f%5B20%5D=vendor_project%3A893&f%5B21%5D=vendor_project%3A902&f%5B22%5D=vendor_project%3A917&f%5B23%5D=vendor_project%3A931&f%5B24%5D=vendor_project%3A932&f%5B25%5D=vendor_project%3A933&f%5B26%5D=vendor_project%3A938&f%5B27%5D=vendor_project%3A941&f%5B28%5D=vendor_project%3A951&f%5B29%5D=vendor_project%3A1174&f%5B2%5D=vendor_project%3A802&f%5B3%5D=vendor_project%3A803&f%5B4%5D=vendor_project%3A807&f%5B5%5D=vendor_project%3A820&f%5B6%5D=vendor_project%3A823&f%5B7%5D=vendor_project%3A828&f%5B8%5D=vendor_project%3A837&f%5B9%5D=vendor_project%3A839&page=9",
-        "https://www.cisa.gov/sites/default/files/publications/AA22-117A_Joint_CSA_2021_Top_Routinely_Exploited_Vulnerabilities_Final.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/AA21-209A_Joint_CSA%20Top%20Routinely%20Exploited%20Vulnerabilities.pdf"
+        "https://nvd.nist.gov/vuln/detail/cve-2020-16008",
+        "https://nvd.nist.gov/vuln/detail/CVE-2020-16017",
+        "https://nvd.nist.gov/vuln/detail/CVE-2020-16040",
+        "https://nvd.nist.gov/vuln/detail/CVE-2020-1604/change-record?changeRecordedOn=01/24/2020T13:53:32.907-0500",
+        "https://nvd.nist.gov/vuln/detail/cve-2020-15810",
+        "https://nvd.nist.gov/vuln/detail/CVE-2020-16120",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2020-15800",
+        "https://nvd.nist.gov/nvd.cfm?cvename=CVE-2020-16610",
+        "https://nvd.nist.gov/vuln/detail/CVE-2020-16170",
+        "https://chromereleases.googleblog.com/2020/11/stable-channel-update-for-desktop.html",
+        "https://chromereleases.googleblog.com/2010",
+        "https://chromereleases.googleblog.com/search/label/Chrome%20for%20Android?max-results=56",
+        "https://chromereleases.googleblog.com/search/label/Beta%20updates?max-results=100",
+        "https://chromereleases.googleblog.com/search/label/Stable%20updates%2BDesktop%20Update?updated-max=2020-08-10T11:51:00-07:00&max-results=20&start=241&by-date=false",
+        "https://www.cve.org/CVERecord?id=CVE-2020-16010",
+        "https://cvefeed.io/vuln/detail/CVE-2020-16010",
+        "https://www.cvedetails.com/cve/CVE-2020-16010/",
+        "https://security-tracker.debian.org/tracker/CVE-2020-16010",
+        "https://cve.report/CVE-2020-16010",
+        "https://github.com/advisories/GHSA-x9cj-gxph-5cgf",
+        "https://www.zdnet.com/article/after-two-zero-days-in-chrome-desktop-google-patches-a-third-zero-day-in-the-android-version/",
+        "https://turingpoint.de/en/cve/CVE-2020-16010/",
+        "https://www.cisa.gov/ncas/bulletins/sb20-314"
       ],
       "schema_version": 2,
       "source_fingerprint": "6a8e2671202359b6d594e41975ccb78ec0c0cf2fb299812b07b48a2d32eb0d63",
       "source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2020-16010",
-        "https://chromereleases.googleblog.com/2020/11/chrome-for-android-update.html"
+        "https://nvd.nist.gov/vuln/detail/CVE-2020-16010"
       ],
       "status": "complete",
       "uncertainty": [
-        "The supplied records identify Android as the operating-system platform but do not specify affected Android OS releases or device-manufacturer distribution status.",
-        "The sources do not provide device-management-specific procedures for checking Chrome versions or confirming update completion.",
-        "The source describes exploitation after renderer-process compromise; it does not establish that every exposure condition is remotely reachable in every deployment."
+        "NVD detail page could not be fully retrieved in this session; facts rely on NVD search excerpts plus vendor and CISA pages, which are consistent.",
+        "Lower bound of affected Chrome versions is unspecified (prior to 86.0.4240.185).",
+        "Technical bug details at crbug.com/1144368 are not publicly expanded in the consulted sources.",
+        "Desktop Chrome is outside the Android-specific advisory for this CVE."
       ],
       "verification_steps": [
-        "Review device or application inventory and confirm that Chrome for Android reports version 86.0.4240.185 or later.",
-        "Confirm that devices running versions earlier than 86.0.4240.185 are no longer in service or have completed the update.",
-        "Do not use crafted pages or exploit attempts as a verification method."
+        "Confirm the installed Google Chrome for Android version is 86.0.4240.185 or later after the Google Play update."
       ]
     },
     "CVE-2020-16017": {
@@ -7074,89 +7173,70 @@
       ]
     },
     "CVE-2020-25213": {
-      "business_risk": "Critical. An unauthenticated remote attacker may upload and execute arbitrary PHP code through vulnerable WordPress File Manager plugin versions. The vulnerability is listed in CISA's Known Exploited Vulnerabilities catalog, so remediation should be prioritized and affected systems should be reviewed for compromise.",
+      "business_risk": "Critical unauthenticated remote code execution in a popular WordPress plugin, listed in CISA KEV after in-the-wild exploitation, enabling arbitrary PHP upload and execution and full site compromise.",
       "claim_evidence": [
         {
-          "claim": "CVE-2020-25213 affects the File Manager (wp-file-manager) plugin for WordPress.",
+          "claim": "The File Manager (wp-file-manager) plugin for WordPress",
           "kind": "affected_product",
           "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2020-25213"
         },
         {
-          "claim": "NVD describes versions before 6.9 as affected.",
+          "claim": "plugin versions before 6.9 (CPE up to excluding 6.9)",
           "kind": "affected_version",
           "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2020-25213"
-        },
-        {
-          "claim": "The vulnerability permits remote attackers to upload and execute arbitrary PHP code; the described attack does not require authentication.",
-          "kind": "exposure",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2020-25213"
-        },
-        {
-          "claim": "Version 6.9 is the concrete remediation boundary identified by NVD, and the WordPress plugin changelog marks version 6.9 as fixing a security issue.",
-          "kind": "fixed_version",
-          "source_url": "https://wordpress.org/plugins/wp-file-manager/"
-        },
-        {
-          "claim": "Upgrade the File Manager plugin to version 6.9 or later, or disable/remove vulnerable versions if they cannot be upgraded.",
-          "kind": "remediation",
-          "source_url": "https://wordpress.org/plugins/wp-file-manager/"
-        },
-        {
-          "claim": "Verify the installed plugin version through WordPress administration or deployment inventory and confirm it is 6.9 or later; the version boundary and release history are documented by NVD and WordPress.org.",
-          "kind": "verification",
-          "source_url": "https://wordpress.org/plugins/wp-file-manager/"
         }
       ],
       "exposure_conditions": [
-        "The WordPress File Manager (wp-file-manager) plugin is installed at a version earlier than 6.9.",
-        "The vulnerable WordPress installation is reachable by an attacker over the network; the CVE description states that remote attackers can exploit the issue without authentication.",
-        "The plugin's vulnerable file-upload functionality is available in the deployment. Actual exposure cannot be confirmed without asset and configuration data."
+        "The File Manager (wp-file-manager) plugin for WordPress is installed at a version before 6.9",
+        "The WordPress site is reachable over the network; no authentication is required to exploit the vulnerability"
       ],
       "gaps": [],
-      "generated_at": "2026-07-29T00:10:10Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-10-07T17:03:18Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [
-        "Upgrade the WordPress File Manager plugin to version 6.9 or later; the WordPress plugin changelog identifies version 6.9, released September 1, 2020, as fixing a security issue.",
-        "If the plugin cannot be upgraded, disable or remove it and use an approved alternative until a supported version is deployed.",
-        "Because exploitation occurred in the wild, review relevant WordPress, web-server, and endpoint telemetry for unauthorized plugin-file changes or unexpected PHP activity after applying the update."
+        "Update the File Manager (wp-file-manager) plugin to version 6.9 or later per vendor instructions"
       ],
       "retrieved_source_urls": [
         "https://nvd.nist.gov/vuln/detail/CVE-2020-25213",
-        "https://wordpress.org/plugins/wp-file-manager/",
-        "https://wordpress.org/plugins/file-manager/",
-        "https://nvd.nist.gov/vuln/detail/CVE-2019-25213",
+        "https://nvd.nist.gov/nvd.cfm?cvename=CVE-2020-25613",
         "https://nvd.nist.gov/vuln/detail/CVE-2020-25013",
-        "https://nvd.nist.gov/vuln/detail/CVE-2018-25213",
-        "https://nvd.nist.gov/vuln/detail/CVE-2020-2513",
-        "https://nvd.nist.gov/vuln/detail/CVE-2020-21813",
-        "https://nvd.nist.gov/vuln/detail/CVE-2020-19513",
-        "https://wordpress.org/support/topic/critical-security-vulnerability-version-8-0-2/",
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-42013",
-        "https://nvd.nist.gov/vuln/detail/CVE-2020-2013",
-        "https://core.trac.wordpress.org/raw-attachment/ticket/60994/security_issue1.pdf",
-        "https://core.trac.wordpress.org/raw-attachment/ticket/29775/wordpress%2040%20error.pdf",
-        "https://wordpress.org/files/2020/11/IDC-Report-Choosing-a-CMS-to-Meet-Todays-Digital-Experience-Challenges.pdf",
-        "https://wordpress.org/files/2020/11/Personalization-whitepaper.pdf",
-        "https://wordpress.org/news/files/2023/08/Open_Letter_on_the_Significance_of_Free_and_Open_Source_Software_in_the_EU_s_Proposed_Cyber_Resilience_Act.pdf"
+        "https://nvd.nist.gov/vuln/detail/CVE-2020-26213",
+        "https://nvd.nist.gov/vuln/detail/cve-2021-25253",
+        "https://nvd.nist.gov/vuln/detail/cve-2020-24513",
+        "https://nvd.nist.gov/vuln/detail/cve-2020-26253",
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-25293",
+        "https://nvd.nist.gov/vuln/detail/cve-2020-2593",
+        "https://nvd.nist.gov/vuln/detail/CVE-2020-25813",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-21-068-04",
+        "https://www.cisa.gov/news-events/bulletins/sb20-258",
+        "https://www.cisa.gov/news-events/bulletins/sb24-127",
+        "https://www.cisa.gov/news-events/bulletins/sb20-335",
+        "https://www.cisa.gov/news-events/bulletins/sb20-251",
+        "https://wpscan.com/vulnerability/e528ae38-72f0-49ff-9878-922eff59ace9/?ref=benheater.com",
+        "https://www.cve.org/CVERecord?id=CVE-2020-25213",
+        "https://cvetodo.com/cve/CVE-2020-25213",
+        "https://sploitus.com/cve/CVE-2020-25213",
+        "https://www.wiz.io/vulnerability-database/cve/cve-2020-25213",
+        "https://www.wordfence.com/threat-intel/vulnerabilities/wordpress-plugins/wp-file-manager/file-manager-68-arbitrary-file-uploadremote-code-execution",
+        "https://www.infosecmatter.com/nessus-plugin-library/?id=140211",
+        "https://turingpoint.de/en/cve/CVE-2020-25213/",
+        "https://plugins.svn.wordpress.org/wpvulnerability/trunk/wpvulnerability-general.php"
       ],
       "schema_version": 2,
       "source_fingerprint": "b04c13200b448b1eb8b642c2cc2f361ef62427ebd5c192ee8a40d384856ead41",
       "source_urls": [
         "https://nvd.nist.gov/vuln/detail/CVE-2020-25213",
-        "https://wordpress.org/plugins/wp-file-manager/"
+        "https://www.cve.org/CVERecord?id=CVE-2020-25213"
       ],
       "status": "complete",
       "uncertainty": [
-        "The supplied record contains a generic affected entry with product and version listed as n/a, while NVD identifies the affected product as the WordPress File Manager plugin before version 6.9.",
-        "The sources establish the vulnerable version boundary and remediation version, but they do not establish whether a particular deployment is installed, enabled, externally reachable, or compromised.",
-        "The current installed version and deployment-specific exposure were not provided."
+        "Vendor changelog for 6.9 states only that a security issue was fixed, without CVE-specific technical notes",
+        "Subsequent plugin versions exist and have had unrelated later security fixes"
       ],
       "verification_steps": [
-        "Confirm through the WordPress administration interface or deployment inventory that the installed File Manager plugin version is 6.9 or later.",
-        "Confirm that no vulnerable pre-6.9 copy of the plugin remains installed or enabled across production, staging, and backup-restoration environments.",
-        "Review security monitoring and file-integrity records for unexpected changes associated with the plugin after remediation. Do not perform exploit validation against production systems."
+        "In the WordPress administration Plugins screen, confirm that the File Manager plugin version is 6.9 or newer"
       ]
     },
     "CVE-2020-25223": {
@@ -7508,90 +7588,88 @@
       "verification_steps": []
     },
     "CVE-2020-29583": {
-      "business_risk": "Affected Zyxel firewalls and AP controllers contain the undocumented hardcoded-credential account “zyfwp.” An attacker who can reach an affected management service may obtain unauthorized appliance access, creating a high risk to confidentiality, integrity, and availability. CISA lists this CVE in the Known Exploited Vulnerabilities catalog.",
+      "business_risk": "Critical (CVSS 9.8) known-exploited hardcoded administrative credentials on Zyxel firewalls and AP controllers can allow unauthenticated remote takeover of management interfaces, enabling full device compromise. CISA KEV requires applying vendor updates.",
       "claim_evidence": [
         {
-          "claim": "Zyxel identifies ATP, USG, USG FLEX, and VPN firewalls running ZLD V4.60, plus NXC2500 and NXC5500 AP controllers running V6.00 through V6.10, as affected product series.",
+          "claim": "Zyxel ATP, USG, USG FLEX and VPN series firewalls plus NXC2500 and NXC5500 AP controllers",
           "kind": "affected_product",
           "source_url": "https://www.zyxel.com/global/en/support/security-advisories/zyxel-security-advisory-for-hardcoded-credential-vulnerability"
         },
         {
-          "claim": "The vendor advisory identifies ZLD V4.60 for the listed firewall series and firmware V6.00 through V6.10 for NXC2500/NXC5500 as vulnerable ranges.",
+          "claim": "Firewalls running ZLD V4.60; NXC2500/NXC5500 running V6.00 through V6.10",
           "kind": "affected_version",
           "source_url": "https://www.zyxel.com/global/en/support/security-advisories/zyxel-security-advisory-for-hardcoded-credential-vulnerability"
         },
         {
-          "claim": "The vulnerability is a hardcoded credential in the undocumented “zyfwp” account; the issue affects devices running the listed firmware versions and presents an unauthorized-access condition when device management access is reachable by an unauthorized party.",
+          "claim": "Undocumented zyfwp account with unchangeable password that can be used to log in to the SSH server or web interface with admin privileges; password present in cleartext in firmware",
           "kind": "exposure",
-          "source_url": "https://www.zyxel.com/global/en/support/security-advisories/zyxel-security-advisory-for-hardcoded-credential-vulnerability"
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2020-29583"
         },
         {
-          "claim": "Zyxel lists ZLD V4.60 Patch1 as the patch for the affected firewall series and V6.10 Patch1 as the patch for NXC2500/NXC5500.",
+          "claim": "ZLD V4.60 Patch 1 (December 2020) for firewall series; V6.10 Patch 1 (8 January 2021) for NXC2500 and NXC5500",
           "kind": "fixed_version",
           "source_url": "https://www.zyxel.com/global/en/support/security-advisories/zyxel-security-advisory-for-hardcoded-credential-vulnerability"
         },
         {
-          "claim": "Zyxel advises users to install the applicable firmware updates for protection against the hardcoded-credential vulnerability.",
-          "kind": "remediation",
-          "source_url": "https://www.zyxel.com/global/en/support/security-advisories/zyxel-security-advisory-for-hardcoded-credential-vulnerability"
-        },
-        {
-          "claim": "Zyxel provides guidance for checking affected firmware versions, upgrading to the patched releases, and reviewing unauthorized users or login history.",
+          "claim": "Products and firmware versions not listed in the vendor table are not affected; confirm installed version matches a listed patched release",
           "kind": "verification",
-          "source_url": "https://community.zyxel.com/en/discussion/5400/what-you-should-know-about-cve-2020-29583-and-actions-to-take-to-mitigate-the-risk"
+          "source_url": "https://www.zyxel.com/global/en/support/security-advisories/zyxel-security-advisory-for-hardcoded-credential-vulnerability"
         }
       ],
       "exposure_conditions": [
-        "The device is one of the Zyxel firewall or AP-controller product series listed in the vendor advisory.",
-        "A firewall is running ZLD V4.60, or an NXC2500/NXC5500 AP controller is running firmware V6.00 through V6.10.",
-        "The affected device’s management access is reachable by an unauthorized party; the vendor identifies the issue as a hardcoded credential in the undocumented “zyfwp” account."
+        "Zyxel ATP, USG, USG FLEX, or VPN series running ZLD firmware V4.60",
+        "Zyxel NXC2500 or NXC5500 running firmware V6.00 through V6.10",
+        "Undocumented zyfwp account with unchangeable password present in firmware, usable for SSH or web-interface login with admin privileges"
       ],
       "gaps": [],
-      "generated_at": "2026-07-28T12:00:58Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-10-07T16:52:40Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [
-        "Upgrade ATP, USG, USG FLEX, and VPN series devices running ZLD V4.60 to the vendor-designated ZLD V4.60 Patch1 release.",
-        "Upgrade NXC2500 and NXC5500 devices running V6.00 through V6.10 to the vendor-designated V6.10 Patch1 release.",
-        "Until patching is completed, restrict management-plane access to trusted administrative networks and review the vendor’s temporary mitigation guidance; do not rely on changing the affected credential because the advisory describes it as hardcoded.",
-        "Treat affected appliances as potentially compromised if they were exposed to untrusted access before patching; review authentication and administrative activity and follow Zyxel incident-response guidance."
+        "Install vendor firmware updates listed in the Zyxel advisory: ZLD V4.60 Patch 1 (December 2020) for affected firewall series and V6.10 Patch 1 (8 January 2021) for NXC2500/NXC5500",
+        "Apply updates per vendor instructions as required by the CISA KEV catalog"
       ],
       "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2020-29583",
+        "https://nvd.nist.gov/vuln/detail/cve-2020-29583",
+        "https://nvd.nist.gov/vuln/detail/cve-2021-29583",
+        "https://nvd.nist.gov/vuln/detail/cve-2020-29483",
+        "https://nvd.nist.gov/vuln/detail/CVE-2020-2963/change-record?changeRecordedOn=05/26/2020T11:15:12.900-0400",
+        "https://nvd.nist.gov/vuln/detail/CVE-2020-28583",
+        "https://nvd.nist.gov/nvd.cfm?cvename=CVE-2020-26983",
         "https://www.zyxel.com/global/en/support/security-advisories/zyxel-security-advisory-for-hardcoded-credential-vulnerability",
-        "https://www.zyxel.com/global/en/support/security-advisories/zyxel-security-advisory-for-attacks-against-security-appliances",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?_cldee=jpUNG-sft0Lr74jsazzEoZ17jTSFEy6lQDvCJArCUYT0C1B4SWuT29F0dx7GSSfN&esid=f8736f67-efb4-ec11-983e-000d3a5a7186&f%5B0%5D=vendor_project%3A813&f%5B1%5D=vendor_project%3A855&f%5B2%5D=vendor_project%3A924&f%5B3%5D=vendor_project%3A1277&f%5B4%5D=vendor_project%3A1320&page=1&recipientid=contact-41de9e007aace811a963000d3a363879-a794569726594743b07ecd7aaff0e97c",
-        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
-        "https://nvd.nist.gov/vuln",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?_cldee=jpUNG-sft0Lr74jsazzEoZ17jTSFEy6lQDvCJArCUYT0C1B4SWuT29F0dx7GSSfN&esid=f8736f67-efb4-ec11-983e-000d3a5a7186&f%5B0%5D=vendor_project%3A813&f%5B1%5D=vendor_project%3A829&f%5B2%5D=vendor_project%3A849&f%5B3%5D=vendor_project%3A911&f%5B4%5D=vendor_project%3A1320&page=1&recipientid=contact-41de9e007aace811a963000d3a363879-a794569726594743b07ecd7aaff0e97c",
-        "https://community.zyxel.com/en/discussion/5400/what-you-should-know-about-cve-2020-29583-and-actions-to-take-to-mitigate-the-risk",
-        "https://nvd.nist.gov/vuln/detail/cve-2020-2021",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=58",
-        "https://www.zyxel.com/global/en/support/security-advisories/zyxel-security-advisory-for-command-injection-vulnerability-of-firewalls",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=0",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=52",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=42",
-        "https://www.cisa.gov/sites/default/files/publications/AA21-209A_Joint_CSA%20Top%20Routinely%20Exploited%20Vulnerabilities.pdf",
-        "https://www.cisa.gov/sites/default/files/2024-05/Secure_by_Design_Alert_Eliminating_Directory_Traversal_Vulnerabilities_in_Software_508c%20%283%29.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/AA22-117A_Joint_CSA_2021_Top_Routinely_Exploited_Vulnerabilities_Final.pdf"
+        "https://www.zyxel.com/service-provider/na/en/zyxel-security-advisory-attacks-against-security-appliances",
+        "https://community.zyxel.com/en/discussion/5424/hot-fix-for-cve-2020-29583-is-available-now",
+        "https://community.zyxel.com/en/discussion/5415/what-you-should-know-about-cve-2020-29583-and-actions-to-take-to-mitigate-the-risk",
+        "https://www.zyxel.com/tw/zh/support/security-advisories/CVE-2020-29583",
+        "https://community.zyxel.com/en/discussion/5396/is-my-zywall-usg-vpn-atp-usg-flex-firmware-version-affected-by-cve-2020-29583-how-to-check",
+        "https://mysupport.zyxel.com/hc/en-us/articles/4402873829394-Security-Vulnerability-Alert-and-Firmware-Patches-Firewall-Series",
+        "https://community.zyxel.com/en/discussion/5373/vulnerability-cve-2020-29583",
+        "https://community.zyxel.com/tw/discussion/5395/%E7%A8%8B%E5%BC%8F%E4%B8%AD%E8%AA%A4%E6%A4%8D%E7%AE%A1%E7%90%86%E5%B8%B3%E8%99%9F%E6%BC%8F%E6%B4%9E%E8%B3%87%E5%AE%89%E5%85%AC%E5%91%8A",
+        "https://community.zyxel.com/en/discussion/5423/hot-fix-for-cve-2020-29583-is-available-now",
+        "https://www.cisa.gov/news-events/bulletins/sb20-349",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-23-348-10",
+        "https://www.cisa.gov/news-events/bulletins/sb20-160",
+        "https://www.cisa.gov/ncas/bulletins/sb21-081",
+        "https://www.cisa.gov/news-events/bulletins/sb20-076",
+        "https://www.cisa.gov/news-events/bulletins/sb20-335"
       ],
       "schema_version": 2,
       "source_fingerprint": "38732d400fe7957552f6a243ab43b6f7e024311384e6861647c93786af744d85",
       "source_urls": [
-        "https://www.zyxel.com/global/en/support/security-advisories/zyxel-security-advisory-for-hardcoded-credential-vulnerability",
-        "https://community.zyxel.com/en/discussion/5400/what-you-should-know-about-cve-2020-29583-and-actions-to-take-to-mitigate-the-risk"
+        "https://nvd.nist.gov/vuln/detail/CVE-2020-29583",
+        "https://www.zyxel.com/global/en/support/security-advisories/zyxel-security-advisory-for-hardcoded-credential-vulnerability"
       ],
       "status": "complete",
       "uncertainty": [
-        "The returned Zyxel advisory provides fixed patch levels for the listed product series but does not enumerate every model-specific firmware build or later release equivalence.",
-        "The source material does not establish a universal exposure state for every deployment; actual risk depends on whether administrative interfaces were reachable by unauthorized parties.",
-        "No safe, vendor-published test was found that proves removal of the account without performing an authentication attempt; verification should therefore rely on firmware state and review of vendor-supported access records."
+        "NVD MITRE affected-product data is recorded as n/a while the vendor advisory enumerates series-level firmware; some original advisory and support URLs now redirect or 404",
+        "Exact model-by-model and sub-version (Patch 0 versus later 4.60 builds) mappings are not fully enumerated in the retrieved advisory table",
+        "No detailed inert GUI navigation for firmware-status checks appears in the authoritative advisory pages retrieved"
       ],
       "verification_steps": [
-        "Confirm the installed model and firmware version against Zyxel’s affected-product table.",
-        "Confirm that firewall devices report ZLD V4.60 Patch1 and that NXC2500/NXC5500 devices report V6.10 Patch1, as applicable.",
-        "Review the device’s login history or administrative access records using Zyxel’s documented checking guidance; perform review-only checks and do not attempt authentication with the undocumented account.",
-        "Confirm that management access is limited to authorized administrative networks after remediation."
+        "Compare the device running firmware version against the patched releases in the Zyxel security advisory table (ZLD V4.60 Patch 1 or V6.10 Patch 1)",
+        "Confirm products not listed in the vendor advisory table are treated as unaffected"
       ]
     },
     "CVE-2020-3161": {
@@ -8017,6 +8095,107 @@
       ],
       "verification_steps": []
     },
+    "CVE-2020-5135": {
+      "business_risk": "Critical (CVSS 9.8) unauthenticated remote buffer overflow in SonicWall SonicOS firewalls that can cause denial of service and potentially arbitrary code execution. CISA KEV-listed since 2022-03-15 with known ransomware campaign use.",
+      "claim_evidence": [
+        {
+          "claim": "SonicWall SonicOS (including SonicOSv)",
+          "kind": "affected_product",
+          "source_url": "https://psirt.global.sonicwall.com/vuln-detail/SNWLID-2020-0010"
+        },
+        {
+          "claim": "SonicOS 6.5.4.6-79n and earlier; SonicOS 6.5.1.11-4n and earlier; SonicOS 6.0.5.3-93o and earlier; SonicOSv 6.5.4.4-44v-21-794 and earlier (vendor advisory after typo correction; Gen 7 removed as already patched)",
+          "kind": "affected_version",
+          "source_url": "https://psirt.global.sonicwall.com/vuln-detail/SNWLID-2020-0010"
+        },
+        {
+          "claim": "NVD/CVE description lists affected SonicOS Gen 6 versions 6.5.4.7, 6.5.1.12, 6.0.5.3, SonicOSv 6.5.4.v and Gen 7 version 7.0.0.0",
+          "kind": "affected_version",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2020-5135"
+        },
+        {
+          "claim": "A buffer overflow vulnerability in SonicOS allows a remote attacker to cause Denial of Service (DoS) and potentially execute arbitrary code by sending a malicious request to the firewall",
+          "kind": "exposure",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2020-5135"
+        },
+        {
+          "claim": "CVE-2020-5133 and CVE-2020-5135 allow unauthenticated/authenticated attacker to cause Denial of Service due to buffer overflow, which leads to a firewall crash",
+          "kind": "exposure",
+          "source_url": "https://www.sonicwall.com/support/product-notification/sonicwall-dos-xss-vulnerabilities/kA1VN0000000Qyd0AE"
+        },
+        {
+          "claim": "SonicOS 6.5.4.7-83n; SonicOS 6.5.1.12-1n; SonicOS 6.0.5.3-94o; SonicOSv 6.5.4.v-21s-987",
+          "kind": "fixed_version",
+          "source_url": "https://psirt.global.sonicwall.com/vuln-detail/SNWLID-2020-0010"
+        },
+        {
+          "claim": "Any customer using an impacted firewall product will need to upgrade the firmware; download new version from MySonicWall.com",
+          "kind": "remediation",
+          "source_url": "https://www.sonicwall.com/support/product-notification/sonicwall-dos-xss-vulnerabilities/kA1VN0000000Qyd0AE"
+        },
+        {
+          "claim": "Confirm installed firmware matches a fixed version from the vendor advisory and product notification upgrade path table",
+          "kind": "verification",
+          "source_url": "https://www.sonicwall.com/support/product-notification/sonicwall-dos-xss-vulnerabilities/kA1VN0000000Qyd0AE"
+        }
+      ],
+      "exposure_conditions": [
+        "A remote attacker can send a malicious request to an affected SonicWall firewall.",
+        "Unauthenticated or authenticated network access to the firewall is sufficient to trigger the buffer overflow according to the vendor product notification grouping this CVE with related issues."
+      ],
+      "gaps": [],
+      "generated_at": "2026-10-07T17:01:29Z",
+      "model": "grok-4.6",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [
+        "Upgrade SonicOS firmware to a vendor-fixed release listed in the SonicWall PSIRT advisory.",
+        "Download the applicable firmware from MySonicWall.com; a valid support contract is not required.",
+        "Follow SonicWall firmware upgrade guidance referenced in the product notification."
+      ],
+      "retrieved_source_urls": [
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2020-5135@https:/psirt.global.sonicwall.com/vuln-detail/SNWLID-2020-0010@https:/www.securitylab.ru/news/521582.php@https:/nvd.nist.gov/vuln/detail/CVE-2020-5135@https:/www.cisa.gov/sites/default/files/csv/known_exploited_vulnerabilities.csv",
+        "https://avd.aquasec.com/nvd/2020/cve-2020-5135/",
+        "https://nvd.nist.gov/vuln/detail/CVE-2020-5135",
+        "https://www.cve.org/CVERecord?id=CVE-2020-5135",
+        "https://www.cvedetails.com/cve/CVE-2020-5135/",
+        "https://cve.report/CVE-2020-5135",
+        "https://cvetodo.com/cve/CVE-2020-5135",
+        "https://www.helpnetsecurity.com/2020/10/16/cve-2020-5135/",
+        "https://cvefeed.io/vuln/detail/CVE-2020-5135",
+        "https://cve.yack.one/cve/CVE-2020-5135",
+        "https://www.sentinelone.com/vulnerability-database/cve-2020-5135/",
+        "https://github.com/advisories/GHSA-vw5m-894x-7rp4",
+        "https://socradar.io/free-tools/cve-radar/CVE-2020-5135",
+        "https://www.incibe.es/incibe-cert/alerta-temprana/vulnerabilidades/cve-2020-5135",
+        "https://turingpoint.de/en/cve/CVE-2020-5135/",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-5135",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2018-5135",
+        "https://nvd.nist.gov/vuln/detail/cve-2023-5135",
+        "https://psirt.global.sonicwall.com/vuln-detail/SNWLID-2020-0010",
+        "https://www.sonicwall.com/support/product-notification/sonicwall-dos-xss-vulnerabilities/kA1VN0000000Qyd0AE",
+        "https://www.sonicwall.com/ja-jp/support/product-notification/sonicwall-dos%E3%81%8A%E3%82%88%E3%81%B3xss%E8%84%86%E5%BC%B1%E6%80%A7%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6/kA1VN0000000R8K0AU",
+        "https://psirt.global.sonicwall.com/vuln-detail/SNWLID-2020-0004",
+        "https://www.cert.ssi.gouv.fr/avis/CERTFR-2020-AVI-651"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "8c4cf130fc15ca34de070a17faa389a72af36ba6bcd41e2b5d097a11e9037600",
+      "source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2020-5135",
+        "https://psirt.global.sonicwall.com/vuln-detail/SNWLID-2020-0010",
+        "https://www.sonicwall.com/support/product-notification/sonicwall-dos-xss-vulnerabilities/kA1VN0000000Qyd0AE",
+        "https://www.cve.org/CVERecord?id=CVE-2020-5135"
+      ],
+      "status": "complete",
+      "uncertainty": [
+        "NVD/CVE description and CPE data list SonicOS 6.5.4.7, 6.5.1.12, 6.0.5.3, SonicOSv 6.5.4.v and Gen 7 7.0.0.0 as affected, while the vendor advisory (updated 2020-10-20) lists 6.5.4.6-79n and earlier (typo correction from 6.5.4.7-79n), 6.5.1.11-4n and earlier, 6.0.5.3-93o and earlier, SonicOSv 6.5.4.4-44v-21-794 and earlier, and states Gen 7 was removed because all released Gen 7 versions were already patched.",
+        "The PSIRT advisory indicates a workaround exists but does not describe it in available text.",
+        "Vendor summaries do not specify the exact service, port, or request type beyond a malicious request to the firewall."
+      ],
+      "verification_steps": [
+        "Compare the firmware version currently installed on the SonicWall appliance against the fixed versions published in the SonicWall PSIRT advisory SNWLID-2020-0010 and the associated product notification."
+      ]
+    },
     "CVE-2020-5847": {
       "business_risk": "Critical. CVE-2020-5847 enables remote code execution in Unraid, with potential for complete confidentiality, integrity, and availability loss. CISA lists it in the Known Exploited Vulnerabilities Catalog and describes execution as root; exploitation may be chained with CVE-2020-5849 for initial access.",
       "claim_evidence": [
@@ -8248,92 +8427,59 @@
       "verification_steps": []
     },
     "CVE-2020-6287": {
-      "business_risk": "Critical, unauthenticated remote compromise risk. An attacker without prior authentication may execute LM Configuration Wizard configuration tasks, including creation of an administrative user, potentially compromising confidentiality, integrity, and availability. CVE-2020-6287 is listed in CISA's Known Exploited Vulnerabilities catalog.",
-      "claim_evidence": [
-        {
-          "claim": "SAP NetWeaver AS JAVA LM Configuration Wizard versions 7.30, 7.31, 7.40, and 7.50 are identified as affected.",
-          "kind": "affected_product",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2020-6287"
-        },
-        {
-          "claim": "The affected environment includes all support packages of Java stacks in SAP NetWeaver 7.30, 7.31, 7.40, and 7.50 systems, including AS Java or AS ABAP plus Java systems.",
-          "kind": "affected_version",
-          "source_url": "https://userapps.support.sap.com/sap/support/knowledge/en/2948106"
-        },
-        {
-          "claim": "The vulnerability permits an attacker without prior authentication to execute configuration tasks against the SAP Java system and may allow creation of an administrative user.",
-          "kind": "exposure",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2020-6287"
-        },
-        {
-          "claim": "SAP Security Note 2934135 contains information about fixes for the critical LM Configuration Wizard vulnerabilities.",
-          "kind": "remediation",
-          "source_url": "https://help.sap.com/docs/SAP_LANDSCAPE_MANAGEMENT_ENTERPRISE/c337eb50b9084db6a5207afda95efc19/b8c69d5254a43258e10000000a423f68.html?version=3.0.27.0"
-        },
-        {
-          "claim": "SAP's KBA specifically provides guidance for verifying whether the vulnerability is mitigated after patching or applying the documented application-alias workaround.",
-          "kind": "verification",
-          "source_url": "https://userapps.support.sap.com/sap/support/knowledge/en/2948106"
-        }
-      ],
-      "exposure_conditions": [
-        "SAP NetWeaver AS Java systems using the LM Configuration Wizard on releases 7.30, 7.31, 7.40, or 7.50 are affected unless the relevant LM Configuration Wizard support-package and patch level has been applied.",
-        "The vulnerability is remotely reachable over the network and does not require prior authentication.",
-        "The affected component may also exist in AS ABAP plus Java deployments; AS Java and database platforms are both identified in the SAP KBA environment details."
-      ],
+      "business_risk": "No additional source-verified CVE-specific business impact was established.",
+      "claim_evidence": [],
+      "exposure_conditions": [],
       "gaps": [],
-      "generated_at": "2026-07-29T00:10:46Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-10-07T17:06:48Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
-      "remediation_steps": [
-        "Apply SAP Security Note 2934135 for CVE-2020-6287 and deploy the applicable LM Configuration Wizard correction for the installed NetWeaver branch.",
-        "Use the SAP patch-level matrix in Security Note 2934135 to select the correction matching the installed support package and patch level; do not assume that upgrading only the overall NetWeaver release is sufficient.",
-        "Where patching cannot be completed immediately, review SAP Note 2939665 for the documented application-alias workaround. Treat this as temporary risk reduction rather than a substitute for the vendor correction.",
-        "Prioritize remediation because the vulnerability is included in CISA's Known Exploited Vulnerabilities catalog."
-      ],
+      "remediation_steps": [],
       "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/cve-2020-6287",
         "https://nvd.nist.gov/vuln/detail/CVE-2020-6287",
-        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
-        "https://nvd.nist.gov/vuln/detail/CVE-2020-6987",
-        "https://www.cisa.gov/sites/default/files/publications/AA21-209A_Joint_CSA%20Top%20Routinely%20Exploited%20Vulnerabilities.pdf",
-        "https://userapps.support.sap.com/sap/support/knowledge/en/2948106",
-        "https://www.cisa.gov/sites/default/files/2024-05/Secure_by_Design_Alert_Eliminating_Directory_Traversal_Vulnerabilities_in_Software_508c%20%283%29.pdf",
-        "https://nvd.nist.gov/vuln/detail/CVE-2020-0587",
-        "https://nvd.nist.gov/vuln/detail/CVE-2020-1587",
-        "https://www.cisa.gov/sites/default/files/publications/AA20-133A_Top_10_Routinely_Exploited_Vulnerabilities_S508C.pdf",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?_cldee=jpUNG-sft0Lr74jsazzEoZ17jTSFEy6lQDvCJArCUYT0C1B4SWuT29F0dx7GSSfN&esid=f8736f67-efb4-ec11-983e-000d3a5a7186&f%5B0%5D=vendor_project%3A813&f%5B1%5D=vendor_project%3A829&f%5B2%5D=vendor_project%3A849&f%5B3%5D=vendor_project%3A911&f%5B4%5D=vendor_project%3A1320&page=1&recipientid=contact-41de9e007aace811a963000d3a363879-a794569726594743b07ecd7aaff0e97c",
-        "https://community.sap.com/t5/technology-blog-posts-by-members/solving-for-the-recon-vulnerability/ba-p/13459595",
-        "https://help.sap.com/docs/SAP_NETWEAVER_750/2f8b1599655d4544a3d9c6d1a9b6546b/c4775a42bc993654e10000000a155106.html",
-        "https://community.sap.com/t5/technology-q-a/sap-recon-vulnerability-validation-method-issue/qaq-p/12257554",
-        "https://community.sap.com/t5/financial-management-blog-posts-by-members/vulnerability-that-exposes-sap-java-stack/ba-p/13483180",
-        "https://support.sap.com/ja/my-support/knowledge-base/ja-note-translation-and-hotnews-info.html?sap-outbound-id=6C356EC94BB33B02D255E487C9DA024BC13B9816&smc_campaign_id=0000022669&source=email-smc",
-        "https://www.cisa.gov/news-events/bulletins/sb21-256",
-        "https://cert.europa.eu/publications/security-advisories/2020-034/",
+        "https://nvd.nist.gov/vuln/detail/CVE-2020-6286",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2020-6387",
+        "https://nvd.nist.gov/nvd.cfm?cvename=CVE-2020-8287",
+        "https://www.cisa.gov/news-events/cybersecurity-advisories/aa20-195a",
         "https://www.cve.org/CVERecord?id=CVE-2020-6287",
-        "https://help.sap.com/doc/9ffa4452c96640d4bae446f57aca199d/3.0.26.0/en-US/loio7437babdb98143169b067be847af8049_STD.pdf",
-        "https://cert.europa.eu/publications/security-advisories/2020-034/pdf",
-        "https://s3.us-east-1.amazonaws.com/asugv5-assets/archive/events/Slides-Whats-New-from-SAP-Security-Patch-December-2020.pdf",
-        "https://help.sap.com/docs/SAP_LANDSCAPE_MANAGEMENT_ENTERPRISE/c337eb50b9084db6a5207afda95efc19/b8c69d5254a43258e10000000a423f68.html?version=3.0.27.0"
+        "https://www.cyber.gov.au/about-us/advisories/2020-011-critical-vulnerability-sap-netweaver-application-server-cve-2020-6287",
+        "https://redrays.io/blog/cve-2020-6287-multiple-vulnerabilities-in-sap-netweaver-as-java-lm-configuration-wizard-sap-security-note-2934135/",
+        "https://seclists.org/fulldisclosure/2021/Apr/6",
+        "https://socradar.io/free-tools/cve-radar/CVE-2020-6287",
+        "https://www.cvedetails.com/cve/CVE-2020-6287/",
+        "https://turingpoint.de/en/cve/CVE-2020-6287/",
+        "https://vulnerability.circl.lu/vuln/cve-2020-6287?page=1",
+        "https://userapps.support.sap.com/sap/support/knowledge/en/2948106",
+        "https://userapps.support.sap.com/sap/support/knowledge/en/2953257",
+        "https://userapps.support.sap.com/sap/support/knowledge/en/2957979",
+        "https://userapps.support.sap.com/sap/support/knowledge/en/2081522",
+        "https://support.sap.com/content/dam/support/en_us/library/ssp/my-support/knowledge-base/security-notes-news/2021%20Patch%20Day%20Bulletin.pdf",
+        "https://userapps.support.sap.com/sap/support/knowledge/en/3601509",
+        "https://support.sap.com/en/my-support/knowledge-base/security-notes-news/november-2025.html",
+        "https://userapps.support.sap.com/sap/support/knowledge/en/3347323",
+        "https://userapps.support.sap.com/sap/support/knowledge/en/2077481",
+        "https://www.invicti.com/web-application-vulnerabilities/sap-netweaver-recon-cve-2020-6287"
       ],
       "schema_version": 2,
       "source_fingerprint": "dd44d87117601f47fd94ab990562823534a06277e5bd93885c90221b31b6ccf6",
       "source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2020-6287",
+        "https://nvd.nist.gov/vuln/detail/cve-2020-6287",
+        "https://www.cisa.gov/news-events/cybersecurity-advisories/aa20-195a",
+        "https://www.cve.org/CVERecord?id=CVE-2020-6287",
+        "https://www.cyber.gov.au/about-us/advisories/2020-011-critical-vulnerability-sap-netweaver-application-server-cve-2020-6287",
         "https://userapps.support.sap.com/sap/support/knowledge/en/2948106",
-        "https://help.sap.com/docs/SAP_LANDSCAPE_MANAGEMENT_ENTERPRISE/c337eb50b9084db6a5207afda95efc19/b8c69d5254a43258e10000000a423f68.html?version=3.0.27.0"
+        "https://userapps.support.sap.com/sap/support/knowledge/en/2953257"
       ],
-      "status": "complete",
+      "status": "insufficient_evidence",
       "uncertainty": [
-        "SAP Security Note 2934135 requires SAP Support access and its complete current correction matrix was not directly available in the public page content.",
-        "The fixed-level examples are taken from a vendor security-notes webinar copy hosted by ASUG; confirm the current SAP Note before implementation because SAP may revise patch-level guidance.",
-        "No safe external validation procedure or endpoint-specific test was established from the authoritative public sources; avoid active unauthenticated probing of production systems."
+        "No public authoritative source provides concrete fixed support-package or patch-level versions; those details reside in SAP Security Note 2934135 which requires SAP Support Portal access",
+        "NVD CPE entries list exact 7.30/7.31/7.40/7.50 while CISA and SAP CNA wording use 7.3 through 7.5 or “affected < 7.xx” strings",
+        "Detailed inert verification procedures appear only in login-walled SAP KBAs",
+        "Third-party reports of specific SPs cannot be used"
       ],
-      "verification_steps": [
-        "In SAP NetWeaver Administrator, inspect the installed LM Configuration Wizard component information and compare its support-package and patch level with the fixed-level matrix in SAP Security Note 2934135.",
-        "Confirm that the deployed level is at or above the applicable fixed level. Published examples include 7.30 SP21 patch 0, 7.31 SP28 patch 0, 7.40 SP23 patch 0, and 7.50 SP20 patch 0; the complete branch-specific matrix must be checked before approval.",
-        "Review the SAP KBA's documented post-remediation verification guidance and record the result without performing unauthenticated production testing."
-      ]
+      "verification_steps": []
     },
     "CVE-2020-7247": {
       "business_risk": "No additional source-verified CVE-specific business impact was established.",
