@@ -3,13 +3,14 @@ title: MCP Tool Risk Contract
 linkTitle: MCP Tool Risk
 weight: 7
 date: 2026-05-04
-lastmod: 2026-08-21
+lastmod: 2026-10-07
 sidebar:
   exclude: true
 description: >
   A generated MCP tool-risk contract that turns tool annotations,
-  connector trust, authorization conformance, workflow scope, and
-  session-combination risk into deterministic pre-call decisions.
+  connector trust, authorization conformance, workflow scope,
+  tools/list cacheScope, and session-combination risk into
+  deterministic pre-call decisions.
 breadcrumb_parent: /agentic-security/
 ---
 
@@ -25,7 +26,7 @@ MCP tools can now declare behavior with annotations such as
 `openWorldHint`. That is valuable, but the MCP specification is clear:
 clients must treat annotations as untrusted unless they come from a
 trusted server. The MCP Tool Risk Contract turns that reality into a
-reviewer-ready control surface. Rechecked August 23, 2026: MCP
+reviewer-ready control surface. Rechecked October 7, 2026: MCP
 [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28)
 is still current and **stateless**. There is no negotiation handshake.
 Each request carries protocol version and capabilities. Servers
@@ -36,7 +37,23 @@ host-session kill switches, not `Mcp-Session-Id`. Streamable HTTP
 revisions through
 [2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25)
 could assign that header; 2026-07-28 ignores it and does not mint
-session IDs.
+session IDs. Rechecked the same day against MCP
+[Caching](https://modelcontextprotocol.io/specification/2026-07-28/server/utilities/caching)
+and
+[Tools](https://modelcontextprotocol.io/specification/2026-07-28/server/tools):
+complete `tools/list` results **MUST** carry `ttlMs` and `cacheScope`.
+A `public` cache **MAY** be shared across callers and access tokens,
+including from an authenticated endpoint. A `private` cache **MUST
+NOT** be shared across authorization contexts. `cacheScope` **MUST
+NOT** replace per-primitive access control. Multi round-trip
+`input_required` results **MUST NOT** be cached. Servers **MUST**
+apply the same `cacheScope` to every page of a paginated list.
+`notifications/tools/list_changed` invalidates a still-fresh cache.
+This pack now denies insecure `tools/list` caches, kills private-cache
+reuse across authorization contexts, and holds complete lists that
+omit `cacheScope`. Unspecified cache evidence stays on the prior path.
+This change does not claim human review of the pack; `lastmod` and the
+source `last_reviewed` date record this editorial pass.
 
 The core policy is simple: before a tool call runs, decide whether the
 session has private data, untrusted content, and an external or
@@ -95,9 +112,59 @@ python3 scripts/evaluate_mcp_tool_risk_decision.py \
 | `allow_with_confirmation` | The call can proceed only with a durable human approval or confirmation record. |
 | `hold_for_tool_risk_review` | Evidence is missing, annotations are untrusted for the risk level, or the tool is sensitive. |
 | `deny_annotation_contradiction` | Runtime request contradicts the tool annotations, such as read-only metadata on a write call. |
+| `deny_insecure_tool_list_cache` | A cached `tools/list` is `public` while user-specific, used as access control, mixed across pages, or retained from an `input_required` result. |
 | `deny_session_exfiltration_path` | The session combines private data, untrusted content, and external or state-changing capability without approval. |
 | `deny_scope_drift` | Namespace, connector, access mode, or workflow is outside the generated contract. |
-| `kill_session_on_tool_risk_signal` | A kill signal appeared: secret-bearing arguments/results, tool-list drift after approval, private-network destination, or approval bypass. |
+| `kill_session_on_tool_risk_signal` | A kill signal appeared: secret-bearing arguments/results, tool-list drift after approval, private `tools/list` cache reuse across authorization contexts, private-network destination, or approval bypass. |
+
+Evaluate a public cache of an identical complete `tools/list`:
+
+```bash
+python3 scripts/evaluate_mcp_tool_risk_decision.py \
+  --workflow-id vulnerable-dependency-remediation \
+  --namespace repo.contents \
+  --tool-name repo.contents.patch \
+  --requested-access-mode write_branch \
+  --agent-id sr-agent::vulnerable-dependency-remediation::codex \
+  --run-id run-ci \
+  --session-id session-ci \
+  --correlation-id corr-ci \
+  --server-trusted \
+  --read-only-hint false \
+  --destructive-hint false \
+  --idempotent-hint false \
+  --open-world-hint true \
+  --human-approval-id approval-ci \
+  --tools-list-cached \
+  --tools-list-result-type complete \
+  --tools-list-cache-scope public \
+  --expect-decision allow_with_confirmation
+```
+
+Deny a public cache of a user-specific `tools/list`:
+
+```bash
+python3 scripts/evaluate_mcp_tool_risk_decision.py \
+  --workflow-id vulnerable-dependency-remediation \
+  --namespace repo.contents \
+  --tool-name repo.contents.patch \
+  --requested-access-mode write_branch \
+  --agent-id sr-agent::vulnerable-dependency-remediation::codex \
+  --run-id run-ci \
+  --session-id session-ci \
+  --correlation-id corr-ci \
+  --server-trusted \
+  --read-only-hint false \
+  --destructive-hint false \
+  --idempotent-hint false \
+  --open-world-hint true \
+  --human-approval-id approval-ci \
+  --tools-list-cached \
+  --tools-list-result-type complete \
+  --tools-list-cache-scope public \
+  --tools-list-user-specific \
+  --expect-decision deny_insecure_tool_list_cache
+```
 
 ## What gets scored
 
@@ -116,11 +183,14 @@ profile for every MCP namespace with:
 The pack is intentionally conservative. Open-world tools taint the
 session; untrusted annotations never reduce friction for sensitive
 tools; write and non-idempotent calls need approval; tool-list changes
-after approval are kill signals.
+after approval are kill signals; a `public` `tools/list` cache must not
+carry user-specific tools; a `private` cache must not cross
+authorization contexts.
 
 ## Source anchors
 
 - [MCP Tools specification](https://modelcontextprotocol.io/specification/2026-07-28/server/tools)
+- [MCP Caching specification](https://modelcontextprotocol.io/specification/2026-07-28/server/utilities/caching)
 - [MCP Tool Annotations as Risk Vocabulary](https://blog.modelcontextprotocol.io/posts/2026-03-16-tool-annotations/)
 - [MCP Authorization specification](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
 - [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices)

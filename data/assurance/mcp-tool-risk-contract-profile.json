@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-08-21",
+  "last_reviewed": "2026-10-07",
   "intent": "Define a SecurityRecipes MCP tool-risk contract that turns MCP tool annotations, connector trust, authorization conformance, workflow scope, and runtime session context into deterministic allow, hold, deny, or kill decisions before an agent invokes a tool.",
   "positioning": {
     "buyer": "AI Platform, Product Security, MCP platform, AppSec, IAM, observability, procurement security, and enterprise architecture teams",
@@ -14,6 +14,12 @@
       "name": "Model Context Protocol Tools specification (2026-07-28 current revision)",
       "url": "https://modelcontextprotocol.io/specification/2026-07-28/server/tools",
       "coverage": "Current public MCP 2026-07-28 revision. Tool discovery, invocation, input and output schemas, human confirmation expectations, tool result validation, logging, and the requirement that clients treat annotations as untrusted unless they come from trusted servers."
+    },
+    {
+      "id": "mcp-caching-2026-07-28",
+      "name": "Model Context Protocol Caching specification (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/server/utilities/caching",
+      "coverage": "Current public MCP 2026-07-28 revision. Complete tools/list results MUST carry ttlMs and cacheScope. public caches MAY be shared across callers and access tokens. private caches MUST NOT be shared across authorization contexts. cacheScope MUST NOT replace per-primitive access control. input_required results MUST NOT be cached."
     },
     {
       "id": "mcp-tools-2025-11-25",
@@ -135,6 +141,7 @@
       "allow_with_confirmation",
       "hold_for_tool_risk_review",
       "deny_annotation_contradiction",
+      "deny_insecure_tool_list_cache",
       "deny_session_exfiltration_path",
       "deny_scope_drift",
       "kill_session_on_tool_risk_signal"
@@ -172,6 +179,31 @@
         "id": "untrusted_annotation_for_sensitive_tool",
         "condition": "trusted_server=false and tool reads private data, changes state, or can exfiltrate",
         "decision": "hold_for_tool_risk_review"
+      },
+      {
+        "id": "public_user_specific_tools_list_cache",
+        "condition": "cached tools/list is cacheScope=public while the list is user-specific",
+        "decision": "deny_insecure_tool_list_cache"
+      },
+      {
+        "id": "tools_list_cache_used_as_access_control",
+        "condition": "cacheScope is treated as the access-control lock for tools/list primitives",
+        "decision": "deny_insecure_tool_list_cache"
+      },
+      {
+        "id": "tools_list_cache_mixed_page_scope",
+        "condition": "paginated tools/list pages do not share the same cacheScope",
+        "decision": "deny_insecure_tool_list_cache"
+      },
+      {
+        "id": "cached_input_required_tools_list",
+        "condition": "a tools/list resultType=input_required result is retained in cache",
+        "decision": "deny_insecure_tool_list_cache"
+      },
+      {
+        "id": "cached_complete_tools_list_missing_cache_scope",
+        "condition": "a cached complete tools/list omits cacheScope",
+        "decision": "hold_for_tool_risk_review"
       }
     ],
     "kill_signal_markers": [
@@ -181,7 +213,8 @@
       "tool_list_changed_after_approval",
       "unapproved_external_destination",
       "private_network_or_metadata_ip_destination",
-      "approval_bypass_attempt"
+      "approval_bypass_attempt",
+      "private_tools_list_cache_reused_across_authorization"
     ]
   },
   "risk_tiers": [
@@ -270,6 +303,12 @@
       "severity": "medium",
       "evidence_key": "notifications/tools/list_changed",
       "control_reason": "Tool list changes after approval can invalidate a previous trust decision and should force a re-review or session reset."
+    },
+    {
+      "id": "tools_list_cache_scope",
+      "severity": "high",
+      "evidence_key": "cacheScope",
+      "control_reason": "Complete tools/list results must carry cacheScope. A public cache must not contain user-specific tools, a private cache must not be reused across authorization contexts, cacheScope must not replace per-primitive access control, and input_required results must not be cached."
     }
   ],
   "enterprise_adoption_packet": {
