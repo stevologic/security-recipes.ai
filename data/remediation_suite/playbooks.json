@@ -1532,7 +1532,7 @@
       "title": "Agentic Entitlement Review Pack",
       "page": "/security-remediation/agentic-entitlement-review/",
       "category": "agent-runtime",
-      "summary": "Review leased non-human permissions against actual workflow use and renew, restrict, or revoke them before reuse.",
+      "summary": "Review leased non-human permissions against actual workflow use, reject omnibus MCP token scopes, and renew, restrict, or revoke them before reuse.",
       "phases": [
         {
           "label": "Signal",
@@ -1547,7 +1547,7 @@
         {
           "label": "Decision",
           "title": "Assess least privilege",
-          "detail": "Check owner, purpose, separation of duties, expiry, resource bounds, high-impact authority, and control coverage."
+          "detail": "Check owner, purpose, separation of duties, expiry, resource bounds, omnibus token scopes (files:*, db:*, admin:*), full-catalog initial grants, high-impact authority, and control coverage."
         },
         {
           "label": "Action",
@@ -1589,6 +1589,7 @@
         "agent entitlement review",
         "non-human identity",
         "least privilege lease",
+        "MCP scope minimization",
         "permission revocation"
       ]
     },
