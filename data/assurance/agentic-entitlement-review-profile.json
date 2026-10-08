@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-08-21",
+  "last_reviewed": "2026-10-08",
   "intent": "Define the SecurityRecipes agentic entitlement review pack: a machine-readable access-review and permission-lease layer that proves every non-human agent identity, MCP namespace, access mode, A2A handoff, and high-impact action has an owner, expiry, review cadence, step-up authorization expectation, and deterministic revocation decision before enterprise agents scale.",
   "positioning": {
     "buyer": "AI Platform, IAM, Security Engineering, Product Security, GRC, SOC, procurement security, model-risk, and acquisition diligence teams",
@@ -20,6 +20,12 @@
       "name": "Model Context Protocol Authorization Specification (2026-07-28 current revision)",
       "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization",
       "coverage": "Current public MCP 2026-07-28 revision. Applies protected resource metadata, OAuth 2.1, resource indicators, token audience binding, PKCE, scope challenges, and token-passthrough denial to each MCP entitlement."
+    },
+    {
+      "id": "mcp-security-best-practices-2026-07-28",
+      "name": "Model Context Protocol Security Best Practices (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices",
+      "coverage": "Current MCP 2026-07-28 Scope Minimization guidance. A server that publishes every scope in scopes_supported and a client that requests them all mints an omnibus token. Stolen files:*, db:*, admin:*, *, all, or full-access grants enable lateral access and privilege chaining. Servers should emit targeted WWW-Authenticate scope challenges and tolerate down-scoped grants."
     },
     {
       "id": "mcp-authorization-2025-11-25",
@@ -87,7 +93,7 @@
     "decisions": [
       {
         "decision": "allow_active_entitlement",
-        "meaning": "The requested namespace and access mode are registered, the lease is active and unexpired, review is current, linked authorization allows the request, and no kill signal is present."
+        "meaning": "The requested namespace and access mode are registered, the lease is active and unexpired, review is current, linked authorization allows the request, token scopes are not omnibus, and no kill signal is present."
       },
       {
         "decision": "hold_for_access_review",
@@ -95,7 +101,7 @@
       },
       {
         "decision": "hold_for_step_up_authorization",
-        "meaning": "The entitlement exists, but the requested access needs fresh MCP authorization, scope challenge handling, human approval, or elevated policy evidence."
+        "meaning": "The entitlement exists, but the requested access needs fresh MCP authorization, a targeted WWW-Authenticate scope challenge after a full-catalog initial grant, human approval, or elevated policy evidence."
       },
       {
         "decision": "deny_unregistered_entitlement",
@@ -107,7 +113,7 @@
       },
       {
         "decision": "kill_session_on_entitlement_signal",
-        "meaning": "A revocation, token passthrough, secret exposure, identity-after-revocation, cross-tenant scope, or repeated denied action requires immediate session shutdown."
+        "meaning": "A revocation, token passthrough, secret exposure, omnibus token scope, identity-after-revocation, cross-tenant scope, or repeated denied action requires immediate session shutdown."
       }
     ]
   },
@@ -222,6 +228,7 @@
       "high-control identity",
       "A2A handoff to remote agent",
       "scope expansion",
+      "full-catalog initial grant without a down-scoped grant",
       "production-affecting action",
       "secret or regulated-data boundary"
     ],
@@ -231,6 +238,7 @@
       "raw_token_passthrough",
       "secret_in_entitlement_payload",
       "scope_escalation_attempt",
+      "omnibus_token_scope",
       "cross_tenant_entitlement",
       "repeated_denied_entitlement"
     ]

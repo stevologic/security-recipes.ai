@@ -98,6 +98,11 @@ def validate_profile(profile: dict[str, Any]) -> list[str]:
 
     standards = as_list(profile.get("standards_alignment"), "standards_alignment")
     require(len(standards) >= 6, failures, "standards_alignment must include OWASP, MCP, A2A, Microsoft, OpenAI, and NIST references")
+    require(
+        any("security_best_practices" in str(item.get("url", "")).lower() for item in standards if isinstance(item, dict)),
+        failures,
+        "standards_alignment must include MCP security best practices for Scope Minimization",
+    )
     seen_standards: set[str] = set()
     for idx, standard in enumerate(standards):
         item = as_dict(standard, f"standards_alignment[{idx}]")
@@ -421,6 +426,10 @@ def build_pack(
             {
                 "risk": "Human access reviews can miss model, connector, and context drift.",
                 "treatment": "Trigger entitlement review after model upgrades, connector drift, Agent Card changes, incident replay, new action classes, or standards-crosswalk changes."
+            },
+            {
+                "risk": "A production-looking lease can still carry an omnibus token because the MCP server listed every scope in scopes_supported and the client requested them all.",
+                "treatment": "Kill files:*, db:*, admin:*, *, all, and full-access token scopes. Hold a full-catalog initial grant that was not down-scoped until a targeted WWW-Authenticate challenge is recorded."
             }
         ],
         "review_contract": profile.get("review_contract", {}),
