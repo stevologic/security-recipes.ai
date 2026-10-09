@@ -3165,7 +3165,7 @@
         {
           "label": "Signal",
           "title": "Identify required signals",
-          "detail": "Select identity, context, policy, approval, tool, action, handoff, memory, egress, session, review, and outcome events."
+          "detail": "Select identity, context, policy, approval, tool, action, handoff, memory, egress, request identity, review, and outcome events. For MCP 2026-07-28, request identity is jsonrpc.request.id, mcp.method.name, and mcp.protocol.version rather than a protocol session id."
         },
         {
           "label": "Scope",
@@ -3175,7 +3175,7 @@
         {
           "label": "Decision",
           "title": "Apply data minimization",
-          "detail": "Remove raw prompts, secrets, source code, customer content, and unnecessary arguments; define redaction and retention."
+          "detail": "Remove raw prompts, secrets, source code, customer content, and unnecessary arguments; define redaction and retention. Do not mint mcp.session.id for MCP 2026-07-28 spans. Treat a present session id as host-session correlation, not authentication, and hold a present traceparent that is not valid W3C Trace Context."
         },
         {
           "label": "Action",

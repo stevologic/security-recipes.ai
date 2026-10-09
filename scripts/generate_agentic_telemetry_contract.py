@@ -357,6 +357,10 @@ def build_pack(
             {
                 "risk": "OpenTelemetry GenAI and MCP conventions are still evolving.",
                 "treatment": "Version the contract and re-run compatibility checks after semantic-convention or MCP specification changes."
+            },
+            {
+                "risk": "Collectors that still require mcp.session.id after MCP 2026-07-28 will mint fake session identifiers or hold current-spec traces as incomplete.",
+                "treatment": "Require jsonrpc.request.id, mcp.method.name, and mcp.protocol.version for 2026-07-28 spans. Keep mcp.session.id required only for 2025-11-25 and earlier stored receipts. Treat a present session id as host-session correlation, not authentication. Hold a present traceparent that is not valid W3C Trace Context."
             }
         ],
         "schema_version": PACK_SCHEMA_VERSION,
