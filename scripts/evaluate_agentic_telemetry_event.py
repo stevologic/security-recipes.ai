@@ -1,10 +1,21 @@
 #!/usr/bin/env python3
-"""Evaluate one agentic telemetry event against the generated contract."""
+"""Evaluate one agentic telemetry event against the generated contract.
+
+MCP 2026-07-28 removed protocol-level sessions and Mcp-Session-Id.
+OpenTelemetry recommends mcp.session.id only when a request is part of
+a session. This evaluator allows 2026-07-28 tool spans that carry
+jsonrpc.request.id, mcp.method.name, and mcp.protocol.version without
+mcp.session.id. Legacy 2025-11-25 traces still require a session id so
+stored receipts stay evaluable. A present traceparent must be valid
+W3C Trace Context. Unspecified protocol-version evidence stays on the
+prior required-session path.
+"""
 
 from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from pathlib import Path
 from typing import Any
@@ -16,6 +27,12 @@ HOLD_TRACE_DECISION = "hold_for_trace_completion"
 HOLD_WORKFLOW_DECISION = "hold_for_unregistered_workflow"
 DENY_RAW_DECISION = "deny_raw_sensitive_telemetry"
 KILL_SECRET_DECISION = "kill_session_on_secret_telemetry"
+CURRENT_MCP_PROTOCOL_VERSION = "2026-07-28"
+SESSION_ID_ATTRIBUTE = "mcp.session.id"
+TRACEPARENT_ATTRIBUTE = "traceparent"
+W3C_TRACEPARENT_RE = re.compile(
+    r"^([0-9a-f]{2})-([0-9a-f]{32})-([0-9a-f]{16})-([0-9a-f]{2})$"
+)
 
 
 class TelemetryEvaluationError(RuntimeError):
@@ -72,10 +89,28 @@ def event_class_to_signal_id(pack: dict[str, Any], event_class: str) -> str | No
     return None
 
 
+def protocol_version_requires_session_id(protocol_version: str) -> bool:
+    """Return True when mcp.session.id stays on the prior required path."""
+    return str(protocol_version or "").strip() != CURRENT_MCP_PROTOCOL_VERSION
+
+
+def is_valid_w3c_traceparent(value: str) -> bool:
+    match = W3C_TRACEPARENT_RE.fullmatch(str(value or "").strip())
+    if not match:
+        return False
+    version, trace_id, parent_id, _flags = match.groups()
+    if version == "ff":
+        return False
+    if set(trace_id) == {"0"} or set(parent_id) == {"0"}:
+        return False
+    return True
+
+
 def required_attributes_for_event(
     pack: dict[str, Any],
     workflow_contract: dict[str, Any],
     event_class: str,
+    attributes: dict[str, str] | None = None,
 ) -> list[str]:
     signal_id = event_class_to_signal_id(pack, event_class)
     signal = signal_class_by_id(pack).get(signal_id or "", {})
@@ -104,6 +139,9 @@ def required_attributes_for_event(
     ]
     signal_required = [str(item) for item in signal.get("required_attributes", [])]
     required = sorted({*base, *workflow_required, *signal_required})
+    attrs = attributes or {}
+    if not protocol_version_requires_session_id(attrs.get("mcp.protocol.version", "")):
+        required = [item for item in required if item != SESSION_ID_ATTRIBUTE]
     return required
 
 
@@ -163,7 +201,7 @@ def evaluate_agentic_telemetry_event(pack: dict[str, Any], runtime_event: dict[s
             "workflow_id": workflow_id,
         }
 
-    required = required_attributes_for_event(pack, workflow_contract, event_class)
+    required = required_attributes_for_event(pack, workflow_contract, event_class, attributes)
     missing = [attr for attr in required if attr not in attributes or attributes.get(attr) == ""]
     if not signal_id:
         missing.append("registered_event_class")
@@ -178,10 +216,37 @@ def evaluate_agentic_telemetry_event(pack: dict[str, Any], runtime_event: dict[s
             "workflow_id": workflow_id,
         }
 
+    if TRACEPARENT_ATTRIBUTE in attributes and not is_valid_w3c_traceparent(
+        attributes.get(TRACEPARENT_ATTRIBUTE, "")
+    ):
+        return {
+            "decision": HOLD_TRACE_DECISION,
+            "missing_attributes": [],
+            "notes": [
+                "Present traceparent is not a valid W3C Trace Context header; hold for trace completion."
+            ],
+            "prohibited_fields": [],
+            "signal_class_id": signal_id,
+            "workflow_id": workflow_id,
+        }
+
+    notes = ["Telemetry event satisfies the generated trace contract and redaction baseline."]
+    protocol_version = attributes.get("mcp.protocol.version", "")
+    if not protocol_version_requires_session_id(protocol_version):
+        if SESSION_ID_ATTRIBUTE in attributes:
+            notes.append(
+                "mcp.session.id is host-session correlation, not authentication, on MCP 2026-07-28."
+            )
+        else:
+            notes.append(
+                "MCP 2026-07-28 request identity uses jsonrpc.request.id, mcp.method.name, "
+                "and mcp.protocol.version; mcp.session.id is not required."
+            )
+
     return {
         "decision": READY_DECISION,
         "missing_attributes": [],
-        "notes": ["Telemetry event satisfies the generated trace contract and redaction baseline."],
+        "notes": notes,
         "prohibited_fields": [],
         "signal_class_id": signal_id,
         "workflow_id": workflow_id,
