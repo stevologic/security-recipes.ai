@@ -13,6 +13,12 @@
       "severity": "critical"
     },
     {
+      "control_reason": "MCP 2026-07-28 x-mcp-header annotations mirror arguments into Mcp-Param-* headers. Streamable HTTP clients MUST exclude invalid tools from tools/list. Added or renamed headers after approval, and sensitive parameters mirrored to intermediaries, are kill-session events.",
+      "evidence_key": "x-mcp-header",
+      "id": "xmcp_header_mirroring_gate",
+      "severity": "critical"
+    },
+    {
       "control_reason": "Output schemas bound what returns to the model; drift can introduce untrusted free text, hidden instructions, or unvalidated external content.",
       "evidence_key": "output_schema_sha256",
       "id": "output_schema_hash_pin",
@@ -73,7 +79,8 @@
       "annotation change claims read-only for a state-changing tool",
       "tool adds private-network, metadata-IP, webhook, public-post, or external-send destination",
       "tool returns raw secret material during drift review",
-      "tool appears after approval in a production or high-impact session"
+      "tool appears after approval in a production or high-impact session",
+      "schema adds or renames x-mcp-header mirroring after approval or marks a password, token, API key, or PII field as a header"
     ],
     "required_surface_fields": [
       "namespace",
@@ -97,7 +104,8 @@
       "data class expansion",
       "state-changing or destructive capability expansion",
       "server trust downgrade",
-      "tool-list notification without matching signed baseline"
+      "tool-list notification without matching signed baseline",
+      "x-mcp-header map change"
     ]
   },
   "enterprise_adoption_packet": {
@@ -113,13 +121,13 @@
     "sales_motion": "Lead with open drift fingerprints and the evaluator, then sell hosted live tool-list monitoring, signed baselines, fleet drift alerts, approval workflows, and tenant-specific MCP gateway enforcement."
   },
   "failures": [],
-  "generated_at": "2026-08-21",
+  "generated_at": "2026-10-10",
   "intent": "Fingerprint approved MCP tool descriptions, schemas, annotations, and capability metadata so agent hosts and MCP gateways can detect post-approval tool-surface drift before a changed tool is allowed to influence an agent run.",
   "positioning": {
     "buyer": "AI Platform, Product Security, IAM, GRC, enterprise architecture, and MCP gateway teams",
     "category": "MCP tool-surface drift sentinel",
     "enterprise_promise": "SecurityRecipes can turn MCP tool-list churn into an auditable allow, hold, deny, or kill decision before agents rely on changed tool descriptions, schemas, annotations, or capability boundaries.",
-    "why_now": "MCP adoption makes tool descriptions and schemas part of the prompt and policy boundary. Enterprises need continuous drift detection because a connector that was safe at intake can become unsafe after a server update, registry compromise, annotation change, or capability expansion."
+    "why_now": "MCP adoption makes tool descriptions and schemas part of the prompt and policy boundary. MCP 2026-07-28 x-mcp-header annotations can mirror arguments into Mcp-Param-* headers after intake, exposing values to intermediaries. Enterprises need continuous drift detection because a connector that was safe at intake can become unsafe after a server update, registry compromise, annotation change, header-mirroring change, or capability expansion."
   },
   "residual_risks": [
     {
@@ -133,6 +141,10 @@
     {
       "risk": "Annotations and schemas alone do not prove tool behavior.",
       "treatment": "Treat hashes as drift evidence, then require sandboxing, least privilege, output validation, and human approval for sensitive tools."
+    },
+    {
+      "risk": "A live tool can add x-mcp-header mirroring after approval, mark a secret as a header, or keep an invalid header token that Streamable HTTP clients MUST exclude from tools/list.",
+      "treatment": "Inspect live and baseline inputSchema for x-mcp-header maps. Kill added or renamed headers and sensitive parameter mirroring. Deny empty, non-token, duplicate, non-primitive, number, or non-statically-reachable headers."
     }
   ],
   "sample_runtime_decisions": [
@@ -183,6 +195,42 @@
       },
       "id": "candidate-browser-tool",
       "why": "Candidate connector surfaces can be fingerprinted, but they are not production-allowed by default."
+    },
+    {
+      "decision": "deny_tool_surface_regression",
+      "expected_runtime_request": {
+        "input_schema": {
+          "properties": {
+            "workflow_id": {
+              "type": "string",
+              "x-mcp-header": "Not Valid"
+            }
+          },
+          "type": "object"
+        },
+        "namespace": "repo.contents",
+        "tool_name": "repo.contents.patch_scoped_branch"
+      },
+      "id": "invalid-xmcp-header-token",
+      "why": "Streamable HTTP clients MUST exclude a tool whose x-mcp-header is not an HTTP field-name token."
+    },
+    {
+      "decision": "kill_session_on_tool_surface_signal",
+      "expected_runtime_request": {
+        "input_schema": {
+          "properties": {
+            "workflow_id": {
+              "type": "string",
+              "x-mcp-header": "Workflow"
+            }
+          },
+          "type": "object"
+        },
+        "namespace": "repo.contents",
+        "tool_name": "repo.contents.patch_scoped_branch"
+      },
+      "id": "header-added-after-approval",
+      "why": "Adding x-mcp-header mirroring after approval exposes arguments to intermediaries and is a kill-session event."
     }
   ],
   "schema_version": "1.0",
@@ -216,15 +264,21 @@
     },
     "mcp_tool_surface_drift_profile": {
       "path": "data/assurance/mcp-tool-surface-drift-profile.json",
-      "sha256": "1b8546901763d841b4ca01cc007bc556dba57489af12b0b4016c9368246b1522"
+      "sha256": "0de46702c49bd683dc09b173bcf126c61ac17cf86e4747a295f51da3fce77a4a"
     }
   },
   "standards_alignment": [
     {
-      "coverage": "Current public MCP 2026-07-28 revision. Tool names, descriptions, input schemas, structured outputs, annotations, and tool-list change notifications that should be pinned and diff-reviewed before production use.",
+      "coverage": "Current public MCP 2026-07-28 revision. Tool names, descriptions, input schemas, structured outputs, annotations, x-mcp-header parameter mirroring, and tool-list change notifications that should be pinned and diff-reviewed before production use.",
       "id": "mcp-tools-2026-07-28",
       "name": "Model Context Protocol Tools Specification (2026-07-28 current revision)",
       "url": "https://modelcontextprotocol.io/specification/2026-07-28/server/tools"
+    },
+    {
+      "coverage": "Current public MCP 2026-07-28 revision. Custom headers from tool parameters: x-mcp-header must be a unique HTTP field-name token on statically reachable primitive properties, clients MUST exclude invalid tools from tools/list, and header values are visible to intermediaries.",
+      "id": "mcp-streamable-http-2026-07-28",
+      "name": "MCP Streamable HTTP Transport (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/transports/streamable-http"
     },
     {
       "coverage": "Tool names, descriptions, input schemas, structured outputs, annotations, and tool-list change notifications that should be pinned and diff-reviewed before production use.",

@@ -3,7 +3,7 @@ title: MCP Tool Surface Drift Sentinel
 linkTitle: Tool Surface Drift
 weight: 8
 date: 2026-05-04
-lastmod: 2026-08-21
+lastmod: 2026-10-10
 sidebar:
   exclude: true
 description: >
@@ -17,8 +17,8 @@ breadcrumb_parent: /agentic-security/
 {{< callout type="info" >}}
 **What this adds.** SecurityRecipes now treats the MCP tool list as a
 runtime supply-chain surface. Tool descriptions, schemas, annotations,
-and capability flags are pinned, hashed, and review-gated before a
-changed tool can influence an agent run.
+`x-mcp-header` maps, and capability flags are pinned, hashed, and
+review-gated before a changed tool can influence an agent run.
 {{< /callout >}}
 
 Rechecked August 23, 2026: MCP
@@ -33,6 +33,20 @@ revisions through
 [2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25)
 could assign that header; 2026-07-28 ignores it and does not mint
 session IDs.
+
+Rechecked October 10, 2026 against the MCP
+[tools](https://modelcontextprotocol.io/specification/2026-07-28/server/tools)
+`x-mcp-header` rules and
+[Streamable HTTP custom headers](https://modelcontextprotocol.io/specification/2026-07-28/basic/transports/streamable-http).
+Tool `inputSchema` properties **MAY** include `x-mcp-header` so clients
+mirror arguments into `Mcp-Param-*` headers. Clients using Streamable
+HTTP **MUST** exclude a tool from `tools/list` when a header is empty,
+not an HTTP field-name token, duplicated case-insensitively, applied to
+a non-primitive or `number` type, or not statically reachable via
+`properties`. Servers **SHOULD NOT** mark passwords, tokens, API keys,
+or PII as headers because intermediaries can read them. Adding or
+renaming a header after approval is a kill-session event. This editorial
+pass does not claim a separate human review of the pack.
 
 ## The product bet
 
@@ -96,6 +110,19 @@ python3 scripts/evaluate_mcp_tool_surface_drift_decision.py \
   --expect-decision kill_session_on_tool_surface_signal
 ```
 
+Evaluate an invalid `x-mcp-header` token:
+
+```bash
+python3 scripts/evaluate_mcp_tool_surface_drift_decision.py \
+  --namespace repo.contents \
+  --tool-name repo.contents.patch_scoped_branch \
+  --workflow-id vulnerable-dependency-remediation \
+  --requested-access-mode write_branch \
+  --use-baseline-hashes \
+  --input-schema-json '{"type":"object","properties":{"workflow_id":{"type":"string","x-mcp-header":"Not Valid"}}}' \
+  --expect-decision deny_tool_surface_regression
+```
+
 ## Decision model
 
 | Decision | Meaning |
@@ -103,9 +130,9 @@ python3 scripts/evaluate_mcp_tool_surface_drift_decision.py \
 | `allow_pinned_tool_surface` | The live description, schemas, annotations, and surface hash match the pinned baseline. |
 | `allow_reviewed_tool_surface` | Drift exists, but it is tied to an explicit human review record. |
 | `hold_for_tool_surface_review` | A description, schema, annotation, tool-list, source-kind, or trust signal needs review. |
-| `deny_tool_surface_regression` | The live request drifts outside workflow, access-mode, or annotation boundaries. |
+| `deny_tool_surface_regression` | The live request drifts outside workflow, access-mode, annotation, or `x-mcp-header` boundaries. |
 | `deny_unregistered_tool_surface` | The namespace/tool pair is not in the generated baseline. |
-| `kill_session_on_tool_surface_signal` | A high-impact expansion or runtime signal appeared: secrets, private network, delete, publish, deploy, signer, token, approval bypass, or hidden instruction. |
+| `kill_session_on_tool_surface_signal` | A high-impact expansion or runtime signal appeared: secrets, private network, delete, publish, deploy, signer, token, approval bypass, hidden instruction, added or renamed `x-mcp-header` mirroring, or a sensitive parameter mirrored to intermediaries. |
 
 ## What gets pinned
 
@@ -117,6 +144,7 @@ Each baseline records:
 - access mode and risk tier
 - description hash
 - input schema hash
+- `x-mcp-header` maps inside `inputSchema`
 - output schema hash
 - annotation hash
 - aggregate surface hash
@@ -133,7 +161,10 @@ practice:
 
 - [MCP Tools](https://modelcontextprotocol.io/specification/2026-07-28/server/tools)
   defines tool descriptions, schemas, annotations, structured output,
-  and tool-list change notifications.
+  `x-mcp-header` parameter mirroring, and tool-list change notifications.
+- [MCP Streamable HTTP](https://modelcontextprotocol.io/specification/2026-07-28/basic/transports/streamable-http)
+  requires clients to exclude invalid `x-mcp-header` tools from
+  `tools/list` and warns that header values are visible to intermediaries.
 - [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices)
   emphasizes confused-deputy, token-passthrough, SSRF, session, local
   server, and scope controls.
