@@ -4010,22 +4010,22 @@
       "title": "MCP Tool Surface Drift Sentinel",
       "page": "/security-remediation/mcp-tool-surface-drift-sentinel/",
       "category": "mcp-governance",
-      "summary": "Compare a live MCP tool surface with its approved baseline and contain capability, schema, permission, or ownership expansion.",
+      "summary": "Compare a live MCP tool surface with its approved baseline and contain capability, schema, x-mcp-header, permission, or ownership expansion.",
       "phases": [
         {
           "label": "Signal",
           "title": "Load the approved baseline",
-          "detail": "Read server identity, version, endpoint/package hash, tools/resources/prompts, schemas, risk contracts, permissions, and owner."
+          "detail": "Read server identity, version, endpoint/package hash, tools/resources/prompts, schemas, x-mcp-header maps, risk contracts, permissions, and owner."
         },
         {
           "label": "Scope",
           "title": "Discover the live surface",
-          "detail": "Query or inspect current capabilities, schemas, descriptions, auth metadata, package/image, versions, and advertised extensions."
+          "detail": "Query or inspect current capabilities, schemas, x-mcp-header annotations, descriptions, auth metadata, package/image, versions, and advertised extensions."
         },
         {
           "label": "Decision",
           "title": "Compute semantic drift",
-          "detail": "Detect additions, removals, argument widening, required-field changes, side effects, permission expansion, auth changes, and ownership drift."
+          "detail": "Detect additions, removals, argument widening, required-field changes, x-mcp-header mirroring, side effects, permission expansion, auth changes, and ownership drift."
         },
         {
           "label": "Action",
@@ -4041,7 +4041,7 @@
       "gate": {
         "question": "Is live drift backward-compatible, non-expansive, owned, and explicitly permitted by the trust and tool contracts?",
         "pass": "Accept the new baseline after review and recertification.",
-        "stop": "Restrict or disable material unapproved capability, permission, auth, or ownership drift."
+        "stop": "Restrict or disable material unapproved capability, permission, auth, x-mcp-header, or ownership drift."
       },
       "evidence": [
         "baseline and live surface snapshots",
@@ -4054,7 +4054,7 @@
         "disablement record"
       ],
       "python": {
-        "scenario": "Detect MCP tool-surface drift",
+        "scenario": "Detect MCP tool-surface and x-mcp-header drift",
         "command": "python scripts/security_recipes_remediation_suite.py playbook start --playbook mcp-tool-surface-drift-sentinel --workspace . --finding finding.json --run-dir .security-recipes/runs/mcp-tool-surface-drift-sentinel"
       },
       "file_patterns": [
