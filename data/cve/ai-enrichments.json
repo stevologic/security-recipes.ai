@@ -1,91 +1,54 @@
 {
   "entries": {
     "CVE-2010-5330": {
-      "business_risk": "Critical remote command injection in affected Ubiquiti airOS devices. The NVD records a CVSS 3.1 score of 9.8 and identifies the issue as remotely reachable, requiring no privileges or user interaction, with potential impact to confidentiality, integrity, and availability. The CVE is also listed in CISA's Known Exploited Vulnerabilities Catalog.",
-      "claim_evidence": [
-        {
-          "claim": "NVD identifies certain Ubiquiti devices running airOS as affected and gives vulnerable airOS CPE ranges below 4.0.1, from 4.0.2 below 5.3.5, and from 5.3.6 below 5.4.5.",
-          "kind": "affected_product",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2010-5330"
-        },
-        {
-          "claim": "NVD lists the affected airOS version ranges as versions earlier than 4.0.1, 4.0.2 through versions earlier than 5.3.5, and 5.3.6 through versions earlier than 5.4.5.",
-          "kind": "affected_version",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2010-5330"
-        },
-        {
-          "claim": "NVD describes command injection through a GET request to stainfo.cgi because the ifname variable is not sanitized; the recorded CVSS vector is AV:N/AC:L/PR:N/UI:N.",
-          "kind": "exposure",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2010-5330"
-        },
-        {
-          "claim": "NVD states that the fixed versions are v4.0.1 for 802.11 ISP products, v5.3.5 for AirMax ISP products, and v5.4.5 for AirSync firmware.",
-          "kind": "fixed_version",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2010-5330"
-        },
-        {
-          "claim": "CISA's catalog action, as reproduced by NVD, is to apply updates according to vendor instructions.",
-          "kind": "remediation",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2010-5330"
-        },
-        {
-          "claim": "A version-based verification is supported by comparing the installed firmware against the fixed-version boundaries and affected CPE ranges documented by NVD.",
-          "kind": "verification",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2010-5330"
-        }
-      ],
-      "exposure_conditions": [
-        "The device runs an affected airOS version in one of the vulnerable version ranges identified by NVD.",
-        "The vulnerable web endpoint is reachable over the network by an attacker. NVD describes exploitation through a GET request to stainfo.cgi and assigns AV:N/PR:N.",
-        "The affected device is an applicable Ubiquiti product family, including the NVD-listed airOS configurations; exact model-to-firmware-branch mapping may require vendor confirmation."
-      ],
+      "business_risk": "No additional source-verified CVE-specific business impact was established.",
+      "claim_evidence": [],
+      "exposure_conditions": [],
       "gaps": [],
-      "generated_at": "2026-07-29T11:43:24Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-10-10T15:45:46Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
-      "remediation_steps": [
-        "Upgrade 802.11 ISP products to airOS v4.0.1 or later.",
-        "Upgrade AirMax ISP products to airOS v5.3.5 or later.",
-        "Upgrade AirSync firmware to v5.4.5 or later.",
-        "If the applicable device cannot be upgraded to a fixed release, remove it from untrusted network exposure and plan replacement or retirement; the cited sources do not establish a supported compensating-control configuration."
-      ],
+      "remediation_steps": [],
       "retrieved_source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2010-5330",
-        "https://www.cisa.gov/news-events/alerts/2022/02/10/cisa-adds-15-known-exploited-vulnerabilities-catalog",
-        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=70",
-        "https://nvd.nist.gov/vuln/detail/CVE-2015-5330",
-        "https://www.cisa.gov/sites/default/files/2024-05/Secure_by_Design_Alert_Eliminating_Directory_Traversal_Vulnerabilities_in_Software_508c%20%283%29.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/AA22-117A_Joint_CSA_2021_Top_Routinely_Exploited_Vulnerabilities_Final.pdf",
-        "https://nvd.nist.gov/vuln/detail/CVE-2020-5330",
-        "https://nvd.nist.gov/vuln/detail/cve-2013-5330",
-        "https://www.cisa.gov/sites/default/files/publications/web-metrics/CISA.gov-Mar-2025-Web-Metrics-508.pdf",
-        "https://www.cisa.gov/sites/default/files/2024-08/SECURING_THE_SOFTWARE_SUPPLY_CHAIN_RECOMMENDED_PRACTICES_FOR_SOFTWARE_BILL_OF_MATERIALS_CONSUMPTION-508.pdf",
-        "https://community.ui.com/questions/AirOS-Security-Exploit-Updated-Firmware/9645e2ad-9779-4760-9c4c-9225c4183e4c",
-        "https://community.ui.com/questions/AirOS-5-6-7-Nightmare-on-XM-Hardware/487ea2ee-472a-4ab1-a94a-1dfc2af8c320?page=2",
-        "https://nvd.nist.gov/vuln/detail/CVE-2010-3330",
-        "https://community.ui.com/releases/Important-Security-Notice-and-airOS-5-6-5-Release-5-6-5/6bf86b1a-116d-40bb-a68a-916a5c796f85?from=www.cyber.nj.gov&jid=5525f703-41d2-4a14-a85c-aeed536d0e65&step=1",
-        "https://nvd.nist.gov/vuln/detail/CVE-2017-5030",
-        "https://community.ui.com/questions/Is-Firmware-version-5-6-5-actually-safe-and-secure/455fdae8-4f40-40fd-92f3-0ee5fcafee33?page=1"
+        "https://nvd.nist.gov/vuln/detail/cve-2010-5332",
+        "https://nvd.nist.gov/vuln/detail/cve-2010-5338",
+        "https://nvd.nist.gov/vuln/detail/CVE-2010-5333",
+        "http://nvd.nist.gov/nvd.cfm?cvename=CVE-2012-5330",
+        "https://nvd.nist.gov/vuln/detail/cve-2015-5330",
+        "https://nvd.nist.gov/vuln/detail/CVE-2007-5330",
+        "https://nvd.nist.gov/vuln/detail/CVE-2010-0533",
+        "https://nvd.nist.gov/vuln/detail/CVE-2013-5330",
+        "https://nvd.nist.gov/vuln/detail/CVE-2006-5330",
+        "https://nvd.nist.gov/nvd.cfm?cvename=CVE-2020-5330",
+        "https://www.cve.org/CVERecord?id=CVE-2010-5330",
+        "https://cvefeed.io/vuln/detail/CVE-2010-5330",
+        "https://www.cvedetails.com/cve/CVE-2010-5330/",
+        "https://app.opencve.io/cve/CVE-2010-5330",
+        "https://avd.aquasec.com/nvd/2010/cve-2010-5330/",
+        "https://cve.komodosec.com/cve?id=CVE-2010-5330",
+        "https://cve.report/CVE-2010-5330",
+        "https://advisories.checkpoint.com/defense/advisories/public/2022/cpai-2010-0669.html/",
+        "https://cvetodo.com/cve/CVE-2010-5330",
+        "https://app.opencve.io/cve/?vendor=ui&product=airos",
+        "https://www.cisa.gov/news-events/bulletins/sb10-298",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog-print",
+        "https://www.cisa.gov/news-events/bulletins/sb10-172",
+        "https://www.cisa.gov/news-events/bulletins/sb10-263"
       ],
       "schema_version": 2,
       "source_fingerprint": "4be37ed4a31dee0be49cd715502de01eaee110fcef84c77aee45bd07369d9ec9",
       "source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2010-5330",
-        "https://community.ui.com/questions/AirOS-Security-Exploit-Updated-Firmware/9645e2ad-9779-4760-9c4c-9225c4183e4c"
+        "https://www.cve.org/CVERecord?id=CVE-2010-5330"
       ],
-      "status": "complete",
+      "status": "insufficient_evidence",
       "uncertainty": [
-        "NVD provides broad airOS CPE ranges and fixed-version statements by product family but does not enumerate every affected device model.",
-        "The vendor advisory page was discoverable but its detailed content was not available in the returned page data; vendor-specific upgrade compatibility should therefore be checked before deployment.",
-        "The sources do not establish whether later, unsupported airOS releases remain suitable for deployment beyond the stated fixed versions."
+        "NVD detail page content was not retrievable",
+        "CVE/CNA product status is listed as information not provided",
+        "Vendor details come from a community forum post rather than dedicated release notes or a non-forum advisory",
+        "Exact current download locations, ongoing product support, and a documented inert verification procedure are not established in retrieved sources"
       ],
-      "verification_steps": [
-        "Identify the device's product family and installed airOS/firmware version using the organization's normal administrative inventory process.",
-        "Compare the installed version with the applicable fixed-version boundary: 4.0.1 for 802.11 ISP, 5.3.5 for AirMax ISP, or 5.4.5 for AirSync.",
-        "Confirm that the device is no longer reported in the affected NVD ranges. Do not use exploit payloads or active command-injection testing for verification."
-      ]
+      "verification_steps": []
     },
     "CVE-2015-1187": {
       "business_risk": "No additional source-verified CVE-specific business impact was established.",
@@ -3789,67 +3752,94 @@
       ]
     },
     "CVE-2019-11708": {
-      "business_risk": "A sandbox escape can allow a compromised child process to cause the non-sandboxed parent process to open attacker-selected web content. Mozilla states that, when combined with additional vulnerabilities, this could result in arbitrary code execution on the user’s computer.",
+      "business_risk": "Critical (CVSS 3.1 score 10.0) sandbox-escape vulnerability in Mozilla Firefox and Thunderbird that can be chained with other flaws for arbitrary code execution; listed in the CISA Known Exploited Vulnerabilities catalog.",
       "claim_evidence": [
         {
-          "claim": "NVD records Firefox ESR versions below 60.7.2, Firefox versions below 67.0.4, and Thunderbird versions below 60.7.2 as affected.",
-          "kind": "affected_version",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2019-11708"
+          "claim": "Firefox and Firefox ESR",
+          "kind": "affected_product",
+          "source_url": "https://www.mozilla.org/en-US/security/advisories/mfsa2019-19/"
         },
         {
-          "claim": "Mozilla states that the vulnerability may contribute to arbitrary code execution when combined with additional vulnerabilities.",
+          "claim": "Thunderbird",
+          "kind": "affected_product",
+          "source_url": "https://www.mozilla.org/en-US/security/advisories/mfsa2019-20/"
+        },
+        {
+          "claim": "Firefox ESR < 60.7.2, Firefox < 67.0.4, and Thunderbird < 60.7.2",
+          "kind": "affected_version",
+          "source_url": "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2019-11708"
+        },
+        {
+          "claim": "Firefox 67.0.4 and Firefox ESR 60.7.2",
+          "kind": "fixed_version",
+          "source_url": "https://www.mozilla.org/en-US/security/advisories/mfsa2019-19/"
+        },
+        {
+          "claim": "Thunderbird 60.7.2",
+          "kind": "fixed_version",
+          "source_url": "https://www.mozilla.org/en-US/security/advisories/mfsa2019-20/"
+        },
+        {
+          "claim": "Insufficient vetting of parameters passed with the Prompt:Open IPC message between child and parent processes can result in the non-sandboxed parent process opening web content chosen by a compromised child process. When combined with additional vulnerabilities this could result in executing arbitrary code on the user's computer.",
           "kind": "exposure",
-          "source_url": "https://bugzilla.mozilla.org/show_bug.cgi?id=1559858"
+          "source_url": "https://www.mozilla.org/en-US/security/advisories/mfsa2019-19/"
         }
       ],
       "exposure_conditions": [
-        "Firefox or Firefox ESR is older than the vendor-fixed release.",
-        "Thunderbird is older than the vendor-fixed release.",
-        "Exploitation requires a compromised child process or another vulnerability capable of supplying attacker-controlled content to the Prompt:Open IPC path; the advisory does not establish standalone exploitation from ordinary email."
+        "Insufficient vetting of parameters in the Prompt:Open IPC message allows a compromised child process to cause the non-sandboxed parent process to open attacker-chosen web content.",
+        "Arbitrary code execution requires combination with additional vulnerabilities.",
+        "Affects Firefox before 67.0.4, Firefox ESR before 60.7.2, and Thunderbird before 60.7.2."
       ],
       "gaps": [],
-      "generated_at": "2026-07-29T11:43:06Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-10-10T15:43:27Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [
-        "Update Firefox to version 67.0.4 or later.",
-        "Update Firefox ESR to version 60.7.2 or later.",
-        "Update Thunderbird to version 60.7.2 or later.",
-        "Prioritize remediation for systems running versions below these thresholds because the vulnerability can contribute to arbitrary code execution when chained with other vulnerabilities."
+        "Update Firefox to 67.0.4 or later.",
+        "Update Firefox ESR to 60.7.2 or later.",
+        "Update Thunderbird to 60.7.2 or later.",
+        "Apply updates per vendor instructions."
       ],
       "retrieved_source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2019-11708",
-        "https://bugzilla.mozilla.org/show_bug.cgi?id=1559858",
-        "https://www.mozilla.org/en-US/security/advisories/",
-        "https://nvd.nist.gov/vuln/detail/CVE-2019-1178",
+        "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2019-11708",
+        "https://nvd.nist.gov/vuln/detail/cve-2019-11708",
+        "https://nvd.nist.gov/vuln/detail/CVE-2019-1178/change-record?changeRecordedOn=08/19/2019T13:19:28.337-0400",
+        "https://nvd.nist.gov/vuln/detail/cve-2019-11706",
+        "https://nvd.nist.gov/nvd.cfm?cvename=CVE-2020-11708",
+        "https://nvd.nist.gov/vuln/detail/cve-2019-11508",
+        "https://nvd.nist.gov/vuln/detail/CVE-2019-11808",
+        "https://nvd.nist.gov/vuln/detail/cve-2025-11708",
+        "https://nvd.nist.gov/vuln/detail/CVE-2019-1188/change-record?changeRecordedOn=05%2F29%2F2024T13%3A16%3A10.430-0400",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2019-17008",
+        "https://www.mozilla.org/en-US/security/advisories/mfsa2019-19/",
+        "https://www.mozilla.org/en-US/security/advisories/mfsa2019-20/",
         "https://www.mozilla.org/en-US/security/advisories/mfsa2019-18/",
-        "https://www.mozilla.org/en-US/security/advisories/mfsa2019-07/",
-        "https://www.mozilla.org/en-US/security/advisories/mfsa2019-36/",
-        "https://www.mozilla.org/en-US/security/advisories/mfsa2019-25/",
-        "https://www.mozilla.org/en-US/security/advisories/mfsa2018-05/",
-        "https://www.mozilla.org/en-US/security/advisories/mfsa2019-22/",
-        "https://www.mozilla.org/en-US/security/advisories/mfsa2019-04/",
-        "https://www.mozilla.org/en-US/security/known-vulnerabilities/",
-        "https://blog.mozilla.org/netpolicy/files/2019/09/Mozilla-ECtHR-submission-FINAL-submitted-9-13-19.pdf",
-        "https://research.mozilla.org/files/2020/05/hardening_firefox_against_injection_attacks.pdf"
+        "https://bugzilla.mozilla.org/show_bug.cgi?id=1543804",
+        "https://bugzilla.mozilla.org/1544386",
+        "https://mozilla.org/en-US/security/advisories/mfsa2019-25/",
+        "https://www.mozilla.org/en-US/security/advisories/mfsa2019-28/",
+        "https://bugzilla.mozilla.org/show_bug.cgi?id=1552627",
+        "https://mozilla.org/en-US/security/advisories/mfsa2019-17/",
+        "https://bugzilla.mozilla.org/show_bug.cgi?id=1556230",
+        "https://www.cve.org/CVERecord?id=CVE-2019-11708",
+        "https://access.redhat.com/security/cve/cve-2019-11708",
+        "https://socradar.io/free-tools/cve-radar/CVE-2019-11708",
+        "https://www.cisa.gov/news-events/bulletins/sb19-210"
       ],
       "schema_version": 2,
       "source_fingerprint": "b0e8fa8199b39b5ce3044b13afd86b3fd3c71ccdc96e0cd9cf32a73d6b65fa43",
       "source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2019-11708",
-        "https://bugzilla.mozilla.org/show_bug.cgi?id=1559858"
+        "https://www.mozilla.org/en-US/security/advisories/mfsa2019-19/",
+        "https://www.mozilla.org/en-US/security/advisories/mfsa2019-20/",
+        "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2019-11708"
       ],
       "status": "complete",
       "uncertainty": [
-        "The authoritative advisories establish fixed versions and the vulnerability mechanism but do not prescribe a particular inventory, UI, or endpoint-verification procedure.",
-        "The historical advisories do not define whether later product branches inherited or reintroduced the issue; current deployments should be assessed against current vendor-supported releases as well.",
-        "The advisory describes arbitrary code execution when combined with additional vulnerabilities; it does not establish that CVE-2019-11708 alone provides arbitrary code execution."
+        "Consulted NVD, CNA, and vendor advisories do not describe product-specific inert verification procedures such as UI dialogs or configuration checks."
       ],
       "verification_steps": [
-        "Obtain the installed product and version from the organization’s normal software inventory or product version interface.",
-        "Confirm Firefox is at least 67.0.4, Firefox ESR is at least 60.7.2, or Thunderbird is at least 60.7.2, as applicable.",
-        "If the installed version cannot be mapped confidently to these product/version thresholds, treat remediation status as unverified and consult Mozilla’s release records."
+        "Confirm installed Firefox, Firefox ESR, or Thunderbird versions meet or exceed the fixed versions stated in Mozilla Foundation Security Advisories MFSA2019-19 and MFSA2019-20."
       ]
     },
     "CVE-2019-12989": {
@@ -4130,93 +4120,73 @@
       ]
     },
     "CVE-2019-17621": {
-      "business_risk": "Critical unauthenticated command execution can allow an attacker with access to the router’s local network to execute system commands as root, potentially compromising confidentiality, integrity, and availability. CISA lists CVE-2019-17621 in its Known Exploited Vulnerabilities Catalog.",
+      "business_risk": "Critical unauthenticated command execution as root on LAN-reachable D-Link consumer routers; CISA KEV-listed since 2023 with a past due date; primary model DIR-859 and several related models are end-of-life with firmware development ceased.",
       "claim_evidence": [
         {
-          "claim": "NVD describes the DIR-859 vulnerability as affecting firmware 1.05 and 1.06B01 Beta01 and lists additional CPE configurations for affected D-Link firmware.",
-          "kind": "affected_version",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2019-17621"
-        },
-        {
-          "claim": "The vulnerability is an unauthenticated command-execution issue in the UPnP /gena.cgi endpoint requiring access to the device’s LAN-side or in-home network.",
-          "kind": "exposure",
-          "source_url": "https://supportannouncement.us.dlink.com/announcement/publication.aspx?name=SAP10146"
-        },
-        {
-          "claim": "CISA describes exploitation as allowing an unauthenticated remote attacker to execute system commands as root through a specially crafted HTTP SUBSCRIBE request to the UPnP service from the local network.",
-          "kind": "exposure",
-          "source_url": "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=22&source=rss------hacking-5"
-        },
-        {
-          "claim": "For DIR-859 Rev. Ax US devices, D-Link lists v1.07b03_beta as the fixed firmware and states that some devices require a two-step update.",
-          "kind": "fixed_version",
-          "source_url": "https://supportannouncement.us.dlink.com/announcement/publication.aspx?name=SAP10146"
-        },
-        {
-          "claim": "CISA requires applying vendor updates or discontinuing use of the product if updates are unavailable.",
+          "claim": "DIR-859 all hardware revisions have reached EOL/EOS; D-Link recommends the product be retired and replaced",
           "kind": "remediation",
-          "source_url": "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=22&source=rss------hacking-5"
-        },
-        {
-          "claim": "D-Link states that firmware and hardware-revision information can be checked in the device web configuration interface, supporting inert verification by reviewing the reported installed firmware.",
-          "kind": "verification",
-          "source_url": "https://supportannouncement.us.dlink.com/announcement/publication.aspx?name=SAP10146"
+          "source_url": "https://supportannouncement.us.dlink.com/security/publication.aspx?name=SAP10371"
         }
       ],
       "exposure_conditions": [
-        "The vulnerable UPnP endpoint is /gena.cgi.",
-        "Exploitation does not require authentication and requires network access to the device’s LAN-side or in-home network, according to D-Link and NVD.",
-        "D-Link identifies DIR-859 hardware revisions as affected when running firmware v1.06b01_Beta01 or older; NVD describes DIR-859 firmware 1.05 and 1.06B01 Beta01 as affected.",
-        "D-Link’s expanded advisory identifies additional affected models, including DIR-822, DIR-823, DIR-865L, DIR-868L, DIR-869, DIR-880L, DIR-885L, DIR-890L, DIR-895L, and DIR-818Lx, with model-specific affected versions."
+        "Listed D-Link router models running affected firmware",
+        "Attacker can reach the device on the local network (LAN-side/in-home)",
+        "UPnP service is reachable without authentication"
       ],
       "gaps": [],
-      "generated_at": "2026-07-29T11:42:26Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-10-10T15:36:30Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [
-        "Upgrade the device to the model- and hardware-revision-specific fixed firmware published by D-Link through the device’s web-configuration interface.",
-        "For DIR-859 Rev. Ax devices in the US, upgrade to v1.07b03 beta or later where available. D-Link states that some devices require a two-step firmware update.",
-        "For other affected models, use the fixed versions listed in D-Link’s expanded advisory, including DIR-822 v2.04b02beta01 or v3.15b03, DIR-823 v1.03b03betab01, DIR-868L v1.20b07 or v2.20b02beta01, DIR-869 v1.04b03beta01, DIR-880L v1.20b03beta01, DIR-890L/R v1.21b04_Hotfix, DIR-885L/R v1.21b03_Hotfix, DIR-895L/R v1.21b05_Hotfix, and DIR-818Lx v2.06b02 Hotfix, subject to the applicable hardware revision and region.",
-        "If the router is end-of-support or a suitable vendor update is unavailable, discontinue use and replace it, consistent with CISA’s required action."
+        "Identify the exact model, hardware revision, affected firmware, and any listed hotfix from D-Link announcements SAP10146 and SAP10147.",
+        "For models that still have a published hotfix, apply the vendor firmware through the device web configuration GUI, including any required two-step update.",
+        "For DIR-859 and other end-of-life models, discontinue use and replace the device.",
+        "Apply updates per vendor instructions or discontinue use of the product if updates are unavailable, per CISA KEV."
       ],
       "retrieved_source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2019-17621",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=22&source=rss------hacking-5",
-        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=55",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=69",
-        "https://supportannouncement.us.dlink.com/announcement/publication.aspx?name=SAP10146",
-        "https://www.cisa.gov/sites/default/files/2023-11/SbD%20Alert%20-%20How%20Software%20Manufacturers%20Can%20Shield%20Web%20Management%20Interfaces%20From%20Malicious%20Cyber%20Activity_508c%20%281%29_0.pdf",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=42",
-        "https://nvd.nist.gov/vuln/detail/cve-2019-19221",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=56",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=38",
-        "https://www.cisa.gov/sites/default/files/2024-05/Secure_by_Design_Alert_Eliminating_Directory_Traversal_Vulnerabilities_in_Software_508c%20%283%29.pdf",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=57",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A799&f%5B10%5D=vendor_project%3A932&f%5B11%5D=vendor_project%3A943&f%5B12%5D=vendor_project%3A946&f%5B13%5D=vendor_project%3A1168&f%5B1%5D=vendor_project%3A817&f%5B2%5D=vendor_project%3A823&f%5B3%5D=vendor_project%3A827&f%5B4%5D=vendor_project%3A833&f%5B5%5D=vendor_project%3A842&f%5B6%5D=vendor_project%3A887&f%5B7%5D=vendor_project%3A898&f%5B8%5D=vendor_project%3A917&f%5B9%5D=vendor_project%3A920&page=4",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A791&f%5B10%5D=vendor_project%3A845&f%5B11%5D=vendor_project%3A854&f%5B12%5D=vendor_project%3A886&f%5B13%5D=vendor_project%3A893&f%5B14%5D=vendor_project%3A902&f%5B15%5D=vendor_project%3A917&f%5B16%5D=vendor_project%3A938&f%5B1%5D=vendor_project%3A796&f%5B2%5D=vendor_project%3A800&f%5B3%5D=vendor_project%3A801&f%5B4%5D=vendor_project%3A820&f%5B5%5D=vendor_project%3A823&f%5B6%5D=vendor_project%3A828&f%5B7%5D=vendor_project%3A830&f%5B8%5D=vendor_project%3A837&f%5B9%5D=vendor_project%3A842&page=6",
-        "https://www.cisa.gov/sites/default/files/publications/AA22-117A_Joint_CSA_2021_Top_Routinely_Exploited_Vulnerabilities_Final.pdf"
+        "https://nvd.nist.gov/vuln/detail/cve-2019-17621",
+        "https://nvd.nist.gov/vuln/detail/cve-2019-1761",
+        "https://nvd.nist.gov/vuln/detail/CVE-2019-17624",
+        "https://nvd.nist.gov/vuln/detail/CVE-2019-17626",
+        "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2019-17624",
+        "https://nvd.nist.gov/vuln/detail/CVE-2017-17621",
+        "https://web.nvd.nist.gov/vuln/detail/CVE-2018-17621",
+        "https://nvd.nist.gov/vuln/detail/cve-2019-17421",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2019-17021",
+        "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2019-18421",
+        "https://www.cve.org/CVERecord?id=CVE-2019-17621",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2019-20217@https:/nvd.nist.gov/vuln/detail/CVE-2019-20217@https:/supportannouncement.us.dlink.com/announcement/publication.aspx?name=SAP10147@https:/medium.com/@s1kr10s/d-link-dir-859-rce-unauthenticated-cve-2019-20216-cve-2019-20217-en-6bca043500ae@https:/medium.com/@s1kr10s/d-link-dir-859-rce-unauthenticated-cve-2019-20216-cve-2019-20217-es-e11ca6168d35",
+        "https://cve.report/CVE-2019-17621.pdf",
+        "https://cvefeed.io/vuln/detail/CVE-2019-17621",
+        "https://socradar.io/free-tools/cve-radar/CVE-2019-17621",
+        "https://cvetodo.com/cve/CVE-2019-17621",
+        "https://turingpoint.de/en/cve/CVE-2019-17621/",
+        "https://www.cvedetails.com/cve/CVE-2019-17621/",
+        "https://cve.circl.lu/cve/CVE-2019-17621",
+        "https://www.cisa.gov/news-events/bulletins/sb19-028",
+        "https://www.cisa.gov/news-events/bulletins/sb19-294",
+        "https://www.cisa.gov/news-events/bulletins/sb20-160",
+        "https://www.cisa.gov/news-events/bulletins/sb19-210",
+        "https://supportannouncement.us.dlink.com/security/publication.aspx?name=SAP10371"
       ],
       "schema_version": 2,
       "source_fingerprint": "bb996cf12488086a41042d8ec316edb416fb87222dec24ab39a0b0a203af2f14",
       "source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2019-17621",
-        "https://supportannouncement.us.dlink.com/announcement/publication.aspx?name=SAP10146",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=22&source=rss------hacking-5"
+        "https://supportannouncement.us.dlink.com/security/publication.aspx?name=SAP10371",
+        "https://nvd.nist.gov/vuln/detail/cve-2019-17621"
       ],
       "status": "complete",
       "uncertainty": [
-        "The supplied source record marks the affected product as n/a and truncates the product list; authoritative D-Link advisories provide the usable product and version scope.",
-        "D-Link’s advisories contain regional, hardware-revision, beta, and end-of-support distinctions. The applicable fixed version must therefore be selected for the specific device rather than applied generically.",
-        "The D-Link advisory provides fixed firmware for the listed models, but it does not establish that later firmware versions remain available or supported as of the current date.",
-        "The advisories establish LAN-side exposure and firmware-based remediation, but do not provide a non-invasive network test that proves exploitability or remediation."
+        "NVD page content (full description, CPEs, and analysis) was not retrieved in this session.",
+        "DIR-859 end-of-support date is 12/10/2020; later vendor guidance recommends retirement of all hardware revisions.",
+        "Availability of 2019/2020 hotfix firmware files on legacy download locations is not confirmed.",
+        "CISA KEV due date of 2023-07-20 has passed."
       ],
       "verification_steps": [
-        "Identify the router model, hardware revision, region, and currently installed firmware in the device’s web configuration interface.",
-        "Confirm that the installed firmware is at or above the applicable D-Link fixed version for that model and hardware revision.",
-        "If D-Link’s update package contains two firmware files, verify that both update stages have been completed before treating remediation as complete.",
-        "Do not perform exploit testing or send crafted requests to the vulnerable UPnP endpoint."
+        "Read the model and hardware revision from the product label on the underside of the device.",
+        "Open the device web configuration interface and record the firmware version it reports.",
+        "Compare the observed model, revision, and firmware version with the affected and fixed firmware listed in vendor announcement SAP10147."
       ]
     },
     "CVE-2019-18935": {
@@ -4771,67 +4741,55 @@
       ]
     },
     "CVE-2019-7193": {
-      "business_risk": "Critical remote code injection affecting QNAP NAS devices running the vulnerable QTS and Photo Station combinations. NVD rates the issue CVSS 3.1 9.8 Critical, and the CVE is listed in CISA's Known Exploited Vulnerabilities Catalog.",
-      "claim_evidence": [
-        {
-          "claim": "The vendor advisory covers multiple QTS and Photo Station versions; NVD records QTS 4.4.0 through QTS 4.4.1 before build 20190918 and QTS 4.3.6 before build 20190919 as affected.",
-          "kind": "affected_version",
-          "source_url": "https://nvd.nist.gov/vuln/detail/cve-2019-7193"
-        }
-      ],
-      "exposure_conditions": [
-        "The NAS is running Photo Station with an affected QTS version.",
-        "The affected service is reachable by a remote attacker; the vendor describes the issue as permitting remote arbitrary-code injection."
-      ],
+      "business_risk": "No additional source-verified CVE-specific business impact was established.",
+      "claim_evidence": [],
+      "exposure_conditions": [],
       "gaps": [],
-      "generated_at": "2026-07-29T11:42:52Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-10-10T15:38:52Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
-      "remediation_steps": [
-        "Update QTS to QTS 4.4.1 build 20190918 or later, or QTS 4.3.6 build 20190919 or later, as applicable to the NAS model.",
-        "Update Photo Station to version 6.0.3 or later on QTS 4.4.1.",
-        "Update Photo Station to version 5.7.10 or later on QTS 4.3.4 through QTS 4.4.0.",
-        "For QTS 4.3.0 through QTS 4.3.3, update Photo Station to version 5.4.9 or later; for QTS 4.2.6, update Photo Station to version 5.2.11 or later.",
-        "Use QTS Control Panel > System > Firmware Update to check for and install the applicable firmware update, and use App Center to update Photo Station. QNAP recommends using the latest available versions for the NAS model."
-      ],
+      "remediation_steps": [],
       "retrieved_source_urls": [
         "https://nvd.nist.gov/vuln/detail/cve-2019-7193",
-        "https://www.qnap.com/en-us/security-news/2019/response-to-qsnatch-attacks-take-actions-to-secure-qnap-nas",
-        "https://www.qnap.com/en/security-advisory/nas-201908-05",
-        "https://www.qnap.com/en/security-advisory/nas-201901-22",
-        "https://www.qnap.com/en-us/technical-advisory",
-        "https://www.qnap.com/en/security-advisory/nas-201911-26",
-        "https://www.qnap.com/en/security-advisory/nas-201908-06",
-        "https://www.qnap.com/en-ca/security-advisories",
-        "https://www.qnap.com/it-it/security-advisory/nas-201911-25",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=55",
-        "https://www.qnap.com/en-us/security-advisory/qsa-20-16",
-        "https://www.qnap.com/en-us/security-advisory/qsa-23-27",
-        "https://www.qnap.com/s3/qutube/slides/FeYbfkCfwSc.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/AA22-117A_Joint_CSA_2021_Top_Routinely_Exploited_Vulnerabilities_Final.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/AA20-133A_Top_10_Routinely_Exploited_Vulnerabilities_S508C.pdf",
-        "https://www.qnap.com/s3/qutube/slides/lf1XtL93JGE.pdf",
-        "https://www.qnap.com/s3/qutube/slides/mfaSIOdNg-A.pdf"
+        "https://nvd.nist.gov/vuln/detail/CVE-2019-7195",
+        "https://nvd.nist.gov/vuln/detail/cve-2016-7193",
+        "https://nvd.nist.gov/vuln/detail/cve-2025-7193",
+        "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2019-9793",
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-7193",
+        "https://nvd.nist.gov/vuln/detail/CVE-2019-0193",
+        "https://nvd.nist.gov/vuln/detail/CVE-2019-7693",
+        "https://nvd.nist.gov/vuln/detail/CVE-2015-7193",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2023-54193",
+        "https://nvd.nist.gov/vuln/detail/CVE-2019-7193",
+        "https://www.qnap.com/en/security-advisory/nas-201911-25",
+        "https://www.cve.org/CVERecord?id=CVE-2019-7193",
+        "https://cvefeed.io/vuln/detail/CVE-2019-7193",
+        "https://cve.yack.one/cve/CVE-2019-7193",
+        "https://socradar.io/free-tools/cve-radar/CVE-2019-7193",
+        "https://app.opencve.io/cve/CVE-2019-7193",
+        "https://avd.aquasec.com/nvd/2019/cve-2019-7193/",
+        "https://secalerts.co/vulnerability/CVE-2019-7193",
+        "https://cve.report/CVE-2019-7193",
+        "https://forum.qnap.com/viewtopic.php?t=154999",
+        "https://forum.qnap.com/viewtopic.php?t=155222",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-23-348-10"
       ],
       "schema_version": 2,
       "source_fingerprint": "33fd19e6e73eff987c99c3d33a209a3f9ee72749bd13e383cedd12c2b640345f",
       "source_urls": [
-        "https://nvd.nist.gov/vuln/detail/cve-2019-7193"
+        "https://nvd.nist.gov/vuln/detail/CVE-2019-7193",
+        "https://www.qnap.com/en/security-advisory/nas-201911-25",
+        "https://www.cve.org/CVERecord?id=CVE-2019-7193"
       ],
-      "status": "complete",
+      "status": "insufficient_evidence",
       "uncertainty": [
-        "QNAP's advisory identifies the affected product as QNAP NAS devices running Photo Station and provides fixed QTS and Photo Station versions, but it does not enumerate every intermediate QTS build.",
-        "The supplied CPE list is truncated and should not be treated as a complete inventory of affected models or versions.",
-        "This enrichment does not establish whether a particular NAS instance is externally reachable or has been compromised.",
-        "No claim is made about successful remediation without checking the device's installed versions."
+        "Consulted vendor advisory groups CVE-2019-7193 with Photo Station issues and lists affected products as NAS devices running Photo Station, while the CNA record specifies only QTS version ranges",
+        "Full content of the NVD detail page and some vendor advisory pages could not be retrieved",
+        "Sources do not describe an explicit inert method to confirm the installed QTS build",
+        "The model did not return a fully sourced exposure, remediation, and verification set; consult the linked NVD and vendor sources before acting."
       ],
-      "verification_steps": [
-        "Confirm the installed QTS build is at or above the applicable QNAP fixed build.",
-        "Confirm the installed Photo Station version is at or above the applicable fixed version for the QTS branch.",
-        "In QTS, check Firmware Update for available updates; in App Center, check Photo Station. QNAP states that the update control is unavailable when the component is already current.",
-        "Verify that the NAS model's current QTS and Photo Station versions match the vendor's supported release guidance before treating the CVE as remediated."
-      ]
+      "verification_steps": []
     },
     "CVE-2019-7194": {
       "business_risk": "Critical. A network-reachable QNAP Photo Station instance may allow a remote attacker to access or modify system files, creating potential confidentiality, integrity, and availability impact. CVE-2019-7194 is listed in CISA's Known Exploited Vulnerabilities catalog.",
@@ -11535,104 +11493,72 @@
       ]
     },
     "CVE-2021-34473": {
-      "business_risk": "Critical. CVE-2021-34473 is a remotely exploitable Microsoft Exchange Server vulnerability with a CVSS 3.1 score of 9.8. The NVD record indicates network reachability, low attack complexity, no required privileges, and no user interaction. The vulnerability is listed in CISA's Known Exploited Vulnerabilities catalog, requiring vendor-directed updates. ([nvd.nist.gov](https://nvd.nist.gov/vuln/detail/CVE-2021-34473?utm_source=openai))",
+      "business_risk": "Critical unauthenticated remote code execution in on-premises Microsoft Exchange Server that CISA lists as known exploited, including in ransomware campaigns.",
       "claim_evidence": [
         {
-          "claim": "Microsoft Exchange Server 2013 CU23, Exchange Server 2016 CU19/CU20, and Exchange Server 2019 CU8/CU9 are listed as affected products.",
+          "claim": "Microsoft Exchange Server 2013 Cumulative Update 23, 2016 Cumulative Update 19, 2016 Cumulative Update 20, 2019 Cumulative Update 8, and 2019 Cumulative Update 9",
           "kind": "affected_product",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2021-34473"
+          "source_url": "https://msrc.microsoft.com/en-us/security-guidance/advisory/CVE-2021-34473"
         },
         {
-          "claim": "The affected build thresholds are below 15.00.1497.015, 15.01.2176.012, 15.01.2242.008, 15.02.0792.013, and 15.02.0858.010, respectively.",
-          "kind": "affected_version",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2021-34473"
-        },
-        {
-          "claim": "The CNA CVSS vector indicates network access, low complexity, no privileges required, and no user interaction.",
-          "kind": "exposure",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2021-34473"
-        },
-        {
-          "claim": "Microsoft's Exchange build table identifies 15.00.1497.015, 15.01.2176.012, 15.01.2242.008, 15.02.0792.013, and 15.02.0858.010 as April 2021 security-update builds for the affected CU branches.",
+          "claim": "Security update builds 15.00.1497.015, 15.01.2176.012, 15.01.2242.008, 15.02.0792.013, and 15.02.0858.010",
           "kind": "fixed_version",
-          "source_url": "https://learn.microsoft.com/th-th/Exchange/new-features/build-numbers-and-release-dates"
-        },
-        {
-          "claim": "CISA/NVD directs administrators to apply updates according to vendor instructions, and Microsoft recommends supported CUs with applicable security updates.",
-          "kind": "remediation",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2021-34473"
-        },
-        {
-          "claim": "Installed Exchange build numbers can be compared with Microsoft's published build-number table and the NVD affected-version thresholds.",
-          "kind": "verification",
-          "source_url": "https://learn.microsoft.com/th-th/Exchange/new-features/build-numbers-and-release-dates"
+          "source_url": "https://msrc.microsoft.com/en-us/security-guidance/advisory/CVE-2021-34473"
         }
       ],
       "exposure_conditions": [
-        "Microsoft Exchange Server 2013 CU23 is affected when the build is below 15.00.1497.015. ([nvd.nist.gov](https://nvd.nist.gov/vuln/detail/CVE-2021-34473?utm_source=openai))",
-        "Microsoft Exchange Server 2016 CU19 is affected when the build is below 15.01.2176.012. ([nvd.nist.gov](https://nvd.nist.gov/vuln/detail/CVE-2021-34473?utm_source=openai))",
-        "Microsoft Exchange Server 2016 CU20 is affected when the build is below 15.01.2242.008. ([nvd.nist.gov](https://nvd.nist.gov/vuln/detail/CVE-2021-34473?utm_source=openai))",
-        "Microsoft Exchange Server 2019 CU8 is affected when the build is below 15.02.0792.013. ([nvd.nist.gov](https://nvd.nist.gov/vuln/detail/CVE-2021-34473?utm_source=openai))",
-        "Microsoft Exchange Server 2019 CU9 is affected when the build is below 15.02.0858.010. ([nvd.nist.gov](https://nvd.nist.gov/vuln/detail/CVE-2021-34473?utm_source=openai))",
-        "The CVSS assessment characterizes the vulnerability as network-accessible, low-complexity, requiring no privileges or user interaction. ([nvd.nist.gov](https://nvd.nist.gov/vuln/detail/CVE-2021-34473?utm_source=openai))"
+        "On-premises Microsoft Exchange Server 2013 Cumulative Update 23, 2016 Cumulative Update 19, 2016 Cumulative Update 20, 2019 Cumulative Update 8, or 2019 Cumulative Update 9 is installed",
+        "The affected Exchange services are reachable over the network without authentication"
       ],
       "gaps": [],
-      "generated_at": "2026-08-11T10:22:44Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-10-10T15:34:06Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [
-        "Apply Microsoft's security updates for CVE-2021-34473 to affected Exchange Server installations. CISA's required action is to apply updates according to vendor instructions. ([nvd.nist.gov](https://nvd.nist.gov/vuln/detail/CVE-2021-34473?utm_source=openai))",
-        "For Exchange Server 2013 CU23, update to build 15.00.1497.015 or later. Microsoft identifies this as the April 13, 2021 security-update build. ([nvd.nist.gov](https://nvd.nist.gov/vuln/detail/CVE-2021-34473?utm_source=openai))",
-        "For Exchange Server 2016 CU19, update to build 15.01.2176.012 or later; for CU20, update to build 15.01.2242.008 or later. ([nvd.nist.gov](https://nvd.nist.gov/vuln/detail/CVE-2021-34473?utm_source=openai))",
-        "For Exchange Server 2019 CU8, update to build 15.02.0792.013 or later; for CU9, update to build 15.02.0858.010 or later. ([nvd.nist.gov](https://nvd.nist.gov/vuln/detail/CVE-2021-34473?utm_source=openai))",
-        "Where feasible, move servers to a supported cumulative update and apply all applicable security updates. Microsoft specifically recommends keeping Exchange servers on a supported CU with the latest applicable SU. ([techcommunity.microsoft.com](https://techcommunity.microsoft.com/blog/exchange/proxyshell-vulnerabilities-and-your-exchange-server/2684705/replies/2736904?utm_source=openai))"
+        "Install Microsoft security update KB5001779 for the installed Cumulative Update, or a later Exchange security or cumulative update that supersedes it, following Microsoft vendor instructions",
+        "Install subsequent Microsoft Exchange security updates (the May 2021 update supersedes the April 2021 update)"
       ],
       "retrieved_source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-34473",
         "https://nvd.nist.gov/vuln/detail/cve-2021-34473",
-        "https://msrc.microsoft.com/update-guide/en-us/",
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-34373",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=0",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=68",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=56",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=70",
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-34973",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=55",
-        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=38",
-        "https://www.cisa.gov/sites/default/files/publications/AA22-117A_Joint_CSA_2021_Top_Routinely_Exploited_Vulnerabilities_Final.pdf",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=42",
-        "https://www.cisa.gov/sites/default/files/publications/AA21-321A-Iranian%20Government-Sponsored%20APT%20Actors%20Exploiting%20Vulnerabilities%20FINAL.pdf",
-        "https://learn.microsoft.com/th-th/Exchange/new-features/build-numbers-and-release-dates",
-        "https://learn.microsoft.com/tr-tr/Exchange/new-features/build-numbers-and-release-dates?preserve-view=true&view=exchserver-2016",
-        "https://techcommunity.microsoft.com/blog/exchange/proxyshell-vulnerabilities-and-your-exchange-server/2684705/replies/2736904",
-        "https://learn.microsoft.com/en-us/answers/questions/526780/cummulative-update",
-        "https://www.microsoft.com/en-us/msrc/blog/2021/04/april-2021-update-tuesday-packages-now-available/",
-        "https://learn.microsoft.com/zh-tw/exchange/new-features/build-numbers-and-release-dates",
-        "https://learn.microsoft.com/en-us/lifecycle/products/exchange-server-2013",
-        "https://learn.microsoft.com/en-us/answers/questions/628946/doubt-about-ms-exchange-2013-version-after-kb50074.html",
-        "https://learn.microsoft.com/en-us/answers/questions/199565/what-is-the-exchange-2013-latest-build-no"
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2021-34470",
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-34473",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2021-41374",
+        "https://nvd.nist.gov/vuln/detail/cve-2021-32473",
+        "https://portal.msrc.microsoft.com/en-US/security-guidance/advisory/CVE-2021-34473",
+        "https://msrc.microsoft.com/en-us/security-guidance/advisory/CVE-2021-34473",
+        "https://msrc.microsoft.com/update-guide/de-de/vulnerability/CVE-2021-34473",
+        "https://msrc.microsoft.com/update-guide/fr-fr/vulnerability/CVE-2021-34473",
+        "https://api.msrc.microsoft.com/cvrf/v3.0/cvrf/2021-aug",
+        "https://techcommunity.microsoft.com/tag/announcements",
+        "https://msrc.microsoft.com/update-guide/releaseNote/2026-Oct",
+        "https://support.microsoft.com/en-us/servicing/exchange/server/update/2026/5121574",
+        "https://techcommunity.microsoft.com/blog/exchange/released-september-2026-v2-exchange-server-security-updates/4561718",
+        "https://techcommunity.microsoft.com/tag/exchange%202016",
+        "https://learn.microsoft.com/en-us/answers/questions/528699/which-exchange-2016-cu-are-vulnerable-to-vulnerabi",
+        "https://techcommunity.microsoft.com/blog/exchange/released-october-2025-exchange-server-security-updates/4461276?WT.mc_id=M365-MVP-5000284",
+        "https://www.cisa.gov/news-events/alerts/2021/08/21/urgent-protect-against-active-exploitation-proxyshell-vulnerabilities",
+        "https://www.cisa.gov/news-events/bulletins/sb21-200",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-22-104-05",
+        "https://www.microsoft.com/en-us/download/details.aspx?id=103004",
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-34473?roistat_visit=498897"
       ],
       "schema_version": 2,
       "source_fingerprint": "c247eb6cba01d75f51a69177985da28164ac537d5dfdaa1c5727246bb6a91621",
       "source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2021-34473",
-        "https://learn.microsoft.com/th-th/Exchange/new-features/build-numbers-and-release-dates",
-        "https://techcommunity.microsoft.com/blog/exchange/proxyshell-vulnerabilities-and-your-exchange-server/2684705/replies/2736904",
-        "https://learn.microsoft.com/en-us/lifecycle/products/exchange-server-2013"
+        "https://msrc.microsoft.com/en-us/security-guidance/advisory/CVE-2021-34473",
+        "https://www.cisa.gov/news-events/alerts/2021/08/21/urgent-protect-against-active-exploitation-proxyshell-vulnerabilities"
       ],
       "status": "complete",
       "uncertainty": [
-        "The supplied record and NVD identify vulnerable version thresholds but do not establish whether a particular deployment is externally reachable, whether hybrid components are present, or whether compensating controls are enabled.",
-        "The NVD record does not provide a deployment-specific remediation status or successful installation result.",
-        "Exchange Server 2013 reached end of support on April 11, 2023; continued operation may require a separate lifecycle and migration assessment. ([learn.microsoft.com](https://learn.microsoft.com/en-us/lifecycle/products/exchange-server-2013?utm_source=openai))"
+        "Microsoft and CVE.org records describe the issue only as a remote code execution vulnerability without further technical mechanism details",
+        "The full NVD detail page could not be retrieved",
+        "KB5001779 is superseded by later Exchange updates; current Microsoft guidance should be checked for the latest applicable patch",
+        "Exchange Server 2013, 2016, and 2019 are out of mainstream support"
       ],
       "verification_steps": [
-        "Identify the installed Exchange cumulative-update branch and complete build number using the organization's approved inventory or administrative method.",
-        "Compare the installed build with the applicable threshold: 15.00.1497.015 for Exchange 2013 CU23; 15.01.2176.012 for Exchange 2016 CU19; 15.01.2242.008 for Exchange 2016 CU20; 15.02.0792.013 for Exchange 2019 CU8; or 15.02.0858.010 for Exchange 2019 CU9. A build at or above the applicable threshold is not within the affected range stated by the NVD record. ([nvd.nist.gov](https://nvd.nist.gov/vuln/detail/CVE-2021-34473?utm_source=openai))",
-        "Cross-check the recorded build against Microsoft's Exchange build-number table, which maps these builds to the April 2021 security updates. ([learn.microsoft.com](https://learn.microsoft.com/th-th/Exchange/new-features/build-numbers-and-release-dates?utm_source=openai))",
-        "Confirm through approved change-management and patch-reporting records that the applicable Microsoft security update completed successfully; do not use exploit attempts or production probing as verification."
+        "Confirm the running Exchange Server build number is at or above the Microsoft-listed security update build for the installed Cumulative Update",
+        "Confirm the applicable security update appears as installed through Windows Update or Microsoft Update Catalog reporting"
       ]
     },
     "CVE-2021-34523": {
@@ -27003,55 +26929,6 @@
       ],
       "verification_steps": []
     },
-    "CVE-2025-61882": {
-      "business_risk": "No additional source-verified CVE-specific business impact was established.",
-      "claim_evidence": [],
-      "exposure_conditions": [],
-      "gaps": [
-        "generic_ecosystem"
-      ],
-      "generated_at": "2026-08-04T12:18:25Z",
-      "model": "gpt-5.6-luna",
-      "prompt_version": "2026-07-14.2",
-      "recipe_specificity": "not_specific",
-      "remediation_steps": [],
-      "retrieved_source_urls": [
-        "https://www.oracle.com/security-alerts/alert-cve-2025-61882.html",
-        "https://nvd.nist.gov/vuln/detail/CVE-2025-61882",
-        "https://www.oracle.com/security-alerts/",
-        "https://www.oracle.com/security-alerts/cve-2025-61882verbose.html",
-        "https://blogs.oracle.com/security/july-2025-cpu-released",
-        "https://www.cisa.gov/news-events/alerts/2025/07/28/cisa-adds-three-known-exploited-vulnerabilities-catalog",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=0",
-        "https://www.oracle.com/security-alerts/cpuoct2025.html",
-        "https://www.oracle.com/security-alerts/public-vuln-to-advisory-mapping.html",
-        "https://blogs.oracle.com/security/",
-        "https://blogs.oracle.com/security/apply-july-2025-cpu",
-        "https://blogs.oracle.com/ebs/critical-patch-update-for-july-2025-now-available",
-        "https://www.cisa.gov/sites/default/files/2025-06/CISA.gov-Apr-2025-Web-Metrics-508.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
-        "https://www.cisa.gov/sites/default/files/2024-08/SECURING_THE_SOFTWARE_SUPPLY_CHAIN_RECOMMENDED_PRACTICES_FOR_SOFTWARE_BILL_OF_MATERIALS_CONSUMPTION-508.pdf",
-        "https://www.cisa.gov/sites/default/files/2025-09/AR25-261A_MAR_Malicious_Listener_for_Ivanti_EPMM_Systems_2.pdf",
-        "https://blogs.oracle.com/wp-content/uploads/sites/140/2025/12/overviewsolarisreleasecadenceipssrusidrsandcvemetadata.pdf",
-        "https://www.cisa.gov/sites/default/files/2025-09/AA25-266A_advisory_cisa_shares_lessons_learned_from_ir_engagement.pdf"
-      ],
-      "schema_version": 2,
-      "source_fingerprint": "8bf322aa4e306ffae451e98c0a6337399114029d0f19181f815f868aced04b91",
-      "source_urls": [
-        "https://www.oracle.com/security-alerts/alert-cve-2025-61882.html",
-        "https://www.oracle.com/security-alerts/cpuoct2025.html",
-        "https://nvd.nist.gov/vuln/detail/CVE-2025-61882",
-        "https://blogs.oracle.com/security/apply-july-2025-cpu"
-      ],
-      "status": "insufficient_evidence",
-      "uncertainty": [
-        "The returned authoritative sources do not expose a concrete public fixed product version or an exact patch identifier; Oracle provides the remediation through a support-gated patch-availability document.",
-        "Oracle states that supported affected releases are 12.2.3 through 12.2.14, but earlier unsupported releases may also be affected and are not tested under the alert.",
-        "The supplied record's generic ecosystem label does not identify the actual deployment, network reachability, component enablement, or patch state.",
-        "The available sources establish active exploitation and remediation direction, but not a safe product-specific verification command or endpoint."
-      ],
-      "verification_steps": []
-    },
     "CVE-2025-6205": {
       "business_risk": "No additional source-verified CVE-specific business impact was established.",
       "claim_evidence": [],
@@ -27725,100 +27602,115 @@
       "verification_steps": []
     },
     "CVE-2025-9242": {
-      "business_risk": "Critical remote unauthenticated arbitrary-code-execution risk in the Fireware OS iked process. CISA lists CVE-2025-9242 in its Known Exploited Vulnerabilities Catalog, and WatchGuard reports evidence suggesting active exploitation. Compromise could affect confidentiality, integrity, and availability of the Firebox and connected VPN services.",
+      "business_risk": "Critical unauthenticated remote code execution on WatchGuard Firebox firewalls via the Fireware OS iked process, with confirmed active exploitation and CISA KEV listing requiring urgent mitigation.",
       "claim_evidence": [
         {
-          "claim": "The affected product is WatchGuard Fireware OS on Firebox appliances; affected branches include 11.10.2 through 11.12.4_Update1, 12.0 through 12.11.3, and 2025.1.",
+          "claim": "WatchGuard Fireware OS on Firebox appliances",
           "kind": "affected_product",
-          "source_url": "https://www.watchguard.com/br/wgrd-psirt/advisory/wgsa-2025-00015?email_hash=0d7a7050906b225db2718485ca0f3472"
+          "source_url": "https://psirt.watchguard.com/CVE-2025-9242"
         },
         {
-          "claim": "NVD records affected Fireware configurations beginning at 11.10.2 and ending before 12.11.4 or 12.5.13, plus Fireware 2025.1 for the listed hardware families.",
+          "claim": "Fireware OS Default: >= 2025.0 and < 2025.1.1, >= 12.0 and < 12.11.4, >= 11.0 and <= 11.12.4+541730; T15/T35: >= 12.0 and < 12.5.13; FIPS: >= 12.0 and < 12.3.1+722811",
           "kind": "affected_version",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-9242"
+          "source_url": "https://psirt.watchguard.com/CVE-2025-9242"
         },
         {
-          "claim": "Exposure involves the Mobile User VPN with IKEv2 and Branch Office VPN using IKEv2 with a dynamic gateway peer; previously deleted dynamic-peer or mobile-VPN configurations may leave a Firebox vulnerable when a static-peer Branch Office VPN remains.",
+          "claim": "Affected from 11.0 through 11.12.4+541730, from 12.0 before 12.11.4, from 2025.0 before 2025.1.1, from 12.0 before 12.3.1+722811, and from 12.0 before 12.5.13",
+          "kind": "affected_version",
+          "source_url": "https://www.cve.org/CVERecord?id=CVE-2025-9242"
+        },
+        {
+          "claim": "Affects mobile user VPN with IKEv2 and branch office VPN using IKEv2 when configured with a dynamic gateway peer; a Firebox may remain vulnerable after those configurations are deleted if a branch office VPN to a static gateway peer is still configured",
           "kind": "exposure",
-          "source_url": "https://www.watchguard.com/br/wgrd-psirt/advisory/wgsa-2025-00015?email_hash=0d7a7050906b225db2718485ca0f3472"
+          "source_url": "https://psirt.watchguard.com/CVE-2025-9242"
         },
         {
-          "claim": "WatchGuard identifies resolved versions 2025.1.1, 12.11.4, 12.5.13 for T15/T35, and 12.3.1_Update3 (B722811) for the FIPS-certified release; Fireware 11.x is end-of-life.",
+          "claim": "Resolved in Fireware OS 2025.1.1, 12.11.4, 12.5.13, and 12.3.1+722811",
           "kind": "fixed_version",
-          "source_url": "https://www.watchguard.com/br/wgrd-psirt/advisory/wgsa-2025-00015?email_hash=0d7a7050906b225db2718485ca0f3472"
+          "source_url": "https://psirt.watchguard.com/CVE-2025-9242"
         },
         {
-          "claim": "WatchGuard recommends installing the latest Fireware OS release containing the fix; it also recommends rotating locally stored secrets on vulnerable Fireboxes due to evidence of active exploitation.",
+          "claim": "Resolved versions: 2025.1 to 2025.1.1, 12.x to 12.11.4, 12.5.x (T15 & T35) to 12.5.13, 12.3.1 (FIPS) to 12.3.1_Update3 (B722811); 11.x end of life",
+          "kind": "fixed_version",
+          "source_url": "https://www.watchguard.com/wgrd-psirt/advisory/wgsa-2025-00015"
+        },
+        {
+          "claim": "Upgrade to the latest Fireware OS release that contains the fix and rotate all locally stored secrets on vulnerable Firebox appliances",
           "kind": "remediation",
-          "source_url": "https://www.watchguard.com/br/wgrd-psirt/advisory/wgsa-2025-00015?email_hash=0d7a7050906b225db2718485ca0f3472"
+          "source_url": "https://www.watchguard.com/wgrd-psirt/advisory/wgsa-2025-00015"
         },
         {
-          "claim": "WatchGuard describes an IKE_AUTH IDi payload greater than 100 bytes as a strong attack indicator and iked hangs or crashes as indicators to review on devices lacking the resolution.",
+          "claim": "Apply mitigations per vendor instructions or discontinue use of the product if mitigations are unavailable",
+          "kind": "remediation",
+          "source_url": "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2025-9242"
+        },
+        {
+          "claim": "Indicators of attack on unpatched devices include an IKE_AUTH request with abnormally large IDi payload (greater than 100 bytes) at Info logging level, IKED process hang, or IKED process crash",
           "kind": "verification",
-          "source_url": "https://www.watchguard.com/br/wgrd-psirt/advisory/wgsa-2025-00015?email_hash=0d7a7050906b225db2718485ca0f3472"
+          "source_url": "https://psirt.watchguard.com/CVE-2025-9242"
         }
       ],
       "exposure_conditions": [
-        "Fireware OS 11.10.2 through 11.12.4_Update1, 12.0 through 12.11.3, or 2025.1 is installed.",
-        "Mobile User VPN with IKEv2 is configured.",
-        "Branch Office VPN using IKEv2 is configured with a dynamic gateway peer.",
-        "A previously configured Mobile User VPN with IKEv2 or Branch Office VPN with a dynamic gateway peer was deleted, but a Branch Office VPN to a static gateway peer remains configured; WatchGuard states the device may still be vulnerable.",
-        "The vulnerable Firebox is reachable by an attacker able to submit IKEv2 traffic."
+        "Mobile user VPN with IKEv2 is configured",
+        "Branch office VPN using IKEv2 is configured with a dynamic gateway peer",
+        "A Firebox previously configured with mobile user VPN with IKEv2 or branch office VPN using IKEv2 to a dynamic gateway peer remains potentially vulnerable after those configurations are deleted if a branch office VPN to a static gateway peer is still present"
       ],
       "gaps": [],
-      "generated_at": "2026-08-11T10:21:47Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-10-10T15:31:29Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [
-        "Upgrade Fireware OS 2025.1 devices to 2025.1.1 or later.",
-        "Upgrade Fireware OS 12.x devices to 12.11.4 or later.",
-        "For T15 and T35 devices running Fireware OS 12.5.x, upgrade to 12.5.13 or later.",
-        "For the FIPS-certified 12.3.1 release, upgrade to 12.3.1_Update3 (B722811) or later.",
-        "Fireware OS 11.x is end-of-life and has no vendor-provided resolved version in the advisory; migrate from affected 11.x Fireboxes to a supported Firebox and resolved Fireware release.",
-        "If immediate upgrading is not possible and the Firebox is configured only with Branch Office VPN tunnels to static gateway peers, apply WatchGuard's documented temporary workaround for IPSec/IKEv2 Branch Office VPN access.",
-        "Because WatchGuard reports potential active exploitation, rotate locally stored secrets on vulnerable Firebox appliances according to the vendor's guidance."
+        "Upgrade Fireware OS to a resolved version applicable to the platform and model: 2025.1.1, 12.11.4, 12.5.13 (T15/T35), or 12.3.1+722811 (FIPS)",
+        "Fireware OS 11.x is end of life with no patch; discontinue use if mitigations are unavailable",
+        "Rotate all locally stored secrets on the Firebox after upgrading, due to evidence of active exploitation",
+        "If immediate upgrade is not possible and the Firebox has only branch office VPN tunnels to static gateway peers, apply the vendor temporary workaround for secure access to branch office VPNs that use IPSec and IKEv2"
       ],
       "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-9242?ref=blog.wavasec.com",
         "https://nvd.nist.gov/vuln/detail/CVE-2025-9242",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=0",
-        "https://www.cisa.gov/news-events/alerts/2025/07/28/cisa-adds-three-known-exploited-vulnerabilities-catalog",
-        "https://nvd.nist.gov/vuln/detail/CVE-2025-20224",
-        "https://www.watchguard.com/br/wgrd-psirt/advisory/wgsa-2025-00015?email_hash=0d7a7050906b225db2718485ca0f3472",
-        "https://www.watchguard.com/support/release-notes/fireware/2025/en_US/2025_1_1/Fireware_Release-Notes_v2025_1_1.pdf",
-        "https://nvd.nist.gov/vuln/detail/CVE-2025-54242",
-        "https://techsearch.watchguard.com/KB?SFDCID=kA1Vr000000DQntKAG",
-        "https://www.watchguard.com/wgrd-psirt/advisory/wgsa-2025-00014",
-        "https://www.watchguard.com/wgrd-psirt/advisory/wgsa-2025-00011",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A811&f%5B1%5D=vendor_project%3A822&f%5B2%5D=vendor_project%3A859&f%5B3%5D=vendor_project%3A865&f%5B4%5D=vendor_project%3A901&f%5B5%5D=vendor_project%3A904&f%5B6%5D=vendor_project%3A914&f%5B7%5D=vendor_project%3A952&page=1",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=23",
-        "https://www.watchguard.com/es/wgrd-psirt/advisories",
-        "https://www.watchguard.com/support/release-notes/fireware/12/en-US/EN_ReleaseNotes_Fireware_12_9_3/Fireware_Release-Notes_v12_9_3.pdf",
-        "https://www.watchguard.com/support/release-notes/fireware/12/en-US/EN_ReleaseNotes_Fireware_12_5_14/Fireware_Release-Notes_v12_5_14.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
-        "https://www.cisa.gov/sites/default/files/2025-09/AA25-266A_advisory_cisa_shares_lessons_learned_from_ir_engagement.pdf"
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-9242",
+        "https://nvd.nist.gov/nvd.cfm?cvename=CVE-2024-9242",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-32442",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-29042",
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-9242/change-record?changeRecordedOn=10/04/2024T02:15:05.647-0400",
+        "https://nvd.nist.gov/vuln/detail?vulnId=CVE-2025-21042",
+        "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2026-90042",
+        "https://nvd.nist.gov/vuln/detail/CVE-2018-9242",
+        "https://psirt.watchguard.com/CVE-2025-9242",
+        "https://community.watchguard.com/watchguard-community/discussion/4414/cve-2025-9242-update-for-unmanaged-devices",
+        "https://www.watchguard.com/wgrd-blog/fireware-updates-available-upgrade-your-firebox-firmware-now",
+        "https://www.watchguard.com/wgrd-partners/blog/update-firebox-firmware-apply-security-patch",
+        "http://watchguard.com/es/wgrd-psirt/advisories?order=field_adv_impact&sort=asc&text=",
+        "https://www.watchguard.com/wgrd-security-hub/podcast-the-443/episode-386",
+        "https://www.watchguard.com/wgrd-security-hub/podcast-the-443/episode-390",
+        "https://www.watchguard.com/wgrd-psirt/advisories",
+        "https://www.watchguard.com/wgrd-security-hub/podcast-the-443/episode-389",
+        "https://www.watchguard.com/wgrd-security-hub/podcast-the-443/episode-372",
+        "https://www.cve.org/CVERecord?id=CVE-2025-9242",
+        "https://www.watchguard.com/wgrd-psirt/advisory/wgsa-2025-00015",
+        "https://cve.report/CVE-2025-9242",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2025-9242"
       ],
       "schema_version": 2,
       "source_fingerprint": "fa5550dcf15be9a442de48b0125c1f35730b2d0ade3d5c5f13606a39751a2dda",
       "source_urls": [
-        "https://www.watchguard.com/br/wgrd-psirt/advisory/wgsa-2025-00015?email_hash=0d7a7050906b225db2718485ca0f3472",
         "https://nvd.nist.gov/vuln/detail/CVE-2025-9242",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=0",
-        "https://www.watchguard.com/support/release-notes/fireware/2025/en_US/2025_1_1/Fireware_Release-Notes_v2025_1_1.pdf",
-        "https://techsearch.watchguard.com/KB?SFDCID=kA1Vr000000DQntKAG"
+        "https://psirt.watchguard.com/CVE-2025-9242",
+        "https://www.watchguard.com/wgrd-psirt/advisory/wgsa-2025-00015",
+        "https://www.cve.org/CVERecord?id=CVE-2025-9242",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2025-9242",
+        "https://www.watchguard.com/wgrd-blog/fireware-updates-available-upgrade-your-firebox-firmware-now"
       ],
       "status": "complete",
       "uncertainty": [
-        "The advisory provides no resolved Fireware OS version for the 11.x branch because it is end-of-life.",
-        "A large IDi payload, iked hang, or iked crash is an indicator only and does not establish successful exploitation.",
-        "The supplied product record contains multiple version-range representations; remediation should follow the vendor advisory's branch- and model-specific resolution table.",
-        "The vendor workaround is referenced but its detailed operational steps were not used here; obtain and review the current WatchGuard guidance before applying it."
+        "Reported affected version ranges show minor differences across sources (for example 11.0 versus 11.10.2 as the start of 11.x impact)",
+        "Full procedural details of the static-BOVPN workaround are referenced but not reproduced in the consulted advisory pages",
+        "No patch exists for Fireware OS 11.x"
       ],
       "verification_steps": [
-        "Using the Firebox administrative interface or an approved asset-inventory method, confirm the installed Fireware OS version is at or above the applicable resolved version.",
-        "Review the VPN configuration and historical configuration state for Mobile User VPN with IKEv2, Branch Office VPN with dynamic gateway peers, and the residual-configuration condition described by WatchGuard.",
-        "After remediation, confirm the device reports the intended Fireware OS release and that the upgrade completed successfully through normal administrative status information.",
-        "For devices that lacked the fix, review iked diagnostic logs for an IKE_AUTH request with an unusually large IDi payload greater than 100 bytes, and review fault or service-status records for iked hangs or crashes. These are vendor-described indicators and are not conclusive proof of compromise."
+        "Confirm the installed Fireware OS version matches a resolved version published by WatchGuard for the device platform",
+        "If the device ran an affected version, review diagnostic logs for vendor-published indicators of attack such as an abnormally large IDi payload in IKE_AUTH or IKED process hang or crash"
       ]
     },
     "CVE-2025-9377": {
