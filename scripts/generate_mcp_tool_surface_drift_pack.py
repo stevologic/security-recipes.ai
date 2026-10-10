@@ -365,6 +365,42 @@ def build_sample_decisions(surfaces: list[dict[str, Any]]) -> list[dict[str, Any
                 "description_sha256": browser.get("description_sha256")
             },
             "why": "Candidate connector surfaces can be fingerprinted, but they are not production-allowed by default."
+        },
+        {
+            "id": "invalid-xmcp-header-token",
+            "decision": "deny_tool_surface_regression",
+            "expected_runtime_request": {
+                "namespace": repo.get("namespace"),
+                "tool_name": repo.get("tool_name"),
+                "input_schema": {
+                    "type": "object",
+                    "properties": {
+                        "workflow_id": {
+                            "type": "string",
+                            "x-mcp-header": "Not Valid"
+                        }
+                    }
+                }
+            },
+            "why": "Streamable HTTP clients MUST exclude a tool whose x-mcp-header is not an HTTP field-name token."
+        },
+        {
+            "id": "header-added-after-approval",
+            "decision": "kill_session_on_tool_surface_signal",
+            "expected_runtime_request": {
+                "namespace": repo.get("namespace"),
+                "tool_name": repo.get("tool_name"),
+                "input_schema": {
+                    "type": "object",
+                    "properties": {
+                        "workflow_id": {
+                            "type": "string",
+                            "x-mcp-header": "Workflow"
+                        }
+                    }
+                }
+            },
+            "why": "Adding x-mcp-header mirroring after approval exposes arguments to intermediaries and is a kill-session event."
         }
     ]
 
@@ -438,6 +474,10 @@ def build_pack(
             {
                 "risk": "Annotations and schemas alone do not prove tool behavior.",
                 "treatment": "Treat hashes as drift evidence, then require sandboxing, least privilege, output validation, and human approval for sensitive tools."
+            },
+            {
+                "risk": "A live tool can add x-mcp-header mirroring after approval, mark a secret as a header, or keep an invalid header token that Streamable HTTP clients MUST exclude from tools/list.",
+                "treatment": "Inspect live and baseline inputSchema for x-mcp-header maps. Kill added or renamed headers and sensitive parameter mirroring. Deny empty, non-token, duplicate, non-primitive, number, or non-statically-reachable headers."
             }
         ],
         "sample_runtime_decisions": build_sample_decisions(surfaces),
