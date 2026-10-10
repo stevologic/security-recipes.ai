@@ -926,13 +926,21 @@ class CveLandingRenderTests(unittest.TestCase):
         )
 
     def test_complete_but_nonspecific_ai_is_a_provenanced_bounded_fallback(self) -> None:
-        recipe = mcp_server._bounded_cve_landing_lookup("CVE-2010-5330")
+        """Cover nonspecific complete AI without assuming one catalog CVE stays that way.
+
+        Nightly enrichment can move a record from complete/not_specific to
+        insufficient_evidence (CVE-2010-5330 did). Drive the branch from the
+        record so the rendering rule stays covered either way.
+        """
+        recipe = generic_recipe("CVE-2099-99004")
         source = recipe["source_record"]
         assert isinstance(source, dict)
+        source["ai_enrichment"] = deepcopy(
+            sample_recipe()["source_record"]["ai_enrichment"]
+        )
         enrichment = source["ai_enrichment"]
         assert isinstance(enrichment, dict)
-        self.assertEqual(enrichment.get("status"), "complete")
-        self.assertEqual(enrichment.get("recipe_specificity"), "not_specific")
+        enrichment["recipe_specificity"] = "not_specific"
         self.assertEqual(mcp_server._cve_landing_search_qualification(source), "")
 
         page = mcp_server._render_cve_landing_page(recipe)
@@ -944,8 +952,8 @@ class CveLandingRenderTests(unittest.TestCase):
             "did not establish a product-specific remediation recipe",
             page,
         )
-        self.assertIn("model gpt-5.6-luna", page)
-        self.assertIn("generated 2026-07-29", page)
+        self.assertIn("model test-model", page)
+        self.assertIn("generated 2026-07-17", page)
         self.assertIn("Use it only to inform triage", page)
 
     def test_human_review_blocked_ai_names_the_non_authoritative_reason(self) -> None:
