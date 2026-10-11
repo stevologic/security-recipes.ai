@@ -4,9 +4,11 @@
 This deterministic evaluator gives an agent host, MCP gateway, or A2A
 gateway a fail-closed decision before protocol-mediated context, tool
 authority, or remote-agent delegation proceeds. MCP 2026-07-28
-notification streams must use subscriptions/listen with an
-acknowledgment and subscriptionId; legacy resources/subscribe and HTTP
-GET notification endpoints are drift.
+servers must implement server/discover; self-reported serverInfo is
+not a security input; complete discover results must carry ttlMs and
+cacheScope. Notification streams must use subscriptions/listen with an
+acknowledgment and subscriptionId; legacy initialize, resources/subscribe,
+and HTTP GET notification endpoints are drift.
 """
 
 from __future__ import annotations
@@ -39,6 +41,13 @@ LEGACY_SUBSCRIPTION_METHODS = {
     "get",
 }
 SUBSCRIPTION_CHECK_ID = "mcp-subscription-listen-conformance"
+DISCOVER_METHOD = "server/discover"
+LEGACY_DISCOVER_METHODS = {
+    "initialize",
+    "notifications/initialized",
+    "legacy_initialize",
+}
+DISCOVER_CHECK_ID = "mcp-server-discover-conformance"
 
 
 class ProtocolConformanceDecisionError(RuntimeError):
@@ -117,6 +126,10 @@ def normalize_request(runtime_request: dict[str, Any]) -> dict[str, Any]:
         "gateway_policy_hash",
         "subscription_method",
         "subscription_id",
+        "discover_method",
+        "discover_result_type",
+        "discover_cache_scope",
+        "discover_ttl_ms",
     ]:
         request[key] = str(request.get(key) or "").strip()
     for key in [
@@ -147,6 +160,9 @@ def normalize_request(runtime_request: dict[str, Any]) -> dict[str, Any]:
         "untrusted_content_seen",
         "legacy_http_get_notifications",
         "legacy_resources_subscribe",
+        "legacy_initialize_without_discover",
+        "server_info_used_for_security",
+        "stdio_discover_probe_skipped",
     ]:
         request[key] = as_bool(request.get(key))
     request["data_classes"] = [str(item).strip() for item in as_list(request.get("data_classes")) if str(item).strip()]
@@ -186,6 +202,38 @@ def uses_legacy_subscription_method(request: dict[str, Any]) -> bool:
         or request.get("legacy_http_get_notifications")
         or method in LEGACY_SUBSCRIPTION_METHODS
     )
+
+
+def has_discover_evidence(request: dict[str, Any]) -> bool:
+    return bool(
+        request.get("discover_method")
+        or request.get("discover_result_type")
+        or request.get("discover_cache_scope")
+        or request.get("discover_ttl_ms")
+        or request.get("legacy_initialize_without_discover")
+        or request.get("server_info_used_for_security")
+        or request.get("stdio_discover_probe_skipped")
+    )
+
+
+def uses_legacy_discover_method(request: dict[str, Any]) -> bool:
+    method = str(request.get("discover_method") or "").strip()
+    return (
+        request.get("legacy_initialize_without_discover")
+        or request.get("stdio_discover_probe_skipped")
+        or method in LEGACY_DISCOVER_METHODS
+    )
+
+
+def discover_cache_hint_violations(request: dict[str, Any]) -> list[str]:
+    violations: list[str] = []
+    if str(request.get("discover_result_type") or "").strip() != "complete":
+        return violations
+    if not str(request.get("discover_cache_scope") or "").strip():
+        violations.append("complete server/discover omitted cacheScope")
+    if not str(request.get("discover_ttl_ms") or "").strip():
+        violations.append("complete server/discover omitted ttlMs")
+    return violations
 
 
 def subscription_listen_violations(request: dict[str, Any]) -> list[str]:
@@ -367,6 +415,40 @@ def evaluate_agentic_protocol_conformance_decision(
                 violations=["legacy MCP notification subscription method"],
             )
 
+    if is_mcp_protocol(protocol_id) and has_discover_evidence(request):
+        discover_protocol = protocols.get("mcp-tooling-safety") or protocol
+        if request.get("server_info_used_for_security"):
+            return decision_result(
+                decision="deny_untrusted_protocol_surface",
+                reason="MCP serverInfo is self-reported and must not change client behavior or drive security decisions",
+                pack=conformance_pack,
+                request=request,
+                matched_protocol=discover_protocol,
+                matched_checks=selected_checks(discover_protocol, [DISCOVER_CHECK_ID]),
+                violations=["serverInfo used for security decisions"],
+            )
+        if uses_legacy_discover_method(request):
+            return decision_result(
+                decision="hold_for_protocol_drift_review",
+                reason="MCP 2026-07-28 requires server/discover; initialize is legacy and dual-era stdio clients should probe with server/discover first",
+                pack=conformance_pack,
+                request=request,
+                matched_protocol=discover_protocol,
+                matched_checks=selected_checks(discover_protocol, [DISCOVER_CHECK_ID]),
+                violations=["legacy MCP initialize without server/discover"],
+            )
+        cache_violations = discover_cache_hint_violations(request)
+        if cache_violations:
+            return decision_result(
+                decision="hold_for_protocol_evidence",
+                reason="Complete MCP server/discover results must carry ttlMs and cacheScope",
+                pack=conformance_pack,
+                request=request,
+                matched_protocol=discover_protocol,
+                matched_checks=selected_checks(discover_protocol, [DISCOVER_CHECK_ID]),
+                violations=cache_violations,
+            )
+
     if protocol_id == "mcp-tooling-safety":
         if request["schema_drift_detected"] or not request["tool_surface_pinned"]:
             return decision_result(
@@ -501,6 +583,10 @@ def request_from_args(args: argparse.Namespace) -> dict[str, Any]:
         "gateway_policy_hash",
         "subscription_method",
         "subscription_id",
+        "discover_method",
+        "discover_result_type",
+        "discover_cache_scope",
+        "discover_ttl_ms",
     ]:
         value = getattr(args, key)
         if value not in (None, ""):
@@ -533,6 +619,9 @@ def request_from_args(args: argparse.Namespace) -> dict[str, Any]:
         "untrusted_content_seen",
         "legacy_http_get_notifications",
         "legacy_resources_subscribe",
+        "legacy_initialize_without_discover",
+        "server_info_used_for_security",
+        "stdio_discover_probe_skipped",
     ]:
         if getattr(args, flag):
             payload[flag] = True
@@ -564,6 +653,10 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--gateway-policy-hash", dest="gateway_policy_hash")
     parser.add_argument("--subscription-method", dest="subscription_method")
     parser.add_argument("--subscription-id", dest="subscription_id")
+    parser.add_argument("--discover-method", dest="discover_method")
+    parser.add_argument("--discover-result-type", dest="discover_result_type")
+    parser.add_argument("--discover-cache-scope", dest="discover_cache_scope")
+    parser.add_argument("--discover-ttl-ms", dest="discover_ttl_ms")
     parser.add_argument("--data-class", dest="data_class", action="append", default=[])
     parser.add_argument(
         "--requested-notification-type",
@@ -621,6 +714,21 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument(
         "--legacy-resources-subscribe",
         dest="legacy_resources_subscribe",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--legacy-initialize-without-discover",
+        dest="legacy_initialize_without_discover",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--server-info-used-for-security",
+        dest="server_info_used_for_security",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--stdio-discover-probe-skipped",
+        dest="stdio_discover_probe_skipped",
         action="store_true",
     )
     parser.add_argument("--token-audience-bound", dest="token_audience_bound", action="store_true")

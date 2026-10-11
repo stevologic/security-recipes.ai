@@ -388,8 +388,8 @@
           "title": "MCP Authorization Conformance"
         },
         {
-          "commercial_value": "Packages live tool-list monitoring over subscriptions/listen, signed tool-surface baselines, annotation trust, and private-data plus untrusted-content plus external-send risk into a hosted MCP security control plane.",
-          "conformance_check_count": 5,
+          "commercial_value": "Packages required server/discover identity, cacheable discover results, live tool-list monitoring over subscriptions/listen, signed tool-surface baselines, annotation trust, and private-data plus untrusted-content plus external-send risk into a hosted MCP security control plane.",
+          "conformance_check_count": 6,
           "conformance_checks": [
             {
               "buyer_question": "Are annotations enforceable policy evidence or only UI hints from an untrusted server?",
@@ -515,6 +515,80 @@
               },
               "status": "ready",
               "title": "Tool Surface Pinning"
+            },
+            {
+              "buyer_question": "Can SecurityRecipes reject an MCP server that skips server/discover, treats self-reported serverInfo as security evidence, or omits cache hints on a complete discover result?",
+              "check_hash": "fb49830bb24e22d946c9acf28e94a587d6f8fab0bc552151b9ba9424011710e8",
+              "evidence_paths": [
+                "data/evidence/mcp-connector-intake-pack.json",
+                "data/evidence/agentic-protocol-conformance-pack.json"
+              ],
+              "fail_closed_decision": "deny_untrusted_protocol_surface",
+              "id": "mcp-server-discover-conformance",
+              "missing_evidence_paths": [],
+              "missing_source_pack_keys": [],
+              "protocol_id": "mcp-tooling-safety",
+              "required_runtime_attributes": [
+                "discover_method",
+                "server_info_used_for_security"
+              ],
+              "requirement": "MCP 2026-07-28 servers must implement server/discover. Dual-era stdio clients should probe with server/discover before falling back to initialize. Clients must not use self-reported serverInfo to change behavior or make security decisions. Complete discover results must carry ttlMs and cacheScope.",
+              "source_pack_keys": [
+                "mcp_connector_intake_pack"
+              ],
+              "source_pack_status": {
+                "mcp_connector_intake_pack": {
+                  "failure_count": 0,
+                  "path": "data/evidence/mcp-connector-intake-pack.json",
+                  "schema_version": "1.0",
+                  "status": "ready",
+                  "summaries": {
+                    "intake_summary": {
+                      "candidate_count": 4,
+                      "decision_counts": {
+                        "approve_for_registry_candidate": 1,
+                        "deny_until_redesigned": 1,
+                        "hold_for_controls": 2
+                      },
+                      "highest_risk_candidates": [
+                        {
+                          "candidate_id": "registry-publisher",
+                          "decision": "deny_until_redesigned",
+                          "namespace": "registries.publish",
+                          "risk_score": 100,
+                          "title": "Container Registry Publisher"
+                        },
+                        {
+                          "candidate_id": "tenant-analytics-mcp-app",
+                          "decision": "hold_for_controls",
+                          "namespace": "analytics.tenant.dashboard",
+                          "risk_score": 99,
+                          "title": "Tenant Analytics MCP App Dashboard"
+                        },
+                        {
+                          "candidate_id": "browser-research-stdio",
+                          "decision": "hold_for_controls",
+                          "namespace": "research.browser",
+                          "risk_score": 83,
+                          "title": "Local Browser Research STDIO Server"
+                        }
+                      ],
+                      "hold_or_deny_count": 3,
+                      "tier_counts": {
+                        "tier_1_internal_read": 2,
+                        "tier_2_scoped_write": 1,
+                        "tier_4_prohibited": 1
+                      },
+                      "transport_counts": {
+                        "stdio": 1,
+                        "streamable-http": 3
+                      }
+                    }
+                  }
+                }
+              },
+              "status": "ready",
+              "title": "MCP server/discover Conformance"
             },
             {
               "buyer_question": "Can SecurityRecipes reject an MCP notification stream that still uses resources/subscribe, skips the listen acknowledgment, or pushes unsolicited list-changed events?",
@@ -745,8 +819,10 @@
           "effective_decision": "ready_for_enterprise_conformance",
           "id": "mcp-tooling-safety",
           "readiness_score": 100.0,
-          "ready_check_count": 5,
+          "ready_check_count": 6,
           "source_ids": [
+            "mcp-server-discover-2026-07-28",
+            "mcp-caching-2026-07-28",
             "mcp-subscriptions-listen-2026-07-28",
             "mcp-spec-changelog-2026-07-28",
             "mcp-tool-annotations-2026-03-16",
@@ -754,6 +830,22 @@
             "openai-agent-prompt-injection-2026"
           ],
           "sources": [
+            {
+              "id": "mcp-server-discover-2026-07-28",
+              "name": "MCP server/discover (2026-07-28 current revision)",
+              "published": "2026-07-28",
+              "publisher": "Model Context Protocol",
+              "source_class": "protocol_specification",
+              "url": "https://modelcontextprotocol.io/specification/2026-07-28/server/discover"
+            },
+            {
+              "id": "mcp-caching-2026-07-28",
+              "name": "MCP Caching (2026-07-28 current revision)",
+              "published": "2026-07-28",
+              "publisher": "Model Context Protocol",
+              "source_class": "protocol_specification",
+              "url": "https://modelcontextprotocol.io/specification/2026-07-28/server/utilities/caching"
+            },
             {
               "id": "mcp-subscriptions-listen-2026-07-28",
               "name": "MCP Subscriptions Pattern (2026-07-28 current revision)",
@@ -2083,7 +2175,7 @@
                         "agentic-assurance-models",
                         "recipes"
                       ],
-                      "byte_count": 15066434,
+                      "byte_count": 15070929,
                       "decision_counts": {
                         "allow_with_adversarial_examples": 1,
                         "block_until_removed": 2,
@@ -2696,8 +2788,8 @@
           "title": "MCP Authorization Conformance"
         },
         {
-          "commercial_value": "Packages live tool-list monitoring over subscriptions/listen, signed tool-surface baselines, annotation trust, and private-data plus untrusted-content plus external-send risk into a hosted MCP security control plane.",
-          "conformance_check_count": 5,
+          "commercial_value": "Packages required server/discover identity, cacheable discover results, live tool-list monitoring over subscriptions/listen, signed tool-surface baselines, annotation trust, and private-data plus untrusted-content plus external-send risk into a hosted MCP security control plane.",
+          "conformance_check_count": 6,
           "conformance_checks": [
             {
               "buyer_question": "Are annotations enforceable policy evidence or only UI hints from an untrusted server?",
@@ -2823,6 +2915,80 @@
               },
               "status": "ready",
               "title": "Tool Surface Pinning"
+            },
+            {
+              "buyer_question": "Can SecurityRecipes reject an MCP server that skips server/discover, treats self-reported serverInfo as security evidence, or omits cache hints on a complete discover result?",
+              "check_hash": "fb49830bb24e22d946c9acf28e94a587d6f8fab0bc552151b9ba9424011710e8",
+              "evidence_paths": [
+                "data/evidence/mcp-connector-intake-pack.json",
+                "data/evidence/agentic-protocol-conformance-pack.json"
+              ],
+              "fail_closed_decision": "deny_untrusted_protocol_surface",
+              "id": "mcp-server-discover-conformance",
+              "missing_evidence_paths": [],
+              "missing_source_pack_keys": [],
+              "protocol_id": "mcp-tooling-safety",
+              "required_runtime_attributes": [
+                "discover_method",
+                "server_info_used_for_security"
+              ],
+              "requirement": "MCP 2026-07-28 servers must implement server/discover. Dual-era stdio clients should probe with server/discover before falling back to initialize. Clients must not use self-reported serverInfo to change behavior or make security decisions. Complete discover results must carry ttlMs and cacheScope.",
+              "source_pack_keys": [
+                "mcp_connector_intake_pack"
+              ],
+              "source_pack_status": {
+                "mcp_connector_intake_pack": {
+                  "failure_count": 0,
+                  "path": "data/evidence/mcp-connector-intake-pack.json",
+                  "schema_version": "1.0",
+                  "status": "ready",
+                  "summaries": {
+                    "intake_summary": {
+                      "candidate_count": 4,
+                      "decision_counts": {
+                        "approve_for_registry_candidate": 1,
+                        "deny_until_redesigned": 1,
+                        "hold_for_controls": 2
+                      },
+                      "highest_risk_candidates": [
+                        {
+                          "candidate_id": "registry-publisher",
+                          "decision": "deny_until_redesigned",
+                          "namespace": "registries.publish",
+                          "risk_score": 100,
+                          "title": "Container Registry Publisher"
+                        },
+                        {
+                          "candidate_id": "tenant-analytics-mcp-app",
+                          "decision": "hold_for_controls",
+                          "namespace": "analytics.tenant.dashboard",
+                          "risk_score": 99,
+                          "title": "Tenant Analytics MCP App Dashboard"
+                        },
+                        {
+                          "candidate_id": "browser-research-stdio",
+                          "decision": "hold_for_controls",
+                          "namespace": "research.browser",
+                          "risk_score": 83,
+                          "title": "Local Browser Research STDIO Server"
+                        }
+                      ],
+                      "hold_or_deny_count": 3,
+                      "tier_counts": {
+                        "tier_1_internal_read": 2,
+                        "tier_2_scoped_write": 1,
+                        "tier_4_prohibited": 1
+                      },
+                      "transport_counts": {
+                        "stdio": 1,
+                        "streamable-http": 3
+                      }
+                    }
+                  }
+                }
+              },
+              "status": "ready",
+              "title": "MCP server/discover Conformance"
             },
             {
               "buyer_question": "Can SecurityRecipes reject an MCP notification stream that still uses resources/subscribe, skips the listen acknowledgment, or pushes unsolicited list-changed events?",
@@ -3053,8 +3219,10 @@
           "effective_decision": "ready_for_enterprise_conformance",
           "id": "mcp-tooling-safety",
           "readiness_score": 100.0,
-          "ready_check_count": 5,
+          "ready_check_count": 6,
           "source_ids": [
+            "mcp-server-discover-2026-07-28",
+            "mcp-caching-2026-07-28",
             "mcp-subscriptions-listen-2026-07-28",
             "mcp-spec-changelog-2026-07-28",
             "mcp-tool-annotations-2026-03-16",
@@ -3062,6 +3230,22 @@
             "openai-agent-prompt-injection-2026"
           ],
           "sources": [
+            {
+              "id": "mcp-server-discover-2026-07-28",
+              "name": "MCP server/discover (2026-07-28 current revision)",
+              "published": "2026-07-28",
+              "publisher": "Model Context Protocol",
+              "source_class": "protocol_specification",
+              "url": "https://modelcontextprotocol.io/specification/2026-07-28/server/discover"
+            },
+            {
+              "id": "mcp-caching-2026-07-28",
+              "name": "MCP Caching (2026-07-28 current revision)",
+              "published": "2026-07-28",
+              "publisher": "Model Context Protocol",
+              "source_class": "protocol_specification",
+              "url": "https://modelcontextprotocol.io/specification/2026-07-28/server/utilities/caching"
+            },
             {
               "id": "mcp-subscriptions-listen-2026-07-28",
               "name": "MCP Subscriptions Pattern (2026-07-28 current revision)",
@@ -3650,7 +3834,7 @@
                         "agentic-assurance-models",
                         "recipes"
                       ],
-                      "byte_count": 15066434,
+                      "byte_count": 15070929,
                       "decision_counts": {
                         "allow_with_adversarial_examples": 1,
                         "block_until_removed": 2,
@@ -3914,6 +4098,8 @@
       "subscription_method",
       "subscription_id",
       "subscription_acknowledged",
+      "discover_method",
+      "server_info_used_for_security",
       "agent_card_signed",
       "extended_card_authenticated",
       "protocol_version_observed",
@@ -4363,6 +4549,80 @@
       },
       "status": "ready",
       "title": "Tool Surface Pinning"
+    },
+    {
+      "buyer_question": "Can SecurityRecipes reject an MCP server that skips server/discover, treats self-reported serverInfo as security evidence, or omits cache hints on a complete discover result?",
+      "check_hash": "fb49830bb24e22d946c9acf28e94a587d6f8fab0bc552151b9ba9424011710e8",
+      "evidence_paths": [
+        "data/evidence/mcp-connector-intake-pack.json",
+        "data/evidence/agentic-protocol-conformance-pack.json"
+      ],
+      "fail_closed_decision": "deny_untrusted_protocol_surface",
+      "id": "mcp-server-discover-conformance",
+      "missing_evidence_paths": [],
+      "missing_source_pack_keys": [],
+      "protocol_id": "mcp-tooling-safety",
+      "required_runtime_attributes": [
+        "discover_method",
+        "server_info_used_for_security"
+      ],
+      "requirement": "MCP 2026-07-28 servers must implement server/discover. Dual-era stdio clients should probe with server/discover before falling back to initialize. Clients must not use self-reported serverInfo to change behavior or make security decisions. Complete discover results must carry ttlMs and cacheScope.",
+      "source_pack_keys": [
+        "mcp_connector_intake_pack"
+      ],
+      "source_pack_status": {
+        "mcp_connector_intake_pack": {
+          "failure_count": 0,
+          "path": "data/evidence/mcp-connector-intake-pack.json",
+          "schema_version": "1.0",
+          "status": "ready",
+          "summaries": {
+            "intake_summary": {
+              "candidate_count": 4,
+              "decision_counts": {
+                "approve_for_registry_candidate": 1,
+                "deny_until_redesigned": 1,
+                "hold_for_controls": 2
+              },
+              "highest_risk_candidates": [
+                {
+                  "candidate_id": "registry-publisher",
+                  "decision": "deny_until_redesigned",
+                  "namespace": "registries.publish",
+                  "risk_score": 100,
+                  "title": "Container Registry Publisher"
+                },
+                {
+                  "candidate_id": "tenant-analytics-mcp-app",
+                  "decision": "hold_for_controls",
+                  "namespace": "analytics.tenant.dashboard",
+                  "risk_score": 99,
+                  "title": "Tenant Analytics MCP App Dashboard"
+                },
+                {
+                  "candidate_id": "browser-research-stdio",
+                  "decision": "hold_for_controls",
+                  "namespace": "research.browser",
+                  "risk_score": 83,
+                  "title": "Local Browser Research STDIO Server"
+                }
+              ],
+              "hold_or_deny_count": 3,
+              "tier_counts": {
+                "tier_1_internal_read": 2,
+                "tier_2_scoped_write": 1,
+                "tier_4_prohibited": 1
+              },
+              "transport_counts": {
+                "stdio": 1,
+                "streamable-http": 3
+              }
+            }
+          }
+        }
+      },
+      "status": "ready",
+      "title": "MCP server/discover Conformance"
     },
     {
       "buyer_question": "Can SecurityRecipes reject an MCP notification stream that still uses resources/subscribe, skips the listen acknowledgment, or pushes unsolicited list-changed events?",
@@ -5078,7 +5338,7 @@
                 "agentic-assurance-models",
                 "recipes"
               ],
-              "byte_count": 15066434,
+              "byte_count": 15070929,
               "decision_counts": {
                 "allow_with_adversarial_examples": 1,
                 "block_until_removed": 2,
@@ -5256,7 +5516,7 @@
     "sales_motion": "Lead with open protocol conformance evidence, then sell hosted live checks, drift alerts, signed receipts, fleet reporting, and private customer policy mapping."
   },
   "failures": [],
-  "generated_at": "2026-09-27",
+  "generated_at": "2026-10-11",
   "intent": "Create a buyer-grade protocol conformance layer for SecurityRecipes so MCP, A2A, agent identity, prompt-injection, and standards drift are translated into generated evidence, deterministic runtime decisions, and MCP-readable diligence artifacts.",
   "positioning": {
     "buyer": "AI platform, product security, AppSec, GRC, procurement security, and acquisition diligence teams",
@@ -5266,16 +5526,16 @@
   },
   "protocol_conformance_pack_id": "security-recipes-agentic-protocol-conformance",
   "protocol_conformance_summary": {
-    "control_check_count": 17,
+    "control_check_count": 18,
     "control_status_counts": {
-      "ready": 17
+      "ready": 18
     },
     "failure_count": 0,
     "protocol_decision_counts": {
       "ready_for_enterprise_conformance": 4
     },
     "protocol_profile_count": 4,
-    "ready_control_check_count": 17,
+    "ready_control_check_count": 18,
     "ready_protocol_profile_count": 4,
     "status": "protocol_conformance_ready"
   },
@@ -5664,8 +5924,8 @@
       "title": "MCP Authorization Conformance"
     },
     {
-      "commercial_value": "Packages live tool-list monitoring over subscriptions/listen, signed tool-surface baselines, annotation trust, and private-data plus untrusted-content plus external-send risk into a hosted MCP security control plane.",
-      "conformance_check_count": 5,
+      "commercial_value": "Packages required server/discover identity, cacheable discover results, live tool-list monitoring over subscriptions/listen, signed tool-surface baselines, annotation trust, and private-data plus untrusted-content plus external-send risk into a hosted MCP security control plane.",
+      "conformance_check_count": 6,
       "conformance_checks": [
         {
           "buyer_question": "Are annotations enforceable policy evidence or only UI hints from an untrusted server?",
@@ -5791,6 +6051,80 @@
           },
           "status": "ready",
           "title": "Tool Surface Pinning"
+        },
+        {
+          "buyer_question": "Can SecurityRecipes reject an MCP server that skips server/discover, treats self-reported serverInfo as security evidence, or omits cache hints on a complete discover result?",
+          "check_hash": "fb49830bb24e22d946c9acf28e94a587d6f8fab0bc552151b9ba9424011710e8",
+          "evidence_paths": [
+            "data/evidence/mcp-connector-intake-pack.json",
+            "data/evidence/agentic-protocol-conformance-pack.json"
+          ],
+          "fail_closed_decision": "deny_untrusted_protocol_surface",
+          "id": "mcp-server-discover-conformance",
+          "missing_evidence_paths": [],
+          "missing_source_pack_keys": [],
+          "protocol_id": "mcp-tooling-safety",
+          "required_runtime_attributes": [
+            "discover_method",
+            "server_info_used_for_security"
+          ],
+          "requirement": "MCP 2026-07-28 servers must implement server/discover. Dual-era stdio clients should probe with server/discover before falling back to initialize. Clients must not use self-reported serverInfo to change behavior or make security decisions. Complete discover results must carry ttlMs and cacheScope.",
+          "source_pack_keys": [
+            "mcp_connector_intake_pack"
+          ],
+          "source_pack_status": {
+            "mcp_connector_intake_pack": {
+              "failure_count": 0,
+              "path": "data/evidence/mcp-connector-intake-pack.json",
+              "schema_version": "1.0",
+              "status": "ready",
+              "summaries": {
+                "intake_summary": {
+                  "candidate_count": 4,
+                  "decision_counts": {
+                    "approve_for_registry_candidate": 1,
+                    "deny_until_redesigned": 1,
+                    "hold_for_controls": 2
+                  },
+                  "highest_risk_candidates": [
+                    {
+                      "candidate_id": "registry-publisher",
+                      "decision": "deny_until_redesigned",
+                      "namespace": "registries.publish",
+                      "risk_score": 100,
+                      "title": "Container Registry Publisher"
+                    },
+                    {
+                      "candidate_id": "tenant-analytics-mcp-app",
+                      "decision": "hold_for_controls",
+                      "namespace": "analytics.tenant.dashboard",
+                      "risk_score": 99,
+                      "title": "Tenant Analytics MCP App Dashboard"
+                    },
+                    {
+                      "candidate_id": "browser-research-stdio",
+                      "decision": "hold_for_controls",
+                      "namespace": "research.browser",
+                      "risk_score": 83,
+                      "title": "Local Browser Research STDIO Server"
+                    }
+                  ],
+                  "hold_or_deny_count": 3,
+                  "tier_counts": {
+                    "tier_1_internal_read": 2,
+                    "tier_2_scoped_write": 1,
+                    "tier_4_prohibited": 1
+                  },
+                  "transport_counts": {
+                    "stdio": 1,
+                    "streamable-http": 3
+                  }
+                }
+              }
+            }
+          },
+          "status": "ready",
+          "title": "MCP server/discover Conformance"
         },
         {
           "buyer_question": "Can SecurityRecipes reject an MCP notification stream that still uses resources/subscribe, skips the listen acknowledgment, or pushes unsolicited list-changed events?",
@@ -6021,8 +6355,10 @@
       "effective_decision": "ready_for_enterprise_conformance",
       "id": "mcp-tooling-safety",
       "readiness_score": 100.0,
-      "ready_check_count": 5,
+      "ready_check_count": 6,
       "source_ids": [
+        "mcp-server-discover-2026-07-28",
+        "mcp-caching-2026-07-28",
         "mcp-subscriptions-listen-2026-07-28",
         "mcp-spec-changelog-2026-07-28",
         "mcp-tool-annotations-2026-03-16",
@@ -6030,6 +6366,22 @@
         "openai-agent-prompt-injection-2026"
       ],
       "sources": [
+        {
+          "id": "mcp-server-discover-2026-07-28",
+          "name": "MCP server/discover (2026-07-28 current revision)",
+          "published": "2026-07-28",
+          "publisher": "Model Context Protocol",
+          "source_class": "protocol_specification",
+          "url": "https://modelcontextprotocol.io/specification/2026-07-28/server/discover"
+        },
+        {
+          "id": "mcp-caching-2026-07-28",
+          "name": "MCP Caching (2026-07-28 current revision)",
+          "published": "2026-07-28",
+          "publisher": "Model Context Protocol",
+          "source_class": "protocol_specification",
+          "url": "https://modelcontextprotocol.io/specification/2026-07-28/server/utilities/caching"
+        },
         {
           "id": "mcp-subscriptions-listen-2026-07-28",
           "name": "MCP Subscriptions Pattern (2026-07-28 current revision)",
@@ -6618,7 +6970,7 @@
                     "agentic-assurance-models",
                     "recipes"
                   ],
-                  "byte_count": 15066434,
+                  "byte_count": 15070929,
                   "decision_counts": {
                     "allow_with_adversarial_examples": 1,
                     "block_until_removed": 2,
@@ -6839,16 +7191,16 @@
   "source_artifacts": {
     "agentic_protocol_conformance_profile": {
       "path": "data/assurance/agentic-protocol-conformance-profile.json",
-      "sha256": "7ab0c411968728df70cf891e7e1ae8e5fa4fef51a168e1b8270260cad4c00832"
+      "sha256": "8d44b6b2bda7d3b13f24627433dbb3666ce68acd6c1bf8b0447673ac38c90668"
     },
     "source_packs": {
       "a2a_agent_card_trust_profile": {
         "path": "data/evidence/a2a-agent-card-trust-profile.json",
-        "sha256": "8f1db46a1f5c90d78e3656a4440241714912541df24b0fdc9accb45e405747ff"
+        "sha256": "9828851b90cd0ede83e0c679f0870d337986611e1dee910df1e7954f95479081"
       },
       "agent_handoff_boundary_pack": {
         "path": "data/evidence/agent-handoff-boundary-pack.json",
-        "sha256": "08609948c46aa7527d737e9f1a810b87de7578f8ce7dce9c2c85a67b7b62535a"
+        "sha256": "03f690d17b432e9ae68c6230fd7729deefe493af4794e03e6eed77e5a7180615"
       },
       "agent_identity_ledger": {
         "path": "data/evidence/agent-identity-delegation-ledger.json",
@@ -6856,7 +7208,7 @@
       },
       "agentic_control_plane_blueprint": {
         "path": "data/evidence/agentic-control-plane-blueprint.json",
-        "sha256": "6b0928321e93db546c6fc1a9c58c1636dcb5195dbcaf2c8d8c58cbc69b10148a"
+        "sha256": "7191b481597084bf5d12a6e8a9ceb2de44095aca7e95fcd333e59d9c54e060c4"
       },
       "agentic_red_team_drill_pack": {
         "path": "data/evidence/agentic-red-team-drill-pack.json",
@@ -6864,15 +7216,15 @@
       },
       "agentic_run_receipt_pack": {
         "path": "data/evidence/agentic-run-receipt-pack.json",
-        "sha256": "b8bfd0c71596765c2261487c1a37a370ecb37ae869739ed1e0153814826d0d19"
+        "sha256": "13e58fac741df70c6bdff96b305858db7089856be3831ef73d2b441dcc7ae6c6"
       },
       "context_egress_boundary_pack": {
         "path": "data/evidence/context-egress-boundary-pack.json",
-        "sha256": "cac250c11aac2d1d36ee34ce1e7625d10ca09cd1664ef8112beb82b2745ffd6b"
+        "sha256": "858c7f21289a1c88d1b8afdf1f48204de04492063b71d17ff6f33583220f4cbe"
       },
       "context_poisoning_guard_pack": {
         "path": "data/evidence/context-poisoning-guard-pack.json",
-        "sha256": "408b761acef05af3831e5a4e20223c34027a36327634e842470306514c33c408"
+        "sha256": "40ddb4451a0209b77b692904edb2f362abe8c4f72be29f529c4fd5c0df2edd81"
       },
       "mcp_authorization_conformance_pack": {
         "path": "data/evidence/mcp-authorization-conformance-pack.json",
@@ -6892,11 +7244,11 @@
       },
       "secure_context_eval_pack": {
         "path": "data/evidence/secure-context-eval-pack.json",
-        "sha256": "a249146748dde283ec265990ccbb7f544bb82366fba703559f601c2791571999"
+        "sha256": "54328c26a655ee945e6fd541283ee7f43b26cb98a3126e315504ec88dda41c38"
       },
       "standards_crosswalk": {
         "path": "data/evidence/agentic-standards-crosswalk.json",
-        "sha256": "324b3a12d7cd03657e78ff71e41c3f7af2ecd48687cc784fb48ccfcdffff05a0"
+        "sha256": "58917c0278c718a0f921b938e86dbc023822c0caf7d84f9364ec59ee8735d8d4"
       }
     }
   },
@@ -6954,6 +7306,24 @@
       "source_class": "protocol_specification",
       "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/patterns/subscriptions",
       "why_it_matters": "MCP 2026-07-28 replaced resources/subscribe and the HTTP GET notification endpoint with subscriptions/listen. Servers must acknowledge the stream with io.modelcontextprotocol/subscriptionId, must not send unrequested notification types, and must keep request-scoped progress and log messages on the originating request stream."
+    },
+    {
+      "id": "mcp-server-discover-2026-07-28",
+      "name": "MCP server/discover (2026-07-28 current revision)",
+      "published": "2026-07-28",
+      "publisher": "Model Context Protocol",
+      "source_class": "protocol_specification",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/server/discover",
+      "why_it_matters": "MCP 2026-07-28 requires servers to implement server/discover to advertise supported versions, capabilities, and identity. serverInfo is self-reported and must not change client behavior or drive security decisions. Dual-era stdio clients should probe with server/discover before falling back to initialize."
+    },
+    {
+      "id": "mcp-caching-2026-07-28",
+      "name": "MCP Caching (2026-07-28 current revision)",
+      "published": "2026-07-28",
+      "publisher": "Model Context Protocol",
+      "source_class": "protocol_specification",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/server/utilities/caching",
+      "why_it_matters": "Complete server/discover results MUST include ttlMs and cacheScope. cacheScope is a freshness and sharing hint, not an access-control lock, and input_required results are not cacheable."
     },
     {
       "id": "mcp-spec-changelog-2026-07-28",

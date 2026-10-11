@@ -179,5 +179,112 @@ class AgenticProtocolConformanceSubscriptionTests(unittest.TestCase):
         self.assertIn("mcp-spec-changelog-2026-07-28", source_ids)
 
 
+class AgenticProtocolConformanceDiscoverTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.pack = json.loads(PACK_PATH.read_text(encoding="utf-8"))
+
+    def test_unspecified_discover_evidence_still_allows_authorization(self) -> None:
+        result = evaluate_agentic_protocol_conformance_decision(
+            self.pack, _authorization_request()
+        )
+        self.assertEqual(result["decision"], "allow_with_protocol_receipt")
+        self.assertTrue(result["allowed"])
+
+    def test_matching_discover_is_allowed(self) -> None:
+        result = evaluate_agentic_protocol_conformance_decision(
+            self.pack,
+            _tooling_request(
+                discover_method="server/discover",
+                discover_result_type="complete",
+                discover_cache_scope="public",
+                discover_ttl_ms="3600000",
+            ),
+        )
+        self.assertEqual(result["decision"], "allow_with_protocol_receipt")
+        self.assertTrue(result["allowed"])
+
+    def test_legacy_initialize_is_held_for_drift_review(self) -> None:
+        result = evaluate_agentic_protocol_conformance_decision(
+            self.pack,
+            _authorization_request(discover_method="initialize"),
+        )
+        self.assertEqual(result["decision"], "hold_for_protocol_drift_review")
+        self.assertFalse(result["allowed"])
+        self.assertTrue(
+            any("legacy MCP initialize without server/discover" in item for item in result["violations"])
+        )
+
+    def test_stdio_discover_probe_skipped_is_held_for_drift_review(self) -> None:
+        result = evaluate_agentic_protocol_conformance_decision(
+            self.pack,
+            _authorization_request(stdio_discover_probe_skipped=True),
+        )
+        self.assertEqual(result["decision"], "hold_for_protocol_drift_review")
+        self.assertFalse(result["allowed"])
+
+    def test_server_info_used_for_security_is_denied(self) -> None:
+        result = evaluate_agentic_protocol_conformance_decision(
+            self.pack,
+            _tooling_request(
+                discover_method="server/discover",
+                server_info_used_for_security=True,
+            ),
+        )
+        self.assertEqual(result["decision"], "deny_untrusted_protocol_surface")
+        self.assertFalse(result["allowed"])
+        self.assertTrue(
+            any("serverInfo used for security decisions" in item for item in result["violations"])
+        )
+
+    def test_complete_discover_omitted_cache_scope_is_held(self) -> None:
+        result = evaluate_agentic_protocol_conformance_decision(
+            self.pack,
+            _tooling_request(
+                discover_method="server/discover",
+                discover_result_type="complete",
+                discover_ttl_ms="3600000",
+            ),
+        )
+        self.assertEqual(result["decision"], "hold_for_protocol_evidence")
+        self.assertFalse(result["allowed"])
+        self.assertTrue(
+            any("omitted cacheScope" in item for item in result["violations"])
+        )
+
+    def test_complete_discover_omitted_ttl_is_held(self) -> None:
+        result = evaluate_agentic_protocol_conformance_decision(
+            self.pack,
+            _tooling_request(
+                discover_method="server/discover",
+                discover_result_type="complete",
+                discover_cache_scope="public",
+            ),
+        )
+        self.assertEqual(result["decision"], "hold_for_protocol_evidence")
+        self.assertFalse(result["allowed"])
+        self.assertTrue(
+            any("omitted ttlMs" in item for item in result["violations"])
+        )
+
+    def test_discover_sources_are_present(self) -> None:
+        source_ids = {
+            str(row.get("id"))
+            for row in self.pack.get("source_references", [])
+            if isinstance(row, dict)
+        }
+        self.assertIn("mcp-server-discover-2026-07-28", source_ids)
+        self.assertIn("mcp-caching-2026-07-28", source_ids)
+        self.assertIn("mcp-spec-changelog-2026-07-28", source_ids)
+        check_ids = {
+            str(check.get("id"))
+            for protocol in self.pack.get("protocol_profiles", [])
+            if isinstance(protocol, dict)
+            for check in protocol.get("conformance_checks", [])
+            if isinstance(check, dict)
+        }
+        self.assertIn("mcp-server-discover-conformance", check_ids)
+
+
 if __name__ == "__main__":
     unittest.main()
