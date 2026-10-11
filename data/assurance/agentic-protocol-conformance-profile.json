@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-09-27",
+  "last_reviewed": "2026-10-11",
   "intent": "Create a buyer-grade protocol conformance layer for SecurityRecipes so MCP, A2A, agent identity, prompt-injection, and standards drift are translated into generated evidence, deterministic runtime decisions, and MCP-readable diligence artifacts.",
   "positioning": {
     "buyer": "AI platform, product security, AppSec, GRC, procurement security, and acquisition diligence teams",
@@ -33,6 +33,8 @@
       "subscription_method",
       "subscription_id",
       "subscription_acknowledged",
+      "discover_method",
+      "server_info_used_for_security",
       "agent_card_signed",
       "extended_card_authenticated",
       "protocol_version_observed",
@@ -109,6 +111,24 @@
       "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/patterns/subscriptions",
       "source_class": "protocol_specification",
       "why_it_matters": "MCP 2026-07-28 replaced resources/subscribe and the HTTP GET notification endpoint with subscriptions/listen. Servers must acknowledge the stream with io.modelcontextprotocol/subscriptionId, must not send unrequested notification types, and must keep request-scoped progress and log messages on the originating request stream."
+    },
+    {
+      "id": "mcp-server-discover-2026-07-28",
+      "name": "MCP server/discover (2026-07-28 current revision)",
+      "publisher": "Model Context Protocol",
+      "published": "2026-07-28",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/server/discover",
+      "source_class": "protocol_specification",
+      "why_it_matters": "MCP 2026-07-28 requires servers to implement server/discover to advertise supported versions, capabilities, and identity. serverInfo is self-reported and must not change client behavior or drive security decisions. Dual-era stdio clients should probe with server/discover before falling back to initialize."
+    },
+    {
+      "id": "mcp-caching-2026-07-28",
+      "name": "MCP Caching (2026-07-28 current revision)",
+      "publisher": "Model Context Protocol",
+      "published": "2026-07-28",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/server/utilities/caching",
+      "source_class": "protocol_specification",
+      "why_it_matters": "Complete server/discover results MUST include ttlMs and cacheScope. cacheScope is a freshness and sharing hint, not an access-control lock, and input_required results are not cacheable."
     },
     {
       "id": "mcp-spec-changelog-2026-07-28",
@@ -279,13 +299,15 @@
         "2026-03-16-tool-annotations"
       ],
       "source_ids": [
+        "mcp-server-discover-2026-07-28",
+        "mcp-caching-2026-07-28",
         "mcp-subscriptions-listen-2026-07-28",
         "mcp-spec-changelog-2026-07-28",
         "mcp-tool-annotations-2026-03-16",
         "mcp-spec-changelog-2025-11-25",
         "openai-agent-prompt-injection-2026"
       ],
-      "commercial_value": "Packages live tool-list monitoring over subscriptions/listen, signed tool-surface baselines, annotation trust, and private-data plus untrusted-content plus external-send risk into a hosted MCP security control plane.",
+      "commercial_value": "Packages required server/discover identity, cacheable discover results, live tool-list monitoring over subscriptions/listen, signed tool-surface baselines, annotation trust, and private-data plus untrusted-content plus external-send risk into a hosted MCP security control plane.",
       "conformance_checks": [
         {
           "id": "mcp-trusted-tool-annotations",
@@ -322,6 +344,24 @@
           ],
           "fail_closed_decision": "hold_for_protocol_drift_review",
           "buyer_question": "What happens when a tool changes after a previous approval?"
+        },
+        {
+          "id": "mcp-server-discover-conformance",
+          "title": "MCP server/discover Conformance",
+          "requirement": "MCP 2026-07-28 servers must implement server/discover. Dual-era stdio clients should probe with server/discover before falling back to initialize. Clients must not use self-reported serverInfo to change behavior or make security decisions. Complete discover results must carry ttlMs and cacheScope.",
+          "source_pack_keys": [
+            "mcp_connector_intake_pack"
+          ],
+          "evidence_paths": [
+            "data/evidence/mcp-connector-intake-pack.json",
+            "data/evidence/agentic-protocol-conformance-pack.json"
+          ],
+          "required_runtime_attributes": [
+            "discover_method",
+            "server_info_used_for_security"
+          ],
+          "fail_closed_decision": "deny_untrusted_protocol_surface",
+          "buyer_question": "Can SecurityRecipes reject an MCP server that skips server/discover, treats self-reported serverInfo as security evidence, or omits cache hints on a complete discover result?"
         },
         {
           "id": "mcp-subscription-listen-conformance",
