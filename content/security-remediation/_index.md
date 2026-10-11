@@ -112,8 +112,8 @@ below for a specific finding class.
 
 Use a CVE-specific recipe only when its product and affected-version evidence
 match the finding you are investigating. The [CVE Database](/cve-database/)
-publishes 35 search-indexable CVE pages: 33 human-reviewed stable guides
-and 2 AI-qualified pages that already name a vendor or GHSA fixed
+publishes {{< search-indexable-count field="total" >}} search-indexable CVE pages: {{< search-indexable-count field="stable_markdown" >}} human-reviewed stable guides
+and {{< search-indexable-count field="recipe_ready_ai" >}} AI-qualified pages that already name a vendor or GHSA fixed
 release. Development drafts stay noindex so leftover version text cannot
 become a search or MCP floor.
 

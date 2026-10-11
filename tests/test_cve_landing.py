@@ -2080,8 +2080,61 @@ class CveLandingRenderTests(unittest.TestCase):
         self.assertEqual(article["author"], {"@id": organization["@id"]})
         self.assertEqual(article["datePublished"], "2026-07-17T07:03:00Z")
         self.assertEqual(article["dateModified"], "2026-07-17T07:03:00Z")
+        self.assertEqual(
+            organization["logo"]["url"],
+            "https://security-recipes.ai/icon-192x192.png",
+        )
+        self.assertEqual(
+            organization["sameAs"],
+            list(mcp_server._CVE_LANDING_ORGANIZATION_SAME_AS),
+        )
         self.assertIn("source-linked evidence synthesis", article["creditText"])
         self.assertFalse(any(node.get("@type") == "Person" for node in graph))
+
+    def test_search_indexable_date_modified_is_record_freshness_not_build_time(self) -> None:
+        allowlist = json.loads(
+            (ROOT / "static" / "api" / "cve-catalog" / "search-indexable.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        observed: set[str] = set()
+        for record in allowlist.get("records", []):
+            cve_id = str(record.get("cve") or "")
+            if cve_id in mcp_server._CVE_STATIC_CANONICAL_ROUTES:
+                continue
+            recipe = mcp_server.cve_catalog.get_recipe(cve_id)
+            self.assertTrue(recipe.get("found"), cve_id)
+            page = mcp_server._render_cve_landing_page(recipe)
+            graph_match = re.search(
+                r'<script type="application/ld\+json">(.*?)</script>',
+                page,
+            )
+            self.assertIsNotNone(graph_match, cve_id)
+            assert graph_match is not None
+            article = next(
+                node
+                for node in json.loads(graph_match.group(1))["@graph"]
+                if node.get("@type") == "Article"
+            )
+            self.assertRegex(str(article.get("dateModified") or ""), r"^\d{4}-\d{2}-\d{2}")
+            source_record = recipe["source_record"]
+            reviewed = mcp_server._cve_landing_stable_override(
+                cve_id,
+                recipe.get("composed_recipe") or {},
+            )
+            legitimate_modified = {
+                mcp_server._cve_landing_iso_date(value)
+                for value in (
+                    mcp_server._CVE_LANDING_EDITORIAL_LASTMOD,
+                    source_record.get("last_modified"),
+                    reviewed.get("lastmod"),
+                    reviewed.get("date"),
+                    article.get("datePublished"),
+                )
+            } - {""}
+            self.assertIn(article["dateModified"], legitimate_modified, cve_id)
+            observed.add(article["dateModified"])
+        self.assertGreater(len(observed), 1)
 
     def test_all_recipe_ready_ai_pages_publish_complete_fixed_version_snippets(self) -> None:
         allowlist = json.loads(
