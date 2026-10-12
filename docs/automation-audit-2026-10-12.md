@@ -56,7 +56,7 @@ LLM. Only bounded supplemental enrichment uses a model.
 | Shepherd | twice hourly 07/37 plus events/kicks | hourly 07 plus events/kicks | 336 → 168 scheduled starts/week; preserve token-event suppression recovery and two-attempt Build limit |
 | AI repair | workflow failures; Grok CLI | same triggers; `XAI_REPAIR_MODEL` | Separate slot per failed run prevents dropped investigations; never retry real defects blindly |
 | AI issue triage | owner events, workflow completions, daily 16:41 | same triggers; `XAI_TRIAGE_MODEL` | Check issue queue before model setup; correct stale documentation that claimed twice daily |
-| Security health | all PRs, Monday 05:23; name-ranked automatic model | same cadence; explicit `XAI_HEALTH_MODEL` | Avoid inferring price or security-review quality from model names |
+| Security health | all PRs, Monday 05:23; name-ranked automatic model | Monday 05:23 and dispatch only; default-branch code; explicit `XAI_HEALTH_MODEL` | Avoid provider keys in PR-selected action code and repeated paid baseline reviews; PR factual/build/review gates remain |
 | Search indexing | daily 07:53 and every successful Build | daily 15:53 and successful production-main Builds | Skip PR/staging completions; verify the completed revision is live before submission; daily sweep covers deploy lag |
 | CVE exact-SHA validation | explicit dispatch | unchanged | Read-only code execution, separate status writer, exact-head factual/security gates |
 | CVE validation request | legacy dispatch-only identity check | retained | Current main dispatches validation directly; do not delete a useful legacy entry point without caller evidence |
@@ -178,7 +178,9 @@ The advisory Security health run completed using authenticated xAI `grok-4.6`,
 but reported supply-chain and container **fail** verdicts under the existing
 `fail-on: never` policy. Workflow success is not a clean security verdict.
 
-One actionable boundary is corrected here: Dev DNS no longer runs on PRs or
+Two credential boundaries are corrected here: the advisory Security health
+sweep runs weekly or by dispatch from default-branch code, with no PR trigger.
+Dev DNS no longer runs on PRs or
 PR-origin Build completions, and repair scripts always come from the protected
 default branch before cloud/SSH secrets reach repository code. Existing Docker
 mutable tags/root runtime, unhashed Python installs, and AI auto-merge review

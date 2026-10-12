@@ -157,6 +157,7 @@ test('this repository runs the action on the existing xAI key', () => {
   const steps = workflow.jobs['security-health'].steps;
   const authStep = steps.find((step) => step.id === 'auth');
   const actionStep = steps.find((step) => step.uses === './actions/security-health');
+  const checkoutStep = steps.find((step) => step.name === 'Checkout source');
 
   assert.ok(authStep, 'detect credentials before invoking the local action');
   assert.equal(authStep.env.XAI_API_KEY, '${{ secrets.XAI_API_KEY }}');
@@ -166,6 +167,10 @@ test('this repository runs the action on the existing xAI key', () => {
   assert.equal(actionStep.with['api-key'], '${{ secrets.XAI_API_KEY }}');
   assert.equal(actionStep.with.model, "${{ vars.XAI_HEALTH_MODEL || vars.XAI_MODEL || 'grok-4.6' }}", 'this repository pins a demonstrated model instead of selecting by name');
   const trigger = workflow.on || workflow.true;
-  assert.ok(trigger.pull_request !== undefined);
+  assert.equal(trigger.pull_request, undefined, 'PR-selected code must not receive the provider credential');
+  assert.equal(trigger.pull_request_target, undefined);
   assert.ok(trigger.schedule);
+  assert.ok(trigger.workflow_dispatch !== undefined);
+  assert.equal(checkoutStep.with.ref, '${{ github.event.repository.default_branch }}');
+  assert.equal(checkoutStep.with['persist-credentials'], false);
 });

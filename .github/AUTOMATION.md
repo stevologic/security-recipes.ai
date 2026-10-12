@@ -29,7 +29,7 @@ GitHub Actions is the clock and host. Grok is the only billed brain.
 | Job | Host | Brain |
 | --- | --- | --- |
 | CVE catalog enrichment | Actions (`cve-catalog-sync.yml`) | xAI Responses API (`grok-4.6`) |
-| Security health | Actions (`security-health.yml`) | xAI/Grok |
+| Security health | Weekly/dispatch Actions (`security-health.yml`), trusted default-branch code | xAI/Grok |
 | Leftover review | Actions (`leftover-review.yml`) | Grok Build CLI |
 | Content refresh | Actions (`content-refresh.yml`) | Grok Build CLI |
 | AI maintenance | Actions (`ai-maintenance.yml`), optional Cursor Automation | Grok Build CLI / Cursor Grok model |
@@ -121,7 +121,7 @@ confirms the production handoff landed. Never put `secrets` in a workflow
 | --- | --- | --- | --- |
 | `XAI_API_KEY` | secret | must be added | The only billed-AI secret. CVE enrichment and recipe drafts, this repository's security-health action, leftover-gold review, content refresh, AI maintenance, and AI issue maintenance all use Grok through this name. Official xAI and this repo's existing `xai` provider both use it. |
 | `XAI_MODEL` | variable | optional, defaults to `grok-4.6` | Model id for enrichment, Grok CLI jobs, and the remediations suite. Bump when xAI publishes a newer coding model. |
-| `OPENAI_API_KEY` | secret | unused by first-party workflows | Safe to remove from GitHub Actions after this change lands. Public Codex recipes on the site are reader documentation, not CI. |
+| `OPENAI_API_KEY` | secret | unused by first-party workflows; Daybreak access unverified | Preserve any existing secret pending the Daybreak decision. This change does not read, remove, replace, or create it. Public Codex recipes are reader documentation. |
 | `DIGITALOCEAN_ACCESS_TOKEN` | secret or droplet `deploy.env` | optional | Lets deploy.sh and the Dev DNS record workflow create `dev.security-recipes.ai` |
 | `CVE_AUTO_MERGE_ENABLED` | variable | `true` | Lets the catalog sync merge its own PR |
 | `CVE_AUTOMATION_APP_CLIENT_ID` / `CVE_AUTOMATION_APP_PRIVATE_KEY` | variable / secret | optional | A dedicated GitHub App; when configured, its pushes trigger normal CI events and the dispatch workarounds above become unnecessary |
