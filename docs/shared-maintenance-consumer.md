@@ -1,7 +1,7 @@
 # Shared maintenance consumer draft
 
-This consumer pins contract 1.1.0 at
-[`1e6e9a9c4dc9f766c49a421ea268f247d1113287`](https://github.com/stevologic/oss-deps-explorer/blob/1e6e9a9c4dc9f766c49a421ea268f247d1113287/actions/maintenance/README.md).
+This consumer pins contract 1.1.1 at
+[`bf9289390aa6304c4ed81596fb0d7dfba712608b`](https://github.com/stevologic/oss-deps-explorer/blob/bf9289390aa6304c4ed81596fb0d7dfba712608b/actions/maintenance/README.md).
 Its policy belongs to this repository. The caller passes only the existing
 read-only GitHub token; all mutation flags and advisory AI are false. No model
 key, model selection, provider migration, access grant or operations caller is
@@ -23,6 +23,12 @@ not reproduce this repository's full Build or judge the Security/owning-team
 roles required by [CONTRIBUTING.md](../CONTRIBUTING.md#review-expectations) and
 [GOVERNANCE.md](../GOVERNANCE.md#contribution-workflow). Those gates remain
 mandatory. The configured `build` check is the existing job context.
+
+Version 1.1.1 removes a superseded cancellation from queue blockers only when a
+newer successful run matches the exact head, workflow, event and branch. A
+dispatch success cannot clear a PR cancellation; failure, approval-required
+status and explicit review holds remain blocking. This changes report accuracy
+and grants no approval or mutation authority.
 
 PRs 361, 382 and 383 are reserved in this initial policy because their documented
 review/integration requirements are pending. These reservations affect this

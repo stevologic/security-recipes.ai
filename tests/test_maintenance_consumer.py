@@ -7,7 +7,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-PIN = "1e6e9a9c4dc9f766c49a421ea268f247d1113287"
+PIN = "bf9289390aa6304c4ed81596fb0d7dfba712608b"
 
 
 class MaintenanceConsumerTests(unittest.TestCase):
