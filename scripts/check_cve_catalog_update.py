@@ -418,12 +418,78 @@ def enrichment_health(sync_report: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def enrichment_recovery(
+    candidate: dict[str, Any],
+    sync_report: dict[str, Any],
+    *,
+    healthy: bool,
+    catalog_safe: bool,
+) -> dict[str, Any]:
+    """Require run evidence before closing an existing enrichment incident.
+
+    Health thresholds stay independent: a healthy no-op may keep an incident
+    open, while a complete scan with no pending work can prove recovery.
+    """
+    def held(reason: str) -> dict[str, Any]:
+        return {"ready": False, "reason": reason}
+
+    if not healthy:
+        return held("enrichment-unhealthy")
+    if not catalog_safe:
+        return held("catalog-quarantined")
+    raw = sync_report.get("ai_enrichment")
+    counts = {
+        key: _integer(raw, key)
+        for key in (
+            "eligible", "selected", "generated", "failed",
+            "refresh_due", "refresh_forced",
+        )
+    }
+    if any(value is None or value < 0 for value in counts.values()):
+        return held("missing-or-invalid-enrichment-counts")
+    eligible = counts["eligible"]
+    selected = counts["selected"]
+    generated = counts["generated"]
+    failed = counts["failed"]
+    if (
+        generated + failed > selected
+        or selected > eligible
+        or counts["refresh_due"] > eligible
+        or counts["refresh_forced"] > eligible
+    ):
+        return held("inconsistent-enrichment-counts")
+
+    records = _integer(candidate.get("totals"), "catalog_records")
+    scope = candidate.get("scope")
+    start = _timestamp(scope.get("published_start")) if isinstance(scope, dict) else None
+    end = _timestamp(scope.get("published_end")) if isinstance(scope, dict) else None
+    if (
+        sync_report.get("dry_run") is not False
+        or records is None or records <= 0
+        or _integer(sync_report.get("totals"), "catalog_records") != records
+        or start is None or end is None or start > end
+        or sync_report.get("scope") != scope
+    ):
+        return held("missing-or-inconsistent-catalog-scan")
+
+    if selected > 0 and generated > 0:
+        return {"ready": True, "reason": "healthy-nonzero-enrichment"}
+    if eligible == 0 and selected == 0 and generated == 0 and failed == 0:
+        return {"ready": True, "reason": "verified-empty-backlog"}
+    return held("pending-work-without-enrichment")
+
+
 def build_report(
     baseline: dict[str, Any],
     candidate: dict[str, Any],
     sync_report: dict[str, Any],
 ) -> dict[str, Any]:
     anomalies = catalog_anomalies(baseline, candidate, sync_report)
+    enrichment = enrichment_health(sync_report)
+    enrichment["recovery"] = enrichment_recovery(
+        candidate, sync_report,
+        healthy=enrichment["healthy"], catalog_safe=not anomalies,
+    )
     return {
         "schema_version": SCHEMA_VERSION,
         "checked_at": datetime.now(timezone.utc)
@@ -432,7 +498,7 @@ def build_report(
         .replace("+00:00", "Z"),
         "safe_to_merge": not anomalies,
         "anomalies": [asdict(item) for item in anomalies],
-        "enrichment": enrichment_health(sync_report),
+        "enrichment": enrichment,
         "baseline": {
             "catalog_updated_at": baseline.get("catalog_updated_at"),
             "catalog_records": _integer(baseline.get("totals"), "catalog_records"),
@@ -486,6 +552,12 @@ def markdown_report(report: dict[str, Any]) -> str:
                 f"- Status: **{'healthy' if enrichment.get('healthy') else 'attention required'}**",
             ]
         )
+        recovery = enrichment.get("recovery")
+        if isinstance(recovery, dict):
+            lines.append(
+                f"- Incident recovery: **{'ready' if recovery.get('ready') else 'held'}** "
+                f"({recovery.get('reason', 'missing-evidence')})"
+            )
         if isinstance(metrics, dict):
             lines.append(
                 "- Requests: "
@@ -507,11 +579,17 @@ def markdown_report(report: dict[str, Any]) -> str:
 def _write_github_output(path: Path, report: dict[str, Any]) -> None:
     enrichment = report.get("enrichment")
     healthy = isinstance(enrichment, dict) and enrichment.get("healthy") is True
+    recovery = enrichment.get("recovery") if isinstance(enrichment, dict) else None
+    recovery_ready = (
+        healthy and report.get("safe_to_merge") is True
+        and isinstance(recovery, dict) and recovery.get("ready") is True
+    )
     with path.open("a", encoding="utf-8") as stream:
         stream.write(
             f"safe_to_merge={'true' if report.get('safe_to_merge') else 'false'}\n"
         )
         stream.write(f"enrichment_healthy={'true' if healthy else 'false'}\n")
+        stream.write(f"enrichment_recovery_ready={'true' if recovery_ready else 'false'}\n")
         stream.write(f"anomaly_count={len(report.get('anomalies') or [])}\n")
 
 
