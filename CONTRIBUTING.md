@@ -30,7 +30,8 @@ fork-and-PR workflow we use to land changes.
    [Running the site locally](#running-the-site-locally)).
 5. **Open a PR** against `main` on the upstream repo.
 6. Get **one reviewer from Security** and **one from the team that owns
-   the prompt or recipe**.
+   the prompt or recipe**. Delegated AI review is permitted only through the
+   explicitly approved automated-maintenance process in `GOVERNANCE.md`.
 7. On merge, the GitHub Actions workflow rebuilds the site and pushes
    to `gh-pages` automatically — you don't have to touch deploys.
 
@@ -504,6 +505,13 @@ A PR needs **two approvals** to merge:
 2. **Owning team** — at least one reviewer from the team that will be
    on-the-hook for the prompt or recipe. This is the sanity check that
    it actually reflects how the team works.
+
+For eligible maintenance, the two role approvals may be supplied by separate
+owner-delegated independent AI review runs under the automated-maintenance
+process in `GOVERNANCE.md`. These are delegated process approvals, not claims
+that an AI is a human team member or that a report is a GitHub approving review.
+The delegation is inactive until its trusted verifier is approved and installed.
+All other PRs retain the existing role-review requirements.
 
 Expected turnaround is **3 business days** for a first review. Ping
 the reviewers in chat if it's been longer — PRs go stale fast.
