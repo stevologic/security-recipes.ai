@@ -5,12 +5,16 @@
 # persist in the caddy_data volume across deploys. Enabled through the
 # "caddy" compose profile (COMPOSE_PROFILES=caddy in .env).
 #
+# SECURITY_RECIPES_MIRROR_DOMAIN (default security-recipes.si) serves the same
+# blue/green upstreams. Visible chrome is host-aware; SEO canonicals stay on
+# the .ai origin. ACME issues a cert once public DNS for the mirror exists.
+#
 # Placeholders come from the caddy service environment in docker-compose.yml.
 {
 	email {$SECURITY_RECIPES_ACME_EMAIL:admin@security-recipes.ai}
 }
 
-{$SECURITY_RECIPES_DOMAIN:security-recipes.ai} {
+(security_recipes_site) {
 	encode zstd gzip
 
 	# Structured access logs feed the public, aggregate-only GoAccess report.
@@ -46,12 +50,24 @@
 	}
 }
 
+{$SECURITY_RECIPES_DOMAIN:security-recipes.ai} {
+	import security_recipes_site
+}
+
+{$SECURITY_RECIPES_MIRROR_DOMAIN:security-recipes.si} {
+	import security_recipes_site
+}
+
 # Consolidate backlinks and accidental visits to one canonical HTTPS host.
 # The www DNS record already resolves to this deployment, so Caddy must obtain
 # a certificate before redirecting; redirecting HTTP to a broken HTTPS www
 # endpoint strands both users and crawlers at the TLS handshake.
 www.{$SECURITY_RECIPES_DOMAIN:security-recipes.ai} {
 	redir https://{$SECURITY_RECIPES_DOMAIN:security-recipes.ai}{uri} permanent
+}
+
+www.{$SECURITY_RECIPES_MIRROR_DOMAIN:security-recipes.si} {
+	redir https://{$SECURITY_RECIPES_MIRROR_DOMAIN:security-recipes.si}{uri} permanent
 }
 
 # Staging track served from the `development` branch. Keep it on this droplet

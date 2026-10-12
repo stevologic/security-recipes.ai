@@ -1288,7 +1288,7 @@
         {
           "label": "Decision",
           "title": "Match a handoff profile",
-          "detail": "Require target trust, protocol conformance, purpose, approvals, egress policy, and the minimum necessary fields."
+          "detail": "Require target trust, A2A-Version 1.0, out-of-band AUTH_REQUIRED credentials, protocol conformance, purpose, approvals, egress policy, and the minimum necessary fields."
         },
         {
           "label": "Action",
@@ -1302,9 +1302,9 @@
         }
       ],
       "gate": {
-        "question": "Is the target trusted and is every payload field permitted for this protocol, purpose, and approval state?",
+        "question": "Is the target trusted, is A2A-Version 1.0 present, and is every payload field permitted for this protocol, purpose, and approval state?",
         "pass": "Send only the approved minimized payload and authority.",
-        "stop": "Hold, deny, or kill when trust, purpose, approval, or prohibited-data checks fail."
+        "stop": "Hold, deny, or kill when trust, version, AUTH_REQUIRED channel, purpose, approval, or prohibited-data checks fail."
       },
       "evidence": [
         "source/target trust records",
@@ -1532,7 +1532,7 @@
       "title": "Agentic Entitlement Review Pack",
       "page": "/security-remediation/agentic-entitlement-review/",
       "category": "agent-runtime",
-      "summary": "Review leased non-human permissions against actual workflow use and renew, restrict, or revoke them before reuse.",
+      "summary": "Review leased non-human permissions against actual workflow use, reject omnibus MCP token scopes, and renew, restrict, or revoke them before reuse.",
       "phases": [
         {
           "label": "Signal",
@@ -1547,7 +1547,7 @@
         {
           "label": "Decision",
           "title": "Assess least privilege",
-          "detail": "Check owner, purpose, separation of duties, expiry, resource bounds, high-impact authority, and control coverage."
+          "detail": "Check owner, purpose, separation of duties, expiry, resource bounds, omnibus token scopes (files:*, db:*, admin:*), full-catalog initial grants, high-impact authority, and control coverage."
         },
         {
           "label": "Action",
@@ -1589,6 +1589,7 @@
         "agent entitlement review",
         "non-human identity",
         "least privilege lease",
+        "MCP scope minimization",
         "permission revocation"
       ]
     },
@@ -2646,7 +2647,7 @@
         {
           "label": "Scope",
           "title": "Build conformance cases",
-          "detail": "Choose discover, subscriptions/listen, schema, authorization, cancellation, error, retry, handoff, and security-boundary tests. Treat resources/subscribe and HTTP GET notifications as 2026-07-28 drift."
+          "detail": "Choose server/discover, subscriptions/listen, schema, authorization, cancellation, error, retry, handoff, and security-boundary tests. Treat initialize-without-discover, self-reported serverInfo used for security, complete discover results that omit ttlMs or cacheScope, resources/subscribe, and HTTP GET notifications as 2026-07-28 drift."
         },
         {
           "label": "Decision",
@@ -3164,7 +3165,7 @@
         {
           "label": "Signal",
           "title": "Identify required signals",
-          "detail": "Select identity, context, policy, approval, tool, action, handoff, memory, egress, session, review, and outcome events."
+          "detail": "Select identity, context, policy, approval, tool, action, handoff, memory, egress, request identity, review, and outcome events. For MCP 2026-07-28, request identity is jsonrpc.request.id, mcp.method.name, and mcp.protocol.version rather than a protocol session id."
         },
         {
           "label": "Scope",
@@ -3174,7 +3175,7 @@
         {
           "label": "Decision",
           "title": "Apply data minimization",
-          "detail": "Remove raw prompts, secrets, source code, customer content, and unnecessary arguments; define redaction and retention."
+          "detail": "Remove raw prompts, secrets, source code, customer content, and unnecessary arguments; define redaction and retention. Do not mint mcp.session.id for MCP 2026-07-28 spans. Treat a present session id as host-session correlation, not authentication, and hold a present traceparent that is not valid W3C Trace Context."
         },
         {
           "label": "Action",
@@ -3487,7 +3488,7 @@
       "title": "MCP Connector Intake Scanner",
       "page": "/security-remediation/mcp-connector-intake-scanner/",
       "category": "mcp-governance",
-      "summary": "Inspect a proposed MCP connector's provenance, authentication, tool surface, data access, network reach, and operating controls before registration.",
+      "summary": "Inspect a proposed MCP connector's provenance, authentication, tool surface, MCP Apps UI, data access, network reach, and operating controls before registration.",
       "phases": [
         {
           "label": "Signal",
@@ -3497,12 +3498,12 @@
         {
           "label": "Scope",
           "title": "Inspect trust and access",
-          "detail": "Verify provenance/signatures, dependencies, auth, secrets, scopes, data classes, network destinations, tenancy, and updates."
+          "detail": "Verify provenance/signatures, dependencies, auth, secrets, scopes, data classes, network destinations, MCP Apps ui:// resources, CSP, sandbox, device permissions, tenancy, and updates."
         },
         {
           "label": "Decision",
           "title": "Analyze capabilities",
-          "detail": "Classify read/write/admin actions, argument schemas, side effects, destructive operations, approvals, and hidden expansion paths."
+          "detail": "Classify read/write/admin actions, argument schemas, side effects, destructive operations, unsandboxed HTML apps, unbounded connect-src, approvals, and hidden expansion paths."
         },
         {
           "label": "Action",
@@ -3545,7 +3546,8 @@
         "MCP connector intake",
         "MCP server review",
         "connector permissions",
-        "MCP supply chain"
+        "MCP supply chain",
+        "MCP Apps sandbox"
       ]
     },
     {
@@ -3943,7 +3945,7 @@
       "title": "MCP Tool Risk Contract",
       "page": "/security-remediation/mcp-tool-risk-contract/",
       "category": "mcp-governance",
-      "summary": "Classify an MCP tool's data access, side effects, reversibility, authority, argument controls, and approval needs before exposure to agents.",
+      "summary": "Classify an MCP tool's data access, side effects, reversibility, authority, argument controls, tools/list cacheScope, and approval needs before exposure to agents.",
       "phases": [
         {
           "label": "Signal",
@@ -3958,7 +3960,7 @@
         {
           "label": "Decision",
           "title": "Define required controls",
-          "detail": "Specify argument/path validation, tenant isolation, auth, rate limits, dry-run, idempotency, approvals, telemetry, and rollback."
+          "detail": "Specify argument/path validation, tenant isolation, auth, tools/list cacheScope (public vs private, not access control), rate limits, dry-run, idempotency, approvals, telemetry, and rollback."
         },
         {
           "label": "Action",
@@ -3974,7 +3976,7 @@
       "gate": {
         "question": "Are tool capabilities fully declared and controlled for their maximum data and side-effect impact?",
         "pass": "Expose the tool only in its contracted operating mode and scope.",
-        "stop": "Hold or deny unknown, overbroad, unvalidated, destructive, or unowned capabilities."
+        "stop": "Hold or deny unknown, overbroad, unvalidated, destructive, or unowned capabilities. Deny public user-specific or access-control tools/list caches; kill private-cache reuse across authorization contexts."
       },
       "evidence": [
         "tool schema/capability inventory",
@@ -4008,22 +4010,22 @@
       "title": "MCP Tool Surface Drift Sentinel",
       "page": "/security-remediation/mcp-tool-surface-drift-sentinel/",
       "category": "mcp-governance",
-      "summary": "Compare a live MCP tool surface with its approved baseline and contain capability, schema, permission, or ownership expansion.",
+      "summary": "Compare a live MCP tool surface with its approved baseline and contain capability, schema, x-mcp-header, permission, or ownership expansion.",
       "phases": [
         {
           "label": "Signal",
           "title": "Load the approved baseline",
-          "detail": "Read server identity, version, endpoint/package hash, tools/resources/prompts, schemas, risk contracts, permissions, and owner."
+          "detail": "Read server identity, version, endpoint/package hash, tools/resources/prompts, schemas, x-mcp-header maps, risk contracts, permissions, and owner."
         },
         {
           "label": "Scope",
           "title": "Discover the live surface",
-          "detail": "Query or inspect current capabilities, schemas, descriptions, auth metadata, package/image, versions, and advertised extensions."
+          "detail": "Query or inspect current capabilities, schemas, x-mcp-header annotations, descriptions, auth metadata, package/image, versions, and advertised extensions."
         },
         {
           "label": "Decision",
           "title": "Compute semantic drift",
-          "detail": "Detect additions, removals, argument widening, required-field changes, side effects, permission expansion, auth changes, and ownership drift."
+          "detail": "Detect additions, removals, argument widening, required-field changes, x-mcp-header mirroring, side effects, permission expansion, auth changes, and ownership drift."
         },
         {
           "label": "Action",
@@ -4039,7 +4041,7 @@
       "gate": {
         "question": "Is live drift backward-compatible, non-expansive, owned, and explicitly permitted by the trust and tool contracts?",
         "pass": "Accept the new baseline after review and recertification.",
-        "stop": "Restrict or disable material unapproved capability, permission, auth, or ownership drift."
+        "stop": "Restrict or disable material unapproved capability, permission, auth, x-mcp-header, or ownership drift."
       },
       "evidence": [
         "baseline and live surface snapshots",
@@ -4052,7 +4054,7 @@
         "disablement record"
       ],
       "python": {
-        "scenario": "Detect MCP tool-surface drift",
+        "scenario": "Detect MCP tool-surface and x-mcp-header drift",
         "command": "python scripts/security_recipes_remediation_suite.py playbook start --playbook mcp-tool-surface-drift-sentinel --workspace . --finding finding.json --run-dir .security-recipes/runs/mcp-tool-surface-drift-sentinel"
       },
       "file_patterns": [

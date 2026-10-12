@@ -2,7 +2,8 @@
 
 This is the recommended deployment path: two static-site slots run behind
 Caddy, which terminates HTTPS on ports 80/443, obtains the Let's Encrypt
-certificate for your domain automatically, and renews it in the background.
+certificate for your domain (and the optional `.si` brand mirror)
+automatically, and renews it in the background.
 The blue slot, `security-recipes`, binds to `127.0.0.1:8080`; the green slot,
 `security-recipes-green`, binds to `127.0.0.1:8081`. Only Caddy is public.
 Certificates persist in the `caddy_data` volume across site releases. Caddy's
@@ -28,6 +29,8 @@ git clone https://github.com/stevologic/security-recipes.ai /opt/security-recipe
 cd /opt/security-recipes.ai
 cp .env.example .env          # COMPOSE_PROFILES=caddy is on by default here
 # edit .env if your domain/email differ from security-recipes.ai defaults
+# SECURITY_RECIPES_MIRROR_DOMAIN=security-recipes.si is already set so Caddy
+# can obtain a cert once public DNS for the mirror points at this droplet.
 sudo chown -R root:root /opt/security-recipes.ai
 sudo chmod -R go-w /opt/security-recipes.ai
 sudo chmod 750 /opt/security-recipes.ai
@@ -50,6 +53,10 @@ few seconds, then:
 curl -I https://security-recipes.ai/
 curl -fsS https://security-recipes.ai/.well-known/deploy-revision
 curl -sS https://security-recipes.ai/mcp -X POST   # MCP proxies through the same origin
+# After Namecheap A records for security-recipes.si and www point at this
+# droplet, Caddy obtains the mirror certs and the same revision is served:
+curl -sI https://security-recipes.si/
+curl -fsS https://security-recipes.si/.well-known/deploy-revision
 docker compose logs --tail=50 caddy                # ACME progress lives here
 ```
 
@@ -507,8 +514,17 @@ separate from these bundles and still require a provider-side restore test.
 - `.git/deploy-state` is version 2 runtime state, not source control. It records
   the active service/SHA and the separately verified fallback service/SHA. Do
   not delete or hand-edit it while deployment scheduling is active.
-- To serve `www.` too, add DNS for it and uncomment the block at the bottom of
-  [docker/caddy/Caddyfile](docker/caddy/Caddyfile).
+- `www.security-recipes.ai` and `www.security-recipes.si` are permanent
+  redirects to their apex hosts. The `.si` apex shares the same blue/green
+  upstreams as `.ai` (see [docker/caddy/Caddyfile](docker/caddy/Caddyfile)).
+  Visible nav/footer/home brand strings follow the request `Host`;
+  `rel=canonical`, `og:url`, and JSON-LD stay on `https://security-recipes.ai/`.
+  Homepage and `/mcp-servers/` sample MCP URLs follow the request host on
+  those known brand hosts, matching `RECIPES_MCP_ALLOWED_SOURCE_HOSTS`.
+  GitHub links remain `github.com/stevologic/security-recipes.ai`.
+  Do not use a registrar URL-redirect as the long-term `.si` mode: that
+  leaves visible chrome on `.ai`. Point `A`/`www` at `64.227.98.210` and
+  reload Caddy after this config is deployed.
 - `scripts/redeploy_from_github.sh` is the older cron redeployer; `deploy.sh`
   supersedes it (adds exact-commit CI gating, blue/green health checks, routing
   rollback, and failed-commit memory).

@@ -15,14 +15,17 @@ ALLOW_DECISION = "allow_tool_call"
 CONFIRM_DECISION = "allow_with_confirmation"
 HOLD_DECISION = "hold_for_tool_risk_review"
 DENY_ANNOTATION_DECISION = "deny_annotation_contradiction"
+DENY_CACHE_DECISION = "deny_insecure_tool_list_cache"
 DENY_SESSION_DECISION = "deny_session_exfiltration_path"
 DENY_SCOPE_DECISION = "deny_scope_drift"
 KILL_DECISION = "kill_session_on_tool_risk_signal"
+PRIVATE_CACHE_REUSE_MARKER = "private_tools_list_cache_reused_across_authorization"
 VALID_DECISIONS = {
     ALLOW_DECISION,
     CONFIRM_DECISION,
     HOLD_DECISION,
     DENY_ANNOTATION_DECISION,
+    DENY_CACHE_DECISION,
     DENY_SESSION_DECISION,
     DENY_SCOPE_DECISION,
     KILL_DECISION,
@@ -36,6 +39,7 @@ KILL_MARKERS = {
     "unapproved_external_destination",
     "private_network_or_metadata_ip_destination",
     "approval_bypass_attempt",
+    PRIVATE_CACHE_REUSE_MARKER,
 }
 
 
@@ -88,8 +92,12 @@ def normalize_runtime_request(runtime_request: dict[str, Any]) -> dict[str, Any]
         "policy_pack_hash",
         "authorization_pack_hash",
         "runtime_kill_signal",
+        "tools_list_result_type",
+        "tools_list_cache_scope",
     ]:
         request[key] = str(request.get(key) or "").strip()
+    request["tools_list_result_type"] = request["tools_list_result_type"].lower()
+    request["tools_list_cache_scope"] = request["tools_list_cache_scope"].lower()
     for key in [
         "server_trusted",
         "session_reads_private_data",
@@ -98,6 +106,11 @@ def normalize_runtime_request(runtime_request: dict[str, Any]) -> dict[str, Any]
         "contains_secret",
         "tool_list_changed_after_approval",
         "private_network_destination",
+        "tools_list_cached",
+        "tools_list_user_specific",
+        "tools_list_cache_used_as_access_control",
+        "tools_list_cache_mixed_page_scope",
+        "tools_list_private_cache_reused_across_authorization",
     ]:
         request[key] = as_bool(request.get(key))
     approval = request.get("human_approval_record")
@@ -237,6 +250,46 @@ def runtime_kill_violations(request: dict[str, Any]) -> list[str]:
     return [violation for violation in violations if violation in KILL_MARKERS or violation]
 
 
+def tools_list_cache_present(request: dict[str, Any]) -> bool:
+    return bool(request.get("tools_list_cached"))
+
+
+def tools_list_cache_kill_violations(request: dict[str, Any]) -> list[str]:
+    if not tools_list_cache_present(request):
+        return []
+    if (
+        request.get("tools_list_cache_scope") == "private"
+        and request.get("tools_list_private_cache_reused_across_authorization")
+    ):
+        return [PRIVATE_CACHE_REUSE_MARKER]
+    return []
+
+
+def tools_list_cache_deny_violations(request: dict[str, Any]) -> list[str]:
+    if not tools_list_cache_present(request):
+        return []
+    violations: list[str] = []
+    if request.get("tools_list_result_type") == "input_required":
+        violations.append("cached tools/list resultType=input_required is not cacheable")
+    if request.get("tools_list_cache_mixed_page_scope"):
+        violations.append("tools/list pages mixed cacheScope")
+    if request.get("tools_list_cache_used_as_access_control"):
+        violations.append("cacheScope used as access control")
+    if request.get("tools_list_cache_scope") == "public" and request.get("tools_list_user_specific"):
+        violations.append("public tools/list cache contains user-specific data")
+    return violations
+
+
+def tools_list_cache_hold_violations(request: dict[str, Any]) -> list[str]:
+    if not tools_list_cache_present(request):
+        return []
+    if request.get("tools_list_result_type") == "input_required":
+        return []
+    if not request.get("tools_list_cache_scope"):
+        return ["cached complete tools/list omitted cacheScope"]
+    return []
+
+
 def evaluate_mcp_tool_risk_decision(tool_risk_pack: dict[str, Any], runtime_request: dict[str, Any]) -> dict[str, Any]:
     """Return a deterministic tool-risk decision for one MCP tool call."""
     if not isinstance(tool_risk_pack, dict):
@@ -254,6 +307,7 @@ def evaluate_mcp_tool_risk_decision(tool_risk_pack: dict[str, Any], runtime_requ
     annotations = normalize_annotations(tool_risk_pack, request["annotations"], profile)
 
     kill_violations = runtime_kill_violations(request)
+    kill_violations.extend(tools_list_cache_kill_violations(request))
     if kill_violations:
         return decision_result(
             decision=KILL_DECISION,
@@ -323,6 +377,19 @@ def evaluate_mcp_tool_risk_decision(tool_risk_pack: dict[str, Any], runtime_requ
             violations=["readOnlyHint=true and destructiveHint=true"],
         )
 
+    cache_deny = tools_list_cache_deny_violations(request)
+    if cache_deny:
+        return decision_result(
+            decision=DENY_CACHE_DECISION,
+            reason="cached tools/list result violates MCP 2026-07-28 cacheScope, pagination, or input_required rules",
+            pack=tool_risk_pack,
+            request=request,
+            profile=profile,
+            workflow=workflow,
+            annotations=annotations,
+            violations=cache_deny,
+        )
+
     factors = profile.get("risk_factors") if isinstance(profile.get("risk_factors"), dict) else {}
     server_trusted = bool(request["server_trusted"] or profile.get("trusted_server"))
     sensitive_tool = bool(
@@ -365,6 +432,19 @@ def evaluate_mcp_tool_risk_decision(tool_risk_pack: dict[str, Any], runtime_requ
             workflow=workflow,
             annotations=annotations,
             violations=["private_data + untrusted_content + exfiltration_capability"],
+        )
+
+    cache_hold = tools_list_cache_hold_violations(request)
+    if cache_hold:
+        return decision_result(
+            decision=HOLD_DECISION,
+            reason="cached complete tools/list omitted cacheScope",
+            pack=tool_risk_pack,
+            request=request,
+            profile=profile,
+            workflow=workflow,
+            annotations=annotations,
+            violations=cache_hold,
         )
 
     if (
@@ -438,6 +518,8 @@ def request_from_args(args: argparse.Namespace) -> dict[str, Any]:
         "policy_pack_hash",
         "authorization_pack_hash",
         "runtime_kill_signal",
+        "tools_list_result_type",
+        "tools_list_cache_scope",
     ]:
         value = getattr(args, key)
         if value not in (None, ""):
@@ -462,6 +544,11 @@ def request_from_args(args: argparse.Namespace) -> dict[str, Any]:
         "contains_secret",
         "tool_list_changed_after_approval",
         "private_network_destination",
+        "tools_list_cached",
+        "tools_list_user_specific",
+        "tools_list_cache_used_as_access_control",
+        "tools_list_cache_mixed_page_scope",
+        "tools_list_private_cache_reused_across_authorization",
     ]:
         if getattr(args, key):
             payload[key] = True
@@ -501,6 +588,25 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--contains-secret", action="store_true")
     parser.add_argument("--tool-list-changed-after-approval", action="store_true")
     parser.add_argument("--private-network-destination", action="store_true")
+    parser.add_argument("--tools-list-cached", dest="tools_list_cached", action="store_true")
+    parser.add_argument("--tools-list-result-type", dest="tools_list_result_type")
+    parser.add_argument("--tools-list-cache-scope", dest="tools_list_cache_scope")
+    parser.add_argument("--tools-list-user-specific", dest="tools_list_user_specific", action="store_true")
+    parser.add_argument(
+        "--tools-list-cache-used-as-access-control",
+        dest="tools_list_cache_used_as_access_control",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--tools-list-cache-mixed-page-scope",
+        dest="tools_list_cache_mixed_page_scope",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--tools-list-private-cache-reused-across-authorization",
+        dest="tools_list_private_cache_reused_across_authorization",
+        action="store_true",
+    )
     parser.add_argument("--human-approval-id")
     parser.add_argument("--runtime-kill-signal")
     parser.add_argument("--expect-decision", choices=sorted(VALID_DECISIONS))

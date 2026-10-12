@@ -14878,6 +14878,10 @@ _CVE_LANDING_KNOWN_AUTHORS: dict[str, dict[str, Any]] = {
         "same_as": ["https://github.com/stevologic"],
     }
 }
+_CVE_LANDING_ORGANIZATION_SAME_AS = (
+    "https://github.com/stevologic/security-recipes.ai",
+)
+_CVE_LANDING_ORGANIZATION_LOGO_PATH = "/icon-192x192.png"
 
 
 def _cve_landing_known_author_profile(value: object) -> dict[str, Any]:
@@ -16158,8 +16162,9 @@ def _render_cve_landing_page(
             "url": site_base,
             "logo": {
                 "@type": "ImageObject",
-                "url": f"{site_base}/images/logo.svg",
+                "url": f"{site_base}{_CVE_LANDING_ORGANIZATION_LOGO_PATH}",
             },
+            "sameAs": list(_CVE_LANDING_ORGANIZATION_SAME_AS),
             "publishingPrinciples": f"{site_base}/about/#editorial-principles",
             "correctionsPolicy": f"{site_base}/about/#corrections",
         },

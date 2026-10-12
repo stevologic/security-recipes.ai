@@ -189,6 +189,7 @@ class DeployScriptStaticTests(unittest.TestCase):
         nginx = NGINX_CONFIG.read_text(encoding="utf-8")
         setup = SETUP_SCRIPT.read_text(encoding="utf-8")
         deploy = DEPLOY_SCRIPT.read_text(encoding="utf-8")
+        compose = COMPOSE_FILE.read_text(encoding="utf-8")
 
         self.assertIn(
             "www.{$SECURITY_RECIPES_DOMAIN:security-recipes.ai} {", caddy
@@ -197,7 +198,26 @@ class DeployScriptStaticTests(unittest.TestCase):
             "redir https://{$SECURITY_RECIPES_DOMAIN:security-recipes.ai}{uri} permanent",
             caddy,
         )
+        self.assertIn(
+            "\n{$SECURITY_RECIPES_MIRROR_DOMAIN:security-recipes.si} {", caddy
+        )
+        self.assertIn(
+            "www.{$SECURITY_RECIPES_MIRROR_DOMAIN:security-recipes.si} {", caddy
+        )
+        self.assertIn(
+            "redir https://{$SECURITY_RECIPES_MIRROR_DOMAIN:security-recipes.si}{uri} permanent",
+            caddy,
+        )
+        self.assertIn("import security_recipes_site", caddy)
+        self.assertIn(
+            'SECURITY_RECIPES_MIRROR_DOMAIN: "${SECURITY_RECIPES_MIRROR_DOMAIN:-security-recipes.si}"',
+            compose,
+        )
+        self.assertIn("security-recipes.si,www.security-recipes.si", compose)
         self.assertIn("www.${DOMAIN} {", setup)
+        self.assertIn("${MIRROR_DOMAIN} {", setup)
+        self.assertIn("www.${MIRROR_DOMAIN} {", setup)
+        self.assertIn("prepare_host_caddy_mirror_site", deploy)
         self.assertIn("redir https://${DOMAIN}{uri} permanent", setup)
         self.assertIn("SECURITY_RECIPES_DOMAIN=${DOMAIN}", setup)
         self.assertIn("prepare_host_caddy_www_redirect", deploy)

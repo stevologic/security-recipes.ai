@@ -893,6 +893,82 @@ prepare_host_caddy_www_redirect() {
   TRAFFIC_CADDY_CONFIG_CHANGED="true"
 }
 
+prepare_host_caddy_mirror_site() {
+  [[ "${PROXY_KIND}" == "host" ]] || return 0
+
+  local bind domain green_bind green_host green_port host mirror port temp_file
+  mirror="$(env_file_value SECURITY_RECIPES_MIRROR_DOMAIN 2>/dev/null || true)"
+  if [[ -z "${mirror}" ]]; then
+    mirror="security-recipes.si"
+  fi
+  if [[ ! "${mirror}" =~ ^[A-Za-z0-9][A-Za-z0-9.-]*[A-Za-z0-9]$ ]] ||
+     [[ "${mirror}" != *.* ]] || [[ "${mirror}" == www.* ]]; then
+    log "ERROR: Cannot derive a safe brand-mirror domain for the managed host Caddy site."
+    return 1
+  fi
+  if grep -Fq "${mirror} {" "${HOST_CADDYFILE}"; then
+    return 0
+  fi
+  grep -q "Managed by security-recipes.ai setup script" "${HOST_CADDYFILE}" || {
+    log "ERROR: Refusing to add the brand-mirror site to an unmanaged host Caddyfile."
+    return 1
+  }
+  bind="$(configured_slot_bind "${ACTIVE_SERVICE:-security-recipes}")" || bind="127.0.0.1:8080"
+  green_bind="$(configured_slot_bind "${FALLBACK_SERVICE:-security-recipes-green}")" || green_bind="127.0.0.1:8081"
+  host="${bind%:*}"
+  port="${bind##*:}"
+  green_host="${green_bind%:*}"
+  green_port="${green_bind##*:}"
+  domain="$(env_file_value SECURITY_RECIPES_DOMAIN 2>/dev/null || printf 'security-recipes.ai')"
+  if [[ "${mirror}" == "${domain}" ]]; then
+    return 0
+  fi
+
+  temp_file="$(mktemp "${HOST_CADDYFILE}.mirror.XXXXXX")" || return 1
+  cp "${HOST_CADDYFILE}" "${temp_file}" || {
+    rm -f "${temp_file}"
+    return 1
+  }
+  cat >> "${temp_file}" <<EOF
+
+# Brand mirror: same blue/green upstreams as ${domain}. Visible chrome is
+# host-aware; SEO canonicals stay on the .ai origin.
+${mirror} {
+	encode zstd gzip
+	reverse_proxy {\$SECURITY_RECIPES_PRIMARY_UPSTREAM:http://${host}:${port}} {\$SECURITY_RECIPES_FALLBACK_UPSTREAM:http://${green_host}:${green_port}} {
+		lb_policy first
+		health_uri /
+		health_interval 5s
+		health_timeout 2s
+		health_status 200
+		health_fails 1
+		health_passes 2
+		fail_duration 30s
+		max_fails 1
+		lb_try_duration 5s
+		lb_try_interval 100ms
+		stream_close_delay 5m
+	}
+}
+
+www.${mirror} {
+	redir https://${mirror}{uri} permanent
+}
+EOF
+  if ! caddy validate --config "${temp_file}" --adapter caddyfile; then
+    rm -f "${temp_file}"
+    log "ERROR: Caddy rejected the managed brand-mirror hostname."
+    return 1
+  fi
+  install -o root -g root -m 0644 "${temp_file}" "${HOST_CADDYFILE}" || {
+    rm -f "${temp_file}"
+    return 1
+  }
+  rm -f "${temp_file}"
+  log "Prepared host Caddy to serve https://${mirror}/ from the same upstreams as ${domain}."
+  TRAFFIC_CADDY_CONFIG_CHANGED="true"
+}
+
 ensure_staging_dns_record() {
   local helper updater output status
   helper="${REPO_DIR}/scripts/upsert_dev_dns_from_host.py"
@@ -1115,6 +1191,7 @@ traffic_report_is_healthy() {
 ensure_traffic_report_runtime() {
   prepare_traffic_report_source || return 1
   prepare_host_caddy_www_redirect || return 1
+  prepare_host_caddy_mirror_site || return 1
   ensure_staging_dns_record
   prepare_host_caddy_dev_site || return 1
   ensure_staging_tls

@@ -36,9 +36,9 @@
                   "status": "ready",
                   "summaries": {
                     "authorization_summary": {
-                      "candidate_count": 3,
+                      "candidate_count": 4,
                       "candidate_decision_counts": {
-                        "approve_for_pilot": 1,
+                        "approve_for_pilot": 2,
                         "deny_until_redesigned": 1,
                         "hold_for_authorization_evidence": 1
                       },
@@ -121,9 +121,9 @@
                   "status": "ready",
                   "summaries": {
                     "authorization_summary": {
-                      "candidate_count": 3,
+                      "candidate_count": 4,
                       "candidate_decision_counts": {
-                        "approve_for_pilot": 1,
+                        "approve_for_pilot": 2,
                         "deny_until_redesigned": 1,
                         "hold_for_authorization_evidence": 1
                       },
@@ -173,9 +173,9 @@
                   "status": "ready",
                   "summaries": {
                     "authorization_summary": {
-                      "candidate_count": 3,
+                      "candidate_count": 4,
                       "candidate_decision_counts": {
-                        "approve_for_pilot": 1,
+                        "approve_for_pilot": 2,
                         "deny_until_redesigned": 1,
                         "hold_for_authorization_evidence": 1
                       },
@@ -199,11 +199,11 @@
                   "status": "ready",
                   "summaries": {
                     "intake_summary": {
-                      "candidate_count": 3,
+                      "candidate_count": 4,
                       "decision_counts": {
                         "approve_for_registry_candidate": 1,
                         "deny_until_redesigned": 1,
-                        "hold_for_controls": 1
+                        "hold_for_controls": 2
                       },
                       "highest_risk_candidates": [
                         {
@@ -214,29 +214,29 @@
                           "title": "Container Registry Publisher"
                         },
                         {
+                          "candidate_id": "tenant-analytics-mcp-app",
+                          "decision": "hold_for_controls",
+                          "namespace": "analytics.tenant.dashboard",
+                          "risk_score": 99,
+                          "title": "Tenant Analytics MCP App Dashboard"
+                        },
+                        {
                           "candidate_id": "browser-research-stdio",
                           "decision": "hold_for_controls",
                           "namespace": "research.browser",
                           "risk_score": 83,
                           "title": "Local Browser Research STDIO Server"
-                        },
-                        {
-                          "candidate_id": "github-remediation-writer",
-                          "decision": "approve_for_registry_candidate",
-                          "namespace": "repo.remediation",
-                          "risk_score": 0,
-                          "title": "GitHub Remediation Branch Writer"
                         }
                       ],
-                      "hold_or_deny_count": 2,
+                      "hold_or_deny_count": 3,
                       "tier_counts": {
-                        "tier_1_internal_read": 1,
+                        "tier_1_internal_read": 2,
                         "tier_2_scoped_write": 1,
                         "tier_4_prohibited": 1
                       },
                       "transport_counts": {
                         "stdio": 1,
-                        "streamable-http": 2
+                        "streamable-http": 3
                       }
                     }
                   }
@@ -294,9 +294,9 @@
                   "status": "ready",
                   "summaries": {
                     "authorization_summary": {
-                      "candidate_count": 3,
+                      "candidate_count": 4,
                       "candidate_decision_counts": {
-                        "approve_for_pilot": 1,
+                        "approve_for_pilot": 2,
                         "deny_until_redesigned": 1,
                         "hold_for_authorization_evidence": 1
                       },
@@ -388,8 +388,8 @@
           "title": "MCP Authorization Conformance"
         },
         {
-          "commercial_value": "Packages live tool-list monitoring over subscriptions/listen, signed tool-surface baselines, annotation trust, and private-data plus untrusted-content plus external-send risk into a hosted MCP security control plane.",
-          "conformance_check_count": 5,
+          "commercial_value": "Packages required server/discover identity, cacheable discover results, live tool-list monitoring over subscriptions/listen, signed tool-surface baselines, annotation trust, and private-data plus untrusted-content plus external-send risk into a hosted MCP security control plane.",
+          "conformance_check_count": 6,
           "conformance_checks": [
             {
               "buyer_question": "Are annotations enforceable policy evidence or only UI hints from an untrusted server?",
@@ -515,6 +515,80 @@
               },
               "status": "ready",
               "title": "Tool Surface Pinning"
+            },
+            {
+              "buyer_question": "Can SecurityRecipes reject an MCP server that skips server/discover, treats self-reported serverInfo as security evidence, or omits cache hints on a complete discover result?",
+              "check_hash": "fb49830bb24e22d946c9acf28e94a587d6f8fab0bc552151b9ba9424011710e8",
+              "evidence_paths": [
+                "data/evidence/mcp-connector-intake-pack.json",
+                "data/evidence/agentic-protocol-conformance-pack.json"
+              ],
+              "fail_closed_decision": "deny_untrusted_protocol_surface",
+              "id": "mcp-server-discover-conformance",
+              "missing_evidence_paths": [],
+              "missing_source_pack_keys": [],
+              "protocol_id": "mcp-tooling-safety",
+              "required_runtime_attributes": [
+                "discover_method",
+                "server_info_used_for_security"
+              ],
+              "requirement": "MCP 2026-07-28 servers must implement server/discover. Dual-era stdio clients should probe with server/discover before falling back to initialize. Clients must not use self-reported serverInfo to change behavior or make security decisions. Complete discover results must carry ttlMs and cacheScope.",
+              "source_pack_keys": [
+                "mcp_connector_intake_pack"
+              ],
+              "source_pack_status": {
+                "mcp_connector_intake_pack": {
+                  "failure_count": 0,
+                  "path": "data/evidence/mcp-connector-intake-pack.json",
+                  "schema_version": "1.0",
+                  "status": "ready",
+                  "summaries": {
+                    "intake_summary": {
+                      "candidate_count": 4,
+                      "decision_counts": {
+                        "approve_for_registry_candidate": 1,
+                        "deny_until_redesigned": 1,
+                        "hold_for_controls": 2
+                      },
+                      "highest_risk_candidates": [
+                        {
+                          "candidate_id": "registry-publisher",
+                          "decision": "deny_until_redesigned",
+                          "namespace": "registries.publish",
+                          "risk_score": 100,
+                          "title": "Container Registry Publisher"
+                        },
+                        {
+                          "candidate_id": "tenant-analytics-mcp-app",
+                          "decision": "hold_for_controls",
+                          "namespace": "analytics.tenant.dashboard",
+                          "risk_score": 99,
+                          "title": "Tenant Analytics MCP App Dashboard"
+                        },
+                        {
+                          "candidate_id": "browser-research-stdio",
+                          "decision": "hold_for_controls",
+                          "namespace": "research.browser",
+                          "risk_score": 83,
+                          "title": "Local Browser Research STDIO Server"
+                        }
+                      ],
+                      "hold_or_deny_count": 3,
+                      "tier_counts": {
+                        "tier_1_internal_read": 2,
+                        "tier_2_scoped_write": 1,
+                        "tier_4_prohibited": 1
+                      },
+                      "transport_counts": {
+                        "stdio": 1,
+                        "streamable-http": 3
+                      }
+                    }
+                  }
+                }
+              },
+              "status": "ready",
+              "title": "MCP server/discover Conformance"
             },
             {
               "buyer_question": "Can SecurityRecipes reject an MCP notification stream that still uses resources/subscribe, skips the listen acknowledgment, or pushes unsolicited list-changed events?",
@@ -745,8 +819,10 @@
           "effective_decision": "ready_for_enterprise_conformance",
           "id": "mcp-tooling-safety",
           "readiness_score": 100.0,
-          "ready_check_count": 5,
+          "ready_check_count": 6,
           "source_ids": [
+            "mcp-server-discover-2026-07-28",
+            "mcp-caching-2026-07-28",
             "mcp-subscriptions-listen-2026-07-28",
             "mcp-spec-changelog-2026-07-28",
             "mcp-tool-annotations-2026-03-16",
@@ -754,6 +830,22 @@
             "openai-agent-prompt-injection-2026"
           ],
           "sources": [
+            {
+              "id": "mcp-server-discover-2026-07-28",
+              "name": "MCP server/discover (2026-07-28 current revision)",
+              "published": "2026-07-28",
+              "publisher": "Model Context Protocol",
+              "source_class": "protocol_specification",
+              "url": "https://modelcontextprotocol.io/specification/2026-07-28/server/discover"
+            },
+            {
+              "id": "mcp-caching-2026-07-28",
+              "name": "MCP Caching (2026-07-28 current revision)",
+              "published": "2026-07-28",
+              "publisher": "Model Context Protocol",
+              "source_class": "protocol_specification",
+              "url": "https://modelcontextprotocol.io/specification/2026-07-28/server/utilities/caching"
+            },
             {
               "id": "mcp-subscriptions-listen-2026-07-28",
               "name": "MCP Subscriptions Pattern (2026-07-28 current revision)",
@@ -1188,9 +1280,9 @@
                   "status": "ready",
                   "summaries": {
                     "authorization_summary": {
-                      "candidate_count": 3,
+                      "candidate_count": 4,
                       "candidate_decision_counts": {
-                        "approve_for_pilot": 1,
+                        "approve_for_pilot": 2,
                         "deny_until_redesigned": 1,
                         "hold_for_authorization_evidence": 1
                       },
@@ -1273,9 +1365,9 @@
                   "status": "ready",
                   "summaries": {
                     "authorization_summary": {
-                      "candidate_count": 3,
+                      "candidate_count": 4,
                       "candidate_decision_counts": {
-                        "approve_for_pilot": 1,
+                        "approve_for_pilot": 2,
                         "deny_until_redesigned": 1,
                         "hold_for_authorization_evidence": 1
                       },
@@ -1325,9 +1417,9 @@
                   "status": "ready",
                   "summaries": {
                     "authorization_summary": {
-                      "candidate_count": 3,
+                      "candidate_count": 4,
                       "candidate_decision_counts": {
-                        "approve_for_pilot": 1,
+                        "approve_for_pilot": 2,
                         "deny_until_redesigned": 1,
                         "hold_for_authorization_evidence": 1
                       },
@@ -1351,11 +1443,11 @@
                   "status": "ready",
                   "summaries": {
                     "intake_summary": {
-                      "candidate_count": 3,
+                      "candidate_count": 4,
                       "decision_counts": {
                         "approve_for_registry_candidate": 1,
                         "deny_until_redesigned": 1,
-                        "hold_for_controls": 1
+                        "hold_for_controls": 2
                       },
                       "highest_risk_candidates": [
                         {
@@ -1366,29 +1458,29 @@
                           "title": "Container Registry Publisher"
                         },
                         {
+                          "candidate_id": "tenant-analytics-mcp-app",
+                          "decision": "hold_for_controls",
+                          "namespace": "analytics.tenant.dashboard",
+                          "risk_score": 99,
+                          "title": "Tenant Analytics MCP App Dashboard"
+                        },
+                        {
                           "candidate_id": "browser-research-stdio",
                           "decision": "hold_for_controls",
                           "namespace": "research.browser",
                           "risk_score": 83,
                           "title": "Local Browser Research STDIO Server"
-                        },
-                        {
-                          "candidate_id": "github-remediation-writer",
-                          "decision": "approve_for_registry_candidate",
-                          "namespace": "repo.remediation",
-                          "risk_score": 0,
-                          "title": "GitHub Remediation Branch Writer"
                         }
                       ],
-                      "hold_or_deny_count": 2,
+                      "hold_or_deny_count": 3,
                       "tier_counts": {
-                        "tier_1_internal_read": 1,
+                        "tier_1_internal_read": 2,
                         "tier_2_scoped_write": 1,
                         "tier_4_prohibited": 1
                       },
                       "transport_counts": {
                         "stdio": 1,
-                        "streamable-http": 2
+                        "streamable-http": 3
                       }
                     }
                   }
@@ -1446,9 +1538,9 @@
                   "status": "ready",
                   "summaries": {
                     "authorization_summary": {
-                      "candidate_count": 3,
+                      "candidate_count": 4,
                       "candidate_decision_counts": {
-                        "approve_for_pilot": 1,
+                        "approve_for_pilot": 2,
                         "deny_until_redesigned": 1,
                         "hold_for_authorization_evidence": 1
                       },
@@ -2083,7 +2175,7 @@
                         "agentic-assurance-models",
                         "recipes"
                       ],
-                      "byte_count": 15039961,
+                      "byte_count": 15071315,
                       "decision_counts": {
                         "allow_with_adversarial_examples": 1,
                         "block_until_removed": 2,
@@ -2344,9 +2436,9 @@
                   "status": "ready",
                   "summaries": {
                     "authorization_summary": {
-                      "candidate_count": 3,
+                      "candidate_count": 4,
                       "candidate_decision_counts": {
-                        "approve_for_pilot": 1,
+                        "approve_for_pilot": 2,
                         "deny_until_redesigned": 1,
                         "hold_for_authorization_evidence": 1
                       },
@@ -2429,9 +2521,9 @@
                   "status": "ready",
                   "summaries": {
                     "authorization_summary": {
-                      "candidate_count": 3,
+                      "candidate_count": 4,
                       "candidate_decision_counts": {
-                        "approve_for_pilot": 1,
+                        "approve_for_pilot": 2,
                         "deny_until_redesigned": 1,
                         "hold_for_authorization_evidence": 1
                       },
@@ -2481,9 +2573,9 @@
                   "status": "ready",
                   "summaries": {
                     "authorization_summary": {
-                      "candidate_count": 3,
+                      "candidate_count": 4,
                       "candidate_decision_counts": {
-                        "approve_for_pilot": 1,
+                        "approve_for_pilot": 2,
                         "deny_until_redesigned": 1,
                         "hold_for_authorization_evidence": 1
                       },
@@ -2507,11 +2599,11 @@
                   "status": "ready",
                   "summaries": {
                     "intake_summary": {
-                      "candidate_count": 3,
+                      "candidate_count": 4,
                       "decision_counts": {
                         "approve_for_registry_candidate": 1,
                         "deny_until_redesigned": 1,
-                        "hold_for_controls": 1
+                        "hold_for_controls": 2
                       },
                       "highest_risk_candidates": [
                         {
@@ -2522,29 +2614,29 @@
                           "title": "Container Registry Publisher"
                         },
                         {
+                          "candidate_id": "tenant-analytics-mcp-app",
+                          "decision": "hold_for_controls",
+                          "namespace": "analytics.tenant.dashboard",
+                          "risk_score": 99,
+                          "title": "Tenant Analytics MCP App Dashboard"
+                        },
+                        {
                           "candidate_id": "browser-research-stdio",
                           "decision": "hold_for_controls",
                           "namespace": "research.browser",
                           "risk_score": 83,
                           "title": "Local Browser Research STDIO Server"
-                        },
-                        {
-                          "candidate_id": "github-remediation-writer",
-                          "decision": "approve_for_registry_candidate",
-                          "namespace": "repo.remediation",
-                          "risk_score": 0,
-                          "title": "GitHub Remediation Branch Writer"
                         }
                       ],
-                      "hold_or_deny_count": 2,
+                      "hold_or_deny_count": 3,
                       "tier_counts": {
-                        "tier_1_internal_read": 1,
+                        "tier_1_internal_read": 2,
                         "tier_2_scoped_write": 1,
                         "tier_4_prohibited": 1
                       },
                       "transport_counts": {
                         "stdio": 1,
-                        "streamable-http": 2
+                        "streamable-http": 3
                       }
                     }
                   }
@@ -2602,9 +2694,9 @@
                   "status": "ready",
                   "summaries": {
                     "authorization_summary": {
-                      "candidate_count": 3,
+                      "candidate_count": 4,
                       "candidate_decision_counts": {
-                        "approve_for_pilot": 1,
+                        "approve_for_pilot": 2,
                         "deny_until_redesigned": 1,
                         "hold_for_authorization_evidence": 1
                       },
@@ -2696,8 +2788,8 @@
           "title": "MCP Authorization Conformance"
         },
         {
-          "commercial_value": "Packages live tool-list monitoring over subscriptions/listen, signed tool-surface baselines, annotation trust, and private-data plus untrusted-content plus external-send risk into a hosted MCP security control plane.",
-          "conformance_check_count": 5,
+          "commercial_value": "Packages required server/discover identity, cacheable discover results, live tool-list monitoring over subscriptions/listen, signed tool-surface baselines, annotation trust, and private-data plus untrusted-content plus external-send risk into a hosted MCP security control plane.",
+          "conformance_check_count": 6,
           "conformance_checks": [
             {
               "buyer_question": "Are annotations enforceable policy evidence or only UI hints from an untrusted server?",
@@ -2823,6 +2915,80 @@
               },
               "status": "ready",
               "title": "Tool Surface Pinning"
+            },
+            {
+              "buyer_question": "Can SecurityRecipes reject an MCP server that skips server/discover, treats self-reported serverInfo as security evidence, or omits cache hints on a complete discover result?",
+              "check_hash": "fb49830bb24e22d946c9acf28e94a587d6f8fab0bc552151b9ba9424011710e8",
+              "evidence_paths": [
+                "data/evidence/mcp-connector-intake-pack.json",
+                "data/evidence/agentic-protocol-conformance-pack.json"
+              ],
+              "fail_closed_decision": "deny_untrusted_protocol_surface",
+              "id": "mcp-server-discover-conformance",
+              "missing_evidence_paths": [],
+              "missing_source_pack_keys": [],
+              "protocol_id": "mcp-tooling-safety",
+              "required_runtime_attributes": [
+                "discover_method",
+                "server_info_used_for_security"
+              ],
+              "requirement": "MCP 2026-07-28 servers must implement server/discover. Dual-era stdio clients should probe with server/discover before falling back to initialize. Clients must not use self-reported serverInfo to change behavior or make security decisions. Complete discover results must carry ttlMs and cacheScope.",
+              "source_pack_keys": [
+                "mcp_connector_intake_pack"
+              ],
+              "source_pack_status": {
+                "mcp_connector_intake_pack": {
+                  "failure_count": 0,
+                  "path": "data/evidence/mcp-connector-intake-pack.json",
+                  "schema_version": "1.0",
+                  "status": "ready",
+                  "summaries": {
+                    "intake_summary": {
+                      "candidate_count": 4,
+                      "decision_counts": {
+                        "approve_for_registry_candidate": 1,
+                        "deny_until_redesigned": 1,
+                        "hold_for_controls": 2
+                      },
+                      "highest_risk_candidates": [
+                        {
+                          "candidate_id": "registry-publisher",
+                          "decision": "deny_until_redesigned",
+                          "namespace": "registries.publish",
+                          "risk_score": 100,
+                          "title": "Container Registry Publisher"
+                        },
+                        {
+                          "candidate_id": "tenant-analytics-mcp-app",
+                          "decision": "hold_for_controls",
+                          "namespace": "analytics.tenant.dashboard",
+                          "risk_score": 99,
+                          "title": "Tenant Analytics MCP App Dashboard"
+                        },
+                        {
+                          "candidate_id": "browser-research-stdio",
+                          "decision": "hold_for_controls",
+                          "namespace": "research.browser",
+                          "risk_score": 83,
+                          "title": "Local Browser Research STDIO Server"
+                        }
+                      ],
+                      "hold_or_deny_count": 3,
+                      "tier_counts": {
+                        "tier_1_internal_read": 2,
+                        "tier_2_scoped_write": 1,
+                        "tier_4_prohibited": 1
+                      },
+                      "transport_counts": {
+                        "stdio": 1,
+                        "streamable-http": 3
+                      }
+                    }
+                  }
+                }
+              },
+              "status": "ready",
+              "title": "MCP server/discover Conformance"
             },
             {
               "buyer_question": "Can SecurityRecipes reject an MCP notification stream that still uses resources/subscribe, skips the listen acknowledgment, or pushes unsolicited list-changed events?",
@@ -3053,8 +3219,10 @@
           "effective_decision": "ready_for_enterprise_conformance",
           "id": "mcp-tooling-safety",
           "readiness_score": 100.0,
-          "ready_check_count": 5,
+          "ready_check_count": 6,
           "source_ids": [
+            "mcp-server-discover-2026-07-28",
+            "mcp-caching-2026-07-28",
             "mcp-subscriptions-listen-2026-07-28",
             "mcp-spec-changelog-2026-07-28",
             "mcp-tool-annotations-2026-03-16",
@@ -3062,6 +3230,22 @@
             "openai-agent-prompt-injection-2026"
           ],
           "sources": [
+            {
+              "id": "mcp-server-discover-2026-07-28",
+              "name": "MCP server/discover (2026-07-28 current revision)",
+              "published": "2026-07-28",
+              "publisher": "Model Context Protocol",
+              "source_class": "protocol_specification",
+              "url": "https://modelcontextprotocol.io/specification/2026-07-28/server/discover"
+            },
+            {
+              "id": "mcp-caching-2026-07-28",
+              "name": "MCP Caching (2026-07-28 current revision)",
+              "published": "2026-07-28",
+              "publisher": "Model Context Protocol",
+              "source_class": "protocol_specification",
+              "url": "https://modelcontextprotocol.io/specification/2026-07-28/server/utilities/caching"
+            },
             {
               "id": "mcp-subscriptions-listen-2026-07-28",
               "name": "MCP Subscriptions Pattern (2026-07-28 current revision)",
@@ -3650,7 +3834,7 @@
                         "agentic-assurance-models",
                         "recipes"
                       ],
-                      "byte_count": 15039961,
+                      "byte_count": 15071315,
                       "decision_counts": {
                         "allow_with_adversarial_examples": 1,
                         "block_until_removed": 2,
@@ -3914,6 +4098,8 @@
       "subscription_method",
       "subscription_id",
       "subscription_acknowledged",
+      "discover_method",
+      "server_info_used_for_security",
       "agent_card_signed",
       "extended_card_authenticated",
       "protocol_version_observed",
@@ -3958,9 +4144,9 @@
           "status": "ready",
           "summaries": {
             "authorization_summary": {
-              "candidate_count": 3,
+              "candidate_count": 4,
               "candidate_decision_counts": {
-                "approve_for_pilot": 1,
+                "approve_for_pilot": 2,
                 "deny_until_redesigned": 1,
                 "hold_for_authorization_evidence": 1
               },
@@ -4043,9 +4229,9 @@
           "status": "ready",
           "summaries": {
             "authorization_summary": {
-              "candidate_count": 3,
+              "candidate_count": 4,
               "candidate_decision_counts": {
-                "approve_for_pilot": 1,
+                "approve_for_pilot": 2,
                 "deny_until_redesigned": 1,
                 "hold_for_authorization_evidence": 1
               },
@@ -4095,9 +4281,9 @@
           "status": "ready",
           "summaries": {
             "authorization_summary": {
-              "candidate_count": 3,
+              "candidate_count": 4,
               "candidate_decision_counts": {
-                "approve_for_pilot": 1,
+                "approve_for_pilot": 2,
                 "deny_until_redesigned": 1,
                 "hold_for_authorization_evidence": 1
               },
@@ -4121,11 +4307,11 @@
           "status": "ready",
           "summaries": {
             "intake_summary": {
-              "candidate_count": 3,
+              "candidate_count": 4,
               "decision_counts": {
                 "approve_for_registry_candidate": 1,
                 "deny_until_redesigned": 1,
-                "hold_for_controls": 1
+                "hold_for_controls": 2
               },
               "highest_risk_candidates": [
                 {
@@ -4136,29 +4322,29 @@
                   "title": "Container Registry Publisher"
                 },
                 {
+                  "candidate_id": "tenant-analytics-mcp-app",
+                  "decision": "hold_for_controls",
+                  "namespace": "analytics.tenant.dashboard",
+                  "risk_score": 99,
+                  "title": "Tenant Analytics MCP App Dashboard"
+                },
+                {
                   "candidate_id": "browser-research-stdio",
                   "decision": "hold_for_controls",
                   "namespace": "research.browser",
                   "risk_score": 83,
                   "title": "Local Browser Research STDIO Server"
-                },
-                {
-                  "candidate_id": "github-remediation-writer",
-                  "decision": "approve_for_registry_candidate",
-                  "namespace": "repo.remediation",
-                  "risk_score": 0,
-                  "title": "GitHub Remediation Branch Writer"
                 }
               ],
-              "hold_or_deny_count": 2,
+              "hold_or_deny_count": 3,
               "tier_counts": {
-                "tier_1_internal_read": 1,
+                "tier_1_internal_read": 2,
                 "tier_2_scoped_write": 1,
                 "tier_4_prohibited": 1
               },
               "transport_counts": {
                 "stdio": 1,
-                "streamable-http": 2
+                "streamable-http": 3
               }
             }
           }
@@ -4216,9 +4402,9 @@
           "status": "ready",
           "summaries": {
             "authorization_summary": {
-              "candidate_count": 3,
+              "candidate_count": 4,
               "candidate_decision_counts": {
-                "approve_for_pilot": 1,
+                "approve_for_pilot": 2,
                 "deny_until_redesigned": 1,
                 "hold_for_authorization_evidence": 1
               },
@@ -4363,6 +4549,80 @@
       },
       "status": "ready",
       "title": "Tool Surface Pinning"
+    },
+    {
+      "buyer_question": "Can SecurityRecipes reject an MCP server that skips server/discover, treats self-reported serverInfo as security evidence, or omits cache hints on a complete discover result?",
+      "check_hash": "fb49830bb24e22d946c9acf28e94a587d6f8fab0bc552151b9ba9424011710e8",
+      "evidence_paths": [
+        "data/evidence/mcp-connector-intake-pack.json",
+        "data/evidence/agentic-protocol-conformance-pack.json"
+      ],
+      "fail_closed_decision": "deny_untrusted_protocol_surface",
+      "id": "mcp-server-discover-conformance",
+      "missing_evidence_paths": [],
+      "missing_source_pack_keys": [],
+      "protocol_id": "mcp-tooling-safety",
+      "required_runtime_attributes": [
+        "discover_method",
+        "server_info_used_for_security"
+      ],
+      "requirement": "MCP 2026-07-28 servers must implement server/discover. Dual-era stdio clients should probe with server/discover before falling back to initialize. Clients must not use self-reported serverInfo to change behavior or make security decisions. Complete discover results must carry ttlMs and cacheScope.",
+      "source_pack_keys": [
+        "mcp_connector_intake_pack"
+      ],
+      "source_pack_status": {
+        "mcp_connector_intake_pack": {
+          "failure_count": 0,
+          "path": "data/evidence/mcp-connector-intake-pack.json",
+          "schema_version": "1.0",
+          "status": "ready",
+          "summaries": {
+            "intake_summary": {
+              "candidate_count": 4,
+              "decision_counts": {
+                "approve_for_registry_candidate": 1,
+                "deny_until_redesigned": 1,
+                "hold_for_controls": 2
+              },
+              "highest_risk_candidates": [
+                {
+                  "candidate_id": "registry-publisher",
+                  "decision": "deny_until_redesigned",
+                  "namespace": "registries.publish",
+                  "risk_score": 100,
+                  "title": "Container Registry Publisher"
+                },
+                {
+                  "candidate_id": "tenant-analytics-mcp-app",
+                  "decision": "hold_for_controls",
+                  "namespace": "analytics.tenant.dashboard",
+                  "risk_score": 99,
+                  "title": "Tenant Analytics MCP App Dashboard"
+                },
+                {
+                  "candidate_id": "browser-research-stdio",
+                  "decision": "hold_for_controls",
+                  "namespace": "research.browser",
+                  "risk_score": 83,
+                  "title": "Local Browser Research STDIO Server"
+                }
+              ],
+              "hold_or_deny_count": 3,
+              "tier_counts": {
+                "tier_1_internal_read": 2,
+                "tier_2_scoped_write": 1,
+                "tier_4_prohibited": 1
+              },
+              "transport_counts": {
+                "stdio": 1,
+                "streamable-http": 3
+              }
+            }
+          }
+        }
+      },
+      "status": "ready",
+      "title": "MCP server/discover Conformance"
     },
     {
       "buyer_question": "Can SecurityRecipes reject an MCP notification stream that still uses resources/subscribe, skips the listen acknowledgment, or pushes unsolicited list-changed events?",
@@ -5078,7 +5338,7 @@
                 "agentic-assurance-models",
                 "recipes"
               ],
-              "byte_count": 15039961,
+              "byte_count": 15071315,
               "decision_counts": {
                 "allow_with_adversarial_examples": 1,
                 "block_until_removed": 2,
@@ -5256,7 +5516,7 @@
     "sales_motion": "Lead with open protocol conformance evidence, then sell hosted live checks, drift alerts, signed receipts, fleet reporting, and private customer policy mapping."
   },
   "failures": [],
-  "generated_at": "2026-09-27",
+  "generated_at": "2026-10-11",
   "intent": "Create a buyer-grade protocol conformance layer for SecurityRecipes so MCP, A2A, agent identity, prompt-injection, and standards drift are translated into generated evidence, deterministic runtime decisions, and MCP-readable diligence artifacts.",
   "positioning": {
     "buyer": "AI platform, product security, AppSec, GRC, procurement security, and acquisition diligence teams",
@@ -5266,16 +5526,16 @@
   },
   "protocol_conformance_pack_id": "security-recipes-agentic-protocol-conformance",
   "protocol_conformance_summary": {
-    "control_check_count": 17,
+    "control_check_count": 18,
     "control_status_counts": {
-      "ready": 17
+      "ready": 18
     },
     "failure_count": 0,
     "protocol_decision_counts": {
       "ready_for_enterprise_conformance": 4
     },
     "protocol_profile_count": 4,
-    "ready_control_check_count": 17,
+    "ready_control_check_count": 18,
     "ready_protocol_profile_count": 4,
     "status": "protocol_conformance_ready"
   },
@@ -5312,9 +5572,9 @@
               "status": "ready",
               "summaries": {
                 "authorization_summary": {
-                  "candidate_count": 3,
+                  "candidate_count": 4,
                   "candidate_decision_counts": {
-                    "approve_for_pilot": 1,
+                    "approve_for_pilot": 2,
                     "deny_until_redesigned": 1,
                     "hold_for_authorization_evidence": 1
                   },
@@ -5397,9 +5657,9 @@
               "status": "ready",
               "summaries": {
                 "authorization_summary": {
-                  "candidate_count": 3,
+                  "candidate_count": 4,
                   "candidate_decision_counts": {
-                    "approve_for_pilot": 1,
+                    "approve_for_pilot": 2,
                     "deny_until_redesigned": 1,
                     "hold_for_authorization_evidence": 1
                   },
@@ -5449,9 +5709,9 @@
               "status": "ready",
               "summaries": {
                 "authorization_summary": {
-                  "candidate_count": 3,
+                  "candidate_count": 4,
                   "candidate_decision_counts": {
-                    "approve_for_pilot": 1,
+                    "approve_for_pilot": 2,
                     "deny_until_redesigned": 1,
                     "hold_for_authorization_evidence": 1
                   },
@@ -5475,11 +5735,11 @@
               "status": "ready",
               "summaries": {
                 "intake_summary": {
-                  "candidate_count": 3,
+                  "candidate_count": 4,
                   "decision_counts": {
                     "approve_for_registry_candidate": 1,
                     "deny_until_redesigned": 1,
-                    "hold_for_controls": 1
+                    "hold_for_controls": 2
                   },
                   "highest_risk_candidates": [
                     {
@@ -5490,29 +5750,29 @@
                       "title": "Container Registry Publisher"
                     },
                     {
+                      "candidate_id": "tenant-analytics-mcp-app",
+                      "decision": "hold_for_controls",
+                      "namespace": "analytics.tenant.dashboard",
+                      "risk_score": 99,
+                      "title": "Tenant Analytics MCP App Dashboard"
+                    },
+                    {
                       "candidate_id": "browser-research-stdio",
                       "decision": "hold_for_controls",
                       "namespace": "research.browser",
                       "risk_score": 83,
                       "title": "Local Browser Research STDIO Server"
-                    },
-                    {
-                      "candidate_id": "github-remediation-writer",
-                      "decision": "approve_for_registry_candidate",
-                      "namespace": "repo.remediation",
-                      "risk_score": 0,
-                      "title": "GitHub Remediation Branch Writer"
                     }
                   ],
-                  "hold_or_deny_count": 2,
+                  "hold_or_deny_count": 3,
                   "tier_counts": {
-                    "tier_1_internal_read": 1,
+                    "tier_1_internal_read": 2,
                     "tier_2_scoped_write": 1,
                     "tier_4_prohibited": 1
                   },
                   "transport_counts": {
                     "stdio": 1,
-                    "streamable-http": 2
+                    "streamable-http": 3
                   }
                 }
               }
@@ -5570,9 +5830,9 @@
               "status": "ready",
               "summaries": {
                 "authorization_summary": {
-                  "candidate_count": 3,
+                  "candidate_count": 4,
                   "candidate_decision_counts": {
-                    "approve_for_pilot": 1,
+                    "approve_for_pilot": 2,
                     "deny_until_redesigned": 1,
                     "hold_for_authorization_evidence": 1
                   },
@@ -5664,8 +5924,8 @@
       "title": "MCP Authorization Conformance"
     },
     {
-      "commercial_value": "Packages live tool-list monitoring over subscriptions/listen, signed tool-surface baselines, annotation trust, and private-data plus untrusted-content plus external-send risk into a hosted MCP security control plane.",
-      "conformance_check_count": 5,
+      "commercial_value": "Packages required server/discover identity, cacheable discover results, live tool-list monitoring over subscriptions/listen, signed tool-surface baselines, annotation trust, and private-data plus untrusted-content plus external-send risk into a hosted MCP security control plane.",
+      "conformance_check_count": 6,
       "conformance_checks": [
         {
           "buyer_question": "Are annotations enforceable policy evidence or only UI hints from an untrusted server?",
@@ -5791,6 +6051,80 @@
           },
           "status": "ready",
           "title": "Tool Surface Pinning"
+        },
+        {
+          "buyer_question": "Can SecurityRecipes reject an MCP server that skips server/discover, treats self-reported serverInfo as security evidence, or omits cache hints on a complete discover result?",
+          "check_hash": "fb49830bb24e22d946c9acf28e94a587d6f8fab0bc552151b9ba9424011710e8",
+          "evidence_paths": [
+            "data/evidence/mcp-connector-intake-pack.json",
+            "data/evidence/agentic-protocol-conformance-pack.json"
+          ],
+          "fail_closed_decision": "deny_untrusted_protocol_surface",
+          "id": "mcp-server-discover-conformance",
+          "missing_evidence_paths": [],
+          "missing_source_pack_keys": [],
+          "protocol_id": "mcp-tooling-safety",
+          "required_runtime_attributes": [
+            "discover_method",
+            "server_info_used_for_security"
+          ],
+          "requirement": "MCP 2026-07-28 servers must implement server/discover. Dual-era stdio clients should probe with server/discover before falling back to initialize. Clients must not use self-reported serverInfo to change behavior or make security decisions. Complete discover results must carry ttlMs and cacheScope.",
+          "source_pack_keys": [
+            "mcp_connector_intake_pack"
+          ],
+          "source_pack_status": {
+            "mcp_connector_intake_pack": {
+              "failure_count": 0,
+              "path": "data/evidence/mcp-connector-intake-pack.json",
+              "schema_version": "1.0",
+              "status": "ready",
+              "summaries": {
+                "intake_summary": {
+                  "candidate_count": 4,
+                  "decision_counts": {
+                    "approve_for_registry_candidate": 1,
+                    "deny_until_redesigned": 1,
+                    "hold_for_controls": 2
+                  },
+                  "highest_risk_candidates": [
+                    {
+                      "candidate_id": "registry-publisher",
+                      "decision": "deny_until_redesigned",
+                      "namespace": "registries.publish",
+                      "risk_score": 100,
+                      "title": "Container Registry Publisher"
+                    },
+                    {
+                      "candidate_id": "tenant-analytics-mcp-app",
+                      "decision": "hold_for_controls",
+                      "namespace": "analytics.tenant.dashboard",
+                      "risk_score": 99,
+                      "title": "Tenant Analytics MCP App Dashboard"
+                    },
+                    {
+                      "candidate_id": "browser-research-stdio",
+                      "decision": "hold_for_controls",
+                      "namespace": "research.browser",
+                      "risk_score": 83,
+                      "title": "Local Browser Research STDIO Server"
+                    }
+                  ],
+                  "hold_or_deny_count": 3,
+                  "tier_counts": {
+                    "tier_1_internal_read": 2,
+                    "tier_2_scoped_write": 1,
+                    "tier_4_prohibited": 1
+                  },
+                  "transport_counts": {
+                    "stdio": 1,
+                    "streamable-http": 3
+                  }
+                }
+              }
+            }
+          },
+          "status": "ready",
+          "title": "MCP server/discover Conformance"
         },
         {
           "buyer_question": "Can SecurityRecipes reject an MCP notification stream that still uses resources/subscribe, skips the listen acknowledgment, or pushes unsolicited list-changed events?",
@@ -6021,8 +6355,10 @@
       "effective_decision": "ready_for_enterprise_conformance",
       "id": "mcp-tooling-safety",
       "readiness_score": 100.0,
-      "ready_check_count": 5,
+      "ready_check_count": 6,
       "source_ids": [
+        "mcp-server-discover-2026-07-28",
+        "mcp-caching-2026-07-28",
         "mcp-subscriptions-listen-2026-07-28",
         "mcp-spec-changelog-2026-07-28",
         "mcp-tool-annotations-2026-03-16",
@@ -6030,6 +6366,22 @@
         "openai-agent-prompt-injection-2026"
       ],
       "sources": [
+        {
+          "id": "mcp-server-discover-2026-07-28",
+          "name": "MCP server/discover (2026-07-28 current revision)",
+          "published": "2026-07-28",
+          "publisher": "Model Context Protocol",
+          "source_class": "protocol_specification",
+          "url": "https://modelcontextprotocol.io/specification/2026-07-28/server/discover"
+        },
+        {
+          "id": "mcp-caching-2026-07-28",
+          "name": "MCP Caching (2026-07-28 current revision)",
+          "published": "2026-07-28",
+          "publisher": "Model Context Protocol",
+          "source_class": "protocol_specification",
+          "url": "https://modelcontextprotocol.io/specification/2026-07-28/server/utilities/caching"
+        },
         {
           "id": "mcp-subscriptions-listen-2026-07-28",
           "name": "MCP Subscriptions Pattern (2026-07-28 current revision)",
@@ -6618,7 +6970,7 @@
                     "agentic-assurance-models",
                     "recipes"
                   ],
-                  "byte_count": 15039961,
+                  "byte_count": 15071315,
                   "decision_counts": {
                     "allow_with_adversarial_examples": 1,
                     "block_until_removed": 2,
@@ -6839,16 +7191,16 @@
   "source_artifacts": {
     "agentic_protocol_conformance_profile": {
       "path": "data/assurance/agentic-protocol-conformance-profile.json",
-      "sha256": "7ab0c411968728df70cf891e7e1ae8e5fa4fef51a168e1b8270260cad4c00832"
+      "sha256": "8d44b6b2bda7d3b13f24627433dbb3666ce68acd6c1bf8b0447673ac38c90668"
     },
     "source_packs": {
       "a2a_agent_card_trust_profile": {
         "path": "data/evidence/a2a-agent-card-trust-profile.json",
-        "sha256": "4b85d90febb4d0d66178b9a2303aa3e92027783c8e82cac9972c5b0bd64fd215"
+        "sha256": "352d379348564d2f68b3fd1f5010f75aa8a161469832c8482962592fee1f0f2c"
       },
       "agent_handoff_boundary_pack": {
         "path": "data/evidence/agent-handoff-boundary-pack.json",
-        "sha256": "3ff8a1ac306d69ef1c4a226a97cb4b13a65265689aa6ed6514984194ff780b96"
+        "sha256": "9104b72365bddf9dcef93d3f310c33989f0664ada64a85a65ce558adab8310a2"
       },
       "agent_identity_ledger": {
         "path": "data/evidence/agent-identity-delegation-ledger.json",
@@ -6856,7 +7208,7 @@
       },
       "agentic_control_plane_blueprint": {
         "path": "data/evidence/agentic-control-plane-blueprint.json",
-        "sha256": "fc8d8d6b7a5454f75ab7f301d3f3d753b363f0968be75e4e338a5db05db747c7"
+        "sha256": "584775e1f5b6e44fb7824377146bf72974ef2d6ea597b832253283f4957738b8"
       },
       "agentic_red_team_drill_pack": {
         "path": "data/evidence/agentic-red-team-drill-pack.json",
@@ -6864,39 +7216,39 @@
       },
       "agentic_run_receipt_pack": {
         "path": "data/evidence/agentic-run-receipt-pack.json",
-        "sha256": "b8c4a788969397ef1775e925391420fddd9d48645291faaee783fadf61e5cc75"
+        "sha256": "9f880bb4e9c57c9e3c63559779df850e5f11c365401c6f9b4f6087434d822351"
       },
       "context_egress_boundary_pack": {
         "path": "data/evidence/context-egress-boundary-pack.json",
-        "sha256": "3386006725b5d99487715a1284b509fb74b50b1a56bb889879dcbcc78b87331b"
+        "sha256": "2e7f77f60d7afba5de8229acb046228a0f64160bf4616bb4ea909ffb6f070f39"
       },
       "context_poisoning_guard_pack": {
         "path": "data/evidence/context-poisoning-guard-pack.json",
-        "sha256": "1e0809d72d36e0e43f5e559e114b574ad44aeef18a48d5a0a6ad5cd011176a2c"
+        "sha256": "ab47bbad85452f17373a1d13c53bf7e580acc291698343039e382c6dc07eefd0"
       },
       "mcp_authorization_conformance_pack": {
         "path": "data/evidence/mcp-authorization-conformance-pack.json",
-        "sha256": "615b2c892e4026da786d8084cd46dd08b344cea74ee3c36ee93bb1b9a9043d48"
+        "sha256": "bfab8a7c222adbce67c1447c4646e23a2f95de3e75596095df5b1aeb73e997ee"
       },
       "mcp_connector_intake_pack": {
         "path": "data/evidence/mcp-connector-intake-pack.json",
-        "sha256": "b690310927b5231559b4216a737bf33357a2a025f8288f82cb581645683ae6c3"
+        "sha256": "d75f6df3aabd2e4ddf5a6b9437c4e5bd39d250a40f49825d530643124dbfc212"
       },
       "mcp_tool_risk_contract": {
         "path": "data/evidence/mcp-tool-risk-contract.json",
-        "sha256": "92abaf4ce7c640ec6ab92bbb7cb01325401219d2c2298418d3ff12116a94d240"
+        "sha256": "812f3afcc19d7a68f339ae9d0816c9ab9ca6cd74463d16dc31d61061a1e486c6"
       },
       "mcp_tool_surface_drift_pack": {
         "path": "data/evidence/mcp-tool-surface-drift-pack.json",
-        "sha256": "4bd2670d3e5348c70555db432d448bd7814b1b2c75d11659d89c698f5b582d8a"
+        "sha256": "fdf3275f8d382e0f52018370917b9671aeb1b86e9e3ed81e23e5aa0b472efc67"
       },
       "secure_context_eval_pack": {
         "path": "data/evidence/secure-context-eval-pack.json",
-        "sha256": "77cbc97b2894b54ca5dc7b77566628618b85a545201bca7e64971819574bac2e"
+        "sha256": "8881d960ac1f4b6cf396b58d50105461cf2261dccb5cf325a87adce21b689ea0"
       },
       "standards_crosswalk": {
         "path": "data/evidence/agentic-standards-crosswalk.json",
-        "sha256": "344aa2251fc24d9f7ee194720aeb57d91702d9d17ad30036edbc2a211196758d"
+        "sha256": "2d1a9872e9b0ee6f3caa72a527b2f402cb6cb18e562905dc220e7c1e87e2cb4f"
       }
     }
   },
@@ -6954,6 +7306,24 @@
       "source_class": "protocol_specification",
       "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/patterns/subscriptions",
       "why_it_matters": "MCP 2026-07-28 replaced resources/subscribe and the HTTP GET notification endpoint with subscriptions/listen. Servers must acknowledge the stream with io.modelcontextprotocol/subscriptionId, must not send unrequested notification types, and must keep request-scoped progress and log messages on the originating request stream."
+    },
+    {
+      "id": "mcp-server-discover-2026-07-28",
+      "name": "MCP server/discover (2026-07-28 current revision)",
+      "published": "2026-07-28",
+      "publisher": "Model Context Protocol",
+      "source_class": "protocol_specification",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/server/discover",
+      "why_it_matters": "MCP 2026-07-28 requires servers to implement server/discover to advertise supported versions, capabilities, and identity. serverInfo is self-reported and must not change client behavior or drive security decisions. Dual-era stdio clients should probe with server/discover before falling back to initialize."
+    },
+    {
+      "id": "mcp-caching-2026-07-28",
+      "name": "MCP Caching (2026-07-28 current revision)",
+      "published": "2026-07-28",
+      "publisher": "Model Context Protocol",
+      "source_class": "protocol_specification",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/server/utilities/caching",
+      "why_it_matters": "Complete server/discover results MUST include ttlMs and cacheScope. cacheScope is a freshness and sharing hint, not an access-control lock, and input_required results are not cacheable."
     },
     {
       "id": "mcp-spec-changelog-2026-07-28",

@@ -3,9 +3,9 @@
 <div class="nextra-nav-container">
   <div class="nextra-nav-container-blur"></div>
   <nav class="sr-nav" aria-label="Main navigation">
-    <a class="sr-nav__brand" href="/">
+    <a class="sr-nav__brand" href="/" aria-label="{{ site.title }} home" data-brand-host="aria">
       <img src="/images/logo.svg" alt="" width="24" height="24">
-      <span>{{ site.title }}</span>
+      <span data-brand-host>{{ site.title }}</span>
     </a>
     <div class="sr-nav__links">
       {% set currentUrl = page.url or "" %}
