@@ -502,20 +502,48 @@
       "claim_evidence": [],
       "exposure_conditions": [],
       "gaps": [],
-      "generated_at": "2026-07-29T11:46:23Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-10-12T19:34:08Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [],
-      "retrieved_source_urls": [],
+      "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2017-1000353",
+        "https://nvd.nist.gov/vuln/detail/CVE-2017-1000359",
+        "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2017-1000083",
+        "https://nvd.nist.gov/vuln/detail/cve-2017-9353",
+        "https://www.jenkins.io/security/advisory/2017-04-26",
+        "https://www.jenkins.io/security/advisory/2017-12-14/",
+        "https://www.jenkins.io/security/advisory/2017-12-06/",
+        "https://www.jenkins.io/security/advisory/2017-10-23/",
+        "https://www.jenkins.io/security/advisory/2017-11-16/",
+        "https://seclists.org/oss-sec/2017/q2/132",
+        "https://security.archlinux.org/ASA-201704-8",
+        "https://fortiguard.fortinet.com/encyclopedia/endpoint-vuln/5536",
+        "https://www.jenkins.io/security/vulnerabilities/",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog",
+        "https://www.cisa.gov/news-events/bulletins/sb17-205",
+        "https://www.cisa.gov/ncas/bulletins/SB17-282",
+        "https://www.cisa.gov/news-events/bulletins/sb17-191",
+        "https://www.cisa.gov/ncas/bulletins/SB17-324",
+        "https://cve.yack.one/cve/CVE-2017-1000353",
+        "https://www.cve.org/CVERecord?id=CVE-2017-1000353",
+        "https://avd.aquasec.com/nvd/2017/cve-2017-1000353/",
+        "https://cve.report/CVE-2017-1000353"
+      ],
       "schema_version": 2,
       "source_fingerprint": "29655874325239ae126c72f0bed26e81723c27ce2ceec758b106959a51888555",
-      "source_urls": [],
+      "source_urls": [
+        "https://www.jenkins.io/security/advisory/2017-04-26",
+        "https://www.cve.org/CVERecord?id=CVE-2017-1000353",
+        "https://nvd.nist.gov/vuln/detail/CVE-2017-1000353"
+      ],
       "status": "insufficient_evidence",
       "uncertainty": [
-        "The supplied record contains an Oracle Communications Cloud Native Core Automated Test Suite 1.9.0 CPE, but the reviewed Jenkins vendor advisory establishes affected and fixed versions only for Jenkins. Do not apply the Jenkins version recipe to the Oracle product without an Oracle-specific advisory or product mapping.",
-        "The sources establish that the remoting-based CLI is the vulnerable interface, but they do not establish whether a particular deployment exposes that interface externally.",
-        "No source-supported product-specific verification command or configuration path was identified; verification should use approved administrative inventory and configuration review.",
+        "NVD page body could not be retrieved via browse, so NVD CPE/Oracle details rely on CNA/vendor text and search snippets only.",
+        "No vendor-documented inert verification procedure (version check method or CLI protocol setting) is provided.",
+        "Network/port details for remoting CLI exposure and default-enabled status in all affected releases are not specified.",
+        "Oracle Communications Cloud Native Core Automated Test Suite 1.9.0 is referenced in some NVD-derived listings but was not confirmed from an Oracle advisory page.",
         "The model did not return a fully sourced exposure, remediation, and verification set; consult the linked NVD and vendor sources before acting."
       ],
       "verification_steps": []
@@ -1535,188 +1563,155 @@
       ]
     },
     "CVE-2018-0125": {
-      "business_risk": "Critical risk to exposed Cisco RV132W or RV134W routers: an unauthenticated remote attacker may execute arbitrary code with root privileges, obtain full device control, or force a denial-of-service reload.",
+      "business_risk": "Critical unauthenticated remote code execution as root on Cisco RV132W and RV134W VPN routers, allowing full device control or denial of service; listed in CISA KEV with known exploitation.",
       "claim_evidence": [
         {
-          "claim": "CVE-2018-0125 affects the Cisco RV132W ADSL2+ Wireless-N VPN Router and RV134W VDSL2 Wireless-AC VPN Router.",
+          "claim": "Cisco RV132W ADSL2+ Wireless-N VPN Router and RV134W VDSL2 Wireless-AC VPN Router",
           "kind": "affected_product",
           "source_url": "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-20180207-rv13x.html"
         },
         {
-          "claim": "Cisco states that all firmware releases of the RV132W and RV134W are vulnerable.",
+          "claim": "all firmware releases of the RV132W and RV134W",
           "kind": "affected_version",
           "source_url": "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-20180207-rv13x.html"
         },
         {
-          "claim": "The vulnerability is in the web interface; an unauthenticated remote attacker can send a crafted HTTP request to obtain arbitrary code execution or cause a reload.",
+          "claim": "unauthenticated remote attacker can send a crafted HTTP request to the web interface due to incomplete input validation",
           "kind": "exposure",
           "source_url": "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-20180207-rv13x.html"
         },
         {
-          "claim": "Cisco identifies firmware version 1.0.1.11 as the fixed release for both the RV132W and RV134W.",
+          "claim": "firmware version 1.0.1.11",
           "kind": "fixed_version",
           "source_url": "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-20180207-rv13x.html"
         },
         {
-          "claim": "Cisco provides firmware updates and states that no workaround addresses the vulnerability.",
+          "claim": "Cisco released firmware updates; no workarounds; obtain from Software Center under Small Business RV Series Routers",
           "kind": "remediation",
           "source_url": "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-20180207-rv13x.html"
-        },
-        {
-          "claim": "Cisco's administration guide states that the Dashboard displays the device firmware version; it is accessed through Status and Statistics > Dashboard.",
-          "kind": "verification",
-          "source_url": "https://www.cisco.com/c/dam/en/us/td/docs/routers/csbr/rv132w/admin_guide/en/RV132W_RV134W.pdf"
         }
       ],
       "exposure_conditions": [
-        "The affected device is a Cisco RV132W ADSL2+ Wireless-N VPN Router or RV134W VDSL2 Wireless-AC VPN Router.",
-        "The device is running firmware earlier than the Cisco-fixed firmware release 1.0.1.11; Cisco states that all firmware releases of these products are affected.",
-        "The web interface is reachable by an attacker who can send a crafted HTTP request. Cisco describes exploitation as unauthenticated and remote."
+        "Web interface of an affected RV132W or RV134W router is reachable by an unauthenticated remote attacker",
+        "Attacker can send a crafted HTTP request containing user-controlled input"
       ],
       "gaps": [],
-      "generated_at": "2026-07-29T11:46:10Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-10-12T19:31:35Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [
-        "Upgrade RV132W and RV134W devices to Cisco firmware version 1.0.1.11 or later, using the firmware appropriate for the specific model.",
-        "Prioritize devices whose management interface is reachable from untrusted or Internet-connected networks.",
-        "Cisco states that no workaround addresses this vulnerability; if firmware cannot be updated, isolate the device from untrusted networks and plan replacement or removal."
+        "Upgrade firmware to version 1.0.1.11 on Cisco RV132W ADSL2+ Wireless-N VPN Router and RV134W VDSL2 Wireless-AC VPN Router",
+        "Download the firmware from the Cisco Software Center by navigating to Products > Routers > Small Business Routers > Small Business RV Series Routers",
+        "No workarounds are available",
+        "Customers without a service contract may contact Cisco TAC with the product serial number and the advisory URL to obtain the update"
       ],
       "retrieved_source_urls": [
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2018-0125@http:/www.securitytracker.com/id/1040336@http:/www.securityfocus.com/bid/103140@http:/www.securityfocus.com/bid/103140@http:/www.securitytracker.com/id/1040336@https:/tools.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-20180207-rv13x@https:/www.cisa.gov/sites/default/files/csv/known_exploited_vulnerabilities.csv",
+        "https://nvd.nist.gov/vuln/detail/cve-2018-0125",
+        "https://nvd.nist.gov/vuln/detail/CVE-2017-0125",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2018-12825",
+        "https://nvd.nist.gov/nvd.cfm?cvename=CVE-2018-8725",
+        "https://nvd.nist.gov/vuln/detail/CVE-2018-25125",
+        "https://nvd.nist.gov/vuln/detail/cve-2018-18025",
+        "https://nvd.nist.gov/vuln/detail/cve-2018-25012",
+        "https://nvd.nist.gov/vuln/detail/cve-2018-19725",
         "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-20180207-rv13x.html",
-        "https://www.cisa.gov/news-events/alerts/2022/02/10/cisa-adds-15-known-exploited-vulnerabilities-catalog",
-        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=50",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A803&f%5B10%5D=vendor_project%3A854&f%5B11%5D=vendor_project%3A859&f%5B12%5D=vendor_project%3A865&f%5B13%5D=vendor_project%3A877&f%5B14%5D=vendor_project%3A880&f%5B15%5D=vendor_project%3A885&f%5B16%5D=vendor_project%3A886&f%5B17%5D=vendor_project%3A887&f%5B18%5D=vendor_project%3A888&f%5B19%5D=vendor_project%3A893&f%5B1%5D=vendor_project%3A805&f%5B20%5D=vendor_project%3A897&f%5B21%5D=vendor_project%3A902&f%5B22%5D=vendor_project%3A917&f%5B23%5D=vendor_project%3A929&f%5B24%5D=vendor_project%3A931&f%5B25%5D=vendor_project%3A932&f%5B26%5D=vendor_project%3A933&f%5B27%5D=vendor_project%3A938&f%5B28%5D=vendor_project%3A951&f%5B29%5D=vendor_project%3A954&f%5B2%5D=vendor_project%3A816&f%5B30%5D=vendor_project%3A1000&f%5B31%5D=vendor_project%3A1174&f%5B32%5D=vendor_project%3A1273&f%5B33%5D=vendor_project%3A1291&f%5B3%5D=vendor_project%3A820&f%5B4%5D=vendor_project%3A823&f%5B5%5D=vendor_project%3A828&f%5B6%5D=vendor_project%3A837&f%5B7%5D=vendor_project%3A839&f%5B8%5D=vendor_project%3A842&f%5B9%5D=vendor_project%3A845&page=4",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A811&f%5B10%5D=vendor_project%3A952&f%5B11%5D=vendor_project%3A953&f%5B12%5D=vendor_project%3A1147&f%5B1%5D=vendor_project%3A821&f%5B2%5D=vendor_project%3A858&f%5B3%5D=vendor_project%3A859&f%5B4%5D=vendor_project%3A877&f%5B5%5D=vendor_project%3A885&f%5B6%5D=vendor_project%3A901&f%5B7%5D=vendor_project%3A914&f%5B8%5D=vendor_project%3A916&f%5B9%5D=vendor_project%3A920&page=1",
-        "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-rv-multi-lldp-u7e4chCe.html",
-        "https://www.cisco.com/c/en/us/support/docs/smb/routers/cisco-rv-series-small-business-routers/Reboot-and-Reset-to-Factory-Default-Settings-on-the-RV132W-and-RV134W.html",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=57",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=18",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=38",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A800&f%5B10%5D=vendor_project%3A851&f%5B11%5D=vendor_project%3A854&f%5B12%5D=vendor_project%3A857&f%5B13%5D=vendor_project%3A886&f%5B14%5D=vendor_project%3A893&f%5B15%5D=vendor_project%3A901&f%5B16%5D=vendor_project%3A902&f%5B17%5D=vendor_project%3A908&f%5B18%5D=vendor_project%3A917&f%5B19%5D=vendor_project%3A925&f%5B1%5D=vendor_project%3A801&f%5B20%5D=vendor_project%3A938&f%5B21%5D=vendor_project%3A1266&f%5B2%5D=vendor_project%3A809&f%5B3%5D=vendor_project%3A820&f%5B4%5D=vendor_project%3A823&f%5B5%5D=vendor_project%3A837&f%5B6%5D=vendor_project%3A842&f%5B7%5D=vendor_project%3A845&f%5B8%5D=vendor_project%3A846&f%5B9%5D=vendor_project%3A849&page=0",
-        "https://www.cisa.gov/news-events/ics-advisories/icsa-15-062-02",
-        "https://www.cisa.gov/sites/default/files/2024-05/Secure_by_Design_Alert_Eliminating_Directory_Traversal_Vulnerabilities_in_Software_508c%20%283%29.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/AA22-117A_Joint_CSA_2021_Top_Routinely_Exploited_Vulnerabilities_Final.pdf",
-        "https://www.cisa.gov/sites/default/files/2024-08/SECURING_THE_SOFTWARE_SUPPLY_CHAIN_RECOMMENDED_PRACTICES_FOR_SOFTWARE_BILL_OF_MATERIALS_CONSUMPTION-508.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/AA22-011A_Joint_CSA_Understanding_and_Mitigating%20_Russian_Cyber_Threats_to_US_Critical_Infrastructure_TLP-WHITE_01-10-22_v1.pdf",
-        "https://www.cisco.com/c/en/us/support/docs/smb/routers/cisco-rv-series-small-business-routers/smb5437-configure-ipv4-lan-connections-on-rv132w-or-rv134w.html",
-        "https://www.cisco.com/c/dam/en/us/td/docs/routers/csbr/rv132w/admin_guide/en/RV132W_RV134W.pdf",
-        "https://www.cisco.com/c/en/us/support/docs/smb/routers/cisco-rv-series-small-business-routers/smb2342-view-connected-devices-on-an-rv-series-router.html",
-        "https://www.cisco.com/c/es_mx/support/docs/smb/routers/cisco-rv-series-small-business-routers/Reboot-and-Reset-to-Factory-Default-Settings-on-the-RV132W-and-RV134W.html",
-        "https://www.cisco.com/c/en/us/support/routers/small-business-rv-series-routers/products-user-guide-list.html",
-        "https://www.cisco.com/c/de_de/support/docs/smb/routers/cisco-rv-series-small-business-routers/Reboot-and-Reset-to-Factory-Default-Settings-on-the-RV132W-and-RV134W.html",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=0"
+        "https://www.cisco.com/c/ja_jp/support/docs/csa/2018/cisco-sa-20180207-rv13x.html",
+        "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-20180207-ios.html",
+        "https://nso-docs.cisco.com/guides/resources/man/ncs.conf.5",
+        "https://gblogs.cisco.com/jp/2018/01/talos-ms-tuesday-201801/",
+        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-20180418-wbs",
+        "https://community.cisco.com/t5/custom/page/page-id/CiscoPage.unanswered",
+        "https://www.cisco.com/c/ja_jp/support/docs/csa/2018/cisco-sa-20180207-rv13x-2.html",
+        "https://www.cisco.com/c/ja_jp/support/docs/csa/2018/cisco-sa-20180328-lldp.pdf",
+        "https://www.cisco.com/c/ja_jp/support/docs/csa/2018/cisco-sa-20180620-fx-os-cli-execution.html",
+        "https://www.cve.org/CVERecord?id=CVE-2018-0125",
+        "https://tools.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-20180207-rv13x",
+        "https://cve.report/CVE-2018-0125",
+        "https://www.cisa.gov/news-events/bulletins/sb18-043",
+        "https://www.cisa.gov/news-events/bulletins/sb18-344"
       ],
       "schema_version": 2,
       "source_fingerprint": "a20b4a3bc2aa4f881ae9adfddf5e0280f9e48db66e938679d61bade7ae487910",
       "source_urls": [
-        "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-20180207-rv13x.html",
-        "https://www.cisco.com/c/dam/en/us/td/docs/routers/csbr/rv132w/admin_guide/en/RV132W_RV134W.pdf"
+        "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-20180207-rv13x.html"
       ],
       "status": "complete",
       "uncertainty": [
-        "The exact installed firmware version and network exposure of the affected asset were not provided.",
-        "The supplied record marks this CVE as present in CISA's Known Exploited Vulnerabilities catalog, but the returned CISA page did not display the specific CVE entry; treat the KEV designation as supplied-record metadata pending independent catalog confirmation.",
-        "Cisco's advisory establishes the fixed release for this CVE but does not establish whether the product remains supported for future security updates."
+        "Consulted advisories do not document a specific GUI path, CLI command, or other inert procedure for reading the firmware version",
+        "Current firmware availability and end-of-support status for these 2018-era products are not restated beyond the advisory text"
       ],
       "verification_steps": [
-        "Using an authorized administrative session, view the router's Dashboard or System Summary and record the reported firmware version; Cisco documentation states that the Dashboard displays the device firmware version.",
-        "Confirm that the installed firmware is at least 1.0.1.11 for the applicable RV132W or RV134W model.",
-        "Confirm that the device remains operational after the vendor-supported firmware update and that administrative access is available. Do not conduct exploit or destructive testing."
+        "Confirm the installed firmware version is 1.0.1.11 using the version identification method documented by Cisco for these routers"
       ]
     },
     "CVE-2018-0147": {
-      "business_risk": "Critical risk: an unauthenticated remote attacker may execute arbitrary commands with root privileges on an affected Cisco Secure Access Control System device. Cisco reported additional attempted exploitation in the wild in March 2022, and NVD identifies the CVE as present in CISA's Known Exploited Vulnerabilities Catalog.",
+      "business_risk": "Critical unauthenticated remote code execution as root on Cisco Secure Access Control System (ACS), an identity and network access-control platform. CISA lists this CVE in the Known Exploited Vulnerabilities catalog; Cisco reported additional attempted exploitation in the wild in 2022. Compromise can undermine authentication and authorization for connected networks.",
       "claim_evidence": [
         {
-          "claim": "Cisco Secure Access Control System is affected by CVE-2018-0147.",
-          "kind": "affected_product",
-          "source_url": "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-20180307-acs2"
-        },
-        {
-          "claim": "All Cisco Secure ACS releases prior to release 5.8 Patch 9 are affected.",
-          "kind": "affected_version",
-          "source_url": "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-20180307-acs2"
-        },
-        {
-          "claim": "The vulnerability can allow an unauthenticated remote attacker to execute arbitrary commands with root privileges by supplying a crafted serialized Java object; ACS 5.8 Patch 7 and Patch 8 require authentication.",
-          "kind": "exposure",
-          "source_url": "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-20180307-acs2"
-        },
-        {
-          "claim": "Cisco identifies Cisco Secure ACS 5.8.0.32.9 Cumulative Patch as the fixed release and states that no workaround addresses the vulnerability.",
+          "claim": "Cisco released software updates that address the vulnerability; there are no workarounds. Apply the 5.8.0.32.9 Cumulative Patch from Cisco Software Center.",
           "kind": "remediation",
-          "source_url": "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-20180307-acs2"
-        },
-        {
-          "claim": "Cisco documents checking the running ACS release through the ACS CLI or web-based interface; verification should confirm the installed release and cumulative patch against the fixed release.",
-          "kind": "verification",
-          "source_url": "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-20180307-acs2"
-        },
-        {
-          "claim": "The vulnerability is fixed in Cisco Secure ACS 5.8.0.32.9 Cumulative Patch, corresponding to 5.8 Patch 9.",
-          "kind": "fixed_version",
-          "source_url": "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-20180307-acs2"
+          "source_url": "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-20180307-acs2.html"
         }
       ],
       "exposure_conditions": [
-        "Cisco Secure ACS releases earlier than 5.8 Patch 9 are affected.",
-        "The vulnerability is remotely exploitable without authentication on releases prior to 5.8 Patch 7; Cisco states that 5.8 Patch 7 and Patch 8 require authentication, with a lower CVSS score.",
-        "The affected functionality involves insecure deserialization of attacker-supplied Java objects.",
-        "No workaround is available according to Cisco."
+        "Cisco Secure ACS is running any release prior to 5.8 patch 9.",
+        "The ACS management/application interface is reachable over the network.",
+        "For releases prior to 5.8 Patch 7, an unauthenticated remote attacker can attempt exploitation by sending a crafted serialized Java object.",
+        "Cisco Secure ACS 5.8 Patch 7 or Patch 8 require authentication to exploit."
       ],
       "gaps": [],
-      "generated_at": "2026-07-29T11:45:48Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-10-12T19:29:16Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [
-        "Upgrade Cisco Secure ACS to Cisco Secure ACS 5.8.0.32.9 Cumulative Patch, identified by Cisco as the fixed release.",
-        "Use Cisco's supported software-distribution or TAC process as appropriate, and confirm that licensing, hardware capacity, and configuration support requirements are satisfied before upgrading.",
-        "Because the vulnerability is listed in CISA's Known Exploited Vulnerabilities Catalog, prioritize remediation and apply compensating access restrictions only as temporary risk reduction; they are not a substitute for the upgrade."
+        "Apply the vendor-fixed Cisco Secure ACS 5.8.0.32.9 Cumulative Patch as stated in the Cisco security advisory.",
+        "Download the patch from Cisco Software Center under Products > Security > Network Visibility and Enforcement > Secure Access Control System > Secure Access Control System 5.8, subject to a valid license.",
+        "There are no workarounds that address this vulnerability.",
+        "Follow the CISA KEV required action: apply updates per vendor instructions."
       ],
       "retrieved_source_urls": [
         "https://nvd.nist.gov/vuln/detail/cve-2018-0147",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-20180307-acs2",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-20180328-privesc2",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-ise-rce-traversal-8bYndVrZ",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-20180328-qos",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-20180328-ike",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-20181219-asa-privesc",
+        "https://nvd.nist.gov/vuln/detail/CVE-2017-0147",
+        "https://nvd.nist.gov/vuln/detail/CVE-2018-0146",
+        "https://nvd.nist.gov/vuln/detail/CVE-2017-0147/change-record?changeRecordedOn=03/20/2017T10:34:31.543-0400",
+        "https://nvd.nist.gov/vuln/detail/CVE-2017-0147/change-record?changeRecordedOn=07%2F02%2F2024T09%3A00%3A45.723-0400",
         "https://nvd.nist.gov/vuln/detail/CVE-2018-20147",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-20180418-asa_inspect",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-20180328-smi2",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-20180129-asa1",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-20180328-ipv4",
-        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
-        "https://www.cisa.gov/sites/default/files/2024-05/Secure_by_Design_Alert_Eliminating_Directory_Traversal_Vulnerabilities_in_Software_508c%20%283%29.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/AA22-117A_Joint_CSA_2021_Top_Routinely_Exploited_Vulnerabilities_Final.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/AA20-258A-Chinese_Ministry_of_State_Security-Affiliated_Cyber_Threat_Actor_Activity_S508C.pdf",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-20180307-ise2",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-20200226-fxos-nxos-cdp",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-asaftd-rsa-key-leak-Ms7UEfZz",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-20180117-nxos",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-20181003-hyperflex-secret",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-20160309-csc",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-20171212-bleichenbacher"
+        "https://nvd.nist.gov/vuln/detail/cve-2018-14907",
+        "https://nvd.nist.gov/vuln/detail/cve-2018-5147",
+        "https://tools.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-20180307-acs2?vs_f=Cisco%20Security%20Advisory&vs_cat=Security%20Intelligence&vs_type=RSS&vs_p=Cisco%20Secure%20Access%20Control%20System%20Java%20Deserialization%20Vulnerability&vs_k=1",
+        "https://www.cve.org/CVERecord?id=CVE-2018-0147",
+        "https://www.cvedetails.com/cve/CVE-2018-0147/",
+        "https://cve.yack.one/cve/CVE-2018-0147",
+        "https://cvefeed.io/vuln/detail/CVE-2018-0147",
+        "https://socradar.io/free-tools/cve-radar/CVE-2018-0147",
+        "https://vulnerability.circl.lu/vuln/cisco-sa-20180307-acs2",
+        "https://cve.report/CVE-2018-0147",
+        "https://www.tenable.com/cve/CVE-2018-0147",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog",
+        "https://www.cisa.gov/news-events/bulletins/sb18-120",
+        "https://www.cisa.gov/news-events/bulletins/sb18-288",
+        "https://www.cisa.gov/news-events/bulletins/sb18-204",
+        "https://www.cisa.gov/news-events/bulletins/sb18-190",
+        "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-20180307-acs2.html",
+        "https://www.cisa.gov/resources-tools/resources/kev-catalog"
       ],
       "schema_version": 2,
       "source_fingerprint": "4def8b40cedba852599c9d23ecac91f0ec74840385e8551ab8080dcd87df2c03",
       "source_urls": [
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-20180307-acs2"
+        "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-20180307-acs2.html"
       ],
       "status": "complete",
       "uncertainty": [
-        "The supplied affected-version record contains a nonstandard product-only version string and a CPE for Cisco Secure Access Control System 5.2(0.3); Cisco's advisory provides the broader condition that all releases before 5.8 Patch 9 are affected.",
-        "The actual installed version, patch level, deployment exposure, and whether the device remains in service were not supplied.",
-        "Cisco's advisory establishes the fixed release but does not establish that the product is currently supported; support and upgrade feasibility should be confirmed with Cisco."
+        "The NVD detail page did not return usable content in this session, so NVD CPE listings were not independently confirmed from nvd.nist.gov.",
+        "Cisco ACS 5.8 is past end-of-sale; long-term Software Center availability and TAC support may be limited even though the advisory still points to the 5.8.0.32.9 patch.",
+        "The advisory does not name the specific service, port, or protocol that accepts the serialized Java object."
       ],
       "verification_steps": [
-        "Confirm that the installed Cisco Secure ACS release and cumulative patch are Cisco Secure ACS 5.8.0.32.9 Cumulative Patch or otherwise documented by Cisco as fixed.",
-        "Use Cisco's documented release-identification method through the ACS CLI or web-based interface; do not perform exploit testing or send crafted serialized objects.",
-        "Record the verified product version and patch level in the vulnerability-management system, then reassess the asset against the Cisco advisory."
+        "Identify the installed Cisco Secure ACS release and patch list using the vendor-documented command-line version display or the web-based interface About page described in the Cisco advisory.",
+        "Confirm the running software is 5.8 patch 9, equivalent to the 5.8.0.32.9 Cumulative Patch, and is not any earlier ACS release."
       ]
     },
     "CVE-2018-0151": {
@@ -1724,47 +1719,45 @@
       "claim_evidence": [],
       "exposure_conditions": [],
       "gaps": [],
-      "generated_at": "2026-07-29T11:45:32Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-10-12T19:27:35Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [],
       "retrieved_source_urls": [
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-20180328-qos",
-        "https://nvd.nist.gov/vuln/detail/CVE-2018-0151",
-        "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-20180328-dot1x.html",
-        "https://www.cisco.com/c/ja_jp/support/docs/csa/2018/cisco-sa-20180328-qos.html",
-        "https://www.cisco.com/c/en/us/support/docs/csb/cisco-sa-20180328-bundle.html",
-        "https://nvd.nist.gov/vuln/detail/CVE-2018-20151",
-        "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-20180328-xepriv.html",
-        "https://nvd.nist.gov/vuln/detail/CVE-2018-20251",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=48&thw1csj=awEW5RX7Ma9SF",
-        "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-20180328-smi.html",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-20180328-slogin",
-        "https://nvd.nist.gov/vuln/detail/CVE-2017-0151",
-        "https://www.cisa.gov/sites/default/files/publications/AA20-133A_Top_10_Routinely_Exploited_Vulnerabilities_S508C.pdf",
-        "https://www.cisco.com/c/ja_jp/support/docs/csa/2018/cisco-sa-20180328-lldp.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/AA21-209A_Joint_CSA%20Top%20Routinely%20Exploited%20Vulnerabilities.pdf",
-        "https://www.cisco.com/c/ja_jp/support/docs/csa/2018/cisco-sa-20180328-smi2.pdf",
-        "https://www.cisco.com/c/ja_jp/support/docs/csa/2018/cisco-sa-20180328-sisf.pdf",
-        "https://www.cisa.gov/sites/default/files/2023-08/aa23-215a_joint_csa_2022_top_routinely_exploited_vulnerabilities.pdf",
+        "https://nvd.nist.gov/vuln/detail/cve-2018-0151",
+        "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2018-0155",
+        "https://nvd.nist.gov/vuln/detail/cve-2018-20151",
+        "https://nvd.nist.gov/vuln/detail/cve-2019-0151",
+        "https://nvd.nist.gov/vuln/detail/CVE-2018-15151",
+        "https://nvd.nist.gov/vuln/detail/cve-2018-8151",
         "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-20180328-qos.html",
-        "https://test-supplychain.cisco.com/c/en/us/support/docs/csa/cisco-sa-20180328-qos.html",
-        "https://community.cisco.com/t5/ip-telephony-and-phones/cisco-ios-version-15-1-4-m12a/td-p/3380081",
-        "https://community.cisco.com/t5/cisco-bug-discussions/cscvf73881-cisco-ios-and-ios-xe-software-quality-of-service/td-p/3362907"
+        "https://www.cisco.com/c/ja_jp/support/docs/csa/2018/cisco-sa-20180328-qos.html",
+        "https://community.cisco.com/t5/eventos-de-tecnologia-online-e-webinars/eb-p/pt-eventos-webinars-bd/label-name/seguran%C3%A7a",
+        "https://www.cisco.com/c/ja_jp/support/docs/csa/2018/cisco-sa-20180606-ucsdimcs.html",
+        "https://www.cisco.com/c/ja_jp/support/docs/csa/2018/cisco-sa-20180307-acs2.html",
+        "https://tools.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-20180328-qos",
+        "https://www.cve.org/CVERecord?id=CVE-2018-0151",
+        "https://socradar.io/free-tools/cve-radar/CVE-2018-0151",
+        "https://www.rapid7.com/db/vulnerabilities/cisco-ios-cve-2018-0151/",
+        "https://cvepremium.circl.lu/vuln/cisco-sa-20180328-qos",
+        "https://vulnerability.circl.lu/vuln/cve-2018-0151",
+        "https://cvepremium.circl.lu/vuln/cve-2018-0151",
+        "https://cve.circl.lu/cve/CVE-2018-0151",
+        "https://vulnerability.circl.lu/vuln/CVE-2018-0151",
+        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-20180328-qos"
       ],
       "schema_version": 2,
       "source_fingerprint": "71227c9170a78690b8377b30de56195813df7c8bc48855b28acd59c347098268",
       "source_urls": [
         "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-20180328-qos.html",
-        "https://nvd.nist.gov/vuln/detail/CVE-2018-0151"
+        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-20180328-qos"
       ],
       "status": "insufficient_evidence",
       "uncertainty": [
-        "The authoritative Cisco advisory states that fixed software exists but delegates the concrete First Fixed determination to the Cisco IOS Software Checker and does not provide a single universal fixed version.",
-        "The supplied NVD product data is broad and includes an IOS XE 16.5.1 CPE, but it is insufficient to map all affected product families and release trains.",
-        "Whether UDP port 18999 is listening depends on platform and configuration; a listener may exist on an unaffected platform.",
-        "No evidence was returned establishing that a particular installed device, platform, or software release is fixed."
+        "The vendor advisory does not list concrete affected or fixed version numbers and instead requires use of the Cisco IOS Software Checker tool",
+        "NVD detail page content could not be retrieved",
+        "No single concrete fixed_version applies across all IOS and IOS XE trains"
       ],
       "verification_steps": []
     },
@@ -1773,128 +1766,147 @@
       "claim_evidence": [],
       "exposure_conditions": [],
       "gaps": [],
-      "generated_at": "2026-07-29T11:45:17Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-10-12T19:25:54Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [],
       "retrieved_source_urls": [
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-20180328-smi2",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-20180328-smi",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-20180409-smi",
-        "https://test-supplychain.cisco.com/c/en/us/support/docs/csa/cisco-sa-20180328-smi.html",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-smart-priv-esca-nqwxXWBu",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-20170214-smi",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-20120328-smartinstall",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-20160323-smi",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-20110928-smart-install",
-        "https://community.cisco.com/t5/ip-telephony-and-phones/cisco-ios-version-15-1-4-m12a/td-p/3380081",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-20190806-sb220-rce",
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-20180129-asa1",
-        "https://www.cisco.com/web/software/286326948/159739/SSM_On-Prem_8_Release_Notes.pdf",
-        "https://www.cisco.com/web/software/286326948/154733/Smart_Software_Manager_On-Prem_8_Release_Notes.pdf",
-        "https://www.cisco.com/c/ja_jp/support/docs/csa/2013/cisco-sa-20130327-smartinstall.pdf",
-        "https://www.cisco.com/web/software/286326948/167719/SSM_On-Prem_8_Release_Notes.pdf"
+        "https://nvd.nist.gov/vuln/detail/CVE-2018-0171",
+        "https://nvd.nist.gov/vuln/detail/cve-2018-0171",
+        "https://nvd.nist.gov/vuln/detail/CVE-2017-0171",
+        "https://nvd.nist.gov/vuln/detail/CVE-2019-0171",
+        "https://nvd.nist.gov/vuln/detail/cve-2018-17101",
+        "https://nvd.nist.gov/vuln/detail/cve-2018-21171",
+        "https://nvd.nist.gov/vuln/detail/cve-2018-16871",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2018-1691",
+        "https://nvd.nist.gov/vuln/detail/CVE-2016-0171/change-record?changeRecordedOn=05/11/2016T17:26:11.443-0400",
+        "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-20180328-smi2.html",
+        "https://www.cvedetails.com/cve/CVE-2018-0171/",
+        "https://www.tenable.com/plugins/nessus/108723",
+        "https://turingpoint.de/en/cve/CVE-2018-0171/",
+        "https://cipherssecurity.com/cve/CVE-2018-0171/",
+        "https://v2.cvefeed.io/vuln/detail/CVE-2018-0171",
+        "https://www.incibe.es/incibe-cert/alerta-temprana/vulnerabilidades/cve-2018-0171",
+        "https://www.cyber-defence.io/tools/cve/CVE-2018-0171",
+        "https://www.cert.europa.eu/publications/security-advisories/2018-009/",
+        "https://tools.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-20180328-smi2?emailclick=CNSemail",
+        "https://tools.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-20180824-linux-ip-fragment",
+        "https://tools.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-20160129-openssl",
+        "https://tools.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-20181101-ap",
+        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-20181107-struts-commons-fileupload"
       ],
       "schema_version": 2,
       "source_fingerprint": "d2c5dc09bc390d2ee7613c771fc340b7e2bc8b434fc521577ad6d31958ade19d",
       "source_urls": [
-        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-20180328-smi2"
+        "https://nvd.nist.gov/vuln/detail/CVE-2018-0171",
+        "https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-20180328-smi2.html"
       ],
       "status": "insufficient_evidence",
       "uncertainty": [
-        "The returned Cisco advisory does not expose a concrete fixed-version value in the available source content; Cisco directs administrators to the IOS Software Checker because fixed releases vary by platform and release train.",
-        "The supplied source record's single CPE/version entry does not establish a complete affected-version or fixed-version matrix for Cisco IOS and IOS XE.",
-        "No platform-specific device model or installed release was supplied, so a precise upgrade target cannot be selected safely."
+        "Authoritative Cisco advisory text retrieved for this enrichment does not enumerate a complete affected-version matrix or a concrete first-fixed version; Cisco directs operators to the Cisco IOS Software Checker",
+        "NVD known affected configurations retrieved here include Cisco IOS 15.2(5)E only, which is incomplete relative to Cisco's product-scope statement covering vulnerable IOS and IOS XE releases with Smart Install client enabled",
+        "Whether a given device is reachable on TCP port 4786, and whether Smart Install client is currently enabled, is environment-specific and was not verified",
+        "Advisory revision history notes that Cisco Catalyst 6500 and 6800 Series Switches were identified as not vulnerable, reducing the set of vulnerable releases; the full remaining product list was not retrieved as a complete table"
       ],
       "verification_steps": []
     },
     "CVE-2018-1000861": {
-      "business_risk": "Critical remote code execution risk in Jenkins core. Crafted URLs could invoke Java methods that were not intended to be exposed through Stapler routing. The Jenkins advisory documents unauthenticated and low-privilege attack scenarios, and CISA lists this CVE in the Known Exploited Vulnerabilities Catalog.",
+      "business_risk": "Critical known-exploited vulnerability (CISA KEV) in Jenkins Stapler that allows invocation of unintended Java methods via crafted URLs, with potential for session invalidation, object creation, and broader code-execution impact on network-reachable instances.",
       "claim_evidence": [
         {
-          "claim": "The vulnerability affects Jenkins core using the Stapler web framework.",
+          "claim": "Jenkins (core) uses the Stapler web framework for HTTP request handling",
           "kind": "affected_product",
           "source_url": "https://www.jenkins.io/security/advisory/2018-12-05/"
         },
         {
-          "claim": "Jenkins weekly releases up to and including 2.153 and Jenkins LTS releases up to and including 2.138.3 are affected.",
+          "claim": "Jenkins weekly up to and including 2.153; Jenkins LTS up to and including 2.138.3",
           "kind": "affected_version",
           "source_url": "https://www.jenkins.io/security/advisory/2018-12-05/"
         },
         {
-          "claim": "Crafted URLs can invoke methods or fields through Stapler routing; the advisory documents attacks involving unauthenticated users and users with Overall/Read permission.",
+          "claim": "Attackers can invoke some methods on Java objects by accessing crafted URLs that were not intended to be invoked this way",
           "kind": "exposure",
           "source_url": "https://www.jenkins.io/security/advisory/2018-12-05/"
         },
         {
-          "claim": "The Jenkins advisory specifies weekly version 2.154 and LTS versions 2.138.4 or 2.150.1 as fixed versions.",
+          "claim": "Jenkins weekly 2.154; Jenkins LTS 2.138.4 or 2.150.1",
           "kind": "fixed_version",
           "source_url": "https://www.jenkins.io/security/advisory/2018-12-05/"
         },
         {
-          "claim": "The vendor remediation is to update Jenkins to a fixed weekly or LTS release.",
+          "claim": "Jenkins weekly should be updated to version 2.154; Jenkins LTS should be updated to version either 2.138.4 or 2.150.1",
           "kind": "remediation",
           "source_url": "https://www.jenkins.io/security/advisory/2018-12-05/"
         },
         {
-          "claim": "Jenkins security advisories provide affected-version and fix-version information suitable for verifying the deployed Jenkins core version against the fixed release thresholds.",
-          "kind": "verification",
-          "source_url": "https://www.jenkins.io/security/for-administrators/"
+          "claim": "Patched versions 2.138.4 and 2.154",
+          "kind": "fixed_version",
+          "source_url": "https://github.com/advisories/GHSA-hhpm-5cp2-hg4x"
+        },
+        {
+          "claim": "Affected versions <= 2.138.3 and >= 2.140, <= 2.153",
+          "kind": "affected_version",
+          "source_url": "https://github.com/advisories/GHSA-hhpm-5cp2-hg4x"
         }
       ],
       "exposure_conditions": [
-        "A Jenkins controller is running an affected Jenkins weekly release up to and including 2.153, or an affected Jenkins LTS release up to and including 2.138.3.",
-        "The Jenkins HTTP interface is reachable by an attacker who can submit crafted URLs. The advisory identifies some attacks requiring no authentication and others requiring Overall/Read permission.",
-        "The vulnerable Stapler routing behavior is present; the issue concerns reflective invocation of methods or fields reachable through Jenkins URL routing."
+        "Jenkins web interface is reachable over the network",
+        "Running Jenkins weekly 2.153 or earlier or LTS 2.138.3 or earlier",
+        "Unauthenticated session invalidation possible when using the built-in Winstone-Jetty server",
+        "Some impacts require Overall/Read permission"
       ],
       "gaps": [],
-      "generated_at": "2026-07-29T11:44:35Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-10-12T19:20:31Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [
-        "Upgrade Jenkins weekly to version 2.154 or later.",
-        "Alternatively, upgrade Jenkins LTS to version 2.138.4, 2.150.1, or later.",
-        "Apply the update according to the Jenkins security advisory and retain the security-related hardening introduced in earlier Jenkins security updates; disabling those protections can re-enable previously mitigated attack paths.",
-        "After upgrading, review exposed Jenkins controllers and access controls because the vulnerability has been listed by CISA as known exploited."
+        "Upgrade Jenkins weekly to 2.154 or later",
+        "Upgrade Jenkins LTS to 2.138.4 or 2.150.1 or later",
+        "Apply updates per vendor instructions for Jenkins and any downstream distributions"
       ],
       "retrieved_source_urls": [
-        "https://www.jenkins.io/security/advisory/2018-12-05/",
         "https://nvd.nist.gov/vuln/detail/CVE-2018-1000861",
-        "https://www.jenkins.io/changelog/2.146/",
-        "https://access.redhat.com/security/updates/advisory",
-        "https://www.jenkins.io/security/index.html",
-        "https://www.jenkins.io/security/for-administrators/",
-        "https://www.jenkins.io/security/reporting/",
-        "https://access.redhat.com/articles/explaining_redhat_errata",
-        "https://www.jenkins.io/security/vulnerabilities/",
-        "https://www.jenkins.io/security/advisories/?amp%25253B_escaped_fragment_=&page=98",
+        "https://nvd.nist.gov/vuln/detail/CVE-2018-10086",
+        "https://nvd.nist.gov/vuln/detail/CVE-2018-1000863",
+        "https://nvd.nist.gov/vuln/detail/CVE-2018-1000866",
+        "https://nvd.nist.gov/vuln/detail/CVE-2018-1000869",
+        "https://nvd.nist.gov/vuln/detail/CVE-2018-1000851",
+        "https://nvd.nist.gov/vuln/detail/cve-2018-1000879",
+        "https://nvd.nist.gov/vuln/detail/CVE-2018-0861",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2018-10087",
+        "https://nvd.nist.gov/vuln/detail/cve-2018-1000876",
+        "https://www.jenkins.io/security/advisory/2018-12-05/",
         "https://www.jenkins.io/security/advisory/2018-10-29/",
-        "https://access.redhat.com/errata/RHBA-2018%3A3550",
-        "https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/8/pdf/8.0_release_notes/80-release-notes.pdf",
-        "https://access.redhat.com/documentation/en-en/red_hat_enterprise_linux/8/pdf/8.1_release_notes/red_hat_enterprise_linux-8-8.1_release_notes-en-us.pdf",
-        "https://access.redhat.com/documentation/en-us/openshift_enterprise/2/pdf/technical_notes/openshift_enterprise-2-technical_notes-en-us.pdf",
-        "https://wiki.jenkins.io/JENKINS/attachments/59511751/133957120.pdf",
-        "https://access.redhat.com/documentation/zh-tw/red_hat_virtualization/4.2/pdf/package_manifest/Red_Hat_Virtualization-4.2-Package_Manifest-en-US.pdf"
+        "https://www.jenkins.io/security/advisory/2018-06-25/",
+        "https://www.jenkins.io/security/advisory/2021-01-13/",
+        "https://www.jenkins.io/security/advisory/2018-10-10",
+        "https://www.jenkins.io/security/advisory/2018-09-25/",
+        "https://www.jenkins.io/security/advisory/2018-02-26/",
+        "http://updates.jenkins.io/update-center.json",
+        "https://www.jenkins.io/security/advisory/2018-02-14/",
+        "https://www.jenkins.io/security/advisory/2018-01-22/",
+        "https://www.jenkins.io/security/advisory/2018-12-05",
+        "https://www.cve.org/CVERecord?id=CVE-2018-1000861",
+        "https://github.com/advisories/GHSA-hhpm-5cp2-hg4x",
+        "https://www.cisa.gov/news-events/bulletins/sb18-358"
       ],
       "schema_version": 2,
       "source_fingerprint": "c032c587e186e4bb8b57b93472beaf100993aa1b8da929e80ca3e300b3c70f37",
       "source_urls": [
         "https://www.jenkins.io/security/advisory/2018-12-05/",
         "https://nvd.nist.gov/vuln/detail/CVE-2018-1000861",
-        "https://www.jenkins.io/security/for-administrators/"
+        "https://github.com/advisories/GHSA-hhpm-5cp2-hg4x"
       ],
       "status": "complete",
       "uncertainty": [
-        "The supplied record includes a Red Hat OpenShift Container Platform 3.11 product mapping, but the consulted Jenkins advisory establishes fixes for Jenkins core and does not establish a Red Hat OpenShift 3.11 package version or remediation mapping.",
-        "The advisory describes known attack scenarios and expects additional attack paths may exist, but it does not provide a complete enumeration of exploit prerequisites or affected plugins.",
-        "No source consulted established a separate Stapler Maven artifact version range; remediation should therefore target the Jenkins core release rather than an independently managed Maven dependency."
+        "Full NVD configuration/CPE page content could not be retrieved; version ranges and fixes are taken from the Jenkins vendor advisory referenced by NVD and CISA",
+        "Impact can vary with plugins, authentication realm, and container; the advisory notes additional unenumerated attacks remain possible on unpatched releases",
+        "Red Hat rates a related OpenShift Container Platform 3.x case as requiring developer permissions"
       ],
       "verification_steps": [
-        "Confirm the running Jenkins core version through the Jenkins administrative interface or an approved asset inventory.",
-        "Verify that the running version is at least 2.154 for weekly releases, or at least 2.138.4/2.150.1 for the applicable LTS upgrade path.",
-        "Review the Jenkins security advisory and release metadata to confirm that the deployed version includes the SECURITY-595 fix. Do not validate by sending crafted URLs or attempting exploit behavior."
+        "Confirm the Jenkins version shown by the application after upgrade matches a fixed release from the vendor advisory (weekly 2.154 or later; LTS 2.138.4 or 2.150.1 or later)"
       ]
     },
     "CVE-2018-13379": {
@@ -2100,164 +2112,159 @@
       "claim_evidence": [],
       "exposure_conditions": [],
       "gaps": [],
-      "generated_at": "2026-07-29T11:44:51Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-10-12T19:21:59Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [],
       "retrieved_source_urls": [
-        "https://access.redhat.com/errata/RHSA-2018%3A3518",
-        "https://bugzilla.redhat.com/show_bug.cgi?id=CVE-2018-14667",
-        "https://nvd.nist.gov/vuln/detail/CVE-2018-14667",
-        "https://bugzilla.redhat.com/show_bug.cgi?id=CVE-2018-14665",
-        "https://bugzilla.redhat.com/show_bug.cgi?id=CVE-2018-16866",
+        "https://nvd.nist.gov/vuln/detail/cve-2018-14667",
+        "https://nvd.nist.gov/vuln/detail/CVE-2018-14666",
+        "https://nvd.nist.gov/vuln/detail/cve-2018-14650",
+        "https://nvd.nist.gov/vuln/detail/CVE-2018-1466/change-record?changeRecordedOn=08/19/2020T15:02:00.363-0400",
+        "https://nvd.nist.gov/vuln/detail/CVE-2019-14667",
+        "https://nvd.nist.gov/vuln/detail/CVE-2018-20167",
+        "https://nvd.nist.gov/vuln/detail/cve-2018-14567",
+        "https://nvd.nist.gov/vuln/detail/CVE-2018-0467",
+        "https://nvd.nist.gov/vuln/detail/cve-2018-14467",
+        "https://nvd.nist.gov/vuln/detail/CVE-2018-14867",
+        "https://access.redhat.com/security/cve/CVE-2018-14667",
         "https://access.redhat.com/solutions/3660371",
-        "https://bugzilla.redhat.com/show_bug.cgi?id=CVE-2018-14647",
-        "https://bugzilla.redhat.com/show_bug.cgi?id=CVE-2018-14645",
-        "https://bugzilla.redhat.com/show_bug.cgi?id=1490344",
-        "https://bugzilla.redhat.com/show_bug.cgi?id=CVE-2018-14656",
-        "https://bugzilla.redhat.com/show_bug.cgi?id=CVE-2018-19115",
-        "https://access.redhat.com/security/updates/advisory",
-        "https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/5/pdf/5.7_technical_notes/red_hat_enterprise_linux-5-5.7_technical_notes-en-us.pdf",
-        "https://access.redhat.com/webassets/avalon/d/Red_Hat_Enterprise_Linux_Atomic_Host-7-CLI_Reference-en-US/Red_Hat_Enterprise_Linux_Atomic_Host-7-CLI_Reference-en-US.pdf"
+        "https://access.redhat.com/errata/RHSA-2018:3517",
+        "https://access.redhat.com/errata/RHSA-2018:3518",
+        "https://access.redhat.com/security/cve/cve-2018-14664",
+        "https://access.redhat.com/errata/RHSA-2018:3431",
+        "https://access.redhat.com/security/cve/cve-2018-14634",
+        "https://access.redhat.com/errata/RHSA-2018:3432",
+        "https://access.redhat.com/errata/RHSA-2018:2666",
+        "https://access.redhat.com/errata/RHSA-2018:1815",
+        "https://bugzilla.redhat.com/show_bug.cgi?id=CVE-2018-14667",
+        "https://bugzilla.redhat.com/show_bug.cgi?id=1637761",
+        "https://bugzilla.redhat.com/show_bug.cgi?id=1638130",
+        "https://bugzilla.redhat.com/show_bug.cgi?id=CVE-2018-14661"
       ],
       "schema_version": 2,
       "source_fingerprint": "dc4e6c660ca229411113021b54e152b88e86774b2fc4544c568e69511a09c41b",
       "source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2018-14667",
+        "https://nvd.nist.gov/vuln/detail/cve-2018-14667",
+        "https://access.redhat.com/security/cve/CVE-2018-14667",
         "https://access.redhat.com/solutions/3660371",
+        "https://access.redhat.com/errata/RHSA-2018:3517",
+        "https://access.redhat.com/errata/RHSA-2018:3518",
         "https://bugzilla.redhat.com/show_bug.cgi?id=CVE-2018-14667"
       ],
       "status": "insufficient_evidence",
       "uncertainty": [
-        "The supplied record describes generic RichFaces 3.X through 3.3.4, while Red Hat remediation is product- and platform-specific.",
-        "No authoritative source establishes one universal fixed upstream RichFaces version for every deployment.",
-        "The Red Hat customer solution identifies affected product families and describes the exposure, but its complete product-specific patch details may require authenticated portal access.",
-        "A deployment cannot be classified as exposed solely from the library version; use of the vulnerable UserResource functionality and its network reachability must also be established."
+        "No concrete upstream fixed version of standalone RichFaces 3.3.4 was identified in consulted sources; available patches are Red Hat product-specific RPM updates",
+        "Full NVD vulnerability detail page content could not be retrieved",
+        "Sources do not document a specific inert verification procedure, configuration check, or test result",
+        "Exposure is limited to applications that use the UserResource feature"
       ],
       "verification_steps": []
     },
     "CVE-2018-14847": {
-      "business_risk": "Critical network exposure can allow unauthenticated remote attackers to read arbitrary files and authenticated remote attackers to write arbitrary files through the RouterOS WinBox interface. Compromise may expose credentials or configuration data and enable unauthorized device changes. The vulnerability is listed in CISA's Known Exploited Vulnerabilities Catalog.",
+      "business_risk": "Critical known-exploited directory traversal in MikroTik RouterOS WinBox that allows unauthenticated remote arbitrary file reads (including the user database) and authenticated arbitrary file writes; listed in CISA KEV.",
       "claim_evidence": [
         {
-          "claim": "The vulnerability affects MikroTik RouterOS through version 6.42 and involves the WinBox interface.",
+          "claim": "MikroTik RouterOS (WinBox interface)",
           "kind": "affected_product",
           "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2018-14847"
         },
         {
-          "claim": "MikroTik identifies affected bugfix releases from 6.30.1 through 6.40.7, current releases from 6.29 through 6.42, and release-candidate releases from 6.29rc1 through 6.43rc3.",
+          "claim": "RouterOS through 6.42 (NVD CPE up to and including 6.42)",
           "kind": "affected_version",
-          "source_url": "https://mikrotik.com/supportsec/winbox-vulnerability"
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2018-14847"
         },
         {
-          "claim": "MikroTik advises assuming exposure when the WinBox port is open to untrusted networks.",
+          "claim": "bugfix releases 6.30.1 to 6.40.7; current releases 6.29 to 6.42; RC releases 6.29rc1 to 6.43rc3",
+          "kind": "affected_version",
+          "source_url": "https://mikrotik.com/supportsec/winbox-vulnerability/"
+        },
+        {
+          "claim": "Unauthenticated remote attackers can read arbitrary files and authenticated attackers can write arbitrary files due to directory traversal in the WinBox interface",
           "kind": "exposure",
-          "source_url": "https://mikrotik.com/supportsec/winbox-vulnerability"
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2018-14847"
         },
         {
-          "claim": "MikroTik states that devices with the default firewall enabled are not vulnerable to this attack path, while manually disabling the default firewall may leave the device vulnerable.",
+          "claim": "If the Winbox port is open to untrusted networks, assume affected; devices with default firewall enabled are not vulnerable, but those with it manually disabled might be",
           "kind": "exposure",
-          "source_url": "https://mikrotik.com/supportsec/new-exploit-for-mikrotik-router-winbox-vulnerability"
+          "source_url": "https://mikrotik.com/supportsec/winbox-vulnerability/"
         },
         {
-          "claim": "The bugfix branch was fixed in RouterOS 6.40.8.",
+          "claim": "6.40.8 (bugfix), 6.42.1 (current), 6.43rc4 (RC)",
           "kind": "fixed_version",
-          "source_url": "https://mikrotik.com/supportsec/winbox-vulnerability"
+          "source_url": "https://mikrotik.com/supportsec/winbox-vulnerability/"
         },
         {
-          "claim": "The current branch was fixed in RouterOS 6.42.1.",
-          "kind": "fixed_version",
-          "source_url": "https://mikrotik.com/supportsec/winbox-vulnerability"
-        },
-        {
-          "claim": "The release-candidate branch was fixed in RouterOS 6.43rc4.",
-          "kind": "fixed_version",
-          "source_url": "https://mikrotik.com/supportsec/winbox-vulnerability"
-        },
-        {
-          "claim": "MikroTik recommends upgrading RouterOS and WinBox, changing passwords after upgrade, and restricting WinBox from public or untrusted networks.",
+          "claim": "Upgrade Winbox and RouterOS, change passwords, and firewall the Winbox port from public/untrusted networks (or use IP Services Allowed From)",
           "kind": "remediation",
-          "source_url": "https://mikrotik.com/supportsec/winbox-vulnerability"
+          "source_url": "https://mikrotik.com/supportsec/winbox-vulnerability/"
         },
         {
-          "claim": "MikroTik recommends inspecting the configuration for abnormalities such as unknown SOCKS proxy settings and scripts after a potentially affected installation.",
-          "kind": "remediation",
-          "source_url": "https://mikrotik.com/supportsec/winbox-vulnerability"
-        },
-        {
-          "claim": "MikroTik recommends reviewing logs for an unsuccessful login followed by a successful login from an unknown IP address.",
+          "claim": "No sure way to confirm prior compromise; logs may show unsuccessful then successful logins from unknown IPs; inspect configuration for abnormalities such as unknown SOCKS proxy settings",
           "kind": "verification",
-          "source_url": "https://mikrotik.com/supportsec/winbox-vulnerability"
-        },
-        {
-          "claim": "The installed RouterOS version can be checked against the vendor's branch-specific fixed versions as a safe validation of patch status.",
-          "kind": "verification",
-          "source_url": "https://mikrotik.com/supportsec/winbox-vulnerability"
-        },
-        {
-          "claim": "CISA lists CVE-2018-14847 as the MikroTik Router OS Directory Traversal Vulnerability in its Known Exploited Vulnerabilities Catalog and requires applying vendor updates.",
-          "kind": "affected_product",
-          "source_url": "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=55"
+          "source_url": "https://mikrotik.com/supportsec/winbox-vulnerability/"
         }
       ],
       "exposure_conditions": [
-        "MikroTik RouterOS is running an affected release.",
-        "The WinBox service is reachable from an untrusted or public network. MikroTik advises assuming exposure when the WinBox port is open to untrusted networks.",
-        "RouterOS releases with the default firewall enabled may block the attack path, but firewall protection should not substitute for upgrading."
+        "WinBox interface is reachable by unauthenticated remote attackers",
+        "Winbox port is open to untrusted networks",
+        "Default firewall has been manually disabled"
       ],
       "gaps": [],
-      "generated_at": "2026-07-29T11:45:03Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-10-12T19:23:54Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [
-        "Upgrade RouterOS to a vendor-fixed release or newer.",
-        "For the bugfix branch, upgrade to version 6.40.8 or later.",
-        "For the current branch, upgrade to version 6.42.1 or later.",
-        "For the release-candidate branch, upgrade to version 6.43rc4 or later, or use a stable/current vendor-supported release instead.",
-        "After upgrading, change RouterOS administrative passwords.",
-        "Restrict WinBox and other management services from public and untrusted networks using firewall policy or service-level allowed-source restrictions; permit only known management networks or addresses.",
-        "Review the device configuration after upgrade for unexpected scripts, SOCKS proxy settings, users, or other unknown entries."
+        "Upgrade RouterOS (and Winbox) to a vendor-fixed release for the applicable channel",
+        "Change all passwords after the upgrade",
+        "Restrict the Winbox port from public interfaces and untrusted networks using firewall rules or the IP Services Allowed From setting limited to trusted addresses",
+        "Inspect the configuration for abnormalities such as unknown SOCKS proxy settings or scripts"
       ],
       "retrieved_source_urls": [
-        "https://mikrotik.com/supportsec/winbox-vulnerability",
-        "https://mikrotik.com/supportsec/web-service-vulnerability",
         "https://nvd.nist.gov/vuln/detail/CVE-2018-14847",
-        "https://mikrotik.com/supportsec/new-exploit-for-mikrotik-router-winbox-vulnerability",
-        "https://mikrotik.com/supportsec/package-validation-and-upgrade-vulnerability",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=55",
-        "https://forum.mikrotik.com/viewtopic.php?hilit=CVE+2018+14847&t=137572",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=0",
-        "https://mikrotik.com/supportsec/fragattacks",
-        "https://forum.mikrotik.com/t/advisory-vulnerability-exploiting-the-winbox-port-solved/118771",
-        "https://forum.mikrotik.com/t/urgent-security-reminder/124064",
-        "https://mikrotik.com/supportsec/cve-2024-54772",
-        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
+        "https://nvd.nist.gov/vuln/detail/cve-2018-14847",
+        "https://nvd.nist.gov/vuln/detail/cve-2019-14847",
+        "https://nvd.nist.gov/vuln/detail/CVE-2018-14807",
+        "https://nvd.nist.gov/vuln/detail/CVE-2018-14887",
+        "https://nvd.nist.gov/vuln/detail/cve-2018-14880",
+        "https://nvd.nist.gov/vuln/detail/CVE-2018-20147",
+        "https://nvd.nist.gov/vuln/detail/cve-2025-14847?_hsenc=p2ANqtz-8SiKvUvjR85gu3nh5YiUn-7m9SA-wH2rpyYVgv3kPSaPUaY_7rkYKs5vmB7hpcwcvnSzlD",
+        "https://nvd.nist.gov/vuln/detail/CVE-2018-14788",
+        "https://nvd.nist.gov/vuln/detail/CVE-2018-14648",
+        "https://mikrotik.com/supportsec/winbox-vulnerability/",
+        "https://mikrotik.com/supportsec/new-exploit-for-mikrotik-router-winbox-vulnerability/",
+        "https://forum.mikrotik.com/t/mikrotik-in-the-news-bad-news/122002",
+        "https://forum.mikrotik.com/t/uncovering-trickbot-s-use-of-iot-devices-in-command-and-control-infrastructure/156620",
+        "https://forum.mikrotik.com/t/security-announcement-blog/121761?page=4",
+        "https://forum.mikrotik.com/t/has-this-remote-root-exploit-been-patched/126330",
         "https://mum.mikrotik.com/presentations/ID18/presentation_5554_1540255240.pdf",
-        "https://download2.mikrotik.com/news/news_102.pdf",
-        "https://www.cisa.gov/sites/default/files/2025-05/CSSO-VDP%20Platform%20FAQ%202024.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/AA20-258A-Chinese_Ministry_of_State_Security-Affiliated_Cyber_Threat_Actor_Activity_S508C.pdf"
+        "https://forum.mikrotik.com/t/winbox-vulnerability-please-upgrade/122004?page=4",
+        "https://forum.mikrotik.com/t/winbox-vulnerability-please-upgrade/122004?page=7",
+        "https://forum.mikrotik.com/t/crs317-mlag-hyper-v-set-vm-connectivity-failures-after-migration-and-pfsense-carp-events/273728",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-18-296-01",
+        "https://www.cisa.gov/ncas/bulletins/SB18-232",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog-print",
+        "https://www.cisa.gov/ncas/bulletins/SB18-351"
       ],
       "schema_version": 2,
       "source_fingerprint": "45035e34fe5a32a48a477775c250fa7ca3bdb1103587ce8777512e726f0be638",
       "source_urls": [
-        "https://mikrotik.com/supportsec/winbox-vulnerability",
-        "https://mikrotik.com/supportsec/new-exploit-for-mikrotik-router-winbox-vulnerability",
         "https://nvd.nist.gov/vuln/detail/CVE-2018-14847",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=55"
+        "https://mikrotik.com/supportsec/winbox-vulnerability/",
+        "https://mikrotik.com/supportsec/new-exploit-for-mikrotik-router-winbox-vulnerability/"
       ],
       "status": "complete",
       "uncertainty": [
-        "The supplied source record contains a placeholder affected product/version entry, while NVD and MikroTik identify the affected product as RouterOS.",
-        "MikroTik states there is no definitive way to determine solely from the device whether it was previously affected; historical compromise assessment therefore requires log and configuration review.",
-        "The fixed versions are branch-specific; the available authoritative advisory does not identify one universal fixed version for every RouterOS release channel."
+        "NVD affected range is RouterOS through 6.42 (inclusive) while the vendor advisory lists more granular per-channel ranges and corresponding fixed releases",
+        "Vendor states there is currently no sure way to determine prior exploitation"
       ],
       "verification_steps": [
-        "Record the installed RouterOS version and confirm it is at least the applicable vendor-fixed version: 6.40.8 for the bugfix branch, 6.42.1 for the current branch, or 6.43rc4 for the release-candidate branch.",
-        "Confirm that WinBox is not reachable from public or otherwise untrusted networks, and that permitted management sources are limited to approved networks or addresses.",
-        "Review RouterOS logs for an unsuccessful login followed by a successful login from an unknown IP address, as suggested by MikroTik.",
-        "Review the post-upgrade configuration for unexpected scripts, SOCKS proxy settings, users, or other abnormalities."
+        "Compare the installed RouterOS version against the vendor-stated fixed versions for the bugfix, current, or RC channel in use",
+        "Determine whether the WinBox service is reachable from untrusted networks",
+        "Review logs for unsuccessful login attempts followed by successful logins from unknown IP addresses",
+        "Review the configuration for unexpected entries such as unknown SOCKS proxies or scripts"
       ]
     },
     "CVE-2018-15961": {
@@ -9955,105 +9962,112 @@
       "verification_steps": []
     },
     "CVE-2021-22893": {
-      "business_risk": "Critical. An unauthenticated remote attacker may exploit the vulnerable Pulse Connect Secure gateway to execute arbitrary code with root privileges. The vulnerability was exploited in the wild and is listed in CISA's Known Exploited Vulnerabilities catalog, including known ransomware-campaign use.",
+      "business_risk": "Critical unauthenticated remote code execution on Pulse Connect Secure SSL VPN gateways (CVSS 3.1 10.0), known exploited in the wild including ransomware campaigns, enabling persistent unauthorized access such as webshells on the appliance.",
       "claim_evidence": [
         {
-          "claim": "The vulnerability affects Pulse Connect Secure gateways.",
+          "claim": "Pulse Connect Secure (PCS) gateway / Ivanti Pulse Connect Secure",
           "kind": "affected_product",
           "source_url": "https://kb.cert.org/vuls/id/213092"
         },
         {
-          "claim": "CERT/CC identifies PCS 9.0R3 or higher and PCS 9.1R1 through 9.2R11.3 as affected.",
+          "claim": "PCS 9.0R3 or higher or 9.1R1 through 9.2R11.3 (CERT/CC); equivalently PCS 9.0R3/9.1R1 up to 9.1R11.3 (CERT-EU)",
           "kind": "affected_version",
           "source_url": "https://kb.cert.org/vuls/id/213092"
         },
         {
-          "claim": "A remote unauthenticated attacker can reach the vulnerable endpoint; license-server configuration is not required because the vulnerable endpoints are present regardless of whether the system is an actual license server.",
+          "claim": "Pulse Connect Secure 9.0R3/9.1R1 and higher; CNA affected PCS 9.0R3 or above, PCS 9.1R1 and above",
+          "kind": "affected_version",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2021-22893"
+        },
+        {
+          "claim": "Unauthenticated remote attacker can execute arbitrary code via a use-after-free on a license server handling endpoint; license-server configuration is not required because the endpoints are present anyway; also described as authentication bypass exposed by Windows File Share Browser and Pulse Secure Collaboration",
           "kind": "exposure",
           "source_url": "https://kb.cert.org/vuls/id/213092"
         },
         {
-          "claim": "Pulse Connect Secure 9.1R11.4 addresses this vulnerability.",
+          "claim": "This vulnerability is addressed in Pulse Connect Secure 9.1R11.4",
           "kind": "fixed_version",
           "source_url": "https://kb.cert.org/vuls/id/213092"
         },
         {
-          "claim": "Ivanti/Pulse Secure released a security update for SA44784 (CVE-2021-22893) and recommended prompt application of the update.",
+          "claim": "Ivanti released PCS version 9.1R11.4 which fixes CVE-2021-22893; affected by CVE-2021-22893 is PCS 9.0R3/9.1R1 up to PCS 9.1R11.3",
+          "kind": "fixed_version",
+          "source_url": "https://www.cert.europa.eu/publications/security-advisories/2021-021/"
+        },
+        {
+          "claim": "Apply the security update for SA44784 (CVE-2021-22893); customers should move quickly to apply the update",
           "kind": "remediation",
           "source_url": "https://www.ivanti.com/blog/pulse-connect-secure-patch-availability-sa44784"
         },
         {
-          "claim": "CERT/CC documents the vendor Workaround-2104.xml mitigation and its feature impact.",
-          "kind": "remediation",
-          "source_url": "https://kb.cert.org/vuls/id/213092"
-        },
-        {
-          "claim": "CERT/CC recommends running the Pulse Connect Secure Integrity Assurance utility and documents that it automatically reboots the device and may provide misleading results on a compromised appliance.",
+          "claim": "Run the PCS Integrity Assurance / Pulse Connect Secure Integrity Tool to check filesystem hash integrity; the tool causes an automatic reboot and a compromised device may display misleading results",
           "kind": "verification",
           "source_url": "https://kb.cert.org/vuls/id/213092"
-        },
-        {
-          "claim": "CISA lists CVE-2021-22893 as a known exploited Pulse Connect Secure vulnerability and identifies remote unauthenticated code execution via license services.",
-          "kind": "exposure",
-          "source_url": "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A795&f%5B10%5D=vendor_project%3A932&f%5B11%5D=vendor_project%3A943&f%5B12%5D=vendor_project%3A1168&f%5B1%5D=vendor_project%3A799&f%5B2%5D=vendor_project%3A817&f%5B3%5D=vendor_project%3A842&f%5B4%5D=vendor_project%3A856&f%5B5%5D=vendor_project%3A868&f%5B6%5D=vendor_project%3A887&f%5B7%5D=vendor_project%3A913&f%5B8%5D=vendor_project%3A917&f%5B9%5D=vendor_project%3A920&page=4"
         }
       ],
       "exposure_conditions": [
-        "The affected service is a Pulse Connect Secure gateway running PCS 9.0R3 or higher, or PCS 9.1R1 through 9.2R11.3.",
-        "The vulnerable license-server handling endpoints are present regardless of whether the appliance is configured as an actual license server; enabling the license-server configuration is not required for exposure.",
-        "The attack is remotely reachable through a crafted request and does not require authentication."
+        "Pulse Connect Secure (PCS) appliances running affected 9.0R3/9.1R1-and-higher versions that are reachable over the network without authentication",
+        "Use-after-free reachable via license-server handling endpoints that are present regardless of whether license-server configuration is enabled",
+        "Authentication-bypass exposure associated with Windows File Share Browser and Pulse Secure Collaboration features"
       ],
       "gaps": [],
-      "generated_at": "2026-08-13T10:50:48Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-10-12T19:18:57Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [
-        "Upgrade affected appliances to Pulse Connect Secure 9.1R11.4, identified by CERT/CC and CISA as addressing this vulnerability.",
-        "If immediate upgrade is not possible, apply the vendor-provided Workaround-2104.xml mitigation as documented by CERT/CC. This reduces attack surface but disables Windows File Share Browser, Pulse Secure Collaboration, and License Server functionality.",
-        "Treat a vulnerable or potentially compromised gateway as an incident-response priority. Preserve relevant logs and follow the vendor/CISA integrity-check guidance before assuming that patching alone removed attacker access."
+        "Upgrade Pulse Connect Secure to 9.1R11.4 (the vendor security update addressing SA44784/CVE-2021-22893) for 9.0Rx and 9.1Rx trains",
+        "If upgrade cannot be applied immediately, import the vendor Workaround-2104.xml configuration, which disables Windows File Share Browser, Pulse Secure Collaboration, and related URI patterns",
+        "Apply subsequent vendor security updates within the timelines required by CISA KEV/ED 21-03 guidance",
+        "If compromise is suspected, follow CISA ED 21-03 Appendix A steps (save configuration, factory reset, update, re-import configuration, reset related passwords, re-run integrity checks) before returning an appliance to production"
       ],
       "retrieved_source_urls": [
+        "http://web.nvd.nist.gov/vuln/detail/CVE-2021-22893",
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-22893",
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-22893/change-record?changeRecordedOn=04/28/2021T13:52:53.413-0400",
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-22890",
+        "https://nvd.nist.gov/vuln/detail/cve-2021-22813",
+        "https://nvd.nist.gov/vuln/detail/cve-2021-20293",
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-0293/change-record?changeRecordedOn=07/29/2021T11:39:52.017-0400",
+        "https://nvd.nist.gov/vuln/detail/cve-2021-23993",
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-23893",
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-23393",
+        "https://www.cisa.gov/news-events/directives/ed-21-03-mitigate-pulse-connect-secure-product-vulnerabilities-closed",
+        "https://www.ipa.go.jp/archive/security/security-alert/2021/alert20210421.html",
+        "https://cve.report/CVE-2021-22893",
+        "https://www.cve.org/CVERecord?id=CVE-2021-22893",
         "https://kb.cert.org/vuls/id/213092",
-        "https://www.cisa.gov/news-events/alerts/2021/04/20/cisa-issues-emergency-directive-pulse-connect-secure",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A795&f%5B10%5D=vendor_project%3A932&f%5B11%5D=vendor_project%3A943&f%5B12%5D=vendor_project%3A1168&f%5B1%5D=vendor_project%3A799&f%5B2%5D=vendor_project%3A817&f%5B3%5D=vendor_project%3A842&f%5B4%5D=vendor_project%3A856&f%5B5%5D=vendor_project%3A868&f%5B6%5D=vendor_project%3A887&f%5B7%5D=vendor_project%3A913&f%5B8%5D=vendor_project%3A917&f%5B9%5D=vendor_project%3A920&page=4",
-        "https://www.cisa.gov/news-events/analysis-reports/ar21-112a",
-        "https://www.cisa.gov/sites/default/files/publications/AA22-117A_Joint_CSA_2021_Top_Routinely_Exploited_Vulnerabilities_Final.pdf",
-        "https://help.ivanti.com/ps/legacy/pcs/9.1rx/9.1r9/ps-pulse-9.1r9.2-releasenotes.pdf?psredirect=",
-        "https://kb.cert.org/vuls/search/",
-        "https://www.kb.cert.org/vuls/byupdate/asc/?page=235",
-        "https://www.kb.cert.org/vuls/",
-        "https://www.cisa.gov/news-events/analysis-reports/ar21-236c",
-        "https://www.cisa.gov/news-events/bulletins/sb19-112",
-        "https://nvd.nist.gov/vuln/search",
+        "https://access.redhat.com/security/cve/cve-2021-22893",
+        "https://socradar.io/free-tools/cve-radar/CVE-2021-22893",
+        "https://www.cert.europa.eu/publications/security-advisories/2021-021/",
+        "https://www.ncsc.gov.ie/pdfs/PulseVPN_200421.pdf",
         "https://www.ivanti.com/blog/pulse-connect-secure-patch-availability-sa44784",
-        "https://www.cisa.gov/ncas/alerts/aa20-010a?medium=mob",
-        "https://www.cisa.gov/sites/default/files/publications/AA20-283A-APT_Actors_Chaining_Vulnerabilities.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/AA21-209A_Joint_CSA%20Top%20Routinely%20Exploited%20Vulnerabilities.pdf",
-        "https://www.cisa.gov/sites/default/files/2023-08/aa23-215a_joint_csa_2022_top_routinely_exploited_vulnerabilities.pdf",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A793&f%5B10%5D=vendor_project%3A842&f%5B11%5D=vendor_project%3A845&f%5B12%5D=vendor_project%3A854&f%5B13%5D=vendor_project%3A880&f%5B14%5D=vendor_project%3A886&f%5B15%5D=vendor_project%3A893&f%5B16%5D=vendor_project%3A897&f%5B17%5D=vendor_project%3A902&f%5B18%5D=vendor_project%3A903&f%5B19%5D=vendor_project%3A908&f%5B1%5D=vendor_project%3A794&f%5B20%5D=vendor_project%3A917&f%5B21%5D=vendor_project%3A938&f%5B22%5D=vendor_project%3A941&f%5B23%5D=vendor_project%3A942&f%5B24%5D=vendor_project%3A946&f%5B25%5D=vendor_project%3A1147&f%5B26%5D=vendor_project%3A1172&f%5B27%5D=vendor_project%3A1267&f%5B2%5D=vendor_project%3A800&f%5B3%5D=vendor_project%3A801&f%5B4%5D=vendor_project%3A806&f%5B5%5D=vendor_project%3A810&f%5B6%5D=vendor_project%3A817&f%5B7%5D=vendor_project%3A823&f%5B8%5D=vendor_project%3A828&f%5B9%5D=vendor_project%3A837&page=7",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A817&f%5B10%5D=vendor_project%3A917&f%5B11%5D=vendor_project%3A921&f%5B12%5D=vendor_project%3A930&f%5B13%5D=vendor_project%3A940&f%5B14%5D=vendor_project%3A953&f%5B15%5D=vendor_project%3A1004&f%5B1%5D=vendor_project%3A821&f%5B2%5D=vendor_project%3A842&f%5B3%5D=vendor_project%3A845&f%5B4%5D=vendor_project%3A849&f%5B5%5D=vendor_project%3A855&f%5B6%5D=vendor_project%3A859&f%5B7%5D=vendor_project%3A878&f%5B8%5D=vendor_project%3A881&f%5B9%5D=vendor_project%3A886&page=2",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A791&f%5B10%5D=vendor_project%3A837&f%5B11%5D=vendor_project%3A840&f%5B12%5D=vendor_project%3A842&f%5B13%5D=vendor_project%3A848&f%5B14%5D=vendor_project%3A854&f%5B15%5D=vendor_project%3A859&f%5B16%5D=vendor_project%3A863&f%5B17%5D=vendor_project%3A875&f%5B18%5D=vendor_project%3A886&f%5B19%5D=vendor_project%3A888&f%5B1%5D=vendor_project%3A792&f%5B20%5D=vendor_project%3A893&f%5B21%5D=vendor_project%3A902&f%5B22%5D=vendor_project%3A905&f%5B23%5D=vendor_project%3A908&f%5B24%5D=vendor_project%3A917&f%5B25%5D=vendor_project%3A932&f%5B26%5D=vendor_project%3A938&f%5B27%5D=vendor_project%3A949&f%5B28%5D=vendor_project%3A1147&f%5B29%5D=vendor_project%3A1267&f%5B2%5D=vendor_project%3A800&f%5B3%5D=vendor_project%3A801&f%5B4%5D=vendor_project%3A814&f%5B5%5D=vendor_project%3A817&f%5B6%5D=vendor_project%3A819&f%5B7%5D=vendor_project%3A823&f%5B8%5D=vendor_project%3A827&f%5B9%5D=vendor_project%3A834&page=15",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=66&source=read_next_recirc---------0---------------------172b43dd_410e_4c9e_9bb7_a0c1ce0d0d92-------"
+        "https://www.ivanti.com/ja/blog/pulse-connect-secure-security-update",
+        "https://www.ivanti.com/ja/blog/pulse-connect-secure-%E3%82%BB%E3%82%AD%E3%83%A5%E3%83%AA%E3%83%86%E3%82%A3%E3%83%8F%E3%83%83%E3%83%81%E3%81%AE%E3%81%93%E6%8F%90%E4%BE%9B%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6-sa44784",
+        "https://help.ivanti.com/ap/help/en_US/mc/2026/Content/Management_Center/Deployment_Group_Settings_Auditing.htm",
+        "https://www.tenable.com/plugins/nessus/148847"
       ],
       "schema_version": 2,
       "source_fingerprint": "ab7afffa119d3d52eea2e564131a02e391c87b3ee4f5f30a4a2801f8134b7de8",
       "source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-22893",
         "https://kb.cert.org/vuls/id/213092",
+        "https://www.cisa.gov/news-events/directives/ed-21-03-mitigate-pulse-connect-secure-product-vulnerabilities-closed",
         "https://www.ivanti.com/blog/pulse-connect-secure-patch-availability-sa44784",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A795&f%5B10%5D=vendor_project%3A932&f%5B11%5D=vendor_project%3A943&f%5B12%5D=vendor_project%3A1168&f%5B1%5D=vendor_project%3A799&f%5B2%5D=vendor_project%3A817&f%5B3%5D=vendor_project%3A842&f%5B4%5D=vendor_project%3A856&f%5B5%5D=vendor_project%3A868&f%5B6%5D=vendor_project%3A887&f%5B7%5D=vendor_project%3A913&f%5B8%5D=vendor_project%3A917&f%5B9%5D=vendor_project%3A920&page=4",
-        "https://www.cisa.gov/sites/default/files/publications/AA22-117A_Joint_CSA_2021_Top_Routinely_Exploited_Vulnerabilities_Final.pdf"
+        "https://www.cert.europa.eu/publications/security-advisories/2021-021/"
       ],
       "status": "complete",
       "uncertainty": [
-        "The supplied record describes authentication-bypass and Windows File Share Browser/Pulse Secure Collaboration exposure, while CERT/CC's CVE-specific note describes a use-after-free reached through license-server handling endpoints. These descriptions should not be treated as interchangeable without additional vendor documentation.",
-        "The authoritative sources retrieved establish 9.1R11.4 as the remediation release, but they do not establish a complete mapping of every later product branch or replacement product release.",
-        "Integrity-tool output was not provided, so no conclusion about compromise or successful remediation can be made."
+        "The original Pulse Secure KB article SA44784 is listed by NVD as a broken link; current Ivanti pages redirect rather than reproduce the full advisory text.",
+        "CERT/CC lists affected 9.1 versions through 9.2R11.3 while CERT-EU and other summaries list through 9.1R11.3.",
+        "The rendered NVD detail page did not return CPE configuration content in this session.",
+        "The vendor integrity tool reboots the appliance and CERT/CC warns results may be unreliable on a compromised device.",
+        "Later PCS releases after 9.1R11.4 addressed additional CVEs; this enrichment does not assert those later versions as the CVE-2021-22893 fix."
       ],
       "verification_steps": [
-        "Confirm through the appliance's supported administrative interface or inventory process that the installed release is Pulse Connect Secure 9.1R11.4.",
-        "Run the Pulse Connect Secure Integrity Assurance utility through the supported administrative workflow and review its result for evidence of modified or added files. Account for the documented limitation that the utility reboots the device and may produce misleading results if the appliance is already compromised.",
-        "Verify that any emergency workaround is present and that its operational feature impact is understood; do not use an unauthenticated exploit test or crafted request as a validation method."
+        "Confirm in the Pulse Connect Secure administrative interface that the reported software version is 9.1R11.4 or a later vendor release that includes the SA44784 fixes",
+        "Use the vendor Pulse Connect Secure Integrity Checker / Integrity Assurance utility as documented by CISA and CERT/CC and review for hash mismatches or unexpected files, noting the documented reboot and that a compromised device may display misleading results",
+        "Enable unauthenticated-request logging and remote syslog as recommended by CERT/CC so future unauthenticated access attempts are recorded off-box"
       ]
     },
     "CVE-2021-22941": {
@@ -23879,52 +23893,6 @@
         "No authoritative fixed version, build number, deployment ring, or customer-visible patch identifier was found.",
         "The public record does not provide the detailed exploitation-review or cleanup procedure; those instructions appear to have been supplied directly to affected customers.",
         "Generic Power Pages security scans or access-control reviews should not be treated as proof that CVE-2025-24989 was remediated unless Microsoft explicitly correlates them to this CVE."
-      ],
-      "verification_steps": []
-    },
-    "CVE-2025-26399": {
-      "business_risk": "No additional source-verified CVE-specific business impact was established.",
-      "claim_evidence": [],
-      "exposure_conditions": [],
-      "gaps": [
-        "generic_ecosystem"
-      ],
-      "generated_at": "2026-08-05T12:06:49Z",
-      "model": "gpt-5.6-luna",
-      "prompt_version": "2026-07-14.2",
-      "recipe_specificity": "not_specific",
-      "remediation_steps": [],
-      "retrieved_source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2025-26399",
-        "https://www.solarwinds.com/trust-center",
-        "https://www.cisa.gov/news-events/alerts/2025/09/29/cisa-adds-five-known-exploited-vulnerabilities-catalog",
-        "https://www.solarwinds.com/trust-center/security-advisories/cve-2025-55182",
-        "https://documentation.solarwinds.com/en/success_center/whd/content/release_notes/whd_12-8-7-hotfix-1_release_notes.htm",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=0",
-        "https://www.solarwinds.com/trust-center/security-advisories/cve-2026-28298",
-        "https://www.solarwinds.com/trust-center/security-research",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=52",
-        "https://documentation.solarwinds.com/en/success_center/dpa/content/release_notes/dpa_2025-3_release_notes.htm",
-        "https://www.solarwinds.com/assets/solarwinds/swdcv2/landing-pages/trust-center/security-vulnerability/solarwinds-trust-center-security-advisories_cve-2022-3602-and-cve-2022-3786.pdf",
-        "https://www.solarwinds.com/company/newsroom/press-releases/solarwinds-releases-updates-to-address-vulnerability-related-to-supernova-malware",
-        "https://www.cisa.gov/news-events/bulletins/sb25-272",
-        "https://www.solarwinds.com/assets/solarwinds/swdcv2/landing-pages/trust-center/security-vulnerability/solarwinds-trust-center-security-advisories-_-cve-2021-44228.pdf",
-        "https://www.solarwinds.com/legacy-assets/solarwinds/swdcv2/landing-pages/trust-center/security-vulnerability/solarwinds-trust-center-security-advisories-_-cve-2023-23838.ashx?rev=2fda9ff7948a4fe3bcc5e36242dc8b01%3Frev%3D2fda9ff7948a4fe3bcc5e36242dc8b01",
-        "https://www.solarwinds.com/assets/solarwinds/swdcv2/landing-pages/trust-center/security-vulnerability/solarwinds-trust-center-security-advisories-_-cve-2021-35232.pdf",
-        "https://www.solarwinds.com/assets/solarwinds/swdcv2/landing-pages/trust-center/security-vulnerability/solarwinds-trust-center-security-advisories-_cve-2021-25275.pdf",
-        "https://www.solarwinds.com/assets/solarwinds/swdcv2/landing-pages/trust-center/security-vulnerability/solarwinds-trust-center-security-advisories-cve-2021-35250.pdf"
-      ],
-      "schema_version": 2,
-      "source_fingerprint": "7a3171c48bf35b04e9a5a16c4bdcb1f0eeec9e2fda7f38898965d5136d61a70c",
-      "source_urls": [
-        "https://documentation.solarwinds.com/en/success_center/whd/content/release_notes/whd_12-8-7-hotfix-1_release_notes.htm",
-        "https://nvd.nist.gov/vuln/detail/CVE-2025-26399"
-      ],
-      "status": "insufficient_evidence",
-      "uncertainty": [
-        "The authoritative sources establish the affected versions and fixed release, but they do not provide a detailed, safe, product-specific verification procedure or an exact version-reporting location.",
-        "The sources do not establish whether a particular deployment is externally reachable, internet-exposed, or otherwise exploitable in its current network configuration.",
-        "The supplied affected-version wording includes '12.8.7 and below'; the vendor advisory states '12.8.7 and all previous versions.'"
       ],
       "verification_steps": []
     },
