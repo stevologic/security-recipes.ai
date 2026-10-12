@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-09-27",
+  "last_reviewed": "2026-10-12",
   "intent": "Maintain a source-backed market and threat radar for SecurityRecipes so the secure context layer tracks current agentic AI risk, MCP security guidance, enterprise buyer pressure, and product opportunities before they become stale documentation.",
   "positioning": {
     "buyer": "AI Platform, Security Engineering, AppSec, Product Security, GRC, procurement security, vendor-risk, and acquisition diligence teams",
@@ -143,6 +143,15 @@
       "url": "https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation",
       "source_class": "government_security_signal",
       "why_it_matters": "NIST warns that agent rollouts are repeating IAM mistakes: shared human credentials, long-lived API keys and bearer tokens, overly broad access, local user-account impersonation, and over-reliance on human-in-the-loop approvals. Agents need unique identifiers and short-lived scoped credentials, not borrowed user sessions."
+    },
+    {
+      "id": "nist-nccoe-agentic-identity-comments-2026",
+      "name": "Summary of Comments on the Software and Agentic AI Identity and Authorization Concept Paper",
+      "publisher": "NIST NCCoE",
+      "published": "2026-09-29",
+      "url": "https://pages.nist.gov/nccoe-ai-identity/summary-of-comments.html",
+      "source_class": "government_security_signal",
+      "why_it_matters": "NCCoE's September 29, 2026 comments summary, drawn from more than 600 responses, says agent identity should reuse OAuth, SPIFFE, and MCP rather than a parallel stack, issue distinct verifiable non-human identities at ephemeral scale, and treat credential sharing and local user impersonation as anti-patterns."
     },
     {
       "id": "nist-ai-600-1",
@@ -530,16 +539,18 @@
       "source_ids": [
         "owasp-agentic-top-10-2026",
         "nist-agentic-identity-foundation-2026",
+        "nist-nccoe-agentic-identity-comments-2026",
         "csa-agentic-identity-2025",
         "mcp-security-best-practices-2026-07-28"
       ],
-      "trend": "NIST's August 27, 2026 identity guidance warns that agent rollouts are repeating IAM mistakes: shared human credentials, long-lived API keys and bearer tokens, overly broad access, local user-account impersonation, and over-reliance on human-in-the-loop approvals. Agents need unique identifiers and short-lived scoped credentials, not borrowed user sessions.",
-      "enterprise_risk": "Shared bot accounts, human-token borrowing, local user-account impersonation, weak owner links, and missing revocation paths make incidents hard to contain or explain, and they undermine non-repudiation when an agent acts without a distinct identity.",
+      "trend": "NIST's August 27, 2026 identity guidance warns that agent rollouts are repeating IAM mistakes: shared human credentials, long-lived API keys and bearer tokens, overly broad access, local user-account impersonation, and over-reliance on human-in-the-loop approvals. NCCoE's September 29, 2026 comments summary, based on more than 600 responses, confirms an evolutionary path: reuse OAuth, SPIFFE, and MCP rather than a parallel identity stack; issue distinct verifiable non-human identities at ephemeral-agent scale; and treat local user-or-admin impersonation plus credential sharing as anti-patterns, especially for externally owned agents. The first NCCoE implementation use case is identity, authentication, and authorization of AI agents in the software development lifecycle.",
+      "enterprise_risk": "Shared bot accounts, human-token borrowing, local user-account impersonation, weak owner links, and missing revocation paths make incidents hard to contain or explain, and they undermine non-repudiation when an agent acts without a distinct identity. Ephemeral sub-agents and shadow local agents amplify this unless persistent trust anchors are paired with short-lived scoped credentials.",
       "control_objectives": [
         "Issue per-run or per-workflow non-human identities instead of sharing human or local user credentials.",
         "Bind delegated scopes to workflow, agent class, owner, and run ID.",
         "Require short-lived, audience-restricted credentials and runtime revocation.",
-        "Preserve human owner and reviewer linkage in audit evidence without treating HITL prompts as a substitute for unique agent identity."
+        "Preserve human owner and reviewer linkage in audit evidence without treating HITL prompts as a substitute for unique agent identity.",
+        "Prefer existing OAuth, SPIFFE, and MCP identity mechanisms over a parallel agent identity stack, and keep the secure path the easy path so impersonation does not become the default."
       ],
       "mapped_capability_ids": [
         "agent-identity-ledger",
@@ -721,9 +732,10 @@
         "openai-prompt-injections-2025",
         "microsoft-indirect-prompt-injection-2026",
         "nist-agentic-identity-foundation-2026",
+        "nist-nccoe-agentic-identity-comments-2026",
         "owasp-agentic-top-10-2026"
       ],
-      "trend": "High-risk agent actions need confirmations, tool safeguards, clear policies, trace grading, and reviewable execution plans. NIST warns that over-reliance on human-in-the-loop approvals causes consent fatigue, so approval needs a typed policy surface rather than a free-text negotiation with the model.",
+      "trend": "High-risk agent actions need confirmations, tool safeguards, clear policies, trace grading, and reviewable execution plans. NIST warns that over-reliance on human-in-the-loop approvals causes consent fatigue, so approval needs a typed policy surface rather than a free-text negotiation with the model. NCCoE's September 29, 2026 comments summary likewise calls for risk-based human review of high-impact actions only, so operators are not trained to click through unstructured prompts.",
       "enterprise_risk": "An attacker can manipulate an agent into requesting approval for the wrong thing, hiding sensitive data in a tool call, or bypassing human review through a lower-risk path. Frequent unstructured prompts also train operators to click through, recreating MFA-fatigue failure modes.",
       "control_objectives": [
         "Assign risk ratings to tools and operations.",
