@@ -49,7 +49,7 @@ LLM. Only bounded supplemental enrichment uses a model.
 | --- | --- | --- | --- |
 | Build | main/development push, all PRs, dispatch | unchanged | Full lint/test/catalog/build/performance/container gates; exact revision images |
 | CVE ingestion | daily 09:23 | unchanged | Daily source freshness; verified annual-feed cache and integrity hashes |
-| CVE intelligence | at most 20 requests; xAI `grok-4.6` | default at most 5; `XAI_CVE_MODEL` override | Observed throughput is 6–9 per 15-minute budget; limits remain 0–50 and cached/source-changed selection stays intact |
+| CVE intelligence | default 20 candidates; xAI `grok-4.6` | default 5 candidates; `XAI_CVE_MODEL` override | Each enrichment request permits two attempts, separate credential probes also make HTTP calls, and `XAI_ENRICHMENT_LIMIT` can override the candidate cap (0–50). The existing 15-minute budget and cached/source-changed selection stay intact |
 | Content refresh | daily 11:47; Grok CLI | daily 12:17; `XAI_CONTENT_MODEL` | Start after the CVE job's 150-minute maximum window; at most one sourced topic; overdue watched packs retain daily attention |
 | Leftover review | daily 13:17; probe before queue | Monday 14:17; queue before probe; `XAI_LEFTOVER_MODEL` | Queue is empty; retain dispatch and 25-page cap, avoid paid probes and CLI setup on empty queues |
 | Production watchdog | twice hourly 17/47 | unchanged | Cheap deterministic availability/TLS/revision/freshness checks; 6-hour sync-heal cooldown |

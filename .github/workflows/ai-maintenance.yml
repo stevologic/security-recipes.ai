@@ -1,9 +1,9 @@
 name: AI maintenance
 
 # Unattended repair layer: when automation-critical workflows fail, Grok
-# investigates the failure, fixes root causes in a branch, and opens an
-# auto-merge PR that the Automation shepherd validates and lands. It never
-# pushes to main directly and never merges its own work.
+# investigates the failure, fixes root causes in a branch, and opens a draft
+# PR to development for explicit owner/security review. Production promotion
+# follows development validation; it never pushes to main or merges its work.
 # The same prompt is the Cursor Automation playbook in
 # .github/prompts/ai-maintenance.md.
 
@@ -40,6 +40,7 @@ jobs:
   repair:
     if: >-
       github.event.workflow_run.conclusion == 'failure' &&
+      github.event.workflow_run.head_repository.full_name == github.repository &&
       (github.event.workflow_run.head_branch == 'main' ||
        github.event.workflow_run.head_branch == 'automation/cve-catalog-sync' ||
        startsWith(github.event.workflow_run.head_branch, 'automation/') ||
@@ -47,7 +48,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 90
     permissions:
-      actions: write
+      actions: read
       contents: write
       issues: write
       pull-requests: write
@@ -71,6 +72,7 @@ jobs:
         with:
           ref: ${{ github.event.repository.default_branch }}
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Verify xAI credentials are usable
         id: xai

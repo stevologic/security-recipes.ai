@@ -17,7 +17,7 @@ access token is required.
 | Production watchdog (`production-watchdog.yml`) | every 30 min | Probes the live site, catalog freshness, revision, and TLS; maintains the health issue; self-heals unbuilt revisions and stale catalogs |
 | Automation shepherd (`automation-shepherd.yml`) | hourly | Dispatches missing main Builds after token-authored merges, updates stale auto-merge PR branches, and attaches missing build validations |
 | Dependabot auto-merge (`dependabot-automerge.yml`) | Dependabot PRs | Arms auto-merge for verified patch/minor bumps |
-| AI maintenance (`ai-maintenance.yml`) | failure of the workflows above | Grok investigates, fixes the root cause, and opens an auto-merge PR (or documents infra failures on the health issue). Same prompt is the Cursor Automation playbook |
+| AI maintenance (`ai-maintenance.yml`) | same-repository failure of the workflows above | Grok investigates, fixes the root cause, and opens a draft development PR requiring owner/Security review (or documents infra failures on the health issue). Fork runs are rejected before credentials are exposed. Same prompt is the Cursor Automation playbook |
 | AI issue maintenance (`ai-issue-maintenance.yml`) | owner-authored issue events + daily 16:41 UTC sweep | Grok triages open issues filed by the owner or the automation: fixes via auto-merge PRs with `Closes #n`, closes resolved reports, labels worked issues `automation:ai-triaged`. Same prompt is the Cursor Automation playbook |
 | Dev DNS record (`dev-dns-record.yml`) | dispatch and successful non-PR Build runs on main/development | Creates or repairs the DigitalOcean A record for `dev.security-recipes.ai` |
 
@@ -57,7 +57,7 @@ jobs:
 
 | Automation | Trigger | Prompt | Notes |
 | --- | --- | --- | --- |
-| AI maintenance | GitHub **Workflow run completed**, only failures of Build, CVE catalog sync, Content refresh, Leftover review, Production watchdog, CVE catalog validation, Automation shepherd, AI issue maintenance, and Search indexing, on `main`, `automation/*`, or `dependabot/*` | `.github/prompts/ai-maintenance.md` | The agent reads `FAILED_WORKFLOW_*` when those env vars exist; otherwise it inspects the newest matching failed run |
+| AI maintenance | GitHub **Workflow run completed**, only same-repository failures of Build, CVE catalog sync, Content refresh, Leftover review, Production watchdog, CVE catalog validation, Automation shepherd, AI issue maintenance, and Search indexing, on `main`, `automation/*`, or `dependabot/*` | `.github/prompts/ai-maintenance.md` | Verify `head_repository.full_name` before inspecting logs; branch prefixes alone are insufficient. The agent reads `FAILED_WORKFLOW_*` when those env vars exist; otherwise it inspects the newest matching failed run |
 | AI issue maintenance | GitHub **Issue opened/reopened** for `stevologic` or `github-actions`, plus a daily schedule at `41 16 * * *` | `.github/prompts/ai-issue-maintenance.md` | Work at most three untriaged owner/automation issues; never close `automation:production-health` or `automation:cve-enrichment-health` |
 
 Do not also create Cursor Automations for leftover review or content
@@ -131,8 +131,11 @@ confirms the production handoff landed. Never put `secrets` in a workflow
 
 See [the dated automation audit](../docs/automation-audit-2026-10-12.md) for
 the before/after schedule matrix, provider access evidence, development branch
-reconciliation, and validation blockers. CVE requests default to five per run
-inside the existing 15-minute budget. Every model job supports a task override:
+reconciliation, and validation blockers. The CVE workflow defaults to five
+selected candidates per run inside the existing 15-minute budget, not five
+HTTP calls: each enrichment request permits two attempts, credential probing
+is separate, and `XAI_ENRICHMENT_LIMIT` can override the candidate limit
+(0–50). Every model job supports a task override:
 `XAI_CVE_MODEL`, `XAI_CONTENT_MODEL`, `XAI_LEFTOVER_MODEL`, `XAI_REPAIR_MODEL`,
 `XAI_TRIAGE_MODEL`, or `XAI_HEALTH_MODEL`, then the existing `XAI_MODEL`.
 Defaults retain the authenticated `grok-4.6`; `grok-4.7` is documented but not
