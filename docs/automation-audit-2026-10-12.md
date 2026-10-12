@@ -61,7 +61,7 @@ LLM. Only bounded supplemental enrichment uses a model.
 | CVE exact-SHA validation | explicit dispatch | unchanged | Read-only code execution, separate status writer, exact-head factual/security gates |
 | CVE validation request | legacy dispatch-only identity check | retained | Current main dispatches validation directly; do not delete a useful legacy entry point without caller evidence |
 | CVE 500k scale proof | monthly first day 05:17 | unchanged | Expensive deterministic scaling proof stays outside routine CI |
-| Dev DNS repair | dispatch, main PR, successful Build main/development | unchanged | Optional existing credentials; preserve current operator ownership |
+| Dev DNS repair | dispatch, main PR, successful Build main/development | dispatch and successful non-PR branch Builds; default-branch scripts | Prevent PR-selected code from receiving cloud/SSH secrets; preserve credential names and operator ownership |
 | Dependency version updates | five Monday 06:00 Phoenix checks, main | grouped weekly development PRs, limit 3/ecosystem, staggered weekdays | npm Mon; pip Tue; Docker Wed 06:00; Compose Wed 07:00; Actions Thu; no LLM |
 | Dependency security updates | GitHub alert-driven default-branch updates | unchanged | GitHub always targets security updates at the default branch; weekly version cadence does not delay them |
 
@@ -168,3 +168,30 @@ were subsequently aligned with the proposed clocks.
 - `python scripts/run_checks.py` stops at missing Ruff. `npm run build` stops
   at missing FastMCP in its prerequisite gate. These gates remain enforced;
   no unvalidated promotion to main is created.
+
+
+### Integration findings and shared-action adoption
+
+Build run 38216515021 passed the full repository checks (including Ruff and
+859 Python tests), site/performance gates, and deployment-image validation.
+The advisory Security health run completed using authenticated xAI `grok-4.6`,
+but reported supply-chain and container **fail** verdicts under the existing
+`fail-on: never` policy. Workflow success is not a clean security verdict.
+
+One actionable boundary is corrected here: Dev DNS no longer runs on PRs or
+PR-origin Build completions, and repair scripts always come from the protected
+default branch before cloud/SSH secrets reach repository code. Existing Docker
+mutable tags/root runtime, unhashed Python installs, and AI auto-merge review
+controls remain explicit findings for owner follow-up, not assumed fixes.
+Main's ruleset is active; development's existing ruleset is disabled. This
+draft arms no auto-merge and changes no ruleset or access grant. Development
+review and full staging validation remain required before promotion.
+
+The shared maintenance pilot is owner-reviewed work at
+https://github.com/stevologic/oss-deps-explorer/pull/32, with proposed immutable
+source `actions/maintenance@5e2d7d9b9bf38b5206105168350a817ab3d6c75d`.
+Adoption requires the pilot's combined-tree CI, a least-privilege GET-only
+policy, cache/artifact and token-boundary review, and compatibility with this
+repository's custom CVE/content/validation/deployment gates. Do not infer merge,
+close, branch deletion, deployment, model access, or spending authority from
+that inventory contract. No shared workflow is enabled by this change.

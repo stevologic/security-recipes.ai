@@ -19,7 +19,7 @@ access token is required.
 | Dependabot auto-merge (`dependabot-automerge.yml`) | Dependabot PRs | Arms auto-merge for verified patch/minor bumps |
 | AI maintenance (`ai-maintenance.yml`) | failure of the workflows above | Grok investigates, fixes the root cause, and opens an auto-merge PR (or documents infra failures on the health issue). Same prompt is the Cursor Automation playbook |
 | AI issue maintenance (`ai-issue-maintenance.yml`) | owner-authored issue events + daily 16:41 UTC sweep | Grok triages open issues filed by the owner or the automation: fixes via auto-merge PRs with `Closes #n`, closes resolved reports, labels worked issues `automation:ai-triaged`. Same prompt is the Cursor Automation playbook |
-| Dev DNS record (`dev-dns-record.yml`) | dispatch, pull requests to main, and successful Build runs on main/development | Creates or repairs the DigitalOcean A record for `dev.security-recipes.ai` |
+| Dev DNS record (`dev-dns-record.yml`) | dispatch and successful non-PR Build runs on main/development | Creates or repairs the DigitalOcean A record for `dev.security-recipes.ai` |
 
 ## Intelligence
 

@@ -1,16 +1,13 @@
 name: Dev DNS record
 
 # Create or repair the DigitalOcean A record for
-# https://dev.security-recipes.ai/. Same-repo pull requests receive
-# repository secrets, which is how this job can run without a dispatch
-# token. Do not add a push trigger; a failure there would strand deploy.sh.
-# Successful Build runs on main/development also retry: that is when
-# images publish, and it picks up a token added after the last PR.
+# https://dev.security-recipes.ai/. Only dispatch and successful production
+# or staging Builds repair DNS. Never execute PR-selected scripts with cloud
+# or SSH secrets. Do not add a push trigger; a failure there would strand
+# deploy.sh. Repair scripts always come from the protected default branch.
 
 on:
   workflow_dispatch:
-  pull_request:
-    branches: [main]
   workflow_run:
     workflows: [Build]
     types: [completed]
@@ -27,7 +24,11 @@ env:
 
 jobs:
   upsert:
-    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_run' &&
+       github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event != 'pull_request')
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -76,6 +77,7 @@ jobs:
         if: steps.auth.outputs.configured == 'true' || steps.ssh.outputs.configured == 'true'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: ${{ github.event.repository.default_branch }}
           persist-credentials: false
 
       - name: Upsert the staging A record with an API token
