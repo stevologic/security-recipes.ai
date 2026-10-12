@@ -1,0 +1,63 @@
+name: Maintenance dry-run
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Monday 08:07 America/Phoenix (UTC-7, no daylight-saving change).
+    - cron: '7 15 * * 1'
+  pull_request:
+    paths:
+      - .github/maintenance.json
+      - .github/workflows/maintenance-plan.yml
+      - docs/shared-maintenance-consumer.md
+      - tests/test_maintenance_consumer.py
+  push:
+    branches: [main, development]
+    paths:
+      - .github/maintenance.json
+      - .github/workflows/maintenance-plan.yml
+      - docs/shared-maintenance-consumer.md
+      - tests/test_maintenance_consumer.py
+
+permissions:
+  contents: read
+  issues: read
+  pull-requests: read
+  checks: read
+  actions: read
+
+concurrency:
+  group: maintenance-plan-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout consumer policy
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Setup Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: Verify consumer boundaries
+        run: python -m unittest tests.test_maintenance_consumer
+      - name: Inventory and propose bounded work
+        uses: stevologic/oss-deps-explorer/actions/maintenance@bf9289390aa6304c4ed81596fb0d7dfba712608b # v1.1.1
+        with:
+          config: .github/maintenance.json
+          token: ${{ github.token }}
+          output: maintenance-report
+      - name: Keep source-safe plan
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: maintenance-plan-${{ github.run_id }}
+          path: maintenance-report/
+          retention-days: 7
+          if-no-files-found: error

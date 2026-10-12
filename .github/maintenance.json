@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "repository": "stevologic/security-recipes.ai",
+  "mode": "dry-run",
+  "default_branch": "main",
+  "integration_branch": "development",
+  "automation": {
+    "merge": false,
+    "close": false,
+    "delete": false,
+    "deploy": false
+  },
+  "protected_patterns": [
+    "main",
+    "master",
+    "develop*",
+    "release*",
+    "gh-pages",
+    "automation/*"
+  ],
+  "topic_prefixes": [
+    "chore/",
+    "fix/",
+    "dependabot/"
+  ],
+  "active_branches": [
+    "chore/autonomy-audit-2026-10-12",
+    "fix/trusted-ai-repair-inputs-2026-10-12",
+    "chore/shared-maintenance-consumer-2026-10-12",
+    "dependabot/pip/main/ruff-gte-0.16.10-and-lt-1"
+  ],
+  "locked_prs": [361, 382, 383],
+  "required_checks": ["build"],
+  "validation_commands": [
+    "python scripts/run_checks.py",
+    "python scripts/validate_cve_catalog.py",
+    "npm ci",
+    "npm run build",
+    "npm run check:performance",
+    "docker compose --profile caddy config",
+    "sudo bash tests/smoke_caddy_404_ban.sh",
+    "gh workflow run build.yml --ref <reviewed-ref> -f expected_sha=<exact-sha>"
+  ],
+  "cadences": {
+    "runtime": "weekly",
+    "container_images": "weekly",
+    "tooling": "monthly",
+    "major_review": "quarterly",
+    "security": "advisory-driven; preserve existing PR/push/factual checks"
+  },
+  "supported_image_tracks": [
+    "node:26-bookworm-slim",
+    "nginx:1.31-alpine",
+    "python:3.14-slim",
+    "caddy:2-alpine",
+    "crazymax/fail2ban:latest",
+    "allinurl/goaccess:1.12"
+  ],
+  "custom_jobs": [
+    "build.yml: full factual/test/site/performance/container gates and immutable deployment images",
+    "cve-catalog-sync.yml: deterministic ingestion and bounded xAI enrichment/recipe delivery",
+    "cve-catalog-validate-request.yml: same-repository exact-head identity check",
+    "cve-catalog-validate.yml: read-only exact-head validation and separate status writer",
+    "cve-scale-gate.yml: monthly deterministic scale proof",
+    "content-refresh.yml: source-backed editorial research",
+    "leftover-review.yml: bounded CVE evidence review",
+    "security-health.yml: trusted-code weekly/dispatch advisory review",
+    "production-watchdog.yml: availability/freshness and bounded recovery",
+    "automation-shepherd.yml: validation/deployment event recovery",
+    "ai-maintenance.yml: trusted repair proposals and explicit review",
+    "ai-issue-maintenance.yml: existing issue-owner and health-issue gates",
+    "dependabot-automerge.yml: existing verified patch/minor eligibility",
+    "dev-dns-record.yml: trusted-code operator-owned DNS repair",
+    "search-indexing.yml: production revision and search delivery"
+  ],
+  "ai": {
+    "provider": "xai",
+    "enabled": false,
+    "max_output_tokens": 1000
+  }
+}
