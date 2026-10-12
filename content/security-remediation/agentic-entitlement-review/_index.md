@@ -3,13 +3,13 @@ title: Agentic Entitlement Review Pack
 linkTitle: Entitlement Review
 weight: 16
 date: 2026-05-04
-lastmod: 2026-08-21
+lastmod: 2026-10-08
 sidebar:
   exclude: true
 description: >
   Generate an entitlement-review pack for expiring, reviewable, revocable
-  agent permissions across MCP scopes, A2A handoffs, runtime gates, and
-  non-human identities.
+  agent permissions across MCP scopes, Scope Minimization, A2A handoffs,
+  runtime gates, and non-human identities.
 breadcrumb_parent: /agentic-security/
 ---
 
@@ -20,7 +20,7 @@ which agent identity has which MCP scope right now, when that authority
 expires, who must review it, and what kills the session.
 {{< /callout >}}
 
-Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) on August 21, 2026.
+Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) on October 8, 2026. Rechecked the same day against MCP [Security Best Practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices) Scope Minimization: a server that exposes every scope in `scopes_supported` and a client that requests them all mints an omnibus token. An attacker who obtains that token (`files:*`, `db:*`, `admin:*`) gets lateral data access and privilege chaining without a further elevation prompt. Common mistakes include wildcard or omnibus scopes (`*`, `all`, `full-access`) and returning the entire catalog in every challenge. This pack now kills those omnibus grants. A client that requested the full catalog as an initial grant, without a down-scoped grant, is held for a targeted `WWW-Authenticate` scope challenge. Unspecified token-scope evidence stays on the prior path. This change does not claim human review of the pack; `lastmod` and the source `last_reviewed` date record this editorial pass.
 
 ## The product bet
 
@@ -103,6 +103,60 @@ python3 scripts/evaluate_agentic_entitlement_decision.py \
   --correlation-id corr-expired \
   --receipt-id receipt-expired \
   --expect-decision deny_expired_or_missing_lease
+```
+
+Kill an otherwise current `repo.contents` write lease whose token already carries omnibus scopes:
+
+```bash
+python3 scripts/evaluate_agentic_entitlement_decision.py \
+  --identity-id sr-agent::vulnerable-dependency-remediation::codex \
+  --workflow-id vulnerable-dependency-remediation \
+  --agent-class codex \
+  --namespace repo.contents \
+  --requested-access-mode write_branch \
+  --lease-id lease-ci \
+  --lease-status active \
+  --lease-expires-at 2099-01-01T00:00:00Z \
+  --review-status current \
+  --authorization-decision allow_authorized_mcp_request \
+  --run-id run-omnibus \
+  --tenant-id tenant-ci \
+  --correlation-id corr-omnibus \
+  --receipt-id receipt-omnibus \
+  --policy-pack-hash sha256:policy \
+  --token-scope 'files:*' \
+  --token-scope 'db:*' \
+  --token-scope 'admin:*' \
+  --expect-decision kill_session_on_entitlement_signal
+```
+
+Hold a full-catalog initial grant that was not down-scoped:
+
+```bash
+python3 scripts/evaluate_agentic_entitlement_decision.py \
+  --identity-id sr-agent::vulnerable-dependency-remediation::codex \
+  --workflow-id vulnerable-dependency-remediation \
+  --agent-class codex \
+  --namespace repo.contents \
+  --requested-access-mode write_branch \
+  --lease-id lease-ci \
+  --lease-status active \
+  --lease-expires-at 2099-01-01T00:00:00Z \
+  --review-status current \
+  --authorization-decision allow_authorized_mcp_request \
+  --run-id run-catalog \
+  --tenant-id tenant-ci \
+  --correlation-id corr-catalog \
+  --receipt-id receipt-catalog \
+  --policy-pack-hash sha256:policy \
+  --initial-grant \
+  --requested-scope mcp:tools-basic \
+  --requested-scope repo.contents:write_branch \
+  --requested-scope files:read \
+  --scopes-supported mcp:tools-basic \
+  --scopes-supported repo.contents:write_branch \
+  --scopes-supported files:read \
+  --expect-decision hold_for_step_up_authorization
 ```
 
 ## What is inside
@@ -191,6 +245,11 @@ The pack is anchored in current primary guidance:
 - [MCP Authorization](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
   for protected resource metadata, resource indicators, token audience
   binding, PKCE, scope challenges, and token handling.
+- [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices)
+  for Scope Minimization: reject omnibus token scopes, avoid publishing
+  the full catalog in `scopes_supported`, and use targeted
+  `WWW-Authenticate` challenges instead of an undownscoped initial
+  grant.
 - [A2A Protocol Specification](https://a2a-protocol.org/latest/specification/)
   for Agent Card discovery, Agent Card signing, authentication,
   authorization, and extended Agent Card access control.

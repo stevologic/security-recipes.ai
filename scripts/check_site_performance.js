@@ -1299,6 +1299,17 @@ if (!pagesSitemap) fail("missing required output: sitemaps/pages.xml");
 if (!sitemap.includes("/sitemaps/pages.xml")) {
   fail("root sitemap index does not reference /sitemaps/pages.xml");
 }
+const cvesCompatPath = path.join(ROOT, "sitemaps", "cves.xml");
+const cvesCompat = fs.existsSync(cvesCompatPath)
+  ? fs.readFileSync(cvesCompatPath, "utf8")
+  : "";
+if (!cvesCompat) fail("missing required output: sitemaps/cves.xml");
+if (!cvesCompat.includes("<sitemapindex")) {
+  fail("compatibility CVE sitemap is not a sitemap index");
+}
+if (sitemap.includes("/sitemaps/cves.xml</loc>")) {
+  fail("root sitemap index must not nest the compatibility CVE sitemap index");
+}
 const pagesSitemapHas = (route) =>
   pagesSitemap.includes(`<loc>https://security-recipes.ai${route}</loc>`);
 

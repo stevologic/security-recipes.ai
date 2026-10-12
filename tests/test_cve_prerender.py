@@ -243,12 +243,17 @@ class CvePrerenderTests(unittest.TestCase):
         self.assertIn("scripts/copy_cve_catalog.js", dockerfile)
         self.assertIn("scripts/cve_search_runtime.py", dockerfile)
         self.assertIn("scripts/cve_text_quality.py", dockerfile)
+        self.assertIn("scripts/generate_agentic_source_freshness_watch.py", dockerfile)
         self.assertIn(
             "COPY scripts/cve_text_quality.py /app/scripts/cve_text_quality.py",
             mcp_dockerfile,
         )
         self.assertIn(
             "COPY scripts/cve_search_runtime.py /app/scripts/cve_search_runtime.py",
+            mcp_dockerfile,
+        )
+        self.assertIn(
+            "COPY scripts/generate_agentic_source_freshness_watch.py /app/scripts/generate_agentic_source_freshness_watch.py",
             mcp_dockerfile,
         )
         package_copy = "COPY package.json package-lock.json ./"

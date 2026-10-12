@@ -3,7 +3,7 @@ title: Context Poisoning Guard
 linkTitle: Context Poisoning Guard
 weight: 10
 date: 2026-05-02
-lastmod: 2026-08-21
+lastmod: 2026-10-04
 toc: true
 description: >
   Scan retrieved context before agent use for prompt injection, provenance
@@ -18,6 +18,20 @@ breadcrumb_parent: /agentic-security/
 context. It has to inspect context for instruction-like payloads before
 that context is returned to an agent through MCP.
 {{< /callout >}}
+
+Rechecked October 4, 2026 against OWASP
+[LLM01:2026 Prompt Injection](https://github.com/GenAI-Security-Project/GenAI-LLM-Top10/blob/main/2026/final/LLM01_PromptInjection.md)
+in the
+[GenAI LLM Top 10 2026](https://genai.owasp.org/resource/owasp-genai-llm-top-10-2026/)
+edition (published 2026-08-04). Common Example #5 is invisible-character
+injection and exfiltration. Mitigation #5 says to strip tag-block
+(`U+E0000` to `U+E007F`), variation-selector (`U+FE00` to `U+FE0F`),
+and zero-width (`U+200B`, `U+200C`, `U+200D`, `U+2060`) characters at
+every ingest and render boundary. This pack already scanned zero-width
+and bidi controls; it now also flags tag-block characters and runs of
+three or more variation selectors. A single variation selector used as
+an emoji modifier stays on the prior allow path. This pass does not
+claim human review of the pack.
 
 ## The product bet
 
@@ -70,6 +84,7 @@ python3 scripts/generate_context_poisoning_guard_pack.py --check
 | External callback instruction | High | Detects send/post/upload/callback language near external URLs. |
 | Encoded payload | Medium | Detects long base64-like strings that may hide instructions or data. |
 | Zero-width control | Medium | Detects zero-width and bidirectional controls that can hide or reorder text. |
+| Invisible Unicode smuggling | High | Detects tag-block characters (`U+E0000` to `U+E007F`) and runs of three or more variation selectors (`U+FE00` to `U+FE0F`) that reviewers never see. |
 
 The guard is intentionally conservative. It does not pretend regexes can
 solve prompt injection. It creates evidence and routing:
@@ -137,10 +152,21 @@ Get all direct instruction override matches:
 }
 ```
 
+Get invisible Unicode smuggling matches:
+
+```json
+{
+  "rule_id": "invisible-unicode-smuggling"
+}
+```
+
 ## Industry alignment
 
 The guard follows current agentic AI and MCP security guidance:
 
+- [OWASP LLM01:2026 Prompt Injection](https://github.com/GenAI-Security-Project/GenAI-LLM-Top10/blob/main/2026/final/LLM01_PromptInjection.md)
+  for invisible-character injection, including tag-block ASCII smuggling
+  and variation-selector runs that stay hidden in review UIs.
 - [OpenAI guidance on prompt injection resistance](https://openai.com/index/designing-agents-to-resist-prompt-injection/)
   for treating prompt injection as an impact-limiting problem, not only
   a string-filtering problem.

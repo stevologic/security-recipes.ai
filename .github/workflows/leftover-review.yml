@@ -1,13 +1,14 @@
 name: Leftover review
 
-# Daily leftover-gold closer. Leftover-gold criticals and highs drain first.
+# Weekly leftover-gold closer; the queue is currently empty.
+# Leftover-gold criticals and highs drain first.
 # After those close, each run reviews up to 25 leftover-gold medium and low
 # pages against live GHAD/NVD and submits a validated auto-merge PR.
 # Intelligence is Grok via XAI_API_KEY (Grok Build CLI), not OpenAI Codex.
 
 on:
   schedule:
-    - cron: "17 13 * * *"
+    - cron: "17 14 * * 1"
   workflow_dispatch:
     inputs:
       diagnostics_only:
@@ -43,7 +44,7 @@ jobs:
       - name: Diagnose xAI access without exposing provider payloads
         env:
           XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
-          XAI_MODEL: ${{ vars.XAI_MODEL || 'grok-4.6' }}
+          XAI_MODEL: ${{ vars.XAI_LEFTOVER_MODEL || vars.XAI_MODEL || 'grok-4.6' }}
         run: python scripts/diagnose_xai_credentials.py
 
   review:
@@ -76,18 +77,9 @@ jobs:
           ref: ${{ github.event.repository.default_branch }}
           fetch-depth: 0
 
-      - name: Verify xAI credentials are usable
-        id: xai
-        if: steps.auth.outputs.configured == 'true'
-        env:
-          XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
-          XAI_MODEL: ${{ vars.XAI_MODEL || 'grok-4.6' }}
-        shell: bash
-        run: python scripts/check_xai_credentials.py --github-output "$GITHUB_OUTPUT"
-
       - name: Select leftover-gold queue
         id: queue
-        if: steps.xai.outputs.usable == 'true'
+        if: steps.auth.outputs.configured == 'true'
         shell: bash
         run: |
           python scripts/pick_leftover_review_queue.py --json > "$RUNNER_TEMP/leftover-review-queue.json"
@@ -105,6 +97,15 @@ jobs:
           print(f"selected={payload['selected_total']}")
           PY
 
+      - name: Verify xAI credentials are usable
+        id: xai
+        if: steps.auth.outputs.configured == 'true' && steps.queue.outputs.selected != '0'
+        env:
+          XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
+          XAI_MODEL: ${{ vars.XAI_LEFTOVER_MODEL || vars.XAI_MODEL || 'grok-4.6' }}
+        shell: bash
+        run: python scripts/check_xai_credentials.py --github-output "$GITHUB_OUTPUT"
+
       - name: Install Grok CLI
         if: steps.xai.outputs.usable == 'true' && steps.queue.outputs.selected != '0'
         shell: bash
@@ -114,7 +115,7 @@ jobs:
         if: steps.xai.outputs.usable == 'true' && steps.queue.outputs.selected != '0'
         env:
           XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
-          XAI_MODEL: ${{ vars.XAI_MODEL || 'grok-4.6' }}
+          XAI_MODEL: ${{ vars.XAI_LEFTOVER_MODEL || vars.XAI_MODEL || 'grok-4.6' }}
           GH_TOKEN: ${{ github.token }}
           GITHUB_TOKEN: ${{ github.token }}
         shell: bash

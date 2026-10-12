@@ -3,7 +3,7 @@ title: Critical Infrastructure Secure Context Profile
 linkTitle: Critical Infrastructure Profile
 weight: 19
 date: 2026-05-05
-lastmod: 2026-08-21
+lastmod: 2026-09-26
 toc: true
 description: >
   Assess agentic AI and MCP readiness for critical infrastructure using sector
@@ -21,6 +21,15 @@ retrieve context or act near high-stakes systems.
 {{< /callout >}}
 
 Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) on August 21, 2026.
+
+Rechecked September 26, 2026 against Five Eyes
+[Careful Adoption of Agentic AI](https://www.cyber.gc.ca/en/guidance/careful-adoption-agentic-ai)
+(CCCS HTML, modified 2026-09-10; co-authored with CISA, NSA, ASD's ACSC,
+NCSC-NZ, and NCSC-UK). Agents in critical infrastructure start on
+low-risk non-sensitive tasks and must not receive unrestricted access
+to sensitive data or critical systems. Shared or static credentials
+across agents are an identity-spoofing kill signal. This editorial pass
+does not claim a separate human review of the pack.
 
 SecurityRecipes is positioned as **The Secure Context Layer for Agentic
 AI**. That position is more credible if the project can answer the
@@ -87,6 +96,24 @@ python3 scripts/evaluate_critical_infrastructure_context_decision.py \
   --expect-decision hold_for_ci_safety_case
 ```
 
+Evaluate an unrestricted-access kill:
+
+```bash
+python3 scripts/evaluate_critical_infrastructure_context_decision.py \
+  --sector-id energy-ot-ics \
+  --workflow-id vulnerable-dependency-remediation \
+  --action-class read_only_context \
+  --agent-id sr-agent::vulnerable-dependency-remediation::codex \
+  --run-id ci-unrestricted \
+  --identity-id sr-agent::vulnerable-dependency-remediation::codex \
+  --tenant-id ci-tenant \
+  --context-package-hash sha256:context \
+  --authorization-decision allow_authorized_mcp_request \
+  --egress-decision allow_internal_context \
+  --flag unrestricted_critical_system_access=true \
+  --expect-decision kill_session_on_ci_hazard_signal
+```
+
 {{< playbook-workflow >}}
 
 ## Why this matters now
@@ -99,13 +126,18 @@ be useful: not by claiming agents are safe, but by forcing context,
 authorization, operator approval, telemetry, and incident evidence to
 exist before agents act.
 
-This profile also reflects current MCP security guidance:
+This profile also reflects current MCP security guidance and Five Eyes
+careful-adoption advice:
 
 - protected MCP calls need authorization, resource metadata, and scope
   minimization;
-- token passthrough, shadow MCP servers, unsafe local launches, and raw
-  secret access are kill signals;
-- read-only context pilots are the default starting lane;
+- token passthrough, shadow MCP servers, unsafe local launches, raw
+  secret access, unrestricted critical-system access, and shared agent
+  credentials are kill signals;
+- read-only context pilots are the default starting lane for low-risk
+  non-sensitive tasks;
+- regulated PII and other sensitive-data flags hold even a read-only
+  request until a safety case exists;
 - high-impact action classes require operator approval, a safety-case id,
   risk acceptance, receipt evidence, and severe-risk clearance.
 
@@ -128,7 +160,7 @@ This profile also reflects current MCP security guidance:
 | `allow_ci_supervised_action` | A supervised action has sector safety-case evidence, operator approval, risk acceptance, receipt, authorization, egress, and severe-risk clearance. |
 | `hold_for_ci_safety_case` | Sector, run, approval, safety-case, risk, receipt, or policy evidence is missing. |
 | `deny_untrusted_ci_context` | Context is untrusted or lacks a context package hash. |
-| `kill_session_on_ci_hazard_signal` | Token passthrough, shadow MCP, unsafe local launch, raw secret access, or another runtime hazard appeared. |
+| `kill_session_on_ci_hazard_signal` | Token passthrough, shadow MCP, unsafe local launch, raw secret access, unrestricted critical-system access, shared agent credentials, or another runtime hazard appeared. |
 
 ## Product strategy
 
@@ -183,6 +215,7 @@ Evaluate a critical-infrastructure read-only context request:
 - [MCP Authorization Specification](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
 - [MCP Security Best Practices](https://modelcontextprotocol.io/docs/tutorials/security/security_best_practices)
 - [CISA Secure by Design](https://www.cisa.gov/securebydesign)
+- [Careful Adoption of Agentic AI (Five Eyes / CCCS)](https://www.cyber.gc.ca/en/guidance/careful-adoption-agentic-ai)
 
 ## See also
 

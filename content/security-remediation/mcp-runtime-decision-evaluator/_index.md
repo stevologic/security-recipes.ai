@@ -3,7 +3,7 @@ title: MCP Runtime Decision Evaluator
 linkTitle: Runtime Decision Evaluator
 weight: 6
 date: 2026-05-02
-lastmod: 2026-08-21
+lastmod: 2026-09-29
 sidebar:
   exclude: true
 description: >
@@ -20,7 +20,7 @@ gateway, or CI admission check can execute the same policy before a tool
 call happens.
 {{< /callout >}}
 
-Rechecked August 23, 2026: MCP
+Rechecked September 29, 2026: MCP
 [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28)
 is still current and **stateless**. There is no negotiation handshake.
 Each request carries protocol version and capabilities. Servers
@@ -30,7 +30,24 @@ Each request carries protocol version and capabilities. Servers
 Streamable HTTP revisions through
 [2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25)
 could assign that header; 2026-07-28 ignores it and does not mint
-session IDs.
+session IDs. Streamable HTTP
+[Security & Endpoint](https://modelcontextprotocol.io/specification/2026-07-28/basic/transports/streamable-http)
+requires servers to validate the `Origin` header on every incoming
+connection. If `Origin` is present and invalid, the server **MUST**
+respond with HTTP 403 Forbidden. Without that check, a remote page can
+use DNS rebinding to call a local MCP server. Streamable HTTP
+[request metadata](https://modelcontextprotocol.io/specification/2026-07-28/basic/transports/streamable-http)
+mirrors `MCP-Protocol-Version`, `Mcp-Method`, and `Mcp-Name` so a
+gateway can route without parsing the body. Servers that process the
+body **MUST** reject disagreement with HTTP 400 and JSON-RPC
+`HeaderMismatch` (`-32020`). Rechecked September 12, 2026 against the
+OWASP
+[Agent Control Standard](https://genai.owasp.org/resource/agent-control-standard-acs/)
+(ACS) v0.1.0 [§6.4](https://github.com/GenAI-Security-Project/agent-control-standard/blob/main/docs/spec/instrument/specification.md):
+the Observed Agent **MUST** wait for and apply a Guardian decision;
+on timeout, transport failure, or an error without a decision, ACS
+defaults to `on_decision_failure: proceed` (fail-open). This evaluator
+kills that fail-open path instead of allowing the tool call.
 
 ## The product bet
 
@@ -65,14 +82,119 @@ The evaluator lives in the runtime surface, not just the docs:
 - CI checks that exercise allow, deny, hold, and kill decisions against
   the checked-in gateway policy.
 
-Example allowed branch write:
+Evaluate a declared read-only tool call when ACS Guardian evidence is unspecified:
 
+```bash
+python3 scripts/evaluate_mcp_gateway_decision.py \
+  --workflow-id vulnerable-dependency-remediation \
+  --agent-id sr-agent::vulnerable-dependency-remediation::codex \
+  --agent-class codex \
+  --run-id run-ci \
+  --tool-namespace advisories.vulnerability \
+  --tool-access-mode read \
+  --gate-phase tool_call \
+  --expect-decision allow
+```
 
-Example approval hold:
+Evaluate an ACS Guardian timeout that proceeded fail-open:
 
+```bash
+python3 scripts/evaluate_mcp_gateway_decision.py \
+  --workflow-id vulnerable-dependency-remediation \
+  --agent-id sr-agent::vulnerable-dependency-remediation::codex \
+  --agent-class codex \
+  --run-id run-acs-fail-open \
+  --tool-namespace advisories.vulnerability \
+  --tool-access-mode read \
+  --gate-phase tool_call \
+  --guardian-decision-status timeout \
+  --on-decision-failure proceed \
+  --expect-decision kill_session
+```
 
-Example MCP tool call:
+Evaluate the same timeout with ACS fail-closed posture:
 
+```bash
+python3 scripts/evaluate_mcp_gateway_decision.py \
+  --workflow-id vulnerable-dependency-remediation \
+  --agent-id sr-agent::vulnerable-dependency-remediation::codex \
+  --agent-class codex \
+  --run-id run-acs-fail-closed \
+  --tool-namespace advisories.vulnerability \
+  --tool-access-mode read \
+  --gate-phase tool_call \
+  --guardian-decision-status timeout \
+  --on-decision-failure deny \
+  --expect-decision deny
+```
+
+Evaluate a Streamable HTTP `tools/call` whose headers match the body:
+
+```bash
+python3 scripts/evaluate_mcp_gateway_decision.py \
+  --workflow-id vulnerable-dependency-remediation \
+  --agent-id sr-agent::vulnerable-dependency-remediation::codex \
+  --agent-class codex \
+  --run-id run-header-match \
+  --tool-namespace advisories.vulnerability \
+  --tool-access-mode read \
+  --gate-phase tool_call \
+  --mcp-method tools/call \
+  --mcp-name advisories.vulnerability.read \
+  --mcp-protocol-version 2026-07-28 \
+  --jsonrpc-method tools/call \
+  --jsonrpc-name advisories.vulnerability.read \
+  --jsonrpc-protocol-version 2026-07-28 \
+  --expect-decision allow
+```
+
+Evaluate a gateway-routable `tools/list` header whose body is `tools/call`:
+
+```bash
+python3 scripts/evaluate_mcp_gateway_decision.py \
+  --workflow-id vulnerable-dependency-remediation \
+  --agent-id sr-agent::vulnerable-dependency-remediation::codex \
+  --agent-class codex \
+  --run-id run-header-mismatch \
+  --tool-namespace advisories.vulnerability \
+  --tool-access-mode read \
+  --gate-phase tool_call \
+  --mcp-method tools/list \
+  --jsonrpc-method tools/call \
+  --expect-decision deny
+```
+
+Evaluate a host-app Origin that matches the Streamable HTTP allowlist:
+
+```bash
+python3 scripts/evaluate_mcp_gateway_decision.py \
+  --workflow-id vulnerable-dependency-remediation \
+  --agent-id sr-agent::vulnerable-dependency-remediation::codex \
+  --agent-class codex \
+  --run-id run-origin-allow \
+  --tool-namespace advisories.vulnerability \
+  --tool-access-mode read \
+  --gate-phase tool_call \
+  --origin https://mcp.security-recipes.ai \
+  --allowed-origin https://mcp.security-recipes.ai \
+  --expect-decision allow
+```
+
+Evaluate a DNS-rebinding Origin that does not match the allowlist:
+
+```bash
+python3 scripts/evaluate_mcp_gateway_decision.py \
+  --workflow-id vulnerable-dependency-remediation \
+  --agent-id sr-agent::vulnerable-dependency-remediation::codex \
+  --agent-class codex \
+  --run-id run-origin-deny \
+  --tool-namespace advisories.vulnerability \
+  --tool-access-mode read \
+  --gate-phase tool_call \
+  --origin https://attacker.example \
+  --allowed-origin https://mcp.security-recipes.ai \
+  --expect-decision deny
+```
 
 The response includes the decision, matched workflow, matched scope,
 violations, approval state, source manifest hash, and observed runtime
@@ -96,6 +218,21 @@ The evaluator fails closed:
    approval record is present.
 10. Runtime kill signals return `kill_session` before ordinary allow or
     deny checks.
+11. An ACS Guardian decision failure (`timeout`, `transport_failure`, or
+    `error_without_decision`) with fail-open `on_decision_failure`
+    (`proceed`, or the ACS default when the posture is omitted) returns
+    `kill_session`. The same failure with `on_decision_failure=deny`
+    returns `deny` so the tool is not executed. Unspecified Guardian
+    evidence stays on the prior allow path.
+12. Observed Streamable HTTP `MCP-Protocol-Version`, `Mcp-Method`, or
+    `Mcp-Name` values that disagree with the JSON-RPC body return `deny`
+    (`HeaderMismatch`, `-32020`). Unspecified headers stay on the prior
+    allow path so stdio and CI admission checks stay valid.
+13. Observed Streamable HTTP `Origin` that is `null`, a non-http(s)
+    scheme, a URL with a path, missing from the allowlist, or present
+    without an allowlist returns `deny` (HTTP 403). Unspecified `Origin`
+    stays on the prior allow path so stdio and CI admission checks stay
+    valid.
 
 The important design choice is that the evaluator does not ask the model
 to decide whether a call is safe. The model requests a tool call; the
@@ -106,6 +243,24 @@ policy layer decides.
 This is the practical enforcement layer implied by current AI security
 guidance:
 
+- [MCP Streamable HTTP](https://modelcontextprotocol.io/specification/2026-07-28/basic/transports/streamable-http)
+  requires servers to validate `Origin` on every incoming connection and
+  to reject an invalid header with HTTP 403. A browser page whose DNS
+  rebinds onto a local MCP server otherwise inherits the server's
+  network position. The same page requires `MCP-Protocol-Version`,
+  `Mcp-Method`, and `Mcp-Name` on every POST so intermediaries can route
+  without parsing the body. Servers that process the body **MUST** reject
+  header/body disagreement with HTTP 400 and JSON-RPC `HeaderMismatch`
+  (`-32020`). Otherwise a gateway can authorize `tools/list` from the
+  header while the server executes `tools/call` from the body. This
+  evaluator denies both the invalid Origin and the header/body split.
+- [OWASP Agent Control Standard](https://genai.owasp.org/resource/agent-control-standard-acs/)
+  (ACS-Core §6.4, donated 2026-09-01) requires the Observed Agent to wait
+  for and apply a Guardian decision. The ACS default `on_decision_failure`
+  posture is `proceed`. An adversary who can disrupt that channel converts
+  control into audit unless the runtime fails closed. This evaluator kills
+  fail-open proceeds and denies fail-closed failures instead of executing
+  the tool.
 - [OWASP MCP Top 10](https://owasp.org/www-project-mcp-top-10/) calls out
   MCP authentication, authorization, audit telemetry, command execution,
   shadow servers, and over-sharing risks. A deterministic evaluator gives

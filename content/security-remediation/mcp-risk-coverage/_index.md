@@ -3,7 +3,7 @@ title: MCP and Agentic Skills Risk Coverage
 linkTitle: MCP Risk Coverage
 weight: 18
 date: 2026-05-04
-lastmod: 2026-08-27
+lastmod: 2026-09-28
 toc: true
 description: >
   Map OWASP MCP Top 10 and Agentic Skills Top 10 risks to SecurityRecipes
@@ -34,9 +34,11 @@ The **MCP and Agentic Skills Risk Coverage Pack** maps those two layers
 to existing SecurityRecipes artifacts. It is designed for platform teams,
 procurement reviewers, GRC, reviewers, and reviewers who need to know
 whether the project tracks the newest risks without reading the whole
-site. Rechecked August 27, 2026: MCP
+site. Rechecked September 28, 2026: MCP
 [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28)
-is still current and **stateless**. Servers **MUST** implement
+is still current and **stateless**. The current
+[security best practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices)
+page is unchanged since the August 27 review. Servers **MUST** implement
 [`server/discover`](https://modelcontextprotocol.io/specification/2026-07-28/server/discover)
 and **MUST NOT** treat possession of a state handle as authentication.
 OWASP [MCP Top 10](https://owasp.org/www-project-mcp-top-10/) remains

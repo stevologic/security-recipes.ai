@@ -1,9 +1,15 @@
 version: 2
 
+# Version updates enter development and its full Build gate. Weekly grouping
+# limits branch churn; security updates remain alert-driven on GitHub's default
+# branch and are not delayed by these version-update schedules.
+# https://docs.github.com/en/code-security/reference/supply-chain-security/dependabot-options-reference#target-branch
+
 updates:
   - package-ecosystem: "npm"
     directory: "/"
-    target-branch: "main"
+    target-branch: "development"
+    open-pull-requests-limit: 3
     schedule:
       interval: "weekly"
       day: "monday"
@@ -19,10 +25,11 @@ updates:
 
   - package-ecosystem: "pip"
     directory: "/"
-    target-branch: "main"
+    target-branch: "development"
+    open-pull-requests-limit: 3
     schedule:
       interval: "weekly"
-      day: "monday"
+      day: "tuesday"
       time: "06:00"
       timezone: "America/Phoenix"
     groups:
@@ -35,10 +42,11 @@ updates:
 
   - package-ecosystem: "docker"
     directory: "/"
-    target-branch: "main"
+    target-branch: "development"
+    open-pull-requests-limit: 3
     schedule:
       interval: "weekly"
-      day: "monday"
+      day: "wednesday"
       time: "06:00"
       timezone: "America/Phoenix"
     groups:
@@ -51,11 +59,12 @@ updates:
 
   - package-ecosystem: "docker-compose"
     directory: "/"
-    target-branch: "main"
+    target-branch: "development"
+    open-pull-requests-limit: 3
     schedule:
       interval: "weekly"
-      day: "monday"
-      time: "06:00"
+      day: "wednesday"
+      time: "07:00"
       timezone: "America/Phoenix"
     groups:
       compose-minor-and-patch:
@@ -67,10 +76,11 @@ updates:
 
   - package-ecosystem: "github-actions"
     directory: "/"
-    target-branch: "main"
+    target-branch: "development"
+    open-pull-requests-limit: 3
     schedule:
       interval: "weekly"
-      day: "monday"
+      day: "thursday"
       time: "06:00"
       timezone: "America/Phoenix"
     groups:

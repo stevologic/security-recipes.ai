@@ -3,7 +3,7 @@ title: Agentic Incident Response Pack
 linkTitle: Incident Response Pack
 weight: 14
 date: 2026-05-04
-lastmod: 2026-08-21
+lastmod: 2026-09-28
 sidebar:
   exclude: true
 description: >
@@ -20,7 +20,7 @@ authority, preserve evidence, replay the failure, and produce a
 trust-center-ready readout.
 {{< /callout >}}
 
-Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) on August 21, 2026.
+Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28), the current [security best practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices), and NIST's [August 27, 2026 agent identity guidance](https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation) on September 28, 2026. MCP `latest` still redirects to 2026-07-28.
 
 ## The product bet
 

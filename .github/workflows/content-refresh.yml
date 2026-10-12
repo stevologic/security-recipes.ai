@@ -7,7 +7,7 @@ name: Content refresh
 
 on:
   schedule:
-    - cron: "47 11 * * *"
+    - cron: "17 12 * * *"
   workflow_dispatch:
 
 permissions: {}
@@ -54,7 +54,7 @@ jobs:
         if: steps.auth.outputs.configured == 'true'
         env:
           XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
-          XAI_MODEL: ${{ vars.XAI_MODEL || 'grok-4.6' }}
+          XAI_MODEL: ${{ vars.XAI_CONTENT_MODEL || vars.XAI_MODEL || 'grok-4.6' }}
         shell: bash
         run: python scripts/check_xai_credentials.py --github-output "$GITHUB_OUTPUT"
 
@@ -67,7 +67,7 @@ jobs:
         if: steps.xai.outputs.usable == 'true'
         env:
           XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
-          XAI_MODEL: ${{ vars.XAI_MODEL || 'grok-4.6' }}
+          XAI_MODEL: ${{ vars.XAI_CONTENT_MODEL || vars.XAI_MODEL || 'grok-4.6' }}
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: python scripts/run_grok_agent.py --prompt-file .github/prompts/content-refresh.md

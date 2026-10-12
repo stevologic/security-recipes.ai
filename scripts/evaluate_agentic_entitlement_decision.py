@@ -4,7 +4,15 @@
 The evaluator is deterministic. It checks whether a non-human agent
 identity still has an active, unexpired, reviewed entitlement for a
 specific workflow, MCP namespace, and access mode before a gateway or
-agent host forwards the request.
+agent host forwards the request. MCP 2026-07-28 Security Best Practices
+name Scope Minimization as a first-class attack: a server that exposes
+every scope in scopes_supported and a client that requests them all
+mints an omnibus token. Stolen files:*, db:*, or admin:* grants enable
+lateral access and privilege chaining without a further elevation
+prompt. This evaluator kills those omnibus token scopes and holds a
+full-catalog initial grant that was not down-scoped for a targeted
+WWW-Authenticate challenge. Unspecified token-scope evidence stays on
+the prior path so existing CLI and CI admission checks remain valid.
 """
 
 from __future__ import annotations
@@ -29,6 +37,15 @@ VALID_DECISIONS = {
     "kill_session_on_entitlement_signal",
 }
 NEGATIVE_PREFIXES = ("deny", "kill")
+OMNIBUS_TOKEN_SCOPES = {
+    "*",
+    "all",
+    "full-access",
+    "files:*",
+    "db:*",
+    "admin:*",
+}
+OMNIBUS_TOKEN_SCOPE_PREFIXES = ("files:", "db:", "admin:")
 
 
 class EntitlementDecisionError(RuntimeError):
@@ -139,14 +156,72 @@ def normalize_request(runtime_request: dict[str, Any]) -> dict[str, Any]:
     for key in [
         "contains_secret",
         "cross_tenant_entitlement",
+        "downscoped_grant",
         "identity_used_after_revocation",
+        "initial_grant",
         "repeated_denied_entitlement",
         "scope_escalation",
         "token_passthrough",
     ]:
         request[key] = as_bool(request.get(key))
     request["indicators"] = [str(item).strip().lower() for item in as_list(request.get("indicators")) if str(item).strip()]
+    for key in ("token_scopes", "requested_scopes", "scopes_supported", "scope_challenge"):
+        request[key] = normalize_scopes(request.get(key))
     return request
+
+
+def normalize_scopes(value: Any) -> list[str]:
+    return [str(item).strip() for item in as_list(value) if str(item).strip()]
+
+
+def is_omnibus_token_scope(scope: str) -> bool:
+    text = scope.strip().lower()
+    if text in OMNIBUS_TOKEN_SCOPES:
+        return True
+    return any(text.startswith(prefix) and text.endswith("*") for prefix in OMNIBUS_TOKEN_SCOPE_PREFIXES)
+
+
+def omnibus_token_scope_kill_violations(request: dict[str, Any]) -> list[str]:
+    """Return kill reasons for wildcard or omnibus token scopes.
+
+    Unspecified token_scopes stay on the prior path. Named MCP Scope
+    Minimization grants such as files:*, db:*, admin:*, *, all, and
+    full-access are kill signals because a stolen token then enables
+    lateral data access and privilege chaining without a further
+    elevation prompt.
+    """
+    return [
+        f"omnibus token scope {scope}"
+        for scope in request.get("token_scopes") or []
+        if is_omnibus_token_scope(str(scope))
+    ]
+
+
+def full_catalog_initial_grant_hold_violations(request: dict[str, Any]) -> list[str]:
+    """Return holds for a full-catalog initial grant that was not down-scoped.
+
+    MCP servers should emit a targeted WWW-Authenticate scope challenge
+    instead of minting every scopes_supported value up front. Unspecified
+    requested_scopes or scopes_supported stay on the prior path. A
+    down-scoped grant, a non-initial grant, or a targeted scope_challenge
+    does not take this hold.
+    """
+    requested = {scope.lower() for scope in request.get("requested_scopes") or []}
+    supported = {scope.lower() for scope in request.get("scopes_supported") or []}
+    if not requested or not supported:
+        return []
+    if not request.get("initial_grant"):
+        return []
+    if request.get("downscoped_grant"):
+        return []
+    if request.get("scope_challenge"):
+        return []
+    if requested < supported:
+        return []
+    return [
+        "initial grant requested the full scopes_supported catalog without a down-scoped grant; "
+        "hold for a targeted WWW-Authenticate scope challenge"
+    ]
 
 
 def kill_reasons(pack: dict[str, Any], request: dict[str, Any]) -> list[str]:
@@ -172,6 +247,7 @@ def kill_reasons(pack: dict[str, Any], request: dict[str, Any]) -> list[str]:
         reasons.append("agent repeated an entitlement request after denial")
     if is_negative_decision(request.get("authorization_decision")) and str(request.get("authorization_decision", "")).lower().startswith("kill"):
         reasons.append("authorization decision returned a kill state")
+    reasons.extend(omnibus_token_scope_kill_violations(request))
     return reasons
 
 
@@ -232,14 +308,20 @@ def decision_result(
         "reason": reason,
         "request": {
             "authorization_decision": request.get("authorization_decision"),
+            "downscoped_grant": request.get("downscoped_grant"),
             "identity_id": request.get("identity_id"),
+            "initial_grant": request.get("initial_grant"),
             "lease_id": request.get("lease_id"),
             "lease_status": request.get("lease_status"),
             "namespace": request.get("namespace"),
             "requested_access_mode": request.get("requested_access_mode"),
+            "requested_scopes": request.get("requested_scopes", []),
             "review_status": request.get("review_status"),
             "run_id": request.get("run_id"),
+            "scope_challenge": request.get("scope_challenge", []),
+            "scopes_supported": request.get("scopes_supported", []),
             "tenant_id": request.get("tenant_id"),
+            "token_scopes": request.get("token_scopes", []),
             "workflow_id": request.get("workflow_id"),
         },
         "violations": violations or [],
@@ -359,6 +441,17 @@ def evaluate_agentic_entitlement_decision(
             violations=["missing risk_acceptance_id"],
         )
 
+    catalog_holds = full_catalog_initial_grant_hold_violations(request)
+    if catalog_holds:
+        return decision_result(
+            decision="hold_for_step_up_authorization",
+            pack=pack,
+            request=request,
+            entitlement=entitlement,
+            reason="initial grant requested the full MCP scopes_supported catalog without a down-scoped grant",
+            violations=catalog_holds,
+        )
+
     return decision_result(
         decision="allow_active_entitlement",
         pack=pack,
@@ -393,9 +486,15 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--approval-status")
     parser.add_argument("--now")
     parser.add_argument("--indicator", action="append", default=[])
+    parser.add_argument("--token-scope", action="append", default=[], dest="token_scopes")
+    parser.add_argument("--requested-scope", action="append", default=[], dest="requested_scopes")
+    parser.add_argument("--scopes-supported", action="append", default=[], dest="scopes_supported")
+    parser.add_argument("--scope-challenge", action="append", default=[], dest="scope_challenge")
     parser.add_argument("--contains-secret", action="store_true")
     parser.add_argument("--cross-tenant-entitlement", action="store_true")
+    parser.add_argument("--downscoped-grant", action="store_true")
     parser.add_argument("--identity-used-after-revocation", action="store_true")
+    parser.add_argument("--initial-grant", action="store_true")
     parser.add_argument("--repeated-denied-entitlement", action="store_true")
     parser.add_argument("--scope-escalation", action="store_true")
     parser.add_argument("--token-passthrough", action="store_true")
@@ -412,10 +511,12 @@ def request_from_args(args: argparse.Namespace) -> dict[str, Any]:
         "contains_secret": args.contains_secret,
         "correlation_id": args.correlation_id,
         "cross_tenant_entitlement": args.cross_tenant_entitlement,
+        "downscoped_grant": args.downscoped_grant,
         "entitlement_id": args.entitlement_id,
         "identity_id": args.identity_id,
         "identity_used_after_revocation": args.identity_used_after_revocation,
         "indicators": args.indicator,
+        "initial_grant": args.initial_grant,
         "lease_expires_at": args.lease_expires_at,
         "lease_id": args.lease_id,
         "lease_status": args.lease_status,
@@ -425,12 +526,16 @@ def request_from_args(args: argparse.Namespace) -> dict[str, Any]:
         "receipt_id": args.receipt_id,
         "repeated_denied_entitlement": args.repeated_denied_entitlement,
         "requested_access_mode": args.requested_access_mode,
+        "requested_scopes": args.requested_scopes,
         "review_status": args.review_status,
         "risk_acceptance_id": args.risk_acceptance_id,
         "run_id": args.run_id,
+        "scope_challenge": args.scope_challenge,
         "scope_escalation": args.scope_escalation,
+        "scopes_supported": args.scopes_supported,
         "tenant_id": args.tenant_id,
         "token_passthrough": args.token_passthrough,
+        "token_scopes": args.token_scopes,
         "workflow_id": args.workflow_id,
     }
     if args.approval_id or args.approval_status:

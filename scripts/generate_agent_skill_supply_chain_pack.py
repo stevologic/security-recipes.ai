@@ -270,6 +270,8 @@ def next_actions(row: dict[str, Any]) -> list[str]:
         actions.append("Require package signature or an expiring security exception.")
     if has_unpinned_external_instructions(row):
         actions.append("Refuse install or run until every external instruction URL is inlined or pinned with a review-time content hash.")
+    if decision in {"allow_pinned_readonly_skill", "allow_guarded_skill"}:
+        actions.append("Enforce the reviewed permission manifest at runtime; deny extra shell, identity-file write, filesystem, egress, MCP, or data-class requests.")
     return actions
 
 
@@ -331,6 +333,12 @@ def validate_model(model: dict[str, Any], manifest: dict[str, Any], repo_root: P
                 require(content_hash.startswith("sha256:") and len(content_hash) > 7, failures, f"{skill_id}: pinned external instruction source requires a content hash")
         if sources and "AST05" not in ast_risks:
             failures.append(f"{skill_id}: skills that fetch external instruction sources must map AST05")
+    require(
+        any(str(item.get("id")) == "owasp-agentic-skills-ast03-2026" for item in standards if isinstance(item, dict)),
+        failures,
+        "standards_alignment must include AST03 Over-Privileged Skills",
+    )
+    require("AST03" in {str(risk) for skill in skills if isinstance(skill, dict) for risk in skill.get("mapped_ast_risks", []) or []}, failures, "at least one skill must map AST03 Over-Privileged Skills")
     require("AST05" in {str(risk) for skill in skills if isinstance(skill, dict) for risk in skill.get("mapped_ast_risks", []) or []}, failures, "at least one skill must map AST05 Untrusted External Instructions")
     require(any(has_unpinned_external_instructions(skill) for skill in skills if isinstance(skill, dict)), failures, "at least one skill must demonstrate an unpinned external instruction source")
     return failures
@@ -467,6 +475,10 @@ def build_pack(
             {
                 "risk": "A skill can keep a pinned package hash while a referenced URL or remote file changes and is treated as trusted instructions.",
                 "treatment": "Inventory external instruction sources, inline snapshots or pin review-time content hashes, allowlist fetch hosts, refuse unpinned or drifted documents, and rescan referenced content continuously."
+            },
+            {
+                "risk": "A pinned skill can request shell, identity-file write, extra filesystem paths, extra egress, extra MCP namespaces, or extra data classes after the permission manifest was reviewed.",
+                "treatment": "Enforce the reviewed permission manifest at runtime. Deny any request whose shell, identity-file write, filesystem, network, MCP namespace, or data-class set is not a subset of the registered grant. Use domain allowlists, not a binary network flag."
             }
         ],
         "risk_model": model.get("risk_model", {}),

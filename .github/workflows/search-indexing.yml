@@ -7,6 +7,8 @@ name: Search indexing
 # IndexNow; its discovery runs through the sitemap and Search Console.
 
 on:
+  schedule:
+    - cron: "53 15 * * *"
   workflow_run:
     workflows:
       - Build
@@ -25,7 +27,7 @@ env:
 
 jobs:
   indexnow:
-    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.event != 'pull_request')
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -33,6 +35,7 @@ jobs:
         shell: bash
         env:
           SITE_HOST: security-recipes.ai
+          EXPECTED_REVISION: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || '' }}
           INDEXNOW_KEY: 1053cadd3418c88fab6a70e63cf15d53
         run: |
           python3 - <<'PY'
@@ -54,6 +57,13 @@ jobs:
               )
               with urllib.request.urlopen(request, timeout=30) as response:
                   return response.read()
+
+          expected_revision = os.environ.get("EXPECTED_REVISION", "")
+          if expected_revision:
+              live_revision = fetch(f"https://{host}/.well-known/deploy-revision").decode().strip()
+              if live_revision != expected_revision:
+                  print("::notice::The completed main Build is not live yet; the daily discovery sweep will retry.")
+                  sys.exit(0)
 
           key_probe = fetch(f"https://{host}/{key}.txt").decode().strip()
           if key_probe != key:

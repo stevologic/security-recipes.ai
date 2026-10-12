@@ -6,6 +6,7 @@ const test = require("node:test");
 const {
   articleDatesFor,
   descriptionFor,
+  ogTitle,
   presentationText,
   seoHead,
   seoTitle,
@@ -83,6 +84,11 @@ test("articles use Google-supported schema and an accountable editorial organiza
 
   assert.ok(organization);
   assert.equal(organization.name, "Security Recipes");
+  assert.equal(
+    organization.logo.url,
+    "https://security-recipes.ai/icon-192x192.png",
+  );
+  assert.deepEqual(organization.sameAs, site.seo.sameAs);
   assert.equal(organization.publishingPrinciples, "https://security-recipes.ai/about/#editorial-principles");
   assert.equal(article.additionalType, "https://schema.org/TechArticle");
   assert.deepEqual(article.author, {
@@ -244,6 +250,31 @@ test("authored article dates choose the newest valid lastmod, git, or publicatio
     lastmod: "2026-07-23T09:15:00Z",
   }, () => gitDates);
   assert.equal(fromFrontMatter.dateModified, "2026-07-23T09:15:00.000Z");
+});
+
+test("catalog-dependent pages take catalog freshness as dateModified", () => {
+  const homepage = articleDatesFor({
+    sourcePath: "_index.md",
+    date: "2026-08-21",
+    lastmod: "2026-08-21",
+    catalogUpdatedAt: "2026-09-08T07:01:49Z",
+  }, () => new Map());
+  const database = articleDatesFor({
+    sourcePath: "cve-database/_index.md",
+    date: "2026-08-21",
+    lastmod: "2026-08-21",
+    catalogUpdatedAt: "2026-09-08T07:01:49Z",
+  }, () => new Map());
+  const about = articleDatesFor({
+    sourcePath: "about/_index.md",
+    date: "2026-08-21",
+    lastmod: "2026-08-21",
+    catalogUpdatedAt: "2026-09-08T07:01:49Z",
+  }, () => new Map());
+
+  assert.equal(homepage.dateModified, "2026-09-08T07:01:49.000Z");
+  assert.equal(database.dateModified, "2026-09-08T07:01:49.000Z");
+  assert.equal(about.dateModified, "2026-08-21T00:00:00.000Z");
 });
 
 test("authored article dates reject ambiguous, malformed, and impossible timestamps", () => {
@@ -598,6 +629,59 @@ test("error pages force noindex and omit canonical and article metadata", () => 
   assert.ok(graphEntity(document, "WebPage"));
 });
 
+test("share titles keep the Security Recipes brand", () => {
+  assert.equal(
+    ogTitle("CVE Database & AI Vulnerability Remediation"),
+    "CVE Database & AI Vulnerability Remediation | Security Recipes",
+  );
+  assert.equal(ogTitle("Security Recipes"), "Security Recipes");
+  const home = seoHead({
+    url: "/",
+    title: "CVE Database & AI Vulnerability Remediation",
+    description: "Search NVD and CISA KEV-backed CVE intelligence.",
+    isHome: true,
+    isSection: false,
+  });
+  assert.equal(
+    metaContent(home, "property", "og:title"),
+    "CVE Database &amp; AI Vulnerability Remediation | Security Recipes",
+  );
+  assert.equal(
+    metaContent(home, "name", "twitter:title"),
+    "CVE Database &amp; AI Vulnerability Remediation | Security Recipes",
+  );
+});
+
+test("Organization sameAs lists only existing on-site profiles", () => {
+  const repo = fs.readFileSync(
+    path.join(__dirname, "..", "lib", "site-config.js"),
+    "utf8",
+  );
+  const linked = [
+    fs.readFileSync(path.join(__dirname, "..", "content", "about", "_index.md"), "utf8"),
+    fs.readFileSync(path.join(__dirname, "..", "_includes", "layouts", "home-static.html"), "utf8"),
+  ].join("\n");
+
+  assert.deepEqual(site.seo.sameAs, [
+    "https://github.com/stevologic/security-recipes.ai",
+  ]);
+  for (const url of site.seo.sameAs) {
+    assert.match(linked, new RegExp(url.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+    assert.doesNotMatch(url, /stevo\.ai|wirehold|az-now|desertwander|sonnys\.world|glama\.ai/iu);
+  }
+  assert.match(repo, /never invent/u);
+
+  const landing = fs.readFileSync(
+    path.join(__dirname, "..", "mcp_server.py"),
+    "utf8",
+  );
+  assert.match(
+    landing,
+    /_CVE_LANDING_ORGANIZATION_SAME_AS = \(\s*"https:\/\/github\.com\/stevologic\/security-recipes\.ai",\s*\)/u,
+  );
+  assert.match(landing, /_CVE_LANDING_ORGANIZATION_LOGO_PATH = "\/icon-192x192\.png"/u);
+});
+
 test("seoTitle keeps branded titles concise without duplicating the brand", () => {
   assert.equal(seoTitle("Security Recipes"), "security-recipes.ai");
   assert.equal(seoTitle("CVE-2026-14956"), "CVE-2026-14956 | Security Recipes");
@@ -650,7 +734,7 @@ test("titles and descriptions expose presented text instead of Markdown source m
     canonicalCveRoute: false,
   });
   const document = structuredDocument(output);
-  assert.equal(metaContent(output, "property", "og:title"), cleanTitle);
+  assert.equal(metaContent(output, "property", "og:title"), `${cleanTitle} | Security Recipes`);
   assert.equal(metaContent(output, "name", "description"), cleanDescription);
   assert.equal(graphEntity(document, "Article").headline, cleanTitle);
   assert.equal(graphEntity(document, "Article").description, cleanDescription);

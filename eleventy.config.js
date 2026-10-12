@@ -19,7 +19,10 @@ const { escapeHtml, stripTags, isoDate } = require("./lib/util");
 const { articleDatesFor, presentationText, seoHead, seoTitle } = require("./lib/seo");
 const { cveDisplayTitle, stripFirstH1 } = require("./lib/html-content");
 const { cleanCatalogText } = require("./lib/text-quality");
-const { loadCveSearchIndexableRecords } = require("./lib/cve-indexability");
+const {
+  loadCatalogUpdatedAt,
+  loadCveSearchIndexableRecords,
+} = require("./lib/cve-indexability");
 const {
   canonicalCvePresentationDescription,
   canonicalCvePresentationLastmod,
@@ -195,6 +198,7 @@ function planCveSitemaps(
   records,
   urlLimit = CVE_SITEMAP_URL_LIMIT,
   excludedCveIds = new Set(),
+  catalogLastmod = "",
 ) {
   if (!Number.isSafeInteger(urlLimit) || urlLimit < 1 || urlLimit >= 50_000) {
     throw new Error("CVE sitemap URL limit must be between 1 and 49,999");
@@ -215,14 +219,15 @@ function planCveSitemaps(
         offset,
         count: chunkRecords.length,
         records: chunkRecords,
-        lastmod: latestSitemapLastmod(
-          chunkRecords.map((record) =>
+        lastmod: latestSitemapLastmod([
+          catalogLastmod,
+          ...chunkRecords.map((record) =>
             canonicalCvePresentationLastmod(
               record?.cve,
               record?.page_lastmod,
             ),
           ),
-        ),
+        ]),
       });
     }
   }
@@ -266,12 +271,14 @@ function renderCveSitemap(entry) {
   );
 }
 
-function renderSitemapIndex(cveEntries, pagesLastmod = "") {
+function renderSitemapIndex(cveEntries, pagesLastmod = "", { includePages = true } = {}) {
   const rows = [
-    {
-      outputPath: "/sitemaps/pages.xml",
-      lastmod: sitemapLastmod(pagesLastmod),
-    },
+    ...(includePages
+      ? [{
+          outputPath: "/sitemaps/pages.xml",
+          lastmod: sitemapLastmod(pagesLastmod),
+        }]
+      : []),
     ...cveEntries,
   ].map(
     (entry) =>
@@ -291,19 +298,30 @@ function cleanCveSourceText(value) {
   return cleanCatalogText(value);
 }
 
-function pageSitemapLastmod(sourcePath, date, lastmod, frontMatter = {}) {
-  return articleDatesFor({
+function pageSitemapLastmod(
+  sourcePath,
+  date,
+  lastmod,
+  frontMatter = {},
+  catalogUpdatedAt,
+) {
+  const ctx = {
     ...frontMatter,
     sourcePath,
     date,
     lastmod,
-  }).dateModified;
+  };
+  if (catalogUpdatedAt !== undefined) {
+    ctx.catalogUpdatedAt = catalogUpdatedAt;
+  }
+  return articleDatesFor(ctx).dateModified;
 }
 
 function planPagesSitemapEntries(
   pages,
   {
     lastmodResolver = pageSitemapLastmod,
+    cveCatalogUpdatedAt,
   } = {},
 ) {
   return pages
@@ -311,7 +329,13 @@ function planPagesSitemapEntries(
     .map((page) => ({
       loc: page.url,
       lastmod: sitemapLastmod(
-        lastmodResolver(page.sourcePath, page.date, page.fm?.lastmod, page.fm),
+        lastmodResolver(
+          page.sourcePath,
+          page.date,
+          page.fm?.lastmod,
+          page.fm,
+          cveCatalogUpdatedAt,
+        ),
       ),
     }));
 }
@@ -985,10 +1009,12 @@ module.exports = function (eleventyConfig) {
   );
   const staticCanonicalCveIds = new Set(staticCanonicalCveRoutes.keys());
   const cveSearchIndexableRecords = loadCveSearchIndexableRecords(CVE_CATALOG_ROOT);
+  const catalogLastmod = loadCatalogUpdatedAt(CVE_CATALOG_ROOT);
   const cveSitemapEntries = planCveSitemaps(
     cveSearchIndexableRecords,
     CVE_SITEMAP_URL_LIMIT,
     staticCanonicalCveIds,
+    catalogLastmod,
   );
   const cveArchiveEntries = planCveArchivePages(
     cveSearchIndexableRecords,
@@ -1001,7 +1027,9 @@ module.exports = function (eleventyConfig) {
   eleventyConfig.addTemplate("sitemap-index.11ty.js", {
     data: () => ({ permalink: "/sitemap.xml", eleventyExcludeFromCollections: true }),
     render: () => {
-      const pageEntries = planPagesSitemapEntries(contentIndex.getIndex().pages);
+      const pageEntries = planPagesSitemapEntries(contentIndex.getIndex().pages, {
+        cveCatalogUpdatedAt: catalogLastmod,
+      });
       return renderSitemapIndex(
         cveSitemapEntries,
         latestSitemapLastmod(pageEntries),
@@ -1019,8 +1047,20 @@ module.exports = function (eleventyConfig) {
       // intentionally absent too; manually authored tag pages remain ordinary
       // content entries and retain their own front-matter indexing policy. The
       // noindex CVE archive remains an HTML fallback and is omitted here too.
-      return renderPagesSitemap(planPagesSitemapEntries(pages));
+      return renderPagesSitemap(
+        planPagesSitemapEntries(pages, { cveCatalogUpdatedAt: catalogLastmod }),
+      );
     },
+  });
+
+  // Compatibility alias for the pre-partition path. Keep it out of the root
+  // index so crawlers do not follow a nested sitemap index.
+  eleventyConfig.addTemplate("cve-sitemaps-compat.11ty.js", {
+    data: () => ({
+      permalink: "/sitemaps/cves.xml",
+      eleventyExcludeFromCollections: true,
+    }),
+    render: () => renderSitemapIndex(cveSitemapEntries, "", { includePages: false }),
   });
 
   eleventyConfig.addTemplate("cve-sitemaps.11ty.js", {

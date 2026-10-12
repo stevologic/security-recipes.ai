@@ -26,6 +26,7 @@ const {
 const {
   loadCveSearchIndexableRecords,
 } = require("../lib/cve-indexability");
+const { articleDatesFor } = require("../lib/seo");
 
 function count(xml, token) {
   return xml.split(token).length - 1;
@@ -293,6 +294,95 @@ test("yearly sitemap emits only record-specific significant-update dates", () =>
   );
   assert.equal(count(xml, "<lastmod>"), 1);
   assert.doesNotMatch(xml, /2026-07-22/);
+});
+
+test("CVE sitemap index lastmod floors at catalog freshness without rewriting URL lastmods", () => {
+  const records = [
+    { cve: "CVE-2026-1234", published: "2026-07-17", page_lastmod: "2026-07-21" },
+    { cve: "CVE-2026-5678", published: "2026-07-17" },
+  ];
+  const [entry] = planCveSitemaps(
+    records,
+    CVE_SITEMAP_URL_LIMIT,
+    new Set(),
+    "2026-09-08T07:01:49Z",
+  );
+
+  assert.equal(entry.lastmod, "2026-09-08");
+  const xml = renderCveSitemap(entry);
+  assert.match(
+    xml,
+    /<url><loc>https:\/\/security-recipes\.ai\/cve\/CVE-2026-1234\/<\/loc><lastmod>2026-07-21<\/lastmod><\/url>/,
+  );
+  assert.match(
+    xml,
+    /<url><loc>https:\/\/security-recipes\.ai\/cve\/CVE-2026-5678\/<\/loc><\/url>/,
+  );
+  assert.equal(count(xml, "<lastmod>"), 1);
+  assert.doesNotMatch(xml, /2026-09-08/);
+});
+
+test("compatibility CVE sitemap is a year-shard index excluded from the root index", () => {
+  const entries = [
+    { outputPath: "/sitemaps/cves-2025.xml", lastmod: "2026-09-08" },
+    { outputPath: "/sitemaps/cves-2026.xml", lastmod: "2026-09-08" },
+  ];
+  const compat = renderSitemapIndex(entries, "2026-09-08", { includePages: false });
+  const root = renderSitemapIndex(entries, "2026-09-08");
+
+  assert.match(compat, /<sitemapindex xmlns="http:\/\/www\.sitemaps\.org\/schemas\/sitemap\/0\.9">/);
+  assert.match(compat, /<loc>https:\/\/security-recipes\.ai\/sitemaps\/cves-2025\.xml<\/loc>/);
+  assert.match(compat, /<loc>https:\/\/security-recipes\.ai\/sitemaps\/cves-2026\.xml<\/loc>/);
+  assert.doesNotMatch(compat, /\/sitemaps\/pages\.xml/);
+  assert.doesNotMatch(compat, /\/sitemaps\/cves\.xml/);
+  assert.equal(count(compat, "<sitemap>"), 2);
+  assert.match(root, /\/sitemaps\/pages\.xml/);
+  assert.doesNotMatch(root, /\/sitemaps\/cves\.xml</);
+});
+
+test("catalog-dependent pages inherit catalog freshness while authored pages keep their lastmod", () => {
+  const entries = planPagesSitemapEntries(
+    [
+      {
+        sourcePath: "_index.md",
+        url: "/",
+        date: "2026-08-21",
+        fm: { lastmod: "2026-08-21" },
+      },
+      {
+        sourcePath: "about/_index.md",
+        url: "/about/",
+        date: "2026-08-21",
+        fm: { lastmod: "2026-08-21" },
+      },
+      {
+        sourcePath: "cve-database/_index.md",
+        url: "/cve-database/",
+        date: "2026-08-21",
+        fm: { lastmod: "2026-08-21" },
+      },
+    ],
+    {
+      cveCatalogUpdatedAt: "2026-09-08T07:01:49Z",
+      lastmodResolver: (sourcePath, date, lastmod, frontMatter, catalogUpdatedAt) =>
+        articleDatesFor(
+          {
+            ...frontMatter,
+            sourcePath,
+            date,
+            lastmod,
+            catalogUpdatedAt,
+          },
+          () => new Map(),
+        ).dateModified,
+    },
+  );
+
+  assert.deepEqual(entries, [
+    { loc: "/", lastmod: "2026-09-08" },
+    { loc: "/about/", lastmod: "2026-08-21" },
+    { loc: "/cve-database/", lastmod: "2026-09-08" },
+  ]);
 });
 
 test("sitemap index child lastmods come from each compact-record chunk", () => {

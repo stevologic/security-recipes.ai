@@ -53,16 +53,21 @@ class GitHubWorkflowExpressionTests(unittest.TestCase):
         self.assertNotIn("if: ${{ secrets.XAI_API_KEY", workflow)
         self.assertNotIn("if: secrets.XAI_API_KEY", workflow)
 
-    def test_dev_dns_workflow_runs_on_pull_request_without_push(self) -> None:
+    def test_dev_dns_never_runs_pr_code_with_cloud_or_ssh_credentials(self) -> None:
         workflow = (WORKFLOWS / "dev-dns-record.yml").read_text(encoding="utf-8")
         self.assertIn("workflow_dispatch:", workflow)
-        self.assertIn("pull_request:", workflow)
+        self.assertNotRegex(workflow, r"(?m)^\s+(pull_request|pull_request_target):")
         self.assertIn("workflow_run:", workflow)
         self.assertIn("workflows: [Build]", workflow)
         self.assertIn(
-            "github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'",
+            "github.event.workflow_run.conclusion == 'success'",
             workflow,
         )
+        self.assertIn("github.event.workflow_run.event != 'pull_request'", workflow)
+        checkout = workflow.split("- name: Checkout source", 1)[1]
+        checkout = checkout.split("- name: Upsert", 1)[0]
+        self.assertIn("ref: ${{ github.event.repository.default_branch }}", checkout)
+        self.assertIn("persist-credentials: false", checkout)
         self.assertNotIn("push:", workflow)
         self.assertIn("python scripts/upsert_dev_dns_record.py", workflow)
         self.assertIn("scripts/upsert_dev_dns_from_host.py", workflow)

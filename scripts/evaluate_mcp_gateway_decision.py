@@ -11,12 +11,15 @@ can be used directly in audit logs and run transcripts.
 from __future__ import annotations
 
 import argparse
+import base64
+import binascii
 import fnmatch
 import json
 import re
 import sys
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse
 
 
 DEFAULT_POLICY = Path("data/policy/mcp-gateway-policy.json")
@@ -28,6 +31,48 @@ VALID_DECISIONS = {
     "deny",
     "kill_session",
 }
+
+# OWASP Agent Control Standard (ACS) v0.1.0 §6.4. A decision failure is
+# timeout, transport failure, or an error without a decision. The ACS
+# default on_decision_failure posture is proceed (fail-open).
+ACS_DECISION_FAILURE_STATUSES = {
+    "error_without_decision",
+    "timeout",
+    "transport_failure",
+}
+ACS_FAIL_CLOSED_POSTURES = {"deny", "fail_closed"}
+
+# MCP Streamable HTTP 2026-07-28 request metadata. Servers that process the
+# body MUST reject header/body disagreement with JSON-RPC HeaderMismatch
+# (-32020). See specification/2026-07-28/basic/transports/streamable-http.
+MCP_HEADER_MISMATCH_CODE = -32020
+MCP_BASE64_SENTINEL_PREFIX = "=?base64?"
+MCP_BASE64_SENTINEL_SUFFIX = "?="
+MCP_METHOD_HEADER_KEYS = ("mcp_method", "Mcp-Method", "mcp-method")
+MCP_NAME_HEADER_KEYS = ("mcp_name", "Mcp-Name", "mcp-name")
+MCP_PROTOCOL_VERSION_HEADER_KEYS = (
+    "mcp_protocol_version",
+    "MCP-Protocol-Version",
+    "mcp-protocol-version",
+)
+JSONRPC_METHOD_KEYS = ("jsonrpc_method", "method")
+JSONRPC_NAME_KEYS = ("jsonrpc_name", "params_name", "tool_name")
+JSONRPC_PROTOCOL_VERSION_KEYS = (
+    "jsonrpc_protocol_version",
+    "protocol_version",
+    "io.modelcontextprotocol/protocolVersion",
+)
+# Streamable HTTP 2026-07-28 Security & Endpoint: servers MUST validate Origin
+# on every incoming connection and MUST return HTTP 403 when it is present and
+# invalid. Missing Origin stays on the prior allow path so stdio and CI
+# admission checks remain valid.
+MCP_ORIGIN_HEADER_KEYS = ("origin", "Origin")
+MCP_ALLOWED_ORIGIN_KEYS = (
+    "allowed_origins",
+    "expected_origin",
+    "mcp_allowed_origins",
+)
+MCP_ORIGIN_HTTP_SCHEMES = {"http", "https"}
 
 
 class GatewayDecisionError(RuntimeError):
@@ -106,6 +151,247 @@ def approval_satisfied(record: Any) -> bool:
             return value.lower() in {"approved", "approve", "allow", "allowed", "accepted", "true"}
         return approval_satisfied(parsed)
     return False
+
+
+def normalize_acs_token(value: Any) -> str:
+    return str(value or "").strip().lower().replace("-", "_")
+
+
+def acs_fail_open_decision_failure(request: dict[str, Any]) -> tuple[str, list[str]] | None:
+    """Return a kill or deny outcome when an ACS Guardian decision failed.
+
+    Unspecified guardian evidence stays on the prior allow/deny path so
+    existing policy, identity, and path checks remain valid. When a
+    decision failure is observed, ACS-Core defaults to proceed (fail-open)
+    unless the deployment set on_decision_failure=deny.
+    """
+    status = normalize_acs_token(request.get("guardian_decision_status"))
+    if status not in ACS_DECISION_FAILURE_STATUSES:
+        return None
+
+    posture = normalize_acs_token(request.get("on_decision_failure"))
+    if posture in ACS_FAIL_CLOSED_POSTURES:
+        return (
+            "deny",
+            [
+                f"ACS Guardian decision failed ({status}) and on_decision_failure=deny; do not execute the tool"
+            ],
+        )
+    return (
+        "kill_session",
+        [
+            "ACS Guardian decision failed "
+            f"({status}) with fail-open on_decision_failure="
+            f"{posture or 'proceed'}; an unreachable Guardian must not convert control into audit"
+        ],
+    )
+
+
+def first_present(request: dict[str, Any], keys: tuple[str, ...]) -> str:
+    for key in keys:
+        value = request.get(key)
+        if value not in (None, "", [], {}):
+            return str(value).strip()
+    return ""
+
+
+def decode_mcp_header_value(value: str) -> str | None:
+    """Decode MCP Base64 sentinel header values; None means malformed encoding."""
+    if not (
+        value.startswith(MCP_BASE64_SENTINEL_PREFIX)
+        and value.endswith(MCP_BASE64_SENTINEL_SUFFIX)
+        and len(value) > len(MCP_BASE64_SENTINEL_PREFIX) + len(MCP_BASE64_SENTINEL_SUFFIX)
+    ):
+        return value
+    encoded = value[len(MCP_BASE64_SENTINEL_PREFIX) : -len(MCP_BASE64_SENTINEL_SUFFIX)]
+    try:
+        return base64.b64decode(encoded, validate=True).decode("utf-8")
+    except (binascii.Error, UnicodeDecodeError, ValueError):
+        return None
+
+
+def inferred_jsonrpc_method(request: dict[str, Any]) -> str:
+    method = first_present(request, JSONRPC_METHOD_KEYS)
+    if method:
+        return method
+    if str(request.get("gate_phase") or "").strip() == "tool_call":
+        return "tools/call"
+    return ""
+
+
+def streamable_http_header_mismatch(request: dict[str, Any]) -> tuple[str, list[str]] | None:
+    """Return a deny outcome when Streamable HTTP headers disagree with the body.
+
+    Unspecified request metadata stays on the prior allow/deny path so stdio
+    and CI admission checks remain valid. When any of MCP-Protocol-Version,
+    Mcp-Method, or Mcp-Name is observed, the header value must match the
+    corresponding JSON-RPC body field. A gateway that routes on the header
+    while the server executes the body otherwise authorizes the wrong call.
+    """
+    header_method = first_present(request, MCP_METHOD_HEADER_KEYS)
+    header_name = first_present(request, MCP_NAME_HEADER_KEYS)
+    header_version = first_present(request, MCP_PROTOCOL_VERSION_HEADER_KEYS)
+    if not (header_method or header_name or header_version):
+        return None
+
+    violations: list[str] = []
+    body_method = inferred_jsonrpc_method(request)
+    body_name = first_present(request, JSONRPC_NAME_KEYS)
+    body_version = first_present(request, JSONRPC_PROTOCOL_VERSION_KEYS)
+
+    if header_method:
+        if not body_method:
+            violations.append(
+                "Mcp-Method is present but the JSON-RPC method is missing; "
+                f"HeaderMismatch ({MCP_HEADER_MISMATCH_CODE})"
+            )
+        elif header_method != body_method:
+            violations.append(
+                f"Mcp-Method {header_method!r} does not match JSON-RPC method "
+                f"{body_method!r}; HeaderMismatch ({MCP_HEADER_MISMATCH_CODE})"
+            )
+
+    if header_name:
+        decoded_name = decode_mcp_header_value(header_name)
+        if decoded_name is None:
+            violations.append(
+                "Mcp-Name Base64 sentinel is malformed; "
+                f"HeaderMismatch ({MCP_HEADER_MISMATCH_CODE})"
+            )
+        elif not body_name:
+            violations.append(
+                "Mcp-Name is present but params.name is missing; "
+                f"HeaderMismatch ({MCP_HEADER_MISMATCH_CODE})"
+            )
+        elif decoded_name != body_name:
+            violations.append(
+                f"Mcp-Name {decoded_name!r} does not match JSON-RPC params.name "
+                f"{body_name!r}; HeaderMismatch ({MCP_HEADER_MISMATCH_CODE})"
+            )
+
+    if header_version:
+        if not body_version:
+            violations.append(
+                "MCP-Protocol-Version is present but "
+                "io.modelcontextprotocol/protocolVersion is missing; "
+                f"HeaderMismatch ({MCP_HEADER_MISMATCH_CODE})"
+            )
+        elif header_version != body_version:
+            violations.append(
+                f"MCP-Protocol-Version {header_version!r} does not match "
+                f"JSON-RPC protocolVersion {body_version!r}; "
+                f"HeaderMismatch ({MCP_HEADER_MISMATCH_CODE})"
+            )
+
+    if not violations:
+        return None
+    return ("deny", violations)
+
+
+def origin_header_values(request: dict[str, Any]) -> list[str]:
+    values: list[str] = []
+    for key in MCP_ORIGIN_HEADER_KEYS:
+        raw = request.get(key)
+        if raw in (None, "", [], {}):
+            continue
+        if isinstance(raw, list):
+            values.extend(str(item).strip() for item in raw if str(item).strip())
+        else:
+            values.append(str(raw).strip())
+    return values
+
+
+def allowed_origin_values(request: dict[str, Any]) -> list[str]:
+    values: list[str] = []
+    for key in MCP_ALLOWED_ORIGIN_KEYS:
+        raw = request.get(key)
+        if raw in (None, "", [], {}):
+            continue
+        items = raw if isinstance(raw, list) else [raw]
+        for item in items:
+            text = str(item).strip()
+            if not text:
+                continue
+            if "," in text:
+                values.extend(part.strip() for part in text.split(",") if part.strip())
+            else:
+                values.append(text)
+    return values
+
+
+def normalize_http_origin(value: str) -> str | None:
+    """Return a comparable http(s) origin, or None when the value is not one.
+
+    RFC 6454 origins are scheme + host + optional port, with no userinfo, path,
+    query, or fragment. `null` and non-http(s) schemes are not valid MCP
+    Streamable HTTP origins for DNS-rebinding defense.
+    """
+    raw = value.strip()
+    if not raw or raw.lower() == "null":
+        return None
+    parsed = urlparse(raw)
+    if parsed.scheme.lower() not in MCP_ORIGIN_HTTP_SCHEMES:
+        return None
+    if parsed.username or parsed.password:
+        return None
+    if parsed.path not in {"", "/"} or parsed.params or parsed.query or parsed.fragment:
+        return None
+    host = parsed.hostname
+    if not host:
+        return None
+    scheme = parsed.scheme.lower()
+    try:
+        port = parsed.port
+    except ValueError:
+        return None
+    host_part = f"[{host.lower()}]" if ":" in host else host.lower()
+    default_port = 443 if scheme == "https" else 80
+    if port in (None, default_port):
+        return f"{scheme}://{host_part}"
+    return f"{scheme}://{host_part}:{port}"
+
+
+def streamable_http_origin_invalid(request: dict[str, Any]) -> tuple[str, list[str]] | None:
+    """Return a deny outcome when Streamable HTTP Origin is present and invalid.
+
+    Unspecified Origin stays on the prior allow/deny path so stdio and CI
+    admission checks remain valid. A browser DNS-rebinding client always sends
+    Origin; that header must be a valid http(s) origin and must match the
+    gateway allowlist. Missing allowlist with a present Origin fails closed.
+    """
+    observed = origin_header_values(request)
+    if not observed:
+        return None
+
+    if len(observed) != 1:
+        return (
+            "deny",
+            ["Origin header must be a single value; HTTP 403 Forbidden"],
+        )
+
+    origin = observed[0]
+    normalized = normalize_http_origin(origin)
+    if normalized is None:
+        return (
+            "deny",
+            [f"Origin {origin!r} is not a valid http(s) origin; HTTP 403 Forbidden"],
+        )
+
+    allowlist = [item for item in (normalize_http_origin(value) for value in allowed_origin_values(request)) if item]
+    if not allowlist:
+        return (
+            "deny",
+            [f"Origin {normalized!r} is present without an allowlist; HTTP 403 Forbidden"],
+        )
+    if normalized not in allowlist:
+        return (
+            "deny",
+            [
+                f"Origin {normalized!r} is not in the Streamable HTTP allowlist; "
+                "HTTP 403 Forbidden"
+            ],
+        )
+    return None
 
 
 def derive_agent_class(agent_id: str, allowed_agents: list[Any], explicit: Any = None) -> str:
@@ -232,6 +518,46 @@ def evaluate_policy_decision(policy_pack: dict[str, Any], runtime_request: dict[
             policy_pack=policy_pack,
             policy=policy,
             violations=[] if kill_signal in known_signals else [f"unregistered kill signal: {kill_signal}"],
+        )
+
+    acs_failure = acs_fail_open_decision_failure(request)
+    if acs_failure is not None:
+        decision, acs_violations = acs_failure
+        return decision_result(
+            decision=decision,
+            reason=(
+                "ACS Guardian decision failure proceeded fail-open"
+                if decision == "kill_session"
+                else "ACS Guardian decision failure fail-closed; tool call is not executed"
+            ),
+            request=request,
+            policy_pack=policy_pack,
+            policy=policy,
+            violations=acs_violations,
+        )
+
+    origin_failure = streamable_http_origin_invalid(request)
+    if origin_failure is not None:
+        decision, origin_violations = origin_failure
+        return decision_result(
+            decision=decision,
+            reason="Streamable HTTP Origin header is present and invalid",
+            request=request,
+            policy_pack=policy_pack,
+            policy=policy,
+            violations=origin_violations,
+        )
+
+    header_failure = streamable_http_header_mismatch(request)
+    if header_failure is not None:
+        decision, header_violations = header_failure
+        return decision_result(
+            decision=decision,
+            reason="Streamable HTTP headers do not match the JSON-RPC body",
+            request=request,
+            policy_pack=policy_pack,
+            policy=policy,
+            violations=header_violations,
         )
 
     violations: list[str] = []
@@ -386,6 +712,15 @@ def request_from_args(args: argparse.Namespace) -> dict[str, Any]:
         "gate_phase": args.gate_phase,
         "human_approval_record": args.human_approval_record,
         "run_id": args.run_id,
+        "guardian_decision_status": args.guardian_decision_status,
+        "on_decision_failure": args.on_decision_failure,
+        "mcp_method": args.mcp_method,
+        "mcp_name": args.mcp_name,
+        "mcp_protocol_version": args.mcp_protocol_version,
+        "jsonrpc_method": args.jsonrpc_method,
+        "jsonrpc_name": args.jsonrpc_name,
+        "jsonrpc_protocol_version": args.jsonrpc_protocol_version,
+        "origin": args.origin,
         "runtime_kill_signal": args.runtime_kill_signal,
         "tool_access_mode": args.tool_access_mode,
         "tool_namespace": args.tool_namespace,
@@ -396,6 +731,8 @@ def request_from_args(args: argparse.Namespace) -> dict[str, Any]:
             payload[key] = value
     if args.changed_path:
         payload["changed_paths"] = args.changed_path
+    if args.allowed_origin:
+        payload["allowed_origins"] = list(args.allowed_origin)
     return payload
 
 
@@ -415,6 +752,57 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--gate-phase")
     parser.add_argument("--human-approval-record")
     parser.add_argument("--runtime-kill-signal")
+    parser.add_argument(
+        "--guardian-decision-status",
+        default="",
+        help="ACS Guardian outcome: timeout, transport_failure, or error_without_decision when no usable decision arrived",
+    )
+    parser.add_argument(
+        "--on-decision-failure",
+        default="",
+        help="ACS on_decision_failure posture: proceed (fail-open default) or deny (fail-closed)",
+    )
+    parser.add_argument(
+        "--mcp-method",
+        default="",
+        help="Observed Streamable HTTP Mcp-Method header (mirrors JSON-RPC method)",
+    )
+    parser.add_argument(
+        "--mcp-name",
+        default="",
+        help="Observed Streamable HTTP Mcp-Name header (mirrors params.name or params.uri)",
+    )
+    parser.add_argument(
+        "--mcp-protocol-version",
+        default="",
+        help="Observed Streamable HTTP MCP-Protocol-Version header",
+    )
+    parser.add_argument(
+        "--jsonrpc-method",
+        default="",
+        help="JSON-RPC body method; defaults to tools/call when gate_phase is tool_call",
+    )
+    parser.add_argument(
+        "--jsonrpc-name",
+        default="",
+        help="JSON-RPC body params.name (or params.uri) compared to Mcp-Name",
+    )
+    parser.add_argument(
+        "--jsonrpc-protocol-version",
+        default="",
+        help="JSON-RPC _meta io.modelcontextprotocol/protocolVersion compared to MCP-Protocol-Version",
+    )
+    parser.add_argument(
+        "--origin",
+        default="",
+        help="Observed Streamable HTTP Origin header (DNS-rebinding check; HTTP 403 when invalid)",
+    )
+    parser.add_argument(
+        "--allowed-origin",
+        action="append",
+        default=[],
+        help="Allowed Streamable HTTP Origin value; repeat for multiple host apps",
+    )
     parser.add_argument("--change-class")
     parser.add_argument("--expect-decision", choices=sorted(VALID_DECISIONS))
     return parser.parse_args(argv)

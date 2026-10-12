@@ -25,12 +25,31 @@ function compareVersions(left, right) {
   return 0;
 }
 
-test('brace-expansion is pinned to the patched 1.x release', () => {
-  assert.equal(
-    lock.packages?.['node_modules/brace-expansion']?.version,
-    '1.1.18',
-    'GHSA-mh99-v99m-4gvg and GHSA-rgw5-rvv9-x895 affect older brace-expansion 1.x releases',
-  );
+test('every brace-expansion dependency line meets the patched advisory floor', () => {
+  const patchedFloors = new Map([
+    [1, '1.1.18'],
+    [2, '2.1.4'],
+    [3, '3.0.6'],
+    [5, '5.0.9'],
+  ]);
+
+  let found = 0;
+  for (const [packagePath, packageMetadata] of Object.entries(lock.packages || {})) {
+    if (packagePath !== 'node_modules/brace-expansion' && !packagePath.endsWith('/node_modules/brace-expansion')) {
+      continue;
+    }
+
+    found += 1;
+    const version = packageMetadata.version;
+    const patchedFloor = patchedFloors.get(Number(version.split('.')[0]));
+    assert.ok(patchedFloor, `unexpected brace-expansion major version at ${packagePath}: ${version}`);
+    assert.ok(
+      compareVersions(version, patchedFloor) >= 0,
+      `GHSA-mh99-v99m-4gvg and GHSA-rgw5-rvv9-x895 affect ${packagePath} at ${version}; require ${patchedFloor} or newer`,
+    );
+  }
+
+  assert.ok(found > 0, 'brace-expansion should remain a locked dependency');
 });
 
 test('every js-yaml dependency line meets the patched advisory floor', () => {
@@ -55,7 +74,7 @@ test('every js-yaml dependency line meets the patched advisory floor', () => {
   }
 });
 
-test('Dependabot sends grouped version updates for every repository ecosystem to main', () => {
+test('Dependabot sends grouped version updates for every repository ecosystem to development', () => {
   const expectedEcosystems = [
     'docker',
     'docker-compose',
@@ -78,17 +97,18 @@ test('Dependabot sends grouped version updates for every repository ecosystem to
       group['update-types']?.join(',') === 'minor,patch');
 
     assert.equal(update.directory, '/', `${ecosystem} should scan the repository root`);
-    assert.equal(update['target-branch'], 'main', `${ecosystem} should target main`);
+    assert.equal(update['target-branch'], 'development', `${ecosystem} should target development`);
     assert.deepEqual(
       update.schedule,
       {
         interval: 'weekly',
-        day: 'monday',
-        time: '06:00',
+        day: { npm: 'monday', pip: 'tuesday', docker: 'wednesday', 'docker-compose': 'wednesday', 'github-actions': 'thursday' }[ecosystem],
+        time: ecosystem === 'docker-compose' ? '07:00' : '06:00',
         timezone: 'America/Phoenix',
       },
-      `${ecosystem} should use the shared weekly schedule`,
+      `${ecosystem} should stagger its weekly version check`,
     );
+    assert.equal(update['open-pull-requests-limit'], 3, 'bound concurrent version-update branches');
     assert.ok(routineGroup, `${ecosystem} should define a routine update group`);
     assert.deepEqual(routineGroup.patterns, ['*']);
 

@@ -76,7 +76,7 @@ test('ticker controller exposes pause, resume, and reduced-motion states', () =>
 
 test('homepage ticker is semantic, bounded, and explicitly motion-safe', () => {
   const source = fs.readFileSync(path.join(ROOT, '_includes', 'layouts', 'home-static.html'), 'utf8');
-  assert.match(source, /<\/header>\s*<aside class="cve-ticker"/);
+  assert.match(source, /<\/header>\s*<script src="\/js\/brand-host\.js\?v=20261006"><\/script>\s*<aside class="cve-ticker"/);
   assert.match(source, /<aside class="cve-ticker" aria-label="Recently reviewed CVEs" data-cve-ticker>/);
   assert.match(source, /<a class="cve-ticker__label" href="\/cve-database\/">/);
   assert.match(source, /<nav class="nav-links" aria-label="Primary navigation">[\s\S]*?<a href="\/cve-database\/">CVE Database<\/a>/);

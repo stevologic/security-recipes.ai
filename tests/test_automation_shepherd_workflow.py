@@ -14,19 +14,23 @@ class AutomationShepherdWorkflowTests(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.workflow = WORKFLOW.read_text(encoding="utf-8")
 
-    def test_chains_and_can_be_dispatched_without_a_schedule(self) -> None:
-        self.assertNotIn("schedule:", self.workflow)
-        self.assertNotIn("- cron:", self.workflow)
+    def test_has_a_hourly_clock_and_can_be_dispatched(self) -> None:
+        self.assertIn('cron: "7 * * * *"', self.workflow)
         self.assertRegex(self.workflow, r"(?m)^\s*workflow_dispatch:\s*$")
         self.assertNotRegex(self.workflow, r"(?m)^\s+(push|pull_request|pull_request_target):")
+        self.assertIn("group: automation-shepherd", self.workflow)
+        self.assertIn("cancel-in-progress: false", self.workflow)
+        self.assertNotIn("gh workflow run automation-shepherd.yml", self.workflow)
 
     def test_chains_off_build_and_validation_completions(self) -> None:
-        # GitHub cron can lag or skip; every completed Build or validation
-        # re-running the shepherd keeps the merge train self-driving.
+        # GITHUB_TOKEN-dispatched completions do not emit workflow_run, so the
+        # schedule and explicit kicks close that hole. workflow_run still
+        # covers human- and Dependabot-triggered completions.
         self.assertIn("workflow_run:", self.workflow)
         self.assertIn("- Build", self.workflow)
         self.assertIn("- CVE catalog validation", self.workflow)
-        self.assertIn("exits\n# without dispatching", self.workflow)
+        self.assertIn("GITHUB_TOKEN itself dispatched do not emit", self.workflow)
+        self.assertIn("workflow_run events", self.workflow)
 
     def test_reconciles_unbuilt_main_revisions_without_retry_storms(self) -> None:
         reconcile = self.workflow.split("- name: Reconcile the main branch Build", 1)[1]
@@ -64,7 +68,7 @@ class AutomationShepherdWorkflowTests(unittest.TestCase):
         self.assertIn('HEAD_SHA="$UPDATED_SHA"', shepherd)
         self.assertLess(
             shepherd.index('HEAD_SHA="$UPDATED_SHA"'),
-            shepherd.index("gh workflow run cve-catalog-validate-request.yml"),
+            shepherd.index("gh workflow run cve-catalog-validate.yml"),
         )
 
     def test_dispatches_validation_only_when_the_build_context_is_absent(self) -> None:
@@ -72,17 +76,18 @@ class AutomationShepherdWorkflowTests(unittest.TestCase):
 
         self.assertIn('select(.name == "build")', shepherd)
         self.assertIn('select(.context == "build")', shepherd)
-        self.assertIn("gh workflow run cve-catalog-validate-request.yml", shepherd)
+        self.assertIn("gh workflow run cve-catalog-validate.yml", shepherd)
         self.assertIn('--field "expected_sha=${HEAD_SHA}"', shepherd)
         self.assertIn('--field "pr_number=${PR_NUMBER}"', shepherd)
         self.assertIn('--field "expected_branch=${HEAD_BRANCH}"', shepherd)
-        self.assertIn("PENDING_REQUESTS", shepherd)
+        self.assertNotIn("PENDING_REQUESTS", shepherd)
+        self.assertNotIn("cve-catalog-validate-request.yml", shepherd)
         self.assertIn("PENDING_VALIDATIONS", shepherd)
-        self.assertIn("--workflow cve-catalog-validate-request.yml", shepherd)
         self.assertIn("--workflow cve-catalog-validate.yml", shepherd)
+        self.assertIn(r'endswith(\"@ ${HEAD_SHA}\")', shepherd)
         self.assertLess(
-            shepherd.index("PENDING_REQUESTS"),
-            shepherd.index("gh workflow run cve-catalog-validate-request.yml"),
+            shepherd.index("PENDING_VALIDATIONS"),
+            shepherd.index("gh workflow run cve-catalog-validate.yml"),
         )
 
     def test_never_merges_directly_or_checks_out_code(self) -> None:
@@ -94,7 +99,66 @@ class AutomationShepherdWorkflowTests(unittest.TestCase):
         # needs an explicit repository context.
         self.assertEqual(
             self.workflow.count("GH_REPO: ${{ github.repository }}"),
-            3,
+            4,
+        )
+
+    def test_drains_dirty_or_stale_content_refresh_prs(self) -> None:
+        drain = self.workflow.split(
+            "- name: Drain stale content-refresh pull requests", 1
+        )[1]
+        drain = drain.split("- name: Shepherd auto-merge pull requests", 1)[0]
+
+        self.assertIn('--label "automation:content-refresh"', drain)
+        self.assertIn("[ \"$MERGE_STATE\" != \"DIRTY\" ]", drain)
+        self.assertIn("[ \"$AGE_DAYS\" -lt 5 ]", drain)
+        self.assertIn("gh pr comment", drain)
+        self.assertIn("re-derive the change from current sources", drain)
+        self.assertIn("gh pr close", drain)
+        self.assertIn('SYNC_BRANCH="automation/cve-catalog-sync"', drain)
+        self.assertNotIn("gh workflow run automation-shepherd.yml", drain)
+
+    def test_polls_unknown_merge_state_before_dirty_or_age_decisions(self) -> None:
+        drain = self.workflow.split(
+            "- name: Drain stale content-refresh pull requests", 1
+        )[1]
+        drain = drain.split("- name: Shepherd auto-merge pull requests", 1)[0]
+        shepherd = self.workflow.split("- name: Shepherd auto-merge pull requests", 1)[1]
+
+        for step in (drain, shepherd):
+            self.assertIn('[ "$MERGE_STATE" = "UNKNOWN" ]', step)
+            self.assertIn("for attempt in $(seq 1 8)", step)
+            self.assertIn("sleep $((attempt * 2))", step)
+            self.assertIn('gh pr view "$PR_NUMBER" --json mergeStateStatus', step)
+            self.assertIn("still UNKNOWN after polling", step)
+            self.assertLess(
+                step.index('gh pr view "$PR_NUMBER" --json mergeStateStatus'),
+                step.index("still UNKNOWN after polling"),
+            )
+
+        self.assertLess(
+            drain.index('gh pr view "$PR_NUMBER" --json mergeStateStatus'),
+            drain.index('[ "$MERGE_STATE" != "DIRTY" ]'),
+        )
+        self.assertLess(
+            drain.index('gh pr view "$PR_NUMBER" --json mergeStateStatus'),
+            drain.index('[ "$AGE_DAYS" -lt 5 ]'),
+        )
+        self.assertLess(
+            drain.index("still UNKNOWN after polling"),
+            drain.index("gh pr close"),
+        )
+
+        self.assertLess(
+            shepherd.index('gh pr view "$PR_NUMBER" --json mergeStateStatus'),
+            shepherd.index('[ "$MERGE_STATE" = "DIRTY" ]'),
+        )
+        self.assertLess(
+            shepherd.index("still UNKNOWN after polling"),
+            shepherd.index('[ "$MERGE_STATE" = "DIRTY" ]'),
+        )
+        self.assertLess(
+            shepherd.index("still UNKNOWN after polling"),
+            shepherd.index('[ "$MERGE_STATE" = "BEHIND" ]'),
         )
 
     def test_actions_are_pinned_to_full_commit_shas(self) -> None:

@@ -3,7 +3,7 @@ title: Agentic App Intake Gate
 linkTitle: Agentic App Intake
 weight: 5
 date: 2026-05-04
-lastmod: 2026-08-21
+lastmod: 2026-09-30
 toc: true
 description: >
   A generated launch-review gate for agentic applications, agent hosts,
@@ -20,7 +20,13 @@ for new agentic apps. It turns "can this AI launch?" into generated
 evidence instead of a meeting full of vague claims about prompts.
 Rechecked against MCP
 [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28)
-on August 21, 2026.
+on September 30, 2026. The
+[Icons](https://modelcontextprotocol.io/specification/2026-07-28/basic)
+section says consumers **MUST** treat icon metadata and bytes as
+untrusted, **MUST** use HTTPS or `data:` URIs, **MUST** reject
+`javascript:`, `file:`, `ftp:`, `ws:`, and local app schemes, **MUST**
+fetch without cookies or `Authorization` headers, and **MUST** treat
+SVG as potentially executable.
 {{< /callout >}}
 
 ## Product bet
@@ -84,6 +90,28 @@ python3 scripts/evaluate_agentic_app_intake_decision.py \
 
 Block high-impact signer or production authority:
 
+```bash
+python3 scripts/evaluate_agentic_app_intake_decision.py \
+  --app-id financial-operations-agent \
+  --expect-decision kill_session_on_launch_signal
+```
+
+Reject an unsafe MCP icon URI before a guarded pilot can render it:
+
+```bash
+python3 scripts/evaluate_agentic_app_intake_decision.py \
+  --app-id repository-remediation-agent-host \
+  --deployment-environment enterprise_pilot \
+  --egress-decision allow_internal_boundary \
+  --authorization-decision allow_authorized_mcp_request \
+  --telemetry-decision telemetry_ready \
+  --human-approval-id approval-ci \
+  --approver product-security \
+  --approver service-owner \
+  --two-key-review \
+  --icon-src 'javascript:alert(1)' \
+  --expect-decision deny_until_controls_exist
+```
 
 ## Decision model
 
@@ -124,6 +152,9 @@ The gate is aligned with current 2026 agentic security direction:
 - MCP authorization now emphasizes protected-resource metadata,
   resource indicators, audience-bound tokens, PKCE, and token-passthrough
   prevention.
+- MCP icon metadata on implementations, tools, prompts, and resources is
+  untrusted. Agent hosts must reject unsafe URI schemes, credentialed
+  icon fetches, and unsandboxed SVG before launch.
 - OpenAI's Agents SDK guardrail model separates input, output, and tool
   guardrails, with tool guardrails needed around function-tool calls.
 - Anthropic's Claude Code security guidance emphasizes read-only

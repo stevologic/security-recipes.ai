@@ -14,7 +14,7 @@ class ContentRefreshWorkflowTests(unittest.TestCase):
         cls.prompt = PROMPT.read_text(encoding="utf-8")
 
     def test_runs_daily_and_can_be_dispatched(self) -> None:
-        self.assertIn('cron: "47 11 * * *"', self.workflow)
+        self.assertIn('cron: "17 12 * * *"', self.workflow)
         self.assertIn("workflow_dispatch:", self.workflow)
         self.assertIn("group: content-refresh", self.workflow)
         self.assertIn("cancel-in-progress: false", self.workflow)
@@ -24,6 +24,8 @@ class ContentRefreshWorkflowTests(unittest.TestCase):
             "content/security-remediation/",
             "data/remediation_suite/",
             "data/assurance/",
+            "data/evidence/agentic-source-freshness-watch.json",
+            "data/intelligence/",
             "non-CVE recipes under content/recipes/",
         ):
             self.assertIn(required_scope, self.prompt)
@@ -39,6 +41,9 @@ class ContentRefreshWorkflowTests(unittest.TestCase):
             "primary/official sources",
             "at most one high-confidence, coherent opportunity",
             "date-only freshness edits",
+            "never bump last_reviewed",
+            "review_due_at has already passed",
+            "source_freshness watchdog",
             "Do not claim human review",
             "python scripts/run_checks.py",
             "creating a branch, issue, or PR",
@@ -52,6 +57,8 @@ class ContentRefreshWorkflowTests(unittest.TestCase):
             "gh pr merge --auto --squash <pr-number>",
             "Never push directly to main or merge directly",
             "never force-push",
+            "Closed unmerged content-refresh PRs are stale research",
+            "re-derive that change from current sources",
         ):
             self.assertIn(delivery_rule, self.prompt)
 

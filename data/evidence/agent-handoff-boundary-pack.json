@@ -15,11 +15,11 @@
       },
       {
         "decision": "hold_for_redaction_or_approval",
-        "meaning": "The handoff is potentially valid but requires redaction, DPA or residency checks, signed agent identity, or human approval."
+        "meaning": "The handoff is potentially valid but requires redaction, DPA or residency checks, signed agent identity, A2A-Version 1.0, an out-of-band AUTH_REQUIRED credential channel, or human approval."
       },
       {
         "decision": "deny_untrusted_agent_handoff",
-        "meaning": "The target agent, protocol, authentication, or trust tier is not approved for the requested payload or capability."
+        "meaning": "The target agent, protocol, authentication, trust tier, or requested A2A-Version is not approved for the requested payload or capability."
       },
       {
         "decision": "deny_unregistered_handoff",
@@ -27,7 +27,7 @@
       },
       {
         "decision": "kill_session_on_secret_handoff",
-        "meaning": "The handoff attempted to move credential material, raw tokens, private keys, signing material, internal memory, or hidden instructions."
+        "meaning": "The handoff attempted to move credential material, raw tokens, private keys, signing material, internal memory, hidden instructions, or AUTH_REQUIRED credentials inside the A2A message."
       }
     ],
     "default_state": "deny_unregistered_handoff",
@@ -36,7 +36,9 @@
       "A remote agent is opaque; do not assume its memory, tools, model, or downstream connectors are visible to SecurityRecipes.",
       "Handoffs may carry cited conclusions, source IDs, source hashes, workflow IDs, approval state, and correlation IDs by default.",
       "Handoffs must not carry internal memory, raw tool traces, hidden prompts, unrestricted customer logs, credentials, or live signing material.",
-      "High-impact capabilities require explicit human approval and a scoped identity or delegated authority record before handoff."
+      "High-impact capabilities require explicit human approval and a scoped identity or delegated authority record before handoff.",
+      "A2A task delegations MUST send A2A-Version Major.Minor 1.0. An empty header is 0.3 and is held; unsupported versions are denied.",
+      "A2A TASK_STATE_AUTH_REQUIRED handoffs MUST receive credentials out of band unless an in-band mechanism was negotiated; credentials in the A2A message kill the session."
     ],
     "high_impact_capabilities": [
       "write_branch",
@@ -89,7 +91,10 @@
       "resource_indicator",
       "token_audience",
       "human_approval_record",
-      "correlation_id"
+      "correlation_id",
+      "a2a_version",
+      "task_state",
+      "credential_channel"
     ],
     "sensitive_data_classes": [
       "tenant_runtime_context",
@@ -106,13 +111,14 @@
       "Which payload fields are allowed by profile?",
       "Which data classes trigger redaction, approval, denial, or session termination?",
       "Which high-impact delegated capabilities require approval?",
-      "Which evidence proves workflow, source, identity, and egress state before handoff?"
+      "Which evidence proves workflow, source, identity, and egress state before handoff?",
+      "Does an A2A handoff carry A2A-Version 1.0 and keep AUTH_REQUIRED credentials out of band?"
     ],
     "recommended_first_use": "Attach this pack to A2A pilot intake, MCP gateway review, provider-native subagent rollout, and multi-agent workflow architecture reviews.",
     "sales_motion": "Lead with open handoff policies, then sell hosted agent-card trust, handoff replay, tenant evidence ingestion, signed approval receipts, and protocol gateway enforcement."
   },
   "failures": [],
-  "generated_at": "2026-08-21",
+  "generated_at": "2026-10-05",
   "handoff_boundary_summary": {
     "default_state": "deny_unregistered_handoff",
     "failure_count": 0,
@@ -309,8 +315,8 @@
         "approved_vendor",
         "tenant_controlled"
       ],
-      "description": "An agent delegates a task to an opaque remote agent through HTTP and JSON-RPC style task exchange.",
-      "protocol_hash": "58754c8b58ea96f896179f88be4d02f023116eef0298ed544b3cc046e8cd1e73",
+      "description": "An agent delegates a task to an opaque remote agent through HTTP and JSON-RPC style task exchange with A2A-Version 1.0 and out-of-band AUTH_REQUIRED credentials.",
+      "protocol_hash": "a1196fc6f073a894ac2d6fc5cda2fb8d11254b2da2beff8b05f7d8a12aefbd7c",
       "protocol_id": "a2a_task_delegation",
       "required_controls": [
         "https_required",
@@ -318,7 +324,9 @@
         "agent_card_reviewed",
         "skill_scope_authorized",
         "trace_context_propagated",
-        "payload_minimized"
+        "payload_minimized",
+        "a2a_version_header",
+        "in_task_auth_out_of_band"
       ],
       "title": "A2A task-delegation boundary"
     },
@@ -387,29 +395,33 @@
     {
       "risk": "A2A, MCP, and provider-native orchestration can compose into longer chains than one gateway can inspect.",
       "treatment": "Propagate correlation IDs, require per-hop boundary decisions, and deny handoffs that omit prior hop evidence."
+    },
+    {
+      "risk": "An A2A client that omits A2A-Version is interpreted as 0.3, and AUTH_REQUIRED credentials in the message can leak across agent chains.",
+      "treatment": "Require A2A-Version 1.0, hold empty or 0.3, deny unsupported versions, and kill in-band credentials unless an extension negotiated in-band exchange."
     }
   ],
   "schema_version": "1.0",
   "source_artifacts": {
     "agent_handoff_boundary_model": {
       "path": "data/assurance/agent-handoff-boundary-model.json",
-      "sha256": "2177738583c56d4f617175373c4af8fdfaeff14d7eb3d1b1e506a3e0b5772071"
+      "sha256": "9b2aceba54e0fb6fe398b0bfd26aecbc3bcf77c833395585cdba7ed8783e03ad"
     },
     "agent_identity_ledger": {
       "path": "data/evidence/agent-identity-delegation-ledger.json",
-      "sha256": "2cd197d660a40486bd1fd5f0d26bc6a76d0fb6a91a023805494135235c826d4b"
+      "sha256": "0c3a709efd035f987ad8e51cf2f38322c09e635c49284701b8d27a02524b8bef"
     },
     "agentic_threat_radar": {
       "path": "data/evidence/agentic-threat-radar.json",
-      "sha256": "f9467ffa7f294ae35945e768b32fc95c34c912e176c677071e90ae9d8def8074"
+      "sha256": "a248f4749d89f0a36e17bf5daa31a0989e4a348484d309d9b0cace0de285c230"
     },
     "context_egress_boundary_pack": {
       "path": "data/evidence/context-egress-boundary-pack.json",
-      "sha256": "4c0576d2c368059dfe9ac852f8abd32395a13ea49b8cf4b2abcba7675c98c33c"
+      "sha256": "2e7f77f60d7afba5de8229acb046228a0f64160bf4616bb4ea909ffb6f070f39"
     },
     "secure_context_trust_pack": {
       "path": "data/evidence/secure-context-trust-pack.json",
-      "sha256": "747135ad4e7ffa75199d9f532392151d1fce0b774cfacab682e5eecf1c29bcfe"
+      "sha256": "81068827dac63cb92030dc6373af5f22f9fad7312452660201da806c31d4ccdf"
     },
     "workflow_manifest": {
       "path": "data/control-plane/workflow-manifests.json",
@@ -446,6 +458,12 @@
       "id": "mcp-key-changes-2025-11-25",
       "name": "Model Context Protocol 2025-11-25 Key Changes",
       "url": "https://modelcontextprotocol.io/specification/2025-11-25/changelog"
+    },
+    {
+      "coverage": "Current released A2A 1.0.0. Clients MUST send A2A-Version Major.Minor on each request; empty is 0.3; unsupported versions return VersionNotSupportedError. TASK_STATE_AUTH_REQUIRED credentials MUST arrive out of band unless an in-band mechanism was negotiated.",
+      "id": "a2a-protocol-1-0-0",
+      "name": "A2A Protocol Specification 1.0.0",
+      "url": "https://a2a-protocol.org/v1.0.0/specification/"
     },
     {
       "coverage": "A2A TLS, HTTP-layer authentication, skill-based authorization, data minimization, tracing, auditing, API management, and opaque remote-agent execution.",
@@ -522,7 +540,7 @@
         "cited-evidence",
         "approval-gated"
       ],
-      "context_package_hash": "3e3b1c1053e46e5896f110622cad5a18bd842ab6356ffe63797fd9f187b3f476",
+      "context_package_hash": "b45cb4118a3144c6b42d0e63613fcd9cd2d01decfd77035d4538c6a0a46d19d7",
       "default_decision": "deny_unregistered_handoff",
       "egress_policy_hash": "dbe427420d1f3ed8cff135d727d159b5df57809913070fe447ae8f7540a4ffdd",
       "identity_ids": [
@@ -559,7 +577,7 @@
         "metadata-only",
         "cited-evidence"
       ],
-      "context_package_hash": "1b7399ca8d3d42b647e5f76cff73424ed613f44bef96bda9f85a775fc37797cc",
+      "context_package_hash": "26d88b54114dab5a296bb1931c9fe295a30008368751bea5505817950ea1b8c7",
       "default_decision": "deny_unregistered_handoff",
       "egress_policy_hash": "71b09e53adae52cc909d622313e883af2e43a85836d7c9b8e717b8fb39359249",
       "identity_ids": [
@@ -597,7 +615,7 @@
         "metadata-only",
         "cited-evidence"
       ],
-      "context_package_hash": "f43303b4df63f41c42f96d7abec36a93c9a51bd2e3eaa1a9afe158a12754489f",
+      "context_package_hash": "1261be2fb0bce26d47dec7655d2050120b53c14408447d7f49d5da1c0650dad9",
       "default_decision": "deny_unregistered_handoff",
       "egress_policy_hash": "d8adf24aa36b0c0bb4092a6262690c5217f74c6b5404a315621ef4b9e6bc7e00",
       "identity_ids": [
@@ -633,7 +651,7 @@
         "metadata-only",
         "cited-evidence"
       ],
-      "context_package_hash": "9763e91fd2bf748f523e0695e8f25d64e624e6d3167f5ccb85e66556fb0fb6d7",
+      "context_package_hash": "5dc44c323bde7959dd44e9d2bfde6e6b4f5f221d1d8884c2dba4321a79993027",
       "default_decision": "deny_unregistered_handoff",
       "egress_policy_hash": "9017117d2b7a20d5c504bc081fafa6f97b79cf86a743f9e7642232f169b3ce62",
       "identity_ids": [
@@ -668,7 +686,7 @@
         "metadata-only",
         "cited-evidence"
       ],
-      "context_package_hash": "677329297270acc216ddd357f311d1bb1a871c758ef850c1e8f3a9602c1863ff",
+      "context_package_hash": "32c0b506971b9e111bd07b41dcc8776469093a661658c3ae575ec59e191892a9",
       "default_decision": "deny_unregistered_handoff",
       "egress_policy_hash": "8b243ba912cdd2a36f2cb9a6e5366a27abbdb83fb6cc897a2f17d142c67fbe30",
       "identity_ids": [
@@ -704,7 +722,7 @@
         "metadata-only",
         "cited-evidence"
       ],
-      "context_package_hash": "b7413072b4ea7885e1f6222d3c463e5e82a006bcfe22160e5293fb736c7fdd4e",
+      "context_package_hash": "a64f1d087f102c5468f6ee84d8f0e679b03fcbc209e474173774297189052ac8",
       "default_decision": "deny_unregistered_handoff",
       "egress_policy_hash": "9a65a7b7b045108b27bcf6d383ef58bbd69e4cad6c61a1b08be08ccc535e93cc",
       "identity_ids": [
@@ -742,7 +760,7 @@
         "metadata-only",
         "cited-evidence"
       ],
-      "context_package_hash": "691a1ea177df92255cbf6bfc1e055301f297b833a1da19edbda7218a8c4cc1c4",
+      "context_package_hash": "d253e108f4504b1917dd0df859bfe965a4834d22710e7df85d2008dc6cd0368c",
       "default_decision": "deny_unregistered_handoff",
       "egress_policy_hash": "50d90e47c9cf159117d6b78687263ef16c341d785a4915141ede2f9034b71ac0",
       "identity_ids": [
@@ -781,7 +799,7 @@
         "metadata-only",
         "cited-evidence"
       ],
-      "context_package_hash": "bfb6c53e9880c4a8baeadf444e75242581cd901417b6f831943ebd045f9086a1",
+      "context_package_hash": "52918b8f861fc63ddb2f136b0297b58b2086ef0d390adc796e18b68973e7bdd5",
       "default_decision": "deny_unregistered_handoff",
       "egress_policy_hash": "c0abb42357dfae407d9f5ba4d13b4b62ae5bd079aab02c82761b42733813c0ff",
       "identity_ids": [

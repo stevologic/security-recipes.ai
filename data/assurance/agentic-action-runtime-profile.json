@@ -1,12 +1,12 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-08-21",
+  "last_reviewed": "2026-09-09",
   "intent": "Define the SecurityRecipes agentic action runtime pack: a machine-readable action-control model that evaluates context, policy, intent, behavior, identity, MCP authorization, egress, handoff, memory, skill, receipt, and approval evidence before an autonomous agent performs a side effect.",
   "positioning": {
     "buyer": "AI Platform, Security Engineering, Product Security, SOC, GRC, model risk, procurement security, and agent-host platform teams",
     "category": "Autonomous action runtime management for agentic AI and MCP-backed workflows",
     "enterprise_promise": "SecurityRecipes can turn secure context and generated MCP evidence into pre-action runtime decisions that tell an agent host whether to allow, hold, deny, or kill an autonomous action before it reaches production systems.",
-    "why_now": "Enterprise agents are moving from retrieval and chat into tool use, remote delegation, persistent memory, code changes, connector scope changes, and high-impact operations. Buyers need a clear runtime action envelope that is easier to adopt than bespoke policy code and strong enough for platform diligence."
+    "why_now": "Enterprise agents are moving from retrieval and chat into tool use, remote delegation, persistent memory, code changes, connector scope changes, and high-impact operations. MCP 2026-07-28 removed protocol sessions; servers mint explicit state handles as ordinary tool arguments. Treating those handles as authentication lets an attacker act on another user's state, so buyers need a runtime action envelope that fails closed on unbound, guessable, or principal-mismatched handles."
   },
   "standards_alignment": [
     {
@@ -22,10 +22,16 @@
       "coverage": "Maps runtime action controls to tool misuse, goal hijacking, identity abuse, insecure inter-agent communication, memory poisoning, unexpected code execution, and rogue-agent containment."
     },
     {
+      "id": "mcp-security-best-practices-2026-07-28",
+      "name": "Model Context Protocol Security Best Practices (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices",
+      "coverage": "Current public MCP 2026-07-28 revision. Stateless servers mint explicit state handles as ordinary tool arguments; servers MUST NOT treat possession of a handle as authentication and SHOULD bind handles server-side to the verified token principal using non-guessable identifiers."
+    },
+    {
       "id": "mcp-security-best-practices-2025",
       "name": "Model Context Protocol Security Best Practices",
       "url": "https://modelcontextprotocol.io/docs/tutorials/security/security_best_practices",
-      "coverage": "Applies confused-deputy prevention, command review, sandboxing, least privilege, scope minimization, and local-server privilege boundaries to action-level decisions."
+      "coverage": "Applies confused-deputy prevention, command review, sandboxing, least privilege, scope minimization, and local-server privilege boundaries to action-level decisions. Prefer the 2026-07-28 revision for state-handle hijacking controls."
     },
     {
       "id": "mcp-authorization-2026-07-28",
@@ -113,7 +119,7 @@
       },
       {
         "decision": "kill_session_on_runtime_action_signal",
-        "meaning": "A kill signal indicates secret exposure, token passthrough, revoked identity use, cross-tenant movement, repeated denied calls, or irreversible side effects."
+        "meaning": "A kill signal indicates secret exposure, token passthrough, revoked identity use, unbound or guessable MCP state-handle use, principal-mismatched handles, cross-tenant movement, repeated denied calls, or irreversible side effects."
       }
     ]
   },
@@ -211,7 +217,8 @@
       "kill_signals": [
         "identity used after revocation",
         "wildcard or signer scope requested",
-        "token audience mismatch"
+        "token audience mismatch",
+        "unbound, guessable, or principal-mismatched MCP state handle"
       ],
       "linked_evidence": [
         "agent_identity_ledger",
@@ -480,13 +487,16 @@
       "raw_token_passthrough",
       "secret_in_action_payload",
       "identity_used_after_revocation",
+      "unbound_state_handle",
+      "guessable_state_handle",
+      "state_handle_principal_mismatch",
       "cross_tenant_context",
       "policy_decision_kill",
       "repeated_denied_action",
       "live_funds_movement",
       "production_write_without_approval"
     ],
-    "evidence_gate": "Action evidence must bind the exact workflow, run, identity, context package, policy pack, authorization decision, egress decision, handoff decision, telemetry event, and receipt before the action is trusted."
+    "evidence_gate": "Action evidence must bind the exact workflow, run, identity, context package, policy pack, authorization decision, egress decision, handoff decision, telemetry event, and receipt before the action is trusted. Possession of an MCP state handle is not authentication."
   },
   "commercialization_path": {
     "open_layer": "Public action classes, deterministic generator, runtime evaluator, generated JSON evidence pack, and docs that make action gating easy for adopters.",

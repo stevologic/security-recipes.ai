@@ -6,7 +6,10 @@ const path = require('node:path');
 const test = require('node:test');
 
 const {
+  brandHostFor,
   healthChecks,
+  hostList,
+  isBrandHost,
   mcpEndpointOverride,
   shellQuote,
   standaloneToml,
@@ -41,6 +44,16 @@ test('the MCP page leads with a copy-ready hosted connection', () => {
   );
   assert.match(quickConnectBlock, /https:\/\/security-recipes\.ai\/mcp/u);
   assert.match(quickConnectBlock, /"transport": "streamable-http"/u);
+});
+
+test('known brand hosts include the .si mirror and keep .ai in the allowlist sample', () => {
+  assert.equal(brandHostFor('www.security-recipes.si'), 'security-recipes.si');
+  assert.equal(isBrandHost('security-recipes.si'), true);
+  assert.equal(isBrandHost('localhost'), false);
+  assert.deepEqual(
+    hostList('security-recipes.si', false),
+    ['security-recipes', 'security-recipes.si', 'security-recipes.ai'],
+  );
 });
 
 test('the hosted quick connect keeps its canonical endpoint on preview hosts', () => {

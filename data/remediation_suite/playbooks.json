@@ -1288,7 +1288,7 @@
         {
           "label": "Decision",
           "title": "Match a handoff profile",
-          "detail": "Require target trust, protocol conformance, purpose, approvals, egress policy, and the minimum necessary fields."
+          "detail": "Require target trust, A2A-Version 1.0, out-of-band AUTH_REQUIRED credentials, protocol conformance, purpose, approvals, egress policy, and the minimum necessary fields."
         },
         {
           "label": "Action",
@@ -1302,9 +1302,9 @@
         }
       ],
       "gate": {
-        "question": "Is the target trusted and is every payload field permitted for this protocol, purpose, and approval state?",
+        "question": "Is the target trusted, is A2A-Version 1.0 present, and is every payload field permitted for this protocol, purpose, and approval state?",
         "pass": "Send only the approved minimized payload and authority.",
-        "stop": "Hold, deny, or kill when trust, purpose, approval, or prohibited-data checks fail."
+        "stop": "Hold, deny, or kill when trust, version, AUTH_REQUIRED channel, purpose, approval, or prohibited-data checks fail."
       },
       "evidence": [
         "source/target trust records",
@@ -1353,7 +1353,7 @@
         {
           "label": "Decision",
           "title": "Evaluate runtime rules",
-          "detail": "Check scope, data classes, changed paths, delegation, memory, skills, production impact, and irreversible effects."
+          "detail": "Check scope, data classes, changed paths, delegation, memory, skills, production impact, irreversible effects, and MCP state-handle binding."
         },
         {
           "label": "Action",
@@ -1403,7 +1403,7 @@
       "title": "Agentic App Intake Gate",
       "page": "/security-remediation/agentic-app-intake-gate/",
       "category": "agent-runtime",
-      "summary": "Assess a new agentic application across autonomy, data, tools, memory, handoffs, controls, and production evidence before launch.",
+      "summary": "Assess a new agentic application across autonomy, data, tools, MCP icon URIs, memory, handoffs, controls, and production evidence before launch.",
       "phases": [
         {
           "label": "Signal",
@@ -1418,7 +1418,7 @@
         {
           "label": "Decision",
           "title": "Verify launch controls",
-          "detail": "Check guardrail evals, authorization, egress, telemetry, receipts, incident response, approvals, and two-key review."
+          "detail": "Check guardrail evals, authorization, egress, telemetry, receipts, incident response, approvals, two-key review, and MCP icon URI scheme, credential, and SVG rules."
         },
         {
           "label": "Action",
@@ -1434,7 +1434,7 @@
       "gate": {
         "question": "Does the application have controls and evidence proportionate to its autonomy, data, and action impact?",
         "pass": "Launch only in the approved environment and operating profile.",
-        "stop": "Hold or deny until controls exist; kill requests containing signer, token-passthrough, or approval-bypass signals."
+        "stop": "Hold or deny until controls exist; deny unsafe MCP icon URIs; kill requests containing signer, token-passthrough, or approval-bypass signals."
       },
       "evidence": [
         "application inventory and threat surface",
@@ -1532,7 +1532,7 @@
       "title": "Agentic Entitlement Review Pack",
       "page": "/security-remediation/agentic-entitlement-review/",
       "category": "agent-runtime",
-      "summary": "Review leased non-human permissions against actual workflow use and renew, restrict, or revoke them before reuse.",
+      "summary": "Review leased non-human permissions against actual workflow use, reject omnibus MCP token scopes, and renew, restrict, or revoke them before reuse.",
       "phases": [
         {
           "label": "Signal",
@@ -1547,7 +1547,7 @@
         {
           "label": "Decision",
           "title": "Assess least privilege",
-          "detail": "Check owner, purpose, separation of duties, expiry, resource bounds, high-impact authority, and control coverage."
+          "detail": "Check owner, purpose, separation of duties, expiry, resource bounds, omnibus token scopes (files:*, db:*, admin:*), full-catalog initial grants, high-impact authority, and control coverage."
         },
         {
           "label": "Action",
@@ -1589,6 +1589,7 @@
         "agent entitlement review",
         "non-human identity",
         "least privilege lease",
+        "MCP scope minimization",
         "permission revocation"
       ]
     },
@@ -1735,28 +1736,28 @@
         {
           "label": "Scope",
           "title": "Issue scoped delegation",
-          "detail": "Bind workflow, resources, actions, constraints, approver, parent identity, start, expiry, and revocation channel."
+          "detail": "Bind workflow, resources, actions, constraints, approver, parent identity, start, expiry, audience, and revocation channel."
         },
         {
           "label": "Decision",
           "title": "Validate at action time",
-          "detail": "Check active status, chain integrity, lease, scope, entitlement, separation of duties, and requested target."
+          "detail": "Check active status, chain integrity, lease, audience, sender constraint, expiry, scope, entitlement, separation of duties, and requested target."
         },
         {
           "label": "Action",
           "title": "Allow or revoke",
-          "detail": "Permit the bounded use, hold for owner review, deny excess authority, or revoke compromised identity/credentials."
+          "detail": "Permit the bounded use, hold for owner review, deny excess authority, reject expired tokens, or revoke on compromise or token exposure."
         },
         {
           "label": "Proof",
           "title": "Append ledger evidence",
-          "detail": "Record use, renewal, scope change, denial, revocation, linked receipt, and next review without rewriting history."
+          "detail": "Record use, renewal, scope change, denial, revocation, linked receipt, and next review without rewriting history or logging the token."
         }
       ],
       "gate": {
-        "question": "Is the identity active, owned, within an intact unexpired delegation chain, and authorized for this exact action?",
+        "question": "Is the identity active, owned, within an intact unexpired delegation chain, using an audience-restricted token, and authorized for this exact action?",
         "pass": "Permit the action and append its usage receipt.",
-        "stop": "Hold, deny, or revoke when ownership, chain, lease, scope, or credential trust fails."
+        "stop": "Hold, deny, or revoke when ownership, chain, lease, audience, expiry, scope, credential trust, or token exposure fails."
       },
       "evidence": [
         "identity and ownership record",
@@ -1855,7 +1856,7 @@
       "title": "Agent Skill Supply Chain",
       "page": "/security-remediation/agent-skill-supply-chain/",
       "category": "agent-runtime",
-      "summary": "Verify a skill's provenance, code, dependencies, permissions, package hash, referenced instruction sources, and runtime controls before installation or execution.",
+      "summary": "Verify a skill's provenance, code, dependencies, permissions, package hash, referenced instruction sources, and runtime controls before installation or execution, then enforce the reviewed permission manifest at run time.",
       "phases": [
         {
           "label": "Signal",
@@ -1870,12 +1871,12 @@
         {
           "label": "Decision",
           "title": "Score capability risk",
-          "detail": "Classify file, network, shell, browser, secret, identity, deployment, irreversible-action, and unpinned-instruction-fetch permissions."
+          "detail": "Classify file, network, shell, browser, secret, identity, deployment, irreversible-action, and unpinned-instruction-fetch permissions, and compare the runtime request to the reviewed manifest."
         },
         {
           "label": "Action",
           "title": "Choose a trust mode",
-          "detail": "Allow pinned read-only use, sandbox a pilot, require approval, quarantine, deny unpinned instruction fetches, or disable a changed skill."
+          "detail": "Allow pinned read-only use, sandbox a pilot, require approval, quarantine, deny unpinned instruction fetches, deny extra runtime privileges, or disable a changed skill."
         },
         {
           "label": "Proof",
@@ -1884,15 +1885,16 @@
         }
       ],
       "gate": {
-        "question": "Is the skill authentic, pinned, scanned, minimally privileged, owned, and free of unpinned documents treated as instructions?",
+        "question": "Is the skill authentic, pinned, scanned, minimally privileged, owned, free of unpinned documents treated as instructions, and limited at runtime to the reviewed permission manifest?",
         "pass": "Register it for the approved sandbox, scope, and trust tier.",
-        "stop": "Quarantine or deny unverified, changed, overprivileged, malicious, unpinned-instruction, or high-consequence skills without approval."
+        "stop": "Quarantine or deny unverified, changed, overprivileged, extra-privilege, malicious, unpinned-instruction, or high-consequence skills without approval."
       },
       "evidence": [
         "skill manifest/package hash",
         "provenance and scan results",
         "capability-risk decision",
-        "external instruction source inventory and content hashes"
+        "external instruction source inventory and content hashes",
+        "runtime permission subset decision"
       ],
       "outputs": [
         "trusted skill record",
@@ -1915,6 +1917,7 @@
         "skill supply chain",
         "plugin provenance",
         "skill permissions",
+        "over-privileged skills",
         "untrusted external instructions"
       ]
     },
@@ -2644,7 +2647,7 @@
         {
           "label": "Scope",
           "title": "Build conformance cases",
-          "detail": "Choose handshake, discovery, schema, authorization, session, cancellation, error, retry, handoff, and security-boundary tests."
+          "detail": "Choose server/discover, subscriptions/listen, schema, authorization, cancellation, error, retry, handoff, and security-boundary tests. Treat initialize-without-discover, self-reported serverInfo used for security, complete discover results that omit ttlMs or cacheScope, resources/subscribe, and HTTP GET notifications as 2026-07-28 drift."
         },
         {
           "label": "Decision",
@@ -3162,7 +3165,7 @@
         {
           "label": "Signal",
           "title": "Identify required signals",
-          "detail": "Select identity, context, policy, approval, tool, action, handoff, memory, egress, session, review, and outcome events."
+          "detail": "Select identity, context, policy, approval, tool, action, handoff, memory, egress, request identity, review, and outcome events. For MCP 2026-07-28, request identity is jsonrpc.request.id, mcp.method.name, and mcp.protocol.version rather than a protocol session id."
         },
         {
           "label": "Scope",
@@ -3172,7 +3175,7 @@
         {
           "label": "Decision",
           "title": "Apply data minimization",
-          "detail": "Remove raw prompts, secrets, source code, customer content, and unnecessary arguments; define redaction and retention."
+          "detail": "Remove raw prompts, secrets, source code, customer content, and unnecessary arguments; define redaction and retention. Do not mint mcp.session.id for MCP 2026-07-28 spans. Treat a present session id as host-session correlation, not authentication, and hold a present traceparent that is not valid W3C Trace Context."
         },
         {
           "label": "Action",
@@ -3237,7 +3240,7 @@
         {
           "label": "Decision",
           "title": "Corroborate relevance",
-          "detail": "Verify source quality, recency, independent support, applicability to inventoried components, and existing coverage."
+          "detail": "Verify source quality, recency, independent support, applicability to inventoried components, and existing coverage. Treat MCP 2026-07-28 security best practices and NIST's August 27, 2026 agent identity guidance as current corroboration for token passthrough, state-handle binding, confused-deputy consent, and unique agent identities."
         },
         {
           "label": "Action",
@@ -3302,7 +3305,7 @@
         {
           "label": "Decision",
           "title": "Assess trust breaks",
-          "detail": "Check missing, stale, contradictory, changed, overbroad, prohibited, anomalous, replayed, or compromised evidence."
+          "detail": "Check missing, stale, contradictory, changed, overbroad, prohibited, anomalous, replayed, or compromised evidence, including shared human credentials, long-lived static tokens, and local user-account impersonation."
         },
         {
           "label": "Action",
@@ -3417,27 +3420,27 @@
       "title": "MCP Authorization Conformance",
       "page": "/security-remediation/mcp-authorization-conformance/",
       "category": "mcp-governance",
-      "summary": "Test an MCP client's OAuth, token, scope, resource, audience, RFC 9207 issuer, metadata, and runtime authorization behavior.",
+      "summary": "Test an MCP client's OAuth, token, scope, resource, audience, RFC 9207 issuer, metadata SSRF, authorization URL schemes, and runtime authorization behavior.",
       "phases": [
         {
           "label": "Signal",
           "title": "Capture the authorization profile",
-          "detail": "Record client, server, transport, issuer, RFC 9207 iss support, metadata, redirect mode, grant, resource, scopes, audience, and environment."
+          "detail": "Record client, server, transport, issuer, RFC 9207 iss support, metadata URLs, redirect mode, grant, resource, scopes, audience, and environment."
         },
         {
           "label": "Scope",
           "title": "Validate protocol evidence",
-          "detail": "Check HTTPS metadata, PKCE/state, client registration, issuer-bound credentials, RFC 9207 iss comparison, token binding/storage, refresh, expiration, audience, and resource indicators."
+          "detail": "Check HTTPS metadata, reject private or link-local metadata destinations, reject javascript/data/file/vbscript authorization URLs, PKCE/state, client registration, issuer-bound credentials, RFC 9207 iss comparison, token binding/storage, refresh, expiration, audience, and resource indicators."
         },
         {
           "label": "Decision",
           "title": "Evaluate a runtime request",
-          "detail": "Bind identity, token claims, recorded issuer, workflow, tool/resource, arguments, tenant, entitlement, approval, and policy."
+          "detail": "Bind identity, token claims, recorded issuer, metadata fetch URLs, authorization endpoint scheme, workflow, tool/resource, arguments, tenant, entitlement, approval, and policy."
         },
         {
           "label": "Action",
           "title": "Enforce authorization",
-          "detail": "Allow, narrow scope, require approval, hold, deny mix-up or unbound tokens, revoke, or kill on token passthrough or credential misuse."
+          "detail": "Allow, narrow scope, require approval, hold, deny mix-up, SSRF-unsafe metadata, unsafe authorization URL schemes, or unbound tokens, revoke, or kill on token passthrough or credential misuse."
         },
         {
           "label": "Proof",
@@ -3448,7 +3451,7 @@
       "gate": {
         "question": "Does the implementation and request satisfy required OAuth/MCP authorization controls for this resource and action?",
         "pass": "Authorize only the exact approved scope and resource.",
-        "stop": "Hold, deny, revoke, or kill invalid, overbroad, replayed, mix-up, passthrough, or mis-audienced authorization."
+        "stop": "Hold, deny, revoke, or kill invalid, overbroad, replayed, mix-up, SSRF-unsafe metadata, unsafe authorization URL schemes, passthrough, or mis-audienced authorization."
       },
       "evidence": [
         "authorization profile and cases",
@@ -3475,6 +3478,8 @@
         "OAuth resource indicators",
         "MCP token security",
         "RFC 9207 mix-up",
+        "OAuth metadata SSRF",
+        "OAuth authorization URL schemes",
         "PKCE"
       ]
     },
@@ -3483,7 +3488,7 @@
       "title": "MCP Connector Intake Scanner",
       "page": "/security-remediation/mcp-connector-intake-scanner/",
       "category": "mcp-governance",
-      "summary": "Inspect a proposed MCP connector's provenance, authentication, tool surface, data access, network reach, and operating controls before registration.",
+      "summary": "Inspect a proposed MCP connector's provenance, authentication, tool surface, MCP Apps UI, data access, network reach, and operating controls before registration.",
       "phases": [
         {
           "label": "Signal",
@@ -3493,12 +3498,12 @@
         {
           "label": "Scope",
           "title": "Inspect trust and access",
-          "detail": "Verify provenance/signatures, dependencies, auth, secrets, scopes, data classes, network destinations, tenancy, and updates."
+          "detail": "Verify provenance/signatures, dependencies, auth, secrets, scopes, data classes, network destinations, MCP Apps ui:// resources, CSP, sandbox, device permissions, tenancy, and updates."
         },
         {
           "label": "Decision",
           "title": "Analyze capabilities",
-          "detail": "Classify read/write/admin actions, argument schemas, side effects, destructive operations, approvals, and hidden expansion paths."
+          "detail": "Classify read/write/admin actions, argument schemas, side effects, destructive operations, unsandboxed HTML apps, unbounded connect-src, approvals, and hidden expansion paths."
         },
         {
           "label": "Action",
@@ -3541,7 +3546,8 @@
         "MCP connector intake",
         "MCP server review",
         "connector permissions",
-        "MCP supply chain"
+        "MCP supply chain",
+        "MCP Apps sandbox"
       ]
     },
     {
@@ -3693,7 +3699,7 @@
         {
           "label": "Decision",
           "title": "Evaluate policy rules",
-          "detail": "Check allowed capability, argument/path bounds, destination, data class, side effects, rate, sequence, and hard-stop signals."
+          "detail": "Check Streamable HTTP Origin allowlist (HTTP 403), header/body agreement, allowed capability, argument/path bounds, destination, data class, side effects, rate, sequence, and hard-stop signals."
         },
         {
           "label": "Action",
@@ -3823,7 +3829,7 @@
         {
           "label": "Decision",
           "title": "Apply ordered rules",
-          "detail": "Evaluate hard stops, explicit denies, missing evidence, approval holds, argument constraints, rate/sequence, and allow conditions."
+          "detail": "Evaluate hard stops, ACS Guardian fail-open decision failures, Streamable HTTP Origin DNS-rebinding (HTTP 403), HeaderMismatch (-32020) header/body disagreement, explicit denies, missing evidence, approval holds, argument constraints, rate/sequence, and allow conditions."
         },
         {
           "label": "Action",
@@ -3939,7 +3945,7 @@
       "title": "MCP Tool Risk Contract",
       "page": "/security-remediation/mcp-tool-risk-contract/",
       "category": "mcp-governance",
-      "summary": "Classify an MCP tool's data access, side effects, reversibility, authority, argument controls, and approval needs before exposure to agents.",
+      "summary": "Classify an MCP tool's data access, side effects, reversibility, authority, argument controls, tools/list cacheScope, and approval needs before exposure to agents.",
       "phases": [
         {
           "label": "Signal",
@@ -3954,7 +3960,7 @@
         {
           "label": "Decision",
           "title": "Define required controls",
-          "detail": "Specify argument/path validation, tenant isolation, auth, rate limits, dry-run, idempotency, approvals, telemetry, and rollback."
+          "detail": "Specify argument/path validation, tenant isolation, auth, tools/list cacheScope (public vs private, not access control), rate limits, dry-run, idempotency, approvals, telemetry, and rollback."
         },
         {
           "label": "Action",
@@ -3970,7 +3976,7 @@
       "gate": {
         "question": "Are tool capabilities fully declared and controlled for their maximum data and side-effect impact?",
         "pass": "Expose the tool only in its contracted operating mode and scope.",
-        "stop": "Hold or deny unknown, overbroad, unvalidated, destructive, or unowned capabilities."
+        "stop": "Hold or deny unknown, overbroad, unvalidated, destructive, or unowned capabilities. Deny public user-specific or access-control tools/list caches; kill private-cache reuse across authorization contexts."
       },
       "evidence": [
         "tool schema/capability inventory",
@@ -4004,22 +4010,22 @@
       "title": "MCP Tool Surface Drift Sentinel",
       "page": "/security-remediation/mcp-tool-surface-drift-sentinel/",
       "category": "mcp-governance",
-      "summary": "Compare a live MCP tool surface with its approved baseline and contain capability, schema, permission, or ownership expansion.",
+      "summary": "Compare a live MCP tool surface with its approved baseline and contain capability, schema, x-mcp-header, permission, or ownership expansion.",
       "phases": [
         {
           "label": "Signal",
           "title": "Load the approved baseline",
-          "detail": "Read server identity, version, endpoint/package hash, tools/resources/prompts, schemas, risk contracts, permissions, and owner."
+          "detail": "Read server identity, version, endpoint/package hash, tools/resources/prompts, schemas, x-mcp-header maps, risk contracts, permissions, and owner."
         },
         {
           "label": "Scope",
           "title": "Discover the live surface",
-          "detail": "Query or inspect current capabilities, schemas, descriptions, auth metadata, package/image, versions, and advertised extensions."
+          "detail": "Query or inspect current capabilities, schemas, x-mcp-header annotations, descriptions, auth metadata, package/image, versions, and advertised extensions."
         },
         {
           "label": "Decision",
           "title": "Compute semantic drift",
-          "detail": "Detect additions, removals, argument widening, required-field changes, side effects, permission expansion, auth changes, and ownership drift."
+          "detail": "Detect additions, removals, argument widening, required-field changes, x-mcp-header mirroring, side effects, permission expansion, auth changes, and ownership drift."
         },
         {
           "label": "Action",
@@ -4035,7 +4041,7 @@
       "gate": {
         "question": "Is live drift backward-compatible, non-expansive, owned, and explicitly permitted by the trust and tool contracts?",
         "pass": "Accept the new baseline after review and recertification.",
-        "stop": "Restrict or disable material unapproved capability, permission, auth, or ownership drift."
+        "stop": "Restrict or disable material unapproved capability, permission, auth, x-mcp-header, or ownership drift."
       },
       "evidence": [
         "baseline and live surface snapshots",
@@ -4048,7 +4054,7 @@
         "disablement record"
       ],
       "python": {
-        "scenario": "Detect MCP tool-surface drift",
+        "scenario": "Detect MCP tool-surface and x-mcp-header drift",
         "command": "python scripts/security_recipes_remediation_suite.py playbook start --playbook mcp-tool-surface-drift-sentinel --workspace . --finding finding.json --run-dir .security-recipes/runs/mcp-tool-surface-drift-sentinel"
       },
       "file_patterns": [
@@ -4069,7 +4075,7 @@
       "title": "Context Poisoning Guard",
       "page": "/security-remediation/context-poisoning-guard/",
       "category": "secure-context",
-      "summary": "Detect hidden instructions, exfiltration cues, authority spoofing, malicious markup, and trust-boundary violations before context reaches an agent.",
+      "summary": "Detect hidden instructions, invisible Unicode smuggling, exfiltration cues, authority spoofing, malicious markup, and trust-boundary violations before context reaches an agent.",
       "phases": [
         {
           "label": "Signal",
@@ -4084,7 +4090,7 @@
         {
           "label": "Decision",
           "title": "Scan poisoning signals",
-          "detail": "Detect instruction override, secret requests, tool abuse, authority claims, data exfiltration, encoded payloads, and cross-boundary redirects."
+          "detail": "Detect instruction override, secret requests, tool abuse, authority claims, data exfiltration, encoded payloads, invisible Unicode tag-block or variation-selector smuggling, and cross-boundary redirects."
         },
         {
           "label": "Action",
@@ -4126,6 +4132,8 @@
         "context poisoning",
         "indirect prompt injection",
         "malicious retrieved content",
+        "unicode tag smuggling",
+        "invisible character injection",
         "agent context guard"
       ]
     },
@@ -4149,7 +4157,7 @@
         {
           "label": "Decision",
           "title": "Bind enhanced controls",
-          "detail": "Require approved sources, isolation, least privilege, two-key review, deterministic gates, telemetry, receipts, incident, and recovery."
+          "detail": "Require approved sources, isolation, least privilege, distinct agent credentials, two-key review, deterministic gates, telemetry, receipts, incident, and recovery. Kill unrestricted critical-system access and shared credentials."
         },
         {
           "label": "Action",
@@ -4165,7 +4173,7 @@
       "gate": {
         "question": "Are safety, mission, sector, data, authority, and recovery controls sufficient for the requested action and environment?",
         "pass": "Permit only the bounded sector profile with enhanced monitoring and approvals.",
-        "stop": "Hold, deny, or kill actions that could affect safety, operations, protected data, or irreversible systems without complete evidence."
+        "stop": "Hold, deny, or kill actions that could affect safety, operations, protected data, or irreversible systems without complete evidence. Kill unrestricted critical-system access and shared agent credentials."
       },
       "evidence": [
         "sector/asset/action classification",
@@ -4191,7 +4199,8 @@
         "critical infrastructure AI",
         "secure OT context",
         "agent cyber-physical risk",
-        "sector AI controls"
+        "sector AI controls",
+        "Five Eyes agentic AI careful adoption"
       ]
     },
     {

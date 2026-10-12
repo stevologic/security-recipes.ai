@@ -33,6 +33,7 @@ jobs:
         continue-on-error: true
         shell: bash
         env:
+          GH_TOKEN: ${{ github.token }}
           PRODUCTION_BASE_URL: ${{ vars.PRODUCTION_BASE_URL || 'https://security-recipes.ai' }}
           WATCHDOG_MAX_CATALOG_AGE_HOURS: ${{ vars.WATCHDOG_MAX_CATALOG_AGE_HOURS || '72' }}
           WATCHDOG_REVISION_GRACE_MINUTES: ${{ vars.WATCHDOG_REVISION_GRACE_MINUTES || '1440' }}
@@ -43,6 +44,8 @@ jobs:
             --expected-commit-time "$(git show -s --format=%cI HEAD)" \
             --max-catalog-age-hours "$WATCHDOG_MAX_CATALOG_AGE_HOURS" \
             --revision-grace-minutes "$WATCHDOG_REVISION_GRACE_MINUTES" \
+            --check-backlog \
+            --source-freshness-pack data/evidence/agentic-source-freshness-watch.json \
             --report "$RUNNER_TEMP/production-health.json" \
             --markdown "$RUNNER_TEMP/production-health.md" \
             --github-output "$GITHUB_OUTPUT"

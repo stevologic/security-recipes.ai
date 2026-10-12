@@ -175,11 +175,11 @@ test('homepage template prints the hosted streamable-http client snippet', () =>
   );
 
   assert.match(template, /data-home-mcp-connect/);
-  assert.match(template, /data-home-mcp-source="url">https:\/\/security-recipes\.ai\/mcp</);
+  assert.match(template, /data-home-mcp-source="url" data-brand-host>\{\{ site\.mcpPublicUrl \}\}</);
   assert.match(template, /"mcpServers"/);
   assert.match(template, /"security-recipes"/);
   assert.match(template, /"transport": "streamable-http"/);
-  assert.match(template, /"url": "https:\/\/security-recipes\.ai\/mcp"/);
+  assert.match(template, /"url": "\{\{ site\.mcpPublicUrl \}\}"/);
   assert.doesNotMatch(template, /RECIPES_MCP_TRANSPORT/);
   assert.doesNotMatch(template, /mcp-server\.toml/);
 });

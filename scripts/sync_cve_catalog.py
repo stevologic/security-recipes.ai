@@ -82,6 +82,10 @@ NVD_FEED_ROOT = "https://nvd.nist.gov/feeds/json/cve/2.0"
 NVD_DETAIL_ROOT = "https://nvd.nist.gov/vuln/detail"
 CISA_KEV_URL = "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
 USER_AGENT = "security-recipes.ai/cve-catalog-sync"
+# NVD's CDN can briefly return 404 while annual feed objects rotate. Cloudflare
+# can also return 52x origin timeouts the same way it returns 502/504. A bounded
+# retry is safer than abandoning a complete daily refresh.
+RETRYABLE_HTTP_CODES = frozenset({404, 408, 429, 500, 502, 503, 504, 520, 521, 522, 523, 524})
 
 SEVERITY_RANK = {"low": 1, "medium": 2, "high": 3, "critical": 4}
 BROWSER_SEVERITY_CODES = {"medium": 0, "high": 1, "critical": 2}
@@ -540,10 +544,7 @@ def fetch_bytes(url: str, *, attempts: int = 4, timeout: int = 180) -> bytes:
                 return response.read()
         except HTTPError as exc:
             last_error = exc
-            # NVD's CDN can briefly return 404 while annual feed objects rotate.
-            # The same immutable feed URL is available again seconds later, so a
-            # bounded retry is safer than abandoning a complete daily refresh.
-            if exc.code not in {404, 408, 429, 500, 502, 503, 504}:
+            if exc.code not in RETRYABLE_HTTP_CODES:
                 raise
             retry_after = exc.headers.get("Retry-After")
             delay = float(retry_after) if retry_after and retry_after.isdigit() else 2**attempt
@@ -652,7 +653,30 @@ def cache_feed(year: int, cache_dir: Path, *, offline: bool = False) -> tuple[Pa
             raise FileNotFoundError(f"offline cache is missing {stem}")
         meta_text = cached_meta_text
     else:
-        meta_text = fetch_bytes(f"{NVD_FEED_ROOT}/{stem}.meta").decode("utf-8", errors="strict")
+        try:
+            meta_text = fetch_bytes(f"{NVD_FEED_ROOT}/{stem}.meta").decode("utf-8", errors="strict")
+        except (HTTPError, IncompleteRead, TimeoutError, URLError, OSError) as exc:
+            # NVD's CDN can time out the .meta object itself (Cloudflare 522).
+            # Serving the last independently verified feed for this year keeps
+            # the refresh complete for every other year instead of discarding
+            # the entire run.
+            verified_sha = (
+                verified_path.read_text(encoding="ascii").strip().lower()
+                if verified_path.exists()
+                else ""
+            )
+            if not gzip_path.exists() or not verified_sha or not cached_meta_text:
+                raise
+            cached_metadata = parse_meta(cached_meta_text)
+            if cached_metadata["sha256"].lower() != verified_sha:
+                raise
+            verify_gzip_payload(gzip_path, verified_sha)
+            print(
+                f"::warning::[{year}] NVD feed metadata is not retrievable ({exc}); "
+                f"this year keeps its last verified cached feed.",
+                flush=True,
+            )
+            return gzip_path, cached_metadata
 
     metadata = parse_meta(meta_text)
     expected_sha = metadata["sha256"].lower()

@@ -1,0 +1,242 @@
+from __future__ import annotations
+
+import json
+import unittest
+from pathlib import Path
+
+from scripts.evaluate_mcp_gateway_decision import evaluate_policy_decision
+
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+POLICY_PATH = REPO_ROOT / "data" / "policy" / "mcp-gateway-policy.json"
+
+
+def _bounded_read(**overrides: object) -> dict[str, object]:
+    request: dict[str, object] = {
+        "workflow_id": "vulnerable-dependency-remediation",
+        "agent_id": "sr-agent::vulnerable-dependency-remediation::codex",
+        "agent_class": "codex",
+        "run_id": "run-acs",
+        "tool_namespace": "advisories.vulnerability",
+        "tool_access_mode": "read",
+        "gate_phase": "tool_call",
+    }
+    request.update(overrides)
+    return request
+
+
+class MCPGatewayAcsFailOpenTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.policy = json.loads(POLICY_PATH.read_text(encoding="utf-8"))
+
+    def test_bounded_read_is_allowed_when_guardian_evidence_is_unspecified(self) -> None:
+        result = evaluate_policy_decision(self.policy, _bounded_read())
+        self.assertEqual(result["decision"], "allow")
+        self.assertTrue(result["allowed"])
+
+    def test_timeout_with_fail_open_posture_kills_the_session(self) -> None:
+        result = evaluate_policy_decision(
+            self.policy,
+            _bounded_read(
+                guardian_decision_status="timeout",
+                on_decision_failure="proceed",
+            ),
+        )
+        self.assertEqual(result["decision"], "kill_session")
+        self.assertFalse(result["allowed"])
+        self.assertTrue(any("fail-open" in item for item in result["violations"]))
+
+    def test_transport_failure_defaults_to_acs_fail_open_and_kills(self) -> None:
+        result = evaluate_policy_decision(
+            self.policy,
+            _bounded_read(guardian_decision_status="transport_failure"),
+        )
+        self.assertEqual(result["decision"], "kill_session")
+        self.assertFalse(result["allowed"])
+        self.assertTrue(any("transport_failure" in item for item in result["violations"]))
+
+    def test_error_without_decision_and_fail_closed_posture_denies(self) -> None:
+        result = evaluate_policy_decision(
+            self.policy,
+            _bounded_read(
+                guardian_decision_status="error_without_decision",
+                on_decision_failure="deny",
+            ),
+        )
+        self.assertEqual(result["decision"], "deny")
+        self.assertFalse(result["allowed"])
+        self.assertTrue(any("on_decision_failure=deny" in item for item in result["violations"]))
+
+
+class MCPGatewayHeaderMismatchTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.policy = json.loads(POLICY_PATH.read_text(encoding="utf-8"))
+
+    def test_matching_streamable_http_headers_stay_on_the_allow_path(self) -> None:
+        result = evaluate_policy_decision(
+            self.policy,
+            _bounded_read(
+                mcp_method="tools/call",
+                mcp_name="advisories.vulnerability.read",
+                mcp_protocol_version="2026-07-28",
+                jsonrpc_method="tools/call",
+                jsonrpc_name="advisories.vulnerability.read",
+                jsonrpc_protocol_version="2026-07-28",
+            ),
+        )
+        self.assertEqual(result["decision"], "allow")
+        self.assertTrue(result["allowed"])
+
+    def test_mcp_method_mismatch_denies_instead_of_executing_the_body(self) -> None:
+        result = evaluate_policy_decision(
+            self.policy,
+            _bounded_read(
+                mcp_method="tools/list",
+                jsonrpc_method="tools/call",
+            ),
+        )
+        self.assertEqual(result["decision"], "deny")
+        self.assertFalse(result["allowed"])
+        self.assertTrue(any("Mcp-Method" in item and "-32020" in item for item in result["violations"]))
+
+    def test_mcp_method_header_disagrees_with_inferred_tools_call(self) -> None:
+        result = evaluate_policy_decision(
+            self.policy,
+            _bounded_read(mcp_method="resources/read"),
+        )
+        self.assertEqual(result["decision"], "deny")
+        self.assertFalse(result["allowed"])
+        self.assertTrue(any("resources/read" in item for item in result["violations"]))
+
+    def test_mcp_name_mismatch_denies(self) -> None:
+        result = evaluate_policy_decision(
+            self.policy,
+            _bounded_read(
+                mcp_name="harmless.search",
+                jsonrpc_name="repo.contents.patch_scoped_branch",
+            ),
+        )
+        self.assertEqual(result["decision"], "deny")
+        self.assertFalse(result["allowed"])
+        self.assertTrue(any("Mcp-Name" in item and "-32020" in item for item in result["violations"]))
+
+    def test_mcp_name_base64_sentinel_is_decoded_before_comparison(self) -> None:
+        result = evaluate_policy_decision(
+            self.policy,
+            _bounded_read(
+                mcp_name="=?base64?YWR2aXNvcmllcy52dWxuZXJhYmlsaXR5LnJlYWQ=?=",
+                jsonrpc_name="advisories.vulnerability.read",
+            ),
+        )
+        self.assertEqual(result["decision"], "allow")
+        self.assertTrue(result["allowed"])
+
+    def test_protocol_version_mismatch_denies(self) -> None:
+        result = evaluate_policy_decision(
+            self.policy,
+            _bounded_read(
+                mcp_protocol_version="2025-11-25",
+                jsonrpc_protocol_version="2026-07-28",
+            ),
+        )
+        self.assertEqual(result["decision"], "deny")
+        self.assertFalse(result["allowed"])
+        self.assertTrue(
+            any("MCP-Protocol-Version" in item and "-32020" in item for item in result["violations"])
+        )
+
+
+class MCPGatewayOriginDnsRebindTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.policy = json.loads(POLICY_PATH.read_text(encoding="utf-8"))
+
+    def test_unspecified_origin_stays_on_the_allow_path(self) -> None:
+        result = evaluate_policy_decision(self.policy, _bounded_read())
+        self.assertEqual(result["decision"], "allow")
+        self.assertTrue(result["allowed"])
+
+    def test_matching_origin_stays_on_the_allow_path(self) -> None:
+        result = evaluate_policy_decision(
+            self.policy,
+            _bounded_read(
+                origin="https://mcp.security-recipes.ai",
+                allowed_origins=["https://mcp.security-recipes.ai"],
+            ),
+        )
+        self.assertEqual(result["decision"], "allow")
+        self.assertTrue(result["allowed"])
+
+    def test_default_https_port_matches_allowlist_without_port(self) -> None:
+        result = evaluate_policy_decision(
+            self.policy,
+            _bounded_read(
+                origin="https://mcp.security-recipes.ai:443",
+                expected_origin="https://mcp.security-recipes.ai",
+            ),
+        )
+        self.assertEqual(result["decision"], "allow")
+        self.assertTrue(result["allowed"])
+
+    def test_attacker_origin_denies_instead_of_reaching_a_local_server(self) -> None:
+        result = evaluate_policy_decision(
+            self.policy,
+            _bounded_read(
+                origin="https://attacker.example",
+                allowed_origins=["https://mcp.security-recipes.ai"],
+            ),
+        )
+        self.assertEqual(result["decision"], "deny")
+        self.assertFalse(result["allowed"])
+        self.assertTrue(any("HTTP 403" in item and "attacker.example" in item for item in result["violations"]))
+
+    def test_origin_without_allowlist_fails_closed(self) -> None:
+        result = evaluate_policy_decision(
+            self.policy,
+            _bounded_read(origin="https://attacker.example"),
+        )
+        self.assertEqual(result["decision"], "deny")
+        self.assertFalse(result["allowed"])
+        self.assertTrue(any("without an allowlist" in item for item in result["violations"]))
+
+    def test_null_origin_denies(self) -> None:
+        result = evaluate_policy_decision(
+            self.policy,
+            _bounded_read(
+                origin="null",
+                allowed_origins=["https://mcp.security-recipes.ai"],
+            ),
+        )
+        self.assertEqual(result["decision"], "deny")
+        self.assertFalse(result["allowed"])
+        self.assertTrue(any("not a valid http(s) origin" in item for item in result["violations"]))
+
+    def test_file_origin_denies(self) -> None:
+        result = evaluate_policy_decision(
+            self.policy,
+            _bounded_read(
+                origin="file://",
+                allowed_origins=["https://mcp.security-recipes.ai"],
+            ),
+        )
+        self.assertEqual(result["decision"], "deny")
+        self.assertFalse(result["allowed"])
+        self.assertTrue(any("not a valid http(s) origin" in item for item in result["violations"]))
+
+    def test_origin_with_path_denies(self) -> None:
+        result = evaluate_policy_decision(
+            self.policy,
+            _bounded_read(
+                origin="https://mcp.security-recipes.ai/mcp",
+                allowed_origins=["https://mcp.security-recipes.ai"],
+            ),
+        )
+        self.assertEqual(result["decision"], "deny")
+        self.assertFalse(result["allowed"])
+        self.assertTrue(any("not a valid http(s) origin" in item for item in result["violations"]))
+
+
+if __name__ == "__main__":
+    unittest.main()

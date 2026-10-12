@@ -2,10 +2,9 @@ name: Security health
 
 # This repository consumes its own published action: an LLM check grounded
 # in the hosted security-recipes.ai MCP context, running on the existing
-# xAI/Grok key with the model auto-selected to the lowest available.
+# xAI/Grok key with an explicit, authenticated model setting.
 
 on:
-  pull_request:
   schedule:
     - cron: "23 5 * * 1"
   workflow_dispatch:
@@ -28,6 +27,7 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: ${{ github.event.repository.default_branch }}
           persist-credentials: false
 
       - name: Detect xAI credentials
@@ -44,15 +44,15 @@ jobs:
           fi
 
       - name: Run the Security Recipes health check
-        # Repository and fork pull requests do not receive Actions secrets.
-        # Do not turn an unavailable optional LLM credential into a broken
-        # application build; scheduled and trusted runs still exercise it.
+        # Run the paid advisory baseline only from trusted default-branch code.
+        # PRs retain the full deterministic build/security and review gates.
         # Never put `secrets` in `if:` — GitHub rejects that named-value while
         # validating the file on push, records a zero-job failure named after
         # the workflow path, and deploy.sh then refuses the SHA.
         if: steps.auth.outputs.configured == 'true'
         uses: ./actions/security-health
         with:
+          model: ${{ vars.XAI_HEALTH_MODEL || vars.XAI_MODEL || 'grok-4.6' }}
           provider: xai
           api-key: ${{ secrets.XAI_API_KEY }}
           check-containers: "true"

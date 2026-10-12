@@ -1,4 +1,4 @@
-You are the daily leftover-gold reviewer for security-recipes.ai.
+You are the scheduled leftover-gold reviewer for security-recipes.ai.
 Live-verify and rewrite the leftover-gold CVE pages selected by
 `python scripts/pick_leftover_review_queue.py --json`. The picker
 drains leftover-gold criticals and highs first, then takes up to
@@ -50,9 +50,9 @@ Work the review end to end:
    data/cve/leftover-review-state.json reviewed_cves, keep the
    list sorted and unique, and do not drop existing IDs.
 6. Run `python scripts/sync_cve_catalog.py --markdown-only` and
-   `python scripts/validate_cve_catalog.py`. Hub counts must stay
-   33 stable / 24 AI-qualified / 57 indexable unless a catalog
-   sync intentionally changes them. Then run
+   `python scripts/validate_cve_catalog.py`. Use counts derived from the current manifest and search allowlist;
+   preserve canonical ownership and indexability policy rather than
+   pinning volatile stable / AI-qualified / indexable totals. Then run
    `node --test tests/test_recipe_quality.js tests/test_search_intent.js`
    and `python -m unittest tests.test_cve_landing
    tests.test_cve_recipe_catalog tests.test_compliance_catalog

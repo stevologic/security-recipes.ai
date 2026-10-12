@@ -99,3 +99,6 @@ docker compose logs --tail=100 security-recipes
 - For fully automatic HTTPS inside the compose stack (no host proxy at all),
   see [README.caddy-deploy.md](README.caddy-deploy.md) — that path is the
   recommended default and pairs with `deploy.sh` for cron-driven updates.
+  That Caddy path also serves `security-recipes.si` from the same upstreams;
+  nginx + Certbot would need a second `--domain` (or `server_name`) if you
+  stay on this host-proxy path.

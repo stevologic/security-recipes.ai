@@ -3,7 +3,7 @@ title: Agent Handoff Boundary
 linkTitle: Agent Handoff Boundary
 weight: 12
 date: 2026-05-04
-lastmod: 2026-08-21
+lastmod: 2026-10-05
 sidebar:
   exclude: true
 description: >
@@ -20,7 +20,20 @@ allowed, which data classes trigger redaction or approval, and which
 payload fields terminate the session.
 {{< /callout >}}
 
-Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) on August 21, 2026.
+Rechecked October 5, 2026 against A2A Protocol
+[1.0.0](https://a2a-protocol.org/v1.0.0/specification/)
+(`latest` still resolves to 1.0.0). Section 3.6.1 says clients MUST send
+`A2A-Version` Major.Minor with each request. Section 3.6.2 says servers
+MUST interpret an empty value as 0.3 and MUST return
+`VersionNotSupportedError` when the version is unsupported. Section 7.6
+says `TASK_STATE_AUTH_REQUIRED` credentials MUST arrive out of band
+unless an in-band mechanism was negotiated; credentials in the A2A
+message can leak across agent chains. This pack now holds missing or
+0.3 version headers, denies unsupported versions, holds AUTH_REQUIRED
+handoffs without an out-of-band channel, and kills in-band credentials
+that were not negotiated. MCP, provider-native, and human-approval
+surfaces, and A2A requests that omit `task_state`, stay on their prior
+path. This pass does not claim human review of the pack.
 
 SecurityRecipes is positioned as **The Secure Context Layer for Agentic
 AI**. That claim has to hold when one agent delegates to another agent,
@@ -57,6 +70,7 @@ python3 scripts/evaluate_agent_handoff_boundary_decision.py \
   --target-trust-tier approved_vendor \
   --agent-card-signed \
   --authentication-scheme oauth2 \
+  --a2a-version 1.0 \
   --payload-field task_summary \
   --payload-field workflow_id \
   --payload-field source_ids \
@@ -64,6 +78,48 @@ python3 scripts/evaluate_agent_handoff_boundary_decision.py \
   --payload-field correlation_id \
   --data-class curated_security_guidance \
   --expect-decision allow_metadata_handoff
+```
+
+Hold a production-looking A2A metadata handoff that omits `A2A-Version`
+(empty is 0.3):
+
+```bash
+python3 scripts/evaluate_agent_handoff_boundary_decision.py \
+  --workflow-id vulnerable-dependency-remediation \
+  --handoff-profile-id metadata-only \
+  --protocol a2a_task_delegation \
+  --target-trust-tier approved_vendor \
+  --agent-card-signed \
+  --authentication-scheme oauth2 \
+  --payload-field task_summary \
+  --payload-field workflow_id \
+  --payload-field source_ids \
+  --payload-field source_hashes \
+  --payload-field correlation_id \
+  --data-class curated_security_guidance \
+  --expect-decision hold_for_redaction_or_approval
+```
+
+Kill an AUTH_REQUIRED handoff that puts credentials in the A2A message:
+
+```bash
+python3 scripts/evaluate_agent_handoff_boundary_decision.py \
+  --workflow-id vulnerable-dependency-remediation \
+  --handoff-profile-id metadata-only \
+  --protocol a2a_task_delegation \
+  --target-trust-tier approved_vendor \
+  --agent-card-signed \
+  --authentication-scheme oauth2 \
+  --a2a-version 1.0 \
+  --task-state TASK_STATE_AUTH_REQUIRED \
+  --credentials-in-a2a-message \
+  --payload-field task_summary \
+  --payload-field workflow_id \
+  --payload-field source_ids \
+  --payload-field source_hashes \
+  --payload-field correlation_id \
+  --data-class curated_security_guidance \
+  --expect-decision kill_session_on_secret_handoff
 ```
 
 {{< playbook-workflow >}}
@@ -110,6 +166,10 @@ This layer is anchored in current primary guidance:
   for resource indicators, token audience validation, PKCE, protected
   resource metadata, Client ID Metadata Documents, and token-passthrough
   denial.
+- [A2A Protocol Specification 1.0.0](https://a2a-protocol.org/v1.0.0/specification/)
+  for `A2A-Version` Major.Minor `1.0` on every request, empty-header
+  interpretation as 0.3, `VersionNotSupportedError`, and
+  `TASK_STATE_AUTH_REQUIRED` out-of-band credentials.
 - [A2A Enterprise Implementation](https://a2a-protocol.org/latest/topics/enterprise-ready/)
   for TLS, HTTP-layer authentication, skill-based authorization, data
   minimization, tracing, auditing, and API management.
@@ -143,6 +203,7 @@ Evaluate an approval-gated handoff:
   "target_trust_tier": "approved_vendor",
   "agent_card_signed": true,
   "authentication_schemes": ["oauth2"],
+  "a2a_version": "1.0",
   "payload_fields": [
     "task_summary",
     "workflow_id",

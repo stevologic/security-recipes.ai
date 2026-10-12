@@ -124,11 +124,14 @@ def normalize_request(runtime_request: dict[str, Any]) -> dict[str, Any]:
         "external_side_effect",
         "high_impact_action",
         "identity_used_after_revocation",
+        "local_user_account_impersonation",
+        "long_lived_static_credential",
         "missing_trace_context",
         "prompt_injection_signal",
         "repeated_denied_action",
         "scope_escalation",
         "secret_egress",
+        "shared_human_credential",
         "telemetry_redaction_failure",
         "token_passthrough",
         "untrusted_context",
@@ -168,6 +171,10 @@ def matched_kill_reasons(pack: dict[str, Any], request: dict[str, Any]) -> list[
         reasons.append("token passthrough was observed")
     if request.get("identity_used_after_revocation"):
         reasons.append("agent identity was used after revocation")
+    if request.get("shared_human_credential"):
+        reasons.append("agent is using a shared human credential instead of a unique agent identity")
+    if request.get("local_user_account_impersonation"):
+        reasons.append("agent is impersonating a local user account")
     if request.get("secret_egress"):
         reasons.append("secret egress was observed")
     if request.get("cross_tenant_context_access"):
@@ -204,7 +211,13 @@ def score_dimensions(pack: dict[str, Any], request: dict[str, Any], missing: lis
 
     if missing_count:
         penalties_by_dimension["behavior"] += min(20, missing_count * 3)
-    if request.get("identity_used_after_revocation") or is_negative_decision(request.get("authorization_decision")):
+    if (
+        request.get("identity_used_after_revocation")
+        or request.get("shared_human_credential")
+        or request.get("long_lived_static_credential")
+        or request.get("local_user_account_impersonation")
+        or is_negative_decision(request.get("authorization_decision"))
+    ):
         penalties_by_dimension["identity"] += 35
     if request.get("untrusted_context") or request.get("context_poisoning_signal") or is_hold_decision(request.get("source_freshness_decision")):
         penalties_by_dimension["context"] += 20
@@ -352,6 +365,18 @@ def evaluate_agent_trust_fabric_decision(pack: dict[str, Any], runtime_request: 
             violations=[f"missing {field}" for field in missing],
         )
 
+    if request.get("long_lived_static_credential"):
+        return decision_result(
+            decision="deny_untrusted_agent",
+            pack=pack,
+            request=request,
+            workflow=workflow,
+            score=min(score, 49),
+            dimensions=dimensions,
+            reason="agent identity used a long-lived static credential instead of a short-lived scoped token",
+            violations=["agent authenticates with a long-lived static API key or unconstrained bearer token"],
+        )
+
     tier_ok, tier_reasons = requested_tier_allowed(pack, workflow, request, score)
     if not tier_ok:
         return decision_result(
@@ -458,11 +483,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--external-side-effect", action="store_true")
     parser.add_argument("--high-impact-action", action="store_true")
     parser.add_argument("--identity-used-after-revocation", action="store_true")
+    parser.add_argument("--local-user-account-impersonation", action="store_true")
+    parser.add_argument("--long-lived-static-credential", action="store_true")
     parser.add_argument("--missing-trace-context", action="store_true")
     parser.add_argument("--prompt-injection-signal", action="store_true")
     parser.add_argument("--repeated-denied-action", action="store_true")
     parser.add_argument("--scope-escalation", action="store_true")
     parser.add_argument("--secret-egress", action="store_true")
+    parser.add_argument("--shared-human-credential", action="store_true")
     parser.add_argument("--telemetry-redaction-failure", action="store_true")
     parser.add_argument("--token-passthrough", action="store_true")
     parser.add_argument("--untrusted-context", action="store_true")
@@ -488,6 +516,8 @@ def request_from_args(args: argparse.Namespace) -> dict[str, Any]:
         "identity_id": args.identity_id,
         "identity_used_after_revocation": args.identity_used_after_revocation,
         "indicators": args.indicator,
+        "local_user_account_impersonation": args.local_user_account_impersonation,
+        "long_lived_static_credential": args.long_lived_static_credential,
         "intent_summary": args.intent_summary,
         "mcp_namespaces": args.mcp_namespace,
         "missing_trace_context": args.missing_trace_context,
@@ -502,6 +532,7 @@ def request_from_args(args: argparse.Namespace) -> dict[str, Any]:
         "runtime_kill_signal": args.runtime_kill_signal,
         "scope_escalation": args.scope_escalation,
         "secret_egress": args.secret_egress,
+        "shared_human_credential": args.shared_human_credential,
         "soc_decision": args.soc_decision,
         "source_freshness_decision": args.source_freshness_decision,
         "telemetry_decision": args.telemetry_decision,

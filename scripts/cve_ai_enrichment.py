@@ -35,7 +35,8 @@ OPENAI_API_KEY_ENV = "OPENAI_API_KEY"
 DEFAULT_REQUEST_LIMIT = 20
 MAX_REQUEST_LIMIT = 50
 DEFAULT_REQUEST_ATTEMPTS = 2
-DEFAULT_REQUEST_TIMEOUT = 60
+TIMEOUT_ENV = "XAI_ENRICHMENT_TIMEOUT"
+DEFAULT_REQUEST_TIMEOUT = 180
 MAX_CONSECUTIVE_FAILURES = 3
 MAX_ENRICHMENT_SECONDS = 15 * 60
 RECIPE_READY_REFRESH_DAYS = 30
@@ -190,6 +191,26 @@ OUTPUT_SCHEMA: dict[str, Any] = {
 }
 
 
+def request_timeout_seconds(raw: str | None = None) -> int:
+    value = os.environ.get(TIMEOUT_ENV, "") if raw is None else raw
+    if value is None or str(value).strip() == "":
+        return DEFAULT_REQUEST_TIMEOUT
+    try:
+        parsed = int(str(value).strip())
+    except ValueError as exc:
+        raise ValueError(f"{TIMEOUT_ENV} must be a positive integer") from exc
+    if parsed < 1:
+        raise ValueError(f"{TIMEOUT_ENV} must be a positive integer")
+    return parsed
+
+
+def _is_timeout_error(exc: BaseException) -> bool:
+    if isinstance(exc, TimeoutError):
+        return True
+    reason = getattr(exc, "reason", None)
+    return isinstance(reason, TimeoutError)
+
+
 class EnrichmentError(RuntimeError):
     """An enrichment request or response was unusable without exposing secrets."""
 
@@ -321,7 +342,11 @@ def probe_provider_credentials(
         reason = classify_provider_http_error(exc)
         return ProviderCredentialStatus(
             reason,
-            usable=reason not in {"insufficient_quota", "invalid_key", "permission_denied"},
+            # A missing model or invalid request is a configuration failure,
+            # not a transient outage. Do not start a paid CLI investigation
+            # after a definitive 400/404 rejection of a selected model.
+            usable=(exc.code >= 500 or exc.code in {408, 409, 429})
+            and reason not in {"insufficient_quota", "invalid_key", "permission_denied"},
             http_status=exc.code,
             **status_kwargs,
         )
@@ -1075,7 +1100,7 @@ class XAIEnricher:
         opener: Callable[..., Any] = urlopen,
         sleep: Callable[[float], None] = time.sleep,
         attempts: int = DEFAULT_REQUEST_ATTEMPTS,
-        timeout: int = DEFAULT_REQUEST_TIMEOUT,
+        timeout: int | None = None,
     ) -> None:
         if not str(api_key or "").strip():
             raise ValueError("api_key must not be empty")
@@ -1085,7 +1110,7 @@ class XAIEnricher:
         self.opener = opener
         self.sleep = sleep
         self.attempts = max(1, attempts)
-        self.timeout = max(1, timeout)
+        self.timeout = max(1, timeout if timeout is not None else request_timeout_seconds())
 
     def request_payload(self, record: dict[str, Any]) -> dict[str, Any]:
         gaps = completeness_gaps(record)
@@ -1182,11 +1207,17 @@ class XAIEnricher:
             except (TimeoutError, URLError, OSError) as exc:
                 last_error = exc
                 if attempt + 1 >= self.attempts:
-                    raise EnrichmentError(f"xAI Responses API request failed: {type(exc).__name__}") from exc
+                    raise EnrichmentError(
+                        f"xAI Responses API request failed: {type(exc).__name__}",
+                        reason="timeout" if _is_timeout_error(exc) else None,
+                    ) from exc
                 self.sleep(min(float(2**attempt), 30.0))
             except json.JSONDecodeError as exc:
                 raise EnrichmentError("xAI response was not valid JSON") from exc
-        raise EnrichmentError(f"xAI Responses API request failed: {type(last_error).__name__}")
+        raise EnrichmentError(
+            f"xAI Responses API request failed: {type(last_error).__name__}",
+            reason="timeout" if last_error is not None and _is_timeout_error(last_error) else None,
+        )
 
     def enrich(self, record: dict[str, Any]) -> dict[str, Any]:
         response = self._post(self.request_payload(record))
@@ -1356,7 +1387,8 @@ class EnrichmentCache:
         max_seconds: float = MAX_ENRICHMENT_SECONDS,
         clock: Callable[[], float] = time.monotonic,
     ) -> Iterator[dict[str, Any]]:
-        consecutive_failures = 0
+        consecutive_errors = 0
+        consecutive_timeouts = 0
         active_client = client
         deadline = clock() + max(0.0, max_seconds) if active_client is not None else None
         for cve in self.selected:
@@ -1377,7 +1409,10 @@ class EnrichmentCache:
                 entry = active_client.enrich(source)
             except EnrichmentError as exc:
                 self.stats["failed"] += 1
-                consecutive_failures += 1
+                if exc.reason == "timeout":
+                    consecutive_timeouts += 1
+                else:
+                    consecutive_errors += 1
                 print(
                     f"[{cve}] optional xAI enrichment skipped: {exc}",
                     file=sys.stderr,
@@ -1385,10 +1420,19 @@ class EnrichmentCache:
                 )
                 if exc.reason and self.provider_error is None:
                     self.provider_error = exc.reason
-                if exc.fatal or consecutive_failures >= MAX_CONSECUTIVE_FAILURES:
+                if (
+                    exc.fatal
+                    or consecutive_errors >= MAX_CONSECUTIVE_FAILURES
+                    or consecutive_timeouts >= MAX_CONSECUTIVE_FAILURES
+                ):
+                    opened_on = (
+                        f"{consecutive_timeouts} consecutive timeouts"
+                        if consecutive_timeouts >= MAX_CONSECUTIVE_FAILURES
+                        else f"{consecutive_errors} consecutive failures"
+                    )
                     print(
                         "Optional xAI enrichment circuit breaker opened after "
-                        f"{consecutive_failures} consecutive failures; source sync will continue.",
+                        f"{opened_on}; source sync will continue.",
                         file=sys.stderr,
                         flush=True,
                     )
@@ -1396,7 +1440,8 @@ class EnrichmentCache:
             else:
                 self.entries[cve] = entry
                 self.stats["generated"] += 1
-                consecutive_failures = 0
+                consecutive_errors = 0
+                consecutive_timeouts = 0
 
         for source in records:
             record = dict(source)

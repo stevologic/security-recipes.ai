@@ -1040,6 +1040,129 @@ Disallow: /traffic/
         self.assertEqual([check["name"] for check in failed], ["content_integrity"])
         self.assertIn("differs between", failed[0]["message"])
 
+    def test_stale_auto_merge_backlog_and_silent_shepherd_fail(self) -> None:
+        stale = production.check_automation_backlog(
+            now=self.NOW,
+            pull_requests=[
+                {
+                    "number": 268,
+                    "auto_merge": {"enabled_by": "bot"},
+                    "labels": [{"name": "automation:content-refresh"}],
+                    "created_at": "2026-07-13T00:00:00Z",
+                }
+            ],
+            shepherd_last_started=self.NOW - timedelta(hours=7),
+        )
+        fresh = production.check_automation_backlog(
+            now=self.NOW,
+            pull_requests=[
+                {
+                    "number": 340,
+                    "auto_merge": {"enabled_by": "bot"},
+                    "labels": [{"name": "dependencies"}],
+                    "created_at": "2026-07-17T10:00:00Z",
+                }
+            ],
+            shepherd_last_started=self.NOW - timedelta(hours=2),
+        )
+        ignored = production.check_automation_backlog(
+            now=self.NOW,
+            pull_requests=[
+                {
+                    "number": 99,
+                    "auto_merge": None,
+                    "labels": [{"name": "automation:content-refresh"}],
+                    "created_at": "2026-07-01T00:00:00Z",
+                }
+            ],
+            shepherd_last_started=self.NOW - timedelta(hours=1),
+        )
+
+        self.assertFalse(stale.ok)
+        self.assertIn("#268", stale.message)
+        self.assertTrue(fresh.ok)
+        self.assertTrue(ignored.ok)
+
+        silent = production.check_automation_backlog(
+            now=self.NOW,
+            pull_requests=[],
+            shepherd_last_started=None,
+        )
+        self.assertFalse(silent.ok)
+        self.assertIn("no recorded runs", silent.message)
+
+    def test_source_freshness_fails_when_review_due_is_past_grace(self) -> None:
+        overdue = production.check_source_freshness(
+            now=self.NOW,
+            pack={
+                "watch_sources": [
+                    {
+                        "id": "mcp-spec",
+                        "review_due_at": "2026-07-10",
+                    }
+                ]
+            },
+            grace_days=3,
+        )
+        current = production.check_source_freshness(
+            now=self.NOW,
+            pack={
+                "watch_sources": [
+                    {
+                        "id": "mcp-spec",
+                        "review_due_at": "2026-07-16",
+                    }
+                ]
+            },
+            grace_days=3,
+        )
+
+        self.assertFalse(overdue.ok)
+        self.assertIn("mcp-spec", overdue.message)
+        self.assertTrue(current.ok)
+
+    def test_run_probes_wires_backlog_and_source_freshness(self) -> None:
+        def github_api(path: str) -> object:
+            if path.startswith("repos/stevologic/security-recipes.ai/pulls"):
+                return [
+                    {
+                        "number": 268,
+                        "auto_merge": {"enabled_by": "bot"},
+                        "labels": [{"name": "automation:content-refresh"}],
+                        "created_at": "2026-07-13T00:00:00Z",
+                    }
+                ]
+            if "automation-shepherd.yml" in path:
+                return {
+                    "workflow_runs": [
+                        {"created_at": "2026-07-17T10:00:00Z"}
+                    ]
+                }
+            raise AssertionError(path)
+
+        report = production.run_probes(
+            base_url="https://security-recipes.ai",
+            expected_revision=self.SHA,
+            expected_commit_time=self.NOW - timedelta(hours=2),
+            now=self.NOW,
+            opener=self.opener(),
+            certificate_expiry=self.certificate,
+            check_backlog=True,
+            github_repository="stevologic/security-recipes.ai",
+            github_token="test-token",
+            github_api=github_api,
+            source_freshness_pack={
+                "watch_sources": [
+                    {"id": "mcp-spec", "review_due_at": "2026-07-01"}
+                ]
+            },
+        )
+
+        by_name = {check["name"]: check for check in report["checks"]}
+        self.assertFalse(by_name["backlog"]["ok"])
+        self.assertFalse(by_name["source_freshness"]["ok"])
+        self.assertFalse(report["healthy"])
+
 
 if __name__ == "__main__":
     unittest.main()

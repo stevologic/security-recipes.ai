@@ -1,12 +1,12 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-08-21",
+  "last_reviewed": "2026-09-26",
   "intent": "Define a critical-infrastructure secure-context profile for SecurityRecipes so operators, frontier labs, platform teams, and acquirers can see how agentic AI and MCP evidence must be constrained before context, tools, approvals, and autonomous actions touch high-stakes IT, OT, ICS, healthcare, financial, public-sector, communications, or transportation environments.",
   "positioning": {
     "buyer": "Critical infrastructure operators, regulated enterprises, AI platform teams, GRC, product security, SOC, model-risk, safety, procurement, frontier lab enterprise teams, and acquisition diligence reviewers",
     "category": "Critical-infrastructure readiness profile for secure context, MCP, and agentic AI governance",
     "enterprise_promise": "SecurityRecipes can make agentic AI easier to approve in high-stakes environments by turning sector hazards, MCP scope minimization, human oversight, telemetry, incident response, egress controls, and generated evidence packs into one deterministic profile and runtime evaluator.",
-    "why_now": "NIST started the AI RMF Profile on Trustworthy AI in Critical Infrastructure in April 2026. At the same time, OWASP Agentic Top 10, OWASP MCP Top 10, and MCP authorization guidance are making autonomous tool use, non-human identity, scope minimization, telemetry, and context boundaries core enterprise review surfaces."
+    "why_now": "NIST started the AI RMF Profile on Trustworthy AI in Critical Infrastructure in April 2026. Five Eyes agencies published Careful Adoption of Agentic AI Services for government and critical-infrastructure operators: start on low-risk non-sensitive tasks, never grant unrestricted access to sensitive data or critical systems, and keep distinct agent credentials. OWASP Agentic Top 10, OWASP MCP Top 10, and MCP authorization guidance make those same identity, scope, telemetry, and context boundaries inspectable."
   },
   "standards_alignment": [
     {
@@ -26,6 +26,12 @@
       "name": "CISA Secure by Design",
       "url": "https://www.cisa.gov/securebydesign",
       "coverage": "Frames secure defaults, accountability, customer outcome ownership, and radical transparency as product requirements for technology providers."
+    },
+    {
+      "id": "five-eyes-careful-adoption-agentic-ai-2026",
+      "name": "Careful Adoption of Agentic AI Services (Five Eyes)",
+      "url": "https://www.cyber.gc.ca/en/guidance/careful-adoption-agentic-ai",
+      "coverage": "Joint CCCS, CISA, NSA, ASD ACSC, NCSC-NZ, and NCSC-UK operational guidance that critical-infrastructure agents start on low-risk non-sensitive tasks, never receive unrestricted access to sensitive data or critical systems, use distinct credentials, and cannot progress into higher-risk activity without human approval."
     },
     {
       "id": "owasp-agentic-top-10-2026",
@@ -69,7 +75,7 @@
     "minimum_evidence_packs": 14,
     "minimum_sector_profiles": 6,
     "minimum_control_objectives": 9,
-    "source_status": "NIST critical-infrastructure AI guidance is still a concept-note and community-of-interest effort, so this profile is a readiness scaffold and not a compliance claim.",
+    "source_status": "NIST critical-infrastructure AI guidance is still a concept-note and community-of-interest effort, so this profile is a readiness scaffold and not a compliance claim. Five Eyes careful-adoption guidance is published joint operational advice, not a certification.",
     "required_runtime_evidence": [
       "sector_id",
       "workflow_id",
@@ -136,7 +142,9 @@
       "shadow_mcp_server",
       "token_passthrough",
       "unsafe_local_mcp_launch",
-      "untrusted_context"
+      "untrusted_context",
+      "unrestricted_critical_system_access",
+      "shared_agent_credentials"
     ]
   },
   "evidence_sources": [
@@ -316,6 +324,26 @@
       ]
     },
     {
+      "id": "ci-five-eyes-least-privilege",
+      "title": "Five Eyes least privilege and careful adoption",
+      "control_objective": "Critical-infrastructure agents start on low-risk non-sensitive tasks, never receive unrestricted access to sensitive data or critical systems, use distinct non-shared credentials, and require human approval before progressing into higher-risk activity.",
+      "evidence_pack_ids": [
+        "agent-identity-ledger",
+        "agentic-entitlement-review-pack",
+        "agentic-approval-receipt-pack"
+      ],
+      "mcp_tools": [
+        "recipes_agent_identity_ledger",
+        "recipes_agentic_entitlement_review_pack",
+        "recipes_agentic_approval_receipt_pack"
+      ],
+      "hazard_flags": [
+        "unrestricted_critical_system_access",
+        "shared_agent_credentials",
+        "handles_regulated_pii"
+      ]
+    },
+    {
       "id": "ci-mcp-authorization-scope",
       "title": "MCP authorization and scope minimization",
       "control_objective": "Protected MCP calls use resource indicators, audience binding, PKCE, session binding, precise scope challenges, token-passthrough denial, and connector/workflow alignment before any high-stakes tool executes.",
@@ -485,6 +513,7 @@
       "required_control_ids": [
         "ci-context-provenance-minimization",
         "ci-mcp-authorization-scope",
+        "ci-five-eyes-least-privilege",
         "ci-human-oversight-approval",
         "ci-action-runtime-deny-default",
         "ci-local-mcp-sandbox",
@@ -513,6 +542,7 @@
       "default_decision": "hold_for_ci_safety_case",
       "required_control_ids": [
         "ci-context-provenance-minimization",
+        "ci-five-eyes-least-privilege",
         "ci-human-oversight-approval",
         "ci-telemetry-reconstruction",
         "ci-incident-containment-replay",
@@ -539,6 +569,7 @@
       "default_decision": "hold_for_ci_safety_case",
       "required_control_ids": [
         "ci-mcp-authorization-scope",
+        "ci-five-eyes-least-privilege",
         "ci-human-oversight-approval",
         "ci-action-runtime-deny-default",
         "ci-telemetry-reconstruction",
@@ -566,6 +597,7 @@
       "default_decision": "hold_for_ci_safety_case",
       "required_control_ids": [
         "ci-context-provenance-minimization",
+        "ci-five-eyes-least-privilege",
         "ci-action-runtime-deny-default",
         "ci-local-mcp-sandbox",
         "ci-sector-hazard-escalation",
@@ -590,6 +622,7 @@
       "sector_hazard": "Agentic decisions can affect passenger safety, logistics availability, signaling support systems, maintenance operations, and public-service continuity.",
       "default_decision": "hold_for_ci_safety_case",
       "required_control_ids": [
+        "ci-five-eyes-least-privilege",
         "ci-human-oversight-approval",
         "ci-action-runtime-deny-default",
         "ci-telemetry-reconstruction",
@@ -618,6 +651,7 @@
       "required_control_ids": [
         "ci-context-provenance-minimization",
         "ci-mcp-authorization-scope",
+        "ci-five-eyes-least-privilege",
         "ci-action-runtime-deny-default",
         "ci-telemetry-reconstruction",
         "ci-local-mcp-sandbox",
@@ -674,10 +708,11 @@
       "id": "critical-infrastructure-operator",
       "title": "Critical infrastructure operator",
       "question": "Can we pilot agentic AI without weakening safety, availability, privacy, or incident response in high-stakes systems?",
-      "answer_contract": "Start with read-only context, require source hashes, sector hazard mapping, operator approval, incident containment, and telemetry before any supervised action.",
+      "answer_contract": "Start with read-only context on low-risk non-sensitive tasks, deny unrestricted critical-system access, require distinct agent credentials, source hashes, sector hazard mapping, operator approval, incident containment, and telemetry before any supervised action.",
       "required_control_ids": [
         "ci-context-provenance-minimization",
         "ci-mcp-authorization-scope",
+        "ci-five-eyes-least-privilege",
         "ci-human-oversight-approval",
         "ci-telemetry-reconstruction",
         "ci-incident-containment-replay"

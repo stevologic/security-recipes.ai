@@ -77,7 +77,7 @@ jobs:
         if: steps.auth.outputs.configured == 'true'
         env:
           XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
-          XAI_MODEL: ${{ vars.XAI_MODEL || 'grok-4.6' }}
+          XAI_MODEL: ${{ vars.XAI_REPAIR_MODEL || vars.XAI_MODEL || 'grok-4.6' }}
         shell: bash
         run: python scripts/check_xai_credentials.py --github-output "$GITHUB_OUTPUT"
 
@@ -90,7 +90,7 @@ jobs:
         if: steps.xai.outputs.usable == 'true'
         env:
           XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
-          XAI_MODEL: ${{ vars.XAI_MODEL || 'grok-4.6' }}
+          XAI_MODEL: ${{ vars.XAI_REPAIR_MODEL || vars.XAI_MODEL || 'grok-4.6' }}
           GH_TOKEN: ${{ github.token }}
           FAILED_WORKFLOW_NAME: ${{ github.event.workflow_run.name }}
           FAILED_WORKFLOW_BRANCH: ${{ github.event.workflow_run.head_branch }}

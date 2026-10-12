@@ -74,7 +74,7 @@ test("homepage features the hosted MCP connect endpoint before the metric rail",
     template,
     /Read-only recipes, a CVE catalog, and playbook start plans for MCP-compatible agents\./,
   );
-  assert.match(template, /data-home-mcp-source="url">https:\/\/security-recipes\.ai\/mcp</);
+  assert.match(template, /data-home-mcp-source="url" data-brand-host>\{\{ site\.mcpPublicUrl \}\}</);
   assert.match(template, /"transport": "streamable-http"/);
   assert.match(template, /"security-recipes"/);
   assert.match(

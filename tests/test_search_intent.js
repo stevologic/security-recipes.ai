@@ -148,8 +148,10 @@ test("the visual guide documents the evidence-gated search publication path", ()
   assert.match(guide, /no markup or sitemap can guarantee a particular search\s+position\./u);
   assert.match(
     readme,
-    /static\/images\/how-to-use\/canonical-cve-search-discovery\.webp/u,
+    /\.github\/readme\/evidence-review\.webp/u,
   );
+  assert.match(readme, /AI-generated editorial photograph/u);
+  assert.doesNotMatch(readme, /static\/images\/how-to-use\/[a-z-]+\.webp/u);
   assert.match(readme, /same-origin links drift\./u);
   assert.match(readme, /security-recipes\.ai\/pull\/89/u);
   assert.match(guide, /unrelated Fail2Ban work in\s+that pull request/iu);

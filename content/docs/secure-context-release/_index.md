@@ -3,7 +3,7 @@ title: Secure Context Release Gate
 linkTitle: Secure Context Release
 weight: 6
 date: 2026-05-04
-lastmod: 2026-08-21
+lastmod: 2026-09-28
 toc: true
 sidebar:
   exclude: true
@@ -20,7 +20,7 @@ MCP gateways, and reviewers know exactly which source hashes are safe to
 consume.
 {{< /callout >}}
 
-Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) on August 23, 2026. That revision is still current and **stateless**. There is no negotiation handshake. Servers **MUST** implement [`server/discover`](https://modelcontextprotocol.io/specification/2026-07-28/server/discover). `kill_session` here is a host-session kill switch, not `Mcp-Session-Id`. Streamable HTTP revisions through [2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25) could assign that header; 2026-07-28 ignores it and does not mint session IDs.
+Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) and the current [security best practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices) on September 28, 2026. That revision is still current and **stateless**. There is no negotiation handshake. Servers **MUST** implement [`server/discover`](https://modelcontextprotocol.io/specification/2026-07-28/server/discover). `kill_session` here is a host-session kill switch, not `Mcp-Session-Id`. Streamable HTTP revisions through [2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25) could assign that header; 2026-07-28 ignores it and does not mint session IDs. The 2025-06-18 security-best-practices page is kept as a historical source ID.
 
 ## Why This Matters
 

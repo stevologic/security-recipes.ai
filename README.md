@@ -1,14 +1,18 @@
 <div align="center">
 
-<img src=".github/readme/hero.svg" alt="security-recipes.ai — Search CVEs. Remediate vulnerabilities with AI agents. Sourced NVD + CISA KEV intelligence, evidence-gated canonical records, and bounded remediation plans." width="100%" />
+<a href="https://security-recipes.ai/"><img src=".github/readme/evidence-review.webp" alt="Two reviewers compare a printed vulnerability advisory, a patch diff, and verification notes at a desk with a hardware security key." width="100%" /></a>
 
-[![Live site](https://img.shields.io/badge/Live-security--recipes.ai-2dd4bf.svg?style=flat-square&labelColor=020506)](https://security-recipes.ai/)
-[![CVE Database](https://img.shields.io/badge/CVE_Database-260k%2B_records-2dd4bf.svg?style=flat-square&labelColor=020506)](https://security-recipes.ai/cve-database/)
-[![MCP server](https://img.shields.io/badge/MCP-%2Fmcp-5eead4.svg?style=flat-square&labelColor=020506)](https://security-recipes.ai/mcp-servers/)
-[![Security health action](https://img.shields.io/badge/CI-Security_Health_Action-5eead4.svg?style=flat-square&labelColor=020506)](https://security-recipes.ai/docs/security-health-action/)
-[![llms.txt](https://img.shields.io/badge/agents-llms.txt-67e8f9.svg?style=flat-square&labelColor=020506)](https://security-recipes.ai/llms.txt)
-[![Listed on mcpservers.org](https://mcpservers.org/badge.svg)](https://mcpservers.org/servers/security-recipes-ai-mcp-servers)
+[Live site](https://security-recipes.ai/) ·
+[CVE Database](https://security-recipes.ai/cve-database/) ·
+[MCP integration](https://security-recipes.ai/mcp-servers/) ·
+[Security health action](https://security-recipes.ai/docs/security-health-action/) ·
+[llms.txt](https://security-recipes.ai/llms.txt) ·
+[mcpservers.org listing](https://mcpservers.org/servers/security-recipes-ai-mcp-servers)
+
 </div>
+
+*AI-generated editorial photograph about the site's advisory, patch, and human
+review workflow. [Image provenance](.github/readme/README.md).*
 
 # security-recipes.ai
 
@@ -58,11 +62,10 @@ connectors, context, memory, runtime, and recovery controls, use
 
 ## Current product and workflow
 
-![Security Recipes CVE database and AI vulnerability remediation interface](static/images/og-card.png)
+See the live [CVE Database](https://security-recipes.ai/cve-database/) and
+[remediation playbooks](https://security-recipes.ai/security-remediation/).
 
 ### Qualified search discovery
-
-![A source catalog passes an evidence gate before a canonical CVE page reaches search discovery and a reviewed remediation workflow](static/images/how-to-use/canonical-cve-search-discovery.webp)
 
 The complete catalog remains searchable, while public canonical CVE pages stay
 limited to reviewed or evidence-qualified records. Those pages ship unique
@@ -96,11 +99,12 @@ It ties the dependency-only change to the
 tests, advisory evidence, and recovery path while explicitly separating the
 same PR's unrelated Fail2Ban work.
 
-| CVE search to canonical record | CVE evidence to bounded agent plan |
+| Workflow | Explore on the live site |
 | --- | --- |
-| ![CVE search, affected surface, evidence, and canonical remediation record](static/images/how-to-use/cve-search-to-record.webp) | ![Seven-phase CVE remediation plan inside a review gate](static/images/how-to-use/cve-to-agent-plan.webp) |
-| Proof and human review | Read-only MCP context |
-| ![Scope, change, tests, evidence, rollback, and human review](static/images/how-to-use/proof-and-review.webp) | ![Read-only MCP context with write access behind explicit approval](static/images/how-to-use/read-only-mcp-context.webp) |
+| Search a CVE and inspect its evidence | [CVE Database](https://security-recipes.ai/cve-database/) |
+| Establish exposure and scope the agent's plan | [AI vulnerability remediation](https://security-recipes.ai/security-remediation/) |
+| Verify proof, rollback, and reviewer approval | [Reviewer playbook](https://security-recipes.ai/security-remediation/reviewer-playbook/) |
+| Connect read-only recipe and advisory context | [MCP integration](https://security-recipes.ai/mcp-servers/) |
 
 ## What this project is for
 
@@ -168,7 +172,7 @@ security-recipes.ai helps teams answer:
 | `data/cve/` | Human-reviewed remediation archetypes, deterministic AI-enrichment cache, and generated-recipe ownership ledger. |
 | `data/compliance-frameworks/` | Structured compliance-framework catalog and source registry. |
 | `data/code-hygiene/` | Structured code-hygiene catalog, source registry, and routing fixtures. |
-| `docs/` | Repository documentation and legacy screenshot assets; current README and visual-guide images live in `static/images/`. |
+| `docs/` | Repository documentation and legacy screenshot assets; README photo provenance lives in `.github/readme/`, and visual-guide images live in `static/images/`. |
 | `mcp_server.py` | Optional read-only MCP server for recipe search and approved upstream MCP context. |
 | `mcp-server.toml.example` | MCP server configuration template. |
 | `Dockerfile` | Site image. |
@@ -402,7 +406,7 @@ security-health action also use Grok. Add one Actions secret named
 gh secret set XAI_API_KEY --repo stevologic/security-recipes.ai
 ```
 
-The workflow defaults to xAI's `grok-4.6` Responses API model and at most 20
+The workflow defaults to xAI's `grok-4.6` Responses API model and at most 5
 new or source-changed records per run. The scheduled queue is
 derived from the tracked NVD/CISA catalog: a candidate must have a valid tagged
 vendor advisory, patch, release-note, or mitigation URL. Source-complete records
@@ -415,7 +419,7 @@ enrichment limit is hard-bounded from 0 to 50:
 
 ```bash
 gh variable set XAI_MODEL --body "grok-4.6" --repo stevologic/security-recipes.ai
-gh variable set XAI_ENRICHMENT_LIMIT --body "20" --repo stevologic/security-recipes.ai
+gh variable set XAI_ENRICHMENT_LIMIT --body "5" --repo stevologic/security-recipes.ai
 ```
 
 AI output is supplemental and explicitly labeled. It uses strict structured
@@ -466,13 +470,16 @@ additional requests; it is not needed for the daily deterministic queue. A
 manual run on a non-default branch uploads its enrichment cache, ownership
 ledger, and generated drafts as a short-lived workflow artifact for review.
 
-`.github/workflows/leftover-review.yml` runs every day at `13:17 UTC` and
+`.github/workflows/leftover-review.yml` runs every Monday at `14:17 UTC` and
 live-verifies leftover-gold CVE leftovers against GitHub Advisories and NVD.
 Leftover-gold criticals and highs drain first. After those close, each run
 reviews up to 25 leftover-gold medium and low pages, records completed IDs
 in `data/cve/leftover-review-state.json`, and opens a labeled auto-merge PR.
 The leftover-review job uses the Grok Build CLI with `XAI_API_KEY` and
-no-ops when that secret is missing or the leftover-gold queue is empty.
+no-ops when that secret is missing or the leftover-gold queue is empty. The
+queue is selected before any paid provider probe. See the
+[automation audit](docs/automation-audit-2026-10-12.md) for the complete schedule,
+model availability, and integration review matrix.
 
 The runtime paths are deliberately bounded for catalog-scale traffic:
 
@@ -676,7 +683,11 @@ misses, and archive pagination misses do not consume the ban budget.
 Point both the apex and `www` DNS records at the Droplet before setup. Managed
 Caddy obtains certificates for both names and permanently redirects `www` to
 the apex canonical host; redirecting only at HTTP would leave HTTPS crawlers
-unable to complete the TLS handshake.
+unable to complete the TLS handshake. The same stack can serve
+`security-recipes.si` and `www.security-recipes.si` from those upstreams
+(`SECURITY_RECIPES_MIRROR_DOMAIN`); visible brand chrome follows the request
+`Host`, while SEO canonicals stay on `https://security-recipes.ai/`. See
+[README.caddy-deploy.md](README.caddy-deploy.md).
 
 Existing Droplets need this one-time, idempotent activation after deploying
 the commit that contains the jail:

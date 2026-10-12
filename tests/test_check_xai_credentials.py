@@ -16,6 +16,23 @@ from scripts import run_grok_agent as grok_agent
 
 
 class CheckXAICredentialsTests(unittest.TestCase):
+    def test_definitive_model_or_request_rejection_disables_paid_work(self) -> None:
+        for code in (400, 404):
+            with self.subTest(code=code), tempfile.TemporaryDirectory() as tmpdir:
+                output = Path(tmpdir) / "github-output.txt"
+                error = HTTPError(
+                    enrichment.DEFAULT_API_URL, code, "Rejected", {},
+                    BytesIO(b'{"error":{"message":"private provider detail"}}'),
+                )
+                with (
+                    patch.dict(os.environ, {"XAI_API_KEY": "test-key"}, clear=True),
+                    patch.object(enrichment, "urlopen", side_effect=error),
+                    redirect_stdout(StringIO()) as stdout,
+                ):
+                    self.assertEqual(check.main(["--github-output", str(output)]), 0)
+                self.assertIn("usable=false", output.read_text())
+                self.assertNotIn("private provider detail", stdout.getvalue())
+
     def test_cli_writes_unusable_github_output_for_exhausted_credits(self) -> None:
         status = enrichment.ProviderCredentialStatus("insufficient_quota", usable=False)
         with tempfile.TemporaryDirectory() as tmpdir:
