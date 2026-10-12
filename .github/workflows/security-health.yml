@@ -2,7 +2,7 @@ name: Security health
 
 # This repository consumes its own published action: an LLM check grounded
 # in the hosted security-recipes.ai MCP context, running on the existing
-# xAI/Grok key with the model auto-selected to the lowest available.
+# xAI/Grok key with an explicit, authenticated model setting.
 
 on:
   pull_request:
@@ -53,6 +53,7 @@ jobs:
         if: steps.auth.outputs.configured == 'true'
         uses: ./actions/security-health
         with:
+          model: ${{ vars.XAI_HEALTH_MODEL || vars.XAI_MODEL || 'grok-4.6' }}
           provider: xai
           api-key: ${{ secrets.XAI_API_KEY }}
           check-containers: "true"

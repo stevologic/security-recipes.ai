@@ -110,7 +110,7 @@ jobs:
         if: steps.auth.outputs.configured == 'true' && steps.work.outputs.needed == 'true'
         env:
           XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
-          XAI_MODEL: ${{ vars.XAI_MODEL || 'grok-4.6' }}
+          XAI_MODEL: ${{ vars.XAI_TRIAGE_MODEL || vars.XAI_MODEL || 'grok-4.6' }}
         shell: bash
         run: python scripts/check_xai_credentials.py --github-output "$GITHUB_OUTPUT"
 
@@ -123,7 +123,7 @@ jobs:
         if: steps.xai.outputs.usable == 'true'
         env:
           XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
-          XAI_MODEL: ${{ vars.XAI_MODEL || 'grok-4.6' }}
+          XAI_MODEL: ${{ vars.XAI_TRIAGE_MODEL || vars.XAI_MODEL || 'grok-4.6' }}
           GH_TOKEN: ${{ github.token }}
           TARGET_ISSUE: ${{ github.event_name == 'issues' && github.event.issue.number || '' }}
         shell: bash

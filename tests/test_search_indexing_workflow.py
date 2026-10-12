@@ -2,7 +2,10 @@ from __future__ import annotations
 
 import re
 import unittest
+from contextlib import redirect_stdout
+from io import BytesIO, StringIO
 from pathlib import Path
+from unittest.mock import patch
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -16,12 +19,12 @@ class SearchIndexingWorkflowTests(unittest.TestCase):
         cls.workflow = WORKFLOW.read_text(encoding="utf-8")
 
     def test_runs_after_successful_build_and_by_hand(self) -> None:
-        self.assertIn('cron: "53 7 * * *"', self.workflow)
+        self.assertIn('cron: "53 15 * * *"', self.workflow)
         self.assertNotIn("push:", self.workflow)
         self.assertIn("workflow_run:", self.workflow)
         self.assertIn("- Build", self.workflow)
         self.assertIn(
-            "github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')",
+            "github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.event != 'pull_request')",
             self.workflow,
         )
         self.assertRegex(self.workflow, r"(?m)^\s*workflow_dispatch:\s*$")
@@ -35,6 +38,31 @@ class SearchIndexingWorkflowTests(unittest.TestCase):
         self.assertIn('fetch(f"https://{host}/{key}.txt")', self.workflow)
         self.assertIn("skipping submission", self.workflow)
         self.assertIn("urls[start:start + 10000]", self.workflow)
+
+    def test_build_event_cannot_submit_a_revision_that_is_not_live(self) -> None:
+        # Execute the workflow's real Python under a fake HTTP transport.
+        code = self.workflow.split("python3 - <<'PY'\n", 1)[1].rsplit("          PY", 1)[0]
+        import textwrap
+
+        requests = []
+
+        def open_url(request, timeout):
+            requests.append(request.full_url)
+            return BytesIO(b"b" * 40 + b"\n")
+
+        with (
+            patch.dict("os.environ", {
+                "SITE_HOST": "security-recipes.ai", "INDEXNOW_KEY": "test-key",
+                "EXPECTED_REVISION": "a" * 40,
+            }),
+            patch("urllib.request.urlopen", side_effect=open_url),
+            redirect_stdout(StringIO()) as stdout,
+            self.assertRaises(SystemExit) as exit_result,
+        ):
+            exec(compile(textwrap.dedent(code), "indexnow-workflow", "exec"), {})
+        self.assertEqual(exit_result.exception.code, 0)
+        self.assertEqual(requests, ["https://security-recipes.ai/.well-known/deploy-revision"])
+        self.assertIn("not live yet", stdout.getvalue())
 
     def test_a_declining_endpoint_warns_instead_of_failing_the_run(self) -> None:
         # IndexNow answered 403 for hours after this key was first published,

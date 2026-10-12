@@ -164,7 +164,7 @@ test('this repository runs the action on the existing xAI key', () => {
   assert.equal(actionStep.if, "steps.auth.outputs.configured == 'true'");
   assert.equal(actionStep.with.provider, 'xai');
   assert.equal(actionStep.with['api-key'], '${{ secrets.XAI_API_KEY }}');
-  assert.equal(actionStep.with.model, undefined, 'the model must default to the lowest available');
+  assert.equal(actionStep.with.model, "${{ vars.XAI_HEALTH_MODEL || vars.XAI_MODEL || 'grok-4.6' }}", 'this repository pins a demonstrated model instead of selecting by name');
   const trigger = workflow.on || workflow.true;
   assert.ok(trigger.pull_request !== undefined);
   assert.ok(trigger.schedule);

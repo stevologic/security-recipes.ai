@@ -10,15 +10,15 @@ access token is required.
 | --- | --- | --- |
 | Build (`build.yml`) | push to main or development, PRs, dispatch | Full test/build/image gate; publishes immutable deploy images on non-PR runs (`:SHA` for main, `:SHA-development` for staging) |
 | CVE catalog sync (`cve-catalog-sync.yml`) | daily 09:23 UTC | Refreshes the rolling ten-year CVE catalog, runs xAI/Grok enrichment and recipe drafts, opens/merges its own PR through exact-SHA validation |
-| Content refresh (`content-refresh.yml`) | daily 11:47 UTC | Researches one source-backed opportunity across reviewed remediation workflows, executable playbooks, or non-CVE recipes and submits a validated auto-merge PR when a substantive update is warranted |
-| Leftover review (`leftover-review.yml`) | daily 13:17 UTC | Live-verifies leftover-gold CVE leftovers against GHAD/NVD; leftover-gold criticals and highs drain first, then each run reviews up to 25 leftover-gold medium and low pages and submits a validated auto-merge PR |
+| Content refresh (`content-refresh.yml`) | daily 12:17 UTC | Researches one source-backed opportunity across reviewed remediation workflows, executable playbooks, or non-CVE recipes and submits a validated auto-merge PR when a substantive update is warranted |
+| Leftover review (`leftover-review.yml`) | Monday 14:17 UTC | Live-verifies leftover-gold CVE leftovers against GHAD/NVD; leftover-gold criticals and highs drain first, then each run reviews up to 25 leftover-gold medium and low pages and submits a validated auto-merge PR |
 | CVE catalog validation request (`cve-catalog-validate-request.yml`) | dispatch only | Verifies that an exact SHA is the live head of the requested same-repository PR without checking out or executing PR code |
 | CVE catalog validation (`cve-catalog-validate.yml`) | completed validation request | Revalidates and runs the build-equivalent suite with read-only default-branch cache access, then publishes the required `build` status from a separate no-checkout job |
 | Production watchdog (`production-watchdog.yml`) | every 30 min | Probes the live site, catalog freshness, revision, and TLS; maintains the health issue; self-heals unbuilt revisions and stale catalogs |
-| Automation shepherd (`automation-shepherd.yml`) | every 30 min | Dispatches missing main Builds after token-authored merges, updates stale auto-merge PR branches, and attaches missing build validations |
+| Automation shepherd (`automation-shepherd.yml`) | hourly | Dispatches missing main Builds after token-authored merges, updates stale auto-merge PR branches, and attaches missing build validations |
 | Dependabot auto-merge (`dependabot-automerge.yml`) | Dependabot PRs | Arms auto-merge for verified patch/minor bumps |
 | AI maintenance (`ai-maintenance.yml`) | failure of the workflows above | Grok investigates, fixes the root cause, and opens an auto-merge PR (or documents infra failures on the health issue). Same prompt is the Cursor Automation playbook |
-| AI issue maintenance (`ai-issue-maintenance.yml`) | owner-authored issue events + twice-daily sweep | Grok triages open issues filed by the owner or the automation: fixes via auto-merge PRs with `Closes #n`, closes resolved reports, labels worked issues `automation:ai-triaged`. Same prompt is the Cursor Automation playbook |
+| AI issue maintenance (`ai-issue-maintenance.yml`) | owner-authored issue events + daily 16:41 UTC sweep | Grok triages open issues filed by the owner or the automation: fixes via auto-merge PRs with `Closes #n`, closes resolved reports, labels worked issues `automation:ai-triaged`. Same prompt is the Cursor Automation playbook |
 | Dev DNS record (`dev-dns-record.yml`) | dispatch, pull requests to main, and successful Build runs on main/development | Creates or repairs the DigitalOcean A record for `dev.security-recipes.ai` |
 
 ## Intelligence
@@ -58,10 +58,10 @@ jobs:
 | Automation | Trigger | Prompt | Notes |
 | --- | --- | --- | --- |
 | AI maintenance | GitHub **Workflow run completed**, only failures of Build, CVE catalog sync, Content refresh, Leftover review, Production watchdog, CVE catalog validation, Automation shepherd, AI issue maintenance, and Search indexing, on `main`, `automation/*`, or `dependabot/*` | `.github/prompts/ai-maintenance.md` | The agent reads `FAILED_WORKFLOW_*` when those env vars exist; otherwise it inspects the newest matching failed run |
-| AI issue maintenance | GitHub **Issue opened/reopened** for `stevologic` or `github-actions`, plus a twice-daily schedule at `41 4,16 * * *` | `.github/prompts/ai-issue-maintenance.md` | Work at most three untriaged owner/automation issues; never close `automation:production-health` or `automation:cve-enrichment-health` |
+| AI issue maintenance | GitHub **Issue opened/reopened** for `stevologic` or `github-actions`, plus a daily schedule at `41 16 * * *` | `.github/prompts/ai-issue-maintenance.md` | Work at most three untriaged owner/automation issues; never close `automation:production-health` or `automation:cve-enrichment-health` |
 
 Do not also create Cursor Automations for leftover review or content
-refresh. Those are daily bounded queues and should stay on the Grok CLI
+refresh. Those are bounded queues and should stay on the Grok CLI
 in Actions.
 
 After both Cursor Automations are live and you have seen them open a
@@ -125,3 +125,16 @@ confirms the production handoff landed. Never put `secrets` in a workflow
 | `DIGITALOCEAN_ACCESS_TOKEN` | secret or droplet `deploy.env` | optional | Lets deploy.sh and the Dev DNS record workflow create `dev.security-recipes.ai` |
 | `CVE_AUTO_MERGE_ENABLED` | variable | `true` | Lets the catalog sync merge its own PR |
 | `CVE_AUTOMATION_APP_CLIENT_ID` / `CVE_AUTOMATION_APP_PRIVATE_KEY` | variable / secret | optional | A dedicated GitHub App; when configured, its pushes trigger normal CI events and the dispatch workarounds above become unnecessary |
+
+
+## Cost and model review
+
+See [the dated automation audit](../docs/automation-audit-2026-10-12.md) for
+the before/after schedule matrix, provider access evidence, development branch
+reconciliation, and validation blockers. CVE requests default to five per run
+inside the existing 15-minute budget. Every model job supports a task override:
+`XAI_CVE_MODEL`, `XAI_CONTENT_MODEL`, `XAI_LEFTOVER_MODEL`, `XAI_REPAIR_MODEL`,
+`XAI_TRIAGE_MODEL`, or `XAI_HEALTH_MODEL`, then the existing `XAI_MODEL`.
+Defaults retain the authenticated `grok-4.6`; `grok-4.7` is documented but not
+authenticated in this session. Daybreak remains pending existing-access
+verification; no provider migration has been activated.

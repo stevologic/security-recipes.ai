@@ -4,7 +4,7 @@ linkTitle: Site data pipeline
 weight: 9
 toc: true
 date: 2026-08-26
-lastmod: 2026-08-26
+lastmod: 2026-10-12
 description: >
   How NVD feeds, CISA KEV, committed recipes, and GitHub jobs become catalog
   shards, Eleventy pages, CVE landing routes, sitemaps, MCP, and a live deploy.
@@ -33,7 +33,7 @@ flowchart TB
 
     SYNC["cve-catalog-sync.yml<br/>09:23 UTC daily"]
     SYNCPY["scripts/sync_cve_catalog.py"]
-    XAI["Optional xAI enrichment<br/>default 20 new or changed CVEs"]
+    XAI["Optional xAI enrichment<br/>default 5 new or changed CVEs"]
     CAT["Committed static/api/cve-catalog"]
     CACHE["Committed data/cve/ai-enrichments.json"]
     PIPE["scripts/run_generator_pipeline.py --write"]
@@ -42,8 +42,8 @@ flowchart TB
     VAL["cve-catalog-validate.yml<br/>read-only-cache worker"]
 
     HUMAN["Human PRs"]
-    REFRESH["content-refresh.yml<br/>11:47 UTC daily"]
-    LEFT["leftover-review.yml<br/>13:17 UTC daily"]
+    REFRESH["content-refresh.yml<br/>12:17 UTC daily"]
+    LEFT["leftover-review.yml<br/>14:17 UTC Monday"]
     DRAFTS["Development leftover Markdown<br/>noindex, no Eleventy HTML"]
 
     MAIN["main"]
@@ -122,7 +122,7 @@ ID. Archetype text used to compose a conservative recipe lives in
 3. Joins CISA KEV by CVE ID.
 4. Reapplies local Markdown from `content/recipes/cve/`.
 5. Optionally asks xAI/Grok to enrich **new or source-changed** records.
-   Default limit is **20** per run (`XAI_ENRICHMENT_LIMIT`, max 50). If
+   Default limit is **5** per run (`XAI_ENRICHMENT_LIMIT`, max 50). If
    `XAI_API_KEY` is missing, source sync still finishes and valid cached
    enrichments stay. Most catalog rows are not AI-enriched.
 6. May write development drafts at
@@ -161,7 +161,7 @@ Catalog sync does not write playbooks, docs, or non-CVE recipes.
 overrides) is the normal editorial path. A merge to `main` is enough to
 trigger Build.
 
-**`content-refresh.yml`.** Daily at **11:47 UTC**. Explicitly not CVE ingest.
+**`content-refresh.yml`.** Daily at **12:17 UTC**. Explicitly not CVE ingest.
 If `XAI_API_KEY` is usable, `scripts/run_grok_agent.py` runs
 `.github/prompts/content-refresh.md`: at most one bounded edit to reviewed
 non-CVE workflows, playbooks, or recipes. Out of scope:
@@ -169,7 +169,7 @@ non-CVE workflows, playbooks, or recipes. Out of scope:
 opens `automation/content-refresh-*` and labels it
 `automation:content-refresh`. If the key is missing, the job is a no-op.
 
-**`leftover-review.yml`.** Daily at **13:17 UTC**. Inactive until
+**`leftover-review.yml`.** Monday at **14:17 UTC**. Inactive until
 `XAI_API_KEY` is set.
 `scripts/pick_leftover_review_queue.py` selects leftover-gold pages under
 `content/recipes/cve/`, ordered critical → high → medium → low, up to
@@ -323,8 +323,10 @@ the server is streamable-HTTP.
 
 ## Search engines
 
-`.github/workflows/search-indexing.yml` runs on push to `main` and daily at
-**07:53 UTC**. It fetches the **live** `https://security-recipes.ai/sitemap.xml`,
+`.github/workflows/search-indexing.yml` runs after successful main Builds and
+daily at **15:53 UTC**. Build-triggered submissions wait until the exact
+completed revision is live; PR and staging Builds do not submit the production
+sitemap. It fetches the **live** `https://security-recipes.ai/sitemap.xml`,
 walks child sitemaps, and POSTs those URLs to IndexNow. Google is not an
 IndexNow consumer; it is expected to use the sitemap and Search Console.
 

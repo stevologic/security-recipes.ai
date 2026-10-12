@@ -342,7 +342,11 @@ def probe_provider_credentials(
         reason = classify_provider_http_error(exc)
         return ProviderCredentialStatus(
             reason,
-            usable=reason not in {"insufficient_quota", "invalid_key", "permission_denied"},
+            # A missing model or invalid request is a configuration failure,
+            # not a transient outage. Do not start a paid CLI investigation
+            # after a definitive 400/404 rejection of a selected model.
+            usable=(exc.code >= 500 or exc.code in {408, 409, 429})
+            and reason not in {"insufficient_quota", "invalid_key", "permission_denied"},
             http_status=exc.code,
             **status_kwargs,
         )

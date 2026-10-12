@@ -17,8 +17,8 @@ class LeftoverReviewWorkflowTests(unittest.TestCase):
         cls.prompt = PROMPT.read_text(encoding="utf-8")
         cls.source = " ".join((cls.workflow + "\n" + cls.prompt).split())
 
-    def test_runs_daily_and_can_be_dispatched(self) -> None:
-        self.assertIn('cron: "17 13 * * *"', self.workflow)
+    def test_runs_weekly_and_can_be_dispatched(self) -> None:
+        self.assertIn('cron: "17 14 * * 1"', self.workflow)
         self.assertIn("workflow_dispatch:", self.workflow)
         self.assertIn("group: leftover-review", self.workflow)
         self.assertIn("cancel-in-progress: false", self.workflow)
@@ -57,6 +57,15 @@ class LeftoverReviewWorkflowTests(unittest.TestCase):
     def test_empty_queue_skips_grok(self) -> None:
         self.assertIn("steps.queue.outputs.selected != '0'", self.workflow)
         self.assertIn("scripts/run_grok_agent.py --prompt-file .github/prompts/leftover-review.md", self.workflow)
+
+    def test_empty_queue_is_checked_before_the_paid_provider_probe(self) -> None:
+        self.assertLess(
+            self.workflow.index("- name: Select leftover-gold queue"),
+            self.workflow.index("- name: Verify xAI credentials are usable"),
+        )
+        probe = self.workflow.split("- name: Verify xAI credentials are usable", 1)[1]
+        probe = probe.split("- name: Install Grok CLI", 1)[0]
+        self.assertIn("steps.queue.outputs.selected != '0'", probe)
 
     def test_actions_are_pinned_to_full_commit_shas(self) -> None:
         references = re.findall(r"(?m)^\s*uses:\s*([^#\s]+)", self.workflow)

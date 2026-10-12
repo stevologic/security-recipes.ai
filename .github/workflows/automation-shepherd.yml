@@ -11,7 +11,7 @@ name: Automation shepherd
 #   validation that publishes the required context.
 #
 # Completions of workflows that GITHUB_TOKEN itself dispatched do not emit
-# workflow_run events. The half-hourly schedule and the explicit
+# workflow_run events. The hourly schedule and the explicit
 # workflow_dispatch kicks from validation and Build close that hole.
 # workflow_run still covers human- and Dependabot-triggered completions.
 # The shepherd never dispatches itself. A concurrency group queues
@@ -19,7 +19,7 @@ name: Automation shepherd
 
 on:
   schedule:
-    - cron: "7,37 * * * *"
+    - cron: "7 * * * *"
   workflow_run:
     workflows:
       - Build

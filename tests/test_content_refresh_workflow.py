@@ -14,7 +14,7 @@ class ContentRefreshWorkflowTests(unittest.TestCase):
         cls.prompt = PROMPT.read_text(encoding="utf-8")
 
     def test_runs_daily_and_can_be_dispatched(self) -> None:
-        self.assertIn('cron: "47 11 * * *"', self.workflow)
+        self.assertIn('cron: "17 12 * * *"', self.workflow)
         self.assertIn("workflow_dispatch:", self.workflow)
         self.assertIn("group: content-refresh", self.workflow)
         self.assertIn("cancel-in-progress: false", self.workflow)
