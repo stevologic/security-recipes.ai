@@ -3,6 +3,7 @@ from __future__ import annotations
 import re
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -55,9 +56,63 @@ class AiMaintenanceWorkflowTests(unittest.TestCase):
             2,
         )
 
-    def test_repair_prompt_routes_delivery_through_the_shepherd(self) -> None:
+    def test_job_gate_rejects_fork_branches_before_credentials(self) -> None:
+        # Evaluate the actual folded job condition, including its grouping:
+        # a matching branch prefix must never bypass repository identity.
+        folded = self.workflow.split("  repair:\n    if: >-\n", 1)[1]
+        expression = folded.split("\n    runs-on:", 1)[0].strip()
+        expression = expression.replace("&&", "and").replace("||", "or")
+        expression = " ".join(expression.split())
+        repository = "stevologic/security-recipes.ai"
+
+        def permits(
+            head_repository: str | None,
+            branch: str,
+            conclusion: str = "failure",
+        ) -> bool:
+            run = SimpleNamespace(
+                head_repository=SimpleNamespace(full_name=head_repository),
+                head_branch=branch,
+                conclusion=conclusion,
+            )
+            github = SimpleNamespace(
+                repository=repository,
+                event=SimpleNamespace(workflow_run=run),
+            )
+            return bool(eval(expression, {"__builtins__": {}}, {
+                "github": github,
+                "startsWith": lambda value, prefix: value.startswith(prefix),
+            }))
+
+        for branch in (
+            "main",
+            "automation/cve-catalog-sync",
+            "automation/ai-fix-test",
+            "dependabot/pip/main/ruff",
+        ):
+            with self.subTest(branch=branch):
+                self.assertTrue(permits(repository, branch))
+                self.assertFalse(permits("attacker/security-recipes.ai", branch))
+                self.assertFalse(permits(None, branch))
+                self.assertFalse(permits(repository, branch, "success"))
+        self.assertFalse(permits(repository, "feature/unrelated"))
+
+    def test_checkout_and_prompt_preserve_the_trusted_input_boundary(self) -> None:
+        self.assertIn("ref: ${{ github.event.repository.default_branch }}", self.workflow)
+        self.assertIn("persist-credentials: false", self.workflow)
+        self.assertIn("head_repository.full_name", self.prompt)
+        self.assertIn("before reading its logs", self.prompt)
+        self.assertIn("untrusted diagnostic data", self.prompt)
+        self.assertIn("Never execute fork code", self.prompt)
+
+    def test_repair_prompt_routes_delivery_through_reviewed_development(self) -> None:
         self.assertIn("automation/ai-fix-", self.prompt)
-        self.assertIn("gh pr merge --auto --squash", self.prompt)
+        self.assertIn("gh pr create --draft --base development", self.prompt)
+        self.assertNotIn("gh pr merge", self.prompt)
+        self.assertIn("Never enable auto-merge", self.prompt)
+        self.assertIn("Require explicit owner and", self.prompt)
+        self.assertIn("Security review before integration", self.prompt)
+        self.assertIn("separate reviewed PR to main", self.prompt)
         self.assertIn("never merge directly", self.prompt)
         self.assertIn("automation:production-health", self.prompt)
         self.assertIn("never force-push", self.prompt)
@@ -80,6 +135,8 @@ class AiMaintenanceWorkflowTests(unittest.TestCase):
     def test_workflow_permissions_stay_scoped_to_the_repair_job(self) -> None:
         self.assertIn("permissions: {}", self.workflow)
         job_section = self.workflow.split("jobs:", 1)[1]
+        self.assertRegex(job_section, r"(?m)^\s{6}actions: read\s*$")
+        self.assertNotRegex(job_section, r"(?m)^\s{6}actions: write\s*$")
         self.assertRegex(job_section, r"(?m)^\s{6}contents: write\s*$")
         self.assertRegex(job_section, r"(?m)^\s{6}pull-requests: write\s*$")
 
