@@ -89,11 +89,18 @@
     "failure_count": 0,
     "freshness_class_counts": {
       "current_reference": 25,
-      "recent_signal": 7,
+      "recent_signal": 8,
       "standing_reference": 10,
       "undated_review_required": 4
     },
     "newest_sources": [
+      {
+        "id": "nist-nccoe-agentic-identity-comments-2026",
+        "name": "Summary of Comments on the Software and Agentic AI Identity and Authorization Concept Paper",
+        "published": "2026-09-29",
+        "publisher_family": "NIST",
+        "url": "https://pages.nist.gov/nccoe-ai-identity/summary-of-comments.html"
+      },
       {
         "id": "nist-agentic-identity-foundation-2026",
         "name": "Back to the Future: Why Agentic AI Needs a Strong Identity Foundation",
@@ -142,13 +149,6 @@
         "published": "2026-07-28",
         "publisher_family": "Model Context Protocol",
         "url": "https://modelcontextprotocol.io/specification/2026-07-28/changelog"
-      },
-      {
-        "id": "openai-agents-sdk-guardrails-2026",
-        "name": "OpenAI Agents SDK Guardrails",
-        "published": "2026-05-04",
-        "publisher_family": "OpenAI",
-        "url": "https://openai.github.io/openai-agents-js/guides/guardrails/"
       }
     ],
     "primary_watchlist_count": 10,
@@ -161,7 +161,7 @@
       "Linux Foundation": 1,
       "Microsoft": 1,
       "Model Context Protocol": 10,
-      "NIST": 5,
+      "NIST": 6,
       "OWASP": 7,
       "OpenAI": 5,
       "OpenTelemetry": 1,
@@ -171,7 +171,7 @@
       "frontier_lab_guidance": 6,
       "government_framework": 4,
       "government_guidance": 3,
-      "government_security_signal": 1,
+      "government_security_signal": 2,
       "incident_intelligence": 1,
       "industry_framework": 1,
       "industry_guidance": 3,
@@ -183,10 +183,9 @@
       "vendor_architecture_guidance": 1
     },
     "status": "source_freshness_ready",
-    "unique_source_reference_count": 46,
+    "unique_source_reference_count": 47,
     "watch_decision_counts": {
-      "current": 8,
-      "review_due": 1
+      "current": 9
     },
     "watch_source_count": 9
   },
@@ -408,7 +407,7 @@
     },
     "agentic-threat-radar-sources": {
       "path": "data/intelligence/agentic-threat-radar-sources.json",
-      "sha256": "4d53c7512746ac9cd4457bb725efc18f07fa13b17dbe7ade1ccb12b1ad6973e8"
+      "sha256": "0047c90b78bda656dc46afaa590f44c77503158558e977478fd220a7747cf4bf"
     },
     "agentic_source_freshness_profile": {
       "path": "data/assurance/agentic-source-freshness-profile.json",
@@ -1328,6 +1327,27 @@
       "why_it_matters": "NIST continues expanding AI RMF work, including a 2026 concept note for trustworthy AI in critical infrastructure, reinforcing governance, measurement, and lifecycle risk management."
     },
     {
+      "freshness_class": "recent_signal",
+      "id": "nist-nccoe-agentic-identity-comments-2026",
+      "name": "Summary of Comments on the Software and Agentic AI Identity and Authorization Concept Paper",
+      "published": "2026-09-29",
+      "published_age_days": 13,
+      "published_date": "2026-09-29",
+      "publisher": "NIST NCCoE",
+      "publisher_family": "NIST",
+      "referenced_by": [
+        {
+          "path": "data/intelligence/agentic-threat-radar-sources.json",
+          "watched_source_id": "agentic-threat-radar-sources",
+          "watched_source_title": "Agentic Threat Radar Sources"
+        }
+      ],
+      "source_class": "government_security_signal",
+      "source_class_family": "government",
+      "url": "https://pages.nist.gov/nccoe-ai-identity/summary-of-comments.html",
+      "why_it_matters": "NCCoE's September 29, 2026 comments summary, drawn from more than 600 responses, says agent identity should reuse OAuth, SPIFFE, and MCP rather than a parallel stack, issue distinct verifiable non-human identities at ephemeral scale, and treat credential sharing and local user impersonation as anti-patterns."
+    },
+    {
       "freshness_class": "standing_reference",
       "id": "owasp-agentic-threats-2025",
       "name": "Agentic AI Threats and Mitigations",
@@ -1832,20 +1852,18 @@
       "why": "This is the standards-to-evidence artifact buyers use for procurement, platform architecture, and acquisition diligence."
     },
     {
-      "blockers": [
-        "review due after 2026-10-11"
-      ],
+      "blockers": [],
       "business_criticality": "critical",
-      "decision": "review_due",
+      "decision": "current",
       "id": "agentic-threat-radar-sources",
-      "last_reviewed": "2026-09-27",
+      "last_reviewed": "2026-10-12",
       "path": "data/intelligence/agentic-threat-radar-sources.json",
-      "reference_count": 23,
+      "reference_count": 24,
       "reference_paths": [
         "source_references"
       ],
       "review_cadence_days": 14,
-      "review_due_at": "2026-10-11",
+      "review_due_at": "2026-10-26",
       "title": "Agentic Threat Radar Sources",
       "why": "This is the market and threat-intelligence spine for the product roadmap and buyer narrative."
     },
