@@ -1,12 +1,12 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-09-28",
+  "last_reviewed": "2026-10-13",
   "intent": "Create an enterprise Agent Trust Fabric profile for SecurityRecipes that turns identity, behavior, context, least-privilege scope, telemetry, containment, source freshness, and buyer proof into one deterministic trust verdict before an agent retrieves secure context, invokes MCP tools, delegates, writes memory, or performs high-impact actions.",
   "positioning": {
     "buyer": "AI platform, product security, CISO, GRC, model-risk, SOC, procurement-security, and acquisition diligence teams",
     "category": "Agentic AI zero-trust decision fabric",
     "enterprise_promise": "SecurityRecipes can answer the board-level question 'which agents can we trust right now?' with generated evidence, source hashes, runtime decisions, and MCP tools instead of narrative policy.",
-    "why_now": "2026 agent deployments are moving from pilots to autonomous action. NIST's August 27, 2026 identity guidance warns that shared human credentials, long-lived API keys, and local user-account impersonation recreate classic IAM failures at agent scale. Every agent still needs a unique identity, least-privilege scope, governed context, telemetry, and fast containment."
+    "why_now": "2026 agent deployments are moving from pilots to autonomous action. NIST's August 27, 2026 identity guidance warns that shared human credentials, long-lived API keys, and local user-account impersonation recreate classic IAM failures at agent scale. NCCoE's September 29, 2026 comments summary, drawn from more than 600 responses, says sender-constrained credentials (OAuth DPoP or mTLS using SPIFFE or WIMSE identities) are essential to reduce bearer-token replay, and that ephemeral credentials should be bound to a stable identity anchor via proof-of-possession. Every agent still needs a unique identity, least-privilege scope, governed context, telemetry, and fast containment."
   },
   "source_references": [
     {
@@ -53,6 +53,15 @@
       "url": "https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation",
       "source_class": "government_security_signal",
       "why_it_matters": "NIST warns that agent rollouts are repeating IAM mistakes: shared human credentials, long-lived API keys and bearer tokens, overly broad access, local user-account impersonation, and over-reliance on human-in-the-loop approvals. Agents need unique identifiers and short-lived scoped credentials, not borrowed user sessions."
+    },
+    {
+      "id": "nist-nccoe-agentic-identity-comments-2026",
+      "name": "Summary of Comments on the Software and Agentic AI Identity and Authorization Concept Paper",
+      "publisher": "NIST NCCoE",
+      "published": "2026-09-29",
+      "url": "https://pages.nist.gov/nccoe-ai-identity/summary-of-comments.html",
+      "source_class": "government_security_signal",
+      "why_it_matters": "NCCoE's September 29, 2026 comments summary, drawn from more than 600 responses, says sender-constrained credentials (OAuth DPoP or mTLS using SPIFFE or WIMSE identities) are essential to reduce bearer-token replay, and that ephemeral credentials should be bound to a stable identity anchor via proof-of-possession rather than reused as unconstrained bearer tokens."
     },
     {
       "id": "mcp-authorization-2026-07-28",
@@ -199,7 +208,7 @@
       "id": "identity",
       "title": "Verifiable Agent Identity",
       "weight": 20,
-      "question": "Who is the agent, which unique delegated identity is it using, and is that identity a shared human credential, static token, or local user-account impersonation?",
+      "question": "Who is the agent, which unique delegated identity is it using, and is that identity a shared human credential, static token, unconstrained bearer, or local user-account impersonation?",
       "required_evidence": [
         "agent_identity_ledger",
         "agentic_entitlement_review_pack",
@@ -218,6 +227,7 @@
         "identity_used_after_revocation",
         "shared_human_credential",
         "long_lived_static_credential",
+        "unconstrained_bearer_token",
         "local_user_account_impersonation"
       ]
     },
@@ -369,7 +379,7 @@
         "write_scoped_branch",
         "request_step_up"
       ],
-      "promotion_gate": "Action runtime, authorization, egress, telemetry, approval, and receipt evidence are bound to the run."
+      "promotion_gate": "Action runtime, authorization, egress, telemetry, approval, and receipt evidence are bound to the run, and the agent credential is sender-constrained to its identity anchor."
     },
     {
       "id": "principal",
@@ -404,7 +414,8 @@
       "requested trust tier exceeds generated workflow tier and no approval exists",
       "required evidence fields are missing after normalization",
       "trust score falls below deny threshold",
-      "agent authenticates with a long-lived static API key or unconstrained bearer token"
+      "agent authenticates with a long-lived static API key",
+      "agent authenticates with an unconstrained bearer token instead of a sender-constrained credential bound to its identity anchor"
     ],
     "kill_when": [
       "token passthrough is observed",

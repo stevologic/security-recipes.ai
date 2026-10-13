@@ -312,7 +312,12 @@ def tabletop_cases() -> list[dict[str, Any]]:
         {
             "expected_decision": "deny_untrusted_agent",
             "id": "long-lived-static-credential",
-            "trigger": "An agent authenticates with a long-lived static API key or unconstrained bearer token instead of a unique, short-lived, scoped credential."
+            "trigger": "An agent authenticates with a long-lived static API key instead of a unique, short-lived, scoped credential."
+        },
+        {
+            "expected_decision": "deny_untrusted_agent",
+            "id": "unconstrained-bearer-token",
+            "trigger": "An agent presents an unconstrained bearer token instead of a sender-constrained credential (OAuth DPoP or mTLS) bound to its identity anchor."
         },
         {
             "expected_decision": "kill_session_on_agent_trust_break",
