@@ -86,6 +86,20 @@ class AgentTrustFabricIdentityTests(unittest.TestCase):
             any("long-lived static" in item for item in result["violations"])
         )
 
+    def test_unconstrained_bearer_token_is_denied(self) -> None:
+        result = evaluate_agent_trust_fabric_decision(
+            self.pack,
+            _trusted_request(unconstrained_bearer_token=True),
+        )
+        self.assertEqual(result["decision"], "deny_untrusted_agent")
+        self.assertFalse(result["allowed"])
+        self.assertTrue(
+            any("unconstrained bearer" in item for item in result["violations"])
+        )
+        self.assertTrue(
+            any("sender-constrained" in item for item in result["violations"])
+        )
+
     def test_shared_human_credential_indicator_matches_kill_signal(self) -> None:
         result = evaluate_agent_trust_fabric_decision(
             self.pack,
@@ -100,6 +114,7 @@ class AgentTrustFabricIdentityTests(unittest.TestCase):
             if isinstance(row, dict)
         }
         self.assertIn("nist-agentic-identity-foundation-2026", source_ids)
+        self.assertIn("nist-nccoe-agentic-identity-comments-2026", source_ids)
 
 
 if __name__ == "__main__":

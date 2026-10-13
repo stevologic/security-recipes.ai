@@ -134,6 +134,7 @@ def normalize_request(runtime_request: dict[str, Any]) -> dict[str, Any]:
         "shared_human_credential",
         "telemetry_redaction_failure",
         "token_passthrough",
+        "unconstrained_bearer_token",
         "untrusted_context",
     ]:
         request[key] = as_bool(request.get(key))
@@ -215,6 +216,7 @@ def score_dimensions(pack: dict[str, Any], request: dict[str, Any], missing: lis
         request.get("identity_used_after_revocation")
         or request.get("shared_human_credential")
         or request.get("long_lived_static_credential")
+        or request.get("unconstrained_bearer_token")
         or request.get("local_user_account_impersonation")
         or is_negative_decision(request.get("authorization_decision"))
     ):
@@ -374,7 +376,19 @@ def evaluate_agent_trust_fabric_decision(pack: dict[str, Any], runtime_request: 
             score=min(score, 49),
             dimensions=dimensions,
             reason="agent identity used a long-lived static credential instead of a short-lived scoped token",
-            violations=["agent authenticates with a long-lived static API key or unconstrained bearer token"],
+            violations=["agent authenticates with a long-lived static API key"],
+        )
+
+    if request.get("unconstrained_bearer_token"):
+        return decision_result(
+            decision="deny_untrusted_agent",
+            pack=pack,
+            request=request,
+            workflow=workflow,
+            score=min(score, 49),
+            dimensions=dimensions,
+            reason="agent identity used an unconstrained bearer token instead of a sender-constrained credential bound to its identity anchor",
+            violations=["agent authenticates with an unconstrained bearer token instead of a sender-constrained credential bound to its identity anchor"],
         )
 
     tier_ok, tier_reasons = requested_tier_allowed(pack, workflow, request, score)
@@ -485,6 +499,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--identity-used-after-revocation", action="store_true")
     parser.add_argument("--local-user-account-impersonation", action="store_true")
     parser.add_argument("--long-lived-static-credential", action="store_true")
+    parser.add_argument("--unconstrained-bearer-token", action="store_true")
     parser.add_argument("--missing-trace-context", action="store_true")
     parser.add_argument("--prompt-injection-signal", action="store_true")
     parser.add_argument("--repeated-denied-action", action="store_true")
@@ -541,6 +556,7 @@ def request_from_args(args: argparse.Namespace) -> dict[str, Any]:
         "tenant_id": args.tenant_id,
         "token_passthrough": args.token_passthrough,
         "trust_event_id": args.trust_event_id,
+        "unconstrained_bearer_token": args.unconstrained_bearer_token,
         "untrusted_context": args.untrusted_context,
         "workflow_id": args.workflow_id,
     }

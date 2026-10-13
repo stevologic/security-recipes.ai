@@ -23,12 +23,12 @@
     "why_it_is_differentiated": "Most agent guidance stops at controls. The trust fabric composes generated evidence into an allow, hold, deny, or kill decision that agents and auditors can consume."
   },
   "failures": [],
-  "generated_at": "2026-09-28",
+  "generated_at": "2026-10-13",
   "positioning": {
     "buyer": "AI platform, product security, CISO, GRC, model-risk, SOC, procurement-security, and acquisition diligence teams",
     "category": "Agentic AI zero-trust decision fabric",
     "enterprise_promise": "SecurityRecipes can answer the board-level question 'which agents can we trust right now?' with generated evidence, source hashes, runtime decisions, and MCP tools instead of narrative policy.",
-    "why_now": "2026 agent deployments are moving from pilots to autonomous action. NIST's August 27, 2026 identity guidance warns that shared human credentials, long-lived API keys, and local user-account impersonation recreate classic IAM failures at agent scale. Every agent still needs a unique identity, least-privilege scope, governed context, telemetry, and fast containment."
+    "why_now": "2026 agent deployments are moving from pilots to autonomous action. NIST's August 27, 2026 identity guidance warns that shared human credentials, long-lived API keys, and local user-account impersonation recreate classic IAM failures at agent scale. NCCoE's September 29, 2026 comments summary, drawn from more than 600 responses, says sender-constrained credentials (OAuth DPoP or mTLS using SPIFFE or WIMSE identities) are essential to reduce bearer-token replay, and that ephemeral credentials should be bound to a stable identity anchor via proof-of-possession. Every agent still needs a unique identity, least-privilege scope, governed context, telemetry, and fast containment."
   },
   "runtime_policy": {
     "decision_order": [
@@ -43,7 +43,8 @@
       "requested trust tier exceeds generated workflow tier and no approval exists",
       "required evidence fields are missing after normalization",
       "trust score falls below deny threshold",
-      "agent authenticates with a long-lived static API key or unconstrained bearer token"
+      "agent authenticates with a long-lived static API key",
+      "agent authenticates with an unconstrained bearer token instead of a sender-constrained credential bound to its identity anchor"
     ],
     "kill_when": [
       "token passthrough is observed",
@@ -79,7 +80,7 @@
       "failure_count": 0,
       "path": "data/evidence/agentic-action-runtime-pack.json",
       "schema_version": "1.0",
-      "sha256": "949b01eef3d919e35de8b67ecbe2cbb12ab02eb91ccfdeb1e60d53a4b0283fa4",
+      "sha256": "cda2f368f95bdb8665421ea887f1f4f2d9573b357c60ebf89484267636755851",
       "summary_keys": [
         "action_runtime_summary"
       ]
@@ -88,7 +89,7 @@
       "failure_count": 0,
       "path": "data/evidence/agentic-entitlement-review-pack.json",
       "schema_version": "1.0",
-      "sha256": "8ab30fe99616ff6828ba8cb4aa0b2ca3c6d0f211e5a0c0c7f45dffab239f36aa",
+      "sha256": "48f576aa59d52342ae827cc8dfe1e5e0af5d6b05ef9f856267be731f4d698156",
       "summary_keys": [
         "entitlement_review_summary"
       ]
@@ -97,7 +98,7 @@
       "failure_count": 0,
       "path": "data/evidence/agentic-run-receipt-pack.json",
       "schema_version": "1.0",
-      "sha256": "4e29209942597d8b25bf61caf3467dc4204f6d7ccb0582932c79eb00cc7f2255",
+      "sha256": "c1b4d5fd7d81b8e67f4ac7bb24587b08453811b337b4520af03dab5531472f3c",
       "summary_keys": [
         "receipt_summary"
       ]
@@ -106,7 +107,7 @@
       "failure_count": 0,
       "path": "data/evidence/agentic-soc-detection-pack.json",
       "schema_version": "1.0",
-      "sha256": "e510be94c119036be2e199b4244eeec603b2b1850a86a9cf1cdcc2e8752804e5",
+      "sha256": "c59df4669e9ab19507da8d16ab8a8dc154d13c176a752ca2ab5dd2365e5cdb02",
       "summary_keys": [
         "detection_summary"
       ]
@@ -115,7 +116,7 @@
       "failure_count": 0,
       "path": "data/evidence/agentic-source-freshness-watch.json",
       "schema_version": "1.0",
-      "sha256": "886b713713bf8ee23829c8749998acf50a49be0c2dcbc08b740584187adfe726",
+      "sha256": "edacc06ecab5e9a4b5c974354a605dd0fde7d55ee13864e711270f1199c9d9be",
       "summary_keys": [
         "freshness_summary"
       ]
@@ -124,7 +125,7 @@
       "failure_count": 0,
       "path": "data/evidence/agentic-telemetry-contract.json",
       "schema_version": "1.0",
-      "sha256": "a94395e5b513abfd0d9741eda3613c9a79add0d2382d27a7b1d83f231d4d3f76",
+      "sha256": "1f7d176e4276188f3f02cdf00d05a27f0dfc43bb6484f5747e47f3da0010a544",
       "summary_keys": [
         "telemetry_summary"
       ]
@@ -133,7 +134,7 @@
       "failure_count": 0,
       "path": "data/evidence/context-egress-boundary-pack.json",
       "schema_version": "1.0",
-      "sha256": "1079cc1b9451c60a02c8657f235d34e0f0274259e524e3936f995a9c37930c5f",
+      "sha256": "3a489e658215c6b8624480a4eaa4a03370808c1692649791e867f129c9474f39",
       "summary_keys": [
         "egress_boundary_summary"
       ]
@@ -142,7 +143,7 @@
       "failure_count": 0,
       "path": "data/evidence/context-poisoning-guard-pack.json",
       "schema_version": "1.0",
-      "sha256": "65058cb0ff85f2884f12b0c263d681fdb9f5c347ab461aa5719a8e5e2f7b09f3",
+      "sha256": "8f949259ada648bfe8d43175d75b3b3b7b22ed3381c7c46da71f91985a30f9e5",
       "summary_keys": [
         "guard_summary"
       ]
@@ -151,7 +152,7 @@
       "failure_count": 0,
       "path": "data/evidence/enterprise-trust-center-export.json",
       "schema_version": "1.0",
-      "sha256": "18675d4f01567607e1d83b0cc3807025f2f068a8fc215f4ad5c1459e0f725b9a",
+      "sha256": "76b63d74ca4d7e6a544bd0f87dd4b3ea2399e555f92420415f3973ee6efe1b3e",
       "summary_keys": [
         "export_summary"
       ]
@@ -160,7 +161,7 @@
       "failure_count": 0,
       "path": "data/evidence/hosted-mcp-readiness-pack.json",
       "schema_version": "1.0",
-      "sha256": "af7ef78d5605c5cecee71aaad9d8d42a95d9a86051180590f44af32c750cbda5",
+      "sha256": "f9216d9f09f82d302ed25b87230741b6a0b95967428ac3d5a7a134c206cb5758",
       "summary_keys": [
         "hosted_mcp_readiness_summary"
       ]
@@ -178,7 +179,7 @@
       "failure_count": 0,
       "path": "data/evidence/secure-context-trust-pack.json",
       "schema_version": "1.0",
-      "sha256": "d578391d42eede00eb569b78abbad6032c291c8c948d00d46c907ea93a6aa561",
+      "sha256": "510edf772dd5ed2d31fa91dd1e3ec3df4d6004ee599e02015c816ee2cb50b7e2",
       "summary_keys": [
         "context_trust_summary"
       ]
@@ -236,6 +237,15 @@
       "source_class": "government_security_signal",
       "url": "https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation",
       "why_it_matters": "NIST warns that agent rollouts are repeating IAM mistakes: shared human credentials, long-lived API keys and bearer tokens, overly broad access, local user-account impersonation, and over-reliance on human-in-the-loop approvals. Agents need unique identifiers and short-lived scoped credentials, not borrowed user sessions."
+    },
+    {
+      "id": "nist-nccoe-agentic-identity-comments-2026",
+      "name": "Summary of Comments on the Software and Agentic AI Identity and Authorization Concept Paper",
+      "published": "2026-09-29",
+      "publisher": "NIST NCCoE",
+      "source_class": "government_security_signal",
+      "url": "https://pages.nist.gov/nccoe-ai-identity/summary-of-comments.html",
+      "why_it_matters": "NCCoE's September 29, 2026 comments summary, drawn from more than 600 responses, says sender-constrained credentials (OAuth DPoP or mTLS using SPIFFE or WIMSE identities) are essential to reduce bearer-token replay, and that ephemeral credentials should be bound to a stable identity anchor via proof-of-possession rather than reused as unconstrained bearer tokens."
     },
     {
       "id": "mcp-authorization-2026-07-28",
@@ -338,7 +348,12 @@
     {
       "expected_decision": "deny_untrusted_agent",
       "id": "long-lived-static-credential",
-      "trigger": "An agent authenticates with a long-lived static API key or unconstrained bearer token instead of a unique, short-lived, scoped credential."
+      "trigger": "An agent authenticates with a long-lived static API key instead of a unique, short-lived, scoped credential."
+    },
+    {
+      "expected_decision": "deny_untrusted_agent",
+      "id": "unconstrained-bearer-token",
+      "trigger": "An agent presents an unconstrained bearer token instead of a sender-constrained credential (OAuth DPoP or mTLS) bound to its identity anchor."
     },
     {
       "expected_decision": "kill_session_on_agent_trust_break",
@@ -424,6 +439,7 @@
         "identity_used_after_revocation",
         "shared_human_credential",
         "long_lived_static_credential",
+        "unconstrained_bearer_token",
         "local_user_account_impersonation"
       ],
       "id": "identity",
@@ -432,7 +448,7 @@
         "recipes_agentic_entitlement_review_pack",
         "recipes_mcp_authorization_conformance_pack"
       ],
-      "question": "Who is the agent, which unique delegated identity is it using, and is that identity a shared human credential, static token, or local user-account impersonation?",
+      "question": "Who is the agent, which unique delegated identity is it using, and is that identity a shared human credential, static token, unconstrained bearer, or local user-account impersonation?",
       "required_evidence": [
         "agent_identity_ledger",
         "agentic_entitlement_review_pack",
@@ -625,7 +641,7 @@
       "autonomy": "scoped_action_with_review",
       "id": "operator",
       "minimum_score": 85,
-      "promotion_gate": "Action runtime, authorization, egress, telemetry, approval, and receipt evidence are bound to the run.",
+      "promotion_gate": "Action runtime, authorization, egress, telemetry, approval, and receipt evidence are bound to the run, and the agent credential is sender-constrained to its identity anchor.",
       "title": "Operator"
     },
     {
