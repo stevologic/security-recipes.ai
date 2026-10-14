@@ -28,9 +28,11 @@ DEFAULT_OUTPUT = Path("data/evidence/mcp-stdio-launch-boundary-pack.json")
 REQUIRED_DECISIONS = {
     "allow_pinned_sandboxed_stdio_launch",
     "hold_for_owner_review",
+    "hold_for_discover_probe",
     "deny_unregistered_stdio_launch",
     "deny_untrusted_package_launch",
     "deny_shell_or_network_bootstrap",
+    "deny_unrestricted_proxy_spawn",
     "kill_session_on_secret_or_privilege_request",
 }
 REQUIRED_PROFILES = {
@@ -177,7 +179,7 @@ def validate_model(model: dict[str, Any]) -> list[str]:
         require(str(owner.get("escalation", "")).strip(), failures, f"{launch_id}: owner.escalation is required")
 
     drills = as_list(model.get("red_team_drills"), "red_team_drills")
-    require(len(drills) >= 4, failures, "red_team_drills must cover shell, secret, package, network, and approval attacks")
+    require(len(drills) >= 6, failures, "red_team_drills must cover shell, secret, package, network, approval, discover-probe, and proxy-spawn attacks")
     for idx, drill in enumerate(drills):
         item = as_dict(drill, f"red_team_drills[{idx}]")
         require(str(item.get("expected_decision")) in REQUIRED_DECISIONS, failures, f"red_team_drills[{idx}].expected_decision is invalid")
@@ -356,6 +358,7 @@ def build_launch_boundaries(
                 "default_decision": launch.get("default_decision"),
                 "evidence": launch.get("evidence", []),
                 "filesystem_roots": launch.get("filesystem_roots", []),
+                "launch_architecture": launch.get("launch_architecture") or "direct",
                 "launch_hash": stable_hash(launch),
                 "launch_id": launch.get("launch_id"),
                 "namespace": launch.get("namespace"),
@@ -410,6 +413,7 @@ def build_summary(rows: list[dict[str, Any]]) -> dict[str, Any]:
                 "deny_unregistered_stdio_launch",
                 "deny_untrusted_package_launch",
                 "deny_shell_or_network_bootstrap",
+                "deny_unrestricted_proxy_spawn",
                 "kill_session_on_secret_or_privilege_request",
             ]
         ),
