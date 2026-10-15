@@ -233,11 +233,32 @@ def security_scheme_entries(card: dict[str, Any]) -> list[tuple[str, str, dict[s
     return entries
 
 
-def security_violations(card: dict[str, Any], production: bool) -> tuple[list[str], dict[str, Any]]:
+def oauth_flow_policy(pack: dict[str, Any]) -> dict[str, Any]:
+    cfg = contract(pack)
+    deprecated = [str(item) for item in cfg.get("deprecated_oauth_flows", []) if str(item).strip()]
+    current = [str(item) for item in cfg.get("current_oauth_flows", []) if str(item).strip()]
+    return {
+        "current": current or ["authorizationCode", "clientCredentials", "deviceCode"],
+        "deprecated": deprecated or ["implicit", "password"],
+        "production_authorization_code_requires_pkce": bool(
+            cfg.get("production_authorization_code_requires_pkce", True)
+        ),
+    }
+
+
+def security_violations(
+    card: dict[str, Any],
+    production: bool,
+    pack: dict[str, Any],
+) -> tuple[list[str], list[str], dict[str, Any]]:
     violations: list[str] = []
+    holds: list[str] = []
     entries = security_scheme_entries(card)
     scheme_types = sorted({entry[1] for entry in entries})
+    oauth_flows = oauth_flow_policy(pack)
+    oauth_flow_types: list[str] = []
     facts = {
+        "oauth_flow_types": oauth_flow_types,
         "preferred_security_scheme_present": bool(set(scheme_types) & PREFERRED_SECURITY_SCHEME_KEYS),
         "security_requirement_count": len(as_list(card.get("securityRequirements"))),
         "security_scheme_count": len(entries),
@@ -255,10 +276,22 @@ def security_violations(card: dict[str, Any], production: bool) -> tuple[list[st
                 violations.append(f"{name}: API key location {location} is prohibited")
         if scheme_type == "oauth2SecurityScheme":
             flows = as_dict(scheme.get("flows"))
+            present_flows = [key for key in flows if as_dict(flows.get(key))]
+            oauth_flow_types.extend(present_flows)
+            for flow_name in present_flows:
+                if flow_name in oauth_flows["deprecated"]:
+                    violations.append(
+                        f"{name}: OAuth {flow_name} flow is deprecated; use Authorization Code + PKCE or Device Code"
+                    )
             auth_code = as_dict(flows.get("authorizationCode"))
-            if auth_code and auth_code.get("pkceRequired") is False:
-                violations.append(f"{name}: OAuth authorizationCode flow must require PKCE")
-    return violations, facts
+            if auth_code:
+                pkce_required = auth_code.get("pkceRequired")
+                if pkce_required is False:
+                    violations.append(f"{name}: OAuth authorizationCode flow must require PKCE")
+                elif production and oauth_flows["production_authorization_code_requires_pkce"] and pkce_required is not True:
+                    holds.append(f"{name}: production Authorization Code flow must set pkceRequired=true")
+    facts["oauth_flow_types"] = sorted(set(oauth_flow_types))
+    return violations, holds, facts
 
 
 def signature_facts(card: dict[str, Any]) -> dict[str, Any]:
@@ -358,7 +391,9 @@ def evaluate_a2a_agent_card_trust_decision(
     violations.extend(required_field_violations(card, agent_card_pack))
     interface_urls, interface_violations = interface_facts(card)
     provider_gaps = provider_violations(card, runtime_request.get("expected_domain"))
-    security_gaps, security_facts = security_violations(card, production)
+    security_gaps, security_holds, security_facts = security_violations(
+        card, production, agent_card_pack
+    )
     skill_gaps, skill_facts = high_impact_skill_violations(card, agent_card_pack, runtime_request)
     signature = signature_facts(card)
     extended_gaps = extended_card_violations(card)
@@ -391,6 +426,8 @@ def evaluate_a2a_agent_card_trust_decision(
         )
     if security_gaps:
         violations.extend(security_gaps)
+    if security_holds:
+        holds.extend(security_holds)
     if extended_gaps:
         violations.extend(extended_gaps)
     if skill_gaps:
