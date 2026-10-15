@@ -1323,6 +1323,14 @@ class CveLandingRenderTests(unittest.TestCase):
                     "source_url": url,
                 }
             )
+        # NVD often tags the independently published CISA KEV catalog URL as
+        # Third Party Advisory. That tag must not suppress the canonical KEV
+        # citation or promote the rejected extra URLs above.
+        kev_url = (
+            "https://www.cisa.gov/known-exploited-vulnerabilities-catalog"
+            "?field_cve=CVE-2024-3400"
+        )
+        references.append({"url": kev_url, "tags": ["Third Party Advisory"]})
 
         page = mcp_server._render_cve_landing_page(recipe)
         graph_match = re.search(
@@ -1349,6 +1357,7 @@ class CveLandingRenderTests(unittest.TestCase):
             "https://vendor.example.test/advisories/CVE-2024-3400",
             citations,
         )
+        self.assertIn(kev_url, citations)
         for url in rejected:
             self.assertNotIn(url, citations)
             self.assertNotIn(url, visible_urls)
@@ -2322,6 +2331,23 @@ class CveLandingRenderTests(unittest.TestCase):
                     sources_match.group(1),
                     r">(?:Exploit|Broken Link|Third Party Advisory|VDB Entry)<",
                 )
+                # Nightly NVD refreshes can tag independently published
+                # NVD/CVE/KEV URLs as Third Party Advisory. Pin the policy
+                # rather than one catalog snapshot: rejected tags must not
+                # promote extra citations, but canonical catalog sources may
+                # still appear.
+                canonical_citation_keys = {
+                    mcp_server._cve_landing_evidence_url_key(url)
+                    for _label, url in mcp_server._cve_landing_primary_references(
+                        cve_id,
+                        {
+                            "nvd_url": source.get("nvd_url"),
+                            "kev": source.get("kev") is True,
+                        },
+                        {},
+                        {},
+                    )
+                } - {""}
                 for raw_reference in source.get("references", []):
                     if record.get("qualification") == "stable_markdown":
                         continue
@@ -2345,7 +2371,11 @@ class CveLandingRenderTests(unittest.TestCase):
                     rejected_url = mcp_server._cve_landing_safe_https_url(
                         raw_reference.get("url")
                     )
-                    if rejected_url:
+                    if (
+                        rejected_url
+                        and mcp_server._cve_landing_evidence_url_key(rejected_url)
+                        not in canonical_citation_keys
+                    ):
                         self.assertNotIn(rejected_url, citations)
 
                 if record.get("qualification") != "recipe_ready_ai":
