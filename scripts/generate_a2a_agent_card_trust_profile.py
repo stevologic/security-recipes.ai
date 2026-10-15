@@ -139,6 +139,29 @@ def validate_profile(profile: dict[str, Any]) -> list[str]:
     require(len(as_list(contract.get("required_allow_controls"), "trust_contract.required_allow_controls")) >= 8, failures, "required allow controls are incomplete")
     require(len(as_list(contract.get("prohibited_secret_markers"), "trust_contract.prohibited_secret_markers")) >= 8, failures, "secret markers are incomplete")
     require(len(as_list(contract.get("high_impact_skill_terms"), "trust_contract.high_impact_skill_terms")) >= 10, failures, "high-impact skill terms are incomplete")
+    deprecated_oauth_flows = {
+        str(item)
+        for item in as_list(contract.get("deprecated_oauth_flows"), "trust_contract.deprecated_oauth_flows")
+    }
+    current_oauth_flows = {
+        str(item)
+        for item in as_list(contract.get("current_oauth_flows"), "trust_contract.current_oauth_flows")
+    }
+    require(
+        {"implicit", "password"}.issubset(deprecated_oauth_flows),
+        failures,
+        "trust_contract.deprecated_oauth_flows must include implicit and password",
+    )
+    require(
+        {"authorizationCode", "clientCredentials", "deviceCode"}.issubset(current_oauth_flows),
+        failures,
+        "trust_contract.current_oauth_flows must include authorizationCode, clientCredentials, and deviceCode",
+    )
+    require(
+        contract.get("production_authorization_code_requires_pkce") is True,
+        failures,
+        "trust_contract.production_authorization_code_requires_pkce must be true",
+    )
 
     profile_rows = as_list(profile.get("intake_profiles"), "intake_profiles")
     profile_ids = {str(item.get("id")) for item in profile_rows if isinstance(item, dict)}
@@ -161,7 +184,7 @@ def validate_profile(profile: dict[str, Any]) -> list[str]:
         require(bool(as_list(row.get("required_controls"), f"{row.get('id')}.required_controls")), failures, f"{row.get('id')}: required controls are required")
 
     cases = as_list(profile.get("sample_agent_cards"), "sample_agent_cards")
-    require(len(cases) >= 3, failures, "sample_agent_cards must include allow, pilot, and kill cases")
+    require(len(cases) >= 4, failures, "sample_agent_cards must include allow, pilot, kill, and deprecated-OAuth deny cases")
     for idx, case in enumerate(cases):
         item = as_dict(case, f"sample_agent_cards[{idx}]")
         case_id = str(item.get("id", "")).strip()
