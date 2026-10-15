@@ -6,10 +6,11 @@
     "required_agent_card_field_count": 8,
     "sample_decision_counts": {
       "allow_trusted_agent_card": 1,
+      "deny_insecure_agent_card": 1,
       "kill_session_on_agent_card_secret": 1,
       "pilot_with_restricted_context": 1
     },
-    "sample_evaluation_count": 3,
+    "sample_evaluation_count": 4,
     "skill_risk_tier_counts": {
       "blocked": 1,
       "discovery": 1,
@@ -29,6 +30,7 @@
       "Is the Agent Card complete enough for enterprise review?",
       "Does the card advertise HTTPS interfaces and provider identity?",
       "Does the card require standard HTTP-layer authentication?",
+      "Does an OAuth2 scheme use a current A2A v1.0 flow with PKCE instead of deprecated implicit or password grants?",
       "Is the card signed or restricted to metadata-only pilot use?",
       "Do advertised skills require approval, gateway enforcement, or hard denial?"
     ],
@@ -36,7 +38,7 @@
     "sales_motion": "Lead with open Agent Card evaluation, then sell hosted Agent Card monitoring, signature verification, allowlist drift detection, tenant policy exports, and A2A/MCP gateway enforcement."
   },
   "failures": [],
-  "generated_at": "2026-08-21",
+  "generated_at": "2026-10-15",
   "handoff_integration": {
     "a2a_protocol_surface": {
       "allowed_target_trust_tiers": [
@@ -176,12 +178,12 @@
       "title": "Blocked or Malicious Agent Card"
     }
   ],
-  "intent": "Define the SecurityRecipes A2A Agent Card trust profile so remote agents can be discovered, scored, piloted, denied, or killed before they receive secure context or join an agent-to-agent workflow. The profile turns an A2A Agent Card into enterprise intake evidence for protocol identity, HTTPS interfaces, authentication, authorization scope, signing, skill risk, extended-card handling, and prompt-injection containment.",
+  "intent": "Define the SecurityRecipes A2A Agent Card trust profile so remote agents can be discovered, scored, piloted, denied, or killed before they receive secure context or join an agent-to-agent workflow. The profile turns an A2A Agent Card into enterprise intake evidence for protocol identity, HTTPS interfaces, authentication, OAuth flow type, PKCE, authorization scope, signing, skill risk, extended-card handling, and prompt-injection containment.",
   "positioning": {
     "buyer": "AI Platform, Product Security, AppSec, IAM, GRC, procurement security, model-risk, and acquisition diligence teams",
     "category": "A2A remote-agent discovery and Agent Card trust intake",
     "enterprise_promise": "SecurityRecipes can evaluate an A2A Agent Card before trust is granted, return a deterministic allow, pilot, hold, deny, or kill decision, and expose the result through generated JSON, CLI, CI, and MCP tools.",
-    "why_now": "A2A makes remote agents discoverable through Agent Cards while MCP standardizes tool access. Enterprises need a trust layer between discovery and delegation so signed cards, HTTP-layer auth, skill scope, provider identity, and safe context release are validated before opaque agents collaborate."
+    "why_now": "A2A v1.0 still lets an Agent Card advertise the deprecated implicit or password OAuth grants, or an Authorization Code flow with pkceRequired omitted. Enterprises need a trust layer between discovery and delegation so signed cards, current OAuth flows, PKCE, skill scope, provider identity, and safe context release are validated before opaque agents collaborate."
   },
   "residual_risks": [
     {
@@ -232,6 +234,18 @@
         "agent card contains prohibited marker: exfiltrate",
         "agent card contains prohibited marker: ignore previous instructions",
         "agent card contains prohibited marker: sk-"
+      ]
+    },
+    {
+      "agent_card_hash": "e17ee6c24d3d690003ef1ae32fa956cb2b040dcc905231b3ef4981193894b3ab",
+      "case_id": "implicit-oauth-production-agent",
+      "decision": "deny_insecure_agent_card",
+      "expected_decision": "deny_insecure_agent_card",
+      "expected_profile_id": "trusted-production-agent",
+      "production": true,
+      "reason": "trusted production Agent Card failed security requirements",
+      "violations": [
+        "oauth: OAuth implicit flow is deprecated; use Authorization Code + PKCE or Device Code"
       ]
     }
   ],
@@ -304,23 +318,29 @@
   "source_artifacts": {
     "a2a_agent_card_trust_profile": {
       "path": "data/assurance/a2a-agent-card-trust-profile.json",
-      "sha256": "5bce6abf568e90c755f11c1fac348390aed1a0d977481b87ba5139bd2da92300"
+      "sha256": "d10ab9e429d72de3411c2a88bac78a8efb94bd7fcdc04f4aea6939f4292a0939"
     },
     "agent_handoff_boundary_pack": {
       "path": "data/evidence/agent-handoff-boundary-pack.json",
-      "sha256": "d1c998f35a995bc9cbdc5c2dc73fc09040bb242c76980d804f16610c116e2a2e"
+      "sha256": "276ebb580a8f1e949b8c344ec8e24818667efb35e6a687ed45f96217fc8c5e05"
     },
     "agentic_threat_radar": {
       "path": "data/evidence/agentic-threat-radar.json",
-      "sha256": "f67b449b11d2142f2be150e0b31f432a0bb7de0bbcd44354be5025b58c947a54"
+      "sha256": "2a07a903d38eee933f0d0416e9194b2c3445270339a3cb55f21e53354734c497"
     }
   },
   "standards_alignment": [
     {
-      "coverage": "Agent Card fields, supported interfaces, security schemes, security requirements, signatures, authenticated extended cards, and the .well-known/agent-card.json discovery surface.",
+      "coverage": "Agent Card fields, supported interfaces, security schemes, security requirements, signatures, authenticated extended cards, and the .well-known/agent-card.json discovery surface. OAuthFlows still list implicit and password as deprecated compatibility fields; current flows are authorizationCode (with pkceRequired), clientCredentials, and deviceCode. A production Authorization Code flow should set pkceRequired true.",
       "id": "a2a-specification-latest",
       "name": "Agent2Agent Protocol Specification",
       "url": "https://a2a-protocol.org/latest/specification/"
+    },
+    {
+      "coverage": "A2A v1.0 OAuth 2.0 security updates added Device Code (RFC 8628) and pkce_required on Authorization Code, and removed deprecated implicit and password grants as current flows.",
+      "id": "a2a-whats-new-v1",
+      "name": "What's New in A2A v1.0",
+      "url": "https://a2a-protocol.org/latest/whats-new-v1/"
     },
     {
       "coverage": "HTTPS, TLS, server identity verification, HTTP-layer authentication, authorization, data privacy, tracing, monitoring, API management, and governance for remote opaque agents.",
@@ -445,6 +465,11 @@
       "httpAuthSecurityScheme",
       "apiKeySecurityScheme"
     ],
+    "current_oauth_flows": [
+      "authorizationCode",
+      "clientCredentials",
+      "deviceCode"
+    ],
     "decisions": [
       {
         "decision": "allow_trusted_agent_card",
@@ -468,6 +493,10 @@
       }
     ],
     "default_state": "hold_for_agent_card_intake",
+    "deprecated_oauth_flows": [
+      "implicit",
+      "password"
+    ],
     "high_impact_skill_terms": [
       "admin",
       "credential",
@@ -490,6 +519,7 @@
       "openIdConnectSecurityScheme",
       "mtlsSecurityScheme"
     ],
+    "production_authorization_code_requires_pkce": true,
     "production_required_controls": [
       "agent_card_signature_verified",
       "standard_http_auth",

@@ -1,19 +1,25 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-08-21",
-  "intent": "Define the SecurityRecipes A2A Agent Card trust profile so remote agents can be discovered, scored, piloted, denied, or killed before they receive secure context or join an agent-to-agent workflow. The profile turns an A2A Agent Card into enterprise intake evidence for protocol identity, HTTPS interfaces, authentication, authorization scope, signing, skill risk, extended-card handling, and prompt-injection containment.",
+  "last_reviewed": "2026-10-15",
+  "intent": "Define the SecurityRecipes A2A Agent Card trust profile so remote agents can be discovered, scored, piloted, denied, or killed before they receive secure context or join an agent-to-agent workflow. The profile turns an A2A Agent Card into enterprise intake evidence for protocol identity, HTTPS interfaces, authentication, OAuth flow type, PKCE, authorization scope, signing, skill risk, extended-card handling, and prompt-injection containment.",
   "positioning": {
     "buyer": "AI Platform, Product Security, AppSec, IAM, GRC, procurement security, model-risk, and acquisition diligence teams",
     "category": "A2A remote-agent discovery and Agent Card trust intake",
     "enterprise_promise": "SecurityRecipes can evaluate an A2A Agent Card before trust is granted, return a deterministic allow, pilot, hold, deny, or kill decision, and expose the result through generated JSON, CLI, CI, and MCP tools.",
-    "why_now": "A2A makes remote agents discoverable through Agent Cards while MCP standardizes tool access. Enterprises need a trust layer between discovery and delegation so signed cards, HTTP-layer auth, skill scope, provider identity, and safe context release are validated before opaque agents collaborate."
+    "why_now": "A2A v1.0 still lets an Agent Card advertise the deprecated implicit or password OAuth grants, or an Authorization Code flow with pkceRequired omitted. Enterprises need a trust layer between discovery and delegation so signed cards, current OAuth flows, PKCE, skill scope, provider identity, and safe context release are validated before opaque agents collaborate."
   },
   "standards_alignment": [
     {
       "id": "a2a-specification-latest",
       "name": "Agent2Agent Protocol Specification",
       "url": "https://a2a-protocol.org/latest/specification/",
-      "coverage": "Agent Card fields, supported interfaces, security schemes, security requirements, signatures, authenticated extended cards, and the .well-known/agent-card.json discovery surface."
+      "coverage": "Agent Card fields, supported interfaces, security schemes, security requirements, signatures, authenticated extended cards, and the .well-known/agent-card.json discovery surface. OAuthFlows still list implicit and password as deprecated compatibility fields; current flows are authorizationCode (with pkceRequired), clientCredentials, and deviceCode. A production Authorization Code flow should set pkceRequired true."
+    },
+    {
+      "id": "a2a-whats-new-v1",
+      "name": "What's New in A2A v1.0",
+      "url": "https://a2a-protocol.org/latest/whats-new-v1/",
+      "coverage": "A2A v1.0 OAuth 2.0 security updates added Device Code (RFC 8628) and pkce_required on Authorization Code, and removed deprecated implicit and password grants as current flows."
     },
     {
       "id": "a2a-enterprise-features",
@@ -149,6 +155,16 @@
       "openIdConnectSecurityScheme",
       "mtlsSecurityScheme"
     ],
+    "deprecated_oauth_flows": [
+      "implicit",
+      "password"
+    ],
+    "current_oauth_flows": [
+      "authorizationCode",
+      "clientCredentials",
+      "deviceCode"
+    ],
+    "production_authorization_code_requires_pkce": true,
     "prohibited_api_key_locations": [
       "query",
       "cookie"
@@ -511,6 +527,91 @@
           }
         ]
       }
+    },
+    {
+      "id": "implicit-oauth-production-agent",
+      "expected_profile_id": "trusted-production-agent",
+      "expected_decision": "deny_insecure_agent_card",
+      "production": true,
+      "declared_controls": [
+        "agent_card_signature_verified",
+        "standard_http_auth",
+        "https_interface",
+        "scope_minimized_security",
+        "gateway_enforced",
+        "audit_log",
+        "human_approval_for_high_impact",
+        "provider_identity_verified",
+        "server_identity_verified"
+      ],
+      "agent_card": {
+        "name": "Legacy Implicit OAuth Agent",
+        "description": "Looks production-ready but advertises the A2A-deprecated implicit OAuth grant instead of Authorization Code plus PKCE.",
+        "provider": {
+          "organization": "Example Legacy Vendor",
+          "url": "https://legacy.example.com"
+        },
+        "version": "1.0.0",
+        "documentationUrl": "https://legacy.example.com/docs/a2a",
+        "supportedInterfaces": [
+          {
+            "url": "https://agents.legacy.example.com/a2a",
+            "protocolBinding": "https://a2a-protocol.org/specification/transport/http+json",
+            "protocolVersion": "1.0"
+          }
+        ],
+        "capabilities": {
+          "streaming": true,
+          "pushNotifications": false,
+          "extendedAgentCard": true
+        },
+        "securitySchemes": {
+          "oauth": {
+            "oauth2SecurityScheme": {
+              "flows": {
+                "implicit": {
+                  "authorizationUrl": "https://auth.legacy.example.com/authorize",
+                  "scopes": {
+                    "a2a.task:read": "Read delegated tasks"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "securityRequirements": [
+          {
+            "oauth": [
+              "a2a.task:read"
+            ]
+          }
+        ],
+        "defaultInputModes": [
+          "application/json",
+          "text/plain"
+        ],
+        "defaultOutputModes": [
+          "application/json",
+          "text/markdown"
+        ],
+        "skills": [
+          {
+            "id": "dependency-triage",
+            "name": "Dependency triage",
+            "description": "Summarize vulnerability remediation context and return cited next actions without writing code or changing production systems.",
+            "tags": [
+              "read-only",
+              "security-remediation"
+            ]
+          }
+        ],
+        "signatures": [
+          {
+            "protected": "eyJhbGciOiJFUzI1NiIsImtpZCI6ImxlZ2FjeS1kZW1vIn0",
+            "signature": "example-detached-signature"
+          }
+        ]
+      }
     }
   ],
   "enterprise_adoption_packet": {
@@ -519,6 +620,7 @@
       "Is the Agent Card complete enough for enterprise review?",
       "Does the card advertise HTTPS interfaces and provider identity?",
       "Does the card require standard HTTP-layer authentication?",
+      "Does an OAuth2 scheme use a current A2A v1.0 flow with PKCE instead of deprecated implicit or password grants?",
       "Is the card signed or restricted to metadata-only pilot use?",
       "Do advertised skills require approval, gateway enforcement, or hard denial?"
     ],
