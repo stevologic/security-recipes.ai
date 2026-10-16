@@ -2,10 +2,10 @@
 title: "OpenSSF OSPS Baseline Evidence Check"
 linkTitle: "OpenSSF OSPS Baseline"
 description: "Assess OpenSSF OSPS Baseline evidence readiness: verify applicability, map official requirements to artifacts, record gaps, and plan remediation."
-recipe_id: "compliance.openssf-osps-baseline-2026-02-19"
+recipe_id: "compliance.openssf-osps-baseline-2026-08-28"
 framework_id: "openssf-osps-baseline"
 framework: "OpenSSF OSPS Baseline"
-framework_version: "2026.02.19"
+framework_version: "2026.08.28"
 framework_status: "final"
 source_reviewed: "2026-08-21"
 jurisdiction: ["global"]
@@ -13,8 +13,8 @@ jurisdictions: ["global"]
 industry: ["open-source", "software"]
 industries: ["open-source", "software"]
 facets: ["audit", "compliance", "supply-chain", "secure-defaults"]
-official_sources: ["https://baseline.openssf.org/"]
-routing_positive: ["assess an open source project against OSPS", "collect OpenSSF Baseline evidence", "review open source project security practices"]
+official_sources: ["https://baseline.openssf.org/", "https://baseline.openssf.org/versions/2026-08-28.html"]
+routing_positive: ["assess an open source project against OSPS", "collect OpenSSF Baseline evidence", "review open source project security practices", "map OpenSSF Scorecard results to OSPS controls"]
 routing_hard_negative: ["verify SLSA provenance levels only", "perform enterprise CIS Controls assessment"]
 license_boundary: "open-attribution"
 tool: "Compliance evidence review"
@@ -50,14 +50,14 @@ Use this recipe to produce a source-aware evidence-readiness assessment for **Op
 ## Framework basis
 
 - **Publisher:** Open Source Security Foundation
-- **Version:** 2026.02.19
+- **Version:** 2026.08.28
 - **Status:** `final`
 - **Sources reviewed:** 2026-08-21
 - **Jurisdictions:** global
 - **Industries:** open-source, software
 - **License boundary:** `open-attribution`
 
-Open source projects and downstream consumers evaluating baseline security practices at an explicitly selected OSPS level.
+Open source projects and downstream consumers evaluating baseline security practices against a specified OSPS version and maturity level, using the current published version for new assessments.
 
 The cataloged version is final; still verify scope and any later official updates.
 
@@ -78,15 +78,15 @@ Use this recipe when the organization has established that OpenSSF OSPS Baseline
 
 Evidence domains for this framework:
 
-- access and repository governance: begin with repository setting exports.
+- access and repository governance: begin with repository setting exports and contribution-process or closed-contribution documentation.
 - build and release: begin with release workflow and artifact records.
 - documentation and vulnerability reporting: begin with security policy and advisory history.
-- quality, legal, and security assessment: begin with dependency, test, and review evidence.
+- quality, legal, and security assessment: begin with LICENSE, COPYING, or LICENSES/ legal evidence plus Scorecard-or-equivalent assessment records.
 
 ## The prompt
 
 ```markdown
-You are a compliance evidence-readiness analyst. Evaluate the supplied scope against OpenSSF OSPS Baseline (2026.02.19). The catalog status is final and the source review date is 2026-08-21.
+You are a compliance evidence-readiness analyst. Evaluate the supplied scope against OpenSSF OSPS Baseline (2026.08.28). The catalog status is final and the source review date is 2026-08-21.
 
 Never claim certification or legal compliance. Never invent applicability, evidence, control operation, sampling results, or requirement text. Separate observed facts, organization assertions, and analyst inferences. Treat missing or inaccessible evidence as unknown, not as failure, unless the authoritative assessment method says otherwise.
 
@@ -114,10 +114,10 @@ Review these domains without treating the labels as substitutes for authoritativ
 
 Start with these likely artifacts, then validate provenance and coverage:
 
-1. repository setting exports
+1. repository setting exports and contribution-process or closed-contribution documentation
 2. release workflow and artifact records
 3. security policy and advisory history
-4. dependency, test, and review evidence
+4. LICENSE, COPYING, or LICENSES/ legal evidence plus Scorecard-or-equivalent assessment records
 
 For every artifact record: artifact ID, source system, owner, collection time, review period, access path, integrity/provenance note, population covered, and requirement/outcome links. Prefer system exports and immutable records over screenshots or narrative attestations.
 
@@ -174,6 +174,7 @@ Route here:
 - assess an open source project against OSPS
 - collect OpenSSF Baseline evidence
 - review open source project security practices
+- map OpenSSF Scorecard results to OSPS controls
 
 Hard negatives—route elsewhere or clarify:
 
@@ -189,3 +190,4 @@ Hard negatives—route elsewhere or clarify:
 ## References
 
 1. [Open Source Security Foundation official source 1](https://baseline.openssf.org/)
+2. [Open Source Security Foundation official source 2](https://baseline.openssf.org/versions/2026-08-28.html)
