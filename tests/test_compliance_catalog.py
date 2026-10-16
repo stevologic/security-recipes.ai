@@ -66,6 +66,7 @@ class ComplianceCatalogTests(unittest.TestCase):
                 "Operator-supplied effective standards set; checked 2026-08-21",
                 "revision-in-progress",
             ),
+            "openssf-osps-baseline": ("2026.08.28", "final"),
         }
         for framework_id, (version, status) in expected.items():
             with self.subTest(framework_id=framework_id):
