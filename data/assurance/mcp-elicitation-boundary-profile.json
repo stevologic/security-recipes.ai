@@ -1,12 +1,12 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-08-21",
-  "intent": "Define the SecurityRecipes MCP elicitation boundary so agent hosts, MCP clients, gateways, and enterprise buyers can decide when a server may ask a user for form input or direct the user to an external URL without leaking credentials, tokens, payment data, or prompt-injection-controlled context through the LLM, client, or intermediate MCP servers.",
+  "last_reviewed": "2026-10-17",
+  "intent": "Define the SecurityRecipes MCP elicitation boundary so agent hosts, MCP clients, gateways, and enterprise buyers can decide when a server may ask a user for form input or direct the user to an external URL without leaking credentials, tokens, payment data, or prompt-injection-controlled context through the LLM, client, or intermediate MCP servers, including elicitation that arrives later on a tasks-extension handle.",
   "positioning": {
     "buyer": "AI Platform, Product Security, IAM, Privacy, GRC, procurement security, and enterprise architecture teams",
     "category": "MCP elicitation, URL-mode consent, and sensitive interaction boundary",
-    "enterprise_promise": "SecurityRecipes can prove that human input requests from MCP servers are identity-bound, mode-aware, consented, URL-safe, and logged before user data or third-party authorization enters the agentic workflow.",
-    "why_now": "MCP 2026-07-28 moved elicitation into the multi round-trip request pattern. Clients now advertise capabilities on each request, servers return InputRequiredResult, and clients retry with inputResponses plus opaque requestState. This breaking change adds state-integrity, replay, and request-binding risks to the existing phishing and sensitive-data boundary."
+    "enterprise_promise": "SecurityRecipes can prove that human input requests from MCP servers are identity-bound, mode-aware, consented, URL-safe, and logged before user data or third-party authorization enters the agentic workflow, whether the prompt arrives in InputRequiredResult or later on tasks/get.",
+    "why_now": "MCP 2026-07-28 moved elicitation into the multi round-trip request pattern and moved experimental tasks into the io.modelcontextprotocol/tasks extension. Clients advertise capabilities on each request, servers return InputRequiredResult or a CreateTaskResult, and task-bound elicitation is fulfilled with tasks/update rather than a retry of the original method. A task is not a higher-trust channel, so the same phishing and sensitive-data boundary applies on both paths."
   },
   "standards_alignment": [
     {
@@ -20,6 +20,12 @@
       "name": "Model Context Protocol Multi Round-Trip Requests",
       "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/patterns/mrtr",
       "coverage": "Breaking replacement for server-initiated requests, including unique inputRequests keys, opaque requestState echoing, integrity and replay protection, supported parent requests, and retry binding."
+    },
+    {
+      "id": "mcp-tasks-extension-2026-07-28",
+      "name": "MCP Tasks Extension (io.modelcontextprotocol/tasks)",
+      "url": "https://modelcontextprotocol.io/extensions/tasks/overview",
+      "coverage": "Current public tasks extension: servers MUST NOT return CreateTaskResult unless the client declared io.modelcontextprotocol/tasks on that request; input_required tasks surface elicitation in tasks/get inputRequests; clients fulfill those requests with tasks/update, not a retry of the original method; task IDs MAY be bearer tokens and MUST be unguessable; every tasks/get, tasks/update, and tasks/cancel MUST be authenticated and authorized; hosts MUST apply the same elicitation trust model because a task is not a higher-trust channel."
     },
     {
       "id": "mcp-authorization-2026-07-28",
@@ -166,7 +172,9 @@
       "request_state_echoed_without_inspection_or_modification",
       "request_state_integrity_and_replay_protected",
       "retry_bound_to_original_method_and_parameters",
-      "state_bound_to_user_identity_not_session_only"
+      "state_bound_to_user_identity_not_session_only",
+      "task_input_requests_same_trust_model",
+      "task_input_fulfilled_via_tasks_update"
     ],
     "implemented_controls": [
       "client_capability_check",
@@ -188,7 +196,12 @@
       "multi_round_trip_request_binding",
       "rate_limit_repeated_prompts",
       "run_receipt_logging",
-      "gateway_policy_hash_binding"
+      "gateway_policy_hash_binding",
+      "tasks_extension_declaration",
+      "task_id_entropy",
+      "task_auth_binding",
+      "task_input_request_trust_model",
+      "tasks_update_fulfillment"
     ],
     "required_receipt_fields": [
       "workflow_id",
@@ -342,6 +355,41 @@
       "applies_to": "all_elicitation",
       "evidence_key": "correlation_id",
       "control_reason": "Elicitation requests need receipt evidence for buyer review, incident response, and user trust investigations."
+    },
+    {
+      "id": "tasks_extension_declaration",
+      "severity": "critical",
+      "applies_to": "task_bound_elicitation",
+      "evidence_key": "tasks_extension_declared",
+      "control_reason": "Servers MUST NOT return CreateTaskResult unless the client declared io.modelcontextprotocol/tasks on that parent request; an undeclared handle is not a valid elicitation channel."
+    },
+    {
+      "id": "task_id_entropy",
+      "severity": "critical",
+      "applies_to": "task_bound_elicitation",
+      "evidence_key": "task_id_entropy_validated",
+      "control_reason": "Task IDs MAY be bearer tokens for stored server state, so servers MUST generate them with enough entropy that a third party cannot enumerate or guess them."
+    },
+    {
+      "id": "task_auth_binding",
+      "severity": "critical",
+      "applies_to": "task_bound_elicitation",
+      "evidence_key": "task_request_authenticated",
+      "control_reason": "Every tasks/get, tasks/update, and tasks/cancel request MUST be authenticated and authorized so a stolen or guessed task ID cannot collect secrets or complete another caller's elicitation."
+    },
+    {
+      "id": "task_input_request_trust_model",
+      "severity": "critical",
+      "applies_to": "task_bound_elicitation",
+      "evidence_key": "task_higher_trust_channel",
+      "control_reason": "Hosts MUST apply the same elicitation trust model to task inputRequests as to a direct elicitation/create request. A task is not a higher-trust channel."
+    },
+    {
+      "id": "tasks_update_fulfillment",
+      "severity": "high",
+      "applies_to": "task_bound_elicitation",
+      "evidence_key": "tasks_update_fulfillment",
+      "control_reason": "Task-bound elicitation is fulfilled with tasks/update inputResponses, not by retrying the original method. Treating a task handle as ordinary MRTR retry bypasses task auth and TTL controls."
     }
   ],
   "elicitation_profiles": [
@@ -510,7 +558,8 @@
       "source_ids": [
         "mcp-elicitation-2026-07-28",
         "mcp-mrtr-2026-07-28",
-        "mcp-authorization-2025-11-25"
+        "mcp-authorization-2025-11-25",
+        "mcp-tasks-extension-2026-07-28"
       ],
       "workflow_ids": [
         "mcp-connector-intake-scanner",
@@ -689,7 +738,8 @@
       "source_ids": [
         "mcp-elicitation-2026-07-28",
         "mcp-mrtr-2026-07-28",
-        "mcp-security-best-practices-2025-11-25"
+        "mcp-security-best-practices-2025-11-25",
+        "mcp-tasks-extension-2026-07-28"
       ],
       "workflow_ids": [
         "mcp-gateway-policy",
@@ -829,6 +879,11 @@
       "id": "elicitation-receipts",
       "question": "Can a buyer review who asked the user for information, why, and what decision was made?",
       "answer_contract": "Return required receipt fields, workflow mappings, generated pack hashes, and the correlation fields needed for enterprise review."
+    },
+    {
+      "id": "elicitation-task-channel",
+      "question": "Can a long-running tools/call return a task handle and later collect secrets or send a phishing URL through tasks/get inputRequests?",
+      "answer_contract": "Return tasks-extension declaration, task-ID entropy, auth-binding, tasks/update fulfillment, and same-trust-model decisions for task-bound elicitation."
     }
   ],
   "enterprise_adoption_packet": {

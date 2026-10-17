@@ -3,11 +3,12 @@ title: MCP Elicitation Boundary
 linkTitle: MCP Elicitation Boundary
 weight: 11
 date: 2026-05-04
-lastmod: 2026-08-21
+lastmod: 2026-10-17
 toc: true
 description: >
-  Enforce MCP multi-round-trip form-mode and URL-mode elicitation boundaries
-  with state binding, allowlists, approval gates, and deterministic decisions.
+  Enforce MCP multi-round-trip and tasks-extension form-mode and URL-mode
+  elicitation boundaries with state binding, allowlists, approval gates,
+  and deterministic decisions.
 sidebar:
   exclude: true
 breadcrumb_parent: /agentic-security/
@@ -19,6 +20,29 @@ through clients. That is powerful, but it creates a new enterprise
 boundary: a server must not collect secrets through form prompts, send a
 user to a phishing URL, or confuse external OAuth with MCP authorization.
 {{< /callout >}}
+
+Rechecked source anchors on October 17, 2026 against the public MCP
+specification
+[2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28),
+[elicitation](https://modelcontextprotocol.io/specification/2026-07-28/client/elicitation),
+[multi round-trip requests](https://modelcontextprotocol.io/specification/2026-07-28/basic/patterns/mrtr),
+the [changelog](https://modelcontextprotocol.io/specification/2026-07-28/changelog),
+and the
+[Tasks extension](https://modelcontextprotocol.io/extensions/tasks/overview)
+(`io.modelcontextprotocol/tasks`). MCP `latest` still redirects to
+2026-07-28. Experimental tasks are an official extension. Servers
+**MUST NOT** return `CreateTaskResult` unless the client declared that
+extension on the parent request. When a task moves to `input_required`,
+`tasks/get` carries `inputRequests`. Clients **MUST** treat those
+entries as they would a direct `elicitation/create` request and fulfill
+them with `tasks/update`, not by retrying the original method. Task IDs
+**MAY** be bearer tokens and **MUST** be unguessable. Every
+`tasks/get`, `tasks/update`, and `tasks/cancel` **MUST** be
+authenticated and authorized. Hosts **MUST** apply the same elicitation
+trust model because a task is not a higher-trust channel. This editorial
+pass does not claim human review of the pack. `--session-id` and
+`kill_session` here remain local run identifiers and host-session kill
+switches, not `Mcp-Session-Id`.
 
 ## The product bet
 
@@ -51,7 +75,14 @@ version needs a default-deny policy:
 - external OAuth via URL mode is separate from MCP authorization and must
   not become token passthrough;
 - every request creates receipt evidence tied to workflow, agent, run,
-  server, user, session, and correlation ID.
+  server, user, session, and correlation ID;
+- elicitation that arrives later on a task handle uses the same form,
+  URL, consent, and secret-collection rules as synchronous MRTR;
+- a `CreateTaskResult` without `io.modelcontextprotocol/tasks` on the
+  parent request, a guessable task ID, or a host that treats the task as
+  a higher-trust channel is a kill;
+- task-bound input is fulfilled with `tasks/update`, not a retry of the
+  original method.
 
 {{< playbook-workflow >}}
 
@@ -105,6 +136,42 @@ python3 scripts/evaluate_mcp_elicitation_boundary_decision.py \
   --expect-decision allow_elicitation_with_receipt
 ```
 
+Evaluate a task-bound URL-mode OAuth request:
+
+```bash
+python3 scripts/evaluate_mcp_elicitation_boundary_decision.py \
+  --workflow-id mcp-connector-intake-scanner \
+  --agent-id sr-agent::mcp-connector-intake::codex \
+  --run-id run-125 \
+  --connector-id github \
+  --namespace github.oauth \
+  --server-id mcp-server::github \
+  --elicitation-profile-id profile-third-party-oauth-url \
+  --input-request-id github_oauth \
+  --request-state opaque-aead-state \
+  --mode url \
+  --url https://github.com/login/oauth/authorize \
+  --url-domain github.com \
+  --user-id user-125 \
+  --session-id session-125 \
+  --correlation-id corr-125 \
+  --authorization-pack-hash auth-pack-sha256 \
+  --delivery tasks_get \
+  --task-id 786512e2-9e0d-44bd-8f29-789f320fe840 \
+  --task-status input_required \
+  --client-supports-mode \
+  --server-identity-displayed \
+  --user-can-decline \
+  --user-consent-recorded \
+  --https-url \
+  --url-allowlisted \
+  --tasks-extension-declared \
+  --task-id-entropy-validated \
+  --task-request-authenticated \
+  --tasks-update-fulfillment \
+  --expect-decision allow_elicitation_with_receipt
+```
+
 Evaluate a blocked secret-form request:
 
 ```bash
@@ -128,16 +195,47 @@ python3 scripts/evaluate_mcp_elicitation_boundary_decision.py \
   --expect-decision deny_sensitive_form_elicitation
 ```
 
+Evaluate a killed undeclared or guessable task handle:
+
+```bash
+python3 scripts/evaluate_mcp_elicitation_boundary_decision.py \
+  --workflow-id mcp-connector-intake-scanner \
+  --agent-id sr-agent::mcp-connector-intake::codex \
+  --run-id run-126 \
+  --connector-id github \
+  --namespace github.oauth \
+  --server-id mcp-server::github \
+  --elicitation-profile-id profile-third-party-oauth-url \
+  --input-request-id github_oauth \
+  --mode url \
+  --url https://github.com/login/oauth/authorize \
+  --url-domain github.com \
+  --user-id user-126 \
+  --session-id session-126 \
+  --correlation-id corr-126 \
+  --delivery tasks_get \
+  --result-type task \
+  --task-id 1 \
+  --task-status input_required \
+  --client-supports-mode \
+  --server-identity-displayed \
+  --user-can-decline \
+  --user-consent-recorded \
+  --https-url \
+  --url-allowlisted \
+  --expect-decision kill_session_on_elicitation_abuse
+```
+
 ## Decision model
 
 | Decision | Meaning |
 | --- | --- |
 | `allow_elicitation_with_receipt` | The request satisfies mode, data-class, URL, consent, identity, and receipt controls. |
-| `hold_for_elicitation_evidence` | The request is missing profile, client capability, identity, consent, review, completion, or workflow evidence. |
+| `hold_for_elicitation_evidence` | The request is missing profile, client capability, identity, consent, review, completion, workflow, task-ID entropy, task auth binding, or `tasks/update` fulfillment evidence. |
 | `deny_sensitive_form_elicitation` | Form mode is asking for a secret, token, payment credential, private key, seed phrase, or secret-like field. |
 | `deny_untrusted_elicitation_url` | URL mode failed HTTPS, allowlist, phishing, open-redirect, prefetch, pre-authenticated URL, or sensitive-URL checks. |
 | `deny_token_or_secret_transit` | Credentials or tokens would transit the MCP client, LLM context, or intermediate MCP server. |
-| `kill_session_on_elicitation_abuse` | A runtime kill signal fired or a URL was opened without explicit consent. |
+| `kill_session_on_elicitation_abuse` | A runtime kill signal fired, a URL was opened without explicit consent, a task handle was returned without the tasks extension, the task ID is guessable, or the host treated the task as a higher-trust channel. |
 
 ## What the pack proves
 
@@ -167,7 +265,11 @@ host-session kill switches, not `Mcp-Session-Id`. Streamable HTTP
 revisions through
 [2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25)
 could assign that header; 2026-07-28 ignores it and does not mint
-session IDs.
+session IDs. Rechecked October 17, 2026: elicitation can also arrive
+later on a task handle. `CreateTaskResult` (`resultType: "task"`) is
+not a bypass. Hosts apply the same form and URL rules to
+`tasks/get` `inputRequests`, require unguessable authenticated task
+IDs, and fulfill task-bound input with `tasks/update`.
 
 ## Industry alignment
 
@@ -179,6 +281,10 @@ This feature follows current primary guidance:
 - [MCP Multi Round-Trip Requests 2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28/basic/patterns/mrtr)
   for the breaking replacement of server-initiated requests, opaque
   `requestState`, retry correlation, integrity checks, and replay protection.
+- [MCP Tasks extension](https://modelcontextprotocol.io/extensions/tasks/overview)
+  for `CreateTaskResult`, `tasks/get` `inputRequests`, `tasks/update`
+  fulfillment, unguessable task IDs, per-request auth, and the rule that
+  a task is not a higher-trust channel.
 - [MCP Authorization 2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
   for protected-resource metadata, resource indicators, audience-bound
   tokens, client identity metadata, and scope challenges.
