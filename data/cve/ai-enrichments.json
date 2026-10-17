@@ -27997,6 +27997,101 @@
       ],
       "verification_steps": []
     },
+    "CVE-2026-10520": {
+      "business_risk": "Critical unauthenticated OS command injection (CWE-78) on Ivanti Sentry enabling root-level remote code execution; CVSS 10; added to CISA KEV on 2026-06-11 with a 2026-06-14 due date. Exploitation is described as possible when the appliance is unmanaged and endpoints are externally reachable.",
+      "claim_evidence": [
+        {
+          "claim": "Ivanti Sentry (CPE product standalone_sentry)",
+          "kind": "affected_product",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-10520"
+        },
+        {
+          "claim": "Affected configurations include standalone_sentry up to excluding 10.5.2, from 10.6.0 up to excluding 10.6.2, and 10.7.0; Ivanti lists 10.5.1, 10.6.1, 10.7.0 and prior as affected",
+          "kind": "affected_version",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-10520"
+        },
+        {
+          "claim": "Ivanti Sentry 10.5.1, 10.6.1, 10.7.0 and prior are affected",
+          "kind": "affected_version",
+          "source_url": "https://hub.ivanti.com/s/article/Security-Advisory-Ivanti-Sentry-CVE-2026-10520-CVE-2026-10523"
+        },
+        {
+          "claim": "Unaffected/resolved versions R10.5.2, R10.6.2, and R10.7.1 (also listed as 10.5.2, 10.6.2, 10.7.1)",
+          "kind": "fixed_version",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-10520"
+        },
+        {
+          "claim": "Resolved versions 10.5.2, 10.6.2 and 10.7.1",
+          "kind": "fixed_version",
+          "source_url": "https://hub.ivanti.com/s/article/Security-Advisory-Ivanti-Sentry-CVE-2026-10520-CVE-2026-10523"
+        },
+        {
+          "claim": "Customers resolve the vulnerabilities by updating the appliance to one of the fixed versions; patches available via vendor download portal / NMDM Admin > Infrastructure > Sentry",
+          "kind": "remediation",
+          "source_url": "https://hub.ivanti.com/s/article/Security-Advisory-Ivanti-Sentry-CVE-2026-10520-CVE-2026-10523"
+        }
+      ],
+      "exposure_conditions": [
+        "Sentry appliance in an unmanaged state with its endpoints externally reachable",
+        "Management interfaces accessible from untrusted networks",
+        "Absence of mTLS with EPMM or restricted HTTPS access through Neurons for MDM"
+      ],
+      "gaps": [
+        "generic_ecosystem"
+      ],
+      "generated_at": "2026-10-17T13:16:40Z",
+      "model": "grok-4.6",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [
+        "Update Ivanti Sentry to a vendor-resolved version (10.5.2, 10.6.2, or 10.7.1) per the Ivanti security advisory",
+        "Apply mitigations in accordance with vendor instructions and CISA BOD 26-04, including evaluation of internet exposure of each asset",
+        "Follow applicable BOD 26-04 guidance for cloud services or discontinue use if mitigations are unavailable"
+      ],
+      "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-10520",
+        "https://nvd.nist.gov/vuln/detail/cve-2026-81017",
+        "https://nvd.nist.gov/vuln/detail/cve-2026-89720",
+        "https://nvd.nist.gov/vuln/detail/cve-2026-97420",
+        "https://patchtonight.com/cve/CVE-2026-10520/",
+        "https://www.csa.gov.sg/alerts-and-advisories/alerts/al-2026-074/",
+        "https://cve.report/CVE-2026-10520",
+        "https://beazley.security/alerts-advisories/critical-vulnerabilities-in-ivanti-sentry-epmm-cve-2026-6973-cve-2026-10727-cve-2026-10520-cve-2026-10523",
+        "https://www.securityweek.com/ivanti-sentry-exploitation-attempts-hitting-honeypots/",
+        "https://cipherssecurity.com/cve/CVE-2026-10520/",
+        "https://www.fortiguard.com/outbreak-alert/ivanti-sentry-os-command-injection",
+        "https://www.fortiguard.com/threat-signal-report/6472/ivanti-sentry-pre-authentication-rce",
+        "https://www.tenable.com/cve/CVE-2026-10520",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog-print",
+        "https://www.cisa.gov/news-events/alerts/2026/10/14/cisa-adds-four-known-exploited-vulnerabilities-catalog",
+        "https://www.cisa.gov/news-events/alerts/2026/10/16/cisa-urges-patching-critical-vulnerability-beyondtrust-remote-support",
+        "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-26-288-02",
+        "https://www.cisa.gov/news-events/cybersecurity-advisories/aa26-281a",
+        "https://www.cisa.gov/news-events/alerts/2026/10/13/cisa-urges-patching-newly-exploited-vulnerability-ivanti-connect-secure",
+        "https://www.cisa.gov/news-events/bulletins/sb26-166",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-26-281-01",
+        "https://www.cisa.gov/news-events/alerts/2026/09/27/critical-zero-day-vulnerabilities-exploited-citrix-netscaler-adc-gateway",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog",
+        "https://hub.ivanti.com/s/article/Security-Advisory-Ivanti-Sentry-CVE-2026-10520-CVE-2026-10523"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "00219995e539039a42721f88a4db5d4667c77e537e237a9beec6e2f425c9cef0",
+      "source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-10520",
+        "https://hub.ivanti.com/s/article/Security-Advisory-Ivanti-Sentry-CVE-2026-10520-CVE-2026-10523"
+      ],
+      "status": "complete",
+      "uncertainty": [
+        "NVD and full Ivanti advisory pages did not return complete body content on fetch; facts rely on search-indexed snippets and the CISA KEV catalog/JSON",
+        "No vendor-published inert, non-command verification procedure beyond version confirmation was retrieved",
+        "CPE uses standalone_sentry while CISA/Ivanti refer to Sentry; branch coverage for all prior releases is taken from listed NVD/CPE and advisory tables without additional confirmation",
+        "Third-party reports of a specific management port were not used"
+      ],
+      "verification_steps": [
+        "Confirm the installed Sentry version is listed as resolved (10.5.2, 10.6.2, or 10.7.1) using the product administrative interface described by the vendor",
+        "Review whether management interfaces remain restricted from untrusted networks as stated in CISA KEV notes"
+      ]
+    },
     "CVE-2026-11645": {
       "business_risk": "High. A remote attacker can use a crafted HTML page to trigger V8 out-of-bounds memory access and potentially execute arbitrary code within Chrome’s sandbox. The vulnerability is listed in CISA’s Known Exploited Vulnerabilities Catalog, indicating active exploitation and elevated remediation priority.",
       "claim_evidence": [
@@ -28843,29 +28938,110 @@
       ]
     },
     "CVE-2026-20253": {
-      "business_risk": "No additional source-verified CVE-specific business impact was established.",
-      "claim_evidence": [],
-      "exposure_conditions": [],
+      "business_risk": "Critical missing authentication (CWE-306) in Splunk Enterprise allows an unauthenticated, network-reachable user to create or truncate arbitrary files via a PostgreSQL sidecar endpoint (CVSS 9.8). Splunk reported limited exploitation, and CISA added the CVE to KEV on 2026-06-18 with a 2026-06-21 due date.",
+      "claim_evidence": [
+        {
+          "claim": "The affected product is Splunk Enterprise (splunkd).",
+          "kind": "affected_product",
+          "source_url": "https://advisory.splunk.com/advisories/SVD-2026-0603"
+        },
+        {
+          "claim": "Affected versions are Splunk Enterprise 10.2.0 to 10.2.3 and 10.0.0 to 10.0.6; 10.4, 9.4, and 9.3 are not affected.",
+          "kind": "affected_version",
+          "source_url": "https://advisory.splunk.com/advisories/SVD-2026-0603"
+        },
+        {
+          "claim": "An unauthenticated, network-reachable user can create or truncate arbitrary files because a PostgreSQL sidecar service endpoint lacks authentication controls.",
+          "kind": "exposure",
+          "source_url": "https://advisory.splunk.com/advisories/SVD-2026-0603"
+        },
+        {
+          "claim": "Splunk Cloud Platform is not affected; Postgres sidecars are not used in Splunk Cloud.",
+          "kind": "exposure",
+          "source_url": "https://advisory.splunk.com/advisories/SVD-2026-0603"
+        },
+        {
+          "claim": "Fixed versions are Splunk Enterprise 10.4.0, 10.2.4, and 10.0.7, or higher.",
+          "kind": "fixed_version",
+          "source_url": "https://advisory.splunk.com/advisories/SVD-2026-0603"
+        },
+        {
+          "claim": "Upgrade Splunk Enterprise to 10.4.0, 10.2.4, and 10.0.7, or higher.",
+          "kind": "remediation",
+          "source_url": "https://advisory.splunk.com/advisories/SVD-2026-0603"
+        },
+        {
+          "claim": "If upgrade cannot be performed immediately, mitigate by disabling the PostgreSQL sidecar service; do not apply that workaround if Edge Processor, OpAmp, or SPL2 data pipelines are used on the instance.",
+          "kind": "remediation",
+          "source_url": "https://advisory.splunk.com/advisories/SVD-2026-0603"
+        },
+        {
+          "claim": "The vendor published no detections for this vulnerability.",
+          "kind": "verification",
+          "source_url": "https://advisory.splunk.com/advisories/SVD-2026-0603"
+        }
+      ],
+      "exposure_conditions": [
+        "Splunk Enterprise 10.0.0 through 10.0.6 or 10.2.0 through 10.2.3 with the PostgreSQL sidecar service in use",
+        "Unauthenticated users who can reach the PostgreSQL sidecar service endpoint over the network",
+        "Splunk Enterprise 9.4 and earlier are not affected",
+        "Splunk Cloud Platform is not affected because Postgres sidecars are not used there",
+        "Vendor workaround of disabling the PostgreSQL sidecar removes impact but breaks Edge Processor, OpAmp, and SPL2 data pipelines"
+      ],
       "gaps": [
         "generic_ecosystem"
       ],
-      "generated_at": "2026-07-30T11:35:54Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-10-17T13:12:49Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
-      "remediation_steps": [],
-      "retrieved_source_urls": [],
+      "remediation_steps": [
+        "Upgrade Splunk Enterprise to 10.0.7, 10.2.4, 10.4.0, or a later release listed as fixed in SVD-2026-0603.",
+        "If an immediate upgrade is not possible, disable the PostgreSQL sidecar service using the vendor-documented local server.conf postgres disable setting and restart Splunk Enterprise. Do not use this workaround on instances that require Edge Processor, OpAmp, or SPL2 data pipelines.",
+        "For KEV-covered environments, apply vendor mitigations in accordance with CISA BOD 26-04, evaluate each asset's internet exposure, and discontinue use if mitigations are unavailable."
+      ],
+      "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-20253?ref=cvefinder.io",
+        "https://nvd.nist.gov/vuln/detail/cve-2026-26017",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-98317",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-82710",
+        "https://nvd.nist.gov/vuln/detail/cve-2026-81017",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2026-72317",
+        "https://cipherssecurity.com/cve/CVE-2026-20253/",
+        "https://sploitus.com/exploit?id=KITPLOIT:TOOLS-GITHUB-HET-KALARIYA-CVE-2026-20253",
+        "https://safe.security/resources/blog/cve-2026-20253-splunk-enterprise-10-x-unauthenticated-arbitrary-file-write-to-rce-via-postgresql-sidecar-recovery-endpoint/",
+        "https://blog.halosecurity.com/cve-2026-20253-splunk-enterprise-arbitrary-file-creation/",
+        "https://www.penligent.ai/hackinglabs/splunk-cve-2026-20253/",
+        "https://advisory.splunk.com/advisories/SVD-2026-0603",
+        "https://www.sentinelone.com/vulnerability-database/cve-2026-20253/",
+        "https://fortiguard.fortinet.com/threat-signal-report/6470",
+        "https://www.cyber-defence.io/tools/cve/CVE-2026-20253",
+        "https://advisory.splunk.com/advisories?ref=onhexgroup.ir",
+        "https://advisory.splunk.com/advisories/SVD-2026-0801.html",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog-print",
+        "https://www.cisa.gov/news-events/alerts/2026/10/16/cisa-adds-two-known-exploited-vulnerabilities-catalog",
+        "https://www.cisa.gov/news-events/alerts/2026/10/16/cisa-urges-patching-critical-vulnerability-beyondtrust-remote-support",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog",
+        "https://www.cve.org/CVERecord?id=CVE-2026-20253"
+      ],
       "schema_version": 2,
       "source_fingerprint": "706a99eaca21197ef77dfd54b7b57c3232e9e2ac6d78741aea3acab66fee10b8",
-      "source_urls": [],
-      "status": "insufficient_evidence",
-      "uncertainty": [
-        "The supplied record and authoritative sources do not establish whether a particular deployment is internet-exposed, which network segments can reach the sidecar endpoint, or whether PostgreSQL sidecar functionality is enabled on a specific asset.",
-        "The vendor advisory reports limited exploitation but does not provide asset-specific indicators of compromise or detection signatures.",
-        "The sources do not provide a non-invasive, CVE-specific endpoint check; verification should therefore rely on version and effective-configuration review.",
-        "The model did not return a fully sourced exposure, remediation, and verification set; consult the linked NVD and vendor sources before acting."
+      "source_urls": [
+        "https://advisory.splunk.com/advisories/SVD-2026-0603"
       ],
-      "verification_steps": []
+      "status": "complete",
+      "uncertainty": [
+        "The NVD HTML page could not be retrieved in this session; NVD search snippets match the vendor advisory description and version ranges.",
+        "The vendor lists Detections as None, so no authoritative positive or negative test procedure is published.",
+        "The advisory does not specify sidecar listen address, port, or default interface exposure beyond a network-reachable unauthenticated user.",
+        "Splunk PSIRT noted limited exploitation without detailing scope, indicators, or ransomware use (CISA lists ransomware use as Unknown)."
+      ],
+      "verification_steps": [
+        "Confirm the installed Splunk Enterprise version against the SVD-2026-0603 product status table (fixed releases: 10.0.7, 10.2.4, 10.4.0 or higher).",
+        "If the workaround is used, confirm the documented PostgreSQL sidecar disable setting is present in local configuration and that Splunk Enterprise was restarted.",
+        "Do not send unauthenticated requests to sidecar or file-operation endpoints to test this vulnerability.",
+        "The vendor published no detections for this issue."
+      ]
     },
     "CVE-2026-20700": {
       "business_risk": "High. Apple reports that exploitation may allow arbitrary code execution for an attacker with memory-write capability, and the issue may have been exploited in an extremely sophisticated, targeted attack against individuals using iOS versions before iOS 26. NVD records the CVE in CISA's Known Exploited Vulnerabilities catalog, requiring timely remediation.",
@@ -29891,48 +30067,72 @@
       "verification_steps": []
     },
     "CVE-2026-25089": {
-      "business_risk": "No additional source-verified CVE-specific business impact was established.",
+      "business_risk": "Critical unauthenticated OS command injection (CWE-78, CVSS 3.1 9.8) in the FortiSandbox, FortiSandbox Cloud, and FortiSandbox PaaS web UI that may allow unauthorized command execution via crafted HTTP requests. CISA added the CVE to the KEV catalog on 2026-07-16 with a 2026-07-19 due date, forensic triage required under BOD 26-04, and unknown ransomware campaign use.",
       "claim_evidence": [],
-      "exposure_conditions": [],
+      "exposure_conditions": [
+        "Unauthenticated remote attacker",
+        "Specifically crafted HTTP requests against the WEB UI/GUI",
+        "Network-reachable FortiSandbox, FortiSandbox Cloud, or FortiSandbox PaaS management interface",
+        "Internet or untrusted-network exposure of the GUI (CISA requires stakeholders to evaluate each asset's internet exposure)"
+      ],
       "gaps": [
         "generic_ecosystem"
       ],
-      "generated_at": "2026-07-30T11:36:05Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-10-17T13:15:04Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
-      "remediation_steps": [],
+      "remediation_steps": [
+        "FortiSandbox 5.0.0 through 5.0.5: upgrade to 5.0.6 or above",
+        "FortiSandbox 4.4.0 through 4.4.8: upgrade to 4.4.9 or above",
+        "FortiSandbox 4.2 all versions: migrate to a fixed release",
+        "FortiSandbox PaaS 5.0.4 through 5.0.5: upgrade to 5.0.6 or above",
+        "FortiSandbox Cloud 5.0.4 through 5.0.5: vendor states the issue was remediated in 5.0.6 (not released) and customers do not need to perform any action",
+        "Apply vendor mitigations in accordance with CISA KEV required action, BOD 26-04 prioritizing security updates based on risk, and CISA forensics triage requirements; follow BOD 26-04 cloud-service guidance or discontinue use if mitigations are unavailable"
+      ],
       "retrieved_source_urls": [
-        "https://fortiguard.fortinet.com/psirt/FG-IR-26-141",
-        "https://nvd.nist.gov/vuln/detail/CVE-2026-25089",
-        "https://fortiguard.fortinet.com/psirt",
-        "https://fortiguard.fortinet.com/psirt/FG-IR-26-140",
+        "https://nvd.nist.gov/vuln/detail/cve-2026-25089?ref=bordercybergroup.com",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-88789",
+        "https://nvd.nist.gov/vuln/detail/cve-2026-89789",
+        "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2026-85089",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-31789",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-80789",
+        "https://fortiguard.fortinet.com/psirt?product=FortiOS,FortiOS-6K7K,FortiSandbox&severity=5,4",
         "https://fortiguard.fortinet.com/psirt/FG-IR-26-134",
-        "https://fortiguard.fortinet.com/psirt/FG-IR-26-102",
-        "https://fortiguard.fortinet.com/psirt/FG-IR-26-128",
-        "https://fortiguard.fortinet.com/psirt/FG-IR-26-143",
-        "https://fortiguard.fortinet.com/psirt/FG-IR-25-260",
-        "https://fortiguard.fortinet.com/psirt/FG-IR-26-123",
-        "https://fortiguard.fortinet.com/psirt/FG-IR-26-130",
-        "https://fortiguard.fortinet.com/psirt/FG-IR-26-114",
-        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
-        "https://www.cisa.gov/sites/default/files/2025-09/AA25-266A_advisory_cisa_shares_lessons_learned_from_ir_engagement.pdf",
-        "https://www.cisa.gov/sites/default/files/2025-08/CSA_COUNTERING_CHINA_STATE_ACTORS_COMPROMISE_OF_NETWORKS.pdf",
-        "https://www.cisa.gov/sites/default/files/2025-09/AA25_266A_advisory_cisa_shares_lessons_learned_from_ir_engagement.pdf"
+        "https://fortiguard.fortinet.com/known-exploited-threats",
+        "https://fortiguard.fortinet.com/psirt?product=FortiSandbox%2CMeru+Controller%2CFortiClientAndroid%2CFortiMail%2CFortiOS-6K7K%2CFortiDDoS-F%2CFortiCache%2CFortiSIEM%2CFortiOS&severity=1%2C4%2C2",
+        "https://fortiguard.fortinet.com/psirt?severity=3",
+        "https://fortiguard.fortinet.com/psirt?severity=4%2C2&product=FortiClientWindows%2CFortiProxy",
+        "https://fortiguard.fortinet.com/threat-signal-report/6470",
+        "https://fortiguard.fortinet.com/encyclopedia/ips/62510",
+        "https://fortiguard.fortinet.com/encyclopedia/endpoint-vuln/91052",
+        "https://fortiguard.fortinet.com/encyclopedia/endpoint-vuln/87654",
+        "https://labs.cloudsecurityalliance.org/research/csa-research-note-fortisandbox-triple-cve-exploitation-20260/",
+        "https://x.com/NCIIPC/status/2064978229698740232",
+        "https://gbhackers.com/fortinet-fortisandbox-vulnerability-2/",
+        "https://app.opencve.io/cve/CVE-2026-106170",
+        "https://cibersafety.com/en/critical-flaws-fortisiem-fortisandbox/",
+        "https://fortinetweb.s3.amazonaws.com/docs.fortinet.com/v2/attachments/886e2add-94cb-11f1-8c5a-8e4c95ff11ac/FortiSandbox-5.0.7-Administration_Guide.pdf",
+        "https://x.com/DailyDarkWeb/status/2110241718083932180",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog-print"
       ],
       "schema_version": 2,
       "source_fingerprint": "59804f921a2da39fe981f0a456a7ebf93e98cb73f9fdc13f2527890195cf5ed4",
       "source_urls": [
-        "https://fortiguard.fortinet.com/psirt/FG-IR-26-141",
-        "https://nvd.nist.gov/vuln/detail/CVE-2026-25089"
+        "https://nvd.nist.gov/vuln/detail/cve-2026-25089?ref=bordercybergroup.com"
       ],
-      "status": "insufficient_evidence",
+      "status": "complete",
       "uncertainty": [
-        "The Fortinet advisory provides explicit fixes for FortiSandbox 4.4 and 5.0, and for Cloud/PaaS 5.0, but does not state a fixed version or migration path for FortiSandbox 4.2.x.",
-        "The vendor advisory states Known Exploited: No, while NVD records CISA KEV status and active exploitation; treat the CISA/NVD status as the current authoritative exploitation signal while recognizing the discrepancy.",
-        "The supplied evidence does not establish specific network ports, deployment prerequisites, vulnerable endpoints beyond the Web UI/start-vnc feature description, or a safe product-specific health-check procedure."
+        "The Fortinet HTML advisory table omits FortiSandbox 4.2 while the vendor CSAF lists 4.2 all versions as known_affected with a migrate-to-fixed-release remediation",
+        "NVD describes FortiSandbox 4.2 all versions and lists affected 4.2.1 through 4.2.8 (CPE 4.2.0 through 4.2.8 inclusive) versus CSAF 4.2 all versions",
+        "No authoritative source provided an inert, product-specific procedure (such as a documented version-display location) to confirm the installed release",
+        "Fortinet advisory listed Known Exploited: No at June 2026 publication; CISA added the CVE to KEV on 2026-07-16",
+        "Direct fetch of the NVD detail page returned no content; NVD facts are taken from search-result excerpts of that page"
       ],
-      "verification_steps": []
+      "verification_steps": [
+        "Confirm the running product and version against the vendor advisory solution table (unaffected or upgraded releases)",
+        "Evaluate whether the WEB UI/GUI is reachable from untrusted networks or the internet, as required by CISA KEV guidance for this CVE"
+      ]
     },
     "CVE-2026-3055": {
       "business_risk": "Critical risk. NetScaler ADC and NetScaler Gateway can be remotely affected by an out-of-bounds read when configured as a SAML identity provider. NVD records a CVSS 3.1 score of 9.8, and the vulnerability is listed in CISA's Known Exploited Vulnerabilities catalog, indicating active exploitation and a need for urgent remediation.",
@@ -30561,6 +30761,59 @@
         "Confirm UniFi OS Server is version 5.0.8 or later, or that the applicable device firmware meets its corresponding fixed-version threshold. ([nvd.nist.gov](https://nvd.nist.gov/vuln/detail/CVE-2026-34910?utm_source=openai))",
         "Confirm the asset is no longer unnecessarily reachable from untrusted network segments and review relevant security logs for suspicious activity because the vulnerability is listed as actively exploited. ([nvd.nist.gov](https://nvd.nist.gov/vuln/detail/CVE-2026-34910?utm_source=openai))"
       ]
+    },
+    "CVE-2026-35273": {
+      "business_risk": "No additional source-verified CVE-specific business impact was established.",
+      "claim_evidence": [],
+      "exposure_conditions": [],
+      "gaps": [
+        "generic_ecosystem"
+      ],
+      "generated_at": "2026-10-17T13:10:57Z",
+      "model": "grok-4.6",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [],
+      "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-35273",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-98173",
+        "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2026-80973",
+        "https://www.oracle.com/security-alerts/alert-cve-2026-35273.html",
+        "https://blogs.oracle.com/security/security-alert-cve-2026-35273-released",
+        "https://blogs.oracle.com/security/tag/cve-2026-35273",
+        "https://www.oracle.com/security-alerts/cve-2026-35273verbose.html",
+        "https://community.oracle.com/mosc/discussion/4600095/peopletools-patch-for-cve-2026-35273",
+        "https://docs.oracle.com/ja/cloud/paas/goldengate-service/ocigg/oracle-cloud-infrastructure-goldengate-versions.html",
+        "https://docs.oracle.com/en/cloud/paas/visual-builder/visualbuilder-manage-development-process/check-security-vulnerabilities-your-projects-npm-packages-dependencies.html",
+        "https://community.oracle.com/CustomerConnect/discussions/tagged/product-notice/p1",
+        "https://docs.oracle.com/en/database/oracle/apex/26.2/htmrn/new-features.html",
+        "https://www.oracle.com/security-alerts/cspusep2026.html",
+        "https://www.cve.org/CVERecord?id=CVE-2026-35273",
+        "https://www.csa.gov.sg/alerts-and-advisories/alerts/al-2026-072/",
+        "https://cve.report/CVE-2026-35273",
+        "https://radar.offseq.com/threat/cve-2026-35273-vulnerability-in-the-peoplesoft-ent-9ad1390c",
+        "https://beazley.security/alerts-advisories/critical-vulnerability-in-oracle-peoplesoft-enterprise-peopletools-under-active-exploitation-cve-2026-35273",
+        "https://censys.com/advisory/cve-2026-35273/",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog-print"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "4456741e137b13b3593b6fcc4602ac4ba58439451ee412e0dc502e69f1a9700f",
+      "source_urls": [
+        "https://www.oracle.com/security-alerts/alert-cve-2026-35273.html",
+        "https://www.oracle.com/security-alerts/cve-2026-35273verbose.html",
+        "https://blogs.oracle.com/security/security-alert-cve-2026-35273-released",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-35273",
+        "https://www.cve.org/CVERecord?id=CVE-2026-35273"
+      ],
+      "status": "insufficient_evidence",
+      "uncertainty": [
+        "Oracle public advisory and CSAF list only affected versions 8.61 and 8.62; they do not publish a concrete patched PeopleTools patch-set version.",
+        "Detailed mitigation and installation steps are only in My Oracle Support document CPU187 and are not available in public vendor text.",
+        "No authoritative public inert verification procedure, version string, or configuration check was published.",
+        "NVD browse did not return page body; NVD facts are taken from search snippets that match Oracle and CISA.",
+        "Third-party exploitation endpoint reports were not used because they are not NVD, CNA, or vendor advisory sources."
+      ],
+      "verification_steps": []
     },
     "CVE-2026-3909": {
       "business_risk": "High. This is a remotely reachable Chrome memory-safety vulnerability in Skia with a CVSS 3.1 score of 8.8 and active exploitation reported by Google. Successful exploitation could enable out-of-bounds memory access with potential confidentiality, integrity, and availability impact.",
@@ -31352,89 +31605,294 @@
         "Do not attempt exploit, payload, or production-probe testing to prove the defect."
       ]
     },
-    "CVE-2026-48939": {
-      "business_risk": "Critical risk: CVE-2026-48939 permits unauthenticated arbitrary-file upload through iCagenda’s file-attachment functionality, potentially enabling PHP code upload and remote code execution with impacts to confidentiality, integrity, and availability. CISA lists the vulnerability in its Known Exploited Vulnerabilities Catalog, so affected deployments should receive urgent treatment.",
+    "CVE-2026-48558": {
+      "business_risk": "Critical authentication bypass (CISA KEV) in SimpleHelp OIDC flow that can let a remote unauthenticated attacker obtain a technician session and access managed endpoints when OIDC and group-authenticated logins are enabled.",
       "claim_evidence": [
         {
-          "claim": "CVE-2026-48939 affects the iCagenda extension for Joomla and involves arbitrary file upload through the file-attachment feature, with potential PHP code upload and execution.",
-          "kind": "affected_product",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-48939"
-        },
-        {
-          "claim": "NVD identifies iCagenda versions 3.2.1 through versions before 3.9.15, and versions 4.0.0 through versions before 4.0.8, as affected.",
+          "claim": "SimpleHelp 5.5.15 and earlier and some 6.0 pre-release versions (before 6.0 RC2)",
           "kind": "affected_version",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-48939"
+          "source_url": "https://guides.simple-help.com/kb---security-vulnerabilities-05-2026"
         },
         {
-          "claim": "The vulnerability is remotely exploitable without authentication according to the NVD description and the vendor’s security-release notes describing a full unauthenticated remote-code-execution issue.",
+          "claim": "Vulnerable only when OIDC is enabled, a Technician Group uses that OIDC provider, and Allow group authenticated logins is enabled on the group",
           "kind": "exposure",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-48939"
+          "source_url": "https://simple-help.com/blogs/cve-2026-48558-what-you-need-to-know-about-the-simplehelp-oidc-authentication-bypass"
         },
         {
-          "claim": "The iCagenda 4.0.8 release is a critical security release that fixes a full unauthenticated remote-code-execution issue.",
+          "claim": "SimpleHelp 5.5.16 and SimpleHelp 6.0 RC2 or later are not affected",
           "kind": "fixed_version",
-          "source_url": "https://www.icagenda.com/docs/changelog/icagenda-4-0-8"
+          "source_url": "https://simple-help.com/blogs/cve-2026-48558-what-you-need-to-know-about-the-simplehelp-oidc-authentication-bypass"
         },
         {
-          "claim": "A safe primary verification is to confirm that deployed versions are outside the NVD-listed affected ranges and match the vendor’s security-release versions 3.9.15 or 4.0.8, as applicable.",
+          "claim": "Review group-authenticated Technician accounts in Administration and search logs for New Anon configuration-save entries",
           "kind": "verification",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-48939"
+          "source_url": "https://simple-help.com/blogs/cve-2026-48558-what-you-need-to-know-about-the-simplehelp-oidc-authentication-bypass"
         }
       ],
       "exposure_conditions": [
-        "The iCagenda extension for Joomla is installed in an affected version.",
-        "The file-attachment functionality is reachable by an unauthenticated remote user.",
-        "The affected Joomla application is remotely reachable, particularly from the internet or other untrusted networks."
+        "OIDC authentication is enabled and at least one OIDC provider is configured",
+        "At least one Technician Group is associated with that OIDC provider",
+        "Allow group authenticated logins is enabled on that Technician Group",
+        "The SimpleHelp server is reachable from an IP permitted by technician login filters and authentication filters are satisfied"
       ],
       "gaps": [
         "generic_ecosystem"
       ],
-      "generated_at": "2026-07-14T22:27:33Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-10-17T13:09:18Z",
+      "model": "grok-4.6",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [
-        "Upgrade iCagenda 3.x installations to version 3.9.15 or later.",
-        "Upgrade iCagenda 4.x installations to version 4.0.8 or later.",
-        "If an affected installation cannot be upgraded promptly, restrict unauthenticated access to the Joomla application and iCagenda file-attachment functionality as an interim risk-reduction measure, consistent with vendor and CISA guidance.",
-        "Because CISA identifies this CVE as exploited, assess potentially exposed systems for compromise using established incident-response and forensic procedures before and after remediation."
+        "Upgrade 5.5.x servers to SimpleHelp 5.5.16",
+        "Upgrade 6.0 pre-release servers to SimpleHelp 6.0 RC2 or later",
+        "If an immediate upgrade is not possible, restrict technician authentication to approved source IP addresses",
+        "Follow vendor security-update guidance and CISA BOD 26-04 for exposed assets"
       ],
       "retrieved_source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2026-48939",
-        "https://www.icagenda.com/docs/changelog/icagenda-4-0-8",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=0",
-        "https://nvd.nist.gov/vuln/detail/CVE-2026-20039",
-        "https://nvd.nist.gov/vuln/detail/CVE-2025-27439",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=68",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=22",
-        "https://nvd.nist.gov/vuln/detail/cve-2023-48239",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=52",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=21",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=19",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=50",
-        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
-        "https://www.cisa.gov/sites/default/files/2024-08/SECURING_THE_SOFTWARE_SUPPLY_CHAIN_RECOMMENDED_PRACTICES_FOR_SOFTWARE_BILL_OF_MATERIALS_CONSUMPTION-508.pdf",
-        "https://www.cisa.gov/sites/default/files/2023-12/SECURING%20THE%20SOFTWARE%20SUPPLY%20CHAIN%20RECOMMENDED%20PRACTICES%20FOR%20SOFTWARE%20BILL%20OF%20MATERIALS%20CONSUMPTION%20%282%29.pdf",
-        "https://www.cisa.gov/sites/default/files/2025-09/AA25-266A_advisory_cisa_shares_lessons_learned_from_ir_engagement.pdf",
-        "https://www.cisa.gov/sites/default/files/2024-05/Secure_by_Design_Alert_Eliminating_Directory_Traversal_Vulnerabilities_in_Software_508c%20%283%29.pdf"
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-48558",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-48558",
+        "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2026-89558",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-89858",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2026-48858",
+        "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2026-55858",
+        "https://nvd.nist.gov/vuln/detail/cve-2026-97558",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-90058",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2026-80558",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-43158",
+        "https://guides.simple-help.com/kb---security-vulnerabilities-05-2026",
+        "https://simple-help.com/blog",
+        "https://simple-help.com/blogs/cve-2026-48558-what-you-need-to-know-about-the-simplehelp-oidc-authentication-bypass",
+        "https://simple-help.com/blogs/http-headers-are-doing-more-work-than-you-think",
+        "http://simple-help.com/media/static/jwrapper/jwutils/JWOsType.html",
+        "https://simple-help.com/kb---delays-in-connecting-to-remote-access-services-after-updating",
+        "https://simple-help.com/kb---launching-simplehelp-on-linux-produces-a-libjvmso-error",
+        "https://simple-help.com/blogs/the-powershell-script-that-worked-everywhere----except-where-it-mattered",
+        "https://simple-help.com/kb---cloning-the-remote-access-service",
+        "https://simple-help.com/whats-new-in-simplehelp-60",
+        "https://its.ny.gov/2026-061",
+        "https://www.cve.org/CVERecord?id=CVE-2026-48558",
+        "https://beazley.security/alerts-advisories/critical-authentication-bypass-in-simplehelp-cve-2026-48558",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog-print"
       ],
       "schema_version": 2,
-      "source_fingerprint": "a92f6081a1725ccc126c776bc083c26cf7a011fb0a28d9434edcfa17e45244ce",
+      "source_fingerprint": "fcb3fcfe37fc849adf8fad22285f36113f3a9016e44c2095975544b7ba34af44",
       "source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2026-48939",
-        "https://www.icagenda.com/docs/changelog/icagenda-4-0-8"
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-48558",
+        "https://guides.simple-help.com/kb---security-vulnerabilities-05-2026",
+        "https://simple-help.com/blogs/cve-2026-48558-what-you-need-to-know-about-the-simplehelp-oidc-authentication-bypass"
       ],
       "status": "complete",
       "uncertainty": [
-        "The vendor release notes confirm that the listed releases fix a critical unauthenticated remote-code-execution issue but do not provide detailed implementation or detection guidance.",
-        "The available authoritative sources do not establish a specific malicious file name, upload path, forensic indicator, or vendor-provided temporary configuration workaround.",
-        "The exact exposure of an individual deployment depends on its Joomla routing, access controls, network reachability, and enabled iCagenda functionality."
+        "NVD HTML detail page did not return body content in this session",
+        "Exact 6.0 pre-release build identifiers other than RC2 are not fully enumerated on retrieved vendor pages",
+        "Log file locations vary by operating system and install path"
       ],
       "verification_steps": [
-        "Confirm the installed iCagenda version is at least 3.9.15 for the 3.x branch or at least 4.0.8 for the 4.x branch.",
-        "Confirm that no affected versions remain deployed across Joomla instances, backups, staging systems, or externally exposed sites.",
-        "Review application and web-server security logs for unexpected file uploads or PHP execution associated with iCagenda’s file-attachment functionality; do not perform exploit testing against production systems.",
-        "Confirm that the vendor release is recorded as applied and that unauthenticated access to the relevant functionality is subject to the intended access controls."
+        "Confirm the running SimpleHelp version is 5.5.16 or 6.0 RC2 or later in the product administration interface",
+        "In Administration, Technicians, use the gear control to show group-authenticated users and review for unrecognized names or emails",
+        "Review server logs for configuration-save entries indicating New Anon technician registration"
+      ]
+    },
+    "CVE-2026-48907": {
+      "business_risk": "Critical improper access control in the Joomla Content Editor (JCE) extension can let unauthenticated users create editor profiles and upload/execute PHP, enabling full site takeover. CISA lists it as known exploited (KEV added 2026-06-16). CNA CVSS 4.0 is 10.0 CRITICAL. Vendor states updating closes the entry point but does not remove a prior compromise.",
+      "claim_evidence": [
+        {
+          "claim": "Affected product is the JCE editor extension for Joomla (CNA/NVD: Joomla Content Editor (JCE) extension for Joomla / joomlacontenteditor.net; CISA: Widget Factory Joomla Content Editor).",
+          "kind": "affected_product",
+          "source_url": "https://www.cve.org/CVERecord?id=CVE-2026-48907"
+        },
+        {
+          "claim": "CNA product status: affected at 1.0.0-2.9.99.4 (default status unaffected).",
+          "kind": "affected_version",
+          "source_url": "https://www.cve.org/CVERecord?id=CVE-2026-48907"
+        },
+        {
+          "claim": "NVD lists Joomla Content Editor (JCE) extension for Joomla affected 1.0.0-2.9.99.4 and CPE up to (excluding) 2.9.99.5.",
+          "kind": "affected_version",
+          "source_url": "https://nvd.nist.gov/vuln/detail/cve-2026-48907"
+        },
+        {
+          "claim": "Unauthenticated users can create/upload new editor profiles, ultimately resulting in PHP code upload and execution (CWE-284).",
+          "kind": "exposure",
+          "source_url": "https://www.cve.org/CVERecord?id=CVE-2026-48907"
+        },
+        {
+          "claim": "Free patch package for JCE 2.7.x to 2.9.x backports CVE-2026-48907 fixes for sites that cannot run the current release; it does not include 2.9.99.6 hardening; install via Joomla Installer after backup/test.",
+          "kind": "remediation",
+          "source_url": "https://www.joomlacontenteditor.net/downloads/editor/security-patch/security-patch-for-jce-2-7-x-to-2-9-x"
+        }
+      ],
+      "exposure_conditions": [
+        "Joomla site with the JCE editor extension installed",
+        "JCE versions reported affected as 1.0.0 through 2.9.99.4 (all versions prior to 2.9.99.5)",
+        "No authentication required: unauthenticated users can upload/create editor profiles",
+        "Network-accessible site; vendor states lack of public registration does not make a site safe",
+        "CISA KEV: known exploited in the wild"
+      ],
+      "gaps": [
+        "generic_ecosystem"
+      ],
+      "generated_at": "2026-10-17T13:18:39Z",
+      "model": "grok-4.6",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [
+        "Update JCE to 2.9.99.5 or later using the Joomla Updater or the vendor download; the CVE is patched in 2.9.99.5",
+        "Vendor recommended current release at advisory time: JCE Pro 2.9.99.9 (later releases add hardening beyond the CVE fix, starting 2.9.99.6)",
+        "If the site cannot run current JCE (older PHP or Joomla), install the vendor free security-patch package for JCE 2.7.x to 2.9.x; it patches this CVE only and does not include 2.9.99.6+ hardening",
+        "Back up and test the stopgap patch on a copy before a live install; vendor provides it as-is with no warranty",
+        "If unable to update or apply the patch, uninstall JCE",
+        "If compromise is suspected, patch first so the attack cannot be reinstated, then remove unexpected profiles and uploaded files, change administrator/database/hosting credentials, and run a server-side malware scan"
+      ],
+      "retrieved_source_urls": [
+        "https://avd.aquasec.com/nvd/2026/cve-2026-48907/",
+        "https://www.cyber-defence.io/tools/cve/CVE-2026-48907",
+        "https://tridentstack.com/cve/CVE-2026-48907",
+        "https://sploitus.com/cve/CVE-2026-48907",
+        "https://knoxsystems.com/cve-database/cve-2026-48907",
+        "https://github.com/sec0x/CVE-2026-48907",
+        "https://www.bitsight.com/groma-explorer/cve-2026-48907",
+        "https://en.findby.co.kr/search/48907?page=10",
+        "https://cve.report/CVE-2026-48907",
+        "https://www.gov.br/cisc/pt-br/alertas-de-ciberseguranca/rce-pre-autenticado-no-jce-pro-cve-2026-48907",
+        "https://www.upguard.com/vulnerabilities/cve-2026-48907",
+        "https://github.com/ywh-jfellus/CVE-2026-48907/blob/main/poc.py",
+        "https://github.com/0xgh057r3c0n/CVE-2026-48907/blob/main/CVE-2026-48907.yaml",
+        "https://cvefeed.io/vuln/detail/CVE-2026-48907",
+        "https://github.com/ywh-jfellus/CVE-2026-48907",
+        "https://nvd.nist.gov/vuln/detail/cve-2026-48907",
+        "https://nvd.nist.gov/vuln/detail/cve-2026-89407",
+        "https://www.joomlacontenteditor.net/downloads/editor/security-patch/security-patch-for-jce-2-7-x-to-2-9-x",
+        "https://www.joomlacontenteditor.net/news?start=10",
+        "https://www.joomlacontenteditor.net/news/jce-pro-2-9-99-7-released",
+        "https://joomlacontenteditor.net/support/changelog/editor",
+        "https://www.cve.org/CVERecord?id=CVE-2026-48907"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "f6f4727ef8682035afd039bc13f63a8c64ff686588e6bd021bdc95ba51875445",
+      "source_urls": [
+        "https://www.cve.org/CVERecord?id=CVE-2026-48907",
+        "https://nvd.nist.gov/vuln/detail/cve-2026-48907",
+        "https://www.joomlacontenteditor.net/downloads/editor/security-patch/security-patch-for-jce-2-7-x-to-2-9-x"
+      ],
+      "status": "complete",
+      "uncertainty": [
+        "NVD HTML could not be retrieved in this session (JavaScript-only page); NVD facts used are from the NVD search snippet plus CNA/CVE.org",
+        "CNA encodes affected versions as the single string 1.0.0-2.9.99.4 rather than a structured range",
+        "Vendor says JCE 2.6.x does not appear affected in a default configuration but that this is not independently verified; 2.6.x remains unsupported",
+        "Vendor release notes discuss JCE Pro while CNA/NVD name the JCE editor extension; changelog records the CVE fix under JCE Editor 2.x 2.9.99.5",
+        "Stopgap patch does not include later hardening; remaining residual risk on unpatched platforms is not fully specified"
+      ],
+      "verification_steps": [
+        "Confirm the installed JCE version is 2.9.99.5 or later in Joomla extension management",
+        "In Components -> JCE Editor -> Editor Profiles, look for unexpected profiles (meaningless auto-generated names, unusual order) and profiles that permit PHP or other script uploads in Permitted File Extensions",
+        "Review web server access logs for unauthenticated requests to the vendor-identified JCE profile import task",
+        "Inspect images, media, and tmp folders for unexpected PHP files or filenames containing php; those folders should not normally contain PHP",
+        "Treat unexpected profiles, import-task log hits, or planted PHP files as possible prior compromise; updating does not clean an already compromised site"
+      ]
+    },
+    "CVE-2026-48939": {
+      "business_risk": "Critical unauthenticated file-upload to PHP execution in the iCagenda Joomla event attachment feature, listed in CISA KEV, with full site compromise if the extension is installed on Joomla 6.0.0–6.1.1.",
+      "claim_evidence": [
+        {
+          "claim": "The affected product is the iCagenda extension for Joomla (vendor icagenda.com / Joomlic).",
+          "kind": "affected_product",
+          "source_url": "https://nvd.nist.gov/vuln/detail/cve-2026-48939"
+        },
+        {
+          "claim": "CNA/NVD list iCagenda versions 3.2.1-4.0.7 as affected.",
+          "kind": "affected_version",
+          "source_url": "https://nvd.nist.gov/vuln/detail/cve-2026-48939"
+        },
+        {
+          "claim": "The file attachment feature allows upload of arbitrary files, resulting in PHP code upload and execution; CWE-434.",
+          "kind": "exposure",
+          "source_url": "https://nvd.nist.gov/vuln/detail/cve-2026-48939"
+        },
+        {
+          "claim": "Vendor: critical arbitrary-file-upload vulnerability is on Joomla 6.0 to 6.1.1; other Joomla versions are not affected because unsafe file uploads were already blocked by default prior to Joomla 6. A separate guest event-creation entry point existed on all Joomla versions.",
+          "kind": "exposure",
+          "source_url": "https://www.joomlic.com/news/icagenda-security-update/icagenda-security-update-version-4-0-8"
+        },
+        {
+          "claim": "iCagenda 4.0.8 is the security release that fixes the unauthenticated remote code execution; 3.9.15 was released for Joomla 3 guest-submission security.",
+          "kind": "fixed_version",
+          "source_url": "https://www.joomlic.com/news/icagenda-security-update/icagenda-security-update-version-4-0-8"
+        },
+        {
+          "claim": "Update to iCagenda 4.0.8 immediately; 4.0.8 is for Joomla 4 up to latest Joomla 6; 3.9.15 was released 16 June 2026 for Joomla 3 guest-access event submission security.",
+          "kind": "remediation",
+          "source_url": "https://www.joomlic.com/news/icagenda-security-update/icagenda-security-update-version-4-0-8"
+        },
+        {
+          "claim": "CISA KEV required action: apply mitigations in accordance with vendor instructions, ensuring compliance with BOD 26-04 and CISA Forensics Triage Requirements.",
+          "kind": "remediation",
+          "source_url": "https://nvd.nist.gov/vuln/detail/cve-2026-48939"
+        }
+      ],
+      "exposure_conditions": [
+        "iCagenda extension for Joomla is installed",
+        "iCagenda version is 3.2.1 through 4.0.7",
+        "The critical arbitrary-file-upload/RCE path applies on Joomla 6.0.0 through 6.1.1; vendor states other Joomla versions are not affected by that upload vulnerability because unsafe uploads were blocked by default",
+        "The related guest event-submission entry point existed on all Joomla versions for the same iCagenda version range",
+        "CISA lists this CVE as known exploited"
+      ],
+      "gaps": [
+        "generic_ecosystem"
+      ],
+      "generated_at": "2026-10-17T13:07:39Z",
+      "model": "grok-4.6",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [
+        "On Joomla 4 through latest Joomla 6, update iCagenda to 4.0.8 or later from the vendor",
+        "On Joomla 3, update iCagenda to 3.9.15",
+        "Follow CISA KEV required action: apply vendor mitigations in accordance with BOD 26-04 and CISA forensics triage guidance; if mitigations are unavailable, discontinue use",
+        "Evaluate internet exposure of each Joomla asset per CISA BOD 26-04"
+      ],
+      "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/cve-2026-48939",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-48939",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-89139",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-89739",
+        "https://nvd.nist.gov/vuln/detail/cve-2025-48940",
+        "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2026-80839",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog-print",
+        "https://www.cisa.gov/news-events/alerts/2026/10/16/cisa-urges-patching-critical-vulnerability-beyondtrust-remote-support",
+        "https://www.cisa.gov/news-events/alerts/2026/10/13/cisa-adds-two-known-exploited-vulnerabilities-catalog",
+        "https://www.cisa.gov/news-events/cybersecurity-advisories/aa26-281a",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-26-279-04",
+        "https://www.cisa.gov/news-events/bulletins/sb26-180",
+        "https://www.cisa.gov/news-events/bulletins/sb26-257",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-26-286-01",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-26-281-01",
+        "https://www.cisa.gov/news-events/alerts/2026/10/13/cisa-urges-patching-newly-exploited-vulnerability-ivanti-connect-secure",
+        "https://www.joomlic.com/news/icagenda-security-update/icagenda-security-update-version-4-0-8",
+        "https://mysites.guru/blog/icagenda-zero-day-file-upload-rce.pdf",
+        "https://htprotect.org/en/icagenda",
+        "https://app.opencve.io/cve/CVE-2026-48939",
+        "https://cve.report/CVE-2026-48939",
+        "https://www.ctrlaltnod.com/cve/cve-2026-48939/",
+        "https://github.com/advisories/GHSA-4rh3-rmh3-hv6h",
+        "https://cipherssecurity.com/cve/CVE-2026-48939/"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "b858b1eca2f7750dffcbed7c09e9b5c050391b36e67cadd605fbc7ef1425da06",
+      "source_urls": [
+        "https://nvd.nist.gov/vuln/detail/cve-2026-48939",
+        "https://www.joomlic.com/news/icagenda-security-update/icagenda-security-update-version-4-0-8"
+      ],
+      "status": "complete",
+      "uncertainty": [
+        "NVD CPE ranges (3.2.1 to before 3.9.15 and 4.0.0 to before 4.0.8) and CNA affected string 3.2.1-4.0.7 are consistent with vendor fixed versions but NVD assessment was listed as not yet provided in the retrieved page",
+        "Vendor states the critical upload/RCE is Joomla 6.0–6.1.1 only; CNA/NVD description does not itself constrain Joomla version",
+        "Safe verification is limited to version checks; no authoritative inert runtime check of the upload path was published on vendor/NVD/CISA pages retrieved",
+        "CISA KEV catalog search snippets did not return the CVE row itself in the first catalog page fetch; KEV listing is present on the NVD page"
+      ],
+      "verification_steps": [
+        "In Joomla administrator, confirm the installed iCagenda extension version is 4.0.8 or later (Joomla 4–6) or 3.9.15 (Joomla 3)",
+        "Confirm the site is not running Joomla 6.0.0–6.1.1 with iCagenda earlier than 4.0.8 if remaining on Joomla 6",
+        "Do not attempt file-upload or RCE tests; verification is version inventory only"
       ]
     },
     "CVE-2026-49869": {
@@ -31625,6 +32083,28 @@
         "MSRC and NVD page content could not be independently retrieved in thi eion; fixed build and expoure detail re-t on the untru-ted ource record and may be incomplete",
         "Safe verification ufficient for recipe_pecificity=pecific wa not confirmed from returned page text",
         "Whether the miing authentication applie only to internet-facing farm or al-o internal farm i not fully pecified in retrieved advisory text"
+      ],
+      "verification_steps": []
+    },
+    "CVE-2026-56290": {
+      "business_risk": "No additional source-verified CVE-specific business impact was established.",
+      "claim_evidence": [],
+      "exposure_conditions": [],
+      "gaps": [
+        "generic_ecosystem"
+      ],
+      "generated_at": "2026-10-17T13:04:47Z",
+      "model": "grok-4.6",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [],
+      "retrieved_source_urls": [],
+      "schema_version": 2,
+      "source_fingerprint": "9b1687719bd422f8422c02386ba6ac43fed690ed9a32245e3678df455c1d68eb",
+      "source_urls": [],
+      "status": "insufficient_evidence",
+      "uncertainty": [
+        "Authoritative NVD, CNA, vendor advisory, and patch ource have not yet been conulted."
       ],
       "verification_steps": []
     },
@@ -32328,6 +32808,59 @@
         "Review appliance system logs for Cisco-documented System Security messages (suspected compromise indicator, security scan did not complete, or no compromise indicator). Treat missing indicators as non-conclusive because successful exploitation yields root and may hide evidence.",
         "Cross-check independent network and firewall logs for unexpected uploads from the appliance to external addresses or downloads from untrusted addresses, as Cisco recommends."
       ]
+    },
+    "CVE-2026-8037": {
+      "business_risk": "No additional source-verified CVE-specific business impact was established.",
+      "claim_evidence": [],
+      "exposure_conditions": [],
+      "gaps": [
+        "generic_ecosystem"
+      ],
+      "generated_at": "2026-10-17T13:20:51Z",
+      "model": "grok-4.6",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [],
+      "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/cve-2026-8037",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-83777",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2026-80837",
+        "https://community.progress.com/s/question/0D5Pb00004OPy64KAD/release-notice-loadmaster-operating-system-lmos-ga-and-ltsf-security-updates",
+        "https://community.progress.com/s/article/MOVEit-WAF-Critical-Security-Bulletin-June-2026-CVE-2026-8037-CVE-2026-33691",
+        "https://community.progress.com/s/profile/related/0054Q00000FNmDqQAL/OwnedContentDocuments",
+        "https://community.progress.com/s/article/Product-Alert-Bulletin-October-2023-CHEF-Inspec-CVE-2023-42658",
+        "https://community.progress.com/s/article/Segmentation-Faults-in-MarkLogic-Server-12-1-0-Triggered-by-Heavy-XDQP-Connection-Restart-Activity",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog-print",
+        "https://www.cisa.gov/news-events/alerts/2026/10/16/cisa-adds-two-known-exploited-vulnerabilities-catalog",
+        "https://www.cisa.gov/news-events/cybersecurity-advisories/aa26-281a",
+        "https://www.cisa.gov/news-events/bulletins/sb26-215",
+        "https://www.cisa.gov/news-events/alerts/2026/10/16/cisa-urges-patching-critical-vulnerability-beyondtrust-remote-support",
+        "https://community.progress.com/s/article/LoadMaster-Critical-Security-Bulletin-June-2026-CVE-2026-8037-CVE-2026-33691",
+        "https://asec.ahnlab.com/en/94948/",
+        "https://app.opencve.io/cve/CVE-2026-8037",
+        "https://www.securityweek.com/cisa-urges-immediate-patching-of-exploited-progress-loadmaster-vulnerability/",
+        "https://cve.report/CVE-2026-8037",
+        "https://www.zerodayinitiative.com/advisories/ZDI-26-646/",
+        "https://safeguard.sh/resources/blog/cve-2026-8037-progress-loadmaster-kev",
+        "https://vulnerability.circl.lu/vuln/CVE-2026-8037",
+        "https://knoxsystems.com/cve-database/cve-2026-8037",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "dd02dacf43f5c9c3c06410fae7b8a099f1d7328be9bad38e90c84ead2dd1790a",
+      "source_urls": [
+        "https://nvd.nist.gov/vuln/detail/cve-2026-8037",
+        "https://community.progress.com/s/article/LoadMaster-Critical-Security-Bulletin-June-2026-CVE-2026-8037-CVE-2026-33691",
+        "https://community.progress.com/s/question/0D5Pb00004OPy64KAD/release-notice-loadmaster-operating-system-lmos-ga-and-ltsf-security-updates",
+        "https://community.progress.com/s/article/MOVEit-WAF-Critical-Security-Bulletin-June-2026-CVE-2026-8037-CVE-2026-33691"
+      ],
+      "status": "insufficient_evidence",
+      "uncertainty": [
+        "Full NVD and Progress Community advisory pages could not be retrieved (rendering/CSS issues); details rely on search excerpts",
+        "Minor discrepancies in reported starting affected versions across NVD CPE, CNA listings, and vendor bulletin excerpts (e.g., 7.2.55.0 vs. 7.2.60.0 vs. 7.2.54.17/older)",
+        "No explicit inert, non-destructive version-check procedure (such as a documented UI path) was present in retrieved source text"
+      ],
+      "verification_steps": []
     },
     "CVE-2026-81578": {
       "business_risk": "Critical, actively exploited missing-authentication issue in PaperCut NG/MF that lets an unauthenticated remote attacker change system configuration through the web management interface. CISA lists it in KEV and notes it can be chained with CVE-2026-82078. PaperCut reports confirmed customer incidents and continued targeting of publicly reachable unpatched Application Servers.",
