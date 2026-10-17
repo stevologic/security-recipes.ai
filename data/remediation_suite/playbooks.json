@@ -3619,12 +3619,12 @@
       "title": "MCP Elicitation Boundary",
       "page": "/security-remediation/mcp-elicitation-boundary/",
       "category": "mcp-governance",
-      "summary": "Control multi-round-trip MCP input requests, state-bound retries, user consent, and whether sensitive values can enter the exchange.",
+      "summary": "Control multi-round-trip and tasks-extension MCP input requests, state-bound retries, user consent, and whether sensitive values can enter the exchange.",
       "phases": [
         {
           "label": "Signal",
           "title": "Receive required input",
-          "detail": "Capture the supported parent request, per-request client capabilities, InputRequiredResult, inputRequests key, opaque requestState, server/tool, purpose, UI mode, destination, and identity."
+          "detail": "Capture the supported parent request, per-request client capabilities, InputRequiredResult or CreateTaskResult, tasks/get inputRequests, inputRequests key, opaque requestState, server/tool, purpose, UI mode, destination, and identity."
         },
         {
           "label": "Scope",
@@ -3634,17 +3634,17 @@
         {
           "label": "Decision",
           "title": "Validate consent and retry context",
-          "detail": "Check server trust, purpose, minimization, URL/form safety, approval, state integrity and expiry, replay controls, principal binding, and original-request binding."
+          "detail": "Check server trust, purpose, minimization, URL/form safety, approval, state integrity and expiry, replay controls, principal binding, original-request binding, tasks-extension declaration, task-ID entropy, and task auth binding."
         },
         {
           "label": "Action",
           "title": "Render or block safely",
-          "detail": "Correlate inputResponses, echo opaque state unchanged, retry with a new JSON-RPC ID, or hold, deny, and kill unsafe or credential-harvesting requests."
+          "detail": "Correlate inputResponses, echo opaque state unchanged, retry with a new JSON-RPC ID or fulfill task input with tasks/update, or hold, deny, and kill unsafe, undeclared, guessable, or credential-harvesting requests."
         },
         {
           "label": "Proof",
           "title": "Write the elicitation receipt",
-          "detail": "Record the parent and retry requests, input key, state-validation outcome, displayed purpose, allowed fields, user decision, destination, policy, and correlation ID."
+          "detail": "Record the parent, retry, or tasks/update requests, input key, state-validation outcome, displayed purpose, allowed fields, user decision, destination, policy, and correlation ID."
         }
       ],
       "gate": {
