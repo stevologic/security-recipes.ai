@@ -3,13 +3,13 @@ title: MCP Authorization Conformance
 linkTitle: MCP Authorization Conformance
 weight: 10
 date: 2026-05-02
-lastmod: 2026-10-01
+lastmod: 2026-10-19
 toc: true
 description: >
   Generate an MCP authorization conformance pack for resource-bound tokens,
   audience validation, PKCE, RFC 9207 issuer mix-up checks, SSRF-safe OAuth
-  metadata fetches, authorization-URL scheme allowlisting, client metadata,
-  scope challenges, and step-up authorization.
+  metadata fetches, authorization-URL scheme allowlisting, sender-constrained
+  presentation, client metadata, scope challenges, and step-up authorization.
 sidebar:
   exclude: true
 breadcrumb_parent: /agentic-security/
@@ -22,7 +22,7 @@ resource the token was minted for, which scopes were granted, and whether
 the tool call stayed inside the workflow.
 {{< /callout >}}
 
-Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28), the current [security best practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices), and NIST's [August 27, 2026 agent identity guidance](https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation) on September 28, 2026. MCP `latest` still redirects to 2026-07-28. This pass records the 2026-07-28 SSRF rule for OAuth metadata and Client ID Metadata Document fetches: server-side clients **MUST** treat those URLs as SSRF-capable, **SHOULD** require HTTPS, and **SHOULD** block private, loopback, and link-local destinations as recommended by [RFC 9728 Section 7.7](https://www.rfc-editor.org/rfc/rfc9728.html#section-7.7). Rechecked October 1, 2026: the same security-best-practices revision requires [OAuth Authorization URL Validation](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices). Clients **MUST** only allow `http://` and `https://`, **MUST** reject `javascript:`, `data:`, `file:`, `vbscript:`, and other dangerous schemes, and may use `http://` only for loopback addresses during local development. Unspecified authorization endpoints stay on the prior allow path.
+Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28), the current [security best practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices), NIST's [August 27, 2026 agent identity guidance](https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation), and NIST NCCoE's [September 29, 2026 comments summary](https://pages.nist.gov/nccoe-ai-identity/summary-of-comments.html) on October 19, 2026. MCP `latest` still redirects to 2026-07-28. The 2026-07-28 SSRF rule for OAuth metadata and Client ID Metadata Document fetches still stands: server-side clients **MUST** treat those URLs as SSRF-capable, **SHOULD** require HTTPS, and **SHOULD** block private, loopback, and link-local destinations as recommended by [RFC 9728 Section 7.7](https://www.rfc-editor.org/rfc/rfc9728.html#section-7.7). Clients **MUST** only allow `http://` and `https://` authorization URLs, **MUST** reject `javascript:`, `data:`, `file:`, `vbscript:`, and other dangerous schemes, and may use `http://` only for loopback during local development. NCCoE, drawing on more than 600 comments, says sender-constrained credentials (OAuth DPoP or mTLS using SPIFFE or WIMSE identities) are essential to reduce bearer-token replay, and that ephemeral credentials should be bound to a stable identity anchor via proof-of-possession. MCP 2026-07-28 still issues audience-bound bearer tokens; this pack treats explicit unconstrained bearer presentation as an enterprise deny. Unspecified authorization endpoints and confirmation methods stay on the prior allow path. This editorial pass does not claim human review of the pack.
 
 ## The product bet
 
@@ -44,6 +44,8 @@ enough if MCP authorization is loose. A production reviewer will ask:
   or link-local destinations?
 - Is the authorization endpoint `https://`, or `http://` on loopback
   only, rather than `javascript:`, `data:`, `file:`, or `vbscript:`?
+- Is the access token sender-constrained (OAuth DPoP or mTLS), or is it
+  an unconstrained bearer secret that can be replayed?
 - Did the client satisfy an authoritative `WWW-Authenticate` scope challenge?
 - Is a typed step-up authorization receipt present for approval-required access?
 - Can the gateway prove consent, session binding, and audit correlation?
@@ -218,6 +220,39 @@ python3 scripts/evaluate_mcp_authorization_decision.py \
   --expect-decision deny_unsafe_authorization_url
 ```
 
+Reject a grant that presents an unconstrained bearer token instead of a
+sender-constrained credential:
+
+```bash
+python3 scripts/evaluate_mcp_authorization_decision.py \
+  --workflow-id vulnerable-dependency-remediation \
+  --connector-id repository-contents \
+  --namespace repo.contents \
+  --agent-id sr-agent::vulnerable-dependency-remediation::codex \
+  --run-id ci-unconstrained-bearer \
+  --client-id https://agent.security-recipes.ai/client-metadata/codex.json \
+  --client-metadata-document-url https://agent.security-recipes.ai/client-metadata/codex.json \
+  --client-metadata-document-validated \
+  --authorization-server-discovery-method www_authenticate \
+  --protected-resource-metadata-url https://mcp.security-recipes.ai/.well-known/oauth-protected-resource \
+  --requested-access-mode write_branch \
+  --resource-indicator https://mcp.security-recipes.ai/mcp \
+  --token-audience https://mcp.security-recipes.ai/mcp \
+  --token-issuer https://auth.security-recipes.ai \
+  --expected-authorization-issuer https://auth.security-recipes.ai \
+  --authorization-response-iss https://auth.security-recipes.ai \
+  --authorization-response-iss-parameter-supported \
+  --token-expires-at 2099-01-01T00:15:00Z \
+  --token-scope repo.contents:write_branch \
+  --scope-challenge repo.contents:write_branch \
+  --consent-record-id consent-ci \
+  --session-id session-ci \
+  --correlation-id corr-ci \
+  --gateway-policy-hash sha256:ci-policy \
+  --unconstrained-bearer-token \
+  --expect-decision deny_unconstrained_bearer_token
+```
+
 ## Decision model
 
 | Decision | Meaning |
@@ -228,6 +263,7 @@ python3 scripts/evaluate_mcp_authorization_decision.py \
 | `hold_for_step_up_authorization` | Approval-required MCP access lacks a typed step-up authorization receipt. |
 | `deny_token_passthrough` | The request would pass raw user or upstream tokens through the agent/tool path. |
 | `deny_unbound_token` | The token is missing the expected resource indicator or audience binding. |
+| `deny_unconstrained_bearer_token` | The token is an unconstrained bearer secret instead of a sender-constrained credential (OAuth DPoP or mTLS) bound to the agent identity anchor. |
 | `deny_authorization_issuer_mismatch` | The authorization-response `iss` or token issuer does not match the recorded authorization-server issuer. |
 | `deny_oauth_metadata_ssrf` | A protected-resource, authorization-server, or Client ID Metadata Document URL is HTTP or points at a private, loopback, or link-local destination. |
 | `deny_unsafe_authorization_url` | The authorization endpoint uses a scheme other than `https://`, or `http://` on a non-loopback host, including `javascript:`, `data:`, `file:`, or `vbscript:`. |
@@ -255,15 +291,15 @@ evidence a production gateway should retain: protected-resource metadata
 discovery, authorization-server discovery, client ID metadata document
 validation, the recorded authorization-server issuer, RFC 9207 `iss`
 support, resource indicator and audience values, JWKS or introspection
-validation, redirect policy, scope challenge policy, and step-up
-authorization policy.
+validation, redirect policy, scope challenge policy, token confirmation
+method, and step-up authorization policy.
 
 For candidate MCP servers, it evaluates the detailed intake profile for
 resource indicators, audience validation, PKCE, short-lived tokens,
 client ID metadata documents, OAuth metadata SSRF, authorization URL
-scheme allowlisting, scope challenge handling, step-up authorization,
-private-network exposure, token passthrough, session binding, and audit
-evidence before promotion.
+scheme allowlisting, sender-constrained presentation, scope challenge
+handling, step-up authorization, private-network exposure, token
+passthrough, session binding, and audit evidence before promotion.
 
 ## Industry alignment
 
@@ -283,6 +319,13 @@ This feature follows current primary guidance:
   blocking), authorization URL scheme allowlisting (`https://`, or
   `http://` loopback only; reject `javascript:`, `data:`, `file:`,
   `vbscript:`), session safety, scope minimization, and audit trails.
+- [NIST NCCoE Summary of Comments on Software and Agentic AI Identity
+  and Authorization](https://pages.nist.gov/nccoe-ai-identity/summary-of-comments.html)
+  for sender-constrained credentials (OAuth DPoP or mTLS using SPIFFE or
+  WIMSE identities) and proof-of-possession binding of ephemeral tokens
+  to a stable identity anchor. MCP 2026-07-28 still uses audience-bound
+  bearer tokens; this pack treats unconstrained bearer presentation as an
+  enterprise deny rather than a protocol MUST.
 - [OWASP Top 10 for Agentic Applications 2026](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/)
   for tool misuse, identity abuse, agentic supply-chain risk, context
   poisoning, cascading failures, and rogue-agent containment.
@@ -304,7 +347,7 @@ a hosted MCP authorization scanner:
 - diff resource indicators, audiences, scopes, and redirect policy,
 - alert on scope challenge drift and token-passthrough regressions,
 - enforce step-up authorization receipts for approval-required calls,
-- replay confused-deputy, issuer mix-up, metadata-SSRF, and unbound-token tests,
+- replay confused-deputy, issuer mix-up, metadata-SSRF, unbound-token, and unconstrained-bearer tests,
 - attach signed authorization receipts to agent run receipts,
 - export fleet-wide evidence for AI platform review and procurement.
 

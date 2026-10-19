@@ -16,6 +16,7 @@
       "rfc9207_iss_validation",
       "oauth_metadata_ssrf",
       "oauth_authorization_url_validation",
+      "sender_constrained_token",
       "deny_token_passthrough",
       "deny_private_network_egress",
       "session_binding",
@@ -44,7 +45,8 @@
       "redirect_uri_policy",
       "scope_catalog_hash",
       "scope_challenge_policy_hash",
-      "step_up_authorization_policy"
+      "step_up_authorization_policy",
+      "token_confirmation_method"
     ],
     "prohibited_scope_terms": [
       "private_key",
@@ -74,6 +76,8 @@
       "token_audience",
       "token_issuer",
       "token_expires_at",
+      "token_confirmation_method",
+      "token_sender_constrained",
       "token_scopes",
       "scope_challenge",
       "requested_access_mode",
@@ -91,6 +95,7 @@
       "hold_for_step_up_authorization",
       "deny_token_passthrough",
       "deny_unbound_token",
+      "deny_unconstrained_bearer_token",
       "deny_authorization_issuer_mismatch",
       "deny_oauth_metadata_ssrf",
       "deny_unsafe_authorization_url",
@@ -375,6 +380,13 @@
       "severity": "critical"
     },
     {
+      "applies_to": "oauth_mcp",
+      "control_reason": "NCCoE's September 29, 2026 comments summary says sender-constrained credentials (OAuth DPoP or mTLS using SPIFFE or WIMSE identities) are essential to reduce bearer-token replay. MCP 2026-07-28 still issues audience-bound bearer tokens; enterprise gateways should deny unconstrained bearer presentation on the MCP tool path.",
+      "evidence_key": "token_confirmation_method",
+      "id": "sender_constrained_token",
+      "severity": "critical"
+    },
+    {
       "applies_to": "all_mcp",
       "control_reason": "Agents must not receive or forward raw user tokens to downstream tools or hidden connector calls.",
       "evidence_key": "token_passthrough",
@@ -428,7 +440,7 @@
     "board_level_claim": "SecurityRecipes can verify the authorization boundary around MCP tool use before an agent acts.",
     "default_questions_answered": [
       "Which MCP connectors have enough gateway evidence to be used today?",
-      "Which candidate MCP servers fail resource, audience, PKCE, RFC 9207 issuer, OAuth metadata SSRF, unsafe authorization URL schemes, token-passthrough, or private-network checks?",
+      "Which candidate MCP servers fail resource, audience, PKCE, RFC 9207 issuer, OAuth metadata SSRF, unsafe authorization URL schemes, unconstrained bearer presentation, token-passthrough, or private-network checks?",
       "Which workflow namespaces are exposed to authorization scope drift?",
       "What runtime attributes must appear in a run receipt before an MCP tool call is trusted?",
       "Which premium controls should be hosted: live metadata discovery, scope-drift alerts, token-binding replay tests, and auth evidence exports?"
@@ -437,13 +449,13 @@
     "sales_motion": "Lead with open conformance rules, then sell hosted MCP authorization discovery, live metadata checks, fleet-wide scope-drift detection, and signed run-level authorization receipts."
   },
   "failures": [],
-  "generated_at": "2026-09-28",
-  "intent": "Define the SecurityRecipes MCP authorization conformance model so agent hosts, MCP gateways, IAM teams, and enterprise buyers can verify latest MCP authorization requirements: resource-bound tokens, token audience validation, PKCE, protected-resource metadata discovery, client ID metadata documents, RFC 9207 authorization-response issuer validation against mix-up, credentials bound to the issuing authorization server, SSRF-safe OAuth metadata fetches, authorization-URL scheme allowlisting, authoritative scope challenges, step-up authorization, token-passthrough denial, scope minimization, consent, state-handle binding, and audit evidence before agents use MCP tools.",
+  "generated_at": "2026-10-19",
+  "intent": "Define the SecurityRecipes MCP authorization conformance model so agent hosts, MCP gateways, IAM teams, and enterprise buyers can verify latest MCP authorization requirements: resource-bound tokens, token audience validation, PKCE, protected-resource metadata discovery, client ID metadata documents, RFC 9207 authorization-response issuer validation against mix-up, credentials bound to the issuing authorization server, SSRF-safe OAuth metadata fetches, authorization-URL scheme allowlisting, sender-constrained presentation instead of unconstrained bearer replay, authoritative scope challenges, step-up authorization, token-passthrough denial, scope minimization, consent, state-handle binding, and audit evidence before agents use MCP tools.",
   "positioning": {
     "buyer": "AI Platform, IAM, Product Security, GRC, procurement security, and enterprise architecture teams",
     "category": "MCP authorization conformance and scope-drift control",
-    "enterprise_promise": "SecurityRecipes can explain whether MCP tool access is bound to the right resource, token audience, client, workflow, agent run, and scope before a tool call reaches enterprise systems.",
-    "why_now": "MCP adoption is moving from local developer experiments to remote production servers. The enterprise control gap is now authorization evidence: who delegated which agent, to which MCP resource, with which scopes, and whether raw user tokens or over-broad permissions leaked into the tool path."
+    "enterprise_promise": "SecurityRecipes can explain whether MCP tool access is bound to the right resource, token audience, client, workflow, agent run, and scope, and whether the token is sender-constrained instead of an unconstrained bearer secret, before a tool call reaches enterprise systems.",
+    "why_now": "MCP adoption is moving from local developer experiments to remote production servers. The enterprise control gap is now authorization evidence: who delegated which agent, to which MCP resource, with which scopes, whether the access token is sender-constrained, and whether raw user tokens or over-broad permissions leaked into the tool path."
   },
   "registered_connector_authorization": [
     {
@@ -483,7 +495,8 @@
         "redirect_uri_policy",
         "scope_catalog_hash",
         "scope_challenge_policy_hash",
-        "step_up_authorization_policy"
+        "step_up_authorization_policy",
+        "token_confirmation_method"
       ],
       "namespace": "advisories.vulnerability",
       "owner": {
@@ -508,6 +521,8 @@
         "token_audience",
         "token_issuer",
         "token_expires_at",
+        "token_confirmation_method",
+        "token_sender_constrained",
         "token_scopes",
         "scope_challenge",
         "requested_access_mode",
@@ -562,7 +577,8 @@
         "redirect_uri_policy",
         "scope_catalog_hash",
         "scope_challenge_policy_hash",
-        "step_up_authorization_policy"
+        "step_up_authorization_policy",
+        "token_confirmation_method"
       ],
       "namespace": "chain.simulation",
       "owner": {
@@ -587,6 +603,8 @@
         "token_audience",
         "token_issuer",
         "token_expires_at",
+        "token_confirmation_method",
+        "token_sender_constrained",
         "token_scopes",
         "scope_challenge",
         "requested_access_mode",
@@ -641,7 +659,8 @@
         "redirect_uri_policy",
         "scope_catalog_hash",
         "scope_challenge_policy_hash",
-        "step_up_authorization_policy"
+        "step_up_authorization_policy",
+        "token_confirmation_method"
       ],
       "namespace": "ci.runs",
       "owner": {
@@ -666,6 +685,8 @@
         "token_audience",
         "token_issuer",
         "token_expires_at",
+        "token_confirmation_method",
+        "token_sender_constrained",
         "token_scopes",
         "scope_challenge",
         "requested_access_mode",
@@ -721,7 +742,8 @@
         "redirect_uri_policy",
         "scope_catalog_hash",
         "scope_challenge_policy_hash",
-        "step_up_authorization_policy"
+        "step_up_authorization_policy",
+        "token_confirmation_method"
       ],
       "namespace": "findings.sast",
       "owner": {
@@ -746,6 +768,8 @@
         "token_audience",
         "token_issuer",
         "token_expires_at",
+        "token_confirmation_method",
+        "token_sender_constrained",
         "token_scopes",
         "scope_challenge",
         "requested_access_mode",
@@ -800,7 +824,8 @@
         "redirect_uri_policy",
         "scope_catalog_hash",
         "scope_challenge_policy_hash",
-        "step_up_authorization_policy"
+        "step_up_authorization_policy",
+        "token_confirmation_method"
       ],
       "namespace": "findings.sde",
       "owner": {
@@ -825,6 +850,8 @@
         "token_audience",
         "token_issuer",
         "token_expires_at",
+        "token_confirmation_method",
+        "token_sender_constrained",
         "token_scopes",
         "scope_challenge",
         "requested_access_mode",
@@ -880,7 +907,8 @@
         "redirect_uri_policy",
         "scope_catalog_hash",
         "scope_challenge_policy_hash",
-        "step_up_authorization_policy"
+        "step_up_authorization_policy",
+        "token_confirmation_method"
       ],
       "namespace": "images.golden",
       "owner": {
@@ -905,6 +933,8 @@
         "token_audience",
         "token_issuer",
         "token_expires_at",
+        "token_confirmation_method",
+        "token_sender_constrained",
         "token_scopes",
         "scope_challenge",
         "requested_access_mode",
@@ -959,7 +989,8 @@
         "redirect_uri_policy",
         "scope_catalog_hash",
         "scope_challenge_policy_hash",
-        "step_up_authorization_policy"
+        "step_up_authorization_policy",
+        "token_confirmation_method"
       ],
       "namespace": "incidents.security",
       "owner": {
@@ -984,6 +1015,8 @@
         "token_audience",
         "token_issuer",
         "token_expires_at",
+        "token_confirmation_method",
+        "token_sender_constrained",
         "token_scopes",
         "scope_challenge",
         "requested_access_mode",
@@ -1039,7 +1072,8 @@
         "redirect_uri_policy",
         "scope_catalog_hash",
         "scope_challenge_policy_hash",
-        "step_up_authorization_policy"
+        "step_up_authorization_policy",
+        "token_confirmation_method"
       ],
       "namespace": "inventory.artifacts",
       "owner": {
@@ -1064,6 +1098,8 @@
         "token_audience",
         "token_issuer",
         "token_expires_at",
+        "token_confirmation_method",
+        "token_sender_constrained",
         "token_scopes",
         "scope_challenge",
         "requested_access_mode",
@@ -1119,7 +1155,8 @@
         "redirect_uri_policy",
         "scope_catalog_hash",
         "scope_challenge_policy_hash",
-        "step_up_authorization_policy"
+        "step_up_authorization_policy",
+        "token_confirmation_method"
       ],
       "namespace": "payments.findings",
       "owner": {
@@ -1144,6 +1181,8 @@
         "token_audience",
         "token_issuer",
         "token_expires_at",
+        "token_confirmation_method",
+        "token_sender_constrained",
         "token_scopes",
         "scope_challenge",
         "requested_access_mode",
@@ -1198,7 +1237,8 @@
         "redirect_uri_policy",
         "scope_catalog_hash",
         "scope_challenge_policy_hash",
-        "step_up_authorization_policy"
+        "step_up_authorization_policy",
+        "token_confirmation_method"
       ],
       "namespace": "payments.simulation",
       "owner": {
@@ -1223,6 +1263,8 @@
         "token_audience",
         "token_issuer",
         "token_expires_at",
+        "token_confirmation_method",
+        "token_sender_constrained",
         "token_scopes",
         "scope_challenge",
         "requested_access_mode",
@@ -1278,7 +1320,8 @@
         "redirect_uri_policy",
         "scope_catalog_hash",
         "scope_challenge_policy_hash",
-        "step_up_authorization_policy"
+        "step_up_authorization_policy",
+        "token_confirmation_method"
       ],
       "namespace": "protocol.findings",
       "owner": {
@@ -1303,6 +1346,8 @@
         "token_audience",
         "token_issuer",
         "token_expires_at",
+        "token_confirmation_method",
+        "token_sender_constrained",
         "token_scopes",
         "scope_challenge",
         "requested_access_mode",
@@ -1357,7 +1402,8 @@
         "redirect_uri_policy",
         "scope_catalog_hash",
         "scope_challenge_policy_hash",
-        "step_up_authorization_policy"
+        "step_up_authorization_policy",
+        "token_confirmation_method"
       ],
       "namespace": "recipes.defaults",
       "owner": {
@@ -1382,6 +1428,8 @@
         "token_audience",
         "token_issuer",
         "token_expires_at",
+        "token_confirmation_method",
+        "token_sender_constrained",
         "token_scopes",
         "scope_challenge",
         "requested_access_mode",
@@ -1437,7 +1485,8 @@
         "redirect_uri_policy",
         "scope_catalog_hash",
         "scope_challenge_policy_hash",
-        "step_up_authorization_policy"
+        "step_up_authorization_policy",
+        "token_confirmation_method"
       ],
       "namespace": "registries.quarantine",
       "owner": {
@@ -1462,6 +1511,8 @@
         "token_audience",
         "token_issuer",
         "token_expires_at",
+        "token_confirmation_method",
+        "token_sender_constrained",
         "token_scopes",
         "scope_challenge",
         "requested_access_mode",
@@ -1516,7 +1567,8 @@
         "redirect_uri_policy",
         "scope_catalog_hash",
         "scope_challenge_policy_hash",
-        "step_up_authorization_policy"
+        "step_up_authorization_policy",
+        "token_confirmation_method"
       ],
       "namespace": "repo.contents",
       "owner": {
@@ -1541,6 +1593,8 @@
         "token_audience",
         "token_issuer",
         "token_expires_at",
+        "token_confirmation_method",
+        "token_sender_constrained",
         "token_scopes",
         "scope_challenge",
         "requested_access_mode",
@@ -1596,7 +1650,8 @@
         "redirect_uri_policy",
         "scope_catalog_hash",
         "scope_challenge_policy_hash",
-        "step_up_authorization_policy"
+        "step_up_authorization_policy",
+        "token_confirmation_method"
       ],
       "namespace": "sbom.inventory",
       "owner": {
@@ -1621,6 +1676,8 @@
         "token_audience",
         "token_issuer",
         "token_expires_at",
+        "token_confirmation_method",
+        "token_sender_constrained",
         "token_scopes",
         "scope_challenge",
         "requested_access_mode",
@@ -1675,7 +1732,8 @@
         "redirect_uri_policy",
         "scope_catalog_hash",
         "scope_challenge_policy_hash",
-        "step_up_authorization_policy"
+        "step_up_authorization_policy",
+        "token_confirmation_method"
       ],
       "namespace": "tickets.security",
       "owner": {
@@ -1700,6 +1758,8 @@
         "token_audience",
         "token_issuer",
         "token_expires_at",
+        "token_confirmation_method",
+        "token_sender_constrained",
         "token_scopes",
         "scope_challenge",
         "requested_access_mode",
@@ -1723,7 +1783,7 @@
   "source_artifacts": {
     "mcp_authorization_conformance_profile": {
       "path": "data/assurance/mcp-authorization-conformance-profile.json",
-      "sha256": "00119e7a873b9b4e04f9ab9c4d1d4de17e6ddc5a8015c2e8d94f93d50f6c5d6e"
+      "sha256": "63fbcdad3da1f9d54899cada5d12d885ec7709bdc63c116b73bb0904658bc44d"
     },
     "mcp_connector_intake_candidates": {
       "path": "data/mcp/connector-intake-candidates.json",
@@ -1764,6 +1824,12 @@
       "id": "nist-agentic-identity-foundation-2026",
       "name": "Back to the Future: Why Agentic AI Needs a Strong Identity Foundation",
       "url": "https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation"
+    },
+    {
+      "coverage": "NCCoE's September 29, 2026 comments summary, drawn from more than 600 responses, says sender-constrained credentials (OAuth DPoP or mTLS using SPIFFE or WIMSE identities) are essential to reduce bearer-token replay, and that ephemeral credentials should be bound to a stable identity anchor via proof-of-possession rather than reused as unconstrained bearer tokens on the MCP tool path.",
+      "id": "nist-nccoe-agentic-identity-comments-2026",
+      "name": "Summary of Comments on the Software and Agentic AI Identity and Authorization Concept Paper",
+      "url": "https://pages.nist.gov/nccoe-ai-identity/summary-of-comments.html"
     },
     {
       "coverage": "Prior final MCP authorization revision kept as a historical source ID. Do not treat 2025-11-25 as the current public specification.",

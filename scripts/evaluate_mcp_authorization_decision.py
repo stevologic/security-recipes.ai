@@ -15,7 +15,13 @@ private or link-local metadata URLs. Clients MUST validate authorization
 URLs with an http/https allowlist, reject javascript:, data:, file:, and
 vbscript: schemes, and allow http:// only for loopback during local
 development. Unspecified authorization endpoints stay on the prior allow
-path so existing CLI and CI admission checks remain valid.
+path so existing CLI and CI admission checks remain valid. NCCoE's
+September 29, 2026 comments summary says sender-constrained credentials
+(OAuth DPoP or mTLS using SPIFFE or WIMSE identities) are essential to
+reduce bearer-token replay. MCP 2026-07-28 still issues audience-bound
+bearer tokens, so unconstrained bearer presentation is an enterprise
+deny when that evidence is present; unspecified confirmation methods
+stay on the prior allow path.
 """
 
 from __future__ import annotations
@@ -37,6 +43,7 @@ VALID_DECISIONS = {
     "hold_for_step_up_authorization",
     "deny_token_passthrough",
     "deny_unbound_token",
+    "deny_unconstrained_bearer_token",
     "deny_authorization_issuer_mismatch",
     "deny_oauth_metadata_ssrf",
     "deny_unsafe_authorization_url",
@@ -248,6 +255,32 @@ def authorization_url_scheme_violations(request: dict[str, Any]) -> list[str]:
     return violations
 
 
+UNCONSTRAINED_TOKEN_CONFIRMATION_METHODS = {"bearer", "none", "unconstrained"}
+
+
+def unconstrained_bearer_token_violations(request: dict[str, Any]) -> list[str]:
+    """Return failures for unconstrained bearer presentation on HTTP MCP.
+
+    MCP 2026-07-28 still authorizes HTTP MCP with audience-bound bearer
+    tokens. NCCoE's September 29, 2026 comments summary says
+    sender-constrained credentials (OAuth DPoP or mTLS using SPIFFE or
+    WIMSE identities) are essential to reduce bearer-token replay.
+    Explicit unconstrained bearer evidence is denied; unspecified
+    confirmation methods stay on the prior allow path.
+    """
+    violations: list[str] = []
+    if as_bool(request.get("unconstrained_bearer_token")):
+        violations.append(
+            "unconstrained bearer token is not sender-constrained to the agent identity anchor"
+        )
+    method = str(request.get("token_confirmation_method") or "").strip().lower().replace("-", "_")
+    if method in UNCONSTRAINED_TOKEN_CONFIRMATION_METHODS:
+        violations.append(
+            f"token_confirmation_method {method} is an unconstrained bearer presentation"
+        )
+    return violations
+
+
 def rfc9207_issuer_violations(request: dict[str, Any]) -> list[str]:
     """Return RFC 9207 mix-up and issuer-binding failures for one HTTP grant.
 
@@ -337,6 +370,7 @@ def normalize_request(runtime_request: dict[str, Any]) -> dict[str, Any]:
         "token_audience",
         "token_issuer",
         "token_expires_at",
+        "token_confirmation_method",
         "requested_access_mode",
         "consent_record_id",
         "session_id",
@@ -346,6 +380,7 @@ def normalize_request(runtime_request: dict[str, Any]) -> dict[str, Any]:
     ]:
         request[key] = str(request.get(key) or "").strip()
     request["token_passthrough"] = as_bool(request.get("token_passthrough"))
+    request["unconstrained_bearer_token"] = as_bool(request.get("unconstrained_bearer_token"))
     request["contains_secret_scope"] = as_bool(request.get("contains_secret_scope"))
     request["client_metadata_document_validated"] = as_bool(request.get("client_metadata_document_validated"))
     request["authorization_response_iss_parameter_supported"] = as_bool(
@@ -424,9 +459,11 @@ def decision_result(
             "step_up_authorization_record_id": request.get("step_up_authorization_record_id"),
             "step_up_required": request.get("step_up_required"),
             "token_audience": request.get("token_audience"),
+            "token_confirmation_method": request.get("token_confirmation_method"),
             "token_issuer": request.get("token_issuer"),
             "token_passthrough": request.get("token_passthrough"),
             "token_scopes": request.get("token_scopes", []),
+            "unconstrained_bearer_token": request.get("unconstrained_bearer_token"),
             "workflow_id": request.get("workflow_id"),
         },
         "violations": violations or [],
@@ -619,6 +656,18 @@ def evaluate_mcp_authorization_decision(
                 violations=violations,
             )
 
+        sender_constraint_violations = unconstrained_bearer_token_violations(request)
+        if sender_constraint_violations:
+            return decision_result(
+                decision="deny_unconstrained_bearer_token",
+                reason="token is an unconstrained bearer secret instead of a sender-constrained credential bound to the agent identity anchor",
+                pack=authorization_pack,
+                request=request,
+                connector=connector,
+                workflow=workflow,
+                violations=sender_constraint_violations,
+            )
+
         challenged_scopes = set(request.get("scope_challenge", []) or [])
         if challenged_scopes:
             granted_scopes = set(request.get("token_scopes", []) or [])
@@ -696,6 +745,7 @@ def request_from_args(args: argparse.Namespace) -> dict[str, Any]:
         "token_audience",
         "token_issuer",
         "token_expires_at",
+        "token_confirmation_method",
         "requested_access_mode",
         "consent_record_id",
         "session_id",
@@ -712,6 +762,8 @@ def request_from_args(args: argparse.Namespace) -> dict[str, Any]:
         payload["scope_challenge"] = args.scope_challenge
     if args.token_passthrough:
         payload["token_passthrough"] = True
+    if args.unconstrained_bearer_token:
+        payload["unconstrained_bearer_token"] = True
     if args.contains_secret_scope:
         payload["contains_secret_scope"] = True
     if args.client_metadata_document_validated:
@@ -749,6 +801,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--token-audience", dest="token_audience")
     parser.add_argument("--token-issuer", dest="token_issuer")
     parser.add_argument("--token-expires-at", dest="token_expires_at")
+    parser.add_argument("--token-confirmation-method", dest="token_confirmation_method")
     parser.add_argument("--token-scope", action="append", default=[])
     parser.add_argument("--scope-challenge", action="append", default=[])
     parser.add_argument("--requested-access-mode", dest="requested_access_mode")
@@ -758,6 +811,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--gateway-policy-hash", dest="gateway_policy_hash")
     parser.add_argument("--step-up-authorization-record-id", dest="step_up_authorization_record_id")
     parser.add_argument("--token-passthrough", action="store_true")
+    parser.add_argument("--unconstrained-bearer-token", action="store_true")
     parser.add_argument("--contains-secret-scope", action="store_true")
     parser.add_argument("--client-metadata-document-validated", action="store_true")
     parser.add_argument("--step-up-required", action="store_true")

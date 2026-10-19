@@ -11,6 +11,7 @@ from scripts.evaluate_mcp_authorization_decision import (
     is_loopback_authorization_host,
     oauth_metadata_ssrf_violations,
     rfc9207_issuer_violations,
+    unconstrained_bearer_token_violations,
 )
 
 
@@ -317,6 +318,70 @@ class OAuthAuthorizationURLSchemeTests(unittest.TestCase):
             authorization_url_scheme_violations(
                 {"authorization_endpoint": "javascript:alert(1)"}
             )
+        )
+
+
+class SenderConstrainedTokenTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.pack = json.loads(PACK_PATH.read_text(encoding="utf-8"))
+
+    def test_unspecified_confirmation_method_stays_on_prior_allow_path(self) -> None:
+        result = evaluate_mcp_authorization_decision(self.pack, _http_request())
+        self.assertEqual(result["decision"], "allow_authorized_mcp_request")
+        self.assertTrue(result["allowed"])
+
+    def test_dpop_confirmation_allows_authorized_request(self) -> None:
+        result = evaluate_mcp_authorization_decision(
+            self.pack,
+            _http_request(token_confirmation_method="dpop"),
+        )
+        self.assertEqual(result["decision"], "allow_authorized_mcp_request")
+        self.assertTrue(result["allowed"])
+
+    def test_unconstrained_bearer_flag_is_denied(self) -> None:
+        result = evaluate_mcp_authorization_decision(
+            self.pack,
+            _http_request(unconstrained_bearer_token=True),
+        )
+        self.assertEqual(result["decision"], "deny_unconstrained_bearer_token")
+        self.assertFalse(result["allowed"])
+        self.assertTrue(
+            any("sender-constrained" in item for item in result["violations"])
+        )
+
+    def test_bearer_confirmation_method_is_denied(self) -> None:
+        result = evaluate_mcp_authorization_decision(
+            self.pack,
+            _http_request(token_confirmation_method="bearer"),
+        )
+        self.assertEqual(result["decision"], "deny_unconstrained_bearer_token")
+        self.assertFalse(result["allowed"])
+        self.assertTrue(
+            any("unconstrained bearer presentation" in item for item in result["violations"])
+        )
+
+    def test_none_and_unconstrained_confirmation_methods_are_denied(self) -> None:
+        for method in ("none", "unconstrained"):
+            with self.subTest(method=method):
+                result = evaluate_mcp_authorization_decision(
+                    self.pack,
+                    _http_request(token_confirmation_method=method),
+                )
+                self.assertEqual(result["decision"], "deny_unconstrained_bearer_token")
+                self.assertFalse(result["allowed"])
+
+    def test_helper_denies_explicit_unconstrained_evidence_only(self) -> None:
+        self.assertEqual(unconstrained_bearer_token_violations({}), [])
+        self.assertEqual(
+            unconstrained_bearer_token_violations({"token_confirmation_method": "dpop"}),
+            [],
+        )
+        self.assertTrue(
+            unconstrained_bearer_token_violations({"unconstrained_bearer_token": True})
+        )
+        self.assertTrue(
+            unconstrained_bearer_token_violations({"token_confirmation_method": "bearer"})
         )
 
 
