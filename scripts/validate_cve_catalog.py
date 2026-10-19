@@ -1503,7 +1503,7 @@ def validate_runtime_asset_versions(
 
 
 def validate_api_delta(delta: Any, feeds: list[Any], failures: list[str]) -> None:
-    """Validate the API completeness receipt independently of the producer."""
+    """Validate matching complete API traversals independently of the producer."""
     prefix = "manifest NVD API delta"
     endpoint = "https://services.nvd.nist.gov/rest/json/cves/2.0"
     try:
@@ -1534,16 +1534,20 @@ def validate_api_delta(delta: Any, feeds: list[Any], failures: list[str]) -> Non
         overlay_count = delta["overlay_records"]
         if type(overlay_count) is not int or not 0 <= overlay_count <= total:
             raise ValueError("has an invalid overlay count")
-        if not isinstance(pages, list) or not 1 <= len(pages) <= 100:
+        if not isinstance(pages, list) or not 2 <= len(pages) <= 200:
             raise ValueError("has an invalid page inventory")
         offset = 0
         accepted_rows = 0
         covered_through = start
         group_window: tuple[datetime, datetime] | None = None
         group_total: int | None = None
+        group_digest: str | None = None
+        first_scan: tuple[datetime, datetime, int, str] | None = None
         completed_windows = 0
         for page in pages:
-            if not isinstance(page, dict) or set(page) != {"url", "records", "total_results", "accepted", "sha256"}:
+            if not isinstance(page, dict) or set(page) != {
+                "url", "records", "total_results", "accepted", "sha256", "scan_sha256",
+            }:
                 raise ValueError("has an invalid page receipt")
             parsed = urlparse(page["url"])
             if f"{parsed.scheme}://{parsed.netloc}{parsed.path}" != endpoint or parsed.fragment:
@@ -1557,7 +1561,7 @@ def validate_api_delta(delta: Any, feeds: list[Any], failures: list[str]) -> Non
             window_end = source_time(params["lastModEndDate"][0])
             if not start <= window_start <= window_end <= end or window_end - window_start > timedelta(days=1):
                 raise ValueError("has an invalid response window")
-            if window_start == window_end and (start != end or len(pages) != 1):
+            if window_start == window_end and (start != end or completed_windows):
                 raise ValueError("has an empty or repeated response window")
             position = int(params["startIndex"][0])
             count, reported, accepted = page["records"], page["total_results"], page["accepted"]
@@ -1569,24 +1573,43 @@ def validate_api_delta(delta: Any, feeds: list[Any], failures: list[str]) -> Non
                 raise ValueError("has an invalid page record count")
             if not isinstance(page["sha256"], str) or SHA256_RE.fullmatch(page["sha256"]) is None:
                 raise ValueError("has an invalid page hash")
+            scan_digest = page["scan_sha256"]
+            if scan_digest is not None and (
+                not isinstance(scan_digest, str) or SHA256_RE.fullmatch(scan_digest) is None
+            ):
+                raise ValueError("has an invalid traversal hash")
             if not accepted:
+                if group_window is not None or first_scan is not None:
+                    raise ValueError("accepted matching traversals are not consecutive")
                 continue
+            if scan_digest is None:
+                raise ValueError("accepted traversal has no content hash")
             if group_window is None:
                 if position != 0 or window_start != covered_through:
                     raise ValueError("accepted windows have a gap or overlap")
                 group_window, group_total, offset = (window_start, window_end), reported, 0
-            if group_window != (window_start, window_end) or group_total != reported or position != offset:
+                group_digest = scan_digest
+            if (group_window != (window_start, window_end) or group_total != reported
+                    or position != offset or group_digest != scan_digest):
                 raise ValueError("accepted window pagination is incomplete or inconsistent")
             offset += count
             if offset == reported:
-                completed_windows += 1
-                accepted_rows += offset
-                covered_through = window_end
+                scan = (window_start, window_end, reported, scan_digest)
+                if first_scan is None:
+                    first_scan = scan
+                elif first_scan != scan:
+                    raise ValueError("accepted traversals do not have matching window content")
+                else:
+                    completed_windows += 1
+                    accepted_rows += offset
+                    covered_through = window_end
+                    first_scan = None
                 group_window, group_total = None, None
         duplicates = delta["boundary_duplicates"]
         if type(duplicates) is not int or not 0 <= duplicates <= accepted_rows:
             raise ValueError("has an invalid boundary duplicate count")
-        if not completed_windows or group_window is not None or covered_through != end or accepted_rows - duplicates != total:
+        if (not completed_windows or group_window is not None or first_scan is not None
+                or covered_through != end or accepted_rows - duplicates != total):
             raise ValueError("accepted pages do not cover the full API window and record count")
         newest = delta["latest_record_modified"]
         if (overlay_count == 0 and newest is not None) or (

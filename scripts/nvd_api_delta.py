@@ -1,4 +1,4 @@
-"""Reconcile verified NVD annual feeds with a complete, bounded official API delta."""
+"""Reconcile verified NVD annual feeds with a bounded, stabilized official API delta."""
 
 from __future__ import annotations
 
@@ -13,7 +13,7 @@ from urllib.parse import urlencode
 
 NVD_API_URL = "https://services.nvd.nist.gov/rest/json/cves/2.0"
 PAGE_SIZE = 2000
-MAX_PAGES = 100
+MAX_PAGES = 200
 MAX_RECORDS = 100000
 MAX_WINDOW = timedelta(days=120)
 WINDOW_STEP = timedelta(days=1)
@@ -45,7 +45,7 @@ def fetch_delta(
     fetch: Callable[[str], bytes],
     sleep: Callable[[float], None] = time.sleep,
 ) -> tuple[dict[str, dict[str, Any]], dict[str, Any]]:
-    """Fetch every changed record since the oldest feed, or fail without a partial result.
+    """Require matching complete daily traversals, or fail without a partial result.
 
     Starting at the oldest feed is deliberate: identifier-year feeds that rarely
     change may have much older watermarks. A recent-publications-only query misses
@@ -65,64 +65,81 @@ def fetch_delta(
     window_start = start
     while True:
         window_end = min(window_start + WINDOW_STEP, end)
-        # NVD changes live result sets. Retry only a drifting one-day window,
-        # rather than restarting a multi-week scan or accepting shifted offsets.
+        # Counts alone cannot detect equal-total membership changes between
+        # pages. Require two complete traversals with identical CVE content.
+        # These are stable observations, not an atomic upstream snapshot.
         for window_attempt in range(2):
-            offset = 0
-            expected_total: int | None = None
-            window_records: dict[str, dict[str, Any]] = {}
             page_indices: list[int] = []
             drift = False
-            while True:
-                if len(pages) >= MAX_PAGES:
-                    raise ValueError("NVD API delta exceeded its bounded page budget")
-                if pages:
-                    sleep(REQUEST_INTERVAL)
-                url = NVD_API_URL + "?" + urlencode({
-                    "lastModStartDate": timestamp(window_start),
-                    "lastModEndDate": timestamp(window_end),
-                    "resultsPerPage": PAGE_SIZE, "startIndex": offset,
-                })
-                raw = fetch(url)
-                page = json.loads(raw)
-                if not isinstance(page, dict):
-                    raise ValueError("NVD API delta response is not an object")
-                total, count, position = (page.get(key) for key in ("totalResults", "resultsPerPage", "startIndex"))
-                rows = page.get("vulnerabilities")
-                if (
-                    any(type(value) is not int or value < 0 for value in (total, count, position))
-                    or position != offset or not isinstance(rows, list) or count != len(rows)
-                    or count > PAGE_SIZE or offset + count > total or (count == 0 and offset < total)
-                ):
-                    raise ValueError("NVD API delta pagination is incomplete or malformed")
-                if total > MAX_RECORDS:
-                    raise ValueError("NVD API delta exceeds its bounded record budget")
-                page_indices.append(len(pages))
-                pages.append({"url": url, "records": count, "total_results": total,
-                              "accepted": False, "sha256": hashlib.sha256(raw).hexdigest()})
-                if expected_total is None:
-                    expected_total = total
-                elif total != expected_total:
-                    drift = True
-                    break
-                for row in rows:
-                    cve = row.get("cve") if isinstance(row, dict) else None
-                    if not isinstance(cve, dict) or CVE_ID.fullmatch(str(cve.get("id") or "")) is None:
-                        raise ValueError("NVD API delta contains an invalid CVE identity")
-                    identity = cve["id"]
-                    modified = source_datetime(cve.get("lastModified"))
-                    source_datetime(cve.get("published"))
-                    if not window_start <= modified <= window_end:
-                        raise ValueError(f"NVD API delta {identity} falls outside its modification window")
-                    if identity in window_records:
+            previous_digest: str | None = None
+            for _ in range(2):
+                offset = 0
+                expected_total: int | None = None
+                window_records: dict[str, dict[str, Any]] = {}
+                scan_indices: list[int] = []
+                while True:
+                    if len(pages) >= MAX_PAGES:
+                        raise ValueError("NVD API delta exceeded its bounded page budget")
+                    if pages:
+                        sleep(REQUEST_INTERVAL)
+                    url = NVD_API_URL + "?" + urlencode({
+                        "lastModStartDate": timestamp(window_start),
+                        "lastModEndDate": timestamp(window_end),
+                        "resultsPerPage": PAGE_SIZE, "startIndex": offset,
+                    })
+                    raw = fetch(url)
+                    page = json.loads(raw)
+                    if not isinstance(page, dict):
+                        raise ValueError("NVD API delta response is not an object")
+                    total, count, position = (page.get(key) for key in ("totalResults", "resultsPerPage", "startIndex"))
+                    rows = page.get("vulnerabilities")
+                    if (
+                        any(type(value) is not int or value < 0 for value in (total, count, position))
+                        or position != offset or not isinstance(rows, list) or count != len(rows)
+                        or count > PAGE_SIZE or offset + count > total or (count == 0 and offset < total)
+                    ):
+                        raise ValueError("NVD API delta pagination is incomplete or malformed")
+                    if total > MAX_RECORDS:
+                        raise ValueError("NVD API delta exceeds its bounded record budget")
+                    scan_indices.append(len(pages))
+                    pages.append({"url": url, "records": count, "total_results": total,
+                                  "accepted": False, "sha256": hashlib.sha256(raw).hexdigest(),
+                                  "scan_sha256": None})
+                    if expected_total is None:
+                        expected_total = total
+                    elif total != expected_total:
                         drift = True
                         break
-                    window_records[identity] = cve
+                    for row in rows:
+                        cve = row.get("cve") if isinstance(row, dict) else None
+                        if not isinstance(cve, dict) or CVE_ID.fullmatch(str(cve.get("id") or "")) is None:
+                            raise ValueError("NVD API delta contains an invalid CVE identity")
+                        identity = cve["id"]
+                        modified = source_datetime(cve.get("lastModified"))
+                        source_datetime(cve.get("published"))
+                        if not window_start <= modified <= window_end:
+                            raise ValueError(f"NVD API delta {identity} falls outside its modification window")
+                        if identity in window_records:
+                            drift = True
+                            break
+                        window_records[identity] = cve
+                    if drift:
+                        break
+                    offset += count
+                    if offset == total:
+                        break
+                page_indices.extend(scan_indices)
                 if drift:
                     break
-                offset += count
-                if offset == total:
+                scan_digest = hashlib.sha256(json.dumps(
+                    window_records, sort_keys=True, separators=(",", ":"),
+                ).encode()).hexdigest()
+                for position in scan_indices:
+                    pages[position]["scan_sha256"] = scan_digest
+                if previous_digest is not None and previous_digest != scan_digest:
+                    drift = True
                     break
+                previous_digest = scan_digest
             if not drift:
                 for position in page_indices:
                     pages[position]["accepted"] = True

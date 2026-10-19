@@ -8,7 +8,7 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock, Mock, call, patch
 from urllib.parse import parse_qs, urlparse
 from urllib.error import HTTPError
 
@@ -47,7 +47,7 @@ class NvdApiDeltaTests(unittest.TestCase):
         first = current_record()
         second = current_record("CVE-2020-12345")
         data = [page([first], total=2), page([second], start=1, total=2)]
-        fetch, sleep = Mock(side_effect=data), Mock()
+        fetch, sleep = Mock(side_effect=data * 2), Mock()
         records, metadata = delta.fetch_delta(feeds(), end=END, fetch=fetch, sleep=sleep)
         self.assertEqual(set(records), {first["id"], second["id"]})
         self.assertEqual(metadata["records"], 2)
@@ -58,7 +58,7 @@ class NvdApiDeltaTests(unittest.TestCase):
         self.assertEqual(second_query["startIndex"], ["1"])
         self.assertEqual(second_query["lastModEndDate"], ["2026-10-19T22:00:00.000Z"])
         self.assertNotIn("pubStartDate", second_query)
-        sleep.assert_called_once_with(delta.REQUEST_INTERVAL)
+        self.assertEqual(sleep.call_args_list, [call(delta.REQUEST_INTERVAL)] * 3)
 
     def test_uses_oldest_identifier_year_feed_even_when_current_year_is_recent(self):
         sources = feeds()
@@ -68,13 +68,13 @@ class NvdApiDeltaTests(unittest.TestCase):
 
     def test_only_a_drifting_day_is_retried_and_partial_records_are_discarded(self):
         old, fresh = current_record(), current_record("CVE-2026-112393")
-        data = [page([old], total=2), page([], start=1, total=1), page([fresh])]
+        data = [page([old], total=2), page([], start=1, total=1), page([fresh]), page([fresh])]
         with tempfile.TemporaryDirectory() as directory, \
                 patch.object(catalog, "utc_now", return_value=END), \
                 patch.object(catalog, "fetch_bytes", side_effect=data), patch.object(catalog.time, "sleep"):
             records, receipt = catalog.cache_api_delta(feeds(), Path(directory))
             self.assertEqual(set(records), {fresh["id"]})
-            self.assertEqual([entry["accepted"] for entry in receipt["pages"]], [False, False, True])
+            self.assertEqual([entry["accepted"] for entry in receipt["pages"]], [False, False, True, True])
             self.assertEqual(catalog.cache_api_delta(feeds(), Path(directory), offline=True), (records, receipt))
         errors = []
         validator.validate_api_delta(receipt, feeds(), errors)
@@ -88,7 +88,7 @@ class NvdApiDeltaTests(unittest.TestCase):
         boundary["published"] = "2026-10-18T00:00:00Z"
         boundary["lastModified"] = "2026-10-19T00:00:00Z"
         records, receipt = delta.fetch_delta(sources, end=END, fetch=Mock(side_effect=[
-            page([boundary]), page([boundary, current_record()]),
+            page([boundary]), page([boundary]), page([boundary, current_record()]), page([boundary, current_record()]),
         ]), sleep=Mock())
         self.assertEqual(len(records), 2)
         self.assertEqual(receipt["boundary_duplicates"], 1)
@@ -101,7 +101,7 @@ class NvdApiDeltaTests(unittest.TestCase):
             delta.fetch_delta(feeds(), end=END, fetch=Mock(return_value=page([current_record()], total=2)))
 
     def test_empty_api_result_does_not_advance_source_watermark_to_check_time(self):
-        _, metadata = delta.fetch_delta(feeds(), end=END, fetch=Mock(return_value=page([])))
+        _, metadata = delta.fetch_delta(feeds(), end=END, fetch=Mock(return_value=page([])), sleep=Mock())
         self.assertIsNone(metadata["latest_record_modified"])
         self.assertEqual(metadata["last_mod_end"], "2026-10-19T22:00:00.000Z")
 
@@ -110,7 +110,9 @@ class NvdApiDeltaTests(unittest.TestCase):
         sources[0]["metadata"]["lastModifiedDate"] = "2026-10-18T00:00:00Z"
         covered = current_record()
         covered["lastModified"] = "2026-10-18T12:00:00Z"
-        records, metadata = delta.fetch_delta(sources, end=END, fetch=Mock(side_effect=[page([covered]), page([])]), sleep=Mock())
+        records, metadata = delta.fetch_delta(sources, end=END, fetch=Mock(side_effect=[
+            page([covered]), page([covered]), page([]), page([]),
+        ]), sleep=Mock())
         self.assertEqual(records, {})
         self.assertEqual(metadata["records"], 1)
         self.assertEqual(metadata["overlay_records"], 0)
@@ -170,7 +172,8 @@ class NvdApiDeltaTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             with patch.object(catalog, "utc_now", return_value=END), \
-                    patch.object(catalog, "fetch_bytes", return_value=page([current_record()])):
+                    patch.object(catalog, "fetch_bytes", return_value=page([current_record()])), \
+                    patch.object(catalog.time, "sleep"):
                 online = catalog.cache_api_delta(feeds(), root)
             with patch.object(catalog, "fetch_bytes", side_effect=AssertionError("offline network access")):
                 self.assertEqual(catalog.cache_api_delta(feeds(), root, offline=True), online)
@@ -178,7 +181,7 @@ class NvdApiDeltaTests(unittest.TestCase):
                 changed[0]["metadata"]["sha256"] = "f" * 64
                 with self.assertRaisesRegex(ValueError, "annual feeds"):
                     catalog.cache_api_delta(changed, root, offline=True)
-                (root / "nvd-api-delta-page-0000.json").write_bytes(b"tampered")
+                (root / f"nvd-api-delta-page-{online[1]['pages'][0]['sha256']}.json").write_bytes(b"tampered")
                 with self.assertRaisesRegex(ValueError, "integrity"):
                     catalog.cache_api_delta(feeds(), root, offline=True)
 
@@ -187,15 +190,15 @@ class NvdApiDeltaTests(unittest.TestCase):
         response.__enter__.return_value.read.return_value = page([current_record()])
         with tempfile.TemporaryDirectory() as directory, \
                 patch.object(catalog, "utc_now", return_value=END), \
-                patch.object(catalog, "urlopen", side_effect=[TimeoutError("slow public API"), response]) as opener, \
+                patch.object(catalog, "urlopen", side_effect=[TimeoutError("slow public API"), response, response]) as opener, \
                 patch.object(catalog.time, "sleep") as sleep:
             records, receipt = catalog.cache_api_delta(feeds(), Path(directory))
         self.assertEqual(len(records), 1)
-        self.assertEqual(len(receipt["pages"]), 1)
-        self.assertEqual(opener.call_count, 2)
+        self.assertEqual(len(receipt["pages"]), 2)
+        self.assertEqual(opener.call_count, 3)
         self.assertEqual(opener.call_args_list[0].args[0].full_url, opener.call_args_list[1].args[0].full_url)
         self.assertEqual(opener.call_args.kwargs["timeout"], 180)
-        sleep.assert_called_once_with(delta.REQUEST_INTERVAL)
+        self.assertEqual(sleep.call_args_list, [call(delta.REQUEST_INTERVAL)] * 2)
 
     def test_api_rate_limit_and_access_refusals_stop_without_retry(self):
         for status in (401, 403, 429):
@@ -209,8 +212,57 @@ class NvdApiDeltaTests(unittest.TestCase):
                 self.assertEqual(opener.call_count, 1)
                 sleep.assert_not_called()
 
+    def test_equal_total_membership_drift_requires_a_new_matching_pair(self):
+        a, b, c, d = [current_record(f"CVE-2026-{value}") for value in range(1000, 1004)]
+        # A leaves the query and delayed D becomes visible: total stays three,
+        # but the first traversal skips B. The second traversal exposes drift.
+        data = [page([a], total=3), page([c, d], start=1, total=3), page([b, c, d])]
+        data += [page([b, c, d])] * 2
+        records, receipt = delta.fetch_delta(feeds(), end=END, fetch=Mock(side_effect=data), sleep=Mock())
+        self.assertEqual(set(records), {b["id"], c["id"], d["id"]})
+        self.assertEqual([entry["accepted"] for entry in receipt["pages"]], [False] * 3 + [True] * 2)
+        errors = []
+        validator.validate_api_delta(receipt, feeds(), errors)
+        self.assertEqual(errors, [])
+
+    def test_matching_ids_and_timestamps_with_changed_content_do_not_stabilize(self):
+        before, after = current_record(), current_record()
+        after["descriptions"] = [{"lang": "en", "value": "corrected source content"}]
+        with self.assertRaisesRegex(ValueError, "keeps drifting"):
+            delta.fetch_delta(feeds(), end=END, fetch=Mock(side_effect=[page([before]), page([after])] * 2),
+                              sleep=Mock())
+
+    def test_failed_refresh_preserves_previous_replay_and_rejects_unsafe_cache_hash(self):
+        with tempfile.TemporaryDirectory() as directory, patch.object(catalog, "utc_now", return_value=END), \
+                patch.object(catalog.time, "sleep"):
+            root = Path(directory)
+            with patch.object(catalog, "fetch_bytes", return_value=page([current_record()])):
+                previous = catalog.cache_api_delta(feeds(), root)
+            receipt_before = (root / "nvd-api-delta.json").read_bytes()
+            with patch.object(catalog, "fetch_bytes", side_effect=[
+                page([current_record("CVE-2026-12345")], total=2), TimeoutError("source timeout"),
+            ]), self.assertRaises(TimeoutError):
+                catalog.cache_api_delta(feeds(), root)
+            self.assertEqual((root / "nvd-api-delta.json").read_bytes(), receipt_before)
+            with patch.object(catalog, "fetch_bytes", side_effect=AssertionError("offline network access")):
+                self.assertEqual(catalog.cache_api_delta(feeds(), root, offline=True), previous)
+                altered = deepcopy(previous[1])
+                altered["pages"][0]["sha256"] = "../../outside"
+                (root / "nvd-api-delta.json").write_text(json.dumps(altered))
+                with self.assertRaisesRegex(ValueError, "invalid integrity hash"):
+                    catalog.cache_api_delta(feeds(), root, offline=True)
+            # A later successful refresh reclaims old and orphaned API pages,
+            # but preserves unrelated source files and its own replay.
+            unrelated = root / "nvd-api-delta-page-not-a-digest.json"
+            unrelated.write_bytes(b"unrelated")
+            with patch.object(catalog, "fetch_bytes", return_value=page([current_record("CVE-2026-99999")])):
+                latest = catalog.cache_api_delta(feeds(), root)
+            self.assertEqual(unrelated.read_bytes(), b"unrelated")
+            self.assertEqual(len(list(root.glob("nvd-api-delta-page-*.json"))), 2)
+            self.assertEqual(catalog.cache_api_delta(feeds(), root, offline=True), latest)
+
     def test_validator_rejects_api_receipts_with_missing_pages_or_a_different_baseline(self):
-        _, receipt = delta.fetch_delta(feeds(), end=END, fetch=Mock(return_value=page([current_record()])))
+        _, receipt = delta.fetch_delta(feeds(), end=END, fetch=Mock(return_value=page([current_record()])), sleep=Mock())
         errors = []
         validator.validate_api_delta(receipt, feeds(), errors)
         self.assertEqual(errors, [])
@@ -220,6 +272,8 @@ class NvdApiDeltaTests(unittest.TestCase):
             lambda value: value.update(latest_record_modified="2026-10-20T00:00:00Z"),
             lambda value: value["pages"][0].update(url=value["pages"][0]["url"] + "&cvssV3Severity=HIGH"),
             lambda value: value["pages"][0].update(sha256="bad"),
+            lambda value: value["pages"][0].update(scan_sha256="0" * 64),
+            lambda value: value["pages"].pop(),
         ):
             invalid = deepcopy(receipt)
             mutate(invalid)
@@ -242,7 +296,7 @@ class NvdApiDeltaTests(unittest.TestCase):
                     patch.object(catalog, "cache_kev", return_value=(kev, json.dumps(kev).encode())), \
                     patch.object(catalog, "load_archetypes", return_value=(archetypes, {})), \
                     patch.object(catalog, "fetch_bytes", return_value=page([current_record()])), \
-                    patch.object(catalog, "utc_now", return_value=END):
+                    patch.object(catalog, "utc_now", return_value=END), patch.object(catalog.time, "sleep"):
                 result = catalog.main([
                     "--start-date", "2016-10-19", "--end-date", "2026-10-19", "--nvd-api-delta",
                     "--disable-ai-enrichment", "--content-dir", str(content), "--output-dir", str(root / "catalog"),

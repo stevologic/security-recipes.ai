@@ -751,11 +751,14 @@ def cache_api_delta(
 
     def fetch_page(url: str) -> bytes:
         nonlocal position
-        path = cache_dir / f"nvd-api-delta-page-{position:04d}.json"
         if offline:
             receipt = cached["pages"][position]
+            digest = receipt["sha256"]
+            if not isinstance(digest, str) or re.fullmatch(r"[0-9a-f]{64}", digest) is None:
+                raise ValueError("Cached NVD API delta page has an invalid integrity hash")
+            path = cache_dir / f"nvd-api-delta-page-{digest}.json"
             raw = path.read_bytes()
-            if receipt["url"] != url or hashlib.sha256(raw).hexdigest() != receipt["sha256"]:
+            if receipt["url"] != url or hashlib.sha256(raw).hexdigest() != digest:
                 raise ValueError("Cached NVD API delta page failed integrity verification")
         else:
             # Large public API pages can exceed a minute. Retry the same fixed
@@ -765,7 +768,10 @@ def cache_api_delta(
                 url, attempts=2, timeout=180, retry_delay_floor=nvd_api_delta.REQUEST_INTERVAL,
                 retryable_http_codes=RETRYABLE_HTTP_CODES - {429},
             )
-            write_if_changed(path, raw)
+            # Content-addressed pages cannot invalidate the previous receipt if
+            # this refresh fails before its atomic receipt replacement below.
+            digest = hashlib.sha256(raw).hexdigest()
+            write_if_changed(cache_dir / f"nvd-api-delta-page-{digest}.json", raw)
         position += 1
         return raw
 
@@ -777,6 +783,15 @@ def cache_api_delta(
         raise ValueError("Cached NVD API delta snapshot receipt is inconsistent")
     if not offline:
         write_if_changed(snapshot_path, json_bytes(metadata, pretty=True))
+        # Reclaim old/failed-attempt pages only after the new receipt is durable.
+        # Keep this exact filename scope so other cached source files survive.
+        retained = {f"nvd-api-delta-page-{page['sha256']}.json" for page in metadata["pages"]}
+        for path in cache_dir.glob("nvd-api-delta-page-*.json"):
+            if re.fullmatch(r"nvd-api-delta-page-[0-9a-f]{64}\.json", path.name) and path.name not in retained:
+                try:
+                    path.unlink(missing_ok=True)
+                except OSError as exc:
+                    print(f"::warning::Could not reclaim obsolete NVD API cache page {path.name}: {exc}", flush=True)
     return records, metadata
 
 
