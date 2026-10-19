@@ -537,7 +537,9 @@ def safe_markdown_text(value: object, *, limit: int | None = None) -> str:
     return html.escape(normalize_space(clean_catalog_text(value), limit=limit), quote=False)
 
 
-def fetch_bytes(url: str, *, attempts: int = 4, timeout: int = 180) -> bytes:
+def fetch_bytes(
+    url: str, *, attempts: int = 4, timeout: int = 180, retry_delay_floor: float = 0,
+) -> bytes:
     request = Request(url, headers={"User-Agent": USER_AGENT, "Accept": "application/json, text/plain, */*"})
     last_error: Exception | None = None
     for attempt in range(attempts):
@@ -550,13 +552,13 @@ def fetch_bytes(url: str, *, attempts: int = 4, timeout: int = 180) -> bytes:
                 raise
             retry_after = exc.headers.get("Retry-After")
             delay = float(retry_after) if retry_after and retry_after.isdigit() else 2**attempt
-            time.sleep(min(delay, 30))
+            time.sleep(min(max(delay, retry_delay_floor), 30))
         # ``IncompleteRead`` is not an ``OSError``. NVD's CDN can close a
         # large annual-feed response after sending only part of its declared
         # body, so retry the immutable URL instead of accepting partial data.
         except (IncompleteRead, TimeoutError, URLError, OSError) as exc:
             last_error = exc
-            time.sleep(min(2**attempt, 30))
+            time.sleep(min(max(2**attempt, retry_delay_floor), 30))
     if last_error is None:
         raise RuntimeError(f"failed to fetch {url}")
     raise last_error
@@ -755,9 +757,10 @@ def cache_api_delta(
             if receipt["url"] != url or hashlib.sha256(raw).hexdigest() != receipt["sha256"]:
                 raise ValueError("Cached NVD API delta page failed integrity verification")
         else:
-            # One attempt per page; an unavailable or changing API snapshot must
-            # fail the refresh, never silently fall back to annual-only output.
-            raw = fetch_bytes(url, attempts=1, timeout=60)
+            # Large public API pages can exceed a minute. Retry the same fixed
+            # page at most once, preserving unauthenticated API pacing; failures
+            # still cannot silently fall back to annual-only output.
+            raw = fetch_bytes(url, attempts=2, timeout=180, retry_delay_floor=nvd_api_delta.REQUEST_INTERVAL)
             write_if_changed(path, raw)
         position += 1
         return raw

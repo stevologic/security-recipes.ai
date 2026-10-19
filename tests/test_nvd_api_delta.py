@@ -8,7 +8,7 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
-from unittest.mock import Mock, patch
+from unittest.mock import MagicMock, Mock, patch
 from urllib.parse import parse_qs, urlparse
 
 from scripts import nvd_api_delta as delta
@@ -146,6 +146,21 @@ class NvdApiDeltaTests(unittest.TestCase):
                 (root / "nvd-api-delta-page-0000.json").write_bytes(b"tampered")
                 with self.assertRaisesRegex(ValueError, "integrity"):
                     catalog.cache_api_delta(feeds(), root, offline=True)
+
+    def test_transient_api_read_timeout_retries_same_page_with_public_api_pacing(self):
+        response = MagicMock()
+        response.__enter__.return_value.read.return_value = page([current_record()])
+        with tempfile.TemporaryDirectory() as directory, \
+                patch.object(catalog, "utc_now", return_value=END), \
+                patch.object(catalog, "urlopen", side_effect=[TimeoutError("slow public API"), response]) as opener, \
+                patch.object(catalog.time, "sleep") as sleep:
+            records, receipt = catalog.cache_api_delta(feeds(), Path(directory))
+        self.assertEqual(len(records), 1)
+        self.assertEqual(len(receipt["pages"]), 1)
+        self.assertEqual(opener.call_count, 2)
+        self.assertEqual(opener.call_args_list[0].args[0].full_url, opener.call_args_list[1].args[0].full_url)
+        self.assertEqual(opener.call_args.kwargs["timeout"], 180)
+        sleep.assert_called_once_with(delta.REQUEST_INTERVAL)
 
     def test_validator_rejects_api_receipts_with_missing_pages_or_a_different_baseline(self):
         _, receipt = delta.fetch_delta(feeds(), end=END, fetch=Mock(return_value=page([current_record()])))
