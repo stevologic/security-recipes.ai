@@ -13,8 +13,10 @@ from urllib.parse import urlencode
 
 NVD_API_URL = "https://services.nvd.nist.gov/rest/json/cves/2.0"
 PAGE_SIZE = 2000
-MAX_PAGES = 50
+MAX_PAGES = 100
+MAX_RECORDS = 100000
 MAX_WINDOW = timedelta(days=120)
+WINDOW_STEP = timedelta(days=1)
 REQUEST_INTERVAL = 6.1  # Public API, without requesting or discovering a key.
 CVE_ID = re.compile(r"CVE-([0-9]{4})-[0-9]{4,}")
 
@@ -56,66 +58,96 @@ def fetch_delta(
     if start > end or end - start > MAX_WINDOW:
         raise ValueError("NVD API delta window must be between zero and 120 days; refresh annual feeds first")
     records: dict[str, dict[str, Any]] = {}
-    seen: set[str] = set()
+    seen: dict[str, tuple[str, datetime]] = {}
     baselines = {feed["year"]: source_datetime(feed["metadata"]["lastModifiedDate"]) for feed in feeds}
     pages: list[dict[str, Any]] = []
-    offset = 0
-    expected_total: int | None = None
+    boundary_duplicates = 0
+    window_start = start
     while True:
-        if len(pages) >= MAX_PAGES:
-            raise ValueError("NVD API delta exceeded its bounded page budget")
-        if pages:
-            sleep(REQUEST_INTERVAL)
-        url = NVD_API_URL + "?" + urlencode({
-            "lastModStartDate": timestamp(start),
-            "lastModEndDate": timestamp(end),
-            "resultsPerPage": PAGE_SIZE,
-            "startIndex": offset,
-        })
-        raw = fetch(url)
-        page = json.loads(raw)
-        if not isinstance(page, dict):
-            raise ValueError("NVD API delta response is not an object")
-        total, count, position = (page.get(key) for key in ("totalResults", "resultsPerPage", "startIndex"))
-        rows = page.get("vulnerabilities")
-        if (
-            any(type(value) is not int or value < 0 for value in (total, count, position))
-            or position != offset
-            or not isinstance(rows, list)
-            or count != len(rows)
-            or count > PAGE_SIZE
-            or offset + count > total
-            or (count == 0 and offset < total)
-        ):
-            raise ValueError("NVD API delta pagination is incomplete or malformed")
-        if expected_total is None:
-            expected_total = total
-            if total > PAGE_SIZE * MAX_PAGES:
-                raise ValueError("NVD API delta exceeds its bounded record budget")
-        elif total != expected_total:
-            raise ValueError("NVD API delta result count changed during pagination; retry a complete snapshot")
-        for row in rows:
-            cve = row.get("cve") if isinstance(row, dict) else None
-            if not isinstance(cve, dict) or CVE_ID.fullmatch(str(cve.get("id") or "")) is None:
-                raise ValueError("NVD API delta contains an invalid CVE identity")
-            identity = cve["id"]
-            modified = source_datetime(cve.get("lastModified"))
-            source_datetime(cve.get("published"))
-            if not start <= modified <= end:
-                raise ValueError(f"NVD API delta {identity} falls outside the requested modification window")
+        window_end = min(window_start + WINDOW_STEP, end)
+        # NVD changes live result sets. Retry only a drifting one-day window,
+        # rather than restarting a multi-week scan or accepting shifted offsets.
+        for window_attempt in range(2):
+            offset = 0
+            expected_total: int | None = None
+            window_records: dict[str, dict[str, Any]] = {}
+            page_indices: list[int] = []
+            drift = False
+            while True:
+                if len(pages) >= MAX_PAGES:
+                    raise ValueError("NVD API delta exceeded its bounded page budget")
+                if pages:
+                    sleep(REQUEST_INTERVAL)
+                url = NVD_API_URL + "?" + urlencode({
+                    "lastModStartDate": timestamp(window_start),
+                    "lastModEndDate": timestamp(window_end),
+                    "resultsPerPage": PAGE_SIZE, "startIndex": offset,
+                })
+                raw = fetch(url)
+                page = json.loads(raw)
+                if not isinstance(page, dict):
+                    raise ValueError("NVD API delta response is not an object")
+                total, count, position = (page.get(key) for key in ("totalResults", "resultsPerPage", "startIndex"))
+                rows = page.get("vulnerabilities")
+                if (
+                    any(type(value) is not int or value < 0 for value in (total, count, position))
+                    or position != offset or not isinstance(rows, list) or count != len(rows)
+                    or count > PAGE_SIZE or offset + count > total or (count == 0 and offset < total)
+                ):
+                    raise ValueError("NVD API delta pagination is incomplete or malformed")
+                if total > MAX_RECORDS:
+                    raise ValueError("NVD API delta exceeds its bounded record budget")
+                page_indices.append(len(pages))
+                pages.append({"url": url, "records": count, "total_results": total,
+                              "accepted": False, "sha256": hashlib.sha256(raw).hexdigest()})
+                if expected_total is None:
+                    expected_total = total
+                elif total != expected_total:
+                    drift = True
+                    break
+                for row in rows:
+                    cve = row.get("cve") if isinstance(row, dict) else None
+                    if not isinstance(cve, dict) or CVE_ID.fullmatch(str(cve.get("id") or "")) is None:
+                        raise ValueError("NVD API delta contains an invalid CVE identity")
+                    identity = cve["id"]
+                    modified = source_datetime(cve.get("lastModified"))
+                    source_datetime(cve.get("published"))
+                    if not window_start <= modified <= window_end:
+                        raise ValueError(f"NVD API delta {identity} falls outside its modification window")
+                    if identity in window_records:
+                        drift = True
+                        break
+                    window_records[identity] = cve
+                if drift:
+                    break
+                offset += count
+                if offset == total:
+                    break
+            if not drift:
+                for position in page_indices:
+                    pages[position]["accepted"] = True
+                break
+            if window_attempt == 1:
+                raise ValueError("NVD API delta window keeps drifting; no partial snapshot is publishable")
+        for identity, cve in window_records.items():
+            modified = source_datetime(cve["lastModified"])
+            digest = hashlib.sha256(json.dumps(cve, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
             if identity in seen:
-                raise ValueError(f"NVD API delta contains duplicate identity {identity}; retry a complete snapshot")
-            seen.add(identity)
-            # The oldest year can be months old while most feeds are recent.
-            # Keep only revisions not already covered by their own annual feed,
-            # avoiding a second complete catalog in memory during normalization.
+                previous_digest, previous_end = seen[identity]
+                if digest == previous_digest and previous_end == window_start and modified == window_start:
+                    boundary_duplicates += 1
+                    continue
+                raise ValueError(f"NVD API delta contains conflicting identity {identity}")
+            seen[identity] = (digest, window_end)
+            if len(seen) > MAX_RECORDS:
+                raise ValueError("NVD API delta exceeds its bounded record budget")
+            # Retain only revisions not already covered by their own feed.
             baseline = baselines.get(int(identity.split("-")[1]))
             if baseline is not None and modified >= baseline:
                 records[identity] = cve
-        pages.append({"url": url, "records": count, "sha256": hashlib.sha256(raw).hexdigest()})
-        offset += count
-        if offset == total:
+        if window_end == end:
             break
+        window_start = window_end
     newest = max((source_datetime(cve["lastModified"]) for cve in records.values()), default=None)
     return records, {
         "url": NVD_API_URL,
@@ -123,8 +155,9 @@ def fetch_delta(
         "last_mod_start": timestamp(start),
         "last_mod_end": timestamp(end),
         "latest_record_modified": timestamp(newest) if newest is not None else None,
-        "records": offset,
+        "records": len(seen),
         "overlay_records": len(records),
+        "boundary_duplicates": boundary_duplicates,
         "pages": pages,
     }
 

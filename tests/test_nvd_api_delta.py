@@ -25,7 +25,7 @@ def feeds() -> list[dict]:
     return [{
         "year": year, "accepted_records": 0,
         "url": f"{catalog.NVD_FEED_ROOT}/nvdcve-2.0-{year}.json.gz",
-        "metadata": {"lastModifiedDate": "2026-10-16T03:00:20-04:00", "sha256": f"{year:064x}",
+        "metadata": {"lastModifiedDate": "2026-10-19T00:00:00Z", "sha256": f"{year:064x}",
                      "size": "100", "gzSize": "50", "zipSize": "50"},
     } for year in range(2002, 2027)]
 
@@ -52,7 +52,7 @@ class NvdApiDeltaTests(unittest.TestCase):
         self.assertEqual(set(records), {first["id"], second["id"]})
         self.assertEqual(metadata["records"], 2)
         self.assertEqual(metadata["latest_record_modified"], "2026-10-19T21:20:00.000Z")
-        self.assertEqual(metadata["last_mod_start"], "2026-10-16T07:00:20.000Z")
+        self.assertEqual(metadata["last_mod_start"], "2026-10-19T00:00:00.000Z")
         self.assertEqual(metadata["pages"][0]["sha256"], hashlib.sha256(data[0]).hexdigest())
         second_query = parse_qs(urlparse(fetch.call_args_list[1].args[0]).query)
         self.assertEqual(second_query["startIndex"], ["1"])
@@ -63,8 +63,42 @@ class NvdApiDeltaTests(unittest.TestCase):
     def test_uses_oldest_identifier_year_feed_even_when_current_year_is_recent(self):
         sources = feeds()
         sources[0]["metadata"]["lastModifiedDate"] = "2026-08-28T03:04:26-04:00"
-        _, metadata = delta.fetch_delta(sources, end=END, fetch=Mock(return_value=page([])))
+        _, metadata = delta.fetch_delta(sources, end=END, fetch=Mock(return_value=page([])), sleep=Mock())
         self.assertEqual(metadata["last_mod_start"], "2026-08-28T07:04:26.000Z")
+
+    def test_only_a_drifting_day_is_retried_and_partial_records_are_discarded(self):
+        old, fresh = current_record(), current_record("CVE-2026-112393")
+        data = [page([old], total=2), page([], start=1, total=1), page([fresh])]
+        with tempfile.TemporaryDirectory() as directory, \
+                patch.object(catalog, "utc_now", return_value=END), \
+                patch.object(catalog, "fetch_bytes", side_effect=data), patch.object(catalog.time, "sleep"):
+            records, receipt = catalog.cache_api_delta(feeds(), Path(directory))
+            self.assertEqual(set(records), {fresh["id"]})
+            self.assertEqual([entry["accepted"] for entry in receipt["pages"]], [False, False, True])
+            self.assertEqual(catalog.cache_api_delta(feeds(), Path(directory), offline=True), (records, receipt))
+        errors = []
+        validator.validate_api_delta(receipt, feeds(), errors)
+        self.assertEqual(errors, [])
+
+    def test_adjacent_day_boundary_is_deduplicated_without_a_coverage_gap(self):
+        sources = feeds()
+        for source in sources:
+            source["metadata"]["lastModifiedDate"] = "2026-10-18T00:00:00Z"
+        boundary = current_record("CVE-2024-12345")
+        boundary["published"] = "2026-10-18T00:00:00Z"
+        boundary["lastModified"] = "2026-10-19T00:00:00Z"
+        records, receipt = delta.fetch_delta(sources, end=END, fetch=Mock(side_effect=[
+            page([boundary]), page([boundary, current_record()]),
+        ]), sleep=Mock())
+        self.assertEqual(len(records), 2)
+        self.assertEqual(receipt["boundary_duplicates"], 1)
+        errors = []
+        validator.validate_api_delta(receipt, sources, errors)
+        self.assertEqual(errors, [])
+
+    def test_day_retries_obey_the_global_page_budget(self):
+        with patch.object(delta, "MAX_PAGES", 1), self.assertRaisesRegex(ValueError, "page budget"):
+            delta.fetch_delta(feeds(), end=END, fetch=Mock(return_value=page([current_record()], total=2)))
 
     def test_empty_api_result_does_not_advance_source_watermark_to_check_time(self):
         _, metadata = delta.fetch_delta(feeds(), end=END, fetch=Mock(return_value=page([])))
@@ -73,10 +107,10 @@ class NvdApiDeltaTests(unittest.TestCase):
 
     def test_drops_revisions_already_covered_by_their_identifier_year_feed(self):
         sources = feeds()
-        sources[0]["metadata"]["lastModifiedDate"] = "2026-08-28T03:04:26-04:00"
+        sources[0]["metadata"]["lastModifiedDate"] = "2026-10-18T00:00:00Z"
         covered = current_record()
-        covered["lastModified"] = "2026-09-01T00:00:00Z"
-        records, metadata = delta.fetch_delta(sources, end=END, fetch=Mock(return_value=page([covered])))
+        covered["lastModified"] = "2026-10-18T12:00:00Z"
+        records, metadata = delta.fetch_delta(sources, end=END, fetch=Mock(side_effect=[page([covered]), page([])]), sleep=Mock())
         self.assertEqual(records, {})
         self.assertEqual(metadata["records"], 1)
         self.assertEqual(metadata["overlay_records"], 0)
@@ -95,7 +129,7 @@ class NvdApiDeltaTests(unittest.TestCase):
         for second in (page([], start=1, total=2), page([current_record()], start=1, total=3),
                        page([current_record()], start=1, total=2)):
             with self.subTest(second=second), self.assertRaises(ValueError):
-                delta.fetch_delta(feeds(), end=END, fetch=Mock(side_effect=[json.dumps(valid).encode(), second]),
+                delta.fetch_delta(feeds(), end=END, fetch=Mock(side_effect=[json.dumps(valid).encode(), second] * 2),
                                   sleep=Mock())
 
     def test_rejects_missing_timestamps_out_of_window_records_and_excessive_window(self):

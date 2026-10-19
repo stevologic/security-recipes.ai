@@ -391,9 +391,14 @@ hashes and count, overlay count, and newest overlay-record modification time. Re
 already covered by their own annual feed are discarded to bound memory use. Feed
 `accepted_records` counts describe the result after this reconciliation.
 
-API reconciliation is bounded to 120 days and 50 pages of at most 2,000 records,
-paced at 6.1 seconds without an API key. Missing pages, changing totals,
-duplicates, invalid dates, request failures, or an exceeded budget fail the sync
+API reconciliation is bounded to 120 days, 100 responses of at most 2,000 records,
+and 100,000 unique records, paced at 6.1 seconds without an API key. It scans
+fixed one-day windows and retries a drifting window at most once, discarding
+all records from its failed attempt. Inclusive day boundaries are deduplicated
+only when both source records are identical. Receipts retain rejected responses
+and independently prove complete accepted pagination across every day.
+Missing pages, persistent drift, conflicting duplicates, invalid dates,
+request failures, or an exceeded budget fail the sync
 before catalog publication. Such failures require investigation rather than
 silently publishing an annual-only snapshot. Raw pages are cached for
 hash-checked `--offline --nvd-api-delta` replay against the exact annual baseline.

@@ -1509,7 +1509,7 @@ def validate_api_delta(delta: Any, feeds: list[Any], failures: list[str]) -> Non
     try:
         if not isinstance(delta, dict) or set(delta) != {
             "url", "baseline_sha256", "last_mod_start", "last_mod_end",
-            "latest_record_modified", "records", "overlay_records", "pages",
+            "latest_record_modified", "records", "overlay_records", "boundary_duplicates", "pages",
         } or delta["url"] != endpoint:
             raise ValueError("has an invalid schema or endpoint")
         baseline = [{"year": feed["year"], "metadata": feed["metadata"]} for feed in feeds]
@@ -1534,30 +1534,62 @@ def validate_api_delta(delta: Any, feeds: list[Any], failures: list[str]) -> Non
         overlay_count = delta["overlay_records"]
         if type(overlay_count) is not int or not 0 <= overlay_count <= total:
             raise ValueError("has an invalid overlay count")
-        if not isinstance(pages, list) or not 1 <= len(pages) <= 50:
+        if not isinstance(pages, list) or not 1 <= len(pages) <= 100:
             raise ValueError("has an invalid page inventory")
         offset = 0
+        accepted_rows = 0
+        covered_through = start
+        group_window: tuple[datetime, datetime] | None = None
+        group_total: int | None = None
+        completed_windows = 0
         for page in pages:
-            if not isinstance(page, dict) or set(page) != {"url", "records", "sha256"}:
+            if not isinstance(page, dict) or set(page) != {"url", "records", "total_results", "accepted", "sha256"}:
                 raise ValueError("has an invalid page receipt")
             parsed = urlparse(page["url"])
             if f"{parsed.scheme}://{parsed.netloc}{parsed.path}" != endpoint or parsed.fragment:
                 raise ValueError("has an invalid page endpoint")
-            if parse_qs(parsed.query) != {
-                "lastModStartDate": [delta["last_mod_start"]], "lastModEndDate": [delta["last_mod_end"]],
-                "resultsPerPage": ["2000"], "startIndex": [str(offset)],
-            }:
+            params = parse_qs(parsed.query)
+            if set(params) != {"lastModStartDate", "lastModEndDate", "resultsPerPage", "startIndex"} or any(
+                len(value) != 1 for value in params.values()
+            ) or params["resultsPerPage"] != ["2000"]:
                 raise ValueError("has a filtered or incomplete page query")
-            count = page["records"]
-            if type(count) is not int or not 0 <= count <= 2000 or (count == 0 and total != 0):
+            window_start = source_time(params["lastModStartDate"][0])
+            window_end = source_time(params["lastModEndDate"][0])
+            if not start <= window_start <= window_end <= end or window_end - window_start > timedelta(days=1):
+                raise ValueError("has an invalid response window")
+            if window_start == window_end and (start != end or len(pages) != 1):
+                raise ValueError("has an empty or repeated response window")
+            position = int(params["startIndex"][0])
+            count, reported, accepted = page["records"], page["total_results"], page["accepted"]
+            if (
+                type(count) is not int or not 0 <= count <= 2000 or type(reported) is not int
+                or not 0 <= reported <= 100000 or position < 0 or position + count > reported
+                or (count == 0 and position < reported) or type(accepted) is not bool
+            ):
                 raise ValueError("has an invalid page record count")
             if not isinstance(page["sha256"], str) or SHA256_RE.fullmatch(page["sha256"]) is None:
                 raise ValueError("has an invalid page hash")
+            if not accepted:
+                continue
+            if group_window is None:
+                if position != 0 or window_start != covered_through:
+                    raise ValueError("accepted windows have a gap or overlap")
+                group_window, group_total, offset = (window_start, window_end), reported, 0
+            if group_window != (window_start, window_end) or group_total != reported or position != offset:
+                raise ValueError("accepted window pagination is incomplete or inconsistent")
             offset += count
-        if offset != total:
-            raise ValueError("page counts do not cover all API records")
+            if offset == reported:
+                completed_windows += 1
+                accepted_rows += offset
+                covered_through = window_end
+                group_window, group_total = None, None
+        duplicates = delta["boundary_duplicates"]
+        if type(duplicates) is not int or not 0 <= duplicates <= accepted_rows:
+            raise ValueError("has an invalid boundary duplicate count")
+        if not completed_windows or group_window is not None or covered_through != end or accepted_rows - duplicates != total:
+            raise ValueError("accepted pages do not cover the full API window and record count")
         newest = delta["latest_record_modified"]
-        if (total == 0 and len(pages) != 1) or (overlay_count == 0 and newest is not None) or (
+        if (overlay_count == 0 and newest is not None) or (
             overlay_count > 0 and not start <= source_time(newest) <= end
         ):
             raise ValueError("has an invalid source data watermark")
