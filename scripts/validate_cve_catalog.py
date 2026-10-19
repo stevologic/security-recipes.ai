@@ -10,9 +10,10 @@ import json
 import os
 import re
 from collections import Counter
-from datetime import date, datetime
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path, PurePosixPath
 from typing import Any
+from urllib.parse import parse_qs, urlparse
 
 try:
     from scripts.cve_ai_enrichment import enrichment_errors, recipe_ready
@@ -1501,6 +1502,69 @@ def validate_runtime_asset_versions(
         fail(failures, "manifest shard_set_sha256 does not match the shard inventory")
 
 
+def validate_api_delta(delta: Any, feeds: list[Any], failures: list[str]) -> None:
+    """Validate the API completeness receipt independently of the producer."""
+    prefix = "manifest NVD API delta"
+    endpoint = "https://services.nvd.nist.gov/rest/json/cves/2.0"
+    try:
+        if not isinstance(delta, dict) or set(delta) != {
+            "url", "baseline_sha256", "last_mod_start", "last_mod_end",
+            "latest_record_modified", "records", "overlay_records", "pages",
+        } or delta["url"] != endpoint:
+            raise ValueError("has an invalid schema or endpoint")
+        baseline = [{"year": feed["year"], "metadata": feed["metadata"]} for feed in feeds]
+        digest = hashlib.sha256(json.dumps(baseline, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+        if delta["baseline_sha256"] != digest:
+            raise ValueError("does not match its annual feed baseline")
+
+        def source_time(value: Any) -> datetime:
+            if not isinstance(value, str) or "T" not in value:
+                raise ValueError("has an invalid source timestamp")
+            parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+            return parsed.replace(tzinfo=parsed.tzinfo or timezone.utc).astimezone(timezone.utc)
+
+        start, end = source_time(delta["last_mod_start"]), source_time(delta["last_mod_end"])
+        if start != min(source_time(feed["metadata"]["lastModifiedDate"]) for feed in feeds):
+            raise ValueError("does not cover the oldest annual feed")
+        if not timedelta(0) <= end - start <= timedelta(days=120):
+            raise ValueError("has an invalid modification window")
+        total, pages = delta["records"], delta["pages"]
+        if type(total) is not int or not 0 <= total <= 100000:
+            raise ValueError("has an invalid record count")
+        overlay_count = delta["overlay_records"]
+        if type(overlay_count) is not int or not 0 <= overlay_count <= total:
+            raise ValueError("has an invalid overlay count")
+        if not isinstance(pages, list) or not 1 <= len(pages) <= 50:
+            raise ValueError("has an invalid page inventory")
+        offset = 0
+        for page in pages:
+            if not isinstance(page, dict) or set(page) != {"url", "records", "sha256"}:
+                raise ValueError("has an invalid page receipt")
+            parsed = urlparse(page["url"])
+            if f"{parsed.scheme}://{parsed.netloc}{parsed.path}" != endpoint or parsed.fragment:
+                raise ValueError("has an invalid page endpoint")
+            if parse_qs(parsed.query) != {
+                "lastModStartDate": [delta["last_mod_start"]], "lastModEndDate": [delta["last_mod_end"]],
+                "resultsPerPage": ["2000"], "startIndex": [str(offset)],
+            }:
+                raise ValueError("has a filtered or incomplete page query")
+            count = page["records"]
+            if type(count) is not int or not 0 <= count <= 2000 or (count == 0 and total != 0):
+                raise ValueError("has an invalid page record count")
+            if not isinstance(page["sha256"], str) or SHA256_RE.fullmatch(page["sha256"]) is None:
+                raise ValueError("has an invalid page hash")
+            offset += count
+        if offset != total:
+            raise ValueError("page counts do not cover all API records")
+        newest = delta["latest_record_modified"]
+        if (total == 0 and len(pages) != 1) or (overlay_count == 0 and newest is not None) or (
+            overlay_count > 0 and not start <= source_time(newest) <= end
+        ):
+            raise ValueError("has an invalid source data watermark")
+    except (KeyError, TypeError, ValueError, AttributeError) as exc:
+        fail(failures, f"{prefix} {exc}")
+
+
 def validate_source_completeness(
     manifest: dict[str, Any],
     end_date: date | None,
@@ -1577,6 +1641,8 @@ def validate_source_completeness(
         )
 
     kev = sources.get("cisa_kev")
+    if isinstance(nvd, dict) and "api_delta" in nvd:
+        validate_api_delta(nvd["api_delta"], feeds, failures)
     if not isinstance(kev, dict):
         fail(failures, "manifest CISA KEV source metadata is missing")
         return
