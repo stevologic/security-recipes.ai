@@ -539,6 +539,7 @@ def safe_markdown_text(value: object, *, limit: int | None = None) -> str:
 
 def fetch_bytes(
     url: str, *, attempts: int = 4, timeout: int = 180, retry_delay_floor: float = 0,
+    retryable_http_codes: frozenset[int] = RETRYABLE_HTTP_CODES,
 ) -> bytes:
     request = Request(url, headers={"User-Agent": USER_AGENT, "Accept": "application/json, text/plain, */*"})
     last_error: Exception | None = None
@@ -548,7 +549,7 @@ def fetch_bytes(
                 return response.read()
         except HTTPError as exc:
             last_error = exc
-            if exc.code not in RETRYABLE_HTTP_CODES:
+            if exc.code not in retryable_http_codes:
                 raise
             retry_after = exc.headers.get("Retry-After")
             delay = float(retry_after) if retry_after and retry_after.isdigit() else 2**attempt
@@ -760,7 +761,10 @@ def cache_api_delta(
             # Large public API pages can exceed a minute. Retry the same fixed
             # page at most once, preserving unauthenticated API pacing; failures
             # still cannot silently fall back to annual-only output.
-            raw = fetch_bytes(url, attempts=2, timeout=180, retry_delay_floor=nvd_api_delta.REQUEST_INTERVAL)
+            raw = fetch_bytes(
+                url, attempts=2, timeout=180, retry_delay_floor=nvd_api_delta.REQUEST_INTERVAL,
+                retryable_http_codes=RETRYABLE_HTTP_CODES - {429},
+            )
             write_if_changed(path, raw)
         position += 1
         return raw

@@ -399,7 +399,8 @@ silently publishing an annual-only snapshot. Raw pages are cached for
 hash-checked `--offline --nvd-api-delta` replay against the exact annual baseline.
 Offline use without the flag remains an annual-only build.
 Each page permits at most two transport attempts with a 180-second timeout;
-retries preserve the public API pacing. Access refusals are not retried.
+retries preserve the public API pacing. Rate-limit and access refusals stop
+the refresh immediately without retrying.
 
 `last_mod_end` is the successful API check's fixed upper bound;
 `catalog_updated_at` uses actual source timestamps, including the newest returned

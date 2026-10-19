@@ -10,6 +10,7 @@ import tempfile
 import unittest
 from unittest.mock import MagicMock, Mock, patch
 from urllib.parse import parse_qs, urlparse
+from urllib.error import HTTPError
 
 from scripts import nvd_api_delta as delta
 from scripts import sync_cve_catalog as catalog
@@ -161,6 +162,18 @@ class NvdApiDeltaTests(unittest.TestCase):
         self.assertEqual(opener.call_args_list[0].args[0].full_url, opener.call_args_list[1].args[0].full_url)
         self.assertEqual(opener.call_args.kwargs["timeout"], 180)
         sleep.assert_called_once_with(delta.REQUEST_INTERVAL)
+
+    def test_api_rate_limit_and_access_refusals_stop_without_retry(self):
+        for status in (401, 403, 429):
+            with self.subTest(status=status), tempfile.TemporaryDirectory() as directory, \
+                    patch.object(catalog, "utc_now", return_value=END), \
+                    patch.object(catalog, "urlopen", side_effect=HTTPError(
+                        delta.NVD_API_URL, status, "refused", {"Retry-After": "120"}, None,
+                    )) as opener, patch.object(catalog.time, "sleep") as sleep:
+                with self.assertRaises(HTTPError):
+                    catalog.cache_api_delta(feeds(), Path(directory))
+                self.assertEqual(opener.call_count, 1)
+                sleep.assert_not_called()
 
     def test_validator_rejects_api_receipts_with_missing_pages_or_a_different_baseline(self):
         _, receipt = delta.fetch_delta(feeds(), end=END, fetch=Mock(return_value=page([current_record()])))
