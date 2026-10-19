@@ -1,12 +1,12 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-09-28",
-  "intent": "Define the SecurityRecipes MCP authorization conformance model so agent hosts, MCP gateways, IAM teams, and enterprise buyers can verify latest MCP authorization requirements: resource-bound tokens, token audience validation, PKCE, protected-resource metadata discovery, client ID metadata documents, RFC 9207 authorization-response issuer validation against mix-up, credentials bound to the issuing authorization server, SSRF-safe OAuth metadata fetches, authorization-URL scheme allowlisting, authoritative scope challenges, step-up authorization, token-passthrough denial, scope minimization, consent, state-handle binding, and audit evidence before agents use MCP tools.",
+  "last_reviewed": "2026-10-19",
+  "intent": "Define the SecurityRecipes MCP authorization conformance model so agent hosts, MCP gateways, IAM teams, and enterprise buyers can verify latest MCP authorization requirements: resource-bound tokens, token audience validation, PKCE, protected-resource metadata discovery, client ID metadata documents, RFC 9207 authorization-response issuer validation against mix-up, credentials bound to the issuing authorization server, SSRF-safe OAuth metadata fetches, authorization-URL scheme allowlisting, sender-constrained presentation instead of unconstrained bearer replay, authoritative scope challenges, step-up authorization, token-passthrough denial, scope minimization, consent, state-handle binding, and audit evidence before agents use MCP tools.",
   "positioning": {
     "buyer": "AI Platform, IAM, Product Security, GRC, procurement security, and enterprise architecture teams",
     "category": "MCP authorization conformance and scope-drift control",
-    "enterprise_promise": "SecurityRecipes can explain whether MCP tool access is bound to the right resource, token audience, client, workflow, agent run, and scope before a tool call reaches enterprise systems.",
-    "why_now": "MCP adoption is moving from local developer experiments to remote production servers. The enterprise control gap is now authorization evidence: who delegated which agent, to which MCP resource, with which scopes, and whether raw user tokens or over-broad permissions leaked into the tool path."
+    "enterprise_promise": "SecurityRecipes can explain whether MCP tool access is bound to the right resource, token audience, client, workflow, agent run, and scope, and whether the token is sender-constrained instead of an unconstrained bearer secret, before a tool call reaches enterprise systems.",
+    "why_now": "MCP adoption is moving from local developer experiments to remote production servers. The enterprise control gap is now authorization evidence: who delegated which agent, to which MCP resource, with which scopes, whether the access token is sender-constrained, and whether raw user tokens or over-broad permissions leaked into the tool path."
   },
   "standards_alignment": [
     {
@@ -26,6 +26,12 @@
       "name": "Back to the Future: Why Agentic AI Needs a Strong Identity Foundation",
       "url": "https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation",
       "coverage": "NIST's August 27, 2026 identity guidance: unique agent identifiers and short-lived scoped credentials instead of shared human credentials, long-lived API keys, or local user-account impersonation on the MCP tool path."
+    },
+    {
+      "id": "nist-nccoe-agentic-identity-comments-2026",
+      "name": "Summary of Comments on the Software and Agentic AI Identity and Authorization Concept Paper",
+      "url": "https://pages.nist.gov/nccoe-ai-identity/summary-of-comments.html",
+      "coverage": "NCCoE's September 29, 2026 comments summary, drawn from more than 600 responses, says sender-constrained credentials (OAuth DPoP or mTLS using SPIFFE or WIMSE identities) are essential to reduce bearer-token replay, and that ephemeral credentials should be bound to a stable identity anchor via proof-of-possession rather than reused as unconstrained bearer tokens on the MCP tool path."
     },
     {
       "id": "mcp-authorization-2025-11-25",
@@ -98,6 +104,8 @@
       "token_audience",
       "token_issuer",
       "token_expires_at",
+      "token_confirmation_method",
+      "token_sender_constrained",
       "token_scopes",
       "scope_challenge",
       "requested_access_mode",
@@ -115,6 +123,7 @@
       "hold_for_step_up_authorization",
       "deny_token_passthrough",
       "deny_unbound_token",
+      "deny_unconstrained_bearer_token",
       "deny_authorization_issuer_mismatch",
       "deny_oauth_metadata_ssrf",
       "deny_unsafe_authorization_url",
@@ -159,6 +168,7 @@
       "rfc9207_iss_validation",
       "oauth_metadata_ssrf",
       "oauth_authorization_url_validation",
+      "sender_constrained_token",
       "deny_token_passthrough",
       "deny_private_network_egress",
       "session_binding",
@@ -177,7 +187,8 @@
       "redirect_uri_policy",
       "scope_catalog_hash",
       "scope_challenge_policy_hash",
-      "step_up_authorization_policy"
+      "step_up_authorization_policy",
+      "token_confirmation_method"
     ]
   },
   "control_checks": [
@@ -259,6 +270,13 @@
       "control_reason": "MCP 2026-07-28 Security Best Practices require clients to validate authorization URLs with an http/https allowlist, reject javascript:, data:, file:, and vbscript: schemes, and allow http:// only for loopback addresses during local development."
     },
     {
+      "id": "sender_constrained_token",
+      "severity": "critical",
+      "applies_to": "oauth_mcp",
+      "evidence_key": "token_confirmation_method",
+      "control_reason": "NCCoE's September 29, 2026 comments summary says sender-constrained credentials (OAuth DPoP or mTLS using SPIFFE or WIMSE identities) are essential to reduce bearer-token replay. MCP 2026-07-28 still issues audience-bound bearer tokens; enterprise gateways should deny unconstrained bearer presentation on the MCP tool path."
+    },
+    {
       "id": "deny_token_passthrough",
       "severity": "critical",
       "applies_to": "all_mcp",
@@ -312,7 +330,7 @@
     "board_level_claim": "SecurityRecipes can verify the authorization boundary around MCP tool use before an agent acts.",
     "default_questions_answered": [
       "Which MCP connectors have enough gateway evidence to be used today?",
-      "Which candidate MCP servers fail resource, audience, PKCE, RFC 9207 issuer, OAuth metadata SSRF, unsafe authorization URL schemes, token-passthrough, or private-network checks?",
+      "Which candidate MCP servers fail resource, audience, PKCE, RFC 9207 issuer, OAuth metadata SSRF, unsafe authorization URL schemes, unconstrained bearer presentation, token-passthrough, or private-network checks?",
       "Which workflow namespaces are exposed to authorization scope drift?",
       "What runtime attributes must appear in a run receipt before an MCP tool call is trusted?",
       "Which premium controls should be hosted: live metadata discovery, scope-drift alerts, token-binding replay tests, and auth evidence exports?"

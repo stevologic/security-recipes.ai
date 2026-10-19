@@ -4,8 +4,9 @@
 This pack sits between the connector trust registry and runtime run
 receipts. It answers the enterprise MCP question that connector trust
 alone cannot answer: are tokens resource-bound, audience-bound,
-short-lived, scoped to the workflow, denied from passthrough, and tied
-to consent, session, and audit evidence before the agent can use a tool?
+sender-constrained, short-lived, scoped to the workflow, denied from
+passthrough, and tied to consent, session, and audit evidence before the
+agent can use a tool?
 """
 
 from __future__ import annotations
