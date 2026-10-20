@@ -42,6 +42,12 @@ class CveSyncWorkflowTests(unittest.TestCase):
         self.assertIn('--priority-cve-ids "$PRIORITY_CVE_IDS"', sync_step)
         self.assertIn("XAI_ENRICHMENT_LIMIT", self.workflow)
 
+    def test_source_sync_reconciles_official_api_changes_and_runs_delta_tests(self) -> None:
+        self.assertIn("--nvd-api-delta", self.step(
+            "Synchronize and optionally enrich exact rolling ten-year catalog"
+        ))
+        self.assertIn("tests.test_nvd_api_delta", self.workflow)
+
     def test_xai_secret_is_optional_and_never_printed(self) -> None:
         sync_step = self.step(
             "Synchronize and optionally enrich exact rolling ten-year catalog"

@@ -41,6 +41,7 @@ from urllib.parse import unquote, urlparse
 from urllib.request import Request, urlopen
 
 try:
+    from scripts import nvd_api_delta
     from scripts.cve_ai_enrichment import (
         DEFAULT_MODEL as DEFAULT_XAI_MODEL,
         DEFAULT_REQUEST_LIMIT as DEFAULT_AI_ENRICHMENT_LIMIT,
@@ -55,6 +56,7 @@ try:
     from scripts.cve_ai_recipe import GeneratedRecipeManager
     from scripts.cve_text_quality import clean_catalog_text
 except ModuleNotFoundError:  # Direct ``python scripts/sync_cve_catalog.py`` execution.
+    import nvd_api_delta  # type: ignore[no-redef]
     from cve_ai_enrichment import (  # type: ignore[no-redef]
         DEFAULT_MODEL as DEFAULT_XAI_MODEL,
         DEFAULT_REQUEST_LIMIT as DEFAULT_AI_ENRICHMENT_LIMIT,
@@ -535,7 +537,10 @@ def safe_markdown_text(value: object, *, limit: int | None = None) -> str:
     return html.escape(normalize_space(clean_catalog_text(value), limit=limit), quote=False)
 
 
-def fetch_bytes(url: str, *, attempts: int = 4, timeout: int = 180) -> bytes:
+def fetch_bytes(
+    url: str, *, attempts: int = 4, timeout: int = 180, retry_delay_floor: float = 0,
+    retryable_http_codes: frozenset[int] = RETRYABLE_HTTP_CODES,
+) -> bytes:
     request = Request(url, headers={"User-Agent": USER_AGENT, "Accept": "application/json, text/plain, */*"})
     last_error: Exception | None = None
     for attempt in range(attempts):
@@ -544,17 +549,17 @@ def fetch_bytes(url: str, *, attempts: int = 4, timeout: int = 180) -> bytes:
                 return response.read()
         except HTTPError as exc:
             last_error = exc
-            if exc.code not in RETRYABLE_HTTP_CODES:
+            if exc.code not in retryable_http_codes:
                 raise
             retry_after = exc.headers.get("Retry-After")
             delay = float(retry_after) if retry_after and retry_after.isdigit() else 2**attempt
-            time.sleep(min(delay, 30))
+            time.sleep(min(max(delay, retry_delay_floor), 30))
         # ``IncompleteRead`` is not an ``OSError``. NVD's CDN can close a
         # large annual-feed response after sending only part of its declared
         # body, so retry the immutable URL instead of accepting partial data.
         except (IncompleteRead, TimeoutError, URLError, OSError) as exc:
             last_error = exc
-            time.sleep(min(2**attempt, 30))
+            time.sleep(min(max(2**attempt, retry_delay_floor), 30))
     if last_error is None:
         raise RuntimeError(f"failed to fetch {url}")
     raise last_error
@@ -731,6 +736,63 @@ def load_feed(path: Path) -> dict[str, Any]:
     if not isinstance(payload, dict) or not isinstance(payload.get("vulnerabilities"), list):
         raise ValueError(f"invalid NVD JSON 2.0 feed: {path}")
     return payload
+
+
+def cache_api_delta(
+    feeds: list[dict[str, Any]], cache_dir: Path, *, offline: bool = False,
+) -> tuple[dict[str, dict[str, Any]], dict[str, Any]]:
+    """Keep bounded raw API receipts for exact, hash-checked offline replay."""
+    snapshot_path = cache_dir / "nvd-api-delta.json"
+    cached = json.loads(snapshot_path.read_bytes()) if offline else None
+    if offline and cached.get("baseline_sha256") != nvd_api_delta.baseline_digest(feeds):
+        raise ValueError("Cached NVD API delta does not match the verified annual feeds")
+    end = nvd_api_delta.source_datetime(cached["last_mod_end"]) if offline else utc_now()
+    position = 0
+
+    def fetch_page(url: str) -> bytes:
+        nonlocal position
+        if offline:
+            receipt = cached["pages"][position]
+            digest = receipt["sha256"]
+            if not isinstance(digest, str) or re.fullmatch(r"[0-9a-f]{64}", digest) is None:
+                raise ValueError("Cached NVD API delta page has an invalid integrity hash")
+            path = cache_dir / f"nvd-api-delta-page-{digest}.json"
+            raw = path.read_bytes()
+            if receipt["url"] != url or hashlib.sha256(raw).hexdigest() != digest:
+                raise ValueError("Cached NVD API delta page failed integrity verification")
+        else:
+            # Large public API pages can exceed a minute. Retry the same fixed
+            # page at most once, preserving unauthenticated API pacing; failures
+            # still cannot silently fall back to annual-only output.
+            raw = fetch_bytes(
+                url, attempts=2, timeout=180, retry_delay_floor=nvd_api_delta.REQUEST_INTERVAL,
+                retryable_http_codes=RETRYABLE_HTTP_CODES - {429},
+            )
+            # Content-addressed pages cannot invalidate the previous receipt if
+            # this refresh fails before its atomic receipt replacement below.
+            digest = hashlib.sha256(raw).hexdigest()
+            write_if_changed(cache_dir / f"nvd-api-delta-page-{digest}.json", raw)
+        position += 1
+        return raw
+
+    records, metadata = nvd_api_delta.fetch_delta(
+        feeds, end=end, fetch=fetch_page,
+        sleep=(lambda _: None) if offline else time.sleep,
+    )
+    if offline and metadata != cached:
+        raise ValueError("Cached NVD API delta snapshot receipt is inconsistent")
+    if not offline:
+        write_if_changed(snapshot_path, json_bytes(metadata, pretty=True))
+        # Reclaim old/failed-attempt pages only after the new receipt is durable.
+        # Keep this exact filename scope so other cached source files survive.
+        retained = {f"nvd-api-delta-page-{page['sha256']}.json" for page in metadata["pages"]}
+        for path in cache_dir.glob("nvd-api-delta-page-*.json"):
+            if re.fullmatch(r"nvd-api-delta-page-[0-9a-f]{64}\.json", path.name) and path.name not in retained:
+                try:
+                    path.unlink(missing_ok=True)
+                except OSError as exc:
+                    print(f"::warning::Could not reclaim obsolete NVD API cache page {path.name}: {exc}", flush=True)
+    return records, metadata
 
 
 def cache_kev(cache_dir: Path, *, offline: bool = False) -> tuple[dict[str, Any], bytes]:
@@ -2403,6 +2465,7 @@ def build_outputs(
     presorted: bool = False,
     source_timestamp_override: str | None = None,
     sources_override: dict[str, Any] | None = None,
+    api_delta_source: dict[str, Any] | None = None,
 ) -> tuple[dict[Path, bytes], dict[str, Any]]:
     outputs: dict[Path, bytes] = {}
     index_records: list[dict[str, Any]] = []
@@ -2554,10 +2617,13 @@ def build_outputs(
         },
     }
 
+    source_metadata = [source["metadata"] for source in feed_sources]
+    if api_delta_source and api_delta_source.get("latest_record_modified"):
+        source_metadata.append({"lastModifiedDate": api_delta_source["latest_record_modified"]})
     source_timestamp = (
         source_timestamp_override
         if source_timestamp_override is not None
-        else catalog_timestamp((source["metadata"] for source in feed_sources), kev_data)
+        else catalog_timestamp(source_metadata, kev_data)
     )
     duplicate_markdown = {
         cve: [recipe.path for recipe in recipes]
@@ -2643,6 +2709,7 @@ def build_outputs(
                 "nvd": {
                     "feed_root": NVD_FEED_ROOT,
                     "feeds": feed_sources,
+                    **({"api_delta": deepcopy(api_delta_source)} if api_delta_source is not None else {}),
                 },
                 "cisa_kev": {
                     "url": CISA_KEV_URL,
@@ -3358,6 +3425,10 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="Attach valid cached enrichments but make no xAI requests.",
     )
     parser.add_argument("--offline", action="store_true", help="Use only cached NVD and KEV inputs.")
+    parser.add_argument(
+        "--nvd-api-delta", action="store_true",
+        help="Reconcile annual feeds with a bounded official NVD last-modified API snapshot (cached in offline mode).",
+    )
     parser.add_argument("--dry-run", action="store_true", help="Fetch and validate sources without writing catalog files.")
     refresh_mode = parser.add_mutually_exclusive_group()
     refresh_mode.add_argument(
@@ -3520,17 +3591,33 @@ def main(argv: list[str] | None = None) -> int:
         print(f"Optional xAI requests are disabled by {disabled_reason}.", flush=True)
 
     feed_sources: list[dict[str, Any]] = []
+    feed_paths: list[Path] = []
+    for year in range(args.feed_start_year, args.feed_end_year + 1):
+        print(f"[{year}] fetching and validating NVD feed", flush=True)
+        feed_path, metadata = cache_feed(year, cache_dir, offline=args.offline)
+        feed_paths.append(feed_path)
+        feed_sources.append({
+            "year": year,
+            "url": f"{NVD_FEED_ROOT}/nvdcve-2.0-{year}.json.gz",
+            "accepted_records": 0,
+            "metadata": metadata,
+        })
+    api_records: dict[str, dict[str, Any]] = {}
+    api_source: dict[str, Any] | None = None
+    if args.nvd_api_delta:
+        api_records, api_source = cache_api_delta(feed_sources, cache_dir, offline=args.offline)
+        print(f"Reconciled {len(api_records):,} official NVD API changes with verified annual feeds.", flush=True)
     with tempfile.TemporaryDirectory(prefix="normalized-cve-records-", dir=cache_dir) as spool_tmp:
         spool_root = Path(spool_tmp)
         spool_paths: list[Path] = []
         seen_cves: set[str] = set()
-        years = range(args.feed_start_year, args.feed_end_year + 1)
-        for year in years:
-            print(f"[{year}] fetching and validating NVD feed", flush=True)
-            feed_path, metadata = cache_feed(year, cache_dir, offline=args.offline)
+        for source, feed_path in zip(feed_sources, feed_paths, strict=True):
+            year = source["year"]
             payload = load_feed(feed_path)
             year_records: dict[str, bytes] = {}
-            for item in payload["vulnerabilities"]:
+            annual = payload["vulnerabilities"]
+            items = nvd_api_delta.overlay_year(annual, api_records, year) if args.nvd_api_delta else annual
+            for item in items:
                 cve = item.get("cve") if isinstance(item, dict) else None
                 if not isinstance(cve, dict):
                     continue
@@ -3560,16 +3647,9 @@ def main(argv: list[str] | None = None) -> int:
             spool_paths.append(spool_path)
             seen_cves.update(year_records)
             accepted = len(year_records)
-            feed_sources.append(
-                {
-                    "year": year,
-                    "url": f"{NVD_FEED_ROOT}/nvdcve-2.0-{year}.json.gz",
-                    "accepted_records": accepted,
-                    "metadata": metadata,
-                }
-            )
+            source["accepted_records"] = accepted
             print(f"[{year}] accepted {accepted:,} in-scope Medium/High/Critical records", flush=True)
-            del payload, year_records
+            del payload, year_records, annual, items
             gc.collect()
 
         def output_records() -> Iterable[dict[str, Any]]:
@@ -3619,6 +3699,7 @@ def main(argv: list[str] | None = None) -> int:
             archetypes=archetypes,
             existing=effective_existing,
             presorted=True,
+            api_delta_source=api_source,
         )
         generated_recipe_summary = generated_recipes.reconcile()
     write_summary = write_outputs(output_dir, outputs, dry_run=args.dry_run)
@@ -3644,6 +3725,7 @@ def main(argv: list[str] | None = None) -> int:
             "manifest": str(generated_recipe_manifest_path),
         },
         "dry_run": args.dry_run,
+        "nvd_api_delta": api_source,
     }
     if args.run_report is not None:
         report_path = resolve_path(args.run_report)

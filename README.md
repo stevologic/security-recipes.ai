@@ -373,11 +373,52 @@ record.
 ### Daily CVE synchronization and optional AI enrichment
 
 `.github/workflows/cve-catalog-sync.yml` runs every day at `09:23 UTC` and can
-also be dispatched manually. It verifies and joins the NVD JSON 2.0 annual
-feeds and CISA KEV catalog, regenerates every catalog index/shard, validates the
+also be dispatched manually. It verifies the NVD JSON 2.0 annual feeds, reconciles
+them with official NVD API changes, joins CISA KEV, regenerates every catalog
+index/shard, validates the
 result, refreshes recipe-derived deterministic evidence in dependency order,
 runs the catalog tests, and opens or refreshes
 `automation/cve-catalog-sync` as a pull request to the default branch.
+
+The sync uses `--nvd-api-delta` because annual, recent, and modified bulk feeds
+can lag behind NVD's live API. It queries changes since the oldest verified
+identifier-year feed, including older CVEs receiving new scores or corrections.
+The stabilized API delta overlays annual records **before** the existing rejection,
+publication-window, and CVSS filters. It makes no additional enrichment requests
+and grants no remediation authority. Annual-feed hashes remain in the manifest;
+`sources.nvd.api_delta` records the bound baseline, fixed query window, page
+hashes and count, overlay count, and newest overlay-record modification time. Revisions
+already covered by their own annual feed are discarded to bound memory use. Feed
+`accepted_records` counts describe the result after this reconciliation.
+
+API reconciliation is bounded to 120 days, 200 responses of at most 2,000 records,
+and 100,000 unique records, paced at 6.1 seconds without an API key. It scans
+fixed one-day windows and requires two complete traversals with matching
+canonical full-record hashes for each day. It retries a drifting pair at most
+once, discarding all records from its failed attempt. Inclusive day boundaries are deduplicated
+only when both source records are identical. Receipts retain rejected responses
+and validate matching complete traversals across every day. These are stable
+repeated observations of a mutable API, not an atomic upstream snapshot. Later
+source changes and delayed indexing are reconciled again on subsequent runs.
+Missing pages, persistent drift, conflicting duplicates, invalid dates,
+request failures, or an exceeded budget fail the sync
+before catalog publication. Such failures require investigation rather than
+silently publishing an annual-only snapshot. Raw pages are cached for
+hash-checked `--offline --nvd-api-delta` replay against the exact annual baseline.
+Content-addressed pages and an atomically replaced receipt preserve the previous
+successful replay when a later API attempt fails with that baseline unchanged.
+Offline use without the flag remains an annual-only build.
+Each page permits at most two transport attempts with a 180-second timeout;
+retries preserve the public API pacing. Rate-limit and access refusals stop
+the refresh immediately without retrying.
+
+`last_mod_end` is the successful API check's fixed upper bound;
+`catalog_updated_at` uses actual source timestamps, including the newest returned
+record's modification time. A successful empty API check does not advance that
+data watermark. This distinction keeps an unchanged upstream source visible to
+freshness monitoring. Existing validation, quarantine, review, and deployment
+gates still apply to regenerated catalog changes.
+
 Repository **Settings > Actions > General > Workflow permissions** must allow
 GitHub Actions to create pull requests for first-run PR publication.
 

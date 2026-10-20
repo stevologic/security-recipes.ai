@@ -10,9 +10,10 @@ import json
 import os
 import re
 from collections import Counter
-from datetime import date, datetime
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path, PurePosixPath
 from typing import Any
+from urllib.parse import parse_qs, urlparse
 
 try:
     from scripts.cve_ai_enrichment import enrichment_errors, recipe_ready
@@ -1501,6 +1502,124 @@ def validate_runtime_asset_versions(
         fail(failures, "manifest shard_set_sha256 does not match the shard inventory")
 
 
+def validate_api_delta(delta: Any, feeds: list[Any], failures: list[str]) -> None:
+    """Validate matching complete API traversals independently of the producer."""
+    prefix = "manifest NVD API delta"
+    endpoint = "https://services.nvd.nist.gov/rest/json/cves/2.0"
+    try:
+        if not isinstance(delta, dict) or set(delta) != {
+            "url", "baseline_sha256", "last_mod_start", "last_mod_end",
+            "latest_record_modified", "records", "overlay_records", "boundary_duplicates", "pages",
+        } or delta["url"] != endpoint:
+            raise ValueError("has an invalid schema or endpoint")
+        baseline = [{"year": feed["year"], "metadata": feed["metadata"]} for feed in feeds]
+        digest = hashlib.sha256(json.dumps(baseline, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+        if delta["baseline_sha256"] != digest:
+            raise ValueError("does not match its annual feed baseline")
+
+        def source_time(value: Any) -> datetime:
+            if not isinstance(value, str) or "T" not in value:
+                raise ValueError("has an invalid source timestamp")
+            parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+            return parsed.replace(tzinfo=parsed.tzinfo or timezone.utc).astimezone(timezone.utc)
+
+        start, end = source_time(delta["last_mod_start"]), source_time(delta["last_mod_end"])
+        if start != min(source_time(feed["metadata"]["lastModifiedDate"]) for feed in feeds):
+            raise ValueError("does not cover the oldest annual feed")
+        if not timedelta(0) <= end - start <= timedelta(days=120):
+            raise ValueError("has an invalid modification window")
+        total, pages = delta["records"], delta["pages"]
+        if type(total) is not int or not 0 <= total <= 100000:
+            raise ValueError("has an invalid record count")
+        overlay_count = delta["overlay_records"]
+        if type(overlay_count) is not int or not 0 <= overlay_count <= total:
+            raise ValueError("has an invalid overlay count")
+        if not isinstance(pages, list) or not 2 <= len(pages) <= 200:
+            raise ValueError("has an invalid page inventory")
+        offset = 0
+        accepted_rows = 0
+        covered_through = start
+        group_window: tuple[datetime, datetime] | None = None
+        group_total: int | None = None
+        group_digest: str | None = None
+        first_scan: tuple[datetime, datetime, int, str] | None = None
+        completed_windows = 0
+        for page in pages:
+            if not isinstance(page, dict) or set(page) != {
+                "url", "records", "total_results", "accepted", "sha256", "scan_sha256",
+            }:
+                raise ValueError("has an invalid page receipt")
+            parsed = urlparse(page["url"])
+            if f"{parsed.scheme}://{parsed.netloc}{parsed.path}" != endpoint or parsed.fragment:
+                raise ValueError("has an invalid page endpoint")
+            params = parse_qs(parsed.query)
+            if set(params) != {"lastModStartDate", "lastModEndDate", "resultsPerPage", "startIndex"} or any(
+                len(value) != 1 for value in params.values()
+            ) or params["resultsPerPage"] != ["2000"]:
+                raise ValueError("has a filtered or incomplete page query")
+            window_start = source_time(params["lastModStartDate"][0])
+            window_end = source_time(params["lastModEndDate"][0])
+            if not start <= window_start <= window_end <= end or window_end - window_start > timedelta(days=1):
+                raise ValueError("has an invalid response window")
+            if window_start == window_end and (start != end or completed_windows):
+                raise ValueError("has an empty or repeated response window")
+            position = int(params["startIndex"][0])
+            count, reported, accepted = page["records"], page["total_results"], page["accepted"]
+            if (
+                type(count) is not int or not 0 <= count <= 2000 or type(reported) is not int
+                or not 0 <= reported <= 100000 or position < 0 or position + count > reported
+                or (count == 0 and position < reported) or type(accepted) is not bool
+            ):
+                raise ValueError("has an invalid page record count")
+            if not isinstance(page["sha256"], str) or SHA256_RE.fullmatch(page["sha256"]) is None:
+                raise ValueError("has an invalid page hash")
+            scan_digest = page["scan_sha256"]
+            if scan_digest is not None and (
+                not isinstance(scan_digest, str) or SHA256_RE.fullmatch(scan_digest) is None
+            ):
+                raise ValueError("has an invalid traversal hash")
+            if not accepted:
+                if group_window is not None or first_scan is not None:
+                    raise ValueError("accepted matching traversals are not consecutive")
+                continue
+            if scan_digest is None:
+                raise ValueError("accepted traversal has no content hash")
+            if group_window is None:
+                if position != 0 or window_start != covered_through:
+                    raise ValueError("accepted windows have a gap or overlap")
+                group_window, group_total, offset = (window_start, window_end), reported, 0
+                group_digest = scan_digest
+            if (group_window != (window_start, window_end) or group_total != reported
+                    or position != offset or group_digest != scan_digest):
+                raise ValueError("accepted window pagination is incomplete or inconsistent")
+            offset += count
+            if offset == reported:
+                scan = (window_start, window_end, reported, scan_digest)
+                if first_scan is None:
+                    first_scan = scan
+                elif first_scan != scan:
+                    raise ValueError("accepted traversals do not have matching window content")
+                else:
+                    completed_windows += 1
+                    accepted_rows += offset
+                    covered_through = window_end
+                    first_scan = None
+                group_window, group_total = None, None
+        duplicates = delta["boundary_duplicates"]
+        if type(duplicates) is not int or not 0 <= duplicates <= accepted_rows:
+            raise ValueError("has an invalid boundary duplicate count")
+        if (not completed_windows or group_window is not None or first_scan is not None
+                or covered_through != end or accepted_rows - duplicates != total):
+            raise ValueError("accepted pages do not cover the full API window and record count")
+        newest = delta["latest_record_modified"]
+        if (overlay_count == 0 and newest is not None) or (
+            overlay_count > 0 and not start <= source_time(newest) <= end
+        ):
+            raise ValueError("has an invalid source data watermark")
+    except (KeyError, TypeError, ValueError, AttributeError) as exc:
+        fail(failures, f"{prefix} {exc}")
+
+
 def validate_source_completeness(
     manifest: dict[str, Any],
     end_date: date | None,
@@ -1577,6 +1696,8 @@ def validate_source_completeness(
         )
 
     kev = sources.get("cisa_kev")
+    if isinstance(nvd, dict) and "api_delta" in nvd:
+        validate_api_delta(nvd["api_delta"], feeds, failures)
     if not isinstance(kev, dict):
         fail(failures, "manifest CISA KEV source metadata is missing")
         return
