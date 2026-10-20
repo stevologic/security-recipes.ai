@@ -1229,18 +1229,50 @@ class CveLandingRenderTests(unittest.TestCase):
         self.assertNotIn("UNVERIFIED SENTINEL CLAIM", page)
 
     def test_ai_enrichment_flattens_markdown_citations_but_keeps_structured_sources(self) -> None:
-        recipe = mcp_server._bounded_cve_landing_lookup("CVE-2025-64446")
+        """Cover markdown flattening without assuming one catalog CVE stays recipe-ready.
 
-        page = mcp_server._render_cve_landing_page(recipe)
+        Nightly enrichment can move a recipe_ready_ai record to complete/not_specific
+        bounded fallback (CVE-2025-64446 did). Drive the branch from a fixture so the
+        rendering rule stays covered either way.
+        """
+        recipe = sample_recipe("CVE-2099-99005")
+        composed = recipe["composed_recipe"]
+        source = recipe["source_record"]
+        assert isinstance(composed, dict)
+        assert isinstance(source, dict)
+        composed["product_specific_override"] = []
+        source["recipe_kind"] = "composed"
+        enrichment = source["ai_enrichment"]
+        assert isinstance(enrichment, dict)
+        vendor_url = "https://vendor.example.test/advisories/CVE-2099-99005"
+        tracking_url = f"{vendor_url}?utm_source=openai"
+        enrichment["remediation_steps"] = [
+            f"Upgrade Widget to the [vendor-fixed release 2.0.0]({tracking_url})."
+        ]
+        enrichment["verification_steps"] = [
+            f"Confirm the deployed version against the [vendor advisory]({tracking_url})."
+        ]
+        enrichment["claim_evidence"] = [
+            {
+                "kind": "fixed_version",
+                "claim": f"The vendor identifies [2.0.0]({tracking_url}) as fixed.",
+                "source_url": vendor_url,
+            }
+        ]
+        enrichment["source_urls"] = [vendor_url]
+
+        with patch.object(
+            mcp_server.cve_catalog,
+            "search_qualification",
+            return_value="recipe_ready_ai",
+        ):
+            page = mcp_server._render_cve_landing_page(recipe)
 
         self.assertIn('data-remediation-authority="complete-ai-enrichment"', page)
         self.assertIn("Complete source-linked AI enrichment", page)
-        self.assertIn("Upgrade FortiWeb 7.0 deployments to 7.0.12 or later", page)
+        self.assertIn("Upgrade Widget to the vendor-fixed release 2.0.0.", page)
         self.assertIn("<strong>Verify</strong>", page)
-        self.assertIn(
-            'href="https://fortiguard.fortinet.com/psirt/FG-IR-25-910"',
-            page,
-        )
+        self.assertIn(f'href="{vendor_url}"', page)
         self.assertNotIn("](", page)
         self.assertNotIn("utm_source=openai", page)
 
@@ -2259,16 +2291,31 @@ class CveLandingRenderTests(unittest.TestCase):
                     r"(?i)\b(?:apply|install|migrate|patch|update|upgrade)\b",
                 )
 
-        approved_page = mcp_server._render_cve_landing_page(
-            mcp_server.cve_catalog.get_recipe("CVE-2025-64446")
+        allowlist = json.loads(
+            (ROOT / "static" / "api" / "cve-catalog" / "search-indexable.json").read_text(
+                encoding="utf-8"
+            )
         )
-        self.assertIn(
-            'data-remediation-authority="complete-ai-enrichment"',
-            approved_page,
-        )
-        approved_text = unescape(re.sub(r"<[^>]+>", " ", approved_page))
-        for fragment in ("7.0.12", "7.2.12", "7.4.10", "7.6.5", "8.0.2"):
-            self.assertIn(fragment, approved_text)
+        recipe_ready_ids = {
+            record["cve"]
+            for record in allowlist.get("records", [])
+            if record.get("qualification") == "recipe_ready_ai"
+        }
+        # Nightly catalog sync can move a recipe_ready_ai record to bounded
+        # fallback (CVE-2025-64446 did). Pin the policy rather than one ID:
+        # human-review-blocked IDs never qualify, and every current
+        # recipe_ready_ai page stays complete-ai-enrichment.
+        self.assertTrue(recipe_ready_ids)
+        self.assertTrue(set(withheld).isdisjoint(recipe_ready_ids))
+        for cve_id in sorted(recipe_ready_ids):
+            with self.subTest(approved=cve_id):
+                page = mcp_server._render_cve_landing_page(
+                    mcp_server.cve_catalog.get_recipe(cve_id)
+                )
+                self.assertIn(
+                    'data-remediation-authority="complete-ai-enrichment"',
+                    page,
+                )
 
     def test_all_qualified_pages_publish_primary_sources_and_complete_actions(self) -> None:
         allowlist = json.loads(
