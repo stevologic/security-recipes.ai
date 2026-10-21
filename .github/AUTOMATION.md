@@ -14,6 +14,7 @@ access token is required.
 | Leftover review (`leftover-review.yml`) | daily 13:17 UTC | Live-verifies leftover-gold CVE leftovers against GHAD/NVD; leftover-gold criticals and highs drain first, then each run reviews up to 25 leftover-gold medium and low pages and submits a validated auto-merge PR |
 | CVE catalog validation request (`cve-catalog-validate-request.yml`) | dispatch only | Verifies that an exact SHA is the live head of the requested same-repository PR without checking out or executing PR code |
 | CVE catalog validation (`cve-catalog-validate.yml`) | dispatch only | Revalidates and runs the build-equivalent suite on the exact catalog SHA. It never posts commit statuses and never emits `karen-qa`. Required merge checks come from real workflow runs |
+| Karen QA or data-only (`karen-qa-or-data-only.yml`) | `pull_request_target` plus `karen-qa` completion | Posts `karen-qa-or-data-only` on the exact PR head. Auto-passes only for same-repo CVE sync bot PRs whose files are all catalog outputs on `automation/cve-catalog-sync`; otherwise waits for the real `karen-qa` context on that head |
 | Production watchdog (`production-watchdog.yml`) | every 30 min | Probes the live site, catalog freshness, revision, and TLS; maintains the health issue; self-heals unbuilt revisions and stale catalogs |
 | Automation shepherd (`automation-shepherd.yml`) | every 30 min | Dispatches missing main Builds after token-authored merges, updates stale auto-merge PR branches, and attaches missing build validations |
 | Dependabot auto-merge (`dependabot-automerge.yml`) | Dependabot PRs | Arms auto-merge for verified patch/minor bumps |
@@ -91,14 +92,32 @@ post commit statuses. Required merge checks come from those real workflow runs.
 
 ## Merge policy
 
-The `main` ruleset requires a PR, a passing `build` context from GitHub
-Actions, and a passing `karen-qa` context posted only by the Karen QA
-GitHub App after human review. Catalog validation never posts commit
-statuses and never emits `karen-qa`. Required merge checks come from real
-workflow runs. Catalog auto-merge waits for that app check on the exact
-head; if it is missing, the sync leaves the catalog PR open and reports
-that it is waiting on `karen-qa` instead of failing the run with an
-opaque HTTP 405. The workflow never self-posts `karen-qa`.
+The `main` ruleset currently requires a PR, a passing `build` context from
+GitHub Actions, and a passing `karen-qa` context posted only by the Karen
+QA GitHub App after human review. Data-only CVE catalog sync PRs are
+allowed to skip that Karen QA pin: `karen-qa-or-data-only.yml` reads the
+PR files API (not the diff text) and posts `karen-qa-or-data-only` on the
+exact head when the author is the sync bot or app from
+`cve-catalog-sync.yml`, the head branch is `automation/cve-catalog-sync`,
+and every changed path — including rename sources and deletions — is one
+of the catalog outputs that workflow commits. Any other PR still needs
+the real `karen-qa` check or status on that exact head before
+`karen-qa-or-data-only` turns green.
+
+Ruleset change required (do not apply it from the pull request that adds
+this check): replace the required `karen-qa` check on `main` with
+`karen-qa-or-data-only` from GitHub Actions. If that job or context name
+changes, update the ruleset to the new name. Requiring both names keeps
+data-only catalog PRs blocked on Karen QA. Do not change the ruleset
+from this pull request.
+
+Catalog validation never posts commit statuses and never emits
+`karen-qa`. Required merge checks come from real workflow runs. Catalog
+auto-merge waits for the ruleset's required context on the exact head;
+if `karen-qa` is still pinned and missing, the sync leaves the catalog
+PR open and reports that it is waiting on `karen-qa` instead of failing
+the run with an opaque HTTP 405. The catalog sync never self-posts
+`karen-qa`.
 `catalog_updated_at` is the NVD sync watermark (annual-feed lastModifiedDate
 or lastModified of catch-up records actually merged). A KEV-only delta
 must not advance it. A fetched-but-dropped catch-up row must not either.
