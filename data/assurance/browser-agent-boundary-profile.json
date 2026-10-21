@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-08-21",
+  "last_reviewed": "2026-10-21",
   "intent": "Define the SecurityRecipes browser-agent workspace boundary: a generated, machine-readable policy model for deciding when browser-based or desktop browser agents may inspect untrusted content, use logged-in sessions, hold credentials, navigate origins, fill forms, download files, call local services, or deliver outputs through external routes.",
   "positioning": {
     "buyer": "AI Platform, Product Security, Browser Platform, Security Engineering, SOC, GRC, procurement security, and agent-host teams",
@@ -62,6 +62,18 @@
       "name": "OWASP Top 10 for Agentic Applications 2026",
       "url": "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/",
       "coverage": "Maps browser-agent controls to goal hijacking, tool misuse, identity and privilege abuse, memory/context poisoning, cascading failures, and rogue-agent containment."
+    },
+    {
+      "id": "chrome-agent-origin-sets-2025",
+      "name": "Chrome Security: Architecting security for agentic browsing",
+      "url": "https://security.googleblog.com/2025/12/architecting-security-for-agentic.html",
+      "coverage": "Agent Origin Sets extend Site Isolation: a gating function isolated from untrusted content decides task-relevant read-only versus read-writable origins. The planner cannot add origins without that approval, unrelated iframes are withheld from the model, and data from a read-only origin must not flow to a writable origin."
+    },
+    {
+      "id": "chrome-webmcp-agent-security-2026",
+      "name": "Chrome: Agent security considerations for WebMCP",
+      "url": "https://developer.chrome.com/docs/agents/security",
+      "coverage": "Published 9 June 2026. Deterministic WebMCP guardrails require restricting authenticated browser agents to the web origins relevant to the user's task, so rogue tool calls and data exfiltration cannot reach malicious or unrelated origins."
     }
   ],
   "boundary_contract": {
@@ -105,13 +117,18 @@
       "prompt_injection_detected_with_side_effect",
       "raw_token_in_dom_or_storage",
       "unapproved_admin_console_write",
-      "untrusted_content_requests_external_send"
+      "untrusted_content_requests_external_send",
+      "ungated_origin_expansion",
+      "origin_consumption_outside_read_set",
+      "origin_actuation_outside_write_set",
+      "read_origin_to_write_origin_data_flow"
     ],
     "required_control_keys": [
       "dedicated_agent_profile",
       "ephemeral_or_scoped_storage",
       "logged_out_by_default",
       "origin_allowlist",
+      "origin_set_gating",
       "no_raw_secret_capture",
       "draft_first_delivery",
       "human_confirmation_for_external_send",
@@ -145,7 +162,11 @@
         "ambient user cookies",
         "downloads executed automatically",
         "credential entry",
-        "external send without human confirmation"
+        "external send without human confirmation",
+        "ungated origin expansion",
+        "content consumed outside the gated origin set",
+        "actuation outside the gated write origin set",
+        "data flowing from a read-only origin to a writable origin"
       ],
       "required_controls": [
         "dedicated_agent_profile",
@@ -504,6 +525,7 @@
     "ephemeral_or_scoped_storage": 8,
     "logged_out_by_default": 10,
     "origin_allowlist": 10,
+    "origin_set_gating": 12,
     "no_raw_secret_capture": 10,
     "draft_first_delivery": 8,
     "human_confirmation_for_external_send": 12,
@@ -520,6 +542,10 @@
     "untrusted_content": 15,
     "external_side_effect": 20,
     "cross_origin_egress": 20,
+    "origin_expansion_ungated": 35,
+    "origin_consumption_outside_gated_set": 30,
+    "origin_actuation_outside_write_set": 35,
+    "read_to_write_origin_data_flow": 30,
     "contains_secret": 35,
     "dom_credential_visible": 30,
     "local_storage_token": 20,

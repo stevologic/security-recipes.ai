@@ -1941,7 +1941,7 @@
         {
           "label": "Decision",
           "title": "Inspect action context",
-          "detail": "Check origin changes, prompt-injection signals, destination, file provenance, account authority, and required confirmation."
+          "detail": "Check origin-set gating, read versus write origin sets, prompt-injection signals, destination, file provenance, account authority, and required confirmation."
         },
         {
           "label": "Action",
@@ -1955,9 +1955,9 @@
         }
       ],
       "gate": {
-        "question": "Does the next browser action remain within approved origins, data, account authority, and user-visible intent?",
-        "pass": "Execute the scoped action and continue origin/action monitoring.",
-        "stop": "Hold, deny, or kill on injection, credential exposure, unapproved external writes, uploads, payments, or origin drift."
+        "question": "Does the next browser action remain within gated task-relevant origins, data, account authority, and user-visible intent?",
+        "pass": "Execute the scoped action and continue origin-set and action monitoring.",
+        "stop": "Hold, deny, or kill on injection, credential exposure, ungated origin expansion, out-of-set consumption or actuation, read-to-write origin data flow, unapproved external writes, uploads, or payments."
       },
       "evidence": [
         "task/origin/action allowlist",

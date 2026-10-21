@@ -3,7 +3,7 @@ title: Browser Agent Workspace Boundary
 linkTitle: Browser Agent Boundary
 weight: 16
 date: 2026-05-04
-lastmod: 2026-08-21
+lastmod: 2026-10-21
 sidebar:
   exclude: true
 description: >
@@ -21,6 +21,26 @@ storage, downloads, forms, localhost, email, documents, and external
 delivery routes. This pack decides when that boundary should allow, hold,
 deny, or kill a browser-agent session.
 {{< /callout >}}
+
+Rechecked October 21, 2026 against Chrome
+[Agent Origin Sets](https://security.googleblog.com/2025/12/architecting-security-for-agentic.html)
+and Chrome
+[WebMCP agent security](https://developer.chrome.com/docs/agents/security)
+(published 9 June 2026). Agent Origin Sets extend Site Isolation: a
+gating function isolated from untrusted content decides task-relevant
+read-only versus read-writable origins. The planner cannot add origins
+without that approval. Unrelated iframes are withheld from the model.
+Data from a read-only origin must not flow to a writable origin. WebMCP
+requires restricting authenticated browser agents to the origins
+relevant to the user's task. This pack already killed secret-bearing
+cross-origin egress, visible credentials, prompt-injection plus a
+dangerous sink, localhost probes, payments, and admin-console writes.
+It now also kills ungated origin expansion, consumption outside the
+gated origin set, actuation outside the gated write set, and
+read-to-write origin data flow. Unspecified origin-set evidence stays
+on the prior allow path. This pass does not claim human review of the
+pack; `lastmod` and the source `last_reviewed` date record this
+editorial pass.
 
 ## The product bet
 
@@ -43,7 +63,9 @@ The control point is intentionally practical:
   untrusted;
 - personal browser profiles are denied by default;
 - localhost, downloads, admin consoles, payments, secrets, and raw token
-  exposure can kill the session.
+  exposure can kill the session;
+- ungated origin expansion, out-of-set consumption or actuation, and
+  read-to-write origin data flow kill the session.
 
 That is a high-value trusted-source surface. The open pack helps teams reason
 about browser agents today. A hosted product can enforce the same
@@ -139,6 +161,41 @@ python3 scripts/evaluate_browser_agent_boundary_decision.py \
   --expect-decision kill_session_on_browser_agent_signal
 ```
 
+Evaluate ungated origin expansion on an otherwise isolated public-research run:
+
+```bash
+python3 scripts/evaluate_browser_agent_boundary_decision.py \
+  --workspace-class-id public-research-browser \
+  --task-profile-id public-security-research \
+  --session-id browser-ci-origin-set \
+  --run-id run-origin-set \
+  --agent-id sr-browser-agent \
+  --tenant-id tenant-demo \
+  --user-intent "Collect cited public AI security references" \
+  --target-origin https://www.nist.gov \
+  --content-trust-level standards_body \
+  --auth-state logged_out \
+  --isolation-mode dedicated_agent_profile \
+  --action-class navigate \
+  --action-class read_page \
+  --action-class summarize \
+  --action-class copy_draft \
+  --data-class public_security_guidance \
+  --network-egress-policy origin_allowlist \
+  --browser-storage-policy ephemeral_or_scoped_storage \
+  --approval-state approved \
+  --telemetry-event-id telemetry-origin-set \
+  --receipt-id receipt-origin-set \
+  --control dedicated_agent_profile \
+  --control ephemeral_or_scoped_storage \
+  --control logged_out_by_default \
+  --control origin_allowlist \
+  --control metadata_only_telemetry \
+  --control run_receipt \
+  --origin-expansion-ungated \
+  --expect-decision kill_session_on_browser_agent_signal
+```
+
 ## What is inside
 
 | Section | Purpose |
@@ -226,7 +283,7 @@ This pack creates that path:
 
 - hosted browser-agent policy API;
 - dedicated agent workspace broker;
-- origin allowlist and localhost controls;
+- origin allowlist, origin-set gating, and localhost controls;
 - browser storage and token exposure checks;
 - prompt-injection event ingestion;
 - signed browser run receipts;
@@ -260,6 +317,13 @@ The pack is anchored in current primary guidance:
 - [MCP Authorization](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
   for secure token handling, audience binding, resource indicators, PKCE,
   and token-passthrough denial when browser agents hand off to tools.
+- [Chrome Agent Origin Sets](https://security.googleblog.com/2025/12/architecting-security-for-agentic.html)
+  for an isolated gating function that splits task-relevant origins into
+  read-only and read-writable sets, withholds unrelated iframes from the
+  model, and blocks read-to-write origin data flow.
+- [Chrome WebMCP agent security](https://developer.chrome.com/docs/agents/security)
+  for deterministic origin restriction: authenticated browser agents
+  may interact only with origins relevant to the user's task.
 
 ## See also
 
