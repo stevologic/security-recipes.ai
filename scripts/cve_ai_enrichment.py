@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """Bounded, evidence-constrained Responses API enrichment for normalized CVE records.
 
-Catalog sync uses the official OpenAI Responses API.  Leftover-review and other
-Grok jobs still probe xAI through the helpers in this module.  The NVD/CISA
-record remains authoritative.  This module adds a supplemental ``ai_enrichment``
-object only; it never changes CVSS, KEV, affected-version, archetype, or
-reviewed Markdown fields.
+Catalog sync selects a Responses API provider from ``CVE_ENRICH_MODEL``
+(default ``grok-4.7`` / xAI). OpenAI and Daybreak stay available behind that
+same config. Leftover-review and other Grok CLI jobs still use the xAI helpers
+independently. The NVD/CISA record remains authoritative. This module adds a
+supplemental ``ai_enrichment`` object only; it never changes CVSS, KEV,
+affected-version, archetype, or reviewed Markdown fields.
 """
 
 from __future__ import annotations
@@ -31,15 +32,18 @@ ENRICHMENT_SCHEMA_VERSION = 2
 PROMPT_VERSION = "2026-07-14.2"
 DEFAULT_XAI_MODEL = "grok-4.6"
 DEFAULT_MODEL = DEFAULT_XAI_MODEL
+DEFAULT_CVE_ENRICH_MODEL = "grok-4.7"
 DEFAULT_OPENAI_MODEL = "gpt-5.6-luna"
 DEFAULT_API_URL = "https://api.x.ai/v1/responses"
 OPENAI_API_URL = "https://api.openai.com/v1/responses"
 API_KEY_ENV = "XAI_API_KEY"
 OPENAI_API_KEY_ENV = "OPENAI_API_KEY"
+CVE_ENRICH_MODEL_ENV = "CVE_ENRICH_MODEL"
 DAYBREAK_PROGRAM_ENV = "OPENAI_DAYBREAK_PROGRAM"
 DAYBREAK_PROGRAMS = frozenset({"standard", "daybreak_blue", "daybreak_red"})
 RECOMMENDED_DAYBREAK_PROGRAM = "daybreak_blue"
 RECOMMENDED_DAYBREAK_MODEL = "gpt-6-sol"
+RECOMMENDED_DAYBREAK_SPEC = f"{RECOMMENDED_DAYBREAK_MODEL}+{RECOMMENDED_DAYBREAK_PROGRAM}"
 DAYBREAK_ENTITLEMENT_MARKERS = (
     "invalid_access_program",
     "unsupported_access_program",
@@ -220,6 +224,85 @@ def normalize_daybreak_program(raw: str | None) -> str | None:
     return value
 
 
+@dataclass(frozen=True)
+class EnrichmentTarget:
+    """Resolved catalog enrichment backend from one ``CVE_ENRICH_MODEL`` value."""
+
+    provider: str
+    model: str
+    access_program: str | None
+    raw: str
+
+    @property
+    def api_key_env(self) -> str:
+        return OPENAI_API_KEY_ENV if self.provider == "openai" else API_KEY_ENV
+
+    @property
+    def provider_label(self) -> str:
+        return "OpenAI" if self.provider == "openai" else "xAI"
+
+    @property
+    def api_url(self) -> str:
+        return OPENAI_API_URL if self.provider == "openai" else DEFAULT_API_URL
+
+
+def parse_cve_enrich_model(
+    raw: str | None,
+    *,
+    overlay_program: str | None = None,
+) -> EnrichmentTarget:
+    """Parse ``[<provider>/]<model>[+<daybreak_program>]`` and derive the backend.
+
+    ``grok-*`` selects xAI and ``XAI_API_KEY``. ``gpt-*`` selects OpenAI and
+    ``OPENAI_API_KEY``. An optional ``+daybreak_blue`` suffix (or an OpenAI-only
+    overlay program) keeps Daybreak dormant until the model spec is switched.
+    """
+
+    original = "" if raw is None else str(raw).strip()
+    value = original or DEFAULT_CVE_ENRICH_MODEL
+    program_text = ""
+    if "+" in value:
+        value, program_text = value.rsplit("+", 1)
+        value = value.strip()
+        program_text = program_text.strip()
+    provider = ""
+    model = value
+    if "/" in value:
+        prefix, rest = value.split("/", 1)
+        prefix_key = prefix.strip().casefold()
+        if prefix_key not in {"xai", "openai"}:
+            raise ValueError(
+                f"{CVE_ENRICH_MODEL_ENV} provider must be xai or openai, not {prefix!r}"
+            )
+        provider = prefix_key
+        model = rest.strip()
+    if not model:
+        raise ValueError(f"{CVE_ENRICH_MODEL_ENV} is missing a model id")
+    if not provider:
+        folded = model.casefold()
+        if folded.startswith("grok-"):
+            provider = "xai"
+        elif folded.startswith("gpt-"):
+            provider = "openai"
+        else:
+            raise ValueError(
+                f"cannot derive enrichment provider from model {model!r}"
+            )
+    program = normalize_daybreak_program(program_text or None)
+    if program is None and provider == "openai":
+        program = normalize_daybreak_program(overlay_program)
+    if program is not None and provider != "openai":
+        raise ValueError(
+            "Daybreak access programs require an OpenAI CVE_ENRICH_MODEL"
+        )
+    return EnrichmentTarget(
+        provider=provider,
+        model=model,
+        access_program=program,
+        raw=original or DEFAULT_CVE_ENRICH_MODEL,
+    )
+
+
 def request_timeout_seconds(
     raw: str | None = None, *, env_name: str = TIMEOUT_ENV
 ) -> int:
@@ -302,7 +385,8 @@ class ProviderCredentialStatus:
         if self.reason == "daybreak_entitlement":
             return (
                 "Daybreak entitlement missing; optional OpenAI enrichment is inactive "
-                "until OPENAI_DAYBREAK_PROGRAM and OPENAI_MODEL are enabled for this project."
+                f"until {CVE_ENRICH_MODEL_ENV} is an entitled Daybreak spec "
+                f"(for example {RECOMMENDED_DAYBREAK_SPEC})."
             )
         return f"{self.env_name} is not usable ({self.reason})."
 
@@ -468,6 +552,37 @@ def probe_daybreak_access(
         opener=opener,
         timeout=timeout,
         access_program=access_program,
+    )
+    if status.reason == "ready":
+        return "ok", status.http_status if status.http_status is not None else 200
+    return "denied", status.http_status or 0
+
+
+def probe_cve_enrichment_access(
+    api_key: str,
+    *,
+    target: EnrichmentTarget | None = None,
+    model: str | None = None,
+    access_program: str | None = None,
+    opener: Callable[..., Any] | None = None,
+    timeout: int = 30,
+) -> tuple[str, int | None]:
+    """Probe the configured catalog provider. Never returns the key or body."""
+
+    resolved = target or parse_cve_enrich_model(model, overlay_program=access_program)
+    if resolved.provider == "openai":
+        return probe_daybreak_access(
+            api_key,
+            model=resolved.model,
+            access_program=resolved.access_program,
+            opener=opener,
+            timeout=timeout,
+        )
+    status = probe_xai_credentials(
+        api_key,
+        model=resolved.model,
+        opener=opener,
+        timeout=timeout,
     )
     if status.reason == "ready":
         return "ok", status.http_status if status.http_status is not None else 200

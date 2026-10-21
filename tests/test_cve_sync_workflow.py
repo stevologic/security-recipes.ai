@@ -46,9 +46,11 @@ class CveSyncWorkflowTests(unittest.TestCase):
         self.assertIn("comma or space separated", dispatch)
         self.assertIn("PRIORITY_CVE_IDS: ${{ inputs.priority_cve_ids || '' }}", sync_step)
         self.assertIn('--priority-cve-ids "$PRIORITY_CVE_IDS"', sync_step)
-        self.assertIn("OPENAI_ENRICHMENT_LIMIT", self.workflow)
-        self.assertIn("vars.OPENAI_MODEL || 'gpt-5.6-luna'", self.workflow)
+        self.assertIn("CVE_ENRICHMENT_LIMIT", self.workflow)
+        self.assertIn("vars.CVE_ENRICH_MODEL || 'grok-4.7'", self.workflow)
         self.assertIn("OPENAI_DAYBREAK_PROGRAM: ${{ vars.OPENAI_DAYBREAK_PROGRAM || '' }}", self.workflow)
+        self.assertNotIn("OPENAI_ENRICHMENT_LIMIT", self.workflow)
+        self.assertNotIn("OPENAI_MODEL", self.workflow)
         self.assertNotIn("XAI_ENRICHMENT_LIMIT", self.workflow)
         self.assertNotIn("XAI_MODEL", self.workflow)
 
@@ -59,13 +61,19 @@ class CveSyncWorkflowTests(unittest.TestCase):
         self.assertIn(
             "OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}", sync_step
         )
+        self.assertIn(
+            "XAI_API_KEY: ${{ secrets.XAI_API_KEY }}", sync_step
+        )
         self.assertEqual(
             self.workflow.count("OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}"), 2
         )
+        self.assertEqual(
+            self.workflow.count("XAI_API_KEY: ${{ secrets.XAI_API_KEY }}"), 2
+        )
         self.assertNotIn("OPENAI_API_KEY", self.workflow.split("jobs:", 1)[0])
-        self.assertNotIn("XAI_API_KEY", self.workflow)
+        self.assertNotIn("XAI_API_KEY", self.workflow.split("jobs:", 1)[0])
         self.assertIn(
-            "New OpenAI requests skipped; valid cached enrichments retained",
+            "New enrichment requests skipped; valid cached enrichments retained",
             self.workflow,
         )
         self.assertNotRegex(self.workflow, r"\bsk-[A-Za-z0-9_-]{12,}")
@@ -76,7 +84,7 @@ class CveSyncWorkflowTests(unittest.TestCase):
 
     def test_daybreak_probe_input_skips_the_catalog_sync(self) -> None:
         dispatch = self.workflow.split("permissions:", 1)[0]
-        probe_step = self.step("Probe Daybreak Responses access")
+        probe_step = self.step("Probe configured enrichment provider")
         self.assertRegex(dispatch, r"(?m)^\s{6}daybreak_probe:\s*$")
         self.assertIn("type: boolean", dispatch)
         self.assertIn(
@@ -88,6 +96,7 @@ class CveSyncWorkflowTests(unittest.TestCase):
             self.workflow,
         )
         self.assertIn("python scripts/probe_openai_daybreak.py", probe_step)
+        self.assertIn("XAI_API_KEY: ${{ secrets.XAI_API_KEY }}", probe_step)
         self.assertIn("OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}", probe_step)
         self.assertNotIn("scripts/sync_cve_catalog.py", probe_step)
         self.assertIn("- name: Checkout selected branch", self.workflow)

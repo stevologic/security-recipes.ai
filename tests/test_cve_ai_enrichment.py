@@ -1646,6 +1646,76 @@ class CVEAIEnrichmentTests(unittest.TestCase):
         self.assertIn("ai_enrichment", results[1])
 
 
+class CVEEnrichModelConfigTests(unittest.TestCase):
+    """Unified CVE_ENRICH_MODEL switch: xAI by default, OpenAI/Daybreak dormant."""
+
+    SECRET = "xai-secret-never-log-9f3a"
+
+    def test_parse_derives_provider_from_one_model_value(self) -> None:
+        grok = enrichment.parse_cve_enrich_model("")
+        self.assertEqual(grok.provider, "xai")
+        self.assertEqual(grok.model, "grok-4.7")
+        self.assertIsNone(grok.access_program)
+        self.assertEqual(grok.api_key_env, "XAI_API_KEY")
+        self.assertEqual(grok.provider_label, "xAI")
+
+        explicit = enrichment.parse_cve_enrich_model("xai/grok-4.7")
+        self.assertEqual((explicit.provider, explicit.model), ("xai", "grok-4.7"))
+
+        daybreak = enrichment.parse_cve_enrich_model("gpt-6-sol+daybreak_blue")
+        self.assertEqual(daybreak.provider, "openai")
+        self.assertEqual(daybreak.model, "gpt-6-sol")
+        self.assertEqual(daybreak.access_program, "daybreak_blue")
+        self.assertEqual(daybreak.api_key_env, "OPENAI_API_KEY")
+        self.assertEqual(daybreak.raw, "gpt-6-sol+daybreak_blue")
+
+        overlay = enrichment.parse_cve_enrich_model(
+            "gpt-6-sol", overlay_program="daybreak_blue"
+        )
+        self.assertEqual(overlay.access_program, "daybreak_blue")
+
+        ignored = enrichment.parse_cve_enrich_model(
+            "grok-4.7", overlay_program="daybreak_blue"
+        )
+        self.assertIsNone(ignored.access_program)
+
+        with self.assertRaisesRegex(ValueError, "OpenAI"):
+            enrichment.parse_cve_enrich_model("grok-4.7+daybreak_blue")
+        with self.assertRaisesRegex(ValueError, "cannot derive"):
+            enrichment.parse_cve_enrich_model("claude-opus")
+
+    def test_probe_uses_xai_for_default_grok_model(self) -> None:
+        from scripts import probe_openai_daybreak as probe_script
+
+        def ready(request: object, *, timeout: int) -> FakeResponse:
+            self.assertTrue(hasattr(request, "full_url"))
+            self.assertEqual(request.full_url, enrichment.DEFAULT_API_URL)
+            return FakeResponse({"id": "resp_ok"})
+
+        outcome, status = enrichment.probe_cve_enrichment_access(
+            self.SECRET,
+            model="grok-4.7",
+            opener=ready,
+        )
+        self.assertEqual((outcome, status), ("ok", 200))
+
+        stdout = __import__("io").StringIO()
+        env = {
+            "CVE_ENRICH_MODEL": "grok-4.7",
+            "XAI_API_KEY": self.SECRET,
+        }
+        with (
+            patch.dict(os.environ, env, clear=False),
+            patch.object(
+                probe_script, "probe_cve_enrichment_access", return_value=("ok", 200)
+            ),
+            patch("sys.stdout", stdout),
+        ):
+            self.assertEqual(probe_script.main([]), 0)
+        self.assertEqual(stdout.getvalue(), "ok 200\n")
+        self.assertNotIn(self.SECRET, stdout.getvalue())
+
+
 class OpenAICVEEnrichmentHTTPTests(unittest.TestCase):
     """Mocked official OpenAI Responses API path used by catalog sync."""
 
@@ -1912,12 +1982,13 @@ class OpenAICVEEnrichmentHTTPTests(unittest.TestCase):
         stdout = __import__("io").StringIO()
         env = {
             "OPENAI_API_KEY": self.SECRET,
-            "OPENAI_MODEL": "gpt-6-sol",
-            "OPENAI_DAYBREAK_PROGRAM": "daybreak_blue",
+            "CVE_ENRICH_MODEL": "gpt-6-sol+daybreak_blue",
         }
         with (
             patch.dict(os.environ, env, clear=False),
-            patch.object(probe_script, "probe_daybreak_access", return_value=("ok", 200)),
+            patch.object(
+                probe_script, "probe_cve_enrichment_access", return_value=("ok", 200)
+            ),
             patch("sys.stdout", stdout),
         ):
             self.assertEqual(probe_script.main([]), 0)

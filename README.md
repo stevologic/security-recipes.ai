@@ -392,39 +392,38 @@ that the returned merge SHA is still current `main`, then dispatches the real
 only those CVE-qualified Build dispatches, so scheduled monitors and unrelated
 manual workflows cannot deadlock or satisfy a release.
 
-The source sync does not require a secret. Catalog enrichment uses the
-existing `OPENAI_API_KEY` Actions secret and the official OpenAI Responses
-API. Leftover-gold review, content refresh, AI maintenance, AI issue
-maintenance, and this repository's security-health action still use Grok
-through `XAI_API_KEY`.
+The source sync does not require a secret. Catalog enrichment defaults to
+xAI `grok-4.7` through the existing `XAI_API_KEY` Actions secret. One repo
+variable, `CVE_ENRICH_MODEL`, selects the provider and model. Leftover-gold
+review, content refresh, AI maintenance, AI issue maintenance, and this
+repository's security-health action still use Grok through `XAI_API_KEY`.
 
 ```bash
-gh secret set OPENAI_API_KEY --repo stevologic/security-recipes.ai
 gh secret set XAI_API_KEY --repo stevologic/security-recipes.ai
+gh secret set OPENAI_API_KEY --repo stevologic/security-recipes.ai
 ```
 
-The catalog workflow defaults to OpenAI's `gpt-5.6-luna` Responses API model
-and at most 20 new or source-changed records per run. The scheduled queue is
-derived from the tracked NVD/CISA catalog: a candidate must have a valid tagged
-vendor advisory, patch, release-note, or mitigation URL. Source-complete records
+The catalog workflow defaults to `grok-4.7` and at most 20 new or
+source-changed records per run. The scheduled queue is derived from the
+tracked NVD/CISA catalog: a candidate must have a valid tagged vendor
+advisory, patch, release-note, or mitigation URL. Source-complete records
 remain eligible because they still need a sourced remediation synthesis; within
 each KEV and severity band they rank ahead of records with deterministic source
 gaps, followed by affected-product/version evidence and recency. This uses the
 existing daily request budget and does not require an additional manual run.
-Both the model and limit can be changed with optional Actions variables; the
+The model and limit can be changed with optional Actions variables; the
 enrichment limit is hard-bounded from 0 to 50:
 
 ```bash
-gh variable set OPENAI_MODEL --body "gpt-6-sol" --repo stevologic/security-recipes.ai
-gh variable set OPENAI_DAYBREAK_PROGRAM --body "daybreak_blue" --repo stevologic/security-recipes.ai
-gh variable set OPENAI_ENRICHMENT_LIMIT --body "20" --repo stevologic/security-recipes.ai
+gh variable set CVE_ENRICH_MODEL --body "grok-4.7" --repo stevologic/security-recipes.ai
+gh variable set CVE_ENRICHMENT_LIMIT --body "20" --repo stevologic/security-recipes.ai
 ```
 
-`OPENAI_DAYBREAK_PROGRAM` is optional. When unset, enrichment stays a plain
-OpenAI Responses call. When set, the workflow sends
-`access_programs.cyber=<program>`. For this defensive catalog, use
-`daybreak_blue` with `gpt-6-sol`. A `workflow_dispatch` input
-`daybreak_probe=true` makes one probe call and skips the catalog sync.
+`CVE_ENRICH_MODEL` is the only switch. `grok-*` uses xAI and `XAI_API_KEY`.
+`gpt-*` uses OpenAI and `OPENAI_API_KEY`. To move to Daybreak later, change
+that one variable to `gpt-6-sol+daybreak_blue`. A `workflow_dispatch` input
+`daybreak_probe=true` makes one probe call for whichever provider is
+configured and skips the catalog sync.
 
 AI output is supplemental and explicitly labeled. It uses strict structured
 output, only cites URLs actually returned in the Responses API web-search

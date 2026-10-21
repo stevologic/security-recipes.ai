@@ -23,15 +23,16 @@ access token is required.
 
 ## Intelligence
 
-GitHub Actions is the clock and host. Catalog enrichment uses the
-official OpenAI Responses API. Grok remains the billed brain for the
+GitHub Actions is the clock and host. Catalog enrichment defaults to
+xAI `grok-4.7` via `CVE_ENRICH_MODEL`. OpenAI/Daybreak stay dormant
+behind that same variable. Grok remains the billed brain for the
 other first-party jobs below. Optional `NVD_API_KEY` is passed only
 into the catalog sync step so lastMod catch-up can use the
 authenticated NVD rate limit.
 
 | Job | Host | Brain |
 | --- | --- | --- |
-| CVE catalog enrichment | Actions (`cve-catalog-sync.yml`) | OpenAI Responses API (`gpt-5.6-luna` unless `OPENAI_MODEL` is set; optional Daybreak via `OPENAI_DAYBREAK_PROGRAM`) |
+| CVE catalog enrichment | Actions (`cve-catalog-sync.yml`) | xAI Responses API (`grok-4.7` unless `CVE_ENRICH_MODEL` is set; OpenAI/Daybreak via `gpt-6-sol+daybreak_blue`) |
 | Security health | Actions (`security-health.yml`) | xAI/Grok |
 | Leftover review | Actions (`leftover-review.yml`) | Grok Build CLI |
 | Content refresh | Actions (`content-refresh.yml`) | Grok Build CLI |
@@ -131,12 +132,12 @@ confirms the production handoff landed. Never put `secrets` in a workflow
 
 | Item | Kind | Status | Purpose |
 | --- | --- | --- | --- |
-| `XAI_API_KEY` | secret | must be added | Billed Grok secret for leftover-gold review, content refresh, AI maintenance, AI issue maintenance, and this repository's security-health action. Catalog enrichment no longer reads it. |
-| `XAI_MODEL` | variable | optional, defaults to `grok-4.6` | Model id for Grok CLI jobs and the remediations suite. Bump when xAI publishes a newer coding model. |
-| `OPENAI_API_KEY` | secret | must be added for catalog enrichment | Existing Actions secret used by CVE catalog sync for official OpenAI Responses API enrichment. Do not add a second OpenAI secret. |
-| `OPENAI_MODEL` | variable | optional, defaults to `gpt-5.6-luna` | Model id for catalog enrichment. For Daybreak Blue set `gpt-6-sol`. |
-| `OPENAI_DAYBREAK_PROGRAM` | variable | optional, unset by default | When set to `standard`, `daybreak_blue`, or `daybreak_red`, catalog enrichment sends `access_programs.cyber`. Unset keeps plain OpenAI requests. Defensive CVE work should use `daybreak_blue`. |
-| `OPENAI_ENRICHMENT_LIMIT` | variable | optional, defaults to `20` | Hard-bounded 0–50 new or source-changed CVEs enriched per catalog sync. |
+| `XAI_API_KEY` | secret | must be added | Billed Grok secret for catalog enrichment (`CVE_ENRICH_MODEL=grok-4.7`), leftover-gold review, content refresh, AI maintenance, AI issue maintenance, and this repository's security-health action. |
+| `XAI_MODEL` | variable | optional, defaults to `grok-4.6` | Model id for Grok CLI jobs and the remediations suite. Bump when xAI publishes a newer coding model. Independent of catalog `CVE_ENRICH_MODEL`. |
+| `CVE_ENRICH_MODEL` | variable | optional, defaults to `grok-4.7` | Single catalog provider/model switch. `grok-*` uses xAI/`XAI_API_KEY`. `gpt-*` uses OpenAI/`OPENAI_API_KEY`. Daybreak later: `gpt-6-sol+daybreak_blue`. |
+| `OPENAI_API_KEY` | secret | optional until Daybreak | Existing Actions secret used only when `CVE_ENRICH_MODEL` selects an OpenAI model. |
+| `OPENAI_DAYBREAK_PROGRAM` | variable | optional, unset by default | OpenAI-only overlay when `CVE_ENRICH_MODEL` is a `gpt-*` model without a `+program` suffix. Ignored for `grok-*`. |
+| `CVE_ENRICHMENT_LIMIT` | variable | optional, defaults to `20` | Hard-bounded 0–50 new or source-changed CVEs enriched per catalog sync. |
 | `DIGITALOCEAN_ACCESS_TOKEN` | secret or droplet `deploy.env` | optional | Lets deploy.sh and the Dev DNS record workflow create `dev.security-recipes.ai` |
 | `CVE_AUTO_MERGE_ENABLED` | variable | `true` | Lets the catalog sync merge its own PR |
 | `CVE_AUTOMATION_APP_CLIENT_ID` / `CVE_AUTOMATION_APP_PRIVATE_KEY` | variable / secret | optional | A dedicated GitHub App; when configured, its pushes trigger normal CI events and the dispatch workarounds above become unnecessary |

@@ -121,10 +121,12 @@ ID. Archetype text used to compose a conservative recipe lives in
    scope.
 3. Joins CISA KEV by CVE ID.
 4. Reapplies local Markdown from `content/recipes/cve/`.
-5. Optionally asks OpenAI to enrich **new or source-changed** records.
-   Default limit is **20** per run (`OPENAI_ENRICHMENT_LIMIT`, max 50). If
-   `OPENAI_API_KEY` is missing, source sync still finishes and valid cached
-   enrichments stay. Most catalog rows are not AI-enriched.
+5. Optionally asks the configured provider to enrich **new or
+   source-changed** records. Default model is **grok-4.7** via
+   `CVE_ENRICH_MODEL` and `XAI_API_KEY`. Default limit is **20** per run
+   (`CVE_ENRICHMENT_LIMIT`, max 50). If the matching API key is missing,
+   source sync still finishes and valid cached enrichments stay. Most
+   catalog rows are not AI-enriched.
 6. May write development drafts at
    `content/recipes/cve/ai-enrichment-cve-*.md`, owned by
    `data/cve/ai-generated-recipes.json`.

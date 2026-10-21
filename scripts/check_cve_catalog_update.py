@@ -365,24 +365,27 @@ def enrichment_health(sync_report: dict[str, Any]) -> dict[str, Any]:
     warnings: list[str] = []
     if provider_error == "insufficient_quota":
         alerts.append(
-            "OpenAI quota or credits are exhausted; add billing credits to resume enrichment."
+            "CVE enrichment quota or credits are exhausted; add billing credits to resume enrichment."
         )
     elif provider_error == "daybreak_entitlement":
         alerts.append(
-            "Daybreak entitlement missing; enable OPENAI_DAYBREAK_PROGRAM and "
-            "OPENAI_MODEL on the OpenAI project, then re-run enrichment."
+            "Daybreak entitlement missing; keep CVE_ENRICH_MODEL=grok-4.7 until "
+            "Daybreak is enabled, or set CVE_ENRICH_MODEL=gpt-6-sol+daybreak_blue "
+            "once the OpenAI project is entitled."
         )
     elif provider_error == "invalid_key":
         alerts.append(
-            "OpenAI rejected the API key; replace the OPENAI_API_KEY repository secret."
+            "The enrichment provider rejected the API key; replace XAI_API_KEY or "
+            "OPENAI_API_KEY for the configured CVE_ENRICH_MODEL."
         )
     elif provider_error:
         alerts.append(
-            f"OpenAI enrichment stopped after a provider error ({provider_error})."
+            f"CVE enrichment stopped after a provider error ({provider_error})."
         )
     elif not api_enabled:
         alerts.append(
-            "OpenAI enrichment was not enabled; verify the OPENAI_API_KEY repository secret."
+            "CVE enrichment was not enabled; verify XAI_API_KEY for the default "
+            "grok-4.7 model, or OPENAI_API_KEY if CVE_ENRICH_MODEL is an OpenAI model."
         )
     selected = int(metrics["selected"])
     generated = int(metrics["generated"])

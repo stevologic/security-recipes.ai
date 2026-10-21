@@ -43,30 +43,34 @@ from urllib.request import Request, urlopen
 
 try:
     from scripts.cve_ai_enrichment import (
-        DEFAULT_OPENAI_MODEL,
+        DEFAULT_CVE_ENRICH_MODEL,
         DEFAULT_REQUEST_LIMIT as DEFAULT_AI_ENRICHMENT_LIMIT,
         MAX_REQUEST_LIMIT as MAX_AI_ENRICHMENT_LIMIT,
         EnrichmentCache,
         OpenAIEnricher,
+        XAIEnricher,
         canonical_priority_cve_ids,
         enrichment_errors,
-        normalize_daybreak_program,
+        parse_cve_enrich_model,
         probe_openai_credentials,
+        probe_xai_credentials,
         recipe_ready,
     )
     from scripts.cve_ai_recipe import GeneratedRecipeManager
     from scripts.cve_text_quality import clean_catalog_text
 except ModuleNotFoundError:  # Direct ``python scripts/sync_cve_catalog.py`` execution.
     from cve_ai_enrichment import (  # type: ignore[no-redef]
-        DEFAULT_OPENAI_MODEL,
+        DEFAULT_CVE_ENRICH_MODEL,
         DEFAULT_REQUEST_LIMIT as DEFAULT_AI_ENRICHMENT_LIMIT,
         MAX_REQUEST_LIMIT as MAX_AI_ENRICHMENT_LIMIT,
         EnrichmentCache,
         OpenAIEnricher,
+        XAIEnricher,
         canonical_priority_cve_ids,
         enrichment_errors,
-        normalize_daybreak_program,
+        parse_cve_enrich_model,
         probe_openai_credentials,
+        probe_xai_credentials,
         recipe_ready,
     )
     from cve_ai_recipe import GeneratedRecipeManager  # type: ignore[no-redef]
@@ -3619,27 +3623,42 @@ def rebuild_search_index(output_dir: Path, *, dry_run: bool = False) -> dict[str
     }
 
 
-def configure_openai_enrichment(
+def configure_cve_enrichment(
     *,
-    api_key: str,
-    model: str,
+    spec: str,
+    xai_api_key: str = "",
+    openai_api_key: str = "",
     disable: bool = False,
     offline: bool = False,
     dry_run: bool = False,
     opener: Any | None = None,
     limit: int | None = None,
     access_program: str | None = None,
-) -> tuple[OpenAIEnricher | None, bool, str | None]:
+) -> tuple[XAIEnricher | OpenAIEnricher | None, bool, str | None]:
     """Return ``(client, intended, provider_error)`` without logging secrets.
 
-    A missing or unusable key skips enrichment. Source sync still continues.
+    Provider and model come from one ``CVE_ENRICH_MODEL`` value. A missing or
+    unusable key skips enrichment. Source sync still continues.
     """
 
+    try:
+        target = parse_cve_enrich_model(spec, overlay_program=access_program)
+    except ValueError:
+        print(
+            "CVE_ENRICH_MODEL is invalid; optional enrichment skipped and "
+            "source sync will continue.",
+            flush=True,
+        )
+        return None, True, "invalid_enrich_model"
+
+    api_key = (
+        openai_api_key if target.provider == "openai" else xai_api_key
+    ).strip()
     intended = bool(api_key and not disable and not offline and not dry_run)
     if not intended:
         if not api_key:
             print(
-                "OPENAI_API_KEY is not set; source sync and valid cached "
+                f"{target.api_key_env} is not set; source sync and valid cached "
                 "enrichments will continue.",
                 flush=True,
             )
@@ -3652,37 +3671,41 @@ def configure_openai_enrichment(
                 else "dry-run mode"
             )
             print(
-                f"Optional OpenAI requests are disabled by {disabled_reason}.",
+                f"Optional {target.provider_label} requests are disabled by "
+                f"{disabled_reason}.",
                 flush=True,
             )
         return None, False, None
 
-    try:
-        program = normalize_daybreak_program(access_program)
-    except ValueError:
-        print(
-            "OPENAI_DAYBREAK_PROGRAM is invalid; optional OpenAI enrichment "
-            "skipped and source sync will continue.",
-            flush=True,
-        )
-        return None, True, "invalid_daybreak_program"
-
-    client_kwargs: dict[str, Any] = {"model": model, "access_program": program}
+    client_kwargs: dict[str, Any] = {"model": target.model}
     if opener is not None:
         client_kwargs["opener"] = opener
-    client = OpenAIEnricher(api_key, **client_kwargs)
-    credential_status = probe_openai_credentials(
-        api_key,
-        model=client.model,
-        opener=client.opener,
-        access_program=client.access_program,
-    )
+    if target.provider == "openai":
+        client: XAIEnricher | OpenAIEnricher = OpenAIEnricher(
+            api_key,
+            access_program=target.access_program,
+            **client_kwargs,
+        )
+        credential_status = probe_openai_credentials(
+            api_key,
+            model=client.model,
+            opener=client.opener,
+            access_program=client.access_program,
+        )
+    else:
+        client = XAIEnricher(api_key, **client_kwargs)
+        credential_status = probe_xai_credentials(
+            api_key,
+            model=client.model,
+            opener=client.opener,
+        )
     if not credential_status.usable:
         if credential_status.reason == "daybreak_entitlement":
             print("Daybreak entitlement missing", flush=True)
         print(
-            f"Optional OpenAI enrichment is inactive ({credential_status.reason}); "
-            "source sync and valid cached enrichments will continue.",
+            f"Optional {target.provider_label} enrichment is inactive "
+            f"({credential_status.reason}); source sync and valid cached "
+            "enrichments will continue.",
             flush=True,
         )
         return None, True, credential_status.reason
@@ -3693,11 +3716,52 @@ def configure_openai_enrichment(
         else ""
     )
     print(
-        f"Optional OpenAI enrichment enabled with model {client.model!r}"
-        f"{program_note}{limit_note}.",
+        f"Optional {target.provider_label} enrichment enabled with model "
+        f"{client.model!r}{program_note}{limit_note}.",
         flush=True,
     )
     return client, True, None
+
+
+def configure_openai_enrichment(
+    *,
+    api_key: str,
+    model: str,
+    disable: bool = False,
+    offline: bool = False,
+    dry_run: bool = False,
+    opener: Any | None = None,
+    limit: int | None = None,
+    access_program: str | None = None,
+) -> tuple[XAIEnricher | OpenAIEnricher | None, bool, str | None]:
+    """Compatibility wrapper for the dormant OpenAI/Daybreak path."""
+
+    return configure_cve_enrichment(
+        spec=model,
+        openai_api_key=api_key,
+        disable=disable,
+        offline=offline,
+        dry_run=dry_run,
+        opener=opener,
+        limit=limit,
+        access_program=access_program,
+    )
+
+
+def default_cve_enrich_model() -> str:
+    return os.environ.get("CVE_ENRICH_MODEL", "").strip() or DEFAULT_CVE_ENRICH_MODEL
+
+
+def default_ai_enrichment_limit() -> str:
+    for name in (
+        "CVE_ENRICHMENT_LIMIT",
+        "OPENAI_ENRICHMENT_LIMIT",
+        "XAI_ENRICHMENT_LIMIT",
+    ):
+        value = os.environ.get(name)
+        if value:
+            return value
+    return str(DEFAULT_AI_ENRICHMENT_LIMIT)
 
 
 def parse_ai_enrichment_limit(value: str) -> int:
@@ -3746,33 +3810,37 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
     parser.add_argument("--cache-dir", type=Path, default=DEFAULT_CACHE_DIR)
     parser.add_argument(
-        "--openai-model",
-        dest="openai_model",
-        default=os.environ.get("OPENAI_MODEL", DEFAULT_OPENAI_MODEL),
-        help="OpenAI Responses API model for optional evidence-constrained enrichment.",
+        "--cve-enrich-model",
+        dest="cve_enrich_model",
+        default=default_cve_enrich_model(),
+        help=(
+            "Single provider/model switch for optional enrichment. Default "
+            f"{DEFAULT_CVE_ENRICH_MODEL} (xAI). Use gpt-6-sol+daybreak_blue to "
+            "switch to OpenAI Daybreak later."
+        ),
     )
     parser.add_argument(
         "--openai-daybreak-program",
         dest="openai_daybreak_program",
         default=os.environ.get("OPENAI_DAYBREAK_PROGRAM", ""),
         help=(
-            "Optional Responses API access_programs.cyber value: standard, "
-            "daybreak_blue, or daybreak_red. Unset keeps plain OpenAI requests."
+            "Optional OpenAI overlay when CVE_ENRICH_MODEL is a gpt-* model: "
+            "standard, daybreak_blue, or daybreak_red. Ignored for grok-*."
         ),
     )
     parser.add_argument(
         "--ai-enrichment-limit",
         type=parse_ai_enrichment_limit,
-        default=os.environ.get("OPENAI_ENRICHMENT_LIMIT", str(DEFAULT_AI_ENRICHMENT_LIMIT)),
+        default=parse_ai_enrichment_limit(default_ai_enrichment_limit()),
         help=(
-            "Maximum new/source-changed CVEs enriched per run when OPENAI_API_KEY is set "
-            f"(0-{MAX_AI_ENRICHMENT_LIMIT})."
+            "Maximum new/source-changed CVEs enriched per run when the configured "
+            f"provider key is set (0-{MAX_AI_ENRICHMENT_LIMIT})."
         ),
     )
     parser.add_argument(
         "--disable-ai-enrichment",
         action="store_true",
-        help="Attach valid cached enrichments but make no OpenAI requests.",
+        help="Attach valid cached enrichments but make no provider requests.",
     )
     parser.add_argument("--offline", action="store_true", help="Use only cached NVD and KEV inputs.")
     parser.add_argument("--dry-run", action="store_true", help="Fetch and validate sources without writing catalog files.")
@@ -3906,10 +3974,12 @@ def main(argv: list[str] | None = None) -> int:
     kev_data, kev_payload = cache_kev(cache_dir, offline=args.offline)
     kev_map = kev_by_cve(kev_data)
     enrichment_cache = EnrichmentCache.load(enrichment_cache_path)
+    xai_key = os.environ.get("XAI_API_KEY", "").strip()
     openai_key = os.environ.get("OPENAI_API_KEY", "").strip()
-    openai_client, intended_ai, provider_error = configure_openai_enrichment(
-        api_key=openai_key,
-        model=args.openai_model,
+    openai_client, intended_ai, provider_error = configure_cve_enrichment(
+        spec=args.cve_enrich_model,
+        xai_api_key=xai_key,
+        openai_api_key=openai_key,
         disable=args.disable_ai_enrichment,
         offline=args.offline,
         dry_run=args.dry_run,
@@ -4066,6 +4136,13 @@ def main(argv: list[str] | None = None) -> int:
         generated_recipe_summary = generated_recipes.reconcile()
     write_summary = write_outputs(output_dir, outputs, dry_run=args.dry_run)
     enrichment_cache_changed = enrichment_cache.write(dry_run=args.dry_run)
+    try:
+        enrich_target = parse_cve_enrich_model(
+            args.cve_enrich_model,
+            overlay_program=args.openai_daybreak_program,
+        )
+    except ValueError:
+        enrich_target = None
     run_report = {
         "scope": manifest["scope"],
         "totals": manifest["totals"],
@@ -4076,6 +4153,8 @@ def main(argv: list[str] | None = None) -> int:
             "cache": str(enrichment_cache_path),
             "cache_changed": enrichment_cache_changed,
             "api_enabled": intended_ai,
+            "model": enrich_target.model if enrich_target else args.cve_enrich_model,
+            "provider": enrich_target.provider if enrich_target else None,
             **(
                 {"provider_error": provider_error or enrichment_cache.provider_error}
                 if provider_error or enrichment_cache.provider_error
