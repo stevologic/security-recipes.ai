@@ -3059,6 +3059,260 @@ class SyncCveCatalogTests(unittest.TestCase):
         self.assertEqual(metadata["latest_record_modified"], "2026-10-20T12:00:00Z")
         self.assertEqual(metadata["total_results"], 1)
 
+    def test_nvd_api_catchup_keeps_pages_after_page_one(self) -> None:
+        feeds = [
+            {
+                "year": 2026,
+                "metadata": {"lastModifiedDate": "2026-10-16T03:00:20-04:00"},
+            }
+        ]
+        pages = {
+            0: {
+                "id": "CVE-2026-11111",
+                "lastModified": "2026-10-18T12:00:00.000Z",
+            },
+            1: {
+                "id": "CVE-2026-22222",
+                "lastModified": "2026-10-19T12:00:00.000Z",
+            },
+            2: {
+                "id": "CVE-2026-33333",
+                "lastModified": "2026-10-20T12:00:00.000Z",
+            },
+        }
+        seen_indexes: list[int] = []
+
+        def fetch_page(url: str, **_: object) -> bytes:
+            query = parse_qs(urlparse(url).query)
+            index = int(query["startIndex"][0])
+            seen_indexes.append(index)
+            row = pages[index]
+            return json.dumps(
+                {
+                    "resultsPerPage": 1,
+                    "startIndex": index,
+                    "totalResults": 3,
+                    "vulnerabilities": [
+                        {
+                            "cve": {
+                                "id": row["id"],
+                                "lastModified": row["lastModified"],
+                                "published": "2026-10-18T12:00:00.000Z",
+                            }
+                        }
+                    ],
+                }
+            ).encode("utf-8")
+
+        records, metadata = catalog.fetch_nvd_api_catchup(
+            feeds,
+            end=catalog.parse_nvd_datetime("2026-10-21T16:00:00Z"),
+            fetch=fetch_page,
+            sleeper=lambda _: None,
+            page_size=1,
+        )
+
+        self.assertEqual(seen_indexes, [0, 1, 2])
+        self.assertEqual(
+            list(records),
+            ["CVE-2026-11111", "CVE-2026-22222", "CVE-2026-33333"],
+        )
+        self.assertEqual(metadata["pages"], 3)
+        self.assertEqual(metadata["latest_record_modified"], "2026-10-20T12:00:00Z")
+
+    def test_nvd_api_partial_page_does_not_advance_watermark(self) -> None:
+        feeds = [
+            {
+                "year": 2026,
+                "metadata": {"lastModifiedDate": "2026-10-16T03:00:20-04:00"},
+            }
+        ]
+
+        def fetch_page(url: str, **_: object) -> bytes:
+            query = parse_qs(urlparse(url).query)
+            index = int(query["startIndex"][0])
+            if index == 0:
+                return json.dumps(
+                    {
+                        "resultsPerPage": 1,
+                        "startIndex": 0,
+                        "totalResults": 3,
+                        "vulnerabilities": [
+                            {
+                                "cve": {
+                                    "id": "CVE-2026-44444",
+                                    "lastModified": "2026-10-21T12:00:00.000Z",
+                                    "published": "2026-10-18T12:00:00.000Z",
+                                }
+                            }
+                        ],
+                    }
+                ).encode("utf-8")
+            return json.dumps(
+                {
+                    "resultsPerPage": 0,
+                    "startIndex": index,
+                    "totalResults": 3,
+                    "vulnerabilities": [],
+                }
+            ).encode("utf-8")
+
+        with self.assertRaisesRegex(ValueError, "pagination is incomplete or malformed"):
+            catalog.fetch_nvd_api_catchup(
+                feeds,
+                end=catalog.parse_nvd_datetime("2026-10-21T16:00:00Z"),
+                fetch=fetch_page,
+                sleeper=lambda _: None,
+                page_size=1,
+            )
+
+    def test_nvd_lastmod_windows_split_at_120_days(self) -> None:
+        start = catalog.parse_nvd_datetime("2026-01-01T00:00:00Z")
+        end = catalog.parse_nvd_datetime("2026-06-02T00:00:00Z")
+        assert start is not None and end is not None
+        windows = catalog.nvd_lastmod_windows(start, end)
+
+        self.assertEqual(
+            [(catalog.nvd_datetime_text(left), catalog.nvd_datetime_text(right)) for left, right in windows],
+            [
+                ("2026-01-01T00:00:00Z", "2026-05-01T00:00:00Z"),
+                ("2026-05-01T00:00:00Z", "2026-06-02T00:00:00Z"),
+            ],
+        )
+        self.assertTrue(
+            all(right - left <= catalog.NVD_API_MAX_WINDOW for left, right in windows)
+        )
+
+        feeds = [
+            {
+                "year": 2026,
+                "metadata": {"lastModifiedDate": "2026-01-01T00:00:00Z"},
+            }
+        ]
+        seen_windows: list[tuple[str, str]] = []
+
+        def fetch_page(url: str, **_: object) -> bytes:
+            query = parse_qs(urlparse(url).query)
+            seen_windows.append((query["lastModStartDate"][0], query["lastModEndDate"][0]))
+            return json.dumps(
+                {
+                    "resultsPerPage": 0,
+                    "startIndex": 0,
+                    "totalResults": 0,
+                    "vulnerabilities": [],
+                }
+            ).encode("utf-8")
+
+        _, metadata = catalog.fetch_nvd_api_catchup(
+            feeds,
+            end=end,
+            fetch=fetch_page,
+            sleeper=lambda _: None,
+        )
+        self.assertEqual(
+            seen_windows,
+            [
+                ("2026-01-01T00:00:00Z", "2026-05-01T00:00:00Z"),
+                ("2026-05-01T00:00:00Z", "2026-06-02T00:00:00Z"),
+            ],
+        )
+        self.assertEqual(metadata["windows"], [
+            {"last_mod_start": start, "last_mod_end": finish}
+            for start, finish in seen_windows
+        ])
+
+    def test_newer_catchup_record_replaces_feed_record_and_drives_stamp(self) -> None:
+        feed_modified = {
+            "CVE-2026-55555": catalog.parse_nvd_datetime("2026-10-16T07:00:20Z"),
+        }
+        older_unmerged = {
+            "cve": "CVE-2026-55555",
+            "last_modified": "2026-10-15T12:00:00Z",
+            "summary": "stale catch-up must not replace",
+        }
+        newer_replacement = {
+            "cve": "CVE-2026-55555",
+            "last_modified": "2026-10-20T12:00:00Z",
+            "summary": "updated catch-up must replace",
+        }
+        unmerged_newer = {
+            "cve": "CVE-2026-66666",
+            "last_modified": "2026-10-21T12:00:00Z",
+            "summary": "out of catalog merge on purpose",
+        }
+
+        skipped, skipped_latest = catalog.select_nvd_catchup_merges(
+            feed_modified, {"CVE-2026-55555": older_unmerged}
+        )
+        self.assertEqual(skipped, {})
+        self.assertIsNone(skipped_latest)
+
+        merged, merged_latest = catalog.select_nvd_catchup_merges(
+            feed_modified,
+            {
+                "CVE-2026-55555": newer_replacement,
+                "CVE-2026-77777": {
+                    "cve": "CVE-2026-77777",
+                    "last_modified": "2026-10-19T12:00:00Z",
+                    "summary": "brand new catch-up row",
+                },
+            },
+        )
+        self.assertEqual(merged["CVE-2026-55555"]["summary"], "updated catch-up must replace")
+        self.assertIn("CVE-2026-77777", merged)
+        self.assertEqual(catalog.nvd_datetime_text(merged_latest), "2026-10-20T12:00:00Z")
+
+        _, ignored_stamp = catalog.build_outputs(
+            [],
+            start_date=START_DATE,
+            end_date=END_DATE,
+            feed_sources=complete_feed_sources(0),
+            kev_data={"catalogVersion": "2026.10.16", "dateReleased": "2026-10-20T19:00:31Z", "vulnerabilities": []},
+            kev_payload=b"{}\n",
+            archetypes=archetype_payload(),
+            existing={},
+            nvd_api_catchup={
+                "latest_record_modified": unmerged_newer["last_modified"],
+                "latest_merged_record_modified": None,
+            },
+        )
+        self.assertEqual(ignored_stamp["catalog_updated_at"], "2026-07-01T00:00:00Z")
+
+        _, replaced_stamp = catalog.build_outputs(
+            [],
+            start_date=START_DATE,
+            end_date=END_DATE,
+            feed_sources=complete_feed_sources(0),
+            kev_data={"catalogVersion": "2026.10.16", "dateReleased": "2026-10-20T19:00:31Z", "vulnerabilities": []},
+            kev_payload=b"{}\n",
+            archetypes=archetype_payload(),
+            existing={},
+            nvd_api_catchup={
+                "latest_record_modified": unmerged_newer["last_modified"],
+                "latest_merged_record_modified": newer_replacement["last_modified"],
+            },
+        )
+        self.assertEqual(replaced_stamp["catalog_updated_at"], "2026-10-20T12:00:00Z")
+
+        with tempfile.TemporaryDirectory(prefix="test-cve-spool-") as tmpdir:
+            root = Path(tmpdir)
+            feed_spool = root / "2026.jsonl"
+            catchup_spool = root / "nvd-api-catchup.jsonl"
+            feed_spool.write_bytes(
+                catalog.json_bytes(
+                    {
+                        "cve": "CVE-2026-55555",
+                        "last_modified": "2026-10-16T07:00:20Z",
+                        "summary": "annual feed row",
+                    }
+                )
+            )
+            catchup_spool.write_bytes(catalog.json_bytes(newer_replacement))
+            merged_rows = list(catalog.merged_record_spools([feed_spool, catchup_spool]))
+        self.assertEqual(len(merged_rows), 1)
+        self.assertEqual(merged_rows[0]["summary"], "updated catch-up must replace")
+        self.assertEqual(merged_rows[0]["last_modified"], "2026-10-20T12:00:00Z")
+
 
 if __name__ == "__main__":
     unittest.main()

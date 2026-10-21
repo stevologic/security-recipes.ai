@@ -13,7 +13,7 @@ access token is required.
 | Content refresh (`content-refresh.yml`) | daily 11:47 UTC | Researches one source-backed opportunity across reviewed remediation workflows, executable playbooks, or non-CVE recipes and submits a validated auto-merge PR when a substantive update is warranted |
 | Leftover review (`leftover-review.yml`) | daily 13:17 UTC | Live-verifies leftover-gold CVE leftovers against GHAD/NVD; leftover-gold criticals and highs drain first, then each run reviews up to 25 leftover-gold medium and low pages and submits a validated auto-merge PR |
 | CVE catalog validation request (`cve-catalog-validate-request.yml`) | dispatch only | Verifies that an exact SHA is the live head of the requested same-repository PR without checking out or executing PR code |
-| CVE catalog validation (`cve-catalog-validate.yml`) | dispatch only | Revalidates and runs the build-equivalent suite, then publishes Actions-owned required commit statuses (`build`, and any later Actions context) from a separate no-checkout job. It never emits `karen-qa` |
+| CVE catalog validation (`cve-catalog-validate.yml`) | dispatch only | Revalidates and runs the build-equivalent suite on the exact catalog SHA. It never posts commit statuses and never emits `karen-qa`. Required merge checks come from real workflow runs |
 | Production watchdog (`production-watchdog.yml`) | every 30 min | Probes the live site, catalog freshness, revision, and TLS; maintains the health issue; self-heals unbuilt revisions and stale catalogs |
 | Automation shepherd (`automation-shepherd.yml`) | every 30 min | Dispatches missing main Builds after token-authored merges, updates stale auto-merge PR branches, and attaches missing build validations |
 | Dependabot auto-merge (`dependabot-automerge.yml`) | Dependabot PRs | Arms auto-merge for verified patch/minor bumps |
@@ -86,21 +86,21 @@ and `repository_dispatch` are the direct-dispatch exceptions. Two consequences:
 The shepherd closes both gaps with dispatches (the allowed exception): it
 dispatches `build.yml` for unbuilt main revisions and dispatches the exact-SHA
 validation request for auto-merge PR heads that have none. The request performs
-only API identity checks. Its `workflow_run` validator executes the PR head
-under GitHub's read-only default-branch cache boundary, then publishes the
-required `build` commit status from a separate no-checkout job.
+only API identity checks. Validation executes the catalog SHA and does not
+post commit statuses. Required merge checks come from those real workflow runs.
 
 ## Merge policy
 
 The `main` ruleset requires a PR, a passing `build` context from GitHub
 Actions, and a passing `karen-qa` context posted only by the Karen QA
-GitHub App after human review. Catalog validation publishes Actions-owned
-required statuses on the exact validated SHA and never emits `karen-qa`.
-Catalog auto-merge waits for that app check on the exact head; if it is
-missing, delivery fails immediately with
+GitHub App after human review. Catalog validation never posts commit
+statuses and never emits `karen-qa`. Required merge checks come from real
+workflow runs. Catalog auto-merge waits for that app check on the exact
+head; if it is missing, delivery fails immediately with
 `needs karen-qa on <sha> from Karen QA app` instead of retrying a 405.
 `catalog_updated_at` is the NVD sync watermark (annual-feed lastModifiedDate
-or NVD API lastMod catch-up). A KEV-only delta must not advance it.
+or lastModified of catch-up records actually merged). A KEV-only delta
+must not advance it. A fetched-but-dropped catch-up row must not either.
 Every automated merge (Dependabot, catalog sync, AI fixes) therefore rides
 the same gate as a human change: auto-merge armed, required contexts proven
 on the exact head, branch current.

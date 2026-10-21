@@ -81,28 +81,22 @@ class CveCatalogValidationWorkflowTests(unittest.TestCase):
         self.assertNotIn("cache:", self.validation)
 
     def test_validator_rechecks_live_pr_before_checkout(self) -> None:
-        # Lean dispatch path: checkout exact input SHA; publish rechecks PR.
+        # Lean dispatch path: checkout the exact input SHA. Required merge
+        # checks come from real workflow runs, not a status-posting job.
         self.assertIn("ref: ${{ inputs.expected_sha }}", self.validation)
         self.assertIn(
             '[[ ! "$EXPECTED_SHA" =~ ^[0-9a-f]{40}$ ]]', self.validation
         )
         self.assertIn("Checkout exact catalog PR revision", self.validation)
+        self.assertIn("Prove validation is attached to the requested revision", self.validation)
         self.assertNotIn("authorize-exact-pr-head", self.validation)
         self.assertNotIn("needs: authorize", self.validation)
         self.assertNotIn("submodules: recursive", self.validation)
         self.assertNotIn("cache:", self.validation)
-        _, publish_job = self.validation.split("\n  publish:\n", 1)
-        self.assertIn(
-            'PR_JSON="$(gh_api_with_retry "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}")"',
-            publish_job,
-        )
-        self.assertIn('[ "$HEAD_REPOSITORY" != "$GITHUB_REPOSITORY" ]', publish_job)
-        self.assertIn('[ "$HEAD_SHA" != "$EXPECTED_SHA" ]', publish_job)
-        self.assertIn('[ "$BASE_BRANCH" != "$DEFAULT_BRANCH" ]', publish_job)
-        self.assertIn('[ "$HEAD_BRANCH" != "$EXPECTED_BRANCH" ]', publish_job)
+        self.assertNotIn("\n  publish:\n", self.validation)
         self.assertLess(
             self.validation.index("Checkout exact catalog PR revision"),
-            self.validation.index("Verify pull request identity and publish"),
+            self.validation.index("Prove validation is attached to the requested revision"),
         )
 
     def test_emits_the_existing_required_build_context(self) -> None:
@@ -116,38 +110,15 @@ class CveCatalogValidationWorkflowTests(unittest.TestCase):
         )
         self.assertIn("Never emit `karen-qa`", self.validation)
 
-    def test_publishes_required_status_only_after_exact_sha_validation(self) -> None:
-        validate_job, publish_job = self.validation.split("\n  publish:\n", 1)
-
-        self.assertNotIn("statuses: write", validate_job)
-        self.assertRegex(publish_job, r"(?m)^\s{4}needs:\s*validate\s*$")
-        self.assertRegex(publish_job, r"(?m)^\s{6}statuses: write\s*$")
-        self.assertIn("pull-requests: read", publish_job)
-        self.assertNotIn("actions/checkout", publish_job)
-        self.assertNotIn("npm ", publish_job)
-        self.assertNotIn("python", publish_job)
-        self.assertNotIn("docker ", publish_job)
-        self.assertIn("HEAD_REPOSITORY", publish_job)
-        self.assertIn("HEAD_BRANCH", publish_job)
-        self.assertIn("HEAD_SHA", publish_job)
-        self.assertIn("BASE_BRANCH", publish_job)
-        self.assertIn(
-            '"repos/${GITHUB_REPOSITORY}/statuses/${EXPECTED_SHA}"', publish_job
-        )
-        self.assertIn("--raw-field state=success", publish_job)
-        self.assertIn('context=${context}', publish_job)
-        self.assertIn("rules/branches/${DEFAULT_BRANCH}", publish_job)
-        self.assertIn("required_status_checks", publish_job)
-        self.assertIn("integration_id", publish_job)
-        self.assertIn("15368", publish_job)
-        self.assertIn('"$context" = "karen-qa"', publish_job)
-        self.assertIn("not posted by this workflow", publish_job)
-        self.assertNotIn('context=karen-qa', publish_job)
-        self.assertIn("GH_TOKEN: ${{ github.token }}", publish_job)
-        self.assertLess(
-            self.validation.index("run: docker compose build"),
-            self.validation.index("publish-required-status"),
-        )
+    def test_does_not_publish_required_commit_statuses(self) -> None:
+        self.assertNotIn("statuses: write", self.validation)
+        self.assertNotIn("/statuses/", self.validation)
+        self.assertNotIn("--raw-field state=success", self.validation)
+        self.assertNotIn("publish-required-status", self.validation)
+        self.assertNotIn("\n  publish:\n", self.validation)
+        self.assertNotIn('context=karen-qa', self.validation)
+        self.assertIn("never posts commit statuses", self.validation)
+        self.assertIn("Required merge checks must come from real workflow runs", self.validation)
 
     def test_validation_is_build_equivalent(self) -> None:
         expected_commands = (
@@ -177,7 +148,7 @@ class CveCatalogValidationWorkflowTests(unittest.TestCase):
         self.assertNotIn("cache:", kick)
         self.assertNotIn("gh workflow run automation-shepherd.yml", kick.split("run:", 1)[0])
         self.assertLess(
-            self.validation.index("publish-required-status"),
+            self.validation.index("\n  validate:\n"),
             self.validation.index("kick-shepherd:"),
         )
 
