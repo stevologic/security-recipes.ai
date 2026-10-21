@@ -1,16 +1,22 @@
 # Required-check stand-in for karen-qa on main.
 #
 # Ruleset change (do not apply from this workflow): if the required check
-# name on main is still `karen-qa`, replace that pin with
-# `karen-qa-or-data-only` from GitHub Actions. If this job or context is
-# renamed, update the main ruleset to the new name. Do not require both
-# names or catalog/pipeline PRs still need Karen QA. Changing this
-# workflow or the ruleset still requires karen-qa; the gate cannot
-# exempt itself.
+# name on main is still `karen-qa` (Karen QA app integration 5400051),
+# replace that pin with `karen-qa-or-data-only` from GitHub Actions
+# integration 15368. A ruleset required-check entry can set
+# integration_id; pin 15368 so a plain commit status cannot satisfy the
+# check. If this job or check-run name is renamed, update the main
+# ruleset to the new name. Do not require both names or catalog-data
+# PRs still need Karen QA. Changing this workflow or the ruleset still
+# requires karen-qa; the gate cannot exempt itself.
 #
-# Auto-passes when every Files API path is catalog data or the explicit
-# CVE pipeline files. Author does not matter. This workflow never checks
-# out or runs pull-request code and never emits the `karen-qa` context.
+# Auto-passes when the PR is from the CVE catalog sync bot, the head is
+# automation/cve-catalog-sync, every Files API path is CVE catalog data,
+# every commit is authored or pushed by the bot, and git tree modes are
+# regular files. Pipeline code, docs, and MCP servers still need
+# karen-qa. This workflow never checks out or runs pull-request code
+# and never emits the `karen-qa` context. It creates a GITHUB_TOKEN
+# check run on the exact head instead of posting a commit status.
 name: Karen QA or data-only
 
 on:
@@ -23,7 +29,6 @@ on:
   check_run:
     types:
       - completed
-  status:
 
 permissions: {}
 
@@ -31,13 +36,13 @@ concurrency:
   group: >-
     karen-qa-or-data-only-${{
       github.event.pull_request.number ||
-      github.event.check_run.head_sha ||
-      github.event.sha
+      github.event.check_run.head_sha
     }}
   cancel-in-progress: true
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+  KAREN_QA_APP_ID: "5400051"
 
 jobs:
   karen-qa-or-data-only:
@@ -47,21 +52,17 @@ jobs:
       github.event.pull_request.base.ref == github.event.repository.default_branch) ||
       (github.event_name == 'check_run' &&
       github.event.check_run.name == 'karen-qa' &&
-      github.event.check_run.conclusion == 'success') ||
-      (github.event_name == 'status' &&
-      github.event.context == 'karen-qa' &&
-      github.event.state == 'success')
+      github.event.check_run.app.id == 5400051)
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
-      checks: read
+      checks: write
       contents: read
       pull-requests: read
-      statuses: write
     steps:
       # Trusted default-branch sources only. Do not use github.sha here:
-      # check_run and status events set it to the triggering commit (the
-      # PR head). Never checkout pull_request.head.sha or run PR code.
+      # check_run events set it to the triggering commit (the PR head).
+      # Never checkout pull_request.head.sha or run PR code.
       - name: Checkout trusted default branch only
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -76,7 +77,6 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           EVENT_PR_NUMBER: ${{ github.event.pull_request.number }}
           CHECK_HEAD_SHA: ${{ github.event.check_run.head_sha }}
-          STATUS_SHA: ${{ github.event.sha }}
         shell: bash
         run: |
           set -euo pipefail
@@ -86,7 +86,7 @@ jobs:
           HEAD_SHA=""
 
           if [ "$EVENT_NAME" != "pull_request_target" ]; then
-            HEAD_SHA="${CHECK_HEAD_SHA:-${STATUS_SHA:-}}"
+            HEAD_SHA="${CHECK_HEAD_SHA:-}"
             if [[ ! "$HEAD_SHA" =~ ^[0-9a-f]{40}$ ]]; then
               echo "::error::Event is missing a full commit SHA."
               exit 1
@@ -98,10 +98,11 @@ jobs:
             if [ -z "$PR_NUMBER" ]; then
               echo "No open same-repository PR against ${DEFAULT_BRANCH} for ${HEAD_SHA}."
               echo "state=success" >> "$GITHUB_OUTPUT"
+              echo "conclusion=success" >> "$GITHUB_OUTPUT"
               echo "context=karen-qa-or-data-only" >> "$GITHUB_OUTPUT"
               echo "description=No matching open PR" >> "$GITHUB_OUTPUT"
               echo "head_sha=${HEAD_SHA}" >> "$GITHUB_OUTPUT"
-              echo "skip_status=true" >> "$GITHUB_OUTPUT"
+              echo "skip_check=true" >> "$GITHUB_OUTPUT"
               exit 0
             fi
           fi
@@ -111,69 +112,119 @@ jobs:
             exit 1
           fi
 
+          # Read the head SHA, then the file list, then re-check that the head is unchanged.
           gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" > "$RUNNER_TEMP/pr.json"
-          gh api --paginate "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/files" \
-            > "$RUNNER_TEMP/files.json"
-          LIVE_HEAD="$(jq -r '.head.sha' "$RUNNER_TEMP/pr.json")"
-          if [[ ! "$LIVE_HEAD" =~ ^[0-9a-f]{40}$ ]]; then
+          HEAD_SHA="$(jq -r '.head.sha' "$RUNNER_TEMP/pr.json")"
+          if [[ ! "$HEAD_SHA" =~ ^[0-9a-f]{40}$ ]]; then
             echo "::error::Pull request is missing a full head SHA."
             exit 1
           fi
-          HEAD_SHA="$LIVE_HEAD"
+          BASE_SHA="$(jq -r '.base.sha' "$RUNNER_TEMP/pr.json")"
+          if [[ ! "$BASE_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::Pull request is missing a full base SHA."
+            exit 1
+          fi
 
-          gh api --paginate "repos/${GITHUB_REPOSITORY}/commits/${HEAD_SHA}/statuses" \
-            > "$RUNNER_TEMP/statuses.json"
+          gh api --paginate "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/files" \
+            > "$RUNNER_TEMP/files.json"
+
+          gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" > "$RUNNER_TEMP/pr-after-files.json"
+          OBSERVED_HEAD="$(jq -r '.head.sha' "$RUNNER_TEMP/pr-after-files.json")"
+          if [ "$OBSERVED_HEAD" != "$HEAD_SHA" ]; then
+            echo "::error::Head SHA changed while reading the file list."
+            exit 1
+          fi
+
+          gh api --paginate "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/commits" \
+            > "$RUNNER_TEMP/commits.json"
           gh api --paginate "repos/${GITHUB_REPOSITORY}/commits/${HEAD_SHA}/check-runs" \
             --jq '.check_runs[]' | jq -s '.' > "$RUNNER_TEMP/check-runs.json"
+
+          HEAD_TREE_SHA="$(gh api "repos/${GITHUB_REPOSITORY}/git/commits/${HEAD_SHA}" --jq '.tree.sha')"
+          BASE_TREE_SHA="$(gh api "repos/${GITHUB_REPOSITORY}/git/commits/${BASE_SHA}" --jq '.tree.sha')"
+          gh api "repos/${GITHUB_REPOSITORY}/git/trees/${HEAD_TREE_SHA}?recursive=1" \
+            > "$RUNNER_TEMP/head-tree.json"
+          gh api "repos/${GITHUB_REPOSITORY}/git/trees/${BASE_TREE_SHA}?recursive=1" \
+            > "$RUNNER_TEMP/base-tree.json"
 
           set +e
           python3 scripts/karen_qa_or_data_only.py \
             --author-login "$(jq -r '.user.login' "$RUNNER_TEMP/pr.json")" \
+            --author-type "$(jq -r '.user.type' "$RUNNER_TEMP/pr.json")" \
             --head-branch "$(jq -r '.head.ref' "$RUNNER_TEMP/pr.json")" \
             --base-branch "$(jq -r '.base.ref' "$RUNNER_TEMP/pr.json")" \
             --repository "$GITHUB_REPOSITORY" \
             --head-repository "$(jq -r '.head.repo.full_name // ""' "$RUNNER_TEMP/pr.json")" \
             --head-sha "$HEAD_SHA" \
+            --observed-head-sha "$OBSERVED_HEAD" \
+            --changed-files "$(jq -r '.changed_files' "$RUNNER_TEMP/pr.json")" \
             --expected-base-branch "$DEFAULT_BRANCH" \
             --files-json "$RUNNER_TEMP/files.json" \
-            --statuses-json "$RUNNER_TEMP/statuses.json" \
+            --commits-json "$RUNNER_TEMP/commits.json" \
+            --head-tree-json "$RUNNER_TEMP/head-tree.json" \
+            --base-tree-json "$RUNNER_TEMP/base-tree.json" \
             --check-runs-json "$RUNNER_TEMP/check-runs.json" \
             --github-output "$GITHUB_OUTPUT"
           STATUS=$?
           set -e
           echo "head_sha=${HEAD_SHA}" >> "$GITHUB_OUTPUT"
           echo "pr_number=${PR_NUMBER}" >> "$GITHUB_OUTPUT"
-          echo "skip_status=false" >> "$GITHUB_OUTPUT"
+          echo "skip_check=false" >> "$GITHUB_OUTPUT"
           if [ "$STATUS" -ne 0 ]; then
             echo "decision_failed=true" >> "$GITHUB_OUTPUT"
           else
             echo "decision_failed=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Post karen-qa-or-data-only on the exact head
-        if: steps.decide.outputs.skip_status != 'true'
+      - name: Create karen-qa-or-data-only check run on the exact head
+        if: steps.decide.outputs.skip_check != 'true'
         env:
+          CONCLUSION: ${{ steps.decide.outputs.conclusion }}
           DESCRIPTION: ${{ steps.decide.outputs.description }}
           GH_TOKEN: ${{ github.token }}
           HEAD_SHA: ${{ steps.decide.outputs.head_sha }}
-          STATE: ${{ steps.decide.outputs.state }}
+          PR_NUMBER: ${{ steps.decide.outputs.pr_number }}
+          REASON: ${{ steps.decide.outputs.reason }}
         shell: bash
         run: |
           set -euo pipefail
           if [[ ! "$HEAD_SHA" =~ ^[0-9a-f]{40}$ ]]; then
-            echo "::error::Refusing to post a status without a full head SHA."
+            echo "::error::Refusing to create a check run without a full head SHA."
             exit 1
           fi
-          if [ "$STATE" != "success" ] && [ "$STATE" != "failure" ]; then
-            echo "::error::Decision did not produce a success or failure state."
+          if [ "$CONCLUSION" != "success" ] && [ "$CONCLUSION" != "failure" ]; then
+            echo "::error::Decision did not produce a success or failure conclusion."
             exit 1
           fi
-          gh api --method POST "repos/${GITHUB_REPOSITORY}/statuses/${HEAD_SHA}" \
-            -f state="$STATE" \
-            -f context="karen-qa-or-data-only" \
-            -f description="${DESCRIPTION:0:140}" \
-            -f target_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
-          if [ "$STATE" != "success" ]; then
-            echo "::error::needs karen-qa on ${HEAD_SHA} from Karen QA app"
+
+          # Re-check that the head is unchanged before creating the check run.
+          LIVE_HEAD="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" --jq '.head.sha')"
+          if [ "$LIVE_HEAD" != "$HEAD_SHA" ]; then
+            echo "::error::Head SHA changed before the check run was created."
+            exit 1
+          fi
+
+          DETAILS_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          TITLE="${DESCRIPTION:0:255}"
+          SUMMARY="${REASON:-$DESCRIPTION}"
+          jq -n \
+            --arg name "karen-qa-or-data-only" \
+            --arg head_sha "$HEAD_SHA" \
+            --arg conclusion "$CONCLUSION" \
+            --arg details_url "$DETAILS_URL" \
+            --arg title "$TITLE" \
+            --arg summary "$SUMMARY" \
+            '{
+              name: $name,
+              head_sha: $head_sha,
+              status: "completed",
+              conclusion: $conclusion,
+              details_url: $details_url,
+              output: {title: $title, summary: $summary}
+            }' > "$RUNNER_TEMP/check-run.json"
+          gh api --method POST "repos/${GITHUB_REPOSITORY}/check-runs" \
+            --input "$RUNNER_TEMP/check-run.json"
+          if [ "$CONCLUSION" != "success" ]; then
+            echo "::error::needs karen-qa on ${HEAD_SHA} from Karen QA app ${KAREN_QA_APP_ID}"
             exit 1
           fi
