@@ -3166,6 +3166,92 @@ class SyncCveCatalogTests(unittest.TestCase):
                 page_size=1,
             )
 
+    def test_nvd_api_catchup_skips_truncated_pages_without_advancing_watermark(self) -> None:
+        feeds = [
+            {
+                "year": 2026,
+                "metadata": {"lastModifiedDate": "2026-10-16T03:00:20-04:00"},
+            }
+        ]
+
+        def truncated(_url: str, **_: object) -> bytes:
+            raise catalog.IncompleteRead(b"partial lastMod page", 1024)
+
+        records, metadata = catalog.fetch_nvd_api_catchup(
+            feeds,
+            end=catalog.parse_nvd_datetime("2026-10-21T16:00:00Z"),
+            fetch=truncated,
+            sleeper=lambda _: None,
+        )
+
+        self.assertEqual(records, {})
+        self.assertEqual(metadata["records"], 0)
+        self.assertIn("not retrievable", metadata["skipped"])
+        self.assertNotIn("latest_record_modified", metadata)
+
+        _, stamp = catalog.build_outputs(
+            [],
+            start_date=START_DATE,
+            end_date=END_DATE,
+            feed_sources=complete_feed_sources(0),
+            kev_data={
+                "catalogVersion": "2026.10.16",
+                "dateReleased": "2026-10-21T19:00:31Z",
+                "vulnerabilities": [],
+            },
+            kev_payload=b"{}\n",
+            archetypes=archetype_payload(),
+            existing={},
+            nvd_api_catchup={
+                **metadata,
+                "latest_merged_record_modified": None,
+            },
+        )
+        self.assertEqual(stamp["catalog_updated_at"], "2026-07-01T00:00:00Z")
+
+    def test_nvd_api_truncated_later_page_discards_the_partial_window(self) -> None:
+        feeds = [
+            {
+                "year": 2026,
+                "metadata": {"lastModifiedDate": "2026-10-16T03:00:20-04:00"},
+            }
+        ]
+
+        def fetch_page(url: str, **_: object) -> bytes:
+            query = parse_qs(urlparse(url).query)
+            index = int(query["startIndex"][0])
+            if index != 0:
+                raise catalog.IncompleteRead(b"partial lastMod page", 1024)
+            return json.dumps(
+                {
+                    "resultsPerPage": 1,
+                    "startIndex": 0,
+                    "totalResults": 2,
+                    "vulnerabilities": [
+                        {
+                            "cve": {
+                                "id": "CVE-2026-88888",
+                                "lastModified": "2026-10-21T12:00:00.000Z",
+                                "published": "2026-10-18T12:00:00.000Z",
+                            }
+                        }
+                    ],
+                }
+            ).encode("utf-8")
+
+        records, metadata = catalog.fetch_nvd_api_catchup(
+            feeds,
+            end=catalog.parse_nvd_datetime("2026-10-21T16:00:00Z"),
+            fetch=fetch_page,
+            sleeper=lambda _: None,
+            page_size=1,
+        )
+
+        self.assertEqual(records, {})
+        self.assertEqual(metadata["records"], 0)
+        self.assertIn("not retrievable", metadata["skipped"])
+        self.assertNotIn("latest_record_modified", metadata)
+
     def test_nvd_lastmod_windows_split_at_120_days(self) -> None:
         start = catalog.parse_nvd_datetime("2026-01-01T00:00:00Z")
         end = catalog.parse_nvd_datetime("2026-06-02T00:00:00Z")
