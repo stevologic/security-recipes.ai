@@ -256,6 +256,11 @@ class CveSyncWorkflowTests(unittest.TestCase):
             '"$current_main_sha" != "$merge_commit_sha"', delivery_step
         )
         self.assertIn("gh_api_with_retry()", delivery_step)
+        self.assertIn("publish_required_merge_statuses", delivery_step)
+        self.assertIn("rules/branches/${GITHUB_DEFAULT_BRANCH}", delivery_step)
+        self.assertIn("karen-qa", delivery_step)
+        self.assertIn("Required status check", delivery_step)
+        self.assertRegex(self.workflow, r"(?m)^\s{2}statuses: write\s*$")
         self.assertNotIn("gh api --retry", delivery_step)
         self.assertNotIn("--retry-delay", delivery_step)
         self.assertEqual(delivery_step.count("dispatch_main_build_after_merge"), 4)

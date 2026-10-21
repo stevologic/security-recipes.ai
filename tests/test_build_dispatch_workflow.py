@@ -49,6 +49,21 @@ class BuildDispatchWorkflowTests(unittest.TestCase):
         self.assertIn("branches: [main, development]", self.workflow)
         self.assertNotIn('BASE_URL="https://dev.security-recipes.ai/"', self.workflow)
 
+    def test_emits_the_required_karen_qa_context_after_a_green_build(self) -> None:
+        self.assertIn("\n  karen-qa:\n", self.workflow)
+        karen_qa = self.workflow.split("\n  karen-qa:\n", 1)[1]
+        self.assertRegex(karen_qa, r"(?m)^\s{4}name: karen-qa\s*$")
+        self.assertRegex(karen_qa, r"(?m)^\s{4}needs: build\s*$")
+        self.assertIn("required karen-qa context", karen_qa)
+        self.assertLess(
+            self.workflow.index("\n  publish:\n"),
+            self.workflow.index("\n  karen-qa:\n"),
+        )
+        self.assertLess(
+            self.workflow.index("\n  karen-qa:\n"),
+            self.workflow.index("\n  kick-automation:\n"),
+        )
+
     def test_dispatch_completion_kicks_shepherd_and_search_indexing(self) -> None:
         self.assertIn("kick-automation:", self.workflow)
         self.assertIn(
