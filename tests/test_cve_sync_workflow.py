@@ -46,28 +46,68 @@ class CveSyncWorkflowTests(unittest.TestCase):
         self.assertIn("comma or space separated", dispatch)
         self.assertIn("PRIORITY_CVE_IDS: ${{ inputs.priority_cve_ids || '' }}", sync_step)
         self.assertIn('--priority-cve-ids "$PRIORITY_CVE_IDS"', sync_step)
-        self.assertIn("XAI_ENRICHMENT_LIMIT", self.workflow)
+        self.assertIn("CVE_ENRICHMENT_LIMIT", self.workflow)
+        self.assertIn("vars.CVE_ENRICH_MODEL || 'grok-4.7'", self.workflow)
+        self.assertIn("OPENAI_DAYBREAK_PROGRAM: ${{ vars.OPENAI_DAYBREAK_PROGRAM || '' }}", self.workflow)
+        self.assertNotIn("OPENAI_ENRICHMENT_LIMIT", self.workflow)
+        self.assertNotIn("OPENAI_MODEL", self.workflow)
+        self.assertNotIn("XAI_ENRICHMENT_LIMIT", self.workflow)
+        self.assertNotIn("XAI_MODEL", self.workflow)
 
-    def test_xai_secret_is_optional_and_never_printed(self) -> None:
+    def test_openai_secret_is_optional_and_never_printed(self) -> None:
         sync_step = self.step(
             "Synchronize and optionally enrich exact rolling ten-year catalog"
+        )
+        self.assertIn(
+            "OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}", sync_step
         )
         self.assertIn(
             "XAI_API_KEY: ${{ secrets.XAI_API_KEY }}", sync_step
         )
         self.assertEqual(
-            self.workflow.count("XAI_API_KEY: ${{ secrets.XAI_API_KEY }}"), 1
+            self.workflow.count("OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}"), 2
         )
-        self.assertNotIn("XAI_API_KEY", self.workflow.split("steps:", 1)[0])
-        self.assertNotIn("OPENAI_API_KEY", self.workflow)
+        self.assertEqual(
+            self.workflow.count("XAI_API_KEY: ${{ secrets.XAI_API_KEY }}"), 2
+        )
+        self.assertNotIn("OPENAI_API_KEY", self.workflow.split("jobs:", 1)[0])
+        self.assertNotIn("XAI_API_KEY", self.workflow.split("jobs:", 1)[0])
         self.assertIn(
-            "New xAI requests skipped; valid cached enrichments retained",
+            "New enrichment requests skipped; valid cached enrichments retained",
             self.workflow,
         )
         self.assertNotRegex(self.workflow, r"\bsk-[A-Za-z0-9_-]{12,}")
-        self.assertNotIn('echo "$XAI_API_KEY"', self.workflow)
-        self.assertNotIn("print(os.environ['XAI_API_KEY'])", self.workflow)
-        self.assertNotIn('print(os.environ["XAI_API_KEY"])', self.workflow)
+        self.assertNotIn('echo "$OPENAI_API_KEY"', self.workflow)
+        self.assertNotIn("print(os.environ['OPENAI_API_KEY'])", self.workflow)
+        self.assertNotIn('print(os.environ["OPENAI_API_KEY"])', self.workflow)
+        self.assertNotIn('echo "$OPENAI_DAYBREAK_PROGRAM"', self.workflow)
+
+    def test_daybreak_probe_input_skips_the_catalog_sync(self) -> None:
+        dispatch = self.workflow.split("permissions:", 1)[0]
+        probe_step = self.step("Probe configured enrichment provider")
+        self.assertRegex(dispatch, r"(?m)^\s{6}daybreak_probe:\s*$")
+        self.assertIn("type: boolean", dispatch)
+        self.assertIn(
+            "if: github.event_name == 'workflow_dispatch' && inputs.daybreak_probe",
+            self.workflow,
+        )
+        self.assertIn(
+            "if: github.event_name != 'workflow_dispatch' || !inputs.daybreak_probe",
+            self.workflow,
+        )
+        self.assertIn("python scripts/probe_openai_daybreak.py", probe_step)
+        self.assertIn("XAI_API_KEY: ${{ secrets.XAI_API_KEY }}", probe_step)
+        self.assertIn("OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}", probe_step)
+        self.assertNotIn("scripts/sync_cve_catalog.py", probe_step)
+        self.assertIn("- name: Checkout selected branch", self.workflow)
+        self.assertNotIn(
+            "ref: ${{ github.event.repository.default_branch }}",
+            self.step("Checkout selected branch"),
+        )
+        self.assertLess(
+            self.workflow.index("daybreak-probe:"),
+            self.workflow.index("\n  sync:"),
+        )
 
     def test_nvd_api_key_is_optional_and_never_printed(self) -> None:
         sync_step = self.step(

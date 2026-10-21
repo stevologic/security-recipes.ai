@@ -9,7 +9,7 @@ access token is required.
 | Workflow | Trigger | Responsibility |
 | --- | --- | --- |
 | Build (`build.yml`) | push to main or development, PRs, dispatch | Full test/build/image gate; publishes immutable deploy images on non-PR runs (`:SHA` for main, `:SHA-development` for staging) |
-| CVE catalog sync (`cve-catalog-sync.yml`) | daily 09:23 UTC | Refreshes the rolling ten-year CVE catalog, runs xAI/Grok enrichment and recipe drafts, opens/merges its own PR through exact-SHA validation |
+| CVE catalog sync (`cve-catalog-sync.yml`) | daily 09:23 UTC | Refreshes the rolling ten-year CVE catalog, runs OpenAI enrichment and recipe drafts, opens/merges its own PR through exact-SHA validation |
 | Content refresh (`content-refresh.yml`) | daily 11:47 UTC | Researches one source-backed opportunity across reviewed remediation workflows, executable playbooks, or non-CVE recipes and submits a validated auto-merge PR when a substantive update is warranted |
 | Leftover review (`leftover-review.yml`) | daily 13:17 UTC | Live-verifies leftover-gold CVE leftovers against GHAD/NVD; leftover-gold criticals and highs drain first, then each run reviews up to 25 leftover-gold medium and low pages and submits a validated auto-merge PR |
 | CVE catalog validation request (`cve-catalog-validate-request.yml`) | dispatch only | Verifies that an exact SHA is the live head of the requested same-repository PR without checking out or executing PR code |
@@ -23,14 +23,16 @@ access token is required.
 
 ## Intelligence
 
-GitHub Actions is the clock and host. Grok is the only billed brain.
-`XAI_API_KEY` is the only billed-AI Actions secret those jobs read.
-Optional `NVD_API_KEY` is passed only into the catalog sync step so
-lastMod catch-up can use the authenticated NVD rate limit.
+GitHub Actions is the clock and host. Catalog enrichment defaults to
+xAI `grok-4.7` via `CVE_ENRICH_MODEL`. OpenAI/Daybreak stay dormant
+behind that same variable. Grok remains the billed brain for the
+other first-party jobs below. Optional `NVD_API_KEY` is passed only
+into the catalog sync step so lastMod catch-up can use the
+authenticated NVD rate limit.
 
 | Job | Host | Brain |
 | --- | --- | --- |
-| CVE catalog enrichment | Actions (`cve-catalog-sync.yml`) | xAI Responses API (`grok-4.6`) |
+| CVE catalog enrichment | Actions (`cve-catalog-sync.yml`) | xAI Responses API (`grok-4.7` unless `CVE_ENRICH_MODEL` is set; OpenAI/Daybreak via `gpt-6-sol+daybreak_blue`) |
 | Security health | Actions (`security-health.yml`) | xAI/Grok |
 | Leftover review | Actions (`leftover-review.yml`) | Grok Build CLI |
 | Content refresh | Actions (`content-refresh.yml`) | Grok Build CLI |
@@ -130,9 +132,12 @@ confirms the production handoff landed. Never put `secrets` in a workflow
 
 | Item | Kind | Status | Purpose |
 | --- | --- | --- | --- |
-| `XAI_API_KEY` | secret | must be added | The only billed-AI secret. CVE enrichment and recipe drafts, this repository's security-health action, leftover-gold review, content refresh, AI maintenance, and AI issue maintenance all use Grok through this name. Official xAI and this repo's existing `xai` provider both use it. |
-| `XAI_MODEL` | variable | optional, defaults to `grok-4.6` | Model id for enrichment, Grok CLI jobs, and the remediations suite. Bump when xAI publishes a newer coding model. |
-| `OPENAI_API_KEY` | secret | unused by first-party workflows | Safe to remove from GitHub Actions after this change lands. Public Codex recipes on the site are reader documentation, not CI. |
+| `XAI_API_KEY` | secret | must be added | Billed Grok secret for catalog enrichment (`CVE_ENRICH_MODEL=grok-4.7`), leftover-gold review, content refresh, AI maintenance, AI issue maintenance, and this repository's security-health action. |
+| `XAI_MODEL` | variable | optional, defaults to `grok-4.6` | Model id for Grok CLI jobs and the remediations suite. Bump when xAI publishes a newer coding model. Independent of catalog `CVE_ENRICH_MODEL`. |
+| `CVE_ENRICH_MODEL` | variable | optional, defaults to `grok-4.7` | Single catalog provider/model switch. `grok-*` uses xAI/`XAI_API_KEY`. `gpt-*` uses OpenAI/`OPENAI_API_KEY`. Daybreak later: `gpt-6-sol+daybreak_blue`. |
+| `OPENAI_API_KEY` | secret | optional until Daybreak | Existing Actions secret used only when `CVE_ENRICH_MODEL` selects an OpenAI model. |
+| `OPENAI_DAYBREAK_PROGRAM` | variable | optional, unset by default | OpenAI-only overlay when `CVE_ENRICH_MODEL` is a `gpt-*` model without a `+program` suffix. Ignored for `grok-*`. |
+| `CVE_ENRICHMENT_LIMIT` | variable | optional, defaults to `20` | Hard-bounded 0–50 new or source-changed CVEs enriched per catalog sync. |
 | `DIGITALOCEAN_ACCESS_TOKEN` | secret or droplet `deploy.env` | optional | Lets deploy.sh and the Dev DNS record workflow create `dev.security-recipes.ai` |
 | `CVE_AUTO_MERGE_ENABLED` | variable | `true` | Lets the catalog sync merge its own PR |
 | `CVE_AUTOMATION_APP_CLIENT_ID` / `CVE_AUTOMATION_APP_PRIVATE_KEY` | variable / secret | optional | A dedicated GitHub App; when configured, its pushes trigger normal CI events and the dispatch workarounds above become unnecessary |

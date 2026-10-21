@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
-"""Bounded, evidence-constrained xAI/Grok enrichment for normalized CVE records.
+"""Bounded, evidence-constrained Responses API enrichment for normalized CVE records.
 
-The NVD/CISA record remains authoritative.  This module adds a supplemental
-``ai_enrichment`` object only; it never changes CVSS, KEV, affected-version,
-archetype, or reviewed Markdown fields.
+Catalog sync selects a Responses API provider from ``CVE_ENRICH_MODEL``
+(default ``grok-4.7`` / xAI). OpenAI and Daybreak stay available behind that
+same config. Leftover-review and other Grok CLI jobs still use the xAI helpers
+independently. The NVD/CISA record remains authoritative. This module adds a
+supplemental ``ai_enrichment`` object only; it never changes CVSS, KEV,
+affected-version, archetype, or reviewed Markdown fields.
 """
 
 from __future__ import annotations
@@ -27,15 +30,30 @@ from urllib.request import Request, urlopen
 CACHE_SCHEMA_VERSION = 2
 ENRICHMENT_SCHEMA_VERSION = 2
 PROMPT_VERSION = "2026-07-14.2"
-DEFAULT_MODEL = "grok-4.6"
+DEFAULT_XAI_MODEL = "grok-4.6"
+DEFAULT_MODEL = DEFAULT_XAI_MODEL
+DEFAULT_CVE_ENRICH_MODEL = "grok-4.7"
+DEFAULT_OPENAI_MODEL = "gpt-5.6-luna"
 DEFAULT_API_URL = "https://api.x.ai/v1/responses"
 OPENAI_API_URL = "https://api.openai.com/v1/responses"
 API_KEY_ENV = "XAI_API_KEY"
 OPENAI_API_KEY_ENV = "OPENAI_API_KEY"
+CVE_ENRICH_MODEL_ENV = "CVE_ENRICH_MODEL"
+DAYBREAK_PROGRAM_ENV = "OPENAI_DAYBREAK_PROGRAM"
+DAYBREAK_PROGRAMS = frozenset({"standard", "daybreak_blue", "daybreak_red"})
+RECOMMENDED_DAYBREAK_PROGRAM = "daybreak_blue"
+RECOMMENDED_DAYBREAK_MODEL = "gpt-6-sol"
+RECOMMENDED_DAYBREAK_SPEC = f"{RECOMMENDED_DAYBREAK_MODEL}+{RECOMMENDED_DAYBREAK_PROGRAM}"
+DAYBREAK_ENTITLEMENT_MARKERS = (
+    "invalid_access_program",
+    "unsupported_access_program",
+    "access_program_not_enabled",
+)
 DEFAULT_REQUEST_LIMIT = 20
 MAX_REQUEST_LIMIT = 50
 DEFAULT_REQUEST_ATTEMPTS = 2
 TIMEOUT_ENV = "XAI_ENRICHMENT_TIMEOUT"
+OPENAI_TIMEOUT_ENV = "OPENAI_ENRICHMENT_TIMEOUT"
 DEFAULT_REQUEST_TIMEOUT = 180
 MAX_CONSECUTIVE_FAILURES = 3
 MAX_ENRICHMENT_SECONDS = 15 * 60
@@ -67,6 +85,7 @@ PROVIDER_ERROR_CATEGORIES = {
     "invalid_key_format": "configuration",
     "invalid_key": "authentication",
     "permission_denied": "permissions",
+    "daybreak_entitlement": "access_program",
     "insufficient_quota": "billing",
     "rate_limited": "rate_limit",
     "http_error": "provider_error",
@@ -191,16 +210,111 @@ OUTPUT_SCHEMA: dict[str, Any] = {
 }
 
 
-def request_timeout_seconds(raw: str | None = None) -> int:
-    value = os.environ.get(TIMEOUT_ENV, "") if raw is None else raw
+def normalize_daybreak_program(raw: str | None) -> str | None:
+    """Return a Responses API cyber program, or None when Daybreak is unset."""
+
+    value = str(raw or "").strip().lower()
+    if not value:
+        return None
+    if value not in DAYBREAK_PROGRAMS:
+        raise ValueError(
+            f"{DAYBREAK_PROGRAM_ENV} must be one of "
+            + ", ".join(sorted(DAYBREAK_PROGRAMS))
+        )
+    return value
+
+
+@dataclass(frozen=True)
+class EnrichmentTarget:
+    """Resolved catalog enrichment backend from one ``CVE_ENRICH_MODEL`` value."""
+
+    provider: str
+    model: str
+    access_program: str | None
+    raw: str
+
+    @property
+    def api_key_env(self) -> str:
+        return OPENAI_API_KEY_ENV if self.provider == "openai" else API_KEY_ENV
+
+    @property
+    def provider_label(self) -> str:
+        return "OpenAI" if self.provider == "openai" else "xAI"
+
+    @property
+    def api_url(self) -> str:
+        return OPENAI_API_URL if self.provider == "openai" else DEFAULT_API_URL
+
+
+def parse_cve_enrich_model(
+    raw: str | None,
+    *,
+    overlay_program: str | None = None,
+) -> EnrichmentTarget:
+    """Parse ``[<provider>/]<model>[+<daybreak_program>]`` and derive the backend.
+
+    ``grok-*`` selects xAI and ``XAI_API_KEY``. ``gpt-*`` selects OpenAI and
+    ``OPENAI_API_KEY``. An optional ``+daybreak_blue`` suffix (or an OpenAI-only
+    overlay program) keeps Daybreak dormant until the model spec is switched.
+    """
+
+    original = "" if raw is None else str(raw).strip()
+    value = original or DEFAULT_CVE_ENRICH_MODEL
+    program_text = ""
+    if "+" in value:
+        value, program_text = value.rsplit("+", 1)
+        value = value.strip()
+        program_text = program_text.strip()
+    provider = ""
+    model = value
+    if "/" in value:
+        prefix, rest = value.split("/", 1)
+        prefix_key = prefix.strip().casefold()
+        if prefix_key not in {"xai", "openai"}:
+            raise ValueError(
+                f"{CVE_ENRICH_MODEL_ENV} provider must be xai or openai, not {prefix!r}"
+            )
+        provider = prefix_key
+        model = rest.strip()
+    if not model:
+        raise ValueError(f"{CVE_ENRICH_MODEL_ENV} is missing a model id")
+    if not provider:
+        folded = model.casefold()
+        if folded.startswith("grok-"):
+            provider = "xai"
+        elif folded.startswith("gpt-"):
+            provider = "openai"
+        else:
+            raise ValueError(
+                f"cannot derive enrichment provider from model {model!r}"
+            )
+    program = normalize_daybreak_program(program_text or None)
+    if program is None and provider == "openai":
+        program = normalize_daybreak_program(overlay_program)
+    if program is not None and provider != "openai":
+        raise ValueError(
+            "Daybreak access programs require an OpenAI CVE_ENRICH_MODEL"
+        )
+    return EnrichmentTarget(
+        provider=provider,
+        model=model,
+        access_program=program,
+        raw=original or DEFAULT_CVE_ENRICH_MODEL,
+    )
+
+
+def request_timeout_seconds(
+    raw: str | None = None, *, env_name: str = TIMEOUT_ENV
+) -> int:
+    value = os.environ.get(env_name, "") if raw is None else raw
     if value is None or str(value).strip() == "":
         return DEFAULT_REQUEST_TIMEOUT
     try:
         parsed = int(str(value).strip())
     except ValueError as exc:
-        raise ValueError(f"{TIMEOUT_ENV} must be a positive integer") from exc
+        raise ValueError(f"{env_name} must be a positive integer") from exc
     if parsed < 1:
-        raise ValueError(f"{TIMEOUT_ENV} must be a positive integer")
+        raise ValueError(f"{env_name} must be a positive integer")
     return parsed
 
 
@@ -268,6 +382,12 @@ class ProviderCredentialStatus:
                 "until the key permissions, model access, or team restrictions are resolved. "
                 "This response does not establish that the API key is invalid."
             )
+        if self.reason == "daybreak_entitlement":
+            return (
+                "Daybreak entitlement missing; optional OpenAI enrichment is inactive "
+                f"until {CVE_ENRICH_MODEL_ENV} is an entitled Daybreak spec "
+                f"(for example {RECOMMENDED_DAYBREAK_SPEC})."
+            )
         return f"{self.env_name} is not usable ({self.reason})."
 
 
@@ -292,6 +412,10 @@ def classify_provider_http_error(exc: HTTPError) -> str:
         return "invalid_key"
     if any(marker in snippet for marker in QUOTA_ERROR_MARKERS):
         return "insufficient_quota"
+    if exc.code in {400, 403} and any(
+        marker in snippet for marker in DAYBREAK_ENTITLEMENT_MARKERS
+    ):
+        return "daybreak_entitlement"
     if exc.code == 403:
         return "permission_denied"
     if exc.code == 429:
@@ -308,6 +432,8 @@ def probe_provider_credentials(
     provider: str = "xAI",
     opener: Callable[..., Any] | None = None,
     timeout: int = 30,
+    user_agent: str | None = None,
+    access_program: str | None = None,
 ) -> ProviderCredentialStatus:
     """Classify whether the configured provider key can serve billed requests."""
 
@@ -319,11 +445,15 @@ def probe_provider_credentials(
         return ProviderCredentialStatus("invalid_key_format", usable=False, **status_kwargs)
     if opener is None:
         opener = urlopen
+    fallback_model = DEFAULT_OPENAI_MODEL if provider == "OpenAI" else DEFAULT_MODEL
     payload = {
-        "model": normalize_text(model, limit=160) or DEFAULT_MODEL,
+        "model": normalize_text(model, limit=160) or fallback_model,
         "input": "ok",
         "max_output_tokens": 16,
     }
+    program = normalize_daybreak_program(access_program)
+    if program:
+        payload["access_programs"] = {"cyber": program}
     request = Request(
         api_url,
         data=json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8"),
@@ -332,7 +462,8 @@ def probe_provider_credentials(
             "Authorization": f"Bearer {key}",
             "Content-Type": "application/json",
             "Accept": "application/json",
-            "User-Agent": "security-recipes.ai/xai-credential-check",
+            "User-Agent": user_agent
+            or f"security-recipes.ai/{provider.lower()}-credential-check",
         },
     )
     try:
@@ -342,7 +473,13 @@ def probe_provider_credentials(
         reason = classify_provider_http_error(exc)
         return ProviderCredentialStatus(
             reason,
-            usable=reason not in {"insufficient_quota", "invalid_key", "permission_denied"},
+            usable=reason
+            not in {
+                "insufficient_quota",
+                "invalid_key",
+                "permission_denied",
+                "daybreak_entitlement",
+            },
             http_status=exc.code,
             **status_kwargs,
         )
@@ -375,10 +512,11 @@ def probe_xai_credentials(
 def probe_openai_credentials(
     api_key: str,
     *,
-    model: str = "gpt-5.6-luna",
+    model: str = DEFAULT_OPENAI_MODEL,
     api_url: str = OPENAI_API_URL,
     opener: Callable[..., Any] | None = None,
     timeout: int = 30,
+    access_program: str | None = None,
 ) -> ProviderCredentialStatus:
     """Classify whether an OpenAI key can still serve billed OpenAI requests."""
 
@@ -390,7 +528,65 @@ def probe_openai_credentials(
         provider="OpenAI",
         opener=opener,
         timeout=timeout,
+        user_agent="security-recipes.ai/openai-credential-check",
+        access_program=access_program,
     )
+
+
+def probe_daybreak_access(
+    api_key: str,
+    *,
+    model: str = DEFAULT_OPENAI_MODEL,
+    access_program: str | None = None,
+    opener: Callable[..., Any] | None = None,
+    timeout: int = 30,
+) -> tuple[str, int | None]:
+    """Make one Responses call and return ``(ok|denied, http_status)``.
+
+    Prints nothing. Never returns the API key or provider body.
+    """
+
+    status = probe_openai_credentials(
+        api_key,
+        model=model,
+        opener=opener,
+        timeout=timeout,
+        access_program=access_program,
+    )
+    if status.reason == "ready":
+        return "ok", status.http_status if status.http_status is not None else 200
+    return "denied", status.http_status or 0
+
+
+def probe_cve_enrichment_access(
+    api_key: str,
+    *,
+    target: EnrichmentTarget | None = None,
+    model: str | None = None,
+    access_program: str | None = None,
+    opener: Callable[..., Any] | None = None,
+    timeout: int = 30,
+) -> tuple[str, int | None]:
+    """Probe the configured catalog provider. Never returns the key or body."""
+
+    resolved = target or parse_cve_enrich_model(model, overlay_program=access_program)
+    if resolved.provider == "openai":
+        return probe_daybreak_access(
+            api_key,
+            model=resolved.model,
+            access_program=resolved.access_program,
+            opener=opener,
+            timeout=timeout,
+        )
+    status = probe_xai_credentials(
+        api_key,
+        model=resolved.model,
+        opener=opener,
+        timeout=timeout,
+    )
+    if status.reason == "ready":
+        return "ok", status.http_status if status.http_status is not None else 200
+    return "denied", status.http_status or 0
 
 
 def canonical_priority_cve_ids(values: Iterable[str]) -> tuple[str, ...]:
@@ -959,10 +1155,10 @@ def _response_text(response: dict[str, Any]) -> str:
             if not isinstance(content, dict):
                 continue
             if content.get("type") == "refusal":
-                raise EnrichmentError("xAI refused the enrichment request")
+                raise EnrichmentError("provider refused the enrichment request")
             if content.get("type") == "output_text" and isinstance(content.get("text"), str):
                 return content["text"]
-    raise EnrichmentError("xAI response did not contain structured output text")
+    raise EnrichmentError("provider response did not contain structured output text")
 
 
 def _collect_url(found: list[str], candidate: object) -> None:
@@ -1017,13 +1213,13 @@ def build_enrichment_entry(
     generated_at: datetime | None = None,
 ) -> dict[str, Any]:
     if set(raw_output) != OUTPUT_FIELDS:
-        raise EnrichmentError("xAI structured output did not match the required keys")
+        raise EnrichmentError("structured output did not match the required keys")
     retrieved_urls = unique_urls(retrieved_source_urls)
     requested_urls = unique_urls(raw_output.get("source_urls"))
     source_urls = [url for url in requested_urls if url in set(retrieved_urls)]
     status = str(raw_output.get("status") or "").strip()
     if status not in {"complete", "insufficient_evidence"}:
-        raise EnrichmentError("xAI structured output had an invalid status")
+        raise EnrichmentError("structured output had an invalid status")
     business_risk = normalize_text(raw_output.get("business_risk")) or (
         "Available evidence does not establish additional CVE-specific business impact."
     )
@@ -1033,7 +1229,7 @@ def build_enrichment_entry(
     uncertainty = unique_strings(raw_output.get("uncertainty"))
     specificity = normalize_text(raw_output.get("recipe_specificity"), limit=40).lower()
     if specificity not in {"specific", "not_specific"}:
-        raise EnrichmentError("xAI structured output had an invalid recipe_specificity")
+        raise EnrichmentError("structured output had an invalid recipe_specificity")
     claims = unique_claim_evidence(
         raw_output.get("claim_evidence"),
         allowed_urls=set(source_urls),
@@ -1097,16 +1293,27 @@ class XAIEnricher:
         sleep: Callable[[float], None] = time.sleep,
         attempts: int = DEFAULT_REQUEST_ATTEMPTS,
         timeout: int | None = None,
+        provider: str = "xAI",
+        user_agent: str = "security-recipes.ai/cve-ai-enrichment-xai",
+        timeout_env: str = TIMEOUT_ENV,
+        access_program: str | None = None,
     ) -> None:
         if not str(api_key or "").strip():
             raise ValueError("api_key must not be empty")
         self.api_key = str(api_key).strip()
-        self.model = normalize_text(model, limit=160) or DEFAULT_MODEL
+        fallback_model = DEFAULT_OPENAI_MODEL if provider == "OpenAI" else DEFAULT_MODEL
+        self.model = normalize_text(model, limit=160) or fallback_model
         self.api_url = api_url
         self.opener = opener
         self.sleep = sleep
         self.attempts = max(1, attempts)
-        self.timeout = max(1, timeout if timeout is not None else request_timeout_seconds())
+        self.provider = provider
+        self.user_agent = user_agent
+        self.access_program = normalize_daybreak_program(access_program)
+        self.timeout = max(
+            1,
+            timeout if timeout is not None else request_timeout_seconds(env_name=timeout_env),
+        )
 
     def request_payload(self, record: dict[str, Any]) -> dict[str, Any]:
         gaps = completeness_gaps(record)
@@ -1131,7 +1338,7 @@ class XAIEnricher:
             separators=(",", ":"),
             sort_keys=True,
         )
-        return {
+        payload = {
             "model": self.model,
             "input": [
                 {"role": "developer", "content": developer},
@@ -1148,6 +1355,9 @@ class XAIEnricher:
             },
             "max_output_tokens": 2500,
         }
+        if self.access_program:
+            payload["access_programs"] = {"cyber": self.access_program}
+        return payload
 
     def _post(self, payload: dict[str, Any]) -> dict[str, Any]:
         body = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
@@ -1159,44 +1369,51 @@ class XAIEnricher:
                 "Authorization": f"Bearer {self.api_key}",
                 "Content-Type": "application/json",
                 "Accept": "application/json",
-                "User-Agent": "security-recipes.ai/cve-ai-enrichment-xai",
+                "User-Agent": self.user_agent,
             },
         )
         retryable_codes = {408, 409, 429, 500, 502, 503, 504}
         last_error: BaseException | None = None
+        label = f"{self.provider} Responses API"
         for attempt in range(self.attempts):
             try:
                 with self.opener(request, timeout=self.timeout) as response:
                     raw = response.read(MAX_RESPONSE_BYTES + 1)
                 if len(raw) > MAX_RESPONSE_BYTES:
-                    raise EnrichmentError("xAI response exceeded the size limit")
+                    raise EnrichmentError("provider response exceeded the size limit")
                 parsed = json.loads(raw)
                 if not isinstance(parsed, dict):
-                    raise EnrichmentError("xAI response was not a JSON object")
+                    raise EnrichmentError("provider response was not a JSON object")
                 return parsed
             except HTTPError as exc:
                 last_error = exc
                 reason = classify_provider_http_error(exc)
                 if reason == "insufficient_quota":
                     raise EnrichmentError(
-                        "xAI Responses API has no remaining credits or has reached a billing limit",
+                        f"{label} has no remaining credits or has reached a billing limit",
                         fatal=True,
                         reason=reason,
                     ) from exc
                 if reason == "invalid_key":
                     raise EnrichmentError(
-                        "xAI Responses API rejected the API key",
+                        f"{label} rejected the API key",
                         fatal=True,
                         reason=reason,
                     ) from exc
                 if reason == "permission_denied":
                     raise EnrichmentError(
-                        "xAI Responses API denied access; check key permissions, model access, and team restrictions",
+                        f"{label} denied access; check key permissions, model access, and team restrictions",
+                        fatal=True,
+                        reason=reason,
+                    ) from exc
+                if reason == "daybreak_entitlement":
+                    raise EnrichmentError(
+                        "Daybreak entitlement missing",
                         fatal=True,
                         reason=reason,
                     ) from exc
                 if exc.code not in retryable_codes or attempt + 1 >= self.attempts:
-                    raise EnrichmentError(f"xAI Responses API returned HTTP {exc.code}") from exc
+                    raise EnrichmentError(f"{label} returned HTTP {exc.code}") from exc
                 retry_after = exc.headers.get("Retry-After") if exc.headers else None
                 delay = float(retry_after) if retry_after and retry_after.isdigit() else float(2**attempt)
                 self.sleep(min(delay, 30.0))
@@ -1204,14 +1421,14 @@ class XAIEnricher:
                 last_error = exc
                 if attempt + 1 >= self.attempts:
                     raise EnrichmentError(
-                        f"xAI Responses API request failed: {type(exc).__name__}",
+                        f"{label} request failed: {type(exc).__name__}",
                         reason="timeout" if _is_timeout_error(exc) else None,
                     ) from exc
                 self.sleep(min(float(2**attempt), 30.0))
             except json.JSONDecodeError as exc:
-                raise EnrichmentError("xAI response was not valid JSON") from exc
+                raise EnrichmentError("provider response was not valid JSON") from exc
         raise EnrichmentError(
-            f"xAI Responses API request failed: {type(last_error).__name__}",
+            f"{label} request failed: {type(last_error).__name__}",
             reason="timeout" if last_error is not None and _is_timeout_error(last_error) else None,
         )
 
@@ -1221,9 +1438,9 @@ class XAIEnricher:
         try:
             output = json.loads(text)
         except json.JSONDecodeError as exc:
-            raise EnrichmentError("xAI structured output text was not valid JSON") from exc
+            raise EnrichmentError("structured output text was not valid JSON") from exc
         if not isinstance(output, dict):
-            raise EnrichmentError("xAI structured output was not an object")
+            raise EnrichmentError("structured output was not an object")
         return build_enrichment_entry(
             record,
             output,
@@ -1232,7 +1449,34 @@ class XAIEnricher:
         )
 
 
-OpenAIEnricher = XAIEnricher
+class OpenAIEnricher(XAIEnricher):
+    """Official OpenAI Responses API client for catalog CVE enrichment."""
+
+    def __init__(
+        self,
+        api_key: str,
+        *,
+        model: str = DEFAULT_OPENAI_MODEL,
+        api_url: str = OPENAI_API_URL,
+        opener: Callable[..., Any] = urlopen,
+        sleep: Callable[[float], None] = time.sleep,
+        attempts: int = DEFAULT_REQUEST_ATTEMPTS,
+        timeout: int | None = None,
+        access_program: str | None = None,
+    ) -> None:
+        super().__init__(
+            api_key,
+            model=model,
+            api_url=api_url,
+            opener=opener,
+            sleep=sleep,
+            attempts=attempts,
+            timeout=timeout,
+            provider="OpenAI",
+            user_agent="security-recipes.ai/cve-ai-enrichment-openai",
+            timeout_env=OPENAI_TIMEOUT_ENV,
+            access_program=access_program,
+        )
 
 
 class EnrichmentCache:
@@ -1392,7 +1636,7 @@ class EnrichmentCache:
                 break
             if deadline is not None and clock() >= deadline:
                 print(
-                    "Optional xAI enrichment time budget was exhausted; source sync will continue.",
+                    "Optional AI enrichment time budget was exhausted; source sync will continue.",
                     file=sys.stderr,
                     flush=True,
                 )
@@ -1410,7 +1654,7 @@ class EnrichmentCache:
                 else:
                     consecutive_errors += 1
                 print(
-                    f"[{cve}] optional xAI enrichment skipped: {exc}",
+                    f"[{cve}] optional AI enrichment skipped: {exc}",
                     file=sys.stderr,
                     flush=True,
                 )
@@ -1427,7 +1671,7 @@ class EnrichmentCache:
                         else f"{consecutive_errors} consecutive failures"
                     )
                     print(
-                        "Optional xAI enrichment circuit breaker opened after "
+                        "Optional AI enrichment circuit breaker opened after "
                         f"{opened_on}; source sync will continue.",
                         file=sys.stderr,
                         flush=True,
