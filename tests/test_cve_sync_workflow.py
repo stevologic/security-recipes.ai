@@ -30,6 +30,12 @@ class CveSyncWorkflowTests(unittest.TestCase):
         self.assertIsNotNone(cron_match, "scheduled cron trigger is missing")
         self.assertEqual(cron_match.group(1), "23 9 * * *")
 
+    def test_overlapping_syncs_share_a_non_canceling_concurrency_group(self) -> None:
+        self.assertRegex(
+            self.workflow,
+            r"(?ms)^concurrency:\s*\n\s*group:\s*cve-catalog-sync\s*\n\s*cancel-in-progress:\s*false\s*$",
+        )
+
     def test_manual_priority_input_is_plumbed_into_the_bounded_sync(self) -> None:
         dispatch = self.workflow.split("permissions:", 1)[0]
         sync_step = self.step(
@@ -276,8 +282,14 @@ class CveSyncWorkflowTests(unittest.TestCase):
         self.assertNotIn("statuses: write", self.workflow)
         self.assertIn("rules/branches/${GITHUB_DEFAULT_BRANCH}", delivery_step)
         self.assertIn("require_karen_qa_from_app", delivery_step)
+        self.assertIn("report_waiting_on_karen_qa", delivery_step)
+        self.assertIn("waiting on karen-qa from the Karen QA app on ${expected_sha}", delivery_step)
+        self.assertIn('report_waiting_on_karen_qa "$EXPECTED_SHA"', delivery_step)
+        self.assertIn("waiting_on_karen_qa=true", delivery_step)
+        self.assertIn("does not post karen-qa", delivery_step)
+        self.assertIn("Leaving catalog PR #${PR_NUMBER} open until karen-qa lands.", delivery_step)
         self.assertIn("needs karen-qa on ${expected_sha} from Karen QA app", delivery_step)
-        self.assertIn("needs karen-qa on ${EXPECTED_SHA} from Karen QA app", delivery_step)
+        self.assertNotIn("::error::needs karen-qa on ${EXPECTED_SHA}", delivery_step)
         self.assertIn(
             "required checks must come from real workflow runs on ${EXPECTED_SHA}",
             delivery_step,
@@ -306,6 +318,13 @@ class CveSyncWorkflowTests(unittest.TestCase):
             delivery_step.index("pulls/${PR_NUMBER}/merge"),
         )
         self.assertIn("steps.safety.outputs.safe_to_merge != 'true'", fail_step)
+        waiting_step = self.step("Explain catalog PR is waiting on karen-qa")
+        self.assertIn(
+            "steps.catalog-delivery.outputs.waiting_on_karen_qa == 'true'",
+            waiting_step,
+        )
+        self.assertIn(r"never posts \`karen-qa\`", waiting_step)
+        self.assertIn("HTTP 405", waiting_step)
 
     def test_enrichment_health_issue_is_upserted_and_closed_on_recovery(self) -> None:
         health_step = self.step("Reconcile enrichment health issue")
