@@ -14,6 +14,7 @@ access token is required.
 | Leftover review (`leftover-review.yml`) | daily 13:17 UTC | Live-verifies leftover-gold CVE leftovers against GHAD/NVD; leftover-gold criticals and highs drain first, then each run reviews up to 25 leftover-gold medium and low pages and submits a validated auto-merge PR |
 | CVE catalog validation request (`cve-catalog-validate-request.yml`) | dispatch only | Verifies that an exact SHA is the live head of the requested same-repository PR without checking out or executing PR code |
 | CVE catalog validation (`cve-catalog-validate.yml`) | dispatch only | Revalidates and runs the build-equivalent suite on the exact catalog SHA. It never posts commit statuses and never emits `karen-qa`. Required merge checks come from real workflow runs |
+| Karen QA or data-only (`karen-qa-or-data-only.yml`) | `pull_request_target` plus Karen QA app check-run completion | Creates a `karen-qa-or-data-only` check run on the exact PR head. Auto-passes only for CVE catalog data from the catalog sync bot. Pipeline code, docs, and MCP servers still need `karen-qa`. Changing this gate still needs `karen-qa` |
 | Production watchdog (`production-watchdog.yml`) | every 30 min | Probes the live site, catalog freshness, revision, and TLS; maintains the health issue; self-heals unbuilt revisions and stale catalogs |
 | Automation shepherd (`automation-shepherd.yml`) | every 30 min | Dispatches missing main Builds after token-authored merges, updates stale auto-merge PR branches, and attaches missing build validations |
 | Dependabot auto-merge (`dependabot-automerge.yml`) | Dependabot PRs | Arms auto-merge for verified patch/minor bumps |
@@ -91,14 +92,44 @@ post commit statuses. Required merge checks come from those real workflow runs.
 
 ## Merge policy
 
-The `main` ruleset requires a PR, a passing `build` context from GitHub
-Actions, and a passing `karen-qa` context posted only by the Karen QA
-GitHub App after human review. Catalog validation never posts commit
-statuses and never emits `karen-qa`. Required merge checks come from real
-workflow runs. Catalog auto-merge waits for that app check on the exact
-head; if it is missing, the sync leaves the catalog PR open and reports
-that it is waiting on `karen-qa` instead of failing the run with an
-opaque HTTP 405. The workflow never self-posts `karen-qa`.
+The `main` ruleset currently requires a PR, a passing `build` context from
+GitHub Actions, and a passing `karen-qa` context posted only by the Karen
+QA GitHub App (integration `5400051`) after human review. Only CVE
+catalog content skips Karen. Pipeline code, docs, and MCP servers still
+need `karen-qa`. `karen-qa-or-data-only.yml` reads the PR Files API (not
+the diff text) and creates a GITHUB_TOKEN check run named
+`karen-qa-or-data-only` on the exact head when the PR author is the CVE
+catalog sync bot (`github-actions[bot]` or `security-recipes-cve-bot[bot]`,
+`user.type == Bot`), the head branch is `automation/cve-catalog-sync`,
+every commit is authored or pushed by that bot, git tree modes are
+regular files (`100644`), and every changed path — including rename
+sources and deletions — is CVE catalog data:
+`static/api/cve-catalog` (`.json` / `.gz`), `data/cve/ai-enrichments.json`,
+`data/cve/ai-generated-recipes.json`, `content/recipes/cve` (`.md` only),
+and `data/evidence` (`.json` only). `mcp-gateway-policy.json`,
+`generated-output-ownership.json`, recipe code such as `cve.11tydata.js`,
+and the CVE pipeline itself are not exempt. The Files API 3000-file cap
+fails closed. The `karen-qa` fallback accepts only the newest result
+from the Karen QA app id `5400051` (or a pinned Karen QA user id).
+Changing `karen-qa-or-data-only.yml`, its evaluator, or the ruleset
+still requires `karen-qa`; the gate cannot exempt itself.
+
+Ruleset change required (do not apply it from the pull request that adds
+this check): replace the required `karen-qa` check on `main` (Karen QA
+app integration `5400051`) with `karen-qa-or-data-only` pinned to GitHub
+Actions integration `15368`. A ruleset required-check entry can set
+`integration_id`; pin `15368` so a plain commit status cannot satisfy
+the check. If that job or check-run name changes, update the ruleset to
+the new name. Requiring both names keeps data-only catalog PRs blocked
+on Karen QA. Do not change the ruleset from this pull request.
+
+Catalog validation never posts commit statuses and never emits
+`karen-qa`. Required merge checks come from real workflow runs. Catalog
+auto-merge waits for the ruleset's required context on the exact head;
+if `karen-qa` is still pinned and missing, the sync leaves the catalog
+PR open and reports that it is waiting on `karen-qa` instead of failing
+the run with an opaque HTTP 405. The catalog sync never self-posts
+`karen-qa`.
 `catalog_updated_at` is the NVD sync watermark (annual-feed lastModifiedDate
 or lastModified of catch-up records actually merged). A KEV-only delta
 must not advance it. A fetched-but-dropped catch-up row must not either.
