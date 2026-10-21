@@ -37,11 +37,11 @@ class PlaybookRegistryTests(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.registry = load_playbook_registry()
 
-    def test_registry_has_75_complete_unique_profiles(self) -> None:
+    def test_registry_has_76_complete_unique_profiles(self) -> None:
         registry = validate_playbook_registry(copy.deepcopy(self.registry))
         playbooks = registry["playbooks"]
-        self.assertEqual(len(playbooks), 75)
-        self.assertEqual(len({item["id"] for item in playbooks}), 75)
+        self.assertEqual(len(playbooks), 76)
+        self.assertEqual(len({item["id"] for item in playbooks}), 76)
         for playbook in playbooks:
             command = playbook["python"]["command"]
             self.assertIn(" playbook start ", f" {command} ")
@@ -337,7 +337,7 @@ class PlaybookCliTests(unittest.TestCase):
     def test_nested_cli_lifecycle_and_exit_codes(self) -> None:
         status, output, error = self._run_cli(["playbook", "list", "--category", "core-remediation"])
         self.assertEqual(status, 0, error)
-        self.assertEqual(json.loads(output)["count"], 8)
+        self.assertEqual(json.loads(output)["count"], 9)
 
         status, output, error = self._run_cli(["playbook", "describe", "--playbook", "base-images"])
         self.assertEqual(status, 0, error)

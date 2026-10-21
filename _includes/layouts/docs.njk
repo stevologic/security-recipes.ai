@@ -29,6 +29,10 @@
   imageWidth: image_width,
   imageHeight: image_height,
   howTo: how_to,
+  headline: headline,
+  about: about,
+  citation: citation,
+  faq: faq,
   breadcrumbParent: breadcrumb_parent,
   sourcePath: sourcePath,
   isHome: false,
@@ -89,7 +93,8 @@
       {% endif %}
     </header>
     {% else %}
-    {% if title and page.url != "/cve-database/" %}<h1 class="sr-page-title">{{ title | presentationText | escape }}</h1>{% endif %}
+    {% set visibleTitle = headline or title %}
+    {% if title and page.url != "/cve-database/" %}<h1 class="sr-page-title">{{ visibleTitle | presentationText | escape }}</h1>{% endif %}
     {% if provenanceModel %}
     <div class="sr-page-provenance">
       <span class="sr-ai-provenance" title="{% if ai_assisted %}AI-enriched{% else %}Tested with{% endif %} {{ provenanceModel | escape }}" aria-label="{% if ai_assisted %}AI-enriched{% else %}Tested with{% endif %} {{ provenanceModel | escape }}">

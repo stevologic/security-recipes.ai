@@ -1003,8 +1003,8 @@ const playbookSources = fs.readdirSync(PLAYBOOK_CONTENT, { withFileTypes: true }
   .map((entry) => entry.name)
   .filter((slug) => fs.existsSync(path.join(PLAYBOOK_CONTENT, slug, "_index.md")))
   .sort();
-if (playbookSources.length !== 75) {
-  fail(`playbook source count is ${playbookSources.length}; expected 75`);
+if (playbookSources.length !== 76) {
+  fail(`playbook source count is ${playbookSources.length}; expected 76`);
 }
 
 let playbookHtmlBytes = 0;

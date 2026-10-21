@@ -28,7 +28,10 @@ function structuredDocument(output) {
 }
 
 function graphEntity(document, type) {
-  return document["@graph"].find((entry) => entry["@type"] === type);
+  return document["@graph"].find((entry) => {
+    const value = entry["@type"];
+    return value === type || (Array.isArray(value) && value.includes(type));
+  });
 }
 
 function metaContent(output, attribute, value) {
@@ -581,6 +584,56 @@ test("semantic page-kind overrides are explicit in the authored front matter", (
   }
 });
 
+test("authored FAQ, headline, about, and citations merge into the existing graph", () => {
+  const output = seoHead({
+    url: "/security-remediation/litellm-1-107-0-compromise-check/",
+    title: "LiteLLM 1.107.0 Backdoor: Check If You're Affected",
+    headline: "Did the LiteLLM backdoor hit your agent stack?",
+    description: "LiteLLM 1.107.0 wheels and Docker images shipped a startup credential stealer.",
+    author: "Stephen M Abbott",
+    keywords: ["litellm 1.107.0", "cook.pth", "supply chain", "credential stealer"],
+    about: [{ type: "SoftwareApplication", name: "LiteLLM", softwareVersion: "1.107.0" }],
+    citation: [
+      "https://github.com/BerriAI/litellm/issues/47826",
+      "https://research.jfrog.com/post/litellm-hijacked-again/",
+    ],
+    faq: [
+      {
+        name: "Which LiteLLM versions are affected?",
+        acceptedAnswer: "litellm 1.107.0: all seven PyPI wheels and the v1.107.0 Docker images.",
+      },
+      {
+        name: "Does it run if I never import litellm?",
+        acceptedAnswer: "Yes. cook.pth contains 'import cook', which Python's site module executes at interpreter startup.",
+      },
+    ],
+  });
+  const document = structuredDocument(output);
+  const article = graphEntity(document, "TechArticle");
+  const faq = graphEntity(document, "FAQPage");
+
+  assert.deepEqual(article["@type"], ["Article", "TechArticle"]);
+  assert.equal(article.additionalType, "https://schema.org/TechArticle");
+  assert.equal(article["@id"], "https://security-recipes.ai/security-remediation/litellm-1-107-0-compromise-check/#article");
+  assert.equal(article.headline, "Did the LiteLLM backdoor hit your agent stack?");
+  assert.deepEqual(article.about, {
+    "@type": "SoftwareApplication",
+    name: "LiteLLM",
+    softwareVersion: "1.107.0",
+  });
+  assert.deepEqual(article.citation, [
+    "https://github.com/BerriAI/litellm/issues/47826",
+    "https://research.jfrog.com/post/litellm-hijacked-again/",
+  ]);
+  assert.equal(article.keywords, "litellm 1.107.0, cook.pth, supply chain, credential stealer");
+  assert.equal(article.author.name, "Stephen M Abbott");
+  assert.ok(faq);
+  assert.equal(faq.mainEntity.length, 2);
+  assert.equal(faq.mainEntity[0]["@type"], "Question");
+  assert.equal(faq.mainEntity[0].acceptedAnswer["@type"], "Answer");
+  assert.ok(graphEntity(document, "Organization"));
+});
+
 test("visible remediation steps can define a HowTo main entity", () => {
   const output = seoHead({
     url: "/security-remediation/",
@@ -747,7 +800,7 @@ test("the docs layout uses presentation-safe text for visible headings", () => {
   );
 
   assert.match(template, /detailTitle \| presentationText \| escape/u);
-  assert.match(template, /<h1 class="sr-page-title">\{\{ title \| presentationText \| escape \}\}<\/h1>/u);
+  assert.match(template, /<h1 class="sr-page-title">\{\{ visibleTitle \| presentationText \| escape \}\}<\/h1>/u);
   assert.match(template, /description \| presentationText \| escape/u);
 });
 
