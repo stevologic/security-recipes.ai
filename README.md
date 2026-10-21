@@ -415,9 +415,16 @@ Both the model and limit can be changed with optional Actions variables; the
 enrichment limit is hard-bounded from 0 to 50:
 
 ```bash
-gh variable set OPENAI_MODEL --body "gpt-5.6-luna" --repo stevologic/security-recipes.ai
+gh variable set OPENAI_MODEL --body "gpt-6-sol" --repo stevologic/security-recipes.ai
+gh variable set OPENAI_DAYBREAK_PROGRAM --body "daybreak_blue" --repo stevologic/security-recipes.ai
 gh variable set OPENAI_ENRICHMENT_LIMIT --body "20" --repo stevologic/security-recipes.ai
 ```
+
+`OPENAI_DAYBREAK_PROGRAM` is optional. When unset, enrichment stays a plain
+OpenAI Responses call. When set, the workflow sends
+`access_programs.cyber=<program>`. For this defensive catalog, use
+`daybreak_blue` with `gpt-6-sol`. A `workflow_dispatch` input
+`daybreak_probe=true` makes one probe call and skips the catalog sync.
 
 AI output is supplemental and explicitly labeled. It uses strict structured
 output, only cites URLs actually returned in the Responses API web-search

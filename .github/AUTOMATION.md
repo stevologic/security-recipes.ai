@@ -31,7 +31,7 @@ authenticated NVD rate limit.
 
 | Job | Host | Brain |
 | --- | --- | --- |
-| CVE catalog enrichment | Actions (`cve-catalog-sync.yml`) | OpenAI Responses API (`gpt-5.6-luna` unless `OPENAI_MODEL` is set) |
+| CVE catalog enrichment | Actions (`cve-catalog-sync.yml`) | OpenAI Responses API (`gpt-5.6-luna` unless `OPENAI_MODEL` is set; optional Daybreak via `OPENAI_DAYBREAK_PROGRAM`) |
 | Security health | Actions (`security-health.yml`) | xAI/Grok |
 | Leftover review | Actions (`leftover-review.yml`) | Grok Build CLI |
 | Content refresh | Actions (`content-refresh.yml`) | Grok Build CLI |
@@ -134,7 +134,8 @@ confirms the production handoff landed. Never put `secrets` in a workflow
 | `XAI_API_KEY` | secret | must be added | Billed Grok secret for leftover-gold review, content refresh, AI maintenance, AI issue maintenance, and this repository's security-health action. Catalog enrichment no longer reads it. |
 | `XAI_MODEL` | variable | optional, defaults to `grok-4.6` | Model id for Grok CLI jobs and the remediations suite. Bump when xAI publishes a newer coding model. |
 | `OPENAI_API_KEY` | secret | must be added for catalog enrichment | Existing Actions secret used by CVE catalog sync for official OpenAI Responses API enrichment. Do not add a second OpenAI secret. |
-| `OPENAI_MODEL` | variable | optional, defaults to `gpt-5.6-luna` | Model id for catalog enrichment. Plain OpenAI Responses API; not a Daybreak access program. |
+| `OPENAI_MODEL` | variable | optional, defaults to `gpt-5.6-luna` | Model id for catalog enrichment. For Daybreak Blue set `gpt-6-sol`. |
+| `OPENAI_DAYBREAK_PROGRAM` | variable | optional, unset by default | When set to `standard`, `daybreak_blue`, or `daybreak_red`, catalog enrichment sends `access_programs.cyber`. Unset keeps plain OpenAI requests. Defensive CVE work should use `daybreak_blue`. |
 | `OPENAI_ENRICHMENT_LIMIT` | variable | optional, defaults to `20` | Hard-bounded 0–50 new or source-changed CVEs enriched per catalog sync. |
 | `DIGITALOCEAN_ACCESS_TOKEN` | secret or droplet `deploy.env` | optional | Lets deploy.sh and the Dev DNS record workflow create `dev.security-recipes.ai` |
 | `CVE_AUTO_MERGE_ENABLED` | variable | `true` | Lets the catalog sync merge its own PR |

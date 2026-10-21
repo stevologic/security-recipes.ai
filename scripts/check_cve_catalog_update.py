@@ -367,6 +367,11 @@ def enrichment_health(sync_report: dict[str, Any]) -> dict[str, Any]:
         alerts.append(
             "OpenAI quota or credits are exhausted; add billing credits to resume enrichment."
         )
+    elif provider_error == "daybreak_entitlement":
+        alerts.append(
+            "Daybreak entitlement missing; enable OPENAI_DAYBREAK_PROGRAM and "
+            "OPENAI_MODEL on the OpenAI project, then re-run enrichment."
+        )
     elif provider_error == "invalid_key":
         alerts.append(
             "OpenAI rejected the API key; replace the OPENAI_API_KEY repository secret."

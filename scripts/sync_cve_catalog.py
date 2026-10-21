@@ -50,6 +50,7 @@ try:
         OpenAIEnricher,
         canonical_priority_cve_ids,
         enrichment_errors,
+        normalize_daybreak_program,
         probe_openai_credentials,
         recipe_ready,
     )
@@ -64,6 +65,7 @@ except ModuleNotFoundError:  # Direct ``python scripts/sync_cve_catalog.py`` exe
         OpenAIEnricher,
         canonical_priority_cve_ids,
         enrichment_errors,
+        normalize_daybreak_program,
         probe_openai_credentials,
         recipe_ready,
     )
@@ -3626,6 +3628,7 @@ def configure_openai_enrichment(
     dry_run: bool = False,
     opener: Any | None = None,
     limit: int | None = None,
+    access_program: str | None = None,
 ) -> tuple[OpenAIEnricher | None, bool, str | None]:
     """Return ``(client, intended, provider_error)`` without logging secrets.
 
@@ -3654,7 +3657,17 @@ def configure_openai_enrichment(
             )
         return None, False, None
 
-    client_kwargs: dict[str, Any] = {"model": model}
+    try:
+        program = normalize_daybreak_program(access_program)
+    except ValueError:
+        print(
+            "OPENAI_DAYBREAK_PROGRAM is invalid; optional OpenAI enrichment "
+            "skipped and source sync will continue.",
+            flush=True,
+        )
+        return None, True, "invalid_daybreak_program"
+
+    client_kwargs: dict[str, Any] = {"model": model, "access_program": program}
     if opener is not None:
         client_kwargs["opener"] = opener
     client = OpenAIEnricher(api_key, **client_kwargs)
@@ -3662,8 +3675,11 @@ def configure_openai_enrichment(
         api_key,
         model=client.model,
         opener=client.opener,
+        access_program=client.access_program,
     )
     if not credential_status.usable:
+        if credential_status.reason == "daybreak_entitlement":
+            print("Daybreak entitlement missing", flush=True)
         print(
             f"Optional OpenAI enrichment is inactive ({credential_status.reason}); "
             "source sync and valid cached enrichments will continue.",
@@ -3671,9 +3687,14 @@ def configure_openai_enrichment(
         )
         return None, True, credential_status.reason
     limit_note = f" and limit {limit}" if limit is not None else ""
+    program_note = (
+        f" and Daybreak program {client.access_program!r}"
+        if client.access_program
+        else ""
+    )
     print(
         f"Optional OpenAI enrichment enabled with model {client.model!r}"
-        f"{limit_note}.",
+        f"{program_note}{limit_note}.",
         flush=True,
     )
     return client, True, None
@@ -3729,6 +3750,15 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         dest="openai_model",
         default=os.environ.get("OPENAI_MODEL", DEFAULT_OPENAI_MODEL),
         help="OpenAI Responses API model for optional evidence-constrained enrichment.",
+    )
+    parser.add_argument(
+        "--openai-daybreak-program",
+        dest="openai_daybreak_program",
+        default=os.environ.get("OPENAI_DAYBREAK_PROGRAM", ""),
+        help=(
+            "Optional Responses API access_programs.cyber value: standard, "
+            "daybreak_blue, or daybreak_red. Unset keeps plain OpenAI requests."
+        ),
     )
     parser.add_argument(
         "--ai-enrichment-limit",
@@ -3884,6 +3914,7 @@ def main(argv: list[str] | None = None) -> int:
         offline=args.offline,
         dry_run=args.dry_run,
         limit=args.ai_enrichment_limit,
+        access_program=args.openai_daybreak_program,
     )
 
     feed_sources: list[dict[str, Any]] = []

@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import json
+import os
 import tempfile
 import unittest
 from datetime import datetime, timedelta, timezone
 from io import BytesIO
 from pathlib import Path
+from unittest.mock import patch
 from urllib.error import HTTPError, URLError
 
 from scripts import cve_ai_enrichment as enrichment
@@ -1678,6 +1680,7 @@ class OpenAICVEEnrichmentHTTPTests(unittest.TestCase):
             request_body["text"]["format"]["schema"], enrichment.OUTPUT_SCHEMA
         )
         self.assertNotIn("access_programs", request_body)
+        self.assertIsNone(client.access_program)
         self.assertNotIn(self.SECRET, request.data.decode("utf-8"))
         self.assertNotIn(self.SECRET, json.dumps(result))
         self.assertEqual(result["status"], "complete")
@@ -1779,6 +1782,147 @@ class OpenAICVEEnrichmentHTTPTests(unittest.TestCase):
                 enrichment.os.environ.pop("OPENAI_ENRICHMENT_TIMEOUT", None)
             else:
                 enrichment.os.environ["OPENAI_ENRICHMENT_TIMEOUT"] = previous
+
+    def test_daybreak_program_is_sent_only_when_configured(self) -> None:
+        captured: dict[str, object] = {}
+        source = record()
+        searched = str(source["references"][0]["url"])
+
+        def opener(request: object, *, timeout: int) -> FakeResponse:
+            captured["request"] = request
+            return FakeResponse(response_payload(model_output(), source=searched))
+
+        client = enrichment.OpenAIEnricher(
+            self.SECRET,
+            model=enrichment.RECOMMENDED_DAYBREAK_MODEL,
+            access_program="daybreak_blue",
+            opener=opener,
+            sleep=lambda _: None,
+        )
+        result = client.enrich(source)
+        request_body = json.loads(captured["request"].data)
+        self.assertEqual(client.access_program, "daybreak_blue")
+        self.assertEqual(client.model, "gpt-6-sol")
+        self.assertEqual(
+            request_body["access_programs"], {"cyber": "daybreak_blue"}
+        )
+        self.assertEqual(result["status"], "complete")
+        self.assertNotIn(self.SECRET, captured["request"].data.decode("utf-8"))
+
+        with self.assertRaisesRegex(ValueError, "OPENAI_DAYBREAK_PROGRAM"):
+            enrichment.OpenAIEnricher(self.SECRET, access_program="daybreak_purple")
+
+    def test_daybreak_entitlement_errors_skip_enrichment_and_keep_cves(self) -> None:
+        records = [record(f"CVE-2026-{number}") for number in range(8000, 8003)]
+        secret_body = json.dumps(
+            {
+                "error": {
+                    "code": "access_program_not_enabled",
+                    "message": f"secret-bearing Daybreak body {self.SECRET}",
+                }
+            }
+        ).encode("utf-8")
+        attempts: list[int] = []
+
+        def opener(_: object, *, timeout: int) -> FakeResponse:
+            attempts.append(timeout)
+            raise HTTPError(
+                enrichment.OPENAI_API_URL,
+                403,
+                "Forbidden",
+                {},
+                BytesIO(secret_body),
+            )
+
+        client = enrichment.OpenAIEnricher(
+            self.SECRET,
+            access_program="daybreak_blue",
+            opener=opener,
+            sleep=lambda _: None,
+            attempts=2,
+        )
+        with tempfile.TemporaryDirectory() as tmpdir:
+            cache = enrichment.EnrichmentCache(Path(tmpdir) / "ai.json")
+            cache.select_candidates(records, limit=len(records))
+            results = list(cache.apply(records, client=client))
+
+        self.assertEqual(len(attempts), 1)
+        self.assertEqual(cache.stats["failed"], 1)
+        self.assertEqual(cache.provider_error, "daybreak_entitlement")
+        self.assertEqual([item["cve"] for item in results], [item["cve"] for item in records])
+        self.assertTrue(all("ai_enrichment" not in item for item in results))
+
+        invalid_program = json.dumps(
+            {"error": {"code": "invalid_access_program"}}
+        ).encode("utf-8")
+
+        def bad_program(_: object, *, timeout: int) -> FakeResponse:
+            raise HTTPError(
+                enrichment.OPENAI_API_URL,
+                400,
+                "Bad Request",
+                {},
+                BytesIO(invalid_program),
+            )
+
+        bad_client = enrichment.OpenAIEnricher(
+            self.SECRET,
+            access_program="daybreak_red",
+            opener=bad_program,
+            attempts=1,
+        )
+        with self.assertRaises(enrichment.EnrichmentError) as raised:
+            bad_client.enrich(record())
+        self.assertTrue(raised.exception.fatal)
+        self.assertEqual(raised.exception.reason, "daybreak_entitlement")
+        self.assertEqual(str(raised.exception), "Daybreak entitlement missing")
+        self.assertNotIn(self.SECRET, str(raised.exception))
+
+    def test_daybreak_probe_prints_only_ok_or_denied_and_status(self) -> None:
+        from scripts import probe_openai_daybreak as probe_script
+
+        def ready(_: object, *, timeout: int) -> FakeResponse:
+            return FakeResponse({"id": "resp_ok"})
+
+        outcome, status = enrichment.probe_daybreak_access(
+            self.SECRET,
+            model="gpt-6-sol",
+            access_program="daybreak_blue",
+            opener=ready,
+        )
+        self.assertEqual((outcome, status), ("ok", 200))
+
+        def denied(_: object, *, timeout: int) -> FakeResponse:
+            raise HTTPError(
+                enrichment.OPENAI_API_URL,
+                403,
+                self.SECRET,
+                {},
+                BytesIO(b'{"error":{"code":"access_program_not_enabled"}}'),
+            )
+
+        outcome, status = enrichment.probe_daybreak_access(
+            self.SECRET,
+            model="gpt-6-sol",
+            access_program="daybreak_blue",
+            opener=denied,
+        )
+        self.assertEqual((outcome, status), ("denied", 403))
+
+        stdout = __import__("io").StringIO()
+        env = {
+            "OPENAI_API_KEY": self.SECRET,
+            "OPENAI_MODEL": "gpt-6-sol",
+            "OPENAI_DAYBREAK_PROGRAM": "daybreak_blue",
+        }
+        with (
+            patch.dict(os.environ, env, clear=False),
+            patch.object(probe_script, "probe_daybreak_access", return_value=("ok", 200)),
+            patch("sys.stdout", stdout),
+        ):
+            self.assertEqual(probe_script.main([]), 0)
+        self.assertEqual(stdout.getvalue(), "ok 200\n")
+        self.assertNotIn(self.SECRET, stdout.getvalue())
 
 
 if __name__ == "__main__":

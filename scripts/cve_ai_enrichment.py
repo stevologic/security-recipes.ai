@@ -36,6 +36,15 @@ DEFAULT_API_URL = "https://api.x.ai/v1/responses"
 OPENAI_API_URL = "https://api.openai.com/v1/responses"
 API_KEY_ENV = "XAI_API_KEY"
 OPENAI_API_KEY_ENV = "OPENAI_API_KEY"
+DAYBREAK_PROGRAM_ENV = "OPENAI_DAYBREAK_PROGRAM"
+DAYBREAK_PROGRAMS = frozenset({"standard", "daybreak_blue", "daybreak_red"})
+RECOMMENDED_DAYBREAK_PROGRAM = "daybreak_blue"
+RECOMMENDED_DAYBREAK_MODEL = "gpt-6-sol"
+DAYBREAK_ENTITLEMENT_MARKERS = (
+    "invalid_access_program",
+    "unsupported_access_program",
+    "access_program_not_enabled",
+)
 DEFAULT_REQUEST_LIMIT = 20
 MAX_REQUEST_LIMIT = 50
 DEFAULT_REQUEST_ATTEMPTS = 2
@@ -72,6 +81,7 @@ PROVIDER_ERROR_CATEGORIES = {
     "invalid_key_format": "configuration",
     "invalid_key": "authentication",
     "permission_denied": "permissions",
+    "daybreak_entitlement": "access_program",
     "insufficient_quota": "billing",
     "rate_limited": "rate_limit",
     "http_error": "provider_error",
@@ -196,6 +206,20 @@ OUTPUT_SCHEMA: dict[str, Any] = {
 }
 
 
+def normalize_daybreak_program(raw: str | None) -> str | None:
+    """Return a Responses API cyber program, or None when Daybreak is unset."""
+
+    value = str(raw or "").strip().lower()
+    if not value:
+        return None
+    if value not in DAYBREAK_PROGRAMS:
+        raise ValueError(
+            f"{DAYBREAK_PROGRAM_ENV} must be one of "
+            + ", ".join(sorted(DAYBREAK_PROGRAMS))
+        )
+    return value
+
+
 def request_timeout_seconds(
     raw: str | None = None, *, env_name: str = TIMEOUT_ENV
 ) -> int:
@@ -275,6 +299,11 @@ class ProviderCredentialStatus:
                 "until the key permissions, model access, or team restrictions are resolved. "
                 "This response does not establish that the API key is invalid."
             )
+        if self.reason == "daybreak_entitlement":
+            return (
+                "Daybreak entitlement missing; optional OpenAI enrichment is inactive "
+                "until OPENAI_DAYBREAK_PROGRAM and OPENAI_MODEL are enabled for this project."
+            )
         return f"{self.env_name} is not usable ({self.reason})."
 
 
@@ -299,6 +328,10 @@ def classify_provider_http_error(exc: HTTPError) -> str:
         return "invalid_key"
     if any(marker in snippet for marker in QUOTA_ERROR_MARKERS):
         return "insufficient_quota"
+    if exc.code in {400, 403} and any(
+        marker in snippet for marker in DAYBREAK_ENTITLEMENT_MARKERS
+    ):
+        return "daybreak_entitlement"
     if exc.code == 403:
         return "permission_denied"
     if exc.code == 429:
@@ -316,6 +349,7 @@ def probe_provider_credentials(
     opener: Callable[..., Any] | None = None,
     timeout: int = 30,
     user_agent: str | None = None,
+    access_program: str | None = None,
 ) -> ProviderCredentialStatus:
     """Classify whether the configured provider key can serve billed requests."""
 
@@ -333,6 +367,9 @@ def probe_provider_credentials(
         "input": "ok",
         "max_output_tokens": 16,
     }
+    program = normalize_daybreak_program(access_program)
+    if program:
+        payload["access_programs"] = {"cyber": program}
     request = Request(
         api_url,
         data=json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8"),
@@ -352,7 +389,13 @@ def probe_provider_credentials(
         reason = classify_provider_http_error(exc)
         return ProviderCredentialStatus(
             reason,
-            usable=reason not in {"insufficient_quota", "invalid_key", "permission_denied"},
+            usable=reason
+            not in {
+                "insufficient_quota",
+                "invalid_key",
+                "permission_denied",
+                "daybreak_entitlement",
+            },
             http_status=exc.code,
             **status_kwargs,
         )
@@ -389,6 +432,7 @@ def probe_openai_credentials(
     api_url: str = OPENAI_API_URL,
     opener: Callable[..., Any] | None = None,
     timeout: int = 30,
+    access_program: str | None = None,
 ) -> ProviderCredentialStatus:
     """Classify whether an OpenAI key can still serve billed OpenAI requests."""
 
@@ -401,7 +445,33 @@ def probe_openai_credentials(
         opener=opener,
         timeout=timeout,
         user_agent="security-recipes.ai/openai-credential-check",
+        access_program=access_program,
     )
+
+
+def probe_daybreak_access(
+    api_key: str,
+    *,
+    model: str = DEFAULT_OPENAI_MODEL,
+    access_program: str | None = None,
+    opener: Callable[..., Any] | None = None,
+    timeout: int = 30,
+) -> tuple[str, int | None]:
+    """Make one Responses call and return ``(ok|denied, http_status)``.
+
+    Prints nothing. Never returns the API key or provider body.
+    """
+
+    status = probe_openai_credentials(
+        api_key,
+        model=model,
+        opener=opener,
+        timeout=timeout,
+        access_program=access_program,
+    )
+    if status.reason == "ready":
+        return "ok", status.http_status if status.http_status is not None else 200
+    return "denied", status.http_status or 0
 
 
 def canonical_priority_cve_ids(values: Iterable[str]) -> tuple[str, ...]:
@@ -1111,6 +1181,7 @@ class XAIEnricher:
         provider: str = "xAI",
         user_agent: str = "security-recipes.ai/cve-ai-enrichment-xai",
         timeout_env: str = TIMEOUT_ENV,
+        access_program: str | None = None,
     ) -> None:
         if not str(api_key or "").strip():
             raise ValueError("api_key must not be empty")
@@ -1123,6 +1194,7 @@ class XAIEnricher:
         self.attempts = max(1, attempts)
         self.provider = provider
         self.user_agent = user_agent
+        self.access_program = normalize_daybreak_program(access_program)
         self.timeout = max(
             1,
             timeout if timeout is not None else request_timeout_seconds(env_name=timeout_env),
@@ -1151,7 +1223,7 @@ class XAIEnricher:
             separators=(",", ":"),
             sort_keys=True,
         )
-        return {
+        payload = {
             "model": self.model,
             "input": [
                 {"role": "developer", "content": developer},
@@ -1168,6 +1240,9 @@ class XAIEnricher:
             },
             "max_output_tokens": 2500,
         }
+        if self.access_program:
+            payload["access_programs"] = {"cyber": self.access_program}
+        return payload
 
     def _post(self, payload: dict[str, Any]) -> dict[str, Any]:
         body = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
@@ -1213,6 +1288,12 @@ class XAIEnricher:
                 if reason == "permission_denied":
                     raise EnrichmentError(
                         f"{label} denied access; check key permissions, model access, and team restrictions",
+                        fatal=True,
+                        reason=reason,
+                    ) from exc
+                if reason == "daybreak_entitlement":
+                    raise EnrichmentError(
+                        "Daybreak entitlement missing",
                         fatal=True,
                         reason=reason,
                     ) from exc
@@ -1266,6 +1347,7 @@ class OpenAIEnricher(XAIEnricher):
         sleep: Callable[[float], None] = time.sleep,
         attempts: int = DEFAULT_REQUEST_ATTEMPTS,
         timeout: int | None = None,
+        access_program: str | None = None,
     ) -> None:
         super().__init__(
             api_key,
@@ -1278,6 +1360,7 @@ class OpenAIEnricher(XAIEnricher):
             provider="OpenAI",
             user_agent="security-recipes.ai/cve-ai-enrichment-openai",
             timeout_env=OPENAI_TIMEOUT_ENV,
+            access_program=access_program,
         )
 
 

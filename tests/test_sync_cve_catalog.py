@@ -746,22 +746,25 @@ class SyncCveCatalogTests(unittest.TestCase):
             not in {
                 "OPENAI_MODEL",
                 "OPENAI_ENRICHMENT_LIMIT",
+                "OPENAI_DAYBREAK_PROGRAM",
                 "XAI_MODEL",
                 "XAI_ENRICHMENT_LIMIT",
             }
         }
         env.update(
             {
-                "OPENAI_MODEL": "gpt-5.6-luna",
+                "OPENAI_MODEL": "gpt-6-sol",
                 "OPENAI_ENRICHMENT_LIMIT": "7",
+                "OPENAI_DAYBREAK_PROGRAM": "daybreak_blue",
                 "XAI_MODEL": "grok-should-be-ignored",
                 "XAI_ENRICHMENT_LIMIT": "41",
             }
         )
         with patch.dict(catalog.os.environ, env, clear=True):
             parsed = catalog.parse_args([])
-        self.assertEqual(parsed.openai_model, "gpt-5.6-luna")
+        self.assertEqual(parsed.openai_model, "gpt-6-sol")
         self.assertEqual(parsed.ai_enrichment_limit, 7)
+        self.assertEqual(parsed.openai_daybreak_program, "daybreak_blue")
         self.assertFalse(hasattr(parsed, "xai_model"))
 
     def test_missing_openai_key_skips_enrichment_and_does_not_log_a_key(self) -> None:
@@ -820,6 +823,42 @@ class SyncCveCatalogTests(unittest.TestCase):
         self.assertEqual(provider_error, "invalid_key")
         self.assertIn("Optional OpenAI enrichment is inactive (invalid_key)", output)
         self.assertNotIn(secret, output)
+
+    def test_daybreak_entitlement_skips_enrichment_and_keeps_source_records(self) -> None:
+        secret = "sk-openai-secret-never-log-9f3a"
+        stdout = io.StringIO()
+        body = json.dumps(
+            {"error": {"code": "access_program_not_enabled", "message": secret}}
+        ).encode("utf-8")
+
+        def opener(_: object, *, timeout: int) -> object:
+            raise HTTPError(ai.OPENAI_API_URL, 403, "Forbidden", {}, io.BytesIO(body))
+
+        with patch("sys.stdout", stdout):
+            client, intended, provider_error = catalog.configure_openai_enrichment(
+                api_key=secret,
+                model="gpt-6-sol",
+                opener=opener,
+                access_program="daybreak_blue",
+                limit=20,
+            )
+        output = stdout.getvalue()
+        self.assertIsNone(client)
+        self.assertTrue(intended)
+        self.assertEqual(provider_error, "daybreak_entitlement")
+        self.assertIn("Daybreak entitlement missing", output)
+        self.assertNotIn(secret, output)
+
+        source = {
+            "cve": "CVE-2026-1234",
+            "recipe_kind": "composed",
+            "references": [
+                {"url": "https://vendor.example.test/advisory", "tags": ["Vendor Advisory"]}
+            ],
+        }
+        applied = list(ai.EnrichmentCache(Path("unused.json")).apply([source], client=None))
+        self.assertEqual(applied[0]["cve"], "CVE-2026-1234")
+        self.assertNotIn("ai_enrichment", applied[0])
 
     def test_ai_enrichment_limit_is_hard_bounded(self) -> None:
         self.assertEqual(catalog.parse_ai_enrichment_limit("0"), 0)
