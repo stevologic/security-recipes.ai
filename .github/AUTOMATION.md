@@ -13,7 +13,7 @@ access token is required.
 | Content refresh (`content-refresh.yml`) | daily 11:47 UTC | Researches one source-backed opportunity across reviewed remediation workflows, executable playbooks, or non-CVE recipes and submits a validated auto-merge PR when a substantive update is warranted |
 | Leftover review (`leftover-review.yml`) | daily 13:17 UTC | Live-verifies leftover-gold CVE leftovers against GHAD/NVD; leftover-gold criticals and highs drain first, then each run reviews up to 25 leftover-gold medium and low pages and submits a validated auto-merge PR |
 | CVE catalog validation request (`cve-catalog-validate-request.yml`) | dispatch only | Verifies that an exact SHA is the live head of the requested same-repository PR without checking out or executing PR code |
-| CVE catalog validation (`cve-catalog-validate.yml`) | dispatch only | Revalidates and runs the build-equivalent suite, then publishes every ruleset-required commit status (`build`, `karen-qa`, and any later context) from a separate no-checkout job |
+| CVE catalog validation (`cve-catalog-validate.yml`) | dispatch only | Revalidates and runs the build-equivalent suite, then publishes Actions-owned required commit statuses (`build`, and any later Actions context) from a separate no-checkout job. It never emits `karen-qa` |
 | Production watchdog (`production-watchdog.yml`) | every 30 min | Probes the live site, catalog freshness, revision, and TLS; maintains the health issue; self-heals unbuilt revisions and stale catalogs |
 | Automation shepherd (`automation-shepherd.yml`) | every 30 min | Dispatches missing main Builds after token-authored merges, updates stale auto-merge PR branches, and attaches missing build validations |
 | Dependabot auto-merge (`dependabot-automerge.yml`) | Dependabot PRs | Arms auto-merge for verified patch/minor bumps |
@@ -90,16 +90,16 @@ required `build` commit status from a separate no-checkout job.
 
 ## Merge policy
 
-The `main` ruleset requires a PR plus passing `build` and `karen-qa` contexts
-with strict up-to-date enforcement, and there are no bypass actors. Catalog
-validation and `build.yml` both emit those contexts from GitHub Actions
-(`integration_id` 15368). If a required check is pinned to another GitHub App
-(as `karen-qa` was to 5400051 on 2026-10-20), token-authored merges 405 even
-after exact-SHA validation; an admin must retarget or unpin that check to
-GitHub Actions before catalog auto-merge can land. Every automated merge
-(Dependabot, catalog sync, AI fixes) therefore rides the same gate as a human
-change: auto-merge armed, required contexts proven on the exact head, branch
-current.
+The `main` ruleset requires a PR, a passing `build` context from GitHub
+Actions, and a passing `karen-qa` context posted only by the Karen QA
+GitHub App after human review. Catalog validation publishes Actions-owned
+required statuses on the exact validated SHA and never emits `karen-qa`.
+Catalog auto-merge waits for that app check on the exact head; if it is
+missing, delivery fails immediately with
+`needs karen-qa on <sha> from Karen QA app` instead of retrying a 405.
+Every automated merge (Dependabot, catalog sync, AI fixes) therefore rides
+the same gate as a human change: auto-merge armed, required contexts proven
+on the exact head, branch current.
 
 ## Deployment
 

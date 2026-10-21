@@ -114,7 +114,7 @@ class CveCatalogValidationWorkflowTests(unittest.TestCase):
             "matches the required `build` context emitted by build.yml",
             self.validation,
         )
-        self.assertIn("karen-qa", self.validation)
+        self.assertIn("Never emit `karen-qa`", self.validation)
 
     def test_publishes_required_status_only_after_exact_sha_validation(self) -> None:
         validate_job, publish_job = self.validation.split("\n  publish:\n", 1)
@@ -140,8 +140,9 @@ class CveCatalogValidationWorkflowTests(unittest.TestCase):
         self.assertIn("required_status_checks", publish_job)
         self.assertIn("integration_id", publish_job)
         self.assertIn("15368", publish_job)
-        self.assertIn("will not satisfy that pin", publish_job)
-        self.assertIn("karen-qa", publish_job)
+        self.assertIn('"$context" = "karen-qa"', publish_job)
+        self.assertIn("not posted by this workflow", publish_job)
+        self.assertNotIn('context=karen-qa', publish_job)
         self.assertIn("GH_TOKEN: ${{ github.token }}", publish_job)
         self.assertLess(
             self.validation.index("run: docker compose build"),

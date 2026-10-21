@@ -524,20 +524,6 @@ jobs:
           docker push "${SITE_TARGET_IMAGE}"
           docker push "${MCP_TARGET_IMAGE}"
 
-  karen-qa:
-    # The main ruleset requires this context in addition to `build`. Catalog
-    # automation already publishes it as a commit status after exact-SHA
-    # validation; pull_request Build runs must emit the same check name so
-    # human and Dependabot PRs are not stranded the same way.
-    name: karen-qa
-    needs: build
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - name: Record the required QA context
-        run: |
-          echo "Build already proved this revision; recording the required karen-qa context."
-
   kick-automation:
     if: always() && github.event_name == 'workflow_dispatch'
     needs:
