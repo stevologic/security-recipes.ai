@@ -831,12 +831,69 @@ class SyncCveCatalogTests(unittest.TestCase):
                 side_effect=[Response(truncated=True), Response()],
             ) as mocked_open,
             patch.object(catalog.time, "sleep") as mocked_sleep,
+            patch.object(catalog.random, "random", return_value=1.0),
         ):
             payload = catalog.fetch_bytes("https://nvd.example.test/feed.json.gz")
 
         self.assertEqual(payload, b"complete feed")
         self.assertEqual(mocked_open.call_count, 2)
-        mocked_sleep.assert_called_once_with(1)
+        mocked_sleep.assert_called_once_with(1.0)
+
+    def test_fetch_bytes_retries_content_length_shortfall_and_connection_reset(self) -> None:
+        class Response:
+            def __init__(self, payload: bytes, content_length: str | None = None) -> None:
+                self.payload = payload
+                self.headers = {}
+                if content_length is not None:
+                    self.headers["Content-Length"] = content_length
+
+            def __enter__(self) -> "Response":
+                return self
+
+            def __exit__(self, *args: object) -> None:
+                return None
+
+            def read(self) -> bytes:
+                return self.payload
+
+        short = Response(b"partial", content_length="12")
+        complete = Response(b"complete feed", content_length="13")
+        with (
+            patch.object(
+                catalog,
+                "urlopen",
+                side_effect=[short, ConnectionResetError("connection reset"), complete],
+            ) as mocked_open,
+            patch.object(catalog.time, "sleep") as mocked_sleep,
+            patch.object(catalog.random, "random", return_value=1.0),
+        ):
+            payload = catalog.fetch_bytes("https://nvd.example.test/feed.json.gz")
+
+        self.assertEqual(payload, b"complete feed")
+        self.assertEqual(mocked_open.call_count, 3)
+        self.assertEqual(mocked_sleep.call_args_list, [((1.0,),), ((2.0,),)])
+
+    def test_fetch_bytes_gives_up_after_truncated_read_budget(self) -> None:
+        class Response:
+            def __enter__(self) -> "Response":
+                return self
+
+            def __exit__(self, *args: object) -> None:
+                return None
+
+            def read(self) -> bytes:
+                raise catalog.IncompleteRead(b"partial feed", 1024)
+
+        with (
+            patch.object(catalog, "urlopen", return_value=Response()) as mocked_open,
+            patch.object(catalog.time, "sleep") as mocked_sleep,
+            patch.object(catalog.random, "random", return_value=1.0),
+        ):
+            with self.assertRaises(catalog.IncompleteRead):
+                catalog.fetch_bytes("https://nvd.example.test/feed.json.gz")
+
+        self.assertEqual(mocked_open.call_count, 5)
+        self.assertEqual(mocked_sleep.call_count, 5)
 
     def test_nvd_fetch_retries_cloudflare_origin_timeouts(self) -> None:
         self.assertTrue({520, 521, 522, 523, 524} <= catalog.RETRYABLE_HTTP_CODES)

@@ -96,8 +96,9 @@ Actions, and a passing `karen-qa` context posted only by the Karen QA
 GitHub App after human review. Catalog validation never posts commit
 statuses and never emits `karen-qa`. Required merge checks come from real
 workflow runs. Catalog auto-merge waits for that app check on the exact
-head; if it is missing, delivery fails immediately with
-`needs karen-qa on <sha> from Karen QA app` instead of retrying a 405.
+head; if it is missing, the sync leaves the catalog PR open and reports
+that it is waiting on `karen-qa` instead of failing the run with an
+opaque HTTP 405. The workflow never self-posts `karen-qa`.
 `catalog_updated_at` is the NVD sync watermark (annual-feed lastModifiedDate
 or lastModified of catch-up records actually merged). A KEV-only delta
 must not advance it. A fetched-but-dropped catch-up row must not either.

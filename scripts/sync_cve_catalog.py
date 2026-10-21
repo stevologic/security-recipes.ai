@@ -26,6 +26,7 @@ from http.client import IncompleteRead
 import itertools
 import json
 import os
+import random
 import re
 import sys
 import tempfile
@@ -541,10 +542,26 @@ def safe_markdown_text(value: object, *, limit: int | None = None) -> str:
     return html.escape(normalize_space(clean_catalog_text(value), limit=limit), quote=False)
 
 
+def _retry_sleep_seconds(base: float) -> float:
+    """Equal jitter in ``[base / 2, base]`` so retries do not stampede."""
+    return max(0.0, (base / 2.0) + (base * random.random() / 2.0))
+
+
+def _declared_content_length(headers: Any) -> int | None:
+    getter = getattr(headers, "get", None)
+    raw = getter("Content-Length") if callable(getter) else None
+    if raw is None:
+        return None
+    text = str(raw).strip()
+    if not text.isdigit():
+        return None
+    return int(text)
+
+
 def fetch_bytes(
     url: str,
     *,
-    attempts: int = 4,
+    attempts: int = 5,
     timeout: int = 180,
     extra_headers: dict[str, str] | None = None,
     retryable_http_codes: frozenset[int] | None = None,
@@ -558,7 +575,14 @@ def fetch_bytes(
     for attempt in range(attempts):
         try:
             with urlopen(request, timeout=timeout) as response:
-                return response.read()
+                payload = response.read()
+                expected = _declared_content_length(getattr(response, "headers", None))
+                if expected is not None and len(payload) != expected:
+                    # A closed socket can return a short body without raising
+                    # ``IncompleteRead``. Treat a Content-Length shortfall as
+                    # the same truncated read so the immutable URL is retried.
+                    raise IncompleteRead(payload, expected - len(payload))
+                return payload
         except HTTPError as exc:
             last_error = exc
             if exc.code not in retryable:
@@ -569,9 +593,9 @@ def fetch_bytes(
         # ``IncompleteRead`` is not an ``OSError``. NVD's CDN can close a
         # large annual-feed response after sending only part of its declared
         # body, so retry the immutable URL instead of accepting partial data.
-        except (IncompleteRead, TimeoutError, URLError, OSError) as exc:
+        except (IncompleteRead, ConnectionResetError, TimeoutError, URLError, OSError) as exc:
             last_error = exc
-            time.sleep(min(2**attempt, 30))
+            time.sleep(_retry_sleep_seconds(min(2**attempt, 30)))
     if last_error is None:
         raise RuntimeError(f"failed to fetch {url}")
     raise last_error
@@ -897,7 +921,7 @@ def fetch_nvd_api_catchup(
     fetch_page = fetch or (
         lambda url: fetch_bytes(
             url,
-            attempts=4,
+            attempts=5,
             timeout=180,
             extra_headers=nvd_api_headers() or None,
             retryable_http_codes=RETRYABLE_HTTP_CODES - {429},
@@ -948,7 +972,7 @@ def fetch_nvd_api_catchup(
                         f"({window_start_text}..{window_end_text}, startIndex={offset}). {hint}"
                     ) from exc
                 raise
-            except (IncompleteRead, TimeoutError, URLError, OSError) as exc:
+            except (IncompleteRead, ConnectionResetError, TimeoutError, URLError, OSError) as exc:
                 # NVD's API can close a lastMod page after sending only part of
                 # its declared body. Annual feeds already keep the last verified
                 # cache in that case; catch-up has no equivalent page cache, so
