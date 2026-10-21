@@ -94,10 +94,11 @@ post commit statuses. Required merge checks come from those real workflow runs.
 `cve-catalog-sync.yml` uses `timeout-minutes: 150`. NVD fetches go through
 `fetch_bytes` (`FETCH_DEADLINE_SECONDS = 300`, `FETCH_READ_CHUNK_SIZE = 64 KiB`)
 with five attempts, a 180s per-read socket timeout, equal jitter on 5xx and
-transport retries, and no sleep after the final attempt. The body is read
-in chunks; each read uses `min(per-read timeout, remaining deadline)` and
-the wall-clock deadline is checked between reads so a 1-byte drip cannot
-outrun the cap.
+transport retries, and no sleep after the final attempt. One timer closes
+the socket at the URL deadline so connect, headers, `read1()` body chunks,
+and every redirect hop share the same cap. Each read uses
+`min(per-read timeout, remaining deadline)` so the per-read timeout
+shrinks as the deadline runs down.
 
 ```
 PR #421 worst case per URL
@@ -106,13 +107,16 @@ PR #421 worst case per URL
     1 + 2 + 4 + 8 + 16             =  31s
                                  ≈ 931s ≈ 15.5 min/URL
   plus an unbounded body drip: urlopen's timeout is per
-  socket read, so response.read() of the whole body can
-  run far past 180s (Karen: 1 byte / 0.5s against a 3s
-  deadline returned after 49.5s)
+  socket read, HTTPResponse.read(n) loops until n bytes,
+  and every recv resets the timeout. Karen: 1 byte / 0.5s
+  against a 3s deadline returned after 49.5s; a 200 KB
+  body ran past 120s. 10 redirect hops at 0.8s each took
+  8s because each hop reused the full timeout.
 
 This follow-up
   wall-clock deadline              = 300s = 5 min/URL
-  chunked body reads + per-read
+  deadline timer closes the socket
+  read1() body chunks + per-read
     socket timeout                 = min(180s, remaining)
   sleeps only between attempts
     1 + 2 + 4 + 8                  ≤  15s (inside the deadline)
@@ -120,9 +124,9 @@ This follow-up
 
 Catch-up can publish many successful lastMod pages before a later page
 fails and is skipped. Each successful page can take the full 5 min
-deadline (`NVD_API_PAGE_SIZE = 2000`, `NVD_API_MAX_PAGES = 50` per
-120-day window). A 50-page window at 5 min/page is 250 min and is cut
-off by the 150-minute job timeout, not the URL deadline.
+deadline (`NVD_API_PAGE_SIZE = 2000`, `NVD_API_MAX_PAGES = 15` per
+120-day window). The previous 50-page cap at 5 min/page is 250 min and
+would be cut off by the 150-minute job timeout, not the URL deadline.
 
 Measured non-synchronize tail (max of each step across successful runs
 39344800710, 39285941896, 39131123938, 39034763704, 38912226589):
@@ -141,14 +145,15 @@ enrichment, before the Oct 20–21 lastMod stall) is 23–43 min. Failed
 run 39623444175 spent 106.2 min in synchronize and then skipped the
 tail after `response.read()` raised `IncompleteRead` on a lastMod page.
 
-Headroom after a 10-page stalled catch-up (each page at the 5 min cap):
+Headroom after a 15-page stalled catch-up (each page at the 5 min cap,
+which is also the code cap):
 
 ```
 43 min observed feeds + enrichment
-+ 10 × 5 min successful catch-up pages = 50 min
++ 15 × 5 min successful catch-up pages = 75 min
 + 11.3 min measured tail
-= 104.3 min
-150 − 104.3 = 45.7 min headroom
+= 129.3 min
+150 − 129.3 = 20.7 min headroom
 ```
 
 A skipped catch-up or a catalog PR waiting on `karen-qa` emits a

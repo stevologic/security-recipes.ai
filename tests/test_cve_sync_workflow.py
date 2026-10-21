@@ -355,9 +355,11 @@ class CveSyncWorkflowTests(unittest.TestCase):
         self.assertIn("successful catch-up pages", automation)
         self.assertIn("39623444175", automation)
         self.assertIn("11.3 min", automation)
-        self.assertIn("45.7 min headroom", automation)
+        self.assertIn("20.7 min headroom", automation)
+        self.assertIn("NVD_API_MAX_PAGES = 15", automation)
         self.assertIn("FETCH_DEADLINE_SECONDS", automation)
         self.assertIn("FETCH_READ_CHUNK_SIZE", automation)
+        self.assertIn("15-page", self.workflow)
 
     def test_enrichment_health_issue_is_upserted_and_closed_on_recovery(self) -> None:
         health_step = self.step("Reconcile enrichment health issue")
