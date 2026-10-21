@@ -97,6 +97,8 @@ required statuses on the exact validated SHA and never emits `karen-qa`.
 Catalog auto-merge waits for that app check on the exact head; if it is
 missing, delivery fails immediately with
 `needs karen-qa on <sha> from Karen QA app` instead of retrying a 405.
+`catalog_updated_at` is the NVD sync watermark (annual-feed lastModifiedDate
+or NVD API lastMod catch-up). A KEV-only delta must not advance it.
 Every automated merge (Dependabot, catalog sync, AI fixes) therefore rides
 the same gate as a human change: auto-merge armed, required contexts proven
 on the exact head, branch current.
@@ -131,3 +133,4 @@ confirms the production handoff landed. Never put `secrets` in a workflow
 | `DIGITALOCEAN_ACCESS_TOKEN` | secret or droplet `deploy.env` | optional | Lets deploy.sh and the Dev DNS record workflow create `dev.security-recipes.ai` |
 | `CVE_AUTO_MERGE_ENABLED` | variable | `true` | Lets the catalog sync merge its own PR |
 | `CVE_AUTOMATION_APP_CLIENT_ID` / `CVE_AUTOMATION_APP_PRIVATE_KEY` | variable / secret | optional | A dedicated GitHub App; when configured, its pushes trigger normal CI events and the dispatch workarounds above become unnecessary |
+| `NVD_API_KEY` | secret | optional | Authenticated NVD CVE 2.0 rate limit for the lastMod catch-up after annual feeds. Public unauthenticated pacing is used when absent; 403/429 fail the sync instead of publishing a stalled catalog |

@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Any
 from unittest.mock import patch
 from urllib.error import HTTPError
+from urllib.parse import parse_qs, urlparse
 
 from scripts import cve_ai_enrichment as ai
 from scripts import sync_cve_catalog as catalog
@@ -2946,6 +2947,117 @@ class SyncCveCatalogTests(unittest.TestCase):
             validation = validator.validate(output_dir, content_dir)
             self.assertTrue(validation["ok"], validation["failures"])
             self.assertEqual(validation["browser_records"], 3)
+
+    def test_kev_only_update_does_not_advance_catalog_freshness_stamp(self) -> None:
+        feeds = [{"lastModifiedDate": "2026-10-16T03:00:20-04:00"}]
+        older_kev = {
+            "dateReleased": "2026-10-16T17:15:48Z",
+            "catalogVersion": "2026.10.16",
+        }
+        newer_kev = {
+            "dateReleased": "2026-10-20T19:00:31Z",
+            "catalogVersion": "2026.10.20",
+        }
+
+        first = catalog.catalog_timestamp(feeds, older_kev)
+        second = catalog.catalog_timestamp(feeds, newer_kev)
+        with_nvd_catchup = catalog.catalog_timestamp(
+            [
+                *feeds,
+                {"lastModifiedDate": "2026-10-21T07:00:23Z"},
+            ],
+            newer_kev,
+        )
+
+        self.assertEqual(first, "2026-10-16T07:00:20Z")
+        self.assertEqual(second, first)
+        self.assertEqual(with_nvd_catchup, "2026-10-21T07:00:23Z")
+
+        outputs_a, manifest_a = catalog.build_outputs(
+            [],
+            start_date=START_DATE,
+            end_date=END_DATE,
+            feed_sources=complete_feed_sources(0),
+            kev_data={**older_kev, "vulnerabilities": []},
+            kev_payload=b"{}\n",
+            archetypes=archetype_payload(),
+            existing={},
+        )
+        outputs_b, manifest_b = catalog.build_outputs(
+            [],
+            start_date=START_DATE,
+            end_date=END_DATE,
+            feed_sources=complete_feed_sources(0),
+            kev_data={**newer_kev, "vulnerabilities": []},
+            kev_payload=b"{}\n",
+            archetypes=archetype_payload(),
+            existing={},
+        )
+        self.assertEqual(manifest_a["catalog_updated_at"], manifest_b["catalog_updated_at"])
+        self.assertEqual(manifest_a["catalog_updated_at"], "2026-07-01T00:00:00Z")
+        self.assertNotEqual(
+            manifest_a["sources"]["cisa_kev"]["date_released"],
+            manifest_b["sources"]["cisa_kev"]["date_released"],
+        )
+        self.assertEqual(outputs_a[Path("runtime-summary.json")], outputs_b[Path("runtime-summary.json")])
+
+    def test_nvd_api_catchup_fails_closed_on_rate_limit_and_missing_key(self) -> None:
+        feeds = complete_feed_sources(1)
+
+        def refuse(url: str, **_: object) -> bytes:
+            raise HTTPError(url, 429, "Too Many Requests", {}, None)  # type: ignore[arg-type]
+
+        with self.assertRaisesRegex(ValueError, "NVD API refused HTTP 429"):
+            catalog.fetch_nvd_api_catchup(feeds, fetch=refuse, sleeper=lambda _: None)
+
+        def forbidden(url: str, **_: object) -> bytes:
+            raise HTTPError(url, 403, "Forbidden", {}, None)  # type: ignore[arg-type]
+
+        with self.assertRaisesRegex(ValueError, "Set NVD_API_KEY"):
+            catalog.fetch_nvd_api_catchup(feeds, fetch=forbidden, sleeper=lambda _: None)
+
+    def test_nvd_api_catchup_uses_lastmod_window_after_feed_watermark(self) -> None:
+        feeds = [
+            {
+                "year": 2026,
+                "metadata": {"lastModifiedDate": "2026-10-16T03:00:20-04:00"},
+            }
+        ]
+        seen_urls: list[str] = []
+
+        def fetch_page(url: str, **_: object) -> bytes:
+            seen_urls.append(url)
+            return json.dumps(
+                {
+                    "resultsPerPage": 1,
+                    "startIndex": 0,
+                    "totalResults": 1,
+                    "vulnerabilities": [
+                        {
+                            "cve": {
+                                "id": "CVE-2026-55555",
+                                "lastModified": "2026-10-20T12:00:00.000Z",
+                                "published": "2026-10-18T12:00:00.000Z",
+                            }
+                        }
+                    ],
+                }
+            ).encode("utf-8")
+
+        records, metadata = catalog.fetch_nvd_api_catchup(
+            feeds,
+            end=catalog.parse_nvd_datetime("2026-10-21T16:00:00Z"),
+            fetch=fetch_page,
+            sleeper=lambda _: None,
+        )
+
+        self.assertEqual(list(records), ["CVE-2026-55555"])
+        query = parse_qs(urlparse(seen_urls[0]).query)
+        self.assertEqual(query["lastModStartDate"], ["2026-10-16T07:00:20Z"])
+        self.assertEqual(query["lastModEndDate"], ["2026-10-21T16:00:00Z"])
+        self.assertEqual(query["startIndex"], ["0"])
+        self.assertEqual(metadata["latest_record_modified"], "2026-10-20T12:00:00Z")
+        self.assertEqual(metadata["total_results"], 1)
 
 
 if __name__ == "__main__":

@@ -37,7 +37,7 @@ from datetime import date, datetime, timezone
 from pathlib import Path, PurePosixPath
 from typing import Any, Iterable, Iterator
 from urllib.error import HTTPError, URLError
-from urllib.parse import unquote, urlparse
+from urllib.parse import unquote, urlencode, urlparse
 from urllib.request import Request, urlopen
 
 try:
@@ -80,6 +80,11 @@ DEFAULT_CACHE_DIR = ROOT / "tmp" / "nvd-cve-feeds"
 
 NVD_FEED_ROOT = "https://nvd.nist.gov/feeds/json/cve/2.0"
 NVD_DETAIL_ROOT = "https://nvd.nist.gov/vuln/detail"
+NVD_API_URL = "https://services.nvd.nist.gov/rest/json/cves/2.0"
+NVD_API_PAGE_SIZE = 2000
+NVD_API_MAX_PAGES = 50
+NVD_API_PUBLIC_INTERVAL = 6.1
+NVD_API_AUTH_INTERVAL = 0.6
 CISA_KEV_URL = "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
 USER_AGENT = "security-recipes.ai/cve-catalog-sync"
 # NVD's CDN can briefly return 404 while annual feed objects rotate. Cloudflare
@@ -535,8 +540,19 @@ def safe_markdown_text(value: object, *, limit: int | None = None) -> str:
     return html.escape(normalize_space(clean_catalog_text(value), limit=limit), quote=False)
 
 
-def fetch_bytes(url: str, *, attempts: int = 4, timeout: int = 180) -> bytes:
-    request = Request(url, headers={"User-Agent": USER_AGENT, "Accept": "application/json, text/plain, */*"})
+def fetch_bytes(
+    url: str,
+    *,
+    attempts: int = 4,
+    timeout: int = 180,
+    extra_headers: dict[str, str] | None = None,
+    retryable_http_codes: frozenset[int] | None = None,
+) -> bytes:
+    headers = {"User-Agent": USER_AGENT, "Accept": "application/json, text/plain, */*"}
+    if extra_headers:
+        headers.update(extra_headers)
+    request = Request(url, headers=headers)
+    retryable = RETRYABLE_HTTP_CODES if retryable_http_codes is None else retryable_http_codes
     last_error: Exception | None = None
     for attempt in range(attempts):
         try:
@@ -544,7 +560,7 @@ def fetch_bytes(url: str, *, attempts: int = 4, timeout: int = 180) -> bytes:
                 return response.read()
         except HTTPError as exc:
             last_error = exc
-            if exc.code not in RETRYABLE_HTTP_CODES:
+            if exc.code not in retryable:
                 raise
             retry_after = exc.headers.get("Retry-After")
             delay = float(retry_after) if retry_after and retry_after.isdigit() else 2**attempt
@@ -744,6 +760,162 @@ def cache_kev(cache_dir: Path, *, offline: bool = False) -> tuple[dict[str, Any]
     if not isinstance(data, dict) or not isinstance(data.get("vulnerabilities"), list):
         raise ValueError("invalid CISA KEV JSON feed")
     return data, payload
+
+
+def parse_nvd_datetime(value: object) -> datetime | None:
+    if not isinstance(value, str) or "T" not in value:
+        return None
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)
+
+
+def nvd_api_headers() -> dict[str, str]:
+    key = os.environ.get("NVD_API_KEY", "").strip()
+    return {"apiKey": key} if key else {}
+
+
+def nvd_api_sleep_interval() -> float:
+    return NVD_API_AUTH_INTERVAL if os.environ.get("NVD_API_KEY", "").strip() else NVD_API_PUBLIC_INTERVAL
+
+
+def nvd_feed_watermark(feed_sources: Iterable[dict[str, Any]]) -> datetime | None:
+    stamps = [
+        parse_nvd_datetime((source.get("metadata") or {}).get("lastModifiedDate"))
+        for source in feed_sources
+    ]
+    valid = [stamp for stamp in stamps if stamp is not None]
+    return max(valid) if valid else None
+
+
+def fetch_nvd_api_catchup(
+    feed_sources: list[dict[str, Any]],
+    *,
+    end: datetime | None = None,
+    fetch: Any = None,
+    sleeper: Any = None,
+) -> tuple[dict[str, dict[str, Any]], dict[str, Any]]:
+    """Pull official lastMod observations after the newest annual-feed watermark.
+
+    Annual feeds can stall for days (Oct 16 hashes through Oct 20; see catalog
+    sync 39553372858) while the NVD API keeps publishing. This catch-up uses
+    lastModStartDate/lastModEndDate plus startIndex. It never invents a cursor
+    and it fails closed on 403/429 so a missing key or rate limit cannot look
+    like a successful NVD ingest.
+    """
+    start = nvd_feed_watermark(feed_sources)
+    finish = (end or utc_now()).astimezone(timezone.utc)
+    if start is None or finish <= start:
+        return {}, {
+            "url": NVD_API_URL,
+            "skipped": "annual feeds already at or past the catch-up window",
+            "records": 0,
+        }
+
+    fetch_page = fetch or (
+        lambda url: fetch_bytes(
+            url,
+            attempts=2,
+            timeout=180,
+            extra_headers=nvd_api_headers() or None,
+            retryable_http_codes=RETRYABLE_HTTP_CODES - {429},
+        )
+    )
+    pause = sleeper or time.sleep
+    records: dict[str, dict[str, Any]] = {}
+    offset = 0
+    pages = 0
+    expected_total: int | None = None
+    start_text = start.replace(microsecond=0).isoformat().replace("+00:00", "Z")
+    end_text = finish.replace(microsecond=0).isoformat().replace("+00:00", "Z")
+    while True:
+        if pages:
+            pause(nvd_api_sleep_interval())
+        if pages >= NVD_API_MAX_PAGES:
+            raise ValueError("NVD API lastMod catch-up exceeded its page budget")
+        query = urlencode(
+            {
+                "lastModStartDate": start_text,
+                "lastModEndDate": end_text,
+                "resultsPerPage": NVD_API_PAGE_SIZE,
+                "startIndex": offset,
+            }
+        )
+        url = f"{NVD_API_URL}?{query}"
+        try:
+            raw = fetch_page(url)
+        except HTTPError as exc:
+            if exc.code in {401, 403, 429}:
+                hint = (
+                    "Set NVD_API_KEY for the authenticated rate limit."
+                    if exc.code in {401, 403}
+                    else "Rate limited; retry later or set NVD_API_KEY."
+                )
+                raise ValueError(
+                    f"NVD API refused HTTP {exc.code} during lastMod catch-up "
+                    f"({start_text}..{end_text}, startIndex={offset}). {hint}"
+                ) from exc
+            raise
+        page = json.loads(raw)
+        if not isinstance(page, dict):
+            raise ValueError("NVD API lastMod catch-up response is not an object")
+        total = page.get("totalResults")
+        count = page.get("resultsPerPage")
+        position = page.get("startIndex")
+        rows = page.get("vulnerabilities")
+        if (
+            any(type(value) is not int or value < 0 for value in (total, count, position))
+            or position != offset
+            or not isinstance(rows, list)
+            or count != len(rows)
+            or (count == 0 and offset < int(total or 0))
+        ):
+            raise ValueError("NVD API lastMod catch-up pagination is incomplete or malformed")
+        if expected_total is None:
+            expected_total = total
+        elif total != expected_total:
+            raise ValueError("NVD API lastMod catch-up totalResults drifted mid-window")
+        for row in rows:
+            cve = row.get("cve") if isinstance(row, dict) else None
+            if not isinstance(cve, dict):
+                raise ValueError("NVD API lastMod catch-up contains an invalid CVE row")
+            identity = str(cve.get("id") or "")
+            if not re.fullmatch(r"CVE-\d{4}-\d+", identity):
+                raise ValueError("NVD API lastMod catch-up contains an invalid CVE identity")
+            records[identity] = cve
+        pages += 1
+        offset += count
+        if offset >= total:
+            break
+
+    latest = None
+    for cve in records.values():
+        modified = parse_nvd_datetime(cve.get("lastModified"))
+        if modified is not None and (latest is None or modified > latest):
+            latest = modified
+    print(
+        f"NVD API lastMod catch-up accepted {len(records):,} official records "
+        f"from {start_text} to {end_text} ({expected_total} totalResults).",
+        flush=True,
+    )
+    return records, {
+        "url": NVD_API_URL,
+        "last_mod_start": start_text,
+        "last_mod_end": end_text,
+        "total_results": expected_total,
+        "records": len(records),
+        "pages": pages,
+        "latest_record_modified": (
+            latest.replace(microsecond=0).isoformat().replace("+00:00", "Z")
+            if latest is not None
+            else None
+        ),
+        "api_key_configured": bool(os.environ.get("NVD_API_KEY", "").strip()),
+    }
 
 
 def kev_by_cve(data: dict[str, Any]) -> dict[str, dict[str, Any]]:
@@ -2358,20 +2530,22 @@ def count_ecosystem_target_hints(archetypes: dict[str, Any]) -> int:
     return sum(1 for hints in target_hints.values() if isinstance(hints, dict))
 
 
-def catalog_timestamp(feed_metadata: Iterable[dict[str, str]], kev_data: dict[str, Any]) -> str:
-    candidates = [metadata.get("lastModifiedDate", "") for metadata in feed_metadata]
-    candidates.extend([str(kev_data.get("dateReleased") or ""), str(kev_data.get("catalogVersion") or "")])
+def catalog_timestamp(
+    feed_metadata: Iterable[dict[str, str]],
+    kev_data: dict[str, Any] | None = None,
+) -> str:
+    """Return the NVD sync watermark.
+
+    Freshness is the newest NVD lastModifiedDate among annual-feed metadata
+    and any NVD API catch-up watermark. CISA KEV dateReleased / catalogVersion
+    must never advance this stamp; a KEV-only delta is not an NVD ingest.
+    """
+    del kev_data
     valid: list[datetime] = []
-    for candidate in candidates:
-        if not candidate or "T" not in candidate:
-            continue
-        try:
-            parsed = datetime.fromisoformat(candidate.replace("Z", "+00:00"))
-            if parsed.tzinfo is None:
-                parsed = parsed.replace(tzinfo=timezone.utc)
-            valid.append(parsed.astimezone(timezone.utc))
-        except ValueError:
-            continue
+    for metadata in feed_metadata:
+        parsed = parse_nvd_datetime(metadata.get("lastModifiedDate", ""))
+        if parsed is not None:
+            valid.append(parsed)
     return (max(valid) if valid else utc_now()).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
 
@@ -2403,6 +2577,7 @@ def build_outputs(
     presorted: bool = False,
     source_timestamp_override: str | None = None,
     sources_override: dict[str, Any] | None = None,
+    nvd_api_catchup: dict[str, Any] | None = None,
 ) -> tuple[dict[Path, bytes], dict[str, Any]]:
     outputs: dict[Path, bytes] = {}
     index_records: list[dict[str, Any]] = []
@@ -2554,10 +2729,15 @@ def build_outputs(
         },
     }
 
+    source_metadata = [source["metadata"] for source in feed_sources]
+    if nvd_api_catchup and nvd_api_catchup.get("latest_record_modified"):
+        source_metadata.append(
+            {"lastModifiedDate": str(nvd_api_catchup["latest_record_modified"])}
+        )
     source_timestamp = (
         source_timestamp_override
         if source_timestamp_override is not None
-        else catalog_timestamp((source["metadata"] for source in feed_sources), kev_data)
+        else catalog_timestamp(source_metadata)
     )
     duplicate_markdown = {
         cve: [recipe.path for recipe in recipes]
@@ -2643,6 +2823,11 @@ def build_outputs(
                 "nvd": {
                     "feed_root": NVD_FEED_ROOT,
                     "feeds": feed_sources,
+                    **(
+                        {"api_catchup": deepcopy(nvd_api_catchup)}
+                        if nvd_api_catchup is not None
+                        else {}
+                    ),
                 },
                 "cisa_kev": {
                     "url": CISA_KEV_URL,
@@ -3572,6 +3757,41 @@ def main(argv: list[str] | None = None) -> int:
             del payload, year_records
             gc.collect()
 
+        api_records: dict[str, dict[str, Any]] = {}
+        api_catchup: dict[str, Any] | None = None
+        if not args.offline:
+            api_records, api_catchup = fetch_nvd_api_catchup(feed_sources)
+            api_year_records: dict[str, bytes] = {}
+            for cve in api_records.values():
+                record = normalize_cve(
+                    cve,
+                    start_date=start_date,
+                    end_date=end_date,
+                    kev_map=kev_map,
+                    cwe_mapping=cwe_mapping,
+                    default_archetype=default_archetype,
+                    existing=existing,
+                )
+                if record is None:
+                    continue
+                record = normalize_catalog_record_text(record)
+                cve_id = record["cve"]
+                if cve_id in seen_cves or cve_id in api_year_records:
+                    continue
+                api_year_records[cve_id] = json_bytes(record)
+            if api_year_records:
+                spool_path = spool_root / "nvd-api-catchup.jsonl"
+                with spool_path.open("wb") as stream:
+                    for cve_id in sorted(api_year_records):
+                        stream.write(api_year_records[cve_id])
+                spool_paths.append(spool_path)
+                seen_cves.update(api_year_records)
+                print(
+                    f"[nvd-api] accepted {len(api_year_records):,} new in-scope "
+                    "Medium/High/Critical records after the annual-feed watermark.",
+                    flush=True,
+                )
+
         def output_records() -> Iterable[dict[str, Any]]:
             records: Iterable[dict[str, Any]] = merged_record_spools(spool_paths)
             if args.limit is not None:
@@ -3619,6 +3839,7 @@ def main(argv: list[str] | None = None) -> int:
             archetypes=archetypes,
             existing=effective_existing,
             presorted=True,
+            nvd_api_catchup=api_catchup,
         )
         generated_recipe_summary = generated_recipes.reconcile()
     write_summary = write_outputs(output_dir, outputs, dry_run=args.dry_run)
