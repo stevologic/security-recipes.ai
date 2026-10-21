@@ -33,7 +33,7 @@ flowchart TB
 
     SYNC["cve-catalog-sync.yml<br/>09:23 UTC daily"]
     SYNCPY["scripts/sync_cve_catalog.py"]
-    XAI["Optional xAI enrichment<br/>default 20 new or changed CVEs"]
+    OPENAI["Optional OpenAI enrichment<br/>default 20 new or changed CVEs"]
     CAT["Committed static/api/cve-catalog"]
     CACHE["Committed data/cve/ai-enrichments.json"]
     PIPE["scripts/run_generator_pipeline.py --write"]
@@ -59,9 +59,9 @@ flowchart TB
     NVD --> SYNC
     KEV --> SYNC
     SYNC --> SYNCPY
-    SYNCPY --> XAI
-    XAI --> CAT
-    XAI --> CACHE
+    SYNCPY --> OPENAI
+    OPENAI --> CAT
+    OPENAI --> CACHE
     SYNCPY --> CAT
     CAT --> PIPE
     PIPE --> CATPR
@@ -121,9 +121,9 @@ ID. Archetype text used to compose a conservative recipe lives in
    scope.
 3. Joins CISA KEV by CVE ID.
 4. Reapplies local Markdown from `content/recipes/cve/`.
-5. Optionally asks xAI/Grok to enrich **new or source-changed** records.
-   Default limit is **20** per run (`XAI_ENRICHMENT_LIMIT`, max 50). If
-   `XAI_API_KEY` is missing, source sync still finishes and valid cached
+5. Optionally asks OpenAI to enrich **new or source-changed** records.
+   Default limit is **20** per run (`OPENAI_ENRICHMENT_LIMIT`, max 50). If
+   `OPENAI_API_KEY` is missing, source sync still finishes and valid cached
    enrichments stay. Most catalog rows are not AI-enriched.
 6. May write development drafts at
    `content/recipes/cve/ai-enrichment-cve-*.md`, owned by

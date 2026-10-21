@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
-"""Bounded, evidence-constrained xAI/Grok enrichment for normalized CVE records.
+"""Bounded, evidence-constrained Responses API enrichment for normalized CVE records.
 
-The NVD/CISA record remains authoritative.  This module adds a supplemental
-``ai_enrichment`` object only; it never changes CVSS, KEV, affected-version,
-archetype, or reviewed Markdown fields.
+Catalog sync uses the official OpenAI Responses API.  Leftover-review and other
+Grok jobs still probe xAI through the helpers in this module.  The NVD/CISA
+record remains authoritative.  This module adds a supplemental ``ai_enrichment``
+object only; it never changes CVSS, KEV, affected-version, archetype, or
+reviewed Markdown fields.
 """
 
 from __future__ import annotations
@@ -27,7 +29,9 @@ from urllib.request import Request, urlopen
 CACHE_SCHEMA_VERSION = 2
 ENRICHMENT_SCHEMA_VERSION = 2
 PROMPT_VERSION = "2026-07-14.2"
-DEFAULT_MODEL = "grok-4.6"
+DEFAULT_XAI_MODEL = "grok-4.6"
+DEFAULT_MODEL = DEFAULT_XAI_MODEL
+DEFAULT_OPENAI_MODEL = "gpt-5.6-luna"
 DEFAULT_API_URL = "https://api.x.ai/v1/responses"
 OPENAI_API_URL = "https://api.openai.com/v1/responses"
 API_KEY_ENV = "XAI_API_KEY"
@@ -36,6 +40,7 @@ DEFAULT_REQUEST_LIMIT = 20
 MAX_REQUEST_LIMIT = 50
 DEFAULT_REQUEST_ATTEMPTS = 2
 TIMEOUT_ENV = "XAI_ENRICHMENT_TIMEOUT"
+OPENAI_TIMEOUT_ENV = "OPENAI_ENRICHMENT_TIMEOUT"
 DEFAULT_REQUEST_TIMEOUT = 180
 MAX_CONSECUTIVE_FAILURES = 3
 MAX_ENRICHMENT_SECONDS = 15 * 60
@@ -191,16 +196,18 @@ OUTPUT_SCHEMA: dict[str, Any] = {
 }
 
 
-def request_timeout_seconds(raw: str | None = None) -> int:
-    value = os.environ.get(TIMEOUT_ENV, "") if raw is None else raw
+def request_timeout_seconds(
+    raw: str | None = None, *, env_name: str = TIMEOUT_ENV
+) -> int:
+    value = os.environ.get(env_name, "") if raw is None else raw
     if value is None or str(value).strip() == "":
         return DEFAULT_REQUEST_TIMEOUT
     try:
         parsed = int(str(value).strip())
     except ValueError as exc:
-        raise ValueError(f"{TIMEOUT_ENV} must be a positive integer") from exc
+        raise ValueError(f"{env_name} must be a positive integer") from exc
     if parsed < 1:
-        raise ValueError(f"{TIMEOUT_ENV} must be a positive integer")
+        raise ValueError(f"{env_name} must be a positive integer")
     return parsed
 
 
@@ -308,6 +315,7 @@ def probe_provider_credentials(
     provider: str = "xAI",
     opener: Callable[..., Any] | None = None,
     timeout: int = 30,
+    user_agent: str | None = None,
 ) -> ProviderCredentialStatus:
     """Classify whether the configured provider key can serve billed requests."""
 
@@ -319,8 +327,9 @@ def probe_provider_credentials(
         return ProviderCredentialStatus("invalid_key_format", usable=False, **status_kwargs)
     if opener is None:
         opener = urlopen
+    fallback_model = DEFAULT_OPENAI_MODEL if provider == "OpenAI" else DEFAULT_MODEL
     payload = {
-        "model": normalize_text(model, limit=160) or DEFAULT_MODEL,
+        "model": normalize_text(model, limit=160) or fallback_model,
         "input": "ok",
         "max_output_tokens": 16,
     }
@@ -332,7 +341,8 @@ def probe_provider_credentials(
             "Authorization": f"Bearer {key}",
             "Content-Type": "application/json",
             "Accept": "application/json",
-            "User-Agent": "security-recipes.ai/xai-credential-check",
+            "User-Agent": user_agent
+            or f"security-recipes.ai/{provider.lower()}-credential-check",
         },
     )
     try:
@@ -375,7 +385,7 @@ def probe_xai_credentials(
 def probe_openai_credentials(
     api_key: str,
     *,
-    model: str = "gpt-5.6-luna",
+    model: str = DEFAULT_OPENAI_MODEL,
     api_url: str = OPENAI_API_URL,
     opener: Callable[..., Any] | None = None,
     timeout: int = 30,
@@ -390,6 +400,7 @@ def probe_openai_credentials(
         provider="OpenAI",
         opener=opener,
         timeout=timeout,
+        user_agent="security-recipes.ai/openai-credential-check",
     )
 
 
@@ -959,10 +970,10 @@ def _response_text(response: dict[str, Any]) -> str:
             if not isinstance(content, dict):
                 continue
             if content.get("type") == "refusal":
-                raise EnrichmentError("xAI refused the enrichment request")
+                raise EnrichmentError("provider refused the enrichment request")
             if content.get("type") == "output_text" and isinstance(content.get("text"), str):
                 return content["text"]
-    raise EnrichmentError("xAI response did not contain structured output text")
+    raise EnrichmentError("provider response did not contain structured output text")
 
 
 def _collect_url(found: list[str], candidate: object) -> None:
@@ -1017,13 +1028,13 @@ def build_enrichment_entry(
     generated_at: datetime | None = None,
 ) -> dict[str, Any]:
     if set(raw_output) != OUTPUT_FIELDS:
-        raise EnrichmentError("xAI structured output did not match the required keys")
+        raise EnrichmentError("structured output did not match the required keys")
     retrieved_urls = unique_urls(retrieved_source_urls)
     requested_urls = unique_urls(raw_output.get("source_urls"))
     source_urls = [url for url in requested_urls if url in set(retrieved_urls)]
     status = str(raw_output.get("status") or "").strip()
     if status not in {"complete", "insufficient_evidence"}:
-        raise EnrichmentError("xAI structured output had an invalid status")
+        raise EnrichmentError("structured output had an invalid status")
     business_risk = normalize_text(raw_output.get("business_risk")) or (
         "Available evidence does not establish additional CVE-specific business impact."
     )
@@ -1033,7 +1044,7 @@ def build_enrichment_entry(
     uncertainty = unique_strings(raw_output.get("uncertainty"))
     specificity = normalize_text(raw_output.get("recipe_specificity"), limit=40).lower()
     if specificity not in {"specific", "not_specific"}:
-        raise EnrichmentError("xAI structured output had an invalid recipe_specificity")
+        raise EnrichmentError("structured output had an invalid recipe_specificity")
     claims = unique_claim_evidence(
         raw_output.get("claim_evidence"),
         allowed_urls=set(source_urls),
@@ -1097,16 +1108,25 @@ class XAIEnricher:
         sleep: Callable[[float], None] = time.sleep,
         attempts: int = DEFAULT_REQUEST_ATTEMPTS,
         timeout: int | None = None,
+        provider: str = "xAI",
+        user_agent: str = "security-recipes.ai/cve-ai-enrichment-xai",
+        timeout_env: str = TIMEOUT_ENV,
     ) -> None:
         if not str(api_key or "").strip():
             raise ValueError("api_key must not be empty")
         self.api_key = str(api_key).strip()
-        self.model = normalize_text(model, limit=160) or DEFAULT_MODEL
+        fallback_model = DEFAULT_OPENAI_MODEL if provider == "OpenAI" else DEFAULT_MODEL
+        self.model = normalize_text(model, limit=160) or fallback_model
         self.api_url = api_url
         self.opener = opener
         self.sleep = sleep
         self.attempts = max(1, attempts)
-        self.timeout = max(1, timeout if timeout is not None else request_timeout_seconds())
+        self.provider = provider
+        self.user_agent = user_agent
+        self.timeout = max(
+            1,
+            timeout if timeout is not None else request_timeout_seconds(env_name=timeout_env),
+        )
 
     def request_payload(self, record: dict[str, Any]) -> dict[str, Any]:
         gaps = completeness_gaps(record)
@@ -1159,44 +1179,45 @@ class XAIEnricher:
                 "Authorization": f"Bearer {self.api_key}",
                 "Content-Type": "application/json",
                 "Accept": "application/json",
-                "User-Agent": "security-recipes.ai/cve-ai-enrichment-xai",
+                "User-Agent": self.user_agent,
             },
         )
         retryable_codes = {408, 409, 429, 500, 502, 503, 504}
         last_error: BaseException | None = None
+        label = f"{self.provider} Responses API"
         for attempt in range(self.attempts):
             try:
                 with self.opener(request, timeout=self.timeout) as response:
                     raw = response.read(MAX_RESPONSE_BYTES + 1)
                 if len(raw) > MAX_RESPONSE_BYTES:
-                    raise EnrichmentError("xAI response exceeded the size limit")
+                    raise EnrichmentError("provider response exceeded the size limit")
                 parsed = json.loads(raw)
                 if not isinstance(parsed, dict):
-                    raise EnrichmentError("xAI response was not a JSON object")
+                    raise EnrichmentError("provider response was not a JSON object")
                 return parsed
             except HTTPError as exc:
                 last_error = exc
                 reason = classify_provider_http_error(exc)
                 if reason == "insufficient_quota":
                     raise EnrichmentError(
-                        "xAI Responses API has no remaining credits or has reached a billing limit",
+                        f"{label} has no remaining credits or has reached a billing limit",
                         fatal=True,
                         reason=reason,
                     ) from exc
                 if reason == "invalid_key":
                     raise EnrichmentError(
-                        "xAI Responses API rejected the API key",
+                        f"{label} rejected the API key",
                         fatal=True,
                         reason=reason,
                     ) from exc
                 if reason == "permission_denied":
                     raise EnrichmentError(
-                        "xAI Responses API denied access; check key permissions, model access, and team restrictions",
+                        f"{label} denied access; check key permissions, model access, and team restrictions",
                         fatal=True,
                         reason=reason,
                     ) from exc
                 if exc.code not in retryable_codes or attempt + 1 >= self.attempts:
-                    raise EnrichmentError(f"xAI Responses API returned HTTP {exc.code}") from exc
+                    raise EnrichmentError(f"{label} returned HTTP {exc.code}") from exc
                 retry_after = exc.headers.get("Retry-After") if exc.headers else None
                 delay = float(retry_after) if retry_after and retry_after.isdigit() else float(2**attempt)
                 self.sleep(min(delay, 30.0))
@@ -1204,14 +1225,14 @@ class XAIEnricher:
                 last_error = exc
                 if attempt + 1 >= self.attempts:
                     raise EnrichmentError(
-                        f"xAI Responses API request failed: {type(exc).__name__}",
+                        f"{label} request failed: {type(exc).__name__}",
                         reason="timeout" if _is_timeout_error(exc) else None,
                     ) from exc
                 self.sleep(min(float(2**attempt), 30.0))
             except json.JSONDecodeError as exc:
-                raise EnrichmentError("xAI response was not valid JSON") from exc
+                raise EnrichmentError("provider response was not valid JSON") from exc
         raise EnrichmentError(
-            f"xAI Responses API request failed: {type(last_error).__name__}",
+            f"{label} request failed: {type(last_error).__name__}",
             reason="timeout" if last_error is not None and _is_timeout_error(last_error) else None,
         )
 
@@ -1221,9 +1242,9 @@ class XAIEnricher:
         try:
             output = json.loads(text)
         except json.JSONDecodeError as exc:
-            raise EnrichmentError("xAI structured output text was not valid JSON") from exc
+            raise EnrichmentError("structured output text was not valid JSON") from exc
         if not isinstance(output, dict):
-            raise EnrichmentError("xAI structured output was not an object")
+            raise EnrichmentError("structured output was not an object")
         return build_enrichment_entry(
             record,
             output,
@@ -1232,7 +1253,32 @@ class XAIEnricher:
         )
 
 
-OpenAIEnricher = XAIEnricher
+class OpenAIEnricher(XAIEnricher):
+    """Official OpenAI Responses API client for catalog CVE enrichment."""
+
+    def __init__(
+        self,
+        api_key: str,
+        *,
+        model: str = DEFAULT_OPENAI_MODEL,
+        api_url: str = OPENAI_API_URL,
+        opener: Callable[..., Any] = urlopen,
+        sleep: Callable[[float], None] = time.sleep,
+        attempts: int = DEFAULT_REQUEST_ATTEMPTS,
+        timeout: int | None = None,
+    ) -> None:
+        super().__init__(
+            api_key,
+            model=model,
+            api_url=api_url,
+            opener=opener,
+            sleep=sleep,
+            attempts=attempts,
+            timeout=timeout,
+            provider="OpenAI",
+            user_agent="security-recipes.ai/cve-ai-enrichment-openai",
+            timeout_env=OPENAI_TIMEOUT_ENV,
+        )
 
 
 class EnrichmentCache:
@@ -1392,7 +1438,7 @@ class EnrichmentCache:
                 break
             if deadline is not None and clock() >= deadline:
                 print(
-                    "Optional xAI enrichment time budget was exhausted; source sync will continue.",
+                    "Optional AI enrichment time budget was exhausted; source sync will continue.",
                     file=sys.stderr,
                     flush=True,
                 )
@@ -1410,7 +1456,7 @@ class EnrichmentCache:
                 else:
                     consecutive_errors += 1
                 print(
-                    f"[{cve}] optional xAI enrichment skipped: {exc}",
+                    f"[{cve}] optional AI enrichment skipped: {exc}",
                     file=sys.stderr,
                     flush=True,
                 )
@@ -1427,7 +1473,7 @@ class EnrichmentCache:
                         else f"{consecutive_errors} consecutive failures"
                     )
                     print(
-                        "Optional xAI enrichment circuit breaker opened after "
+                        "Optional AI enrichment circuit breaker opened after "
                         f"{opened_on}; source sync will continue.",
                         file=sys.stderr,
                         flush=True,

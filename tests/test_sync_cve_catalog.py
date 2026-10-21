@@ -5,6 +5,7 @@ import ast
 import gzip
 import hashlib
 import inspect
+import io
 import json
 import re
 import tempfile
@@ -736,6 +737,89 @@ class SyncCveCatalogTests(unittest.TestCase):
 
         self.assertNotIn("ai_enrichment", refreshed)
         self.assertIn("ai_enrichment", record)
+
+    def test_openai_args_read_openai_env_and_not_xai(self) -> None:
+        env = {
+            key: value
+            for key, value in catalog.os.environ.items()
+            if key
+            not in {
+                "OPENAI_MODEL",
+                "OPENAI_ENRICHMENT_LIMIT",
+                "XAI_MODEL",
+                "XAI_ENRICHMENT_LIMIT",
+            }
+        }
+        env.update(
+            {
+                "OPENAI_MODEL": "gpt-5.6-luna",
+                "OPENAI_ENRICHMENT_LIMIT": "7",
+                "XAI_MODEL": "grok-should-be-ignored",
+                "XAI_ENRICHMENT_LIMIT": "41",
+            }
+        )
+        with patch.dict(catalog.os.environ, env, clear=True):
+            parsed = catalog.parse_args([])
+        self.assertEqual(parsed.openai_model, "gpt-5.6-luna")
+        self.assertEqual(parsed.ai_enrichment_limit, 7)
+        self.assertFalse(hasattr(parsed, "xai_model"))
+
+    def test_missing_openai_key_skips_enrichment_and_does_not_log_a_key(self) -> None:
+        secret = "sk-openai-secret-never-log-9f3a"
+        stdout = io.StringIO()
+        with patch("sys.stdout", stdout):
+            client, intended, provider_error = catalog.configure_openai_enrichment(
+                api_key="",
+                model="gpt-5.6-luna",
+                limit=20,
+            )
+        output = stdout.getvalue()
+        self.assertIsNone(client)
+        self.assertFalse(intended)
+        self.assertIsNone(provider_error)
+        self.assertIn("OPENAI_API_KEY is not set", output)
+        self.assertNotIn(secret, output)
+        self.assertNotIn("sk-", output)
+
+        source = {
+            "cve": "CVE-2026-1234",
+            "recipe_kind": "composed",
+            "references": [
+                {"url": "https://vendor.example.test/advisory", "tags": ["Vendor Advisory"]}
+            ],
+        }
+        cache = ai.EnrichmentCache(Path("unused.json"))
+        cache.select_candidates([source], limit=1)
+        applied = list(cache.apply([source], client=None))
+        self.assertEqual(applied[0]["cve"], "CVE-2026-1234")
+        self.assertNotIn("ai_enrichment", applied[0])
+
+    def test_unusable_openai_key_skips_requests_without_logging_the_key(self) -> None:
+        secret = "sk-openai-secret-never-log-9f3a"
+        stdout = io.StringIO()
+
+        def opener(_: object, *, timeout: int) -> object:
+            raise HTTPError(
+                ai.OPENAI_API_URL,
+                401,
+                secret,
+                {},
+                None,
+            )
+
+        with patch("sys.stdout", stdout):
+            client, intended, provider_error = catalog.configure_openai_enrichment(
+                api_key=secret,
+                model="gpt-5.6-luna",
+                opener=opener,
+                limit=20,
+            )
+        output = stdout.getvalue()
+        self.assertIsNone(client)
+        self.assertTrue(intended)
+        self.assertEqual(provider_error, "invalid_key")
+        self.assertIn("Optional OpenAI enrichment is inactive (invalid_key)", output)
+        self.assertNotIn(secret, output)
 
     def test_ai_enrichment_limit_is_hard_bounded(self) -> None:
         self.assertEqual(catalog.parse_ai_enrichment_limit("0"), 0)

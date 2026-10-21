@@ -1644,5 +1644,142 @@ class CVEAIEnrichmentTests(unittest.TestCase):
         self.assertIn("ai_enrichment", results[1])
 
 
+class OpenAICVEEnrichmentHTTPTests(unittest.TestCase):
+    """Mocked official OpenAI Responses API path used by catalog sync."""
+
+    SECRET = "sk-openai-secret-never-log-9f3a"
+
+    def test_success_uses_openai_responses_url_schema_and_hides_the_key(self) -> None:
+        captured: dict[str, object] = {}
+        source = record()
+        searched = "https://vendor.example.test/patches/CVE-2026-1234"
+        output = model_output(source_urls=[searched])
+
+        def opener(request: object, *, timeout: int) -> FakeResponse:
+            captured["request"] = request
+            captured["timeout"] = timeout
+            return FakeResponse(response_payload(output, source=searched))
+
+        client = enrichment.OpenAIEnricher(
+            self.SECRET, opener=opener, sleep=lambda _: None
+        )
+        result = client.enrich(source)
+        request = captured["request"]
+        assert hasattr(request, "full_url") and hasattr(request, "data")
+        request_body = json.loads(request.data)
+        self.assertEqual(client.api_url, enrichment.OPENAI_API_URL)
+        self.assertEqual(request.full_url, enrichment.OPENAI_API_URL)
+        self.assertEqual(client.model, enrichment.DEFAULT_OPENAI_MODEL)
+        self.assertEqual(client.provider, "OpenAI")
+        self.assertEqual(request_body["model"], enrichment.DEFAULT_OPENAI_MODEL)
+        self.assertEqual(request_body["tools"], [{"type": "web_search"}])
+        self.assertTrue(request_body["text"]["format"]["strict"])
+        self.assertEqual(
+            request_body["text"]["format"]["schema"], enrichment.OUTPUT_SCHEMA
+        )
+        self.assertNotIn("access_programs", request_body)
+        self.assertNotIn(self.SECRET, request.data.decode("utf-8"))
+        self.assertNotIn(self.SECRET, json.dumps(result))
+        self.assertEqual(result["status"], "complete")
+        self.assertEqual(enrichment.enrichment_errors(result, source), [])
+
+    def test_schema_invalid_response_is_rejected_without_exposing_the_key(self) -> None:
+        def opener(_: object, *, timeout: int) -> FakeResponse:
+            invalid = {"status": "complete", "business_risk": "missing the rest"}
+            return FakeResponse(response_payload(invalid))
+
+        client = enrichment.OpenAIEnricher(
+            self.SECRET, opener=opener, sleep=lambda _: None
+        )
+        with self.assertRaises(enrichment.EnrichmentError) as raised:
+            client.enrich(record())
+        self.assertIn("required keys", str(raised.exception))
+        self.assertNotIn(self.SECRET, str(raised.exception))
+        self.assertFalse(raised.exception.fatal)
+
+    def test_timeout_and_429_are_handled_without_exposing_the_key(self) -> None:
+        timeout_attempts: list[int] = []
+
+        def timeout_opener(_: object, *, timeout: int) -> FakeResponse:
+            timeout_attempts.append(timeout)
+            raise TimeoutError("openai request timed out")
+
+        timeout_client = enrichment.OpenAIEnricher(
+            self.SECRET,
+            opener=timeout_opener,
+            sleep=lambda _: None,
+            attempts=1,
+        )
+        with self.assertRaises(enrichment.EnrichmentError) as timeout_raised:
+            timeout_client.enrich(record())
+        self.assertEqual(timeout_raised.exception.reason, "timeout")
+        self.assertNotIn(self.SECRET, str(timeout_raised.exception))
+        self.assertEqual(len(timeout_attempts), 1)
+
+        rate_attempts: list[int] = []
+        delays: list[float] = []
+
+        def rate_limited(_: object, *, timeout: int) -> FakeResponse:
+            rate_attempts.append(timeout)
+            raise HTTPError(
+                enrichment.OPENAI_API_URL,
+                429,
+                f"secret-bearing body must stay hidden {self.SECRET}",
+                {"Retry-After": "0"},
+                None,
+            )
+
+        rate_client = enrichment.OpenAIEnricher(
+            self.SECRET,
+            opener=rate_limited,
+            sleep=delays.append,
+            attempts=2,
+        )
+        with self.assertRaises(enrichment.EnrichmentError) as rate_raised:
+            rate_client.enrich(record())
+        self.assertIn("HTTP 429", str(rate_raised.exception))
+        self.assertNotIn(self.SECRET, str(rate_raised.exception))
+        self.assertEqual(len(rate_attempts), 2)
+        self.assertEqual(delays, [0.0])
+
+    def test_missing_key_skips_enrichment_while_source_records_still_apply(self) -> None:
+        source = record()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            cache = enrichment.EnrichmentCache(Path(tmpdir) / "ai.json")
+            cache.select_candidates([source], limit=1)
+            applied = list(cache.apply([source], client=None))
+
+        self.assertEqual(applied[0]["cve"], source["cve"])
+        self.assertNotIn("ai_enrichment", applied[0])
+        self.assertEqual(cache.stats["generated"], 0)
+        self.assertEqual(cache.stats["failed"], 0)
+
+    def test_openai_timeout_env_is_bounded_and_separate_from_xai(self) -> None:
+        self.assertEqual(
+            enrichment.request_timeout_seconds("", env_name=enrichment.OPENAI_TIMEOUT_ENV),
+            180,
+        )
+        self.assertEqual(
+            enrichment.request_timeout_seconds(
+                "90", env_name=enrichment.OPENAI_TIMEOUT_ENV
+            ),
+            90,
+        )
+        with self.assertRaisesRegex(ValueError, "OPENAI_ENRICHMENT_TIMEOUT"):
+            enrichment.request_timeout_seconds("0", env_name=enrichment.OPENAI_TIMEOUT_ENV)
+
+        previous = enrichment.os.environ.get("OPENAI_ENRICHMENT_TIMEOUT")
+        enrichment.os.environ["OPENAI_ENRICHMENT_TIMEOUT"] = "150"
+        try:
+            client = enrichment.OpenAIEnricher("sk-test")
+            self.assertEqual(client.timeout, 150)
+            self.assertEqual(client.api_url, enrichment.OPENAI_API_URL)
+        finally:
+            if previous is None:
+                enrichment.os.environ.pop("OPENAI_ENRICHMENT_TIMEOUT", None)
+            else:
+                enrichment.os.environ["OPENAI_ENRICHMENT_TIMEOUT"] = previous
+
+
 if __name__ == "__main__":
     unittest.main()
