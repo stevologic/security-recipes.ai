@@ -284,6 +284,10 @@ class CveSyncWorkflowTests(unittest.TestCase):
         self.assertIn("require_karen_qa_from_app", delivery_step)
         self.assertIn("report_waiting_on_karen_qa", delivery_step)
         self.assertIn("waiting on karen-qa from the Karen QA app on ${expected_sha}", delivery_step)
+        self.assertIn(
+            '::warning::Catalog PR #${PR_NUMBER} is waiting on karen-qa from the Karen QA app on ${expected_sha}.',
+            delivery_step,
+        )
         self.assertIn('report_waiting_on_karen_qa "$EXPECTED_SHA"', delivery_step)
         self.assertIn("waiting_on_karen_qa=true", delivery_step)
         self.assertIn("does not post karen-qa", delivery_step)
@@ -323,8 +327,32 @@ class CveSyncWorkflowTests(unittest.TestCase):
             "steps.catalog-delivery.outputs.waiting_on_karen_qa == 'true'",
             waiting_step,
         )
+        self.assertIn(
+            '::warning::Catalog PR #${PR_NUMBER} is waiting on karen-qa from the Karen QA app on ${EXPECTED_SHA}.',
+            waiting_step,
+        )
+        self.assertIn("GITHUB_STEP_SUMMARY", waiting_step)
         self.assertIn(r"never posts \`karen-qa\`", waiting_step)
         self.assertIn("HTTP 405", waiting_step)
+        summarize_step = self.step("Summarize catalog refresh")
+        self.assertIn("not retrievable", summarize_step)
+        self.assertIn("::warning::NVD lastMod catch-up skipped", summarize_step)
+        self.assertIn("GITHUB_STEP_SUMMARY", summarize_step)
+        self.assertIn(
+            "NVD lastMod catch-up skipped; catalog kept the annual-feed watermark",
+            summarize_step,
+        )
+
+    def test_sync_job_timeout_documents_fetch_deadline_headroom(self) -> None:
+        self.assertIn("timeout-minutes: 150", self.workflow)
+        self.assertIn("5 min/URL", self.workflow)
+        self.assertIn("CVE catalog sync budget", self.workflow)
+        automation = (ROOT / ".github" / "AUTOMATION.md").read_text(encoding="utf-8")
+        self.assertIn("## CVE catalog sync budget", automation)
+        self.assertIn("15.5 min/URL", automation)
+        self.assertIn("300s", automation)
+        self.assertIn("15 min headroom", automation)
+        self.assertIn("FETCH_DEADLINE_SECONDS", automation)
 
     def test_enrichment_health_issue_is_upserted_and_closed_on_recovery(self) -> None:
         health_step = self.step("Reconcile enrichment health issue")

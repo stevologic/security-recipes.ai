@@ -93,6 +93,10 @@ USER_AGENT = "security-recipes.ai/cve-catalog-sync"
 # can also return 52x origin timeouts the same way it returns 502/504. A bounded
 # retry is safer than abandoning a complete daily refresh.
 RETRYABLE_HTTP_CODES = frozenset({404, 408, 429, 500, 502, 503, 504, 520, 521, 522, 523, 524})
+# Wall-clock cap for one URL. Without it, five 180s socket timeouts plus
+# inter-attempt sleeps reach ~15.5 min/URL and can starve the 150-minute
+# cve-catalog-sync job. See AUTOMATION.md "CVE catalog sync budget".
+FETCH_DEADLINE_SECONDS = 300.0
 
 SEVERITY_RANK = {"low": 1, "medium": 2, "high": 3, "critical": 4}
 BROWSER_SEVERITY_CODES = {"medium": 0, "high": 1, "critical": 2}
@@ -547,6 +551,27 @@ def _retry_sleep_seconds(base: float) -> float:
     return max(0.0, (base / 2.0) + (base * random.random() / 2.0))
 
 
+def _retry_or_sleep(
+    *,
+    attempt: int,
+    attempts: int,
+    base: float,
+    deadline: float | None,
+) -> bool:
+    """Sleep before another attempt. Return False when the budget is exhausted."""
+    if attempt + 1 >= attempts:
+        return False
+    now = time.monotonic()
+    if deadline is not None and now >= deadline:
+        return False
+    delay = _retry_sleep_seconds(min(max(0.0, base), 30.0))
+    if deadline is not None:
+        delay = min(delay, max(0.0, deadline - now))
+    if delay > 0:
+        time.sleep(delay)
+    return True
+
+
 def _declared_content_length(headers: Any) -> int | None:
     getter = getattr(headers, "get", None)
     raw = getter("Content-Length") if callable(getter) else None
@@ -565,16 +590,36 @@ def fetch_bytes(
     timeout: int = 180,
     extra_headers: dict[str, str] | None = None,
     retryable_http_codes: frozenset[int] | None = None,
+    deadline_seconds: float | None = FETCH_DEADLINE_SECONDS,
 ) -> bytes:
+    """Fetch ``url`` with bounded retries and a wall-clock deadline.
+
+    Five 180s socket timeouts plus sleeps after every attempt, including
+    the last, reach ~15.5 min/URL. This helper never sleeps after the
+    final attempt, applies equal jitter to 5xx and transport retries, and
+    caps the whole URL at ``deadline_seconds`` (default 5 min).
+    """
     headers = {"User-Agent": USER_AGENT, "Accept": "application/json, text/plain, */*"}
     if extra_headers:
         headers.update(extra_headers)
     request = Request(url, headers=headers)
     retryable = RETRYABLE_HTTP_CODES if retryable_http_codes is None else retryable_http_codes
+    deadline = (
+        time.monotonic() + deadline_seconds if deadline_seconds is not None else None
+    )
     last_error: Exception | None = None
     for attempt in range(attempts):
+        now = time.monotonic()
+        if deadline is not None and now >= deadline:
+            break
+        attempt_timeout: float | int = timeout
+        if deadline is not None:
+            remaining = deadline - now
+            if remaining <= 0:
+                break
+            attempt_timeout = min(float(timeout), remaining)
         try:
-            with urlopen(request, timeout=timeout) as response:
+            with urlopen(request, timeout=attempt_timeout) as response:
                 payload = response.read()
                 expected = _declared_content_length(getattr(response, "headers", None))
                 if expected is not None and len(payload) != expected:
@@ -588,16 +633,32 @@ def fetch_bytes(
             if exc.code not in retryable:
                 raise
             retry_after = exc.headers.get("Retry-After")
-            delay = float(retry_after) if retry_after and retry_after.isdigit() else 2**attempt
-            time.sleep(min(delay, 30))
+            base = (
+                float(retry_after)
+                if retry_after and retry_after.isdigit()
+                else float(2**attempt)
+            )
+            if not _retry_or_sleep(
+                attempt=attempt,
+                attempts=attempts,
+                base=base,
+                deadline=deadline,
+            ):
+                break
         # ``IncompleteRead`` is not an ``OSError``. NVD's CDN can close a
         # large annual-feed response after sending only part of its declared
         # body, so retry the immutable URL instead of accepting partial data.
         except (IncompleteRead, ConnectionResetError, TimeoutError, URLError, OSError) as exc:
             last_error = exc
-            time.sleep(_retry_sleep_seconds(min(2**attempt, 30)))
+            if not _retry_or_sleep(
+                attempt=attempt,
+                attempts=attempts,
+                base=float(2**attempt),
+                deadline=deadline,
+            ):
+                break
     if last_error is None:
-        raise RuntimeError(f"failed to fetch {url}")
+        raise TimeoutError(f"fetch of {url} exceeded the per-URL deadline")
     raise last_error
 
 

@@ -5,10 +5,12 @@ import ast
 import gzip
 import hashlib
 import inspect
+import io
 import json
 import re
 import tempfile
 import unittest
+from contextlib import redirect_stdout
 from copy import deepcopy
 from datetime import date
 from pathlib import Path
@@ -801,12 +803,13 @@ class SyncCveCatalogTests(unittest.TestCase):
         with (
             patch.object(catalog, "urlopen", side_effect=[transient, Response()]) as mocked_open,
             patch.object(catalog.time, "sleep") as mocked_sleep,
+            patch.object(catalog.random, "random", return_value=1.0),
         ):
             payload = catalog.fetch_bytes("https://nvd.example.test/feed.json.gz")
 
         self.assertEqual(payload, b"recovered feed")
         self.assertEqual(mocked_open.call_count, 2)
-        mocked_sleep.assert_called_once_with(1)
+        mocked_sleep.assert_called_once_with(1.0)
 
     def test_fetch_bytes_retries_truncated_http_body(self) -> None:
         class Response:
@@ -893,7 +896,11 @@ class SyncCveCatalogTests(unittest.TestCase):
                 catalog.fetch_bytes("https://nvd.example.test/feed.json.gz")
 
         self.assertEqual(mocked_open.call_count, 5)
-        self.assertEqual(mocked_sleep.call_count, 5)
+        self.assertEqual(mocked_sleep.call_count, 4)
+        self.assertEqual(
+            mocked_sleep.call_args_list,
+            [((1.0,),), ((2.0,),), ((4.0,),), ((8.0,),)],
+        )
 
     def test_nvd_fetch_retries_cloudflare_origin_timeouts(self) -> None:
         self.assertTrue({520, 521, 522, 523, 524} <= catalog.RETRYABLE_HTTP_CODES)
@@ -918,12 +925,76 @@ class SyncCveCatalogTests(unittest.TestCase):
         with (
             patch.object(catalog, "urlopen", side_effect=[transient, Response()]) as mocked_open,
             patch.object(catalog.time, "sleep") as mocked_sleep,
+            patch.object(catalog.random, "random", return_value=1.0),
         ):
             payload = catalog.fetch_bytes("https://nvd.example.test/nvdcve-2.0-2018.meta")
 
         self.assertEqual(payload, b"recovered metadata")
         self.assertEqual(mocked_open.call_count, 2)
-        mocked_sleep.assert_called_once_with(1)
+        mocked_sleep.assert_called_once_with(1.0)
+
+    def test_fetch_bytes_applies_jitter_to_5xx_and_skips_final_sleep(self) -> None:
+        transient = HTTPError(
+            "https://nvd.example.test/nvdcve-2.0-2018.meta",
+            503,
+            "Service Unavailable",
+            {},
+            None,
+        )
+        with (
+            patch.object(catalog, "urlopen", side_effect=transient) as mocked_open,
+            patch.object(catalog.time, "sleep") as mocked_sleep,
+            patch.object(catalog.random, "random", return_value=0.0),
+        ):
+            with self.assertRaises(HTTPError) as raised:
+                catalog.fetch_bytes("https://nvd.example.test/nvdcve-2.0-2018.meta")
+
+        self.assertEqual(raised.exception.code, 503)
+        self.assertEqual(mocked_open.call_count, 5)
+        self.assertEqual(
+            mocked_sleep.call_args_list,
+            [((0.5,),), ((1.0,),), ((2.0,),), ((4.0,),)],
+        )
+
+    def test_fetch_bytes_stops_at_the_url_deadline(self) -> None:
+        clock = {"now": 0.0}
+        opens = 0
+
+        def monotonic() -> float:
+            return clock["now"]
+
+        def sleep(seconds: float) -> None:
+            clock["now"] += float(seconds)
+
+        def urlopen(*_args: object, **_kwargs: object) -> object:
+            nonlocal opens
+            opens += 1
+            if opens > 20:
+                raise AssertionError(
+                    "unbounded retry: fetch_bytes ignored the per-URL deadline"
+                )
+            clock["now"] += 70
+            raise catalog.IncompleteRead(b"partial feed", 1024)
+
+        with (
+            patch.object(catalog, "urlopen", side_effect=urlopen),
+            patch.object(catalog.time, "sleep", side_effect=sleep),
+            patch.object(catalog.time, "monotonic", side_effect=monotonic),
+            patch.object(catalog.random, "random", return_value=1.0),
+        ):
+            with self.assertRaises(catalog.IncompleteRead):
+                catalog.fetch_bytes(
+                    "https://nvd.example.test/feed.json.gz",
+                    deadline_seconds=180,
+                )
+
+        # 70s/attempt against a 180s deadline allows three opens (t=0, 71, 143)
+        # and refuses a fourth. Five-attempt code without a deadline would open
+        # five times; an unbounded mutant trips the 20-call guard above.
+        self.assertEqual(opens, 3)
+        self.assertLess(opens, 5)
+        self.assertLessEqual(clock["now"], 180 + 70)
+        self.assertEqual(catalog.FETCH_DEADLINE_SECONDS, 300.0)
 
     def test_fetch_bytes_does_not_retry_non_transient_http_errors(self) -> None:
         forbidden = HTTPError(
@@ -3234,17 +3305,19 @@ class SyncCveCatalogTests(unittest.TestCase):
         def truncated(_url: str, **_: object) -> bytes:
             raise catalog.IncompleteRead(b"partial lastMod page", 1024)
 
-        records, metadata = catalog.fetch_nvd_api_catchup(
-            feeds,
-            end=catalog.parse_nvd_datetime("2026-10-21T16:00:00Z"),
-            fetch=truncated,
-            sleeper=lambda _: None,
-        )
+        with redirect_stdout(io.StringIO()) as stdout:
+            records, metadata = catalog.fetch_nvd_api_catchup(
+                feeds,
+                end=catalog.parse_nvd_datetime("2026-10-21T16:00:00Z"),
+                fetch=truncated,
+                sleeper=lambda _: None,
+            )
 
         self.assertEqual(records, {})
         self.assertEqual(metadata["records"], 0)
         self.assertIn("not retrievable", metadata["skipped"])
         self.assertNotIn("latest_record_modified", metadata)
+        self.assertIn("::warning::NVD API lastMod catch-up is not retrievable", stdout.getvalue())
 
         _, stamp = catalog.build_outputs(
             [],

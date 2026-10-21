@@ -89,6 +89,44 @@ validation request for auto-merge PR heads that have none. The request performs
 only API identity checks. Validation executes the catalog SHA and does not
 post commit statuses. Required merge checks come from those real workflow runs.
 
+## CVE catalog sync budget
+
+`cve-catalog-sync.yml` uses `timeout-minutes: 150`. NVD fetches go through
+`fetch_bytes` (`FETCH_DEADLINE_SECONDS = 300`) with five attempts, a 180s
+socket timeout, equal jitter on 5xx and transport retries, and no sleep
+after the final attempt.
+
+```
+PR #421 worst case per URL
+  5 × 180s socket timeout          = 900s
+  sleeps after all 5 attempts
+    1 + 2 + 4 + 8 + 16             =  31s
+                                 ≈ 931s ≈ 15.5 min/URL
+
+This follow-up
+  wall-clock deadline              = 300s = 5 min/URL
+  sleeps only between attempts
+    1 + 2 + 4 + 8                  ≤  15s (inside the deadline)
+```
+
+Catch-up skips after the first unreadable lastMod page, so it can consume
+at most one URL budget (5 min). A typical daily run with a warm annual-feed
+cache fetches 25 identifier-year `.meta` objects (2002–current), KEV, and
+at most one catch-up page:
+
+```
+25 meta + 1 KEV + 1 catch-up = 27 URLs × 5 min = 135 min
+150 − 135 = 15 min headroom for enrichment, validation, and PR delivery
+```
+
+A pathological cold-cache stampede (every `.meta` and every `.json.gz`
+plus KEV plus catch-up) is 52 × 5 min = 260 min and is still bounded by
+the 150-minute job timeout. The per-URL deadline exists so one hung
+catch-up URL cannot spend 15.5 min, and so a handful of failing URLs
+cannot dominate the job. A skipped catch-up or a catalog PR waiting on
+`karen-qa` emits a `::warning::` annotation plus a step-summary line.
+The workflow never self-posts `karen-qa`.
+
 ## Merge policy
 
 The `main` ruleset requires a PR, a passing `build` context from GitHub
