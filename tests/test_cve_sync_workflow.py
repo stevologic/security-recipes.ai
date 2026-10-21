@@ -63,6 +63,21 @@ class CveSyncWorkflowTests(unittest.TestCase):
         self.assertNotIn("print(os.environ['XAI_API_KEY'])", self.workflow)
         self.assertNotIn('print(os.environ["XAI_API_KEY"])', self.workflow)
 
+    def test_nvd_api_key_is_optional_and_never_printed(self) -> None:
+        sync_step = self.step(
+            "Synchronize and optionally enrich exact rolling ten-year catalog"
+        )
+        self.assertIn("NVD_API_KEY: ${{ secrets.NVD_API_KEY }}", sync_step)
+        self.assertEqual(
+            self.workflow.count("NVD_API_KEY: ${{ secrets.NVD_API_KEY }}"), 1
+        )
+        self.assertNotIn("NVD_API_KEY", self.workflow.split("steps:", 1)[0])
+        self.assertNotIn("if: ${{ secrets.NVD_API_KEY", self.workflow)
+        self.assertNotIn("if: secrets.NVD_API_KEY", self.workflow)
+        self.assertNotIn('echo "$NVD_API_KEY"', self.workflow)
+        self.assertNotIn("print(os.environ['NVD_API_KEY'])", self.workflow)
+        self.assertNotIn('print(os.environ["NVD_API_KEY"])', self.workflow)
+
     def test_dependencies_are_installed_before_unit_tests(self) -> None:
         install = "python -m pip install -r requirements-dev.txt"
         unit_tests = "python -m unittest"
@@ -256,6 +271,22 @@ class CveSyncWorkflowTests(unittest.TestCase):
             '"$current_main_sha" != "$merge_commit_sha"', delivery_step
         )
         self.assertIn("gh_api_with_retry()", delivery_step)
+        self.assertNotIn("publish_required_merge_statuses", delivery_step)
+        self.assertNotIn("/statuses/", self.workflow)
+        self.assertNotIn("statuses: write", self.workflow)
+        self.assertIn("rules/branches/${GITHUB_DEFAULT_BRANCH}", delivery_step)
+        self.assertIn("require_karen_qa_from_app", delivery_step)
+        self.assertIn("needs karen-qa on ${expected_sha} from Karen QA app", delivery_step)
+        self.assertIn("needs karen-qa on ${EXPECTED_SHA} from Karen QA app", delivery_step)
+        self.assertIn(
+            "required checks must come from real workflow runs on ${EXPECTED_SHA}",
+            delivery_step,
+        )
+        self.assertNotIn("FOREIGN_REQUIRED_PINS", delivery_step)
+        self.assertNotIn("retarget", delivery_step)
+        self.assertNotIn("unpin", delivery_step)
+        self.assertNotIn('context=karen-qa', delivery_step)
+        self.assertIn("Required status check", delivery_step)
         self.assertNotIn("gh api --retry", delivery_step)
         self.assertNotIn("--retry-delay", delivery_step)
         self.assertEqual(delivery_step.count("dispatch_main_build_after_merge"), 4)

@@ -49,6 +49,11 @@ class BuildDispatchWorkflowTests(unittest.TestCase):
         self.assertIn("branches: [main, development]", self.workflow)
         self.assertNotIn('BASE_URL="https://dev.security-recipes.ai/"', self.workflow)
 
+    def test_does_not_emit_karen_qa(self) -> None:
+        self.assertNotIn("\n  karen-qa:\n", self.workflow)
+        self.assertNotIn("name: karen-qa", self.workflow)
+        self.assertNotIn("required karen-qa context", self.workflow)
+
     def test_dispatch_completion_kicks_shepherd_and_search_indexing(self) -> None:
         self.assertIn("kick-automation:", self.workflow)
         self.assertIn(
