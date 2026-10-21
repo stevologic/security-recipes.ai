@@ -138,6 +138,9 @@ class CveCatalogValidationWorkflowTests(unittest.TestCase):
         self.assertIn('context=${context}', publish_job)
         self.assertIn("rules/branches/${DEFAULT_BRANCH}", publish_job)
         self.assertIn("required_status_checks", publish_job)
+        self.assertIn("integration_id", publish_job)
+        self.assertIn("15368", publish_job)
+        self.assertIn("will not satisfy that pin", publish_job)
         self.assertIn("karen-qa", publish_job)
         self.assertIn("GH_TOKEN: ${{ github.token }}", publish_job)
         self.assertLess(
