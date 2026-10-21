@@ -92,9 +92,12 @@ post commit statuses. Required merge checks come from those real workflow runs.
 ## CVE catalog sync budget
 
 `cve-catalog-sync.yml` uses `timeout-minutes: 150`. NVD fetches go through
-`fetch_bytes` (`FETCH_DEADLINE_SECONDS = 300`) with five attempts, a 180s
-socket timeout, equal jitter on 5xx and transport retries, and no sleep
-after the final attempt.
+`fetch_bytes` (`FETCH_DEADLINE_SECONDS = 300`, `FETCH_READ_CHUNK_SIZE = 64 KiB`)
+with five attempts, a 180s per-read socket timeout, equal jitter on 5xx and
+transport retries, and no sleep after the final attempt. The body is read
+in chunks; each read uses `min(per-read timeout, remaining deadline)` and
+the wall-clock deadline is checked between reads so a 1-byte drip cannot
+outrun the cap.
 
 ```
 PR #421 worst case per URL
@@ -102,30 +105,55 @@ PR #421 worst case per URL
   sleeps after all 5 attempts
     1 + 2 + 4 + 8 + 16             =  31s
                                  ≈ 931s ≈ 15.5 min/URL
+  plus an unbounded body drip: urlopen's timeout is per
+  socket read, so response.read() of the whole body can
+  run far past 180s (Karen: 1 byte / 0.5s against a 3s
+  deadline returned after 49.5s)
 
 This follow-up
   wall-clock deadline              = 300s = 5 min/URL
+  chunked body reads + per-read
+    socket timeout                 = min(180s, remaining)
   sleeps only between attempts
     1 + 2 + 4 + 8                  ≤  15s (inside the deadline)
 ```
 
-Catch-up skips after the first unreadable lastMod page, so it can consume
-at most one URL budget (5 min). A typical daily run with a warm annual-feed
-cache fetches 25 identifier-year `.meta` objects (2002–current), KEV, and
-at most one catch-up page:
+Catch-up can publish many successful lastMod pages before a later page
+fails and is skipped. Each successful page can take the full 5 min
+deadline (`NVD_API_PAGE_SIZE = 2000`, `NVD_API_MAX_PAGES = 50` per
+120-day window). A 50-page window at 5 min/page is 250 min and is cut
+off by the 150-minute job timeout, not the URL deadline.
+
+Measured non-synchronize tail (max of each step across successful runs
+39344800710, 39285941896, 39131123938, 39034763704, 38912226589):
 
 ```
-25 meta + 1 KEV + 1 catch-up = 27 URLs × 5 min = 135 min
-150 − 135 = 15 min headroom for enrichment, validation, and PR delivery
+setup through cache restore     0.6 min
+generator + validate + tests    1.9 min
+PR open + labels                0.3 min
+exact-SHA delivery              8.3 min
+other post-sync                 0.2 min
+                              ≈ 11.3 min
 ```
 
-A pathological cold-cache stampede (every `.meta` and every `.json.gz`
-plus KEV plus catch-up) is 52 × 5 min = 260 min and is still bounded by
-the 150-minute job timeout. The per-URL deadline exists so one hung
-catch-up URL cannot spend 15.5 min, and so a handful of failing URLs
-cannot dominate the job. A skipped catch-up or a catalog PR waiting on
-`karen-qa` emits a `::warning::` annotation plus a step-summary line.
-The workflow never self-posts `karen-qa`.
+Observed synchronize on those same successful runs (annual feeds +
+enrichment, before the Oct 20–21 lastMod stall) is 23–43 min. Failed
+run 39623444175 spent 106.2 min in synchronize and then skipped the
+tail after `response.read()` raised `IncompleteRead` on a lastMod page.
+
+Headroom after a 10-page stalled catch-up (each page at the 5 min cap):
+
+```
+43 min observed feeds + enrichment
++ 10 × 5 min successful catch-up pages = 50 min
++ 11.3 min measured tail
+= 104.3 min
+150 − 104.3 = 45.7 min headroom
+```
+
+A skipped catch-up or a catalog PR waiting on `karen-qa` emits a
+`::warning::` annotation plus a step-summary line. The workflow never
+self-posts `karen-qa`.
 
 ## Merge policy
 

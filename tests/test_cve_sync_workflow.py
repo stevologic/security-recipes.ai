@@ -345,14 +345,19 @@ class CveSyncWorkflowTests(unittest.TestCase):
 
     def test_sync_job_timeout_documents_fetch_deadline_headroom(self) -> None:
         self.assertIn("timeout-minutes: 150", self.workflow)
-        self.assertIn("5 min/URL", self.workflow)
+        self.assertIn("5 min/page", self.workflow)
+        self.assertIn("11.3 min measured", self.workflow)
         self.assertIn("CVE catalog sync budget", self.workflow)
         automation = (ROOT / ".github" / "AUTOMATION.md").read_text(encoding="utf-8")
         self.assertIn("## CVE catalog sync budget", automation)
         self.assertIn("15.5 min/URL", automation)
         self.assertIn("300s", automation)
-        self.assertIn("15 min headroom", automation)
+        self.assertIn("successful catch-up pages", automation)
+        self.assertIn("39623444175", automation)
+        self.assertIn("11.3 min", automation)
+        self.assertIn("45.7 min headroom", automation)
         self.assertIn("FETCH_DEADLINE_SECONDS", automation)
+        self.assertIn("FETCH_READ_CHUNK_SIZE", automation)
 
     def test_enrichment_health_issue_is_upserted_and_closed_on_recovery(self) -> None:
         health_step = self.step("Reconcile enrichment health issue")

@@ -95,8 +95,11 @@ USER_AGENT = "security-recipes.ai/cve-catalog-sync"
 RETRYABLE_HTTP_CODES = frozenset({404, 408, 429, 500, 502, 503, 504, 520, 521, 522, 523, 524})
 # Wall-clock cap for one URL. Without it, five 180s socket timeouts plus
 # inter-attempt sleeps reach ~15.5 min/URL and can starve the 150-minute
-# cve-catalog-sync job. See AUTOMATION.md "CVE catalog sync budget".
+# cve-catalog-sync job. urlopen's timeout is per socket read, so the body
+# is pulled in chunks and the deadline is checked between them.
+# See AUTOMATION.md "CVE catalog sync budget".
 FETCH_DEADLINE_SECONDS = 300.0
+FETCH_READ_CHUNK_SIZE = 64 * 1024
 
 SEVERITY_RANK = {"low": 1, "medium": 2, "high": 3, "critical": 4}
 BROWSER_SEVERITY_CODES = {"medium": 0, "high": 1, "critical": 2}
@@ -583,6 +586,65 @@ def _declared_content_length(headers: Any) -> int | None:
     return int(text)
 
 
+def _apply_socket_timeout(response: Any, timeout: float) -> None:
+    """Tighten the next socket read to ``timeout`` seconds when a sock exists."""
+    seen: set[int] = set()
+    candidate: Any = response
+    while candidate is not None and id(candidate) not in seen:
+        seen.add(id(candidate))
+        setter = getattr(candidate, "settimeout", None)
+        if callable(setter):
+            setter(timeout)
+            return
+        next_candidate = (
+            getattr(candidate, "_sock", None)
+            or getattr(candidate, "sock", None)
+            or getattr(candidate, "raw", None)
+            or getattr(candidate, "fp", None)
+        )
+        if next_candidate is candidate:
+            return
+        candidate = next_candidate
+
+
+def _deadline_timeout_error(url: str) -> TimeoutError:
+    return TimeoutError(f"fetch of {url} exceeded the per-URL deadline")
+
+
+def _read_response_bytes(
+    response: Any,
+    *,
+    url: str,
+    timeout: float,
+    deadline: float | None,
+    chunk_size: int = FETCH_READ_CHUNK_SIZE,
+) -> bytes:
+    """Read ``response`` in chunks so a slow drip cannot outrun the deadline.
+
+    ``urlopen(..., timeout=T)`` applies ``T`` per underlying socket read, not
+    to the whole body. A 1-byte-every-0.5s drip against a 3s deadline can
+    therefore run for tens of seconds if ``response.read()`` is one call.
+    """
+    chunks: list[bytes] = []
+    while True:
+        now = time.monotonic()
+        if deadline is not None and now >= deadline:
+            raise _deadline_timeout_error(url)
+        remaining = float(timeout)
+        if deadline is not None:
+            remaining = min(remaining, deadline - now)
+            if remaining <= 0:
+                raise _deadline_timeout_error(url)
+        _apply_socket_timeout(response, remaining)
+        chunk = response.read(chunk_size)
+        if not chunk:
+            break
+        chunks.append(chunk)
+        if deadline is not None and time.monotonic() >= deadline:
+            raise _deadline_timeout_error(url)
+    return b"".join(chunks)
+
+
 def fetch_bytes(
     url: str,
     *,
@@ -596,8 +658,9 @@ def fetch_bytes(
 
     Five 180s socket timeouts plus sleeps after every attempt, including
     the last, reach ~15.5 min/URL. This helper never sleeps after the
-    final attempt, applies equal jitter to 5xx and transport retries, and
-    caps the whole URL at ``deadline_seconds`` (default 5 min).
+    final attempt, applies equal jitter to 5xx and transport retries,
+    reads the body in chunks so a slow drip cannot outrun the deadline,
+    and caps the whole URL at ``deadline_seconds`` (default 5 min).
     """
     headers = {"User-Agent": USER_AGENT, "Accept": "application/json, text/plain, */*"}
     if extra_headers:
@@ -620,7 +683,12 @@ def fetch_bytes(
             attempt_timeout = min(float(timeout), remaining)
         try:
             with urlopen(request, timeout=attempt_timeout) as response:
-                payload = response.read()
+                payload = _read_response_bytes(
+                    response,
+                    url=url,
+                    timeout=float(attempt_timeout),
+                    deadline=deadline,
+                )
                 expected = _declared_content_length(getattr(response, "headers", None))
                 if expected is not None and len(payload) != expected:
                     # A closed socket can return a short body without raising
@@ -658,7 +726,7 @@ def fetch_bytes(
             ):
                 break
     if last_error is None:
-        raise TimeoutError(f"fetch of {url} exceeded the per-URL deadline")
+        raise _deadline_timeout_error(url)
     raise last_error
 
 

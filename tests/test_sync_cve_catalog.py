@@ -9,6 +9,7 @@ import io
 import json
 import re
 import tempfile
+import time
 import unittest
 from contextlib import redirect_stdout
 from copy import deepcopy
@@ -790,7 +791,10 @@ class SyncCveCatalogTests(unittest.TestCase):
             def __exit__(self, *args: object) -> None:
                 return None
 
-            def read(self) -> bytes:
+            def read(self, _size: int = -1) -> bytes:
+                if getattr(self, "_sent", False):
+                    return b""
+                self._sent = True
                 return b"recovered feed"
 
         transient = HTTPError(
@@ -822,9 +826,12 @@ class SyncCveCatalogTests(unittest.TestCase):
             def __exit__(self, *args: object) -> None:
                 return None
 
-            def read(self) -> bytes:
+            def read(self, _size: int = -1) -> bytes:
                 if self.truncated:
                     raise catalog.IncompleteRead(b"partial feed", 1024)
+                if getattr(self, "_sent", False):
+                    return b""
+                self._sent = True
                 return b"complete feed"
 
         with (
@@ -856,7 +863,10 @@ class SyncCveCatalogTests(unittest.TestCase):
             def __exit__(self, *args: object) -> None:
                 return None
 
-            def read(self) -> bytes:
+            def read(self, _size: int = -1) -> bytes:
+                if getattr(self, "_sent", False):
+                    return b""
+                self._sent = True
                 return self.payload
 
         short = Response(b"partial", content_length="12")
@@ -884,7 +894,7 @@ class SyncCveCatalogTests(unittest.TestCase):
             def __exit__(self, *args: object) -> None:
                 return None
 
-            def read(self) -> bytes:
+            def read(self, _size: int = -1) -> bytes:
                 raise catalog.IncompleteRead(b"partial feed", 1024)
 
         with (
@@ -912,7 +922,10 @@ class SyncCveCatalogTests(unittest.TestCase):
             def __exit__(self, *args: object) -> None:
                 return None
 
-            def read(self) -> bytes:
+            def read(self, _size: int = -1) -> bytes:
+                if getattr(self, "_sent", False):
+                    return b""
+                self._sent = True
                 return b"recovered metadata"
 
         transient = HTTPError(
@@ -995,6 +1008,47 @@ class SyncCveCatalogTests(unittest.TestCase):
         self.assertLess(opens, 5)
         self.assertLessEqual(clock["now"], 180 + 70)
         self.assertEqual(catalog.FETCH_DEADLINE_SECONDS, 300.0)
+
+    def test_fetch_bytes_stops_a_slow_drip_within_the_deadline(self) -> None:
+        class DripResponse:
+            def __init__(self) -> None:
+                self.headers: dict[str, str] = {}
+                self.timeouts: list[float] = []
+
+            def __enter__(self) -> "DripResponse":
+                return self
+
+            def __exit__(self, *args: object) -> None:
+                return None
+
+            def settimeout(self, timeout: float) -> None:
+                self.timeouts.append(float(timeout))
+
+            def read(self, _size: int = -1) -> bytes:
+                time.sleep(0.5)
+                return b"x"
+
+        drip = DripResponse()
+        started = time.monotonic()
+        with patch.object(catalog, "urlopen", return_value=drip):
+            with self.assertRaises(TimeoutError) as raised:
+                catalog.fetch_bytes(
+                    "https://nvd.example.test/feed.json.gz",
+                    deadline_seconds=3,
+                    timeout=180,
+                    attempts=1,
+                )
+        elapsed = time.monotonic() - started
+
+        # urlopen's timeout is per socket read. A 1-byte-every-0.5s drip
+        # against a 3s deadline used to return after ~49.5s when the body
+        # was read in one call. Chunked reads must finish near 3s.
+        self.assertLess(elapsed, 3.0 + 1.0)
+        self.assertGreaterEqual(elapsed, 2.5)
+        self.assertIn("per-URL deadline", str(raised.exception))
+        self.assertTrue(drip.timeouts)
+        self.assertLessEqual(max(drip.timeouts), 3.0)
+        self.assertGreater(min(drip.timeouts), 0.0)
 
     def test_fetch_bytes_does_not_retry_non_transient_http_errors(self) -> None:
         forbidden = HTTPError(
