@@ -3657,11 +3657,18 @@ def configure_cve_enrichment(
     intended = bool(api_key and not disable and not offline and not dry_run)
     if not intended:
         if not api_key:
-            print(
-                f"{target.api_key_env} is not set; source sync and valid cached "
-                "enrichments will continue.",
-                flush=True,
-            )
+            if target.provider == "openai":
+                print(
+                    "OPENAI_API_KEY is not set; source sync and valid cached "
+                    "enrichments will continue.",
+                    flush=True,
+                )
+            else:
+                print(
+                    "XAI_API_KEY is not set; source sync and valid cached "
+                    "enrichments will continue.",
+                    flush=True,
+                )
         else:
             disabled_reason = (
                 "--disable-ai-enrichment"
