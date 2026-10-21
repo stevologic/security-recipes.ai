@@ -203,7 +203,7 @@ security-recipes.ai helps teams answer:
 ## Python remediation tooling
 
 The Python suite is an optional execution companion to the documentation. It
-can inspect a bounded workspace, select any of the 75 remediation playbooks,
+can inspect a bounded workspace, select any of the 76 remediation playbooks,
 create a durable run packet, record integrity-hashed evidence, and verify the
 packet before agent or reviewer handoff. It remains local and conservative: it
 does not merge code, deploy changes, or call external systems on its own.

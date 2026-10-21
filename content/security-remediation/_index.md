@@ -326,7 +326,7 @@ to reject PRs that drift outside the declared scope.
 ## Python remediation suite
 
 {{< cards >}}
-  {{< card link="/security-remediation/remediation-suite/" title="Python Remediation Suite" subtitle="Run any of the 75 playbooks with bounded workspace inspection, agent-ready plans, integrity-hashed evidence, and deterministic verification." >}}
+  {{< card link="/security-remediation/remediation-suite/" title="Python Remediation Suite" subtitle="Run any of the 76 playbooks with bounded workspace inspection, agent-ready plans, integrity-hashed evidence, and deterministic verification." >}}
 {{< /cards >}}
 
 ## Core remediation recipes
@@ -338,6 +338,7 @@ to reject PRs that drift outside the declared scope.
   {{< card link="/security-remediation/base-images/" title="Base Images and Containers" subtitle="Update image tags, OS packages, and Dockerfile patterns without broad deployment changes." >}}
   {{< card link="/security-remediation/classic-vulnerable-defaults/" title="Classic Vulnerable Defaults" subtitle="Fix repeat offenders such as unsafe YAML, pickle, XXE, weak JWT settings, and dangerous defaults." >}}
   {{< card link="/security-remediation/artifact-cache-purge/" title="Artifact Cache Purge" subtitle="Quarantine compromised artifacts from mirrors, registries, and CI caches." >}}
+  {{< card link="/security-remediation/litellm-1-107-0-compromise-check/" title="LiteLLM 1.107.0 compromise check" subtitle="Detect, purge, and rotate after the malicious litellm 1.107.0 wheels and Docker images." >}}
 {{< /cards >}}
 
 ## Specialized domains

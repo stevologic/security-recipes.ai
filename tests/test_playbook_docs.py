@@ -26,9 +26,9 @@ class PlaybookDocumentationTests(unittest.TestCase):
         source_ids = {path.parent.name for path in self.files}
         profile_ids = {str(profile["id"]) for profile in self.profiles}
 
-        self.assertEqual(len(self.files), 75)
-        self.assertEqual(len(self.profiles), 75)
-        self.assertEqual(len(profile_ids), 75, "playbook ids must be unique")
+        self.assertEqual(len(self.files), 76)
+        self.assertEqual(len(self.profiles), 76)
+        self.assertEqual(len(profile_ids), 76, "playbook ids must be unique")
         self.assertEqual(profile_ids, source_ids)
 
     def test_every_profile_has_an_executable_workflow_contract(self) -> None:

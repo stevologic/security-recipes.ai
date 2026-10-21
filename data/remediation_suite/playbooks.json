@@ -69,6 +69,72 @@
       ]
     },
     {
+      "id": "litellm-1-107-0-compromise-check",
+      "title": "LiteLLM 1.107.0 compromise check",
+      "page": "/security-remediation/litellm-1-107-0-compromise-check/",
+      "category": "core-remediation",
+      "summary": "Detect whether litellm 1.107.0 wheels or Docker images landed, purge startup hooks without starting Python, pin a clean build, and rotate every reachable credential.",
+      "phases": [
+        {
+          "label": "Isolate",
+          "title": "Contain the host or image",
+          "detail": "Take the affected interpreter, venv, or container off the network before any Python start."
+        },
+        {
+          "label": "Detect",
+          "title": "Hunt hooks without Python",
+          "detail": "Find cook.pth, cook.py, sitecustomize.py, dist-info, lockfile pins, host markers, and image digests from the shell."
+        },
+        {
+          "label": "Purge",
+          "title": "Remove startup hooks",
+          "detail": "Delete the planted site-packages files, compiled caches, and lock/marker paths, then kill the detached daemon."
+        },
+        {
+          "label": "Rebuild",
+          "title": "Pin a clean 1.106.2",
+          "detail": "Rebuild from scratch on litellm==1.106.2, pinning Docker v1.106.2 by digest, and exclude 1.107.0."
+        },
+        {
+          "label": "Rotate",
+          "title": "Rotate reachable secrets",
+          "detail": "Rotate every credential the host could reach and investigate CloudTrail GetCallerIdentity plus the defanged exfil and dead-drop indicators."
+        }
+      ],
+      "gate": {
+        "question": "Was 1.107.0 ever installed on a host that had outbound internet, or did a floating Docker tag resolve to it?",
+        "pass": "Assume exfiltration succeeded, purge without Python, rebuild clean, and rotate the full credential set.",
+        "stop": "If you cannot prove the environment is clean, do not start pip or Python there; isolate and rebuild instead."
+      },
+      "evidence": [
+        "filesystem and lockfile findings",
+        "image digest inventory",
+        "rotation and CloudTrail review notes"
+      ],
+      "outputs": [
+        "exposure determination",
+        "purge and pin record",
+        "credential rotation checklist"
+      ],
+      "python": {
+        "scenario": "Inventory lockfiles and image pins for the 1.107.0 compromise without starting a suspect interpreter",
+        "command": "python scripts/security_recipes_remediation_suite.py playbook start --playbook litellm-1-107-0-compromise-check --workspace . --finding finding.json --run-dir .security-recipes/runs/litellm-1-107-0-compromise-check"
+      },
+      "file_patterns": [
+        "**/requirements*.txt",
+        "**/pyproject.toml",
+        "**/uv.lock",
+        "**/poetry.lock",
+        "**/Dockerfile*"
+      ],
+      "recipe_queries": [
+        "litellm 1.107.0",
+        "cook.pth",
+        "compromised docker",
+        "credential stealer"
+      ]
+    },
+    {
       "id": "base-images",
       "title": "Base Image & Container Layer Remediation",
       "page": "/security-remediation/base-images/",
