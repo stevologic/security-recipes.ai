@@ -32,6 +32,8 @@ ALLOW_DECISIONS = {
     "allow_append_only_evidence_memory",
     "allow_readonly_policy_memory",
 }
+VECTOR_EMBEDDING_MEMORY_CLASS = "vector-embedding-memory"
+IN_INDEX_TENANT_SCOPE = "in_index_query"
 
 
 class AgentMemoryDecisionError(RuntimeError):
@@ -161,6 +163,12 @@ def decision_result(
             "run_id": request.get("run_id"),
             "source_id": request.get("source_id"),
             "tenant_id": request.get("tenant_id"),
+            "tenant_scope_enforcement": request.get("tenant_scope_enforcement"),
+            "mixed_trust_index": request.get("mixed_trust_index"),
+            "returns_raw_similarity_scores": request.get("returns_raw_similarity_scores"),
+            "source_deleted_embeddings_retained": request.get(
+                "source_deleted_embeddings_retained"
+            ),
             "workflow_id": request.get("workflow_id"),
         },
         "violations": violations or [],
@@ -180,11 +188,21 @@ def evaluate_agent_memory_boundary_decision(
     request = dict(runtime_request)
     request["contains_secret"] = as_bool(request.get("contains_secret"))
     request["contains_unredacted_pii"] = as_bool(request.get("contains_unredacted_pii"))
+    request["mixed_trust_index"] = as_bool(request.get("mixed_trust_index"))
+    request["returns_raw_similarity_scores"] = as_bool(
+        request.get("returns_raw_similarity_scores")
+    )
+    request["source_deleted_embeddings_retained"] = as_bool(
+        request.get("source_deleted_embeddings_retained")
+    )
     request["memory_class_id"] = str(request.get("memory_class_id") or "").strip()
     request["operation"] = str(request.get("operation") or "").strip().lower()
     request["provenance_hash"] = str(request.get("provenance_hash") or "").strip()
     request["source_id"] = str(request.get("source_id") or "").strip()
     request["tenant_id"] = str(request.get("tenant_id") or "").strip()
+    request["tenant_scope_enforcement"] = (
+        str(request.get("tenant_scope_enforcement") or "").strip().lower()
+    )
     request["workflow_id"] = str(request.get("workflow_id") or "").strip()
     request["runtime_kill_signal"] = str(request.get("runtime_kill_signal") or "").strip()
 
@@ -367,6 +385,51 @@ def evaluate_agent_memory_boundary_decision(
             violations=["human_approval_record is required"],
         )
 
+    if request["memory_class_id"] == VECTOR_EMBEDDING_MEMORY_CLASS:
+        if request["tenant_scope_enforcement"] != IN_INDEX_TENANT_SCOPE:
+            scope = request["tenant_scope_enforcement"] or "missing"
+            return decision_result(
+                decision="deny_cross_tenant_memory",
+                reason="vector memory tenant scope must be enforced inside the index query",
+                request=request,
+                pack=memory_pack,
+                memory_class=memory_class,
+                workflow=workflow,
+                violations=[
+                    f"tenant_scope_enforcement is {scope!r}, not {IN_INDEX_TENANT_SCOPE!r}"
+                ],
+            )
+        if request["mixed_trust_index"]:
+            return decision_result(
+                decision="deny_cross_tenant_memory",
+                reason="mixed-trust content must not share a vector index without hard isolation",
+                request=request,
+                pack=memory_pack,
+                memory_class=memory_class,
+                workflow=workflow,
+                violations=["mixed_trust_index is true"],
+            )
+        if request["returns_raw_similarity_scores"]:
+            return decision_result(
+                decision="deny_cross_tenant_memory",
+                reason="raw similarity scores turn the vector index into a membership and inversion oracle",
+                request=request,
+                pack=memory_pack,
+                memory_class=memory_class,
+                workflow=workflow,
+                violations=["returns_raw_similarity_scores is true"],
+            )
+        if request["source_deleted_embeddings_retained"]:
+            return decision_result(
+                decision="deny_runtime_memory_write",
+                reason="embeddings that outlive their source documents remain source-document leaks",
+                request=request,
+                pack=memory_pack,
+                memory_class=memory_class,
+                workflow=workflow,
+                violations=["source_deleted_embeddings_retained is true"],
+            )
+
     if decision not in VALID_DECISIONS:
         return decision_result(
             decision="hold_for_memory_admission_review",
@@ -407,6 +470,12 @@ def request_from_args(args: argparse.Namespace) -> dict[str, Any]:
         "runtime_kill_signal": args.runtime_kill_signal,
         "source_id": args.source_id,
         "tenant_id": args.tenant_id,
+        "tenant_scope_enforcement": args.tenant_scope_enforcement,
+        "mixed_trust_index": args.mixed_trust_index,
+        "returns_raw_similarity_scores": args.returns_raw_similarity_scores,
+        "source_deleted_embeddings_retained": (
+            args.source_deleted_embeddings_retained
+        ),
         "workflow_id": args.workflow_id,
     }
     for key, value in overrides.items():
@@ -425,6 +494,10 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--agent-id")
     parser.add_argument("--run-id")
     parser.add_argument("--tenant-id")
+    parser.add_argument("--tenant-scope-enforcement")
+    parser.add_argument("--mixed-trust-index", action="store_true")
+    parser.add_argument("--returns-raw-similarity-scores", action="store_true")
+    parser.add_argument("--source-deleted-embeddings-retained", action="store_true")
     parser.add_argument("--source-id")
     parser.add_argument("--provenance-hash")
     parser.add_argument("--requested-ttl-days", type=int)

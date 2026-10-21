@@ -1801,12 +1801,12 @@
         {
           "label": "Scope",
           "title": "Classify memory content",
-          "detail": "Identify policy, user preference, task state, evidence, customer data, secrets, hidden prompts, or prohibited traces."
+          "detail": "Identify policy, user preference, task state, evidence, customer data, vector indexes, secrets, hidden prompts, or prohibited traces."
         },
         {
           "label": "Decision",
           "title": "Evaluate memory policy",
-          "detail": "Check tenant isolation, consent, provenance, freshness, allowed operations, reuse scope, retention, and approval."
+          "detail": "Check tenant isolation, in-index tenant scope, mixed-trust isolation, raw similarity scores, embedding lifecycle, consent, provenance, freshness, allowed operations, reuse scope, retention, and approval."
         },
         {
           "label": "Action",
@@ -1822,7 +1822,7 @@
       "gate": {
         "question": "Is this content permitted for this store, tenant, workflow, operation, purpose, and retention period?",
         "pass": "Perform only the minimized memory operation and record its lifecycle.",
-        "stop": "Hold, deny, or kill cross-tenant, secret-bearing, policy-mutating, unprovenanced, or over-retained memory."
+        "stop": "Hold, deny, or kill cross-tenant, post-retrieval tenant filters, mixed-trust indexes, raw-score oracles, secret-bearing, policy-mutating, unprovenanced, or over-retained memory."
       },
       "evidence": [
         "memory classification and provenance",
@@ -1848,6 +1848,7 @@
         "agent memory boundary",
         "memory poisoning",
         "cross-tenant memory",
+        "vector embedding weakness",
         "memory retention"
       ]
     },
