@@ -24,7 +24,8 @@ class KarenQaOrDataOnlyWorkflowTests(unittest.TestCase):
         self.assertNotIn("github.event.pull_request.head.sha", self.workflow)
         self.assertNotIn("ref: ${{ github.sha }}", self.workflow)
         self.assertIn("Never checkout", self.workflow)
-        self.assertIn("never checks out or runs pull-request code", self.workflow)
+        self.assertIn("never checks", self.workflow)
+        self.assertIn("out or runs pull-request code", self.workflow)
         self.assertIn("pulls/${PR_NUMBER}/files", self.workflow)
         self.assertNotIn("git diff", self.workflow)
         self.assertNotIn("git show", self.workflow)
@@ -39,6 +40,9 @@ class KarenQaOrDataOnlyWorkflowTests(unittest.TestCase):
         self.assertNotIn("context=karen-qa\n", self.workflow)
         self.assertIn("never emits", self.workflow)
         self.assertIn("the `karen-qa` context", self.workflow)
+        self.assertIn("Author does not matter", self.workflow)
+        self.assertIn("cannot", self.workflow)
+        self.assertIn("exempt itself", self.workflow)
 
     def test_posts_status_on_the_exact_live_head(self) -> None:
         self.assertIn("repos/${GITHUB_REPOSITORY}/statuses/${HEAD_SHA}", self.workflow)

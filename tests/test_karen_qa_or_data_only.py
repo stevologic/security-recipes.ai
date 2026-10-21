@@ -7,15 +7,18 @@ from pathlib import Path
 
 from scripts.karen_qa_or_data_only import (
     CATALOG_SYNC_COMMIT_PATHS,
-    CVE_CATALOG_SYNC_BOT_LOGINS,
     CVE_CATALOG_SYNC_BRANCH,
     CVE_CATALOG_SYNC_WORKFLOW,
+    CVE_PIPELINE_PATHS,
+    EXEMPT_PATHS,
+    GATE_PATHS,
     REQUIRED_CHECK_NAME,
-    catalog_sync_branch,
     catalog_sync_commit_paths,
-    catalog_sync_git_user,
     evaluate_karen_qa_or_data_only,
-    is_data_only_catalog_path,
+    is_catalog_data_path,
+    is_exempt_path,
+    is_gate_path,
+    is_pipeline_path,
     main,
     paths_from_pr_files,
 )
@@ -46,10 +49,20 @@ def _catalog_files() -> list[dict[str, str]]:
     )
 
 
+def _pipeline_files() -> list[dict[str, str]]:
+    return _files(
+        ".github/workflows/cve-catalog-sync.yml",
+        "scripts/sync_cve_catalog.py",
+        "scripts/cve_ai_enrichment.py",
+        "tests/test_sync_cve_catalog.py",
+        "tests/test_cve_ai_enrichment.py",
+    )
+
+
 def _decide(**overrides: object):
     payload = {
-        "author_login": "github-actions[bot]",
-        "head_branch": CVE_CATALOG_SYNC_BRANCH,
+        "author_login": "stevologic",
+        "head_branch": "cursor/any-branch",
         "base_branch": "main",
         "repository": REPO,
         "head_repository": REPO,
@@ -63,43 +76,63 @@ def _decide(**overrides: object):
 
 
 class KarenQaOrDataOnlyDecisionTests(unittest.TestCase):
-    def test_bot_plus_data_only_passes(self) -> None:
+    def test_data_only_passes(self) -> None:
         decision = _decide()
         self.assertEqual(decision.outcome, "data_only")
         self.assertTrue(decision.allowed)
+        self.assertTrue(decision.exempt)
         self.assertTrue(decision.data_only)
-        self.assertEqual(decision.status_state, "success")
         self.assertEqual(decision.status_context, REQUIRED_CHECK_NAME)
 
-    def test_bot_plus_a_workflow_file_fails(self) -> None:
+    def test_pipeline_only_passes(self) -> None:
+        decision = _decide(files=_pipeline_files())
+        self.assertEqual(decision.outcome, "exempt")
+        self.assertTrue(decision.allowed)
+        self.assertTrue(decision.exempt)
+        self.assertFalse(decision.data_only)
+
+    def test_pipeline_plus_another_file_fails(self) -> None:
         decision = _decide(
             files=_files(
-                "static/api/cve-catalog/manifest.json",
-                ".github/workflows/cve-catalog-sync.yml",
+                "scripts/sync_cve_catalog.py",
+                "scripts/cve_ai_enrichment.py",
+                "README.md",
             )
         )
         self.assertEqual(decision.outcome, "need_karen_qa")
         self.assertFalse(decision.allowed)
-        self.assertFalse(decision.data_only)
-        self.assertIn(".github/workflows/cve-catalog-sync.yml", decision.reason)
+        self.assertFalse(decision.exempt)
+        self.assertIn("README.md", decision.reason)
 
-    def test_bot_plus_a_script_fails(self) -> None:
+    def test_gate_file_change_fails(self) -> None:
+        for path in GATE_PATHS:
+            with self.subTest(path=path):
+                decision = _decide(files=_files(path))
+                self.assertEqual(decision.outcome, "need_karen_qa")
+                self.assertFalse(decision.exempt)
+                self.assertIn(path, decision.reason)
+
+    def test_gate_file_mixed_with_pipeline_fails(self) -> None:
         decision = _decide(
             files=_files(
-                "static/api/cve-catalog/manifest.json",
                 "scripts/sync_cve_catalog.py",
+                ".github/workflows/karen-qa-or-data-only.yml",
             )
         )
         self.assertEqual(decision.outcome, "need_karen_qa")
-        self.assertFalse(decision.data_only)
-        self.assertIn("scripts/sync_cve_catalog.py", decision.reason)
+        self.assertIn(".github/workflows/karen-qa-or-data-only.yml", decision.reason)
 
-    def test_human_with_data_only_fails(self) -> None:
-        decision = _decide(author_login="stevologic")
-        self.assertEqual(decision.outcome, "need_karen_qa")
-        self.assertFalse(decision.data_only)
-        self.assertIn("stevologic", decision.reason)
-        self.assertIn("not the CVE catalog sync bot", decision.reason)
+    def test_author_does_not_matter_for_data_only(self) -> None:
+        for author in ("stevologic", "github-actions[bot]", "outsider"):
+            with self.subTest(author=author):
+                decision = _decide(author_login=author)
+                self.assertTrue(decision.allowed)
+                self.assertTrue(decision.data_only)
+
+    def test_branch_does_not_matter_when_files_are_exempt(self) -> None:
+        decision = _decide(head_branch="automation/content-refresh", files=_pipeline_files())
+        self.assertTrue(decision.allowed)
+        self.assertTrue(decision.exempt)
 
     def test_mixed_change_fails(self) -> None:
         decision = _decide(
@@ -125,25 +158,18 @@ class KarenQaOrDataOnlyDecisionTests(unittest.TestCase):
     def test_rename_into_the_allowlist_from_outside_fails(self) -> None:
         decision = _decide(
             files=_files(
-                "static/api/cve-catalog/manifest.json",
+                "scripts/sync_cve_catalog.py",
                 status="renamed",
-                previous="scripts/sync_cve_catalog.py",
+                previous="scripts/run_checks.py",
             )
         )
         self.assertEqual(decision.outcome, "need_karen_qa")
-        self.assertIn("scripts/sync_cve_catalog.py", decision.reason)
+        self.assertIn("scripts/run_checks.py", decision.reason)
 
     def test_deletion_outside_the_allowlist_fails(self) -> None:
-        decision = _decide(
-            files=_files(".github/workflows/build.yml", status="removed")
-        )
+        decision = _decide(files=_files(".github/workflows/build.yml", status="removed"))
         self.assertEqual(decision.outcome, "need_karen_qa")
         self.assertIn(".github/workflows/build.yml", decision.reason)
-
-    def test_wrong_branch_fails(self) -> None:
-        decision = _decide(head_branch="automation/content-refresh")
-        self.assertEqual(decision.outcome, "need_karen_qa")
-        self.assertIn("automation/content-refresh", decision.reason)
 
     def test_fork_pr_fails(self) -> None:
         decision = _decide(head_repository="attacker/security-recipes.ai")
@@ -161,18 +187,19 @@ class KarenQaOrDataOnlyDecisionTests(unittest.TestCase):
         self.assertEqual(decision.outcome, "data_only")
 
     def test_deletion_inside_allowlist_passes(self) -> None:
-        decision = _decide(
-            files=_files("static/api/cve-catalog/retired.json", status="removed")
-        )
+        decision = _decide(files=_files("static/api/cve-catalog/retired.json", status="removed"))
         self.assertEqual(decision.outcome, "data_only")
 
-    def test_generated_ownership_file_is_data_not_a_script(self) -> None:
-        self.assertTrue(is_data_only_catalog_path("scripts/generated-output-ownership.json"))
-        self.assertFalse(is_data_only_catalog_path("scripts/karen_qa_or_data_only.py"))
+    def test_unrelated_script_is_not_exempt(self) -> None:
+        self.assertTrue(is_catalog_data_path("scripts/generated-output-ownership.json"))
+        self.assertTrue(is_pipeline_path("scripts/sync_cve_catalog.py"))
+        self.assertFalse(is_exempt_path("scripts/run_checks.py"))
+        self.assertFalse(is_exempt_path("scripts/validate_cve_catalog.py"))
+        self.assertTrue(is_gate_path("scripts/karen_qa_or_data_only.py"))
+        self.assertFalse(is_exempt_path("scripts/karen_qa_or_data_only.py"))
 
-    def test_non_data_pr_passes_when_karen_qa_succeeded_on_exact_head(self) -> None:
+    def test_non_exempt_pr_passes_when_karen_qa_succeeded_on_exact_head(self) -> None:
         decision = _decide(
-            author_login="stevologic",
             files=_files("README.md"),
             check_runs=[
                 {
@@ -184,11 +211,10 @@ class KarenQaOrDataOnlyDecisionTests(unittest.TestCase):
         )
         self.assertEqual(decision.outcome, "karen_qa")
         self.assertTrue(decision.allowed)
-        self.assertFalse(decision.data_only)
+        self.assertFalse(decision.exempt)
 
     def test_karen_qa_on_a_different_sha_does_not_count(self) -> None:
         decision = _decide(
-            author_login="stevologic",
             files=_files("README.md"),
             statuses=[
                 {
@@ -214,12 +240,21 @@ class KarenQaOrDataOnlyDecisionTests(unittest.TestCase):
             ("static/api/cve-catalog/manifest.json",),
         )
 
-    def test_allowlist_is_derived_from_the_sync_workflow(self) -> None:
+    def test_allowlist_is_explicit_and_anchored(self) -> None:
         workflow = (ROOT / CVE_CATALOG_SYNC_WORKFLOW).read_text(encoding="utf-8")
         self.assertEqual(catalog_sync_commit_paths(workflow), CATALOG_SYNC_COMMIT_PATHS)
-        self.assertEqual(catalog_sync_branch(workflow), CVE_CATALOG_SYNC_BRANCH)
-        self.assertIn(catalog_sync_git_user(workflow), CVE_CATALOG_SYNC_BOT_LOGINS)
-        self.assertIn("github-actions[bot]", CVE_CATALOG_SYNC_BOT_LOGINS)
+        self.assertEqual(EXEMPT_PATHS, CATALOG_SYNC_COMMIT_PATHS + CVE_PIPELINE_PATHS)
+        for path in EXEMPT_PATHS:
+            self.assertNotIn("*", path)
+            self.assertNotIn("?", path)
+        self.assertNotIn("scripts", CVE_PIPELINE_PATHS)
+        self.assertNotIn("scripts/", CVE_PIPELINE_PATHS)
+        self.assertNotIn(".github/workflows", CVE_PIPELINE_PATHS)
+        for path in GATE_PATHS:
+            self.assertNotIn(path, EXEMPT_PATHS)
+        self.assertNotIn(".github/workflows/karen-qa-or-data-only.yml", EXEMPT_PATHS)
+        daybreak_paths = [path for path in EXEMPT_PATHS if "daybreak" in path.lower()]
+        self.assertEqual(daybreak_paths, [])
 
     def test_cli_writes_github_output_and_exits_nonzero_when_karen_qa_is_required(
         self,
@@ -228,14 +263,11 @@ class KarenQaOrDataOnlyDecisionTests(unittest.TestCase):
             tmp_path = Path(tmp)
             files_path = tmp_path / "files.json"
             output_path = tmp_path / "github-output"
-            files_path.write_text(
-                json.dumps(_files("README.md")),
-                encoding="utf-8",
-            )
+            files_path.write_text(json.dumps(_files("README.md")), encoding="utf-8")
             status = main(
                 [
                     "--author-login",
-                    "github-actions[bot]",
+                    "stevologic",
                     "--head-branch",
                     CVE_CATALOG_SYNC_BRANCH,
                     "--base-branch",
@@ -256,6 +288,7 @@ class KarenQaOrDataOnlyDecisionTests(unittest.TestCase):
             output = output_path.read_text(encoding="utf-8")
             self.assertIn("outcome=need_karen_qa", output)
             self.assertIn("state=failure", output)
+            self.assertIn("exempt=false", output)
             self.assertIn(f"context={REQUIRED_CHECK_NAME}", output)
 
 

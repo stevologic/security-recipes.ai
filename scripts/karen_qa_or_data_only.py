@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Decide whether a PR may skip karen-qa as a data-only CVE catalog sync.
+"""Decide whether a PR may skip karen-qa as CVE catalog data or pipeline.
 
-Stephen's ruling: data-only catalog PRs from the CVE sync bot skip karen-qa
-on main. Every other PR still needs the real karen-qa context on the exact
-head. The allowlist is the tight set of paths ``cve-catalog-sync.yml``
-commits; it is not a ``scripts/`` or ``.github/`` prefix.
+Stephen's Oct 21, 2026 ruling: Karen does not review CVE refresh jobs, and
+the exemption covers catalog data plus the CVE pipeline's own code. Author
+does not matter. Every changed path must be on the explicit allowlist.
+The gate cannot exempt itself.
 """
 
 from __future__ import annotations
@@ -25,19 +25,7 @@ CVE_CATALOG_SYNC_WORKFLOW = Path(".github/workflows/cve-catalog-sync.yml")
 DEFAULT_BASE_BRANCH = "main"
 HEAD_SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 
-# Identities used by cve-catalog-sync.yml: GITHUB_TOKEN opens the PR as
-# github-actions[bot]; commits are authored as security-recipes-cve-bot;
-# optional CVE_AUTOMATION_APP tokens open the PR as that app's [bot] user.
-CVE_CATALOG_SYNC_BOT_LOGINS = frozenset(
-    {
-        "github-actions[bot]",
-        "security-recipes-cve-bot",
-        "security-recipes-cve-bot[bot]",
-    }
-)
-
-# Paths the sync workflow `git add`s after writing catalog outputs. Keep this
-# list identical to that commit set; do not widen it to scripts/ or workflows.
+# Paths the sync workflow `git add`s after writing catalog outputs.
 CATALOG_SYNC_COMMIT_PATHS = (
     "static/api/cve-catalog",
     "data/cve/ai-enrichments.json",
@@ -48,6 +36,31 @@ CATALOG_SYNC_COMMIT_PATHS = (
     "data/policy/mcp-gateway-policy.json",
     "scripts/generated-output-ownership.json",
 )
+
+# Explicit pipeline files only. PR #424 did not add a Daybreak probe
+# workflow, so none is listed. Do not use scripts/** or tests/**.
+CVE_PIPELINE_PATHS = (
+    ".github/workflows/cve-catalog-sync.yml",
+    "scripts/sync_cve_catalog.py",
+    "scripts/cve_ai_enrichment.py",
+    "scripts/cve_ai_recipe.py",
+    "scripts/cve_text_quality.py",
+    "tests/test_sync_cve_catalog.py",
+    "tests/test_cve_ai_enrichment.py",
+    "tests/test_cve_ai_recipe.py",
+    "tests/test_cve_text_quality.py",
+    "tests/test_cve_sync_workflow.py",
+)
+
+# Changing the gate or its ruleset docs cannot satisfy the gate.
+GATE_PATHS = (
+    ".github/workflows/karen-qa-or-data-only.yml",
+    "scripts/karen_qa_or_data_only.py",
+    "tests/test_karen_qa_or_data_only.py",
+    "tests/test_karen_qa_or_data_only_workflow.py",
+)
+
+EXEMPT_PATHS = CATALOG_SYNC_COMMIT_PATHS + CVE_PIPELINE_PATHS
 
 _GIT_ADD_PATHS_RE = re.compile(
     r"git add -A -- \\\n(?P<body>(?:[ \t]+\S+[ \t]*\\?\n)+)"
@@ -63,6 +76,7 @@ class KarenQaOrDataOnlyDecision:
     status_state: str
     status_context: str = REQUIRED_CHECK_NAME
     data_only: bool = False
+    exempt: bool = False
 
     @property
     def allowed(self) -> bool:
@@ -70,7 +84,7 @@ class KarenQaOrDataOnlyDecision:
 
     @property
     def requires_karen_qa(self) -> bool:
-        return not self.data_only
+        return not self.exempt
 
 
 class KarenQaOrDataOnlyError(ValueError):
@@ -78,7 +92,7 @@ class KarenQaOrDataOnlyError(ValueError):
 
 
 def catalog_sync_commit_paths(workflow_text: str) -> tuple[str, ...]:
-    """Return the tight path allowlist from the sync workflow's git add set."""
+    """Return the catalog data paths from the sync workflow's git add set."""
     match = _GIT_ADD_PATHS_RE.search(workflow_text)
     if match is None:
         raise KarenQaOrDataOnlyError("cve-catalog-sync workflow is missing its git add path list")
@@ -126,21 +140,45 @@ def _is_directory_allowlist_entry(entry: str) -> bool:
     return Path(entry).suffix == ""
 
 
-def is_data_only_catalog_path(path: str, allowlist: tuple[str, ...] = CATALOG_SYNC_COMMIT_PATHS) -> bool:
-    normalized = normalize_repo_path(path)
-    if normalized is None:
+def _matches_allowlist_entry(normalized: str, allowed: str) -> bool:
+    allowed_norm = normalize_repo_path(allowed)
+    if allowed_norm is None:
         return False
-    for allowed in allowlist:
-        allowed_norm = normalize_repo_path(allowed)
-        if allowed_norm is None:
-            continue
-        if _is_directory_allowlist_entry(allowed_norm):
-            if normalized == allowed_norm or normalized.startswith(f"{allowed_norm}/"):
-                return True
-            continue
-        if normalized == allowed_norm:
-            return True
-    return False
+    if _is_directory_allowlist_entry(allowed_norm):
+        return normalized == allowed_norm or normalized.startswith(f"{allowed_norm}/")
+    return normalized == allowed_norm
+
+
+def is_gate_path(path: str) -> bool:
+    normalized = normalize_repo_path(path)
+    return normalized in GATE_PATHS if normalized is not None else False
+
+
+def is_catalog_data_path(path: str, allowlist: tuple[str, ...] = CATALOG_SYNC_COMMIT_PATHS) -> bool:
+    normalized = normalize_repo_path(path)
+    if normalized is None or normalized in GATE_PATHS:
+        return False
+    return any(_matches_allowlist_entry(normalized, allowed) for allowed in allowlist)
+
+
+def is_pipeline_path(path: str, allowlist: tuple[str, ...] = CVE_PIPELINE_PATHS) -> bool:
+    normalized = normalize_repo_path(path)
+    if normalized is None or normalized in GATE_PATHS:
+        return False
+    return any(_matches_allowlist_entry(normalized, allowed) for allowed in allowlist)
+
+
+def is_exempt_path(
+    path: str,
+    *,
+    catalog_allowlist: tuple[str, ...] = CATALOG_SYNC_COMMIT_PATHS,
+    pipeline_allowlist: tuple[str, ...] = CVE_PIPELINE_PATHS,
+) -> bool:
+    return is_catalog_data_path(path, catalog_allowlist) or is_pipeline_path(path, pipeline_allowlist)
+
+
+# Back-compat alias used by earlier tests.
+is_data_only_catalog_path = is_catalog_data_path
 
 
 def paths_from_pr_files(files: Any) -> tuple[str, ...]:
@@ -148,7 +186,7 @@ def paths_from_pr_files(files: Any) -> tuple[str, ...]:
 
     Uses ``filename`` / ``previous_filename`` / ``status`` only. Diff text
     (``patch``) is ignored. Renames and copies without a previous path, and
-    any unreadable entry, are treated as non-data.
+    any unreadable entry, are treated as non-exempt.
     """
     entries = _as_list(files)
     if not entries:
@@ -170,14 +208,6 @@ def paths_from_pr_files(files: Any) -> tuple[str, ...]:
         elif isinstance(previous, str) and previous.strip():
             paths.append(previous)
     return tuple(paths)
-
-
-def is_cve_catalog_sync_bot(login: str, extra_logins: Iterable[str] = ()) -> bool:
-    allowed = set(CVE_CATALOG_SYNC_BOT_LOGINS)
-    for item in extra_logins:
-        if isinstance(item, str) and item.strip():
-            allowed.add(item.strip())
-    return login.strip() in allowed if isinstance(login, str) else False
 
 
 def _as_list(value: Any) -> list[Any]:
@@ -227,13 +257,20 @@ def has_successful_karen_qa(
     return False
 
 
-def _decision(outcome: str, reason: str, *, data_only: bool = False) -> KarenQaOrDataOnlyDecision:
-    allowed = outcome in {"data_only", "karen_qa"}
+def _decision(
+    outcome: str,
+    reason: str,
+    *,
+    data_only: bool = False,
+    exempt: bool = False,
+) -> KarenQaOrDataOnlyDecision:
+    allowed = outcome in {"exempt", "data_only", "karen_qa"}
     return KarenQaOrDataOnlyDecision(
         outcome=outcome,
         reason=reason,
         status_state="success" if allowed else "failure",
         data_only=data_only,
+        exempt=exempt or allowed and outcome != "karen_qa",
     )
 
 
@@ -250,10 +287,21 @@ def evaluate_karen_qa_or_data_only(
     check_runs: Any = None,
     expected_base_branch: str = DEFAULT_BASE_BRANCH,
     extra_bot_logins: Iterable[str] = (),
-    allowlist: tuple[str, ...] = CATALOG_SYNC_COMMIT_PATHS,
+    allowlist: tuple[str, ...] | None = None,
+    catalog_allowlist: tuple[str, ...] = CATALOG_SYNC_COMMIT_PATHS,
+    pipeline_allowlist: tuple[str, ...] = CVE_PIPELINE_PATHS,
     sync_branch: str = CVE_CATALOG_SYNC_BRANCH,
 ) -> KarenQaOrDataOnlyDecision:
-    """Return whether this exact head may skip karen-qa or must still have it."""
+    """Return whether this exact head may skip karen-qa or must still have it.
+
+    ``author_login``, ``head_branch``, ``extra_bot_logins``, and
+    ``sync_branch`` are accepted for CLI compatibility and ignored: the
+    Oct 21, 2026 ruling no longer depends on who opened the PR.
+    """
+    del author_login, head_branch, extra_bot_logins, sync_branch
+    if allowlist is not None:
+        catalog_allowlist = allowlist
+        pipeline_allowlist = ()
     if not HEAD_SHA_RE.fullmatch(head_sha or ""):
         return _decision("need_karen_qa", "head SHA is missing or not a full commit SHA")
     if base_branch != expected_base_branch:
@@ -267,42 +315,46 @@ def evaluate_karen_qa_or_data_only(
     try:
         changed_paths = paths_from_pr_files(files)
     except KarenQaOrDataOnlyError as exc:
-        data_only = False
         path_reason = str(exc)
+        blocked = True
+        catalog_only = False
     else:
-        blocked = [path for path in changed_paths if not is_data_only_catalog_path(path, allowlist)]
-        data_only = not blocked
+        blocked_paths = [
+            path
+            for path in changed_paths
+            if not is_exempt_path(
+                path,
+                catalog_allowlist=catalog_allowlist,
+                pipeline_allowlist=pipeline_allowlist,
+            )
+        ]
+        blocked = bool(blocked_paths)
+        catalog_only = not blocked and all(
+            is_catalog_data_path(path, catalog_allowlist) for path in changed_paths
+        )
         path_reason = (
-            "every changed path is a catalog sync output"
-            if data_only
-            else f"non-data path {blocked[0]!r} is outside the catalog sync allowlist"
+            "every changed path is catalog data or CVE pipeline code"
+            if not blocked
+            else f"non-exempt path {blocked_paths[0]!r} is outside the catalog/pipeline allowlist"
         )
 
-    bot = is_cve_catalog_sync_bot(author_login, extra_bot_logins)
-    branch_ok = head_branch == sync_branch
-    if bot and branch_ok and data_only:
+    if not blocked:
+        outcome = "data_only" if catalog_only else "exempt"
         return _decision(
-            "data_only",
-            "CVE catalog sync bot changed only catalog data paths on the sync branch",
-            data_only=True,
+            outcome,
+            path_reason,
+            data_only=catalog_only,
+            exempt=True,
         )
-
-    reasons: list[str] = []
-    if not bot:
-        reasons.append(f"author {author_login!r} is not the CVE catalog sync bot")
-    if not branch_ok:
-        reasons.append(f"head branch {head_branch!r} is not {sync_branch!r}")
-    if not data_only:
-        reasons.append(path_reason)
 
     if has_successful_karen_qa(head_sha=head_sha, statuses=statuses, check_runs=check_runs):
         return _decision(
             "karen_qa",
-            "karen-qa succeeded on the exact head; " + "; ".join(reasons),
+            f"karen-qa succeeded on the exact head; {path_reason}",
         )
     return _decision(
         "need_karen_qa",
-        f"needs {KAREN_QA_CONTEXT} on {head_sha}; " + "; ".join(reasons),
+        f"needs {KAREN_QA_CONTEXT} on {head_sha}; {path_reason}",
     )
 
 
@@ -362,6 +414,7 @@ def main(argv: list[str] | None = None) -> int:
                     f"context={decision.status_context}",
                     f"description={description}",
                     f"data_only={'true' if decision.data_only else 'false'}",
+                    f"exempt={'true' if decision.exempt else 'false'}",
                     f"reason={decision.reason}",
                     "",
                 ]
@@ -377,6 +430,7 @@ def main(argv: list[str] | None = None) -> int:
                     "status_state": decision.status_state,
                     "status_context": decision.status_context,
                     "data_only": decision.data_only,
+                    "exempt": decision.exempt,
                     "allowed": decision.allowed,
                 },
                 indent=2,

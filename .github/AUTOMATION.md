@@ -14,7 +14,7 @@ access token is required.
 | Leftover review (`leftover-review.yml`) | daily 13:17 UTC | Live-verifies leftover-gold CVE leftovers against GHAD/NVD; leftover-gold criticals and highs drain first, then each run reviews up to 25 leftover-gold medium and low pages and submits a validated auto-merge PR |
 | CVE catalog validation request (`cve-catalog-validate-request.yml`) | dispatch only | Verifies that an exact SHA is the live head of the requested same-repository PR without checking out or executing PR code |
 | CVE catalog validation (`cve-catalog-validate.yml`) | dispatch only | Revalidates and runs the build-equivalent suite on the exact catalog SHA. It never posts commit statuses and never emits `karen-qa`. Required merge checks come from real workflow runs |
-| Karen QA or data-only (`karen-qa-or-data-only.yml`) | `pull_request_target` plus `karen-qa` completion | Posts `karen-qa-or-data-only` on the exact PR head. Auto-passes only for same-repo CVE sync bot PRs whose files are all catalog outputs on `automation/cve-catalog-sync`; otherwise waits for the real `karen-qa` context on that head |
+| Karen QA or data-only (`karen-qa-or-data-only.yml`) | `pull_request_target` plus `karen-qa` completion | Posts `karen-qa-or-data-only` on the exact PR head. Auto-passes when every Files API path is catalog data or the explicit CVE pipeline files (sync workflow, `sync_cve_catalog.py`, enrichment helpers, and those tests). Author does not matter. Changing this gate still needs `karen-qa` |
 | Production watchdog (`production-watchdog.yml`) | every 30 min | Probes the live site, catalog freshness, revision, and TLS; maintains the health issue; self-heals unbuilt revisions and stale catalogs |
 | Automation shepherd (`automation-shepherd.yml`) | every 30 min | Dispatches missing main Builds after token-authored merges, updates stale auto-merge PR branches, and attaches missing build validations |
 | Dependabot auto-merge (`dependabot-automerge.yml`) | Dependabot PRs | Arms auto-merge for verified patch/minor bumps |
@@ -94,15 +94,19 @@ post commit statuses. Required merge checks come from those real workflow runs.
 
 The `main` ruleset currently requires a PR, a passing `build` context from
 GitHub Actions, and a passing `karen-qa` context posted only by the Karen
-QA GitHub App after human review. Data-only CVE catalog sync PRs are
-allowed to skip that Karen QA pin: `karen-qa-or-data-only.yml` reads the
-PR files API (not the diff text) and posts `karen-qa-or-data-only` on the
-exact head when the author is the sync bot or app from
-`cve-catalog-sync.yml`, the head branch is `automation/cve-catalog-sync`,
-and every changed path — including rename sources and deletions — is one
-of the catalog outputs that workflow commits. Any other PR still needs
-the real `karen-qa` check or status on that exact head before
-`karen-qa-or-data-only` turns green.
+QA GitHub App after human review. Karen does not review CVE refresh
+jobs. `karen-qa-or-data-only.yml` reads the PR files API (not the diff
+text) and posts `karen-qa-or-data-only` on the exact head when every
+changed path — including rename sources and deletions — is catalog data
+or an explicit CVE pipeline file: `cve-catalog-sync.yml`,
+`scripts/sync_cve_catalog.py`, its enrichment helpers
+(`cve_ai_enrichment.py`, `cve_ai_recipe.py`, `cve_text_quality.py`), and
+those modules' tests. Author does not matter. There is no `scripts/**`
+glob. PR #424 did not add a Daybreak probe workflow, so none is
+exempt. Changing `karen-qa-or-data-only.yml`, its evaluator, or the
+ruleset still requires `karen-qa`; the gate cannot exempt itself. Any
+other file in the same PR still needs the real `karen-qa` check or
+status on that exact head before `karen-qa-or-data-only` turns green.
 
 Ruleset change required (do not apply it from the pull request that adds
 this check): replace the required `karen-qa` check on `main` with

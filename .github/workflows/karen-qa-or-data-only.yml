@@ -4,11 +4,13 @@
 # name on main is still `karen-qa`, replace that pin with
 # `karen-qa-or-data-only` from GitHub Actions. If this job or context is
 # renamed, update the main ruleset to the new name. Do not require both
-# names or data-only CVE sync PRs still need Karen QA.
+# names or catalog/pipeline PRs still need Karen QA. Changing this
+# workflow or the ruleset still requires karen-qa; the gate cannot
+# exempt itself.
 #
-# This workflow never checks out or runs pull-request code. It never emits
-# the `karen-qa` context. It posts `karen-qa-or-data-only` on the exact
-# PR head SHA after reading PR files from the API.
+# Auto-passes when every Files API path is catalog data or the explicit
+# CVE pipeline files. Author does not matter. This workflow never checks
+# out or runs pull-request code and never emits the `karen-qa` context.
 name: Karen QA or data-only
 
 on:
