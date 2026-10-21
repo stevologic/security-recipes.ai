@@ -11,7 +11,11 @@
       "prompt_injection_detected_with_side_effect",
       "raw_token_in_dom_or_storage",
       "unapproved_admin_console_write",
-      "untrusted_content_requests_external_send"
+      "untrusted_content_requests_external_send",
+      "ungated_origin_expansion",
+      "origin_consumption_outside_read_set",
+      "origin_actuation_outside_write_set",
+      "read_origin_to_write_origin_data_flow"
     ],
     "minimum_task_profiles": 6,
     "minimum_workspace_classes": 6,
@@ -20,6 +24,7 @@
       "ephemeral_or_scoped_storage",
       "logged_out_by_default",
       "origin_allowlist",
+      "origin_set_gating",
       "no_raw_secret_capture",
       "draft_first_delivery",
       "human_confirmation_for_external_send",
@@ -103,7 +108,7 @@
     "sales_motion": "Lead with a readable browser-agent safety gate, then sell hosted policy, dedicated workspace brokering, origin enforcement, prompt-injection telemetry, and signed browser run receipts."
   },
   "failures": [],
-  "generated_at": "2026-08-21",
+  "generated_at": "2026-10-21",
   "intent": "Define the SecurityRecipes browser-agent workspace boundary: a generated, machine-readable policy model for deciding when browser-based or desktop browser agents may inspect untrusted content, use logged-in sessions, hold credentials, navigate origins, fill forms, download files, call local services, or deliver outputs through external routes.",
   "positioning": {
     "buyer": "AI Platform, Product Security, Browser Platform, Security Engineering, SOC, GRC, procurement security, and agent-host teams",
@@ -114,7 +119,7 @@
   "residual_risks": [
     {
       "risk": "The open boundary models workspace and task classes, not a live browser isolation implementation.",
-      "treatment": "Hosted deployments should bind decisions to browser isolation logs, origin policy, agent workspace identity, approval receipts, and telemetry events."
+      "treatment": "Hosted deployments should bind decisions to browser isolation logs, origin-set gating, origin policy, agent workspace identity, approval receipts, and telemetry events."
     },
     {
       "risk": "Prompt-injection detection is imperfect, especially when attacks look like ordinary social engineering.",
@@ -139,9 +144,13 @@
     "missing_approval_for_send": 18,
     "missing_receipt": 12,
     "missing_telemetry": 10,
+    "origin_actuation_outside_write_set": 35,
+    "origin_consumption_outside_gated_set": 30,
+    "origin_expansion_ungated": 35,
     "payment_or_purchase": 45,
     "persistent_memory_write": 18,
     "personal_profile": 25,
+    "read_to_write_origin_data_flow": 30,
     "untrusted_content": 15
   },
   "schema_version": "1.0",
@@ -160,26 +169,26 @@
     "agentic_action_runtime_pack": {
       "available": true,
       "path": "data/evidence/agentic-action-runtime-pack.json",
-      "sha256": "3db2d1f9802155f4457c4b8749549eef6b3a87d070a9a8b3af78827a09ff8f8f"
+      "sha256": "21f2d8d1f6c9dc8619722d189011c11d177013dda3f076803020cd610707ee0c"
     },
     "agentic_app_intake_pack": {
       "available": true,
       "path": "data/evidence/agentic-app-intake-pack.json",
-      "sha256": "ce31aa2e8cd434114f0b63c30320d3708afd4a17e317a3d1704adc5bdff5d536"
+      "sha256": "900896179175f829fde1fa1406c84047fc54896e425ae543ea032dbb3e4126c9"
     },
     "agentic_incident_response_pack": {
       "available": true,
       "path": "data/evidence/agentic-incident-response-pack.json",
-      "sha256": "d657cb309da321e3af4d72613145504cd351131b1e2610498d5d81f0ffc9f408"
+      "sha256": "2d3fec6aaa8c2196a3980b18c2d045d26f207032a204cce538185bd4df362fcb"
     },
     "agentic_telemetry_contract": {
       "available": true,
       "path": "data/evidence/agentic-telemetry-contract.json",
-      "sha256": "efc603d3ad476e4bb83237e5c1e590ba85fd559e94d4ca5d15d5b4c03eaaf019"
+      "sha256": "9c84cc1d3775eec6ca28b43be2d2685ad91e5f14ccf101a60c18c960ff3e382d"
     },
     "browser_agent_boundary_profile": {
       "path": "data/assurance/browser-agent-boundary-profile.json",
-      "sha256": "9388223da63191897c7f55a1b03adf0d1e15cf5eb2cd4ae4d45760b2c65304fc"
+      "sha256": "9d8d9063b0f2b27a5b7ef8021f3621dbe27f8583a8b74ddc4a49c08a1f46d0df"
     },
     "browser_agent_readme": {
       "available": false,
@@ -189,17 +198,17 @@
     "context_egress_boundary_pack": {
       "available": true,
       "path": "data/evidence/context-egress-boundary-pack.json",
-      "sha256": "8c8ff647e095775e4841bee8907b2aa820f6c55769dc1e68e6bbb4dd9f3467c6"
+      "sha256": "d16d43b7d94c00107d700662b2be2b601b5359f7c8677e0f63108c75278ca4be"
     },
     "secure_context_trust_pack": {
       "available": true,
       "path": "data/evidence/secure-context-trust-pack.json",
-      "sha256": "feff81090b7f96fd18acfa48ebb6b259a7884fc78639b9729d05012cd168a953"
+      "sha256": "92036dd639e565599f99777db7c9f01574a0dd5f305d003f4371b8782bc45d46"
     },
     "threat_radar": {
       "available": true,
       "path": "data/evidence/agentic-threat-radar.json",
-      "sha256": "3d5e31445ba8401ea1eb961a65545d1526f4c4b74a6e477fe5d64913032b14a1"
+      "sha256": "81fd88e1d4badaffd08c9bdfe304904ce2021027a4da5f7c1a5d2dd4d5ea88f8"
     }
   },
   "source_summaries": {
@@ -327,7 +336,7 @@
         "default_decision": "deny_unregistered_context",
         "failure_count": 0,
         "prohibited_data_class_count": 7,
-        "registered_byte_count": 15126157,
+        "registered_byte_count": 15130929,
         "registered_file_count": 3526,
         "risk_family_counts": {
           "context_poisoning": 8,
@@ -475,6 +484,18 @@
       "id": "owasp-agentic-top-10-2026",
       "name": "OWASP Top 10 for Agentic Applications 2026",
       "url": "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/"
+    },
+    {
+      "coverage": "Agent Origin Sets extend Site Isolation: a gating function isolated from untrusted content decides task-relevant read-only versus read-writable origins. The planner cannot add origins without that approval, unrelated iframes are withheld from the model, and data from a read-only origin must not flow to a writable origin.",
+      "id": "chrome-agent-origin-sets-2025",
+      "name": "Chrome Security: Architecting security for agentic browsing",
+      "url": "https://security.googleblog.com/2025/12/architecting-security-for-agentic.html"
+    },
+    {
+      "coverage": "Published 9 June 2026. Deterministic WebMCP guardrails require restricting authenticated browser agents to the web origins relevant to the user's task, so rogue tool calls and data exfiltration cannot reach malicious or unrelated origins.",
+      "id": "chrome-webmcp-agent-security-2026",
+      "name": "Chrome: Agent security considerations for WebMCP",
+      "url": "https://developer.chrome.com/docs/agents/security"
     }
   ],
   "task_profiles": [
@@ -850,7 +871,11 @@
         "ambient user cookies",
         "downloads executed automatically",
         "credential entry",
-        "external send without human confirmation"
+        "external send without human confirmation",
+        "ungated origin expansion",
+        "content consumed outside the gated origin set",
+        "actuation outside the gated write origin set",
+        "data flowing from a read-only origin to a writable origin"
       ],
       "required_controls": [
         "dedicated_agent_profile",

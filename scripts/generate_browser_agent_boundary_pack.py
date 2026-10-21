@@ -336,7 +336,7 @@ def build_pack(
         "residual_risks": [
             {
                 "risk": "The open boundary models workspace and task classes, not a live browser isolation implementation.",
-                "treatment": "Hosted deployments should bind decisions to browser isolation logs, origin policy, agent workspace identity, approval receipts, and telemetry events."
+                "treatment": "Hosted deployments should bind decisions to browser isolation logs, origin-set gating, origin policy, agent workspace identity, approval receipts, and telemetry events."
             },
             {
                 "risk": "Prompt-injection detection is imperfect, especially when attacks look like ordinary social engineering.",

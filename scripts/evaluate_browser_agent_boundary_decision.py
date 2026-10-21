@@ -5,6 +5,15 @@ The evaluator is deterministic. It checks a generated browser-agent
 boundary pack, the declared workspace class, task profile, runtime
 evidence, controls, browser authority signals, and kill indicators
 before returning allow, hold, deny, or kill.
+
+Chrome Agent Origin Sets and WebMCP agent security require a gating
+function isolated from untrusted content to decide task-relevant
+read-only versus read-writable origins. This evaluator kills ungated
+origin expansion, consumption outside the gated origin set, actuation
+outside the gated write set, and data flow from a read-only origin to
+a writable origin. Unspecified origin-set evidence stays on the prior
+path so existing isolation, confirmation, and ambient-authority checks
+remain valid.
 """
 
 from __future__ import annotations
@@ -60,6 +69,28 @@ def as_bool(value: Any) -> bool:
     return str(value).strip().lower() in {"1", "true", "yes", "y", "on"}
 
 
+def optional_bool(value: Any) -> bool | None:
+    if value is None or value == "":
+        return None
+    if isinstance(value, bool):
+        return value
+    text = str(value).strip().lower()
+    if text in {"1", "true", "yes", "y", "on"}:
+        return True
+    if text in {"0", "false", "no", "n", "off"}:
+        return False
+    return None
+
+
+def origin_values(value: Any) -> list[str]:
+    seen: list[str] = []
+    for item in as_list(value):
+        text = str(item).strip().lower()
+        if text and text not in seen:
+            seen.append(text)
+    return seen
+
+
 def as_dict(value: Any) -> dict[str, Any]:
     return value if isinstance(value, dict) else {}
 
@@ -78,7 +109,16 @@ def lower_set(values: Any) -> set[str]:
 
 def normalize_request(runtime_request: dict[str, Any]) -> dict[str, Any]:
     request = dict(runtime_request)
-    for key in ["action_classes", "controls", "data_classes", "indicators"]:
+    for key in [
+        "action_classes",
+        "actuated_origins",
+        "consumed_origins",
+        "controls",
+        "data_classes",
+        "indicators",
+        "origin_read_set",
+        "origin_write_set",
+    ]:
         request[key] = [str(item) for item in as_list(request.get(key)) if str(item).strip()]
     for key in [
         "admin_console_write",
@@ -90,12 +130,15 @@ def normalize_request(runtime_request: dict[str, Any]) -> dict[str, Any]:
         "executes_code",
         "external_side_effect",
         "hidden_instruction_detected",
+        "iframe_content_outside_read_set",
         "localhost_access",
         "localhost_probe",
         "local_storage_token",
+        "origin_expansion_ungated",
         "payment_or_purchase",
         "persistent_memory_write",
         "prompt_injection_signal",
+        "read_to_write_data_flow",
         "sends_external_message",
         "uses_personal_profile",
     ]:
@@ -179,6 +222,47 @@ def matched_kill_reasons(pack: dict[str, Any], request: dict[str, Any]) -> list[
         reasons.append("browser agent attempted an admin-console write")
     if request.get("payment_or_purchase"):
         reasons.append("browser agent attempted a payment, purchase, or irreversible transaction")
+    reasons.extend(origin_set_kill_violations(request))
+    return reasons
+
+
+def origin_set_kill_violations(request: dict[str, Any]) -> list[str]:
+    """Return kill reasons for Chrome Agent Origin Sets violations.
+
+    Unspecified origin-set evidence stays on the prior path. Named
+    ungated expansion, out-of-set consumption or actuation, and
+    read-to-write origin data flow kill the session.
+    """
+    reasons: list[str] = []
+    if request.get("origin_expansion_ungated"):
+        reasons.append(
+            "origin expansion is ungated; planner added origins without an isolated gating function"
+        )
+    if request.get("iframe_content_outside_read_set"):
+        reasons.append("iframe or page content was consumed outside the gated read origin set")
+    if request.get("read_to_write_data_flow"):
+        reasons.append("data flowed from a read-only origin into a writable origin")
+    if optional_bool(request.get("origin_gating_isolated")) is False:
+        reasons.append("origin-set gating function is not isolated from untrusted web content")
+
+    read_set = set(origin_values(request.get("origin_read_set")))
+    write_set = set(origin_values(request.get("origin_write_set")))
+    gated = read_set | write_set
+    consumed = origin_values(request.get("consumed_origins"))
+    actuated = origin_values(request.get("actuated_origins"))
+    if gated and consumed:
+        outside = [origin for origin in consumed if origin not in gated]
+        if outside:
+            reasons.append("content consumed outside the gated origin set: " + ", ".join(outside))
+    if actuated:
+        if write_set:
+            outside = [origin for origin in actuated if origin not in write_set]
+            if outside:
+                reasons.append(
+                    "actuation occurred outside the gated write origin set: " + ", ".join(outside)
+                )
+        elif gated:
+            reasons.append("actuation occurred without a gated write origin set")
     return reasons
 
 
@@ -467,6 +551,15 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--prompt-injection-signal", action="store_true")
     parser.add_argument("--sends-external-message", action="store_true")
     parser.add_argument("--uses-personal-profile", action="store_true")
+    parser.add_argument("--origin-expansion-ungated", action="store_true")
+    parser.add_argument("--origin-gating-isolated", action="store_true")
+    parser.add_argument("--origin-gating-not-isolated", action="store_true")
+    parser.add_argument("--iframe-content-outside-read-set", action="store_true")
+    parser.add_argument("--read-to-write-data-flow", action="store_true")
+    parser.add_argument("--origin-read-set", action="append", default=[])
+    parser.add_argument("--origin-write-set", action="append", default=[])
+    parser.add_argument("--consumed-origin", action="append", default=[], dest="consumed_origins")
+    parser.add_argument("--actuated-origin", action="append", default=[], dest="actuated_origins")
     parser.add_argument("--expect-decision")
     return parser.parse_args()
 
@@ -476,12 +569,14 @@ def request_from_args(args: argparse.Namespace) -> dict[str, Any]:
         return load_json(args.runtime_request)
     request: dict[str, Any] = {
         "action_classes": args.action_class,
+        "actuated_origins": args.actuated_origins,
         "admin_console_write": args.admin_console_write,
         "agent_id": args.agent_id,
         "ambient_cookies_available": args.ambient_cookies_available,
         "approval_state": args.approval_state,
         "auth_state": args.auth_state,
         "browser_storage_policy": args.browser_storage_policy,
+        "consumed_origins": args.consumed_origins,
         "contains_secret": args.contains_secret,
         "content_trust_level": args.content_trust_level,
         "controls": args.control,
@@ -492,15 +587,20 @@ def request_from_args(args: argparse.Namespace) -> dict[str, Any]:
         "executes_code": args.executes_code,
         "external_side_effect": args.external_side_effect,
         "hidden_instruction_detected": args.hidden_instruction_detected,
+        "iframe_content_outside_read_set": args.iframe_content_outside_read_set,
         "indicators": args.indicator,
         "isolation_mode": args.isolation_mode,
         "localhost_access": args.localhost_access,
         "localhost_probe": args.localhost_probe,
         "local_storage_token": args.local_storage_token,
         "network_egress_policy": args.network_egress_policy,
+        "origin_expansion_ungated": args.origin_expansion_ungated,
+        "origin_read_set": args.origin_read_set,
+        "origin_write_set": args.origin_write_set,
         "payment_or_purchase": args.payment_or_purchase,
         "persistent_memory_write": args.persistent_memory_write,
         "prompt_injection_signal": args.prompt_injection_signal,
+        "read_to_write_data_flow": args.read_to_write_data_flow,
         "receipt_id": args.receipt_id,
         "run_id": args.run_id,
         "runtime_kill_signal": args.runtime_kill_signal,
@@ -519,6 +619,10 @@ def request_from_args(args: argparse.Namespace) -> dict[str, Any]:
             "approval_id": args.human_approval_id,
             "status": args.human_approval_status,
         }
+    if args.origin_gating_not_isolated:
+        request["origin_gating_isolated"] = False
+    elif args.origin_gating_isolated:
+        request["origin_gating_isolated"] = True
     return request
 
 
