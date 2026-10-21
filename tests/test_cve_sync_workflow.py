@@ -63,6 +63,21 @@ class CveSyncWorkflowTests(unittest.TestCase):
         self.assertNotIn("print(os.environ['XAI_API_KEY'])", self.workflow)
         self.assertNotIn('print(os.environ["XAI_API_KEY"])', self.workflow)
 
+    def test_nvd_api_key_is_optional_and_never_printed(self) -> None:
+        sync_step = self.step(
+            "Synchronize and optionally enrich exact rolling ten-year catalog"
+        )
+        self.assertIn("NVD_API_KEY: ${{ secrets.NVD_API_KEY }}", sync_step)
+        self.assertEqual(
+            self.workflow.count("NVD_API_KEY: ${{ secrets.NVD_API_KEY }}"), 1
+        )
+        self.assertNotIn("NVD_API_KEY", self.workflow.split("steps:", 1)[0])
+        self.assertNotIn("if: ${{ secrets.NVD_API_KEY", self.workflow)
+        self.assertNotIn("if: secrets.NVD_API_KEY", self.workflow)
+        self.assertNotIn('echo "$NVD_API_KEY"', self.workflow)
+        self.assertNotIn("print(os.environ['NVD_API_KEY'])", self.workflow)
+        self.assertNotIn('print(os.environ["NVD_API_KEY"])', self.workflow)
+
     def test_dependencies_are_installed_before_unit_tests(self) -> None:
         install = "python -m pip install -r requirements-dev.txt"
         unit_tests = "python -m unittest"

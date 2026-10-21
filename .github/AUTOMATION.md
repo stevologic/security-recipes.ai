@@ -24,7 +24,9 @@ access token is required.
 ## Intelligence
 
 GitHub Actions is the clock and host. Grok is the only billed brain.
-`XAI_API_KEY` is the only Actions secret those jobs read.
+`XAI_API_KEY` is the only billed-AI Actions secret those jobs read.
+Optional `NVD_API_KEY` is passed only into the catalog sync step so
+lastMod catch-up can use the authenticated NVD rate limit.
 
 | Job | Host | Brain |
 | --- | --- | --- |
