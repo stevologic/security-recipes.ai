@@ -1570,11 +1570,50 @@ def validate_source_completeness(
         expected_years = list(range(2002, end_date.year + 1))
         if sorted(years) != expected_years:
             fail(failures, f"manifest NVD feed years must be exactly 2002..{end_date.year}")
-    if accepted_total != catalog_records:
-        fail(
-            failures,
-            f"manifest NVD accepted_records sum {accepted_total} does not match catalog_records {catalog_records}",
-        )
+
+    catchup_added = 0
+    if isinstance(nvd, dict) and "api_catchup" in nvd:
+        api_catchup = nvd.get("api_catchup")
+        if not isinstance(api_catchup, dict):
+            fail(failures, "manifest NVD api_catchup must be an object")
+        else:
+            added = api_catchup.get("added_records")
+            if added is None:
+                catchup_added = 0
+            elif type(added) is not int or added < 0:
+                fail(failures, "manifest NVD api_catchup has invalid added_records")
+            else:
+                catchup_added = added
+            merged = api_catchup.get("merged_records")
+            replaced = api_catchup.get("replaced_records")
+            if (
+                type(merged) is int
+                and type(replaced) is int
+                and merged >= 0
+                and replaced >= 0
+                and type(added) is int
+                and added >= 0
+                and merged != replaced + added
+            ):
+                fail(
+                    failures,
+                    "manifest NVD api_catchup merged_records does not equal "
+                    "replaced_records plus added_records",
+                )
+
+    nvd_total = accepted_total + catchup_added
+    if nvd_total != catalog_records:
+        if catchup_added:
+            fail(
+                failures,
+                f"manifest NVD accepted_records sum {accepted_total} plus catch-up "
+                f"added_records {catchup_added} does not match catalog_records {catalog_records}",
+            )
+        else:
+            fail(
+                failures,
+                f"manifest NVD accepted_records sum {accepted_total} does not match catalog_records {catalog_records}",
+            )
 
     kev = sources.get("cisa_kev")
     if not isinstance(kev, dict):
