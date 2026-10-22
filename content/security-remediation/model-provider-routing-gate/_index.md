@@ -3,13 +3,14 @@ title: Model Provider Routing Gate
 linkTitle: Model Provider Routing
 weight: 16
 date: 2026-05-04
-lastmod: 2026-08-21
+lastmod: 2026-10-22
 toc: true
 description: >
   A generated model-provider routing gate for deciding which model
   provider and model route may receive secure context for an agentic
   workflow, with proof for data retention, residency, guardrails,
-  telemetry, receipts, and approval before the model call starts.
+  telemetry, receipts, approval, and consumption controls before the
+  model call starts.
 sidebar:
   exclude: true
 breadcrumb_parent: /agentic-security/
@@ -21,7 +22,22 @@ it can answer one operational question: which model/provider is allowed
 to receive this context for this workflow, right now?
 {{< /callout >}}
 
-Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) on August 21, 2026.
+Rechecked October 22, 2026 against OWASP
+[LLM06:2026 Unbounded Consumption](https://github.com/GenAI-Security-Project/GenAI-LLM-Top10/blob/main/2026/final/LLM06_UnboundedConsumption.md)
+in the
+[GenAI LLM Top 10 2026](https://genai.owasp.org/resource/owasp-genai-llm-top-10-2026/)
+edition (published 2026-08-04). LLM06 covers cost asymmetry, Denial of
+Wallet, reasoning-token exhaustion, and agent-tool loops that amplify a
+single request into cascading operations. Traditional request-rate
+limits are not enough; token-aware rate limits, hard spending caps that
+halt inference, and agentic circuit breakers are required. This pack
+already denied unsanctioned providers and killed secrets to external
+models; it now also kills observed unbounded consumption and agentic
+loops without circuit breakers, and denies alert-only spending caps.
+Unspecified consumption evidence stays on the prior allow path. This
+pass does not claim human review of the pack. MCP `latest` still
+redirects to
+[2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28).
 
 ## The product bet
 
@@ -99,6 +115,64 @@ python3 scripts/evaluate_model_provider_routing_decision.py \
   --expect-decision allow_guarded_route
 ```
 
+Evaluate the same tenant-sensitive route when consumption is running away:
+
+```bash
+python3 scripts/evaluate_model_provider_routing_decision.py \
+  --workflow-id vulnerable-dependency-remediation \
+  --provider-id frontier-enterprise-provider \
+  --model-id frontier-code-and-security-reasoning \
+  --route-class tenant_sensitive_remediation \
+  --data-class customer_source_code \
+  --data-class customer_finding_metadata \
+  --autonomy-level bounded_agent \
+  --tenant-id tenant-123 \
+  --tenant-region us \
+  --provider-region us \
+  --enterprise-contract \
+  --dpa-in-place \
+  --zero-data-retention \
+  --training-opt-out \
+  --mcp-gateway-enforced \
+  --tool-guardrails-enforced \
+  --output-guardrails-enforced \
+  --telemetry-redacted \
+  --run-receipt-attached \
+  --egress-decision allow_tenant_bound_egress \
+  --human-approval-id approval-123 \
+  --unbounded-consumption-observed \
+  --expect-decision kill_session_on_provider_signal
+```
+
+Evaluate an otherwise approved route whose spending cap only alerts:
+
+```bash
+python3 scripts/evaluate_model_provider_routing_decision.py \
+  --workflow-id vulnerable-dependency-remediation \
+  --provider-id frontier-enterprise-provider \
+  --model-id frontier-code-and-security-reasoning \
+  --route-class tenant_sensitive_remediation \
+  --data-class customer_source_code \
+  --data-class customer_finding_metadata \
+  --autonomy-level bounded_agent \
+  --tenant-id tenant-123 \
+  --tenant-region us \
+  --provider-region us \
+  --enterprise-contract \
+  --dpa-in-place \
+  --zero-data-retention \
+  --training-opt-out \
+  --mcp-gateway-enforced \
+  --tool-guardrails-enforced \
+  --output-guardrails-enforced \
+  --telemetry-redacted \
+  --run-receipt-attached \
+  --egress-decision allow_tenant_bound_egress \
+  --human-approval-id approval-123 \
+  --spending-cap-alert-only \
+  --expect-decision deny_unapproved_route
+```
+
 ## Routing contract
 
 The default state is `hold_for_model_provider_review`. A route is not
@@ -117,6 +191,9 @@ trusted just because a model is capable. The decision contract requires:
 | Redacted telemetry | Prompts, tool arguments, outputs, and retrieved context becoming a new data sink. |
 | Run receipt binding | Provider decisions that cannot be reconstructed during review or incident response. |
 | Egress decision | Model routing bypassing the context egress boundary. |
+| Token-aware rate limits | Request-per-second limits that ignore tokens, cost, and pre-flight estimation. |
+| Hard spending caps | Alert-only budgets that do not halt inference when exceeded. |
+| Agentic circuit breakers | Recursive tool or reasoning loops that outrun per-run step, time, or cost ceilings. |
 
 ## Route classes
 
@@ -144,10 +221,13 @@ The evaluator returns:
 - `hold_for_model_provider_review` when the route is plausible but proof
   is missing.
 - `deny_unapproved_route` when the provider, route, workflow, data class,
-  or autonomy request is not approved.
+  or autonomy request is not approved, or when a spending cap only
+  alerts instead of halting inference.
 - `kill_session_on_provider_signal` when the request includes secrets,
-  cross-tenant context, non-HTTPS endpoints, denied egress, or another
-  route-level kill signal.
+  cross-tenant context, non-HTTPS endpoints, denied egress, observed
+  unbounded consumption, an agentic loop without a circuit breaker, or
+  another route-level kill signal. Unspecified consumption evidence stays
+  on the prior allow path.
 
 ## Why this matters
 
@@ -196,6 +276,10 @@ This feature follows current guidance:
 - [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices)
   for confused-deputy prevention, token-passthrough denial, scope
   minimization, SSRF controls, session safety, and audit trails.
+- [OWASP LLM Top 10 2026](https://genai.owasp.org/resource/owasp-genai-llm-top-10-2026/)
+  [LLM06 Unbounded Consumption](https://github.com/GenAI-Security-Project/GenAI-LLM-Top10/blob/main/2026/final/LLM06_UnboundedConsumption.md)
+  for token-aware rate limits, hard spending caps that halt inference,
+  and agentic circuit breakers before a model route starts.
 - [OWASP Top 10 for Agentic Applications 2026](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/)
   for agent goal hijacking, tool misuse, privilege abuse, context
   poisoning, insecure inter-agent communication, cascading failures, and

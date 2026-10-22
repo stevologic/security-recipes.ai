@@ -391,7 +391,7 @@ def build_pack(
                 "Generated evidence pack under data/evidence.",
                 "Human-readable docs page and MCP tool exposure."
             ],
-            "reason": "Enterprise buyers need a provider-neutral gate that proves which model route may receive secure context before a tool-capable agent starts a model call."
+            "reason": "Enterprise buyers need a provider-neutral gate that proves which model route may receive secure context, and whether token, cost, and agent-loop consumption can halt, before a tool-capable agent starts a model call."
         },
         "source_artifacts": source_artifacts(repo_root, source_paths),
         "standards_alignment": profile.get("standards_alignment", []),
