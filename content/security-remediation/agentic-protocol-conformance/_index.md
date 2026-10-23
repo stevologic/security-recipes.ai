@@ -3,7 +3,7 @@ title: Agentic Protocol Conformance Pack
 linkTitle: Protocol Conformance
 weight: 14
 date: 2026-05-04
-lastmod: 2026-10-11
+lastmod: 2026-10-23
 sidebar:
   exclude: true
 description: >
@@ -58,6 +58,21 @@ clients **SHOULD** probe with `server/discover` before falling back to
 it to change behavior or make security decisions. Complete discover
 results **MUST** carry `ttlMs` and `cacheScope`. This editorial pass
 does not claim a separate human review of the pack.
+
+Rechecked October 23, 2026 against the MCP
+[Sampling](https://modelcontextprotocol.io/specification/2026-07-28/client/sampling)
+page, [deprecated features](https://modelcontextprotocol.io/specification/2026-07-28/deprecated)
+registry, and [changelog](https://modelcontextprotocol.io/specification/2026-07-28/changelog)
+Deprecated item 1 ([SEP-2577](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2577)).
+Sampling is **deprecated** as of 2026-07-28. New implementations
+**SHOULD NOT** adopt `sampling/createMessage`; existing hosts
+**SHOULD** migrate to provider APIs. Servers **MUST NOT** send
+tool-enabled sampling unless the client declared `sampling.tools`.
+`includeContext` values `"thisServer"` and `"allServers"` are
+deprecated ([SEP-2596](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2596)).
+Sampling tools need not match the registered catalog, so an unregistered
+sampling tool is an unpinned protocol surface. This editorial pass does
+not claim a separate human review of the pack.
 
 ## What was added
 
@@ -133,6 +148,41 @@ python3 scripts/evaluate_agentic_protocol_conformance_decision.py \
   --expect-decision deny_untrusted_protocol_surface
 ```
 
+Hold deprecated `sampling/createMessage`:
+
+```bash
+python3 scripts/evaluate_agentic_protocol_conformance_decision.py \
+  --protocol-id mcp-tooling-safety \
+  --workflow-id vulnerable-dependency-remediation \
+  --agent-id sec-auto-remediator \
+  --run-id run-2026-10-23-sampling \
+  --session-id sess-sampling \
+  --correlation-id corr-sampling \
+  --transport streamable-http \
+  --tool-surface-pinned \
+  --tool-annotations-trusted \
+  --sampling-method sampling/createMessage \
+  --expect-decision hold_for_protocol_drift_review
+```
+
+Deny tool-enabled sampling without `sampling.tools`:
+
+```bash
+python3 scripts/evaluate_agentic_protocol_conformance_decision.py \
+  --protocol-id mcp-tooling-safety \
+  --workflow-id vulnerable-dependency-remediation \
+  --agent-id sec-auto-remediator \
+  --run-id run-2026-10-23-sampling-tools \
+  --session-id sess-sampling-tools \
+  --correlation-id corr-sampling-tools \
+  --transport streamable-http \
+  --tool-surface-pinned \
+  --tool-annotations-trusted \
+  --sampling-method sampling/createMessage \
+  --sampling-tools-present \
+  --expect-decision deny_untrusted_protocol_surface
+```
+
 {{< playbook-workflow >}}
 
 ## Decision model
@@ -141,7 +191,7 @@ python3 scripts/evaluate_agentic_protocol_conformance_decision.py \
 | --- | --- |
 | `allow_with_protocol_receipt` | Protocol evidence is current enough to proceed and can be attached to the run receipt. |
 | `hold_for_protocol_evidence` | Required metadata, identity, consent, Agent Card, approval, or evidence-pack state is missing. |
-| `hold_for_protocol_drift_review` | The observed protocol version, tool surface, annotations, or schema drift requires review. |
+| `hold_for_protocol_drift_review` | The observed protocol version, tool surface, annotations, deprecated Sampling, or schema drift requires review. |
 | `deny_unbound_protocol_authority` | MCP authority is not bound to the expected protected resource, audience, or PKCE evidence. |
 | `deny_untrusted_protocol_surface` | A protocol path combines unsafe trust boundaries such as untrusted content, private data, external egress, or unauthenticated remote-agent delegation. |
 | `kill_session_on_protocol_violation` | The request includes token passthrough, secret movement, or an explicit runtime kill signal. |
@@ -157,9 +207,9 @@ protocol profiles:
 - **MCP Tool Annotation, Schema, and Drift Safety** for required
   `server/discover` identity, cacheable discover results, trusted
   annotations, pinned tool descriptions and schemas, `subscriptions/listen`
-  acknowledgment and requested-type enforcement, tool-output
-  validation, and private-data plus untrusted-content plus external-send
-  risk.
+  acknowledgment and requested-type enforcement, deprecated Sampling
+  and `includeContext` gates, tool-output validation, and private-data
+  plus untrusted-content plus external-send risk.
 - **A2A Agent Discovery and Delegation** for Agent Card completeness,
   authenticated extended cards, HTTPS transport, version headers, signed
   card evidence, skill trust, and handoff minimization.
@@ -183,6 +233,10 @@ This feature tracks current primary guidance:
   for `subscriptions/listen`, `notifications/subscriptions/acknowledged`,
   `io.modelcontextprotocol/subscriptionId`, requested notification
   types, and stdio reconnect behavior.
+- [MCP Sampling](https://modelcontextprotocol.io/specification/2026-07-28/client/sampling)
+  for the 2026-07-28 Sampling deprecation, `sampling.tools` capability
+  gating, deprecated `includeContext` values, and unpinned sampling
+  tools.
 - [MCP Tool Annotations](https://blog.modelcontextprotocol.io/posts/2026-03-16-tool-annotations/)
   for annotation-driven tool UX and the need to treat annotations as
   policy hints until trust and drift evidence exist.
@@ -209,6 +263,7 @@ MCP and A2A protocol conformance:
 
 - live MCP protected-resource metadata checks,
 - required `server/discover` identity, `serverInfo` limits, and cache-hint checks,
+- deprecated Sampling, `sampling.tools` capability, and `includeContext` gates,
 - client metadata and redirect-policy review,
 - resource, audience, PKCE, consent, and scope-drift monitoring,
 - signed tool-surface baselines and annotation drift alerts,

@@ -8,7 +8,11 @@ servers must implement server/discover; self-reported serverInfo is
 not a security input; complete discover results must carry ttlMs and
 cacheScope. Notification streams must use subscriptions/listen with an
 acknowledgment and subscriptionId; legacy initialize, resources/subscribe,
-and HTTP GET notification endpoints are drift.
+and HTTP GET notification endpoints are drift. Sampling is deprecated:
+sampling/createMessage is drift, tool-enabled sampling requires the
+sampling.tools capability, includeContext thisServer/allServers is
+deprecated, and sampling tools that are not on the pinned catalog are
+an untrusted protocol surface.
 """
 
 from __future__ import annotations
@@ -48,6 +52,9 @@ LEGACY_DISCOVER_METHODS = {
     "legacy_initialize",
 }
 DISCOVER_CHECK_ID = "mcp-server-discover-conformance"
+SAMPLING_METHOD = "sampling/createMessage"
+DEPRECATED_INCLUDE_CONTEXT = {"thisserver", "allservers"}
+SAMPLING_CHECK_ID = "mcp-sampling-deprecation"
 
 
 class ProtocolConformanceDecisionError(RuntimeError):
@@ -130,6 +137,8 @@ def normalize_request(runtime_request: dict[str, Any]) -> dict[str, Any]:
         "discover_result_type",
         "discover_cache_scope",
         "discover_ttl_ms",
+        "sampling_method",
+        "sampling_include_context",
     ]:
         request[key] = str(request.get(key) or "").strip()
     for key in [
@@ -163,6 +172,10 @@ def normalize_request(runtime_request: dict[str, Any]) -> dict[str, Any]:
         "legacy_initialize_without_discover",
         "server_info_used_for_security",
         "stdio_discover_probe_skipped",
+        "sampling_tools_present",
+        "sampling_tools_capability_declared",
+        "sampling_tools_unregistered",
+        "sampling_new_implementation",
     ]:
         request[key] = as_bool(request.get(key))
     request["data_classes"] = [str(item).strip() for item in as_list(request.get("data_classes")) if str(item).strip()]
@@ -233,6 +246,31 @@ def discover_cache_hint_violations(request: dict[str, Any]) -> list[str]:
         violations.append("complete server/discover omitted cacheScope")
     if not str(request.get("discover_ttl_ms") or "").strip():
         violations.append("complete server/discover omitted ttlMs")
+    return violations
+
+
+def has_sampling_evidence(request: dict[str, Any]) -> bool:
+    return bool(
+        request.get("sampling_method")
+        or request.get("sampling_include_context")
+        or request.get("sampling_tools_present")
+        or request.get("sampling_tools_capability_declared")
+        or request.get("sampling_tools_unregistered")
+        or request.get("sampling_new_implementation")
+    )
+
+
+def uses_deprecated_include_context(request: dict[str, Any]) -> bool:
+    value = str(request.get("sampling_include_context") or "").strip().lower()
+    return value in DEPRECATED_INCLUDE_CONTEXT
+
+
+def sampling_must_violations(request: dict[str, Any]) -> list[str]:
+    violations: list[str] = []
+    if request.get("sampling_tools_present") and not request.get("sampling_tools_capability_declared"):
+        violations.append("tool-enabled sampling without sampling.tools capability")
+    if request.get("sampling_tools_unregistered"):
+        violations.append("sampling tools are not on the pinned catalog")
     return violations
 
 
@@ -449,6 +487,41 @@ def evaluate_agentic_protocol_conformance_decision(
                 violations=cache_violations,
             )
 
+    if is_mcp_protocol(protocol_id) and has_sampling_evidence(request):
+        sampling_protocol = protocols.get("mcp-tooling-safety") or protocol
+        must_violations = sampling_must_violations(request)
+        if must_violations:
+            return decision_result(
+                decision="deny_untrusted_protocol_surface",
+                reason="MCP sampling/createMessage used undeclared sampling.tools or tools that are not on the pinned catalog",
+                pack=conformance_pack,
+                request=request,
+                matched_protocol=sampling_protocol,
+                matched_checks=selected_checks(sampling_protocol, [SAMPLING_CHECK_ID]),
+                violations=must_violations,
+            )
+        if uses_deprecated_include_context(request):
+            return decision_result(
+                decision="hold_for_protocol_drift_review",
+                reason="MCP 2026-07-28 deprecated includeContext thisServer and allServers; omit includeContext or use none",
+                pack=conformance_pack,
+                request=request,
+                matched_protocol=sampling_protocol,
+                matched_checks=selected_checks(sampling_protocol, [SAMPLING_CHECK_ID]),
+                violations=["deprecated sampling includeContext"],
+            )
+        method = str(request.get("sampling_method") or "").strip()
+        if method == SAMPLING_METHOD or request.get("sampling_new_implementation"):
+            return decision_result(
+                decision="hold_for_protocol_drift_review",
+                reason="MCP 2026-07-28 deprecated Sampling; new implementations SHOULD NOT adopt sampling/createMessage",
+                pack=conformance_pack,
+                request=request,
+                matched_protocol=sampling_protocol,
+                matched_checks=selected_checks(sampling_protocol, [SAMPLING_CHECK_ID]),
+                violations=["deprecated MCP sampling/createMessage"],
+            )
+
     if protocol_id == "mcp-tooling-safety":
         if request["schema_drift_detected"] or not request["tool_surface_pinned"]:
             return decision_result(
@@ -587,6 +660,8 @@ def request_from_args(args: argparse.Namespace) -> dict[str, Any]:
         "discover_result_type",
         "discover_cache_scope",
         "discover_ttl_ms",
+        "sampling_method",
+        "sampling_include_context",
     ]:
         value = getattr(args, key)
         if value not in (None, ""):
@@ -622,6 +697,10 @@ def request_from_args(args: argparse.Namespace) -> dict[str, Any]:
         "legacy_initialize_without_discover",
         "server_info_used_for_security",
         "stdio_discover_probe_skipped",
+        "sampling_tools_present",
+        "sampling_tools_capability_declared",
+        "sampling_tools_unregistered",
+        "sampling_new_implementation",
     ]:
         if getattr(args, flag):
             payload[flag] = True
@@ -657,6 +736,8 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--discover-result-type", dest="discover_result_type")
     parser.add_argument("--discover-cache-scope", dest="discover_cache_scope")
     parser.add_argument("--discover-ttl-ms", dest="discover_ttl_ms")
+    parser.add_argument("--sampling-method", dest="sampling_method")
+    parser.add_argument("--sampling-include-context", dest="sampling_include_context")
     parser.add_argument("--data-class", dest="data_class", action="append", default=[])
     parser.add_argument(
         "--requested-notification-type",
@@ -729,6 +810,26 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument(
         "--stdio-discover-probe-skipped",
         dest="stdio_discover_probe_skipped",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--sampling-tools-present",
+        dest="sampling_tools_present",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--sampling-tools-capability-declared",
+        dest="sampling_tools_capability_declared",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--sampling-tools-unregistered",
+        dest="sampling_tools_unregistered",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--sampling-new-implementation",
+        dest="sampling_new_implementation",
         action="store_true",
     )
     parser.add_argument("--token-audience-bound", dest="token_audience_bound", action="store_true")
