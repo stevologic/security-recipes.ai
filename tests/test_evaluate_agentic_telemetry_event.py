@@ -7,7 +7,9 @@ from pathlib import Path
 from scripts.evaluate_agentic_telemetry_event import (
     evaluate_agentic_telemetry_event,
     is_valid_w3c_traceparent,
+    logging_set_level_on_current_spec,
     protocol_version_requires_session_id,
+    unsolicited_log_notification,
 )
 
 
@@ -117,6 +119,57 @@ class AgenticTelemetryRequestIdentityTests(unittest.TestCase):
         self.assertFalse(
             is_valid_w3c_traceparent("00-00000000000000000000000000000000-00f067aa0ba902b7-01")
         )
+
+    def test_unspecified_logging_evidence_stays_ready(self) -> None:
+        result = evaluate_agentic_telemetry_event(self.pack, _mcp_tool_event())
+        self.assertEqual(result["decision"], "telemetry_ready")
+        self.assertFalse(unsolicited_log_notification(_mcp_tool_event()))
+
+    def test_logging_set_level_on_current_spec_is_held(self) -> None:
+        event = _mcp_tool_event(attributes={"mcp.method.name": "logging/setLevel"})
+        result = evaluate_agentic_telemetry_event(self.pack, event)
+        self.assertEqual(result["decision"], "hold_for_protocol_drift_review")
+        self.assertTrue(logging_set_level_on_current_spec(event["attributes"], event))
+        self.assertTrue(any("logging/setLevel" in note for note in result["notes"]))
+
+    def test_logging_set_level_flag_on_current_spec_is_held(self) -> None:
+        result = evaluate_agentic_telemetry_event(
+            self.pack,
+            _mcp_tool_event(logging_set_level=True),
+        )
+        self.assertEqual(result["decision"], "hold_for_protocol_drift_review")
+
+    def test_legacy_logging_set_level_stays_on_the_prior_path(self) -> None:
+        result = evaluate_agentic_telemetry_event(
+            self.pack,
+            _mcp_tool_event(
+                attributes={
+                    "mcp.protocol.version": "2025-11-25",
+                    "mcp.method.name": "logging/setLevel",
+                    "mcp.session.id": "session-ci",
+                }
+            ),
+        )
+        self.assertEqual(result["decision"], "telemetry_ready")
+
+    def test_unsolicited_log_notification_is_denied(self) -> None:
+        result = evaluate_agentic_telemetry_event(
+            self.pack,
+            _mcp_tool_event(log_notification_present=True, log_level_requested=False),
+        )
+        self.assertEqual(result["decision"], "deny_unsolicited_log_notification")
+        self.assertTrue(
+            unsolicited_log_notification(
+                {"log_notification_present": True, "log_level_requested": False}
+            )
+        )
+
+    def test_opt_in_request_scoped_log_notification_stays_ready(self) -> None:
+        result = evaluate_agentic_telemetry_event(
+            self.pack,
+            _mcp_tool_event(log_notification_present=True, log_level_requested=True),
+        )
+        self.assertEqual(result["decision"], "telemetry_ready")
 
 
 if __name__ == "__main__":

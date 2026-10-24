@@ -334,8 +334,10 @@ def build_pack(
             "decision_order": [
                 "kill_session_on_secret_telemetry",
                 "deny_raw_sensitive_telemetry",
+                "deny_unsolicited_log_notification",
                 "hold_for_unregistered_workflow",
                 "hold_for_trace_completion",
+                "hold_for_protocol_drift_review",
                 "telemetry_ready"
             ],
             "required_attribute_source": "telemetry_contract.required_trace_attributes plus signal class required_attributes",
@@ -361,6 +363,10 @@ def build_pack(
             {
                 "risk": "Collectors that still require mcp.session.id after MCP 2026-07-28 will mint fake session identifiers or hold current-spec traces as incomplete.",
                 "treatment": "Require jsonrpc.request.id, mcp.method.name, and mcp.protocol.version for 2026-07-28 spans. Keep mcp.session.id required only for 2025-11-25 and earlier stored receipts. Treat a present session id as host-session correlation, not authentication. Hold a present traceparent that is not valid W3C Trace Context."
+            },
+            {
+                "risk": "Hosts that still call logging/setLevel or accept notifications/message without io.modelcontextprotocol/logLevel recreate a protocol log sink after MCP 2026-07-28 removed setLevel and deprecated Logging.",
+                "treatment": "Hold 2026-07-28 spans that use logging/setLevel. Deny unsolicited notifications/message. Keep unspecified logging evidence on the prior ready path. Migrate structured observability to OpenTelemetry or stderr."
             }
         ],
         "schema_version": PACK_SCHEMA_VERSION,

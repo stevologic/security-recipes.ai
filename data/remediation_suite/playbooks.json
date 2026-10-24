@@ -3166,7 +3166,7 @@
         {
           "label": "Signal",
           "title": "Identify required signals",
-          "detail": "Select identity, context, policy, approval, tool, action, handoff, memory, egress, request identity, review, and outcome events. For MCP 2026-07-28, request identity is jsonrpc.request.id, mcp.method.name, and mcp.protocol.version rather than a protocol session id."
+          "detail": "Select identity, context, policy, approval, tool, action, handoff, memory, egress, request identity, review, and outcome events. For MCP 2026-07-28, request identity is jsonrpc.request.id, mcp.method.name, and mcp.protocol.version rather than a protocol session id. Do not treat logging/setLevel or unsolicited notifications/message as current observability."
         },
         {
           "label": "Scope",
@@ -3176,7 +3176,7 @@
         {
           "label": "Decision",
           "title": "Apply data minimization",
-          "detail": "Remove raw prompts, secrets, source code, customer content, and unnecessary arguments; define redaction and retention. Do not mint mcp.session.id for MCP 2026-07-28 spans. Treat a present session id as host-session correlation, not authentication, and hold a present traceparent that is not valid W3C Trace Context."
+          "detail": "Remove raw prompts, secrets, source code, customer content, and unnecessary arguments; define redaction and retention. Do not mint mcp.session.id for MCP 2026-07-28 spans. Treat a present session id as host-session correlation, not authentication, and hold a present traceparent that is not valid W3C Trace Context. Hold logging/setLevel on 2026-07-28. Deny notifications/message unless the request set io.modelcontextprotocol/logLevel. Unspecified logging evidence stays on the prior ready path."
         },
         {
           "label": "Action",
@@ -3192,7 +3192,7 @@
       "gate": {
         "question": "Is the event valid, correlated, privacy-safe, attributable, and deliverable to its approved consumers?",
         "pass": "Accept and route the minimized event under retention policy.",
-        "stop": "Reject or quarantine malformed, uncorrelated, sensitive, cross-tenant, or untrusted events."
+        "stop": "Reject or quarantine malformed, uncorrelated, sensitive, cross-tenant, unsolicited-log, or untrusted events."
       },
       "evidence": [
         "versioned telemetry schema",

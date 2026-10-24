@@ -1,12 +1,12 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-10-09",
+  "last_reviewed": "2026-10-24",
   "intent": "Define a vendor-neutral telemetry contract for SecurityRecipes so agentic AI and MCP runs can be reconstructed from OpenTelemetry-shaped traces without leaking secrets, raw tenant context, or unredacted tool payloads into observability systems.",
   "positioning": {
     "buyer": "AI Platform, Security Engineering, Detection Engineering, GRC, model risk, procurement security, and acquisition diligence teams",
     "category": "Agentic AI telemetry contract and secure trace evidence layer",
     "enterprise_promise": "SecurityRecipes makes agent observability reviewable: every governed run must emit enough trace, policy, context, egress, approval, receipt, and redaction evidence for enterprise reviewers to trust the run without reading transcripts.",
-    "why_now": "MCP 2026-07-28 removed protocol-level sessions while OpenTelemetry still recommends mcp.session.id only when a request is part of a session. Collectors that keep requiring a session id mint fake identifiers or hold current-spec traces as incomplete. A secure context layer needs request-bound identity (jsonrpc.request.id, mcp.method.name, mcp.protocol.version) plus redaction so traces stay useful to defenders and safe for regulated environments."
+    "why_now": "MCP 2026-07-28 removed protocol-level sessions and logging/setLevel. Logging is deprecated: new implementations SHOULD migrate to stderr or OpenTelemetry, and servers MUST NOT emit notifications/message unless the request set io.modelcontextprotocol/logLevel. Collectors that still require mcp.session.id or accept unsolicited protocol log notifications mint fake identifiers or turn logs into a secret sink. A secure context layer needs request-bound identity plus opt-in, request-scoped logging evidence."
   },
   "standards_alignment": [
     {
@@ -56,6 +56,18 @@
       "name": "Model Context Protocol Security Best Practices",
       "url": "https://modelcontextprotocol.io/docs/tutorials/security/security_best_practices",
       "coverage": "Supports SSRF-safe discovery, redirect validation, private IP blocking, local server hardening, and auditability. Prefer the 2026-07-28 state-handle controls over session-hijack language from earlier revisions."
+    },
+    {
+      "id": "mcp-logging-2026-07-28",
+      "name": "Model Context Protocol Logging (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/server/utilities/logging",
+      "coverage": "Current public MCP 2026-07-28 revision. Logging is deprecated (SEP-2577). New implementations SHOULD NOT adopt it and SHOULD migrate to stderr or OpenTelemetry. Servers MUST NOT emit notifications/message unless the request set io.modelcontextprotocol/logLevel, and MUST NOT deliver those notifications on subscriptions/listen."
+    },
+    {
+      "id": "mcp-deprecated-2026-07-28",
+      "name": "Model Context Protocol Deprecated Features (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/deprecated",
+      "coverage": "Current public MCP 2026-07-28 revision. The deprecated-features registry records Logging under SEP-2577 with a stderr and OpenTelemetry migration path. The changelog removes logging/setLevel and requires per-request io.modelcontextprotocol/logLevel."
     },
     {
       "id": "nist-ai-600-1",
@@ -206,7 +218,7 @@
         "policy.decision",
         "authorization.decision"
       ],
-      "minimum_evidence": "MCP spans include JSON-RPC request id, method, protocol version, transport, tool, policy, and authorization evidence before a tool result is trusted. mcp.session.id remains required for 2025-11-25 and earlier receipts; on 2026-07-28 it is optional host-session correlation, not authentication.",
+      "minimum_evidence": "MCP spans include JSON-RPC request id, method, protocol version, transport, tool, policy, and authorization evidence before a tool result is trusted. mcp.session.id remains required for 2025-11-25 and earlier receipts; on 2026-07-28 it is optional host-session correlation, not authentication. logging/setLevel is removed; notifications/message require per-request io.modelcontextprotocol/logLevel and must not appear unsolicited.",
       "default_failure_decision": "hold_for_trace_completion"
     },
     {
@@ -365,6 +377,25 @@
         "policy decision is linked to the tool call"
       ],
       "failure_decision": "hold_for_trace_completion"
+    },
+    {
+      "id": "mcp-log-notification-opt-in",
+      "class_id": "mcp_tool_call",
+      "title": "MCP log notifications are opt-in, request-scoped, and not a substitute for OpenTelemetry",
+      "required_attributes": [
+        "mcp.method.name",
+        "mcp.protocol.version",
+        "jsonrpc.request.id",
+        "telemetry.redaction_state",
+        "policy.decision"
+      ],
+      "pass_conditions": [
+        "2026-07-28 spans do not use the removed logging/setLevel method",
+        "notifications/message are absent unless the request set io.modelcontextprotocol/logLevel",
+        "unspecified logging evidence stays on the prior telemetry_ready path",
+        "structured observability uses OpenTelemetry or stderr rather than protocol log notifications"
+      ],
+      "failure_decision": "deny_unsolicited_log_notification"
     },
     {
       "id": "raw-content-redaction",

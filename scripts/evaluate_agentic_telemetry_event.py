@@ -9,6 +9,13 @@ mcp.session.id. Legacy 2025-11-25 traces still require a session id so
 stored receipts stay evaluable. A present traceparent must be valid
 W3C Trace Context. Unspecified protocol-version evidence stays on the
 prior required-session path.
+
+The same revision removed logging/setLevel and deprecated protocol
+logging. New implementations SHOULD migrate to stderr or OpenTelemetry.
+Servers MUST NOT emit notifications/message unless the request set
+io.modelcontextprotocol/logLevel. A 2026-07-28 span that still uses
+logging/setLevel is held. An unsolicited log notification is denied.
+Unspecified logging evidence stays on the prior ready path.
 """
 
 from __future__ import annotations
@@ -25,9 +32,12 @@ DEFAULT_PACK = Path("data/evidence/agentic-telemetry-contract.json")
 READY_DECISION = "telemetry_ready"
 HOLD_TRACE_DECISION = "hold_for_trace_completion"
 HOLD_WORKFLOW_DECISION = "hold_for_unregistered_workflow"
+HOLD_DRIFT_DECISION = "hold_for_protocol_drift_review"
 DENY_RAW_DECISION = "deny_raw_sensitive_telemetry"
+DENY_LOG_DECISION = "deny_unsolicited_log_notification"
 KILL_SECRET_DECISION = "kill_session_on_secret_telemetry"
 CURRENT_MCP_PROTOCOL_VERSION = "2026-07-28"
+REMOVED_LOGGING_METHOD = "logging/setLevel"
 SESSION_ID_ATTRIBUTE = "mcp.session.id"
 TRACEPARENT_ATTRIBUTE = "traceparent"
 W3C_TRACEPARENT_RE = re.compile(
@@ -92,6 +102,36 @@ def event_class_to_signal_id(pack: dict[str, Any], event_class: str) -> str | No
 def protocol_version_requires_session_id(protocol_version: str) -> bool:
     """Return True when mcp.session.id stays on the prior required path."""
     return str(protocol_version or "").strip() != CURRENT_MCP_PROTOCOL_VERSION
+
+
+def as_bool(value: Any) -> bool:
+    if isinstance(value, bool):
+        return value
+    if value is None:
+        return False
+    return str(value).strip().lower() in {"1", "true", "yes", "y", "on"}
+
+
+def logging_set_level_on_current_spec(attributes: dict[str, str], runtime_event: dict[str, Any]) -> bool:
+    """Return True when a 2026-07-28 span still uses removed logging/setLevel."""
+    if protocol_version_requires_session_id(attributes.get("mcp.protocol.version", "")):
+        return False
+    method = str(attributes.get("mcp.method.name") or "").strip()
+    return method == REMOVED_LOGGING_METHOD or as_bool(runtime_event.get("logging_set_level"))
+
+
+def unsolicited_log_notification(runtime_event: dict[str, Any]) -> bool:
+    """Return True when notifications/message fired without per-request logLevel.
+
+    Unspecified logging evidence (neither flag present) stays on the prior
+    ready path. Explicit log_notification_present without log_level_requested
+    is a MUST NOT from MCP 2026-07-28.
+    """
+    if "log_notification_present" not in runtime_event and "log_level_requested" not in runtime_event:
+        return False
+    return as_bool(runtime_event.get("log_notification_present")) and not as_bool(
+        runtime_event.get("log_level_requested")
+    )
 
 
 def is_valid_w3c_traceparent(value: str) -> bool:
@@ -201,6 +241,20 @@ def evaluate_agentic_telemetry_event(pack: dict[str, Any], runtime_event: dict[s
             "workflow_id": workflow_id,
         }
 
+    if unsolicited_log_notification(runtime_event):
+        return {
+            "decision": DENY_LOG_DECISION,
+            "missing_attributes": [],
+            "notes": [
+                "MCP 2026-07-28 servers MUST NOT emit notifications/message unless "
+                "the request set io.modelcontextprotocol/logLevel; unsolicited log "
+                "notifications are denied."
+            ],
+            "prohibited_fields": [],
+            "signal_class_id": signal_id,
+            "workflow_id": workflow_id,
+        }
+
     required = required_attributes_for_event(pack, workflow_contract, event_class, attributes)
     missing = [attr for attr in required if attr not in attributes or attributes.get(attr) == ""]
     if not signal_id:
@@ -224,6 +278,19 @@ def evaluate_agentic_telemetry_event(pack: dict[str, Any], runtime_event: dict[s
             "missing_attributes": [],
             "notes": [
                 "Present traceparent is not a valid W3C Trace Context header; hold for trace completion."
+            ],
+            "prohibited_fields": [],
+            "signal_class_id": signal_id,
+            "workflow_id": workflow_id,
+        }
+
+    if logging_set_level_on_current_spec(attributes, runtime_event):
+        return {
+            "decision": HOLD_DRIFT_DECISION,
+            "missing_attributes": [],
+            "notes": [
+                "MCP 2026-07-28 removed logging/setLevel; Logging is deprecated. "
+                "Hold for protocol drift review and migrate to OpenTelemetry or stderr."
             ],
             "prohibited_fields": [],
             "signal_class_id": signal_id,
@@ -272,6 +339,21 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--argument-capture", choices=["absent", "metadata_only", "redacted", "hashed", "raw"], default="absent")
     parser.add_argument("--result-capture", choices=["absent", "metadata_only", "redacted", "hashed", "raw"], default="absent")
     parser.add_argument("--contains-secret", action="store_true")
+    parser.add_argument(
+        "--log-notification-present",
+        action="store_true",
+        help="The server emitted notifications/message for this request.",
+    )
+    parser.add_argument(
+        "--log-level-requested",
+        action="store_true",
+        help="The request set io.modelcontextprotocol/logLevel in _meta.",
+    )
+    parser.add_argument(
+        "--logging-set-level",
+        action="store_true",
+        help="The host still called the removed logging/setLevel method.",
+    )
     parser.add_argument("--expect-decision")
     return parser.parse_args()
 
@@ -280,17 +362,20 @@ def main() -> int:
     args = parse_args()
     try:
         pack = load_json(args.pack)
-        decision = evaluate_agentic_telemetry_event(
-            pack,
-            {
-                "argument_capture": args.argument_capture,
-                "attributes": dict(args.attribute),
-                "contains_secret": args.contains_secret,
-                "event_class": args.event_class,
-                "result_capture": args.result_capture,
-                "workflow_id": args.workflow_id,
-            },
-        )
+        runtime_event = {
+            "argument_capture": args.argument_capture,
+            "attributes": dict(args.attribute),
+            "contains_secret": args.contains_secret,
+            "event_class": args.event_class,
+            "result_capture": args.result_capture,
+            "workflow_id": args.workflow_id,
+        }
+        if args.log_notification_present or args.log_level_requested:
+            runtime_event["log_notification_present"] = args.log_notification_present
+            runtime_event["log_level_requested"] = args.log_level_requested
+        if args.logging_set_level:
+            runtime_event["logging_set_level"] = True
+        decision = evaluate_agentic_telemetry_event(pack, runtime_event)
     except TelemetryEvaluationError as exc:
         print(f"agentic telemetry evaluation failed: {exc}", file=sys.stderr)
         return 1

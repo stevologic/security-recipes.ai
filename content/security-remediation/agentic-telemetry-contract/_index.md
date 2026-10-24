@@ -3,7 +3,7 @@ title: Agentic Telemetry Contract
 linkTitle: Telemetry Contract
 weight: 6
 date: 2026-05-04
-lastmod: 2026-10-09
+lastmod: 2026-10-24
 sidebar:
   exclude: true
 description: >
@@ -19,7 +19,7 @@ complete enough to reconstruct a run and safe enough not to become a new
 secret, prompt, or tenant-data sink.
 {{< /callout >}}
 
-Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) on October 9, 2026. Rechecked the same day against MCP [Security Best Practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices) State Handle Hijacking and [OpenTelemetry MCP semantic conventions](https://opentelemetry.io/docs/specs/semconv/gen-ai/mcp/): MCP 2026-07-28 is stateless and has no protocol-level sessions. OpenTelemetry recommends `mcp.session.id` only when a request is part of a session. This pack now allows `telemetry_ready` for 2026-07-28 tool spans that carry `jsonrpc.request.id`, `mcp.method.name`, and `mcp.protocol.version` without `mcp.session.id`. A 2025-11-25 span still requires `mcp.session.id` so stored receipts stay evaluable. A present `traceparent` that is not valid [W3C Trace Context](https://www.w3.org/TR/trace-context/) is held. A present session id is host-session correlation, not authentication. Unspecified protocol-version evidence stays on the prior required-session path. This change does not claim human review of the pack; `lastmod` and the source `last_reviewed` date record this editorial pass.
+Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) on October 24, 2026. Rechecked the same day against MCP [Logging](https://modelcontextprotocol.io/specification/2026-07-28/server/utilities/logging), [Deprecated Features](https://modelcontextprotocol.io/specification/2026-07-28/deprecated), and the [changelog](https://modelcontextprotocol.io/specification/2026-07-28/changelog). MCP `latest` still redirects to 2026-07-28. Logging is **deprecated** ([SEP-2577](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2577)). New implementations **SHOULD NOT** adopt it; existing hosts **SHOULD** migrate to stderr or OpenTelemetry. The changelog **removed** `logging/setLevel`. Log level is per-request via `_meta.io.modelcontextprotocol/logLevel`. Servers **MUST NOT** emit `notifications/message` for a request that omits that field, and **MUST NOT** deliver those notifications on `subscriptions/listen`. This pack now holds `hold_for_protocol_drift_review` when a 2026-07-28 span still uses `logging/setLevel`, and denies `deny_unsolicited_log_notification` when log notifications fire without the per-request log level. Unspecified logging evidence stays on the prior `telemetry_ready` path. Request identity without `mcp.session.id` on 2026-07-28, and holding an invalid `traceparent`, are unchanged. This change does not claim human review of the pack; `lastmod` and the source `last_reviewed` date record this editorial pass.
 
 Agentic AI security is moving from "did the model answer correctly?" to
 "can we prove what context, tool, identity, policy, approval, egress
@@ -133,6 +133,63 @@ python3 scripts/evaluate_agentic_telemetry_event.py \
   --expect-decision hold_for_trace_completion
 ```
 
+Hold a current-spec span that still uses the removed `logging/setLevel` method:
+
+```bash
+python3 scripts/evaluate_agentic_telemetry_event.py \
+  --workflow-id vulnerable-dependency-remediation \
+  --event-class mcp.tools.call \
+  --attribute service.name=security-recipes-mcp \
+  --attribute deployment.environment=production \
+  --attribute trace_id=trace-ci \
+  --attribute span_id=span-ci \
+  --attribute workflow_id=vulnerable-dependency-remediation \
+  --attribute run_id=run-logging-setlevel \
+  --attribute agent_id=sr-agent::vulnerable-dependency-remediation::codex \
+  --attribute identity_id=sr-agent::vulnerable-dependency-remediation::codex \
+  --attribute correlation_id=ci-correlation \
+  --attribute receipt_id=sr-run-receipt::vulnerable-dependency-remediation \
+  --attribute telemetry.redaction_state=metadata_only \
+  --attribute gen_ai.operation.name=execute_tool \
+  --attribute gen_ai.tool.name=repo.contents.patch \
+  --attribute mcp.protocol.version=2026-07-28 \
+  --attribute mcp.method.name=logging/setLevel \
+  --attribute jsonrpc.request.id=req-logging-setlevel \
+  --attribute network.transport=tcp \
+  --attribute policy.decision=allow \
+  --attribute authorization.decision=allow_authorized_mcp_request \
+  --expect-decision hold_for_protocol_drift_review
+```
+
+Deny unsolicited `notifications/message` when the request did not set a log level:
+
+```bash
+python3 scripts/evaluate_agentic_telemetry_event.py \
+  --workflow-id vulnerable-dependency-remediation \
+  --event-class mcp.tools.call \
+  --attribute service.name=security-recipes-mcp \
+  --attribute deployment.environment=production \
+  --attribute trace_id=trace-ci \
+  --attribute span_id=span-ci \
+  --attribute workflow_id=vulnerable-dependency-remediation \
+  --attribute run_id=run-unsolicited-log \
+  --attribute agent_id=sr-agent::vulnerable-dependency-remediation::codex \
+  --attribute identity_id=sr-agent::vulnerable-dependency-remediation::codex \
+  --attribute correlation_id=ci-correlation \
+  --attribute receipt_id=sr-run-receipt::vulnerable-dependency-remediation \
+  --attribute telemetry.redaction_state=metadata_only \
+  --attribute gen_ai.operation.name=execute_tool \
+  --attribute gen_ai.tool.name=repo.contents.patch \
+  --attribute mcp.protocol.version=2026-07-28 \
+  --attribute mcp.method.name=tools/call \
+  --attribute jsonrpc.request.id=req-unsolicited-log \
+  --attribute network.transport=tcp \
+  --attribute policy.decision=allow \
+  --attribute authorization.decision=allow_authorized_mcp_request \
+  --log-notification-present \
+  --expect-decision deny_unsolicited_log_notification
+```
+
 ## Signal classes
 
 | Signal | What must be reconstructable |
@@ -169,6 +226,8 @@ controls.
 - [MCP Authorization specification](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
 - [MCP Transports specification](https://modelcontextprotocol.io/specification/2026-07-28/basic/transports)
 - [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices)
+- [MCP Logging specification](https://modelcontextprotocol.io/specification/2026-07-28/server/utilities/logging)
+- [MCP Deprecated Features](https://modelcontextprotocol.io/specification/2026-07-28/deprecated)
 - [NIST AI RMF Generative AI Profile](https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence)
 - [CISA AI Data Security Best Practices](https://www.cisa.gov/resources-tools/resources/ai-data-security-best-practices-securing-data-used-train-operate-ai-systems)
 - [OWASP Top 10 for LLM Applications 2025](https://genai.owasp.org/resource/owasp-top-10-for-llm-applications-2025/)
