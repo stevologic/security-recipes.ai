@@ -2432,6 +2432,91 @@ class SyncCveCatalogTests(unittest.TestCase):
             self.assertIn("accepted_records sum 2 does not match catalog_records 1", failures)
             self.assertIn("metadata is missing required fields", failures)
 
+    def test_validator_counts_nvd_catchup_added_records_toward_catalog_total(self) -> None:
+        feed_record = normalize(nvd_record("CVE-2024-1234"))
+        catchup_record = normalize(
+            nvd_record("CVE-2026-77777", published="2026-06-01T00:00:00.000Z")
+        )
+        self.assertIsNotNone(feed_record)
+        self.assertIsNotNone(catchup_record)
+        assert feed_record is not None
+        assert catchup_record is not None
+
+        with tempfile.TemporaryDirectory(prefix="test-cve-catchup-added-", dir=catalog.ROOT) as tmpdir:
+            output_dir, content_dir, _ = write_catalog_fixture(
+                Path(tmpdir), [feed_record, catchup_record]
+            )
+            manifest_path = output_dir / "manifest.json"
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            feeds = manifest["sources"]["nvd"]["feeds"]
+            feeds[-1]["accepted_records"] = 1
+            manifest["sources"]["nvd"]["api_catchup"] = {
+                "added_records": 1,
+                "replaced_records": 0,
+                "merged_records": 1,
+            }
+            manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+            accounted = validator.validate(output_dir, content_dir)
+            self.assertTrue(accounted["ok"], accounted["failures"])
+
+            manifest["sources"]["nvd"]["api_catchup"]["added_records"] = 0
+            manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+            missing = validator.validate(output_dir, content_dir)
+            self.assertFalse(missing["ok"])
+            self.assertIn(
+                "accepted_records sum 1 does not match catalog_records 2",
+                "\n".join(missing["failures"]),
+            )
+
+            manifest["sources"]["nvd"]["api_catchup"] = {
+                "added_records": 1,
+                "replaced_records": 0,
+                "merged_records": 2,
+            }
+            manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+            inconsistent = validator.validate(output_dir, content_dir)
+            self.assertFalse(inconsistent["ok"])
+            self.assertIn(
+                "merged_records does not equal replaced_records plus added_records",
+                "\n".join(inconsistent["failures"]),
+            )
+
+    def test_catchup_additions_require_complete_strict_counts(self) -> None:
+        records = [normalize(nvd_record("CVE-2024-1234")), normalize(nvd_record("CVE-2024-5678"))]
+        with tempfile.TemporaryDirectory(prefix="test-cve-count-types-", dir=catalog.ROOT) as tmpdir:
+            output_dir, _, _ = write_catalog_fixture(Path(tmpdir), records)
+            manifest = json.loads((output_dir / "manifest.json").read_text())
+            manifest["sources"]["nvd"]["feeds"][-1]["accepted_records"] = 1
+            for field in ("merged_records", "replaced_records"):
+                for value in (None, -1, "1", True, False, 1.0):
+                    counts = {"merged_records": 1, "replaced_records": 0, "added_records": 1}
+                    counts[field] = value
+                    manifest["sources"]["nvd"]["api_catchup"] = counts
+                    failures = []
+                    with self.subTest(field=field, value=value):
+                        validator.validate_source_completeness(manifest, None, 2, failures)
+                        self.assertTrue(failures)
+                counts = {"merged_records": 1, "replaced_records": 0, "added_records": 1}
+                del counts[field]
+                manifest["sources"]["nvd"]["api_catchup"] = counts
+                failures = []
+                validator.validate_source_completeness(manifest, None, 2, failures)
+                self.assertTrue(failures)
+            for value in (None, -1, "1", True, False, 1.0):
+                manifest["sources"]["nvd"]["api_catchup"] = {
+                    "merged_records": 1, "replaced_records": 0, "added_records": value,
+                }
+                failures = []
+                validator.validate_source_completeness(manifest, None, 2, failures)
+                self.assertTrue(failures)
+            # Historical manifests had only merged_records and no additions.
+            manifest["sources"]["nvd"]["feeds"][-1]["accepted_records"] = 2
+            manifest["sources"]["nvd"]["api_catchup"] = {"merged_records": 10}
+            failures = []
+            validator.validate_source_completeness(manifest, None, 2, failures)
+            self.assertFalse(failures, failures)
+
     def test_validator_rejects_the_generic_affected_product_title(self) -> None:
         record = normalize(nvd_record())
         self.assertIsNotNone(record)
@@ -3404,6 +3489,14 @@ class SyncCveCatalogTests(unittest.TestCase):
         self.assertEqual(merged["CVE-2026-55555"]["summary"], "updated catch-up must replace")
         self.assertIn("CVE-2026-77777", merged)
         self.assertEqual(catalog.nvd_datetime_text(merged_latest), "2026-10-20T12:00:00Z")
+        self.assertEqual(
+            catalog.nvd_catchup_record_counts(feed_modified, merged),
+            {"merged_records": 2, "replaced_records": 1, "added_records": 1},
+        )
+        self.assertEqual(
+            catalog.nvd_catchup_record_counts(feed_modified, skipped),
+            {"merged_records": 0, "replaced_records": 0, "added_records": 0},
+        )
 
         _, ignored_stamp = catalog.build_outputs(
             [],
