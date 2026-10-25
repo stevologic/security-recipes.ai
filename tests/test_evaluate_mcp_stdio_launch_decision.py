@@ -131,6 +131,42 @@ class MCPStdioDiscoverAndProxySpawnTests(unittest.TestCase):
         self.assertEqual(result["decision"], "allow_pinned_sandboxed_stdio_launch")
         self.assertTrue(result["allowed"])
 
+    def test_unspecified_isolation_kind_stays_on_prior_allow_path(self) -> None:
+        result = evaluate_mcp_stdio_launch_decision(self.pack, _allowed_direct())
+        self.assertEqual(result["decision"], "allow_pinned_sandboxed_stdio_launch")
+        self.assertTrue(result["allowed"])
+
+    def test_container_isolation_kind_is_allowed(self) -> None:
+        result = evaluate_mcp_stdio_launch_decision(
+            self.pack, _allowed_direct(isolation_kind="container")
+        )
+        self.assertEqual(result["decision"], "allow_pinned_sandboxed_stdio_launch")
+        self.assertTrue(result["allowed"])
+
+    def test_cooperative_filesystem_allowlist_is_denied(self) -> None:
+        result = evaluate_mcp_stdio_launch_decision(
+            self.pack, _allowed_direct(isolation_kind="cooperative_allowlist")
+        )
+        self.assertEqual(result["decision"], "deny_cooperative_filesystem_boundary")
+        self.assertFalse(result["allowed"])
+        self.assertTrue(any("cooperative" in item for item in result["violations"]))
+
+    def test_mcp_roots_are_not_access_control(self) -> None:
+        result = evaluate_mcp_stdio_launch_decision(
+            self.pack, _allowed_direct(isolation_kind="mcp_roots")
+        )
+        self.assertEqual(result["decision"], "deny_cooperative_filesystem_boundary")
+        self.assertFalse(result["allowed"])
+        self.assertTrue(any("MCP Roots" in item for item in result["violations"]))
+
+    def test_bare_chroot_is_not_a_process_sandbox(self) -> None:
+        result = evaluate_mcp_stdio_launch_decision(
+            self.pack, _allowed_direct(isolation_kind="chroot")
+        )
+        self.assertEqual(result["decision"], "deny_cooperative_filesystem_boundary")
+        self.assertFalse(result["allowed"])
+        self.assertTrue(any("chroot" in item for item in result["violations"]))
+
 
 if __name__ == "__main__":
     unittest.main()

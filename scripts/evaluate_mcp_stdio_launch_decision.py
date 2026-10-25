@@ -3,7 +3,10 @@
 
 The evaluator is designed for MCP clients, endpoint policy agents, and
 CI gates that need a deterministic answer before spawning a local MCP
-server subprocess.
+server subprocess. MCP 2026-07-28 local-server security treats
+configuration-level filesystem allowlists as cooperative guardrails,
+not a security boundary. Unspecified isolation evidence stays on the
+prior allow path so existing sandboxed=true checks remain valid.
 """
 
 from __future__ import annotations
@@ -26,7 +29,24 @@ VALID_DECISIONS = {
     "deny_untrusted_package_launch",
     "deny_shell_or_network_bootstrap",
     "deny_unrestricted_proxy_spawn",
+    "deny_cooperative_filesystem_boundary",
     "kill_session_on_secret_or_privilege_request",
+}
+COOPERATIVE_ISOLATION_KINDS = {
+    "allowlist",
+    "allowlist_only",
+    "bare_chroot",
+    "bare_process",
+    "chroot",
+    "config_allowlist",
+    "cooperative",
+    "cooperative_allowlist",
+    "filesystem_allowlist",
+    "filesystem_roots",
+    "mcp_roots",
+    "none",
+    "roots",
+    "unisolated",
 }
 DUAL_ERA_CLIENTS = {"dual_era", "legacy"}
 PROXY_ARCHITECTURES = {"proxy", "stdio_proxy", "local_proxy"}
@@ -163,6 +183,31 @@ def launch_architecture(runtime_request: dict[str, Any], launch: dict[str, Any] 
     return normalized_token(runtime_request.get("launch_architecture") or registered or "direct")
 
 
+def isolation_kind(runtime_request: dict[str, Any]) -> str:
+    return normalized_token(
+        runtime_request.get("isolation_kind")
+        or runtime_request.get("sandbox_kind")
+        or runtime_request.get("filesystem_enforcement")
+    )
+
+
+def cooperative_filesystem_boundary_violations(runtime_request: dict[str, Any]) -> list[str]:
+    """Return violations when isolation evidence is only a cooperative allowlist.
+
+    Unspecified isolation_kind stays on the prior sandboxed=true path.
+    """
+    kind = isolation_kind(runtime_request)
+    if not kind or kind not in COOPERATIVE_ISOLATION_KINDS:
+        return []
+    if kind in {"chroot", "bare_chroot"}:
+        return ["bare chroot is not a process sandbox"]
+    if kind in {"mcp_roots", "roots", "filesystem_roots"}:
+        return ["MCP Roots and declared filesystem roots are cooperative, not access control"]
+    if kind in {"bare_process", "none", "unisolated"}:
+        return ["stdio process is not isolated by a container, VM, or OS process sandbox"]
+    return ["filesystem allowlist is a cooperative boundary, not OS isolation"]
+
+
 def proxy_spawn_violations(runtime_request: dict[str, Any]) -> list[str]:
     violations: list[str] = []
     extra_auth = bool(runtime_request.get("proxy_spawn_authorized")) or has_approval(
@@ -215,6 +260,9 @@ def decision_result(
             "discover_result_type": runtime_request.get("discover_result_type"),
             "env_keys": as_list(runtime_request.get("env_keys")),
             "initialize_fallback": runtime_request.get("initialize_fallback"),
+            "isolation_kind": runtime_request.get("isolation_kind")
+            or runtime_request.get("sandbox_kind")
+            or runtime_request.get("filesystem_enforcement"),
             "launch_architecture": runtime_request.get("launch_architecture"),
             "launch_id": runtime_request.get("launch_id"),
             "network_egress": runtime_request.get("network_egress"),
@@ -439,6 +487,17 @@ def evaluate_mcp_stdio_launch_decision(
             violations=["sandboxed=false"],
         )
 
+    cooperative_violations = cooperative_filesystem_boundary_violations(runtime_request)
+    if cooperative_violations:
+        return decision_result(
+            decision="deny_cooperative_filesystem_boundary",
+            reason="MCP local-server security treats configuration-level filesystem allowlists, MCP Roots, and bare chroot as cooperative guardrails, not a security boundary; enforcement requires a container, VM, or OS process sandbox",
+            runtime_request=runtime_request,
+            matched_launch=launch,
+            matched_profile=profile,
+            violations=cooperative_violations,
+        )
+
     capabilities = lower_set(runtime_request.get("requested_capabilities")) | lower_set(launch.get("requested_capabilities"))
     high_impact = lower_set(contract.get("high_impact_capabilities"))
     if (capabilities & high_impact) and not has_approval(runtime_request.get("human_approval_record")):
@@ -518,6 +577,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--signature-present", action="store_true")
     parser.add_argument("--publisher-verified", action="store_true")
     parser.add_argument("--sandboxed", action="store_true")
+    parser.add_argument("--isolation-kind", default=None)
     parser.add_argument("--network-egress", default="allowlist")
     parser.add_argument("--allowed-external-host", action="append", default=[])
     parser.add_argument("--allows-private-network", action="store_true")
@@ -568,6 +628,7 @@ def main() -> int:
             "filesystem_roots": args.filesystem_root,
             "human_approval_record": parse_key_value(args.approval),
             "initialize_fallback": args.initialize_fallback,
+            "isolation_kind": args.isolation_kind,
             "launch_architecture": args.launch_architecture,
             "launch_id": args.launch_id,
             "network_egress": args.network_egress,

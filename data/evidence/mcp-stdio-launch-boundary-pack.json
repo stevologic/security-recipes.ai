@@ -45,6 +45,10 @@
         "meaning": "A local proxy would spawn a STDIO child without additional authorization, sandbox or container isolation, filesystem restriction, or stdio usage logging, so a stolen proxy token can become host RCE. Direct stdio is out of scope for this path."
       },
       {
+        "decision": "deny_cooperative_filesystem_boundary",
+        "meaning": "The launch treats declared filesystem roots, MCP Roots, a config allowlist, or a bare chroot as the sandbox. Those are cooperative guardrails, not OS isolation."
+      },
+      {
         "decision": "kill_session_on_secret_or_privilege_request",
         "meaning": "The launch attempts to expose secrets, inherited credentials, privileged execution, or prohibited host access."
       }
@@ -123,6 +127,7 @@
       "signature_present",
       "publisher_verified",
       "sandboxed",
+      "isolation_kind",
       "network_egress",
       "allowed_external_hosts",
       "allows_private_network",
@@ -147,6 +152,7 @@
       "Which local MCP server commands are approved to launch?",
       "Which launches can install packages or execute shell wrappers?",
       "Which environment keys, network hosts, and filesystem roots can the process see?",
+      "Are declared filesystem roots enforced by a container, VM, or OS process sandbox, or only by a cooperative allowlist?",
       "Which launch changes require owner approval or full connector intake?",
       "Which dual-era STDIO clients skip the server/discover probe or fall back to initialize after a modern discover outcome?",
       "Which local proxies can spawn STDIO children without extra authorization, sandboxing, or spawn logging?",
@@ -156,8 +162,8 @@
     "sales_motion": "Lead with open launch-boundary evidence, then sell hosted MCP client posture management, enterprise endpoint policy export, launch receipts, and continuous local-server recertification."
   },
   "failures": [],
-  "generated_at": "2026-10-14",
-  "intent": "Define the SecurityRecipes MCP STDIO launch boundary so local MCP server configuration is reviewed as code execution before an agent host starts a subprocess. The model gives enterprise AI platform teams a deterministic allow, hold, deny, or kill decision for command, package, sandbox, environment, network, filesystem, dual-era server/discover probing, proxy-spawn authorization, and approval risk.",
+  "generated_at": "2026-10-25",
+  "intent": "Define the SecurityRecipes MCP STDIO launch boundary so local MCP server configuration is reviewed as code execution before an agent host starts a subprocess. The model gives enterprise AI platform teams a deterministic allow, hold, deny, or kill decision for command, package, sandbox, environment, network, filesystem, dual-era server/discover probing, proxy-spawn authorization, cooperative filesystem-allowlist isolation, and approval risk.",
   "launch_boundaries": [
     {
       "allowed_env_key_prefixes": [],
@@ -652,8 +658,8 @@
   "positioning": {
     "buyer": "AI Platform, Product Security, Endpoint Security, IAM, GRC, and enterprise developer platform teams",
     "category": "MCP STDIO launch governance",
-    "enterprise_promise": "SecurityRecipes can evaluate local STDIO MCP launches before execution, prove which commands are approved, require dual-era clients to probe with server/discover, block unrestricted proxy spawn of STDIO children, and stop shell, package-runner, secret, network, and privilege drift with machine-readable evidence.",
-    "why_now": "MCP 2026-07-28 made STDIO dual-era clients probe with server/discover before falling back to initialize, and its security best practices warn that a local proxy that spawns STDIO children can turn a stolen proxy token into host RCE. Launch review has to cover that handshake and spawn path, not only command allowlists."
+    "enterprise_promise": "SecurityRecipes can evaluate local STDIO MCP launches before execution, prove which commands are approved, require dual-era clients to probe with server/discover, block unrestricted proxy spawn of STDIO children, reject cooperative filesystem allowlists and bare chroot as a sandbox, and stop shell, package-runner, secret, network, and privilege drift with machine-readable evidence.",
+    "why_now": "MCP 2026-07-28 local-server security states that a stdio server is an ordinary OS process, not a protocol sandbox, and that configuration-level filesystem allowlists are cooperative guardrails. Enforcement requires a container, VM, or OS process sandbox. Launch review has to distinguish that isolation layer from declared roots."
   },
   "red_team_drills": [
     {
@@ -697,6 +703,12 @@
       "expected_decision": "deny_unrestricted_proxy_spawn",
       "id": "stdio-proxy-token-rce",
       "name": "Use a stolen local-proxy authentication token to spawn an arbitrary STDIO child without extra authorization, sandboxing, or spawn logging."
+    },
+    {
+      "attack_family": "false_sandbox_boundary",
+      "expected_decision": "deny_cooperative_filesystem_boundary",
+      "id": "stdio-cooperative-roots-boundary",
+      "name": "Claim a local STDIO server is sandboxed because filesystem roots, MCP Roots, a config allowlist, or a bare chroot were declared, without a container, VM, or OS process sandbox."
     }
   ],
   "schema_version": "1.0",
@@ -711,7 +723,7 @@
     },
     "stdio_launch_boundary_model": {
       "path": "data/assurance/mcp-stdio-launch-boundary-model.json",
-      "sha256": "f86f34759ff96721a01b7a4147c1b5c8a3725953ffcba3a65237a5b74f47f960"
+      "sha256": "6ea531758247e2c30e29c6e5e36c976ba35c3f54e17ee386444e164f0c52b572"
     }
   },
   "standards_alignment": [
@@ -744,6 +756,18 @@
       "id": "mcp-security-best-practices-2026-07-28",
       "name": "Model Context Protocol Security Best Practices (2026-07-28 current revision)",
       "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices"
+    },
+    {
+      "coverage": "Current public MCP local-server guidance. A local stdio server is an ordinary OS process, not a protocol sandbox. The client and server share one trust domain. Configuration-level filesystem allowlists are cooperative guardrails for honest servers; nothing in the protocol stops a malicious process from reading whatever the OS account can reach. Enforcement requires a container, VM, or OS process sandbox where the allowed directory is the only filesystem that exists.",
+      "id": "mcp-local-server-security-2026-07-28",
+      "name": "MCP Local Server Security (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/docs/2026-07-28/tutorials/security/local-server-security"
+    },
+    {
+      "coverage": "Current OWASP MCP operational guidance. A bare chroot is not a process sandbox. Sandbox local servers with restricted filesystem and network access. Stdio avoids a listening MCP endpoint; it does not restrict the server process's file system, network, or credential access.",
+      "id": "owasp-mcp-security-cheat-sheet-2026",
+      "name": "OWASP MCP Security Cheat Sheet",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/MCP_Security_Cheat_Sheet.html"
     },
     {
       "coverage": "Prior docs revision kept as a historical source ID. Prefer the 2026-07-28 specification for local MCP server compromise, startup command abuse, sandboxing, consent, filesystem controls, network controls, and stdio proxy-spawn restrictions.",
