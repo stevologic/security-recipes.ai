@@ -187,7 +187,7 @@ It exposes **MCP tools** that let compatible clients:
 | Recipe search and retrieval | Search, list, fetch, and match recipes to a finding. | `recipes_search`, `recipes_list`, `recipes_get`, `recipes_match_finding` |
 | Recipe quality | Score discovery recipes and name missing inputs, selection guidance, output contracts, verification, or guardrails. | `recipes_quality_report` |
 | CVE catalog intelligence | Search the rolling Medium/High/Critical catalog and fetch one normalized record plus its agentic change plan. | `recipes_cve_catalog_info`, `recipes_cve_search`, `recipes_cve_get` |
-| Playbook planning | List the 75 published playbooks and return a bounded start plan for one finding. | `recipes_playbooks_list`, `recipes_playbook_get`, `recipes_playbook_plan` |
+| Playbook planning | List the 76 published playbooks and return a bounded start plan for one finding. | `recipes_playbooks_list`, `recipes_playbook_get`, `recipes_playbook_plan` |
 | Control and gateway policy | Return generated workflow and MCP gateway policy packs. | `recipes_workflow_control_plane`, `recipes_mcp_gateway_policy` |
 | Agent and secure-context evidence | Return generated trust, identity, entitlement, telemetry, incident, and assurance packs. | `recipes_agentic_assurance_pack`, `recipes_agent_identity_ledger`, `recipes_secure_context_trust_pack` |
 | MCP governance evidence | Return connector intake, authorization, elicitation, stdio boundary, tool-risk, and drift packs. | `recipes_mcp_connector_intake_pack`, `recipes_mcp_authorization_conformance_pack`, `recipes_mcp_tool_risk_contract` |

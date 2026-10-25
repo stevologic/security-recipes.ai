@@ -262,6 +262,12 @@ acknowledged it — that is by design.
   reputation feed and a typosquat scanner; both shorten the
   window.
 
+## Related
+
+- [LiteLLM 1.107.0 compromise check]({{< relref "/security-remediation/litellm-1-107-0-compromise-check/" >}})
+  — detect, purge, and rotate after the malicious litellm 1.107.0 wheels
+  and Docker images.
+
 ## See also
 
 - [Vulnerable Dependency Remediation → Malicious-package
