@@ -2482,6 +2482,41 @@ class SyncCveCatalogTests(unittest.TestCase):
                 "\n".join(inconsistent["failures"]),
             )
 
+    def test_catchup_additions_require_complete_strict_counts(self) -> None:
+        records = [normalize(nvd_record("CVE-2024-1234")), normalize(nvd_record("CVE-2024-5678"))]
+        with tempfile.TemporaryDirectory(prefix="test-cve-count-types-", dir=catalog.ROOT) as tmpdir:
+            output_dir, _, _ = write_catalog_fixture(Path(tmpdir), records)
+            manifest = json.loads((output_dir / "manifest.json").read_text())
+            manifest["sources"]["nvd"]["feeds"][-1]["accepted_records"] = 1
+            for field in ("merged_records", "replaced_records"):
+                for value in (None, -1, "1", True, False, 1.0):
+                    counts = {"merged_records": 1, "replaced_records": 0, "added_records": 1}
+                    counts[field] = value
+                    manifest["sources"]["nvd"]["api_catchup"] = counts
+                    failures = []
+                    with self.subTest(field=field, value=value):
+                        validator.validate_source_completeness(manifest, None, 2, failures)
+                        self.assertTrue(failures)
+                counts = {"merged_records": 1, "replaced_records": 0, "added_records": 1}
+                del counts[field]
+                manifest["sources"]["nvd"]["api_catchup"] = counts
+                failures = []
+                validator.validate_source_completeness(manifest, None, 2, failures)
+                self.assertTrue(failures)
+            for value in (None, -1, "1", True, False, 1.0):
+                manifest["sources"]["nvd"]["api_catchup"] = {
+                    "merged_records": 1, "replaced_records": 0, "added_records": value,
+                }
+                failures = []
+                validator.validate_source_completeness(manifest, None, 2, failures)
+                self.assertTrue(failures)
+            # Historical manifests had only merged_records and no additions.
+            manifest["sources"]["nvd"]["feeds"][-1]["accepted_records"] = 2
+            manifest["sources"]["nvd"]["api_catchup"] = {"merged_records": 10}
+            failures = []
+            validator.validate_source_completeness(manifest, None, 2, failures)
+            self.assertFalse(failures, failures)
+
     def test_validator_rejects_the_generic_affected_product_title(self) -> None:
         record = normalize(nvd_record())
         self.assertIsNotNone(record)

@@ -1578,7 +1578,7 @@ def validate_source_completeness(
             fail(failures, "manifest NVD api_catchup must be an object")
         else:
             added = api_catchup.get("added_records")
-            if added is None:
+            if "added_records" not in api_catchup:
                 catchup_added = 0
             elif type(added) is not int or added < 0:
                 fail(failures, "manifest NVD api_catchup has invalid added_records")
@@ -1586,6 +1586,18 @@ def validate_source_completeness(
                 catchup_added = added
             merged = api_catchup.get("merged_records")
             replaced = api_catchup.get("replaced_records")
+            # Older manifests recorded only merged_records. Keep that format
+            # valid when it claims no additions, but never credit additions
+            # without a complete, strictly typed accounting tuple.
+            for field in ("merged_records", "replaced_records"):
+                value = api_catchup.get(field)
+                if field in api_catchup and (type(value) is not int or value < 0):
+                    fail(failures, f"manifest NVD api_catchup has invalid {field}")
+            if catchup_added > 0 and (
+                type(merged) is not int or merged < 0
+                or type(replaced) is not int or replaced < 0
+            ):
+                fail(failures, "manifest NVD api_catchup additions require complete record counts")
             if (
                 type(merged) is int
                 and type(replaced) is int
