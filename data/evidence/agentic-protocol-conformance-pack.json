@@ -388,8 +388,8 @@
           "title": "MCP Authorization Conformance"
         },
         {
-          "commercial_value": "Packages required server/discover identity, cacheable discover results, live tool-list monitoring over subscriptions/listen, signed tool-surface baselines, annotation trust, and private-data plus untrusted-content plus external-send risk into a hosted MCP security control plane.",
-          "conformance_check_count": 6,
+          "commercial_value": "Packages required server/discover identity, cacheable discover results, live tool-list monitoring over subscriptions/listen, Sampling deprecation and sampling.tools gates, signed tool-surface baselines, annotation trust, and private-data plus untrusted-content plus external-send risk into a hosted MCP security control plane.",
+          "conformance_check_count": 7,
           "conformance_checks": [
             {
               "buyer_question": "Are annotations enforceable policy evidence or only UI hints from an untrusted server?",
@@ -589,6 +589,85 @@
               },
               "status": "ready",
               "title": "MCP server/discover Conformance"
+            },
+            {
+              "buyer_question": "Can SecurityRecipes hold a host that still adopts sampling/createMessage, and deny tool-enabled sampling without sampling.tools or a pinned catalog?",
+              "check_hash": "b6054ce582d8dbc60f3cd4a4de32be955abe41ae4d84f850ab7f7830b8974660",
+              "evidence_paths": [
+                "data/evidence/mcp-tool-risk-contract.json",
+                "data/evidence/mcp-tool-surface-drift-pack.json",
+                "data/evidence/agentic-protocol-conformance-pack.json"
+              ],
+              "fail_closed_decision": "deny_untrusted_protocol_surface",
+              "id": "mcp-sampling-deprecation-conformance",
+              "missing_evidence_paths": [],
+              "missing_source_pack_keys": [],
+              "protocol_id": "mcp-tooling-safety",
+              "required_runtime_attributes": [
+                "sampling_method",
+                "sampling_tools_present"
+              ],
+              "requirement": "MCP 2026-07-28 deprecates Sampling. New implementations SHOULD NOT adopt sampling/createMessage and SHOULD migrate to provider APIs. Servers MUST NOT send tool-enabled sampling unless the client declared sampling.tools. Sampling tools are request-scoped and need not match the registered catalog, so unpinned sampling tools are an untrusted protocol surface. includeContext values thisServer and allServers are deprecated.",
+              "source_pack_keys": [
+                "mcp_tool_risk_contract",
+                "mcp_tool_surface_drift_pack"
+              ],
+              "source_pack_status": {
+                "mcp_tool_risk_contract": {
+                  "failure_count": 0,
+                  "path": "data/evidence/mcp-tool-risk-contract.json",
+                  "schema_version": "1.0",
+                  "status": "ready",
+                  "summaries": {
+                    "tool_risk_summary": {
+                      "annotation_trust_counts": {
+                        "trusted_enterprise_gateway": 11,
+                        "untrusted_or_unverified_server": 5
+                      },
+                      "default_decision_counts": {
+                        "allow_with_confirmation": 2,
+                        "hold_for_tool_risk_review": 14
+                      },
+                      "failure_count": 0,
+                      "lethal_combination_workflow_count": 2,
+                      "risk_tier_counts": {
+                        "tier_1_read_untrusted": 1,
+                        "tier_2_private_context": 11,
+                        "tier_3_state_changing": 1,
+                        "tier_4_destructive_or_exfiltration": 3
+                      },
+                      "tool_profile_count": 16,
+                      "trusted_server_count": 11,
+                      "workflow_count": 8
+                    }
+                  }
+                },
+                "mcp_tool_surface_drift_pack": {
+                  "failure_count": 0,
+                  "path": "data/evidence/mcp-tool-surface-drift-pack.json",
+                  "schema_version": "1.0",
+                  "status": "ready",
+                  "summaries": {
+                    "tool_surface_summary": {
+                      "default_decision_counts": {
+                        "allow_pinned_tool_surface": 5,
+                        "hold_for_tool_surface_review": 1
+                      },
+                      "failure_count": 0,
+                      "high_impact_surface_count": 3,
+                      "namespace_count": 6,
+                      "source_kind_counts": {
+                        "candidate_connector": 1,
+                        "registered_connector": 5
+                      },
+                      "status": "drift_baseline_ready",
+                      "surface_count": 6
+                    }
+                  }
+                }
+              },
+              "status": "ready",
+              "title": "MCP Sampling Deprecation Conformance"
             },
             {
               "buyer_question": "Can SecurityRecipes reject an MCP notification stream that still uses resources/subscribe, skips the listen acknowledgment, or pushes unsolicited list-changed events?",
@@ -819,11 +898,12 @@
           "effective_decision": "ready_for_enterprise_conformance",
           "id": "mcp-tooling-safety",
           "readiness_score": 100.0,
-          "ready_check_count": 6,
+          "ready_check_count": 7,
           "source_ids": [
             "mcp-server-discover-2026-07-28",
             "mcp-caching-2026-07-28",
             "mcp-subscriptions-listen-2026-07-28",
+            "mcp-sampling-2026-07-28",
             "mcp-spec-changelog-2026-07-28",
             "mcp-tool-annotations-2026-03-16",
             "mcp-spec-changelog-2025-11-25",
@@ -853,6 +933,14 @@
               "publisher": "Model Context Protocol",
               "source_class": "protocol_specification",
               "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/patterns/subscriptions"
+            },
+            {
+              "id": "mcp-sampling-2026-07-28",
+              "name": "MCP Sampling (2026-07-28 current revision)",
+              "published": "2026-07-28",
+              "publisher": "Model Context Protocol",
+              "source_class": "protocol_specification",
+              "url": "https://modelcontextprotocol.io/specification/2026-07-28/client/sampling"
             },
             {
               "id": "mcp-spec-changelog-2026-07-28",
@@ -2181,7 +2269,7 @@
                         "agentic-assurance-models",
                         "recipes"
                       ],
-                      "byte_count": 15131709,
+                      "byte_count": 15136560,
                       "decision_counts": {
                         "allow_with_adversarial_examples": 1,
                         "block_until_removed": 2,
@@ -2794,8 +2882,8 @@
           "title": "MCP Authorization Conformance"
         },
         {
-          "commercial_value": "Packages required server/discover identity, cacheable discover results, live tool-list monitoring over subscriptions/listen, signed tool-surface baselines, annotation trust, and private-data plus untrusted-content plus external-send risk into a hosted MCP security control plane.",
-          "conformance_check_count": 6,
+          "commercial_value": "Packages required server/discover identity, cacheable discover results, live tool-list monitoring over subscriptions/listen, Sampling deprecation and sampling.tools gates, signed tool-surface baselines, annotation trust, and private-data plus untrusted-content plus external-send risk into a hosted MCP security control plane.",
+          "conformance_check_count": 7,
           "conformance_checks": [
             {
               "buyer_question": "Are annotations enforceable policy evidence or only UI hints from an untrusted server?",
@@ -2995,6 +3083,85 @@
               },
               "status": "ready",
               "title": "MCP server/discover Conformance"
+            },
+            {
+              "buyer_question": "Can SecurityRecipes hold a host that still adopts sampling/createMessage, and deny tool-enabled sampling without sampling.tools or a pinned catalog?",
+              "check_hash": "b6054ce582d8dbc60f3cd4a4de32be955abe41ae4d84f850ab7f7830b8974660",
+              "evidence_paths": [
+                "data/evidence/mcp-tool-risk-contract.json",
+                "data/evidence/mcp-tool-surface-drift-pack.json",
+                "data/evidence/agentic-protocol-conformance-pack.json"
+              ],
+              "fail_closed_decision": "deny_untrusted_protocol_surface",
+              "id": "mcp-sampling-deprecation-conformance",
+              "missing_evidence_paths": [],
+              "missing_source_pack_keys": [],
+              "protocol_id": "mcp-tooling-safety",
+              "required_runtime_attributes": [
+                "sampling_method",
+                "sampling_tools_present"
+              ],
+              "requirement": "MCP 2026-07-28 deprecates Sampling. New implementations SHOULD NOT adopt sampling/createMessage and SHOULD migrate to provider APIs. Servers MUST NOT send tool-enabled sampling unless the client declared sampling.tools. Sampling tools are request-scoped and need not match the registered catalog, so unpinned sampling tools are an untrusted protocol surface. includeContext values thisServer and allServers are deprecated.",
+              "source_pack_keys": [
+                "mcp_tool_risk_contract",
+                "mcp_tool_surface_drift_pack"
+              ],
+              "source_pack_status": {
+                "mcp_tool_risk_contract": {
+                  "failure_count": 0,
+                  "path": "data/evidence/mcp-tool-risk-contract.json",
+                  "schema_version": "1.0",
+                  "status": "ready",
+                  "summaries": {
+                    "tool_risk_summary": {
+                      "annotation_trust_counts": {
+                        "trusted_enterprise_gateway": 11,
+                        "untrusted_or_unverified_server": 5
+                      },
+                      "default_decision_counts": {
+                        "allow_with_confirmation": 2,
+                        "hold_for_tool_risk_review": 14
+                      },
+                      "failure_count": 0,
+                      "lethal_combination_workflow_count": 2,
+                      "risk_tier_counts": {
+                        "tier_1_read_untrusted": 1,
+                        "tier_2_private_context": 11,
+                        "tier_3_state_changing": 1,
+                        "tier_4_destructive_or_exfiltration": 3
+                      },
+                      "tool_profile_count": 16,
+                      "trusted_server_count": 11,
+                      "workflow_count": 8
+                    }
+                  }
+                },
+                "mcp_tool_surface_drift_pack": {
+                  "failure_count": 0,
+                  "path": "data/evidence/mcp-tool-surface-drift-pack.json",
+                  "schema_version": "1.0",
+                  "status": "ready",
+                  "summaries": {
+                    "tool_surface_summary": {
+                      "default_decision_counts": {
+                        "allow_pinned_tool_surface": 5,
+                        "hold_for_tool_surface_review": 1
+                      },
+                      "failure_count": 0,
+                      "high_impact_surface_count": 3,
+                      "namespace_count": 6,
+                      "source_kind_counts": {
+                        "candidate_connector": 1,
+                        "registered_connector": 5
+                      },
+                      "status": "drift_baseline_ready",
+                      "surface_count": 6
+                    }
+                  }
+                }
+              },
+              "status": "ready",
+              "title": "MCP Sampling Deprecation Conformance"
             },
             {
               "buyer_question": "Can SecurityRecipes reject an MCP notification stream that still uses resources/subscribe, skips the listen acknowledgment, or pushes unsolicited list-changed events?",
@@ -3225,11 +3392,12 @@
           "effective_decision": "ready_for_enterprise_conformance",
           "id": "mcp-tooling-safety",
           "readiness_score": 100.0,
-          "ready_check_count": 6,
+          "ready_check_count": 7,
           "source_ids": [
             "mcp-server-discover-2026-07-28",
             "mcp-caching-2026-07-28",
             "mcp-subscriptions-listen-2026-07-28",
+            "mcp-sampling-2026-07-28",
             "mcp-spec-changelog-2026-07-28",
             "mcp-tool-annotations-2026-03-16",
             "mcp-spec-changelog-2025-11-25",
@@ -3259,6 +3427,14 @@
               "publisher": "Model Context Protocol",
               "source_class": "protocol_specification",
               "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/patterns/subscriptions"
+            },
+            {
+              "id": "mcp-sampling-2026-07-28",
+              "name": "MCP Sampling (2026-07-28 current revision)",
+              "published": "2026-07-28",
+              "publisher": "Model Context Protocol",
+              "source_class": "protocol_specification",
+              "url": "https://modelcontextprotocol.io/specification/2026-07-28/client/sampling"
             },
             {
               "id": "mcp-spec-changelog-2026-07-28",
@@ -3843,7 +4019,7 @@
                         "agentic-assurance-models",
                         "recipes"
                       ],
-                      "byte_count": 15131709,
+                      "byte_count": 15136560,
                       "decision_counts": {
                         "allow_with_adversarial_examples": 1,
                         "block_until_removed": 2,
@@ -4109,6 +4285,11 @@
       "subscription_acknowledged",
       "discover_method",
       "server_info_used_for_security",
+      "sampling_method",
+      "sampling_include_context",
+      "sampling_tools_present",
+      "sampling_tools_capability",
+      "sampling_unpinned_tools",
       "agent_card_signed",
       "extended_card_authenticated",
       "protocol_version_observed",
@@ -4632,6 +4813,85 @@
       },
       "status": "ready",
       "title": "MCP server/discover Conformance"
+    },
+    {
+      "buyer_question": "Can SecurityRecipes hold a host that still adopts sampling/createMessage, and deny tool-enabled sampling without sampling.tools or a pinned catalog?",
+      "check_hash": "b6054ce582d8dbc60f3cd4a4de32be955abe41ae4d84f850ab7f7830b8974660",
+      "evidence_paths": [
+        "data/evidence/mcp-tool-risk-contract.json",
+        "data/evidence/mcp-tool-surface-drift-pack.json",
+        "data/evidence/agentic-protocol-conformance-pack.json"
+      ],
+      "fail_closed_decision": "deny_untrusted_protocol_surface",
+      "id": "mcp-sampling-deprecation-conformance",
+      "missing_evidence_paths": [],
+      "missing_source_pack_keys": [],
+      "protocol_id": "mcp-tooling-safety",
+      "required_runtime_attributes": [
+        "sampling_method",
+        "sampling_tools_present"
+      ],
+      "requirement": "MCP 2026-07-28 deprecates Sampling. New implementations SHOULD NOT adopt sampling/createMessage and SHOULD migrate to provider APIs. Servers MUST NOT send tool-enabled sampling unless the client declared sampling.tools. Sampling tools are request-scoped and need not match the registered catalog, so unpinned sampling tools are an untrusted protocol surface. includeContext values thisServer and allServers are deprecated.",
+      "source_pack_keys": [
+        "mcp_tool_risk_contract",
+        "mcp_tool_surface_drift_pack"
+      ],
+      "source_pack_status": {
+        "mcp_tool_risk_contract": {
+          "failure_count": 0,
+          "path": "data/evidence/mcp-tool-risk-contract.json",
+          "schema_version": "1.0",
+          "status": "ready",
+          "summaries": {
+            "tool_risk_summary": {
+              "annotation_trust_counts": {
+                "trusted_enterprise_gateway": 11,
+                "untrusted_or_unverified_server": 5
+              },
+              "default_decision_counts": {
+                "allow_with_confirmation": 2,
+                "hold_for_tool_risk_review": 14
+              },
+              "failure_count": 0,
+              "lethal_combination_workflow_count": 2,
+              "risk_tier_counts": {
+                "tier_1_read_untrusted": 1,
+                "tier_2_private_context": 11,
+                "tier_3_state_changing": 1,
+                "tier_4_destructive_or_exfiltration": 3
+              },
+              "tool_profile_count": 16,
+              "trusted_server_count": 11,
+              "workflow_count": 8
+            }
+          }
+        },
+        "mcp_tool_surface_drift_pack": {
+          "failure_count": 0,
+          "path": "data/evidence/mcp-tool-surface-drift-pack.json",
+          "schema_version": "1.0",
+          "status": "ready",
+          "summaries": {
+            "tool_surface_summary": {
+              "default_decision_counts": {
+                "allow_pinned_tool_surface": 5,
+                "hold_for_tool_surface_review": 1
+              },
+              "failure_count": 0,
+              "high_impact_surface_count": 3,
+              "namespace_count": 6,
+              "source_kind_counts": {
+                "candidate_connector": 1,
+                "registered_connector": 5
+              },
+              "status": "drift_baseline_ready",
+              "surface_count": 6
+            }
+          }
+        }
+      },
+      "status": "ready",
+      "title": "MCP Sampling Deprecation Conformance"
     },
     {
       "buyer_question": "Can SecurityRecipes reject an MCP notification stream that still uses resources/subscribe, skips the listen acknowledgment, or pushes unsolicited list-changed events?",
@@ -5350,7 +5610,7 @@
                 "agentic-assurance-models",
                 "recipes"
               ],
-              "byte_count": 15131709,
+              "byte_count": 15136560,
               "decision_counts": {
                 "allow_with_adversarial_examples": 1,
                 "block_until_removed": 2,
@@ -5528,7 +5788,7 @@
     "sales_motion": "Lead with open protocol conformance evidence, then sell hosted live checks, drift alerts, signed receipts, fleet reporting, and private customer policy mapping."
   },
   "failures": [],
-  "generated_at": "2026-10-11",
+  "generated_at": "2026-10-26",
   "intent": "Create a buyer-grade protocol conformance layer for SecurityRecipes so MCP, A2A, agent identity, prompt-injection, and standards drift are translated into generated evidence, deterministic runtime decisions, and MCP-readable diligence artifacts.",
   "positioning": {
     "buyer": "AI platform, product security, AppSec, GRC, procurement security, and acquisition diligence teams",
@@ -5538,16 +5798,16 @@
   },
   "protocol_conformance_pack_id": "security-recipes-agentic-protocol-conformance",
   "protocol_conformance_summary": {
-    "control_check_count": 18,
+    "control_check_count": 19,
     "control_status_counts": {
-      "ready": 18
+      "ready": 19
     },
     "failure_count": 0,
     "protocol_decision_counts": {
       "ready_for_enterprise_conformance": 4
     },
     "protocol_profile_count": 4,
-    "ready_control_check_count": 18,
+    "ready_control_check_count": 19,
     "ready_protocol_profile_count": 4,
     "status": "protocol_conformance_ready"
   },
@@ -5936,8 +6196,8 @@
       "title": "MCP Authorization Conformance"
     },
     {
-      "commercial_value": "Packages required server/discover identity, cacheable discover results, live tool-list monitoring over subscriptions/listen, signed tool-surface baselines, annotation trust, and private-data plus untrusted-content plus external-send risk into a hosted MCP security control plane.",
-      "conformance_check_count": 6,
+      "commercial_value": "Packages required server/discover identity, cacheable discover results, live tool-list monitoring over subscriptions/listen, Sampling deprecation and sampling.tools gates, signed tool-surface baselines, annotation trust, and private-data plus untrusted-content plus external-send risk into a hosted MCP security control plane.",
+      "conformance_check_count": 7,
       "conformance_checks": [
         {
           "buyer_question": "Are annotations enforceable policy evidence or only UI hints from an untrusted server?",
@@ -6137,6 +6397,85 @@
           },
           "status": "ready",
           "title": "MCP server/discover Conformance"
+        },
+        {
+          "buyer_question": "Can SecurityRecipes hold a host that still adopts sampling/createMessage, and deny tool-enabled sampling without sampling.tools or a pinned catalog?",
+          "check_hash": "b6054ce582d8dbc60f3cd4a4de32be955abe41ae4d84f850ab7f7830b8974660",
+          "evidence_paths": [
+            "data/evidence/mcp-tool-risk-contract.json",
+            "data/evidence/mcp-tool-surface-drift-pack.json",
+            "data/evidence/agentic-protocol-conformance-pack.json"
+          ],
+          "fail_closed_decision": "deny_untrusted_protocol_surface",
+          "id": "mcp-sampling-deprecation-conformance",
+          "missing_evidence_paths": [],
+          "missing_source_pack_keys": [],
+          "protocol_id": "mcp-tooling-safety",
+          "required_runtime_attributes": [
+            "sampling_method",
+            "sampling_tools_present"
+          ],
+          "requirement": "MCP 2026-07-28 deprecates Sampling. New implementations SHOULD NOT adopt sampling/createMessage and SHOULD migrate to provider APIs. Servers MUST NOT send tool-enabled sampling unless the client declared sampling.tools. Sampling tools are request-scoped and need not match the registered catalog, so unpinned sampling tools are an untrusted protocol surface. includeContext values thisServer and allServers are deprecated.",
+          "source_pack_keys": [
+            "mcp_tool_risk_contract",
+            "mcp_tool_surface_drift_pack"
+          ],
+          "source_pack_status": {
+            "mcp_tool_risk_contract": {
+              "failure_count": 0,
+              "path": "data/evidence/mcp-tool-risk-contract.json",
+              "schema_version": "1.0",
+              "status": "ready",
+              "summaries": {
+                "tool_risk_summary": {
+                  "annotation_trust_counts": {
+                    "trusted_enterprise_gateway": 11,
+                    "untrusted_or_unverified_server": 5
+                  },
+                  "default_decision_counts": {
+                    "allow_with_confirmation": 2,
+                    "hold_for_tool_risk_review": 14
+                  },
+                  "failure_count": 0,
+                  "lethal_combination_workflow_count": 2,
+                  "risk_tier_counts": {
+                    "tier_1_read_untrusted": 1,
+                    "tier_2_private_context": 11,
+                    "tier_3_state_changing": 1,
+                    "tier_4_destructive_or_exfiltration": 3
+                  },
+                  "tool_profile_count": 16,
+                  "trusted_server_count": 11,
+                  "workflow_count": 8
+                }
+              }
+            },
+            "mcp_tool_surface_drift_pack": {
+              "failure_count": 0,
+              "path": "data/evidence/mcp-tool-surface-drift-pack.json",
+              "schema_version": "1.0",
+              "status": "ready",
+              "summaries": {
+                "tool_surface_summary": {
+                  "default_decision_counts": {
+                    "allow_pinned_tool_surface": 5,
+                    "hold_for_tool_surface_review": 1
+                  },
+                  "failure_count": 0,
+                  "high_impact_surface_count": 3,
+                  "namespace_count": 6,
+                  "source_kind_counts": {
+                    "candidate_connector": 1,
+                    "registered_connector": 5
+                  },
+                  "status": "drift_baseline_ready",
+                  "surface_count": 6
+                }
+              }
+            }
+          },
+          "status": "ready",
+          "title": "MCP Sampling Deprecation Conformance"
         },
         {
           "buyer_question": "Can SecurityRecipes reject an MCP notification stream that still uses resources/subscribe, skips the listen acknowledgment, or pushes unsolicited list-changed events?",
@@ -6367,11 +6706,12 @@
       "effective_decision": "ready_for_enterprise_conformance",
       "id": "mcp-tooling-safety",
       "readiness_score": 100.0,
-      "ready_check_count": 6,
+      "ready_check_count": 7,
       "source_ids": [
         "mcp-server-discover-2026-07-28",
         "mcp-caching-2026-07-28",
         "mcp-subscriptions-listen-2026-07-28",
+        "mcp-sampling-2026-07-28",
         "mcp-spec-changelog-2026-07-28",
         "mcp-tool-annotations-2026-03-16",
         "mcp-spec-changelog-2025-11-25",
@@ -6401,6 +6741,14 @@
           "publisher": "Model Context Protocol",
           "source_class": "protocol_specification",
           "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/patterns/subscriptions"
+        },
+        {
+          "id": "mcp-sampling-2026-07-28",
+          "name": "MCP Sampling (2026-07-28 current revision)",
+          "published": "2026-07-28",
+          "publisher": "Model Context Protocol",
+          "source_class": "protocol_specification",
+          "url": "https://modelcontextprotocol.io/specification/2026-07-28/client/sampling"
         },
         {
           "id": "mcp-spec-changelog-2026-07-28",
@@ -6985,7 +7333,7 @@
                     "agentic-assurance-models",
                     "recipes"
                   ],
-                  "byte_count": 15131709,
+                  "byte_count": 15136560,
                   "decision_counts": {
                     "allow_with_adversarial_examples": 1,
                     "block_until_removed": 2,
@@ -7206,16 +7554,16 @@
   "source_artifacts": {
     "agentic_protocol_conformance_profile": {
       "path": "data/assurance/agentic-protocol-conformance-profile.json",
-      "sha256": "8d44b6b2bda7d3b13f24627433dbb3666ce68acd6c1bf8b0447673ac38c90668"
+      "sha256": "692c1f4ed4925b33eb26f2496f2a128d76e7ae014e3d51dddc3906bb5959ac9b"
     },
     "source_packs": {
       "a2a_agent_card_trust_profile": {
         "path": "data/evidence/a2a-agent-card-trust-profile.json",
-        "sha256": "bac61fc879c1fac31a9a7603aefdfe1636453e3940d7405b3cf9ffe77973f38d"
+        "sha256": "20d793d8c5e3ded64accf85e649d0f28ce8364a4e931b1ff1a020437adbc0203"
       },
       "agent_handoff_boundary_pack": {
         "path": "data/evidence/agent-handoff-boundary-pack.json",
-        "sha256": "254a8c541f1e65a171e08376b4ab27b977ef1df6768b2ba1bbfe574127f3fbd0"
+        "sha256": "0d21efbaaaf0cce69602ce893ccfd85bcf9071baacfa28219b43d41d5c800100"
       },
       "agent_identity_ledger": {
         "path": "data/evidence/agent-identity-delegation-ledger.json",
@@ -7223,7 +7571,7 @@
       },
       "agentic_control_plane_blueprint": {
         "path": "data/evidence/agentic-control-plane-blueprint.json",
-        "sha256": "32a5514be9bf96212dda8ac3948f8911891bcc17da5cd318e5cbf6aaa395cbc0"
+        "sha256": "92c0209445f01dfb4b7ca8e68ef825a90cc11ff1db9c6242cfedd78e096fdbbf"
       },
       "agentic_red_team_drill_pack": {
         "path": "data/evidence/agentic-red-team-drill-pack.json",
@@ -7231,15 +7579,15 @@
       },
       "agentic_run_receipt_pack": {
         "path": "data/evidence/agentic-run-receipt-pack.json",
-        "sha256": "a656a82008db6ac46378ad84db8776d9f8e7eda1d721666109e853e07e226ef2"
+        "sha256": "9562b1419675541bf26c7b027b2318eb1115ffd1cbe93f9d53119671a4b6473c"
       },
       "context_egress_boundary_pack": {
         "path": "data/evidence/context-egress-boundary-pack.json",
-        "sha256": "a214776f8ceb46f9217e1cece2043a8638e4b3a147cf8772d3dfd7593b2169aa"
+        "sha256": "ac450cc2c1a87c1126e6e5e12918faf48810c5e1ca522c8f82acb9e2bf6217e7"
       },
       "context_poisoning_guard_pack": {
         "path": "data/evidence/context-poisoning-guard-pack.json",
-        "sha256": "6cf910442c9163314f6b2c899114a054a4c0e48d0ec21c14f3df82464ea12c8f"
+        "sha256": "3f96d9c9155ae6431c68b551209d34d7511093217210d221b1ce50400a993619"
       },
       "mcp_authorization_conformance_pack": {
         "path": "data/evidence/mcp-authorization-conformance-pack.json",
@@ -7259,11 +7607,11 @@
       },
       "secure_context_eval_pack": {
         "path": "data/evidence/secure-context-eval-pack.json",
-        "sha256": "626f015ee8e74d6322fd5b43fdda08d041144e9f2bd3f8bb062366ca4c7cb47f"
+        "sha256": "f5d2101f228a96a36d6fe1122e918411817d27fa2970b46866ae24aef41849c4"
       },
       "standards_crosswalk": {
         "path": "data/evidence/agentic-standards-crosswalk.json",
-        "sha256": "ab0c62d8c788d633a8decbb8dde4e0aee141d36473b471443494487aa1a1a8ba"
+        "sha256": "d2c18b995c6a8772cc4368f97ad01158c0d99e981495c06bc078f941608c4cb6"
       }
     }
   },
@@ -7339,6 +7687,15 @@
       "source_class": "protocol_specification",
       "url": "https://modelcontextprotocol.io/specification/2026-07-28/server/utilities/caching",
       "why_it_matters": "Complete server/discover results MUST include ttlMs and cacheScope. cacheScope is a freshness and sharing hint, not an access-control lock, and input_required results are not cacheable."
+    },
+    {
+      "id": "mcp-sampling-2026-07-28",
+      "name": "MCP Sampling (2026-07-28 current revision)",
+      "published": "2026-07-28",
+      "publisher": "Model Context Protocol",
+      "source_class": "protocol_specification",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/client/sampling",
+      "why_it_matters": "MCP 2026-07-28 deprecates Sampling. New implementations SHOULD NOT adopt sampling/createMessage; existing hosts SHOULD migrate to provider APIs. Servers MUST NOT send tool-enabled sampling unless the client declared sampling.tools. Sampling tools are request-scoped and need not match the registered catalog, so an unpinned sampling tool is an untrusted protocol surface. includeContext values thisServer and allServers are deprecated."
     },
     {
       "id": "mcp-spec-changelog-2026-07-28",

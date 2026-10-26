@@ -286,5 +286,118 @@ class AgenticProtocolConformanceDiscoverTests(unittest.TestCase):
         self.assertIn("mcp-server-discover-conformance", check_ids)
 
 
+class AgenticProtocolConformanceSamplingTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.pack = json.loads(PACK_PATH.read_text(encoding="utf-8"))
+
+    def test_unspecified_sampling_evidence_still_allows_authorization(self) -> None:
+        result = evaluate_agentic_protocol_conformance_decision(
+            self.pack, _authorization_request()
+        )
+        self.assertEqual(result["decision"], "allow_with_protocol_receipt")
+        self.assertTrue(result["allowed"])
+
+    def test_unspecified_sampling_evidence_still_allows_tooling(self) -> None:
+        result = evaluate_agentic_protocol_conformance_decision(
+            self.pack, _tooling_request()
+        )
+        self.assertEqual(result["decision"], "allow_with_protocol_receipt")
+        self.assertTrue(result["allowed"])
+
+    def test_sampling_create_message_is_held_for_drift_review(self) -> None:
+        result = evaluate_agentic_protocol_conformance_decision(
+            self.pack,
+            _tooling_request(sampling_method="sampling/createMessage"),
+        )
+        self.assertEqual(result["decision"], "hold_for_protocol_drift_review")
+        self.assertFalse(result["allowed"])
+        self.assertTrue(
+            any("deprecated sampling/createMessage" in item for item in result["violations"])
+        )
+
+    def test_deprecated_include_context_is_held_for_drift_review(self) -> None:
+        result = evaluate_agentic_protocol_conformance_decision(
+            self.pack,
+            _authorization_request(sampling_include_context="thisServer"),
+        )
+        self.assertEqual(result["decision"], "hold_for_protocol_drift_review")
+        self.assertFalse(result["allowed"])
+        self.assertTrue(
+            any("deprecated includeContext" in item for item in result["violations"])
+        )
+
+    def test_all_servers_include_context_is_held_for_drift_review(self) -> None:
+        result = evaluate_agentic_protocol_conformance_decision(
+            self.pack,
+            _authorization_request(sampling_include_context="allServers"),
+        )
+        self.assertEqual(result["decision"], "hold_for_protocol_drift_review")
+        self.assertFalse(result["allowed"])
+
+    def test_none_include_context_without_sampling_method_is_allowed(self) -> None:
+        result = evaluate_agentic_protocol_conformance_decision(
+            self.pack,
+            _tooling_request(sampling_include_context="none"),
+        )
+        self.assertEqual(result["decision"], "allow_with_protocol_receipt")
+        self.assertTrue(result["allowed"])
+
+    def test_tool_enabled_sampling_without_capability_is_denied(self) -> None:
+        result = evaluate_agentic_protocol_conformance_decision(
+            self.pack,
+            _tooling_request(sampling_tools_present=True),
+        )
+        self.assertEqual(result["decision"], "deny_untrusted_protocol_surface")
+        self.assertFalse(result["allowed"])
+        self.assertTrue(
+            any("sampling.tools" in item for item in result["violations"])
+        )
+
+    def test_unpinned_sampling_tools_are_denied(self) -> None:
+        result = evaluate_agentic_protocol_conformance_decision(
+            self.pack,
+            _tooling_request(
+                sampling_tools_present=True,
+                sampling_tools_capability=True,
+                sampling_unpinned_tools=True,
+            ),
+        )
+        self.assertEqual(result["decision"], "deny_untrusted_protocol_surface")
+        self.assertFalse(result["allowed"])
+        self.assertTrue(
+            any("pinned catalog" in item for item in result["violations"])
+        )
+
+    def test_tool_enabled_sampling_with_capability_still_holds_for_deprecation(self) -> None:
+        result = evaluate_agentic_protocol_conformance_decision(
+            self.pack,
+            _tooling_request(
+                sampling_method="sampling/createMessage",
+                sampling_tools_present=True,
+                sampling_tools_capability=True,
+            ),
+        )
+        self.assertEqual(result["decision"], "hold_for_protocol_drift_review")
+        self.assertFalse(result["allowed"])
+
+    def test_sampling_sources_are_present(self) -> None:
+        source_ids = {
+            str(row.get("id"))
+            for row in self.pack.get("source_references", [])
+            if isinstance(row, dict)
+        }
+        self.assertIn("mcp-sampling-2026-07-28", source_ids)
+        self.assertIn("mcp-spec-changelog-2026-07-28", source_ids)
+        check_ids = {
+            str(check.get("id"))
+            for protocol in self.pack.get("protocol_profiles", [])
+            if isinstance(protocol, dict)
+            for check in protocol.get("conformance_checks", [])
+            if isinstance(check, dict)
+        }
+        self.assertIn("mcp-sampling-deprecation-conformance", check_ids)
+
+
 if __name__ == "__main__":
     unittest.main()
