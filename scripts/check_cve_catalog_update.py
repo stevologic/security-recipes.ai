@@ -4,9 +4,14 @@
 from __future__ import annotations
 
 import argparse
+import gzip
+import hashlib
+import io
 import json
 import os
+import re
 import sys
+import zlib
 from dataclasses import asdict, dataclass
 from datetime import date, datetime, timezone
 from pathlib import Path
@@ -64,7 +69,8 @@ def _iso_date(value: object) -> date | None:
     if not isinstance(value, str) or not value:
         return None
     try:
-        return date.fromisoformat(value[:10])
+        parsed = date.fromisoformat(value)
+        return parsed if parsed.isoformat() == value else None
     except ValueError:
         return None
 
@@ -94,9 +100,110 @@ def _rolling_ten_year_start(
         return None, None
     baseline_scope = _publication_scope(baseline)
     trailing_year = None
-    if baseline_scope is not None and candidate_start > baseline_scope[0]:
+    if (
+        baseline_scope is not None
+        and baseline_scope[0] == _ten_year_cutoff(baseline_scope[1])
+        and candidate_start > baseline_scope[0]
+        and candidate_end > baseline_scope[1]
+    ):
         trailing_year = str(candidate_start.year)
     return candidate_start, trailing_year
+
+
+def _verified_asset(root: Path, entry: dict[str, Any], pattern: str) -> bytes:
+    """Read only a manifest-pinned, bounded catalog asset beneath its root."""
+    relative = entry.get("path")
+    if not isinstance(relative, str) or not re.fullmatch(pattern, relative):
+        raise ValueError("invalid evidence asset path")
+    path = root / relative
+    if not path.resolve().is_relative_to(root.resolve()):
+        raise ValueError("evidence asset escapes catalog root")
+    size = _integer(entry, "bytes")
+    if size is None or not 0 < size <= 8 * 1024 * 1024:
+        raise ValueError(f"invalid evidence asset size: {relative}")
+    with path.open("rb") as stream:
+        compressed = stream.read(size + 1)
+    if len(compressed) != size or hashlib.sha256(compressed).hexdigest() != entry.get("sha256"):
+        raise ValueError(f"evidence asset integrity mismatch: {relative}")
+    with gzip.GzipFile(fileobj=io.BytesIO(compressed)) as stream:
+        payload = stream.read(64 * 1024 * 1024 + 1)
+    if len(payload) > 64 * 1024 * 1024:
+        raise ValueError(f"evidence asset is too large: {relative}")
+    return payload
+
+
+def _publication_records(
+    root: Path, manifest: dict[str, Any], year: str
+) -> dict[str, tuple[dict[str, Any], dict[str, Any]]]:
+    """Authenticate the publication index and full records used in an expiry proof."""
+    count = _year_totals(manifest).get(year, 0)
+    partitions = manifest.get("complete_index", {}).get("partitions", [])
+    matching = [item for item in partitions if str(item.get("year")) == year]
+    if not matching and count == 0:
+        return {}
+    if len(matching) != 1:
+        raise ValueError(f"missing or duplicate publication index for {year}")
+    index = json.loads(_verified_asset(root, matching[0], rf"indexes/{year}\.json\.gz"))
+    rows = index.get("records")
+    if not isinstance(rows, list) or len(rows) != count or matching[0].get("records") != count:
+        raise ValueError(f"publication index count mismatch for {year}")
+    wanted: dict[str, dict[str, Any]] = {}
+    for row in rows:
+        if not isinstance(row, dict):
+            raise ValueError(f"invalid publication index row for {year}")
+        cve, published = row.get("cve"), _iso_date(row.get("published"))
+        if (
+            not isinstance(cve, str)
+            or not re.fullmatch(r"CVE-\d{4}-\d{4,}", cve)
+            or cve in wanted
+            or published is None
+            or str(published.year) != year
+        ):
+            raise ValueError(f"invalid or duplicate publication record for {year}")
+        wanted[cve] = row
+    shard_entries = manifest.get("shard_manifest", [])
+    result = {}
+    for relative in {row.get("shard") for row in rows}:
+        matching = [item for item in shard_entries if item.get("path") == relative]
+        if len(matching) != 1:
+            raise ValueError(f"missing or duplicate shard evidence: {relative}")
+        payload = _verified_asset(root, matching[0], r"shards/\d{4}/\d{4,}\.jsonl\.gz")
+        records = [json.loads(line) for line in payload.splitlines() if line.strip()]
+        if len(records) != matching[0].get("records"):
+            raise ValueError(f"shard record count mismatch: {relative}")
+        for record in records:
+            cve = record.get("cve")
+            if cve not in wanted or wanted[cve].get("shard") != relative:
+                continue
+            if cve in result or record.get("published") != wanted[cve].get("published"):
+                raise ValueError(f"duplicate or inconsistent full record: {cve}")
+            result[cve] = (wanted[cve], record)
+    if result.keys() != wanted.keys():
+        raise ValueError(f"publication records missing from shards for {year}")
+    return result
+
+
+def _verified_expirations(
+    baseline: dict[str, Any],
+    candidate: dict[str, Any],
+    year: str,
+    cutoff: date,
+    baseline_catalog: Path | None,
+    candidate_catalog: Path | None,
+) -> int:
+    if baseline_catalog is None or candidate_catalog is None:
+        raise ValueError("baseline and candidate catalog evidence is required")
+    before = _publication_records(baseline_catalog, baseline, year)
+    after = _publication_records(candidate_catalog, candidate, year)
+    expired = {cve for cve, (row, _) in before.items() if _iso_date(row["published"]) < cutoff}
+    survivors = before.keys() - expired
+    missing = survivors - after.keys()
+    changed = {cve for cve in survivors & after.keys() if before[cve] != after[cve]}
+    if missing or changed:
+        raise ValueError(f"{year} lost {len(missing)} in-scope records or changed {len(changed)} survivors")
+    if expired & after.keys() or any(_iso_date(row["published"]) < cutoff for row, _ in after.values()):
+        raise ValueError(f"{year} retains out-of-scope records")
+    return len(expired)
 
 
 def _drop_is_suspicious(
@@ -175,17 +282,41 @@ def catalog_anomalies(
     baseline: dict[str, Any],
     candidate: dict[str, Any],
     sync_report: dict[str, Any],
+    *,
+    baseline_catalog: Path | None = None,
+    candidate_catalog: Path | None = None,
 ) -> list[Finding]:
     """Return conservative signals that require a person to inspect the refresh.
 
-    Exact rolling ten-year window advances may age out a trailing publication
-    year or drop records from it; those are not quarantine signals.
+    Window expiry is exempt only when authenticated records prove the loss;
+    changes to surviving boundary-year records remain quarantined for review.
     """
 
     findings: list[Finding] = []
+    before_years = _year_totals(baseline)
+    after_years = _year_totals(candidate)
+    window_start, trailing_year = _rolling_ten_year_start(baseline, candidate)
+    expirations: dict[str, int] = {}
+    if trailing_year is not None and window_start is not None:
+        for year in sorted(before_years):
+            if not year.isdigit() or int(year) > window_start.year:
+                continue
+            try:
+                expirations[year] = _verified_expirations(
+                    baseline,
+                    candidate,
+                    year,
+                    window_start,
+                    baseline_catalog,
+                    candidate_catalog,
+                )
+            except (OSError, EOFError, zlib.error, ValueError, TypeError, KeyError, AttributeError) as exc:
+                findings.append(Finding("rolling-window-unverified", str(exc)))
     before_totals = baseline.get("totals")
     after_totals = candidate.get("totals")
     before_records = _integer(before_totals, "catalog_records")
+    if before_records is not None:
+        before_records -= sum(expirations.values())
     after_records = _integer(after_totals, "catalog_records")
     if after_records is None or after_records <= 0:
         findings.append(
@@ -229,15 +360,8 @@ def catalog_anomalies(
             )
         )
 
-    before_years = _year_totals(baseline)
-    after_years = _year_totals(candidate)
-    window_start, trailing_year = _rolling_ten_year_start(baseline, candidate)
     missing_years = sorted(
-        year
-        for year in set(before_years) - set(after_years)
-        if window_start is None
-        or not year.isdigit()
-        or int(year) >= window_start.year
+        year for year in set(before_years) - set(after_years) if expirations.get(year, 0) != before_years[year]
     )
     if missing_years:
         findings.append(
@@ -247,9 +371,7 @@ def catalog_anomalies(
             )
         )
     for year in sorted(set(before_years) & set(after_years)):
-        if year == trailing_year:
-            continue
-        before = before_years[year]
+        before = before_years[year] - expirations.get(year, 0)
         after = after_years[year]
         if _drop_is_suspicious(before, after, relative=0.10, absolute=100):
             findings.append(
@@ -481,8 +603,17 @@ def build_report(
     baseline: dict[str, Any],
     candidate: dict[str, Any],
     sync_report: dict[str, Any],
+    *,
+    baseline_catalog: Path | None = None,
+    candidate_catalog: Path | None = None,
 ) -> dict[str, Any]:
-    anomalies = catalog_anomalies(baseline, candidate, sync_report)
+    anomalies = catalog_anomalies(
+        baseline,
+        candidate,
+        sync_report,
+        baseline_catalog=baseline_catalog,
+        candidate_catalog=candidate_catalog,
+    )
     return {
         "schema_version": SCHEMA_VERSION,
         "checked_at": datetime.now(timezone.utc)
@@ -577,6 +708,7 @@ def _write_github_output(path: Path, report: dict[str, Any]) -> None:
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--baseline", type=Path, required=True)
+    parser.add_argument("--baseline-catalog", type=Path)
     parser.add_argument("--candidate", type=Path, required=True)
     parser.add_argument("--sync-report", type=Path, required=True)
     parser.add_argument("--report", type=Path, required=True)
@@ -594,16 +726,19 @@ def main(argv: list[str] | None = None) -> int:
         sync_report = _load_object(
             args.sync_report, description="synchronization report"
         )
-        report = build_report(baseline, candidate, sync_report)
+        report = build_report(
+            baseline,
+            candidate,
+            sync_report,
+            baseline_catalog=args.baseline_catalog,
+            candidate_catalog=args.candidate.parent,
+        )
     except ValueError as exc:
         message = str(exc)
         print(message, file=sys.stderr)
         report = {
             "schema_version": SCHEMA_VERSION,
-            "checked_at": datetime.now(timezone.utc)
-            .replace(microsecond=0)
-            .isoformat()
-            .replace("+00:00", "Z"),
+            "checked_at": datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z"),
             "safe_to_merge": False,
             "anomalies": [
                 asdict(

@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import copy
+import gzip
+import hashlib
 import json
 import tempfile
 import unittest
@@ -91,7 +94,69 @@ def sync_report(
     }
 
 
+def expiry_records(expired: int = 150, retained: int = 970) -> list[dict[str, Any]]:
+    return [
+        {
+            "cve": f"CVE-2016-{10000 + index}",
+            "published": "2016-10-25" if index < expired else "2016-10-26",
+            "summary": "Unchanged source evidence",
+            "kev": False,
+        }
+        for index in range(expired + retained)
+    ]
+
+
+def write_catalog_evidence(root: Path, payload: dict[str, Any], records: list[dict[str, Any]]) -> None:
+    """Build real, hash-pinned index/shard fixtures for the expiry guard."""
+    root.mkdir(parents=True, exist_ok=True)
+    partitions, shards = [], []
+    for year in sorted({record["published"][:4] for record in records}):
+        selected = [record for record in records if record["published"].startswith(year)]
+        shard_path = f"shards/{year}/0000.jsonl.gz"
+        index_path = f"indexes/{year}.json.gz"
+        rows = [{"cve": record["cve"], "published": record["published"], "shard": shard_path} for record in selected]
+        for path, data, entries in (
+            (shard_path, b"\n".join(json.dumps(row).encode() for row in selected), shards),
+            (index_path, json.dumps({"records": rows}).encode(), partitions),
+        ):
+            compressed = gzip.compress(data, mtime=0)
+            target = root / path
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(compressed)
+            entries.append(
+                {
+                    "year": year,
+                    "path": path,
+                    "records": len(selected),
+                    "bytes": len(compressed),
+                    "sha256": hashlib.sha256(compressed).hexdigest(),
+                }
+            )
+    payload["complete_index"] = {"partitions": partitions}
+    payload["shard_manifest"] = shards
+    (root / "manifest.json").write_text(json.dumps(payload), encoding="utf-8")
+
+
 class CatalogUpdateGuardTests(unittest.TestCase):
+    def expiry_report(
+        self,
+        baseline: dict[str, Any],
+        candidate: dict[str, Any],
+        before: list[dict[str, Any]],
+        after: list[dict[str, Any]],
+    ) -> dict[str, Any]:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            write_catalog_evidence(root / "before", baseline, before)
+            write_catalog_evidence(root / "after", candidate, after)
+            return catalog_guard.build_report(
+                baseline,
+                candidate,
+                sync_report(),
+                baseline_catalog=root / "before",
+                candidate_catalog=root / "after",
+            )
+
     def test_small_expected_changes_remain_mergeable(self) -> None:
         baseline = manifest()
         candidate = manifest(records=99_900, in_scope_kev=990, kev_records=1_590)
@@ -164,7 +229,8 @@ class CatalogUpdateGuardTests(unittest.TestCase):
             },
         )
 
-        report = catalog_guard.build_report(baseline, candidate, sync_report())
+        before = expiry_records(200, 1000)
+        report = self.expiry_report(baseline, candidate, before, before[200:])
 
         self.assertTrue(report["safe_to_merge"])
         self.assertEqual(report["anomalies"], [])
@@ -175,7 +241,7 @@ class CatalogUpdateGuardTests(unittest.TestCase):
             published_end="2026-12-31",
             years={
                 "2016": {"total": 900},
-                "2017": {"total": 14_000},
+                "2017": {"total": 2},
                 "2026": {"total": 35_000},
             },
         )
@@ -184,13 +250,15 @@ class CatalogUpdateGuardTests(unittest.TestCase):
             published_start="2017-01-01",
             published_end="2027-01-01",
             years={
-                "2017": {"total": 14_000},
+                "2017": {"total": 2},
                 "2026": {"total": 35_000},
                 "2027": {"total": 100},
             },
         )
 
-        report = catalog_guard.build_report(baseline, candidate, sync_report())
+        expired = [dict(row, published="2016-12-31") for row in expiry_records(900, 0)]
+        survivors = [{"cve": f"CVE-2017-{10000 + index}", "published": "2017-01-01"} for index in range(2)]
+        report = self.expiry_report(baseline, candidate, expired + survivors, survivors)
 
         self.assertTrue(report["safe_to_merge"])
         self.assertEqual(report["anomalies"], [])
@@ -242,7 +310,10 @@ class CatalogUpdateGuardTests(unittest.TestCase):
             },
         )
 
-        report = catalog_guard.build_report(baseline, candidate, sync_report())
+        before = [dict(row, published="2016-10-26") for row in expiry_records(10, 990)]
+        for row in before[10:]:
+            row["published"] = "2016-10-27"
+        report = self.expiry_report(baseline, candidate, before, before[10:])
         codes = {finding["code"] for finding in report["anomalies"]}
 
         self.assertFalse(report["safe_to_merge"])
@@ -274,6 +345,130 @@ class CatalogUpdateGuardTests(unittest.TestCase):
 
         self.assertFalse(report["safe_to_merge"])
         self.assertIn("publication-years-missing", codes)
+
+    def test_exact_expiry_requires_record_evidence(self) -> None:
+        baseline = manifest(years={"2016": {"total": 1120}})
+        candidate = manifest(
+            published_start="2016-07-18",
+            published_end="2026-07-18",
+            years={"2016": {"total": 970}},
+        )
+        report = catalog_guard.build_report(baseline, candidate, sync_report())
+        self.assertFalse(report["safe_to_merge"])
+        self.assertIn("rolling-window-unverified", {row["code"] for row in report["anomalies"]})
+
+    def test_expiry_does_not_hide_even_one_unexpected_loss_or_tampering(self) -> None:
+        before = expiry_records()
+        for loss in (0, 1, 200):
+            for tamper in (False, True):
+                with self.subTest(loss=loss, tamper=tamper):
+                    after = copy.deepcopy(before[150 + loss :])
+                    if tamper:
+                        after[0]["summary"] = "Tampered retained evidence"
+                    baseline = manifest(
+                        published_start="2016-10-25",
+                        published_end="2026-10-25",
+                        years={"2016": {"total": 1120}},
+                    )
+                    candidate = manifest(
+                        published_start="2016-10-26",
+                        published_end="2026-10-26",
+                        years={"2016": {"total": len(after)}},
+                    )
+                    report = self.expiry_report(baseline, candidate, before, after)
+                    self.assertEqual(report["safe_to_merge"], loss == 0 and not tamper)
+                    if loss or tamper:
+                        self.assertIn("rolling-window-unverified", {row["code"] for row in report["anomalies"]})
+
+    def test_equal_count_replacement_and_date_rewrite_are_quarantined(self) -> None:
+        before = expiry_records()
+        before[150]["kev"] = True
+        for mode in ("replacement", "date", "kev"):
+            with self.subTest(mode=mode):
+                after = copy.deepcopy(before[150:])
+                if mode == "replacement":
+                    after[0]["cve"] = "CVE-2016-999999"
+                elif mode == "date":
+                    after[0]["published"] = "2016-10-27"
+                else:
+                    after[0]["kev"] = False
+                baseline = manifest(
+                    published_start="2016-10-25",
+                    published_end="2026-10-25",
+                    years={"2016": {"total": 1120}},
+                )
+                candidate = manifest(
+                    published_start="2016-10-26",
+                    published_end="2026-10-26",
+                    years={"2016": {"total": 970}},
+                )
+                self.assertFalse(self.expiry_report(baseline, candidate, before, after)["safe_to_merge"])
+
+    def test_expiry_proof_rejects_corrupt_baseline_bytes(self) -> None:
+        baseline = manifest(
+            published_start="2016-10-25",
+            published_end="2026-10-25",
+            years={"2016": {"total": 1120}},
+        )
+        candidate = manifest(
+            published_start="2016-10-26",
+            published_end="2026-10-26",
+            years={"2016": {"total": 970}},
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            before = expiry_records()
+            write_catalog_evidence(root / "before", baseline, before)
+            write_catalog_evidence(root / "after", candidate, before[150:])
+            (root / "before/indexes/2016.json.gz").write_bytes(b"untrusted evidence")
+            report = catalog_guard.build_report(
+                baseline,
+                candidate,
+                sync_report(),
+                baseline_catalog=root / "before",
+                candidate_catalog=root / "after",
+            )
+            self.assertFalse(report["safe_to_merge"])
+
+    def test_cli_requires_and_uses_preserved_catalog_evidence(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            baseline = manifest(
+                published_start="2016-10-25",
+                published_end="2026-10-25",
+                years={"2016": {"total": 1120}},
+            )
+            candidate = manifest(
+                published_start="2016-10-26",
+                published_end="2026-10-26",
+                years={"2016": {"total": 970}},
+            )
+            before = expiry_records()
+            write_catalog_evidence(root / "before", baseline, before)
+            write_catalog_evidence(root / "after", candidate, before[150:])
+            (root / "sync.json").write_text(json.dumps(sync_report()), encoding="utf-8")
+            arguments = [
+                "--baseline",
+                str(root / "before/manifest.json"),
+                "--candidate",
+                str(root / "after/manifest.json"),
+                "--sync-report",
+                str(root / "sync.json"),
+                "--report",
+                str(root / "report.json"),
+                "--fail-on-anomaly",
+            ]
+            self.assertEqual(catalog_guard.main(arguments), 1)
+            self.assertEqual(
+                catalog_guard.main(
+                    arguments
+                    + [
+                        "--baseline-catalog",
+                        str(root / "before"),
+                    ]
+                ),
+                0,
+            )
 
     def test_enrichment_outage_alerts_without_blocking_source_catalog(self) -> None:
         report = catalog_guard.build_report(

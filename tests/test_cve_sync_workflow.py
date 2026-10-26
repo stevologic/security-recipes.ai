@@ -212,6 +212,9 @@ class CveSyncWorkflowTests(unittest.TestCase):
         self.assertIn("--run-report", sync_step)
         self.assertIn("cve-sync-report.json", sync_step)
         self.assertIn("scripts/check_cve_catalog_update.py", safety_step)
+        self.assertIn('--baseline-catalog "$RUNNER_TEMP/cve-baseline-catalog"', safety_step)
+        baseline_step = self.step("Preserve baseline catalog manifest")
+        self.assertIn('cp -a static/api/cve-catalog "$RUNNER_TEMP/cve-baseline-catalog"', baseline_step)
         self.assertIn("--fail-on-anomaly", safety_step)
         self.assertRegex(safety_step, r"(?m)^\s*continue-on-error:\s*true\s*$")
         self.assertLess(
