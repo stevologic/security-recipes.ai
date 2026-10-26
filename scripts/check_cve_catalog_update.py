@@ -8,7 +8,7 @@ import json
 import os
 import sys
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -51,6 +51,52 @@ def _timestamp(value: object) -> datetime | None:
     if parsed.tzinfo is None:
         parsed = parsed.replace(tzinfo=timezone.utc)
     return parsed.astimezone(timezone.utc)
+
+
+def _ten_year_cutoff(today: date) -> date:
+    try:
+        return today.replace(year=today.year - 10)
+    except ValueError:  # February 29.
+        return today.replace(year=today.year - 10, day=28)
+
+
+def _iso_date(value: object) -> date | None:
+    if not isinstance(value, str) or not value:
+        return None
+    try:
+        return date.fromisoformat(value[:10])
+    except ValueError:
+        return None
+
+
+def _publication_scope(manifest: dict[str, Any]) -> tuple[date, date] | None:
+    scope = manifest.get("scope")
+    if not isinstance(scope, dict):
+        return None
+    start = _iso_date(scope.get("published_start"))
+    end = _iso_date(scope.get("published_end"))
+    if start is None or end is None or start > end:
+        return None
+    return start, end
+
+
+def _rolling_ten_year_start(
+    baseline: dict[str, Any],
+    candidate: dict[str, Any],
+) -> tuple[date | None, str | None]:
+    """Return the candidate window start and trailing year when scope is exact."""
+
+    candidate_scope = _publication_scope(candidate)
+    if candidate_scope is None:
+        return None, None
+    candidate_start, candidate_end = candidate_scope
+    if candidate_start != _ten_year_cutoff(candidate_end):
+        return None, None
+    baseline_scope = _publication_scope(baseline)
+    trailing_year = None
+    if baseline_scope is not None and candidate_start > baseline_scope[0]:
+        trailing_year = str(candidate_start.year)
+    return candidate_start, trailing_year
 
 
 def _drop_is_suspicious(
@@ -130,7 +176,11 @@ def catalog_anomalies(
     candidate: dict[str, Any],
     sync_report: dict[str, Any],
 ) -> list[Finding]:
-    """Return conservative signals that require a person to inspect the refresh."""
+    """Return conservative signals that require a person to inspect the refresh.
+
+    Exact rolling ten-year window advances may age out a trailing publication
+    year or drop records from it; those are not quarantine signals.
+    """
 
     findings: list[Finding] = []
     before_totals = baseline.get("totals")
@@ -181,7 +231,14 @@ def catalog_anomalies(
 
     before_years = _year_totals(baseline)
     after_years = _year_totals(candidate)
-    missing_years = sorted(set(before_years) - set(after_years))
+    window_start, trailing_year = _rolling_ten_year_start(baseline, candidate)
+    missing_years = sorted(
+        year
+        for year in set(before_years) - set(after_years)
+        if window_start is None
+        or not year.isdigit()
+        or int(year) >= window_start.year
+    )
     if missing_years:
         findings.append(
             Finding(
@@ -190,6 +247,8 @@ def catalog_anomalies(
             )
         )
     for year in sorted(set(before_years) & set(after_years)):
+        if year == trailing_year:
+            continue
         before = before_years[year]
         after = after_years[year]
         if _drop_is_suspicious(before, after, relative=0.10, absolute=100):

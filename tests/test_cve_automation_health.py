@@ -17,9 +17,16 @@ def manifest(
     in_scope_kev: int = 1_000,
     kev_records: int = 1_600,
     updated_at: str = "2026-07-17T09:00:00Z",
+    published_start: str = "2016-07-17",
+    published_end: str = "2026-07-17",
+    years: dict[str, dict[str, int]] | None = None,
 ) -> dict[str, Any]:
     return {
         "catalog_updated_at": updated_at,
+        "scope": {
+            "published_start": published_start,
+            "published_end": published_end,
+        },
         "totals": {
             "catalog_records": records,
             "in_scope_kev": in_scope_kev,
@@ -27,7 +34,8 @@ def manifest(
             "markdown_drafts": 1_000,
             "markdown_pages": 1_010,
         },
-        "by_publication_year": {
+        "by_publication_year": years
+        or {
             "2025": {"total": 40_000},
             "2026": {"total": 35_000},
         },
@@ -134,6 +142,138 @@ class CatalogUpdateGuardTests(unittest.TestCase):
         self.assertIn("shards-drop", codes)
         self.assertIn("markdown-drafts-drop", codes)
         self.assertIn("generated-recipe-deletion-spike", codes)
+
+    def test_rolling_ten_year_trailing_year_attrition_is_mergeable(self) -> None:
+        baseline = manifest(
+            published_start="2016-10-25",
+            published_end="2026-10-25",
+            years={
+                "2016": {"total": 1_200},
+                "2025": {"total": 40_000},
+                "2026": {"total": 35_000},
+            },
+        )
+        candidate = manifest(
+            updated_at="2026-10-26T09:00:00Z",
+            published_start="2016-10-26",
+            published_end="2026-10-26",
+            years={
+                "2016": {"total": 1_000},
+                "2025": {"total": 40_000},
+                "2026": {"total": 35_200},
+            },
+        )
+
+        report = catalog_guard.build_report(baseline, candidate, sync_report())
+
+        self.assertTrue(report["safe_to_merge"])
+        self.assertEqual(report["anomalies"], [])
+
+    def test_aged_out_publication_year_is_not_missing(self) -> None:
+        baseline = manifest(
+            published_start="2016-12-31",
+            published_end="2026-12-31",
+            years={
+                "2016": {"total": 900},
+                "2017": {"total": 14_000},
+                "2026": {"total": 35_000},
+            },
+        )
+        candidate = manifest(
+            updated_at="2027-01-01T09:00:00Z",
+            published_start="2017-01-01",
+            published_end="2027-01-01",
+            years={
+                "2017": {"total": 14_000},
+                "2026": {"total": 35_000},
+                "2027": {"total": 100},
+            },
+        )
+
+        report = catalog_guard.build_report(baseline, candidate, sync_report())
+
+        self.assertTrue(report["safe_to_merge"])
+        self.assertEqual(report["anomalies"], [])
+
+    def test_trailing_year_drop_without_window_advance_is_quarantined(self) -> None:
+        baseline = manifest(
+            published_start="2016-10-25",
+            published_end="2026-10-25",
+            years={
+                "2016": {"total": 1_200},
+                "2025": {"total": 40_000},
+                "2026": {"total": 35_000},
+            },
+        )
+        candidate = manifest(
+            published_start="2016-10-25",
+            published_end="2026-10-25",
+            years={
+                "2016": {"total": 1_000},
+                "2025": {"total": 40_000},
+                "2026": {"total": 35_000},
+            },
+        )
+
+        report = catalog_guard.build_report(baseline, candidate, sync_report())
+        codes = {finding["code"] for finding in report["anomalies"]}
+
+        self.assertFalse(report["safe_to_merge"])
+        self.assertEqual(codes, {"publication-year-drop"})
+
+    def test_interior_publication_year_drop_is_quarantined(self) -> None:
+        baseline = manifest(
+            published_start="2016-10-26",
+            published_end="2026-10-26",
+            years={
+                "2016": {"total": 1_000},
+                "2025": {"total": 40_000},
+                "2026": {"total": 35_000},
+            },
+        )
+        candidate = manifest(
+            updated_at="2026-10-27T09:00:00Z",
+            published_start="2016-10-27",
+            published_end="2026-10-27",
+            years={
+                "2016": {"total": 990},
+                "2025": {"total": 35_000},
+                "2026": {"total": 35_000},
+            },
+        )
+
+        report = catalog_guard.build_report(baseline, candidate, sync_report())
+        codes = {finding["code"] for finding in report["anomalies"]}
+
+        self.assertFalse(report["safe_to_merge"])
+        self.assertEqual(codes, {"publication-year-drop"})
+        self.assertIn("Publication year 2025", report["anomalies"][0]["message"])
+
+    def test_non_ten_year_window_does_not_excuse_missing_years(self) -> None:
+        baseline = manifest(
+            published_start="2016-10-26",
+            published_end="2026-10-26",
+            years={
+                "2016": {"total": 1_000},
+                "2025": {"total": 40_000},
+                "2026": {"total": 35_000},
+            },
+        )
+        candidate = manifest(
+            updated_at="2026-10-26T09:00:00Z",
+            published_start="2018-10-26",
+            published_end="2026-10-26",
+            years={
+                "2025": {"total": 40_000},
+                "2026": {"total": 35_000},
+            },
+        )
+
+        report = catalog_guard.build_report(baseline, candidate, sync_report())
+        codes = {finding["code"] for finding in report["anomalies"]}
+
+        self.assertFalse(report["safe_to_merge"])
+        self.assertIn("publication-years-missing", codes)
 
     def test_enrichment_outage_alerts_without_blocking_source_catalog(self) -> None:
         report = catalog_guard.build_report(
