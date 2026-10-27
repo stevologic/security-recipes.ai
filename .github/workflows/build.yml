@@ -249,6 +249,8 @@ jobs:
             --network "${smoke_network}" \
             --publish 127.0.0.1::80 \
             --env "RECIPES_PUBLIC_SITE_BASE_URL=${SECURITY_RECIPES_BASE_URL}" \
+            --env "RECIPES_MCP_SOURCE_INDEX_URL=http://${site_name}/api/recipes-index.json" \
+            --env "RECIPES_MCP_ALLOWED_SOURCE_HOSTS=${site_name}" \
             "${MCP_IMAGE}")"
 
           mcp_health="starting"
