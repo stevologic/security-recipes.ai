@@ -1,0 +1,26 @@
+{
+  "name": "karen-qa-or-data-only",
+  "target": "branch",
+  "enforcement": "active",
+  "conditions": {
+    "ref_name": {
+      "include": ["refs/heads/main"],
+      "exclude": []
+    }
+  },
+  "rules": [
+    {
+      "type": "workflows",
+      "parameters": {
+        "do_not_enforce_on_create": false,
+        "workflows": [
+          {
+            "path": ".github/workflows/karen-qa-or-data-only.yml",
+            "ref": "refs/heads/main",
+            "repository_id": 1217516378
+          }
+        ]
+      }
+    }
+  ]
+}

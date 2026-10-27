@@ -1,0 +1,189 @@
+# Required-workflow stand-in for karen-qa on main.
+#
+# Merge-gate identity (do not apply from this workflow): require this
+# workflow file from refs/heads/main via a ruleset `workflows` rule.
+# That pin is an identity a PR cannot forge. A PR job with the same name
+# posted via github.token (GitHub Actions app 15368) cannot satisfy that
+# rule. Do not pin a required status check named
+# `karen-qa-or-data-only` to integration 15368; that name is spoofable.
+# See .github/rulesets/karen-qa-or-data-only.json.
+#
+# Auto-passes when the PR author and actor GitHub login/id are the CVE
+# catalog sync bot, the head is automation/cve-catalog-sync, every Files
+# API path is CVE catalog data, every commit is authored or pushed by
+# that bot's GitHub identity, and git tree modes are regular files.
+# Evidence packs, pipeline code, docs, and MCP servers still need
+# karen-qa. This workflow never checks out or runs pull-request code,
+# never emits the `karen-qa` context, and never posts a check run or
+# commit status. The job conclusion is the required-workflow result.
+# Changing this workflow or the ruleset definitions still requires
+# karen-qa; the gate cannot exempt itself.
+name: Karen QA or data-only
+
+on:
+  pull_request_target:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+  status:
+
+permissions: {}
+
+concurrency:
+  group: >-
+    karen-qa-or-data-only-${{
+      github.event.pull_request.number ||
+      github.event.sha
+    }}
+  cancel-in-progress: true
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+  KAREN_QA_USER_ID: "345474717"
+  KAREN_QA_USER_LOGIN: "karen-qa-stevologic[bot]"
+
+jobs:
+  karen-qa-or-data-only:
+    name: karen-qa-or-data-only
+    if: >-
+      (github.event_name == 'pull_request_target' &&
+      github.event.pull_request.base.ref == github.event.repository.default_branch) ||
+      (github.event_name == 'status' &&
+      github.event.context == 'karen-qa' &&
+      github.event.sender.id == 345474717)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      # Trusted default-branch sources only. Do not use github.sha here:
+      # status events set it to the triggering commit (the PR head).
+      # Never checkout pull_request.head.sha or run PR code.
+      - name: Checkout trusted default branch only
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+          fetch-depth: 1
+
+      - name: Evaluate data-only exemption or require karen-qa on the exact head
+        id: decide
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          GH_TOKEN: ${{ github.token }}
+          EVENT_PR_NUMBER: ${{ github.event.pull_request.number }}
+          EVENT_HEAD_SHA: ${{ github.event.sha }}
+          ACTOR_LOGIN: ${{ github.actor }}
+          ACTOR_ID: ${{ github.actor_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          DEFAULT_BRANCH="$(gh api "repos/${GITHUB_REPOSITORY}" --jq '.default_branch')"
+          PR_NUMBER="${EVENT_PR_NUMBER:-}"
+          HEAD_SHA=""
+
+          if [ "$EVENT_NAME" != "pull_request_target" ]; then
+            HEAD_SHA="${EVENT_HEAD_SHA:-}"
+            if [[ ! "$HEAD_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+              echo "::error::Event is missing a full commit SHA."
+              exit 1
+            fi
+            PR_NUMBER="$(HEAD_SHA="$HEAD_SHA" REPO="$GITHUB_REPOSITORY" BASE="$DEFAULT_BRANCH" gh api \
+              "repos/${GITHUB_REPOSITORY}/commits/${HEAD_SHA}/pulls" \
+              -H "Accept: application/vnd.github.groot-preview+json" \
+              --jq '[.[] | select(.state == "open" and .base.ref == env.BASE and .head.repo.full_name == env.REPO and .head.sha == env.HEAD_SHA)] | first | .number // empty')"
+            if [ -z "$PR_NUMBER" ]; then
+              echo "No open same-repository PR against ${DEFAULT_BRANCH} for ${HEAD_SHA}."
+              exit 0
+            fi
+          fi
+
+          if [[ ! "$PR_NUMBER" =~ ^[0-9]+$ ]]; then
+            echo "::error::Invalid pull request number."
+            exit 1
+          fi
+
+          # Read the head SHA, then the file list, then re-check that the head is unchanged.
+          gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" > "$RUNNER_TEMP/pr.json"
+          HEAD_SHA="$(jq -r '.head.sha' "$RUNNER_TEMP/pr.json")"
+          if [[ ! "$HEAD_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::Pull request is missing a full head SHA."
+            exit 1
+          fi
+          BASE_SHA="$(jq -r '.base.sha' "$RUNNER_TEMP/pr.json")"
+          if [[ ! "$BASE_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::Pull request is missing a full base SHA."
+            exit 1
+          fi
+
+          gh api --paginate "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/files" \
+            > "$RUNNER_TEMP/files.json"
+
+          gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" > "$RUNNER_TEMP/pr-after-files.json"
+          OBSERVED_HEAD="$(jq -r '.head.sha' "$RUNNER_TEMP/pr-after-files.json")"
+          if [ "$OBSERVED_HEAD" != "$HEAD_SHA" ]; then
+            echo "::error::Head SHA changed while reading the file list."
+            exit 1
+          fi
+
+          gh api --paginate "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/commits" \
+            > "$RUNNER_TEMP/commits.json"
+          gh api --paginate "repos/${GITHUB_REPOSITORY}/commits/${HEAD_SHA}/statuses" \
+            > "$RUNNER_TEMP/statuses.json"
+
+          HEAD_TREE_SHA="$(gh api "repos/${GITHUB_REPOSITORY}/git/commits/${HEAD_SHA}" --jq '.tree.sha')"
+          BASE_TREE_SHA="$(gh api "repos/${GITHUB_REPOSITORY}/git/commits/${BASE_SHA}" --jq '.tree.sha')"
+          gh api "repos/${GITHUB_REPOSITORY}/git/trees/${HEAD_TREE_SHA}?recursive=1" \
+            > "$RUNNER_TEMP/head-tree.json"
+          gh api "repos/${GITHUB_REPOSITORY}/git/trees/${BASE_TREE_SHA}?recursive=1" \
+            > "$RUNNER_TEMP/base-tree.json"
+
+          AUTHOR_LOGIN="$(jq -r '.user.login' "$RUNNER_TEMP/pr.json")"
+          AUTHOR_TYPE="$(jq -r '.user.type' "$RUNNER_TEMP/pr.json")"
+          AUTHOR_ID="$(jq -r '.user.id' "$RUNNER_TEMP/pr.json")"
+          ARGS=(
+            --author-login "$AUTHOR_LOGIN"
+            --author-type "$AUTHOR_TYPE"
+            --actor-login "${ACTOR_LOGIN}"
+            --event-name "$EVENT_NAME"
+            --head-branch "$(jq -r '.head.ref' "$RUNNER_TEMP/pr.json")"
+            --base-branch "$(jq -r '.base.ref' "$RUNNER_TEMP/pr.json")"
+            --repository "$GITHUB_REPOSITORY"
+            --head-repository "$(jq -r '.head.repo.full_name // ""' "$RUNNER_TEMP/pr.json")"
+            --head-sha "$HEAD_SHA"
+            --observed-head-sha "$OBSERVED_HEAD"
+            --changed-files "$(jq -r '.changed_files' "$RUNNER_TEMP/pr.json")"
+            --expected-base-branch "$DEFAULT_BRANCH"
+            --files-json "$RUNNER_TEMP/files.json"
+            --commits-json "$RUNNER_TEMP/commits.json"
+            --head-tree-json "$RUNNER_TEMP/head-tree.json"
+            --base-tree-json "$RUNNER_TEMP/base-tree.json"
+            --statuses-json "$RUNNER_TEMP/statuses.json"
+            --github-output "$GITHUB_OUTPUT"
+          )
+          if [[ "$AUTHOR_ID" =~ ^[0-9]+$ ]]; then
+            ARGS+=(--author-id "$AUTHOR_ID")
+          fi
+          if [[ "${ACTOR_ID}" =~ ^[0-9]+$ ]]; then
+            ARGS+=(--actor-id "${ACTOR_ID}")
+          fi
+
+          set +e
+          python3 scripts/karen_qa_or_data_only.py "${ARGS[@]}"
+          STATUS=$?
+          set -e
+
+          REASON=""
+          if [ -f "$GITHUB_OUTPUT" ]; then
+            REASON="$(grep -E '^reason=' "$GITHUB_OUTPUT" | sed 's/^reason=//' || true)"
+          fi
+          echo "${REASON:-evaluated karen-qa-or-data-only}"
+
+          if [ "$STATUS" -ne 0 ]; then
+            echo "::error::needs karen-qa on ${HEAD_SHA} from ${KAREN_QA_USER_LOGIN} (${KAREN_QA_USER_ID})"
+            exit 1
+          fi
