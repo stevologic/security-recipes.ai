@@ -245,6 +245,18 @@ class CveSyncWorkflowTests(unittest.TestCase):
             with self.subTest(module=module):
                 self.assertIn(module, unit_step)
 
+    def test_baseline_snapshot_preserves_start_year_index_dates(self) -> None:
+        preserve_step = self.step("Preserve baseline catalog manifest")
+
+        self.assertIn("write_baseline_snapshot", preserve_step)
+        self.assertIn("scripts.check_cve_catalog_update", preserve_step)
+        self.assertIn("static/api/cve-catalog", preserve_step)
+        self.assertIn("cve-baseline-manifest.json", preserve_step)
+        self.assertLess(
+            self.workflow.index("Preserve baseline catalog manifest"),
+            self.workflow.index("Synchronize and optionally enrich"),
+        )
+
     def test_sync_writes_structured_health_report_before_safety_gate(self) -> None:
         sync_step = self.step(
             "Synchronize and optionally enrich exact rolling ten-year catalog"
