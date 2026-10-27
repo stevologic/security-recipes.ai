@@ -152,6 +152,7 @@ class CveSyncWorkflowTests(unittest.TestCase):
         )
         self.assertIn("data/cve/ai-enrichments.json", restore_step)
         self.assertIn("data/cve/ai-generated-recipes.json", restore_step)
+        self.assertIn("data/cve/enrichment-carryover.json", restore_step)
         self.assertIn("GeneratedRecipeManager", restore_step)
         self.assertIn("manager.managed_existing_paths()", restore_step)
         self.assertIn(
@@ -199,6 +200,7 @@ class CveSyncWorkflowTests(unittest.TestCase):
             "static/api/cve-catalog",
             "data/cve/ai-enrichments.json",
             "data/cve/ai-generated-recipes.json",
+            "data/cve/enrichment-carryover.json",
             "content/recipes/cve",
             "data/evidence",
             "data/context/secure-context-release-pack.json",
@@ -237,6 +239,8 @@ class CveSyncWorkflowTests(unittest.TestCase):
         expected_modules = (
             "tests.test_cve_ai_enrichment",
             "tests.test_cve_ai_recipe",
+            "tests.test_cve_catalog_data_paths",
+            "tests.test_cve_catalog_delivery",
             "tests.test_sync_cve_catalog",
             "tests.test_cve_recipe_catalog",
             "tests.test_cve_sync_workflow",
@@ -311,6 +315,20 @@ class CveSyncWorkflowTests(unittest.TestCase):
         )
         self.assertIn("Main advanced during exact-SHA validation", delivery_step)
         self.assertIn("dispatch_and_wait_for_validation", delivery_step)
+        self.assertIn("scripts/cve_catalog_data_paths.py", delivery_step)
+        self.assertIn("scripts/cve_catalog_delivery.py", delivery_step)
+        self.assertIn("--pr-json-file", delivery_step)
+        self.assertIn("evaluate_catalog_diff", delivery_step)
+        self.assertIn("DATA_ONLY", delivery_step)
+        self.assertIn("report_protection_fallback", delivery_step)
+        self.assertIn("protection_fallback=true", delivery_step)
+        self.assertIn("automation:protection-fallback", delivery_step)
+        self.assertIn("Data-only catalog PR skips karen-qa and the GitHub App check.", delivery_step)
+        self.assertIn('--ref "$VALIDATION_REF"', delivery_step)
+        self.assertIn("reuse-in-run-validation", delivery_step)
+        self.assertIn("self-merge-gate", delivery_step)
+        self.assertIn("Never gate self-merge on github-actions[bot]", delivery_step)
+        self.assertNotIn("reuse-build-check", delivery_step)
         self.assertIn("pulls/${PR_NUMBER}/merge", delivery_step)
         self.assertIn('sha=$EXPECTED_SHA', delivery_step)
         self.assertIn("AUTO_MERGE_ENABLED", delivery_step)
@@ -356,10 +374,11 @@ class CveSyncWorkflowTests(unittest.TestCase):
         self.assertNotIn("retarget", delivery_step)
         self.assertNotIn("unpin", delivery_step)
         self.assertNotIn('context=karen-qa', delivery_step)
-        self.assertIn("Required status check", delivery_step)
+        self.assertIn("fail_closed_real_checks", delivery_step)
+        self.assertIn("merge-error", delivery_step)
         self.assertNotIn("gh api --retry", delivery_step)
         self.assertNotIn("--retry-delay", delivery_step)
-        self.assertEqual(delivery_step.count("dispatch_main_build_after_merge"), 4)
+        self.assertEqual(delivery_step.count("dispatch_main_build_after_merge"), 5)
         self.assertNotIn("--auto", delivery_step)
         self.assertNotIn("--admin", delivery_step)
         self.assertNotIn("git checkout", delivery_step)
@@ -376,6 +395,14 @@ class CveSyncWorkflowTests(unittest.TestCase):
             delivery_step.index("pulls/${PR_NUMBER}/merge"),
         )
         self.assertIn("steps.safety.outputs.safe_to_merge != 'true'", fail_step)
+        fallback_step = self.step("Explain catalog PR protection fallback")
+        self.assertIn(
+            "steps.catalog-delivery.outputs.protection_fallback == 'true'",
+            fallback_step,
+        )
+        self.assertIn("automation:protection-fallback", fallback_step)
+        self.assertIn("::notice::", fallback_step)
+        self.assertNotIn("::error::", fallback_step)
         waiting_step = self.step("Explain catalog PR is waiting on karen-qa")
         self.assertIn(
             "steps.catalog-delivery.outputs.waiting_on_karen_qa == 'true'",

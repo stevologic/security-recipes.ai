@@ -1645,6 +1645,85 @@ class CVEAIEnrichmentTests(unittest.TestCase):
         )
         self.assertNotIn("ai_enrichment", results[0])
         self.assertIn("ai_enrichment", results[1])
+        self.assertEqual(cache.unprocessed_cves, ["CVE-2026-3001"])
+        self.assertEqual(cache.carryover_reason, "time_budget")
+
+    def test_time_budget_leftovers_are_persisted_and_selected_first_next_run(self) -> None:
+        leftover = record("CVE-2026-4101", severity="medium")
+        newer = record("CVE-2026-4102", severity="critical", kev=True)
+        records = [leftover, newer]
+        with tempfile.TemporaryDirectory() as tmpdir:
+            carryover = Path(tmpdir) / "enrichment-carryover.json"
+            cache = enrichment.EnrichmentCache(Path(tmpdir) / "ai.json")
+            cache.select_candidates(records, limit=2)
+
+            class OneCallClient:
+                def __init__(self) -> None:
+                    self.calls: list[str] = []
+
+                def enrich(self, source: dict[str, object]) -> dict[str, object]:
+                    cve = str(source["cve"])
+                    self.calls.append(cve)
+                    retrieved = str(source["references"][0]["url"])
+                    return enrichment.build_enrichment_entry(
+                        source,
+                        model_output(source_urls=[retrieved]),
+                        model="gpt-test",
+                        retrieved_source_urls=[retrieved],
+                        generated_at=datetime(2026, 7, 14, tzinfo=timezone.utc),
+                    )
+
+            times = iter((0.0, 0.0, 2.0))
+            list(
+                cache.apply(
+                    records,
+                    client=OneCallClient(),
+                    max_seconds=1.0,
+                    clock=lambda: next(times),
+                )
+            )
+            self.assertEqual(cache.unprocessed_cves, ["CVE-2026-4101"])
+            self.assertTrue(
+                enrichment.write_enrichment_carryover(
+                    carryover,
+                    cache.unprocessed_cves,
+                    reason=cache.carryover_reason or "",
+                )
+            )
+            loaded = enrichment.load_enrichment_carryover(carryover)
+            self.assertEqual(loaded, ("CVE-2026-4101",))
+            follow = enrichment.EnrichmentCache(Path(tmpdir) / "next.json")
+            follow.select_candidates(records, limit=1, carryover_cve_ids=loaded)
+            self.assertEqual(list(follow.selected), ["CVE-2026-4101"])
+
+    def test_request_budget_defers_remaining_carryover_without_failing(self) -> None:
+        records = [record(f"CVE-2026-{number}") for number in range(4201, 4205)]
+        with tempfile.TemporaryDirectory() as tmpdir:
+            cache = enrichment.EnrichmentCache(Path(tmpdir) / "ai.json")
+            cache.select_candidates(
+                records,
+                limit=2,
+                carryover_cve_ids=("CVE-2026-4201", "CVE-2026-4202", "CVE-2026-4203"),
+            )
+            self.assertEqual(list(cache.selected), ["CVE-2026-4201", "CVE-2026-4202"])
+            self.assertEqual(cache.deferred_priority_cves, ["CVE-2026-4203"])
+            self.assertEqual(cache.carryover_reason, "request_budget")
+            leftovers = enrichment.canonical_priority_cve_ids(
+                (*cache.unprocessed_cves, *cache.deferred_priority_cves)
+            )
+            path = Path(tmpdir) / "enrichment-carryover.json"
+            enrichment.write_enrichment_carryover(path, leftovers, reason="request_budget")
+            self.assertEqual(enrichment.load_enrichment_carryover(path), ("CVE-2026-4203",))
+
+    def test_empty_carryover_clears_the_file_and_is_not_an_alert(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = Path(tmpdir) / "enrichment-carryover.json"
+            enrichment.write_enrichment_carryover(path, ("CVE-2026-4301",), reason="time_budget")
+            self.assertTrue(path.exists())
+            changed = enrichment.write_enrichment_carryover(path, (), reason="")
+            self.assertTrue(changed)
+            self.assertFalse(path.exists())
+            self.assertEqual(enrichment.load_enrichment_carryover(path), ())
 
 
 class CVEEnrichModelConfigTests(unittest.TestCase):

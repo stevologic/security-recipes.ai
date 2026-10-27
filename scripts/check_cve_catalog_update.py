@@ -557,10 +557,19 @@ def enrichment_health(sync_report: dict[str, Any]) -> dict[str, Any]:
     failed = int(metrics["failed"])
     unprocessed = max(0, selected - generated - failed)
     metrics["unprocessed"] = unprocessed
+    carryover_persisted = raw.get("carryover_persisted") is True
+    metrics["carryover_persisted"] = carryover_persisted
+    metrics["carryover_count"] = _integer(raw, "carryover_count") or 0
     if selected > 0 and generated == 0:
-        alerts.append(
-            f"Zero of {selected} selected enrichment candidates completed."
-        )
+        if carryover_persisted and failed == 0:
+            warnings.append(
+                f"Zero of {selected} selected enrichment candidates completed "
+                "before the request or time budget ended; leftovers were carried over."
+            )
+        else:
+            alerts.append(
+                f"Zero of {selected} selected enrichment candidates completed."
+            )
     if failed >= 3 or (selected > 0 and failed / selected >= 0.5):
         alerts.append(
             f"{failed} of {selected} selected enrichment requests failed; "
@@ -573,6 +582,11 @@ def enrichment_health(sync_report: dict[str, Any]) -> dict[str, Any]:
             alerts.append(
                 f"{unprocessed} selected enrichment candidates were skipped after "
                 "the provider became unavailable."
+            )
+        elif carryover_persisted:
+            warnings.append(
+                f"{unprocessed} selected enrichment candidates were carried over after "
+                "the request budget or time budget ended; they will run first next sync."
             )
         else:
             alerts.append(

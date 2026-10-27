@@ -160,7 +160,11 @@ which is also the code cap):
 
 A skipped catch-up or a catalog PR waiting on `karen-qa` emits a
 `::warning::` annotation plus a step-summary line. The workflow never
-self-posts `karen-qa`.
+self-posts `karen-qa`. A data-only catalog PR that branch protection
+still blocks is labeled `automation:protection-fallback` and the run
+exits successfully so the next sync can retry. Enrichment request or
+time-budget leftovers are written to `data/cve/enrichment-carryover.json`
+and selected first on the next run; that carry-over is not an alert.
 
 ## Merge policy
 
@@ -168,7 +172,33 @@ The `main` ruleset requires a PR, a passing `build` context from GitHub
 Actions, and a passing `karen-qa` context posted only by the Karen QA
 GitHub App after human review. Catalog validation never posts commit
 statuses and never emits `karen-qa`. Required merge checks come from real
-workflow runs. Catalog auto-merge waits for that app check on the exact
+workflow runs.
+
+A catalog PR written by the CVE sync bot that changes **only**
+allowlisted catalog data paths (`static/api/cve-catalog/`,
+`content/recipes/cve/`, `data/evidence/`, `data/cve/ai-enrichments.json`,
+`data/cve/ai-generated-recipes.json`, `data/cve/enrichment-carryover.json`,
+`data/context/secure-context-release-pack.json`,
+`data/policy/mcp-gateway-policy.json`, and
+`scripts/generated-output-ownership.json`) is data-only: it never needs
+`karen-qa` or the CVE automation GitHub App. Self-merge is never gated on
+the PR author (`github-actions[bot]` can be spoofed by any
+`GITHUB_TOKEN` workflow). The gate is all of: (a) the exact-SHA diff vs
+base touches only those allowlisted paths, with no rename out of or into
+a code path, symlink, or mode change; (b) a passing exact-SHA validation
+produced inside this sync run on that SHA; and (c) the head branch is
+`automation/cve-catalog-sync` and the head SHA matches what this run
+pushed. The required `build` check is attached by dispatching
+`cve-catalog-validate.yml` (job name `build`) on the catalog PR head when
+the App is absent so GitHub records a real workflow run on that SHA. It
+then merges with `match-head-commit`. If protection still blocks the
+merge, the run leaves the PR open, labeled, and summarized, and exits
+successfully; the next sync retries. A non-data-only diff (workflow,
+script, docs, MCP server, path traversal, symlink, mode change, or
+rename into a code path) fails closed and still requires `karen-qa` plus
+real checks.
+
+Catalog auto-merge waits for that app check on a non-data-only exact
 head; if it is missing, the sync leaves the catalog PR open and reports
 that it is waiting on `karen-qa` instead of failing the run with an
 opaque HTTP 405. The workflow never self-posts `karen-qa`.
