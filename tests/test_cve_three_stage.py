@@ -116,6 +116,7 @@ class ThreeStageTests(unittest.TestCase):
         open_step = next(s for s in source["jobs"]["sync"]["steps"] if s.get("id") == "catalog-pr")
         delivery = next(s for s in source["jobs"]["sync"]["steps"] if s.get("id") == "catalog-delivery")
         self.assertIn('CREATE_FLAGS+=(--draft)', open_step["run"])
+        self.assertIn('git push origin "HEAD:$BRANCH"\nelif git fetch', open_step["run"])
         self.assertIn("inputs.stage != 'enhancement'", delivery["env"]["AUTO_MERGE_ENABLED"])
         self.assertIn("not an automatic rebase", delivery["run"])
         self.assertFalse(enrichment_health({"stage": "source"})["healthy"])
