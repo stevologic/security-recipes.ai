@@ -985,6 +985,35 @@ class CveLandingRenderTests(unittest.TestCase):
         self.assertIn("model test-model", page)
         self.assertIn("generated 2026-07-17", page)
 
+    def test_withheld_draft_keeps_banner_when_enrichment_is_absent(self) -> None:
+        """Reproduce validation 40479848520 (b) for CVE-2026-20182.
+
+        The catalog-only SHA rewrote the shard without a joined complete
+        enrichment. Human-review-blocked drafts must still name the
+        non-authoritative evaluation so authority stays bounded-fallback.
+        """
+
+        recipe = generic_recipe("CVE-2026-20182")
+        source = recipe["source_record"]
+        assert isinstance(source, dict)
+        source.pop("ai_enrichment", None)
+        source["recipe_kind"] = "markdown-draft"
+        source["markdown"] = [
+            {
+                "cve": "CVE-2026-20182",
+                "maturity": "development",
+                "ai_enrichment_review_status": "human-reviewed-development-draft",
+            }
+        ]
+
+        with patch.object(mcp_server.cve_catalog, "is_search_indexable", return_value=True):
+            page = mcp_server._render_cve_landing_page(recipe)
+
+        self.assertIn('data-remediation-authority="bounded-fallback"', page)
+        self.assertNotIn('data-remediation-authority="complete-ai-enrichment"', page)
+        self.assertIn("Non-authoritative AI evaluation", page)
+        self.assertIn("development-stage human review explicitly withholds", page)
+
     def test_structured_affected_data_renders_ranges_and_status_transitions(self) -> None:
         recipe = sample_recipe("CVE-2026-14956")
         source = recipe["source_record"]

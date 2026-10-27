@@ -144,6 +144,12 @@ def is_catalog_data_path(path: str) -> bool:
     return any(path_matches_prefix(normalized, prefix) for prefix in CATALOG_DATA_PATH_PREFIXES)
 
 
+def is_karen_gated_generated_output(path: str) -> bool:
+    """True for generator outputs that must not self-merge with the catalog PR."""
+
+    return not is_catalog_data_path(path)
+
+
 def allowlisted_catalog_paths() -> tuple[str, ...]:
     prefixes = tuple(prefix.rstrip("/") + "/" for prefix in CATALOG_DATA_PATH_PREFIXES)
     recipes = (CATALOG_RECIPE_PREFIX.rstrip("/") + "/*" + CATALOG_RECIPE_SUFFIX,)

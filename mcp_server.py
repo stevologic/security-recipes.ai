@@ -15342,15 +15342,28 @@ def _cve_landing_non_authoritative_ai_html(
     source_record: dict[str, Any],
     enrichment: dict[str, Any],
 ) -> str:
+    blocked = _cve_landing_ai_human_review_blocked(source_record)
     if not enrichment:
-        return ""
+        if not blocked:
+            return ""
+        reason = (
+            "A development-stage human review explicitly withholds this source-linked "
+            "evaluation from remediation authority."
+        )
+        return (
+            '<aside class="cve-catalog__detail-message sr-cve-authority__evaluation">'
+            "<strong>Non-authoritative AI evaluation:</strong> "
+            f"{html.escape(reason)} "
+            "Use it only to inform triage; it cannot select or broaden the remediation "
+            "authority.</aside>"
+        )
     specificity = _cve_landing_text(enrichment.get("recipe_specificity"), 40).casefold()
     if specificity != "specific":
         reason = (
             "The source-linked evaluation completed, but it did not establish a "
             "product-specific remediation recipe."
         )
-    elif _cve_landing_ai_human_review_blocked(source_record):
+    elif blocked:
         reason = (
             "A development-stage human review explicitly withholds this source-linked "
             "evaluation from remediation authority."

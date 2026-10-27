@@ -236,9 +236,13 @@ class CveSyncWorkflowTests(unittest.TestCase):
         self.assertIn("needs karen-qa", generated_step)
         self.assertIn("never self-merged", generated_step)
         self.assertIn("No behaviour-changing generator outputs changed.", generated_step)
+        self.assertIn("continue-on-error: true", generated_step)
         self.assertNotIn("pulls/${PR_NUMBER}/merge", generated_step)
         self.assertNotIn("self-merge-gate", generated_step)
         self.assertIn("pulls/${PR_NUMBER}/merge", delivery_step)
+        note_step = self.step("Note generated-output review PR failure")
+        self.assertIn("steps.generated-output-pr.outcome == 'failure'", note_step)
+        self.assertIn("CVE catalog PR is unaffected", note_step)
 
     def test_recipe_derived_evidence_is_regenerated_before_validation_and_commit(self) -> None:
         generator_step = self.step("Refresh deterministic recipe-derived evidence")
@@ -353,8 +357,27 @@ class CveSyncWorkflowTests(unittest.TestCase):
         self.assertIn("automation:protection-fallback", delivery_step)
         self.assertIn("fallback-escalation", delivery_step)
         self.assertIn("2 consecutive runs or 24h", delivery_step)
+        self.assertIn("--labeled-at", delivery_step)
+        self.assertIn("issues/${PR_NUMBER}/events", delivery_step)
+        self.assertNotIn("--created-at", delivery_step)
         self.assertIn("merged_wrong_sha", delivery_step)
         self.assertEqual(delivery_step.count("head/merge SHA is not the expected SHA"), 3)
+        self.assertIn(
+            "Catalog PR already merged, but its head/merge SHA is not the expected SHA",
+            delivery_step,
+        )
+        self.assertIn(
+            "Catalog protection-fallback escalated after 2 consecutive runs or 24h",
+            delivery_step,
+        )
+        self.assertRegex(
+            delivery_step,
+            r"merged_wrong_sha[\s\S]{0,400}exit 1",
+        )
+        self.assertRegex(
+            delivery_step,
+            r"protection-fallback escalated[\s\S]{0,200}exit 1",
+        )
         self.assertIn("Data-only catalog PR skips karen-qa and the GitHub App check.", delivery_step)
         self.assertIn('--ref "$VALIDATION_REF"', delivery_step)
         self.assertIn("reuse-in-run-validation", delivery_step)

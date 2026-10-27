@@ -16,12 +16,19 @@ import json
 import os
 import subprocess
 import sys
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Any, Iterable
-
+from typing import Any, Iterable, Literal
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from scripts.cve_catalog_data_paths import (
+    evaluate_git_catalog_diff,
+    is_karen_gated_generated_output,
+)
+from scripts.cve_catalog_delivery import GENERATED_OUTPUT_BRANCH, KAREN_QA_REVIEW_LABEL
 GENERATOR_GLOB = "generate_*.py"
 ADDITIONAL_GENERATOR_SCRIPTS = ("validate_workflow_control_plane.py",)
 OWNERSHIP_MANIFEST = Path("scripts/generated-output-ownership.json")
@@ -524,7 +531,120 @@ def _run_tiers(
     return failures
 
 
-def run_checks(repo_root: Path = REPO_ROOT) -> int:
+CheckScope = Literal["all", "cve-owned", "auto"]
+KAREN_GATED_REVIEW_HINT = (
+    f"{GENERATED_OUTPUT_BRANCH} labeled {KAREN_QA_REVIEW_LABEL}"
+)
+
+
+@dataclass(frozen=True)
+class FreshnessDecision:
+    failed: bool
+    scope: str
+    blocking: tuple[str, ...]
+    pending: tuple[str, ...]
+    message: str
+
+    def to_json(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+def generator_is_karen_gated(generator: Generator) -> bool:
+    return is_karen_gated_generated_output(generator.output.as_posix())
+
+
+def should_scope_freshness_to_cve_owned(repo_root: Path = REPO_ROOT) -> bool:
+    """Scope catalog-only validation to CVE-owned generators.
+
+    Full freshness stays enforced on main and on non-catalog PRs. Catalog-only
+    validation (CVE_CATALOG_VALIDATION=true plus a data-only exact-SHA diff)
+    reports Karen-gated stale outputs as pending review instead of failing.
+    """
+
+    flag = os.environ.get("CVE_CATALOG_VALIDATION", "").strip().lower()
+    if flag not in {"1", "true", "yes"}:
+        return False
+    base = os.environ.get("CVE_CATALOG_VALIDATION_BASE", "").strip()
+    if not base:
+        return True
+    try:
+        head = subprocess.check_output(
+            ["git", "-C", str(repo_root), "rev-parse", "HEAD"],
+            text=True,
+        ).strip()
+        decision = evaluate_git_catalog_diff(
+            expected_sha=head,
+            actual_sha=head,
+            base=base,
+            head="HEAD",
+        )
+    except (OSError, ValueError, subprocess.CalledProcessError):
+        return False
+    return decision.data_only
+
+
+def resolve_check_scope(scope: str, repo_root: Path = REPO_ROOT) -> str:
+    if scope == "auto":
+        return "cve-owned" if should_scope_freshness_to_cve_owned(repo_root) else "all"
+    if scope in {"all", "cve-owned"}:
+        return scope
+    raise PipelineError(f"unsupported generator check scope: {scope}")
+
+
+def classify_check_failures(
+    generators: list[Generator],
+    failures: list[tuple[str, int]],
+    *,
+    scope: str,
+) -> FreshnessDecision:
+    """Split --check failures into blocking CVE-owned vs pending Karen-gated."""
+
+    resolved = resolve_check_scope(scope)
+    by_name = {generator.name: generator for generator in generators}
+    blocking: list[str] = []
+    pending: list[str] = []
+    for name, _returncode in failures:
+        generator = by_name.get(name)
+        if (
+            resolved == "cve-owned"
+            and generator is not None
+            and generator_is_karen_gated(generator)
+        ):
+            pending.append(name)
+            continue
+        blocking.append(name)
+    if blocking:
+        return FreshnessDecision(
+            failed=True,
+            scope=resolved,
+            blocking=tuple(blocking),
+            pending=tuple(pending),
+            message=(
+                "deterministic generators failed --check: "
+                + ", ".join(blocking)
+            ),
+        )
+    if pending:
+        return FreshnessDecision(
+            failed=False,
+            scope=resolved,
+            blocking=(),
+            pending=tuple(pending),
+            message=(
+                "Karen-gated generator outputs are stale and pending review on "
+                f"{KAREN_GATED_REVIEW_HINT}: {', '.join(pending)}"
+            ),
+        )
+    return FreshnessDecision(
+        failed=False,
+        scope=resolved,
+        blocking=(),
+        pending=(),
+        message=f"all {len(generators)}/{len(generators)} generated artifacts are fresh",
+    )
+
+
+def run_checks(repo_root: Path = REPO_ROOT, *, scope: str = "all") -> int:
     generators = discover_generators(repo_root)
     owned_count = validate_ownership(generators, repo_root)
     print(f"validated exact ownership for {owned_count} generated artifacts", flush=True)
@@ -538,11 +658,17 @@ def run_checks(repo_root: Path = REPO_ROOT) -> int:
     print(f"validated {claim_count} distinct MCP tool claims against mcp_server.py", flush=True)
     tiers = topological_tiers(dependency_graph(generators, repo_root))
     failures = _run_tiers(generators, tiers, check=True, repo_root=repo_root)
-    if failures:
-        for name, returncode in failures:
-            print(f"- {name}: exit {returncode}", file=sys.stderr)
+    decision = classify_check_failures(generators, failures, scope=scope)
+    if decision.pending:
+        print(decision.message, flush=True)
+        for name in decision.pending:
+            print(f"- pending {name} (Karen-gated; {KAREN_GATED_REVIEW_HINT})", flush=True)
+    if decision.failed:
+        for name in decision.blocking:
+            print(f"- {name}: exit 1", file=sys.stderr)
         return 1
-    print(f"all {len(generators)}/{len(generators)} generated artifacts are fresh", flush=True)
+    if not decision.pending:
+        print(decision.message, flush=True)
     return 0
 
 
@@ -605,6 +731,12 @@ def parse_args() -> argparse.Namespace:
     mode.add_argument("--write", action="store_true", help="Regenerate in dependency order, then verify freshness.")
     mode.add_argument("--graph", action="store_true", help="Print the dependency tiers without running generators.")
     parser.add_argument("--repo-root", type=Path, default=REPO_ROOT)
+    parser.add_argument(
+        "--scope",
+        choices=("all", "cve-owned", "auto"),
+        default="all",
+        help="all: fail on any stale generator. cve-owned: Karen-gated stale outputs are pending. auto: cve-owned during catalog-only validation.",
+    )
     return parser.parse_args()
 
 
@@ -613,7 +745,7 @@ def main() -> int:
     repo_root = args.repo_root.resolve()
     try:
         if args.check:
-            return run_checks(repo_root)
+            return run_checks(repo_root, scope=args.scope)
         if args.write:
             return regenerate(repo_root)
         generators = discover_generators(repo_root)
