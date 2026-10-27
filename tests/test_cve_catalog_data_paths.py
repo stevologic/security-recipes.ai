@@ -80,6 +80,24 @@ class CveCatalogDataPathTests(unittest.TestCase):
         self.assertFalse(is_catalog_data_path("content/recipes/cve/notes.txt"))
         self.assertTrue(is_catalog_data_path("content/recipes/cve/ok.md"))
 
+    def test_recipe_uppercase_md_suffix_fails_closed(self) -> None:
+        self.assertFalse(is_catalog_data_path("content/recipes/cve/evil.MD"))
+        decision = decide(DiffPath("A", "content/recipes/cve/evil.MD"))
+        self.assertFalse(decision.data_only)
+        self.assertEqual(decision.rejected_paths, ("content/recipes/cve/evil.MD",))
+
+    def test_added_executable_mode_fails_closed(self) -> None:
+        decision = decide(
+            DiffPath(
+                "A",
+                "static/api/cve-catalog/manifest.json",
+                src_mode="000000",
+                dst_mode="100755",
+            )
+        )
+        self.assertFalse(decision.data_only)
+        self.assertTrue(any("mode-change" in item for item in decision.unsafe_paths))
+
     def test_prefix_matching_requires_directory_boundary(self) -> None:
         self.assertFalse(path_matches_prefix("static/api/cve-catalog-evil/x", "static/api/cve-catalog"))
         self.assertFalse(path_matches_prefix("static/api/cve-catalog-evil/x", "static/api/cve-catalog/"))

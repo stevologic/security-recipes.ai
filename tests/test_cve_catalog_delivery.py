@@ -368,7 +368,7 @@ class CveCatalogDeliveryTests(unittest.TestCase):
         now = datetime(2026, 10, 27, 8, 0, tzinfo=timezone.utc)
         first = classify_protection_fallback(
             already_labeled=False,
-            created_at="2026-10-27T07:00:00Z",
+            labeled_at="",
             now=now,
         )
         self.assertFalse(first.escalate)
@@ -376,7 +376,7 @@ class CveCatalogDeliveryTests(unittest.TestCase):
         self.assertFalse(is_alert_action(first.action))
         second = classify_protection_fallback(
             already_labeled=True,
-            created_at="2026-10-27T07:00:00Z",
+            labeled_at="2026-10-27T07:00:00Z",
             now=now,
         )
         self.assertTrue(second.escalate)
@@ -384,17 +384,27 @@ class CveCatalogDeliveryTests(unittest.TestCase):
         self.assertTrue(is_alert_action(second.action))
         self.assertIn("2 consecutive", second.message)
 
-    def test_fallback_escalates_when_pr_is_older_than_24h(self) -> None:
+    def test_fallback_escalates_when_label_is_older_than_24h(self) -> None:
         now = datetime(2026, 10, 28, 8, 30, tzinfo=timezone.utc)
         decision = classify_protection_fallback(
             already_labeled=False,
-            created_at=(now - timedelta(hours=24, minutes=1)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            labeled_at=(now - timedelta(hours=24, minutes=1)).strftime("%Y-%m-%dT%H:%M:%SZ"),
             now=now,
         )
         self.assertTrue(decision.escalate)
         self.assertEqual(decision.action, "fail_fallback_escalated")
         self.assertTrue(is_alert_action(decision.action))
-        self.assertIn("older than 24h", decision.message)
+        self.assertIn("label is older than 24h", decision.message)
+
+    def test_fallback_does_not_use_pr_created_at_for_24h(self) -> None:
+        now = datetime(2026, 10, 28, 8, 30, tzinfo=timezone.utc)
+        first_on_old_pr = classify_protection_fallback(
+            already_labeled=False,
+            labeled_at="",
+            now=now,
+        )
+        self.assertFalse(first_on_old_pr.escalate)
+        self.assertEqual(first_on_old_pr.age_hours, 0.0)
 
     def test_workflow_wires_fallback_label_concurrency_and_build_dispatch_on_pr_head(
         self,
@@ -417,6 +427,19 @@ class CveCatalogDeliveryTests(unittest.TestCase):
         self.assertIn("data/cve/enrichment-carryover.json", workflow)
         self.assertIn(GENERATED_OUTPUT_BRANCH, workflow)
         self.assertIn(KAREN_QA_REVIEW_LABEL, workflow)
+        self.assertIn("continue-on-error: true", workflow)
+        self.assertIn("--labeled-at", workflow)
+        self.assertIn("issues/${PR_NUMBER}/events", workflow)
+        self.assertNotIn("--created-at", workflow)
+        self.assertIn("CVE catalog PR is unaffected", workflow)
+        self.assertIn('if [ "$PR_STATE" = "merged_wrong_sha" ]; then', workflow)
+        self.assertIn("protection-fallback escalated after 2 consecutive runs or 24h", workflow)
+        self.assertIn("exit 1", workflow)
+        validate = (ROOT / ".github" / "workflows" / "cve-catalog-validate.yml").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("CVE_CATALOG_VALIDATION: \"true\"", validate)
+        self.assertIn("CVE_CATALOG_VALIDATION_BASE:", validate)
         automation = AUTOMATION.read_text(encoding="utf-8")
         self.assertIn("data-only", automation)
         self.assertIn("enrichment-carryover.json", automation)
@@ -426,6 +449,8 @@ class CveCatalogDeliveryTests(unittest.TestCase):
         self.assertIn("content/recipes/cve/*.md", automation)
         self.assertIn(GENERATED_OUTPUT_BRANCH, automation)
         self.assertIn(KAREN_QA_REVIEW_LABEL, automation)
+        self.assertIn("fallback label is applied", automation)
+        self.assertIn("scopes generator", automation)
 
 
 if __name__ == "__main__":

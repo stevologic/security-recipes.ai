@@ -163,8 +163,10 @@ A skipped catch-up or a catalog PR waiting on `karen-qa` emits a
 self-posts `karen-qa`. A data-only catalog PR that branch protection
 still blocks is labeled `automation:protection-fallback` and the run
 exits successfully so the next sync can retry, unless the same PR has
-been in protection-fallback on 2 consecutive runs or is older than 24h,
-in which case the run fails as a real alert. Enrichment request or
+been in protection-fallback on 2 consecutive runs or whose fallback
+label is older than 24h, in which case the run fails as a real alert.
+The 24h clock starts when the fallback label is applied, not when the
+PR was opened. Enrichment request or
 time-budget leftovers (unprocessed candidates only) are written to
 `data/cve/enrichment-carryover.json` and selected first on the next run;
 that carry-over is not an alert. CVEs that fail enrichment are dropped
@@ -193,7 +195,13 @@ MCP/gateway behaviour (`data/policy/mcp-gateway-policy.json`,
 **not** allowlisted. The sync stages those files onto a separate branch
 (`automation/cve-generated-outputs`) and opens a review PR labeled
 `needs karen-qa` that is never self-merged. If they did not change, no
-review PR is opened.
+review PR is opened. A failure opening that review PR does not fail
+the catalog PR. Catalog-only exact-SHA validation scopes generator
+freshness to CVE-owned outputs and reports Karen-gated evidence,
+policy, context, and ownership packs as pending on
+`automation/cve-generated-outputs` instead of failing. Main and
+non-catalog PRs still require every deterministic generator to pass
+`--check`.
 
 Self-merge is never gated on the PR author (`github-actions[bot]` can be
 spoofed by any `GITHUB_TOKEN` workflow). The gate is all of: (a) the
@@ -208,8 +216,8 @@ when the App is absent only attaches a real GitHub Actions check-run on
 that SHA. It then merges with `match-head-commit`. If protection still
 blocks the merge, the run leaves the PR open, labeled, and summarized,
 and exits successfully; the next sync retries. If the same catalog PR
-has been in protection-fallback on 2 consecutive runs or is older than
-24h, the run fails as a real alert. An already-merged catalog PR is
+has been in protection-fallback on 2 consecutive runs or whose fallback
+label is older than 24h, the run fails as a real alert. An already-merged catalog PR is
 idempotent only when its head or merge SHA equals the expected SHA;
 otherwise the run fails closed. A non-data-only diff (workflow, script,
 docs, MCP server, non-`*.md` recipe, path traversal, symlink, mode

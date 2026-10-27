@@ -268,10 +268,14 @@ class FallbackDecision:
 def classify_protection_fallback(
     *,
     already_labeled: bool,
-    created_at: str,
+    labeled_at: str = "",
     now: datetime | None = None,
 ) -> FallbackDecision:
-    """Escalate after 2 consecutive fallback runs or when the PR is older than 24h."""
+    """Escalate after 2 consecutive fallback runs or when the fallback label is older than 24h.
+
+    Age is measured from the fallback label, never from the PR's created_at.
+    A first fallback on a long-lived catalog PR is not an alert.
+    """
 
     clock = now or datetime.now(timezone.utc)
     if clock.tzinfo is None:
@@ -279,19 +283,19 @@ def classify_protection_fallback(
     else:
         clock = clock.astimezone(timezone.utc)
     consecutive = FALLBACK_CONSECUTIVE_RUNS if already_labeled else 1
-    created = parse_github_datetime(created_at)
-    if created is None:
+    labeled = parse_github_datetime(labeled_at)
+    if already_labeled and labeled is None:
         return FallbackDecision(
             escalate=True,
             action="fail_fallback_escalated",
             message=(
-                "Catalog protection-fallback PR has an invalid created_at "
-                "timestamp; failing closed as a real alert."
+                "Catalog protection-fallback label is present but has an invalid "
+                "labeled_at timestamp; failing closed as a real alert."
             ),
             consecutive_runs=consecutive,
             age_hours=0.0,
         )
-    age = clock - created
+    age = (clock - labeled) if labeled is not None else timedelta(0)
     age_hours = max(0.0, age.total_seconds() / 3600)
     if consecutive >= FALLBACK_CONSECUTIVE_RUNS:
         return FallbackDecision(
@@ -304,12 +308,12 @@ def classify_protection_fallback(
             consecutive_runs=consecutive,
             age_hours=age_hours,
         )
-    if age >= FALLBACK_MAX_AGE:
+    if labeled is not None and age >= FALLBACK_MAX_AGE:
         return FallbackDecision(
             escalate=True,
             action="fail_fallback_escalated",
             message=(
-                "Catalog PR is older than 24h and still in protection-fallback; "
+                "Catalog protection-fallback label is older than 24h; "
                 "escalating to a real alert."
             ),
             consecutive_runs=consecutive,
@@ -386,7 +390,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
     fallback = sub.add_parser("fallback-escalation")
     fallback.add_argument("--already-labeled", required=True, choices=("true", "false"))
-    fallback.add_argument("--created-at", required=True)
+    fallback.add_argument("--labeled-at", default="")
     fallback.add_argument("--now", default="")
 
     return parser.parse_args(argv)
@@ -474,7 +478,7 @@ def main(argv: list[str] | None = None) -> int:
         clock = parse_github_datetime(args.now) if args.now else None
         decision = classify_protection_fallback(
             already_labeled=_flag(args.already_labeled),
-            created_at=args.created_at,
+            labeled_at=args.labeled_at,
             now=clock,
         )
         print(json.dumps(decision.to_json(), indent=2, sort_keys=True))

@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import importlib.util
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -175,7 +176,15 @@ class GeneratorPipelineTests(unittest.TestCase):
 
     def test_all_generated_artifacts_are_fresh(self) -> None:
         result = subprocess.run(
-            [sys.executable, str(PIPELINE_PATH), "--check", "--repo-root", str(REPO_ROOT)],
+            [
+                sys.executable,
+                str(PIPELINE_PATH),
+                "--check",
+                "--scope",
+                "auto",
+                "--repo-root",
+                str(REPO_ROOT),
+            ],
             cwd=REPO_ROOT,
             check=False,
             stdout=subprocess.PIPE,
@@ -187,6 +196,59 @@ class GeneratorPipelineTests(unittest.TestCase):
             result.returncode,
             f"all 57 deterministic generators must pass --check\n{result.stdout}",
         )
+
+    def test_catalog_only_stale_karen_gated_outputs_are_pending_not_failing(self) -> None:
+        """Reproduce sync validation 40479848520 on catalog PR #434 head e43e7b45.
+
+        The unscoped freshness check failed `0 != 1` because three Karen-gated
+        evidence packs were stale after the catalog-only split. Scoped
+        catalog-only validation must report them as pending on #441, not fail.
+        """
+
+        generators = PIPELINE.discover_generators(REPO_ROOT)
+        stale = (
+            "context_egress_boundary_pack",
+            "context_poisoning_guard_pack",
+            "secure_context_trust_pack",
+        )
+        failures = [(name, 1) for name in stale]
+        unscoped = PIPELINE.classify_check_failures(generators, failures, scope="all")
+        self.assertTrue(unscoped.failed)
+        self.assertEqual(unscoped.blocking, stale)
+        self.assertIn("failed --check", unscoped.message)
+
+        scoped = PIPELINE.classify_check_failures(generators, failures, scope="cve-owned")
+        self.assertFalse(scoped.failed)
+        self.assertEqual(scoped.blocking, ())
+        self.assertEqual(scoped.pending, stale)
+        self.assertIn("automation/cve-generated-outputs", scoped.message)
+        self.assertIn("needs karen-qa", scoped.message)
+        for name in stale:
+            self.assertTrue(PIPELINE.generator_is_karen_gated(next(g for g in generators if g.name == name)))
+
+    def test_full_freshness_still_blocks_on_main_when_evidence_is_stale(self) -> None:
+        generators = PIPELINE.discover_generators(REPO_ROOT)
+        decision = PIPELINE.classify_check_failures(
+            generators,
+            [("secure_context_trust_pack", 1)],
+            scope="all",
+        )
+        self.assertTrue(decision.failed)
+        self.assertEqual(decision.blocking, ("secure_context_trust_pack",))
+
+    def test_auto_scope_uses_catalog_validation_env(self) -> None:
+        self.assertEqual(PIPELINE.resolve_check_scope("all"), "all")
+        self.assertEqual(PIPELINE.resolve_check_scope("cve-owned"), "cve-owned")
+        previous = os.environ.pop("CVE_CATALOG_VALIDATION", None)
+        try:
+            self.assertEqual(PIPELINE.resolve_check_scope("auto"), "all")
+            os.environ["CVE_CATALOG_VALIDATION"] = "true"
+            self.assertEqual(PIPELINE.resolve_check_scope("auto"), "cve-owned")
+        finally:
+            if previous is None:
+                os.environ.pop("CVE_CATALOG_VALIDATION", None)
+            else:
+                os.environ["CVE_CATALOG_VALIDATION"] = previous
 
 
 if __name__ == "__main__":
