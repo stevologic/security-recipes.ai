@@ -110,6 +110,9 @@ class ThreeStageTests(unittest.TestCase):
         self.assertIn("inputs.stage != 'enhancement'", stage["env"]["NVD_API_KEY"])
         self.assertIn("scripts/enhance_cve_catalog.py", stage["run"])
         self.assertNotIn("workflow_run", ai["on"])
+        enqueue = ai["jobs"]["enqueue"]["steps"][0]
+        self.assertEqual(enqueue["env"]["ENRICHMENT_LIMIT"], "${{ vars.XAI_ENRICHMENT_LIMIT || '20' }}")
+        self.assertIn('--field "ai_enrichment_limit=$ENRICHMENT_LIMIT"', enqueue["run"])
         open_step = next(s for s in source["jobs"]["sync"]["steps"] if s.get("id") == "catalog-pr")
         delivery = next(s for s in source["jobs"]["sync"]["steps"] if s.get("id") == "catalog-delivery")
         self.assertIn('CREATE_FLAGS+=(--draft)', open_step["run"])
