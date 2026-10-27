@@ -2,9 +2,10 @@
 """Decide whether a PR may skip karen-qa as CVE catalog data only.
 
 Stephen's Oct 21, 2026 1:08 PM MST ruling: only CVE catalog content skips
-Karen. Pipeline code, docs, and MCP servers still need karen-qa. The
-exemption requires the catalog sync bot, the sync branch, a complete
-Files API list, regular-file tree modes, and bot-only commits.
+Karen. Pipeline code, docs, MCP servers, and evidence packs still need
+karen-qa. The exemption requires the catalog sync bot (GitHub login/id,
+not a free-text git author name), the sync branch, a complete Files API
+list, regular-file tree modes, and bot-only commits.
 """
 
 from __future__ import annotations
@@ -22,31 +23,40 @@ REQUIRED_CHECK_NAME = "karen-qa-or-data-only"
 KAREN_QA_CONTEXT = "karen-qa"
 CVE_CATALOG_SYNC_BRANCH = "automation/cve-catalog-sync"
 CVE_CATALOG_SYNC_WORKFLOW = Path(".github/workflows/cve-catalog-sync.yml")
+KAREN_QA_OR_DATA_ONLY_WORKFLOW = Path(".github/workflows/karen-qa-or-data-only.yml")
+MAIN_GATE_RULESET = Path(".github/rulesets/karen-qa-or-data-only.json")
+SYNC_BRANCH_RULESET = Path(".github/rulesets/automation-cve-catalog-sync.json")
 DEFAULT_BASE_BRANCH = "main"
 HEAD_SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 FILES_API_CAP = 3000
 REGULAR_FILE_MODE = "100644"
+REPOSITORY_ID = 1217516378
 
-# Karen QA GitHub App. The main ruleset already pins karen-qa to this
-# integration. Statuses and check runs from any other app or user do not count.
-KAREN_QA_APP_ID = 5400051
-# GitHub Actions app. Documented so the ruleset can pin karen-qa-or-data-only
-# to this integration id (a plain commit status cannot satisfy that pin).
+# Real karen-qa results are commit statuses from this bot. App 5400051 is
+# not a trusted source and has never posted a karen-qa check run.
+KAREN_QA_USER_LOGIN = "karen-qa-stevologic[bot]"
+KAREN_QA_USER_ID = 345474717
+KAREN_QA_USER_IDS: frozenset[int] = frozenset({KAREN_QA_USER_ID})
+
+# GitHub Actions app. Used only as the sync-branch ruleset bypass actor
+# (who may push automation/cve-catalog-sync). It is not a merge-gate pin:
+# a PR job can also post checks as this app.
 GITHUB_ACTIONS_APP_ID = 15368
-KAREN_QA_USER_IDS: frozenset[int] = frozenset()
+GITHUB_ACTIONS_BOT_LOGIN = "github-actions[bot]"
+GITHUB_ACTIONS_BOT_ID = 41898282
+CVE_BOT_LOGIN = "security-recipes-cve-bot[bot]"
 
 BOT_GIT_NAME = "security-recipes-cve-bot"
 BOT_GIT_EMAIL = "security-recipes-cve-bot@users.noreply.github.com"
-BOT_PR_LOGINS = frozenset(
-    {
-        "github-actions[bot]",
-        "security-recipes-cve-bot[bot]",
-    }
-)
+BOT_LOGIN_IDS: dict[str, int] = {
+    GITHUB_ACTIONS_BOT_LOGIN: GITHUB_ACTIONS_BOT_ID,
+}
+BOT_PR_LOGINS = frozenset({GITHUB_ACTIONS_BOT_LOGIN, CVE_BOT_LOGIN})
+BOT_USER_IDS = frozenset(BOT_LOGIN_IDS.values())
 
-# Paths the sync workflow `git add`s after writing outputs. Policy and
-# ownership are committed by the sync but are not catalog data and stay
-# outside the exemption.
+# Paths the sync workflow `git add`s after writing outputs. Policy,
+# ownership, and evidence packs are committed by the sync but are not
+# CVE catalog content and stay outside the exemption.
 CATALOG_SYNC_COMMIT_PATHS = (
     "static/api/cve-catalog",
     "data/cve/ai-enrichments.json",
@@ -67,14 +77,15 @@ CATALOG_DATA_FILES = (
 CATALOG_DATA_DIRECTORIES: tuple[tuple[str, frozenset[str]], ...] = (
     ("static/api/cve-catalog", frozenset({".json", ".gz"})),
     ("content/recipes/cve", frozenset({".md"})),
-    ("data/evidence", frozenset({".json"})),
 )
 
 EXEMPT_PATHS = CATALOG_DATA_FILES + tuple(directory for directory, _exts in CATALOG_DATA_DIRECTORIES)
 
-# Changing the gate or its ruleset docs cannot satisfy the gate.
+# Changing the gate or its ruleset definitions cannot satisfy the gate.
 GATE_PATHS = (
     ".github/workflows/karen-qa-or-data-only.yml",
+    ".github/rulesets/karen-qa-or-data-only.json",
+    ".github/rulesets/automation-cve-catalog-sync.json",
     "scripts/karen_qa_or_data_only.py",
     "tests/test_karen_qa_or_data_only.py",
     "tests/test_karen_qa_or_data_only_workflow.py",
@@ -84,6 +95,7 @@ _GIT_ADD_PATHS_RE = re.compile(r"git add -A -- \\\n(?P<body>(?:[ \t]+\S+[ \t]*\\
 _SYNC_BRANCH_RE = re.compile(r"(?m)^[ \t]+BRANCH:[ \t]+(\S+)[ \t]*$")
 _SYNC_GIT_USER_RE = re.compile(r'git config user\.name "([^"]+)"')
 _SYNC_GIT_EMAIL_RE = re.compile(r'git config user\.email "([^"]+)"')
+_PR_EVENTS = frozenset({"pull_request", "pull_request_target"})
 
 
 @dataclass(frozen=True)
@@ -202,13 +214,86 @@ def bot_logins(extra_bot_logins: Iterable[str] = ()) -> frozenset[str]:
     return frozenset(allowed)
 
 
+def bot_ids(extra_bot_ids: Iterable[int] = ()) -> frozenset[int]:
+    allowed = set(BOT_USER_IDS)
+    for user_id in extra_bot_ids:
+        parsed = _int_id(user_id)
+        if parsed is not None:
+            allowed.add(parsed)
+    return frozenset(allowed)
+
+
+def is_trusted_bot_identity(
+    *,
+    login: str = "",
+    user_id: int | None = None,
+    user_type: str = "",
+    extra_bot_logins: Iterable[str] = (),
+    extra_bot_ids: Iterable[int] = (),
+) -> bool:
+    """Return True when GitHub login and/or id is a catalog sync bot.
+
+    Free-text git author names are ignored. ``user.type`` must be Bot when
+    present. A known login must match its pinned id when both are present.
+    """
+    if user_type and user_type != "Bot":
+        return False
+    extra_logins = tuple(extra_bot_logins)
+    allowed_logins = bot_logins(extra_logins)
+    allowed_ids = bot_ids(extra_bot_ids)
+    parsed_id = _int_id(user_id)
+    login_present = bool(login)
+    login_ok = login_present and login in allowed_logins
+    id_ok = parsed_id is not None and parsed_id in allowed_ids
+    if login_present:
+        if not login_ok:
+            return False
+        expected = BOT_LOGIN_IDS.get(login)
+        if expected is not None and parsed_id is not None:
+            return parsed_id == expected
+        return True
+    return id_ok
+
+
 def is_catalog_sync_bot_author(
     author_login: str,
     author_type: str,
     *,
+    author_id: int | None = None,
     extra_bot_logins: Iterable[str] = (),
+    extra_bot_ids: Iterable[int] = (),
 ) -> bool:
-    return author_type == "Bot" and author_login in bot_logins(extra_bot_logins)
+    return is_trusted_bot_identity(
+        login=author_login,
+        user_id=author_id,
+        user_type=author_type,
+        extra_bot_logins=extra_bot_logins,
+        extra_bot_ids=extra_bot_ids,
+    )
+
+
+def is_catalog_sync_bot_actor(
+    actor_login: str,
+    actor_id: int | None = None,
+    *,
+    extra_bot_logins: Iterable[str] = (),
+    extra_bot_ids: Iterable[int] = (),
+) -> bool:
+    actor_type = "Bot" if isinstance(actor_login, str) and actor_login.endswith("[bot]") else ""
+    return is_trusted_bot_identity(
+        login=actor_login,
+        user_id=actor_id,
+        user_type=actor_type,
+        extra_bot_logins=extra_bot_logins,
+        extra_bot_ids=extra_bot_ids,
+    )
+
+
+def is_karen_qa_actor(actor_login: str, actor_id: int | None = None) -> bool:
+    parsed_id = _int_id(actor_id)
+    if parsed_id == KAREN_QA_USER_ID:
+        return True
+    return actor_login == KAREN_QA_USER_LOGIN
 
 
 def paths_from_pr_files(files: Any) -> tuple[str, ...]:
@@ -289,22 +374,15 @@ def _int_id(value: Any) -> int | None:
     return None
 
 
-def _app_id(entry: dict[str, Any]) -> int | None:
-    app = entry.get("app")
-    if isinstance(app, dict):
-        return _int_id(app.get("id"))
-    return None
-
-
 def _creator_id(entry: dict[str, Any]) -> int | None:
     creator = entry.get("creator")
     if isinstance(creator, dict):
         return _int_id(creator.get("id"))
-    return None
+    return _int_id(entry.get("creator_id"))
 
 
 def _result_time(entry: dict[str, Any]) -> str:
-    for key in ("completed_at", "updated_at", "started_at", "created_at"):
+    for key in ("updated_at", "created_at", "completed_at", "started_at"):
         value = entry.get(key)
         if isinstance(value, str) and value:
             return value
@@ -315,30 +393,16 @@ def trusted_karen_qa_results(
     *,
     head_sha: str,
     statuses: Any = None,
-    check_runs: Any = None,
-    karen_qa_app_id: int = KAREN_QA_APP_ID,
     karen_qa_user_ids: Iterable[int] = KAREN_QA_USER_IDS,
 ) -> list[dict[str, Any]]:
-    """Return pinned karen-qa results on ``head_sha``, newest first."""
+    """Return trusted karen-qa commit statuses on ``head_sha``, newest first.
+
+    Only statuses whose creator id is in ``karen_qa_user_ids`` count. Check
+    runs are ignored: the Karen QA bot posts commit statuses, not check runs.
+    A status fetched for this SHA may omit ``sha``; a present SHA must match.
+    """
     allowed_users = frozenset(int(user_id) for user_id in karen_qa_user_ids)
     results: list[dict[str, Any]] = []
-    for run in _as_list(check_runs):
-        if not isinstance(run, dict):
-            continue
-        if run.get("name") != KAREN_QA_CONTEXT:
-            continue
-        if _app_id(run) != karen_qa_app_id:
-            continue
-        run_sha = _payload_sha(run)
-        if run_sha != head_sha:
-            continue
-        results.append(
-            {
-                "source": "check_run",
-                "ok": run.get("conclusion") == "success",
-                "when": _result_time(run),
-            }
-        )
     for status in _as_list(statuses):
         if not isinstance(status, dict):
             continue
@@ -347,7 +411,7 @@ def trusted_karen_qa_results(
         if _creator_id(status) not in allowed_users:
             continue
         status_sha = _payload_sha(status)
-        if status_sha != head_sha:
+        if status_sha and status_sha != head_sha:
             continue
         results.append(
             {
@@ -364,8 +428,6 @@ def has_successful_karen_qa(
     *,
     head_sha: str,
     statuses: Any = None,
-    check_runs: Any = None,
-    karen_qa_app_id: int = KAREN_QA_APP_ID,
     karen_qa_user_ids: Iterable[int] = KAREN_QA_USER_IDS,
 ) -> bool:
     if not HEAD_SHA_RE.fullmatch(head_sha):
@@ -373,53 +435,65 @@ def has_successful_karen_qa(
     results = trusted_karen_qa_results(
         head_sha=head_sha,
         statuses=statuses,
-        check_runs=check_runs,
-        karen_qa_app_id=karen_qa_app_id,
         karen_qa_user_ids=karen_qa_user_ids,
     )
     return bool(results) and bool(results[0]["ok"])
 
 
-def _person_is_bot(
+def _github_person_is_bot(
+    person: Any,
     *,
-    git_person: Any,
-    github_person: Any,
     extra_bot_logins: Iterable[str] = (),
+    extra_bot_ids: Iterable[int] = (),
 ) -> bool:
-    allowed = bot_logins(extra_bot_logins)
-    if isinstance(git_person, dict):
-        if git_person.get("name") == BOT_GIT_NAME or git_person.get("email") == BOT_GIT_EMAIL:
-            return True
-    if isinstance(github_person, dict) and github_person.get("login") in allowed:
-        return True
-    return False
+    if not isinstance(person, dict):
+        return False
+    login = person.get("login")
+    return is_trusted_bot_identity(
+        login=login if isinstance(login, str) else "",
+        user_id=_int_id(person.get("id")),
+        user_type=str(person.get("type") or ""),
+        extra_bot_logins=extra_bot_logins,
+        extra_bot_ids=extra_bot_ids,
+    )
 
 
-def commit_authored_or_pushed_by_bot(commit: Any, *, extra_bot_logins: Iterable[str] = ()) -> bool:
+def commit_authored_or_pushed_by_bot(
+    commit: Any,
+    *,
+    extra_bot_logins: Iterable[str] = (),
+    extra_bot_ids: Iterable[int] = (),
+) -> bool:
     if not isinstance(commit, dict):
         return False
-    commit_block = commit.get("commit")
-    git_author = commit_block.get("author") if isinstance(commit_block, dict) else None
-    git_committer = commit_block.get("committer") if isinstance(commit_block, dict) else None
-    authored = _person_is_bot(
-        git_person=git_author,
-        github_person=commit.get("author"),
+    authored = _github_person_is_bot(
+        commit.get("author"),
         extra_bot_logins=extra_bot_logins,
+        extra_bot_ids=extra_bot_ids,
     )
-    pushed = _person_is_bot(
-        git_person=git_committer,
-        github_person=commit.get("committer"),
+    pushed = _github_person_is_bot(
+        commit.get("committer"),
         extra_bot_logins=extra_bot_logins,
+        extra_bot_ids=extra_bot_ids,
     )
     return authored or pushed
 
 
-def validate_bot_commits(commits: Any, *, extra_bot_logins: Iterable[str] = ()) -> None:
+def validate_bot_commits(
+    commits: Any,
+    *,
+    extra_bot_logins: Iterable[str] = (),
+    extra_bot_ids: Iterable[int] = (),
+) -> None:
     entries = _as_list(commits)
     if not entries:
         raise KarenQaOrDataOnlyError("PR commit list is empty")
     for commit in entries:
-        if not commit_authored_or_pushed_by_bot(commit, extra_bot_logins=extra_bot_logins):
+        if not commit_authored_or_pushed_by_bot(
+            commit,
+            extra_bot_logins=extra_bot_logins,
+            extra_bot_ids=extra_bot_ids,
+        ):
             sha = _payload_sha(commit) if isinstance(commit, dict) else ""
             label = sha or "unknown"
             raise KarenQaOrDataOnlyError(
@@ -500,6 +574,10 @@ def evaluate_karen_qa_or_data_only(
     head_sha: str,
     files: Any,
     author_type: str = "",
+    author_id: int | None = None,
+    actor_login: str = "",
+    actor_id: int | None = None,
+    event_name: str = "",
     observed_head_sha: str = "",
     changed_files: int | None = None,
     commits: Any = None,
@@ -509,17 +587,20 @@ def evaluate_karen_qa_or_data_only(
     check_runs: Any = None,
     expected_base_branch: str = DEFAULT_BASE_BRANCH,
     extra_bot_logins: Iterable[str] = (),
+    extra_bot_ids: Iterable[int] = (),
     allowlist: tuple[str, ...] | None = None,
     sync_branch: str = CVE_CATALOG_SYNC_BRANCH,
-    karen_qa_app_id: int = KAREN_QA_APP_ID,
     karen_qa_user_ids: Iterable[int] = KAREN_QA_USER_IDS,
 ) -> KarenQaOrDataOnlyDecision:
     """Return whether this exact head may skip karen-qa or must still have it.
 
     ``allowlist`` is accepted for CLI compatibility and ignored: the
     exemption is the fixed CVE catalog data set, not a caller-supplied list.
+    ``check_runs`` is accepted and ignored: karen-qa is a commit status from
+    ``karen-qa-stevologic[bot]``, not a check run.
     """
     del allowlist
+    del check_runs
     if not HEAD_SHA_RE.fullmatch(head_sha or ""):
         return _decision("need_karen_qa", "head SHA is missing or not a full commit SHA")
     if observed_head_sha and observed_head_sha != head_sha:
@@ -550,12 +631,33 @@ def evaluate_karen_qa_or_data_only(
         )
 
     identity_reasons: list[str] = []
-    if not is_catalog_sync_bot_author(author_login, author_type, extra_bot_logins=extra_bot_logins):
+    if not is_catalog_sync_bot_author(
+        author_login,
+        author_type,
+        author_id=author_id,
+        extra_bot_logins=extra_bot_logins,
+        extra_bot_ids=extra_bot_ids,
+    ):
         identity_reasons.append("PR author is not the CVE catalog sync bot")
+    actor_provided = bool(actor_login) or actor_id is not None
+    check_actor = actor_provided and (
+        event_name in _PR_EVENTS or (event_name == "" and not is_karen_qa_actor(actor_login, actor_id))
+    )
+    if check_actor and not is_catalog_sync_bot_actor(
+        actor_login,
+        actor_id,
+        extra_bot_logins=extra_bot_logins,
+        extra_bot_ids=extra_bot_ids,
+    ):
+        identity_reasons.append("actor is not the CVE catalog sync bot")
     if head_branch != sync_branch:
         identity_reasons.append(f"head branch {head_branch!r} is not {sync_branch!r}")
     try:
-        validate_bot_commits(commits, extra_bot_logins=extra_bot_logins)
+        validate_bot_commits(
+            commits,
+            extra_bot_logins=extra_bot_logins,
+            extra_bot_ids=extra_bot_ids,
+        )
     except KarenQaOrDataOnlyError as exc:
         identity_reasons.append(str(exc))
 
@@ -584,8 +686,6 @@ def evaluate_karen_qa_or_data_only(
     if has_successful_karen_qa(
         head_sha=head_sha,
         statuses=statuses,
-        check_runs=check_runs,
-        karen_qa_app_id=karen_qa_app_id,
         karen_qa_user_ids=karen_qa_user_ids,
     ):
         return _decision(
@@ -594,7 +694,10 @@ def evaluate_karen_qa_or_data_only(
         )
     return _decision(
         "need_karen_qa",
-        f"needs {KAREN_QA_CONTEXT} on {head_sha} from Karen QA app {karen_qa_app_id}; {path_reason}",
+        (
+            f"needs {KAREN_QA_CONTEXT} on {head_sha} from {KAREN_QA_USER_LOGIN} "
+            f"({KAREN_QA_USER_ID}); {path_reason}"
+        ),
     )
 
 
@@ -611,6 +714,10 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--author-login", required=True)
     parser.add_argument("--author-type", required=True)
+    parser.add_argument("--author-id", type=int)
+    parser.add_argument("--actor-login")
+    parser.add_argument("--actor-id", type=int)
+    parser.add_argument("--event-name", default="")
     parser.add_argument("--head-branch", required=True)
     parser.add_argument("--base-branch", required=True)
     parser.add_argument("--repository", required=True)
@@ -626,6 +733,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--check-runs-json", type=Path)
     parser.add_argument("--expected-base-branch", default=DEFAULT_BASE_BRANCH)
     parser.add_argument("--extra-bot-login", action="append", default=[])
+    parser.add_argument("--extra-bot-id", action="append", type=int, default=[])
     parser.add_argument("--github-output", type=Path)
     parser.add_argument("--json", action="store_true")
     return parser.parse_args(argv)
@@ -637,6 +745,10 @@ def main(argv: list[str] | None = None) -> int:
         decision = evaluate_karen_qa_or_data_only(
             author_login=args.author_login,
             author_type=args.author_type,
+            author_id=args.author_id,
+            actor_login=args.actor_login or "",
+            actor_id=args.actor_id,
+            event_name=args.event_name,
             head_branch=args.head_branch,
             base_branch=args.base_branch,
             repository=args.repository,
@@ -652,6 +764,7 @@ def main(argv: list[str] | None = None) -> int:
             check_runs=load_json(args.check_runs_json) if args.check_runs_json else [],
             expected_base_branch=args.expected_base_branch,
             extra_bot_logins=args.extra_bot_login,
+            extra_bot_ids=args.extra_bot_id,
         )
     except KarenQaOrDataOnlyError as exc:
         decision = _decision("need_karen_qa", str(exc))

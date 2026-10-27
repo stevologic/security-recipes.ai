@@ -16,17 +16,21 @@ from scripts.karen_qa_or_data_only import (
     EXEMPT_PATHS,
     FILES_API_CAP,
     GATE_PATHS,
-    GITHUB_ACTIONS_APP_ID,
-    KAREN_QA_APP_ID,
+    GITHUB_ACTIONS_BOT_ID,
+    GITHUB_ACTIONS_BOT_LOGIN,
+    KAREN_QA_USER_ID,
+    KAREN_QA_USER_LOGIN,
     REQUIRED_CHECK_NAME,
     catalog_sync_commit_paths,
     catalog_sync_git_email,
     catalog_sync_git_user,
     evaluate_karen_qa_or_data_only,
     is_catalog_data_path,
+    is_catalog_sync_bot_actor,
     is_catalog_sync_bot_author,
     is_exempt_path,
     is_gate_path,
+    is_trusted_bot_identity,
     main,
     paths_from_pr_files,
 )
@@ -36,7 +40,7 @@ ROOT = Path(__file__).resolve().parents[1]
 HEAD_SHA = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 OTHER_SHA = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
 REPO = "stevologic/security-recipes.ai"
-KAREN_QA_USER_ID = 424242
+OTHER_KAREN_USER_ID = 424242
 
 
 def _files(*paths: str, status: str = "modified", previous: str | None = None) -> list[dict[str, str]]:
@@ -53,7 +57,7 @@ def _catalog_files() -> list[dict[str, str]]:
     return _files(
         "static/api/cve-catalog/manifest.json",
         "data/cve/ai-enrichments.json",
-        "data/evidence/agentic-threat-radar.json",
+        "data/cve/ai-generated-recipes.json",
         "content/recipes/cve/ai-enrichment-cve-2026-12345.md",
     )
 
@@ -100,8 +104,8 @@ def _bot_commit(sha: str = HEAD_SHA) -> dict[str, object]:
             "author": {"name": BOT_GIT_NAME, "email": BOT_GIT_EMAIL},
             "committer": {"name": BOT_GIT_NAME, "email": BOT_GIT_EMAIL},
         },
-        "author": {"login": "github-actions[bot]", "type": "Bot"},
-        "committer": {"login": "github-actions[bot]", "type": "Bot"},
+        "author": {"login": GITHUB_ACTIONS_BOT_LOGIN, "id": GITHUB_ACTIONS_BOT_ID, "type": "Bot"},
+        "committer": {"login": GITHUB_ACTIONS_BOT_LOGIN, "id": GITHUB_ACTIONS_BOT_ID, "type": "Bot"},
     }
 
 
@@ -112,25 +116,39 @@ def _human_commit(sha: str = "cccccccccccccccccccccccccccccccccccccccc") -> dict
             "author": {"name": "Mallory", "email": "mallory@example.com"},
             "committer": {"name": "Mallory", "email": "mallory@example.com"},
         },
-        "author": {"login": "mallory", "type": "User"},
-        "committer": {"login": "mallory", "type": "User"},
+        "author": {"login": "mallory", "id": 1, "type": "User"},
+        "committer": {"login": "mallory", "id": 1, "type": "User"},
     }
 
 
-def _karen_check(
-    *,
-    conclusion: str = "success",
-    app_id: int = KAREN_QA_APP_ID,
-    head_sha: str = HEAD_SHA,
-    completed_at: str = "2026-10-21T18:00:00Z",
-) -> dict[str, object]:
+def _spoofed_git_name_commit(sha: str = "dddddddddddddddddddddddddddddddddddddddd") -> dict[str, object]:
     return {
-        "name": "karen-qa",
-        "conclusion": conclusion,
-        "head_sha": head_sha,
-        "completed_at": completed_at,
-        "app": {"id": app_id},
+        "sha": sha,
+        "commit": {
+            "author": {"name": BOT_GIT_NAME, "email": BOT_GIT_EMAIL},
+            "committer": {"name": BOT_GIT_NAME, "email": BOT_GIT_EMAIL},
+        },
+        "author": {"login": "mallory", "id": 1, "type": "User"},
+        "committer": {"login": "mallory", "id": 1, "type": "User"},
     }
+
+
+def _karen_status(
+    *,
+    state: str = "success",
+    user_id: int = KAREN_QA_USER_ID,
+    sha: str | None = HEAD_SHA,
+    updated_at: str = "2026-10-21T18:00:00Z",
+) -> dict[str, object]:
+    payload: dict[str, object] = {
+        "context": "karen-qa",
+        "state": state,
+        "updated_at": updated_at,
+        "creator": {"id": user_id, "login": KAREN_QA_USER_LOGIN, "type": "Bot"},
+    }
+    if sha is not None:
+        payload["sha"] = sha
+    return payload
 
 
 def _decide(**overrides: object):
@@ -139,8 +157,12 @@ def _decide(**overrides: object):
         files = _catalog_files()
     paths = _paths_from_files(files)
     payload = {
-        "author_login": "github-actions[bot]",
+        "author_login": GITHUB_ACTIONS_BOT_LOGIN,
         "author_type": "Bot",
+        "author_id": GITHUB_ACTIONS_BOT_ID,
+        "actor_login": GITHUB_ACTIONS_BOT_LOGIN,
+        "actor_id": GITHUB_ACTIONS_BOT_ID,
+        "event_name": "pull_request_target",
         "head_branch": CVE_CATALOG_SYNC_BRANCH,
         "base_branch": "main",
         "repository": REPO,
@@ -205,13 +227,13 @@ class KarenQaOrDataOnlyDecisionTests(unittest.TestCase):
                 self.assertIn(path, decision.reason)
 
     def test_human_author_fails_even_for_catalog_data(self) -> None:
-        for author, author_type in (
-            ("stevologic", "User"),
-            ("outsider", "User"),
-            ("security-recipes-cve-bot", "User"),
+        for author, author_type, author_id in (
+            ("stevologic", "User", 5211665),
+            ("outsider", "User", 99),
+            ("security-recipes-cve-bot", "User", 1),
         ):
             with self.subTest(author=author):
-                decision = _decide(author_login=author, author_type=author_type)
+                decision = _decide(author_login=author, author_type=author_type, author_id=author_id)
                 self.assertEqual(decision.outcome, "need_karen_qa")
                 self.assertFalse(decision.exempt)
                 self.assertIn("CVE catalog sync bot", decision.reason)
@@ -224,8 +246,23 @@ class KarenQaOrDataOnlyDecisionTests(unittest.TestCase):
         self.assertEqual(decision.outcome, "need_karen_qa")
 
     def test_cve_app_bot_author_passes(self) -> None:
-        decision = _decide(author_login="security-recipes-cve-bot[bot]", author_type="Bot")
+        decision = _decide(
+            author_login="security-recipes-cve-bot[bot]",
+            author_type="Bot",
+            author_id=None,
+        )
         self.assertEqual(decision.outcome, "data_only")
+
+    def test_actions_bot_author_id_mismatch_fails(self) -> None:
+        self.assertFalse(
+            is_catalog_sync_bot_author(
+                GITHUB_ACTIONS_BOT_LOGIN,
+                "Bot",
+                author_id=1,
+            )
+        )
+        decision = _decide(author_id=1)
+        self.assertEqual(decision.outcome, "need_karen_qa")
 
     def test_wrong_branch_fails(self) -> None:
         decision = _decide(head_branch="automation/content-refresh")
@@ -303,7 +340,7 @@ class KarenQaOrDataOnlyDecisionTests(unittest.TestCase):
         self.assertTrue(is_catalog_data_path("static/api/cve-catalog/manifest.json"))
         self.assertTrue(is_catalog_data_path("static/api/cve-catalog/shards/a.json.gz"))
         self.assertTrue(is_catalog_data_path("content/recipes/cve/ai-enrichment-cve-2026-1.md"))
-        self.assertTrue(is_catalog_data_path("data/evidence/agentic-threat-radar.json"))
+        self.assertFalse(is_catalog_data_path("data/evidence/agentic-threat-radar.json"))
         self.assertFalse(is_catalog_data_path("data/policy/mcp-gateway-policy.json"))
         self.assertFalse(is_catalog_data_path("scripts/generated-output-ownership.json"))
         self.assertFalse(is_catalog_data_path("data/context/secure-context-release-pack.json"))
@@ -342,7 +379,89 @@ class KarenQaOrDataOnlyDecisionTests(unittest.TestCase):
                 self.assertIn(path, decision.reason)
 
 
-class KarenQaPinAndNewestResultTests(unittest.TestCase):
+class EvidencePackIsNotCatalogDataTests(unittest.TestCase):
+    def test_evidence_json_is_not_catalog_data(self) -> None:
+        self.assertFalse(is_catalog_data_path("data/evidence/agentic-threat-radar.json"))
+        self.assertFalse(is_catalog_data_path("data/evidence/workflow-control-plane-report.json"))
+        self.assertNotIn("data/evidence", EXEMPT_PATHS)
+
+    def test_evidence_pack_change_fails_exemption(self) -> None:
+        decision = _decide(files=_files("data/evidence/agentic-threat-radar.json"))
+        self.assertEqual(decision.outcome, "need_karen_qa")
+        self.assertFalse(decision.exempt)
+        self.assertIn("data/evidence/agentic-threat-radar.json", decision.reason)
+
+    def test_catalog_plus_evidence_fails(self) -> None:
+        decision = _decide(
+            files=_files(
+                "static/api/cve-catalog/manifest.json",
+                "data/evidence/agentic-assurance-pack.json",
+            )
+        )
+        self.assertEqual(decision.outcome, "need_karen_qa")
+        self.assertIn("data/evidence/agentic-assurance-pack.json", decision.reason)
+
+
+class GitHubIdentityNotGitAuthorNameTests(unittest.TestCase):
+    def test_spoofed_git_author_name_does_not_count(self) -> None:
+        self.assertFalse(
+            is_trusted_bot_identity(
+                login="mallory",
+                user_id=1,
+                user_type="User",
+            )
+        )
+        decision = _decide(commits=[_spoofed_git_name_commit()])
+        self.assertEqual(decision.outcome, "need_karen_qa")
+        self.assertIn("not authored or pushed by the CVE catalog sync bot", decision.reason)
+        self.assertIn("dddddddddddddddddddddddddddddddddddddddd", decision.reason)
+
+    def test_commit_with_only_git_author_name_and_no_github_user_fails(self) -> None:
+        commit = {
+            "sha": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "commit": {
+                "author": {"name": BOT_GIT_NAME, "email": BOT_GIT_EMAIL},
+                "committer": {"name": BOT_GIT_NAME, "email": BOT_GIT_EMAIL},
+            },
+            "author": None,
+            "committer": None,
+        }
+        decision = _decide(commits=[commit])
+        self.assertEqual(decision.outcome, "need_karen_qa")
+        self.assertIn("eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee", decision.reason)
+
+    def test_human_actor_on_pull_request_target_voids_exemption(self) -> None:
+        self.assertFalse(is_catalog_sync_bot_actor("mallory", 1))
+        decision = _decide(
+            actor_login="mallory",
+            actor_id=1,
+            event_name="pull_request_target",
+        )
+        self.assertEqual(decision.outcome, "need_karen_qa")
+        self.assertIn("actor is not the CVE catalog sync bot", decision.reason)
+
+    def test_author_id_is_verified_for_exemption(self) -> None:
+        self.assertTrue(
+            is_catalog_sync_bot_author(
+                GITHUB_ACTIONS_BOT_LOGIN,
+                "Bot",
+                author_id=GITHUB_ACTIONS_BOT_ID,
+            )
+        )
+        self.assertTrue(is_catalog_sync_bot_actor(GITHUB_ACTIONS_BOT_LOGIN, GITHUB_ACTIONS_BOT_ID))
+        decision = _decide(author_id=GITHUB_ACTIONS_BOT_ID, actor_id=GITHUB_ACTIONS_BOT_ID)
+        self.assertEqual(decision.outcome, "data_only")
+
+    def test_karen_qa_status_event_actor_does_not_void_exemption(self) -> None:
+        decision = _decide(
+            actor_login=KAREN_QA_USER_LOGIN,
+            actor_id=KAREN_QA_USER_ID,
+            event_name="status",
+        )
+        self.assertEqual(decision.outcome, "data_only")
+
+
+class KarenQaStatusFromStevologicBotTests(unittest.TestCase):
     def test_unpinned_karen_qa_status_from_anyone_does_not_count(self) -> None:
         decision = _decide(
             files=_files("README.md"),
@@ -357,44 +476,74 @@ class KarenQaPinAndNewestResultTests(unittest.TestCase):
             ],
         )
         self.assertEqual(decision.outcome, "need_karen_qa")
+        self.assertIn(str(KAREN_QA_USER_ID), decision.reason)
+        self.assertIn(KAREN_QA_USER_LOGIN, decision.reason)
+        self.assertNotIn("5400051", decision.reason)
 
     def test_github_actions_check_named_karen_qa_does_not_count(self) -> None:
         decision = _decide(
             files=_files("README.md"),
-            check_runs=[_karen_check(app_id=GITHUB_ACTIONS_APP_ID)],
+            check_runs=[
+                {
+                    "name": "karen-qa",
+                    "conclusion": "success",
+                    "head_sha": HEAD_SHA,
+                    "app": {"id": 15368},
+                }
+            ],
         )
         self.assertEqual(decision.outcome, "need_karen_qa")
-        self.assertIn(str(KAREN_QA_APP_ID), decision.reason)
+        self.assertIn(str(KAREN_QA_USER_ID), decision.reason)
 
-    def test_karen_qa_app_success_on_exact_head_passes(self) -> None:
+    def test_app_5400051_check_run_does_not_count(self) -> None:
         decision = _decide(
             files=_files("README.md"),
-            check_runs=[_karen_check()],
+            check_runs=[
+                {
+                    "name": "karen-qa",
+                    "conclusion": "success",
+                    "head_sha": HEAD_SHA,
+                    "completed_at": "2026-10-21T20:00:00Z",
+                    "app": {"id": 5400051},
+                }
+            ],
+        )
+        self.assertEqual(decision.outcome, "need_karen_qa")
+        self.assertNotIn("5400051", decision.reason)
+        self.assertIn(str(KAREN_QA_USER_ID), decision.reason)
+
+    def test_karen_qa_stevologic_status_on_exact_head_passes(self) -> None:
+        decision = _decide(
+            files=_files("README.md"),
+            statuses=[_karen_status()],
         )
         self.assertEqual(decision.outcome, "karen_qa")
         self.assertTrue(decision.allowed)
         self.assertFalse(decision.exempt)
 
-    def test_karen_qa_user_id_status_can_pass_when_pinned(self) -> None:
+    def test_status_fetched_for_this_sha_without_embedded_sha_passes(self) -> None:
         decision = _decide(
             files=_files("README.md"),
-            statuses=[
-                {
-                    "context": "karen-qa",
-                    "state": "success",
-                    "sha": HEAD_SHA,
-                    "creator": {"id": KAREN_QA_USER_ID, "login": "karen-qa[bot]", "type": "Bot"},
-                    "updated_at": "2026-10-21T20:00:00Z",
-                }
-            ],
-            karen_qa_user_ids=frozenset({KAREN_QA_USER_ID}),
+            statuses=[_karen_status(sha=None)],
         )
         self.assertEqual(decision.outcome, "karen_qa")
+
+    def test_other_user_id_does_not_count_unless_pinned(self) -> None:
+        status = _karen_status(user_id=OTHER_KAREN_USER_ID)
+        status["creator"] = {"id": OTHER_KAREN_USER_ID, "login": "karen-qa[bot]", "type": "Bot"}
+        decision = _decide(files=_files("README.md"), statuses=[status])
+        self.assertEqual(decision.outcome, "need_karen_qa")
+        pinned = _decide(
+            files=_files("README.md"),
+            statuses=[status],
+            karen_qa_user_ids=frozenset({OTHER_KAREN_USER_ID}),
+        )
+        self.assertEqual(pinned.outcome, "karen_qa")
 
     def test_karen_qa_on_a_different_sha_does_not_count(self) -> None:
         decision = _decide(
             files=_files("README.md"),
-            check_runs=[_karen_check(head_sha=OTHER_SHA)],
+            statuses=[_karen_status(sha=OTHER_SHA)],
         )
         self.assertEqual(decision.outcome, "need_karen_qa")
         self.assertIn(HEAD_SHA, decision.reason)
@@ -402,9 +551,9 @@ class KarenQaPinAndNewestResultTests(unittest.TestCase):
     def test_newest_karen_qa_failure_blocks_older_success(self) -> None:
         decision = _decide(
             files=_files("README.md"),
-            check_runs=[
-                _karen_check(conclusion="success", completed_at="2026-10-21T18:00:00Z"),
-                _karen_check(conclusion="failure", completed_at="2026-10-21T19:00:00Z"),
+            statuses=[
+                _karen_status(state="success", updated_at="2026-10-21T18:00:00Z"),
+                _karen_status(state="failure", updated_at="2026-10-21T19:00:00Z"),
             ],
         )
         self.assertEqual(decision.outcome, "need_karen_qa")
@@ -413,9 +562,9 @@ class KarenQaPinAndNewestResultTests(unittest.TestCase):
     def test_newest_karen_qa_success_after_older_failure_passes(self) -> None:
         decision = _decide(
             files=_files("README.md"),
-            check_runs=[
-                _karen_check(conclusion="failure", completed_at="2026-10-21T18:00:00Z"),
-                _karen_check(conclusion="success", completed_at="2026-10-21T19:00:00Z"),
+            statuses=[
+                _karen_status(state="failure", updated_at="2026-10-21T18:00:00Z"),
+                _karen_status(state="success", updated_at="2026-10-21T19:00:00Z"),
             ],
         )
         self.assertEqual(decision.outcome, "karen_qa")
@@ -423,9 +572,9 @@ class KarenQaPinAndNewestResultTests(unittest.TestCase):
     def test_revoked_later_failure_wins_regardless_of_list_order(self) -> None:
         decision = _decide(
             files=_files("README.md"),
-            check_runs=[
-                _karen_check(conclusion="failure", completed_at="2026-10-21T21:00:00Z"),
-                _karen_check(conclusion="success", completed_at="2026-10-21T17:00:00Z"),
+            statuses=[
+                _karen_status(state="failure", updated_at="2026-10-21T21:00:00Z"),
+                _karen_status(state="success", updated_at="2026-10-21T17:00:00Z"),
             ],
         )
         self.assertEqual(decision.outcome, "need_karen_qa")
@@ -542,6 +691,8 @@ class AllowlistAndCliTests(unittest.TestCase):
         self.assertEqual(catalog_sync_git_email(workflow), BOT_GIT_EMAIL)
         self.assertIn("data/policy/mcp-gateway-policy.json", CATALOG_SYNC_COMMIT_PATHS)
         self.assertIn("scripts/generated-output-ownership.json", CATALOG_SYNC_COMMIT_PATHS)
+        self.assertIn("data/evidence", CATALOG_SYNC_COMMIT_PATHS)
+        self.assertNotIn("data/evidence", EXEMPT_PATHS)
         self.assertNotIn("data/policy/mcp-gateway-policy.json", EXEMPT_PATHS)
         self.assertNotIn("scripts/generated-output-ownership.json", EXEMPT_PATHS)
         self.assertNotIn("data/context/secure-context-release-pack.json", EXEMPT_PATHS)
@@ -559,8 +710,9 @@ class AllowlistAndCliTests(unittest.TestCase):
                 "data/cve/ai-generated-recipes.json",
             ),
         )
-        self.assertEqual(KAREN_QA_APP_ID, 5400051)
-        self.assertEqual(GITHUB_ACTIONS_APP_ID, 15368)
+        self.assertEqual(KAREN_QA_USER_ID, 345474717)
+        self.assertEqual(KAREN_QA_USER_LOGIN, "karen-qa-stevologic[bot]")
+        self.assertEqual(GITHUB_ACTIONS_BOT_ID, 41898282)
 
     def test_cli_writes_github_output_and_exits_nonzero_when_karen_qa_is_required(
         self,
@@ -576,6 +728,8 @@ class AllowlistAndCliTests(unittest.TestCase):
                     "stevologic",
                     "--author-type",
                     "User",
+                    "--author-id",
+                    "5211665",
                     "--head-branch",
                     CVE_CATALOG_SYNC_BRANCH,
                     "--base-branch",
@@ -601,6 +755,7 @@ class AllowlistAndCliTests(unittest.TestCase):
             self.assertIn("conclusion=failure", output)
             self.assertIn("exempt=false", output)
             self.assertIn(f"context={REQUIRED_CHECK_NAME}", output)
+            self.assertIn(str(KAREN_QA_USER_ID), output)
 
 
 if __name__ == "__main__":

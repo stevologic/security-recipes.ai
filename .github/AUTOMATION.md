@@ -14,7 +14,7 @@ access token is required.
 | Leftover review (`leftover-review.yml`) | daily 13:17 UTC | Live-verifies leftover-gold CVE leftovers against GHAD/NVD; leftover-gold criticals and highs drain first, then each run reviews up to 25 leftover-gold medium and low pages and submits a validated auto-merge PR |
 | CVE catalog validation request (`cve-catalog-validate-request.yml`) | dispatch only | Verifies that an exact SHA is the live head of the requested same-repository PR without checking out or executing PR code |
 | CVE catalog validation (`cve-catalog-validate.yml`) | dispatch only | Revalidates and runs the build-equivalent suite on the exact catalog SHA. It never posts commit statuses and never emits `karen-qa`. Required merge checks come from real workflow runs |
-| Karen QA or data-only (`karen-qa-or-data-only.yml`) | `pull_request_target` plus Karen QA app check-run completion | Creates a `karen-qa-or-data-only` check run on the exact PR head. Auto-passes only for CVE catalog data from the catalog sync bot. Pipeline code, docs, and MCP servers still need `karen-qa`. Changing this gate still needs `karen-qa` |
+| Karen QA or data-only (`karen-qa-or-data-only.yml`) | `pull_request_target` plus `karen-qa` commit statuses from `karen-qa-stevologic[bot]` (user id `345474717`) | Required-workflow job that auto-passes only for CVE catalog data from the catalog sync bot. Pipeline code, docs, MCP servers, and evidence packs still need `karen-qa`. Changing this gate still needs `karen-qa`. The job does not post a check run |
 | Production watchdog (`production-watchdog.yml`) | every 30 min | Probes the live site, catalog freshness, revision, and TLS; maintains the health issue; self-heals unbuilt revisions and stale catalogs |
 | Automation shepherd (`automation-shepherd.yml`) | every 30 min | Dispatches missing main Builds after token-authored merges, updates stale auto-merge PR branches, and attaches missing build validations |
 | Dependabot auto-merge (`dependabot-automerge.yml`) | Dependabot PRs | Arms auto-merge for verified patch/minor bumps |
@@ -92,36 +92,42 @@ post commit statuses. Required merge checks come from those real workflow runs.
 
 ## Merge policy
 
-The `main` ruleset currently requires a PR, a passing `build` context from
-GitHub Actions, and a passing `karen-qa` context posted only by the Karen
-QA GitHub App (integration `5400051`) after human review. Only CVE
-catalog content skips Karen. Pipeline code, docs, and MCP servers still
-need `karen-qa`. `karen-qa-or-data-only.yml` reads the PR Files API (not
-the diff text) and creates a GITHUB_TOKEN check run named
-`karen-qa-or-data-only` on the exact head when the PR author is the CVE
-catalog sync bot (`github-actions[bot]` or `security-recipes-cve-bot[bot]`,
-`user.type == Bot`), the head branch is `automation/cve-catalog-sync`,
-every commit is authored or pushed by that bot, git tree modes are
-regular files (`100644`), and every changed path — including rename
-sources and deletions — is CVE catalog data:
+The `main` ruleset currently requires a PR and a passing `build` context
+from GitHub Actions. Only CVE catalog content skips Karen. Pipeline
+code, docs, MCP servers, and `data/evidence` packs (loaded by
+`mcp_server.py`) still need `karen-qa`. `karen-qa-or-data-only.yml`
+reads the PR Files API (not the diff text) and succeeds as a required
+workflow when the PR author and, on `pull_request_target`, the actor
+are the CVE catalog sync bot (`github-actions[bot]` user id `41898282`
+or `security-recipes-cve-bot[bot]`, `user.type == Bot`), the head
+branch is `automation/cve-catalog-sync`, every commit is authored or
+pushed by that bot's GitHub login/id (not a free-text git author
+name), git tree modes are regular files (`100644`), and every changed
+path — including rename sources and deletions — is CVE catalog data:
 `static/api/cve-catalog` (`.json` / `.gz`), `data/cve/ai-enrichments.json`,
-`data/cve/ai-generated-recipes.json`, `content/recipes/cve` (`.md` only),
-and `data/evidence` (`.json` only). `mcp-gateway-policy.json`,
+`data/cve/ai-generated-recipes.json`, and `content/recipes/cve`
+(`.md` only). `data/evidence/*.json`, `mcp-gateway-policy.json`,
 `generated-output-ownership.json`, recipe code such as `cve.11tydata.js`,
 and the CVE pipeline itself are not exempt. The Files API 3000-file cap
-fails closed. The `karen-qa` fallback accepts only the newest result
-from the Karen QA app id `5400051` (or a pinned Karen QA user id).
-Changing `karen-qa-or-data-only.yml`, its evaluator, or the ruleset
+fails closed. The `karen-qa` fallback accepts only the newest commit
+status from `karen-qa-stevologic[bot]` (user id `345474717`). App
+`5400051` is not a trusted karen-qa source. Changing
+`karen-qa-or-data-only.yml`, its evaluator, or the ruleset definitions
 still requires `karen-qa`; the gate cannot exempt itself.
 
 Ruleset change required (do not apply it from the pull request that adds
-this check): replace the required `karen-qa` check on `main` (Karen QA
-app integration `5400051`) with `karen-qa-or-data-only` pinned to GitHub
-Actions integration `15368`. A ruleset required-check entry can set
-`integration_id`; pin `15368` so a plain commit status cannot satisfy
-the check. If that job or check-run name changes, update the ruleset to
-the new name. Requiring both names keeps data-only catalog PRs blocked
-on Karen QA. Do not change the ruleset from this pull request.
+this check): add the checked-in definition
+`.github/rulesets/karen-qa-or-data-only.json`, which is a required workflow
+pin of `.github/workflows/karen-qa-or-data-only.yml` from `refs/heads/main`
+(`repository_id` `1217516378`). That workflow-file pin is an identity a
+PR cannot forge. Do not replace it with a required status check named
+`karen-qa-or-data-only` pinned to GitHub Actions integration `15368`; a
+PR job can post that same check with `github.token`. Also apply
+`.github/rulesets/automation-cve-catalog-sync.json` so only GitHub
+Actions (integration `15368`) can create or update
+`automation/cve-catalog-sync`. If the CVE automation app pushes that
+branch, add its integration as a bypass actor. Do not change live
+rulesets from this pull request.
 
 Catalog validation never posts commit statuses and never emits
 `karen-qa`. Required merge checks come from real workflow runs. Catalog
