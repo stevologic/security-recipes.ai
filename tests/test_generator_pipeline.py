@@ -8,7 +8,12 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from contextlib import contextmanager
 from pathlib import Path
+from typing import Iterator
+from unittest.mock import patch
+
+from scripts.cve_catalog_data_paths import CatalogDiffDecision
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -19,6 +24,52 @@ if SPEC is None or SPEC.loader is None:  # pragma: no cover - import machinery g
 PIPELINE = importlib.util.module_from_spec(SPEC)
 sys.modules[SPEC.name] = PIPELINE
 SPEC.loader.exec_module(PIPELINE)
+
+CATALOG_VALIDATION_ENV = ("CVE_CATALOG_VALIDATION", "CVE_CATALOG_VALIDATION_BASE")
+
+
+@contextmanager
+def isolated_catalog_validation_env(
+    *,
+    flag: str | None = None,
+    base: str | None = None,
+) -> Iterator[None]:
+    previous = {key: os.environ.get(key) for key in CATALOG_VALIDATION_ENV}
+    try:
+        for key in CATALOG_VALIDATION_ENV:
+            os.environ.pop(key, None)
+        if flag is not None:
+            os.environ["CVE_CATALOG_VALIDATION"] = flag
+        if base is not None:
+            os.environ["CVE_CATALOG_VALIDATION_BASE"] = base
+        yield
+    finally:
+        for key, value in previous.items():
+            if value is None:
+                os.environ.pop(key, None)
+            else:
+                os.environ[key] = value
+
+
+def fake_catalog_diff(*, data_only: bool) -> CatalogDiffDecision:
+    return CatalogDiffDecision(
+        data_only=data_only,
+        sha_matches=True,
+        expected_sha="0" * 40,
+        actual_sha="0" * 40,
+        paths=("static/api/cve-catalog/manifest.json",),
+        rejected_paths=() if data_only else ("mcp_server.py",),
+        unsafe_paths=(),
+        reason="test catalog diff",
+    )
+
+
+def synthetic_generator(name: str, output: str) -> PIPELINE.Generator:
+    return PIPELINE.Generator(
+        name=name,
+        script=Path(f"scripts/generate_{name}.py"),
+        output=Path(output),
+    )
 
 
 def load_script_module(name: str, filename: str):
@@ -236,19 +287,91 @@ class GeneratorPipelineTests(unittest.TestCase):
         self.assertTrue(decision.failed)
         self.assertEqual(decision.blocking, ("secure_context_trust_pack",))
 
-    def test_auto_scope_uses_catalog_validation_env(self) -> None:
+    def test_missing_validation_base_fails_closed(self) -> None:
         self.assertEqual(PIPELINE.resolve_check_scope("all"), "all")
         self.assertEqual(PIPELINE.resolve_check_scope("cve-owned"), "cve-owned")
-        previous = os.environ.pop("CVE_CATALOG_VALIDATION", None)
-        try:
+        with isolated_catalog_validation_env():
+            self.assertFalse(PIPELINE.should_scope_freshness_to_cve_owned())
             self.assertEqual(PIPELINE.resolve_check_scope("auto"), "all")
-            os.environ["CVE_CATALOG_VALIDATION"] = "true"
-            self.assertEqual(PIPELINE.resolve_check_scope("auto"), "cve-owned")
-        finally:
-            if previous is None:
-                os.environ.pop("CVE_CATALOG_VALIDATION", None)
-            else:
-                os.environ["CVE_CATALOG_VALIDATION"] = previous
+        with isolated_catalog_validation_env(flag="true", base=None):
+            with patch.object(PIPELINE, "evaluate_git_catalog_diff") as mocked:
+                self.assertFalse(PIPELINE.should_scope_freshness_to_cve_owned())
+                self.assertEqual(PIPELINE.resolve_check_scope("auto"), "all")
+                mocked.assert_not_called()
+
+    def test_env_alone_does_not_relax_when_diff_is_not_data_only(self) -> None:
+        not_data_only = fake_catalog_diff(data_only=False)
+        with isolated_catalog_validation_env(flag="true", base="origin/main"):
+            with (
+                patch.object(PIPELINE.subprocess, "check_output", return_value="abc\n"),
+                patch.object(
+                    PIPELINE,
+                    "evaluate_git_catalog_diff",
+                    return_value=not_data_only,
+                ) as mocked,
+            ):
+                self.assertFalse(PIPELINE.should_scope_freshness_to_cve_owned())
+                mocked.assert_called_once()
+                self.assertEqual(PIPELINE.resolve_check_scope("auto"), "all")
+
+    def test_catalog_only_data_only_diff_scopes_to_cve_owned(self) -> None:
+        data_only = fake_catalog_diff(data_only=True)
+        with isolated_catalog_validation_env(flag="true", base="origin/main"):
+            with (
+                patch.object(PIPELINE.subprocess, "check_output", return_value="abc\n"),
+                patch.object(
+                    PIPELINE,
+                    "evaluate_git_catalog_diff",
+                    return_value=data_only,
+                ) as mocked,
+            ):
+                self.assertTrue(PIPELINE.should_scope_freshness_to_cve_owned())
+                mocked.assert_called_once()
+                self.assertEqual(PIPELINE.resolve_check_scope("auto"), "cve-owned")
+
+    def test_stale_cve_owned_outputs_block_under_catalog_scope(self) -> None:
+        catalog = synthetic_generator(
+            "catalog_shard",
+            "static/api/cve-catalog/manifest.json",
+        )
+        self.assertFalse(PIPELINE.generator_is_karen_gated(catalog))
+        decision = PIPELINE.classify_check_failures(
+            [catalog],
+            [("catalog_shard", 1)],
+            scope="cve-owned",
+        )
+        self.assertTrue(decision.failed)
+        self.assertEqual(decision.blocking, ("catalog_shard",))
+        self.assertEqual(decision.pending, ())
+
+    def test_unrelated_outputs_are_not_treated_as_karen_gated(self) -> None:
+        other = synthetic_generator("orphan_pack", "data/orphan/not-gated.json")
+        self.assertFalse(PIPELINE.generator_is_karen_gated(other))
+        decision = PIPELINE.classify_check_failures(
+            [other],
+            [("orphan_pack", 1)],
+            scope="cve-owned",
+        )
+        self.assertTrue(decision.failed)
+        self.assertEqual(decision.blocking, ("orphan_pack",))
+        self.assertEqual(decision.pending, ())
+
+    def test_mixed_stale_outputs_keep_cve_owned_blocking(self) -> None:
+        generators = [
+            synthetic_generator("catalog_shard", "static/api/cve-catalog/manifest.json"),
+            synthetic_generator(
+                "secure_context_trust_pack",
+                "data/evidence/secure-context-trust-pack.json",
+            ),
+        ]
+        decision = PIPELINE.classify_check_failures(
+            generators,
+            [("catalog_shard", 1), ("secure_context_trust_pack", 1)],
+            scope="cve-owned",
+        )
+        self.assertTrue(decision.failed)
+        self.assertEqual(decision.blocking, ("catalog_shard",))
+        self.assertEqual(decision.pending, ("secure_context_trust_pack",))
 
 
 if __name__ == "__main__":

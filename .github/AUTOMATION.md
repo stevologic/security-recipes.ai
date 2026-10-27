@@ -196,10 +196,15 @@ MCP/gateway behaviour (`data/policy/mcp-gateway-policy.json`,
 (`automation/cve-generated-outputs`) and opens a review PR labeled
 `needs karen-qa` that is never self-merged. If they did not change, no
 review PR is opened. A failure opening that review PR does not fail
-the catalog PR. Catalog-only exact-SHA validation scopes generator
-freshness to CVE-owned outputs and reports Karen-gated evidence,
-policy, context, and ownership packs as pending on
-`automation/cve-generated-outputs` instead of failing. Main and
+the catalog PR delivery; the sync then raises a real alert (not a
+warning) so a missed review is not silent. Catalog-only exact-SHA
+validation scopes generator freshness to CVE-owned outputs and reports
+Karen-gated evidence, policy, context, and ownership packs as pending
+on `automation/cve-generated-outputs` instead of failing. Scope applies
+only when `CVE_CATALOG_VALIDATION` is set and the exact-SHA diff vs
+`CVE_CATALOG_VALIDATION_BASE` is data-only. A missing base fails closed
+to the full freshness check. Only those generated-output paths are
+Karen-gated; stale CVE-owned or unrelated outputs still block. Main and
 non-catalog PRs still require every deterministic generator to pass
 `--check`.
 

@@ -11,6 +11,7 @@ from scripts.cve_catalog_data_paths import (
     evaluate_catalog_diff,
     generated_behavior_output_pathspecs,
     is_catalog_data_path,
+    is_karen_gated_generated_output,
     normalize_repo_path,
     parse_name_status_lines,
     parse_name_status_z,
@@ -46,6 +47,16 @@ class CveCatalogDataPathTests(unittest.TestCase):
         self.assertTrue(CATALOG_DATA_FILES)
         self.assertIn(":(glob)content/recipes/cve/*.md", catalog_commit_pathspecs())
         self.assertIn("data/policy/mcp-gateway-policy.json", generated_behavior_output_pathspecs())
+        self.assertTrue(is_karen_gated_generated_output("data/evidence/secure-context-trust-pack.json"))
+        self.assertTrue(is_karen_gated_generated_output("data/policy/mcp-gateway-policy.json"))
+        self.assertTrue(is_karen_gated_generated_output("data/context/secure-context-release-pack.json"))
+        self.assertTrue(is_karen_gated_generated_output("scripts/generated-output-ownership.json"))
+        self.assertFalse(is_karen_gated_generated_output("static/api/cve-catalog/manifest.json"))
+        self.assertFalse(is_karen_gated_generated_output("data/cve/ai-enrichments.json"))
+        self.assertFalse(is_karen_gated_generated_output("content/recipes/cve/ai-enrichment-cve-2026-0001.md"))
+        self.assertFalse(is_karen_gated_generated_output("mcp_server.py"))
+        self.assertFalse(is_karen_gated_generated_output("data/orphan/not-gated.json"))
+        self.assertFalse(is_karen_gated_generated_output("data/evidence-evil/x.json"))
 
     def test_data_only_diff_passes(self) -> None:
         decision = decide(

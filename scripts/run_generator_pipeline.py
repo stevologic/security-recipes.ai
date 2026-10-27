@@ -559,6 +559,7 @@ def should_scope_freshness_to_cve_owned(repo_root: Path = REPO_ROOT) -> bool:
     Full freshness stays enforced on main and on non-catalog PRs. Catalog-only
     validation (CVE_CATALOG_VALIDATION=true plus a data-only exact-SHA diff)
     reports Karen-gated stale outputs as pending review instead of failing.
+    A missing CVE_CATALOG_VALIDATION_BASE fails closed to the full check.
     """
 
     flag = os.environ.get("CVE_CATALOG_VALIDATION", "").strip().lower()
@@ -566,7 +567,7 @@ def should_scope_freshness_to_cve_owned(repo_root: Path = REPO_ROOT) -> bool:
         return False
     base = os.environ.get("CVE_CATALOG_VALIDATION_BASE", "").strip()
     if not base:
-        return True
+        return False
     try:
         head = subprocess.check_output(
             ["git", "-C", str(repo_root), "rev-parse", "HEAD"],
