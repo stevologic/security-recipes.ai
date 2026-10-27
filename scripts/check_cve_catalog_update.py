@@ -4,11 +4,12 @@
 from __future__ import annotations
 
 import argparse
+import gzip
 import json
 import os
 import sys
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -125,6 +126,146 @@ def _year_totals(manifest: dict[str, Any]) -> dict[str, int]:
     return result
 
 
+def _scope_date(manifest: dict[str, Any], key: str) -> date | None:
+    scope = manifest.get("scope")
+    if not isinstance(scope, dict):
+        return None
+    value = scope.get(key)
+    if not isinstance(value, str) or not value:
+        return None
+    try:
+        return date.fromisoformat(value[:10])
+    except ValueError:
+        return None
+
+
+def _published_date_text(value: object) -> str | None:
+    if not isinstance(value, str) or len(value) < 10:
+        return None
+    text = value[:10]
+    try:
+        date.fromisoformat(text)
+    except ValueError:
+        return None
+    return text
+
+
+def _published_dates(manifest: dict[str, Any]) -> list[str]:
+    dates: list[str] = []
+    raw_dates = manifest.get("published_dates")
+    if isinstance(raw_dates, list):
+        for item in raw_dates:
+            if isinstance(item, dict):
+                parsed = _published_date_text(item.get("published"))
+            else:
+                parsed = _published_date_text(item)
+            if parsed is not None:
+                dates.append(parsed)
+        return dates
+    records = manifest.get("records")
+    if not isinstance(records, list):
+        return []
+    for record in records:
+        if not isinstance(record, dict):
+            continue
+        parsed = _published_date_text(record.get("published"))
+        if parsed is not None:
+            dates.append(parsed)
+    return dates
+
+
+def _year_totals_in_window(
+    published_dates: list[str],
+    published_start: date,
+) -> dict[str, int]:
+    start = published_start.isoformat()
+    totals: dict[str, int] = {}
+    for published in published_dates:
+        if published < start:
+            continue
+        year = published[:4]
+        totals[year] = totals.get(year, 0) + 1
+    return totals
+
+
+def _comparable_year_totals(
+    baseline: dict[str, Any],
+    candidate: dict[str, Any],
+) -> dict[str, int]:
+    """Recount the previous catalog inside the new window for the start year only.
+
+    Later years keep the stored publication-year totals so their drop guard is
+    unchanged. The rolling 10-year window's first year shrinks every day; those
+    expired records must not look like a real year-over-year loss.
+    """
+    before_years = _year_totals(baseline)
+    new_start = _scope_date(candidate, "published_start")
+    if new_start is None:
+        return before_years
+    published_dates = _published_dates(baseline)
+    if not published_dates:
+        return before_years
+    start_year = f"{new_start.year:04d}"
+    if start_year not in before_years:
+        return before_years
+    windowed = _year_totals_in_window(published_dates, new_start)
+    comparable = dict(before_years)
+    comparable[start_year] = windowed.get(start_year, 0)
+    return comparable
+
+
+def published_dates_from_year_index(path: Path) -> list[str]:
+    try:
+        index = json.loads(gzip.decompress(path.read_bytes()))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ValueError(f"year index is not readable JSON: {path}: {exc}") from exc
+    if not isinstance(index, dict):
+        raise ValueError(f"year index must be a JSON object: {path}")
+    records = index.get("records")
+    if not isinstance(records, list):
+        return []
+    dates: list[str] = []
+    for record in records:
+        if not isinstance(record, dict):
+            continue
+        parsed = _published_date_text(record.get("published"))
+        if parsed is not None:
+            dates.append(parsed)
+    return dates
+
+
+def attach_baseline_published_dates(
+    manifest: dict[str, Any],
+    catalog_dir: Path,
+) -> dict[str, Any]:
+    """Copy start-year published dates onto a baseline snapshot for like-for-like compares."""
+    start = _scope_date(manifest, "published_start")
+    if start is None:
+        return manifest
+    index_path = catalog_dir / "indexes" / f"{start.year:04d}.json.gz"
+    if not index_path.is_file():
+        return manifest
+    try:
+        dates = published_dates_from_year_index(index_path)
+    except ValueError:
+        return manifest
+    if not dates:
+        return manifest
+    enriched = dict(manifest)
+    enriched["published_dates"] = dates
+    return enriched
+
+
+def write_baseline_snapshot(catalog_dir: Path, dest: Path) -> Path:
+    manifest = _load_object(catalog_dir / "manifest.json", description="baseline manifest")
+    snapshot = attach_baseline_published_dates(manifest, catalog_dir)
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    dest.write_text(
+        json.dumps(snapshot, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    return dest
+
+
 def catalog_anomalies(
     baseline: dict[str, Any],
     candidate: dict[str, Any],
@@ -189,8 +330,9 @@ def catalog_anomalies(
                 "Publication-year partitions disappeared: " + ", ".join(missing_years),
             )
         )
-    for year in sorted(set(before_years) & set(after_years)):
-        before = before_years[year]
+    comparable_before = _comparable_year_totals(baseline, candidate)
+    for year in sorted(set(comparable_before) & set(after_years)):
+        before = comparable_before[year]
         after = after_years[year]
         if _drop_is_suspicious(before, after, relative=0.10, absolute=100):
             findings.append(

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import gzip
 import json
 import tempfile
 import unittest
@@ -188,6 +189,131 @@ class CatalogUpdateGuardTests(unittest.TestCase):
         self.assertFalse(
             any("time budget" in alert for alert in health["alerts"])
         )
+
+    def test_rolling_window_shrink_does_not_quarantine_start_year(self) -> None:
+        baseline = manifest()
+        baseline["scope"] = {
+            "published_start": "2016-10-25",
+            "published_end": "2026-10-25",
+        }
+        baseline["by_publication_year"]["2016"] = {"total": 1_120}
+        baseline["published_dates"] = ["2016-10-25"] * 150 + ["2016-10-26"] * 970
+        candidate = manifest()
+        candidate["scope"] = {
+            "published_start": "2016-10-26",
+            "published_end": "2026-10-26",
+        }
+        candidate["by_publication_year"]["2016"] = {"total": 970}
+
+        report = catalog_guard.build_report(baseline, candidate, sync_report())
+
+        self.assertTrue(report["safe_to_merge"])
+        self.assertEqual(report["anomalies"], [])
+
+    def test_real_drop_in_window_start_year_still_quarantines(self) -> None:
+        baseline = manifest()
+        baseline["scope"] = {
+            "published_start": "2016-10-25",
+            "published_end": "2026-10-25",
+        }
+        baseline["by_publication_year"]["2016"] = {"total": 1_120}
+        baseline["records"] = (
+            [{"published": "2016-10-25"}] * 150
+            + [{"published": "2016-10-26"}] * 970
+        )
+        candidate = manifest()
+        candidate["scope"] = {
+            "published_start": "2016-10-26",
+            "published_end": "2026-10-26",
+        }
+        candidate["by_publication_year"]["2016"] = {"total": 800}
+
+        report = catalog_guard.build_report(baseline, candidate, sync_report())
+        codes = {finding["code"] for finding in report["anomalies"]}
+
+        self.assertFalse(report["safe_to_merge"])
+        self.assertIn("publication-year-drop", codes)
+        self.assertTrue(
+            any(
+                finding["code"] == "publication-year-drop"
+                and "2016" in finding["message"]
+                and "970" in finding["message"]
+                and "800" in finding["message"]
+                for finding in report["anomalies"]
+            )
+        )
+
+    def test_real_drop_in_other_year_still_quarantines(self) -> None:
+        baseline = manifest()
+        baseline["scope"] = {
+            "published_start": "2016-10-25",
+            "published_end": "2026-10-25",
+        }
+        baseline["by_publication_year"]["2016"] = {"total": 1_120}
+        baseline["published_dates"] = ["2016-10-25"] * 150 + ["2016-10-26"] * 970
+        candidate = manifest()
+        candidate["scope"] = {
+            "published_start": "2016-10-26",
+            "published_end": "2026-10-26",
+        }
+        candidate["by_publication_year"]["2016"] = {"total": 970}
+        candidate["by_publication_year"]["2025"] = {"total": 35_000}
+
+        report = catalog_guard.build_report(baseline, candidate, sync_report())
+        year_drops = [
+            finding
+            for finding in report["anomalies"]
+            if finding["code"] == "publication-year-drop"
+        ]
+
+        self.assertFalse(report["safe_to_merge"])
+        self.assertEqual(len(year_drops), 1)
+        self.assertIn("2025", year_drops[0]["message"])
+        self.assertNotIn("2016", year_drops[0]["message"])
+
+    def test_baseline_snapshot_recounts_start_year_from_year_index(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            catalog_dir = Path(tmpdir) / "cve-catalog"
+            index_dir = catalog_dir / "indexes"
+            index_dir.mkdir(parents=True)
+            manifest_payload = manifest()
+            manifest_payload["scope"] = {
+                "published_start": "2016-10-25",
+                "published_end": "2026-10-25",
+            }
+            manifest_payload["by_publication_year"]["2016"] = {"total": 1_120}
+            (catalog_dir / "manifest.json").write_text(
+                json.dumps(manifest_payload) + "\n", encoding="utf-8"
+            )
+            (index_dir / "2016.json.gz").write_bytes(
+                gzip.compress(
+                    json.dumps(
+                        {
+                            "year": "2016",
+                            "records": (
+                                [{"published": "2016-10-25"}] * 150
+                                + [{"published": "2016-10-26"}] * 970
+                            ),
+                        }
+                    ).encode("utf-8")
+                )
+            )
+            snapshot_path = Path(tmpdir) / "baseline.json"
+            catalog_guard.write_baseline_snapshot(catalog_dir, snapshot_path)
+            snapshot = json.loads(snapshot_path.read_text(encoding="utf-8"))
+
+            self.assertEqual(snapshot["published_dates"].count("2016-10-25"), 150)
+            self.assertEqual(snapshot["published_dates"].count("2016-10-26"), 970)
+
+            candidate = manifest()
+            candidate["scope"] = {
+                "published_start": "2016-10-26",
+                "published_end": "2026-10-26",
+            }
+            candidate["by_publication_year"]["2016"] = {"total": 970}
+            report = catalog_guard.build_report(snapshot, candidate, sync_report())
+            self.assertTrue(report["safe_to_merge"])
+            self.assertEqual(report["anomalies"], [])
 
     def test_cli_writes_fail_closed_github_outputs(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
