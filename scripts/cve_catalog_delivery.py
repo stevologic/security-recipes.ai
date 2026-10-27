@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import json
 from dataclasses import asdict, dataclass
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -23,10 +24,16 @@ ALERT_ACTIONS = frozenset(
         "fail_closed_head_mismatch",
         "fail_unexpected",
         "identity_changed",
+        "merged_wrong_sha",
+        "fail_fallback_escalated",
     }
 )
 SYNC_BRANCH = "automation/cve-catalog-sync"
+GENERATED_OUTPUT_BRANCH = "automation/cve-generated-outputs"
 FALLBACK_LABEL = "automation:protection-fallback"
+KAREN_QA_REVIEW_LABEL = "needs karen-qa"
+FALLBACK_CONSECUTIVE_RUNS = 2
+FALLBACK_MAX_AGE = timedelta(hours=24)
 PROTECTION_MARKERS = (
     "required status check",
     "required status checks",
@@ -187,6 +194,15 @@ def self_merge_gate(
     )
 
 
+def merged_sha_matches(*, head_sha: str, merge_commit_sha: str, expected_sha: str) -> bool:
+    """True when a merged PR's head or merge SHA is the exact expected revision."""
+
+    expected = (expected_sha or "").strip()
+    if not expected:
+        return False
+    return expected in {(head_sha or "").strip(), (merge_commit_sha or "").strip()}
+
+
 def classify_pr_state(
     *,
     state: str,
@@ -199,9 +215,16 @@ def classify_pr_state(
     expected_branch: str,
     expected_sha: str,
     expected_base: str,
+    merge_commit_sha: str = "",
 ) -> str:
     if merged:
-        return "already_merged"
+        if merged_sha_matches(
+            head_sha=head_sha,
+            merge_commit_sha=merge_commit_sha,
+            expected_sha=expected_sha,
+        ):
+            return "already_merged"
+        return "merged_wrong_sha"
     if state != "open":
         return "fail_unexpected"
     if (
@@ -213,6 +236,95 @@ def classify_pr_state(
     if head_sha != expected_sha:
         return "head_moved"
     return "current"
+
+
+def parse_github_datetime(value: str) -> datetime | None:
+    text = (value or "").strip()
+    if not text:
+        return None
+    if text.endswith("Z"):
+        text = text[:-1] + "+00:00"
+    try:
+        parsed = datetime.fromisoformat(text)
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)
+
+
+@dataclass(frozen=True)
+class FallbackDecision:
+    escalate: bool
+    action: str
+    message: str
+    consecutive_runs: int
+    age_hours: float
+
+    def to_json(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+def classify_protection_fallback(
+    *,
+    already_labeled: bool,
+    created_at: str,
+    now: datetime | None = None,
+) -> FallbackDecision:
+    """Escalate after 2 consecutive fallback runs or when the PR is older than 24h."""
+
+    clock = now or datetime.now(timezone.utc)
+    if clock.tzinfo is None:
+        clock = clock.replace(tzinfo=timezone.utc)
+    else:
+        clock = clock.astimezone(timezone.utc)
+    consecutive = FALLBACK_CONSECUTIVE_RUNS if already_labeled else 1
+    created = parse_github_datetime(created_at)
+    if created is None:
+        return FallbackDecision(
+            escalate=True,
+            action="fail_fallback_escalated",
+            message=(
+                "Catalog protection-fallback PR has an invalid created_at "
+                "timestamp; failing closed as a real alert."
+            ),
+            consecutive_runs=consecutive,
+            age_hours=0.0,
+        )
+    age = clock - created
+    age_hours = max(0.0, age.total_seconds() / 3600)
+    if consecutive >= FALLBACK_CONSECUTIVE_RUNS:
+        return FallbackDecision(
+            escalate=True,
+            action="fail_fallback_escalated",
+            message=(
+                "Catalog PR has been in protection-fallback on 2 consecutive "
+                "sync runs; escalating to a real alert."
+            ),
+            consecutive_runs=consecutive,
+            age_hours=age_hours,
+        )
+    if age >= FALLBACK_MAX_AGE:
+        return FallbackDecision(
+            escalate=True,
+            action="fail_fallback_escalated",
+            message=(
+                "Catalog PR is older than 24h and still in protection-fallback; "
+                "escalating to a real alert."
+            ),
+            consecutive_runs=consecutive,
+            age_hours=age_hours,
+        )
+    return FallbackDecision(
+        escalate=False,
+        action="protection_fallback",
+        message=(
+            "Data-only catalog merge is blocked by branch protection; "
+            "leaving the PR open for the next sync retry."
+        ),
+        consecutive_runs=consecutive,
+        age_hours=age_hours,
+    )
 
 
 def classify_merge_error(*, data_only: bool, error_text: str) -> str:
@@ -272,6 +384,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     ref.add_argument("--default-branch", required=True)
     ref.add_argument("--pr-branch", required=True)
 
+    fallback = sub.add_parser("fallback-escalation")
+    fallback.add_argument("--already-labeled", required=True, choices=("true", "false"))
+    fallback.add_argument("--created-at", required=True)
+    fallback.add_argument("--now", default="")
+
     return parser.parse_args(argv)
 
 
@@ -310,6 +427,7 @@ def main(argv: list[str] | None = None) -> int:
             expected_branch=args.expected_branch,
             expected_sha=args.expected_sha,
             expected_base=args.expected_base,
+            merge_commit_sha=str(payload.get("merge_commit_sha") or ""),
         )
         print(action)
         return 0
@@ -351,6 +469,15 @@ def main(argv: list[str] | None = None) -> int:
                 pr_branch=args.pr_branch,
             )
         )
+        return 0
+    if args.command == "fallback-escalation":
+        clock = parse_github_datetime(args.now) if args.now else None
+        decision = classify_protection_fallback(
+            already_labeled=_flag(args.already_labeled),
+            created_at=args.created_at,
+            now=clock,
+        )
+        print(json.dumps(decision.to_json(), indent=2, sort_keys=True))
         return 0
     raise SystemExit(f"unknown command: {args.command}")
 

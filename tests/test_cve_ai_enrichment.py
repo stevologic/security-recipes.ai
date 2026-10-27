@@ -1715,6 +1715,19 @@ class CVEAIEnrichmentTests(unittest.TestCase):
             enrichment.write_enrichment_carryover(path, leftovers, reason="request_budget")
             self.assertEqual(enrichment.load_enrichment_carryover(path), ("CVE-2026-4203",))
 
+    def test_failed_enrichment_cves_are_dropped_and_not_carried_over(self) -> None:
+        leftovers = enrichment.leftover_enrichment_candidates(
+            ("CVE-2026-4401", "CVE-2026-4402", "CVE-2026-4403"),
+            ("CVE-2026-4401",),
+            ("CVE-2026-4402",),
+        )
+        self.assertEqual(leftovers, ("CVE-2026-4403",))
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = Path(tmpdir) / "enrichment-carryover.json"
+            enrichment.write_enrichment_carryover(path, leftovers, reason="time_budget")
+            self.assertEqual(enrichment.load_enrichment_carryover(path), ("CVE-2026-4403",))
+            self.assertNotIn("CVE-2026-4402", enrichment.load_enrichment_carryover(path))
+
     def test_empty_carryover_clears_the_file_and_is_not_an_alert(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             path = Path(tmpdir) / "enrichment-carryover.json"

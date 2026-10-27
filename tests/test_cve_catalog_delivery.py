@@ -3,15 +3,22 @@ from __future__ import annotations
 import json
 import tempfile
 import unittest
+from contextlib import redirect_stdout
+from datetime import datetime, timedelta, timezone
+from io import StringIO
 from pathlib import Path
 
 from scripts.cve_catalog_delivery import (
     FALLBACK_LABEL,
+    GENERATED_OUTPUT_BRANCH,
+    KAREN_QA_REVIEW_LABEL,
     can_reuse_in_run_validation,
     classify_merge_error,
     classify_pr_state,
+    classify_protection_fallback,
     is_alert_action,
     main as delivery_main,
+    merged_sha_matches,
     policy_for_catalog_pr,
     self_merge_gate,
     validation_ref,
@@ -34,10 +41,12 @@ def pr_payload(
     head_branch: str = "automation/cve-catalog-sync",
     base_branch: str = "main",
     repo: str = "stevologic/security-recipes.ai",
+    merge_commit_sha: str = "",
 ) -> dict[str, object]:
     return {
         "state": state,
         "merged": merged,
+        "merge_commit_sha": merge_commit_sha,
         "head": {"sha": head_sha, "ref": head_branch, "repo": {"full_name": repo}},
         "base": {"ref": base_branch},
     }
@@ -88,7 +97,7 @@ class CveCatalogDeliveryTests(unittest.TestCase):
         self.assertEqual(action, "already_merged")
         self.assertFalse(is_alert_action(action))
 
-    def test_merged_at_a_different_head_is_still_idempotent(self) -> None:
+    def test_merged_at_a_different_head_is_a_real_error(self) -> None:
         action = classify_pr_state(
             state="closed",
             merged=True,
@@ -100,8 +109,29 @@ class CveCatalogDeliveryTests(unittest.TestCase):
             expected_branch="automation/cve-catalog-sync",
             expected_sha=SHA,
             expected_base="main",
+            merge_commit_sha=OTHER,
+        )
+        self.assertEqual(action, "merged_wrong_sha")
+        self.assertTrue(is_alert_action(action))
+        self.assertFalse(merged_sha_matches(head_sha=OTHER, merge_commit_sha=OTHER, expected_sha=SHA))
+
+    def test_merged_at_expected_merge_commit_sha_is_idempotent(self) -> None:
+        action = classify_pr_state(
+            state="closed",
+            merged=True,
+            head_repository="stevologic/security-recipes.ai",
+            head_branch="automation/cve-catalog-sync",
+            head_sha=OTHER,
+            base_branch="main",
+            expected_repository="stevologic/security-recipes.ai",
+            expected_branch="automation/cve-catalog-sync",
+            expected_sha=SHA,
+            expected_base="main",
+            merge_commit_sha=SHA,
         )
         self.assertEqual(action, "already_merged")
+        self.assertFalse(is_alert_action(action))
+        self.assertTrue(merged_sha_matches(head_sha=OTHER, merge_commit_sha=SHA, expected_sha=SHA))
 
     def test_moved_head_retries_instead_of_alerting(self) -> None:
         action = classify_pr_state(
@@ -286,24 +316,85 @@ class CveCatalogDeliveryTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdir:
             path = Path(tmpdir) / "pr.json"
             path.write_text(json.dumps(pr_payload(merged=True, state="closed")), encoding="utf-8")
-            self.assertEqual(
-                delivery_main(
-                    [
-                        "pr-state",
-                        "--pr-json-file",
-                        str(path),
-                        "--expected-repository",
-                        "stevologic/security-recipes.ai",
-                        "--expected-branch",
-                        "automation/cve-catalog-sync",
-                        "--expected-sha",
-                        SHA,
-                        "--expected-base",
-                        "main",
-                    ]
-                ),
-                0,
+            merged_out = StringIO()
+            with redirect_stdout(merged_out):
+                self.assertEqual(
+                    delivery_main(
+                        [
+                            "pr-state",
+                            "--pr-json-file",
+                            str(path),
+                            "--expected-repository",
+                            "stevologic/security-recipes.ai",
+                            "--expected-branch",
+                            "automation/cve-catalog-sync",
+                            "--expected-sha",
+                            SHA,
+                            "--expected-base",
+                            "main",
+                        ]
+                    ),
+                    0,
+                )
+            self.assertEqual(merged_out.getvalue().strip(), "already_merged")
+            wrong = Path(tmpdir) / "wrong.json"
+            wrong.write_text(
+                json.dumps(pr_payload(merged=True, state="closed", head_sha=OTHER, merge_commit_sha=OTHER)),
+                encoding="utf-8",
             )
+            stdout = StringIO()
+            with redirect_stdout(stdout):
+                self.assertEqual(
+                    delivery_main(
+                        [
+                            "pr-state",
+                            "--pr-json-file",
+                            str(wrong),
+                            "--expected-repository",
+                            "stevologic/security-recipes.ai",
+                            "--expected-branch",
+                            "automation/cve-catalog-sync",
+                            "--expected-sha",
+                            SHA,
+                            "--expected-base",
+                            "main",
+                        ]
+                    ),
+                    0,
+                )
+            self.assertEqual(stdout.getvalue().strip(), "merged_wrong_sha")
+
+    def test_fallback_escalates_on_second_consecutive_run(self) -> None:
+        now = datetime(2026, 10, 27, 8, 0, tzinfo=timezone.utc)
+        first = classify_protection_fallback(
+            already_labeled=False,
+            created_at="2026-10-27T07:00:00Z",
+            now=now,
+        )
+        self.assertFalse(first.escalate)
+        self.assertEqual(first.action, "protection_fallback")
+        self.assertFalse(is_alert_action(first.action))
+        second = classify_protection_fallback(
+            already_labeled=True,
+            created_at="2026-10-27T07:00:00Z",
+            now=now,
+        )
+        self.assertTrue(second.escalate)
+        self.assertEqual(second.action, "fail_fallback_escalated")
+        self.assertTrue(is_alert_action(second.action))
+        self.assertIn("2 consecutive", second.message)
+
+    def test_fallback_escalates_when_pr_is_older_than_24h(self) -> None:
+        now = datetime(2026, 10, 28, 8, 30, tzinfo=timezone.utc)
+        decision = classify_protection_fallback(
+            already_labeled=False,
+            created_at=(now - timedelta(hours=24, minutes=1)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            now=now,
+        )
+        self.assertTrue(decision.escalate)
+        self.assertEqual(decision.action, "fail_fallback_escalated")
+        self.assertTrue(is_alert_action(decision.action))
+        self.assertIn("older than 24h", decision.message)
 
     def test_workflow_wires_fallback_label_concurrency_and_build_dispatch_on_pr_head(
         self,
@@ -320,10 +411,21 @@ class CveCatalogDeliveryTests(unittest.TestCase):
         self.assertIn("Never gate self-merge on github-actions[bot]", workflow)
         self.assertNotIn("reuse-build-check", workflow)
         self.assertIn("protection_fallback=true", workflow)
+        self.assertIn("fallback-escalation", workflow)
+        self.assertIn("merged_wrong_sha", workflow)
+        self.assertIn("head/merge SHA is not the expected SHA", workflow)
         self.assertIn("data/cve/enrichment-carryover.json", workflow)
+        self.assertIn(GENERATED_OUTPUT_BRANCH, workflow)
+        self.assertIn(KAREN_QA_REVIEW_LABEL, workflow)
         automation = AUTOMATION.read_text(encoding="utf-8")
         self.assertIn("data-only", automation)
         self.assertIn("enrichment-carryover.json", automation)
+        self.assertIn("fail enrichment are dropped", automation)
+        self.assertIn("build` check is not", automation)
+        self.assertIn("the path gate is the control", automation)
+        self.assertIn("content/recipes/cve/*.md", automation)
+        self.assertIn(GENERATED_OUTPUT_BRANCH, automation)
+        self.assertIn(KAREN_QA_REVIEW_LABEL, automation)
 
 
 if __name__ == "__main__":

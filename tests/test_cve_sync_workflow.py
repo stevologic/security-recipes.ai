@@ -201,16 +201,44 @@ class CveSyncWorkflowTests(unittest.TestCase):
             "data/cve/ai-enrichments.json",
             "data/cve/ai-generated-recipes.json",
             "data/cve/enrichment-carryover.json",
-            "content/recipes/cve",
+            ":(glob)content/recipes/cve/*.md",
+        ):
+            with self.subTest(path=path):
+                self.assertIn(path, commit_step)
+        self.assertNotIn("data/evidence", commit_step)
+        self.assertNotIn("data/context/secure-context-release-pack.json", commit_step)
+        self.assertNotIn("data/policy/mcp-gateway-policy.json", commit_step)
+        self.assertNotIn("scripts/generated-output-ownership.json", commit_step)
+        self.assertNotRegex(commit_step, r"(?m)^\s+content/recipes/cve\s*\\?\s*$")
+        self.assertIn("--json number,isCrossRepository", commit_step)
+        self.assertIn("select(.isCrossRepository == false)", commit_step)
+
+    def test_behavior_changing_outputs_open_a_separate_karen_qa_pr(self) -> None:
+        generated_step = self.step("Open generated-output review pull request")
+        commit_step = self.step("Open or refresh catalog pull request")
+        delivery_step = self.step(
+            "Reconcile, validate, and merge exact catalog revision"
+        )
+        self.assertLess(
+            self.workflow.index("Open or refresh catalog pull request"),
+            self.workflow.index("Open generated-output review pull request"),
+        )
+        for path in (
             "data/evidence",
             "data/context/secure-context-release-pack.json",
             "data/policy/mcp-gateway-policy.json",
             "scripts/generated-output-ownership.json",
         ):
             with self.subTest(path=path):
-                self.assertIn(path, commit_step)
-        self.assertIn("--json number,isCrossRepository", commit_step)
-        self.assertIn("select(.isCrossRepository == false)", commit_step)
+                self.assertIn(path, generated_step)
+                self.assertNotIn(path, commit_step)
+        self.assertIn("automation/cve-generated-outputs", generated_step)
+        self.assertIn("needs karen-qa", generated_step)
+        self.assertIn("never self-merged", generated_step)
+        self.assertIn("No behaviour-changing generator outputs changed.", generated_step)
+        self.assertNotIn("pulls/${PR_NUMBER}/merge", generated_step)
+        self.assertNotIn("self-merge-gate", generated_step)
+        self.assertIn("pulls/${PR_NUMBER}/merge", delivery_step)
 
     def test_recipe_derived_evidence_is_regenerated_before_validation_and_commit(self) -> None:
         generator_step = self.step("Refresh deterministic recipe-derived evidence")
@@ -323,6 +351,10 @@ class CveSyncWorkflowTests(unittest.TestCase):
         self.assertIn("report_protection_fallback", delivery_step)
         self.assertIn("protection_fallback=true", delivery_step)
         self.assertIn("automation:protection-fallback", delivery_step)
+        self.assertIn("fallback-escalation", delivery_step)
+        self.assertIn("2 consecutive runs or 24h", delivery_step)
+        self.assertIn("merged_wrong_sha", delivery_step)
+        self.assertEqual(delivery_step.count("head/merge SHA is not the expected SHA"), 3)
         self.assertIn("Data-only catalog PR skips karen-qa and the GitHub App check.", delivery_step)
         self.assertIn('--ref "$VALIDATION_REF"', delivery_step)
         self.assertIn("reuse-in-run-validation", delivery_step)

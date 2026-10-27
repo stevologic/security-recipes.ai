@@ -7,12 +7,15 @@ from scripts.cve_catalog_data_paths import (
     CATALOG_DATA_PATH_PREFIXES,
     DiffPath,
     allowlisted_catalog_paths,
+    catalog_commit_pathspecs,
     evaluate_catalog_diff,
+    generated_behavior_output_pathspecs,
     is_catalog_data_path,
     normalize_repo_path,
     parse_name_status_lines,
     parse_name_status_z,
     parse_raw_z,
+    path_matches_prefix,
 )
 
 
@@ -30,17 +33,19 @@ class CveCatalogDataPathTests(unittest.TestCase):
         self.assertIn("data/cve/ai-enrichments.json", allowed)
         self.assertIn("data/cve/ai-generated-recipes.json", allowed)
         self.assertIn("data/cve/enrichment-carryover.json", allowed)
-        self.assertIn("data/context/secure-context-release-pack.json", allowed)
-        self.assertIn("data/policy/mcp-gateway-policy.json", allowed)
-        self.assertIn("scripts/generated-output-ownership.json", allowed)
+        self.assertNotIn("data/context/secure-context-release-pack.json", allowed)
+        self.assertNotIn("data/policy/mcp-gateway-policy.json", allowed)
+        self.assertNotIn("scripts/generated-output-ownership.json", allowed)
+        self.assertNotIn("data/evidence/", allowed)
         self.assertIn("static/api/cve-catalog/", allowed)
-        self.assertIn("content/recipes/cve/", allowed)
-        self.assertIn("data/evidence/", allowed)
+        self.assertIn("content/recipes/cve/*.md", allowed)
         self.assertTrue(is_catalog_data_path("static/api/cve-catalog/manifest.json"))
         self.assertTrue(is_catalog_data_path("content/recipes/cve/ai-enrichment-cve-2026-0001.md"))
-        self.assertTrue(is_catalog_data_path("data/evidence/cve-2026-0001.json"))
-        self.assertEqual(set(CATALOG_DATA_PATH_PREFIXES), set(allowed[-3:]))
+        self.assertFalse(is_catalog_data_path("data/evidence/cve-2026-0001.json"))
+        self.assertEqual(CATALOG_DATA_PATH_PREFIXES, ("static/api/cve-catalog/",))
         self.assertTrue(CATALOG_DATA_FILES)
+        self.assertIn(":(glob)content/recipes/cve/*.md", catalog_commit_pathspecs())
+        self.assertIn("data/policy/mcp-gateway-policy.json", generated_behavior_output_pathspecs())
 
     def test_data_only_diff_passes(self) -> None:
         decision = decide(
@@ -49,15 +54,40 @@ class CveCatalogDataPathTests(unittest.TestCase):
             DiffPath("M", "data/cve/ai-generated-recipes.json"),
             DiffPath("A", "data/cve/enrichment-carryover.json"),
             DiffPath("A", "content/recipes/cve/ai-enrichment-cve-2026-0001.md"),
-            DiffPath("M", "data/evidence/example.json"),
-            DiffPath("M", "data/context/secure-context-release-pack.json"),
-            DiffPath("M", "data/policy/mcp-gateway-policy.json"),
-            DiffPath("M", "scripts/generated-output-ownership.json"),
         )
         self.assertTrue(decision.data_only)
         self.assertTrue(decision.sha_matches)
         self.assertEqual(decision.rejected_paths, ())
         self.assertEqual(decision.unsafe_paths, ())
+
+    def test_behavior_changing_pipeline_outputs_fail_closed(self) -> None:
+        for path in (
+            "data/policy/mcp-gateway-policy.json",
+            "scripts/generated-output-ownership.json",
+            "data/context/secure-context-release-pack.json",
+            "data/evidence/cve-2026-0001.json",
+        ):
+            with self.subTest(path=path):
+                decision = decide(DiffPath("M", path))
+                self.assertFalse(decision.data_only)
+                self.assertIn(path, decision.rejected_paths)
+
+    def test_recipe_non_markdown_fails_closed(self) -> None:
+        decision = decide(DiffPath("A", "content/recipes/cve/evil.py"))
+        self.assertFalse(decision.data_only)
+        self.assertEqual(decision.rejected_paths, ("content/recipes/cve/evil.py",))
+        self.assertFalse(is_catalog_data_path("content/recipes/cve/evil.py"))
+        self.assertFalse(is_catalog_data_path("content/recipes/cve/notes.txt"))
+        self.assertTrue(is_catalog_data_path("content/recipes/cve/ok.md"))
+
+    def test_prefix_matching_requires_directory_boundary(self) -> None:
+        self.assertFalse(path_matches_prefix("static/api/cve-catalog-evil/x", "static/api/cve-catalog"))
+        self.assertFalse(path_matches_prefix("static/api/cve-catalog-evil/x", "static/api/cve-catalog/"))
+        self.assertTrue(path_matches_prefix("static/api/cve-catalog/manifest.json", "static/api/cve-catalog"))
+        decision = decide(DiffPath("A", "static/api/cve-catalog-evil/x"))
+        self.assertFalse(decision.data_only)
+        self.assertEqual(decision.rejected_paths, ("static/api/cve-catalog-evil/x",))
+        self.assertFalse(is_catalog_data_path("static/api/cve-catalog-evil/x"))
 
     def test_workflow_path_fails_closed(self) -> None:
         decision = decide(

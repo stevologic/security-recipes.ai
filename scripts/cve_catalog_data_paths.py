@@ -20,22 +20,39 @@ from typing import Any, Iterable
 SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 
 # Exact generated catalog artifacts the sync bot is allowed to rewrite.
+# Behaviour-changing pipeline outputs (MCP/gateway policy, evidence packs,
+# context packs, generator ownership) are intentionally excluded.
 CATALOG_DATA_FILES = frozenset(
     {
         "data/cve/ai-enrichments.json",
         "data/cve/ai-generated-recipes.json",
         "data/cve/enrichment-carryover.json",
-        "data/context/secure-context-release-pack.json",
-        "data/policy/mcp-gateway-policy.json",
-        "scripts/generated-output-ownership.json",
     }
 )
 
-# Directory prefixes. The directory itself is also allowed (git may emit it).
-CATALOG_DATA_PATH_PREFIXES = (
-    "static/api/cve-catalog/",
-    "content/recipes/cve/",
-    "data/evidence/",
+# Directory prefixes. Matching uses a directory boundary (trailing slash);
+# `static/api/cve-catalog-evil/x` must not match `static/api/cve-catalog/`.
+CATALOG_DATA_PATH_PREFIXES = ("static/api/cve-catalog/",)
+
+# Recipe drafts are allowlisted only as *.md files under this directory.
+CATALOG_RECIPE_PREFIX = "content/recipes/cve/"
+CATALOG_RECIPE_SUFFIX = ".md"
+
+# Narrow pathspecs staged onto the self-merged catalog PR.
+CATALOG_COMMIT_PATHSPECS = (
+    "static/api/cve-catalog",
+    "data/cve/ai-enrichments.json",
+    "data/cve/ai-generated-recipes.json",
+    "data/cve/enrichment-carryover.json",
+    ":(glob)content/recipes/cve/*.md",
+)
+
+# Generator outputs that change MCP/gateway behaviour. These never self-merge.
+GENERATED_BEHAVIOR_OUTPUT_PATHSPECS = (
+    "data/evidence",
+    "data/context/secure-context-release-pack.json",
+    "data/policy/mcp-gateway-policy.json",
+    "scripts/generated-output-ownership.json",
 )
 
 
@@ -97,22 +114,48 @@ def normalize_repo_path(value: str | None) -> str | None:
     return "/".join(parts)
 
 
+def path_matches_prefix(path: str, prefix: str) -> bool:
+    """True when path is prefix or a descendant, using a directory boundary."""
+
+    directory = (prefix or "").strip().replace("\\", "/").rstrip("/")
+    if not directory or not path:
+        return False
+    return path == directory or path.startswith(directory + "/")
+
+
+def is_allowed_catalog_recipe_path(path: str) -> bool:
+    directory = CATALOG_RECIPE_PREFIX.rstrip("/")
+    if path == directory:
+        return True
+    if not path_matches_prefix(path, directory):
+        return False
+    name = path.rsplit("/", 1)[-1]
+    return name.endswith(CATALOG_RECIPE_SUFFIX) and name != CATALOG_RECIPE_SUFFIX
+
+
 def is_catalog_data_path(path: str) -> bool:
     normalized = normalize_repo_path(path)
     if normalized is None:
         return False
     if normalized in CATALOG_DATA_FILES:
         return True
-    for prefix in CATALOG_DATA_PATH_PREFIXES:
-        directory = prefix.rstrip("/")
-        if normalized == directory or normalized.startswith(prefix):
-            return True
-    return False
+    if is_allowed_catalog_recipe_path(normalized):
+        return True
+    return any(path_matches_prefix(normalized, prefix) for prefix in CATALOG_DATA_PATH_PREFIXES)
 
 
 def allowlisted_catalog_paths() -> tuple[str, ...]:
     prefixes = tuple(prefix.rstrip("/") + "/" for prefix in CATALOG_DATA_PATH_PREFIXES)
-    return tuple(sorted(CATALOG_DATA_FILES)) + prefixes
+    recipes = (CATALOG_RECIPE_PREFIX.rstrip("/") + "/*" + CATALOG_RECIPE_SUFFIX,)
+    return tuple(sorted(CATALOG_DATA_FILES)) + prefixes + recipes
+
+
+def catalog_commit_pathspecs() -> tuple[str, ...]:
+    return CATALOG_COMMIT_PATHSPECS
+
+
+def generated_behavior_output_pathspecs() -> tuple[str, ...]:
+    return GENERATED_BEHAVIOR_OUTPUT_PATHSPECS
 
 
 def parse_name_status_z(payload: bytes) -> list[DiffPath]:

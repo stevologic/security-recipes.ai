@@ -617,7 +617,11 @@ def leftover_enrichment_candidates(
     generated: Iterable[str],
     failed: Iterable[str],
 ) -> tuple[str, ...]:
-    """Return selected IDs that were not generated or failed this run."""
+    """Return selected IDs that were not generated and did not fail.
+
+    CVEs that fail enrichment are dropped and must not be carried over.
+    Only unprocessed leftovers (request or time budget) persist.
+    """
 
     completed = set(generated) | set(failed)
     return tuple(cve for cve in selected if cve not in completed)
