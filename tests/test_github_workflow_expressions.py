@@ -32,18 +32,27 @@ class GitHubWorkflowExpressionTests(unittest.TestCase):
             f"instead: {offenders}",
         )
 
-    def test_no_first_party_workflow_uses_openai_or_codex(self) -> None:
+    def test_no_first_party_workflow_uses_codex_or_non_catalog_openai(self) -> None:
+        catalog_sync = "cve-catalog-sync.yml"
         offenders: list[str] = []
         for path in sorted(WORKFLOWS.glob("*.yml")):
             text = path.read_text(encoding="utf-8")
-            if "openai/codex-action" in text or "OPENAI_API_KEY" in text:
+            if "openai/codex-action" in text:
+                offenders.append(path.name)
+                continue
+            if path.name == catalog_sync:
+                continue
+            if "OPENAI_API_KEY" in text:
                 offenders.append(path.name)
         self.assertEqual(
             offenders,
             [],
-            "first-party automation must use XAI_API_KEY / Grok, not Codex: "
-            f"{offenders}",
+            "only CVE catalog enrichment may use OPENAI_API_KEY; other "
+            f"first-party automation stays on XAI_API_KEY / Grok: {offenders}",
         )
+        catalog = (WORKFLOWS / catalog_sync).read_text(encoding="utf-8")
+        self.assertIn("OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}", catalog)
+        self.assertNotIn("openai/codex-action", catalog)
 
     def test_security_health_detects_xai_key_without_secrets_if(self) -> None:
         workflow = (WORKFLOWS / "security-health.yml").read_text(encoding="utf-8")

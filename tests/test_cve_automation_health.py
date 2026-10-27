@@ -159,13 +159,30 @@ class CatalogUpdateGuardTests(unittest.TestCase):
         markdown = catalog_guard.markdown_report(report)
         self.assertIn("37 refresh-due, 2 manually prioritized", markdown)
 
-    def test_missing_xai_key_is_explicitly_unhealthy(self) -> None:
+    def test_missing_openai_key_is_explicitly_unhealthy(self) -> None:
         health = catalog_guard.enrichment_health(
             sync_report(api_enabled=False, selected=0, generated=0)
         )
 
         self.assertFalse(health["healthy"])
         self.assertIn("XAI_API_KEY", health["alerts"][0])
+        self.assertIn(catalog_guard.DEFAULT_CVE_ENRICH_MODEL, health["alerts"][0])
+        self.assertIn("OPENAI_API_KEY", health["alerts"][0])
+
+    def test_daybreak_entitlement_names_the_single_enrichment_default(self) -> None:
+        health = catalog_guard.enrichment_health(
+            sync_report(provider_error="daybreak_entitlement")
+        )
+
+        self.assertFalse(health["healthy"])
+        self.assertIn(
+            f"CVE_ENRICH_MODEL={catalog_guard.DEFAULT_CVE_ENRICH_MODEL}",
+            health["alerts"][0],
+        )
+        self.assertIn(
+            f"CVE_ENRICH_MODEL={catalog_guard.RECOMMENDED_DAYBREAK_SPEC}",
+            health["alerts"][0],
+        )
 
     def test_exhausted_quota_is_explicit_and_does_not_blame_the_time_budget(self) -> None:
         health = catalog_guard.enrichment_health(

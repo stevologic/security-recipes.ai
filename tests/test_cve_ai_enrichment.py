@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 import json
+import os
+import re
 import tempfile
 import unittest
 from datetime import datetime, timedelta, timezone
 from io import BytesIO
 from pathlib import Path
+from unittest.mock import patch
 from urllib.error import HTTPError, URLError
 
 from scripts import cve_ai_enrichment as enrichment
@@ -1642,6 +1645,417 @@ class CVEAIEnrichmentTests(unittest.TestCase):
         )
         self.assertNotIn("ai_enrichment", results[0])
         self.assertIn("ai_enrichment", results[1])
+
+
+class CVEEnrichModelConfigTests(unittest.TestCase):
+    """Unified CVE_ENRICH_MODEL switch: xAI by default, OpenAI/Daybreak dormant."""
+
+    SECRET = "xai-secret-never-log-9f3a"
+
+    def test_parse_derives_provider_from_one_model_value(self) -> None:
+        grok = enrichment.parse_cve_enrich_model("")
+        self.assertEqual(grok.provider, "xai")
+        self.assertEqual(grok.model, enrichment.DEFAULT_CVE_ENRICH_MODEL)
+        self.assertIsNone(grok.access_program)
+        self.assertEqual(grok.api_key_env, "XAI_API_KEY")
+        self.assertEqual(grok.provider_label, "xAI")
+
+        explicit = enrichment.parse_cve_enrich_model(
+            f"xai/{enrichment.DEFAULT_CVE_ENRICH_MODEL}"
+        )
+        self.assertEqual(
+            (explicit.provider, explicit.model),
+            ("xai", enrichment.DEFAULT_CVE_ENRICH_MODEL),
+        )
+
+        daybreak = enrichment.parse_cve_enrich_model("gpt-6-sol+daybreak_blue")
+        self.assertEqual(daybreak.provider, "openai")
+        self.assertEqual(daybreak.model, "gpt-6-sol")
+        self.assertEqual(daybreak.access_program, "daybreak_blue")
+        self.assertEqual(daybreak.api_key_env, "OPENAI_API_KEY")
+        self.assertEqual(daybreak.raw, "gpt-6-sol+daybreak_blue")
+
+        overlay = enrichment.parse_cve_enrich_model(
+            "gpt-6-sol", overlay_program="daybreak_blue"
+        )
+        self.assertEqual(overlay.access_program, "daybreak_blue")
+
+        ignored = enrichment.parse_cve_enrich_model(
+            enrichment.DEFAULT_CVE_ENRICH_MODEL, overlay_program="daybreak_blue"
+        )
+        self.assertIsNone(ignored.access_program)
+
+        with self.assertRaisesRegex(ValueError, "OpenAI"):
+            enrichment.parse_cve_enrich_model(
+                f"{enrichment.DEFAULT_CVE_ENRICH_MODEL}+daybreak_blue"
+            )
+        with self.assertRaisesRegex(ValueError, "cannot derive"):
+            enrichment.parse_cve_enrich_model("claude-opus")
+
+    def test_probe_uses_xai_for_default_grok_model(self) -> None:
+        from scripts import probe_openai_daybreak as probe_script
+
+        def ready(request: object, *, timeout: int) -> FakeResponse:
+            self.assertTrue(hasattr(request, "full_url"))
+            self.assertEqual(request.full_url, enrichment.DEFAULT_API_URL)
+            return FakeResponse({"id": "resp_ok"})
+
+        outcome, status = enrichment.probe_cve_enrichment_access(
+            self.SECRET,
+            model=enrichment.DEFAULT_CVE_ENRICH_MODEL,
+            opener=ready,
+        )
+        self.assertEqual((outcome, status), ("ok", 200))
+
+        stdout = __import__("io").StringIO()
+        env = {
+            "CVE_ENRICH_MODEL": enrichment.DEFAULT_CVE_ENRICH_MODEL,
+            "XAI_API_KEY": self.SECRET,
+        }
+        with (
+            patch.dict(os.environ, env, clear=False),
+            patch.object(
+                probe_script, "probe_cve_enrichment_access", return_value=("ok", 200)
+            ),
+            patch("sys.stdout", stdout),
+        ):
+            self.assertEqual(probe_script.main([]), 0)
+        self.assertEqual(stdout.getvalue(), "ok 200\n")
+        self.assertNotIn(self.SECRET, stdout.getvalue())
+
+    def test_credential_probe_defaults_to_the_single_enrichment_model(self) -> None:
+        captured: dict[str, object] = {}
+
+        def opener(request: object, *, timeout: int) -> FakeResponse:
+            self.assertTrue(hasattr(request, "data"))
+            captured["body"] = json.loads(request.data)
+            return FakeResponse({"id": "resp_ok"})
+
+        status = enrichment.probe_xai_credentials(self.SECRET, opener=opener)
+        self.assertEqual(status.reason, "ready")
+        self.assertEqual(captured["body"]["model"], enrichment.DEFAULT_CVE_ENRICH_MODEL)
+
+        from scripts import check_xai_credentials as check
+
+        env = {key: value for key, value in os.environ.items() if key not in {"XAI_MODEL", "CVE_ENRICH_MODEL"}}
+        env["XAI_API_KEY"] = self.SECRET
+        with (
+            patch.dict(os.environ, env, clear=True),
+            patch.object(check, "probe_xai_credentials", return_value=status) as probe,
+        ):
+            self.assertEqual(check.main([]), 0)
+        probe.assert_called_once()
+        self.assertEqual(probe.call_args.kwargs["model"], enrichment.DEFAULT_CVE_ENRICH_MODEL)
+
+    def test_enrichment_model_literals_live_only_on_named_constants(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        model_re = re.compile(r"(?<![A-Za-z0-9_+-])(?:grok-\d+(?:\.\d+)?|gpt-[A-Za-z0-9.+-]+)")
+        allowed_assignment = re.compile(
+            r"^\s*(?:DEFAULT_CVE_ENRICH_MODEL|DEFAULT_XAI_MODEL|"
+            r"DEFAULT_OPENAI_MODEL|RECOMMENDED_DAYBREAK_MODEL)\s*=\s*[\"'][^\"']+[\"']\s*$"
+        )
+        files = (
+            root / "scripts" / "cve_ai_enrichment.py",
+            root / "scripts" / "check_cve_catalog_update.py",
+            root / "scripts" / "probe_openai_daybreak.py",
+            root / "scripts" / "sync_cve_catalog.py",
+            root / "scripts" / "check_xai_credentials.py",
+            root / ".github" / "workflows" / "cve-catalog-sync.yml",
+        )
+        offenders: list[str] = []
+        for path in files:
+            for lineno, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
+                if not model_re.search(line):
+                    continue
+                if path.name == "cve_ai_enrichment.py" and allowed_assignment.match(line):
+                    continue
+                offenders.append(f"{path.relative_to(root)}:{lineno}:{line.strip()}")
+        self.assertEqual(
+            offenders,
+            [],
+            "catalog enrichment model ids must come from DEFAULT_CVE_ENRICH_MODEL "
+            f"(or leftover-review / dormant OpenAI named constants): {offenders}",
+        )
+
+
+class OpenAICVEEnrichmentHTTPTests(unittest.TestCase):
+    """Mocked official OpenAI Responses API path used by catalog sync."""
+
+    SECRET = "sk-openai-secret-never-log-9f3a"
+
+    def test_success_uses_openai_responses_url_schema_and_hides_the_key(self) -> None:
+        captured: dict[str, object] = {}
+        source = record()
+        searched = "https://vendor.example.test/patches/CVE-2026-1234"
+        output = model_output(source_urls=[searched])
+
+        def opener(request: object, *, timeout: int) -> FakeResponse:
+            captured["request"] = request
+            captured["timeout"] = timeout
+            return FakeResponse(response_payload(output, source=searched))
+
+        client = enrichment.OpenAIEnricher(
+            self.SECRET, opener=opener, sleep=lambda _: None
+        )
+        result = client.enrich(source)
+        request = captured["request"]
+        assert hasattr(request, "full_url") and hasattr(request, "data")
+        request_body = json.loads(request.data)
+        self.assertEqual(client.api_url, enrichment.OPENAI_API_URL)
+        self.assertEqual(request.full_url, enrichment.OPENAI_API_URL)
+        self.assertEqual(client.model, enrichment.DEFAULT_OPENAI_MODEL)
+        self.assertEqual(client.provider, "OpenAI")
+        self.assertEqual(request_body["model"], enrichment.DEFAULT_OPENAI_MODEL)
+        self.assertEqual(request_body["tools"], [{"type": "web_search"}])
+        self.assertTrue(request_body["text"]["format"]["strict"])
+        self.assertEqual(
+            request_body["text"]["format"]["schema"], enrichment.OUTPUT_SCHEMA
+        )
+        self.assertNotIn("access_programs", request_body)
+        self.assertIsNone(client.access_program)
+        self.assertNotIn(self.SECRET, request.data.decode("utf-8"))
+        self.assertNotIn(self.SECRET, json.dumps(result))
+        self.assertEqual(result["status"], "complete")
+        self.assertEqual(enrichment.enrichment_errors(result, source), [])
+
+    def test_schema_invalid_response_is_rejected_without_exposing_the_key(self) -> None:
+        def opener(_: object, *, timeout: int) -> FakeResponse:
+            invalid = {"status": "complete", "business_risk": "missing the rest"}
+            return FakeResponse(response_payload(invalid))
+
+        client = enrichment.OpenAIEnricher(
+            self.SECRET, opener=opener, sleep=lambda _: None
+        )
+        with self.assertRaises(enrichment.EnrichmentError) as raised:
+            client.enrich(record())
+        self.assertIn("required keys", str(raised.exception))
+        self.assertNotIn(self.SECRET, str(raised.exception))
+        self.assertFalse(raised.exception.fatal)
+
+    def test_timeout_and_429_are_handled_without_exposing_the_key(self) -> None:
+        timeout_attempts: list[int] = []
+
+        def timeout_opener(_: object, *, timeout: int) -> FakeResponse:
+            timeout_attempts.append(timeout)
+            raise TimeoutError("openai request timed out")
+
+        timeout_client = enrichment.OpenAIEnricher(
+            self.SECRET,
+            opener=timeout_opener,
+            sleep=lambda _: None,
+            attempts=1,
+        )
+        with self.assertRaises(enrichment.EnrichmentError) as timeout_raised:
+            timeout_client.enrich(record())
+        self.assertEqual(timeout_raised.exception.reason, "timeout")
+        self.assertNotIn(self.SECRET, str(timeout_raised.exception))
+        self.assertEqual(len(timeout_attempts), 1)
+
+        rate_attempts: list[int] = []
+        delays: list[float] = []
+
+        def rate_limited(_: object, *, timeout: int) -> FakeResponse:
+            rate_attempts.append(timeout)
+            raise HTTPError(
+                enrichment.OPENAI_API_URL,
+                429,
+                f"secret-bearing body must stay hidden {self.SECRET}",
+                {"Retry-After": "0"},
+                None,
+            )
+
+        rate_client = enrichment.OpenAIEnricher(
+            self.SECRET,
+            opener=rate_limited,
+            sleep=delays.append,
+            attempts=2,
+        )
+        with self.assertRaises(enrichment.EnrichmentError) as rate_raised:
+            rate_client.enrich(record())
+        self.assertIn("HTTP 429", str(rate_raised.exception))
+        self.assertNotIn(self.SECRET, str(rate_raised.exception))
+        self.assertEqual(len(rate_attempts), 2)
+        self.assertEqual(delays, [0.0])
+
+    def test_missing_key_skips_enrichment_while_source_records_still_apply(self) -> None:
+        source = record()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            cache = enrichment.EnrichmentCache(Path(tmpdir) / "ai.json")
+            cache.select_candidates([source], limit=1)
+            applied = list(cache.apply([source], client=None))
+
+        self.assertEqual(applied[0]["cve"], source["cve"])
+        self.assertNotIn("ai_enrichment", applied[0])
+        self.assertEqual(cache.stats["generated"], 0)
+        self.assertEqual(cache.stats["failed"], 0)
+
+    def test_openai_timeout_env_is_bounded_and_separate_from_xai(self) -> None:
+        self.assertEqual(
+            enrichment.request_timeout_seconds("", env_name=enrichment.OPENAI_TIMEOUT_ENV),
+            180,
+        )
+        self.assertEqual(
+            enrichment.request_timeout_seconds(
+                "90", env_name=enrichment.OPENAI_TIMEOUT_ENV
+            ),
+            90,
+        )
+        with self.assertRaisesRegex(ValueError, "OPENAI_ENRICHMENT_TIMEOUT"):
+            enrichment.request_timeout_seconds("0", env_name=enrichment.OPENAI_TIMEOUT_ENV)
+
+        previous = enrichment.os.environ.get("OPENAI_ENRICHMENT_TIMEOUT")
+        enrichment.os.environ["OPENAI_ENRICHMENT_TIMEOUT"] = "150"
+        try:
+            client = enrichment.OpenAIEnricher("sk-test")
+            self.assertEqual(client.timeout, 150)
+            self.assertEqual(client.api_url, enrichment.OPENAI_API_URL)
+        finally:
+            if previous is None:
+                enrichment.os.environ.pop("OPENAI_ENRICHMENT_TIMEOUT", None)
+            else:
+                enrichment.os.environ["OPENAI_ENRICHMENT_TIMEOUT"] = previous
+
+    def test_daybreak_program_is_sent_only_when_configured(self) -> None:
+        captured: dict[str, object] = {}
+        source = record()
+        searched = str(source["references"][0]["url"])
+
+        def opener(request: object, *, timeout: int) -> FakeResponse:
+            captured["request"] = request
+            return FakeResponse(response_payload(model_output(), source=searched))
+
+        client = enrichment.OpenAIEnricher(
+            self.SECRET,
+            model=enrichment.RECOMMENDED_DAYBREAK_MODEL,
+            access_program="daybreak_blue",
+            opener=opener,
+            sleep=lambda _: None,
+        )
+        result = client.enrich(source)
+        request_body = json.loads(captured["request"].data)
+        self.assertEqual(client.access_program, "daybreak_blue")
+        self.assertEqual(client.model, "gpt-6-sol")
+        self.assertEqual(
+            request_body["access_programs"], {"cyber": "daybreak_blue"}
+        )
+        self.assertEqual(result["status"], "complete")
+        self.assertNotIn(self.SECRET, captured["request"].data.decode("utf-8"))
+
+        with self.assertRaisesRegex(ValueError, "OPENAI_DAYBREAK_PROGRAM"):
+            enrichment.OpenAIEnricher(self.SECRET, access_program="daybreak_purple")
+
+    def test_daybreak_entitlement_errors_skip_enrichment_and_keep_cves(self) -> None:
+        records = [record(f"CVE-2026-{number}") for number in range(8000, 8003)]
+        secret_body = json.dumps(
+            {
+                "error": {
+                    "code": "access_program_not_enabled",
+                    "message": f"secret-bearing Daybreak body {self.SECRET}",
+                }
+            }
+        ).encode("utf-8")
+        attempts: list[int] = []
+
+        def opener(_: object, *, timeout: int) -> FakeResponse:
+            attempts.append(timeout)
+            raise HTTPError(
+                enrichment.OPENAI_API_URL,
+                403,
+                "Forbidden",
+                {},
+                BytesIO(secret_body),
+            )
+
+        client = enrichment.OpenAIEnricher(
+            self.SECRET,
+            access_program="daybreak_blue",
+            opener=opener,
+            sleep=lambda _: None,
+            attempts=2,
+        )
+        with tempfile.TemporaryDirectory() as tmpdir:
+            cache = enrichment.EnrichmentCache(Path(tmpdir) / "ai.json")
+            cache.select_candidates(records, limit=len(records))
+            results = list(cache.apply(records, client=client))
+
+        self.assertEqual(len(attempts), 1)
+        self.assertEqual(cache.stats["failed"], 1)
+        self.assertEqual(cache.provider_error, "daybreak_entitlement")
+        self.assertEqual([item["cve"] for item in results], [item["cve"] for item in records])
+        self.assertTrue(all("ai_enrichment" not in item for item in results))
+
+        invalid_program = json.dumps(
+            {"error": {"code": "invalid_access_program"}}
+        ).encode("utf-8")
+
+        def bad_program(_: object, *, timeout: int) -> FakeResponse:
+            raise HTTPError(
+                enrichment.OPENAI_API_URL,
+                400,
+                "Bad Request",
+                {},
+                BytesIO(invalid_program),
+            )
+
+        bad_client = enrichment.OpenAIEnricher(
+            self.SECRET,
+            access_program="daybreak_red",
+            opener=bad_program,
+            attempts=1,
+        )
+        with self.assertRaises(enrichment.EnrichmentError) as raised:
+            bad_client.enrich(record())
+        self.assertTrue(raised.exception.fatal)
+        self.assertEqual(raised.exception.reason, "daybreak_entitlement")
+        self.assertEqual(str(raised.exception), "Daybreak entitlement missing")
+        self.assertNotIn(self.SECRET, str(raised.exception))
+
+    def test_daybreak_probe_prints_only_ok_or_denied_and_status(self) -> None:
+        from scripts import probe_openai_daybreak as probe_script
+
+        def ready(_: object, *, timeout: int) -> FakeResponse:
+            return FakeResponse({"id": "resp_ok"})
+
+        outcome, status = enrichment.probe_daybreak_access(
+            self.SECRET,
+            model="gpt-6-sol",
+            access_program="daybreak_blue",
+            opener=ready,
+        )
+        self.assertEqual((outcome, status), ("ok", 200))
+
+        def denied(_: object, *, timeout: int) -> FakeResponse:
+            raise HTTPError(
+                enrichment.OPENAI_API_URL,
+                403,
+                self.SECRET,
+                {},
+                BytesIO(b'{"error":{"code":"access_program_not_enabled"}}'),
+            )
+
+        outcome, status = enrichment.probe_daybreak_access(
+            self.SECRET,
+            model="gpt-6-sol",
+            access_program="daybreak_blue",
+            opener=denied,
+        )
+        self.assertEqual((outcome, status), ("denied", 403))
+
+        stdout = __import__("io").StringIO()
+        env = {
+            "OPENAI_API_KEY": self.SECRET,
+            "CVE_ENRICH_MODEL": "gpt-6-sol+daybreak_blue",
+        }
+        with (
+            patch.dict(os.environ, env, clear=False),
+            patch.object(
+                probe_script, "probe_cve_enrichment_access", return_value=("ok", 200)
+            ),
+            patch("sys.stdout", stdout),
+        ):
+            self.assertEqual(probe_script.main([]), 0)
+        self.assertEqual(stdout.getvalue(), "ok 200\n")
+        self.assertNotIn(self.SECRET, stdout.getvalue())
 
 
 if __name__ == "__main__":
