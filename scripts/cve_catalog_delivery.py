@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -26,10 +27,16 @@ ALERT_ACTIONS = frozenset(
         "identity_changed",
         "merged_wrong_sha",
         "fail_fallback_escalated",
+        "fail_generated_output_review",
     }
 )
 SYNC_BRANCH = "automation/cve-catalog-sync"
 GENERATED_OUTPUT_BRANCH = "automation/cve-generated-outputs"
+WRONG_SHA_CHECKPOINTS = (
+    "before_validation",
+    "after_validation",
+    "after_merge_attempt",
+)
 FALLBACK_LABEL = "automation:protection-fallback"
 KAREN_QA_REVIEW_LABEL = "needs karen-qa"
 FALLBACK_CONSECUTIVE_RUNS = 2
@@ -331,6 +338,68 @@ def classify_protection_fallback(
     )
 
 
+def fail_closed_merged_wrong_sha(*, checkpoint: str, pr_state: str) -> int:
+    """Fail closed at each delivery-loop wrong-SHA checkpoint.
+
+    The workflow invokes this at every named checkpoint. Removing any one
+    checkpoint, or treating ``merged_wrong_sha`` as success there, is a
+    real alert failure.
+    """
+
+    if checkpoint not in WRONG_SHA_CHECKPOINTS:
+        print(
+            f"::error::unknown merged-wrong-SHA checkpoint: {checkpoint}",
+            file=sys.stderr,
+        )
+        return 1
+    if pr_state != "merged_wrong_sha":
+        return 0
+    print(
+        "::error::Catalog PR already merged, but its head/merge SHA is not "
+        f"the expected SHA; failing closed at {checkpoint}.",
+        file=sys.stderr,
+    )
+    return 1
+
+
+@dataclass(frozen=True)
+class GeneratedOutputReviewDecision:
+    failed: bool
+    escalate: bool
+    action: str
+    message: str
+
+    def to_json(self) -> dict[str, Any]:
+        return asdict(self)
+
+    def exit_code(self) -> int:
+        return 1 if self.failed else 0
+
+
+def classify_generated_output_review(*, step_failed: bool) -> GeneratedOutputReviewDecision:
+    """A review PR that fails to open is a real alert, not a warning."""
+
+    if not step_failed:
+        return GeneratedOutputReviewDecision(
+            failed=False,
+            escalate=False,
+            action="generated_output_ok",
+            message=(
+                "Generated-output review PR opened or had no behaviour-changing "
+                "changes."
+            ),
+        )
+    return GeneratedOutputReviewDecision(
+        failed=True,
+        escalate=True,
+        action="fail_generated_output_review",
+        message=(
+            "Generated-output review PR failed to open; escalating as a real "
+            "alert. The CVE catalog PR is unaffected and already continued."
+        ),
+    )
+
+
 def classify_merge_error(*, data_only: bool, error_text: str) -> str:
     blob = (error_text or "").lower()
     karen = "karen-qa" in blob
@@ -392,6 +461,13 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     fallback.add_argument("--already-labeled", required=True, choices=("true", "false"))
     fallback.add_argument("--labeled-at", default="")
     fallback.add_argument("--now", default="")
+
+    wrong_sha = sub.add_parser("fail-closed-wrong-sha")
+    wrong_sha.add_argument("--checkpoint", required=True)
+    wrong_sha.add_argument("--pr-state", required=True)
+
+    review = sub.add_parser("generated-output-review")
+    review.add_argument("--step-failed", required=True, choices=("true", "false"))
 
     return parser.parse_args(argv)
 
@@ -483,6 +559,15 @@ def main(argv: list[str] | None = None) -> int:
         )
         print(json.dumps(decision.to_json(), indent=2, sort_keys=True))
         return 0
+    if args.command == "fail-closed-wrong-sha":
+        return fail_closed_merged_wrong_sha(
+            checkpoint=args.checkpoint,
+            pr_state=args.pr_state,
+        )
+    if args.command == "generated-output-review":
+        decision = classify_generated_output_review(step_failed=_flag(args.step_failed))
+        print(json.dumps(decision.to_json(), indent=2, sort_keys=True))
+        return decision.exit_code()
     raise SystemExit(f"unknown command: {args.command}")
 
 

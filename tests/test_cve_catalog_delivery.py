@@ -12,10 +12,13 @@ from scripts.cve_catalog_delivery import (
     FALLBACK_LABEL,
     GENERATED_OUTPUT_BRANCH,
     KAREN_QA_REVIEW_LABEL,
+    WRONG_SHA_CHECKPOINTS,
     can_reuse_in_run_validation,
+    classify_generated_output_review,
     classify_merge_error,
     classify_pr_state,
     classify_protection_fallback,
+    fail_closed_merged_wrong_sha,
     is_alert_action,
     main as delivery_main,
     merged_sha_matches,
@@ -406,6 +409,99 @@ class CveCatalogDeliveryTests(unittest.TestCase):
         self.assertFalse(first_on_old_pr.escalate)
         self.assertEqual(first_on_old_pr.age_hours, 0.0)
 
+    def test_each_wrong_sha_checkpoint_exits_one(self) -> None:
+        self.assertEqual(
+            WRONG_SHA_CHECKPOINTS,
+            ("before_validation", "after_validation", "after_merge_attempt"),
+        )
+        for checkpoint in WRONG_SHA_CHECKPOINTS:
+            with self.subTest(checkpoint=checkpoint):
+                self.assertEqual(
+                    fail_closed_merged_wrong_sha(
+                        checkpoint=checkpoint,
+                        pr_state="merged_wrong_sha",
+                    ),
+                    1,
+                )
+                self.assertEqual(
+                    fail_closed_merged_wrong_sha(
+                        checkpoint=checkpoint,
+                        pr_state="current",
+                    ),
+                    0,
+                )
+                self.assertEqual(
+                    fail_closed_merged_wrong_sha(
+                        checkpoint=checkpoint,
+                        pr_state="already_merged",
+                    ),
+                    0,
+                )
+                stdout = StringIO()
+                with redirect_stdout(stdout):
+                    self.assertEqual(
+                        delivery_main(
+                            [
+                                "fail-closed-wrong-sha",
+                                "--checkpoint",
+                                checkpoint,
+                                "--pr-state",
+                                "merged_wrong_sha",
+                            ]
+                        ),
+                        1,
+                    )
+                    self.assertEqual(
+                        delivery_main(
+                            [
+                                "fail-closed-wrong-sha",
+                                "--checkpoint",
+                                checkpoint,
+                                "--pr-state",
+                                "current",
+                            ]
+                        ),
+                        0,
+                    )
+
+    def test_unknown_wrong_sha_checkpoint_fails_closed(self) -> None:
+        self.assertEqual(
+            fail_closed_merged_wrong_sha(
+                checkpoint="not-a-phase",
+                pr_state="current",
+            ),
+            1,
+        )
+
+    def test_generated_output_review_failure_is_an_alert(self) -> None:
+        ok = classify_generated_output_review(step_failed=False)
+        self.assertFalse(ok.failed)
+        self.assertFalse(ok.escalate)
+        self.assertFalse(is_alert_action(ok.action))
+        self.assertEqual(ok.exit_code(), 0)
+        failed = classify_generated_output_review(step_failed=True)
+        self.assertTrue(failed.failed)
+        self.assertTrue(failed.escalate)
+        self.assertEqual(failed.action, "fail_generated_output_review")
+        self.assertTrue(is_alert_action(failed.action))
+        self.assertEqual(failed.exit_code(), 1)
+        self.assertIn("real alert", failed.message)
+        failed_out = StringIO()
+        with redirect_stdout(failed_out):
+            self.assertEqual(
+                delivery_main(["generated-output-review", "--step-failed", "true"]),
+                1,
+            )
+        payload = json.loads(failed_out.getvalue())
+        self.assertEqual(payload["action"], "fail_generated_output_review")
+        ok_out = StringIO()
+        with redirect_stdout(ok_out):
+            self.assertEqual(
+                delivery_main(["generated-output-review", "--step-failed", "false"]),
+                0,
+            )
+        self.assertEqual(json.loads(ok_out.getvalue())["action"], "generated_output_ok")
+
     def test_workflow_wires_fallback_label_concurrency_and_build_dispatch_on_pr_head(
         self,
     ) -> None:
@@ -422,8 +518,7 @@ class CveCatalogDeliveryTests(unittest.TestCase):
         self.assertNotIn("reuse-build-check", workflow)
         self.assertIn("protection_fallback=true", workflow)
         self.assertIn("fallback-escalation", workflow)
-        self.assertIn("merged_wrong_sha", workflow)
-        self.assertIn("head/merge SHA is not the expected SHA", workflow)
+        self.assertIn("fail-closed-wrong-sha", workflow)
         self.assertIn("data/cve/enrichment-carryover.json", workflow)
         self.assertIn(GENERATED_OUTPUT_BRANCH, workflow)
         self.assertIn(KAREN_QA_REVIEW_LABEL, workflow)
@@ -432,7 +527,16 @@ class CveCatalogDeliveryTests(unittest.TestCase):
         self.assertIn("issues/${PR_NUMBER}/events", workflow)
         self.assertNotIn("--created-at", workflow)
         self.assertIn("CVE catalog PR is unaffected", workflow)
-        self.assertIn('if [ "$PR_STATE" = "merged_wrong_sha" ]; then', workflow)
+        self.assertIn("generated-output-review --step-failed true", workflow)
+        self.assertIn("Alert generated-output review PR failure", workflow)
+        self.assertNotIn("Note generated-output review PR failure", workflow)
+        self.assertNotIn('if [ "$PR_STATE" = "merged_wrong_sha" ]; then', workflow)
+        for checkpoint in WRONG_SHA_CHECKPOINTS:
+            with self.subTest(checkpoint=checkpoint):
+                self.assertIn(
+                    f"fail-closed-wrong-sha --checkpoint {checkpoint} --pr-state",
+                    workflow,
+                )
         self.assertIn("protection-fallback escalated after 2 consecutive runs or 24h", workflow)
         self.assertIn("exit 1", workflow)
         validate = (ROOT / ".github" / "workflows" / "cve-catalog-validate.yml").read_text(

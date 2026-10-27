@@ -145,9 +145,19 @@ def is_catalog_data_path(path: str) -> bool:
 
 
 def is_karen_gated_generated_output(path: str) -> bool:
-    """True for generator outputs that must not self-merge with the catalog PR."""
+    """True only for behaviour-changing packs that go to the Karen-gated review PR.
 
-    return not is_catalog_data_path(path)
+    Catalog data paths are never Karen-gated. Other non-catalog paths are also
+    not Karen-gated: stale CVE-owned or unrelated outputs stay blocking.
+    """
+
+    normalized = normalize_repo_path(path)
+    if normalized is None:
+        return False
+    return any(
+        path_matches_prefix(normalized, spec)
+        for spec in GENERATED_BEHAVIOR_OUTPUT_PATHSPECS
+    )
 
 
 def allowlisted_catalog_paths() -> tuple[str, ...]:

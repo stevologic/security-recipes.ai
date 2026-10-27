@@ -240,9 +240,17 @@ class CveSyncWorkflowTests(unittest.TestCase):
         self.assertNotIn("pulls/${PR_NUMBER}/merge", generated_step)
         self.assertNotIn("self-merge-gate", generated_step)
         self.assertIn("pulls/${PR_NUMBER}/merge", delivery_step)
-        note_step = self.step("Note generated-output review PR failure")
-        self.assertIn("steps.generated-output-pr.outcome == 'failure'", note_step)
-        self.assertIn("CVE catalog PR is unaffected", note_step)
+        alert_step = self.step("Alert generated-output review PR failure")
+        self.assertIn("always() && steps.generated-output-pr.outcome == 'failure'", alert_step)
+        self.assertIn("::error::", alert_step)
+        self.assertIn("generated-output-review --step-failed true", alert_step)
+        self.assertIn("real alert", alert_step)
+        self.assertIn("CVE catalog PR is unaffected", alert_step)
+        self.assertNotIn("::warning::", alert_step)
+        self.assertLess(
+            self.workflow.index("Reconcile, validate, and merge exact catalog revision"),
+            self.workflow.index("Alert generated-output review PR failure"),
+        )
 
     def test_recipe_derived_evidence_is_regenerated_before_validation_and_commit(self) -> None:
         generator_step = self.step("Refresh deterministic recipe-derived evidence")
@@ -360,20 +368,22 @@ class CveSyncWorkflowTests(unittest.TestCase):
         self.assertIn("--labeled-at", delivery_step)
         self.assertIn("issues/${PR_NUMBER}/events", delivery_step)
         self.assertNotIn("--created-at", delivery_step)
-        self.assertIn("merged_wrong_sha", delivery_step)
-        self.assertEqual(delivery_step.count("head/merge SHA is not the expected SHA"), 3)
-        self.assertIn(
-            "Catalog PR already merged, but its head/merge SHA is not the expected SHA",
-            delivery_step,
-        )
+        self.assertIn("fail-closed-wrong-sha", delivery_step)
         self.assertIn(
             "Catalog protection-fallback escalated after 2 consecutive runs or 24h",
             delivery_step,
         )
-        self.assertRegex(
-            delivery_step,
-            r"merged_wrong_sha[\s\S]{0,400}exit 1",
-        )
+        for checkpoint in (
+            "before_validation",
+            "after_validation",
+            "after_merge_attempt",
+        ):
+            with self.subTest(checkpoint=checkpoint):
+                self.assertIn(
+                    f"fail-closed-wrong-sha --checkpoint {checkpoint} --pr-state",
+                    delivery_step,
+                )
+        self.assertEqual(delivery_step.count("fail-closed-wrong-sha --checkpoint"), 3)
         self.assertRegex(
             delivery_step,
             r"protection-fallback escalated[\s\S]{0,200}exit 1",
