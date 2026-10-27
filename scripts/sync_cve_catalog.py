@@ -22,14 +22,17 @@ import gzip
 import hashlib
 import heapq
 import html
-from http.client import IncompleteRead
+from contextvars import ContextVar
+from http.client import HTTPConnection, HTTPException, HTTPSConnection, IncompleteRead
 import itertools
 import json
 import os
 import random
 import re
+import socket
 import sys
 import tempfile
+import threading
 import time
 from collections import OrderedDict
 from copy import deepcopy
@@ -39,7 +42,8 @@ from pathlib import Path, PurePosixPath
 from typing import Any, Iterable, Iterator
 from urllib.error import HTTPError, URLError
 from urllib.parse import unquote, urlencode, urlparse
-from urllib.request import Request, urlopen
+from urllib.request import HTTPHandler, HTTPSHandler, Request, build_opener
+from urllib.request import urlopen as _stdlib_urlopen
 
 try:
     from scripts.cve_ai_enrichment import (
@@ -83,7 +87,10 @@ NVD_FEED_ROOT = "https://nvd.nist.gov/feeds/json/cve/2.0"
 NVD_DETAIL_ROOT = "https://nvd.nist.gov/vuln/detail"
 NVD_API_URL = "https://services.nvd.nist.gov/rest/json/cves/2.0"
 NVD_API_PAGE_SIZE = 2000
-NVD_API_MAX_PAGES = 50
+# 15 × 5 min/page + 43 min observed feeds + 11.3 min measured tail = 129.3 min
+# against the 150-minute job (20.7 min headroom). 50 pages at 5 min is 250 min
+# and would be cut off by the job timeout, not the URL deadline.
+NVD_API_MAX_PAGES = 15
 NVD_API_MAX_WINDOW = timedelta(days=120)
 NVD_API_PUBLIC_INTERVAL = 6.1
 NVD_API_AUTH_INTERVAL = 0.6
@@ -93,6 +100,16 @@ USER_AGENT = "security-recipes.ai/cve-catalog-sync"
 # can also return 52x origin timeouts the same way it returns 502/504. A bounded
 # retry is safer than abandoning a complete daily refresh.
 RETRYABLE_HTTP_CODES = frozenset({404, 408, 429, 500, 502, 503, 504, 520, 521, 522, 523, 524})
+# Wall-clock cap for one URL. Without it, five 180s socket timeouts plus
+# inter-attempt sleeps reach ~15.5 min/URL and can starve the 150-minute
+# cve-catalog-sync job. urlopen's timeout is per socket read and resets on
+# every recv, including inside response.read(n) and across redirect hops, so
+# a timer closes the socket at the deadline and the body is pulled with
+# read1() so each recv can re-check the remaining budget.
+# See AUTOMATION.md "CVE catalog sync budget".
+FETCH_DEADLINE_SECONDS = 300.0
+FETCH_READ_CHUNK_SIZE = 64 * 1024
+FETCH_APPLIED_TIMEOUTS: list[float] = []
 
 SEVERITY_RANK = {"low": 1, "medium": 2, "high": 3, "critical": 4}
 BROWSER_SEVERITY_CODES = {"medium": 0, "high": 1, "critical": 2}
@@ -547,6 +564,27 @@ def _retry_sleep_seconds(base: float) -> float:
     return max(0.0, (base / 2.0) + (base * random.random() / 2.0))
 
 
+def _retry_or_sleep(
+    *,
+    attempt: int,
+    attempts: int,
+    base: float,
+    deadline: float | None,
+) -> bool:
+    """Sleep before another attempt. Return False when the budget is exhausted."""
+    if attempt + 1 >= attempts:
+        return False
+    now = time.monotonic()
+    if deadline is not None and now >= deadline:
+        return False
+    delay = _retry_sleep_seconds(min(max(0.0, base), 30.0))
+    if deadline is not None:
+        delay = min(delay, max(0.0, deadline - now))
+    if delay > 0:
+        time.sleep(delay)
+    return True
+
+
 def _declared_content_length(headers: Any) -> int | None:
     getter = getattr(headers, "get", None)
     raw = getter("Content-Length") if callable(getter) else None
@@ -558,6 +596,277 @@ def _declared_content_length(headers: Any) -> int | None:
     return int(text)
 
 
+def _note_applied_timeout(timeout: float) -> None:
+    FETCH_APPLIED_TIMEOUTS.append(float(timeout))
+
+
+def _close_socket(sock: Any) -> None:
+    shutdown = getattr(sock, "shutdown", None)
+    if callable(shutdown):
+        try:
+            shutdown(socket.SHUT_RDWR)
+        except OSError:
+            pass
+    closer = getattr(sock, "close", None)
+    if not callable(closer):
+        return
+    try:
+        closer()
+    except OSError:
+        return
+
+
+class _DeadlineGuard:
+    """Close every registered socket when the overall URL deadline fires."""
+
+    def __init__(self, deadline: float | None) -> None:
+        self.deadline = deadline
+        self.expired = False
+        self._sockets: list[Any] = []
+        self._timer: threading.Timer | None = None
+        self._lock = threading.Lock()
+
+    def remaining_timeout(self) -> float | None:
+        if self.deadline is None:
+            return None
+        return max(0.0, self.deadline - time.monotonic())
+
+    def register(self, sock: Any) -> None:
+        with self._lock:
+            self._sockets.append(sock)
+            already_expired = self.expired
+        if already_expired:
+            _close_socket(sock)
+
+    def start(self) -> None:
+        if self.deadline is None:
+            return
+        remaining = self.remaining_timeout()
+        if remaining is None:
+            return
+        if remaining <= 0:
+            self._expire()
+            return
+        self._timer = threading.Timer(remaining, self._expire)
+        self._timer.daemon = True
+        self._timer.start()
+
+    def _expire(self) -> None:
+        with self._lock:
+            self.expired = True
+            sockets = list(self._sockets)
+        for sock in sockets:
+            _close_socket(sock)
+
+    def cancel(self) -> None:
+        timer = self._timer
+        self._timer = None
+        if timer is not None:
+            timer.cancel()
+
+
+_current_deadline_guard: ContextVar[_DeadlineGuard | None] = ContextVar(
+    "cve_catalog_deadline_guard",
+    default=None,
+)
+
+
+def _shrink_connection_timeout(kwargs: dict[str, Any]) -> None:
+    guard = _current_deadline_guard.get()
+    if guard is None:
+        return
+    remaining = guard.remaining_timeout()
+    if remaining is None:
+        return
+    current = kwargs.get("timeout")
+    if current is None:
+        kwargs["timeout"] = remaining
+    else:
+        kwargs["timeout"] = min(float(current), remaining)
+    _note_applied_timeout(float(kwargs["timeout"]))
+
+
+def _attach_deadline_socket(connection: HTTPConnection) -> None:
+    guard = _current_deadline_guard.get()
+    sock = getattr(connection, "sock", None)
+    if guard is None or sock is None:
+        return
+    guard.register(sock)
+    remaining = guard.remaining_timeout()
+    if remaining is None:
+        return
+    setter = getattr(sock, "settimeout", None)
+    if callable(setter):
+        setter(remaining)
+        _note_applied_timeout(remaining)
+
+
+class _DeadlineHTTPConnection(HTTPConnection):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        _shrink_connection_timeout(kwargs)
+        super().__init__(*args, **kwargs)
+
+    def connect(self) -> None:
+        super().connect()
+        _attach_deadline_socket(self)
+
+
+class _DeadlineHTTPSConnection(HTTPSConnection):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        _shrink_connection_timeout(kwargs)
+        super().__init__(*args, **kwargs)
+
+    def connect(self) -> None:
+        super().connect()
+        _attach_deadline_socket(self)
+
+
+class _DeadlineHTTPHandler(HTTPHandler):
+    def http_open(self, req: Request) -> Any:
+        return self.do_open(_DeadlineHTTPConnection, req)
+
+
+class _DeadlineHTTPSHandler(HTTPSHandler):
+    def https_open(self, req: Request) -> Any:
+        return self.do_open(_DeadlineHTTPSConnection, req, context=self._context)
+
+
+_DEADLINE_OPENER = build_opener(_DeadlineHTTPHandler, _DeadlineHTTPSHandler)
+
+
+def urlopen(url: Any, data: Any = None, timeout: Any = None, **kwargs: Any) -> Any:
+    """Stdlib ``urlopen`` unless a per-URL deadline guard is active.
+
+    Tests patch this name. Production fetches install a timer that closes
+    every socket on the connection, including redirect hops, when the
+    overall deadline expires.
+    """
+    guard = _current_deadline_guard.get()
+    if guard is None:
+        if timeout is None:
+            return _stdlib_urlopen(url, data, **kwargs)
+        return _stdlib_urlopen(url, data, timeout, **kwargs)
+    request_url = url.get_full_url() if hasattr(url, "get_full_url") else str(url)
+    remaining = guard.remaining_timeout()
+    if guard.expired or remaining == 0:
+        raise _deadline_timeout_error(request_url)
+    if remaining is not None:
+        if timeout is None:
+            timeout = remaining
+        else:
+            timeout = min(float(timeout), remaining)
+        _note_applied_timeout(float(timeout))
+    if data is None:
+        return _DEADLINE_OPENER.open(url, timeout=timeout)
+    return _DEADLINE_OPENER.open(url, data, timeout)
+
+
+def _apply_socket_timeout(response: Any, timeout: float) -> None:
+    """Tighten the next socket read to ``timeout`` seconds when a sock exists."""
+    _note_applied_timeout(timeout)
+    seen: set[int] = set()
+    candidate: Any = response
+    while candidate is not None and id(candidate) not in seen:
+        seen.add(id(candidate))
+        setter = getattr(candidate, "settimeout", None)
+        if callable(setter):
+            setter(timeout)
+            return
+        next_candidate = (
+            getattr(candidate, "_sock", None)
+            or getattr(candidate, "sock", None)
+            or getattr(candidate, "raw", None)
+            or getattr(candidate, "fp", None)
+        )
+        if next_candidate is candidate:
+            return
+        candidate = next_candidate
+
+
+def _deadline_timeout_error(url: str) -> TimeoutError:
+    return TimeoutError(f"fetch of {url} exceeded the per-URL deadline")
+
+
+def _deadline_exceeded(deadline: float | None) -> bool:
+    guard = _current_deadline_guard.get()
+    if guard is not None and guard.expired:
+        return True
+    return deadline is not None and time.monotonic() >= deadline
+
+
+def _is_timeout_exception(exc: BaseException) -> bool:
+    if isinstance(exc, TimeoutError):
+        return True
+    if isinstance(exc, URLError):
+        reason = getattr(exc, "reason", None)
+        if isinstance(reason, TimeoutError):
+            return True
+        text = f"{reason} {exc}".lower()
+        return "timed out" in text
+    return False
+
+
+def _as_deadline_error(
+    url: str,
+    guard: _DeadlineGuard,
+    exc: BaseException | None = None,
+) -> TimeoutError | None:
+    """Map a transport failure onto the URL deadline when the cap is spent.
+
+    Closing a socket from the deadline timer can surface as URLError or
+    a socket timeout a few milliseconds before the timer sets ``expired``.
+    """
+    if guard.expired:
+        return _deadline_timeout_error(url)
+    remaining = guard.remaining_timeout()
+    if remaining == 0 and exc is not None and _is_timeout_exception(exc):
+        return _deadline_timeout_error(url)
+    return None
+
+
+def _read_one_chunk(response: Any, chunk_size: int) -> bytes:
+    """Prefer ``read1()`` so one recv cannot refill a 64 KiB ``read(n)`` loop."""
+    read1 = getattr(response, "read1", None)
+    if callable(read1):
+        return read1(chunk_size)
+    return response.read(chunk_size)
+
+
+def _read_response_bytes(
+    response: Any,
+    *,
+    url: str,
+    timeout: float,
+    deadline: float | None,
+    chunk_size: int = FETCH_READ_CHUNK_SIZE,
+) -> bytes:
+    """Read ``response`` in ``read1`` chunks so a slow drip hits the deadline.
+
+    ``urlopen(..., timeout=T)`` applies ``T`` per underlying socket read, and
+    ``HTTPResponse.read(n)`` loops until ``n`` bytes arrive, resetting that
+    timeout on every recv. A 1-byte-every-0.5s drip against a 3s deadline
+    can therefore run for tens of seconds unless each recv is its own
+    chunk and a timer closes the socket at the overall deadline.
+    """
+    chunks: list[bytes] = []
+    while True:
+        if _deadline_exceeded(deadline):
+            raise _deadline_timeout_error(url)
+        remaining = float(timeout)
+        if deadline is not None:
+            remaining = min(remaining, deadline - time.monotonic())
+            if remaining <= 0:
+                raise _deadline_timeout_error(url)
+        _apply_socket_timeout(response, remaining)
+        chunk = _read_one_chunk(response, chunk_size)
+        if not chunk:
+            break
+        chunks.append(chunk)
+        if _deadline_exceeded(deadline):
+            raise _deadline_timeout_error(url)
+    return b"".join(chunks)
+
+
 def fetch_bytes(
     url: str,
     *,
@@ -565,39 +874,105 @@ def fetch_bytes(
     timeout: int = 180,
     extra_headers: dict[str, str] | None = None,
     retryable_http_codes: frozenset[int] | None = None,
+    deadline_seconds: float | None = FETCH_DEADLINE_SECONDS,
 ) -> bytes:
+    """Fetch ``url`` with bounded retries and a wall-clock deadline.
+
+    Five 180s socket timeouts plus sleeps after every attempt, including
+    the last, reach ~15.5 min/URL. This helper never sleeps after the
+    final attempt, applies equal jitter to 5xx and transport retries,
+    reads the body with ``read1()`` so a slow drip cannot outrun the
+    deadline, and starts a timer that closes the socket at
+    ``deadline_seconds`` (default 5 min) covering connect, headers, the
+    body, and every redirect hop.
+    """
     headers = {"User-Agent": USER_AGENT, "Accept": "application/json, text/plain, */*"}
     if extra_headers:
         headers.update(extra_headers)
     request = Request(url, headers=headers)
     retryable = RETRYABLE_HTTP_CODES if retryable_http_codes is None else retryable_http_codes
+    deadline = (
+        time.monotonic() + deadline_seconds if deadline_seconds is not None else None
+    )
+    FETCH_APPLIED_TIMEOUTS.clear()
+    guard = _DeadlineGuard(deadline)
+    token = _current_deadline_guard.set(guard)
     last_error: Exception | None = None
-    for attempt in range(attempts):
-        try:
-            with urlopen(request, timeout=timeout) as response:
-                payload = response.read()
-                expected = _declared_content_length(getattr(response, "headers", None))
-                if expected is not None and len(payload) != expected:
-                    # A closed socket can return a short body without raising
-                    # ``IncompleteRead``. Treat a Content-Length shortfall as
-                    # the same truncated read so the immutable URL is retried.
-                    raise IncompleteRead(payload, expected - len(payload))
-                return payload
-        except HTTPError as exc:
-            last_error = exc
-            if exc.code not in retryable:
+    try:
+        guard.start()
+        for attempt in range(attempts):
+            now = time.monotonic()
+            if _deadline_exceeded(deadline):
+                break
+            attempt_timeout: float | int = timeout
+            if deadline is not None:
+                remaining = deadline - now
+                if remaining <= 0:
+                    break
+                attempt_timeout = min(float(timeout), remaining)
+            try:
+                with urlopen(request, timeout=attempt_timeout) as response:
+                    payload = _read_response_bytes(
+                        response,
+                        url=url,
+                        timeout=float(attempt_timeout),
+                        deadline=deadline,
+                    )
+                    expected = _declared_content_length(getattr(response, "headers", None))
+                    if expected is not None and len(payload) != expected:
+                        # A closed socket can return a short body without raising
+                        # ``IncompleteRead``. Treat a Content-Length shortfall as
+                        # the same truncated read so the immutable URL is retried.
+                        raise IncompleteRead(payload, expected - len(payload))
+                    return payload
+            except HTTPError as exc:
+                deadline_error = _as_deadline_error(url, guard, exc)
+                if deadline_error is not None:
+                    last_error = deadline_error
+                    break
+                last_error = exc
+                if exc.code not in retryable:
+                    raise
+                retry_after = exc.headers.get("Retry-After")
+                base = (
+                    float(retry_after)
+                    if retry_after and retry_after.isdigit()
+                    else float(2**attempt)
+                )
+                if not _retry_or_sleep(
+                    attempt=attempt,
+                    attempts=attempts,
+                    base=base,
+                    deadline=deadline,
+                ):
+                    break
+            # ``IncompleteRead`` is not an ``OSError``. NVD's CDN can close a
+            # large annual-feed response after sending only part of its declared
+            # body, so retry the immutable URL instead of accepting partial data.
+            except (IncompleteRead, ConnectionResetError, TimeoutError, URLError, OSError, HTTPException) as exc:
+                deadline_error = _as_deadline_error(url, guard, exc)
+                if deadline_error is not None:
+                    last_error = deadline_error
+                    break
+                last_error = exc
+                if not _retry_or_sleep(
+                    attempt=attempt,
+                    attempts=attempts,
+                    base=float(2**attempt),
+                    deadline=deadline,
+                ):
+                    break
+            except Exception as exc:
+                deadline_error = _as_deadline_error(url, guard, exc)
+                if deadline_error is not None:
+                    last_error = deadline_error
+                    break
                 raise
-            retry_after = exc.headers.get("Retry-After")
-            delay = float(retry_after) if retry_after and retry_after.isdigit() else 2**attempt
-            time.sleep(min(delay, 30))
-        # ``IncompleteRead`` is not an ``OSError``. NVD's CDN can close a
-        # large annual-feed response after sending only part of its declared
-        # body, so retry the immutable URL instead of accepting partial data.
-        except (IncompleteRead, ConnectionResetError, TimeoutError, URLError, OSError) as exc:
-            last_error = exc
-            time.sleep(_retry_sleep_seconds(min(2**attempt, 30)))
+    finally:
+        guard.cancel()
+        _current_deadline_guard.reset(token)
     if last_error is None:
-        raise RuntimeError(f"failed to fetch {url}")
+        raise _deadline_timeout_error(url)
     raise last_error
 
 
