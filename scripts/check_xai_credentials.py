@@ -14,16 +14,20 @@ import os
 from pathlib import Path
 
 try:
-    from scripts.cve_ai_enrichment import DEFAULT_MODEL, probe_xai_credentials
+    from scripts.cve_ai_enrichment import DEFAULT_CVE_ENRICH_MODEL, probe_xai_credentials
 except ModuleNotFoundError:  # Direct ``python scripts/check_xai_credentials.py``.
-    from cve_ai_enrichment import DEFAULT_MODEL, probe_xai_credentials  # type: ignore[no-redef]
+    from cve_ai_enrichment import DEFAULT_CVE_ENRICH_MODEL, probe_xai_credentials  # type: ignore[no-redef]
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--github-output", type=Path)
     args = parser.parse_args(argv)
-    model = os.environ.get("XAI_MODEL", "").strip() or DEFAULT_MODEL
+    model = (
+        os.environ.get("XAI_MODEL", "").strip()
+        or os.environ.get("CVE_ENRICH_MODEL", "").strip()
+        or DEFAULT_CVE_ENRICH_MODEL
+    )
     status = probe_xai_credentials(os.environ.get("XAI_API_KEY", ""), model=model)
     if args.github_output is not None:
         args.github_output.parent.mkdir(parents=True, exist_ok=True)

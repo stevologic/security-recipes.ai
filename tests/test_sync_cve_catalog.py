@@ -5,12 +5,18 @@ import ast
 import gzip
 import hashlib
 import inspect
+import io
 import json
 import re
+import socket
 import tempfile
+import threading
+import time
 import unittest
+from contextlib import redirect_stdout
 from copy import deepcopy
 from datetime import date
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
 from unittest.mock import patch
@@ -24,6 +30,28 @@ from scripts import validate_cve_catalog as validator
 
 START_DATE = date(2016, 7, 12)
 END_DATE = date(2026, 7, 12)
+
+
+class _LocalHttpServer:
+    """Threading HTTP server bound to an ephemeral localhost port."""
+
+    def __init__(self, handler: type[BaseHTTPRequestHandler]) -> None:
+        self.server = ThreadingHTTPServer(("127.0.0.1", 0), handler)
+        self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
+
+    @property
+    def url(self) -> str:
+        host, port = self.server.server_address[:2]
+        return f"http://{host}:{port}"
+
+    def __enter__(self) -> "_LocalHttpServer":
+        self.thread.start()
+        return self
+
+    def __exit__(self, *_args: object) -> None:
+        self.server.shutdown()
+        self.server.server_close()
+        self.thread.join(timeout=2)
 
 
 def cvss_observation(
@@ -737,6 +765,165 @@ class SyncCveCatalogTests(unittest.TestCase):
         self.assertNotIn("ai_enrichment", refreshed)
         self.assertIn("ai_enrichment", record)
 
+    def test_cve_enrich_args_read_unified_env_and_not_leftover_xai_model(self) -> None:
+        env = {
+            key: value
+            for key, value in catalog.os.environ.items()
+            if key
+            not in {
+                "CVE_ENRICH_MODEL",
+                "CVE_ENRICHMENT_LIMIT",
+                "OPENAI_MODEL",
+                "OPENAI_ENRICHMENT_LIMIT",
+                "OPENAI_DAYBREAK_PROGRAM",
+                "XAI_MODEL",
+                "XAI_ENRICHMENT_LIMIT",
+            }
+        }
+        env.update(
+            {
+                "CVE_ENRICH_MODEL": ai.DEFAULT_CVE_ENRICH_MODEL,
+                "CVE_ENRICHMENT_LIMIT": "7",
+                "OPENAI_MODEL": "gpt-6-sol",
+                "OPENAI_ENRICHMENT_LIMIT": "41",
+                "OPENAI_DAYBREAK_PROGRAM": "daybreak_blue",
+                "XAI_MODEL": "grok-should-be-ignored",
+                "XAI_ENRICHMENT_LIMIT": "41",
+            }
+        )
+        with patch.dict(catalog.os.environ, env, clear=True):
+            parsed = catalog.parse_args([])
+        self.assertEqual(parsed.cve_enrich_model, ai.DEFAULT_CVE_ENRICH_MODEL)
+        self.assertEqual(parsed.ai_enrichment_limit, 7)
+        self.assertEqual(parsed.openai_daybreak_program, "daybreak_blue")
+        self.assertFalse(hasattr(parsed, "xai_model"))
+        self.assertFalse(hasattr(parsed, "openai_model"))
+
+    def test_default_cve_enrich_model_is_grok_47(self) -> None:
+        env = {
+            key: value
+            for key, value in catalog.os.environ.items()
+            if key
+            not in {
+                "CVE_ENRICH_MODEL",
+                "OPENAI_MODEL",
+                "XAI_MODEL",
+            }
+        }
+        with patch.dict(catalog.os.environ, env, clear=True):
+            parsed = catalog.parse_args([])
+        self.assertEqual(parsed.cve_enrich_model, ai.DEFAULT_CVE_ENRICH_MODEL)
+
+    def test_missing_xai_key_skips_default_grok_enrichment_without_logging(self) -> None:
+        secret = "xai-secret-never-log-9f3a"
+        stdout = io.StringIO()
+        with patch("sys.stdout", stdout):
+            client, intended, provider_error = catalog.configure_cve_enrichment(
+                spec=ai.DEFAULT_CVE_ENRICH_MODEL,
+                xai_api_key="",
+                openai_api_key=secret,
+                limit=20,
+            )
+        output = stdout.getvalue()
+        self.assertIsNone(client)
+        self.assertFalse(intended)
+        self.assertIsNone(provider_error)
+        self.assertIn("XAI_API_KEY is not set", output)
+        self.assertNotIn(secret, output)
+
+    def test_missing_openai_key_skips_enrichment_and_does_not_log_a_key(self) -> None:
+        secret = "sk-openai-secret-never-log-9f3a"
+        stdout = io.StringIO()
+        with patch("sys.stdout", stdout):
+            client, intended, provider_error = catalog.configure_openai_enrichment(
+                api_key="",
+                model="gpt-5.6-luna",
+                limit=20,
+            )
+        output = stdout.getvalue()
+        self.assertIsNone(client)
+        self.assertFalse(intended)
+        self.assertIsNone(provider_error)
+        self.assertIn("OPENAI_API_KEY is not set", output)
+        self.assertNotIn(secret, output)
+        self.assertNotIn("sk-", output)
+
+        source = {
+            "cve": "CVE-2026-1234",
+            "recipe_kind": "composed",
+            "references": [
+                {"url": "https://vendor.example.test/advisory", "tags": ["Vendor Advisory"]}
+            ],
+        }
+        cache = ai.EnrichmentCache(Path("unused.json"))
+        cache.select_candidates([source], limit=1)
+        applied = list(cache.apply([source], client=None))
+        self.assertEqual(applied[0]["cve"], "CVE-2026-1234")
+        self.assertNotIn("ai_enrichment", applied[0])
+
+    def test_unusable_openai_key_skips_requests_without_logging_the_key(self) -> None:
+        secret = "sk-openai-secret-never-log-9f3a"
+        stdout = io.StringIO()
+
+        def opener(_: object, *, timeout: int) -> object:
+            raise HTTPError(
+                ai.OPENAI_API_URL,
+                401,
+                secret,
+                {},
+                None,
+            )
+
+        with patch("sys.stdout", stdout):
+            client, intended, provider_error = catalog.configure_openai_enrichment(
+                api_key=secret,
+                model="gpt-5.6-luna",
+                opener=opener,
+                limit=20,
+            )
+        output = stdout.getvalue()
+        self.assertIsNone(client)
+        self.assertTrue(intended)
+        self.assertEqual(provider_error, "invalid_key")
+        self.assertIn("Optional OpenAI enrichment is inactive (invalid_key)", output)
+        self.assertNotIn(secret, output)
+
+    def test_daybreak_entitlement_skips_enrichment_and_keeps_source_records(self) -> None:
+        secret = "sk-openai-secret-never-log-9f3a"
+        stdout = io.StringIO()
+        body = json.dumps(
+            {"error": {"code": "access_program_not_enabled", "message": secret}}
+        ).encode("utf-8")
+
+        def opener(_: object, *, timeout: int) -> object:
+            raise HTTPError(ai.OPENAI_API_URL, 403, "Forbidden", {}, io.BytesIO(body))
+
+        with patch("sys.stdout", stdout):
+            client, intended, provider_error = catalog.configure_openai_enrichment(
+                api_key=secret,
+                model="gpt-6-sol",
+                opener=opener,
+                access_program="daybreak_blue",
+                limit=20,
+            )
+        output = stdout.getvalue()
+        self.assertIsNone(client)
+        self.assertTrue(intended)
+        self.assertEqual(provider_error, "daybreak_entitlement")
+        self.assertIn("Daybreak entitlement missing", output)
+        self.assertNotIn(secret, output)
+
+        source = {
+            "cve": "CVE-2026-1234",
+            "recipe_kind": "composed",
+            "references": [
+                {"url": "https://vendor.example.test/advisory", "tags": ["Vendor Advisory"]}
+            ],
+        }
+        applied = list(ai.EnrichmentCache(Path("unused.json")).apply([source], client=None))
+        self.assertEqual(applied[0]["cve"], "CVE-2026-1234")
+        self.assertNotIn("ai_enrichment", applied[0])
+
     def test_ai_enrichment_limit_is_hard_bounded(self) -> None:
         self.assertEqual(catalog.parse_ai_enrichment_limit("0"), 0)
         self.assertEqual(
@@ -788,7 +975,10 @@ class SyncCveCatalogTests(unittest.TestCase):
             def __exit__(self, *args: object) -> None:
                 return None
 
-            def read(self) -> bytes:
+            def read(self, _size: int = -1) -> bytes:
+                if getattr(self, "_sent", False):
+                    return b""
+                self._sent = True
                 return b"recovered feed"
 
         transient = HTTPError(
@@ -801,12 +991,13 @@ class SyncCveCatalogTests(unittest.TestCase):
         with (
             patch.object(catalog, "urlopen", side_effect=[transient, Response()]) as mocked_open,
             patch.object(catalog.time, "sleep") as mocked_sleep,
+            patch.object(catalog.random, "random", return_value=1.0),
         ):
             payload = catalog.fetch_bytes("https://nvd.example.test/feed.json.gz")
 
         self.assertEqual(payload, b"recovered feed")
         self.assertEqual(mocked_open.call_count, 2)
-        mocked_sleep.assert_called_once_with(1)
+        mocked_sleep.assert_called_once_with(1.0)
 
     def test_fetch_bytes_retries_truncated_http_body(self) -> None:
         class Response:
@@ -819,9 +1010,12 @@ class SyncCveCatalogTests(unittest.TestCase):
             def __exit__(self, *args: object) -> None:
                 return None
 
-            def read(self) -> bytes:
+            def read(self, _size: int = -1) -> bytes:
                 if self.truncated:
                     raise catalog.IncompleteRead(b"partial feed", 1024)
+                if getattr(self, "_sent", False):
+                    return b""
+                self._sent = True
                 return b"complete feed"
 
         with (
@@ -853,7 +1047,10 @@ class SyncCveCatalogTests(unittest.TestCase):
             def __exit__(self, *args: object) -> None:
                 return None
 
-            def read(self) -> bytes:
+            def read(self, _size: int = -1) -> bytes:
+                if getattr(self, "_sent", False):
+                    return b""
+                self._sent = True
                 return self.payload
 
         short = Response(b"partial", content_length="12")
@@ -881,7 +1078,7 @@ class SyncCveCatalogTests(unittest.TestCase):
             def __exit__(self, *args: object) -> None:
                 return None
 
-            def read(self) -> bytes:
+            def read(self, _size: int = -1) -> bytes:
                 raise catalog.IncompleteRead(b"partial feed", 1024)
 
         with (
@@ -893,7 +1090,11 @@ class SyncCveCatalogTests(unittest.TestCase):
                 catalog.fetch_bytes("https://nvd.example.test/feed.json.gz")
 
         self.assertEqual(mocked_open.call_count, 5)
-        self.assertEqual(mocked_sleep.call_count, 5)
+        self.assertEqual(mocked_sleep.call_count, 4)
+        self.assertEqual(
+            mocked_sleep.call_args_list,
+            [((1.0,),), ((2.0,),), ((4.0,),), ((8.0,),)],
+        )
 
     def test_nvd_fetch_retries_cloudflare_origin_timeouts(self) -> None:
         self.assertTrue({520, 521, 522, 523, 524} <= catalog.RETRYABLE_HTTP_CODES)
@@ -905,7 +1106,10 @@ class SyncCveCatalogTests(unittest.TestCase):
             def __exit__(self, *args: object) -> None:
                 return None
 
-            def read(self) -> bytes:
+            def read(self, _size: int = -1) -> bytes:
+                if getattr(self, "_sent", False):
+                    return b""
+                self._sent = True
                 return b"recovered metadata"
 
         transient = HTTPError(
@@ -918,12 +1122,303 @@ class SyncCveCatalogTests(unittest.TestCase):
         with (
             patch.object(catalog, "urlopen", side_effect=[transient, Response()]) as mocked_open,
             patch.object(catalog.time, "sleep") as mocked_sleep,
+            patch.object(catalog.random, "random", return_value=1.0),
         ):
             payload = catalog.fetch_bytes("https://nvd.example.test/nvdcve-2.0-2018.meta")
 
         self.assertEqual(payload, b"recovered metadata")
         self.assertEqual(mocked_open.call_count, 2)
-        mocked_sleep.assert_called_once_with(1)
+        mocked_sleep.assert_called_once_with(1.0)
+
+    def test_fetch_bytes_applies_jitter_to_5xx_and_skips_final_sleep(self) -> None:
+        transient = HTTPError(
+            "https://nvd.example.test/nvdcve-2.0-2018.meta",
+            503,
+            "Service Unavailable",
+            {},
+            None,
+        )
+        with (
+            patch.object(catalog, "urlopen", side_effect=transient) as mocked_open,
+            patch.object(catalog.time, "sleep") as mocked_sleep,
+            patch.object(catalog.random, "random", return_value=0.0),
+        ):
+            with self.assertRaises(HTTPError) as raised:
+                catalog.fetch_bytes("https://nvd.example.test/nvdcve-2.0-2018.meta")
+
+        self.assertEqual(raised.exception.code, 503)
+        self.assertEqual(mocked_open.call_count, 5)
+        self.assertEqual(
+            mocked_sleep.call_args_list,
+            [((0.5,),), ((1.0,),), ((2.0,),), ((4.0,),)],
+        )
+
+    def test_fetch_bytes_stops_at_the_url_deadline(self) -> None:
+        clock = {"now": 0.0}
+        opens = 0
+
+        def monotonic() -> float:
+            return clock["now"]
+
+        def sleep(seconds: float) -> None:
+            clock["now"] += float(seconds)
+
+        def urlopen(*_args: object, **_kwargs: object) -> object:
+            nonlocal opens
+            opens += 1
+            if opens > 20:
+                raise AssertionError(
+                    "unbounded retry: fetch_bytes ignored the per-URL deadline"
+                )
+            clock["now"] += 70
+            raise catalog.IncompleteRead(b"partial feed", 1024)
+
+        with (
+            patch.object(catalog, "urlopen", side_effect=urlopen),
+            patch.object(catalog.time, "sleep", side_effect=sleep),
+            patch.object(catalog.time, "monotonic", side_effect=monotonic),
+            patch.object(catalog.random, "random", return_value=1.0),
+        ):
+            with self.assertRaises(catalog.IncompleteRead):
+                catalog.fetch_bytes(
+                    "https://nvd.example.test/feed.json.gz",
+                    deadline_seconds=180,
+                )
+
+        # 70s/attempt against a 180s deadline allows three opens (t=0, 71, 143)
+        # and refuses a fourth. Five-attempt code without a deadline would open
+        # five times; an unbounded mutant trips the 20-call guard above.
+        self.assertEqual(opens, 3)
+        self.assertLess(opens, 5)
+        self.assertLessEqual(clock["now"], 180 + 70)
+        self.assertEqual(catalog.FETCH_DEADLINE_SECONDS, 300.0)
+
+    def test_fetch_bytes_stops_a_slow_drip_within_the_deadline(self) -> None:
+        class DripResponse:
+            def __init__(self) -> None:
+                self.headers: dict[str, str] = {}
+                self.timeouts: list[float] = []
+
+            def __enter__(self) -> "DripResponse":
+                return self
+
+            def __exit__(self, *args: object) -> None:
+                return None
+
+            def settimeout(self, timeout: float) -> None:
+                self.timeouts.append(float(timeout))
+
+            def read(self, _size: int = -1) -> bytes:
+                time.sleep(0.5)
+                return b"x"
+
+        drip = DripResponse()
+        started = time.monotonic()
+        with patch.object(catalog, "urlopen", return_value=drip):
+            with self.assertRaises(TimeoutError) as raised:
+                catalog.fetch_bytes(
+                    "https://nvd.example.test/feed.json.gz",
+                    deadline_seconds=3,
+                    timeout=180,
+                    attempts=1,
+                )
+        elapsed = time.monotonic() - started
+
+        # urlopen's timeout is per socket read. A 1-byte-every-0.5s drip
+        # against a 3s deadline used to return after ~49.5s when the body
+        # was read in one call. Chunked reads must finish near 3s.
+        self.assertLess(elapsed, 3.0 + 1.0)
+        self.assertGreaterEqual(elapsed, 2.5)
+        self.assertIn("per-URL deadline", str(raised.exception))
+        self.assertTrue(drip.timeouts)
+        self.assertLessEqual(max(drip.timeouts), 3.0)
+        self.assertGreater(min(drip.timeouts), 0.0)
+        self._assert_applied_timeouts_shrink(deadline=3.0)
+
+    def test_fetch_bytes_uses_read1_and_a_deadline_timer(self) -> None:
+        self.assertIn("read1", inspect.getsource(catalog._read_one_chunk))
+        self.assertIn("threading.Timer", inspect.getsource(catalog._DeadlineGuard))
+        self.assertIn("close", inspect.getsource(catalog._DeadlineGuard._expire))
+
+    def test_catch_up_page_cap_fits_the_sync_job_budget(self) -> None:
+        page_minutes = catalog.NVD_API_MAX_PAGES * catalog.FETCH_DEADLINE_SECONDS / 60.0
+        used = page_minutes + 43.0 + 11.3
+        self.assertEqual(catalog.NVD_API_MAX_PAGES, 15)
+        self.assertLess(used, 150.0)
+        self.assertAlmostEqual(150.0 - used, 20.7, places=1)
+
+    def test_fetch_bytes_returns_a_one_byte_body(self) -> None:
+        class OneByteHandler(BaseHTTPRequestHandler):
+            def do_GET(self) -> None:
+                self.send_response(200)
+                self.send_header("Content-Length", "1")
+                self.end_headers()
+                self.wfile.write(b"z")
+
+            def log_message(self, *_args: object) -> None:
+                return
+
+        with _LocalHttpServer(OneByteHandler) as server:
+            started = time.monotonic()
+            payload = catalog.fetch_bytes(
+                server.url,
+                deadline_seconds=3,
+                timeout=180,
+                attempts=1,
+            )
+            elapsed = time.monotonic() - started
+
+        self.assertEqual(payload, b"z")
+        self.assertLess(elapsed, 1.0)
+
+    def test_fetch_bytes_stops_a_real_socket_drip_within_the_deadline(self) -> None:
+        class DripHandler(BaseHTTPRequestHandler):
+            stop = threading.Event()
+
+            def do_GET(self) -> None:
+                self.send_response(200)
+                self.send_header("Content-Type", "text/plain")
+                self.send_header("Content-Length", "200000")
+                self.end_headers()
+                try:
+                    while not self.stop.is_set():
+                        self.wfile.write(b"x")
+                        self.wfile.flush()
+                        time.sleep(0.5)
+                except (BrokenPipeError, ConnectionResetError, OSError):
+                    return
+
+            def log_message(self, *_args: object) -> None:
+                return
+
+        DripHandler.stop.clear()
+        with _LocalHttpServer(DripHandler) as server:
+            started = time.monotonic()
+            with self.assertRaises(TimeoutError) as raised:
+                catalog.fetch_bytes(
+                    server.url,
+                    deadline_seconds=3,
+                    timeout=180,
+                    attempts=1,
+                )
+            elapsed = time.monotonic() - started
+            DripHandler.stop.set()
+
+        # A real socket returns whatever is buffered, not 1 byte per
+        # read(65536). Without a deadline timer plus read1(), 1 byte /
+        # 0.5s against a 3s deadline took 49.5s and a 200 KB body ran
+        # past 120s.
+        self.assertLess(elapsed, 3.0 + 1.0)
+        self.assertGreaterEqual(elapsed, 2.5)
+        self.assertIn("per-URL deadline", str(raised.exception))
+        self._assert_applied_timeouts_shrink(deadline=3.0)
+
+    def test_fetch_bytes_stops_a_real_redirect_chain_within_the_deadline(self) -> None:
+        class RedirectHandler(BaseHTTPRequestHandler):
+            def do_GET(self) -> None:
+                time.sleep(0.8)
+                try:
+                    hop = int(self.path.strip("/") or "0")
+                except ValueError:
+                    hop = 0
+                if hop < 9:
+                    self.send_response(302)
+                    self.send_header("Location", f"{self._origin()}/{hop + 1}")
+                    self.end_headers()
+                    return
+                self.send_response(200)
+                self.send_header("Content-Length", "2")
+                self.end_headers()
+                self.wfile.write(b"ok")
+
+            def _origin(self) -> str:
+                host, port = self.server.server_address[:2]
+                return f"http://{host}:{port}"
+
+            def log_message(self, *_args: object) -> None:
+                return
+
+        with _LocalHttpServer(RedirectHandler) as server:
+            started = time.monotonic()
+            with self.assertRaises(TimeoutError) as raised:
+                catalog.fetch_bytes(
+                    f"{server.url}/0",
+                    deadline_seconds=3,
+                    timeout=180,
+                    attempts=1,
+                )
+            elapsed = time.monotonic() - started
+
+        # Each hop used to get the full timeout, so 10 × 0.8s finished
+        # in 8s against a 3s deadline. The overall timer must close the
+        # connection mid-chain.
+        self.assertLess(elapsed, 3.0 + 1.0)
+        self.assertGreaterEqual(elapsed, 2.0)
+        self.assertIn("per-URL deadline", str(raised.exception))
+
+    def test_fetch_bytes_stops_slow_headers_within_the_deadline(self) -> None:
+        stop = threading.Event()
+        listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        listener.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        listener.bind(("127.0.0.1", 0))
+        listener.listen(1)
+        port = listener.getsockname()[1]
+
+        def serve() -> None:
+            listener.settimeout(0.5)
+            while not stop.is_set():
+                try:
+                    connection, _address = listener.accept()
+                except TimeoutError:
+                    continue
+                try:
+                    connection.settimeout(1.0)
+                    try:
+                        connection.recv(4096)
+                    except OSError:
+                        return
+                    payload = b"HTTP/1.1 200 OK\r\nContent-Length: 1\r\n\r\nz"
+                    for index in range(len(payload)):
+                        if stop.is_set():
+                            return
+                        connection.sendall(payload[index : index + 1])
+                        time.sleep(0.5)
+                except OSError:
+                    return
+                finally:
+                    connection.close()
+
+        worker = threading.Thread(target=serve, daemon=True)
+        worker.start()
+        try:
+            started = time.monotonic()
+            with self.assertRaises(TimeoutError) as raised:
+                catalog.fetch_bytes(
+                    f"http://127.0.0.1:{port}/",
+                    deadline_seconds=3,
+                    timeout=180,
+                    attempts=1,
+                )
+            elapsed = time.monotonic() - started
+        finally:
+            stop.set()
+            listener.close()
+            worker.join(timeout=2)
+
+        # Header readline() also resets the socket timeout per recv, so
+        # only the overall deadline timer can stop a slow header drip.
+        self.assertLess(elapsed, 3.0 + 1.0)
+        self.assertGreaterEqual(elapsed, 2.5)
+        self.assertIn("per-URL deadline", str(raised.exception))
+
+    def _assert_applied_timeouts_shrink(self, *, deadline: float) -> None:
+        timeouts = catalog.FETCH_APPLIED_TIMEOUTS
+        self.assertGreaterEqual(len(timeouts), 2)
+        self.assertLessEqual(max(timeouts), deadline)
+        self.assertGreater(min(timeouts), 0.0)
+        self.assertLess(timeouts[-1], timeouts[0])
+        for previous, current in zip(timeouts, timeouts[1:]):
+            self.assertLessEqual(current, previous + 1e-9)
 
     def test_fetch_bytes_does_not_retry_non_transient_http_errors(self) -> None:
         forbidden = HTTPError(
@@ -3319,17 +3814,19 @@ class SyncCveCatalogTests(unittest.TestCase):
         def truncated(_url: str, **_: object) -> bytes:
             raise catalog.IncompleteRead(b"partial lastMod page", 1024)
 
-        records, metadata = catalog.fetch_nvd_api_catchup(
-            feeds,
-            end=catalog.parse_nvd_datetime("2026-10-21T16:00:00Z"),
-            fetch=truncated,
-            sleeper=lambda _: None,
-        )
+        with redirect_stdout(io.StringIO()) as stdout:
+            records, metadata = catalog.fetch_nvd_api_catchup(
+                feeds,
+                end=catalog.parse_nvd_datetime("2026-10-21T16:00:00Z"),
+                fetch=truncated,
+                sleeper=lambda _: None,
+            )
 
         self.assertEqual(records, {})
         self.assertEqual(metadata["records"], 0)
         self.assertIn("not retrievable", metadata["skipped"])
         self.assertNotIn("latest_record_modified", metadata)
+        self.assertIn("::warning::NVD API lastMod catch-up is not retrievable", stdout.getvalue())
 
         _, stamp = catalog.build_outputs(
             [],

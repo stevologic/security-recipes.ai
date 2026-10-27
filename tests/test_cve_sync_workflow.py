@@ -46,28 +46,70 @@ class CveSyncWorkflowTests(unittest.TestCase):
         self.assertIn("comma or space separated", dispatch)
         self.assertIn("PRIORITY_CVE_IDS: ${{ inputs.priority_cve_ids || '' }}", sync_step)
         self.assertIn('--priority-cve-ids "$PRIORITY_CVE_IDS"', sync_step)
-        self.assertIn("XAI_ENRICHMENT_LIMIT", self.workflow)
+        self.assertIn("CVE_ENRICHMENT_LIMIT", self.workflow)
+        self.assertIn("CVE_ENRICH_MODEL: ${{ vars.CVE_ENRICH_MODEL }}", self.workflow)
+        self.assertNotIn("|| 'grok-4.7'", self.workflow)
+        self.assertNotIn("|| \"grok-4.7\"", self.workflow)
+        self.assertIn("OPENAI_DAYBREAK_PROGRAM: ${{ vars.OPENAI_DAYBREAK_PROGRAM || '' }}", self.workflow)
+        self.assertNotIn("OPENAI_ENRICHMENT_LIMIT", self.workflow)
+        self.assertNotIn("OPENAI_MODEL", self.workflow)
+        self.assertNotIn("XAI_ENRICHMENT_LIMIT", self.workflow)
+        self.assertNotIn("XAI_MODEL", self.workflow)
 
-    def test_xai_secret_is_optional_and_never_printed(self) -> None:
+    def test_openai_secret_is_optional_and_never_printed(self) -> None:
         sync_step = self.step(
             "Synchronize and optionally enrich exact rolling ten-year catalog"
+        )
+        self.assertIn(
+            "OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}", sync_step
         )
         self.assertIn(
             "XAI_API_KEY: ${{ secrets.XAI_API_KEY }}", sync_step
         )
         self.assertEqual(
-            self.workflow.count("XAI_API_KEY: ${{ secrets.XAI_API_KEY }}"), 1
+            self.workflow.count("OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}"), 2
         )
-        self.assertNotIn("XAI_API_KEY", self.workflow.split("steps:", 1)[0])
-        self.assertNotIn("OPENAI_API_KEY", self.workflow)
+        self.assertEqual(
+            self.workflow.count("XAI_API_KEY: ${{ secrets.XAI_API_KEY }}"), 2
+        )
+        self.assertNotIn("OPENAI_API_KEY", self.workflow.split("jobs:", 1)[0])
+        self.assertNotIn("XAI_API_KEY", self.workflow.split("jobs:", 1)[0])
         self.assertIn(
-            "New xAI requests skipped; valid cached enrichments retained",
+            "New enrichment requests skipped; valid cached enrichments retained",
             self.workflow,
         )
         self.assertNotRegex(self.workflow, r"\bsk-[A-Za-z0-9_-]{12,}")
-        self.assertNotIn('echo "$XAI_API_KEY"', self.workflow)
-        self.assertNotIn("print(os.environ['XAI_API_KEY'])", self.workflow)
-        self.assertNotIn('print(os.environ["XAI_API_KEY"])', self.workflow)
+        self.assertNotIn('echo "$OPENAI_API_KEY"', self.workflow)
+        self.assertNotIn("print(os.environ['OPENAI_API_KEY'])", self.workflow)
+        self.assertNotIn('print(os.environ["OPENAI_API_KEY"])', self.workflow)
+        self.assertNotIn('echo "$OPENAI_DAYBREAK_PROGRAM"', self.workflow)
+
+    def test_daybreak_probe_input_skips_the_catalog_sync(self) -> None:
+        dispatch = self.workflow.split("permissions:", 1)[0]
+        probe_step = self.step("Probe configured enrichment provider")
+        self.assertRegex(dispatch, r"(?m)^\s{6}daybreak_probe:\s*$")
+        self.assertIn("type: boolean", dispatch)
+        self.assertIn(
+            "if: github.event_name == 'workflow_dispatch' && inputs.daybreak_probe",
+            self.workflow,
+        )
+        self.assertIn(
+            "if: github.event_name != 'workflow_dispatch' || !inputs.daybreak_probe",
+            self.workflow,
+        )
+        self.assertIn("python scripts/probe_openai_daybreak.py", probe_step)
+        self.assertIn("XAI_API_KEY: ${{ secrets.XAI_API_KEY }}", probe_step)
+        self.assertIn("OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}", probe_step)
+        self.assertNotIn("scripts/sync_cve_catalog.py", probe_step)
+        self.assertIn("- name: Checkout selected branch", self.workflow)
+        self.assertNotIn(
+            "ref: ${{ github.event.repository.default_branch }}",
+            self.step("Checkout selected branch"),
+        )
+        self.assertLess(
+            self.workflow.index("daybreak-probe:"),
+            self.workflow.index("\n  sync:"),
+        )
 
     def test_nvd_api_key_is_optional_and_never_printed(self) -> None:
         sync_step = self.step(
@@ -296,6 +338,10 @@ class CveSyncWorkflowTests(unittest.TestCase):
         self.assertIn("require_karen_qa_from_app", delivery_step)
         self.assertIn("report_waiting_on_karen_qa", delivery_step)
         self.assertIn("waiting on karen-qa from the Karen QA app on ${expected_sha}", delivery_step)
+        self.assertIn(
+            '::warning::Catalog PR #${PR_NUMBER} is waiting on karen-qa from the Karen QA app on ${expected_sha}.',
+            delivery_step,
+        )
         self.assertIn('report_waiting_on_karen_qa "$EXPECTED_SHA"', delivery_step)
         self.assertIn("waiting_on_karen_qa=true", delivery_step)
         self.assertIn("does not post karen-qa", delivery_step)
@@ -335,8 +381,39 @@ class CveSyncWorkflowTests(unittest.TestCase):
             "steps.catalog-delivery.outputs.waiting_on_karen_qa == 'true'",
             waiting_step,
         )
+        self.assertIn(
+            '::warning::Catalog PR #${PR_NUMBER} is waiting on karen-qa from the Karen QA app on ${EXPECTED_SHA}.',
+            waiting_step,
+        )
+        self.assertIn("GITHUB_STEP_SUMMARY", waiting_step)
         self.assertIn(r"never posts \`karen-qa\`", waiting_step)
         self.assertIn("HTTP 405", waiting_step)
+        summarize_step = self.step("Summarize catalog refresh")
+        self.assertIn("not retrievable", summarize_step)
+        self.assertIn("::warning::NVD lastMod catch-up skipped", summarize_step)
+        self.assertIn("GITHUB_STEP_SUMMARY", summarize_step)
+        self.assertIn(
+            "NVD lastMod catch-up skipped; catalog kept the annual-feed watermark",
+            summarize_step,
+        )
+
+    def test_sync_job_timeout_documents_fetch_deadline_headroom(self) -> None:
+        self.assertIn("timeout-minutes: 150", self.workflow)
+        self.assertIn("5 min/page", self.workflow)
+        self.assertIn("11.3 min measured", self.workflow)
+        self.assertIn("CVE catalog sync budget", self.workflow)
+        automation = (ROOT / ".github" / "AUTOMATION.md").read_text(encoding="utf-8")
+        self.assertIn("## CVE catalog sync budget", automation)
+        self.assertIn("15.5 min/URL", automation)
+        self.assertIn("300s", automation)
+        self.assertIn("successful catch-up pages", automation)
+        self.assertIn("39623444175", automation)
+        self.assertIn("11.3 min", automation)
+        self.assertIn("20.7 min headroom", automation)
+        self.assertIn("NVD_API_MAX_PAGES = 15", automation)
+        self.assertIn("FETCH_DEADLINE_SECONDS", automation)
+        self.assertIn("FETCH_READ_CHUNK_SIZE", automation)
+        self.assertIn("15-page", self.workflow)
 
     def test_enrichment_health_issue_is_upserted_and_closed_on_recovery(self) -> None:
         health_step = self.step("Reconcile enrichment health issue")

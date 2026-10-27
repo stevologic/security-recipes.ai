@@ -14,6 +14,17 @@ from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any
 
+try:
+    from scripts.cve_ai_enrichment import (
+        DEFAULT_CVE_ENRICH_MODEL,
+        RECOMMENDED_DAYBREAK_SPEC,
+    )
+except ModuleNotFoundError:  # Direct ``python scripts/check_cve_catalog_update.py``.
+    from cve_ai_enrichment import (  # type: ignore[no-redef]
+        DEFAULT_CVE_ENRICH_MODEL,
+        RECOMMENDED_DAYBREAK_SPEC,
+    )
+
 
 SCHEMA_VERSION = 1
 LOGGER = logging.getLogger(__name__)
@@ -517,19 +528,29 @@ def enrichment_health(sync_report: dict[str, Any]) -> dict[str, Any]:
     warnings: list[str] = []
     if provider_error == "insufficient_quota":
         alerts.append(
-            "xAI quota or credits are exhausted; add billing credits to resume enrichment."
+            "CVE enrichment quota or credits are exhausted; add billing credits to resume enrichment."
+        )
+    elif provider_error == "daybreak_entitlement":
+        alerts.append(
+            f"Daybreak entitlement missing; keep CVE_ENRICH_MODEL={DEFAULT_CVE_ENRICH_MODEL} until "
+            "Daybreak is enabled, or set "
+            f"CVE_ENRICH_MODEL={RECOMMENDED_DAYBREAK_SPEC} "
+            "once the OpenAI project is entitled."
         )
     elif provider_error == "invalid_key":
         alerts.append(
-            "xAI rejected the API key; replace the XAI_API_KEY repository secret."
+            "The enrichment provider rejected the API key; replace XAI_API_KEY or "
+            "OPENAI_API_KEY for the configured CVE_ENRICH_MODEL."
         )
     elif provider_error:
         alerts.append(
-            f"xAI enrichment stopped after a provider error ({provider_error})."
+            f"CVE enrichment stopped after a provider error ({provider_error})."
         )
     elif not api_enabled:
         alerts.append(
-            "xAI enrichment was not enabled; verify the XAI_API_KEY repository secret."
+            "CVE enrichment was not enabled; verify XAI_API_KEY for the default "
+            f"{DEFAULT_CVE_ENRICH_MODEL} model, or OPENAI_API_KEY if CVE_ENRICH_MODEL "
+            "is an OpenAI model."
         )
     selected = int(metrics["selected"])
     generated = int(metrics["generated"])
