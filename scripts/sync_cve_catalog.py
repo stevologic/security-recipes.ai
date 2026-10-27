@@ -46,6 +46,7 @@ try:
         DEFAULT_CVE_ENRICH_MODEL,
         DEFAULT_REQUEST_LIMIT as DEFAULT_AI_ENRICHMENT_LIMIT,
         MAX_REQUEST_LIMIT as MAX_AI_ENRICHMENT_LIMIT,
+        RECOMMENDED_DAYBREAK_SPEC,
         EnrichmentCache,
         OpenAIEnricher,
         XAIEnricher,
@@ -63,6 +64,7 @@ except ModuleNotFoundError:  # Direct ``python scripts/sync_cve_catalog.py`` exe
         DEFAULT_CVE_ENRICH_MODEL,
         DEFAULT_REQUEST_LIMIT as DEFAULT_AI_ENRICHMENT_LIMIT,
         MAX_REQUEST_LIMIT as MAX_AI_ENRICHMENT_LIMIT,
+        RECOMMENDED_DAYBREAK_SPEC,
         EnrichmentCache,
         OpenAIEnricher,
         XAIEnricher,
@@ -3822,7 +3824,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         default=default_cve_enrich_model(),
         help=(
             "Single provider/model switch for optional enrichment. Default "
-            f"{DEFAULT_CVE_ENRICH_MODEL} (xAI). Use gpt-6-sol+daybreak_blue to "
+            f"{DEFAULT_CVE_ENRICH_MODEL} (xAI). Use {RECOMMENDED_DAYBREAK_SPEC} to "
             "switch to OpenAI Daybreak later."
         ),
     )

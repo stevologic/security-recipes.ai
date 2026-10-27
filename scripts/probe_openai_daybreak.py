@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Make one Responses probe for the configured CVE enrichment provider.
 
-Reads ``CVE_ENRICH_MODEL`` (default ``grok-4.7``) and the matching API key.
+Reads ``CVE_ENRICH_MODEL`` (or ``DEFAULT_CVE_ENRICH_MODEL``) and the matching API key.
 Prints only ``ok`` or ``denied`` plus the HTTP status. Never prints the API
 key or provider response body. Does not run the CVE catalog sync.
 """

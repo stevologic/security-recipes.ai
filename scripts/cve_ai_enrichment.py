@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """Bounded, evidence-constrained Responses API enrichment for normalized CVE records.
 
-Catalog sync selects a Responses API provider from ``CVE_ENRICH_MODEL``
-(default ``grok-4.7`` / xAI). OpenAI and Daybreak stay available behind that
-same config. Leftover-review and other Grok CLI jobs still use the xAI helpers
+Catalog sync selects a Responses API provider from ``CVE_ENRICH_MODEL``.
+The one live default is ``DEFAULT_CVE_ENRICH_MODEL``; change that single
+assignment to switch providers later. OpenAI and Daybreak stay available
+behind the same config and stay dormant until that value is a ``gpt-*``
+spec. Leftover-review and other Grok CLI jobs still use ``DEFAULT_XAI_MODEL``
 independently. The NVD/CISA record remains authoritative. This module adds a
 supplemental ``ai_enrichment`` object only; it never changes CVSS, KEV,
 affected-version, archetype, or reviewed Markdown fields.
@@ -32,6 +34,7 @@ ENRICHMENT_SCHEMA_VERSION = 2
 PROMPT_VERSION = "2026-07-14.2"
 DEFAULT_XAI_MODEL = "grok-4.6"
 DEFAULT_MODEL = DEFAULT_XAI_MODEL
+# One live catalog default. Every enrichment caller reads this (or CVE_ENRICH_MODEL).
 DEFAULT_CVE_ENRICH_MODEL = "grok-4.7"
 DEFAULT_OPENAI_MODEL = "gpt-5.6-luna"
 DEFAULT_API_URL = "https://api.x.ai/v1/responses"
@@ -426,7 +429,7 @@ def classify_provider_http_error(exc: HTTPError) -> str:
 def probe_provider_credentials(
     api_key: str,
     *,
-    model: str = DEFAULT_MODEL,
+    model: str = DEFAULT_CVE_ENRICH_MODEL,
     api_url: str = DEFAULT_API_URL,
     env_name: str = API_KEY_ENV,
     provider: str = "xAI",
@@ -445,7 +448,9 @@ def probe_provider_credentials(
         return ProviderCredentialStatus("invalid_key_format", usable=False, **status_kwargs)
     if opener is None:
         opener = urlopen
-    fallback_model = DEFAULT_OPENAI_MODEL if provider == "OpenAI" else DEFAULT_MODEL
+    fallback_model = (
+        DEFAULT_OPENAI_MODEL if provider == "OpenAI" else DEFAULT_CVE_ENRICH_MODEL
+    )
     payload = {
         "model": normalize_text(model, limit=160) or fallback_model,
         "input": "ok",
@@ -491,7 +496,7 @@ def probe_provider_credentials(
 def probe_xai_credentials(
     api_key: str,
     *,
-    model: str = DEFAULT_MODEL,
+    model: str = DEFAULT_CVE_ENRICH_MODEL,
     api_url: str = DEFAULT_API_URL,
     opener: Callable[..., Any] | None = None,
     timeout: int = 30,
@@ -1287,7 +1292,7 @@ class XAIEnricher:
         self,
         api_key: str,
         *,
-        model: str = DEFAULT_MODEL,
+        model: str = DEFAULT_CVE_ENRICH_MODEL,
         api_url: str = DEFAULT_API_URL,
         opener: Callable[..., Any] = urlopen,
         sleep: Callable[[float], None] = time.sleep,
@@ -1301,7 +1306,9 @@ class XAIEnricher:
         if not str(api_key or "").strip():
             raise ValueError("api_key must not be empty")
         self.api_key = str(api_key).strip()
-        fallback_model = DEFAULT_OPENAI_MODEL if provider == "OpenAI" else DEFAULT_MODEL
+        fallback_model = (
+            DEFAULT_OPENAI_MODEL if provider == "OpenAI" else DEFAULT_CVE_ENRICH_MODEL
+        )
         self.model = normalize_text(model, limit=160) or fallback_model
         self.api_url = api_url
         self.opener = opener

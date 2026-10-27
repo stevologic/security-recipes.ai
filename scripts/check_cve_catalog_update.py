@@ -12,6 +12,17 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+try:
+    from scripts.cve_ai_enrichment import (
+        DEFAULT_CVE_ENRICH_MODEL,
+        RECOMMENDED_DAYBREAK_SPEC,
+    )
+except ModuleNotFoundError:  # Direct ``python scripts/check_cve_catalog_update.py``.
+    from cve_ai_enrichment import (  # type: ignore[no-redef]
+        DEFAULT_CVE_ENRICH_MODEL,
+        RECOMMENDED_DAYBREAK_SPEC,
+    )
+
 
 SCHEMA_VERSION = 1
 
@@ -369,8 +380,9 @@ def enrichment_health(sync_report: dict[str, Any]) -> dict[str, Any]:
         )
     elif provider_error == "daybreak_entitlement":
         alerts.append(
-            "Daybreak entitlement missing; keep CVE_ENRICH_MODEL=grok-4.7 until "
-            "Daybreak is enabled, or set CVE_ENRICH_MODEL=gpt-6-sol+daybreak_blue "
+            f"Daybreak entitlement missing; keep CVE_ENRICH_MODEL={DEFAULT_CVE_ENRICH_MODEL} until "
+            "Daybreak is enabled, or set "
+            f"CVE_ENRICH_MODEL={RECOMMENDED_DAYBREAK_SPEC} "
             "once the OpenAI project is entitled."
         )
     elif provider_error == "invalid_key":
@@ -385,7 +397,8 @@ def enrichment_health(sync_report: dict[str, Any]) -> dict[str, Any]:
     elif not api_enabled:
         alerts.append(
             "CVE enrichment was not enabled; verify XAI_API_KEY for the default "
-            "grok-4.7 model, or OPENAI_API_KEY if CVE_ENRICH_MODEL is an OpenAI model."
+            f"{DEFAULT_CVE_ENRICH_MODEL} model, or OPENAI_API_KEY if CVE_ENRICH_MODEL "
+            "is an OpenAI model."
         )
     selected = int(metrics["selected"])
     generated = int(metrics["generated"])

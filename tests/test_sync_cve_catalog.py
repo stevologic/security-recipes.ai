@@ -755,7 +755,7 @@ class SyncCveCatalogTests(unittest.TestCase):
         }
         env.update(
             {
-                "CVE_ENRICH_MODEL": "grok-4.7",
+                "CVE_ENRICH_MODEL": ai.DEFAULT_CVE_ENRICH_MODEL,
                 "CVE_ENRICHMENT_LIMIT": "7",
                 "OPENAI_MODEL": "gpt-6-sol",
                 "OPENAI_ENRICHMENT_LIMIT": "41",
@@ -766,7 +766,7 @@ class SyncCveCatalogTests(unittest.TestCase):
         )
         with patch.dict(catalog.os.environ, env, clear=True):
             parsed = catalog.parse_args([])
-        self.assertEqual(parsed.cve_enrich_model, "grok-4.7")
+        self.assertEqual(parsed.cve_enrich_model, ai.DEFAULT_CVE_ENRICH_MODEL)
         self.assertEqual(parsed.ai_enrichment_limit, 7)
         self.assertEqual(parsed.openai_daybreak_program, "daybreak_blue")
         self.assertFalse(hasattr(parsed, "xai_model"))
@@ -785,14 +785,14 @@ class SyncCveCatalogTests(unittest.TestCase):
         }
         with patch.dict(catalog.os.environ, env, clear=True):
             parsed = catalog.parse_args([])
-        self.assertEqual(parsed.cve_enrich_model, "grok-4.7")
+        self.assertEqual(parsed.cve_enrich_model, ai.DEFAULT_CVE_ENRICH_MODEL)
 
     def test_missing_xai_key_skips_default_grok_enrichment_without_logging(self) -> None:
         secret = "xai-secret-never-log-9f3a"
         stdout = io.StringIO()
         with patch("sys.stdout", stdout):
             client, intended, provider_error = catalog.configure_cve_enrichment(
-                spec="grok-4.7",
+                spec=ai.DEFAULT_CVE_ENRICH_MODEL,
                 xai_api_key="",
                 openai_api_key=secret,
                 limit=20,

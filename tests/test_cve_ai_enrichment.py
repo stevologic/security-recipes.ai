@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import tempfile
 import unittest
 from datetime import datetime, timedelta, timezone
@@ -1654,13 +1655,18 @@ class CVEEnrichModelConfigTests(unittest.TestCase):
     def test_parse_derives_provider_from_one_model_value(self) -> None:
         grok = enrichment.parse_cve_enrich_model("")
         self.assertEqual(grok.provider, "xai")
-        self.assertEqual(grok.model, "grok-4.7")
+        self.assertEqual(grok.model, enrichment.DEFAULT_CVE_ENRICH_MODEL)
         self.assertIsNone(grok.access_program)
         self.assertEqual(grok.api_key_env, "XAI_API_KEY")
         self.assertEqual(grok.provider_label, "xAI")
 
-        explicit = enrichment.parse_cve_enrich_model("xai/grok-4.7")
-        self.assertEqual((explicit.provider, explicit.model), ("xai", "grok-4.7"))
+        explicit = enrichment.parse_cve_enrich_model(
+            f"xai/{enrichment.DEFAULT_CVE_ENRICH_MODEL}"
+        )
+        self.assertEqual(
+            (explicit.provider, explicit.model),
+            ("xai", enrichment.DEFAULT_CVE_ENRICH_MODEL),
+        )
 
         daybreak = enrichment.parse_cve_enrich_model("gpt-6-sol+daybreak_blue")
         self.assertEqual(daybreak.provider, "openai")
@@ -1675,12 +1681,14 @@ class CVEEnrichModelConfigTests(unittest.TestCase):
         self.assertEqual(overlay.access_program, "daybreak_blue")
 
         ignored = enrichment.parse_cve_enrich_model(
-            "grok-4.7", overlay_program="daybreak_blue"
+            enrichment.DEFAULT_CVE_ENRICH_MODEL, overlay_program="daybreak_blue"
         )
         self.assertIsNone(ignored.access_program)
 
         with self.assertRaisesRegex(ValueError, "OpenAI"):
-            enrichment.parse_cve_enrich_model("grok-4.7+daybreak_blue")
+            enrichment.parse_cve_enrich_model(
+                f"{enrichment.DEFAULT_CVE_ENRICH_MODEL}+daybreak_blue"
+            )
         with self.assertRaisesRegex(ValueError, "cannot derive"):
             enrichment.parse_cve_enrich_model("claude-opus")
 
@@ -1694,14 +1702,14 @@ class CVEEnrichModelConfigTests(unittest.TestCase):
 
         outcome, status = enrichment.probe_cve_enrichment_access(
             self.SECRET,
-            model="grok-4.7",
+            model=enrichment.DEFAULT_CVE_ENRICH_MODEL,
             opener=ready,
         )
         self.assertEqual((outcome, status), ("ok", 200))
 
         stdout = __import__("io").StringIO()
         env = {
-            "CVE_ENRICH_MODEL": "grok-4.7",
+            "CVE_ENRICH_MODEL": enrichment.DEFAULT_CVE_ENRICH_MODEL,
             "XAI_API_KEY": self.SECRET,
         }
         with (
@@ -1714,6 +1722,60 @@ class CVEEnrichModelConfigTests(unittest.TestCase):
             self.assertEqual(probe_script.main([]), 0)
         self.assertEqual(stdout.getvalue(), "ok 200\n")
         self.assertNotIn(self.SECRET, stdout.getvalue())
+
+    def test_credential_probe_defaults_to_the_single_enrichment_model(self) -> None:
+        captured: dict[str, object] = {}
+
+        def opener(request: object, *, timeout: int) -> FakeResponse:
+            self.assertTrue(hasattr(request, "data"))
+            captured["body"] = json.loads(request.data)
+            return FakeResponse({"id": "resp_ok"})
+
+        status = enrichment.probe_xai_credentials(self.SECRET, opener=opener)
+        self.assertEqual(status.reason, "ready")
+        self.assertEqual(captured["body"]["model"], enrichment.DEFAULT_CVE_ENRICH_MODEL)
+
+        from scripts import check_xai_credentials as check
+
+        env = {key: value for key, value in os.environ.items() if key not in {"XAI_MODEL", "CVE_ENRICH_MODEL"}}
+        env["XAI_API_KEY"] = self.SECRET
+        with (
+            patch.dict(os.environ, env, clear=True),
+            patch.object(check, "probe_xai_credentials", return_value=status) as probe,
+        ):
+            self.assertEqual(check.main([]), 0)
+        probe.assert_called_once()
+        self.assertEqual(probe.call_args.kwargs["model"], enrichment.DEFAULT_CVE_ENRICH_MODEL)
+
+    def test_enrichment_model_literals_live_only_on_named_constants(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        model_re = re.compile(r"(?<![A-Za-z0-9_+-])(?:grok-\d+(?:\.\d+)?|gpt-[A-Za-z0-9.+-]+)")
+        allowed_assignment = re.compile(
+            r"^\s*(?:DEFAULT_CVE_ENRICH_MODEL|DEFAULT_XAI_MODEL|"
+            r"DEFAULT_OPENAI_MODEL|RECOMMENDED_DAYBREAK_MODEL)\s*=\s*[\"'][^\"']+[\"']\s*$"
+        )
+        files = (
+            root / "scripts" / "cve_ai_enrichment.py",
+            root / "scripts" / "check_cve_catalog_update.py",
+            root / "scripts" / "probe_openai_daybreak.py",
+            root / "scripts" / "sync_cve_catalog.py",
+            root / "scripts" / "check_xai_credentials.py",
+            root / ".github" / "workflows" / "cve-catalog-sync.yml",
+        )
+        offenders: list[str] = []
+        for path in files:
+            for lineno, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
+                if not model_re.search(line):
+                    continue
+                if path.name == "cve_ai_enrichment.py" and allowed_assignment.match(line):
+                    continue
+                offenders.append(f"{path.relative_to(root)}:{lineno}:{line.strip()}")
+        self.assertEqual(
+            offenders,
+            [],
+            "catalog enrichment model ids must come from DEFAULT_CVE_ENRICH_MODEL "
+            f"(or leftover-review / dormant OpenAI named constants): {offenders}",
+        )
 
 
 class OpenAICVEEnrichmentHTTPTests(unittest.TestCase):
