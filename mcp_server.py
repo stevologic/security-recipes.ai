@@ -42,6 +42,7 @@ from scripts.cve_search_runtime import (
     CVESearchTimeoutError,
 )
 from scripts.cve_text_quality import clean_catalog_text
+from scripts.cve_latest_projection import project_runtime, render_latest, unavailable_projection
 from scripts.generate_agentic_source_freshness_watch import (
     evaluate_pack_as_of,
     today_utc,
@@ -16985,6 +16986,27 @@ async def cve_catalog_search(request: Request) -> Response:
     )
 
 
+@mcp.custom_route("/api/cve-latest", methods=["GET"], name="cve-latest", include_in_schema=False)
+async def cve_latest_projection(request: Request) -> Response:
+    """Expire the current view on every request without mutating historical data."""
+    try:
+        pending = _submit_cve_text_search(
+            partial(project_runtime, cve_catalog, datetime.now(timezone.utc))
+        )
+        projection = await asyncio.wait_for(
+            asyncio.wrap_future(pending),
+            timeout=3.0,
+        )
+    except Exception:
+        projection = unavailable_projection()
+    headers = {"Cache-Control": "no-store", "X-Content-Type-Options": "nosniff",
+               "X-Robots-Tag": "noindex, follow"}
+    if request.query_params.get("format") == "html":
+        return HTMLResponse(render_latest(projection), headers=headers)
+    return JSONResponse(projection, headers=headers,
+                        status_code=503 if projection["status"] == "unavailable" else 200)
+
+
 @mcp.custom_route(
     "/recipes/cve/{slug}/",
     methods=["GET"],
@@ -17403,7 +17425,18 @@ async def recipes_playbook_plan(
 async def recipes_cve_catalog_info() -> dict[str, Any]:
     """Return the complete Medium/High/Critical CVE catalog scope, coverage, provenance, and counts."""
     try:
-        return await asyncio.to_thread(cve_catalog.info)
+        info = await asyncio.to_thread(cve_catalog.info)
+        try:
+            pending = _submit_cve_text_search(
+                partial(project_runtime, cve_catalog, datetime.now(timezone.utc))
+            )
+            projection = await asyncio.wait_for(asyncio.wrap_future(pending), timeout=3.0)
+            if projection.get("source_revision") != info.get("manifest", {}).get("shard_set_sha256"):
+                raise ValueError("catalog info and latest projection crossed a revision change")
+            info["latest_projection"] = projection
+        except Exception:
+            info["latest_projection"] = unavailable_projection()
+        return info
     except Exception as exc:
         return {"available": False, "error": str(exc), "catalog_path": config.cve_catalog_path}
 

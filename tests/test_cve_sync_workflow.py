@@ -31,10 +31,8 @@ class CveSyncWorkflowTests(unittest.TestCase):
         self.assertEqual(cron_match.group(1), "23 9 * * *")
 
     def test_overlapping_syncs_share_a_non_canceling_concurrency_group(self) -> None:
-        self.assertRegex(
-            self.workflow,
-            r"(?ms)^concurrency:\s*\n\s*group:\s*cve-catalog-sync\s*\n\s*cancel-in-progress:\s*false\s*$",
-        )
+        self.assertIn("group: cve-catalog-${{ inputs.stage == 'enhancement' && 'enhancement' || 'source' }}", self.workflow)
+        self.assertIn("cancel-in-progress: false", self.workflow)
 
     def test_manual_priority_input_is_plumbed_into_the_bounded_sync(self) -> None:
         dispatch = self.workflow.split("permissions:", 1)[0]
@@ -53,10 +51,10 @@ class CveSyncWorkflowTests(unittest.TestCase):
             "Synchronize and optionally enrich exact rolling ten-year catalog"
         )
         self.assertIn(
-            "XAI_API_KEY: ${{ secrets.XAI_API_KEY }}", sync_step
+            "XAI_API_KEY: ${{ inputs.stage == 'enhancement' && secrets.XAI_API_KEY || '' }}", sync_step
         )
         self.assertEqual(
-            self.workflow.count("XAI_API_KEY: ${{ secrets.XAI_API_KEY }}"), 1
+            self.workflow.count("XAI_API_KEY: ${{ inputs.stage == 'enhancement' && secrets.XAI_API_KEY || '' }}"), 1
         )
         self.assertNotIn("XAI_API_KEY", self.workflow.split("steps:", 1)[0])
         self.assertNotIn("OPENAI_API_KEY", self.workflow)
@@ -73,9 +71,9 @@ class CveSyncWorkflowTests(unittest.TestCase):
         sync_step = self.step(
             "Synchronize and optionally enrich exact rolling ten-year catalog"
         )
-        self.assertIn("NVD_API_KEY: ${{ secrets.NVD_API_KEY }}", sync_step)
+        self.assertIn("NVD_API_KEY: ${{ inputs.stage != 'enhancement' && secrets.NVD_API_KEY || '' }}", sync_step)
         self.assertEqual(
-            self.workflow.count("NVD_API_KEY: ${{ secrets.NVD_API_KEY }}"), 1
+            self.workflow.count("NVD_API_KEY: ${{ inputs.stage != 'enhancement' && secrets.NVD_API_KEY || '' }}"), 1
         )
         self.assertNotIn("NVD_API_KEY", self.workflow.split("steps:", 1)[0])
         self.assertNotIn("if: ${{ secrets.NVD_API_KEY", self.workflow)

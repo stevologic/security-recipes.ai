@@ -249,6 +249,8 @@ jobs:
             --network "${smoke_network}" \
             --publish 127.0.0.1::80 \
             --env "RECIPES_PUBLIC_SITE_BASE_URL=${SECURITY_RECIPES_BASE_URL}" \
+            --env "RECIPES_MCP_SOURCE_INDEX_URL=http://${site_name}/api/recipes-index.json" \
+            --env "RECIPES_MCP_ALLOWED_SOURCE_HOSTS=${site_name}" \
             "${MCP_IMAGE}")"
 
           mcp_health="starting"
@@ -273,6 +275,9 @@ jobs:
           fi
 
           mcp_port="$(docker inspect --format '{{(index (index .NetworkSettings.Ports "80/tcp") 0).HostPort}}' "${mcp_container}")"
+          python scripts/check_cve_latest_parity.py \
+            --site "http://127.0.0.1:${site_port}" \
+            --mcp "http://127.0.0.1:${mcp_port}"
           mcp_response="${RUNNER_TEMP}/mcp-cve-CVE-2024-3400.html"
           curl --fail --silent --show-error --max-time 20 \
             "http://127.0.0.1:${mcp_port}/cve/CVE-2024-3400/" \

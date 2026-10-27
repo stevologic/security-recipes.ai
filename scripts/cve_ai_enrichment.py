@@ -1275,6 +1275,7 @@ class EnrichmentCache:
         limit: int,
         priority_cve_ids: Iterable[str] = (),
         as_of: datetime | None = None,
+        refresh_existing: bool = True,
     ) -> None:
         priority_order = canonical_priority_cve_ids(priority_cve_ids)
         refresh_as_of = _refresh_as_of(as_of)
@@ -1315,7 +1316,7 @@ class EnrichmentCache:
                 # leaves the verified cached enrichment attached.
                 self.entries[cve] = cached
                 self.stats["cached"] += 1
-                refresh_due = _refresh_is_due(cached, record, as_of=refresh_as_of)
+                refresh_due = refresh_existing and _refresh_is_due(cached, record, as_of=refresh_as_of)
                 refresh_forced = cve in priority_set
                 if not refresh_due and not refresh_forced:
                     continue

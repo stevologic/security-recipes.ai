@@ -3433,6 +3433,9 @@ def rebuild_markdown_inventory(
         )
     if refreshed_manifest["totals"]["catalog_records"] != expected_total:
         raise ValueError("Markdown refresh changed the CVE catalog record total")
+    if "pipeline" in manifest:
+        refreshed_manifest["pipeline"] = manifest["pipeline"]
+        outputs[Path("manifest.json")] = json_bytes(refreshed_manifest, pretty=True)
     write_summary = write_outputs(output_dir, outputs, dry_run=dry_run)
     return {
         "catalog_records": expected_total,
@@ -3765,7 +3768,7 @@ def merged_record_spools(paths: Iterable[Path]) -> Iterator[dict[str, Any]]:
         yield max(records, key=_record_modified_sort_key)
 
 
-def main(argv: list[str] | None = None) -> int:
+def _main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     start_date = parse_date(args.start_date)
     end_date = parse_date(args.end_date)
@@ -4018,9 +4021,16 @@ def main(argv: list[str] | None = None) -> int:
             nvd_api_catchup=api_catchup,
         )
         generated_recipe_summary = generated_recipes.reconcile()
+    manifest["pipeline"] = {"schema_version": 1, "source": {
+        "generation_completed_at": utc_now().isoformat(),
+        "source_updated_at": manifest["catalog_updated_at"],
+        "revision": manifest["shard_set_sha256"],
+    }}
+    outputs[Path("manifest.json")] = json_bytes(manifest, pretty=True)
     write_summary = write_outputs(output_dir, outputs, dry_run=args.dry_run)
     enrichment_cache_changed = enrichment_cache.write(dry_run=args.dry_run)
     run_report = {
+        "stage": "source" if args.disable_ai_enrichment else "combined",
         "scope": manifest["scope"],
         "totals": manifest["totals"],
         "output": str(output_dir),
@@ -4051,6 +4061,19 @@ def main(argv: list[str] | None = None) -> int:
         os.replace(temporary_report, report_path)
     print(json.dumps(run_report, indent=2))
     return 0
+
+
+def main(argv: list[str] | None = None) -> int:
+    # Use the same cross-platform, no-symlink lock as catalog hydration.
+    # A competing writer fails before it can generate or replace any files.
+    try:
+        from scripts.cve_catalog_release import _target_lock
+    except ModuleNotFoundError:
+        from cve_catalog_release import _target_lock
+    output = resolve_path(parse_args(argv).output_dir)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    with _target_lock(output):
+        return _main(argv)
 
 
 if __name__ == "__main__":
