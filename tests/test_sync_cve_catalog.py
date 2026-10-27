@@ -765,6 +765,165 @@ class SyncCveCatalogTests(unittest.TestCase):
         self.assertNotIn("ai_enrichment", refreshed)
         self.assertIn("ai_enrichment", record)
 
+    def test_cve_enrich_args_read_unified_env_and_not_leftover_xai_model(self) -> None:
+        env = {
+            key: value
+            for key, value in catalog.os.environ.items()
+            if key
+            not in {
+                "CVE_ENRICH_MODEL",
+                "CVE_ENRICHMENT_LIMIT",
+                "OPENAI_MODEL",
+                "OPENAI_ENRICHMENT_LIMIT",
+                "OPENAI_DAYBREAK_PROGRAM",
+                "XAI_MODEL",
+                "XAI_ENRICHMENT_LIMIT",
+            }
+        }
+        env.update(
+            {
+                "CVE_ENRICH_MODEL": ai.DEFAULT_CVE_ENRICH_MODEL,
+                "CVE_ENRICHMENT_LIMIT": "7",
+                "OPENAI_MODEL": "gpt-6-sol",
+                "OPENAI_ENRICHMENT_LIMIT": "41",
+                "OPENAI_DAYBREAK_PROGRAM": "daybreak_blue",
+                "XAI_MODEL": "grok-should-be-ignored",
+                "XAI_ENRICHMENT_LIMIT": "41",
+            }
+        )
+        with patch.dict(catalog.os.environ, env, clear=True):
+            parsed = catalog.parse_args([])
+        self.assertEqual(parsed.cve_enrich_model, ai.DEFAULT_CVE_ENRICH_MODEL)
+        self.assertEqual(parsed.ai_enrichment_limit, 7)
+        self.assertEqual(parsed.openai_daybreak_program, "daybreak_blue")
+        self.assertFalse(hasattr(parsed, "xai_model"))
+        self.assertFalse(hasattr(parsed, "openai_model"))
+
+    def test_default_cve_enrich_model_is_grok_47(self) -> None:
+        env = {
+            key: value
+            for key, value in catalog.os.environ.items()
+            if key
+            not in {
+                "CVE_ENRICH_MODEL",
+                "OPENAI_MODEL",
+                "XAI_MODEL",
+            }
+        }
+        with patch.dict(catalog.os.environ, env, clear=True):
+            parsed = catalog.parse_args([])
+        self.assertEqual(parsed.cve_enrich_model, ai.DEFAULT_CVE_ENRICH_MODEL)
+
+    def test_missing_xai_key_skips_default_grok_enrichment_without_logging(self) -> None:
+        secret = "xai-secret-never-log-9f3a"
+        stdout = io.StringIO()
+        with patch("sys.stdout", stdout):
+            client, intended, provider_error = catalog.configure_cve_enrichment(
+                spec=ai.DEFAULT_CVE_ENRICH_MODEL,
+                xai_api_key="",
+                openai_api_key=secret,
+                limit=20,
+            )
+        output = stdout.getvalue()
+        self.assertIsNone(client)
+        self.assertFalse(intended)
+        self.assertIsNone(provider_error)
+        self.assertIn("XAI_API_KEY is not set", output)
+        self.assertNotIn(secret, output)
+
+    def test_missing_openai_key_skips_enrichment_and_does_not_log_a_key(self) -> None:
+        secret = "sk-openai-secret-never-log-9f3a"
+        stdout = io.StringIO()
+        with patch("sys.stdout", stdout):
+            client, intended, provider_error = catalog.configure_openai_enrichment(
+                api_key="",
+                model="gpt-5.6-luna",
+                limit=20,
+            )
+        output = stdout.getvalue()
+        self.assertIsNone(client)
+        self.assertFalse(intended)
+        self.assertIsNone(provider_error)
+        self.assertIn("OPENAI_API_KEY is not set", output)
+        self.assertNotIn(secret, output)
+        self.assertNotIn("sk-", output)
+
+        source = {
+            "cve": "CVE-2026-1234",
+            "recipe_kind": "composed",
+            "references": [
+                {"url": "https://vendor.example.test/advisory", "tags": ["Vendor Advisory"]}
+            ],
+        }
+        cache = ai.EnrichmentCache(Path("unused.json"))
+        cache.select_candidates([source], limit=1)
+        applied = list(cache.apply([source], client=None))
+        self.assertEqual(applied[0]["cve"], "CVE-2026-1234")
+        self.assertNotIn("ai_enrichment", applied[0])
+
+    def test_unusable_openai_key_skips_requests_without_logging_the_key(self) -> None:
+        secret = "sk-openai-secret-never-log-9f3a"
+        stdout = io.StringIO()
+
+        def opener(_: object, *, timeout: int) -> object:
+            raise HTTPError(
+                ai.OPENAI_API_URL,
+                401,
+                secret,
+                {},
+                None,
+            )
+
+        with patch("sys.stdout", stdout):
+            client, intended, provider_error = catalog.configure_openai_enrichment(
+                api_key=secret,
+                model="gpt-5.6-luna",
+                opener=opener,
+                limit=20,
+            )
+        output = stdout.getvalue()
+        self.assertIsNone(client)
+        self.assertTrue(intended)
+        self.assertEqual(provider_error, "invalid_key")
+        self.assertIn("Optional OpenAI enrichment is inactive (invalid_key)", output)
+        self.assertNotIn(secret, output)
+
+    def test_daybreak_entitlement_skips_enrichment_and_keeps_source_records(self) -> None:
+        secret = "sk-openai-secret-never-log-9f3a"
+        stdout = io.StringIO()
+        body = json.dumps(
+            {"error": {"code": "access_program_not_enabled", "message": secret}}
+        ).encode("utf-8")
+
+        def opener(_: object, *, timeout: int) -> object:
+            raise HTTPError(ai.OPENAI_API_URL, 403, "Forbidden", {}, io.BytesIO(body))
+
+        with patch("sys.stdout", stdout):
+            client, intended, provider_error = catalog.configure_openai_enrichment(
+                api_key=secret,
+                model="gpt-6-sol",
+                opener=opener,
+                access_program="daybreak_blue",
+                limit=20,
+            )
+        output = stdout.getvalue()
+        self.assertIsNone(client)
+        self.assertTrue(intended)
+        self.assertEqual(provider_error, "daybreak_entitlement")
+        self.assertIn("Daybreak entitlement missing", output)
+        self.assertNotIn(secret, output)
+
+        source = {
+            "cve": "CVE-2026-1234",
+            "recipe_kind": "composed",
+            "references": [
+                {"url": "https://vendor.example.test/advisory", "tags": ["Vendor Advisory"]}
+            ],
+        }
+        applied = list(ai.EnrichmentCache(Path("unused.json")).apply([source], client=None))
+        self.assertEqual(applied[0]["cve"], "CVE-2026-1234")
+        self.assertNotIn("ai_enrichment", applied[0])
+
     def test_ai_enrichment_limit_is_hard_bounded(self) -> None:
         self.assertEqual(catalog.parse_ai_enrichment_limit("0"), 0)
         self.assertEqual(
