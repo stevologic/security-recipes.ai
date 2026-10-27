@@ -1252,6 +1252,20 @@ def select_nvd_catchup_merges(
     return merged, latest
 
 
+def nvd_catchup_record_counts(
+    feed_ids: dict[str, Any],
+    merged_catchup: dict[str, Any],
+) -> dict[str, int]:
+    """Split catch-up merges into feed replacements versus newly accepted rows."""
+    merged = len(merged_catchup)
+    replaced = sum(1 for cve_id in merged_catchup if cve_id in feed_ids)
+    return {
+        "merged_records": merged,
+        "replaced_records": replaced,
+        "added_records": merged - replaced,
+    }
+
+
 def _prefer_newer_nvd_record(
     current: dict[str, Any] | None, incoming: dict[str, Any]
 ) -> dict[str, Any]:
@@ -4308,11 +4322,12 @@ def main(argv: list[str] | None = None) -> int:
             merged_catchup, merged_latest = select_nvd_catchup_merges(
                 seen_modified, catchup_catalog
             )
+            catchup_counts = nvd_catchup_record_counts(seen_modified, merged_catchup)
             if api_catchup is not None:
                 api_catchup["latest_merged_record_modified"] = (
                     nvd_datetime_text(merged_latest) if merged_latest is not None else None
                 )
-                api_catchup["merged_records"] = len(merged_catchup)
+                api_catchup.update(catchup_counts)
             if merged_catchup:
                 spool_path = spool_root / "nvd-api-catchup.jsonl"
                 with spool_path.open("wb") as stream:
@@ -4320,11 +4335,11 @@ def main(argv: list[str] | None = None) -> int:
                         stream.write(json_bytes(merged_catchup[cve_id]))
                 spool_paths.append(spool_path)
                 seen_cves.update(merged_catchup)
-                replaced = sum(1 for cve_id in merged_catchup if cve_id in seen_modified)
                 print(
-                    f"[nvd-api] merged {len(merged_catchup):,} in-scope "
+                    f"[nvd-api] merged {catchup_counts['merged_records']:,} in-scope "
                     "Medium/High/Critical records after the annual-feed watermark "
-                    f"({replaced:,} replaced).",
+                    f"({catchup_counts['replaced_records']:,} replaced, "
+                    f"{catchup_counts['added_records']:,} added).",
                     flush=True,
                 )
 
