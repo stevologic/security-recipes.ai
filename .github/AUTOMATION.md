@@ -160,7 +160,15 @@ which is also the code cap):
 
 A skipped catch-up or a catalog PR waiting on `karen-qa` emits a
 `::warning::` annotation plus a step-summary line. The workflow never
-self-posts `karen-qa`.
+self-posts `karen-qa`. A data-only catalog PR that branch protection
+still blocks is labeled `automation:protection-fallback` and the run
+exits successfully so the next sync can retry, unless the same PR has
+been in protection-fallback on 2 consecutive runs or is older than 24h,
+in which case the run fails as a real alert. Enrichment request or
+time-budget leftovers (unprocessed candidates only) are written to
+`data/cve/enrichment-carryover.json` and selected first on the next run;
+that carry-over is not an alert. CVEs that fail enrichment are dropped
+and are not carried over.
 
 ## Merge policy
 
@@ -168,7 +176,47 @@ The `main` ruleset requires a PR, a passing `build` context from GitHub
 Actions, and a passing `karen-qa` context posted only by the Karen QA
 GitHub App after human review. Catalog validation never posts commit
 statuses and never emits `karen-qa`. Required merge checks come from real
-workflow runs. Catalog auto-merge waits for that app check on the exact
+workflow runs.
+
+A catalog PR written by the CVE sync bot that changes **only**
+allowlisted catalog data paths (`static/api/cve-catalog/`,
+`content/recipes/cve/*.md`, `data/cve/ai-enrichments.json`,
+`data/cve/ai-generated-recipes.json`, and
+`data/cve/enrichment-carryover.json`) is data-only: it never needs
+`karen-qa` or the CVE automation GitHub App. Prefix matching uses a
+directory boundary, so `static/api/cve-catalog-evil/x` is not
+allowlisted. `content/recipes/cve/` accepts only `*.md` files;
+`content/recipes/cve/evil.py` fails closed. Pipeline outputs that change
+MCP/gateway behaviour (`data/policy/mcp-gateway-policy.json`,
+`data/context/secure-context-release-pack.json`,
+`scripts/generated-output-ownership.json`, and `data/evidence/`) are
+**not** allowlisted. The sync stages those files onto a separate branch
+(`automation/cve-generated-outputs`) and opens a review PR labeled
+`needs karen-qa` that is never self-merged. If they did not change, no
+review PR is opened.
+
+Self-merge is never gated on the PR author (`github-actions[bot]` can be
+spoofed by any `GITHUB_TOKEN` workflow). The gate is all of: (a) the
+exact-SHA diff vs base touches only those allowlisted paths, with no
+rename out of or into a code path, symlink, or mode change; (b) a
+passing exact-SHA validation produced inside this sync run on that SHA;
+and (c) the head branch is `automation/cve-catalog-sync` and the head
+SHA matches what this run pushed. The required `build` check is not
+authentication; the path gate is the control. Dispatching
+`cve-catalog-validate.yml` (job name `build`) on the catalog PR head
+when the App is absent only attaches a real GitHub Actions check-run on
+that SHA. It then merges with `match-head-commit`. If protection still
+blocks the merge, the run leaves the PR open, labeled, and summarized,
+and exits successfully; the next sync retries. If the same catalog PR
+has been in protection-fallback on 2 consecutive runs or is older than
+24h, the run fails as a real alert. An already-merged catalog PR is
+idempotent only when its head or merge SHA equals the expected SHA;
+otherwise the run fails closed. A non-data-only diff (workflow, script,
+docs, MCP server, non-`*.md` recipe, path traversal, symlink, mode
+change, or rename into a code path) fails closed and still requires
+`karen-qa` plus real checks.
+
+Catalog auto-merge waits for that app check on a non-data-only exact
 head; if it is missing, the sync leaves the catalog PR open and reports
 that it is waiting on `karen-qa` instead of failing the run with an
 opaque HTTP 405. The workflow never self-posts `karen-qa`.

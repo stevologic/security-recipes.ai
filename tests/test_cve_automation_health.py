@@ -65,6 +65,8 @@ def sync_report(
     refresh_forced: int = 0,
     deleted: int = 0,
     provider_error: str | None = None,
+    carryover_persisted: bool = False,
+    carryover_count: int = 0,
 ) -> dict[str, Any]:
     enrichment = {
         "api_enabled": api_enabled,
@@ -75,6 +77,8 @@ def sync_report(
         "failed": failed,
         "refresh_due": refresh_due,
         "refresh_forced": refresh_forced,
+        "carryover_persisted": carryover_persisted,
+        "carryover_count": carryover_count,
     }
     if provider_error:
         enrichment["provider_error"] = provider_error
@@ -135,6 +139,38 @@ class CatalogUpdateGuardTests(unittest.TestCase):
         self.assertIn("shards-drop", codes)
         self.assertIn("markdown-drafts-drop", codes)
         self.assertIn("generated-recipe-deletion-spike", codes)
+
+    def test_budget_carryover_is_a_warning_not_an_alert(self) -> None:
+        report = catalog_guard.build_report(
+            manifest(),
+            manifest(),
+            sync_report(
+                selected=20,
+                generated=4,
+                failed=0,
+                carryover_persisted=True,
+                carryover_count=16,
+            ),
+        )
+
+        self.assertTrue(report["safe_to_merge"])
+        self.assertTrue(report["enrichment"]["healthy"])
+        self.assertEqual(report["enrichment"]["alerts"], [])
+        self.assertTrue(
+            any("carried over" in warning for warning in report["enrichment"]["warnings"])
+        )
+
+        zero = catalog_guard.enrichment_health(
+            sync_report(
+                selected=20,
+                generated=0,
+                failed=0,
+                carryover_persisted=True,
+                carryover_count=20,
+            )
+        )
+        self.assertTrue(zero["healthy"])
+        self.assertTrue(any("carried over" in warning for warning in zero["warnings"]))
 
     def test_enrichment_outage_alerts_without_blocking_source_catalog(self) -> None:
         report = catalog_guard.build_report(
