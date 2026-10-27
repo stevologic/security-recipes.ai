@@ -31,6 +31,7 @@ from urllib.request import Request, urlopen
 
 CACHE_SCHEMA_VERSION = 2
 ENRICHMENT_SCHEMA_VERSION = 2
+CARRYOVER_SCHEMA_VERSION = 1
 PROMPT_VERSION = "2026-07-14.2"
 DEFAULT_XAI_MODEL = "grok-4.6"
 DEFAULT_MODEL = DEFAULT_XAI_MODEL
@@ -609,6 +610,77 @@ def canonical_priority_cve_ids(values: Iterable[str]) -> tuple[str, ...]:
             result.append(value)
             seen.add(value)
     return tuple(result)
+
+
+def leftover_enrichment_candidates(
+    selected: Iterable[str],
+    generated: Iterable[str],
+    failed: Iterable[str],
+) -> tuple[str, ...]:
+    """Return selected IDs that were not generated and did not fail.
+
+    CVEs that fail enrichment are dropped and must not be carried over.
+    Only unprocessed leftovers (request or time budget) persist.
+    """
+
+    completed = set(generated) | set(failed)
+    return tuple(cve for cve in selected if cve not in completed)
+
+
+def load_enrichment_carryover(path: Path) -> tuple[str, ...]:
+    """Load leftover enrichment IDs persisted from a previous budget stop."""
+
+    if not path.exists():
+        return ()
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ValueError(f"invalid enrichment carry-over {path}: {exc}") from exc
+    if not isinstance(payload, dict) or payload.get("schema_version") != CARRYOVER_SCHEMA_VERSION:
+        raise ValueError(f"invalid enrichment carry-over schema in {path}")
+    raw = payload.get("candidates")
+    if not isinstance(raw, list) or not all(isinstance(item, str) for item in raw):
+        raise ValueError(f"invalid enrichment carry-over candidates in {path}")
+    return canonical_priority_cve_ids(raw)
+
+
+def write_enrichment_carryover(
+    path: Path,
+    candidates: Iterable[str],
+    *,
+    reason: str = "",
+    dry_run: bool = False,
+) -> bool:
+    """Persist leftover candidates, or clear the file when the queue is empty."""
+
+    leftover = leftover_enrichment_candidates(candidates, (), ())
+    if not leftover:
+        if not path.exists():
+            return False
+        if dry_run:
+            return True
+        path.unlink()
+        return True
+    payload = {
+        "schema_version": CARRYOVER_SCHEMA_VERSION,
+        "reason": reason,
+        "candidates": list(leftover),
+        "updated_at": utc_now().isoformat().replace("+00:00", "Z"),
+    }
+    serialized = (json.dumps(payload, indent=2, sort_keys=True) + "\n").encode("utf-8")
+    if path.exists() and path.read_bytes() == serialized:
+        return False
+    if dry_run:
+        return True
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_suffix(path.suffix + ".tmp")
+    try:
+        temporary.write_bytes(serialized)
+        os.replace(temporary, path)
+    finally:
+        if temporary.exists():
+            temporary.unlink()
+    return True
 
 
 def utc_now() -> datetime:
@@ -1493,6 +1565,11 @@ class EnrichmentCache:
         self.selected: dict[str, list[str]] = {}
         self._selected_records: dict[str, dict[str, Any]] = {}
         self.provider_error: str | None = None
+        self.generated_cves: list[str] = []
+        self.failed_cves: list[str] = []
+        self.unprocessed_cves: list[str] = []
+        self.deferred_priority_cves: list[str] = []
+        self.carryover_reason: str | None = None
         self.stats: dict[str, int] = {
             "eligible": 0,
             "cached": 0,
@@ -1525,15 +1602,21 @@ class EnrichmentCache:
         *,
         limit: int,
         priority_cve_ids: Iterable[str] = (),
+        carryover_cve_ids: Iterable[str] = (),
         as_of: datetime | None = None,
     ) -> None:
-        priority_order = canonical_priority_cve_ids(priority_cve_ids)
+        priority_order = canonical_priority_cve_ids((*carryover_cve_ids, *priority_cve_ids))
         refresh_as_of = _refresh_as_of(as_of)
         previous = self.entries
         self.entries = {}
         self.selected = {}
         self._selected_records = {}
         self.provider_error = None
+        self.generated_cves = []
+        self.failed_cves = []
+        self.unprocessed_cves = []
+        self.deferred_priority_cves = []
+        self.carryover_reason = None
         self.stats = {
             "eligible": 0,
             "cached": 0,
@@ -1625,6 +1708,13 @@ class EnrichmentCache:
             for cve in self.selected
         }
         self.stats["selected"] = len(self.selected)
+        self.deferred_priority_cves = [
+            cve
+            for cve in priority_order
+            if cve in priority_candidates and cve not in self.selected
+        ]
+        if self.deferred_priority_cves:
+            self.carryover_reason = "request_budget"
 
     def apply(
         self,
@@ -1637,6 +1727,9 @@ class EnrichmentCache:
         consecutive_errors = 0
         consecutive_timeouts = 0
         active_client = client
+        self.generated_cves = []
+        self.failed_cves = []
+        self.unprocessed_cves = []
         deadline = clock() + max(0.0, max_seconds) if active_client is not None else None
         for cve in self.selected:
             if active_client is None:
@@ -1647,6 +1740,7 @@ class EnrichmentCache:
                     file=sys.stderr,
                     flush=True,
                 )
+                self.carryover_reason = "time_budget"
                 active_client = None
                 break
             source = self._selected_records.get(cve)
@@ -1656,6 +1750,7 @@ class EnrichmentCache:
                 entry = active_client.enrich(source)
             except EnrichmentError as exc:
                 self.stats["failed"] += 1
+                self.failed_cves.append(cve)
                 if exc.reason == "timeout":
                     consecutive_timeouts += 1
                 else:
@@ -1683,12 +1778,20 @@ class EnrichmentCache:
                         file=sys.stderr,
                         flush=True,
                     )
+                    if self.carryover_reason is None:
+                        self.carryover_reason = "request_budget"
                     active_client = None
             else:
                 self.entries[cve] = entry
                 self.stats["generated"] += 1
+                self.generated_cves.append(cve)
                 consecutive_errors = 0
                 consecutive_timeouts = 0
+        self.unprocessed_cves = list(
+            leftover_enrichment_candidates(self.selected, self.generated_cves, self.failed_cves)
+        )
+        if self.unprocessed_cves and self.carryover_reason is None:
+            self.carryover_reason = "request_budget"
 
         for source in records:
             record = dict(source)

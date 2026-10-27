@@ -56,10 +56,12 @@ try:
         XAIEnricher,
         canonical_priority_cve_ids,
         enrichment_errors,
+        load_enrichment_carryover,
         parse_cve_enrich_model,
         probe_openai_credentials,
         probe_xai_credentials,
         recipe_ready,
+        write_enrichment_carryover,
     )
     from scripts.cve_ai_recipe import GeneratedRecipeManager
     from scripts.cve_text_quality import clean_catalog_text
@@ -74,10 +76,12 @@ except ModuleNotFoundError:  # Direct ``python scripts/sync_cve_catalog.py`` exe
         XAIEnricher,
         canonical_priority_cve_ids,
         enrichment_errors,
+        load_enrichment_carryover,
         parse_cve_enrich_model,
         probe_openai_credentials,
         probe_xai_credentials,
         recipe_ready,
+        write_enrichment_carryover,
     )
     from cve_ai_recipe import GeneratedRecipeManager  # type: ignore[no-redef]
     from cve_text_quality import clean_catalog_text  # type: ignore[no-redef]
@@ -87,6 +91,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CONTENT_DIR = ROOT / "content" / "recipes" / "cve"
 DEFAULT_ARCHETYPES = ROOT / "data" / "cve" / "remediation-archetypes.json"
 DEFAULT_ENRICHMENT_CACHE = ROOT / "data" / "cve" / "ai-enrichments.json"
+DEFAULT_ENRICHMENT_CARRYOVER = ROOT / "data" / "cve" / "enrichment-carryover.json"
 DEFAULT_GENERATED_RECIPE_MANIFEST = ROOT / "data" / "cve" / "ai-generated-recipes.json"
 DEFAULT_OUTPUT_DIR = ROOT / "static" / "api" / "cve-catalog"
 DEFAULT_CACHE_DIR = ROOT / "tmp" / "nvd-cve-feeds"
@@ -4200,6 +4205,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--archetypes", type=Path, default=DEFAULT_ARCHETYPES)
     parser.add_argument("--enrichment-cache", type=Path, default=DEFAULT_ENRICHMENT_CACHE)
     parser.add_argument(
+        "--enrichment-carryover",
+        type=Path,
+        default=DEFAULT_ENRICHMENT_CARRYOVER,
+        help="Persisted leftover enrichment candidates processed first on the next run.",
+    )
+    parser.add_argument(
         "--generated-recipe-manifest",
         type=Path,
         default=DEFAULT_GENERATED_RECIPE_MANIFEST,
@@ -4331,6 +4342,7 @@ def main(argv: list[str] | None = None) -> int:
     content_dir = resolve_path(args.content_dir)
     archetype_path = resolve_path(args.archetypes)
     enrichment_cache_path = resolve_path(args.enrichment_cache)
+    enrichment_carryover_path = resolve_path(args.enrichment_carryover)
     generated_recipe_manifest_path = resolve_path(args.generated_recipe_manifest)
     output_dir = resolve_path(args.output_dir)
     if args.search_index_only:
@@ -4489,10 +4501,18 @@ def main(argv: list[str] | None = None) -> int:
                 records = itertools.islice(records, max(0, args.limit))
             return records
 
+        carryover_cve_ids = load_enrichment_carryover(enrichment_carryover_path)
+        if carryover_cve_ids:
+            print(
+                f"Processing {len(carryover_cve_ids)} leftover enrichment "
+                "candidate(s) first from the previous budget carry-over.",
+                flush=True,
+            )
         enrichment_cache.select_candidates(
             output_records(),
             limit=args.ai_enrichment_limit if openai_client is not None else 0,
             priority_cve_ids=args.priority_cve_ids,
+            carryover_cve_ids=carryover_cve_ids,
         )
         effective_existing = {cve: list(recipes) for cve, recipes in existing.items()}
 
@@ -4535,6 +4555,23 @@ def main(argv: list[str] | None = None) -> int:
         generated_recipe_summary = generated_recipes.reconcile()
     write_summary = write_outputs(output_dir, outputs, dry_run=args.dry_run)
     enrichment_cache_changed = enrichment_cache.write(dry_run=args.dry_run)
+    leftovers = canonical_priority_cve_ids(
+        (*enrichment_cache.unprocessed_cves, *enrichment_cache.deferred_priority_cves)
+    )
+    carryover_reason = enrichment_cache.carryover_reason or ""
+    carryover_changed = write_enrichment_carryover(
+        enrichment_carryover_path,
+        leftovers,
+        reason=carryover_reason,
+        dry_run=args.dry_run,
+    )
+    if leftovers:
+        print(
+            f"Persisted {len(leftovers)} leftover enrichment candidate(s) "
+            f"({carryover_reason or 'incomplete'}) for the next sync; "
+            "source catalog delivery will continue.",
+            flush=True,
+        )
     try:
         enrich_target = parse_cve_enrich_model(
             args.cve_enrich_model,
@@ -4551,6 +4588,11 @@ def main(argv: list[str] | None = None) -> int:
             **enrichment_cache.stats,
             "cache": str(enrichment_cache_path),
             "cache_changed": enrichment_cache_changed,
+            "carryover": str(enrichment_carryover_path),
+            "carryover_changed": carryover_changed,
+            "carryover_persisted": bool(leftovers),
+            "carryover_count": len(leftovers),
+            **({"carryover_reason": carryover_reason} if carryover_reason else {}),
             "api_enabled": intended_ai,
             "model": enrich_target.model if enrich_target else args.cve_enrich_model,
             "provider": enrich_target.provider if enrich_target else None,
