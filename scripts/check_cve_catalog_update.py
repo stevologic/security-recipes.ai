@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import gzip
 import json
+import logging
 import os
 import sys
 from dataclasses import asdict, dataclass
@@ -15,6 +16,7 @@ from typing import Any
 
 
 SCHEMA_VERSION = 1
+LOGGER = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -174,43 +176,46 @@ def _published_dates(manifest: dict[str, Any]) -> list[str]:
     return dates
 
 
-def _year_totals_in_window(
+def _expired_start_year_count(
     published_dates: list[str],
     published_start: date,
-) -> dict[str, int]:
+) -> int:
+    """Count parseable start-year dates that fell before the new window."""
     start = published_start.isoformat()
-    totals: dict[str, int] = {}
+    start_year = f"{published_start.year:04d}"
+    expired = 0
     for published in published_dates:
-        if published < start:
+        if published[:4] != start_year:
             continue
-        year = published[:4]
-        totals[year] = totals.get(year, 0) + 1
-    return totals
+        if published < start:
+            expired += 1
+    return expired
 
 
 def _comparable_year_totals(
     baseline: dict[str, Any],
     candidate: dict[str, Any],
 ) -> dict[str, int]:
-    """Recount the previous catalog inside the new window for the start year only.
+    """Adjust only the shared start year by subtracting expired window records.
 
-    Later years keep the stored publication-year totals so their drop guard is
-    unchanged. The rolling 10-year window's first year shrinks every day; those
-    expired records must not look like a real year-over-year loss.
+    Start from the stored previous total so missing or unparseable published
+    dates cannot shrink the baseline. Later years keep their stored totals.
+    When the window rolls into a new year, leave every year untouched.
     """
     before_years = _year_totals(baseline)
+    old_start = _scope_date(baseline, "published_start")
     new_start = _scope_date(candidate, "published_start")
-    if new_start is None:
-        return before_years
-    published_dates = _published_dates(baseline)
-    if not published_dates:
+    if old_start is None or new_start is None or old_start.year != new_start.year:
         return before_years
     start_year = f"{new_start.year:04d}"
     if start_year not in before_years:
         return before_years
-    windowed = _year_totals_in_window(published_dates, new_start)
+    published_dates = _published_dates(baseline)
+    if not published_dates:
+        return before_years
+    expired = _expired_start_year_count(published_dates, new_start)
     comparable = dict(before_years)
-    comparable[start_year] = windowed.get(start_year, 0)
+    comparable[start_year] = max(0, before_years[start_year] - expired)
     return comparable
 
 
@@ -247,7 +252,12 @@ def attach_baseline_published_dates(
         return manifest
     try:
         dates = published_dates_from_year_index(index_path)
-    except ValueError:
+    except ValueError as exc:
+        LOGGER.warning(
+            "CVE baseline snapshot fell back without published dates; "
+            "start-year index is corrupt: %s",
+            exc,
+        )
         return manifest
     if not dates:
         return manifest
