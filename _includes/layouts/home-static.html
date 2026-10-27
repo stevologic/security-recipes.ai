@@ -350,68 +350,13 @@
   </header>
   <script src="/js/brand-host.js?v=20261006"></script>
 
-  <aside class="cve-ticker" aria-label="Recently reviewed CVEs" data-cve-ticker>
+  <aside class="cve-ticker" aria-label="Latest source-backed CVEs" data-cve-ticker>
     <div class="site-shell cve-ticker__inner">
       <a class="cve-ticker__label" href="/cve-database/">
         <span class="cve-ticker__signal" aria-hidden="true"></span>
-        <span>Reviewed CVEs</span>
+        <span>Latest CVEs</span>
       </a>
-      <div class="cve-ticker__viewport">
-        <div class="cve-ticker__track">
-          <ul class="cve-ticker__list">
-            {% if latestReviewedCves and latestReviewedCves.length %}
-            {% for item in latestReviewedCves %}
-            <li>
-              <a class="cve-ticker__item" data-cve-ticker-link href="{{ item.href | escape }}" aria-label="{{ item.cve | escape }}: {{ item.title | escape }}. {{ item.severity | escape }}, published {{ item.published | escape }}.">
-                <span class="cve-ticker__id">{{ item.cve | escape }}</span>
-                <span class="cve-ticker__title">{{ item.title | escape }}</span>
-                <span class="cve-ticker__severity cve-ticker__severity--{{ item.severity | escape }}">{{ item.severity | escape }}</span>
-                {% if item.kev %}<span class="cve-ticker__kev">KEV</span>{% endif %}
-                <time class="cve-ticker__date" datetime="{{ item.published | escape }}">{{ item.publishedLabel | escape }}</time>
-              </a>
-            </li>
-            {% endfor %}
-            {% else %}
-            <li>
-              <span class="cve-ticker__item">
-                <span class="cve-ticker__id">CVE feed</span>
-                <span class="cve-ticker__title">Reviewed CVEs are being refreshed</span>
-              </span>
-            </li>
-            {% endif %}
-          </ul>
-          <ul class="cve-ticker__list" aria-hidden="true" inert>
-            {% if latestReviewedCves and latestReviewedCves.length %}
-            {% for item in latestReviewedCves %}
-            <li>
-              <span class="cve-ticker__item">
-                <span class="cve-ticker__id">{{ item.cve | escape }}</span>
-                <span class="cve-ticker__title">{{ item.title | escape }}</span>
-                <span class="cve-ticker__severity cve-ticker__severity--{{ item.severity | escape }}">{{ item.severity | escape }}</span>
-                {% if item.kev %}<span class="cve-ticker__kev">KEV</span>{% endif %}
-                <time class="cve-ticker__date" datetime="{{ item.published | escape }}">{{ item.publishedLabel | escape }}</time>
-              </span>
-            </li>
-            {% endfor %}
-            {% else %}
-            <li>
-              <span class="cve-ticker__item">
-                <span class="cve-ticker__id">CVE feed</span>
-                <span class="cve-ticker__title">Reviewed CVEs are being refreshed</span>
-              </span>
-            </li>
-            {% endif %}
-          </ul>
-        </div>
-      </div>
-      {% if latestReviewedCves and latestReviewedCves.length %}
-      <button class="cve-ticker__toggle" type="button" data-cve-ticker-toggle aria-label="Pause latest CVE ticker" aria-pressed="false" title="Pause ticker" hidden>
-        <svg aria-hidden="true" focusable="false" width="10" height="12" viewBox="0 0 10 12">
-          <rect x="1" y="1" width="3" height="10" rx="1" fill="currentColor"></rect>
-          <rect x="6" y="1" width="3" height="10" rx="1" fill="currentColor"></rect>
-        </svg>
-      </button>
-      {% endif %}
+      <!--# include virtual="/_fragments/cve-latest" -->
     </div>
   </aside>
 
@@ -624,7 +569,7 @@
           <span class="metric-update__clock" aria-hidden="true"></span>
           <span class="metric-update__copy">
             {% if homepageMetrics.sourceStatus == "authoritative" %}
-            <strong>Updated daily</strong>
+            <strong>Catalog snapshot</strong>
             <span class="metric-update__meta">NVD + CISA KEV{% if homepageMetrics.updatedDate %} &bull; {{ homepageMetrics.updatedDate }}{% endif %}</span>
             {% else %}
             <strong>Last verified snapshot</strong>
@@ -672,7 +617,7 @@
           <div class="provenance-panel">
             <div class="provenance-panel__head">
               <span>LOCAL KNOWLEDGE SNAPSHOT</span>
-              <span>{% if homepageMetrics.sourceStatus != "authoritative" %}PARTIAL BUILD SNAPSHOT{% elif homepageMetrics.updatedDate %}REFRESHED {{ homepageMetrics.updatedDate | upper }}{% else %}BUILD VERIFIED{% endif %}</span>
+              <span>{% if homepageMetrics.sourceStatus != "authoritative" %}PARTIAL BUILD SNAPSHOT{% elif homepageMetrics.updatedDate %}SOURCE TIMESTAMP {{ homepageMetrics.updatedDate | upper }}{% else %}BUILD VERIFIED{% endif %}</span>
             </div>
             <div class="provenance-sources">
               <span class="source-chip">NVD</span>

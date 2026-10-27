@@ -273,6 +273,9 @@ jobs:
           fi
 
           mcp_port="$(docker inspect --format '{{(index (index .NetworkSettings.Ports "80/tcp") 0).HostPort}}' "${mcp_container}")"
+          python scripts/check_cve_latest_parity.py \
+            --site "http://127.0.0.1:${site_port}" \
+            --mcp "http://127.0.0.1:${mcp_port}"
           mcp_response="${RUNNER_TEMP}/mcp-cve-CVE-2024-3400.html"
           curl --fail --silent --show-error --max-time 20 \
             "http://127.0.0.1:${mcp_port}/cve/CVE-2024-3400/" \

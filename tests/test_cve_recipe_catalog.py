@@ -2048,7 +2048,7 @@ class CVERecipeToolTests(unittest.TestCase):
         with patch.object(mcp_server, "cve_catalog", stub_catalog):
             asyncio.run(call_tools())
 
-        self.assertEqual(len(stub_catalog.thread_ids), 3)
+        self.assertEqual(len(stub_catalog.thread_ids), 4)
         self.assertTrue(all(thread_id != main_thread for thread_id in stub_catalog.thread_ids))
 
     def test_slow_text_search_cannot_starve_exact_lookup_executor(self) -> None:

@@ -186,8 +186,8 @@ jobs:
           # redispatch it here, rate-limited so repeated failures cannot burn
           # NVD bandwidth or enrichment credits twice an hour.
           LAST_STARTED="$(gh api \
-            "repos/${GITHUB_REPOSITORY}/actions/workflows/cve-catalog-sync.yml/runs?per_page=1" \
-            --jq '.workflow_runs[0].created_at // ""')"
+            "repos/${GITHUB_REPOSITORY}/actions/workflows/cve-catalog-sync.yml/runs?per_page=30" \
+            --jq '[.workflow_runs[] | select(.display_title | startswith("CVE enhancement") | not)][0].created_at // ""')"
           if [ -n "$LAST_STARTED" ]; then
             LAST_EPOCH="$(date -d "$LAST_STARTED" +%s)"
             NOW_EPOCH="$(date +%s)"

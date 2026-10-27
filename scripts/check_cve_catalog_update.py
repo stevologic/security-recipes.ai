@@ -333,6 +333,9 @@ def catalog_anomalies(
 
 
 def enrichment_health(sync_report: dict[str, Any]) -> dict[str, Any]:
+    if sync_report.get("stage") == "source":
+        return {"healthy": False, "deferred": True, "metrics": {}, "alerts": [],
+                "warnings": ["AI health is reported by the independent enhancement stage."]}
     raw = sync_report.get("ai_enrichment")
     if not isinstance(raw, dict):
         return {
@@ -483,7 +486,7 @@ def markdown_report(report: dict[str, Any]) -> str:
                 "",
                 "### Optional enrichment health",
                 "",
-                f"- Status: **{'healthy' if enrichment.get('healthy') else 'attention required'}**",
+                f"- Status: **{'separate stage' if enrichment.get('deferred') else 'healthy' if enrichment.get('healthy') else 'attention required'}**",
             ]
         )
         if isinstance(metrics, dict):
