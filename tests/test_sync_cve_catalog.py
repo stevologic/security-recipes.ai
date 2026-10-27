@@ -8,10 +8,15 @@ import inspect
 import io
 import json
 import re
+import socket
 import tempfile
+import threading
+import time
 import unittest
+from contextlib import redirect_stdout
 from copy import deepcopy
 from datetime import date
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
 from unittest.mock import patch
@@ -25,6 +30,28 @@ from scripts import validate_cve_catalog as validator
 
 START_DATE = date(2016, 7, 12)
 END_DATE = date(2026, 7, 12)
+
+
+class _LocalHttpServer:
+    """Threading HTTP server bound to an ephemeral localhost port."""
+
+    def __init__(self, handler: type[BaseHTTPRequestHandler]) -> None:
+        self.server = ThreadingHTTPServer(("127.0.0.1", 0), handler)
+        self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
+
+    @property
+    def url(self) -> str:
+        host, port = self.server.server_address[:2]
+        return f"http://{host}:{port}"
+
+    def __enter__(self) -> "_LocalHttpServer":
+        self.thread.start()
+        return self
+
+    def __exit__(self, *_args: object) -> None:
+        self.server.shutdown()
+        self.server.server_close()
+        self.thread.join(timeout=2)
 
 
 def cvss_observation(
@@ -948,7 +975,10 @@ class SyncCveCatalogTests(unittest.TestCase):
             def __exit__(self, *args: object) -> None:
                 return None
 
-            def read(self) -> bytes:
+            def read(self, _size: int = -1) -> bytes:
+                if getattr(self, "_sent", False):
+                    return b""
+                self._sent = True
                 return b"recovered feed"
 
         transient = HTTPError(
@@ -961,12 +991,13 @@ class SyncCveCatalogTests(unittest.TestCase):
         with (
             patch.object(catalog, "urlopen", side_effect=[transient, Response()]) as mocked_open,
             patch.object(catalog.time, "sleep") as mocked_sleep,
+            patch.object(catalog.random, "random", return_value=1.0),
         ):
             payload = catalog.fetch_bytes("https://nvd.example.test/feed.json.gz")
 
         self.assertEqual(payload, b"recovered feed")
         self.assertEqual(mocked_open.call_count, 2)
-        mocked_sleep.assert_called_once_with(1)
+        mocked_sleep.assert_called_once_with(1.0)
 
     def test_fetch_bytes_retries_truncated_http_body(self) -> None:
         class Response:
@@ -979,9 +1010,12 @@ class SyncCveCatalogTests(unittest.TestCase):
             def __exit__(self, *args: object) -> None:
                 return None
 
-            def read(self) -> bytes:
+            def read(self, _size: int = -1) -> bytes:
                 if self.truncated:
                     raise catalog.IncompleteRead(b"partial feed", 1024)
+                if getattr(self, "_sent", False):
+                    return b""
+                self._sent = True
                 return b"complete feed"
 
         with (
@@ -1013,7 +1047,10 @@ class SyncCveCatalogTests(unittest.TestCase):
             def __exit__(self, *args: object) -> None:
                 return None
 
-            def read(self) -> bytes:
+            def read(self, _size: int = -1) -> bytes:
+                if getattr(self, "_sent", False):
+                    return b""
+                self._sent = True
                 return self.payload
 
         short = Response(b"partial", content_length="12")
@@ -1041,7 +1078,7 @@ class SyncCveCatalogTests(unittest.TestCase):
             def __exit__(self, *args: object) -> None:
                 return None
 
-            def read(self) -> bytes:
+            def read(self, _size: int = -1) -> bytes:
                 raise catalog.IncompleteRead(b"partial feed", 1024)
 
         with (
@@ -1053,7 +1090,11 @@ class SyncCveCatalogTests(unittest.TestCase):
                 catalog.fetch_bytes("https://nvd.example.test/feed.json.gz")
 
         self.assertEqual(mocked_open.call_count, 5)
-        self.assertEqual(mocked_sleep.call_count, 5)
+        self.assertEqual(mocked_sleep.call_count, 4)
+        self.assertEqual(
+            mocked_sleep.call_args_list,
+            [((1.0,),), ((2.0,),), ((4.0,),), ((8.0,),)],
+        )
 
     def test_nvd_fetch_retries_cloudflare_origin_timeouts(self) -> None:
         self.assertTrue({520, 521, 522, 523, 524} <= catalog.RETRYABLE_HTTP_CODES)
@@ -1065,7 +1106,10 @@ class SyncCveCatalogTests(unittest.TestCase):
             def __exit__(self, *args: object) -> None:
                 return None
 
-            def read(self) -> bytes:
+            def read(self, _size: int = -1) -> bytes:
+                if getattr(self, "_sent", False):
+                    return b""
+                self._sent = True
                 return b"recovered metadata"
 
         transient = HTTPError(
@@ -1078,12 +1122,303 @@ class SyncCveCatalogTests(unittest.TestCase):
         with (
             patch.object(catalog, "urlopen", side_effect=[transient, Response()]) as mocked_open,
             patch.object(catalog.time, "sleep") as mocked_sleep,
+            patch.object(catalog.random, "random", return_value=1.0),
         ):
             payload = catalog.fetch_bytes("https://nvd.example.test/nvdcve-2.0-2018.meta")
 
         self.assertEqual(payload, b"recovered metadata")
         self.assertEqual(mocked_open.call_count, 2)
-        mocked_sleep.assert_called_once_with(1)
+        mocked_sleep.assert_called_once_with(1.0)
+
+    def test_fetch_bytes_applies_jitter_to_5xx_and_skips_final_sleep(self) -> None:
+        transient = HTTPError(
+            "https://nvd.example.test/nvdcve-2.0-2018.meta",
+            503,
+            "Service Unavailable",
+            {},
+            None,
+        )
+        with (
+            patch.object(catalog, "urlopen", side_effect=transient) as mocked_open,
+            patch.object(catalog.time, "sleep") as mocked_sleep,
+            patch.object(catalog.random, "random", return_value=0.0),
+        ):
+            with self.assertRaises(HTTPError) as raised:
+                catalog.fetch_bytes("https://nvd.example.test/nvdcve-2.0-2018.meta")
+
+        self.assertEqual(raised.exception.code, 503)
+        self.assertEqual(mocked_open.call_count, 5)
+        self.assertEqual(
+            mocked_sleep.call_args_list,
+            [((0.5,),), ((1.0,),), ((2.0,),), ((4.0,),)],
+        )
+
+    def test_fetch_bytes_stops_at_the_url_deadline(self) -> None:
+        clock = {"now": 0.0}
+        opens = 0
+
+        def monotonic() -> float:
+            return clock["now"]
+
+        def sleep(seconds: float) -> None:
+            clock["now"] += float(seconds)
+
+        def urlopen(*_args: object, **_kwargs: object) -> object:
+            nonlocal opens
+            opens += 1
+            if opens > 20:
+                raise AssertionError(
+                    "unbounded retry: fetch_bytes ignored the per-URL deadline"
+                )
+            clock["now"] += 70
+            raise catalog.IncompleteRead(b"partial feed", 1024)
+
+        with (
+            patch.object(catalog, "urlopen", side_effect=urlopen),
+            patch.object(catalog.time, "sleep", side_effect=sleep),
+            patch.object(catalog.time, "monotonic", side_effect=monotonic),
+            patch.object(catalog.random, "random", return_value=1.0),
+        ):
+            with self.assertRaises(catalog.IncompleteRead):
+                catalog.fetch_bytes(
+                    "https://nvd.example.test/feed.json.gz",
+                    deadline_seconds=180,
+                )
+
+        # 70s/attempt against a 180s deadline allows three opens (t=0, 71, 143)
+        # and refuses a fourth. Five-attempt code without a deadline would open
+        # five times; an unbounded mutant trips the 20-call guard above.
+        self.assertEqual(opens, 3)
+        self.assertLess(opens, 5)
+        self.assertLessEqual(clock["now"], 180 + 70)
+        self.assertEqual(catalog.FETCH_DEADLINE_SECONDS, 300.0)
+
+    def test_fetch_bytes_stops_a_slow_drip_within_the_deadline(self) -> None:
+        class DripResponse:
+            def __init__(self) -> None:
+                self.headers: dict[str, str] = {}
+                self.timeouts: list[float] = []
+
+            def __enter__(self) -> "DripResponse":
+                return self
+
+            def __exit__(self, *args: object) -> None:
+                return None
+
+            def settimeout(self, timeout: float) -> None:
+                self.timeouts.append(float(timeout))
+
+            def read(self, _size: int = -1) -> bytes:
+                time.sleep(0.5)
+                return b"x"
+
+        drip = DripResponse()
+        started = time.monotonic()
+        with patch.object(catalog, "urlopen", return_value=drip):
+            with self.assertRaises(TimeoutError) as raised:
+                catalog.fetch_bytes(
+                    "https://nvd.example.test/feed.json.gz",
+                    deadline_seconds=3,
+                    timeout=180,
+                    attempts=1,
+                )
+        elapsed = time.monotonic() - started
+
+        # urlopen's timeout is per socket read. A 1-byte-every-0.5s drip
+        # against a 3s deadline used to return after ~49.5s when the body
+        # was read in one call. Chunked reads must finish near 3s.
+        self.assertLess(elapsed, 3.0 + 1.0)
+        self.assertGreaterEqual(elapsed, 2.5)
+        self.assertIn("per-URL deadline", str(raised.exception))
+        self.assertTrue(drip.timeouts)
+        self.assertLessEqual(max(drip.timeouts), 3.0)
+        self.assertGreater(min(drip.timeouts), 0.0)
+        self._assert_applied_timeouts_shrink(deadline=3.0)
+
+    def test_fetch_bytes_uses_read1_and_a_deadline_timer(self) -> None:
+        self.assertIn("read1", inspect.getsource(catalog._read_one_chunk))
+        self.assertIn("threading.Timer", inspect.getsource(catalog._DeadlineGuard))
+        self.assertIn("close", inspect.getsource(catalog._DeadlineGuard._expire))
+
+    def test_catch_up_page_cap_fits_the_sync_job_budget(self) -> None:
+        page_minutes = catalog.NVD_API_MAX_PAGES * catalog.FETCH_DEADLINE_SECONDS / 60.0
+        used = page_minutes + 43.0 + 11.3
+        self.assertEqual(catalog.NVD_API_MAX_PAGES, 15)
+        self.assertLess(used, 150.0)
+        self.assertAlmostEqual(150.0 - used, 20.7, places=1)
+
+    def test_fetch_bytes_returns_a_one_byte_body(self) -> None:
+        class OneByteHandler(BaseHTTPRequestHandler):
+            def do_GET(self) -> None:
+                self.send_response(200)
+                self.send_header("Content-Length", "1")
+                self.end_headers()
+                self.wfile.write(b"z")
+
+            def log_message(self, *_args: object) -> None:
+                return
+
+        with _LocalHttpServer(OneByteHandler) as server:
+            started = time.monotonic()
+            payload = catalog.fetch_bytes(
+                server.url,
+                deadline_seconds=3,
+                timeout=180,
+                attempts=1,
+            )
+            elapsed = time.monotonic() - started
+
+        self.assertEqual(payload, b"z")
+        self.assertLess(elapsed, 1.0)
+
+    def test_fetch_bytes_stops_a_real_socket_drip_within_the_deadline(self) -> None:
+        class DripHandler(BaseHTTPRequestHandler):
+            stop = threading.Event()
+
+            def do_GET(self) -> None:
+                self.send_response(200)
+                self.send_header("Content-Type", "text/plain")
+                self.send_header("Content-Length", "200000")
+                self.end_headers()
+                try:
+                    while not self.stop.is_set():
+                        self.wfile.write(b"x")
+                        self.wfile.flush()
+                        time.sleep(0.5)
+                except (BrokenPipeError, ConnectionResetError, OSError):
+                    return
+
+            def log_message(self, *_args: object) -> None:
+                return
+
+        DripHandler.stop.clear()
+        with _LocalHttpServer(DripHandler) as server:
+            started = time.monotonic()
+            with self.assertRaises(TimeoutError) as raised:
+                catalog.fetch_bytes(
+                    server.url,
+                    deadline_seconds=3,
+                    timeout=180,
+                    attempts=1,
+                )
+            elapsed = time.monotonic() - started
+            DripHandler.stop.set()
+
+        # A real socket returns whatever is buffered, not 1 byte per
+        # read(65536). Without a deadline timer plus read1(), 1 byte /
+        # 0.5s against a 3s deadline took 49.5s and a 200 KB body ran
+        # past 120s.
+        self.assertLess(elapsed, 3.0 + 1.0)
+        self.assertGreaterEqual(elapsed, 2.5)
+        self.assertIn("per-URL deadline", str(raised.exception))
+        self._assert_applied_timeouts_shrink(deadline=3.0)
+
+    def test_fetch_bytes_stops_a_real_redirect_chain_within_the_deadline(self) -> None:
+        class RedirectHandler(BaseHTTPRequestHandler):
+            def do_GET(self) -> None:
+                time.sleep(0.8)
+                try:
+                    hop = int(self.path.strip("/") or "0")
+                except ValueError:
+                    hop = 0
+                if hop < 9:
+                    self.send_response(302)
+                    self.send_header("Location", f"{self._origin()}/{hop + 1}")
+                    self.end_headers()
+                    return
+                self.send_response(200)
+                self.send_header("Content-Length", "2")
+                self.end_headers()
+                self.wfile.write(b"ok")
+
+            def _origin(self) -> str:
+                host, port = self.server.server_address[:2]
+                return f"http://{host}:{port}"
+
+            def log_message(self, *_args: object) -> None:
+                return
+
+        with _LocalHttpServer(RedirectHandler) as server:
+            started = time.monotonic()
+            with self.assertRaises(TimeoutError) as raised:
+                catalog.fetch_bytes(
+                    f"{server.url}/0",
+                    deadline_seconds=3,
+                    timeout=180,
+                    attempts=1,
+                )
+            elapsed = time.monotonic() - started
+
+        # Each hop used to get the full timeout, so 10 × 0.8s finished
+        # in 8s against a 3s deadline. The overall timer must close the
+        # connection mid-chain.
+        self.assertLess(elapsed, 3.0 + 1.0)
+        self.assertGreaterEqual(elapsed, 2.0)
+        self.assertIn("per-URL deadline", str(raised.exception))
+
+    def test_fetch_bytes_stops_slow_headers_within_the_deadline(self) -> None:
+        stop = threading.Event()
+        listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        listener.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        listener.bind(("127.0.0.1", 0))
+        listener.listen(1)
+        port = listener.getsockname()[1]
+
+        def serve() -> None:
+            listener.settimeout(0.5)
+            while not stop.is_set():
+                try:
+                    connection, _address = listener.accept()
+                except TimeoutError:
+                    continue
+                try:
+                    connection.settimeout(1.0)
+                    try:
+                        connection.recv(4096)
+                    except OSError:
+                        return
+                    payload = b"HTTP/1.1 200 OK\r\nContent-Length: 1\r\n\r\nz"
+                    for index in range(len(payload)):
+                        if stop.is_set():
+                            return
+                        connection.sendall(payload[index : index + 1])
+                        time.sleep(0.5)
+                except OSError:
+                    return
+                finally:
+                    connection.close()
+
+        worker = threading.Thread(target=serve, daemon=True)
+        worker.start()
+        try:
+            started = time.monotonic()
+            with self.assertRaises(TimeoutError) as raised:
+                catalog.fetch_bytes(
+                    f"http://127.0.0.1:{port}/",
+                    deadline_seconds=3,
+                    timeout=180,
+                    attempts=1,
+                )
+            elapsed = time.monotonic() - started
+        finally:
+            stop.set()
+            listener.close()
+            worker.join(timeout=2)
+
+        # Header readline() also resets the socket timeout per recv, so
+        # only the overall deadline timer can stop a slow header drip.
+        self.assertLess(elapsed, 3.0 + 1.0)
+        self.assertGreaterEqual(elapsed, 2.5)
+        self.assertIn("per-URL deadline", str(raised.exception))
+
+    def _assert_applied_timeouts_shrink(self, *, deadline: float) -> None:
+        timeouts = catalog.FETCH_APPLIED_TIMEOUTS
+        self.assertGreaterEqual(len(timeouts), 2)
+        self.assertLessEqual(max(timeouts), deadline)
+        self.assertGreater(min(timeouts), 0.0)
+        self.assertLess(timeouts[-1], timeouts[0])
+        for previous, current in zip(timeouts, timeouts[1:]):
+            self.assertLessEqual(current, previous + 1e-9)
 
     def test_fetch_bytes_does_not_retry_non_transient_http_errors(self) -> None:
         forbidden = HTTPError(
@@ -2592,6 +2927,91 @@ class SyncCveCatalogTests(unittest.TestCase):
             self.assertIn("accepted_records sum 2 does not match catalog_records 1", failures)
             self.assertIn("metadata is missing required fields", failures)
 
+    def test_validator_counts_nvd_catchup_added_records_toward_catalog_total(self) -> None:
+        feed_record = normalize(nvd_record("CVE-2024-1234"))
+        catchup_record = normalize(
+            nvd_record("CVE-2026-77777", published="2026-06-01T00:00:00.000Z")
+        )
+        self.assertIsNotNone(feed_record)
+        self.assertIsNotNone(catchup_record)
+        assert feed_record is not None
+        assert catchup_record is not None
+
+        with tempfile.TemporaryDirectory(prefix="test-cve-catchup-added-", dir=catalog.ROOT) as tmpdir:
+            output_dir, content_dir, _ = write_catalog_fixture(
+                Path(tmpdir), [feed_record, catchup_record]
+            )
+            manifest_path = output_dir / "manifest.json"
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            feeds = manifest["sources"]["nvd"]["feeds"]
+            feeds[-1]["accepted_records"] = 1
+            manifest["sources"]["nvd"]["api_catchup"] = {
+                "added_records": 1,
+                "replaced_records": 0,
+                "merged_records": 1,
+            }
+            manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+            accounted = validator.validate(output_dir, content_dir)
+            self.assertTrue(accounted["ok"], accounted["failures"])
+
+            manifest["sources"]["nvd"]["api_catchup"]["added_records"] = 0
+            manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+            missing = validator.validate(output_dir, content_dir)
+            self.assertFalse(missing["ok"])
+            self.assertIn(
+                "accepted_records sum 1 does not match catalog_records 2",
+                "\n".join(missing["failures"]),
+            )
+
+            manifest["sources"]["nvd"]["api_catchup"] = {
+                "added_records": 1,
+                "replaced_records": 0,
+                "merged_records": 2,
+            }
+            manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+            inconsistent = validator.validate(output_dir, content_dir)
+            self.assertFalse(inconsistent["ok"])
+            self.assertIn(
+                "merged_records does not equal replaced_records plus added_records",
+                "\n".join(inconsistent["failures"]),
+            )
+
+    def test_catchup_additions_require_complete_strict_counts(self) -> None:
+        records = [normalize(nvd_record("CVE-2024-1234")), normalize(nvd_record("CVE-2024-5678"))]
+        with tempfile.TemporaryDirectory(prefix="test-cve-count-types-", dir=catalog.ROOT) as tmpdir:
+            output_dir, _, _ = write_catalog_fixture(Path(tmpdir), records)
+            manifest = json.loads((output_dir / "manifest.json").read_text())
+            manifest["sources"]["nvd"]["feeds"][-1]["accepted_records"] = 1
+            for field in ("merged_records", "replaced_records"):
+                for value in (None, -1, "1", True, False, 1.0):
+                    counts = {"merged_records": 1, "replaced_records": 0, "added_records": 1}
+                    counts[field] = value
+                    manifest["sources"]["nvd"]["api_catchup"] = counts
+                    failures = []
+                    with self.subTest(field=field, value=value):
+                        validator.validate_source_completeness(manifest, None, 2, failures)
+                        self.assertTrue(failures)
+                counts = {"merged_records": 1, "replaced_records": 0, "added_records": 1}
+                del counts[field]
+                manifest["sources"]["nvd"]["api_catchup"] = counts
+                failures = []
+                validator.validate_source_completeness(manifest, None, 2, failures)
+                self.assertTrue(failures)
+            for value in (None, -1, "1", True, False, 1.0):
+                manifest["sources"]["nvd"]["api_catchup"] = {
+                    "merged_records": 1, "replaced_records": 0, "added_records": value,
+                }
+                failures = []
+                validator.validate_source_completeness(manifest, None, 2, failures)
+                self.assertTrue(failures)
+            # Historical manifests had only merged_records and no additions.
+            manifest["sources"]["nvd"]["feeds"][-1]["accepted_records"] = 2
+            manifest["sources"]["nvd"]["api_catchup"] = {"merged_records": 10}
+            failures = []
+            validator.validate_source_completeness(manifest, None, 2, failures)
+            self.assertFalse(failures, failures)
+
     def test_validator_rejects_the_generic_affected_product_title(self) -> None:
         record = normalize(nvd_record())
         self.assertIsNotNone(record)
@@ -3394,17 +3814,19 @@ class SyncCveCatalogTests(unittest.TestCase):
         def truncated(_url: str, **_: object) -> bytes:
             raise catalog.IncompleteRead(b"partial lastMod page", 1024)
 
-        records, metadata = catalog.fetch_nvd_api_catchup(
-            feeds,
-            end=catalog.parse_nvd_datetime("2026-10-21T16:00:00Z"),
-            fetch=truncated,
-            sleeper=lambda _: None,
-        )
+        with redirect_stdout(io.StringIO()) as stdout:
+            records, metadata = catalog.fetch_nvd_api_catchup(
+                feeds,
+                end=catalog.parse_nvd_datetime("2026-10-21T16:00:00Z"),
+                fetch=truncated,
+                sleeper=lambda _: None,
+            )
 
         self.assertEqual(records, {})
         self.assertEqual(metadata["records"], 0)
         self.assertIn("not retrievable", metadata["skipped"])
         self.assertNotIn("latest_record_modified", metadata)
+        self.assertIn("::warning::NVD API lastMod catch-up is not retrievable", stdout.getvalue())
 
         _, stamp = catalog.build_outputs(
             [],
@@ -3564,6 +3986,14 @@ class SyncCveCatalogTests(unittest.TestCase):
         self.assertEqual(merged["CVE-2026-55555"]["summary"], "updated catch-up must replace")
         self.assertIn("CVE-2026-77777", merged)
         self.assertEqual(catalog.nvd_datetime_text(merged_latest), "2026-10-20T12:00:00Z")
+        self.assertEqual(
+            catalog.nvd_catchup_record_counts(feed_modified, merged),
+            {"merged_records": 2, "replaced_records": 1, "added_records": 1},
+        )
+        self.assertEqual(
+            catalog.nvd_catchup_record_counts(feed_modified, skipped),
+            {"merged_records": 0, "replaced_records": 0, "added_records": 0},
+        )
 
         _, ignored_stamp = catalog.build_outputs(
             [],
