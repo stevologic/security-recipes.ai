@@ -108,6 +108,10 @@ def source_files(repo_root: Path, source: dict[str, Any], output_path: Path) -> 
     root = repo_root / str(source.get("scan_root") or source.get("root", ""))
     allowed = [str(pattern) for pattern in source.get("allowed_file_globs", [])]
     excluded = [str(pattern) for pattern in source.get("exclude_file_globs", []) or []]
+    # Data-only catalog sync rewrites managed CVE enrichment drafts. Hashing
+    # them here makes evidence packs drift on leftover recipe add/delete and
+    # blocks catalog self-merge. Runtime retrieval still uses source.root.
+    excluded.append("content/recipes/cve/ai-enrichment-*.md")
 
     if root.is_file():
         candidates = [root]

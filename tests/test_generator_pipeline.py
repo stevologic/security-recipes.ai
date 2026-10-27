@@ -173,6 +173,51 @@ class GeneratorPipelineTests(unittest.TestCase):
             generators = PIPELINE.discover_generators(root)
             self.assertEqual(1, PIPELINE.validate_ownership(generators, root))
 
+    def test_catalog_managed_cve_drafts_are_not_hashed_into_context_packs(self) -> None:
+        registry = json.loads(
+            (REPO_ROOT / "data" / "context" / "secure-context-registry.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        recipes = next(
+            source
+            for source in registry["context_sources"]
+            if source.get("id") == "recipes"
+        )
+        managed_files = sorted(
+            (REPO_ROOT / "content" / "recipes" / "cve").glob("ai-enrichment-*.md")
+        )
+        index = REPO_ROOT / "content" / "recipes" / "cve" / "_index.md"
+        self.assertTrue(managed_files)
+        self.assertTrue(index.is_file())
+
+        trust = load_script_module(
+            "generate_secure_context_trust_pack_skip_test",
+            "generate_secure_context_trust_pack.py",
+        )
+        poisoning = load_script_module(
+            "generate_context_poisoning_guard_pack_skip_test",
+            "generate_context_poisoning_guard_pack.py",
+        )
+        egress = load_script_module(
+            "generate_context_egress_boundary_pack_skip_test",
+            "generate_context_egress_boundary_pack.py",
+        )
+        trust_files = trust.source_files(REPO_ROOT, recipes)
+        poisoning_files = poisoning.source_files(
+            REPO_ROOT,
+            recipes,
+            REPO_ROOT / "data" / "evidence" / "context-poisoning-guard-pack.json",
+        )
+        egress_files = egress.source_files(
+            REPO_ROOT,
+            recipes,
+            REPO_ROOT / "data" / "evidence" / "context-egress-boundary-pack.json",
+        )
+        for files in (trust_files, poisoning_files, egress_files):
+            self.assertTrue(set(managed_files).isdisjoint(files))
+            self.assertIn(index, files)
+
     def test_all_generated_artifacts_are_fresh(self) -> None:
         result = subprocess.run(
             [sys.executable, str(PIPELINE_PATH), "--check", "--repo-root", str(REPO_ROOT)],
