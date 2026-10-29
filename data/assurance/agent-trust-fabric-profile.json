@@ -1,12 +1,12 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-10-13",
+  "last_reviewed": "2026-10-29",
   "intent": "Create an enterprise Agent Trust Fabric profile for SecurityRecipes that turns identity, behavior, context, least-privilege scope, telemetry, containment, source freshness, and buyer proof into one deterministic trust verdict before an agent retrieves secure context, invokes MCP tools, delegates, writes memory, or performs high-impact actions.",
   "positioning": {
     "buyer": "AI platform, product security, CISO, GRC, model-risk, SOC, procurement-security, and acquisition diligence teams",
     "category": "Agentic AI zero-trust decision fabric",
     "enterprise_promise": "SecurityRecipes can answer the board-level question 'which agents can we trust right now?' with generated evidence, source hashes, runtime decisions, and MCP tools instead of narrative policy.",
-    "why_now": "2026 agent deployments are moving from pilots to autonomous action. NIST's August 27, 2026 identity guidance warns that shared human credentials, long-lived API keys, and local user-account impersonation recreate classic IAM failures at agent scale. NCCoE's September 29, 2026 comments summary, drawn from more than 600 responses, says sender-constrained credentials (OAuth DPoP or mTLS using SPIFFE or WIMSE identities) are essential to reduce bearer-token replay, and that ephemeral credentials should be bound to a stable identity anchor via proof-of-possession. Every agent still needs a unique identity, least-privilege scope, governed context, telemetry, and fast containment."
+    "why_now": "2026 agent deployments are moving from pilots to autonomous action. NIST's October 27, 2026 design tenets, drawn from NCCoE comments and stakeholder engagement, require cryptographically verifiable identities distinct from humans and service accounts, attenuated sub-agent delegation, zero standing privilege, short-lived audience-specific grants, signed mandate statements, architectural separation of policy from reasoning, deterministic access decisions, consent-fatigue-aware HITL thresholds, continuous monitoring, and independent append-only evidence. Unique short-lived sender-constrained credentials are necessary but not sufficient when a sub-agent keeps parent-wide scope, idle agents retain standing privilege, the reasoning model grants access, or the agent can write its own logs."
   },
   "source_references": [
     {
@@ -62,6 +62,15 @@
       "url": "https://pages.nist.gov/nccoe-ai-identity/summary-of-comments.html",
       "source_class": "government_security_signal",
       "why_it_matters": "NCCoE's September 29, 2026 comments summary, drawn from more than 600 responses, says sender-constrained credentials (OAuth DPoP or mTLS using SPIFFE or WIMSE identities) are essential to reduce bearer-token replay, and that ephemeral credentials should be bound to a stable identity anchor via proof-of-possession rather than reused as unconstrained bearer tokens."
+    },
+    {
+      "id": "nist-agentic-identity-design-tenets-2026",
+      "name": "Design Tenets for Agent Identity Management Systems",
+      "publisher": "NIST",
+      "published": "2026-10-27",
+      "url": "https://www.nist.gov/blogs/cybersecurity-insights/design-tenets-agent-identity-management-systems",
+      "source_class": "government_security_signal",
+      "why_it_matters": "NIST's October 27, 2026 design tenets require cryptographically verifiable agent identities distinct from humans and service accounts, attenuated sub-agent delegation so downstream entities cannot claim more authority than the parent, zero standing privilege, short-lived audience-specific grants, signed mandate statements, architectural separation of policy from reasoning, deterministic access decisions, consent-fatigue-aware HITL thresholds, continuous monitoring, and independent append-only evidence."
     },
     {
       "id": "mcp-authorization-2026-07-28",
@@ -200,7 +209,8 @@
       "prompt_injection_with_external_side_effect",
       "untrusted_context_with_high_autonomy",
       "telemetry_redaction_failure",
-      "cross_tenant_context_access"
+      "cross_tenant_context_access",
+      "agent_writable_evidence"
     ]
   },
   "trust_dimensions": [
@@ -208,7 +218,7 @@
       "id": "identity",
       "title": "Verifiable Agent Identity",
       "weight": 20,
-      "question": "Who is the agent, which unique delegated identity is it using, and is that identity a shared human credential, static token, unconstrained bearer, or local user-account impersonation?",
+      "question": "Who is the agent, which unique delegated identity is it using, and is that identity a shared human credential, static token, unconstrained bearer, standing privilege, unattenuated sub-agent grant, model-driven access decision, or local user-account impersonation?",
       "required_evidence": [
         "agent_identity_ledger",
         "agentic_entitlement_review_pack",
@@ -228,7 +238,10 @@
         "shared_human_credential",
         "long_lived_static_credential",
         "unconstrained_bearer_token",
-        "local_user_account_impersonation"
+        "local_user_account_impersonation",
+        "unattenuated_subagent_delegation",
+        "standing_privilege",
+        "model_driven_access_grant"
       ]
     },
     {
@@ -273,7 +286,9 @@
         "unregistered_action",
         "invalid_scope_challenge",
         "egress_denied",
-        "production_write_without_approval"
+        "production_write_without_approval",
+        "standing_privilege",
+        "unattenuated_subagent_delegation"
       ]
     },
     {
@@ -296,7 +311,9 @@
         "deny_after_deny_loop",
         "tool_output_hidden",
         "guardrail_gap",
-        "behavior_anomaly"
+        "behavior_anomaly",
+        "model_driven_access_grant",
+        "agent_writable_evidence"
       ]
     },
     {
@@ -379,7 +396,7 @@
         "write_scoped_branch",
         "request_step_up"
       ],
-      "promotion_gate": "Action runtime, authorization, egress, telemetry, approval, and receipt evidence are bound to the run, and the agent credential is sender-constrained to its identity anchor."
+      "promotion_gate": "Action runtime, authorization, egress, telemetry, approval, and receipt evidence are bound to the run, the agent credential is sender-constrained to its identity anchor, standing privilege is absent, and any sub-agent grant is attenuated below the parent scope."
     },
     {
       "id": "principal",
@@ -390,7 +407,7 @@
         "high_impact_action_after_risk_acceptance",
         "cross_agent_delegation_after_policy_check"
       ],
-      "promotion_gate": "Separate risk acceptance, containment proof, red-team replay evidence, and customer-specific hosted MCP controls are present."
+      "promotion_gate": "Separate risk acceptance, a signed mandate statement, containment proof, red-team replay evidence, customer-specific hosted MCP controls, and agent-independent append-only evidence are present."
     }
   ],
   "runtime_policy": {
@@ -415,7 +432,10 @@
       "required evidence fields are missing after normalization",
       "trust score falls below deny threshold",
       "agent authenticates with a long-lived static API key",
-      "agent authenticates with an unconstrained bearer token instead of a sender-constrained credential bound to its identity anchor"
+      "agent authenticates with an unconstrained bearer token instead of a sender-constrained credential bound to its identity anchor",
+      "sub-agent or downstream grant claims more authority than the parent",
+      "agent retains standing privilege while idle instead of a just-in-time task-scoped grant",
+      "access grant is determined by the reasoning model instead of a separated deterministic policy engine"
     ],
     "kill_when": [
       "token passthrough is observed",
@@ -425,7 +445,8 @@
       "secret egress or cross-tenant context access is observed",
       "runtime kill signal is present",
       "prompt injection is combined with external side effect",
-      "agent repeats a denied action"
+      "agent repeats a denied action",
+      "agent can write or modify its own evidence logs"
     ]
   },
   "commercialization_path": {

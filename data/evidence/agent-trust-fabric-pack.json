@@ -23,12 +23,12 @@
     "why_it_is_differentiated": "Most agent guidance stops at controls. The trust fabric composes generated evidence into an allow, hold, deny, or kill decision that agents and auditors can consume."
   },
   "failures": [],
-  "generated_at": "2026-10-13",
+  "generated_at": "2026-10-29",
   "positioning": {
     "buyer": "AI platform, product security, CISO, GRC, model-risk, SOC, procurement-security, and acquisition diligence teams",
     "category": "Agentic AI zero-trust decision fabric",
     "enterprise_promise": "SecurityRecipes can answer the board-level question 'which agents can we trust right now?' with generated evidence, source hashes, runtime decisions, and MCP tools instead of narrative policy.",
-    "why_now": "2026 agent deployments are moving from pilots to autonomous action. NIST's August 27, 2026 identity guidance warns that shared human credentials, long-lived API keys, and local user-account impersonation recreate classic IAM failures at agent scale. NCCoE's September 29, 2026 comments summary, drawn from more than 600 responses, says sender-constrained credentials (OAuth DPoP or mTLS using SPIFFE or WIMSE identities) are essential to reduce bearer-token replay, and that ephemeral credentials should be bound to a stable identity anchor via proof-of-possession. Every agent still needs a unique identity, least-privilege scope, governed context, telemetry, and fast containment."
+    "why_now": "2026 agent deployments are moving from pilots to autonomous action. NIST's October 27, 2026 design tenets, drawn from NCCoE comments and stakeholder engagement, require cryptographically verifiable identities distinct from humans and service accounts, attenuated sub-agent delegation, zero standing privilege, short-lived audience-specific grants, signed mandate statements, architectural separation of policy from reasoning, deterministic access decisions, consent-fatigue-aware HITL thresholds, continuous monitoring, and independent append-only evidence. Unique short-lived sender-constrained credentials are necessary but not sufficient when a sub-agent keeps parent-wide scope, idle agents retain standing privilege, the reasoning model grants access, or the agent can write its own logs."
   },
   "runtime_policy": {
     "decision_order": [
@@ -44,7 +44,10 @@
       "required evidence fields are missing after normalization",
       "trust score falls below deny threshold",
       "agent authenticates with a long-lived static API key",
-      "agent authenticates with an unconstrained bearer token instead of a sender-constrained credential bound to its identity anchor"
+      "agent authenticates with an unconstrained bearer token instead of a sender-constrained credential bound to its identity anchor",
+      "sub-agent or downstream grant claims more authority than the parent",
+      "agent retains standing privilege while idle instead of a just-in-time task-scoped grant",
+      "access grant is determined by the reasoning model instead of a separated deterministic policy engine"
     ],
     "kill_when": [
       "token passthrough is observed",
@@ -54,7 +57,8 @@
       "secret egress or cross-tenant context access is observed",
       "runtime kill signal is present",
       "prompt injection is combined with external side effect",
-      "agent repeats a denied action"
+      "agent repeats a denied action",
+      "agent can write or modify its own evidence logs"
     ],
     "step_up_required_when": [
       "requested_trust_tier is operator or principal and human approval is absent",
@@ -80,7 +84,7 @@
       "failure_count": 0,
       "path": "data/evidence/agentic-action-runtime-pack.json",
       "schema_version": "1.0",
-      "sha256": "e94d2c8d7c0eb83a320ab613bd9372c5749c749459d35c22e6b9b343b1f414ad",
+      "sha256": "0b4b2f479a8d87978b0298a2aad03fd25225600d47d1b40bb3c0092705794914",
       "summary_keys": [
         "action_runtime_summary"
       ]
@@ -89,7 +93,7 @@
       "failure_count": 0,
       "path": "data/evidence/agentic-entitlement-review-pack.json",
       "schema_version": "1.0",
-      "sha256": "c76a674561676ce084e061c2d51ead1b9e0b8ed969db208db78f77c09f730975",
+      "sha256": "0b7e749344342646bccd8e360d56bcad5fab8ed6ba58c566fbb560709fce5600",
       "summary_keys": [
         "entitlement_review_summary"
       ]
@@ -98,7 +102,7 @@
       "failure_count": 0,
       "path": "data/evidence/agentic-run-receipt-pack.json",
       "schema_version": "1.0",
-      "sha256": "9ad3ec7623b48054f81c57c6bb47f1358fdea759d4f44be0d9b2d21fdab07952",
+      "sha256": "afbfaf9309ef7f66d6d18871efe480bc1368c4ec6fc6de3e220ed8f69f6b8619",
       "summary_keys": [
         "receipt_summary"
       ]
@@ -107,7 +111,7 @@
       "failure_count": 0,
       "path": "data/evidence/agentic-soc-detection-pack.json",
       "schema_version": "1.0",
-      "sha256": "fd3caa765825209774bfa87c2882d5546cc1d75aa314348a5bb4ec60cebdc991",
+      "sha256": "dd4b8c9f516343093115916937297423af848ff33edf7a71f9ab71a8d77795e4",
       "summary_keys": [
         "detection_summary"
       ]
@@ -116,7 +120,7 @@
       "failure_count": 0,
       "path": "data/evidence/agentic-source-freshness-watch.json",
       "schema_version": "1.0",
-      "sha256": "e1656c0555e01d7730620fe044133f38d6a84024e70c0108392b9d81f7dddc47",
+      "sha256": "6d25d9e3938cd9d068976e9fe7155d232b7cc89f67f8c9a633a4bad6dc327009",
       "summary_keys": [
         "freshness_summary"
       ]
@@ -125,7 +129,7 @@
       "failure_count": 0,
       "path": "data/evidence/agentic-telemetry-contract.json",
       "schema_version": "1.0",
-      "sha256": "286e1691ec08b479ab0090e02efab87ff5522f6fe8e9348edfcca417ecfb0221",
+      "sha256": "ff8bea2455fdb08e1fb39a62f197f707f6fe49bae4b1550297c7d99929ed2c72",
       "summary_keys": [
         "telemetry_summary"
       ]
@@ -134,7 +138,7 @@
       "failure_count": 0,
       "path": "data/evidence/context-egress-boundary-pack.json",
       "schema_version": "1.0",
-      "sha256": "cb6e9157964a9350bc99adcc1eb80e3a6e5092c19d513af07494ec0ff68930cc",
+      "sha256": "ab712dc6b94792c3330d3cb8b4bdfff8b636ca326a45f41a4d8d2cb8df96b35d",
       "summary_keys": [
         "egress_boundary_summary"
       ]
@@ -143,7 +147,7 @@
       "failure_count": 0,
       "path": "data/evidence/context-poisoning-guard-pack.json",
       "schema_version": "1.0",
-      "sha256": "1a93e3966d97f230816ce6dfe785bf51d429676cdfac3eba459654ad284177b7",
+      "sha256": "2de2e8aad3d493cbddbcacaa2cdad711916ff82616fb1b48704f1594b6df0ee9",
       "summary_keys": [
         "guard_summary"
       ]
@@ -152,7 +156,7 @@
       "failure_count": 0,
       "path": "data/evidence/enterprise-trust-center-export.json",
       "schema_version": "1.0",
-      "sha256": "80125983c92e6c5636f94869836c87ab546908920a00476a8d699a050dfd629c",
+      "sha256": "d614354193abe5b813a149d94b61d4c0fd5d5c278158dffa0aa7a419e4e6b07b",
       "summary_keys": [
         "export_summary"
       ]
@@ -161,7 +165,7 @@
       "failure_count": 0,
       "path": "data/evidence/hosted-mcp-readiness-pack.json",
       "schema_version": "1.0",
-      "sha256": "f2709f2633841a26d98039d85e3c4856662afe550223550fe3155f70f683d560",
+      "sha256": "2fa30355550f28989652ed32d1bbcaef20998d5c5fffbdc3c2688319fd4a893e",
       "summary_keys": [
         "hosted_mcp_readiness_summary"
       ]
@@ -179,7 +183,7 @@
       "failure_count": 0,
       "path": "data/evidence/secure-context-trust-pack.json",
       "schema_version": "1.0",
-      "sha256": "2b334ccfacdd9b5c8109fb091e37954fbc2eb050f733aa0058437841a0d1ec85",
+      "sha256": "951dc49f0018ce631890235a969ce7d85a6621caea7171927a9d48006a1c4e5b",
       "summary_keys": [
         "context_trust_summary"
       ]
@@ -246,6 +250,15 @@
       "source_class": "government_security_signal",
       "url": "https://pages.nist.gov/nccoe-ai-identity/summary-of-comments.html",
       "why_it_matters": "NCCoE's September 29, 2026 comments summary, drawn from more than 600 responses, says sender-constrained credentials (OAuth DPoP or mTLS using SPIFFE or WIMSE identities) are essential to reduce bearer-token replay, and that ephemeral credentials should be bound to a stable identity anchor via proof-of-possession rather than reused as unconstrained bearer tokens."
+    },
+    {
+      "id": "nist-agentic-identity-design-tenets-2026",
+      "name": "Design Tenets for Agent Identity Management Systems",
+      "published": "2026-10-27",
+      "publisher": "NIST",
+      "source_class": "government_security_signal",
+      "url": "https://www.nist.gov/blogs/cybersecurity-insights/design-tenets-agent-identity-management-systems",
+      "why_it_matters": "NIST's October 27, 2026 design tenets require cryptographically verifiable agent identities distinct from humans and service accounts, attenuated sub-agent delegation so downstream entities cannot claim more authority than the parent, zero standing privilege, short-lived audience-specific grants, signed mandate statements, architectural separation of policy from reasoning, deterministic access decisions, consent-fatigue-aware HITL thresholds, continuous monitoring, and independent append-only evidence."
     },
     {
       "id": "mcp-authorization-2026-07-28",
@@ -356,9 +369,24 @@
       "trigger": "An agent presents an unconstrained bearer token instead of a sender-constrained credential (OAuth DPoP or mTLS) bound to its identity anchor."
     },
     {
+      "expected_decision": "deny_untrusted_agent",
+      "id": "unattenuated-subagent-delegation",
+      "trigger": "A sub-agent or downstream grant claims more authority than its parent instead of an attenuated, cryptographically linked delegation."
+    },
+    {
+      "expected_decision": "deny_untrusted_agent",
+      "id": "standing-privilege-or-model-driven-access",
+      "trigger": "An idle agent retains standing privilege, or the reasoning model grants access instead of a separated deterministic policy engine."
+    },
+    {
       "expected_decision": "kill_session_on_agent_trust_break",
       "id": "token-passthrough-or-secret-egress",
       "trigger": "A protected MCP token is passed downstream, a revoked identity is used, or a secret crosses an external egress boundary."
+    },
+    {
+      "expected_decision": "kill_session_on_agent_trust_break",
+      "id": "agent-writable-evidence",
+      "trigger": "The agent can write or modify its own evidence logs instead of an independent append-only chain of custody."
     },
     {
       "expected_decision": "kill_session_on_agent_trust_break",
@@ -379,7 +407,8 @@
       "prompt_injection_with_external_side_effect",
       "untrusted_context_with_high_autonomy",
       "telemetry_redaction_failure",
-      "cross_tenant_context_access"
+      "cross_tenant_context_access",
+      "agent_writable_evidence"
     ],
     "minimum_dimensions": 6,
     "minimum_evidence_sources": 10,
@@ -440,7 +469,10 @@
         "shared_human_credential",
         "long_lived_static_credential",
         "unconstrained_bearer_token",
-        "local_user_account_impersonation"
+        "local_user_account_impersonation",
+        "unattenuated_subagent_delegation",
+        "standing_privilege",
+        "model_driven_access_grant"
       ],
       "id": "identity",
       "mcp_tools": [
@@ -448,7 +480,7 @@
         "recipes_agentic_entitlement_review_pack",
         "recipes_mcp_authorization_conformance_pack"
       ],
-      "question": "Who is the agent, which unique delegated identity is it using, and is that identity a shared human credential, static token, unconstrained bearer, or local user-account impersonation?",
+      "question": "Who is the agent, which unique delegated identity is it using, and is that identity a shared human credential, static token, unconstrained bearer, standing privilege, unattenuated sub-agent grant, model-driven access decision, or local user-account impersonation?",
       "required_evidence": [
         "agent_identity_ledger",
         "agentic_entitlement_review_pack",
@@ -495,7 +527,9 @@
         "unregistered_action",
         "invalid_scope_challenge",
         "egress_denied",
-        "production_write_without_approval"
+        "production_write_without_approval",
+        "standing_privilege",
+        "unattenuated_subagent_delegation"
       ],
       "id": "scope",
       "mcp_tools": [
@@ -523,7 +557,9 @@
         "deny_after_deny_loop",
         "tool_output_hidden",
         "guardrail_gap",
-        "behavior_anomaly"
+        "behavior_anomaly",
+        "model_driven_access_grant",
+        "agent_writable_evidence"
       ],
       "id": "behavior",
       "mcp_tools": [
@@ -641,7 +677,7 @@
       "autonomy": "scoped_action_with_review",
       "id": "operator",
       "minimum_score": 85,
-      "promotion_gate": "Action runtime, authorization, egress, telemetry, approval, and receipt evidence are bound to the run, and the agent credential is sender-constrained to its identity anchor.",
+      "promotion_gate": "Action runtime, authorization, egress, telemetry, approval, and receipt evidence are bound to the run, the agent credential is sender-constrained to its identity anchor, standing privilege is absent, and any sub-agent grant is attenuated below the parent scope.",
       "title": "Operator"
     },
     {
@@ -652,7 +688,7 @@
       "autonomy": "high_impact_with_separate_acceptance",
       "id": "principal",
       "minimum_score": 92,
-      "promotion_gate": "Separate risk acceptance, containment proof, red-team replay evidence, and customer-specific hosted MCP controls are present.",
+      "promotion_gate": "Separate risk acceptance, a signed mandate statement, containment proof, red-team replay evidence, customer-specific hosted MCP controls, and agent-independent append-only evidence are present.",
       "title": "Principal"
     }
   ],

@@ -320,9 +320,24 @@ def tabletop_cases() -> list[dict[str, Any]]:
             "trigger": "An agent presents an unconstrained bearer token instead of a sender-constrained credential (OAuth DPoP or mTLS) bound to its identity anchor."
         },
         {
+            "expected_decision": "deny_untrusted_agent",
+            "id": "unattenuated-subagent-delegation",
+            "trigger": "A sub-agent or downstream grant claims more authority than its parent instead of an attenuated, cryptographically linked delegation."
+        },
+        {
+            "expected_decision": "deny_untrusted_agent",
+            "id": "standing-privilege-or-model-driven-access",
+            "trigger": "An idle agent retains standing privilege, or the reasoning model grants access instead of a separated deterministic policy engine."
+        },
+        {
             "expected_decision": "kill_session_on_agent_trust_break",
             "id": "token-passthrough-or-secret-egress",
             "trigger": "A protected MCP token is passed downstream, a revoked identity is used, or a secret crosses an external egress boundary."
+        },
+        {
+            "expected_decision": "kill_session_on_agent_trust_break",
+            "id": "agent-writable-evidence",
+            "trigger": "The agent can write or modify its own evidence logs instead of an independent append-only chain of custody."
         },
         {
             "expected_decision": "kill_session_on_agent_trust_break",
