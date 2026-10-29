@@ -161,7 +161,9 @@ class CveSyncWorkflowTests(unittest.TestCase):
         )
         self.assertIn("Preserving human-owned generated-name collision", restore_step)
         self.assertIn("cve-human-collisions.txt", restore_step)
-        self.assertIn("del entries[cve]", restore_step)
+        self.assertIn("restore_generated_recipe_manifest", restore_step)
+        self.assertNotIn("restored generated-recipe manifest has invalid entries", restore_step)
+        self.assertNotIn("del entries[cve]", restore_step)
         self.assertLess(
             self.workflow.index("Restore unmerged automation enrichment state"),
             self.workflow.index("Synchronize and optionally enrich exact rolling ten-year catalog"),
@@ -248,8 +250,12 @@ class CveSyncWorkflowTests(unittest.TestCase):
         self.assertIn("CVE catalog PR is unaffected", alert_step)
         self.assertNotIn("::warning::", alert_step)
         self.assertLess(
-            self.workflow.index("Reconcile, validate, and merge exact catalog revision"),
             self.workflow.index("Alert generated-output review PR failure"),
+            self.workflow.index("\n  merge:"),
+        )
+        self.assertGreater(
+            self.workflow.index("Reconcile, validate, and merge exact catalog revision"),
+            self.workflow.index("\n  merge:"),
         )
 
     def test_recipe_derived_evidence_is_regenerated_before_validation_and_commit(self) -> None:
@@ -326,12 +332,27 @@ class CveSyncWorkflowTests(unittest.TestCase):
         )
         fail_step = self.step("Fail quarantined catalog refresh")
 
-        self.assertIn("CVE_AUTOMATION_APP_CLIENT_ID", auth_step)
-        self.assertIn("CVE_AUTOMATION_APP_PRIVATE_KEY", auth_step)
-        self.assertIn("post-merge Build will be used", auth_step)
+        self.assertIn("CVE_SYNC_APP_ID", auth_step)
+        self.assertIn("CVE_SYNC_APP_KEY", auth_step)
+        self.assertNotIn("CVE_AUTOMATION_APP", self.workflow)
+        require_step = self.step("Require GitHub App credentials")
+        self.assertIn("GitHub App is not configured", require_step)
+        self.assertIn("ruleset 18147261", require_step)
+        self.assertIn("Failing closed on the first run", require_step)
+        self.assertIn("exit 1", require_step)
+        attribute_step = self.step("Attribute catalog revision to the GitHub App")
+        self.assertIn("repos/${GITHUB_REPOSITORY}/git/commits/${EXPECTED_SHA}", attribute_step)
+        self.assertIn("parents[]=${PARENT}", attribute_step)
+        self.assertIn("git/refs/heads/${BRANCH}", attribute_step)
+        self.assertIn("GH_TOKEN: ${{ steps.app-token.outputs.token }}", attribute_step)
         self.assertIn("actions/create-github-app-token@", token_step)
-        app_first_token = "steps.app-token.outputs.token || github.token"
-        self.assertIn(f"GH_TOKEN: ${{{{ {app_first_token} }}}}", commit_step)
+        self.assertIn("app-id: ${{ vars.CVE_SYNC_APP_ID }}", token_step)
+        self.assertIn("permission-contents: write", token_step)
+        self.assertIn("permission-pull-requests: write", token_step)
+        self.assertNotIn("client-id:", token_step)
+        self.assertIn("GH_TOKEN: ${{ github.token }}", commit_step)
+        self.assertNotIn("steps.app-token.outputs.token", commit_step)
+        app_token = "steps.app-token.outputs.token"
         self.assertIn("MAX_DELIVERY_ATTEMPTS=5", delivery_step)
         self.assertIn(
             "gh workflow run cve-catalog-validate.yml", delivery_step
@@ -364,6 +385,7 @@ class CveSyncWorkflowTests(unittest.TestCase):
         self.assertIn("protection_fallback=true", delivery_step)
         self.assertIn("automation:protection-fallback", delivery_step)
         self.assertIn("fallback-escalation", delivery_step)
+        self.assertIn('--app-configured "$APP_CONFIGURED"', delivery_step)
         self.assertIn("2 consecutive runs or 24h", delivery_step)
         self.assertIn("--labeled-at", delivery_step)
         self.assertIn("issues/${PR_NUMBER}/events", delivery_step)
@@ -398,7 +420,8 @@ class CveSyncWorkflowTests(unittest.TestCase):
         self.assertIn('sha=$EXPECTED_SHA', delivery_step)
         self.assertIn("AUTO_MERGE_ENABLED", delivery_step)
         self.assertIn("APP_CONFIGURED", delivery_step)
-        self.assertIn(f"GH_TOKEN: ${{{{ {app_first_token} }}}}", delivery_step)
+        self.assertIn(f"GH_TOKEN: ${{{{ {app_token} }}}}", delivery_step)
+        self.assertNotIn("steps.app-token.outputs.token || github.token", delivery_step)
         self.assertIn("dispatch_main_build_after_merge", delivery_step)
         self.assertIn(
             "GitHub App merge authentication will emit the normal push-triggered Build",
@@ -506,6 +529,62 @@ class CveSyncWorkflowTests(unittest.TestCase):
         self.assertIn("FETCH_DEADLINE_SECONDS", automation)
         self.assertIn("FETCH_READ_CHUNK_SIZE", automation)
         self.assertIn("15-page", self.workflow)
+
+    def test_merge_job_is_the_only_cve_sync_environment_consumer(self) -> None:
+        merge_idx = self.workflow.index("\n  merge:")
+        sync_idx = self.workflow.index("\n  sync:")
+        self.assertLess(sync_idx, merge_idx)
+        merge_job = self.workflow[merge_idx:]
+        sync_job = self.workflow[sync_idx:merge_idx]
+        env_name = "cve-sync"
+        job_environments = re.findall(r"(?m)^    environment:\s*(\S+)\s*$", self.workflow)
+        self.assertEqual(job_environments, [env_name])
+        self.assertRegex(merge_job, rf"(?m)^    environment:\s*{re.escape(env_name)}\s*$")
+        self.assertNotRegex(sync_job, r"(?m)^    environment:\s*")
+        self.assertNotIn("CVE_SYNC_APP_ID", sync_job)
+        self.assertNotIn("CVE_SYNC_APP_KEY", sync_job)
+        self.assertIn("CVE_SYNC_APP_ID", merge_job)
+        self.assertIn("CVE_SYNC_APP_KEY", merge_job)
+        self.assertIn("needs: sync", merge_job)
+        self.assertIn("needs.sync.outputs.changed == 'true'", merge_job)
+        self.assertIn("needs.sync.outputs.safe_to_merge == 'true'", merge_job)
+        self.assertIn("needs.sync.result == 'success'", merge_job)
+        self.assertIn("app-id: ${{ vars.CVE_SYNC_APP_ID }}", merge_job)
+        self.assertIn("secrets.CVE_SYNC_APP_KEY", merge_job)
+        self.assertIn("permission-contents: write", merge_job)
+        self.assertIn("permission-pull-requests: write", merge_job)
+        self.assertIn("Require GitHub App credentials", merge_job)
+        self.assertIn("Attribute catalog revision to the GitHub App", merge_job)
+        header = self.workflow.split("jobs:", 1)[0]
+        self.assertIn("permissions: {}", header)
+        self.assertNotIn("contents: write", header)
+        self.assertNotIn("pull-requests: write", header)
+        generated_step = self.step("Open generated-output review pull request")
+        self.assertIn("GH_TOKEN: ${{ github.token }}", generated_step)
+        self.assertNotIn("steps.app-token.outputs.token", generated_step)
+        automation = (ROOT / ".github" / "AUTOMATION.md").read_text(encoding="utf-8")
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        banned = "environment:" + f" {env_name}"
+        skip_dirs = {".git", "node_modules", "public", ".venv", "__pycache__"}
+        leaked: list[str] = []
+        for path in ROOT.rglob("*"):
+            if not path.is_file() or any(part in skip_dirs for part in path.parts):
+                continue
+            if path.resolve() == WORKFLOW_PATH.resolve():
+                continue
+            try:
+                text = path.read_text(encoding="utf-8")
+            except (OSError, UnicodeDecodeError):
+                continue
+            if banned in text:
+                leaked.append(str(path.relative_to(ROOT)))
+        self.assertEqual(leaked, [], f"{banned} leaked outside the merge job")
+        self.assertIn("CVE_SYNC_APP_ID", automation)
+        self.assertIn("CVE_SYNC_APP_KEY", automation)
+        self.assertIn("CVE_SYNC_APP_ID", readme)
+        self.assertIn("CVE_SYNC_APP_KEY", readme)
+        self.assertNotIn("CVE_AUTOMATION_APP", automation)
+        self.assertNotIn("CVE_AUTOMATION_APP", readme)
 
     def test_enrichment_health_issue_is_upserted_and_closed_on_recovery(self) -> None:
         health_step = self.step("Reconcile enrichment health issue")

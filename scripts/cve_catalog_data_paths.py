@@ -261,12 +261,12 @@ def parse_raw_z(payload: bytes) -> list[DiffPath]:
     return records
 
 
-def collect_git_name_status(base: str, head: str) -> list[DiffPath]:
-    completed = subprocess.run(
-        ["git", "diff", "--raw", "--find-renames", "-z", base, head],
-        check=False,
-        capture_output=True,
-    )
+def collect_git_name_status(base: str, head: str, *, repo: Path | None = None) -> list[DiffPath]:
+    command = ["git"]
+    if repo is not None:
+        command.extend(["-C", str(repo)])
+    command.extend(["diff", "--raw", "--find-renames", "-z", base, head])
+    completed = subprocess.run(command, check=False, capture_output=True)
     if completed.returncode != 0:
         detail = completed.stderr.decode("utf-8", "replace").strip() or "git diff failed"
         raise ValueError(detail)
@@ -379,12 +379,232 @@ def evaluate_catalog_diff(
     )
 
 
-def evaluate_git_catalog_diff(*, expected_sha: str, actual_sha: str, base: str, head: str) -> CatalogDiffDecision:
+def evaluate_git_catalog_diff(
+    *,
+    expected_sha: str,
+    actual_sha: str,
+    base: str,
+    head: str,
+    repo: Path | None = None,
+) -> CatalogDiffDecision:
     return evaluate_catalog_diff(
-        collect_git_name_status(base, head),
+        collect_git_name_status(base, head, repo=repo),
         expected_sha=expected_sha,
         actual_sha=actual_sha,
     )
+
+
+def _git(args: list[str], *, repo: Path | None = None) -> subprocess.CompletedProcess[bytes]:
+    command = ["git"]
+    if repo is not None:
+        command.extend(["-C", str(repo)])
+    command.extend(args)
+    return subprocess.run(command, check=False, capture_output=True)
+
+
+def ensure_git_commit(sha: str, *, repo: Path | None = None, fetch: bool = False) -> bool:
+    """True when sha is a local commit, optionally after a shallow fetch."""
+
+    normalized = normalize_sha(sha)
+    if normalized is None:
+        return False
+    if _git(["cat-file", "-e", f"{normalized}^{{commit}}"], repo=repo).returncode == 0:
+        return True
+    if not fetch:
+        return False
+    fetched = _git(["fetch", "--depth=1", "--no-tags", "origin", normalized], repo=repo)
+    if fetched.returncode != 0:
+        return False
+    return _git(["cat-file", "-e", f"{normalized}^{{commit}}"], repo=repo).returncode == 0
+
+
+def catalog_data_blob_map(
+    commit: str,
+    *,
+    repo: Path | None = None,
+    fetch: bool = False,
+) -> dict[str, str] | None:
+    """Map allowlisted catalog data paths to blob SHAs at commit.
+
+    Returns None when the commit is unreadable or a catalog path is not a
+    regular file. Callers treat None as fail-closed (content unknown).
+    """
+
+    if not ensure_git_commit(commit, repo=repo, fetch=fetch):
+        return None
+    completed = _git(
+        [
+            "ls-tree",
+            "-r",
+            "-z",
+            commit,
+            "--",
+            *CATALOG_DATA_FILES,
+            *CATALOG_DATA_PATH_PREFIXES,
+            CATALOG_RECIPE_PREFIX.rstrip("/"),
+        ],
+        repo=repo,
+    )
+    if completed.returncode != 0:
+        return None
+    mapping: dict[str, str] = {}
+    for item in completed.stdout.split(b"\0"):
+        if not item:
+            continue
+        try:
+            meta, path = item.split(b"\t", 1)
+        except ValueError:
+            return None
+        fields = meta.decode("utf-8", "replace").split()
+        if len(fields) < 3:
+            return None
+        mode, obj_type, blob = fields[0], fields[1], fields[2]
+        normalized = normalize_repo_path(path.decode("utf-8", "surrogateescape"))
+        if normalized is None or not is_catalog_data_path(normalized):
+            continue
+        if obj_type != "blob" or mode != ALLOWED_FILE_MODE:
+            return None
+        mapping[normalized] = blob.lower()
+    return mapping
+
+
+def commit_parent_shas(
+    commit: str,
+    *,
+    repo: Path | None = None,
+    fetch: bool = False,
+) -> tuple[str, ...] | None:
+    """Return parent SHAs, or None when the commit is unreadable."""
+
+    if not ensure_git_commit(commit, repo=repo, fetch=fetch):
+        return None
+    completed = _git(["rev-list", "--parents", "-n", "1", commit], repo=repo)
+    if completed.returncode != 0:
+        return None  # rev-list error is fail-closed; never invent parents
+    parts = completed.stdout.decode("ascii", "replace").split()
+    if not parts:
+        return None
+    parents: list[str] = []
+    for raw in parts[1:]:
+        normalized = normalize_sha(raw)
+        if normalized is None:
+            return None
+        parents.append(normalized)
+    return tuple(parents)
+
+
+def _data_only_diff(
+    *,
+    base: str,
+    head: str,
+    repo: Path | None = None,
+) -> bool:
+    """True when git diff base...head is readable and catalog-data-only."""
+
+    try:
+        decision = evaluate_git_catalog_diff(
+            expected_sha=head,
+            actual_sha=head,
+            base=base,
+            head=head,
+            repo=repo,
+        )
+    except ValueError:
+        return False
+    return bool(decision.data_only and decision.sha_matches)
+
+
+def candidate_parent_diffs_are_data_only(
+    candidate: str,
+    *,
+    repo: Path | None = None,
+    fetch: bool = False,
+) -> bool:
+    """True when the candidate has 1–2 parents and every parent diff is data-only."""
+
+    parents = commit_parent_shas(candidate, repo=repo, fetch=fetch)
+    if parents is None or not 1 <= len(parents) <= 2:
+        return False
+    for parent in parents:
+        if not ensure_git_commit(parent, repo=repo, fetch=fetch):
+            return False
+        if not _data_only_diff(base=parent, head=candidate, repo=repo):
+            return False
+    return True
+
+
+def candidate_diff_versus_expected_is_data_only(
+    *,
+    expected: str,
+    candidate: str,
+    repo: Path | None = None,
+    fetch: bool = False,
+) -> bool:
+    """True when the full expected...candidate tree diff is catalog-data-only.
+
+    Immediate-parent diffs miss a workflow file hidden behind an empty
+    commit or a later data-only revert. Diffing against the expected
+    catalog revision exposes those non-catalog paths.
+    """
+
+    if not ensure_git_commit(expected, repo=repo, fetch=fetch):
+        return False
+    if not ensure_git_commit(candidate, repo=repo, fetch=fetch):
+        return False
+    return _data_only_diff(base=expected, head=candidate, repo=repo)
+
+
+def catalog_revision_content_matches(
+    *,
+    expected_sha: str,
+    candidate_shas: Iterable[str],
+    repo: Path | None = None,
+    fetch: bool = False,
+) -> bool:
+    """True when a candidate is the same catalog revision as expected.
+
+    Accepts squash or merge commits whose allowlisted catalog-data-path
+    blobs match and whose parent diffs are data-only. Empty maps, more
+    than two parents, unreadable commits, and non-catalog changes fail
+    closed.
+    """
+
+    expected = normalize_sha(expected_sha)
+    if expected is None:
+        return False
+    if not ensure_git_commit(expected, repo=repo, fetch=fetch):
+        return False
+    expected_map = catalog_data_blob_map(expected, repo=repo, fetch=fetch)
+    if expected_map is None or not expected_map:
+        return False
+    seen: set[str] = set()
+    for raw in candidate_shas:
+        candidate = normalize_sha(raw)
+        if candidate is None or candidate in seen:
+            continue
+        seen.add(candidate)
+        if not ensure_git_commit(candidate, repo=repo, fetch=fetch):
+            continue
+        actual_map = catalog_data_blob_map(candidate, repo=repo, fetch=fetch)
+        if actual_map is None or not actual_map:
+            continue
+        if actual_map != expected_map:
+            continue
+        if not candidate_diff_versus_expected_is_data_only(
+            expected=expected,
+            candidate=candidate,
+            repo=repo,
+            fetch=fetch,
+        ):
+            continue
+        if not candidate_parent_diffs_are_data_only(
+            candidate,
+            repo=repo,
+            fetch=fetch,
+        ):
+            continue
+        return True
+    return False
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
