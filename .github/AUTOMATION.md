@@ -218,16 +218,23 @@ SHA matches what this run pushed. The required `build` check is not
 authentication; the path gate is the control. Dispatching
 `cve-catalog-validate.yml` (job name `build`) on the catalog PR head
 when the App is absent only attaches a real GitHub Actions check-run on
-that SHA. It then merges with `match-head-commit`. If protection still
-blocks the merge, the run leaves the PR open, labeled, and summarized,
-and exits successfully; the next sync retries. If the same catalog PR
-has been in protection-fallback on 2 consecutive runs or whose fallback
-label is older than 24h, the run fails as a real alert. An already-merged catalog PR is
-idempotent when its head SHA, merge-commit SHA, or allowlisted
-catalog-data-path content matches the expected revision; a squash or
-merge commit with the same catalog blobs is accepted only when every
-parent diff is data-only and the commit has one or two parents.
-Empty allowlisted maps, more than two parents, unreadable commits, and
+that SHA. Catalog merge depends on ruleset `18147261` (`main`): required
+strict `build`, 0 approvals, extra approval for unattributed changes ON,
+and a PR-only bypass actor for the `stevologic-cve-sync` GitHub App
+(approved; added once the App ID exists). The merge job recommits the
+catalog tree through the Git Data API with the App token so the head is
+attributed. A missing App fails the merge job on the first run. If the
+App is configured and protection still blocks, the run leaves the PR
+open, labeled, and summarized, and the next sync retries. If the same
+catalog PR has been in protection-fallback on 2 consecutive runs or
+whose fallback label is older than 24h, the run fails as a real alert.
+An already-merged catalog PR is idempotent when its head SHA or
+merge-commit SHA equals the expected revision, or when the merge commit
+(not the PR head) has the same catalog-data-path content: non-empty
+equal blob maps, a data-only full diff versus the expected revision,
+and one or two data-only parent diffs. Empty allowlisted maps, more
+than two parents, unreadable commits, a deleted catalog file, a
+workflow file hidden behind an empty commit or data revert, and
 mismatched catalog content still fail closed. The merge job is the only
 job that reads `CVE_SYNC_APP_ID` and `CVE_SYNC_APP_KEY`. A non-data-only diff (workflow, script,
 docs, MCP server, non-`*.md` recipe, path traversal, symlink, mode
@@ -277,5 +284,5 @@ confirms the production handoff landed. Never put `secrets` in a workflow
 | `CVE_ENRICHMENT_LIMIT` | variable | optional, defaults to `20` | Hard-bounded 0–50 new or source-changed CVEs enriched per catalog sync. |
 | `DIGITALOCEAN_ACCESS_TOKEN` | secret or droplet `deploy.env` | optional | Lets deploy.sh and the Dev DNS record workflow create `dev.security-recipes.ai` |
 | `CVE_AUTO_MERGE_ENABLED` | variable | `true` | Lets the catalog sync merge its own PR |
-| `CVE_SYNC_APP_ID` / `CVE_SYNC_APP_KEY` | environment variable / secret on `cve-sync` | optional | Dedicated GitHub App used only by the catalog-sync merge job. When both are set, that job mints an App token and merges data-only catalog PRs. Without them, `GITHUB_TOKEN` cannot bypass branch protection and the fallback message says the App is not configured. |
+| `CVE_SYNC_APP_ID` / `CVE_SYNC_APP_KEY` | environment variable / secret on `cve-sync` | required for catalog merge | Dedicated `stevologic-cve-sync` GitHub App, used only by the catalog-sync merge job. The job mints an App token (`contents: write`, `pull-requests: write`) and recommits the catalog tree so ruleset `18147261` sees an attributed App commit. Missing credentials fail the merge job red on the first run. |
 | `NVD_API_KEY` | secret | optional | Authenticated NVD CVE 2.0 rate limit for the lastMod catch-up after annual feeds. Public unauthenticated pacing is used when absent; 403/429 fail the sync instead of publishing a stalled catalog |

@@ -384,12 +384,13 @@ GitHub Actions to create pull requests for first-run PR publication.
 Set `CVE_AUTO_MERGE_ENABLED=true` to deliver a safety-approved catalog PR after
 its exact head revision passes the dedicated validation workflow. The merge
 job reads `CVE_SYNC_APP_ID` and `CVE_SYNC_APP_KEY` from the `cve-sync`
-environment. When both are set, that job mints a GitHub App token so ordinary
-PR and main-branch `Build` runs fire naturally. Without App credentials, the
-fallback says the App is not configured; `GITHUB_TOKEN` cannot bypass branch
-protection. After a guarded token merge it verifies that the returned merge
-SHA is still current `main`, then dispatches the real `build.yml` workflow
-with that exact SHA. The production deploy gate recognizes
+environment, mints a scoped GitHub App token, and recommits the catalog tree
+so ruleset `18147261` sees an attributed `stevologic-cve-sync` commit. That
+ruleset currently has no bypass actors and treats `GITHUB_TOKEN` /
+`github-actions` commits as unattributed; the App must be added as a PR-only
+bypass actor before merge can succeed. Missing App credentials fail the merge
+job on the first run. After a guarded App merge it verifies that the returned
+merge SHA is still current `main`, then the App push emits the real `Build`. The production deploy gate recognizes
 only those CVE-qualified Build dispatches, so scheduled monitors and unrelated
 manual workflows cannot deadlock or satisfy a release.
 

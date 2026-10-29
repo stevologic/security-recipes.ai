@@ -224,11 +224,13 @@ def merged_revision_matches(
     repo: Path | None = None,
     fetch: bool = False,
 ) -> bool:
-    """Accept a merged PR when its SHA or catalog-data content matches expected.
+    """Accept a merged PR when its SHA or merge-commit catalog content matches.
 
     Squash and merge commits mint a new SHA. Those are idempotent when the
-    allowlisted catalog-data-path blobs match the expected revision. Unknown
-    or mismatched catalog content fails closed.
+    merge commit's allowlisted catalog-data-path blobs match the expected
+    revision and the full expected...merge diff is data-only. The PR head is
+    not a content candidate. ``content_matches=True`` is not a success path.
+    Unknown or mismatched catalog content fails closed.
     """
 
     if merged_sha_matches(
@@ -237,13 +239,12 @@ def merged_revision_matches(
         expected_sha=expected_sha,
     ):
         return True
-    if content_matches is True:
-        return True
     if content_matches is False:
         return False
+    del content_matches  # True is not a success path; always verify the merge commit.
     return catalog_revision_content_matches(
         expected_sha=expected_sha,
-        candidate_shas=(head_sha, merge_commit_sha),
+        candidate_shas=(merge_commit_sha,),
         repo=repo,
         fetch=fetch,
     )
@@ -333,10 +334,11 @@ def classify_protection_fallback(
     now: datetime | None = None,
     app_configured: bool = False,
 ) -> FallbackDecision:
-    """Escalate after 2 consecutive fallback runs or when the fallback label is older than 24h.
+    """Escalate when the App is missing, after 2 fallback runs, or after 24h.
 
     Age is measured from the fallback label, never from the PR's created_at.
-    A first fallback on a long-lived catalog PR is not an alert.
+    A first fallback on a long-lived catalog PR is not an alert when the
+    GitHub App is configured. A missing App fails closed on the first run.
     """
 
     clock = now or datetime.now(timezone.utc)
@@ -344,6 +346,21 @@ def classify_protection_fallback(
         clock = clock.replace(tzinfo=timezone.utc)
     else:
         clock = clock.astimezone(timezone.utc)
+    if not app_configured:
+        labeled = parse_github_datetime(labeled_at)
+        age = (clock - labeled) if labeled is not None else timedelta(0)
+        return FallbackDecision(
+            escalate=True,
+            action="fail_fallback_escalated",
+            message=(
+                "GitHub App is not configured; set CVE_SYNC_APP_ID and "
+                "CVE_SYNC_APP_KEY on the cve-sync environment. Catalog merge "
+                "cannot bypass ruleset 18147261 without the App. Failing "
+                "closed on the first run."
+            ),
+            consecutive_runs=FALLBACK_CONSECUTIVE_RUNS if already_labeled else 1,
+            age_hours=max(0.0, age.total_seconds() / 3600),
+        )
     consecutive = FALLBACK_CONSECUTIVE_RUNS if already_labeled else 1
     labeled = parse_github_datetime(labeled_at)
     if already_labeled and labeled is None:

@@ -335,14 +335,24 @@ class CveSyncWorkflowTests(unittest.TestCase):
         self.assertIn("CVE_SYNC_APP_ID", auth_step)
         self.assertIn("CVE_SYNC_APP_KEY", auth_step)
         self.assertNotIn("CVE_AUTOMATION_APP", self.workflow)
-        self.assertIn("post-merge Build will be used", auth_step)
-        self.assertIn("GitHub App is not configured", auth_step)
+        require_step = self.step("Require GitHub App credentials")
+        self.assertIn("GitHub App is not configured", require_step)
+        self.assertIn("ruleset 18147261", require_step)
+        self.assertIn("Failing closed on the first run", require_step)
+        self.assertIn("exit 1", require_step)
+        attribute_step = self.step("Attribute catalog revision to the GitHub App")
+        self.assertIn("repos/${GITHUB_REPOSITORY}/git/commits/${EXPECTED_SHA}", attribute_step)
+        self.assertIn("parents[]=${PARENT}", attribute_step)
+        self.assertIn("git/refs/heads/${BRANCH}", attribute_step)
+        self.assertIn("GH_TOKEN: ${{ steps.app-token.outputs.token }}", attribute_step)
         self.assertIn("actions/create-github-app-token@", token_step)
         self.assertIn("app-id: ${{ vars.CVE_SYNC_APP_ID }}", token_step)
+        self.assertIn("permission-contents: write", token_step)
+        self.assertIn("permission-pull-requests: write", token_step)
         self.assertNotIn("client-id:", token_step)
         self.assertIn("GH_TOKEN: ${{ github.token }}", commit_step)
         self.assertNotIn("steps.app-token.outputs.token", commit_step)
-        app_first_token = "steps.app-token.outputs.token || github.token"
+        app_token = "steps.app-token.outputs.token"
         self.assertIn("MAX_DELIVERY_ATTEMPTS=5", delivery_step)
         self.assertIn(
             "gh workflow run cve-catalog-validate.yml", delivery_step
@@ -410,7 +420,8 @@ class CveSyncWorkflowTests(unittest.TestCase):
         self.assertIn('sha=$EXPECTED_SHA', delivery_step)
         self.assertIn("AUTO_MERGE_ENABLED", delivery_step)
         self.assertIn("APP_CONFIGURED", delivery_step)
-        self.assertIn(f"GH_TOKEN: ${{{{ {app_first_token} }}}}", delivery_step)
+        self.assertIn(f"GH_TOKEN: ${{{{ {app_token} }}}}", delivery_step)
+        self.assertNotIn("steps.app-token.outputs.token || github.token", delivery_step)
         self.assertIn("dispatch_main_build_after_merge", delivery_step)
         self.assertIn(
             "GitHub App merge authentication will emit the normal push-triggered Build",
@@ -540,6 +551,14 @@ class CveSyncWorkflowTests(unittest.TestCase):
         self.assertIn("needs.sync.result == 'success'", merge_job)
         self.assertIn("app-id: ${{ vars.CVE_SYNC_APP_ID }}", merge_job)
         self.assertIn("secrets.CVE_SYNC_APP_KEY", merge_job)
+        self.assertIn("permission-contents: write", merge_job)
+        self.assertIn("permission-pull-requests: write", merge_job)
+        self.assertIn("Require GitHub App credentials", merge_job)
+        self.assertIn("Attribute catalog revision to the GitHub App", merge_job)
+        header = self.workflow.split("jobs:", 1)[0]
+        self.assertIn("permissions: {}", header)
+        self.assertNotIn("contents: write", header)
+        self.assertNotIn("pull-requests: write", header)
         generated_step = self.step("Open generated-output review pull request")
         self.assertIn("GH_TOKEN: ${{ github.token }}", generated_step)
         self.assertNotIn("steps.app-token.outputs.token", generated_step)

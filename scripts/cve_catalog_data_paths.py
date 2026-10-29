@@ -480,7 +480,7 @@ def commit_parent_shas(
         return None
     completed = _git(["rev-list", "--parents", "-n", "1", commit], repo=repo)
     if completed.returncode != 0:
-        return None
+        return None  # rev-list error is fail-closed; never invent parents
     parts = completed.stdout.decode("ascii", "replace").split()
     if not parts:
         return None
@@ -491,6 +491,27 @@ def commit_parent_shas(
             return None
         parents.append(normalized)
     return tuple(parents)
+
+
+def _data_only_diff(
+    *,
+    base: str,
+    head: str,
+    repo: Path | None = None,
+) -> bool:
+    """True when git diff base...head is readable and catalog-data-only."""
+
+    try:
+        decision = evaluate_git_catalog_diff(
+            expected_sha=head,
+            actual_sha=head,
+            base=base,
+            head=head,
+            repo=repo,
+        )
+    except ValueError:
+        return False
+    return bool(decision.data_only and decision.sha_matches)
 
 
 def candidate_parent_diffs_are_data_only(
@@ -507,19 +528,30 @@ def candidate_parent_diffs_are_data_only(
     for parent in parents:
         if not ensure_git_commit(parent, repo=repo, fetch=fetch):
             return False
-        try:
-            decision = evaluate_git_catalog_diff(
-                expected_sha=candidate,
-                actual_sha=candidate,
-                base=parent,
-                head=candidate,
-                repo=repo,
-            )
-        except ValueError:
-            return False
-        if not decision.data_only or not decision.sha_matches:
+        if not _data_only_diff(base=parent, head=candidate, repo=repo):
             return False
     return True
+
+
+def candidate_diff_versus_expected_is_data_only(
+    *,
+    expected: str,
+    candidate: str,
+    repo: Path | None = None,
+    fetch: bool = False,
+) -> bool:
+    """True when the full expected...candidate tree diff is catalog-data-only.
+
+    Immediate-parent diffs miss a workflow file hidden behind an empty
+    commit or a later data-only revert. Diffing against the expected
+    catalog revision exposes those non-catalog paths.
+    """
+
+    if not ensure_git_commit(expected, repo=repo, fetch=fetch):
+        return False
+    if not ensure_git_commit(candidate, repo=repo, fetch=fetch):
+        return False
+    return _data_only_diff(base=expected, head=candidate, repo=repo)
 
 
 def catalog_revision_content_matches(
@@ -557,6 +589,13 @@ def catalog_revision_content_matches(
         if actual_map is None or not actual_map:
             continue
         if actual_map != expected_map:
+            continue
+        if not candidate_diff_versus_expected_is_data_only(
+            expected=expected,
+            candidate=candidate,
+            repo=repo,
+            fetch=fetch,
+        ):
             continue
         if not candidate_parent_diffs_are_data_only(
             candidate,
