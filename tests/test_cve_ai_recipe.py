@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import contextlib
 import hashlib
+import io
 import json
 import re
 import tempfile
@@ -498,6 +500,82 @@ class GeneratedRecipeManagerTests(unittest.TestCase):
             )
             with self.assertRaisesRegex(ValueError, "unsafe path"):
                 recipe.GeneratedRecipeManager(root / "content", manifest)
+
+    def test_restore_drops_invalid_colliding_and_non_object_entries(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            manifest = root / "owned.json"
+            valid = {
+                "path": "ai-enrichment-cve-2026-1234.md",
+                "sha256": "a" * 64,
+                "source_fingerprint": "b" * 64,
+            }
+            colliding = {
+                "path": "ai-enrichment-cve-2026-9999.md",
+                "sha256": "c" * 64,
+                "source_fingerprint": "d" * 64,
+            }
+            manifest.write_text(
+                json.dumps(
+                    {
+                        "schema_version": 1,
+                        "generator": recipe.GENERATOR_ID,
+                        "entries": {
+                            "CVE-2026-1234": valid,
+                            "CVE-2026-9999": colliding,
+                            "CVE-2026-0001": "not-an-object",
+                            "not-a-cve": valid,
+                        },
+                    }
+                ),
+                encoding="utf-8",
+            )
+            stdout = io.StringIO()
+            with contextlib.redirect_stdout(stdout):
+                restored = recipe.restore_generated_recipe_manifest(
+                    manifest,
+                    ["ai-enrichment-cve-2026-9999.md"],
+                )
+            self.assertIn(
+                "Restored generated-recipe manifest: kept 1, dropped 3 (2 invalid, 1 collision).",
+                stdout.getvalue(),
+            )
+            self.assertEqual(restored["schema_version"], 1)
+            self.assertEqual(restored["generator"], recipe.GENERATOR_ID)
+            self.assertEqual(set(restored["entries"]), {"CVE-2026-1234"})
+            self.assertEqual(restored["entries"]["CVE-2026-1234"], valid)
+            reloaded = recipe.GeneratedRecipeManager(root / "content", manifest)
+            self.assertEqual(set(reloaded._owned), {"CVE-2026-1234"})
+
+    def test_restore_recovers_from_invalid_json_and_non_dict_entries(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            broken = root / "broken.json"
+            broken.write_text("{not json", encoding="utf-8")
+            broken_out = io.StringIO()
+            with contextlib.redirect_stdout(broken_out):
+                recovered = recipe.restore_generated_recipe_manifest(broken, [])
+            self.assertIn(
+                "Restored generated-recipe manifest: kept 0, dropped 0 (0 invalid, 0 collision).",
+                broken_out.getvalue(),
+            )
+            self.assertEqual(recovered["entries"], {})
+            recipe.GeneratedRecipeManager(root / "content", broken)
+
+            listed = root / "listed.json"
+            listed.write_text(
+                json.dumps({"schema_version": 1, "generator": recipe.GENERATOR_ID, "entries": []}),
+                encoding="utf-8",
+            )
+            listed_out = io.StringIO()
+            with contextlib.redirect_stdout(listed_out):
+                recovered_list = recipe.restore_generated_recipe_manifest(listed, [])
+            self.assertIn(
+                "Restored generated-recipe manifest: kept 0, dropped 0 (0 invalid, 0 collision).",
+                listed_out.getvalue(),
+            )
+            self.assertEqual(recovered_list["entries"], {})
+            recipe.GeneratedRecipeManager(root / "content", listed)
 
 
 class GeneratedRecipeCatalogParityTests(unittest.TestCase):

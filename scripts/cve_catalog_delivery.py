@@ -16,6 +16,11 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
+try:
+    from scripts.cve_catalog_data_paths import catalog_revision_content_matches
+except (ImportError, ModuleNotFoundError):  # Direct ``python scripts/...`` execution.
+    from cve_catalog_data_paths import catalog_revision_content_matches  # type: ignore[no-redef]
+
 ALERT_ACTIONS = frozenset(
     {
         "fail_closed_not_data_only",
@@ -210,6 +215,41 @@ def merged_sha_matches(*, head_sha: str, merge_commit_sha: str, expected_sha: st
     return expected in {(head_sha or "").strip(), (merge_commit_sha or "").strip()}
 
 
+def merged_revision_matches(
+    *,
+    head_sha: str,
+    merge_commit_sha: str,
+    expected_sha: str,
+    content_matches: bool | None = None,
+    repo: Path | None = None,
+    fetch: bool = False,
+) -> bool:
+    """Accept a merged PR when its SHA or merge-commit catalog content matches.
+
+    Squash and merge commits mint a new SHA. Those are idempotent when the
+    merge commit's allowlisted catalog-data-path blobs match the expected
+    revision and the full expected...merge diff is data-only. The PR head is
+    not a content candidate. ``content_matches=True`` is not a success path.
+    Unknown or mismatched catalog content fails closed.
+    """
+
+    if merged_sha_matches(
+        head_sha=head_sha,
+        merge_commit_sha=merge_commit_sha,
+        expected_sha=expected_sha,
+    ):
+        return True
+    if content_matches is False:
+        return False
+    del content_matches  # True is not a success path; always verify the merge commit.
+    return catalog_revision_content_matches(
+        expected_sha=expected_sha,
+        candidate_shas=(merge_commit_sha,),
+        repo=repo,
+        fetch=fetch,
+    )
+
+
 def classify_pr_state(
     *,
     state: str,
@@ -223,12 +263,18 @@ def classify_pr_state(
     expected_sha: str,
     expected_base: str,
     merge_commit_sha: str = "",
+    content_matches: bool | None = None,
+    repo: Path | None = None,
+    fetch: bool = False,
 ) -> str:
     if merged:
-        if merged_sha_matches(
+        if merged_revision_matches(
             head_sha=head_sha,
             merge_commit_sha=merge_commit_sha,
             expected_sha=expected_sha,
+            content_matches=content_matches,
+            repo=repo,
+            fetch=fetch,
         ):
             return "already_merged"
         return "merged_wrong_sha"
@@ -272,16 +318,27 @@ class FallbackDecision:
         return asdict(self)
 
 
+def _app_unconfigured_note(app_configured: bool) -> str:
+    if app_configured:
+        return ""
+    return (
+        " GitHub App is not configured; set CVE_SYNC_APP_ID and "
+        "CVE_SYNC_APP_KEY on the cve-sync environment."
+    )
+
+
 def classify_protection_fallback(
     *,
     already_labeled: bool,
     labeled_at: str = "",
     now: datetime | None = None,
+    app_configured: bool = False,
 ) -> FallbackDecision:
-    """Escalate after 2 consecutive fallback runs or when the fallback label is older than 24h.
+    """Escalate when the App is missing, after 2 fallback runs, or after 24h.
 
     Age is measured from the fallback label, never from the PR's created_at.
-    A first fallback on a long-lived catalog PR is not an alert.
+    A first fallback on a long-lived catalog PR is not an alert when the
+    GitHub App is configured. A missing App fails closed on the first run.
     """
 
     clock = now or datetime.now(timezone.utc)
@@ -289,6 +346,21 @@ def classify_protection_fallback(
         clock = clock.replace(tzinfo=timezone.utc)
     else:
         clock = clock.astimezone(timezone.utc)
+    if not app_configured:
+        labeled = parse_github_datetime(labeled_at)
+        age = (clock - labeled) if labeled is not None else timedelta(0)
+        return FallbackDecision(
+            escalate=True,
+            action="fail_fallback_escalated",
+            message=(
+                "GitHub App is not configured; set CVE_SYNC_APP_ID and "
+                "CVE_SYNC_APP_KEY on the cve-sync environment. Catalog merge "
+                "cannot bypass ruleset 18147261 without the App. Failing "
+                "closed on the first run."
+            ),
+            consecutive_runs=FALLBACK_CONSECUTIVE_RUNS if already_labeled else 1,
+            age_hours=max(0.0, age.total_seconds() / 3600),
+        )
     consecutive = FALLBACK_CONSECUTIVE_RUNS if already_labeled else 1
     labeled = parse_github_datetime(labeled_at)
     if already_labeled and labeled is None:
@@ -298,6 +370,7 @@ def classify_protection_fallback(
             message=(
                 "Catalog protection-fallback label is present but has an invalid "
                 "labeled_at timestamp; failing closed as a real alert."
+                + _app_unconfigured_note(app_configured)
             ),
             consecutive_runs=consecutive,
             age_hours=0.0,
@@ -311,6 +384,7 @@ def classify_protection_fallback(
             message=(
                 "Catalog PR has been in protection-fallback on 2 consecutive "
                 "sync runs; escalating to a real alert."
+                + _app_unconfigured_note(app_configured)
             ),
             consecutive_runs=consecutive,
             age_hours=age_hours,
@@ -322,6 +396,7 @@ def classify_protection_fallback(
             message=(
                 "Catalog protection-fallback label is older than 24h; "
                 "escalating to a real alert."
+                + _app_unconfigured_note(app_configured)
             ),
             consecutive_runs=consecutive,
             age_hours=age_hours,
@@ -332,6 +407,7 @@ def classify_protection_fallback(
         message=(
             "Data-only catalog merge is blocked by branch protection; "
             "leaving the PR open for the next sync retry."
+            + _app_unconfigured_note(app_configured)
         ),
         consecutive_runs=consecutive,
         age_hours=age_hours,
@@ -461,6 +537,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     fallback.add_argument("--already-labeled", required=True, choices=("true", "false"))
     fallback.add_argument("--labeled-at", default="")
     fallback.add_argument("--now", default="")
+    fallback.add_argument("--app-configured", default="false", choices=("true", "false"))
 
     wrong_sha = sub.add_parser("fail-closed-wrong-sha")
     wrong_sha.add_argument("--checkpoint", required=True)
@@ -508,6 +585,8 @@ def main(argv: list[str] | None = None) -> int:
             expected_sha=args.expected_sha,
             expected_base=args.expected_base,
             merge_commit_sha=str(payload.get("merge_commit_sha") or ""),
+            repo=Path.cwd(),
+            fetch=True,
         )
         print(action)
         return 0
@@ -556,6 +635,7 @@ def main(argv: list[str] | None = None) -> int:
             already_labeled=_flag(args.already_labeled),
             labeled_at=args.labeled_at,
             now=clock,
+            app_configured=_flag(args.app_configured),
         )
         print(json.dumps(decision.to_json(), indent=2, sort_keys=True))
         return 0
