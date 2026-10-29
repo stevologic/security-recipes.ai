@@ -525,9 +525,11 @@ class CveSyncWorkflowTests(unittest.TestCase):
         self.assertLess(sync_idx, merge_idx)
         merge_job = self.workflow[merge_idx:]
         sync_job = self.workflow[sync_idx:merge_idx]
-        self.assertEqual(self.workflow.count("environment: cve-sync"), 1)
-        self.assertIn("environment: cve-sync", merge_job)
-        self.assertNotIn("environment: cve-sync", sync_job)
+        env_name = "cve-sync"
+        job_environments = re.findall(r"(?m)^    environment:\s*(\S+)\s*$", self.workflow)
+        self.assertEqual(job_environments, [env_name])
+        self.assertRegex(merge_job, rf"(?m)^    environment:\s*{re.escape(env_name)}\s*$")
+        self.assertNotRegex(sync_job, r"(?m)^    environment:\s*")
         self.assertNotIn("CVE_SYNC_APP_ID", sync_job)
         self.assertNotIn("CVE_SYNC_APP_KEY", sync_job)
         self.assertIn("CVE_SYNC_APP_ID", merge_job)
@@ -543,8 +545,21 @@ class CveSyncWorkflowTests(unittest.TestCase):
         self.assertNotIn("steps.app-token.outputs.token", generated_step)
         automation = (ROOT / ".github" / "AUTOMATION.md").read_text(encoding="utf-8")
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
-        self.assertNotIn("environment: cve-sync", automation)
-        self.assertNotIn("environment: cve-sync", readme)
+        banned = "environment:" + f" {env_name}"
+        skip_dirs = {".git", "node_modules", "public", ".venv", "__pycache__"}
+        leaked: list[str] = []
+        for path in ROOT.rglob("*"):
+            if not path.is_file() or any(part in skip_dirs for part in path.parts):
+                continue
+            if path.resolve() == WORKFLOW_PATH.resolve():
+                continue
+            try:
+                text = path.read_text(encoding="utf-8")
+            except (OSError, UnicodeDecodeError):
+                continue
+            if banned in text:
+                leaked.append(str(path.relative_to(ROOT)))
+        self.assertEqual(leaked, [], f"{banned} leaked outside the merge job")
         self.assertIn("CVE_SYNC_APP_ID", automation)
         self.assertIn("CVE_SYNC_APP_KEY", automation)
         self.assertIn("CVE_SYNC_APP_ID", readme)
