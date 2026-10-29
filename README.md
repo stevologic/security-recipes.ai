@@ -382,13 +382,14 @@ Repository **Settings > Actions > General > Workflow permissions** must allow
 GitHub Actions to create pull requests for first-run PR publication.
 
 Set `CVE_AUTO_MERGE_ENABLED=true` to deliver a safety-approved catalog PR after
-its exact head revision passes the dedicated validation workflow. When
-`CVE_AUTOMATION_APP_CLIENT_ID` and the `CVE_AUTOMATION_APP_PRIVATE_KEY` secret
-are configured, the workflow prefers that GitHub App identity so ordinary PR
-and main-branch `Build` runs fire naturally. Without App credentials, the
-workflow remains automatic: after the guarded `GITHUB_TOKEN` merge it verifies
-that the returned merge SHA is still current `main`, then dispatches the real
-`build.yml` workflow with that exact SHA. The production deploy gate recognizes
+its exact head revision passes the dedicated validation workflow. The merge
+job reads `CVE_SYNC_APP_ID` and `CVE_SYNC_APP_KEY` from the `cve-sync`
+environment. When both are set, that job mints a GitHub App token so ordinary
+PR and main-branch `Build` runs fire naturally. Without App credentials, the
+fallback says the App is not configured; `GITHUB_TOKEN` cannot bypass branch
+protection. After a guarded token merge it verifies that the returned merge
+SHA is still current `main`, then dispatches the real `build.yml` workflow
+with that exact SHA. The production deploy gate recognizes
 only those CVE-qualified Build dispatches, so scheduled monitors and unrelated
 manual workflows cannot deadlock or satisfy a release.
 

@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import contextlib
 import hashlib
+import io
 import json
 import re
 import tempfile
@@ -528,9 +530,15 @@ class GeneratedRecipeManagerTests(unittest.TestCase):
                 ),
                 encoding="utf-8",
             )
-            restored = recipe.restore_generated_recipe_manifest(
-                manifest,
-                ["ai-enrichment-cve-2026-9999.md"],
+            stdout = io.StringIO()
+            with contextlib.redirect_stdout(stdout):
+                restored = recipe.restore_generated_recipe_manifest(
+                    manifest,
+                    ["ai-enrichment-cve-2026-9999.md"],
+                )
+            self.assertIn(
+                "Restored generated-recipe manifest: kept 1, dropped 3 (2 invalid, 1 collision).",
+                stdout.getvalue(),
             )
             self.assertEqual(restored["schema_version"], 1)
             self.assertEqual(restored["generator"], recipe.GENERATOR_ID)
@@ -544,7 +552,13 @@ class GeneratedRecipeManagerTests(unittest.TestCase):
             root = Path(tmpdir)
             broken = root / "broken.json"
             broken.write_text("{not json", encoding="utf-8")
-            recovered = recipe.restore_generated_recipe_manifest(broken, [])
+            broken_out = io.StringIO()
+            with contextlib.redirect_stdout(broken_out):
+                recovered = recipe.restore_generated_recipe_manifest(broken, [])
+            self.assertIn(
+                "Restored generated-recipe manifest: kept 0, dropped 0 (0 invalid, 0 collision).",
+                broken_out.getvalue(),
+            )
             self.assertEqual(recovered["entries"], {})
             recipe.GeneratedRecipeManager(root / "content", broken)
 
@@ -553,7 +567,13 @@ class GeneratedRecipeManagerTests(unittest.TestCase):
                 json.dumps({"schema_version": 1, "generator": recipe.GENERATOR_ID, "entries": []}),
                 encoding="utf-8",
             )
-            recovered_list = recipe.restore_generated_recipe_manifest(listed, [])
+            listed_out = io.StringIO()
+            with contextlib.redirect_stdout(listed_out):
+                recovered_list = recipe.restore_generated_recipe_manifest(listed, [])
+            self.assertIn(
+                "Restored generated-recipe manifest: kept 0, dropped 0 (0 invalid, 0 collision).",
+                listed_out.getvalue(),
+            )
             self.assertEqual(recovered_list["entries"], {})
             recipe.GeneratedRecipeManager(root / "content", listed)
 

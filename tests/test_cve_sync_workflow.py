@@ -250,8 +250,12 @@ class CveSyncWorkflowTests(unittest.TestCase):
         self.assertIn("CVE catalog PR is unaffected", alert_step)
         self.assertNotIn("::warning::", alert_step)
         self.assertLess(
-            self.workflow.index("Reconcile, validate, and merge exact catalog revision"),
             self.workflow.index("Alert generated-output review PR failure"),
+            self.workflow.index("\n  merge:"),
+        )
+        self.assertGreater(
+            self.workflow.index("Reconcile, validate, and merge exact catalog revision"),
+            self.workflow.index("\n  merge:"),
         )
 
     def test_recipe_derived_evidence_is_regenerated_before_validation_and_commit(self) -> None:
@@ -328,12 +332,17 @@ class CveSyncWorkflowTests(unittest.TestCase):
         )
         fail_step = self.step("Fail quarantined catalog refresh")
 
-        self.assertIn("CVE_AUTOMATION_APP_CLIENT_ID", auth_step)
-        self.assertIn("CVE_AUTOMATION_APP_PRIVATE_KEY", auth_step)
+        self.assertIn("CVE_SYNC_APP_ID", auth_step)
+        self.assertIn("CVE_SYNC_APP_KEY", auth_step)
+        self.assertNotIn("CVE_AUTOMATION_APP", self.workflow)
         self.assertIn("post-merge Build will be used", auth_step)
+        self.assertIn("GitHub App is not configured", auth_step)
         self.assertIn("actions/create-github-app-token@", token_step)
+        self.assertIn("app-id: ${{ vars.CVE_SYNC_APP_ID }}", token_step)
+        self.assertNotIn("client-id:", token_step)
+        self.assertIn("GH_TOKEN: ${{ github.token }}", commit_step)
+        self.assertNotIn("steps.app-token.outputs.token", commit_step)
         app_first_token = "steps.app-token.outputs.token || github.token"
-        self.assertIn(f"GH_TOKEN: ${{{{ {app_first_token} }}}}", commit_step)
         self.assertIn("MAX_DELIVERY_ATTEMPTS=5", delivery_step)
         self.assertIn(
             "gh workflow run cve-catalog-validate.yml", delivery_step
@@ -366,6 +375,7 @@ class CveSyncWorkflowTests(unittest.TestCase):
         self.assertIn("protection_fallback=true", delivery_step)
         self.assertIn("automation:protection-fallback", delivery_step)
         self.assertIn("fallback-escalation", delivery_step)
+        self.assertIn('--app-configured "$APP_CONFIGURED"', delivery_step)
         self.assertIn("2 consecutive runs or 24h", delivery_step)
         self.assertIn("--labeled-at", delivery_step)
         self.assertIn("issues/${PR_NUMBER}/events", delivery_step)
@@ -508,6 +518,39 @@ class CveSyncWorkflowTests(unittest.TestCase):
         self.assertIn("FETCH_DEADLINE_SECONDS", automation)
         self.assertIn("FETCH_READ_CHUNK_SIZE", automation)
         self.assertIn("15-page", self.workflow)
+
+    def test_merge_job_is_the_only_cve_sync_environment_consumer(self) -> None:
+        merge_idx = self.workflow.index("\n  merge:")
+        sync_idx = self.workflow.index("\n  sync:")
+        self.assertLess(sync_idx, merge_idx)
+        merge_job = self.workflow[merge_idx:]
+        sync_job = self.workflow[sync_idx:merge_idx]
+        self.assertEqual(self.workflow.count("environment: cve-sync"), 1)
+        self.assertIn("environment: cve-sync", merge_job)
+        self.assertNotIn("environment: cve-sync", sync_job)
+        self.assertNotIn("CVE_SYNC_APP_ID", sync_job)
+        self.assertNotIn("CVE_SYNC_APP_KEY", sync_job)
+        self.assertIn("CVE_SYNC_APP_ID", merge_job)
+        self.assertIn("CVE_SYNC_APP_KEY", merge_job)
+        self.assertIn("needs: sync", merge_job)
+        self.assertIn("needs.sync.outputs.changed == 'true'", merge_job)
+        self.assertIn("needs.sync.outputs.safe_to_merge == 'true'", merge_job)
+        self.assertIn("needs.sync.result == 'success'", merge_job)
+        self.assertIn("app-id: ${{ vars.CVE_SYNC_APP_ID }}", merge_job)
+        self.assertIn("secrets.CVE_SYNC_APP_KEY", merge_job)
+        generated_step = self.step("Open generated-output review pull request")
+        self.assertIn("GH_TOKEN: ${{ github.token }}", generated_step)
+        self.assertNotIn("steps.app-token.outputs.token", generated_step)
+        automation = (ROOT / ".github" / "AUTOMATION.md").read_text(encoding="utf-8")
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        self.assertNotIn("environment: cve-sync", automation)
+        self.assertNotIn("environment: cve-sync", readme)
+        self.assertIn("CVE_SYNC_APP_ID", automation)
+        self.assertIn("CVE_SYNC_APP_KEY", automation)
+        self.assertIn("CVE_SYNC_APP_ID", readme)
+        self.assertIn("CVE_SYNC_APP_KEY", readme)
+        self.assertNotIn("CVE_AUTOMATION_APP", automation)
+        self.assertNotIn("CVE_AUTOMATION_APP", readme)
 
     def test_enrichment_health_issue_is_upserted_and_closed_on_recovery(self) -> None:
         health_step = self.step("Reconcile enrichment health issue")

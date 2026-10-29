@@ -261,12 +261,12 @@ def parse_raw_z(payload: bytes) -> list[DiffPath]:
     return records
 
 
-def collect_git_name_status(base: str, head: str) -> list[DiffPath]:
-    completed = subprocess.run(
-        ["git", "diff", "--raw", "--find-renames", "-z", base, head],
-        check=False,
-        capture_output=True,
-    )
+def collect_git_name_status(base: str, head: str, *, repo: Path | None = None) -> list[DiffPath]:
+    command = ["git"]
+    if repo is not None:
+        command.extend(["-C", str(repo)])
+    command.extend(["diff", "--raw", "--find-renames", "-z", base, head])
+    completed = subprocess.run(command, check=False, capture_output=True)
     if completed.returncode != 0:
         detail = completed.stderr.decode("utf-8", "replace").strip() or "git diff failed"
         raise ValueError(detail)
@@ -379,9 +379,16 @@ def evaluate_catalog_diff(
     )
 
 
-def evaluate_git_catalog_diff(*, expected_sha: str, actual_sha: str, base: str, head: str) -> CatalogDiffDecision:
+def evaluate_git_catalog_diff(
+    *,
+    expected_sha: str,
+    actual_sha: str,
+    base: str,
+    head: str,
+    repo: Path | None = None,
+) -> CatalogDiffDecision:
     return evaluate_catalog_diff(
-        collect_git_name_status(base, head),
+        collect_git_name_status(base, head, repo=repo),
         expected_sha=expected_sha,
         actual_sha=actual_sha,
     )
@@ -461,6 +468,60 @@ def catalog_data_blob_map(
     return mapping
 
 
+def commit_parent_shas(
+    commit: str,
+    *,
+    repo: Path | None = None,
+    fetch: bool = False,
+) -> tuple[str, ...] | None:
+    """Return parent SHAs, or None when the commit is unreadable."""
+
+    if not ensure_git_commit(commit, repo=repo, fetch=fetch):
+        return None
+    completed = _git(["rev-list", "--parents", "-n", "1", commit], repo=repo)
+    if completed.returncode != 0:
+        return None
+    parts = completed.stdout.decode("ascii", "replace").split()
+    if not parts:
+        return None
+    parents: list[str] = []
+    for raw in parts[1:]:
+        normalized = normalize_sha(raw)
+        if normalized is None:
+            return None
+        parents.append(normalized)
+    return tuple(parents)
+
+
+def candidate_parent_diffs_are_data_only(
+    candidate: str,
+    *,
+    repo: Path | None = None,
+    fetch: bool = False,
+) -> bool:
+    """True when the candidate has 1–2 parents and every parent diff is data-only."""
+
+    parents = commit_parent_shas(candidate, repo=repo, fetch=fetch)
+    if parents is None or not 1 <= len(parents) <= 2:
+        return False
+    for parent in parents:
+        if not ensure_git_commit(parent, repo=repo, fetch=fetch):
+            return False
+        try:
+            decision = evaluate_git_catalog_diff(
+                expected_sha=candidate,
+                actual_sha=candidate,
+                base=parent,
+                head=candidate,
+                repo=repo,
+            )
+        except ValueError:
+            return False
+        if not decision.data_only or not decision.sha_matches:
+            return False
+    return True
+
+
 def catalog_revision_content_matches(
     *,
     expected_sha: str,
@@ -468,17 +529,21 @@ def catalog_revision_content_matches(
     repo: Path | None = None,
     fetch: bool = False,
 ) -> bool:
-    """True when any candidate has the same catalog-data-path blobs as expected.
+    """True when a candidate is the same catalog revision as expected.
 
-    Non-catalog files (merge commits, later main history) are ignored. A
-    missing or unreadable commit fails closed.
+    Accepts squash or merge commits whose allowlisted catalog-data-path
+    blobs match and whose parent diffs are data-only. Empty maps, more
+    than two parents, unreadable commits, and non-catalog changes fail
+    closed.
     """
 
     expected = normalize_sha(expected_sha)
     if expected is None:
         return False
+    if not ensure_git_commit(expected, repo=repo, fetch=fetch):
+        return False
     expected_map = catalog_data_blob_map(expected, repo=repo, fetch=fetch)
-    if expected_map is None:
+    if expected_map is None or not expected_map:
         return False
     seen: set[str] = set()
     for raw in candidate_shas:
@@ -486,11 +551,20 @@ def catalog_revision_content_matches(
         if candidate is None or candidate in seen:
             continue
         seen.add(candidate)
-        if candidate == expected:
-            return True
+        if not ensure_git_commit(candidate, repo=repo, fetch=fetch):
+            continue
         actual_map = catalog_data_blob_map(candidate, repo=repo, fetch=fetch)
-        if actual_map is not None and actual_map == expected_map:
-            return True
+        if actual_map is None or not actual_map:
+            continue
+        if actual_map != expected_map:
+            continue
+        if not candidate_parent_diffs_are_data_only(
+            candidate,
+            repo=repo,
+            fetch=fetch,
+        ):
+            continue
+        return True
     return False
 
 

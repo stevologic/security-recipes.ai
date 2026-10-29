@@ -756,6 +756,7 @@ def restore_generated_recipe_manifest(
         str(name).strip() for name in collisions if str(name).strip()
     }
     owned: dict[str, _OwnedEntry] = {}
+    input_rows = 0
     if manifest_path.is_file():
         try:
             loaded = json.loads(manifest_path.read_text(encoding="utf-8"))
@@ -763,6 +764,7 @@ def restore_generated_recipe_manifest(
             loaded = None
         entries = loaded.get("entries") if isinstance(loaded, dict) else None
         if isinstance(entries, dict):
+            input_rows = len(entries)
             try:
                 owned = GeneratedRecipeManager._load_manifest(
                     json.dumps(
@@ -776,11 +778,22 @@ def restore_generated_recipe_manifest(
                 )
             except ValueError:
                 owned = _salvage_owned_entries(entries)
+        elif loaded is not None:
+            input_rows = len(entries) if isinstance(entries, list) else 1
     kept = {
         cve: entry
         for cve, entry in owned.items()
         if entry.path not in collision_names
     }
+    dropped_invalid = max(0, input_rows - len(owned))
+    dropped_collisions = max(0, len(owned) - len(kept))
+    dropped_total = dropped_invalid + dropped_collisions
+    print(
+        "Restored generated-recipe manifest: "
+        f"kept {len(kept)}, dropped {dropped_total} "
+        f"({dropped_invalid} invalid, {dropped_collisions} collision).",
+        flush=True,
+    )
     payload = GeneratedRecipeManager._manifest_bytes(kept)
     manifest_path.parent.mkdir(parents=True, exist_ok=True)
     manifest_path.write_bytes(payload)

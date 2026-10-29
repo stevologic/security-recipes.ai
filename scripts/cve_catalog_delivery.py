@@ -317,11 +317,21 @@ class FallbackDecision:
         return asdict(self)
 
 
+def _app_unconfigured_note(app_configured: bool) -> str:
+    if app_configured:
+        return ""
+    return (
+        " GitHub App is not configured; set CVE_SYNC_APP_ID and "
+        "CVE_SYNC_APP_KEY on the cve-sync environment."
+    )
+
+
 def classify_protection_fallback(
     *,
     already_labeled: bool,
     labeled_at: str = "",
     now: datetime | None = None,
+    app_configured: bool = False,
 ) -> FallbackDecision:
     """Escalate after 2 consecutive fallback runs or when the fallback label is older than 24h.
 
@@ -343,6 +353,7 @@ def classify_protection_fallback(
             message=(
                 "Catalog protection-fallback label is present but has an invalid "
                 "labeled_at timestamp; failing closed as a real alert."
+                + _app_unconfigured_note(app_configured)
             ),
             consecutive_runs=consecutive,
             age_hours=0.0,
@@ -356,6 +367,7 @@ def classify_protection_fallback(
             message=(
                 "Catalog PR has been in protection-fallback on 2 consecutive "
                 "sync runs; escalating to a real alert."
+                + _app_unconfigured_note(app_configured)
             ),
             consecutive_runs=consecutive,
             age_hours=age_hours,
@@ -367,6 +379,7 @@ def classify_protection_fallback(
             message=(
                 "Catalog protection-fallback label is older than 24h; "
                 "escalating to a real alert."
+                + _app_unconfigured_note(app_configured)
             ),
             consecutive_runs=consecutive,
             age_hours=age_hours,
@@ -377,6 +390,7 @@ def classify_protection_fallback(
         message=(
             "Data-only catalog merge is blocked by branch protection; "
             "leaving the PR open for the next sync retry."
+            + _app_unconfigured_note(app_configured)
         ),
         consecutive_runs=consecutive,
         age_hours=age_hours,
@@ -506,6 +520,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     fallback.add_argument("--already-labeled", required=True, choices=("true", "false"))
     fallback.add_argument("--labeled-at", default="")
     fallback.add_argument("--now", default="")
+    fallback.add_argument("--app-configured", default="false", choices=("true", "false"))
 
     wrong_sha = sub.add_parser("fail-closed-wrong-sha")
     wrong_sha.add_argument("--checkpoint", required=True)
@@ -603,6 +618,7 @@ def main(argv: list[str] | None = None) -> int:
             already_labeled=_flag(args.already_labeled),
             labeled_at=args.labeled_at,
             now=clock,
+            app_configured=_flag(args.app_configured),
         )
         print(json.dumps(decision.to_json(), indent=2, sort_keys=True))
         return 0

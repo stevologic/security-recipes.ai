@@ -225,8 +225,11 @@ has been in protection-fallback on 2 consecutive runs or whose fallback
 label is older than 24h, the run fails as a real alert. An already-merged catalog PR is
 idempotent when its head SHA, merge-commit SHA, or allowlisted
 catalog-data-path content matches the expected revision; a squash or
-merge commit with the same catalog blobs is accepted. Mismatched
-catalog content still fails closed. A non-data-only diff (workflow, script,
+merge commit with the same catalog blobs is accepted only when every
+parent diff is data-only and the commit has one or two parents.
+Empty allowlisted maps, more than two parents, unreadable commits, and
+mismatched catalog content still fail closed. The merge job is the only
+job that reads `CVE_SYNC_APP_ID` and `CVE_SYNC_APP_KEY`. A non-data-only diff (workflow, script,
 docs, MCP server, non-`*.md` recipe, path traversal, symlink, mode
 change, or rename into a code path) fails closed and still requires
 `karen-qa` plus real checks.
@@ -274,5 +277,5 @@ confirms the production handoff landed. Never put `secrets` in a workflow
 | `CVE_ENRICHMENT_LIMIT` | variable | optional, defaults to `20` | Hard-bounded 0–50 new or source-changed CVEs enriched per catalog sync. |
 | `DIGITALOCEAN_ACCESS_TOKEN` | secret or droplet `deploy.env` | optional | Lets deploy.sh and the Dev DNS record workflow create `dev.security-recipes.ai` |
 | `CVE_AUTO_MERGE_ENABLED` | variable | `true` | Lets the catalog sync merge its own PR |
-| `CVE_AUTOMATION_APP_CLIENT_ID` / `CVE_AUTOMATION_APP_PRIVATE_KEY` | variable / secret | optional | A dedicated GitHub App; when configured, its pushes trigger normal CI events and the dispatch workarounds above become unnecessary |
+| `CVE_SYNC_APP_ID` / `CVE_SYNC_APP_KEY` | environment variable / secret on `cve-sync` | optional | Dedicated GitHub App used only by the catalog-sync merge job. When both are set, that job mints an App token and merges data-only catalog PRs. Without them, `GITHUB_TOKEN` cannot bypass branch protection and the fallback message says the App is not configured. |
 | `NVD_API_KEY` | secret | optional | Authenticated NVD CVE 2.0 rate limit for the lastMod catch-up after annual feeds. Public unauthenticated pacing is used when absent; 403/429 fail the sync instead of publishing a stalled catalog |

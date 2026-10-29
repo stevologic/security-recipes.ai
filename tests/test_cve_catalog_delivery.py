@@ -10,6 +10,13 @@ from datetime import datetime, timedelta, timezone
 from io import StringIO
 from pathlib import Path
 
+from scripts.cve_catalog_data_paths import (
+    catalog_data_blob_map,
+    catalog_revision_content_matches,
+    candidate_parent_diffs_are_data_only,
+    commit_parent_shas,
+    is_catalog_data_path,
+)
 from scripts.cve_catalog_delivery import (
     FALLBACK_LABEL,
     GENERATED_OUTPUT_BRANCH,
@@ -83,6 +90,20 @@ def _commit(repo: Path, message: str) -> str:
     _git(repo, "add", "-A")
     _git(repo, "commit", "-m", message)
     return _git(repo, "rev-parse", "HEAD").stdout.strip()
+
+
+def _empty_commit(repo: Path, message: str) -> str:
+    _git(repo, "commit", "--allow-empty", "-m", message)
+    return _git(repo, "rev-parse", "HEAD").stdout.strip()
+
+
+def _commit_tree(repo: Path, message: str, *parents: str) -> str:
+    tree = _git(repo, "rev-parse", "HEAD^{tree}").stdout.strip()
+    args = ["commit-tree", tree]
+    for parent in parents:
+        args.extend(["-p", parent])
+    args.extend(["-m", message])
+    return _git(repo, *args).stdout.strip()
 
 
 def pr_payload(
@@ -189,12 +210,11 @@ class CveCatalogDeliveryTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdir:
             repo = Path(tmpdir)
             _init_catalog_repo(repo)
-            _write_catalog(repo, body='{"revision":"expected"}\n', note="base\n")
+            _write_catalog(repo, body='{"revision":"expected"}\n')
             _commit(repo, "base")
-            _write_catalog(repo, body='{"revision":"catalog"}\n', note="base\n")
+            _write_catalog(repo, body='{"revision":"catalog"}\n')
             expected = _commit(repo, "catalog head")
-            _write_catalog(repo, body='{"revision":"catalog"}\n', note="squash wrapper\n")
-            squash = _commit(repo, "squash onto a moved main")
+            squash = _empty_commit(repo, "squash onto a moved main")
             self.assertNotEqual(expected, squash)
             self.assertTrue(
                 merged_revision_matches(
@@ -228,12 +248,11 @@ class CveCatalogDeliveryTests(unittest.TestCase):
             repo = Path(tmpdir)
             _init_catalog_repo(repo)
             _write_catalog(repo, body='{"revision":"base"}\n', note="shared\n")
+            (repo / "docs.txt").write_text("unrelated shared file\n", encoding="utf-8")
             base = _commit(repo, "shared base")
             _write_catalog(repo, body='{"revision":"catalog"}\n', note="shared\n")
             expected = _commit(repo, "catalog head")
             _git(repo, "checkout", "-B", "main-line", base)
-            (repo / "docs.txt").write_text("unrelated main commit\n", encoding="utf-8")
-            _commit(repo, "main moved")
             _git(repo, "merge", "--no-ff", "-m", "merge catalog", expected)
             merge_sha = _git(repo, "rev-parse", "HEAD").stdout.strip()
             self.assertNotEqual(expected, merge_sha)
@@ -299,10 +318,10 @@ class CveCatalogDeliveryTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdir:
             repo = Path(tmpdir)
             _init_catalog_repo(repo)
-            _write_catalog(repo, body='{"revision":"catalog"}\n', note="base\n")
-            expected = _commit(repo, "catalog head")
-            _write_catalog(repo, body='{"revision":"catalog"}\n', note="moved\n")
-            squash = _commit(repo, "squash same catalog")
+            _write_catalog(repo, body='{"revision":"catalog"}\n')
+            _commit(repo, "base")
+            expected = _empty_commit(repo, "catalog head")
+            squash = _empty_commit(repo, "squash same catalog")
             match_path = repo / "match.json"
             match_path.write_text(
                 json.dumps(
@@ -376,6 +395,219 @@ class CveCatalogDeliveryTests(unittest.TestCase):
                 self.assertEqual(mismatch_out.getvalue().strip(), "merged_wrong_sha")
             finally:
                 os.chdir(previous)
+
+    def test_empty_catalog_maps_fail_closed(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir)
+            _init_catalog_repo(repo)
+            (repo / "README").write_text("no catalog\n", encoding="utf-8")
+            empty = _commit(repo, "empty tree")
+            self.assertEqual(catalog_data_blob_map(empty, repo=repo), {})
+            self.assertFalse(
+                catalog_revision_content_matches(
+                    expected_sha=empty,
+                    candidate_shas=(empty,),
+                    repo=repo,
+                )
+            )
+            self.assertFalse(
+                merged_revision_matches(
+                    head_sha=OTHER,
+                    merge_commit_sha=OTHER,
+                    expected_sha=empty,
+                    repo=repo,
+                )
+            )
+
+    def test_blob_map_equality_rejects_subset_and_superset(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir)
+            _init_catalog_repo(repo)
+            _write_catalog(repo, body='{"revision":"core"}\n')
+            core = _commit(repo, "core catalog")
+            extra = repo / "static" / "api" / "cve-catalog" / "extra.json"
+            extra.write_text('{"extra":true}\n', encoding="utf-8")
+            superset = _commit(repo, "core plus extra shard")
+            self.assertNotEqual(
+                catalog_data_blob_map(core, repo=repo),
+                catalog_data_blob_map(superset, repo=repo),
+            )
+            self.assertFalse(
+                catalog_revision_content_matches(
+                    expected_sha=core,
+                    candidate_shas=(superset,),
+                    repo=repo,
+                )
+            )
+            self.assertFalse(
+                catalog_revision_content_matches(
+                    expected_sha=superset,
+                    candidate_shas=(core,),
+                    repo=repo,
+                )
+            )
+
+    def test_symlink_or_non_regular_catalog_file_fails_closed(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir)
+            _init_catalog_repo(repo)
+            _write_catalog(repo, body='{"revision":"catalog"}\n')
+            expected = _commit(repo, "regular catalog")
+            manifest = repo / "static" / "api" / "cve-catalog" / "manifest.json"
+            manifest.unlink()
+            manifest.symlink_to("elsewhere")
+            linked = _commit(repo, "symlink catalog")
+            self.assertIsNone(catalog_data_blob_map(linked, repo=repo))
+            self.assertFalse(
+                catalog_revision_content_matches(
+                    expected_sha=expected,
+                    candidate_shas=(linked,),
+                    repo=repo,
+                )
+            )
+            _git(repo, "checkout", "-B", "mode", expected)
+            executable = repo / "data" / "cve" / "ai-enrichments.json"
+            executable.chmod(0o755)
+            _git(repo, "add", "--chmod=+x", "data/cve/ai-enrichments.json")
+            _git(repo, "commit", "-m", "executable catalog file")
+            mode_changed = _git(repo, "rev-parse", "HEAD").stdout.strip()
+            self.assertIsNone(catalog_data_blob_map(mode_changed, repo=repo))
+            self.assertFalse(
+                catalog_revision_content_matches(
+                    expected_sha=expected,
+                    candidate_shas=(mode_changed,),
+                    repo=repo,
+                )
+            )
+
+    def test_unreadable_or_missing_commits_fail_closed(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir)
+            _init_catalog_repo(repo)
+            _write_catalog(repo, body='{"revision":"catalog"}\n')
+            expected = _commit(repo, "catalog head")
+            missing = "0" * 40
+            unread = "f" * 40
+            self.assertFalse(
+                catalog_revision_content_matches(
+                    expected_sha=missing,
+                    candidate_shas=(expected,),
+                    repo=repo,
+                )
+            )
+            self.assertFalse(
+                catalog_revision_content_matches(
+                    expected_sha=expected,
+                    candidate_shas=(unread, missing),
+                    repo=repo,
+                )
+            )
+            self.assertFalse(
+                merged_revision_matches(
+                    head_sha=unread,
+                    merge_commit_sha=missing,
+                    expected_sha=expected,
+                    repo=repo,
+                )
+            )
+
+    def test_blob_map_filters_non_allowlisted_paths(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir)
+            _init_catalog_repo(repo)
+            _write_catalog(repo, body='{"revision":"catalog"}\n')
+            recipes = repo / "content" / "recipes" / "cve"
+            recipes.mkdir(parents=True, exist_ok=True)
+            (recipes / "ok.md").write_text("recipe\n", encoding="utf-8")
+            (recipes / "evil.py").write_text("print(1)\n", encoding="utf-8")
+            commit = _commit(repo, "allowlisted recipe plus evil.py")
+            mapping = catalog_data_blob_map(commit, repo=repo)
+            self.assertIsNotNone(mapping)
+            assert mapping is not None
+            self.assertIn("content/recipes/cve/ok.md", mapping)
+            self.assertNotIn("content/recipes/cve/evil.py", mapping)
+            self.assertTrue(all(is_catalog_data_path(path) for path in mapping))
+
+    def test_explicit_content_matches_false_fails_closed(self) -> None:
+        self.assertFalse(
+            merged_revision_matches(
+                head_sha=OTHER,
+                merge_commit_sha=OTHER,
+                expected_sha=SHA,
+                content_matches=False,
+            )
+        )
+        self.assertEqual(
+            classify_pr_state(
+                state="closed",
+                merged=True,
+                head_repository="stevologic/security-recipes.ai",
+                head_branch="automation/cve-catalog-sync",
+                head_sha=OTHER,
+                base_branch="main",
+                expected_repository="stevologic/security-recipes.ai",
+                expected_branch="automation/cve-catalog-sync",
+                expected_sha=SHA,
+                expected_base="main",
+                merge_commit_sha=OTHER,
+                content_matches=False,
+            ),
+            "merged_wrong_sha",
+        )
+
+    def test_same_catalog_plus_workflow_file_fails_closed(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir)
+            _init_catalog_repo(repo)
+            _write_catalog(repo, body='{"revision":"catalog"}\n')
+            expected = _commit(repo, "catalog head")
+            workflow = repo / ".github" / "workflows"
+            workflow.mkdir(parents=True)
+            (workflow / "x.yml").write_text("name: pwn\n", encoding="utf-8")
+            attacked = _commit(repo, "same catalog plus workflow")
+            self.assertEqual(
+                catalog_data_blob_map(expected, repo=repo),
+                catalog_data_blob_map(attacked, repo=repo),
+            )
+            self.assertFalse(candidate_parent_diffs_are_data_only(attacked, repo=repo))
+            self.assertFalse(
+                catalog_revision_content_matches(
+                    expected_sha=expected,
+                    candidate_shas=(attacked,),
+                    repo=repo,
+                )
+            )
+            self.assertFalse(
+                merged_revision_matches(
+                    head_sha=attacked,
+                    merge_commit_sha=attacked,
+                    expected_sha=expected,
+                    repo=repo,
+                )
+            )
+
+    def test_more_than_two_parents_fails_closed(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir)
+            _init_catalog_repo(repo)
+            _write_catalog(repo, body='{"revision":"catalog"}\n')
+            expected = _commit(repo, "catalog head")
+            second = _empty_commit(repo, "second parent")
+            third = _empty_commit(repo, "third parent")
+            octopus = _commit_tree(repo, "octopus", expected, second, third)
+            self.assertEqual(len(commit_parent_shas(octopus, repo=repo) or ()), 3)
+            self.assertFalse(candidate_parent_diffs_are_data_only(octopus, repo=repo))
+            self.assertEqual(
+                catalog_data_blob_map(expected, repo=repo),
+                catalog_data_blob_map(octopus, repo=repo),
+            )
+            self.assertFalse(
+                catalog_revision_content_matches(
+                    expected_sha=expected,
+                    candidate_shas=(octopus,),
+                    repo=repo,
+                )
+            )
 
     def test_moved_head_retries_instead_of_alerting(self) -> None:
         action = classify_pr_state(
@@ -627,6 +859,17 @@ class CveCatalogDeliveryTests(unittest.TestCase):
         self.assertEqual(second.action, "fail_fallback_escalated")
         self.assertTrue(is_alert_action(second.action))
         self.assertIn("2 consecutive", second.message)
+        self.assertIn("GitHub App is not configured", second.message)
+        self.assertIn("CVE_SYNC_APP_ID", second.message)
+        self.assertIn("CVE_SYNC_APP_KEY", second.message)
+        configured = classify_protection_fallback(
+            already_labeled=True,
+            labeled_at="2026-10-27T07:00:00Z",
+            now=now,
+            app_configured=True,
+        )
+        self.assertTrue(configured.escalate)
+        self.assertNotIn("GitHub App is not configured", configured.message)
 
     def test_fallback_escalates_when_label_is_older_than_24h(self) -> None:
         now = datetime(2026, 10, 28, 8, 30, tzinfo=timezone.utc)
@@ -639,6 +882,7 @@ class CveCatalogDeliveryTests(unittest.TestCase):
         self.assertEqual(decision.action, "fail_fallback_escalated")
         self.assertTrue(is_alert_action(decision.action))
         self.assertIn("label is older than 24h", decision.message)
+        self.assertIn("GitHub App is not configured", decision.message)
 
     def test_fallback_does_not_use_pr_created_at_for_24h(self) -> None:
         now = datetime(2026, 10, 28, 8, 30, tzinfo=timezone.utc)
