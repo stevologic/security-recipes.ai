@@ -387,6 +387,113 @@ def evaluate_git_catalog_diff(*, expected_sha: str, actual_sha: str, base: str, 
     )
 
 
+def _git(args: list[str], *, repo: Path | None = None) -> subprocess.CompletedProcess[bytes]:
+    command = ["git"]
+    if repo is not None:
+        command.extend(["-C", str(repo)])
+    command.extend(args)
+    return subprocess.run(command, check=False, capture_output=True)
+
+
+def ensure_git_commit(sha: str, *, repo: Path | None = None, fetch: bool = False) -> bool:
+    """True when sha is a local commit, optionally after a shallow fetch."""
+
+    normalized = normalize_sha(sha)
+    if normalized is None:
+        return False
+    if _git(["cat-file", "-e", f"{normalized}^{{commit}}"], repo=repo).returncode == 0:
+        return True
+    if not fetch:
+        return False
+    fetched = _git(["fetch", "--depth=1", "--no-tags", "origin", normalized], repo=repo)
+    if fetched.returncode != 0:
+        return False
+    return _git(["cat-file", "-e", f"{normalized}^{{commit}}"], repo=repo).returncode == 0
+
+
+def catalog_data_blob_map(
+    commit: str,
+    *,
+    repo: Path | None = None,
+    fetch: bool = False,
+) -> dict[str, str] | None:
+    """Map allowlisted catalog data paths to blob SHAs at commit.
+
+    Returns None when the commit is unreadable or a catalog path is not a
+    regular file. Callers treat None as fail-closed (content unknown).
+    """
+
+    if not ensure_git_commit(commit, repo=repo, fetch=fetch):
+        return None
+    completed = _git(
+        [
+            "ls-tree",
+            "-r",
+            "-z",
+            commit,
+            "--",
+            *CATALOG_DATA_FILES,
+            *CATALOG_DATA_PATH_PREFIXES,
+            CATALOG_RECIPE_PREFIX.rstrip("/"),
+        ],
+        repo=repo,
+    )
+    if completed.returncode != 0:
+        return None
+    mapping: dict[str, str] = {}
+    for item in completed.stdout.split(b"\0"):
+        if not item:
+            continue
+        try:
+            meta, path = item.split(b"\t", 1)
+        except ValueError:
+            return None
+        fields = meta.decode("utf-8", "replace").split()
+        if len(fields) < 3:
+            return None
+        mode, obj_type, blob = fields[0], fields[1], fields[2]
+        normalized = normalize_repo_path(path.decode("utf-8", "surrogateescape"))
+        if normalized is None or not is_catalog_data_path(normalized):
+            continue
+        if obj_type != "blob" or mode != ALLOWED_FILE_MODE:
+            return None
+        mapping[normalized] = blob.lower()
+    return mapping
+
+
+def catalog_revision_content_matches(
+    *,
+    expected_sha: str,
+    candidate_shas: Iterable[str],
+    repo: Path | None = None,
+    fetch: bool = False,
+) -> bool:
+    """True when any candidate has the same catalog-data-path blobs as expected.
+
+    Non-catalog files (merge commits, later main history) are ignored. A
+    missing or unreadable commit fails closed.
+    """
+
+    expected = normalize_sha(expected_sha)
+    if expected is None:
+        return False
+    expected_map = catalog_data_blob_map(expected, repo=repo, fetch=fetch)
+    if expected_map is None:
+        return False
+    seen: set[str] = set()
+    for raw in candidate_shas:
+        candidate = normalize_sha(raw)
+        if candidate is None or candidate in seen:
+            continue
+        seen.add(candidate)
+        if candidate == expected:
+            return True
+        actual_map = catalog_data_blob_map(candidate, repo=repo, fetch=fetch)
+        if actual_map is not None and actual_map == expected_map:
+            return True
+    return False
+
+
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--expected-sha", required=True)

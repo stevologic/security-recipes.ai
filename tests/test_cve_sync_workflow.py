@@ -161,7 +161,9 @@ class CveSyncWorkflowTests(unittest.TestCase):
         )
         self.assertIn("Preserving human-owned generated-name collision", restore_step)
         self.assertIn("cve-human-collisions.txt", restore_step)
-        self.assertIn("del entries[cve]", restore_step)
+        self.assertIn("restore_generated_recipe_manifest", restore_step)
+        self.assertNotIn("restored generated-recipe manifest has invalid entries", restore_step)
+        self.assertNotIn("del entries[cve]", restore_step)
         self.assertLess(
             self.workflow.index("Restore unmerged automation enrichment state"),
             self.workflow.index("Synchronize and optionally enrich exact rolling ten-year catalog"),

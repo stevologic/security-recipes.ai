@@ -716,3 +716,72 @@ class GeneratedRecipeManager:
             self._owned = next_owned
             self._manifest_original = manifest
         return dict(self.stats)
+
+
+def _salvage_owned_entries(entries: object) -> dict[str, _OwnedEntry]:
+    """Keep only schema-valid ownership rows; drop everything else."""
+
+    if not isinstance(entries, dict):
+        return {}
+    kept: dict[str, _OwnedEntry] = {}
+    for raw_cve, raw_entry in entries.items():
+        probe = {
+            "schema_version": MANIFEST_SCHEMA_VERSION,
+            "generator": GENERATOR_ID,
+            "entries": {raw_cve: raw_entry},
+        }
+        try:
+            kept.update(
+                GeneratedRecipeManager._load_manifest(
+                    (json.dumps(probe) + "\n").encode("utf-8")
+                )
+            )
+        except ValueError:
+            continue
+    return kept
+
+
+def restore_generated_recipe_manifest(
+    manifest_path: Path,
+    collisions: Iterable[str],
+) -> dict[str, Any]:
+    """Rewrite a restored ownership manifest so it cannot contain invalid entries.
+
+    Invalid JSON, a non-object ``entries`` map, collision paths, and any row
+    that fails the ownership schema are dropped. The file is always written
+    in GeneratedRecipeManager form.
+    """
+
+    collision_names = {
+        str(name).strip() for name in collisions if str(name).strip()
+    }
+    owned: dict[str, _OwnedEntry] = {}
+    if manifest_path.is_file():
+        try:
+            loaded = json.loads(manifest_path.read_text(encoding="utf-8"))
+        except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+            loaded = None
+        entries = loaded.get("entries") if isinstance(loaded, dict) else None
+        if isinstance(entries, dict):
+            try:
+                owned = GeneratedRecipeManager._load_manifest(
+                    json.dumps(
+                        {
+                            "schema_version": MANIFEST_SCHEMA_VERSION,
+                            "generator": GENERATOR_ID,
+                            "entries": entries,
+                        },
+                        sort_keys=True,
+                    ).encode("utf-8")
+                )
+            except ValueError:
+                owned = _salvage_owned_entries(entries)
+    kept = {
+        cve: entry
+        for cve, entry in owned.items()
+        if entry.path not in collision_names
+    }
+    payload = GeneratedRecipeManager._manifest_bytes(kept)
+    manifest_path.parent.mkdir(parents=True, exist_ok=True)
+    manifest_path.write_bytes(payload)
+    return json.loads(payload.decode("utf-8"))

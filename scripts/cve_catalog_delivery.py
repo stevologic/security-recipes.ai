@@ -16,6 +16,11 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
+try:
+    from scripts.cve_catalog_data_paths import catalog_revision_content_matches
+except (ImportError, ModuleNotFoundError):  # Direct ``python scripts/...`` execution.
+    from cve_catalog_data_paths import catalog_revision_content_matches  # type: ignore[no-redef]
+
 ALERT_ACTIONS = frozenset(
     {
         "fail_closed_not_data_only",
@@ -210,6 +215,40 @@ def merged_sha_matches(*, head_sha: str, merge_commit_sha: str, expected_sha: st
     return expected in {(head_sha or "").strip(), (merge_commit_sha or "").strip()}
 
 
+def merged_revision_matches(
+    *,
+    head_sha: str,
+    merge_commit_sha: str,
+    expected_sha: str,
+    content_matches: bool | None = None,
+    repo: Path | None = None,
+    fetch: bool = False,
+) -> bool:
+    """Accept a merged PR when its SHA or catalog-data content matches expected.
+
+    Squash and merge commits mint a new SHA. Those are idempotent when the
+    allowlisted catalog-data-path blobs match the expected revision. Unknown
+    or mismatched catalog content fails closed.
+    """
+
+    if merged_sha_matches(
+        head_sha=head_sha,
+        merge_commit_sha=merge_commit_sha,
+        expected_sha=expected_sha,
+    ):
+        return True
+    if content_matches is True:
+        return True
+    if content_matches is False:
+        return False
+    return catalog_revision_content_matches(
+        expected_sha=expected_sha,
+        candidate_shas=(head_sha, merge_commit_sha),
+        repo=repo,
+        fetch=fetch,
+    )
+
+
 def classify_pr_state(
     *,
     state: str,
@@ -223,12 +262,18 @@ def classify_pr_state(
     expected_sha: str,
     expected_base: str,
     merge_commit_sha: str = "",
+    content_matches: bool | None = None,
+    repo: Path | None = None,
+    fetch: bool = False,
 ) -> str:
     if merged:
-        if merged_sha_matches(
+        if merged_revision_matches(
             head_sha=head_sha,
             merge_commit_sha=merge_commit_sha,
             expected_sha=expected_sha,
+            content_matches=content_matches,
+            repo=repo,
+            fetch=fetch,
         ):
             return "already_merged"
         return "merged_wrong_sha"
@@ -508,6 +553,8 @@ def main(argv: list[str] | None = None) -> int:
             expected_sha=args.expected_sha,
             expected_base=args.expected_base,
             merge_commit_sha=str(payload.get("merge_commit_sha") or ""),
+            repo=Path.cwd(),
+            fetch=True,
         )
         print(action)
         return 0

@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import json
+import os
+import subprocess
 import tempfile
 import unittest
-from contextlib import redirect_stdout
+from contextlib import redirect_stderr, redirect_stdout
 from datetime import datetime, timedelta, timezone
 from io import StringIO
 from pathlib import Path
@@ -21,6 +23,7 @@ from scripts.cve_catalog_delivery import (
     fail_closed_merged_wrong_sha,
     is_alert_action,
     main as delivery_main,
+    merged_revision_matches,
     merged_sha_matches,
     policy_for_catalog_pr,
     self_merge_gate,
@@ -34,6 +37,52 @@ AUTOMATION = ROOT / ".github" / "AUTOMATION.md"
 
 SHA = "0a7e0100aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 OTHER = "cccccccccccccccccccccccccccccccccccccccc"
+
+
+def _git(repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        ["git", "-C", str(repo), *args],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+
+def _init_catalog_repo(repo: Path) -> None:
+    _git(repo, "init")
+    _git(repo, "config", "user.email", "catalog-bot@example.test")
+    _git(repo, "config", "user.name", "catalog-bot")
+    _git(repo, "checkout", "-b", "main")
+
+
+def _write_catalog(repo: Path, *, body: str, note: str = "") -> None:
+    catalog = repo / "static" / "api" / "cve-catalog"
+    catalog.mkdir(parents=True, exist_ok=True)
+    (catalog / "manifest.json").write_text(body, encoding="utf-8")
+    data = repo / "data" / "cve"
+    data.mkdir(parents=True, exist_ok=True)
+    (data / "ai-enrichments.json").write_text("{}\n", encoding="utf-8")
+    (data / "ai-generated-recipes.json").write_text(
+        json.dumps(
+            {
+                "schema_version": 1,
+                "generator": "cve-ai-enrichment-v1",
+                "entries": {},
+            },
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    if note:
+        (repo / "README").write_text(note, encoding="utf-8")
+
+
+def _commit(repo: Path, message: str) -> str:
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-m", message)
+    return _git(repo, "rev-parse", "HEAD").stdout.strip()
 
 
 def pr_payload(
@@ -135,6 +184,198 @@ class CveCatalogDeliveryTests(unittest.TestCase):
         self.assertEqual(action, "already_merged")
         self.assertFalse(is_alert_action(action))
         self.assertTrue(merged_sha_matches(head_sha=OTHER, merge_commit_sha=SHA, expected_sha=SHA))
+
+    def test_merged_squash_sha_with_identical_catalog_content_is_idempotent(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir)
+            _init_catalog_repo(repo)
+            _write_catalog(repo, body='{"revision":"expected"}\n', note="base\n")
+            _commit(repo, "base")
+            _write_catalog(repo, body='{"revision":"catalog"}\n', note="base\n")
+            expected = _commit(repo, "catalog head")
+            _write_catalog(repo, body='{"revision":"catalog"}\n', note="squash wrapper\n")
+            squash = _commit(repo, "squash onto a moved main")
+            self.assertNotEqual(expected, squash)
+            self.assertTrue(
+                merged_revision_matches(
+                    head_sha=squash,
+                    merge_commit_sha=squash,
+                    expected_sha=expected,
+                    repo=repo,
+                )
+            )
+            action = classify_pr_state(
+                state="closed",
+                merged=True,
+                head_repository="stevologic/security-recipes.ai",
+                head_branch="automation/cve-catalog-sync",
+                head_sha=squash,
+                base_branch="main",
+                expected_repository="stevologic/security-recipes.ai",
+                expected_branch="automation/cve-catalog-sync",
+                expected_sha=expected,
+                expected_base="main",
+                merge_commit_sha=squash,
+                repo=repo,
+            )
+            self.assertEqual(action, "already_merged")
+            self.assertFalse(is_alert_action(action))
+
+    def test_merged_merge_commit_sha_with_identical_catalog_content_is_idempotent(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir)
+            _init_catalog_repo(repo)
+            _write_catalog(repo, body='{"revision":"base"}\n', note="shared\n")
+            base = _commit(repo, "shared base")
+            _write_catalog(repo, body='{"revision":"catalog"}\n', note="shared\n")
+            expected = _commit(repo, "catalog head")
+            _git(repo, "checkout", "-B", "main-line", base)
+            (repo / "docs.txt").write_text("unrelated main commit\n", encoding="utf-8")
+            _commit(repo, "main moved")
+            _git(repo, "merge", "--no-ff", "-m", "merge catalog", expected)
+            merge_sha = _git(repo, "rev-parse", "HEAD").stdout.strip()
+            self.assertNotEqual(expected, merge_sha)
+            action = classify_pr_state(
+                state="closed",
+                merged=True,
+                head_repository="stevologic/security-recipes.ai",
+                head_branch="automation/cve-catalog-sync",
+                head_sha=expected,
+                base_branch="main",
+                expected_repository="stevologic/security-recipes.ai",
+                expected_branch="automation/cve-catalog-sync",
+                expected_sha=expected,
+                expected_base="main",
+                merge_commit_sha=merge_sha,
+                repo=repo,
+            )
+            self.assertEqual(action, "already_merged")
+            self.assertFalse(is_alert_action(action))
+            self.assertTrue(
+                merged_revision_matches(
+                    head_sha=OTHER,
+                    merge_commit_sha=merge_sha,
+                    expected_sha=expected,
+                    repo=repo,
+                )
+            )
+
+    def test_merged_squash_sha_with_different_catalog_content_fails_closed(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir)
+            _init_catalog_repo(repo)
+            _write_catalog(repo, body='{"revision":"expected"}\n')
+            expected = _commit(repo, "catalog head")
+            _write_catalog(repo, body='{"revision":"tampered"}\n')
+            squash = _commit(repo, "squash with different catalog")
+            self.assertFalse(
+                merged_revision_matches(
+                    head_sha=squash,
+                    merge_commit_sha=squash,
+                    expected_sha=expected,
+                    repo=repo,
+                )
+            )
+            action = classify_pr_state(
+                state="closed",
+                merged=True,
+                head_repository="stevologic/security-recipes.ai",
+                head_branch="automation/cve-catalog-sync",
+                head_sha=squash,
+                base_branch="main",
+                expected_repository="stevologic/security-recipes.ai",
+                expected_branch="automation/cve-catalog-sync",
+                expected_sha=expected,
+                expected_base="main",
+                merge_commit_sha=squash,
+                repo=repo,
+            )
+            self.assertEqual(action, "merged_wrong_sha")
+            self.assertTrue(is_alert_action(action))
+
+    def test_pr_state_cli_accepts_merged_content_match_and_rejects_mismatch(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir)
+            _init_catalog_repo(repo)
+            _write_catalog(repo, body='{"revision":"catalog"}\n', note="base\n")
+            expected = _commit(repo, "catalog head")
+            _write_catalog(repo, body='{"revision":"catalog"}\n', note="moved\n")
+            squash = _commit(repo, "squash same catalog")
+            match_path = repo / "match.json"
+            match_path.write_text(
+                json.dumps(
+                    pr_payload(
+                        merged=True,
+                        state="closed",
+                        head_sha=squash,
+                        merge_commit_sha=squash,
+                    )
+                ),
+                encoding="utf-8",
+            )
+            mismatch_path = repo / "mismatch.json"
+            _write_catalog(repo, body='{"revision":"other"}\n', note="moved\n")
+            other = _commit(repo, "different catalog")
+            mismatch_path.write_text(
+                json.dumps(
+                    pr_payload(
+                        merged=True,
+                        state="closed",
+                        head_sha=other,
+                        merge_commit_sha=other,
+                    )
+                ),
+                encoding="utf-8",
+            )
+            previous = Path.cwd()
+            try:
+                os.chdir(repo)
+                match_out = StringIO()
+                with redirect_stdout(match_out):
+                    self.assertEqual(
+                        delivery_main(
+                            [
+                                "pr-state",
+                                "--pr-json-file",
+                                str(match_path),
+                                "--expected-repository",
+                                "stevologic/security-recipes.ai",
+                                "--expected-branch",
+                                "automation/cve-catalog-sync",
+                                "--expected-sha",
+                                expected,
+                                "--expected-base",
+                                "main",
+                            ]
+                        ),
+                        0,
+                    )
+                self.assertEqual(match_out.getvalue().strip(), "already_merged")
+                mismatch_out = StringIO()
+                with redirect_stdout(mismatch_out):
+                    self.assertEqual(
+                        delivery_main(
+                            [
+                                "pr-state",
+                                "--pr-json-file",
+                                str(mismatch_path),
+                                "--expected-repository",
+                                "stevologic/security-recipes.ai",
+                                "--expected-branch",
+                                "automation/cve-catalog-sync",
+                                "--expected-sha",
+                                expected,
+                                "--expected-base",
+                                "main",
+                            ]
+                        ),
+                        0,
+                    )
+                self.assertEqual(mismatch_out.getvalue().strip(), "merged_wrong_sha")
+            finally:
+                os.chdir(previous)
 
     def test_moved_head_retries_instead_of_alerting(self) -> None:
         action = classify_pr_state(
@@ -416,62 +657,64 @@ class CveCatalogDeliveryTests(unittest.TestCase):
         )
         for checkpoint in WRONG_SHA_CHECKPOINTS:
             with self.subTest(checkpoint=checkpoint):
-                self.assertEqual(
-                    fail_closed_merged_wrong_sha(
-                        checkpoint=checkpoint,
-                        pr_state="merged_wrong_sha",
-                    ),
-                    1,
-                )
-                self.assertEqual(
-                    fail_closed_merged_wrong_sha(
-                        checkpoint=checkpoint,
-                        pr_state="current",
-                    ),
-                    0,
-                )
-                self.assertEqual(
-                    fail_closed_merged_wrong_sha(
-                        checkpoint=checkpoint,
-                        pr_state="already_merged",
-                    ),
-                    0,
-                )
-                stdout = StringIO()
-                with redirect_stdout(stdout):
+                with redirect_stderr(StringIO()):
                     self.assertEqual(
-                        delivery_main(
-                            [
-                                "fail-closed-wrong-sha",
-                                "--checkpoint",
-                                checkpoint,
-                                "--pr-state",
-                                "merged_wrong_sha",
-                            ]
+                        fail_closed_merged_wrong_sha(
+                            checkpoint=checkpoint,
+                            pr_state="merged_wrong_sha",
                         ),
                         1,
                     )
                     self.assertEqual(
-                        delivery_main(
-                            [
-                                "fail-closed-wrong-sha",
-                                "--checkpoint",
-                                checkpoint,
-                                "--pr-state",
-                                "current",
-                            ]
+                        fail_closed_merged_wrong_sha(
+                            checkpoint=checkpoint,
+                            pr_state="current",
                         ),
                         0,
                     )
+                    self.assertEqual(
+                        fail_closed_merged_wrong_sha(
+                            checkpoint=checkpoint,
+                            pr_state="already_merged",
+                        ),
+                        0,
+                    )
+                    stdout = StringIO()
+                    with redirect_stdout(stdout):
+                        self.assertEqual(
+                            delivery_main(
+                                [
+                                    "fail-closed-wrong-sha",
+                                    "--checkpoint",
+                                    checkpoint,
+                                    "--pr-state",
+                                    "merged_wrong_sha",
+                                ]
+                            ),
+                            1,
+                        )
+                        self.assertEqual(
+                            delivery_main(
+                                [
+                                    "fail-closed-wrong-sha",
+                                    "--checkpoint",
+                                    checkpoint,
+                                    "--pr-state",
+                                    "current",
+                                ]
+                            ),
+                            0,
+                        )
 
     def test_unknown_wrong_sha_checkpoint_fails_closed(self) -> None:
-        self.assertEqual(
-            fail_closed_merged_wrong_sha(
-                checkpoint="not-a-phase",
-                pr_state="current",
-            ),
-            1,
-        )
+        with redirect_stderr(StringIO()):
+            self.assertEqual(
+                fail_closed_merged_wrong_sha(
+                    checkpoint="not-a-phase",
+                    pr_state="current",
+                ),
+                1,
+            )
 
     def test_generated_output_review_failure_is_an_alert(self) -> None:
         ok = classify_generated_output_review(step_failed=False)
@@ -550,6 +793,7 @@ class CveCatalogDeliveryTests(unittest.TestCase):
         self.assertIn("fail enrichment are dropped", automation)
         self.assertIn("build` check is not", automation)
         self.assertIn("the path gate is the control", automation)
+        self.assertIn("catalog-data-path content", automation)
         self.assertIn("content/recipes/cve/*.md", automation)
         self.assertIn(GENERATED_OUTPUT_BRANCH, automation)
         self.assertIn(KAREN_QA_REVIEW_LABEL, automation)

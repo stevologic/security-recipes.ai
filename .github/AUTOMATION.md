@@ -223,8 +223,10 @@ blocks the merge, the run leaves the PR open, labeled, and summarized,
 and exits successfully; the next sync retries. If the same catalog PR
 has been in protection-fallback on 2 consecutive runs or whose fallback
 label is older than 24h, the run fails as a real alert. An already-merged catalog PR is
-idempotent only when its head or merge SHA equals the expected SHA;
-otherwise the run fails closed. A non-data-only diff (workflow, script,
+idempotent when its head SHA, merge-commit SHA, or allowlisted
+catalog-data-path content matches the expected revision; a squash or
+merge commit with the same catalog blobs is accepted. Mismatched
+catalog content still fails closed. A non-data-only diff (workflow, script,
 docs, MCP server, non-`*.md` recipe, path traversal, symlink, mode
 change, or rename into a code path) fails closed and still requires
 `karen-qa` plus real checks.
