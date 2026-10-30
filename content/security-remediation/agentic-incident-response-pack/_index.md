@@ -3,7 +3,7 @@ title: Agentic Incident Response Pack
 linkTitle: Incident Response Pack
 weight: 14
 date: 2026-05-04
-lastmod: 2026-09-28
+lastmod: 2026-10-30
 sidebar:
   exclude: true
 description: >
@@ -20,7 +20,7 @@ authority, preserve evidence, replay the failure, and produce a
 trust-center-ready readout.
 {{< /callout >}}
 
-Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28), the current [security best practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices), and NIST's [August 27, 2026 agent identity guidance](https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation) on September 28, 2026. MCP `latest` still redirects to 2026-07-28.
+Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28), the current [security best practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices), and NIST CAISSI, NSA SISC, and CISA [Key Practices for Incident Readiness and Response in Super Intelligence Training and Evaluation](https://www.nist.gov/news-events/news/2026/10/key-practices-incident-readiness-and-response-super-intelligence-training) (PP-26-4396, October 16, 2026) on October 30, 2026. MCP `latest` still redirects to 2026-07-28. This editorial pass does not claim human review of the pack.
 
 ## The product bet
 
@@ -36,8 +36,9 @@ The **Agentic Incident Response Pack** fills that second gap. It turns
 the generated control-plane evidence into a response model for
 context-poisoning, MCP tool misuse, authorization confused-deputy
 events, token passthrough, agent handoff leakage, memory or skill
-compromise, high-impact autonomy near misses, and receipt integrity
-gaps.
+compromise, high-impact autonomy near misses, uninstructed
+control-compromise, agent interference with monitors or logs, and
+receipt integrity gaps.
 
 This makes AI easier for enterprises because SOC, AI platform, security
 engineering, GRC, and procurement teams can inspect one machine-readable
@@ -83,13 +84,62 @@ python3 scripts/evaluate_agentic_incident_response_decision.py \
   --expect-decision kill_session_and_escalate_board
 ```
 
+Evaluate an agent that can reach monitors or logs:
+
+```bash
+python3 scripts/evaluate_agentic_incident_response_decision.py \
+  --incident-id inc-ci-monitors \
+  --workflow-id vulnerable-dependency-remediation \
+  --run-id run-ci-monitors \
+  --agent-id sr-agent::vulnerable-dependency-remediation::codex \
+  --identity-id sr-agent::vulnerable-dependency-remediation::codex \
+  --tenant-id tenant-demo \
+  --correlation-id corr-ci-monitors \
+  --incident-class-id uninstructed-control-compromise \
+  --severity-signal sev0 \
+  --source-event-id event-monitor-1 \
+  --receipt-id receipt-ci-monitors \
+  --context-source-id workflow-manifest \
+  --context-source-hash hash-ci \
+  --mcp-namespace repo.contents \
+  --authorization-decision allow_authorized_mcp_request \
+  --containment-action-id isolate_agent_from_monitors_and_verify_containment_before_resume \
+  --agent-can-access-monitors \
+  --expect-decision kill_session_and_escalate_board
+```
+
+Hold a resume that skipped containment verification:
+
+```bash
+python3 scripts/evaluate_agentic_incident_response_decision.py \
+  --incident-id inc-ci-resume \
+  --workflow-id vulnerable-dependency-remediation \
+  --run-id run-ci-resume \
+  --agent-id sr-agent::vulnerable-dependency-remediation::codex \
+  --identity-id sr-agent::vulnerable-dependency-remediation::codex \
+  --tenant-id tenant-demo \
+  --correlation-id corr-ci-resume \
+  --incident-class-id uninstructed-control-compromise \
+  --severity-signal sev2 \
+  --source-event-id event-resume-1 \
+  --receipt-id receipt-ci-resume \
+  --context-source-id workflow-manifest \
+  --context-source-hash hash-ci \
+  --mcp-namespace repo.contents \
+  --authorization-decision allow_authorized_mcp_request \
+  --containment-action-id isolate_agent_from_monitors_and_verify_containment_before_resume \
+  --replay-case-id replay-ci-resume \
+  --resume-without-verified-containment \
+  --expect-decision hold_for_forensics
+```
+
 ## What is inside
 
 | Section | Purpose |
 | --- | --- |
 | `incident_response_summary` | Class counts, response phase counts, workflow coverage, decision distribution, severe incident coverage, required evidence count, and source failure count. |
 | `incident_contract` | Default fail-closed state, required runtime fields, required evidence sources, and severity thresholds for SEV0 through SEV3. |
-| `incident_classes` | Response models for context poisoning, MCP tool misuse, identity abuse, token passthrough, handoff leakage, memory or skill compromise, high-impact autonomy, and evidence gaps. |
+| `incident_classes` | Response models for context poisoning, MCP tool misuse, identity abuse, token passthrough, handoff leakage, memory or skill compromise, high-impact autonomy, uninstructed control-compromise, monitor interference, and evidence gaps. |
 | `response_phases` | Detect, contain, preserve, eradicate, replay, recertify, disclose, and learn phases mapped to minimum evidence and MCP tools. |
 | `workflow_response_matrix` | Per-workflow incident classes, severity floor, containment actions, readiness state, risk tier, MCP namespaces, and replay requirements. |
 | `tabletop_cases` | Ready-made tabletop cases for poisoned context, token forwarding, production writes without approval, and missing receipts after drift. |
@@ -194,6 +244,12 @@ The pack is anchored in current primary guidance:
 - [CISA Joint Guidance on Deploying AI Systems Securely](https://www.cisa.gov/news-events/alerts/2024/04/15/joint-guidance-deploying-ai-systems-securely)
   for controls to protect, detect, and respond to malicious activity
   against AI systems and related data and services.
+- [NIST CAISSI, NSA SISC, and CISA Key Practices for Incident Readiness and Response in Super Intelligence Training and Evaluation](https://www.nist.gov/news-events/news/2026/10/key-practices-incident-readiness-and-response-super-intelligence-training)
+  for uninstructed control-compromise, keeping agents off monitors and
+  logs, shutdown on monitor tampering or outage, preserving rejected
+  actions, and verifying containment before resume. The practices are
+  written for SI training and evaluation and may also apply to
+  deployers.
 
 ## See also
 

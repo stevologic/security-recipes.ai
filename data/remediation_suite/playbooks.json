@@ -1613,7 +1613,7 @@
         {
           "label": "Decision",
           "title": "Contain active authority",
-          "detail": "Kill sessions, revoke tokens/entitlements, block tools/connectors, quarantine context/skills, and preserve evidence."
+          "detail": "Kill sessions, revoke tokens/entitlements, block tools/connectors, quarantine context/skills, isolate agents from monitors and logs, shut down on monitor tampering or outage, and preserve evidence."
         },
         {
           "label": "Action",
@@ -1627,9 +1627,9 @@
         }
       ],
       "gate": {
-        "question": "Is the threat contained and is recovery supported by clean identities, context, tools, policies, and replay evidence?",
-        "pass": "Restore only the bounded service and maintain enhanced monitoring.",
-        "stop": "Remain isolated and escalate when scope, evidence, credentials, or root cause is unresolved."
+        "question": "Is the threat contained, are agents isolated from monitors and logs, and is recovery supported by verified containment plus clean identities, context, tools, policies, and replay evidence?",
+        "pass": "Restore only the bounded service after monitors, logging, egress allowlists, and shutdown mechanisms are verified, and maintain enhanced monitoring.",
+        "stop": "Remain isolated and escalate when scope, evidence, credentials, monitor integrity, or root cause is unresolved."
       },
       "evidence": [
         "correlated incident timeline",

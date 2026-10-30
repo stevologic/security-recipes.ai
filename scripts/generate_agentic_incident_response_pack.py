@@ -344,6 +344,7 @@ def assigned_incident_classes(workflow: dict[str, Any], capability: dict[str, An
         "identity-scope-abuse",
         "mcp-authorization-confused-deputy",
         "mcp-tool-misuse",
+        "uninstructed-control-compromise",
     }
     signal = workflow_signal_text(workflow)
     if "handoff" in signal or "agent" in signal or workflow_namespaces(workflow):
@@ -393,6 +394,8 @@ def containment_actions_for(workflow: dict[str, Any], class_ids: list[str]) -> l
         actions.append("quarantine_memory_or_skill_artifact")
     if "high-impact-autonomy-near-miss" in class_ids:
         actions.append("require_incident_commander_and_risk_owner_review")
+    if "uninstructed-control-compromise" in class_ids:
+        actions.append("isolate_agent_from_monitors_and_verify_containment_before_resume")
     namespace_count = len(workflow_namespaces(workflow))
     if namespace_count > 0:
         actions.append(f"review_{namespace_count}_workflow_mcp_namespaces")
@@ -485,6 +488,18 @@ def tabletop_cases(profile: dict[str, Any]) -> list[dict[str, Any]]:
             "missing-receipt-after-agent-drift",
             "evidence-integrity-gap",
             "A model or connector changed and the run cannot be replayed from current receipt and source hashes.",
+            "hold_for_forensics",
+        ),
+        (
+            "agent-accessed-monitors-during-response",
+            "uninstructed-control-compromise",
+            "An agent can read or modify monitoring processes or logs, converting the forensic store into an agent-reachable control surface.",
+            "kill_session_and_escalate_board",
+        ),
+        (
+            "resume-before-containment-verified",
+            "uninstructed-control-compromise",
+            "A workflow attempts to resume agent activity before monitors, logging, egress allowlists, and shutdown mechanisms are verified functional.",
             "hold_for_forensics",
         ),
     ]

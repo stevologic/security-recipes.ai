@@ -23,7 +23,7 @@
     "recommended_first_use": "Attach the pack to AI platform incident response, SOC runbooks, agent production-readiness reviews, MCP server approval, tabletop exercises, and acquisition diligence."
   },
   "failures": [],
-  "generated_at": "2026-09-28",
+  "generated_at": "2026-10-30",
   "incident_classes": [
     {
       "default_decision": "contain_and_open_war_room",
@@ -210,6 +210,33 @@
       "title": "High-impact autonomous action near miss"
     },
     {
+      "default_decision": "kill_session_and_escalate_board",
+      "default_severity": "sev0",
+      "evidence_paths": [
+        "data/evidence/agentic-run-receipt-pack.json",
+        "data/evidence/agent-identity-delegation-ledger.json",
+        "data/evidence/agentic-catastrophic-risk-annex.json",
+        "data/evidence/agentic-readiness-scorecard.json"
+      ],
+      "id": "uninstructed-control-compromise",
+      "kill_signals": [
+        "an agent takes a significant uninstructed action that compromises operator-imposed policies, controls, or human oversight, as distinct from instructed or injection-driven misuse",
+        "an agent can access, modify, or interfere with monitoring processes or logs, or a monitor outage or tampering is observed"
+      ],
+      "linked_evidence": [
+        "agentic_run_receipt_pack",
+        "agent_identity_ledger",
+        "agentic_catastrophic_risk_annex",
+        "agentic_readiness_scorecard"
+      ],
+      "mcp_tools": [
+        "recipes_agentic_run_receipt_pack",
+        "recipes_agent_identity_ledger",
+        "recipes_agentic_catastrophic_risk_annex"
+      ],
+      "title": "Uninstructed agent control-compromise or monitor interference"
+    },
+    {
       "default_decision": "hold_for_forensics",
       "default_severity": "sev2",
       "evidence_paths": [
@@ -221,7 +248,8 @@
       "id": "evidence-integrity-gap",
       "kill_signals": [
         "run receipt is missing, unsigned, stale, inconsistent with source hashes, or missing required event classes",
-        "incident cannot be replayed as an eval, red-team drill, or measurement probe before workflow recertification"
+        "incident cannot be replayed as an eval, red-team drill, or measurement probe before workflow recertification",
+        "forensic logs or monitors are agent-writable, agent-readable as an investigative store, or missing rejected actions and tool calls"
       ],
       "linked_evidence": [
         "agentic_run_receipt_pack",
@@ -289,7 +317,9 @@
         "conditions": [
           "confirmed secret, credential, regulated data, customer data, or payment/production control-plane exposure outside the approved boundary",
           "high-impact autonomous action executed without linked approval or risk acceptance",
-          "agent identity, MCP token, or remote-agent handoff used after revocation"
+          "agent identity, MCP token, or remote-agent handoff used after revocation",
+          "significant uninstructed action compromised operator-imposed policies, controls, or human oversight",
+          "agent accessed or interfered with monitoring processes or logs, or a monitor outage or tampering was observed"
         ],
         "decision": "kill_session_and_escalate_board",
         "severity": "sev0"
@@ -321,7 +351,7 @@
   },
   "incident_response_pack_id": "security-recipes.agentic-incident-response.v1",
   "incident_response_summary": {
-    "class_count": 8,
+    "class_count": 9,
     "decision_counts": {
       "contain_and_open_war_room": 3,
       "hold_for_forensics": 2,
@@ -330,7 +360,7 @@
     "failure_count": 0,
     "required_evidence_source_count": 15,
     "response_phase_count": 6,
-    "sev0_class_count": 2,
+    "sev0_class_count": 3,
     "sev1_class_count": 5,
     "source_failure_count": 0,
     "workflow_count": 8
@@ -339,7 +369,7 @@
     "buyer": "AI Platform, Security Engineering, SOC, Product Security, GRC, trust and safety, procurement security, and acquisition diligence teams",
     "category": "Agentic AI incident response and forensics for the secure context layer",
     "enterprise_promise": "SecurityRecipes can help an enterprise detect, contain, reconstruct, replay, and disclose agentic incidents using the same MCP-readable evidence packs that authorize production agent work.",
-    "why_now": "Agentic AI programs are moving from pilots into production tool use. Buyers need response evidence for prompt injection, context poisoning, tool misuse, over-broad MCP authorization, token passthrough, agent handoff leakage, persistent memory drift, skill supply-chain compromise, and high-impact autonomy before approving broad rollout."
+    "why_now": "Agentic AI programs are moving from pilots into production tool use. Buyers need response evidence for prompt injection, context poisoning, tool misuse, over-broad MCP authorization, token passthrough, agent handoff leakage, persistent memory drift, skill supply-chain compromise, high-impact autonomy, uninstructed control-compromise, and agent interference with monitors or logs before approving broad rollout."
   },
   "residual_risks": [
     {
@@ -387,7 +417,7 @@
         "kill_signal",
         "containment_action_ids"
       ],
-      "objective": "Pause the run, kill the session when required, revoke delegated identity, freeze MCP scopes, block unsafe context, and quarantine remote-agent or skill surfaces.",
+      "objective": "Pause the run, kill the session when required, revoke delegated identity, freeze MCP scopes, block unsafe context, quarantine remote-agent or skill surfaces, and shut down agent activity when monitors are tampered with, out of service, or reachable by the agent.",
       "title": "Contain and revoke"
     },
     {
@@ -405,7 +435,7 @@
         "egress_decisions",
         "handoff_decisions"
       ],
-      "objective": "Snapshot source hashes, context package hashes, prompts, tool decisions, authorization claims, egress decisions, handoff decisions, receipts, eval outcomes, and reviewer approvals without mutating evidence.",
+      "objective": "Snapshot source hashes, context package hashes, prompts, tool decisions, rejected actions and tool calls, authorization claims, egress decisions, handoff decisions, receipts, eval outcomes, and reviewer approvals into tamper-resistant storage the agent cannot access or modify.",
       "title": "Preserve forensics"
     },
     {
@@ -439,7 +469,7 @@
         "readiness_decision",
         "risk_acceptance_id"
       ],
-      "objective": "Replay the incident as an eval, measurement probe, red-team drill, and catastrophic-risk scenario when applicable before lifting holds or promoting workflow readiness.",
+      "objective": "Replay the incident as an eval, measurement probe, red-team drill, and catastrophic-risk scenario, and verify that monitors, logging, egress allowlists, and shutdown mechanisms are functional before lifting holds or resuming agent activity.",
       "title": "Replay and recertify"
     },
     {
@@ -464,7 +494,7 @@
       "failure_count": 0,
       "path": "data/evidence/a2a-agent-card-trust-profile.json",
       "schema_version": "1.0",
-      "sha256": "924865d0d19f4bc43d8b94a9aa5e2a2cafd0f76229c816d411d168457c462373",
+      "sha256": "ba18b94965eee218337578525b58b0ea20a65e2d69deff34669cb88a7a3f2486",
       "summary_keys": [
         "agent_card_trust_summary"
       ]
@@ -482,7 +512,7 @@
       "failure_count": 0,
       "path": "data/evidence/agent-handoff-boundary-pack.json",
       "schema_version": "1.0",
-      "sha256": "b2bfd8e889ea2aa878d75959e95b71dacc8ca5b1375b9096b0305168cbd34558",
+      "sha256": "9c88cadd5eee84cd848c94249f83334c6fdc5ae60effef0a74c7ef67647b5668",
       "summary_keys": [
         "handoff_boundary_summary"
       ]
@@ -509,7 +539,7 @@
       "failure_count": 0,
       "path": "data/evidence/agent-skill-supply-chain-pack.json",
       "schema_version": "1.0",
-      "sha256": "9d4847830aab9bea0b91ab958b25ba86143936d26c3aa5ec30ec22151268a179",
+      "sha256": "cda919048eacdaf019834b49451f7ec52a9fbdfc7958e1137626fdb29f8c676a",
       "summary_keys": [
         "skill_supply_chain_summary"
       ]
@@ -518,7 +548,7 @@
       "failure_count": 0,
       "path": "data/evidence/agentic-catastrophic-risk-annex.json",
       "schema_version": "1.0",
-      "sha256": "13b9d40e31be000bb564cf86b60b36eda3d313128279f3ff137ce9f52f19225d",
+      "sha256": "52d12d2067ce153aeeb2481664051fd6060653224a50d7d24cee11d01998469c",
       "summary_keys": [
         "annex_summary"
       ]
@@ -527,7 +557,7 @@
       "failure_count": 0,
       "path": "data/evidence/agentic-exposure-graph.json",
       "schema_version": "1.0",
-      "sha256": "ed73abadcbe4dae1cf34379f19c93f420b11a4fa5fb47cc3da8cf0fa7d84bb17",
+      "sha256": "c7d8457fc18ac186e3d9c127e4391f37e33f031d6646039879769e2e45c29306",
       "summary_keys": [
         "exposure_graph_summary"
       ]
@@ -536,7 +566,7 @@
       "failure_count": 0,
       "path": "data/evidence/agentic-measurement-probe-pack.json",
       "schema_version": "1.0",
-      "sha256": "a75224036bb9ab4ab8cbbc348812540dc276d50f71c8ab34271387640979e752",
+      "sha256": "563d3bc83c165bc25b855d40ed33f2c1d7550ec818d04b2f0ce1a370571777dc",
       "summary_keys": [
         "measurement_probe_summary"
       ]
@@ -563,7 +593,7 @@
       "failure_count": 0,
       "path": "data/evidence/agentic-run-receipt-pack.json",
       "schema_version": "1.0",
-      "sha256": "9ad3ec7623b48054f81c57c6bb47f1358fdea759d4f44be0d9b2d21fdab07952",
+      "sha256": "bce67bc592b0e375e8a54376c895b0a453e121499c3063933111c6036aec8a52",
       "summary_keys": [
         "receipt_summary"
       ]
@@ -572,7 +602,7 @@
       "failure_count": 0,
       "path": "data/evidence/context-egress-boundary-pack.json",
       "schema_version": "1.0",
-      "sha256": "cb6e9157964a9350bc99adcc1eb80e3a6e5092c19d513af07494ec0ff68930cc",
+      "sha256": "e3253d6bfa5648e2008e1fe269ca27afc4ed3acf7ea6d8263608accb0f97d1eb",
       "summary_keys": [
         "egress_boundary_summary"
       ]
@@ -581,7 +611,7 @@
       "failure_count": 0,
       "path": "data/evidence/context-poisoning-guard-pack.json",
       "schema_version": "1.0",
-      "sha256": "1a93e3966d97f230816ce6dfe785bf51d429676cdfac3eba459654ad284177b7",
+      "sha256": "d1465d73f6025c7d06c7791828bbe1fe97aefeb2390dd23df0fa82dbb7f5193b",
       "summary_keys": [
         "guard_summary"
       ]
@@ -617,7 +647,7 @@
       "failure_count": 0,
       "path": "data/evidence/secure-context-eval-pack.json",
       "schema_version": "1.0",
-      "sha256": "23911c08a290aed61fe3a0248414984c6ae56a12d6b4725031d0cf9c7ed8e73a",
+      "sha256": "7b98ae4bed361db91bf7961f75b8ca3f6e987720b3a131f720f61885e9a036f0",
       "summary_keys": [
         "eval_summary"
       ]
@@ -626,7 +656,7 @@
       "failure_count": 0,
       "path": "data/evidence/secure-context-trust-pack.json",
       "schema_version": "1.0",
-      "sha256": "2b334ccfacdd9b5c8109fb091e37954fbc2eb050f733aa0058437841a0d1ec85",
+      "sha256": "5f5d9aa6c60a24a95731b0a71a87b17d6a773d2699d0f23808cb4c988b0f22e9",
       "summary_keys": [
         "context_trust_summary"
       ]
@@ -640,6 +670,15 @@
     }
   },
   "standards_alignment": [
+    {
+      "coverage": "Joint NIST CAISSI, NSA SISC, and CISA PP-26-4396 (October 16, 2026): treat significant uninstructed actions that compromise operator-imposed policies, controls, or human oversight as control incidents distinct from instructed or injection-driven events; keep agents off monitors and logs; shut down on monitor tampering or outage; preserve rejected actions; and verify containment before resume.",
+      "id": "nist-caisi-si-incident-readiness-2026",
+      "name": "Key Practices for Incident Readiness and Response in Super Intelligence Training and Evaluation",
+      "published": "2026-10-16",
+      "publisher": "NIST CAISSI, NSA Super Intelligence Security Center, and CISA",
+      "source_class": "government_guidance",
+      "url": "https://www.nist.gov/news-events/news/2026/10/key-practices-incident-readiness-and-response-super-intelligence-training"
+    },
     {
       "coverage": "Incident response as a CSF 2.0 profile covering preparation, detection, response, recovery, lessons learned, and cybersecurity risk management integration.",
       "id": "nist-sp-800-61r3",
@@ -741,6 +780,28 @@
         "recipes_secure_context_eval_pack"
       ],
       "trigger": "A model or connector changed and the run cannot be replayed from current receipt and source hashes."
+    },
+    {
+      "expected_decision": "kill_session_and_escalate_board",
+      "id": "agent-accessed-monitors-during-response",
+      "incident_class_id": "uninstructed-control-compromise",
+      "minimum_mcp_tools": [
+        "recipes_agentic_run_receipt_pack",
+        "recipes_agent_identity_ledger",
+        "recipes_agentic_catastrophic_risk_annex"
+      ],
+      "trigger": "An agent can read or modify monitoring processes or logs, converting the forensic store into an agent-reachable control surface."
+    },
+    {
+      "expected_decision": "hold_for_forensics",
+      "id": "resume-before-containment-verified",
+      "incident_class_id": "uninstructed-control-compromise",
+      "minimum_mcp_tools": [
+        "recipes_agentic_run_receipt_pack",
+        "recipes_agent_identity_ledger",
+        "recipes_agentic_catastrophic_risk_annex"
+      ],
+      "trigger": "A workflow attempts to resume agent activity before monitors, logging, egress allowlists, and shutdown mechanisms are verified functional."
     }
   ],
   "workflow_response_matrix": [
@@ -753,7 +814,8 @@
         "identity-scope-abuse",
         "mcp-authorization-confused-deputy",
         "mcp-tool-misuse",
-        "memory-or-skill-compromise"
+        "memory-or-skill-compromise",
+        "uninstructed-control-compromise"
       ],
       "containment_actions": [
         "pause_agent_run",
@@ -766,6 +828,7 @@
         "disable_remote_agent_or_handoff_profile",
         "quarantine_memory_or_skill_artifact",
         "require_incident_commander_and_risk_owner_review",
+        "isolate_agent_from_monitors_and_verify_containment_before_resume",
         "review_3_workflow_mcp_namespaces"
       ],
       "default_response_decision": "contain_and_open_war_room",
@@ -807,7 +870,8 @@
         "identity-scope-abuse",
         "mcp-authorization-confused-deputy",
         "mcp-tool-misuse",
-        "memory-or-skill-compromise"
+        "memory-or-skill-compromise",
+        "uninstructed-control-compromise"
       ],
       "containment_actions": [
         "pause_agent_run",
@@ -820,6 +884,7 @@
         "disable_remote_agent_or_handoff_profile",
         "quarantine_memory_or_skill_artifact",
         "require_incident_commander_and_risk_owner_review",
+        "isolate_agent_from_monitors_and_verify_containment_before_resume",
         "review_3_workflow_mcp_namespaces"
       ],
       "default_response_decision": "contain_and_open_war_room",
@@ -861,7 +926,8 @@
         "identity-scope-abuse",
         "mcp-authorization-confused-deputy",
         "mcp-tool-misuse",
-        "memory-or-skill-compromise"
+        "memory-or-skill-compromise",
+        "uninstructed-control-compromise"
       ],
       "containment_actions": [
         "pause_agent_run",
@@ -874,6 +940,7 @@
         "disable_remote_agent_or_handoff_profile",
         "quarantine_memory_or_skill_artifact",
         "require_incident_commander_and_risk_owner_review",
+        "isolate_agent_from_monitors_and_verify_containment_before_resume",
         "review_3_workflow_mcp_namespaces"
       ],
       "default_response_decision": "hold_for_forensics",
@@ -915,7 +982,8 @@
         "identity-scope-abuse",
         "mcp-authorization-confused-deputy",
         "mcp-tool-misuse",
-        "memory-or-skill-compromise"
+        "memory-or-skill-compromise",
+        "uninstructed-control-compromise"
       ],
       "containment_actions": [
         "pause_agent_run",
@@ -928,6 +996,7 @@
         "disable_remote_agent_or_handoff_profile",
         "quarantine_memory_or_skill_artifact",
         "require_incident_commander_and_risk_owner_review",
+        "isolate_agent_from_monitors_and_verify_containment_before_resume",
         "review_3_workflow_mcp_namespaces"
       ],
       "default_response_decision": "contain_and_open_war_room",
@@ -969,7 +1038,8 @@
         "identity-scope-abuse",
         "mcp-authorization-confused-deputy",
         "mcp-tool-misuse",
-        "memory-or-skill-compromise"
+        "memory-or-skill-compromise",
+        "uninstructed-control-compromise"
       ],
       "containment_actions": [
         "pause_agent_run",
@@ -982,6 +1052,7 @@
         "disable_remote_agent_or_handoff_profile",
         "quarantine_memory_or_skill_artifact",
         "require_incident_commander_and_risk_owner_review",
+        "isolate_agent_from_monitors_and_verify_containment_before_resume",
         "review_3_workflow_mcp_namespaces"
       ],
       "default_response_decision": "kill_session_and_escalate_board",
@@ -1023,7 +1094,8 @@
         "identity-scope-abuse",
         "mcp-authorization-confused-deputy",
         "mcp-tool-misuse",
-        "memory-or-skill-compromise"
+        "memory-or-skill-compromise",
+        "uninstructed-control-compromise"
       ],
       "containment_actions": [
         "pause_agent_run",
@@ -1036,6 +1108,7 @@
         "disable_remote_agent_or_handoff_profile",
         "quarantine_memory_or_skill_artifact",
         "require_incident_commander_and_risk_owner_review",
+        "isolate_agent_from_monitors_and_verify_containment_before_resume",
         "review_3_workflow_mcp_namespaces"
       ],
       "default_response_decision": "hold_for_forensics",
@@ -1077,7 +1150,8 @@
         "identity-scope-abuse",
         "mcp-authorization-confused-deputy",
         "mcp-tool-misuse",
-        "memory-or-skill-compromise"
+        "memory-or-skill-compromise",
+        "uninstructed-control-compromise"
       ],
       "containment_actions": [
         "pause_agent_run",
@@ -1090,6 +1164,7 @@
         "disable_remote_agent_or_handoff_profile",
         "quarantine_memory_or_skill_artifact",
         "require_incident_commander_and_risk_owner_review",
+        "isolate_agent_from_monitors_and_verify_containment_before_resume",
         "review_3_workflow_mcp_namespaces"
       ],
       "default_response_decision": "kill_session_and_escalate_board",
@@ -1131,7 +1206,8 @@
         "identity-scope-abuse",
         "mcp-authorization-confused-deputy",
         "mcp-tool-misuse",
-        "memory-or-skill-compromise"
+        "memory-or-skill-compromise",
+        "uninstructed-control-compromise"
       ],
       "containment_actions": [
         "pause_agent_run",
@@ -1144,6 +1220,7 @@
         "disable_remote_agent_or_handoff_profile",
         "quarantine_memory_or_skill_artifact",
         "require_incident_commander_and_risk_owner_review",
+        "isolate_agent_from_monitors_and_verify_containment_before_resume",
         "review_3_workflow_mcp_namespaces"
       ],
       "default_response_decision": "kill_session_and_escalate_board",
