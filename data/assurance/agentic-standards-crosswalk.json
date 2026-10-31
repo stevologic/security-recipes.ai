@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-09-28",
+  "last_reviewed": "2026-10-31",
   "intent": "Create an enterprise buyer and AI-platform standards crosswalk for SecurityRecipes so OWASP Agentic Top 10, CSA AI Controls Matrix, NIST AI agent guidance, MCP authorization requirements, critical-infrastructure AI expectations, and frontier-lab prompt-injection defenses map directly to generated evidence packs, MCP tools, and runtime decision surfaces.",
   "positioning": {
     "buyer": "AI Platform, Product Security, AppSec, GRC, procurement security, model-risk, and acquisition diligence teams",
@@ -222,6 +222,15 @@
       "url": "https://cloudsecurityalliance.org/press-releases/2026/04/29/csai-foundation-announces-key-milestones-to-secure-the-agentic-control-plane",
       "source_class": "industry_standard",
       "why_it_matters": "CSA's 2026 catastrophic-risk work makes loss of human oversight, uncontrolled system behavior, and irreversible large-scale consequences explicit buyer and auditor concerns for agentic AI."
+    },
+    {
+      "id": "cisa-ai-token-consumption-2026",
+      "name": "Managing AI Token Consumption for Operational Resilience (ITSM.00.125)",
+      "publisher": "CISA, Canadian Centre for Cyber Security, Australian Cyber Security Centre, UK NCSC, and New Zealand NCSC",
+      "published": "2026-10-23",
+      "url": "https://www.cyber.gc.ca/en/guidance/managing-ai-token-consumption-operational-resilience-itsm00125",
+      "source_class": "government_guidance",
+      "why_it_matters": "Five Eyes October 2026 guidance treats unmanaged AI token consumption as an operational resilience and security issue: agentic workflows compound usage, denial-of-tokens and denial-of-wallet attacks can exhaust quotas, and unusual token spikes can indicate data exfiltration."
     }
   ],
   "capabilities": [
@@ -445,6 +454,20 @@
         "recipes_agentic_soc_detection_pack"
       ],
       "commercial_value": "Packages SIEM-ready detections and alert decisions for agentic AI, MCP, telemetry, policy, and egress failure modes."
+    },
+    {
+      "id": "model-provider-routing-gate",
+      "title": "Model Provider Routing Gate",
+      "status": "implemented",
+      "evidence_paths": [
+        "data/assurance/model-provider-routing-profile.json",
+        "data/evidence/model-provider-routing-pack.json",
+        "content/security-remediation/model-provider-routing-gate/_index.md"
+      ],
+      "mcp_tools": [
+        "recipes_model_provider_routing_pack"
+      ],
+      "commercial_value": "Chooses a right-sized, multi-provider model route before context crosses a frontier, local, or unsanctioned model boundary, which is how token budgets and outage failover become inspectable."
     },
     {
       "id": "workflow-control-plane",
@@ -1158,10 +1181,11 @@
       "source_ids": [
         "nist-critical-infrastructure-ai-profile-2026",
         "nist-ai-rmf-2026",
-        "nist-ai-600-1"
+        "nist-ai-600-1",
+        "cisa-ai-token-consumption-2026"
       ],
-      "buyer_question": "Can SecurityRecipes show the resilience, monitoring, fail-safe, and accountability evidence expected for high-impact or critical-infrastructure AI deployments?",
-      "minimum_required_controls": 3,
+      "buyer_question": "Can SecurityRecipes show the resilience, monitoring, fail-safe, token-budget, and accountability evidence expected for high-impact or critical-infrastructure AI deployments?",
+      "minimum_required_controls": 5,
       "controls": [
         {
           "id": "NIST-CI-01",
@@ -1179,7 +1203,7 @@
         {
           "id": "NIST-CI-02",
           "title": "Operational Monitoring and Response",
-          "objective": "Detect agentic failures through telemetry, SOC detections, measurement probes, and incident response playbooks before unsafe behavior becomes systemic.",
+          "objective": "Detect agentic failures through telemetry, SOC detections, measurement probes, token-usage alerts, and incident response playbooks before unsafe behavior becomes systemic.",
           "required_capability_ids": [
             "agentic-telemetry-contract",
             "agentic-soc-detection-pack",
@@ -1187,7 +1211,7 @@
             "agentic-incident-response-pack"
           ],
           "diligence_question": "Which evidence shows a high-impact agentic incident can be detected, classified, contained, and replayed?",
-          "evidence_expectation": "Telemetry, SOC detection, probe, and incident artifacts define trace fields, alert logic, source events, containment actions, replay cases, and recertification gates."
+          "evidence_expectation": "Telemetry, SOC detection, probe, and incident artifacts define trace fields, alert logic, source events, token-budget signals, containment actions, replay cases, and recertification gates."
         },
         {
           "id": "NIST-CI-03",
@@ -1201,6 +1225,32 @@
           ],
           "diligence_question": "Can high-impact buyers see why a workflow is allowed to scale after model, context, connector, or policy change?",
           "evidence_expectation": "Readiness, assurance, trust-center, and connector intake artifacts expose promotion gates, owner review, source hashes, connector decisions, residual risks, and buyer-readable evidence paths."
+        },
+        {
+          "id": "NIST-CI-04",
+          "title": "Prioritize and Bound AI Token Consumption",
+          "objective": "Allocate model and agent token budget by mission-critical, operational, and productivity tiers, right-size the model route, and hold unbounded agentic reprocessing before it starves cyber-defense or incident-response capacity.",
+          "required_capability_ids": [
+            "agentic-action-runtime-pack",
+            "model-provider-routing-gate",
+            "agentic-readiness-scorecard",
+            "mcp-gateway-policy"
+          ],
+          "diligence_question": "What keeps a low-priority agent loop from exhausting the token quota needed for incident response or other mission-critical work?",
+          "evidence_expectation": "Action-runtime, model-routing, readiness, and gateway evidence show workflow budget limits, provider and model class, scale gates, and hold or kill decisions when agentic reprocessing compounds token use."
+        },
+        {
+          "id": "NIST-CI-05",
+          "title": "Detect Denial-of-Tokens, Denial-of-Wallet, and Token-Spike Exfiltration",
+          "objective": "Treat unusual token spikes, quota exhaustion, and agentic cost runaway as security and resilience signals, with progressive 70/80/90 percent alerts, SIEM correlation, and gateway or proxy quotas.",
+          "required_capability_ids": [
+            "agentic-soc-detection-pack",
+            "agentic-telemetry-contract",
+            "agentic-measurement-probe-pack",
+            "mcp-gateway-policy"
+          ],
+          "diligence_question": "Can the SOC see a denial-of-wallet loop or a token spike that looks like exfiltration before the quota is gone?",
+          "evidence_expectation": "SOC detection, telemetry, probe, and gateway artifacts record budget.tokens_pct, loop.iteration_count, 90 percent critical alerts, SIEM-ready queries, and investigate or pause decisions for unbounded consumption."
         }
       ]
     },
@@ -1387,7 +1437,7 @@
         "csa-ai-controls-matrix-2025",
         "csa-catastrophic-risk-annex-2026"
       ],
-      "answer_contract": "Return fail-safe action boundaries, monitoring evidence, incident response, readiness gates, and buyer-readable proof for high-impact AI deployment review."
+      "answer_contract": "Return fail-safe action boundaries, monitoring evidence, incident response, token-consumption budgets, denial-of-wallet detections, readiness gates, and buyer-readable proof for high-impact AI deployment review."
     }
   ]
 }
