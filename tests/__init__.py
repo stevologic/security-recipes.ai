@@ -2,8 +2,9 @@
 
 Importing this package installs a process-wide hermetic socket guard so no
 discovered test can open a real outbound connection to hosts such as api.x.ai.
-``python -m unittest discover -s tests -t .`` loads this module; a direct
-``python tests/test_x.py`` run does not.
+``python -m unittest discover -s tests -t .`` loads this module. A direct
+``python tests/x.py`` run, or ``python -m unittest discover -s tests``
+without ``-t .``, does not.
 """
 
 from __future__ import annotations
