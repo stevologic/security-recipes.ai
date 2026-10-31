@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import ipaddress
 import socket
+import _socket
 from collections.abc import Callable
 from typing import Any
 
@@ -23,6 +24,9 @@ _ORIGINAL_SOCKET_SENDTO: Callable[..., Any] = socket.socket.sendto
 _ORIGINAL_SOCKET_SENDMSG: Callable[..., Any] = socket.socket.sendmsg
 _ORIGINAL_CREATE_CONNECTION: Callable[..., Any] = socket.create_connection
 _ORIGINAL_GETADDRINFO: Callable[..., Any] = socket.getaddrinfo
+_ORIGINAL_GETHOSTBYNAME: Callable[..., Any] = socket.gethostbyname
+_ORIGINAL_GETHOSTBYNAME_EX: Callable[..., Any] = socket.gethostbyname_ex
+_ORIGINAL_C_SOCKET: type = _socket.socket
 _GUARD_INSTALLED = False
 
 
@@ -150,15 +154,66 @@ def _guarded_getaddrinfo(
     return _ORIGINAL_GETADDRINFO(host, port, family, type, proto, flags)
 
 
+@_mark
+def _guarded_gethostbyname(host: object) -> str:
+    _reject_if_remote_host(host)
+    return _ORIGINAL_GETHOSTBYNAME(host)
+
+
+@_mark
+def _guarded_gethostbyname_ex(host: object) -> tuple[str, list[str], list[str]]:
+    _reject_if_remote_host(host)
+    return _ORIGINAL_GETHOSTBYNAME_EX(host)
+
+
+class _GuardedRawSocket(_ORIGINAL_C_SOCKET):
+    """``_socket.socket`` subclass that rejects non-loopback peers."""
+
+    _hermetic_guard = True
+
+    @_mark
+    def connect(self, address: object) -> None:
+        _reject_if_remote(address)
+        return _ORIGINAL_C_SOCKET.connect(self, address)
+
+    @_mark
+    def connect_ex(self, address: object) -> int:
+        _reject_if_remote(address)
+        return _ORIGINAL_C_SOCKET.connect_ex(self, address)
+
+    @_mark
+    def sendto(self, data: object, *args: object) -> int:
+        if args:
+            _reject_if_remote(args[-1])
+        return _ORIGINAL_C_SOCKET.sendto(self, data, *args)
+
+    @_mark
+    def sendmsg(
+        self,
+        buffers: object,
+        ancdata: object = None,
+        flags: int = 0,
+        address: object = None,
+    ) -> int:
+        if address is not None:
+            _reject_if_remote(address)
+        return _ORIGINAL_C_SOCKET.sendmsg(self, buffers, ancdata, flags, address)
+
+
 def guard_is_active() -> bool:
     """Return True when the live socket module is wrapped by this guard."""
     return bool(
         getattr(socket.create_connection, "_hermetic_guard", False)
         and getattr(socket.getaddrinfo, "_hermetic_guard", False)
+        and getattr(socket.gethostbyname, "_hermetic_guard", False)
+        and getattr(socket.gethostbyname_ex, "_hermetic_guard", False)
         and getattr(socket.socket.connect, "_hermetic_guard", False)
         and getattr(socket.socket.connect_ex, "_hermetic_guard", False)
         and getattr(socket.socket.sendto, "_hermetic_guard", False)
         and getattr(socket.socket.sendmsg, "_hermetic_guard", False)
+        and getattr(_socket.socket, "_hermetic_guard", False)
+        and getattr(_socket.gethostbyname, "_hermetic_guard", False)
+        and getattr(_socket.gethostbyname_ex, "_hermetic_guard", False)
     )
 
 
@@ -173,7 +228,9 @@ def install_hermetic_socket_guard() -> None:
     socket.socket.sendmsg = _guarded_socket_sendmsg  # type: ignore[method-assign]
     socket.create_connection = _guarded_create_connection  # type: ignore[assignment]
     socket.getaddrinfo = _guarded_getaddrinfo  # type: ignore[assignment]
+    socket.gethostbyname = _guarded_gethostbyname  # type: ignore[assignment]
+    socket.gethostbyname_ex = _guarded_gethostbyname_ex  # type: ignore[assignment]
+    _socket.gethostbyname = _guarded_gethostbyname  # type: ignore[assignment]
+    _socket.gethostbyname_ex = _guarded_gethostbyname_ex  # type: ignore[assignment]
+    _socket.socket = _GuardedRawSocket  # type: ignore[misc]
     _GUARD_INSTALLED = True
-
-
-install_hermetic_socket_guard()

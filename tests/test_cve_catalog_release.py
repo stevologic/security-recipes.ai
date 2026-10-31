@@ -1068,13 +1068,16 @@ class CVECatalogReleaseTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             catalog = write_catalog(root, "A")
-            shard = catalog / "shards/2026/0001.jsonl.gz"
             real_writer = release._write_deterministic_blob
 
             def mutate_then_write(files: list[release.CatalogFile], destination: Path) -> None:
-                payload = bytearray(shard.read_bytes())
+                pinned = next(item for item in files if item.relative == "shards/2026/0001.jsonl.gz")
+                payload = bytearray(pinned.path.read_bytes())
                 payload[-1] ^= 0x01
-                shard.write_bytes(payload)
+                pinned.path.write_bytes(payload)
+                # Keep the collected mtime so the identity tuple still matches
+                # and only the hashed-content re-check can reject the write.
+                os.utime(pinned.path, ns=(pinned.modified_ns, pinned.modified_ns))
                 real_writer(files, destination)
 
             with mock.patch.object(
