@@ -3,12 +3,12 @@ title: Agentic Standards Crosswalk
 linkTitle: Standards Crosswalk
 weight: 19
 date: 2026-05-04
-lastmod: 2026-09-28
+lastmod: 2026-10-31
 toc: true
 description: >
   Generate a standards-to-evidence map linking OWASP Agentic Top 10, CSA AI
-  Controls Matrix, NIST AI guidance, MCP authorization, and infrastructure
-  readiness.
+  Controls Matrix, NIST AI guidance, MCP authorization, infrastructure
+  readiness, and Five Eyes token-consumption resilience.
 sidebar:
   exclude: true
 breadcrumb_parent: /agentic-security/
@@ -21,7 +21,7 @@ and guidance are tracked, which SecurityRecipes capability covers each
 control, and which generated JSON or MCP tool proves it.
 {{< /callout >}}
 
-Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28), the current [security best practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices), and NIST's [August 27, 2026 agent identity guidance](https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation) on September 28, 2026. MCP `latest` still redirects to 2026-07-28. The 2025-06-18 security-best-practices page is kept as a historical source ID.
+Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28), the current [security best practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices), and Five Eyes [Managing AI Token Consumption for Operational Resilience (ITSM.00.125)](https://www.cyber.gc.ca/en/guidance/managing-ai-token-consumption-operational-resilience-itsm00125) on October 31, 2026. MCP `latest` still redirects to 2026-07-28. New Zealand NCSC lists the joint guidance as published 23 October 2026 and co-authored by CISA, ACSC, CCCS, and UK NCSC. The 2025-06-18 security-best-practices page is kept as a historical source ID. This editorial pass does not claim human review of the pack.
 
 SecurityRecipes is positioned as **the secure context layer for
 agentic AI**. That claim needs more than a strong homepage. Enterprise
@@ -41,8 +41,8 @@ generated artifact:
   poisoning, inter-agent communication, cascading failures, human-agent
   trust exploitation, rogue agents, MCP token safety, scope
   minimization, sandboxing, AI governance, shared responsibility,
-  telemetry/SOC readiness, critical-infrastructure readiness, and secure
-  prompt-injection defenses.
+  telemetry/SOC readiness, critical-infrastructure readiness, token-budget
+  and denial-of-wallet detections, and secure prompt-injection defenses.
 - Capability mappings to the Secure Context Trust Pack, Context
   Poisoning Guard, MCP Gateway Policy, MCP Authorization Conformance,
   Agent Identity Ledger, Run Receipts, Red-Team Drills, Measurement
@@ -85,7 +85,7 @@ answer a reviewer's first hard questions:
 | How does this map to enterprise AI control frameworks? | CSA AI Controls Matrix-style governance, data lifecycle, access, monitoring, supply-chain, and resilience controls map to generated evidence. |
 | How does this track NIST agent and GenAI guidance? | Identity, protocols, security evaluations, governance, access constraints, monitoring, data provenance, and lifecycle risk map to evidence artifacts. |
 | How are prompt-injection defenses made operational? | Context poisoning scans, egress decisions, handoff boundaries, sandboxed tool use, red-team replay, and readiness checks are linked to frontier-lab guidance. |
-| What changes for high-impact deployments? | Critical-infrastructure readiness maps fail-safe action boundaries, operational monitoring, incident response, and lifecycle change control to MCP-readable evidence. |
+| What changes for high-impact deployments? | Critical-infrastructure readiness maps fail-safe action boundaries, operational monitoring, incident response, token-budget tiers, denial-of-wallet detections, and lifecycle change control to MCP-readable evidence. |
 | What should a diligence team inspect first? | The generated crosswalk returns standards, controls, sources, evidence paths, MCP tools, and vendorization hooks in one packet. |
 
 ## Core mappings
@@ -96,7 +96,8 @@ answer a reviewer's first hard questions:
 | MCP Authorization and Security | MCP Authorization Conformance, MCP Gateway Policy, Connector Intake, Connector Trust, STDIO Launch Boundary, Context Egress Boundary |
 | CSA AI Controls Matrix | Agentic Assurance Pack, Enterprise Trust Center Export, Secure Context Trust Pack, Entitlement Review, Telemetry Contract, SOC Detection Pack |
 | NIST agent and GenAI risk guidance | Agent Identity Ledger, Agentic System BOM, Agentic Assurance Pack, Measurement Probes, Red-Team Drills, Enterprise Trust Center Export |
-| NIST critical-infrastructure AI readiness | Catastrophic Risk Annex, Action Runtime Pack, Approval Receipts, Telemetry Contract, SOC Detection Pack, Incident Response Pack |
+| NIST critical-infrastructure AI readiness | Catastrophic Risk Annex, Action Runtime Pack, Approval Receipts, Telemetry Contract, SOC Detection Pack, Incident Response Pack, Model Provider Routing Gate |
+| Five Eyes AI token-consumption resilience | Action Runtime Pack, Model Provider Routing Gate, SOC Detection Pack, Telemetry Contract, Measurement Probes, MCP Gateway Policy, Readiness Scorecard |
 | Frontier-lab prompt-injection defenses | Context Poisoning Guard, Context Egress Boundary, Run Receipts, Handoff Boundary, Action Runtime Pack, Telemetry Contract, Red-Team Drills, Readiness Scorecard |
 
 ## MCP examples
@@ -158,6 +159,7 @@ Review and regenerate the crosswalk when these sources change:
 - [OpenAI guidance on designing agents to resist prompt injection](https://openai.com/index/designing-agents-to-resist-prompt-injection/)
 - [OpenAI Agents SDK guardrails](https://openai.github.io/openai-agents-js/guides/guardrails/)
 - [Anthropic prompt-injection defenses for browser use](https://www.anthropic.com/news/prompt-injection-defenses)
+- [Managing AI Token Consumption for Operational Resilience (ITSM.00.125)](https://www.cyber.gc.ca/en/guidance/managing-ai-token-consumption-operational-resilience-itsm00125)
 
 ## See also
 
@@ -167,3 +169,5 @@ Review and regenerate the crosswalk when these sources change:
 - [MCP Authorization Conformance]({{< relref "/security-remediation/mcp-authorization-conformance" >}})
 - [Context Poisoning Guard]({{< relref "/security-remediation/context-poisoning-guard" >}})
 - [Agentic Run Receipts]({{< relref "/security-remediation/agentic-run-receipts" >}})
+- [Agentic SOC Detection Pack]({{< relref "/security-remediation/agentic-soc-detection-pack" >}})
+- [Model Provider Routing Gate]({{< relref "/security-remediation/model-provider-routing-gate" >}})

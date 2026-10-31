@@ -1034,7 +1034,7 @@
       "title": "Acquisition Diligence"
     },
     {
-      "answer_contract": "Return fail-safe action boundaries, monitoring evidence, incident response, readiness gates, and buyer-readable proof for high-impact AI deployment review.",
+      "answer_contract": "Return fail-safe action boundaries, monitoring evidence, incident response, token-consumption budgets, denial-of-wallet detections, readiness gates, and buyer-readable proof for high-impact AI deployment review.",
       "id": "critical-infrastructure-readiness",
       "question": "Which controls support high-impact or critical-infrastructure AI review before production use?",
       "required_standard_ids": [
@@ -1044,9 +1044,9 @@
       ],
       "standards": [
         {
-          "buyer_question": "Can SecurityRecipes show the resilience, monitoring, fail-safe, and accountability evidence expected for high-impact or critical-infrastructure AI deployments?",
-          "capability_count": 12,
-          "control_count": 3,
+          "buyer_question": "Can SecurityRecipes show the resilience, monitoring, fail-safe, token-budget, and accountability evidence expected for high-impact or critical-infrastructure AI deployments?",
+          "capability_count": 14,
+          "control_count": 5,
           "coverage_score": 100.0,
           "id": "nist-critical-infrastructure-ai-profile-2026",
           "kind": "critical_infrastructure_ai_readiness",
@@ -1062,13 +1062,16 @@
             "recipes_agentic_soc_detection_pack",
             "recipes_agentic_telemetry_contract",
             "recipes_enterprise_trust_center_export",
-            "recipes_mcp_connector_intake_pack"
+            "recipes_mcp_connector_intake_pack",
+            "recipes_mcp_gateway_policy",
+            "recipes_model_provider_routing_pack"
           ],
-          "ready_control_count": 3,
+          "ready_control_count": 5,
           "source_ids": [
             "nist-critical-infrastructure-ai-profile-2026",
             "nist-ai-rmf-2026",
-            "nist-ai-600-1"
+            "nist-ai-600-1",
+            "cisa-ai-token-consumption-2026"
           ],
           "sources": [
             {
@@ -1094,6 +1097,14 @@
               "publisher": "NIST",
               "source_class": "government_framework",
               "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence"
+            },
+            {
+              "id": "cisa-ai-token-consumption-2026",
+              "name": "Managing AI Token Consumption for Operational Resilience (ITSM.00.125)",
+              "published": "2026-10-23",
+              "publisher": "CISA, Canadian Centre for Cyber Security, Australian Cyber Security Centre, UK NCSC, and New Zealand NCSC",
+              "source_class": "government_guidance",
+              "url": "https://www.cyber.gc.ca/en/guidance/managing-ai-token-consumption-operational-resilience-itsm00125"
             }
           ],
           "status": "ready",
@@ -1388,10 +1399,11 @@
         "title": "Agentic Action Runtime Pack"
       },
       "capability_id": "agentic-action-runtime-pack",
-      "control_count": 3,
+      "control_count": 4,
       "control_ids": [
         "frontier-lab-prompt-injection-defenses::LAB-PI-06",
         "nist-critical-infrastructure-ai-profile-2026::NIST-CI-01",
+        "nist-critical-infrastructure-ai-profile-2026::NIST-CI-04",
         "csa-agentic-trust-framework-2026::CSA-ATF-04"
       ],
       "standard_count": 3,
@@ -1549,13 +1561,14 @@
         "title": "Agentic Measurement Probe Pack"
       },
       "capability_id": "agentic-measurement-probe-pack",
-      "control_count": 7,
+      "control_count": 8,
       "control_ids": [
         "owasp-agentic-top-10-2026::ASI08",
         "nist-agentic-ai-risk-management::NIST-AGENT-02",
         "frontier-lab-prompt-injection-defenses::LAB-PI-04",
         "csa-ai-controls-matrix-2025::CSA-AICM-04",
         "nist-critical-infrastructure-ai-profile-2026::NIST-CI-02",
+        "nist-critical-infrastructure-ai-profile-2026::NIST-CI-05",
         "csa-agentic-trust-framework-2026::CSA-ATF-05",
         "csa-catastrophic-risk-annex-2026::CSA-CR-02"
       ],
@@ -1576,7 +1589,7 @@
         "title": "Agentic Readiness Scorecard"
       },
       "capability_id": "agentic-readiness-scorecard",
-      "control_count": 7,
+      "control_count": 8,
       "control_ids": [
         "owasp-agentic-top-10-2026::ASI08",
         "owasp-agentic-top-10-2026::ASI10",
@@ -1584,6 +1597,7 @@
         "frontier-lab-prompt-injection-defenses::LAB-PI-04",
         "csa-ai-controls-matrix-2025::CSA-AICM-06",
         "nist-critical-infrastructure-ai-profile-2026::NIST-CI-03",
+        "nist-critical-infrastructure-ai-profile-2026::NIST-CI-04",
         "csa-catastrophic-risk-annex-2026::CSA-CR-01"
       ],
       "standard_count": 6,
@@ -1666,10 +1680,11 @@
         "title": "Agentic SOC Detection Pack"
       },
       "capability_id": "agentic-soc-detection-pack",
-      "control_count": 3,
+      "control_count": 4,
       "control_ids": [
         "csa-ai-controls-matrix-2025::CSA-AICM-04",
         "nist-critical-infrastructure-ai-profile-2026::NIST-CI-02",
+        "nist-critical-infrastructure-ai-profile-2026::NIST-CI-05",
         "csa-agentic-trust-framework-2026::CSA-ATF-02"
       ],
       "standard_count": 3,
@@ -1737,11 +1752,12 @@
         "title": "Agentic Telemetry Contract"
       },
       "capability_id": "agentic-telemetry-contract",
-      "control_count": 4,
+      "control_count": 5,
       "control_ids": [
         "frontier-lab-prompt-injection-defenses::LAB-PI-06",
         "csa-ai-controls-matrix-2025::CSA-AICM-04",
         "nist-critical-infrastructure-ai-profile-2026::NIST-CI-02",
+        "nist-critical-infrastructure-ai-profile-2026::NIST-CI-05",
         "csa-agentic-trust-framework-2026::CSA-ATF-02"
       ],
       "standard_count": 4,
@@ -1945,7 +1961,7 @@
         "title": "MCP Gateway Policy"
       },
       "capability_id": "mcp-gateway-policy",
-      "control_count": 15,
+      "control_count": 17,
       "control_ids": [
         "owasp-agentic-top-10-2026::ASI01",
         "owasp-agentic-top-10-2026::ASI02",
@@ -1960,10 +1976,12 @@
         "frontier-lab-prompt-injection-defenses::LAB-PI-03",
         "frontier-lab-prompt-injection-defenses::LAB-PI-05",
         "frontier-lab-prompt-injection-defenses::LAB-PI-06",
+        "nist-critical-infrastructure-ai-profile-2026::NIST-CI-04",
+        "nist-critical-infrastructure-ai-profile-2026::NIST-CI-05",
         "csa-agentic-trust-framework-2026::CSA-ATF-04",
         "csa-catastrophic-risk-annex-2026::CSA-CR-02"
       ],
-      "standard_count": 6,
+      "standard_count": 7,
       "status": "covered"
     },
     {
@@ -1989,6 +2007,29 @@
         "frontier-lab-prompt-injection-defenses::LAB-PI-03"
       ],
       "standard_count": 3,
+      "status": "covered"
+    },
+    {
+      "capability": {
+        "commercial_value": "Chooses a right-sized, multi-provider model route before context crosses a frontier, local, or unsanctioned model boundary, which is how token budgets and outage failover become inspectable.",
+        "evidence_paths": [
+          "data/assurance/model-provider-routing-profile.json",
+          "data/evidence/model-provider-routing-pack.json",
+          "content/security-remediation/model-provider-routing-gate/_index.md"
+        ],
+        "id": "model-provider-routing-gate",
+        "mcp_tools": [
+          "recipes_model_provider_routing_pack"
+        ],
+        "status": "implemented",
+        "title": "Model Provider Routing Gate"
+      },
+      "capability_id": "model-provider-routing-gate",
+      "control_count": 1,
+      "control_ids": [
+        "nist-critical-infrastructure-ai-profile-2026::NIST-CI-04"
+      ],
+      "standard_count": 1,
       "status": "covered"
     },
     {
@@ -6115,7 +6156,8 @@
       "source_ids": [
         "nist-critical-infrastructure-ai-profile-2026",
         "nist-ai-rmf-2026",
-        "nist-ai-600-1"
+        "nist-ai-600-1",
+        "cisa-ai-token-consumption-2026"
       ],
       "sources": [
         {
@@ -6141,6 +6183,14 @@
           "publisher": "NIST",
           "source_class": "government_framework",
           "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence"
+        },
+        {
+          "id": "cisa-ai-token-consumption-2026",
+          "name": "Managing AI Token Consumption for Operational Resilience (ITSM.00.125)",
+          "published": "2026-10-23",
+          "publisher": "CISA, Canadian Centre for Cyber Security, Australian Cyber Security Centre, UK NCSC, and New Zealand NCSC",
+          "source_class": "government_guidance",
+          "url": "https://www.cyber.gc.ca/en/guidance/managing-ai-token-consumption-operational-resilience-itsm00125"
         }
       ],
       "standard_id": "nist-critical-infrastructure-ai-profile-2026",
@@ -6200,7 +6250,7 @@
         }
       ],
       "diligence_question": "Which evidence shows a high-impact agentic incident can be detected, classified, contained, and replayed?",
-      "evidence_expectation": "Telemetry, SOC detection, probe, and incident artifacts define trace fields, alert logic, source events, containment actions, replay cases, and recertification gates.",
+      "evidence_expectation": "Telemetry, SOC detection, probe, and incident artifacts define trace fields, alert logic, source events, token-budget signals, containment actions, replay cases, and recertification gates.",
       "evidence_paths": [
         "data/evidence/agentic-incident-response-pack.json",
         "data/evidence/agentic-measurement-probe-pack.json",
@@ -6214,7 +6264,7 @@
         "recipes_agentic_soc_detection_pack",
         "recipes_agentic_telemetry_contract"
       ],
-      "objective": "Detect agentic failures through telemetry, SOC detections, measurement probes, and incident response playbooks before unsafe behavior becomes systemic.",
+      "objective": "Detect agentic failures through telemetry, SOC detections, measurement probes, token-usage alerts, and incident response playbooks before unsafe behavior becomes systemic.",
       "required_capability_ids": [
         "agentic-telemetry-contract",
         "agentic-soc-detection-pack",
@@ -6224,7 +6274,8 @@
       "source_ids": [
         "nist-critical-infrastructure-ai-profile-2026",
         "nist-ai-rmf-2026",
-        "nist-ai-600-1"
+        "nist-ai-600-1",
+        "cisa-ai-token-consumption-2026"
       ],
       "sources": [
         {
@@ -6250,6 +6301,14 @@
           "publisher": "NIST",
           "source_class": "government_framework",
           "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence"
+        },
+        {
+          "id": "cisa-ai-token-consumption-2026",
+          "name": "Managing AI Token Consumption for Operational Resilience (ITSM.00.125)",
+          "published": "2026-10-23",
+          "publisher": "CISA, Canadian Centre for Cyber Security, Australian Cyber Security Centre, UK NCSC, and New Zealand NCSC",
+          "source_class": "government_guidance",
+          "url": "https://www.cyber.gc.ca/en/guidance/managing-ai-token-consumption-operational-resilience-itsm00125"
         }
       ],
       "standard_id": "nist-critical-infrastructure-ai-profile-2026",
@@ -6333,7 +6392,8 @@
       "source_ids": [
         "nist-critical-infrastructure-ai-profile-2026",
         "nist-ai-rmf-2026",
-        "nist-ai-600-1"
+        "nist-ai-600-1",
+        "cisa-ai-token-consumption-2026"
       ],
       "sources": [
         {
@@ -6359,12 +6419,260 @@
           "publisher": "NIST",
           "source_class": "government_framework",
           "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence"
+        },
+        {
+          "id": "cisa-ai-token-consumption-2026",
+          "name": "Managing AI Token Consumption for Operational Resilience (ITSM.00.125)",
+          "published": "2026-10-23",
+          "publisher": "CISA, Canadian Centre for Cyber Security, Australian Cyber Security Centre, UK NCSC, and New Zealand NCSC",
+          "source_class": "government_guidance",
+          "url": "https://www.cyber.gc.ca/en/guidance/managing-ai-token-consumption-operational-resilience-itsm00125"
         }
       ],
       "standard_id": "nist-critical-infrastructure-ai-profile-2026",
       "standard_title": "NIST Critical-Infrastructure AI Profile Readiness",
       "status": "ready",
       "title": "Accountable Lifecycle and Change Control"
+    },
+    {
+      "capabilities": [
+        {
+          "commercial_value": "Controls high-impact autonomous actions through action classes, workflow envelopes, approval requirements, and deterministic runtime decisions.",
+          "evidence_paths": [
+            "data/evidence/agentic-action-runtime-pack.json"
+          ],
+          "id": "agentic-action-runtime-pack",
+          "mcp_tools": [
+            "recipes_agentic_action_runtime_pack"
+          ],
+          "status": "implemented",
+          "title": "Agentic Action Runtime Pack"
+        },
+        {
+          "commercial_value": "Chooses a right-sized, multi-provider model route before context crosses a frontier, local, or unsanctioned model boundary, which is how token budgets and outage failover become inspectable.",
+          "evidence_paths": [
+            "data/assurance/model-provider-routing-profile.json",
+            "data/evidence/model-provider-routing-pack.json",
+            "content/security-remediation/model-provider-routing-gate/_index.md"
+          ],
+          "id": "model-provider-routing-gate",
+          "mcp_tools": [
+            "recipes_model_provider_routing_pack"
+          ],
+          "status": "implemented",
+          "title": "Model Provider Routing Gate"
+        },
+        {
+          "commercial_value": "Turns scale decisions into evidence-backed pilot, gate, block, or scale outcomes.",
+          "evidence_paths": [
+            "data/evidence/agentic-readiness-scorecard.json"
+          ],
+          "id": "agentic-readiness-scorecard",
+          "mcp_tools": [
+            "recipes_agentic_readiness_scorecard"
+          ],
+          "status": "implemented",
+          "title": "Agentic Readiness Scorecard"
+        },
+        {
+          "commercial_value": "Enforces default-deny MCP tool access, approval holds, scoped branch writes, and runtime kill decisions.",
+          "evidence_paths": [
+            "data/policy/mcp-gateway-policy.json"
+          ],
+          "id": "mcp-gateway-policy",
+          "mcp_tools": [
+            "recipes_mcp_gateway_policy"
+          ],
+          "status": "implemented",
+          "title": "MCP Gateway Policy"
+        }
+      ],
+      "diligence_question": "What keeps a low-priority agent loop from exhausting the token quota needed for incident response or other mission-critical work?",
+      "evidence_expectation": "Action-runtime, model-routing, readiness, and gateway evidence show workflow budget limits, provider and model class, scale gates, and hold or kill decisions when agentic reprocessing compounds token use.",
+      "evidence_paths": [
+        "content/security-remediation/model-provider-routing-gate/_index.md",
+        "data/assurance/model-provider-routing-profile.json",
+        "data/evidence/agentic-action-runtime-pack.json",
+        "data/evidence/agentic-readiness-scorecard.json",
+        "data/evidence/model-provider-routing-pack.json",
+        "data/policy/mcp-gateway-policy.json"
+      ],
+      "id": "NIST-CI-04",
+      "mcp_tools": [
+        "recipes_agentic_action_runtime_pack",
+        "recipes_agentic_readiness_scorecard",
+        "recipes_mcp_gateway_policy",
+        "recipes_model_provider_routing_pack"
+      ],
+      "objective": "Allocate model and agent token budget by mission-critical, operational, and productivity tiers, right-size the model route, and hold unbounded agentic reprocessing before it starves cyber-defense or incident-response capacity.",
+      "required_capability_ids": [
+        "agentic-action-runtime-pack",
+        "model-provider-routing-gate",
+        "agentic-readiness-scorecard",
+        "mcp-gateway-policy"
+      ],
+      "source_ids": [
+        "nist-critical-infrastructure-ai-profile-2026",
+        "nist-ai-rmf-2026",
+        "nist-ai-600-1",
+        "cisa-ai-token-consumption-2026"
+      ],
+      "sources": [
+        {
+          "id": "nist-critical-infrastructure-ai-profile-2026",
+          "name": "AI RMF Profile for Trustworthy AI in Critical Infrastructure Concept Note",
+          "published": "2026-04-07",
+          "publisher": "NIST",
+          "source_class": "government_framework",
+          "url": "https://www.nist.gov/itl/ai-risk-management-framework"
+        },
+        {
+          "id": "nist-ai-rmf-2026",
+          "name": "NIST AI Risk Management Framework",
+          "published": "2026-04-07",
+          "publisher": "NIST",
+          "source_class": "government_framework",
+          "url": "https://www.nist.gov/itl/ai-risk-management-framework"
+        },
+        {
+          "id": "nist-ai-600-1",
+          "name": "Artificial Intelligence Risk Management Framework: Generative Artificial Intelligence Profile",
+          "published": "2024-07-26",
+          "publisher": "NIST",
+          "source_class": "government_framework",
+          "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence"
+        },
+        {
+          "id": "cisa-ai-token-consumption-2026",
+          "name": "Managing AI Token Consumption for Operational Resilience (ITSM.00.125)",
+          "published": "2026-10-23",
+          "publisher": "CISA, Canadian Centre for Cyber Security, Australian Cyber Security Centre, UK NCSC, and New Zealand NCSC",
+          "source_class": "government_guidance",
+          "url": "https://www.cyber.gc.ca/en/guidance/managing-ai-token-consumption-operational-resilience-itsm00125"
+        }
+      ],
+      "standard_id": "nist-critical-infrastructure-ai-profile-2026",
+      "standard_title": "NIST Critical-Infrastructure AI Profile Readiness",
+      "status": "ready",
+      "title": "Prioritize and Bound AI Token Consumption"
+    },
+    {
+      "capabilities": [
+        {
+          "commercial_value": "Packages SIEM-ready detections and alert decisions for agentic AI, MCP, telemetry, policy, and egress failure modes.",
+          "evidence_paths": [
+            "data/evidence/agentic-soc-detection-pack.json"
+          ],
+          "id": "agentic-soc-detection-pack",
+          "mcp_tools": [
+            "recipes_agentic_soc_detection_pack"
+          ],
+          "status": "implemented",
+          "title": "Agentic SOC Detection Pack"
+        },
+        {
+          "commercial_value": "Defines OpenTelemetry-shaped trace evidence for agent, model, MCP, context, policy, egress, approval, verifier, incident, and redaction events.",
+          "evidence_paths": [
+            "data/evidence/agentic-telemetry-contract.json"
+          ],
+          "id": "agentic-telemetry-contract",
+          "mcp_tools": [
+            "recipes_agentic_telemetry_contract"
+          ],
+          "status": "implemented",
+          "title": "Agentic Telemetry Contract"
+        },
+        {
+          "commercial_value": "Measures traceability across context, identity, MCP authorization, egress, red-team, readiness, and receipts.",
+          "evidence_paths": [
+            "data/evidence/agentic-measurement-probe-pack.json"
+          ],
+          "id": "agentic-measurement-probe-pack",
+          "mcp_tools": [
+            "recipes_agentic_measurement_probe_pack"
+          ],
+          "status": "implemented",
+          "title": "Agentic Measurement Probe Pack"
+        },
+        {
+          "commercial_value": "Enforces default-deny MCP tool access, approval holds, scoped branch writes, and runtime kill decisions.",
+          "evidence_paths": [
+            "data/policy/mcp-gateway-policy.json"
+          ],
+          "id": "mcp-gateway-policy",
+          "mcp_tools": [
+            "recipes_mcp_gateway_policy"
+          ],
+          "status": "implemented",
+          "title": "MCP Gateway Policy"
+        }
+      ],
+      "diligence_question": "Can the SOC see a denial-of-wallet loop or a token spike that looks like exfiltration before the quota is gone?",
+      "evidence_expectation": "SOC detection, telemetry, probe, and gateway artifacts record budget.tokens_pct, loop.iteration_count, 90 percent critical alerts, SIEM-ready queries, and investigate or pause decisions for unbounded consumption.",
+      "evidence_paths": [
+        "data/evidence/agentic-measurement-probe-pack.json",
+        "data/evidence/agentic-soc-detection-pack.json",
+        "data/evidence/agentic-telemetry-contract.json",
+        "data/policy/mcp-gateway-policy.json"
+      ],
+      "id": "NIST-CI-05",
+      "mcp_tools": [
+        "recipes_agentic_measurement_probe_pack",
+        "recipes_agentic_soc_detection_pack",
+        "recipes_agentic_telemetry_contract",
+        "recipes_mcp_gateway_policy"
+      ],
+      "objective": "Treat unusual token spikes, quota exhaustion, and agentic cost runaway as security and resilience signals, with progressive 70/80/90 percent alerts, SIEM correlation, and gateway or proxy quotas.",
+      "required_capability_ids": [
+        "agentic-soc-detection-pack",
+        "agentic-telemetry-contract",
+        "agentic-measurement-probe-pack",
+        "mcp-gateway-policy"
+      ],
+      "source_ids": [
+        "nist-critical-infrastructure-ai-profile-2026",
+        "nist-ai-rmf-2026",
+        "nist-ai-600-1",
+        "cisa-ai-token-consumption-2026"
+      ],
+      "sources": [
+        {
+          "id": "nist-critical-infrastructure-ai-profile-2026",
+          "name": "AI RMF Profile for Trustworthy AI in Critical Infrastructure Concept Note",
+          "published": "2026-04-07",
+          "publisher": "NIST",
+          "source_class": "government_framework",
+          "url": "https://www.nist.gov/itl/ai-risk-management-framework"
+        },
+        {
+          "id": "nist-ai-rmf-2026",
+          "name": "NIST AI Risk Management Framework",
+          "published": "2026-04-07",
+          "publisher": "NIST",
+          "source_class": "government_framework",
+          "url": "https://www.nist.gov/itl/ai-risk-management-framework"
+        },
+        {
+          "id": "nist-ai-600-1",
+          "name": "Artificial Intelligence Risk Management Framework: Generative Artificial Intelligence Profile",
+          "published": "2024-07-26",
+          "publisher": "NIST",
+          "source_class": "government_framework",
+          "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence"
+        },
+        {
+          "id": "cisa-ai-token-consumption-2026",
+          "name": "Managing AI Token Consumption for Operational Resilience (ITSM.00.125)",
+          "published": "2026-10-23",
+          "publisher": "CISA, Canadian Centre for Cyber Security, Australian Cyber Security Centre, UK NCSC, and New Zealand NCSC",
+          "source_class": "government_guidance",
+          "url": "https://www.cyber.gc.ca/en/guidance/managing-ai-token-consumption-operational-resilience-itsm00125"
+        }
+      ],
+      "standard_id": "nist-critical-infrastructure-ai-profile-2026",
+      "standard_title": "NIST Critical-Infrastructure AI Profile Readiness",
+      "status": "ready",
+      "title": "Detect Denial-of-Tokens, Denial-of-Wallet, and Token-Spike Exfiltration"
     },
     {
       "capabilities": [
@@ -7346,17 +7654,18 @@
     }
   ],
   "crosswalk_summary": {
-    "capability_count": 34,
-    "control_count": 45,
+    "capability_count": 35,
+    "control_count": 47,
     "control_status_counts": {
-      "ready": 45
+      "ready": 47
     },
-    "covered_capability_count": 34,
-    "distinct_mcp_tool_count": 34,
+    "covered_capability_count": 35,
+    "distinct_mcp_tool_count": 35,
     "failure_count": 0,
     "source_class_counts": {
       "frontier_lab_guidance": 4,
       "government_framework": 5,
+      "government_guidance": 1,
       "government_security_signal": 1,
       "incident_intelligence": 1,
       "industry_framework": 1,
@@ -7364,7 +7673,7 @@
       "protocol_guidance": 2,
       "protocol_specification": 2
     },
-    "source_reference_count": 21,
+    "source_reference_count": 22,
     "standard_count": 8,
     "standard_status_counts": {
       "ready": 8
@@ -7384,7 +7693,7 @@
     "sales_motion": "Lead with open standards coverage, then sell hosted customer-specific evidence mapping, standards drift alerts, conformance APIs, and trust-center exports."
   },
   "failures": [],
-  "generated_at": "2026-09-28",
+  "generated_at": "2026-10-31",
   "intent": "Create an enterprise buyer and AI-platform standards crosswalk for SecurityRecipes so OWASP Agentic Top 10, CSA AI Controls Matrix, NIST AI agent guidance, MCP authorization requirements, critical-infrastructure AI expectations, and frontier-lab prompt-injection defenses map directly to generated evidence packs, MCP tools, and runtime decision surfaces.",
   "positioning": {
     "buyer": "AI Platform, Product Security, AppSec, GRC, procurement security, model-risk, and acquisition diligence teams",
@@ -7396,7 +7705,7 @@
   "source_artifacts": {
     "agentic_standards_crosswalk_profile": {
       "path": "data/assurance/agentic-standards-crosswalk.json",
-      "sha256": "81c14fffbb117b4e4b78e5e8837092e8b64d8164c2d45e8e3d691da43750dbf5"
+      "sha256": "2e874100e431c3d7298c131e6a8e09ef665f154e38eedaedc0b632ea5e257ae2"
     },
     "capability_evidence": [
       {
@@ -7405,7 +7714,11 @@
       },
       {
         "path": "content/security-remediation/agentic-standards-crosswalk/_index.md",
-        "sha256": "cdd0d9d93992efb283e6c89552d1245ddd4e5fa02e5085d8f3833bc3e8ff7621"
+        "sha256": "3c5958cceaf7a4d70061935140d903853f2b88bf4c3418f406273ce4e9108f8c"
+      },
+      {
+        "path": "content/security-remediation/model-provider-routing-gate/_index.md",
+        "sha256": "300a26b5f7f74d2ff5359e7b163fff5c3a6c2f0e8b66327fe259c1d6e376be60"
       },
       {
         "path": "data/assurance/agent-trust-fabric-profile.json",
@@ -7421,11 +7734,15 @@
       },
       {
         "path": "data/assurance/agentic-standards-crosswalk.json",
-        "sha256": "81c14fffbb117b4e4b78e5e8837092e8b64d8164c2d45e8e3d691da43750dbf5"
+        "sha256": "2e874100e431c3d7298c131e6a8e09ef665f154e38eedaedc0b632ea5e257ae2"
       },
       {
         "path": "data/assurance/enterprise-trust-center-profile.json",
         "sha256": "bf15312943eb8b78102df359f4394b5223aea4117807102c970835b194c8e515"
+      },
+      {
+        "path": "data/assurance/model-provider-routing-profile.json",
+        "sha256": "029028c707a6d2b4d3e6f92846580a52163b77d04542874ad51d62ccb688565a"
       },
       {
         "path": "data/control-plane/workflow-manifests.json",
@@ -7437,7 +7754,7 @@
       },
       {
         "path": "data/evidence/agent-handoff-boundary-pack.json",
-        "sha256": "b2bfd8e889ea2aa878d75959e95b71dacc8ca5b1375b9096b0305168cbd34558"
+        "sha256": "6bb2277811ee85fbf5fabf73c008ec2432eef2eae5132588775b3d57e2bd91f9"
       },
       {
         "path": "data/evidence/agent-identity-delegation-ledger.json",
@@ -7449,15 +7766,15 @@
       },
       {
         "path": "data/evidence/agent-skill-supply-chain-pack.json",
-        "sha256": "9d4847830aab9bea0b91ab958b25ba86143936d26c3aa5ec30ec22151268a179"
+        "sha256": "60efe99c9171481d8438afbe6073d3bf4596a40668c1df554aeec06c4489037d"
       },
       {
         "path": "data/evidence/agentic-action-runtime-pack.json",
-        "sha256": "e94d2c8d7c0eb83a320ab613bd9372c5749c749459d35c22e6b9b343b1f414ad"
+        "sha256": "3472cdb91a1af91a022bdc49a7a3829c1a52c49fbaf576ca6db639d9a610a5f0"
       },
       {
         "path": "data/evidence/agentic-approval-receipt-pack.json",
-        "sha256": "6c38553763108117a8f17b5aee6817b795ea0f45d40d9ab43b2e0d9f5baf7f16"
+        "sha256": "8242727e041345b8e4736379fd9d9db606be49e08412c0e1d4ff32a9eee12ef8"
       },
       {
         "path": "data/evidence/agentic-assurance-pack.json",
@@ -7465,19 +7782,19 @@
       },
       {
         "path": "data/evidence/agentic-catastrophic-risk-annex.json",
-        "sha256": "13b9d40e31be000bb564cf86b60b36eda3d313128279f3ff137ce9f52f19225d"
+        "sha256": "4e620bdcd4128ff57732b989a3abd46c124ab90f089abf7b6334cabbad6efb09"
       },
       {
         "path": "data/evidence/agentic-entitlement-review-pack.json",
-        "sha256": "c76a674561676ce084e061c2d51ead1b9e0b8ed969db208db78f77c09f730975"
+        "sha256": "ebc9d207f1789cf7275feddc6a67dd55ee2c858993ed6b5cba80d04bb3722097"
       },
       {
         "path": "data/evidence/agentic-incident-response-pack.json",
-        "sha256": "dcd1d054ac6984f52739d054b7e59285f76f970efad9a49d8e472f6ae8d18670"
+        "sha256": "77a996e30b404ba3e04f187b7b7aee90663a0b261ee2d7833d8b310db6b57cb9"
       },
       {
         "path": "data/evidence/agentic-measurement-probe-pack.json",
-        "sha256": "a75224036bb9ab4ab8cbbc348812540dc276d50f71c8ab34271387640979e752"
+        "sha256": "13163d15abc8b3a2659eabc3b47dd7c95497f3fd142cf8bda35c1b59af550386"
       },
       {
         "path": "data/evidence/agentic-readiness-scorecard.json",
@@ -7489,11 +7806,11 @@
       },
       {
         "path": "data/evidence/agentic-run-receipt-pack.json",
-        "sha256": "9ad3ec7623b48054f81c57c6bb47f1358fdea759d4f44be0d9b2d21fdab07952"
+        "sha256": "bf41ecf128daf86201193648d949bfd4a00f7f0d8ac0dff7d4a7cc6e08f23d84"
       },
       {
         "path": "data/evidence/agentic-soc-detection-pack.json",
-        "sha256": "fd3caa765825209774bfa87c2882d5546cc1d75aa314348a5bb4ec60cebdc991"
+        "sha256": "6269d73e94d686ffd71038c590e618c1a9105fdcf1c2dfc47b0441c5d05ac3ff"
       },
       {
         "path": "data/evidence/agentic-system-bom.json",
@@ -7501,19 +7818,19 @@
       },
       {
         "path": "data/evidence/agentic-telemetry-contract.json",
-        "sha256": "286e1691ec08b479ab0090e02efab87ff5522f6fe8e9348edfcca417ecfb0221"
+        "sha256": "9bee707d52705f6b567bb72ab01e6adedac98797aa47b1b9a5f0d4edcaba1add"
       },
       {
         "path": "data/evidence/agentic-threat-radar.json",
-        "sha256": "b815028534dc5fa273f430f5761b19b7b83bba051bacb3a88ad02ce3827f472d"
+        "sha256": "da20ad04a00be1da618798b6873330c093a40c119b81335a0f53855a102365a6"
       },
       {
         "path": "data/evidence/context-egress-boundary-pack.json",
-        "sha256": "cb6e9157964a9350bc99adcc1eb80e3a6e5092c19d513af07494ec0ff68930cc"
+        "sha256": "1ddbf154e3f3266ff07f043fe60091db7e0952f8c12e4fc69cc0dc8bdfad0d65"
       },
       {
         "path": "data/evidence/context-poisoning-guard-pack.json",
-        "sha256": "1a93e3966d97f230816ce6dfe785bf51d429676cdfac3eba459654ad284177b7"
+        "sha256": "9df99796dfa0427f3f7721f2b0bc63cdf6425f505173818d611f4a2cb231b700"
       },
       {
         "path": "data/evidence/mcp-authorization-conformance-pack.json",
@@ -7532,16 +7849,20 @@
         "sha256": "6e194b0c3778bf007f496d76d912f08f0c53c6e2bbb1dac7f4f070489ad71715"
       },
       {
+        "path": "data/evidence/model-provider-routing-pack.json",
+        "sha256": "dd07b9328a0d71da021b696ef2986c9ded46c417a747f2ab89c3316c72a8e375"
+      },
+      {
         "path": "data/evidence/secure-context-attestation-pack.json",
-        "sha256": "8e07743e0c5a3d28387a401748f0222a356aeaee103a5a460340e9fcff1f4d5b"
+        "sha256": "f6bbe7db204f29cf0af526397ff891de3584fd135e024bfca2295012d62befb5"
       },
       {
         "path": "data/evidence/secure-context-eval-pack.json",
-        "sha256": "23911c08a290aed61fe3a0248414984c6ae56a12d6b4725031d0cf9c7ed8e73a"
+        "sha256": "e864c73e8be79216b42a63b8f8bf0e16dde06c2a45aa83aa2b5a0a903fb1e72c"
       },
       {
         "path": "data/evidence/secure-context-trust-pack.json",
-        "sha256": "2b334ccfacdd9b5c8109fb091e37954fbc2eb050f733aa0058437841a0d1ec85"
+        "sha256": "52c52a6fc57a880f37971537ab6e939bb65eaf38907d2a4099eb8a18d4aa65f4"
       },
       {
         "path": "data/intelligence/agentic-threat-radar-sources.json",
@@ -7742,6 +8063,15 @@
       "source_class": "industry_standard",
       "url": "https://cloudsecurityalliance.org/press-releases/2026/04/29/csai-foundation-announces-key-milestones-to-secure-the-agentic-control-plane",
       "why_it_matters": "CSA's 2026 catastrophic-risk work makes loss of human oversight, uncontrolled system behavior, and irreversible large-scale consequences explicit buyer and auditor concerns for agentic AI."
+    },
+    {
+      "id": "cisa-ai-token-consumption-2026",
+      "name": "Managing AI Token Consumption for Operational Resilience (ITSM.00.125)",
+      "published": "2026-10-23",
+      "publisher": "CISA, Canadian Centre for Cyber Security, Australian Cyber Security Centre, UK NCSC, and New Zealand NCSC",
+      "source_class": "government_guidance",
+      "url": "https://www.cyber.gc.ca/en/guidance/managing-ai-token-consumption-operational-resilience-itsm00125",
+      "why_it_matters": "Five Eyes October 2026 guidance treats unmanaged AI token consumption as an operational resilience and security issue: agentic workflows compound usage, denial-of-tokens and denial-of-wallet attacks can exhaust quotas, and unusual token spikes can indicate data exfiltration."
     }
   ],
   "standards": [
@@ -8099,9 +8429,9 @@
       "title": "CSA AI Controls Matrix"
     },
     {
-      "buyer_question": "Can SecurityRecipes show the resilience, monitoring, fail-safe, and accountability evidence expected for high-impact or critical-infrastructure AI deployments?",
-      "capability_count": 12,
-      "control_count": 3,
+      "buyer_question": "Can SecurityRecipes show the resilience, monitoring, fail-safe, token-budget, and accountability evidence expected for high-impact or critical-infrastructure AI deployments?",
+      "capability_count": 14,
+      "control_count": 5,
       "coverage_score": 100.0,
       "id": "nist-critical-infrastructure-ai-profile-2026",
       "kind": "critical_infrastructure_ai_readiness",
@@ -8117,13 +8447,16 @@
         "recipes_agentic_soc_detection_pack",
         "recipes_agentic_telemetry_contract",
         "recipes_enterprise_trust_center_export",
-        "recipes_mcp_connector_intake_pack"
+        "recipes_mcp_connector_intake_pack",
+        "recipes_mcp_gateway_policy",
+        "recipes_model_provider_routing_pack"
       ],
-      "ready_control_count": 3,
+      "ready_control_count": 5,
       "source_ids": [
         "nist-critical-infrastructure-ai-profile-2026",
         "nist-ai-rmf-2026",
-        "nist-ai-600-1"
+        "nist-ai-600-1",
+        "cisa-ai-token-consumption-2026"
       ],
       "sources": [
         {
@@ -8149,6 +8482,14 @@
           "publisher": "NIST",
           "source_class": "government_framework",
           "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence"
+        },
+        {
+          "id": "cisa-ai-token-consumption-2026",
+          "name": "Managing AI Token Consumption for Operational Resilience (ITSM.00.125)",
+          "published": "2026-10-23",
+          "publisher": "CISA, Canadian Centre for Cyber Security, Australian Cyber Security Centre, UK NCSC, and New Zealand NCSC",
+          "source_class": "government_guidance",
+          "url": "https://www.cyber.gc.ca/en/guidance/managing-ai-token-consumption-operational-resilience-itsm00125"
         }
       ],
       "status": "ready",
