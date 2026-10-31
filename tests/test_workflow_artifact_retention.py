@@ -11,9 +11,10 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 WORKFLOWS = ROOT / ".github" / "workflows"
-COMPOSITE_ACTIONS = ROOT / ".github" / "actions"
+SKIP_DIRS = {".git", "node_modules", "public", ".venv", "__pycache__"}
 MAX_RETENTION_DAYS = 3
 UPLOAD_ARTIFACT_RE = re.compile(r"^actions/upload-artifact@\S+")
+RUN_CHECKS = ROOT / "scripts" / "run_checks.py"
 
 
 def iter_action_yaml_files() -> list[Path]:
@@ -21,9 +22,11 @@ def iter_action_yaml_files() -> list[Path]:
     if WORKFLOWS.is_dir():
         files.extend(WORKFLOWS.glob("*.yml"))
         files.extend(WORKFLOWS.glob("*.yaml"))
-    if COMPOSITE_ACTIONS.is_dir():
-        files.extend(COMPOSITE_ACTIONS.glob("**/action.yml"))
-        files.extend(COMPOSITE_ACTIONS.glob("**/action.yaml"))
+    for pattern in ("**/action.yml", "**/action.yaml", "**/*.yml", "**/*.yaml"):
+        for path in ROOT.glob(pattern):
+            if any(part in SKIP_DIRS for part in path.parts):
+                continue
+            files.append(path)
     return sorted({path for path in files if path.is_file()})
 
 
@@ -83,8 +86,23 @@ def retention_offenders(document: Any, source: str) -> list[str]:
     return offenders
 
 
+def _must_parse(path: Path) -> bool:
+    if path.name in {"action.yml", "action.yaml"}:
+        return True
+    try:
+        return path.parent == WORKFLOWS
+    except ValueError:
+        return False
+
+
 def scan_path_for_offenders(path: Path) -> tuple[int, list[str]]:
-    document = yaml.safe_load(path.read_text(encoding="utf-8"))
+    text = path.read_text(encoding="utf-8")
+    try:
+        document = yaml.safe_load(text)
+    except yaml.YAMLError:
+        if _must_parse(path):
+            raise
+        return 0, []
     found = 0
     offenders: list[str] = []
     rel = str(path.relative_to(ROOT))
@@ -100,6 +118,17 @@ def scan_path_for_offenders(path: Path) -> tuple[int, list[str]]:
 
 
 class WorkflowArtifactRetentionTests(unittest.TestCase):
+    def test_scan_covers_root_actions_and_github_workflows(self) -> None:
+        files = {str(path.relative_to(ROOT)) for path in iter_action_yaml_files()}
+        self.assertIn("actions/security-health/action.yml", files)
+        self.assertTrue(any(name.startswith(".github/workflows/") for name in files))
+        self.assertTrue(any(name.endswith("action.yml") or name.endswith("action.yaml") for name in files))
+
+    def test_run_checks_discovers_tests_as_a_package(self) -> None:
+        source = RUN_CHECKS.read_text(encoding="utf-8")
+        self.assertIn('"-s", "tests"', source)
+        self.assertIn('"-t", "."', source)
+
     def test_every_upload_artifact_step_sets_retention_days_of_3_or_less(self) -> None:
         offenders: list[str] = []
         found = 0
@@ -148,8 +177,8 @@ class WorkflowArtifactRetentionTests(unittest.TestCase):
             """
         )
         self.assertEqual(
-            retention_offenders(document, ".github/actions/mutant/action.yml"),
-            [".github/actions/mutant/action.yml runs.steps[0] retention-days=4"],
+            retention_offenders(document, "actions/x/action.yml"),
+            ["actions/x/action.yml runs.steps[0] retention-days=4"],
         )
 
 
