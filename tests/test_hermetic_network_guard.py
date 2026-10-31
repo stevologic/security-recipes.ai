@@ -27,7 +27,6 @@ class HermeticNetworkGuardTests(unittest.TestCase):
         original: Callable[..., Any],
         call: Callable[[], Any],
         *,
-        expect_error: tuple[type[BaseException], ...] = (),
         expected: Any = None,
     ) -> None:
         """Remove one patch and prove the original lookup is what runs."""
@@ -38,14 +37,35 @@ class HermeticNetworkGuardTests(unittest.TestCase):
                 result = call()
             except HermeticNetworkError:
                 self.fail(f"unpatched {name} lookup was still blocked")
-            except expect_error:
-                result = None
             else:
                 if expected is not None:
                     self.assertEqual(result, expected)
         finally:
             install_hermetic_socket_guard()
         self.assertTrue(getattr(getattr(module, name), "_hermetic_guard", False))
+
+    def _assert_unpatched_gethostbyaddr_reaches_stub(self, module: Any) -> None:
+        """Unpatch gethostbyaddr onto a stub original so no reverse-DNS runs."""
+        reached: list[object] = []
+        stub_result = ("stub.invalid", [], [TEST_NET_IP])
+
+        def stub(host: object) -> tuple[str, list[str], list[str]]:
+            reached.append(host)
+            return stub_result
+
+        saved_original = hn._ORIGINAL_GETHOSTBYADDR
+        hn._ORIGINAL_GETHOSTBYADDR = stub
+        try:
+            self._assert_unpatched_lookup_gets_through(
+                module,
+                "gethostbyaddr",
+                hn._ORIGINAL_GETHOSTBYADDR,
+                lambda: module.gethostbyaddr(TEST_NET_IP),
+                expected=stub_result,
+            )
+            self.assertEqual(reached, [TEST_NET_IP])
+        finally:
+            hn._ORIGINAL_GETHOSTBYADDR = saved_original
 
     def test_guard_is_active_on_the_live_socket_module(self) -> None:
         self.assertTrue(guard_is_active())
@@ -105,13 +125,7 @@ class HermeticNetworkGuardTests(unittest.TestCase):
         self.assertIn(TEST_NET_IP, str(raised.exception))
 
     def test_gethostbyaddr_lookup_gets_through_when_unpatched(self) -> None:
-        self._assert_unpatched_lookup_gets_through(
-            socket,
-            "gethostbyaddr",
-            hn._ORIGINAL_GETHOSTBYADDR,
-            lambda: socket.gethostbyaddr(TEST_NET_IP),
-            expect_error=(OSError,),
-        )
+        self._assert_unpatched_gethostbyaddr_reaches_stub(socket)
 
     def test_getnameinfo_lookup_gets_through_when_unpatched(self) -> None:
         self._assert_unpatched_lookup_gets_through(
@@ -132,13 +146,7 @@ class HermeticNetworkGuardTests(unittest.TestCase):
         )
 
     def test_raw_gethostbyaddr_lookup_gets_through_when_unpatched(self) -> None:
-        self._assert_unpatched_lookup_gets_through(
-            _socket,
-            "gethostbyaddr",
-            hn._ORIGINAL_GETHOSTBYADDR,
-            lambda: _socket.gethostbyaddr(TEST_NET_IP),
-            expect_error=(OSError,),
-        )
+        self._assert_unpatched_gethostbyaddr_reaches_stub(_socket)
 
     def test_raw_getnameinfo_lookup_gets_through_when_unpatched(self) -> None:
         if not hasattr(_socket, "getnameinfo"):
