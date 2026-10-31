@@ -89,6 +89,7 @@ class BuildDispatchWorkflowTests(unittest.TestCase):
         self.assertIn("sha256sum images.tar.gz", package_step)
         self.assertIn("image-identities.env", package_step)
         self.assertIn("actions/upload-artifact@", upload_step)
+        self.assertIn("retention-days: 1", upload_step)
         self.assertEqual(
             self.workflow.count(
                 "name: verified-deployment-images-${{ github.sha }}-"
