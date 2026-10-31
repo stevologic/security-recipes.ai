@@ -100,6 +100,50 @@ class AgentTrustFabricIdentityTests(unittest.TestCase):
             any("sender-constrained" in item for item in result["violations"])
         )
 
+    def test_unattenuated_subagent_delegation_is_denied(self) -> None:
+        result = evaluate_agent_trust_fabric_decision(
+            self.pack,
+            _trusted_request(unattenuated_subagent_delegation=True),
+        )
+        self.assertEqual(result["decision"], "deny_untrusted_agent")
+        self.assertFalse(result["allowed"])
+        self.assertTrue(
+            any("more authority than the parent" in item for item in result["violations"])
+        )
+
+    def test_standing_privilege_is_denied(self) -> None:
+        result = evaluate_agent_trust_fabric_decision(
+            self.pack,
+            _trusted_request(standing_privilege=True),
+        )
+        self.assertEqual(result["decision"], "deny_untrusted_agent")
+        self.assertFalse(result["allowed"])
+        self.assertTrue(
+            any("standing privilege" in item for item in result["violations"])
+        )
+
+    def test_model_driven_access_grant_is_denied(self) -> None:
+        result = evaluate_agent_trust_fabric_decision(
+            self.pack,
+            _trusted_request(model_driven_access_grant=True),
+        )
+        self.assertEqual(result["decision"], "deny_untrusted_agent")
+        self.assertFalse(result["allowed"])
+        self.assertTrue(
+            any("reasoning model" in item for item in result["violations"])
+        )
+
+    def test_agent_writable_evidence_kills_the_session(self) -> None:
+        result = evaluate_agent_trust_fabric_decision(
+            self.pack,
+            _trusted_request(agent_writable_evidence=True),
+        )
+        self.assertEqual(result["decision"], "kill_session_on_agent_trust_break")
+        self.assertFalse(result["allowed"])
+        self.assertTrue(
+            any("evidence logs" in item for item in result["violations"])
+        )
+
     def test_shared_human_credential_indicator_matches_kill_signal(self) -> None:
         result = evaluate_agent_trust_fabric_decision(
             self.pack,
@@ -115,6 +159,7 @@ class AgentTrustFabricIdentityTests(unittest.TestCase):
         }
         self.assertIn("nist-agentic-identity-foundation-2026", source_ids)
         self.assertIn("nist-nccoe-agentic-identity-comments-2026", source_ids)
+        self.assertIn("nist-agentic-identity-design-tenets-2026", source_ids)
 
 
 if __name__ == "__main__":

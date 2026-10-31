@@ -119,6 +119,7 @@ def normalize_request(runtime_request: dict[str, Any]) -> dict[str, Any]:
     for key in ["indicators", "mcp_namespaces", "requested_actions", "data_classes"]:
         request[key] = [str(item) for item in as_list(request.get(key)) if str(item).strip()]
     for key in [
+        "agent_writable_evidence",
         "context_poisoning_signal",
         "cross_tenant_context_access",
         "external_side_effect",
@@ -127,13 +128,16 @@ def normalize_request(runtime_request: dict[str, Any]) -> dict[str, Any]:
         "local_user_account_impersonation",
         "long_lived_static_credential",
         "missing_trace_context",
+        "model_driven_access_grant",
         "prompt_injection_signal",
         "repeated_denied_action",
         "scope_escalation",
         "secret_egress",
         "shared_human_credential",
+        "standing_privilege",
         "telemetry_redaction_failure",
         "token_passthrough",
+        "unattenuated_subagent_delegation",
         "unconstrained_bearer_token",
         "untrusted_context",
     ]:
@@ -188,6 +192,8 @@ def matched_kill_reasons(pack: dict[str, Any], request: dict[str, Any]) -> list[
         reasons.append("prompt-injection signal combined with external side effect")
     if request.get("untrusted_context") and request.get("high_impact_action"):
         reasons.append("untrusted context combined with high-impact autonomy")
+    if request.get("agent_writable_evidence"):
+        reasons.append("agent can write or modify its own evidence logs")
 
     for field in ["authorization_decision", "egress_decision", "action_runtime_decision", "telemetry_decision", "soc_decision"]:
         if decision_state(request.get(field)).startswith("kill") or "_kill" in decision_state(request.get(field)):
@@ -218,6 +224,10 @@ def score_dimensions(pack: dict[str, Any], request: dict[str, Any], missing: lis
         or request.get("long_lived_static_credential")
         or request.get("unconstrained_bearer_token")
         or request.get("local_user_account_impersonation")
+        or request.get("unattenuated_subagent_delegation")
+        or request.get("standing_privilege")
+        or request.get("model_driven_access_grant")
+        or request.get("agent_writable_evidence")
         or is_negative_decision(request.get("authorization_decision"))
     ):
         penalties_by_dimension["identity"] += 35
@@ -391,6 +401,42 @@ def evaluate_agent_trust_fabric_decision(pack: dict[str, Any], runtime_request: 
             violations=["agent authenticates with an unconstrained bearer token instead of a sender-constrained credential bound to its identity anchor"],
         )
 
+    if request.get("unattenuated_subagent_delegation"):
+        return decision_result(
+            decision="deny_untrusted_agent",
+            pack=pack,
+            request=request,
+            workflow=workflow,
+            score=min(score, 49),
+            dimensions=dimensions,
+            reason="sub-agent or downstream grant claimed more authority than the parent instead of an attenuated delegation",
+            violations=["sub-agent or downstream grant claims more authority than the parent"],
+        )
+
+    if request.get("standing_privilege"):
+        return decision_result(
+            decision="deny_untrusted_agent",
+            pack=pack,
+            request=request,
+            workflow=workflow,
+            score=min(score, 49),
+            dimensions=dimensions,
+            reason="agent retained standing privilege while idle instead of a just-in-time task-scoped grant",
+            violations=["agent retains standing privilege while idle instead of a just-in-time task-scoped grant"],
+        )
+
+    if request.get("model_driven_access_grant"):
+        return decision_result(
+            decision="deny_untrusted_agent",
+            pack=pack,
+            request=request,
+            workflow=workflow,
+            score=min(score, 49),
+            dimensions=dimensions,
+            reason="access grant was determined by the reasoning model instead of a separated deterministic policy engine",
+            violations=["access grant is determined by the reasoning model instead of a separated deterministic policy engine"],
+        )
+
     tier_ok, tier_reasons = requested_tier_allowed(pack, workflow, request, score)
     if not tier_ok:
         return decision_result(
@@ -497,8 +543,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--external-side-effect", action="store_true")
     parser.add_argument("--high-impact-action", action="store_true")
     parser.add_argument("--identity-used-after-revocation", action="store_true")
+    parser.add_argument("--agent-writable-evidence", action="store_true")
     parser.add_argument("--local-user-account-impersonation", action="store_true")
     parser.add_argument("--long-lived-static-credential", action="store_true")
+    parser.add_argument("--model-driven-access-grant", action="store_true")
+    parser.add_argument("--standing-privilege", action="store_true")
+    parser.add_argument("--unattenuated-subagent-delegation", action="store_true")
     parser.add_argument("--unconstrained-bearer-token", action="store_true")
     parser.add_argument("--missing-trace-context", action="store_true")
     parser.add_argument("--prompt-injection-signal", action="store_true")
@@ -519,6 +569,7 @@ def request_from_args(args: argparse.Namespace) -> dict[str, Any]:
     request: dict[str, Any] = {
         "action_runtime_decision": args.action_runtime_decision,
         "agent_id": args.agent_id,
+        "agent_writable_evidence": args.agent_writable_evidence,
         "authorization_decision": args.authorization_decision,
         "context_package_hash": args.context_package_hash,
         "context_poisoning_signal": args.context_poisoning_signal,
@@ -536,6 +587,7 @@ def request_from_args(args: argparse.Namespace) -> dict[str, Any]:
         "intent_summary": args.intent_summary,
         "mcp_namespaces": args.mcp_namespace,
         "missing_trace_context": args.missing_trace_context,
+        "model_driven_access_grant": args.model_driven_access_grant,
         "policy_pack_hash": args.policy_pack_hash,
         "prompt_injection_signal": args.prompt_injection_signal,
         "receipt_id": args.receipt_id,
@@ -549,6 +601,7 @@ def request_from_args(args: argparse.Namespace) -> dict[str, Any]:
         "secret_egress": args.secret_egress,
         "shared_human_credential": args.shared_human_credential,
         "soc_decision": args.soc_decision,
+        "standing_privilege": args.standing_privilege,
         "source_freshness_decision": args.source_freshness_decision,
         "telemetry_decision": args.telemetry_decision,
         "telemetry_event_id": args.telemetry_event_id,
@@ -556,6 +609,7 @@ def request_from_args(args: argparse.Namespace) -> dict[str, Any]:
         "tenant_id": args.tenant_id,
         "token_passthrough": args.token_passthrough,
         "trust_event_id": args.trust_event_id,
+        "unattenuated_subagent_delegation": args.unattenuated_subagent_delegation,
         "unconstrained_bearer_token": args.unconstrained_bearer_token,
         "untrusted_context": args.untrusted_context,
         "workflow_id": args.workflow_id,
