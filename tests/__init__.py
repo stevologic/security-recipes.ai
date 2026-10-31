@@ -1,8 +1,9 @@
 """Unittest package bootstrap.
 
 Importing this package installs a process-wide hermetic socket guard so no
-test can open a real outbound connection to hosts such as api.x.ai.
-``python -m unittest discover -s tests -t .`` loads this module first.
+discovered test can open a real outbound connection to hosts such as api.x.ai.
+``python -m unittest discover -s tests -t .`` loads this module; a direct
+``python tests/test_x.py`` run does not.
 """
 
 from __future__ import annotations

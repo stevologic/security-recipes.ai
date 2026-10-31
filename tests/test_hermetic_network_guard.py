@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import socket
+import _socket
 import unittest
 from urllib.request import urlopen
 
@@ -37,6 +38,33 @@ class HermeticNetworkGuardTests(unittest.TestCase):
         with self.assertRaises(HermeticNetworkError) as raised:
             socket.getaddrinfo("example.com", 443)
         self.assertIn("example.com", str(raised.exception))
+
+    def test_gethostbyname_for_example_com_is_blocked(self) -> None:
+        with self.assertRaises(HermeticNetworkError) as raised:
+            socket.gethostbyname("example.com")
+        self.assertIn("example.com", str(raised.exception))
+
+    def test_gethostbyname_ex_for_example_com_is_blocked(self) -> None:
+        with self.assertRaises(HermeticNetworkError) as raised:
+            socket.gethostbyname_ex("example.com")
+        self.assertIn("example.com", str(raised.exception))
+
+    def test_raw_socket_gethostbyname_is_blocked(self) -> None:
+        with self.assertRaises(HermeticNetworkError) as raised:
+            _socket.gethostbyname("example.com")
+        self.assertIn("example.com", str(raised.exception))
+
+    def test_raw_socket_connect_to_public_ip_is_blocked(self) -> None:
+        sock = _socket.socket(_socket.AF_INET, _socket.SOCK_STREAM)
+        try:
+            with self.assertRaises(HermeticNetworkError) as raised:
+                sock.connect(("1.1.1.1", 443))
+            self.assertIn("1.1.1.1", str(raised.exception))
+        finally:
+            sock.close()
+
+    def test_loopback_gethostbyname_still_works(self) -> None:
+        self.assertEqual(socket.gethostbyname("127.0.0.1"), "127.0.0.1")
 
     def test_udp_sendto_to_public_resolver_is_blocked(self) -> None:
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
