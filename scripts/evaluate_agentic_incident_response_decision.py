@@ -28,10 +28,13 @@ VALID_DECISIONS = {
 SEVERITY_ORDER = {"sev3": 1, "sev2": 2, "sev1": 3, "sev0": 4}
 KILL_DATA_CLASSES = {"api_key", "credential", "customer_data", "pci", "phi", "secret", "token"}
 KILL_SIGNALS = {
+    "agent_access_to_monitors",
     "credential_exfiltration",
     "cross_tenant_context",
     "funds_movement",
     "identity_after_revocation",
+    "monitor_outage",
+    "monitor_tampering",
     "production_write_without_approval",
     "raw_token_passthrough",
     "secret_handoff",
@@ -171,6 +174,12 @@ def normalize_request(runtime_request: dict[str, Any]) -> dict[str, Any]:
     request["token_passthrough"] = as_bool(request.get("token_passthrough"))
     request["identity_used_after_revocation"] = as_bool(request.get("identity_used_after_revocation"))
     request["customer_impact_confirmed"] = as_bool(request.get("customer_impact_confirmed"))
+    request["agent_can_access_monitors"] = as_bool(request.get("agent_can_access_monitors"))
+    request["monitor_tampering"] = as_bool(request.get("monitor_tampering"))
+    request["monitor_outage"] = as_bool(request.get("monitor_outage"))
+    request["resume_without_verified_containment"] = as_bool(
+        request.get("resume_without_verified_containment")
+    )
     request["runtime_kill_signal"] = str(request.get("runtime_kill_signal") or "").strip()
     return request
 
@@ -189,6 +198,12 @@ def matched_kill_reasons(request: dict[str, Any]) -> list[str]:
         reasons.extend(f"kill indicator: {item}" for item in sorted(KILL_SIGNALS & indicators))
     if request.get("token_passthrough"):
         reasons.append("raw MCP or provider token passthrough was observed")
+    if request.get("agent_can_access_monitors"):
+        reasons.append("agent can access or interfere with monitoring processes or logs")
+    if request.get("monitor_tampering"):
+        reasons.append("monitor tampering was observed")
+    if request.get("monitor_outage"):
+        reasons.append("monitor outage was observed during an agentic control incident")
     if request.get("identity_used_after_revocation"):
         reasons.append("delegated identity was used after revocation")
     if request.get("externalized_context") and data_classes & KILL_DATA_CLASSES:
@@ -316,6 +331,17 @@ def evaluate_agentic_incident_response_decision(
             violations=[f"missing {field}" for field in missing],
         )
 
+    if request.get("resume_without_verified_containment"):
+        return decision_result(
+            decision="hold_for_forensics",
+            pack=pack,
+            request=request,
+            incident_class=incident_class,
+            workflow=workflow,
+            reason="agent activity cannot resume until monitors, logging, egress allowlists, and shutdown mechanisms are verified",
+            violations=["resume attempted without verified containment"],
+        )
+
     severity = severity_from_request(request, incident_class)
     if severity == "sev0":
         return decision_result(
@@ -397,6 +423,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--token-passthrough", action="store_true")
     parser.add_argument("--identity-used-after-revocation", action="store_true")
     parser.add_argument("--customer-impact-confirmed", action="store_true")
+    parser.add_argument("--agent-can-access-monitors", action="store_true")
+    parser.add_argument("--monitor-tampering", action="store_true")
+    parser.add_argument("--monitor-outage", action="store_true")
+    parser.add_argument("--resume-without-verified-containment", action="store_true")
     parser.add_argument("--runtime-kill-signal")
     parser.add_argument("--approval-id")
     parser.add_argument("--approval-status")
@@ -409,6 +439,7 @@ def request_from_args(args: argparse.Namespace) -> dict[str, Any]:
         return load_json(args.runtime_request)
     request: dict[str, Any] = {
         "affected_data_classes": args.affected_data_class,
+        "agent_can_access_monitors": args.agent_can_access_monitors,
         "agent_id": args.agent_id,
         "authorization_decisions": args.authorization_decision,
         "containment_action_ids": args.containment_action_id,
@@ -426,9 +457,12 @@ def request_from_args(args: argparse.Namespace) -> dict[str, Any]:
         "incident_id": args.incident_id,
         "indicators": args.indicator,
         "mcp_namespaces": args.mcp_namespace,
+        "monitor_outage": args.monitor_outage,
+        "monitor_tampering": args.monitor_tampering,
         "production_write": args.production_write,
         "receipt_id": args.receipt_id,
         "replay_case_ids": args.replay_case_id,
+        "resume_without_verified_containment": args.resume_without_verified_containment,
         "run_id": args.run_id,
         "runtime_kill_signal": args.runtime_kill_signal,
         "severity_signal": args.severity_signal,
