@@ -3,12 +3,50 @@ from __future__ import annotations
 import socket
 import _socket
 import unittest
+from collections.abc import Callable
+from typing import Any
 from urllib.request import urlopen
 
-from tests import HermeticNetworkError, guard_is_active, is_loopback_host
+from tests import (
+    HermeticNetworkError,
+    guard_is_active,
+    hermetic_network as hn,
+    install_hermetic_socket_guard,
+    is_loopback_host,
+)
+
+TEST_NET_IP = "192.0.2.1"
+NUMERIC_NAMEINFO_FLAGS = socket.NI_NUMERICHOST | socket.NI_NUMERICSERV
 
 
 class HermeticNetworkGuardTests(unittest.TestCase):
+    def _assert_unpatched_lookup_gets_through(
+        self,
+        module: Any,
+        name: str,
+        original: Callable[..., Any],
+        call: Callable[[], Any],
+        *,
+        expect_error: tuple[type[BaseException], ...] = (),
+        expected: Any = None,
+    ) -> None:
+        """Remove one patch and prove the original lookup is what runs."""
+        setattr(module, name, original)
+        try:
+            self.assertFalse(getattr(getattr(module, name), "_hermetic_guard", False))
+            try:
+                result = call()
+            except HermeticNetworkError:
+                self.fail(f"unpatched {name} lookup was still blocked")
+            except expect_error:
+                result = None
+            else:
+                if expected is not None:
+                    self.assertEqual(result, expected)
+        finally:
+            install_hermetic_socket_guard()
+        self.assertTrue(getattr(getattr(module, name), "_hermetic_guard", False))
+
     def test_guard_is_active_on_the_live_socket_module(self) -> None:
         self.assertTrue(guard_is_active())
 
@@ -39,6 +77,80 @@ class HermeticNetworkGuardTests(unittest.TestCase):
             socket.getaddrinfo("example.com", 443)
         self.assertIn("example.com", str(raised.exception))
 
+    def test_gethostbyaddr_for_test_net_is_blocked(self) -> None:
+        with self.assertRaises(HermeticNetworkError) as raised:
+            socket.gethostbyaddr(TEST_NET_IP)
+        self.assertIn(TEST_NET_IP, str(raised.exception))
+
+    def test_getnameinfo_for_test_net_is_blocked(self) -> None:
+        with self.assertRaises(HermeticNetworkError) as raised:
+            socket.getnameinfo((TEST_NET_IP, 80), 0)
+        self.assertIn(TEST_NET_IP, str(raised.exception))
+
+    def test_raw_socket_getaddrinfo_is_blocked(self) -> None:
+        with self.assertRaises(HermeticNetworkError) as raised:
+            _socket.getaddrinfo(TEST_NET_IP, 80)
+        self.assertIn(TEST_NET_IP, str(raised.exception))
+
+    def test_raw_socket_gethostbyaddr_is_blocked(self) -> None:
+        with self.assertRaises(HermeticNetworkError) as raised:
+            _socket.gethostbyaddr(TEST_NET_IP)
+        self.assertIn(TEST_NET_IP, str(raised.exception))
+
+    def test_raw_socket_getnameinfo_is_blocked(self) -> None:
+        if not hasattr(_socket, "getnameinfo"):
+            self.skipTest("_socket.getnameinfo is not available")
+        with self.assertRaises(HermeticNetworkError) as raised:
+            _socket.getnameinfo((TEST_NET_IP, 80), 0)
+        self.assertIn(TEST_NET_IP, str(raised.exception))
+
+    def test_gethostbyaddr_lookup_gets_through_when_unpatched(self) -> None:
+        self._assert_unpatched_lookup_gets_through(
+            socket,
+            "gethostbyaddr",
+            hn._ORIGINAL_GETHOSTBYADDR,
+            lambda: socket.gethostbyaddr(TEST_NET_IP),
+            expect_error=(OSError,),
+        )
+
+    def test_getnameinfo_lookup_gets_through_when_unpatched(self) -> None:
+        self._assert_unpatched_lookup_gets_through(
+            socket,
+            "getnameinfo",
+            hn._ORIGINAL_GETNAMEINFO,
+            lambda: socket.getnameinfo((TEST_NET_IP, 80), NUMERIC_NAMEINFO_FLAGS),
+            expected=(TEST_NET_IP, "80"),
+        )
+
+    def test_raw_getaddrinfo_lookup_gets_through_when_unpatched(self) -> None:
+        self._assert_unpatched_lookup_gets_through(
+            _socket,
+            "getaddrinfo",
+            hn._ORIGINAL_C_GETADDRINFO,
+            lambda: _socket.getaddrinfo(TEST_NET_IP, 80, socket.AF_INET, socket.SOCK_STREAM),
+            expected=[(socket.AF_INET, socket.SOCK_STREAM, 6, "", (TEST_NET_IP, 80))],
+        )
+
+    def test_raw_gethostbyaddr_lookup_gets_through_when_unpatched(self) -> None:
+        self._assert_unpatched_lookup_gets_through(
+            _socket,
+            "gethostbyaddr",
+            hn._ORIGINAL_GETHOSTBYADDR,
+            lambda: _socket.gethostbyaddr(TEST_NET_IP),
+            expect_error=(OSError,),
+        )
+
+    def test_raw_getnameinfo_lookup_gets_through_when_unpatched(self) -> None:
+        if not hasattr(_socket, "getnameinfo"):
+            self.skipTest("_socket.getnameinfo is not available")
+        self._assert_unpatched_lookup_gets_through(
+            _socket,
+            "getnameinfo",
+            hn._ORIGINAL_GETNAMEINFO,
+            lambda: _socket.getnameinfo((TEST_NET_IP, 80), NUMERIC_NAMEINFO_FLAGS),
+            expected=(TEST_NET_IP, "80"),
+        )
+
     def test_gethostbyname_for_example_com_is_blocked(self) -> None:
         with self.assertRaises(HermeticNetworkError) as raised:
             socket.gethostbyname("example.com")
@@ -65,6 +177,16 @@ class HermeticNetworkGuardTests(unittest.TestCase):
 
     def test_loopback_gethostbyname_still_works(self) -> None:
         self.assertEqual(socket.gethostbyname("127.0.0.1"), "127.0.0.1")
+
+    def test_loopback_gethostbyaddr_still_works(self) -> None:
+        name, _aliases, addresses = socket.gethostbyaddr("127.0.0.1")
+        self.assertTrue(name)
+        self.assertIn("127.0.0.1", addresses)
+
+    def test_loopback_getnameinfo_still_works(self) -> None:
+        host, port = socket.getnameinfo(("127.0.0.1", 80), NUMERIC_NAMEINFO_FLAGS)
+        self.assertEqual(host, "127.0.0.1")
+        self.assertEqual(port, "80")
 
     def test_udp_sendto_to_public_resolver_is_blocked(self) -> None:
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
