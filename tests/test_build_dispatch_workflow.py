@@ -142,13 +142,15 @@ class BuildDispatchWorkflowTests(unittest.TestCase):
         self.assertRegex(delete_text, r"(?m)^\s+if:\s+success\(\)\s*$")
         self.assertRegex(delete_text, r"(?m)^\s+continue-on-error:\s+true\s*$")
         self.assertIn(
-            "gh api repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts",
+            "gh api repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts",
             delete_text,
         )
         self.assertIn(
-            "gh api -X DELETE repos/${{ github.repository }}/actions/artifacts/",
+            "gh api -X DELETE repos/${GITHUB_REPOSITORY}/actions/artifacts/",
             delete_text,
         )
+        self.assertNotIn("${{ github.repository }}", delete_text)
+        self.assertNotIn("${{ github.run_id }}", delete_text)
         self.assertIn("verified-deployment-images-", delete_text)
         self.assertNotIn("uses:", delete_text)
 

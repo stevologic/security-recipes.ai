@@ -177,6 +177,7 @@ class CatalogFile:
     device: int
     inode: int
     modified_ns: int
+    sha256: str
 
 
 class CatalogProjectionLedger:
@@ -1288,6 +1289,13 @@ def _catalog_files(catalog_dir: Path) -> tuple[Path, list[CatalogFile]]:
                 )
             except (UnicodeError, ValueError) as exc:
                 raise CatalogReleaseError(f"catalog path cannot be represented safely in USTAR: {relative}") from exc
+            digest, hashed_size = _sha256_private_file(
+                path,
+                limit=MAX_MEMBER_BYTES,
+                context=f"catalog member {relative}",
+            )
+            if hashed_size != metadata.st_size:
+                raise CatalogReleaseError(f"catalog member changed while it was read: {relative}")
             files.append(
                 CatalogFile(
                     relative=relative,
@@ -1296,6 +1304,7 @@ def _catalog_files(catalog_dir: Path) -> tuple[Path, list[CatalogFile]]:
                     device=metadata.st_dev,
                     inode=metadata.st_ino,
                     modified_ns=metadata.st_mtime_ns,
+                    sha256=digest,
                 )
             )
             if len(files) > MAX_ARCHIVE_MEMBERS:
@@ -1481,6 +1490,12 @@ def _write_deterministic_blob(files: list[CatalogFile], destination: Path) -> No
                                 raise CatalogReleaseError(
                                     f"catalog member changed before it was packaged: {item.relative}"
                                 )
+                            digest, read_size = _sha256_stream(source)
+                            if digest != item.sha256 or read_size != item.size:
+                                raise CatalogReleaseError(
+                                    f"catalog member changed before it was packaged: {item.relative}"
+                                )
+                            source.seek(0)
                             member = tarfile.TarInfo(item.relative)
                             member.size = item.size
                             member.mode = 0o644
