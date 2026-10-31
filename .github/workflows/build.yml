@@ -532,13 +532,13 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          artifact_ids="$(gh api repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts --jq '.artifacts[] | select(.name | startswith("verified-deployment-images-")) | .id')"
+          artifact_ids="$(gh api repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts --jq '.artifacts[] | select(.name | startswith("verified-deployment-images-")) | .id')"
           if [ -z "${artifact_ids}" ]; then
             echo "No verified-deployment-images artifact found for this run."
             exit 0
           fi
           while IFS= read -r artifact_id; do
-            gh api -X DELETE repos/${{ github.repository }}/actions/artifacts/${artifact_id}
+            gh api -X DELETE repos/${GITHUB_REPOSITORY}/actions/artifacts/${artifact_id}
           done <<< "${artifact_ids}"
 
   kick-automation:
