@@ -3,7 +3,7 @@ title: Agentic Protocol Conformance Pack
 linkTitle: Protocol Conformance
 weight: 14
 date: 2026-05-04
-lastmod: 2026-10-11
+lastmod: 2026-10-27
 sidebar:
   exclude: true
 description: >
@@ -58,6 +58,21 @@ clients **SHOULD** probe with `server/discover` before falling back to
 it to change behavior or make security decisions. Complete discover
 results **MUST** carry `ttlMs` and `cacheScope`. This editorial pass
 does not claim a separate human review of the pack.
+
+Rechecked October 27, 2026 against the MCP
+[Sampling](https://modelcontextprotocol.io/specification/2026-07-28/client/sampling)
+page, [deprecated features registry](https://modelcontextprotocol.io/specification/2026-07-28/deprecated),
+and [changelog](https://modelcontextprotocol.io/specification/2026-07-28/changelog)
+Deprecated item 1 ([SEP-2577](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2577)).
+MCP `latest` still redirects to 2026-07-28. Sampling is **deprecated**.
+New implementations **SHOULD NOT** adopt `sampling/createMessage`;
+existing hosts **SHOULD** migrate to provider APIs. Servers **MUST NOT**
+send tool-enabled sampling unless the client declared `sampling.tools`.
+Sampling tools are request-scoped and need not match the registered
+catalog, so an unpinned sampling tool is an untrusted protocol surface.
+`includeContext` values `"thisServer"` and `"allServers"` are deprecated
+([SEP-2596](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2596)).
+This editorial pass does not claim a separate human review of the pack.
 
 ## What was added
 
@@ -133,6 +148,41 @@ python3 scripts/evaluate_agentic_protocol_conformance_decision.py \
   --expect-decision deny_untrusted_protocol_surface
 ```
 
+Hold deprecated `sampling/createMessage`:
+
+```bash
+python3 scripts/evaluate_agentic_protocol_conformance_decision.py \
+  --protocol-id mcp-tooling-safety \
+  --workflow-id vulnerable-dependency-remediation \
+  --agent-id sec-auto-remediator \
+  --run-id run-2026-10-27-sampling \
+  --session-id sess-sampling \
+  --correlation-id corr-sampling \
+  --transport streamable-http \
+  --tool-surface-pinned \
+  --tool-annotations-trusted \
+  --sampling-method sampling/createMessage \
+  --expect-decision hold_for_protocol_drift_review
+```
+
+Deny tool-enabled sampling without `sampling.tools`:
+
+```bash
+python3 scripts/evaluate_agentic_protocol_conformance_decision.py \
+  --protocol-id mcp-tooling-safety \
+  --workflow-id vulnerable-dependency-remediation \
+  --agent-id sec-auto-remediator \
+  --run-id run-2026-10-27-sampling-tools \
+  --session-id sess-sampling-tools \
+  --correlation-id corr-sampling-tools \
+  --transport streamable-http \
+  --tool-surface-pinned \
+  --tool-annotations-trusted \
+  --sampling-method sampling/createMessage \
+  --sampling-tools-present \
+  --expect-decision deny_untrusted_protocol_surface
+```
+
 {{< playbook-workflow >}}
 
 ## Decision model
@@ -155,7 +205,8 @@ protocol profiles:
   audience and resource binding, PKCE, token-passthrough denial, client
   metadata review, and incremental consent evidence.
 - **MCP Tool Annotation, Schema, and Drift Safety** for required
-  `server/discover` identity, cacheable discover results, trusted
+  `server/discover` identity, cacheable discover results, Sampling
+  deprecation, `sampling.tools` gating, pinned sampling tools, trusted
   annotations, pinned tool descriptions and schemas, `subscriptions/listen`
   acknowledgment and requested-type enforcement, tool-output
   validation, and private-data plus untrusted-content plus external-send
@@ -179,6 +230,12 @@ This feature tracks current primary guidance:
   dual-era stdio probing before `initialize`.
 - [MCP Caching](https://modelcontextprotocol.io/specification/2026-07-28/server/utilities/caching)
   for `ttlMs` and `cacheScope` on complete `server/discover` results.
+- [MCP Sampling](https://modelcontextprotocol.io/specification/2026-07-28/client/sampling)
+  for Sampling deprecation, `sampling/createMessage`, `sampling.tools`,
+  request-scoped sampling tools, and deprecated `includeContext`
+  values `thisServer` and `allServers`.
+- [MCP Deprecated Features](https://modelcontextprotocol.io/specification/2026-07-28/deprecated)
+  for the Sampling and `includeContext` deprecation registry entries.
 - [MCP Subscriptions](https://modelcontextprotocol.io/specification/2026-07-28/basic/patterns/subscriptions)
   for `subscriptions/listen`, `notifications/subscriptions/acknowledged`,
   `io.modelcontextprotocol/subscriptionId`, requested notification
@@ -209,6 +266,7 @@ MCP and A2A protocol conformance:
 
 - live MCP protected-resource metadata checks,
 - required `server/discover` identity, `serverInfo` limits, and cache-hint checks,
+- Sampling deprecation, `sampling.tools` capability, and pinned sampling-tool checks,
 - client metadata and redirect-policy review,
 - resource, audience, PKCE, consent, and scope-drift monitoring,
 - signed tool-surface baselines and annotation drift alerts,
