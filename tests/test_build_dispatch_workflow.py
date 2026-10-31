@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 import unittest
 from pathlib import Path
 
@@ -89,6 +90,7 @@ class BuildDispatchWorkflowTests(unittest.TestCase):
         self.assertIn("sha256sum images.tar.gz", package_step)
         self.assertIn("image-identities.env", package_step)
         self.assertIn("actions/upload-artifact@", upload_step)
+        self.assertIn("retention-days: 1", upload_step)
         self.assertEqual(
             self.workflow.count(
                 "name: verified-deployment-images-${{ github.sha }}-"
@@ -112,6 +114,43 @@ class BuildDispatchWorkflowTests(unittest.TestCase):
         )
         package_verified = build_job.index("- name: Package verified deployment images")
         self.assertLess(final_smoke_assertion, package_verified)
+
+    def test_publish_deletes_verified_images_artifact_after_successful_push(self) -> None:
+        publish_job = self.workflow.split("\n  publish:\n", 1)[1].split(
+            "\n  kick-automation:\n", 1
+        )[0]
+        permissions = publish_job.split("steps:", 1)[0]
+        self.assertIn("actions: write", permissions)
+        self.assertEqual(permissions.count("actions: write"), 1)
+        self.assertNotIn("issues: write", permissions)
+        self.assertNotIn("pull-requests: write", permissions)
+        self.assertNotIn("contents: write", permissions)
+
+        push_idx = publish_job.index("- name: Publish immutable deployment images")
+        delete_idx = publish_job.index(
+            "- name: Delete verified deployment images artifact"
+        )
+        self.assertLess(push_idx, delete_idx)
+
+        delete_step = re.search(
+            r"(?ms)^\s{6}- name: Delete verified deployment images artifact\s*$"
+            r"(.*?)(?=^\s{6}- name: |\Z)",
+            publish_job,
+        )
+        self.assertIsNotNone(delete_step, "workflow step not found: Delete verified deployment images artifact")
+        delete_text = delete_step.group(0)
+        self.assertRegex(delete_text, r"(?m)^\s+if:\s+success\(\)\s*$")
+        self.assertRegex(delete_text, r"(?m)^\s+continue-on-error:\s+true\s*$")
+        self.assertIn(
+            "gh api repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts",
+            delete_text,
+        )
+        self.assertIn(
+            "gh api -X DELETE repos/${{ github.repository }}/actions/artifacts/",
+            delete_text,
+        )
+        self.assertIn("verified-deployment-images-", delete_text)
+        self.assertNotIn("uses:", delete_text)
 
 
 if __name__ == "__main__":
