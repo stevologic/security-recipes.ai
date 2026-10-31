@@ -26,7 +26,11 @@ _ORIGINAL_CREATE_CONNECTION: Callable[..., Any] = socket.create_connection
 _ORIGINAL_GETADDRINFO: Callable[..., Any] = socket.getaddrinfo
 _ORIGINAL_GETHOSTBYNAME: Callable[..., Any] = socket.gethostbyname
 _ORIGINAL_GETHOSTBYNAME_EX: Callable[..., Any] = socket.gethostbyname_ex
+_ORIGINAL_GETHOSTBYADDR: Callable[..., Any] = socket.gethostbyaddr
+_ORIGINAL_GETNAMEINFO: Callable[..., Any] = socket.getnameinfo
+_ORIGINAL_C_GETADDRINFO: Callable[..., Any] = _socket.getaddrinfo
 _ORIGINAL_C_SOCKET: type = _socket.socket
+_HAS_C_GETNAMEINFO = hasattr(_socket, "getnameinfo")
 _GUARD_INSTALLED = False
 
 
@@ -155,6 +159,19 @@ def _guarded_getaddrinfo(
 
 
 @_mark
+def _guarded_c_getaddrinfo(
+    host: object,
+    port: object,
+    family: int = 0,
+    type: int = 0,
+    proto: int = 0,
+    flags: int = 0,
+) -> list[tuple[Any, ...]]:
+    _reject_if_remote_host(host, family=family)
+    return _ORIGINAL_C_GETADDRINFO(host, port, family, type, proto, flags)
+
+
+@_mark
 def _guarded_gethostbyname(host: object) -> str:
     _reject_if_remote_host(host)
     return _ORIGINAL_GETHOSTBYNAME(host)
@@ -164,6 +181,18 @@ def _guarded_gethostbyname(host: object) -> str:
 def _guarded_gethostbyname_ex(host: object) -> tuple[str, list[str], list[str]]:
     _reject_if_remote_host(host)
     return _ORIGINAL_GETHOSTBYNAME_EX(host)
+
+
+@_mark
+def _guarded_gethostbyaddr(host: object) -> tuple[str, list[str], list[str]]:
+    _reject_if_remote_host(host)
+    return _ORIGINAL_GETHOSTBYADDR(host)
+
+
+@_mark
+def _guarded_getnameinfo(sockaddr: object, flags: int) -> tuple[str, str]:
+    _reject_if_remote(sockaddr)
+    return _ORIGINAL_GETNAMEINFO(sockaddr, flags)
 
 
 class _GuardedRawSocket(_ORIGINAL_C_SOCKET):
@@ -207,13 +236,21 @@ def guard_is_active() -> bool:
         and getattr(socket.getaddrinfo, "_hermetic_guard", False)
         and getattr(socket.gethostbyname, "_hermetic_guard", False)
         and getattr(socket.gethostbyname_ex, "_hermetic_guard", False)
+        and getattr(socket.gethostbyaddr, "_hermetic_guard", False)
+        and getattr(socket.getnameinfo, "_hermetic_guard", False)
         and getattr(socket.socket.connect, "_hermetic_guard", False)
         and getattr(socket.socket.connect_ex, "_hermetic_guard", False)
         and getattr(socket.socket.sendto, "_hermetic_guard", False)
         and getattr(socket.socket.sendmsg, "_hermetic_guard", False)
         and getattr(_socket.socket, "_hermetic_guard", False)
+        and getattr(_socket.getaddrinfo, "_hermetic_guard", False)
         and getattr(_socket.gethostbyname, "_hermetic_guard", False)
         and getattr(_socket.gethostbyname_ex, "_hermetic_guard", False)
+        and getattr(_socket.gethostbyaddr, "_hermetic_guard", False)
+        and (
+            not _HAS_C_GETNAMEINFO
+            or getattr(_socket.getnameinfo, "_hermetic_guard", False)
+        )
     )
 
 
@@ -230,7 +267,13 @@ def install_hermetic_socket_guard() -> None:
     socket.getaddrinfo = _guarded_getaddrinfo  # type: ignore[assignment]
     socket.gethostbyname = _guarded_gethostbyname  # type: ignore[assignment]
     socket.gethostbyname_ex = _guarded_gethostbyname_ex  # type: ignore[assignment]
+    socket.gethostbyaddr = _guarded_gethostbyaddr  # type: ignore[assignment]
+    socket.getnameinfo = _guarded_getnameinfo  # type: ignore[assignment]
+    _socket.getaddrinfo = _guarded_c_getaddrinfo  # type: ignore[assignment]
     _socket.gethostbyname = _guarded_gethostbyname  # type: ignore[assignment]
     _socket.gethostbyname_ex = _guarded_gethostbyname_ex  # type: ignore[assignment]
+    _socket.gethostbyaddr = _guarded_gethostbyaddr  # type: ignore[assignment]
+    if _HAS_C_GETNAMEINFO:
+        _socket.getnameinfo = _guarded_getnameinfo  # type: ignore[assignment]
     _socket.socket = _GuardedRawSocket  # type: ignore[misc]
     _GUARD_INSTALLED = True

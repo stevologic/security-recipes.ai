@@ -10,13 +10,14 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 
 # Import only ``tests`` (not ``tests.hermetic_network``) so this fails if
 # ``tests/__init__.py`` stops installing the guard. The hermetic_network
-# module must not auto-install on import.
+# module must not auto-install on import. Probe TEST-NET-1 (RFC 5737) so a
+# missing guard never opens a real public connection.
 _BOOTSTRAP_PROBE = """\
 import socket
 import tests
 
 try:
-    socket.create_connection(("1.1.1.1", 443), timeout=2)
+    socket.create_connection(("192.0.2.1", 443), timeout=2)
 except BaseException as exc:
     if type(exc).__name__ == "HermeticNetworkError":
         raise SystemExit(0)
