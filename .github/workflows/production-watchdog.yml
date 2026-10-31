@@ -73,7 +73,7 @@ jobs:
             ${{ runner.temp }}/production-health.json
             ${{ runner.temp }}/production-health.md
           if-no-files-found: warn
-          retention-days: 14
+          retention-days: 3
 
       - name: Upsert or recover production health issue
         if: always()

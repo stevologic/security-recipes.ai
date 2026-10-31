@@ -443,6 +443,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
+      actions: write
       contents: read
       packages: write
     steps:
@@ -523,6 +524,22 @@ jobs:
             docker login ghcr.io --username "${GITHUB_ACTOR}" --password-stdin
           docker push "${SITE_TARGET_IMAGE}"
           docker push "${MCP_TARGET_IMAGE}"
+
+      - name: Delete verified deployment images artifact
+        if: success()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          artifact_ids="$(gh api repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts --jq '.artifacts[] | select(.name | startswith("verified-deployment-images-")) | .id')"
+          if [ -z "${artifact_ids}" ]; then
+            echo "No verified-deployment-images artifact found for this run."
+            exit 0
+          fi
+          while IFS= read -r artifact_id; do
+            gh api -X DELETE repos/${{ github.repository }}/actions/artifacts/${artifact_id}
+          done <<< "${artifact_ids}"
 
   kick-automation:
     if: always() && github.event_name == 'workflow_dispatch'
