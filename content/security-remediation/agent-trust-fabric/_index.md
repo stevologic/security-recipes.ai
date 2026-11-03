@@ -3,7 +3,7 @@ title: Agent Trust Fabric
 linkTitle: Agent Trust Fabric
 weight: 16
 date: 2026-05-05
-lastmod: 2026-10-13
+lastmod: 2026-10-29
 sidebar:
   exclude: true
 description: >
@@ -20,7 +20,7 @@ this agent run is trusted, needs step-up, is untrusted, or must be
 killed.
 {{< /callout >}}
 
-Rechecked source anchors on October 13, 2026 against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28), the current [security best practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices), NIST's [August 27, 2026 agent identity guidance](https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation), and NIST NCCoE's [September 29, 2026 comments summary](https://pages.nist.gov/nccoe-ai-identity/summary-of-comments.html) on software and agentic AI identity and authorization. MCP `latest` still redirects to 2026-07-28. The 2026-07-28 security guidance replaces session-hijacking assumptions with state-handle binding, forbids token passthrough, and treats OAuth metadata fetches as SSRF-sensitive. NCCoE, drawing on more than 600 comments, says sender-constrained credentials (OAuth DPoP or mTLS using SPIFFE or WIMSE identities) are essential to reduce bearer-token replay, and that ephemeral credentials should be bound to a stable identity anchor via proof-of-possession. This editorial pass does not claim human review of the pack.
+Rechecked source anchors on October 29, 2026 against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28), the current [security best practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices), NIST's [August 27, 2026 agent identity guidance](https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation), NIST NCCoE's [September 29, 2026 comments summary](https://pages.nist.gov/nccoe-ai-identity/summary-of-comments.html) on software and agentic AI identity and authorization, and NIST's [October 27, 2026 design tenets for agent identity management systems](https://www.nist.gov/blogs/cybersecurity-insights/design-tenets-agent-identity-management-systems). MCP `latest` still redirects to 2026-07-28. The 2026-07-28 security guidance replaces session-hijacking assumptions with state-handle binding, forbids token passthrough, and treats OAuth metadata fetches as SSRF-sensitive. NCCoE, drawing on more than 600 comments, says sender-constrained credentials (OAuth DPoP or mTLS using SPIFFE or WIMSE identities) are essential to reduce bearer-token replay. NIST's ten design tenets, drawn from those comments and stakeholder engagement, add attenuated sub-agent delegation, zero standing privilege, signed mandate statements, architectural separation of policy from reasoning, deterministic access decisions, consent-fatigue-aware HITL thresholds, and independent append-only evidence. Unique short-lived sender-constrained credentials are necessary but not sufficient. This editorial pass does not claim human review of the pack.
 
 ## The product bet
 
@@ -33,8 +33,9 @@ The **Agent Trust Fabric** composes six dimensions into that answer:
 
 1. **Identity** - who the agent is, which unique delegated identity it
    is using, and whether that identity is a shared human credential,
-   a long-lived static token, an unconstrained bearer token, or a
-   local user-account impersonation.
+   a long-lived static token, an unconstrained bearer token, standing
+   privilege, an unattenuated sub-agent grant, a model-driven access
+   decision, or a local user-account impersonation.
 2. **Context** - what the agent is consuming, whether the context is
    fresh, and whether poisoning signals were found.
 3. **Scope** - where the agent can go and which action class is being
@@ -204,6 +205,122 @@ python3 scripts/evaluate_agent_trust_fabric_decision.py \
   --expect-decision deny_untrusted_agent
 ```
 
+Evaluate unattenuated sub-agent delegation:
+
+```bash
+python3 scripts/evaluate_agent_trust_fabric_decision.py \
+  --workflow-id vulnerable-dependency-remediation \
+  --run-id run-unattenuated-delegation \
+  --agent-id sr-agent::vulnerable-dependency-remediation::codex \
+  --identity-id sr-agent::vulnerable-dependency-remediation::codex \
+  --tenant-id tenant-demo \
+  --correlation-id corr-delegation \
+  --trust-event-id trust-evt-6 \
+  --requested-trust-tier operator \
+  --intent-summary "Patch dependency lockfiles on a scoped remediation branch" \
+  --context-package-hash sha256:context \
+  --policy-pack-hash sha256:policy \
+  --authorization-decision allow_authorized_mcp_request \
+  --egress-decision allow_internal_context \
+  --action-runtime-decision allow_bounded_action \
+  --telemetry-decision telemetry_ready \
+  --soc-decision no_alert \
+  --telemetry-event-id trace-6 \
+  --receipt-id receipt-6 \
+  --source-freshness-decision current \
+  --approval-id approval-6 \
+  --approval-status approved \
+  --unattenuated-subagent-delegation \
+  --expect-decision deny_untrusted_agent
+```
+
+Evaluate standing privilege:
+
+```bash
+python3 scripts/evaluate_agent_trust_fabric_decision.py \
+  --workflow-id vulnerable-dependency-remediation \
+  --run-id run-standing-privilege \
+  --agent-id sr-agent::vulnerable-dependency-remediation::codex \
+  --identity-id sr-agent::vulnerable-dependency-remediation::codex \
+  --tenant-id tenant-demo \
+  --correlation-id corr-standing \
+  --trust-event-id trust-evt-7 \
+  --requested-trust-tier operator \
+  --intent-summary "Patch dependency lockfiles on a scoped remediation branch" \
+  --context-package-hash sha256:context \
+  --policy-pack-hash sha256:policy \
+  --authorization-decision allow_authorized_mcp_request \
+  --egress-decision allow_internal_context \
+  --action-runtime-decision allow_bounded_action \
+  --telemetry-decision telemetry_ready \
+  --soc-decision no_alert \
+  --telemetry-event-id trace-7 \
+  --receipt-id receipt-7 \
+  --source-freshness-decision current \
+  --approval-id approval-7 \
+  --approval-status approved \
+  --standing-privilege \
+  --expect-decision deny_untrusted_agent
+```
+
+Evaluate a model-driven access grant:
+
+```bash
+python3 scripts/evaluate_agent_trust_fabric_decision.py \
+  --workflow-id vulnerable-dependency-remediation \
+  --run-id run-model-grant \
+  --agent-id sr-agent::vulnerable-dependency-remediation::codex \
+  --identity-id sr-agent::vulnerable-dependency-remediation::codex \
+  --tenant-id tenant-demo \
+  --correlation-id corr-model-grant \
+  --trust-event-id trust-evt-8 \
+  --requested-trust-tier operator \
+  --intent-summary "Patch dependency lockfiles on a scoped remediation branch" \
+  --context-package-hash sha256:context \
+  --policy-pack-hash sha256:policy \
+  --authorization-decision allow_authorized_mcp_request \
+  --egress-decision allow_internal_context \
+  --action-runtime-decision allow_bounded_action \
+  --telemetry-decision telemetry_ready \
+  --soc-decision no_alert \
+  --telemetry-event-id trace-8 \
+  --receipt-id receipt-8 \
+  --source-freshness-decision current \
+  --approval-id approval-8 \
+  --approval-status approved \
+  --model-driven-access-grant \
+  --expect-decision deny_untrusted_agent
+```
+
+Evaluate agent-writable evidence:
+
+```bash
+python3 scripts/evaluate_agent_trust_fabric_decision.py \
+  --workflow-id sensitive-data-remediation \
+  --run-id run-writable-evidence \
+  --agent-id sr-agent::sensitive-data-remediation::codex \
+  --identity-id sr-agent::sensitive-data-remediation::codex \
+  --tenant-id tenant-demo \
+  --correlation-id corr-writable \
+  --trust-event-id trust-evt-9 \
+  --requested-trust-tier operator \
+  --intent-summary "Investigate a possible token in logs" \
+  --context-package-hash sha256:context \
+  --policy-pack-hash sha256:policy \
+  --authorization-decision allow_authorized_mcp_request \
+  --egress-decision allow_internal_context \
+  --action-runtime-decision allow_bounded_action \
+  --telemetry-decision telemetry_ready \
+  --soc-decision no_alert \
+  --telemetry-event-id trace-9 \
+  --receipt-id receipt-9 \
+  --source-freshness-decision current \
+  --approval-id approval-9 \
+  --approval-status approved \
+  --agent-writable-evidence \
+  --expect-decision kill_session_on_agent_trust_break
+```
+
 ## What is inside
 
 | Section | Purpose |
@@ -314,6 +431,11 @@ The pack is anchored in current primary guidance:
   for sender-constrained credentials (OAuth DPoP or mTLS using SPIFFE
   or WIMSE identities), proof-of-possession binding to a stable
   identity anchor, and denial of unconstrained bearer replay.
+- [NIST: Design Tenets for Agent Identity Management Systems](https://www.nist.gov/blogs/cybersecurity-insights/design-tenets-agent-identity-management-systems)
+  for attenuated sub-agent delegation, zero standing privilege, signed
+  mandate statements, architectural separation of policy from
+  reasoning, deterministic access decisions, and independent
+  append-only evidence.
 - [MCP Authorization 2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
   for protected-resource metadata, scope challenges, resource indicators,
   token audience validation, and token-passthrough denial.
