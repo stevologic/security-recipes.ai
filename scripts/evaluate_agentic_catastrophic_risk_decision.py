@@ -222,6 +222,33 @@ def evaluate_agentic_catastrophic_risk_decision(
             violations=["handles_secrets=true", "external_side_effect=true"],
         )
 
+    if as_bool(request.get("agent_writable_evidence")):
+        return decision_result(
+            annex=annex,
+            decision="kill_session_on_catastrophic_signal",
+            reason="agent can write or modify its own evidence logs",
+            request=request,
+            matched_scenarios=matched,
+            violations=["agent-writable evidence breaks independent append-only logs"],
+        )
+
+    identity_denials: list[str] = []
+    if as_bool(request.get("unattenuated_subagent_delegation")):
+        identity_denials.append("unattenuated sub-agent delegation exceeds parent authority")
+    if as_bool(request.get("standing_privilege")):
+        identity_denials.append("idle agent retains standing privilege")
+    if as_bool(request.get("model_driven_access_grant")):
+        identity_denials.append("reasoning model granted access instead of a separated deterministic policy engine")
+    if identity_denials:
+        return decision_result(
+            annex=annex,
+            decision="deny_unbounded_autonomy",
+            reason="identity tenet failed: attenuated delegation, zero standing privilege, or policy/reasoning separation",
+            request=request,
+            matched_scenarios=matched,
+            violations=identity_denials,
+        )
+
     if not is_high_impact:
         missing_low = [
             field
@@ -285,6 +312,16 @@ def evaluate_agentic_catastrophic_risk_decision(
             request=request,
             matched_scenarios=matched,
             violations=[f"missing {field}" for field in missing],
+        )
+
+    if as_bool(request.get("unsigned_mandate")):
+        return decision_result(
+            annex=annex,
+            decision="hold_for_catastrophic_risk_review",
+            reason="high-impact action has an unsigned mandate statement",
+            request=request,
+            matched_scenarios=matched,
+            violations=["unsigned mandate statement"],
         )
 
     return decision_result(

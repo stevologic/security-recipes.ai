@@ -3,7 +3,7 @@ title: Agentic Catastrophic Risk Annex
 linkTitle: Catastrophic Risk Annex
 weight: 18
 date: 2026-05-04
-lastmod: 2026-09-28
+lastmod: 2026-11-03
 toc: true
 description: >
   Evaluate severe agentic AI failure modes, escalation triggers, containment
@@ -20,7 +20,7 @@ normal readiness scorecard. It answers the board and reviewer question:
 severe failure becomes irreversible?"
 {{< /callout >}}
 
-Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28), the current [security best practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices), and NIST's [August 27, 2026 agent identity guidance](https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation) on September 28, 2026. MCP `latest` still redirects to 2026-07-28.
+Rechecked source anchors on November 3, 2026 against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28), the current [security best practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices), NIST's [August 27, 2026 agent identity guidance](https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation), and NIST's [October 27, 2026 design tenets for agent identity management systems](https://www.nist.gov/blogs/cybersecurity-insights/design-tenets-agent-identity-management-systems). MCP `latest` still redirects to 2026-07-28. The October 27 tenets require attenuated sub-agent delegation, zero standing privilege, signed mandate statements, architectural separation of policy from reasoning, deterministic access decisions, and independent append-only evidence. This editorial pass does not claim human review of the pack.
 
 SecurityRecipes already has workflow policy, MCP authorization,
 non-human identity, context trust, handoff boundaries, egress policy, run
@@ -88,6 +88,48 @@ python3 scripts/evaluate_agentic_catastrophic_risk_decision.py \
   --expect-decision allow_reviewed_high_impact_action
 ```
 
+Deny unattenuated sub-agent delegation:
+
+```bash
+python3 scripts/evaluate_agentic_catastrophic_risk_decision.py \
+  --workflow-id base-image-remediation \
+  --action-class production_deployment \
+  --run-id run-123 \
+  --identity-id sr-agent::base-image-remediation::codex \
+  --flag unattenuated_subagent_delegation=true \
+  --expect-decision deny_unbounded_autonomy
+```
+
+Kill when the agent can write its own evidence:
+
+```bash
+python3 scripts/evaluate_agentic_catastrophic_risk_decision.py \
+  --workflow-id base-image-remediation \
+  --action-class production_deployment \
+  --run-id run-123 \
+  --identity-id sr-agent::base-image-remediation::codex \
+  --flag agent_writable_evidence=true \
+  --expect-decision kill_session_on_catastrophic_signal
+```
+
+Hold a reviewed high-impact action when the mandate is unsigned:
+
+```bash
+python3 scripts/evaluate_agentic_catastrophic_risk_decision.py \
+  --workflow-id base-image-remediation \
+  --action-class production_deployment \
+  --run-id run-123 \
+  --identity-id sr-agent::base-image-remediation::codex \
+  --policy-pack-hash policy-hash \
+  --authorization-decision allow_authorized_mcp_request \
+  --risk-acceptance-id risk-accept-123 \
+  --receipt-id receipt-123 \
+  --approval-id approval-123 \
+  --flag affects_prod=true \
+  --flag unsigned_mandate=true \
+  --expect-decision hold_for_catastrophic_risk_review
+```
+
 {{< playbook-workflow >}}
 
 ## Why this matters now
@@ -100,10 +142,13 @@ systems around tool use, identity abuse, context poisoning, insecure
 inter-agent communication, cascading failure, and rogue behavior. The MCP
 authorization specification now makes resource indicators, audience
 validation, protected resource metadata, least-privilege scopes, and
-token handling explicit. CSAI's April 2026 work adds the strongest signal:
-catastrophic-risk assurance for loss of oversight, uncontrolled behavior,
-and large-scale irreversible consequences that can be tested in
-production.
+token handling explicit. NIST's October 27, 2026 identity design tenets
+add attenuated delegation, zero standing privilege, signed mandates,
+policy/reasoning separation, and agent-independent evidence as
+high-impact failure modes. CSAI's April 2026 work adds the strongest
+signal: catastrophic-risk assurance for loss of oversight, uncontrolled
+behavior, and large-scale irreversible consequences that can be tested
+in production.
 
 SecurityRecipes should own the operational middle: not abstract safety
 claims, but generated evidence and runtime gates that tell an agent host
@@ -115,7 +160,7 @@ when to allow, hold, deny, or kill.
 | --- | --- | --- |
 | Loss of human oversight | `hold_for_catastrophic_risk_review` | High-impact action stops when approval, identity, policy, receipt, or readiness evidence is missing. |
 | Uncontrolled system behavior | `kill_session_on_catastrophic_signal` | Tool loops, deny-after-deny behavior, and uncontrolled action cascades terminate the session. |
-| Credential and token cascade | `deny_unbounded_autonomy` | Agents cannot pass tokens, request broader audiences, or silently inherit user authority. |
+| Credential and token cascade | `deny_unbounded_autonomy` | Agents cannot pass tokens, request broader audiences, silently inherit user authority, retain standing privilege, or let a sub-agent exceed parent authority. |
 | Cross-agent cascading failure | `hold_for_catastrophic_risk_review` | Handoffs cannot move hidden prompts, memory, raw traces, credentials, or unstated authority. |
 | Supply-chain autonomy blast radius | `hold_for_catastrophic_risk_review` | Fleet-impacting dependency, image, cache, release, or generated-code changes require risk evidence. |
 | Private-context exfiltration | `kill_session_on_catastrophic_signal` | Secrets, unredacted PII, private memory, and trust evidence cannot leave approved boundaries. |
@@ -192,6 +237,7 @@ Evaluate a high-impact action:
 ## Source anchors
 
 - [CSA announces STAR for AI Catastrophic Risk Annex](https://cloudsecurityalliance.org/press-releases/2026/04/29/csai-foundation-announces-key-milestones-to-secure-the-agentic-control-plane)
+- [NIST Design Tenets for Agent Identity Management Systems](https://www.nist.gov/blogs/cybersecurity-insights/design-tenets-agent-identity-management-systems)
 - [NIST AI Agent Standards Initiative](https://www.nist.gov/artificial-intelligence/ai-agent-standards-initiative)
 - [OWASP Top 10 for Agentic Applications 2026](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/)
 - [MCP Authorization Specification](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)

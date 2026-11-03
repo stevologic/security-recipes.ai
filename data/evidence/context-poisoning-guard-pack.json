@@ -109,7 +109,7 @@
     {
       "actionable": true,
       "disposition": "actionable_context_poisoning_risk",
-      "line": 138,
+      "line": 151,
       "match": "\"agent attempts to bypass a human approval gate\",",
       "path": "data/assurance/agentic-catastrophic-risk-annex.json",
       "risk_family": "approval_bypass",
@@ -120,8 +120,19 @@
     {
       "actionable": true,
       "disposition": "actionable_context_poisoning_risk",
-      "line": 500,
-      "match": "...ontrol_objective\": \"Kill the agent session when runtime behavior shows approval bypass, deny-after-deny looping, broader token requests, secret egress, or irreversible action without approval.\",",
+      "line": 514,
+      "match": "...ontrol_objective\": \"Kill the agent session when runtime behavior shows approval bypass, deny-after-deny looping, broader token requests, secret egress, irreversible action without approval, or an agent writing or modifying its own evidence logs.\",",
+      "path": "data/assurance/agentic-catastrophic-risk-annex.json",
+      "risk_family": "approval_bypass",
+      "rule_id": "approval-bypass-request",
+      "severity": "high",
+      "source_id": "agentic-assurance-models"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 534,
+      "match": "...t delegation, standing privilege when idle, and model-driven access grants that skip a separated deterministic policy engine.\",",
       "path": "data/assurance/agentic-catastrophic-risk-annex.json",
       "risk_family": "approval_bypass",
       "rule_id": "approval-bypass-request",
@@ -1814,13 +1825,13 @@
   ],
   "generated_at": "2026-10-04",
   "guard_summary": {
-    "actionable_finding_count": 96,
+    "actionable_finding_count": 97,
     "blocking_source_count": 2,
     "blocking_sources": [
       "agentic-assurance-models",
       "recipes"
     ],
-    "byte_count": 15132268,
+    "byte_count": 15136107,
     "decision_counts": {
       "allow_with_adversarial_examples": 1,
       "block_until_removed": 2,
@@ -1828,26 +1839,26 @@
       "pass": 5
     },
     "disposition_counts": {
-      "actionable_context_poisoning_risk": 96,
+      "actionable_context_poisoning_risk": 97,
       "defensive_control_language": 41,
       "documented_adversarial_example": 24
     },
     "failure_count": 0,
     "file_count": 3527,
-    "finding_count": 161,
+    "finding_count": 162,
     "held_source_count": 1,
     "held_sources": [
       "security-remediation-workflows"
     ],
     "risk_family_counts": {
-      "approval_bypass": 46,
+      "approval_bypass": 47,
       "hidden_instruction": 59,
       "prompt_injection": 9,
       "secret_exposure": 47
     },
     "severity_counts": {
       "critical": 56,
-      "high": 46,
+      "high": 47,
       "medium": 59
     },
     "source_count": 9
@@ -1930,15 +1941,15 @@
   },
   "source_results": [
     {
-      "actionable_finding_count": 14,
+      "actionable_finding_count": 15,
       "decision": "block_until_removed",
       "disposition_counts": {
-        "actionable_context_poisoning_risk": 14,
+        "actionable_context_poisoning_risk": 15,
         "defensive_control_language": 1,
         "documented_adversarial_example": 5
       },
       "file_count": 49,
-      "finding_count": 20,
+      "finding_count": 21,
       "owner": {
         "accountable_team": "Security Engineering",
         "escalation": "agentic-assurance-owner",
@@ -1967,16 +1978,16 @@
         "data/assurance/agentic-readiness-model.json"
       ],
       "risk_family_counts": {
-        "approval_bypass": 12,
+        "approval_bypass": 13,
         "prompt_injection": 4,
         "secret_exposure": 4
       },
       "root": "data/assurance",
       "severity_counts": {
         "critical": 8,
-        "high": 12
+        "high": 13
       },
-      "source_hash": "32a84df96ae6e1ebeb6670233d5e7ba5231136b25f74263dd320c6951ba851be",
+      "source_hash": "f19a485f05e4a8de382a52db9a0a68cf500ecdb58fe076f4fc527c4755a9a5dd",
       "source_id": "agentic-assurance-models",
       "title": "Agentic Assurance Source Models",
       "trust_tier": "tier_2_policy_context"
@@ -2202,7 +2213,7 @@
         "high": 8,
         "medium": 59
       },
-      "source_hash": "a60fdb4675c2a3d320f8ed0df1e3228eacf039274eba3dbd15e05e81b58293c1",
+      "source_hash": "5fde3d1139f70f81e53b4f72404c82fdb10cca9f6b67dd9e3a66a312d4a0c2fd",
       "source_id": "security-remediation-workflows",
       "title": "Security Remediation Workflow Docs",
       "trust_tier": "tier_1_curated_guidance"
