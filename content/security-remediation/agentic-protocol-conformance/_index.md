@@ -3,7 +3,7 @@ title: Agentic Protocol Conformance Pack
 linkTitle: Protocol Conformance
 weight: 14
 date: 2026-05-04
-lastmod: 2026-10-11
+lastmod: 2026-11-04
 sidebar:
   exclude: true
 description: >
@@ -58,6 +58,21 @@ clients **SHOULD** probe with `server/discover` before falling back to
 it to change behavior or make security decisions. Complete discover
 results **MUST** carry `ttlMs` and `cacheScope`. This editorial pass
 does not claim a separate human review of the pack.
+
+Rechecked November 4, 2026 against the MCP
+[Sampling](https://modelcontextprotocol.io/specification/2026-07-28/client/sampling)
+page, [deprecated features](https://modelcontextprotocol.io/specification/2026-07-28/deprecated)
+registry, and [changelog](https://modelcontextprotocol.io/specification/2026-07-28/changelog)
+Deprecated item 1 ([SEP-2577](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2577)).
+MCP `latest` still redirects to 2026-07-28. Sampling is **deprecated**.
+New implementations **SHOULD NOT** adopt `sampling/createMessage`;
+existing hosts **SHOULD** migrate to provider APIs. Servers **MUST NOT**
+send tool-enabled sampling unless the client declared `sampling.tools`.
+Sampling tools are request-scoped and need not match the registered
+catalog, so an unpinned sampling tool is an untrusted protocol surface.
+`includeContext` values `"thisServer"` and `"allServers"` are deprecated
+([SEP-2596](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2596)).
+This editorial pass does not claim a separate human review of the pack.
 
 ## What was added
 
@@ -133,6 +148,24 @@ python3 scripts/evaluate_agentic_protocol_conformance_decision.py \
   --expect-decision deny_untrusted_protocol_surface
 ```
 
+Deny tool-enabled Sampling without the `sampling.tools` capability:
+
+```bash
+python3 scripts/evaluate_agentic_protocol_conformance_decision.py \
+  --protocol-id mcp-tooling-safety \
+  --workflow-id vulnerable-dependency-remediation \
+  --agent-id sec-auto-remediator \
+  --run-id run-2026-11-04-sampling \
+  --session-id sess-sampling \
+  --correlation-id corr-sampling \
+  --transport streamable-http \
+  --tool-surface-pinned \
+  --tool-annotations-trusted \
+  --sampling-method sampling/createMessage \
+  --tool-enabled-sampling \
+  --expect-decision deny_untrusted_protocol_surface
+```
+
 {{< playbook-workflow >}}
 
 ## Decision model
@@ -157,7 +190,8 @@ protocol profiles:
 - **MCP Tool Annotation, Schema, and Drift Safety** for required
   `server/discover` identity, cacheable discover results, trusted
   annotations, pinned tool descriptions and schemas, `subscriptions/listen`
-  acknowledgment and requested-type enforcement, tool-output
+  acknowledgment and requested-type enforcement, Sampling deprecation and
+  `sampling.tools` gating, tool-output
   validation, and private-data plus untrusted-content plus external-send
   risk.
 - **A2A Agent Discovery and Delegation** for Agent Card completeness,
@@ -183,6 +217,11 @@ This feature tracks current primary guidance:
   for `subscriptions/listen`, `notifications/subscriptions/acknowledged`,
   `io.modelcontextprotocol/subscriptionId`, requested notification
   types, and stdio reconnect behavior.
+- [MCP Sampling](https://modelcontextprotocol.io/specification/2026-07-28/client/sampling)
+  and [deprecated features](https://modelcontextprotocol.io/specification/2026-07-28/deprecated)
+  for Sampling deprecation, `sampling.tools` gating, request-scoped
+  sampling tools, and deprecated `includeContext` values `thisServer`
+  and `allServers`.
 - [MCP Tool Annotations](https://blog.modelcontextprotocol.io/posts/2026-03-16-tool-annotations/)
   for annotation-driven tool UX and the need to treat annotations as
   policy hints until trust and drift evidence exist.
@@ -209,6 +248,7 @@ MCP and A2A protocol conformance:
 
 - live MCP protected-resource metadata checks,
 - required `server/discover` identity, `serverInfo` limits, and cache-hint checks,
+- Sampling deprecation holds, `sampling.tools` gating, and unpinned sampling-tool denial,
 - client metadata and redirect-policy review,
 - resource, audience, PKCE, consent, and scope-drift monitoring,
 - signed tool-surface baselines and annotation drift alerts,

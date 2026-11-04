@@ -2648,12 +2648,12 @@
         {
           "label": "Scope",
           "title": "Build conformance cases",
-          "detail": "Choose server/discover, subscriptions/listen, schema, authorization, cancellation, error, retry, handoff, and security-boundary tests. Treat initialize-without-discover, self-reported serverInfo used for security, complete discover results that omit ttlMs or cacheScope, resources/subscribe, and HTTP GET notifications as 2026-07-28 drift."
+          "detail": "Choose server/discover, subscriptions/listen, Sampling, schema, authorization, cancellation, error, retry, handoff, and security-boundary tests. Treat initialize-without-discover, self-reported serverInfo used for security, complete discover results that omit ttlMs or cacheScope, resources/subscribe, HTTP GET notifications, sampling/createMessage, and includeContext values thisServer or allServers as 2026-07-28 drift. Deny tool-enabled sampling without sampling.tools and sampling tools that are not on the pinned catalog."
         },
         {
           "label": "Decision",
           "title": "Execute safe probes",
-          "detail": "Run fixtures against isolated or read-only endpoints and capture requests, responses, decisions, timing, and deviations."
+          "detail": "Run fixtures against isolated or read-only endpoints and capture requests, responses, decisions, timing, and deviations. Hold sampling/createMessage and deprecated includeContext values; deny tool-enabled sampling without sampling.tools or unpinned sampling tools."
         },
         {
           "label": "Action",
