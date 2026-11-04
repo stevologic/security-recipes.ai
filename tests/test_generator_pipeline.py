@@ -274,9 +274,11 @@ class GeneratorPipelineTests(unittest.TestCase):
 
         # Catalog-only trees can leave the three Karen-gated context packs
         # stale; scoped validation reports them pending on #441 instead of
-        # failing. Pull_request Build does not set CVE_CATALOG_VALIDATION, so
-        # --scope auto still runs the full check — assert that policy here
-        # rather than pinning those packs to a volatile catalog SHA.
+        # failing. Pull_request Build and post-merge main Build do not set
+        # CVE_CATALOG_VALIDATION, so --scope auto still runs the full check.
+        # Apply that pending policy on any head whose only --check failures
+        # are Karen-gated — not only on automation/cve-catalog-sync — so a
+        # merged catalog-only SHA remains deployable.
         failures = _parse_generator_check_failures(result.stdout)
         generators = PIPELINE.discover_generators(REPO_ROOT)
         scoped = PIPELINE.classify_check_failures(
@@ -284,11 +286,7 @@ class GeneratorPipelineTests(unittest.TestCase):
             failures,
             scope="cve-owned",
         )
-        if (
-            _is_catalog_sync_head()
-            and not scoped.failed
-            and scoped.pending
-        ):
+        if not scoped.failed and scoped.pending:
             self.assertIn("automation/cve-generated-outputs", scoped.message)
             self.assertIn("needs karen-qa", scoped.message)
             return
@@ -351,6 +349,13 @@ class GeneratorPipelineTests(unittest.TestCase):
         )
 
     def test_full_freshness_still_blocks_on_main_when_evidence_is_stale(self) -> None:
+        """Unscoped --check still fails Karen-gated drift.
+
+        CI uses test_all_generated_artifacts_are_fresh, which treats
+        Karen-gated-only failures as pending on #441. A mixed or CVE-owned
+        failure still has to fail closed.
+        """
+
         generators = PIPELINE.discover_generators(REPO_ROOT)
         decision = PIPELINE.classify_check_failures(
             generators,
@@ -359,6 +364,15 @@ class GeneratorPipelineTests(unittest.TestCase):
         )
         self.assertTrue(decision.failed)
         self.assertEqual(decision.blocking, ("secure_context_trust_pack",))
+
+        mixed = PIPELINE.classify_check_failures(
+            generators,
+            [("secure_context_trust_pack", 1), ("catalog_shard", 1)],
+            scope="cve-owned",
+        )
+        self.assertTrue(mixed.failed)
+        self.assertEqual(mixed.blocking, ("catalog_shard",))
+        self.assertEqual(mixed.pending, ("secure_context_trust_pack",))
 
     def test_missing_validation_base_fails_closed(self) -> None:
         self.assertEqual(PIPELINE.resolve_check_scope("all"), "all")
