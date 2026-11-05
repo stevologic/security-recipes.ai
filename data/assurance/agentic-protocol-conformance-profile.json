@@ -1,12 +1,12 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-10-11",
+  "last_reviewed": "2026-11-04",
   "intent": "Create a buyer-grade protocol conformance layer for SecurityRecipes so MCP, A2A, agent identity, prompt-injection, and standards drift are translated into generated evidence, deterministic runtime decisions, and MCP-readable diligence artifacts.",
   "positioning": {
     "buyer": "AI platform, product security, AppSec, GRC, procurement security, and acquisition diligence teams",
     "category": "Agentic protocol conformance and drift evidence",
     "enterprise_promise": "SecurityRecipes can prove that fast-moving agent protocols are tracked, mapped to controls, regenerated in CI, and enforced before context, authority, tools, or remote-agent delegation crosses a trust boundary.",
-    "why_now": "Agent systems are moving from single-agent pilots to protocol-mediated fleets. MCP and A2A make context, tools, and remote agents composable, but enterprise buyers need conformance gates for authorization metadata, resource binding, tool annotations, tool-surface drift, Agent Cards, authenticated extended cards, prompt-injection paths, and protocol-version drift."
+    "why_now": "Agent systems are moving from single-agent pilots to protocol-mediated fleets. MCP and A2A make context, tools, and remote agents composable, but enterprise buyers need conformance gates for authorization metadata, resource binding, tool annotations, tool-surface drift, deprecated Sampling and includeContext values, Agent Cards, authenticated extended cards, prompt-injection paths, and protocol-version drift."
   },
   "conformance_contract": {
     "default_state": "hold_for_protocol_evidence",
@@ -35,6 +35,8 @@
       "subscription_acknowledged",
       "discover_method",
       "server_info_used_for_security",
+      "sampling_method",
+      "include_context",
       "agent_card_signed",
       "extended_card_authenticated",
       "protocol_version_observed",
@@ -131,13 +133,31 @@
       "why_it_matters": "Complete server/discover results MUST include ttlMs and cacheScope. cacheScope is a freshness and sharing hint, not an access-control lock, and input_required results are not cacheable."
     },
     {
+      "id": "mcp-sampling-2026-07-28",
+      "name": "MCP Sampling (2026-07-28 current revision)",
+      "publisher": "Model Context Protocol",
+      "published": "2026-07-28",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/client/sampling",
+      "source_class": "protocol_specification",
+      "why_it_matters": "MCP 2026-07-28 deprecated Sampling. New implementations SHOULD NOT adopt sampling/createMessage. Servers MUST NOT send tool-enabled sampling unless the client declared sampling.tools. Sampling tools are request-scoped and need not match the registered catalog, so an unpinned sampling tool is an untrusted protocol surface. includeContext values thisServer and allServers are deprecated."
+    },
+    {
+      "id": "mcp-deprecated-2026-07-28",
+      "name": "MCP Deprecated Features (2026-07-28 current revision)",
+      "publisher": "Model Context Protocol",
+      "published": "2026-07-28",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/deprecated",
+      "source_class": "protocol_specification",
+      "why_it_matters": "The 2026-07-28 deprecated-features registry records Sampling, Roots, and Logging as deprecated via SEP-2577, with includeContext values thisServer and allServers reclassified as Deprecated via SEP-2596. New implementations SHOULD NOT adopt Sampling; earliest removal is the first revision on or after 2027-07-28."
+    },
+    {
       "id": "mcp-spec-changelog-2026-07-28",
       "name": "MCP Specification Changelog (2026-07-28 current revision)",
       "publisher": "Model Context Protocol",
       "published": "2026-07-28",
       "url": "https://modelcontextprotocol.io/specification/2026-07-28/changelog",
       "source_class": "protocol_specification",
-      "why_it_matters": "Current public MCP 2026-07-28 revision. MCP is still changing quickly, so buyers need explicit evidence that resource metadata, authorization expectations, client metadata, and tool behavior are reviewed after spec revisions."
+      "why_it_matters": "Current public MCP 2026-07-28 revision. Changelog Deprecated item 1 (SEP-2577) deprecates Sampling, Roots, and Logging; SEP-2596 deprecates includeContext values thisServer and allServers. Buyers need explicit evidence that resource metadata, authorization, client metadata, tool behavior, and deprecated Sampling are reviewed after spec revisions."
     },
     {
       "id": "mcp-spec-changelog-2025-11-25",
@@ -302,12 +322,14 @@
         "mcp-server-discover-2026-07-28",
         "mcp-caching-2026-07-28",
         "mcp-subscriptions-listen-2026-07-28",
+        "mcp-sampling-2026-07-28",
+        "mcp-deprecated-2026-07-28",
         "mcp-spec-changelog-2026-07-28",
         "mcp-tool-annotations-2026-03-16",
         "mcp-spec-changelog-2025-11-25",
         "openai-agent-prompt-injection-2026"
       ],
-      "commercial_value": "Packages required server/discover identity, cacheable discover results, live tool-list monitoring over subscriptions/listen, signed tool-surface baselines, annotation trust, and private-data plus untrusted-content plus external-send risk into a hosted MCP security control plane.",
+      "commercial_value": "Packages required server/discover identity, cacheable discover results, live tool-list monitoring over subscriptions/listen, Sampling deprecation and sampling.tools gating, signed tool-surface baselines, annotation trust, and private-data plus untrusted-content plus external-send risk into a hosted MCP security control plane.",
       "conformance_checks": [
         {
           "id": "mcp-trusted-tool-annotations",
@@ -381,6 +403,26 @@
           ],
           "fail_closed_decision": "deny_untrusted_protocol_surface",
           "buyer_question": "Can SecurityRecipes reject an MCP notification stream that still uses resources/subscribe, skips the listen acknowledgment, or pushes unsolicited list-changed events?"
+        },
+        {
+          "id": "mcp-sampling-deprecation",
+          "title": "MCP Sampling Deprecation and Tool Gating",
+          "requirement": "MCP 2026-07-28 deprecated Sampling. New implementations SHOULD NOT adopt sampling/createMessage; existing hosts SHOULD migrate to provider APIs. Servers MUST NOT send tool-enabled sampling unless the client declared sampling.tools. Sampling tools are request-scoped and need not match the registered catalog, so an unpinned sampling tool is an untrusted protocol surface. includeContext values thisServer and allServers are deprecated.",
+          "source_pack_keys": [
+            "mcp_tool_risk_contract",
+            "mcp_tool_surface_drift_pack"
+          ],
+          "evidence_paths": [
+            "data/evidence/mcp-tool-risk-contract.json",
+            "data/evidence/mcp-tool-surface-drift-pack.json",
+            "data/evidence/agentic-protocol-conformance-pack.json"
+          ],
+          "required_runtime_attributes": [
+            "sampling_method",
+            "include_context"
+          ],
+          "fail_closed_decision": "deny_untrusted_protocol_surface",
+          "buyer_question": "Can SecurityRecipes hold deprecated sampling/createMessage and includeContext values, and reject tool-enabled sampling without sampling.tools or unpinned sampling tools?"
         },
         {
           "id": "mcp-private-untrusted-exfiltration-triangle",
