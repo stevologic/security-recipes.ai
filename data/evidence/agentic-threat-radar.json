@@ -348,7 +348,7 @@
       "why": "Context provenance guidance now needs verification, recertification, and production signing readiness; this run implemented the generated attestation seed, runtime evaluator, and MCP tools without overstating that hosted keyless signing exists yet."
     }
   ],
-  "generated_at": "2026-10-12",
+  "generated_at": "2026-11-05",
   "intent": "Maintain a source-backed market and threat radar for SecurityRecipes so the secure context layer tracks current agentic AI risk, MCP security guidance, enterprise buyer pressure, and product opportunities before they become stale documentation.",
   "path_evidence": [
     {
@@ -361,7 +361,7 @@
     },
     {
       "path": "content/security-remediation/agentic-threat-radar/_index.md",
-      "sha256": "ec7ab4b7d57e44f24e66ed993362e4477f63106d3a7cc4dee3241090f7b7a93e"
+      "sha256": "12647390873788f11ce553478b770bc8dea9b271162b502266dabda2257aeed1"
     },
     {
       "path": "content/security-remediation/context-egress-boundary/_index.md",
@@ -457,11 +457,11 @@
     },
     {
       "path": "data/evidence/context-egress-boundary-pack.json",
-      "sha256": "ab712dc6b94792c3330d3cb8b4bdfff8b636ca326a45f41a4d8d2cb8df96b35d"
+      "sha256": "ec2a9e7319bba1e8afaf732368b685edbd8e012836492d4c87d8aa0ebfb216bb"
     },
     {
       "path": "data/evidence/context-poisoning-guard-pack.json",
-      "sha256": "2de2e8aad3d493cbddbcacaa2cdad711916ff82616fb1b48704f1594b6df0ee9"
+      "sha256": "f21e71296cc2fe9454f8baafd8c9e4adaf72d407ca9318368201d37cda33e31a"
     },
     {
       "path": "data/evidence/mcp-authorization-conformance-pack.json",
@@ -477,15 +477,15 @@
     },
     {
       "path": "data/evidence/secure-context-attestation-pack.json",
-      "sha256": "a0f024f94da13c9e493863ca695aa97745354036c9853c231c4bdedbb17630b5"
+      "sha256": "0aa61b8ecef77da3e0973f5ed6cb1be7df1be807f45d28aef308a7512500d77c"
     },
     {
       "path": "data/evidence/secure-context-trust-pack.json",
-      "sha256": "951dc49f0018ce631890235a969ce7d85a6621caea7171927a9d48006a1c4e5b"
+      "sha256": "7b4a18215dbfd2356e103dcdef7b586f0afe8c8dc9e30f5ee733d615156a4e00"
     },
     {
       "path": "data/intelligence/agentic-threat-radar-sources.json",
-      "sha256": "0047c90b78bda656dc46afaa590f44c77503158558e977478fd220a7747cf4bf"
+      "sha256": "700ac648cc31d2558644eaf9ff0c59ed670a9ef0c36833dc89157bf663944b24"
     },
     {
       "path": "data/mcp/connector-intake-candidates.json",
@@ -746,7 +746,7 @@
   "source_artifacts": {
     "agentic_threat_radar_sources": {
       "path": "data/intelligence/agentic-threat-radar-sources.json",
-      "sha256": "0047c90b78bda656dc46afaa590f44c77503158558e977478fd220a7747cf4bf"
+      "sha256": "700ac648cc31d2558644eaf9ff0c59ed670a9ef0c36833dc89157bf663944b24"
     }
   },
   "source_references": [
@@ -895,6 +895,15 @@
       "why_it_matters": "NCCoE's September 29, 2026 comments summary, drawn from more than 600 responses, says agent identity should reuse OAuth, SPIFFE, and MCP rather than a parallel stack, issue distinct verifiable non-human identities at ephemeral scale, and treat credential sharing and local user impersonation as anti-patterns."
     },
     {
+      "id": "nist-agentic-identity-design-tenets-2026",
+      "name": "Design Tenets for Agent Identity Management Systems",
+      "published": "2026-10-27",
+      "publisher": "NIST",
+      "source_class": "government_security_signal",
+      "url": "https://www.nist.gov/blogs/cybersecurity-insights/design-tenets-agent-identity-management-systems",
+      "why_it_matters": "NIST's October 27, 2026 design tenets require cryptographically verifiable agent identities distinct from humans and service accounts, attenuated sub-agent delegation so downstream entities cannot claim more authority than the parent, zero standing privilege, short-lived audience-specific grants, signed mandate statements, architectural separation of policy from reasoning, deterministic access decisions, consent-fatigue-aware HITL thresholds, continuous monitoring, and independent append-only evidence."
+    },
+    {
       "id": "nist-ai-600-1",
       "name": "Artificial Intelligence Risk Management Framework: Generative Artificial Intelligence Profile",
       "published": "2024-07-26",
@@ -988,14 +997,14 @@
       "frontier_lab_guidance": 3,
       "government_framework": 4,
       "government_guidance": 2,
-      "government_security_signal": 2,
+      "government_security_signal": 3,
       "industry_guidance": 3,
       "industry_standard": 3,
       "protocol_guidance": 2,
       "protocol_specification": 4,
       "vendor_architecture_guidance": 1
     },
-    "source_reference_count": 24,
+    "source_reference_count": 25,
     "top_signals": [
       {
         "id": "agent-protocol-handoff-boundaries",
@@ -1565,12 +1574,13 @@
       "confidence": "high",
       "control_objectives": [
         "Issue per-run or per-workflow non-human identities instead of sharing human or local user credentials.",
-        "Bind delegated scopes to workflow, agent class, owner, and run ID.",
-        "Require short-lived, audience-restricted credentials and runtime revocation.",
+        "Bind delegated scopes to workflow, agent class, owner, and run ID, and attenuate sub-agent grants so downstream entities cannot claim more authority than the parent.",
+        "Require short-lived, audience-restricted credentials, zero standing privilege while idle, and runtime revocation.",
+        "Keep access decisions in a deterministic policy engine separated from the reasoning model.",
         "Preserve human owner and reviewer linkage in audit evidence without treating HITL prompts as a substitute for unique agent identity.",
         "Prefer existing OAuth, SPIFFE, and MCP identity mechanisms over a parallel agent identity stack, and keep the secure path the easy path so impersonation does not become the default."
       ],
-      "enterprise_risk": "Shared bot accounts, human-token borrowing, local user-account impersonation, weak owner links, and missing revocation paths make incidents hard to contain or explain, and they undermine non-repudiation when an agent acts without a distinct identity. Ephemeral sub-agents and shadow local agents amplify this unless persistent trust anchors are paired with short-lived scoped credentials.",
+      "enterprise_risk": "Shared bot accounts, human-token borrowing, local user-account impersonation, weak owner links, and missing revocation paths make incidents hard to contain or explain, and they undermine non-repudiation when an agent acts without a distinct identity. Ephemeral sub-agents and shadow local agents amplify this unless persistent trust anchors are paired with short-lived scoped credentials. Unattenuated sub-agent grants, idle standing privilege, model-driven access decisions, unsigned mandates, and agent-writable logs leave the same identity class unbounded even after unique credentials exist.",
       "horizon": "now",
       "id": "agent-identity-explosion",
       "mapped_capability_ids": [
@@ -1592,6 +1602,7 @@
         "owasp-agentic-top-10-2026",
         "nist-agentic-identity-foundation-2026",
         "nist-nccoe-agentic-identity-comments-2026",
+        "nist-agentic-identity-design-tenets-2026",
         "csa-agentic-identity-2025",
         "mcp-security-best-practices-2026-07-28"
       ],
@@ -1621,6 +1632,14 @@
           "url": "https://pages.nist.gov/nccoe-ai-identity/summary-of-comments.html"
         },
         {
+          "id": "nist-agentic-identity-design-tenets-2026",
+          "name": "Design Tenets for Agent Identity Management Systems",
+          "published": "2026-10-27",
+          "publisher": "NIST",
+          "source_class": "government_security_signal",
+          "url": "https://www.nist.gov/blogs/cybersecurity-insights/design-tenets-agent-identity-management-systems"
+        },
+        {
           "id": "csa-agentic-identity-2025",
           "name": "Agentic AI, MCP, and the Identity Explosion You Cannot Ignore",
           "published": "2025-07-10",
@@ -1639,7 +1658,7 @@
       ],
       "strategic_score": 93,
       "title": "Agent identities are becoming a new non-human identity class",
-      "trend": "NIST's August 27, 2026 identity guidance warns that agent rollouts are repeating IAM mistakes: shared human credentials, long-lived API keys and bearer tokens, overly broad access, local user-account impersonation, and over-reliance on human-in-the-loop approvals. NCCoE's September 29, 2026 comments summary, based on more than 600 responses, confirms an evolutionary path: reuse OAuth, SPIFFE, and MCP rather than a parallel identity stack; issue distinct verifiable non-human identities at ephemeral-agent scale; and treat local user-or-admin impersonation plus credential sharing as anti-patterns, especially for externally owned agents. The first NCCoE implementation use case is identity, authentication, and authorization of AI agents in the software development lifecycle."
+      "trend": "NIST's August 27, 2026 identity guidance warns that agent rollouts are repeating IAM mistakes: shared human credentials, long-lived API keys and bearer tokens, overly broad access, local user-account impersonation, and over-reliance on human-in-the-loop approvals. NCCoE's September 29, 2026 comments summary, based on more than 600 responses, confirms an evolutionary path: reuse OAuth, SPIFFE, and MCP rather than a parallel identity stack; issue distinct verifiable non-human identities at ephemeral-agent scale; and treat local user-or-admin impersonation plus credential sharing as anti-patterns, especially for externally owned agents. NIST's October 27, 2026 design tenets, drawn from those comments and stakeholder engagement, add attenuated sub-agent delegation, zero standing privilege, short-lived audience-specific grants, signed mandate statements, architectural separation of policy from reasoning, and deterministic access decisions. Unique short-lived credentials are necessary but not sufficient. The first NCCoE implementation use case is identity, authentication, and authorization of AI agents in the software development lifecycle."
     },
     {
       "buyer_trigger": "AI platform, GRC, or security architecture asks which agentic workflows are safe to expand and which require deeper review.",
@@ -2331,11 +2350,12 @@
       "confidence": "high",
       "control_objectives": [
         "Capture tool-call, context-retrieval, policy-decision, reviewer, and scanner evidence.",
+        "Keep identity, mandate, and action evidence append-only and independent of the agent so a compromised agent cannot alter its own logs.",
         "Include correlation IDs across agent, MCP, source host, ticket, and CI systems.",
         "Export portable evidence packs for AI platform and GRC review.",
         "Track readiness and drift over time."
       ],
-      "enterprise_risk": "Without correlated logs and evidence, teams cannot prove what an agent saw, which tools it used, why a policy allowed it, who approved it, or when drift began.",
+      "enterprise_risk": "Without correlated logs and evidence, teams cannot prove what an agent saw, which tools it used, why a policy allowed it, who approved it, or when drift began. If the agent can write or modify those logs, a compromised run can erase the same identity, mandate, and action trail reviewers need.",
       "horizon": "now",
       "id": "audit-telemetry-and-evidence-chain",
       "mapped_capability_ids": [
@@ -2358,6 +2378,7 @@
         "owasp-mcp-top-10-2025",
         "nist-ai-rmf-2026-critical-infrastructure",
         "nist-ai-600-1",
+        "nist-agentic-identity-design-tenets-2026",
         "cisa-ai-data-security-2025"
       ],
       "sources": [
@@ -2386,6 +2407,14 @@
           "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence"
         },
         {
+          "id": "nist-agentic-identity-design-tenets-2026",
+          "name": "Design Tenets for Agent Identity Management Systems",
+          "published": "2026-10-27",
+          "publisher": "NIST",
+          "source_class": "government_security_signal",
+          "url": "https://www.nist.gov/blogs/cybersecurity-insights/design-tenets-agent-identity-management-systems"
+        },
+        {
           "id": "cisa-ai-data-security-2025",
           "name": "AI Data Security: Best Practices for Securing Data Used to Train and Operate AI Systems",
           "published": "2025-05-22",
@@ -2396,7 +2425,7 @@
       ],
       "strategic_score": 88,
       "title": "Agentic audit telemetry is becoming mandatory evidence, not observability nice-to-have",
-      "trend": "Guidance increasingly expects monitoring, evidence, traceability, and lifecycle measurement for deployed AI systems, especially when they touch critical or enterprise operations."
+      "trend": "Guidance increasingly expects monitoring, evidence, traceability, and lifecycle measurement for deployed AI systems, especially when they touch critical or enterprise operations. NIST's October 27, 2026 design tenets make that evidence an identity-control requirement: an unbroken, tamper-evident, append-only chain of custody for agent identity, delegated intent, and actions, with logging independent of the agent."
     },
     {
       "buyer_trigger": "The buyer wants agents to write PRs, tickets, registry changes, payments, or production-impacting actions.",
@@ -2455,11 +2484,12 @@
       "confidence": "high",
       "control_objectives": [
         "Assign risk ratings to tools and operations.",
-        "Hold privileged or irreversible operations for explicit approval.",
+        "Hold privileged or irreversible operations for explicit approval triggered by defined risk thresholds, not unconstrained model prompts.",
+        "Require signed mandate statements that define intended outcomes and constraints before high-impact actions.",
         "Make approval prompts structured and auditable, and do not treat HITL as a substitute for unique agent identity and scoped credentials.",
         "Preserve reviewer separation of duties before merge or release."
       ],
-      "enterprise_risk": "An attacker can manipulate an agent into requesting approval for the wrong thing, hiding sensitive data in a tool call, or bypassing human review through a lower-risk path. Frequent unstructured prompts also train operators to click through, recreating MFA-fatigue failure modes.",
+      "enterprise_risk": "An attacker can manipulate an agent into requesting approval for the wrong thing, hiding sensitive data in a tool call, or bypassing human review through a lower-risk path. Frequent unstructured prompts also train operators to click through, recreating MFA-fatigue failure modes. Unsigned mandates leave high-impact actions without a verifiable statement of intended outcomes and constraints.",
       "horizon": "now",
       "id": "human-approval-and-tool-safeguards",
       "mapped_capability_ids": [
@@ -2483,6 +2513,7 @@
         "microsoft-indirect-prompt-injection-2026",
         "nist-agentic-identity-foundation-2026",
         "nist-nccoe-agentic-identity-comments-2026",
+        "nist-agentic-identity-design-tenets-2026",
         "owasp-agentic-top-10-2026"
       ],
       "sources": [
@@ -2527,6 +2558,14 @@
           "url": "https://pages.nist.gov/nccoe-ai-identity/summary-of-comments.html"
         },
         {
+          "id": "nist-agentic-identity-design-tenets-2026",
+          "name": "Design Tenets for Agent Identity Management Systems",
+          "published": "2026-10-27",
+          "publisher": "NIST",
+          "source_class": "government_security_signal",
+          "url": "https://www.nist.gov/blogs/cybersecurity-insights/design-tenets-agent-identity-management-systems"
+        },
+        {
           "id": "owasp-agentic-top-10-2026",
           "name": "OWASP Top 10 for Agentic Applications",
           "published": "2025-12-09",
@@ -2537,7 +2576,7 @@
       ],
       "strategic_score": 85,
       "title": "Human approval is shifting from UX prompt to policy-enforced control",
-      "trend": "High-risk agent actions need confirmations, tool safeguards, clear policies, trace grading, and reviewable execution plans. NIST warns that over-reliance on human-in-the-loop approvals causes consent fatigue, so approval needs a typed policy surface rather than a free-text negotiation with the model. NCCoE's September 29, 2026 comments summary likewise calls for risk-based human review of high-impact actions only, so operators are not trained to click through unstructured prompts."
+      "trend": "High-risk agent actions need confirmations, tool safeguards, clear policies, trace grading, and reviewable execution plans. NIST warns that over-reliance on human-in-the-loop approvals causes consent fatigue, so approval needs a typed policy surface rather than a free-text negotiation with the model. NCCoE's September 29, 2026 comments summary likewise calls for risk-based human review of high-impact actions only, so operators are not trained to click through unstructured prompts. NIST's October 27, 2026 design tenets require organizations to define HITL risk thresholds, escalate with enough context, avoid consent fatigue, and bind high-impact work to signed mandate statements."
     },
     {
       "buyer_trigger": "The buyer wants to move from pilot to fleet-wide agentic remediation.",
