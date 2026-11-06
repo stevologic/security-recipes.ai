@@ -1,12 +1,12 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-09-28",
+  "last_reviewed": "2026-11-06",
   "intent": "Create an enterprise buyer and AI-platform standards crosswalk for SecurityRecipes so OWASP Agentic Top 10, CSA AI Controls Matrix, NIST AI agent guidance, MCP authorization requirements, critical-infrastructure AI expectations, and frontier-lab prompt-injection defenses map directly to generated evidence packs, MCP tools, and runtime decision surfaces.",
   "positioning": {
     "buyer": "AI Platform, Product Security, AppSec, GRC, procurement security, model-risk, and acquisition diligence teams",
     "category": "Agentic AI standards-to-evidence crosswalk",
     "enterprise_promise": "SecurityRecipes can answer standards and due-diligence questions with current source references, mapped controls, generated JSON evidence, and MCP tools instead of narrative claims.",
-    "why_now": "Agentic AI systems now combine autonomy, private context, tool execution, remote MCP servers, local STDIO servers, browser-like agents, persistent memory, and agent-to-agent handoffs. Standards and buyer guidance are converging on the same requirement: prove context, authority, tool use, egress, evals, telemetry, and receipts before agents act."
+    "why_now": "Agentic AI systems now combine autonomy, private context, tool execution, remote MCP servers, local STDIO servers, browser-like agents, persistent memory, and agent-to-agent handoffs. NIST's October 27, 2026 design tenets, drawn from NCCoE comments and stakeholder engagement, require cryptographically verifiable identities distinct from humans and service accounts, attenuated sub-agent delegation, zero standing privilege, short-lived audience-specific grants, signed mandate statements, architectural separation of policy from reasoning, deterministic access decisions, consent-fatigue-aware HITL thresholds, continuous monitoring, and independent append-only evidence. Unique short-lived credentials are necessary but not sufficient when a sub-agent keeps parent-wide scope, idle agents retain standing privilege, the reasoning model grants access, or the agent can write its own logs. Standards and buyer guidance are converging on the same requirement: prove context, authority, tool use, egress, evals, telemetry, and receipts before agents act."
   },
   "control_plane_contract": {
     "default_state": "not_enterprise_ready_until_each_referenced_standard_control_has_generated_evidence",
@@ -177,6 +177,24 @@
       "url": "https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation",
       "source_class": "government_security_signal",
       "why_it_matters": "NIST warns that agent rollouts are repeating IAM mistakes: shared human credentials, long-lived API keys and bearer tokens, overly broad access, local user-account impersonation, and over-reliance on human-in-the-loop approvals."
+    },
+    {
+      "id": "nist-nccoe-agentic-identity-comments-2026",
+      "name": "Summary of Comments on the Software and Agentic AI Identity and Authorization Concept Paper",
+      "publisher": "NIST NCCoE",
+      "published": "2026-09-29",
+      "url": "https://pages.nist.gov/nccoe-ai-identity/summary-of-comments.html",
+      "source_class": "government_security_signal",
+      "why_it_matters": "NCCoE's September 29, 2026 comments summary, drawn from more than 600 responses, says sender-constrained credentials (OAuth DPoP or mTLS using SPIFFE or WIMSE identities) are essential to reduce bearer-token replay, and that ephemeral credentials should be bound to a stable identity anchor via proof-of-possession rather than reused as unconstrained bearer tokens."
+    },
+    {
+      "id": "nist-agentic-identity-design-tenets-2026",
+      "name": "Design Tenets for Agent Identity Management Systems",
+      "publisher": "NIST",
+      "published": "2026-10-27",
+      "url": "https://www.nist.gov/blogs/cybersecurity-insights/design-tenets-agent-identity-management-systems",
+      "source_class": "government_security_signal",
+      "why_it_matters": "NIST's October 27, 2026 design tenets require cryptographically verifiable agent identities distinct from humans and service accounts, attenuated sub-agent delegation so downstream entities cannot claim more authority than the parent, zero standing privilege, short-lived audience-specific grants, signed mandate statements, architectural separation of policy from reasoning, deterministic access decisions, consent-fatigue-aware HITL thresholds, continuous monitoring, and independent append-only evidence."
     },
     {
       "id": "openai-prompt-injections-2025",
@@ -895,23 +913,25 @@
         "nist-caisi-ai-agent-security-rfi-2026",
         "nist-ai-rmf-2026",
         "nist-ai-600-1",
-        "nist-agentic-identity-foundation-2026"
+        "nist-agentic-identity-foundation-2026",
+        "nist-nccoe-agentic-identity-comments-2026",
+        "nist-agentic-identity-design-tenets-2026"
       ],
       "buyer_question": "Can SecurityRecipes show governance, measurement, identity, data, and lifecycle evidence for deployed agent systems?",
-      "minimum_required_controls": 5,
+      "minimum_required_controls": 8,
       "controls": [
         {
           "id": "NIST-AGENT-01",
           "title": "Agent Identity and Interoperable Protocols",
-          "objective": "Support secure human-agent and multi-agent interactions through identity, authentication, and protocol-boundary evidence.",
+          "objective": "Support secure human-agent and multi-agent interactions through cryptographically verifiable agent identities distinct from humans and service accounts, authentication, and protocol-boundary evidence.",
           "required_capability_ids": [
             "agent-handoff-boundary-pack",
             "agent-identity-ledger",
             "mcp-authorization-conformance",
             "agentic-system-bom"
           ],
-          "diligence_question": "Can the buyer inspect which agent identity acted across MCP and agent-to-agent boundaries?",
-          "evidence_expectation": "Handoff, identity, authorization, and BOM evidence show agent identity, protocol, capability, and resource boundaries."
+          "diligence_question": "Can the buyer inspect which unique agent identity acted across MCP and agent-to-agent boundaries, rather than a borrowed human or service-account credential?",
+          "evidence_expectation": "Handoff, identity, authorization, and BOM evidence show a distinct agent identity lifecycle, protocol, capability, and resource boundaries."
         },
         {
           "id": "NIST-AGENT-02",
@@ -964,6 +984,45 @@
           ],
           "diligence_question": "How does SecurityRecipes know which data and third-party components shaped an agent run?",
           "evidence_expectation": "Trust, attestation, poisoning, and BOM evidence provide source hashes, owners, freshness, connector components, and drift triggers."
+        },
+        {
+          "id": "NIST-AGENT-06",
+          "title": "Attenuated Delegation and Zero Standing Privilege",
+          "objective": "Bound sub-agent and downstream grants so they cannot claim more authority than the parent, and require idle agents to hold no persistent rights.",
+          "required_capability_ids": [
+            "agent-identity-ledger",
+            "agentic-entitlement-review-pack",
+            "agent-trust-fabric",
+            "mcp-authorization-conformance"
+          ],
+          "diligence_question": "What stops a sub-agent from inheriting parent-wide scope or an idle agent from retaining standing privilege?",
+          "evidence_expectation": "Identity, entitlement, trust-fabric, and authorization evidence show attenuated delegated scopes, lease TTLs, idle-privilege revocation, resource indicators, and denied privilege paths."
+        },
+        {
+          "id": "NIST-AGENT-07",
+          "title": "Signed Mandates and Deterministic Policy Separation",
+          "objective": "Require cryptographically signed mandate statements for high-impact tasks, keep policy enforcement architecturally separate from the reasoning model, and make access decisions deterministic rather than model-granted.",
+          "required_capability_ids": [
+            "agentic-action-runtime-pack",
+            "mcp-gateway-policy",
+            "agent-trust-fabric",
+            "agentic-approval-receipt-pack"
+          ],
+          "diligence_question": "Can a buyer prove the reasoning model cannot expand permissions, and that high-impact work has a signed mandate plus a deterministic allow, hold, deny, or kill decision?",
+          "evidence_expectation": "Action-runtime, gateway, trust-fabric, and approval-receipt evidence show mandate or approval records, policy hashes, runtime decisions, and a separated policy path that does not let the model grant access."
+        },
+        {
+          "id": "NIST-AGENT-08",
+          "title": "Independent Append-Only Evidence and Risk-Threshold HITL",
+          "objective": "Keep identity, delegated intent, and action evidence on an agent-independent append-only chain, and trigger human review at defined risk thresholds without consent-fatigue defaults.",
+          "required_capability_ids": [
+            "agentic-run-receipt-pack",
+            "agentic-telemetry-contract",
+            "agentic-approval-receipt-pack",
+            "agentic-catastrophic-risk-annex"
+          ],
+          "diligence_question": "What prevents an agent from writing or modifying its own evidence, and how are high-impact HITL triggers bounded so reviewers do not rubber-stamp?",
+          "evidence_expectation": "Run receipts, telemetry, approval receipts, and the catastrophic-risk annex show independent evidence paths, append-only receipts, approval bounds, risk thresholds, and hold or kill decisions when evidence is agent-writable or HITL is missing."
         }
       ]
     },
