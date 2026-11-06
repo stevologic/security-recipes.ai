@@ -1927,6 +1927,48 @@
         "Confirm the Jenkins version shown by the application after upgrade matches a fixed release from the vendor advisory (weekly 2.154 or later; LTS 2.138.4 or 2.150.1 or later)"
       ]
     },
+    "CVE-2018-1273": {
+      "business_risk": "No additional source-verified CVE-specific business impact was established.",
+      "claim_evidence": [],
+      "exposure_conditions": [],
+      "gaps": [
+        "generic_ecosystem"
+      ],
+      "generated_at": "2026-11-06T17:05:50Z",
+      "model": "grok-4.7",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [],
+      "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2018-1273",
+        "https://github.com/advisories/GHSA-4fq3-mr56-cg6r",
+        "https://spring.io/security/cve-2018-1273/",
+        "https://avd.aquasec.com/nvd/2018/cve-2018-1273/",
+        "https://nvd.nist.gov/vuln/detail/cve-2018-1273",
+        "https://spring.io/security/page-13",
+        "https://spring.io/security/page-18",
+        "https://spring.io/security/page-14/",
+        "https://spring.io/blog/2018/04/05/multiple-cve-reports-published-for-the-spring-framework/",
+        "https://spring.io/security/cve-2018-1273",
+        "https://app.opencve.io/cve/CVE-2018-1273",
+        "https://socradar.io/free-tools/cve-radar/CVE-2018-1273",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog",
+        "https://www.cisa.gov/news-events/bulletins/sb26-166",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-26-300-02",
+        "https://www.cisa.gov/ncas/bulletins/SB18-162",
+        "https://www.cisa.gov/news-events/alerts/2026/10/27/cisa-adds-two-known-exploited-vulnerabilities-catalog",
+        "https://www.cisa.gov/news-events/bulletins/sb26-243",
+        "https://www.cisa.gov/ncas/bulletins/SB18-197"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "516984c7f0911bc48c0cfcdfa906898ac7f42fca18702297a7adcdd2fe4db5f5",
+      "source_urls": [],
+      "status": "insufficient_evidence",
+      "uncertainty": [
+        "The available sources were insufficient for CVE-specific remediation guidance."
+      ],
+      "verification_steps": []
+    },
     "CVE-2018-13379": {
       "business_risk": "No additional source-verified CVE-specific business impact was established.",
       "claim_evidence": [],
@@ -2172,98 +2214,49 @@
       ]
     },
     "CVE-2018-15961": {
-      "business_risk": "Critical risk: successful exploitation may permit arbitrary code execution. Adobe reported active exploitation in the wild, and CISA lists the CVE in its Known Exploited Vulnerabilities Catalog.",
-      "claim_evidence": [
-        {
-          "claim": "CVE-2018-15961 affects Adobe ColdFusion 2018, ColdFusion 2016, and ColdFusion 11.",
-          "kind": "affected_product",
-          "source_url": "https://helpx.adobe.com/sg/security/products/coldfusion/apsb18-33.html"
-        },
-        {
-          "claim": "Affected versions are ColdFusion 2018 July 12 release 2018.0.0.310739, ColdFusion 2016 Update 6 and earlier, and ColdFusion 11 Update 14 and earlier, on all platforms.",
-          "kind": "affected_version",
-          "source_url": "https://helpx.adobe.com/sg/security/products/coldfusion/apsb18-33.html"
-        },
-        {
-          "claim": "NVD describes the vulnerability as network exploitable without privileges or user interaction, with potential for arbitrary code execution; the CVE is also identified as present in CISA’s Known Exploited Vulnerabilities Catalog.",
-          "kind": "exposure",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2018-15961"
-        },
-        {
-          "claim": "Adobe lists ColdFusion 2018 Update 1, ColdFusion 2016 Update 7, and ColdFusion 11 Update 15 as the updated versions for the affected releases.",
-          "kind": "fixed_version",
-          "source_url": "https://helpx.adobe.com/sg/security/products/coldfusion/apsb18-33.html"
-        },
-        {
-          "claim": "Adobe requires or recommends the corresponding JDK/JRE updates and states that applying the ColdFusion update without the required JDK/JRE update will not secure the server; JEE/J2EE deployments also require the specified JVM serialization-filter configuration where applicable.",
-          "kind": "remediation",
-          "source_url": "https://helpx.adobe.com/sg/security/products/coldfusion/apsb18-33.html"
-        },
-        {
-          "claim": "Remediation can be checked by reviewing the installed ColdFusion update, JDK/JRE level, and applicable JEE/J2EE startup configuration against Adobe’s documented requirements.",
-          "kind": "verification",
-          "source_url": "https://helpx.adobe.com/sg/security/products/coldfusion/apsb18-33.html"
-        }
-      ],
-      "exposure_conditions": [
-        "ColdFusion 2018 release July 12 build 2018.0.0.310739 is affected on all platforms.",
-        "ColdFusion 2016 Update 6 and earlier is affected on all platforms.",
-        "ColdFusion 11 Update 14 and earlier is affected on all platforms.",
-        "Risk is greatest when the ColdFusion service is network reachable; NVD rates the vulnerability as network exploitable without privileges or user interaction."
-      ],
+      "business_risk": "No additional source-verified CVE-specific business impact was established.",
+      "claim_evidence": [],
+      "exposure_conditions": [],
       "gaps": [
         "generic_ecosystem"
       ],
-      "generated_at": "2026-08-03T13:00:45Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-11-06T16:58:56Z",
+      "model": "grok-4.7",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
-      "remediation_steps": [
-        "Upgrade ColdFusion 2018 to Update 1 or later.",
-        "Upgrade ColdFusion 2016 to Update 7 or later.",
-        "Upgrade ColdFusion 11 to Update 15 or later.",
-        "Update the ColdFusion JDK/JRE as required by the target release: JDK 8u121 or later for ColdFusion 2016, and JDK 7u131 or JDK 8u121 or later for ColdFusion 11. Adobe states that applying the ColdFusion update without the corresponding JDK/JRE update does not secure the server.",
-        "For JEE/J2EE deployments, apply Adobe’s specified JVM serialization-filter setting in the relevant application-server startup configuration; do not apply this setting to standalone ColdFusion installations.",
-        "Prioritize remediation for any internet- or partner-facing ColdFusion deployment and review Adobe’s applicable security configuration and lockdown guidance."
-      ],
+      "remediation_steps": [],
       "retrieved_source_urls": [
         "https://nvd.nist.gov/vuln/detail/CVE-2018-15961",
-        "https://helpx.adobe.com/sg/security/products/coldfusion/apsb18-33.html",
-        "https://helpx.adobe.com/pl/security/products/coldfusion/apsb18-33.html",
-        "https://helpx.adobe.com/se/security/products/coldfusion/apsb18-33.html",
-        "https://helpx.adobe.com/tr/security/products/coldfusion/apsb18-33.html",
-        "https://nvd.nist.gov/vuln/detail/cve-2018-15961",
+        "https://www.cve.org/CVERecord?id=CVE-2018-15961",
+        "https://helpx.adobe.com/security/products/coldfusion/apsb18-33.html",
+        "https://psirt.com/cve/CVE-2018-15961",
+        "https://www.cvedetails.com/cve/CVE-2018-15961/",
+        "https://www.rapid7.com/db/vulnerabilities/adobe-coldfusion-cve-2018-15961/",
+        "https://cvetodo.com/cve/CVE-2018-15961",
+        "https://turingpoint.de/en/cve/CVE-2018-15961/",
+        "https://www.cyber-defence.io/tools/cve/CVE-2018-15961",
+        "https://socradar.io/free-tools/cve-radar/CVE-2018-15961",
+        "https://helpx.adobe.com/vn_en/security/products/coldfusion/apsb18-33.html",
+        "https://helpx.adobe.com/hk_zh/security/products/coldfusion/apsb18-33.html",
         "https://helpx.adobe.com/ch_de/security/products/coldfusion/apsb18-33.html",
-        "https://helpx.adobe.com/security/security-bulletin.html",
-        "https://helpx.adobe.com/no/security/products/coldfusion/apsb18-33.html",
-        "https://helpx.adobe.com/dk/security/products/coldfusion/apsb18-33.html",
+        "https://helpx.adobe.com/cn/security/products/coldfusion/apsb18-33.html",
         "https://helpx.adobe.com/es/security/products/coldfusion/apsb18-33.html",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=57",
-        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/202008131030_COVID-19%2520Cyber%2520Threats%2520Update_TLP_WHITE.pdf",
-        "https://www.cisa.gov/sites/default/files/2024-05/Secure_by_Design_Alert_Eliminating_Directory_Traversal_Vulnerabilities_in_Software_508c%20%283%29.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/AA22-117A_Joint_CSA_2021_Top_Routinely_Exploited_Vulnerabilities_Final.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/AA20-258A-Chinese_Ministry_of_State_Security-Affiliated_Cyber_Threat_Actor_Activity_S508C.pdf",
-        "https://www.cisa.gov/sites/default/files/2024-08/SECURING_THE_SOFTWARE_SUPPLY_CHAIN_RECOMMENDED_PRACTICES_FOR_SOFTWARE_BILL_OF_MATERIALS_CONSUMPTION-508.pdf"
+        "https://cve.report/CVE-2018-15961",
+        "https://coldfusion.adobe.com/2018/09/coldfusion-2018-release-update-1-coldfusion-2016-release-update-7-and-coldfusion-11-update-15-released/",
+        "https://helpx.adobe.com/pe/coldfusion/kb/coldfusion-2016-update-7.html",
+        "https://cfguide.io/coldfusion-version-comparison",
+        "https://helpx.adobe.com/be_nl/security/products/coldfusion/apsb18-33.html",
+        "https://helpx.adobe.com/coldfusion/kb/coldfusion-2018-updates.html",
+        "https://helpx.adobe.com/coldfusion/kb/coldfusion-11-updates.html"
       ],
       "schema_version": 2,
       "source_fingerprint": "5423d284edffce5625464a8bee8bce9edd63e7ad5edefb5c503a74c6fb03e7b9",
-      "source_urls": [
-        "https://helpx.adobe.com/sg/security/products/coldfusion/apsb18-33.html",
-        "https://nvd.nist.gov/vuln/detail/CVE-2018-15961"
-      ],
-      "status": "complete",
+      "source_urls": [],
+      "status": "insufficient_evidence",
       "uncertainty": [
-        "The supplied source record conflates update thresholds across ColdFusion generations; Adobe’s advisory separates them by product generation, which is used here.",
-        "The advisory establishes the required update levels and JDK/JRE conditions but does not provide a CVE-specific non-exploit validation procedure.",
-        "The exact currently installed ColdFusion edition, generation, update level, deployment mode, JDK/JRE, and network exposure were not provided."
+        "Authoritative sources have not yet been consulted; enrichment is not complete."
       ],
-      "verification_steps": [
-        "Review the deployed ColdFusion product generation and update level, confirming it is at or above the applicable Adobe fixed update: 2018 Update 1, 2016 Update 7, or ColdFusion 11 Update 15.",
-        "Review the runtime JDK/JRE version and confirm it meets Adobe’s stated requirement for the installed ColdFusion generation.",
-        "For JEE/J2EE deployments, review the application-server startup configuration to confirm the Adobe-recommended JVM serialization-filter setting is present where applicable.",
-        "Confirm that the updated ColdFusion instance has restarted successfully and that normal application health checks pass; do not perform exploit testing against production systems."
-      ]
+      "verification_steps": []
     },
     "CVE-2018-18809": {
       "business_risk": "No additional source-verified CVE-specific business impact was established.",
@@ -2481,143 +2474,75 @@
       "gaps": [
         "generic_ecosystem"
       ],
-      "generated_at": "2026-08-03T13:01:45Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-11-06T17:03:07Z",
+      "model": "grok-4.7",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [],
-      "retrieved_source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2018-2628",
-        "https://nvd.nist.gov/vuln/detail/cve-2018-2628",
-        "https://www.oracle.com/security-alerts/cpuapr2018.html",
-        "https://nvd.nist.gov/vuln/detail/CVE-2017-2628",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?_cldee=jpUNG-sft0Lr74jsazzEoZ17jTSFEy6lQDvCJArCUYT0C1B4SWuT29F0dx7GSSfN&esid=f8736f67-efb4-ec11-983e-000d3a5a7186&f%5B0%5D=vendor_project%3A813&f%5B1%5D=vendor_project%3A829&f%5B2%5D=vendor_project%3A849&f%5B3%5D=vendor_project%3A911&f%5B4%5D=vendor_project%3A1320&page=1&recipientid=contact-41de9e007aace811a963000d3a363879-a794569726594743b07ecd7aaff0e97c",
-        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=52",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=0",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=53",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?%3F%3Futm_source=adzuna&f%5B0%5D=vendor_project%3A814&f%5B1%5D=vendor_project%3A827&f%5B2%5D=vendor_project%3A852&f%5B3%5D=vendor_project%3A875&f%5B4%5D=vendor_project%3A879&f%5B5%5D=vendor_project%3A907&f%5B6%5D=vendor_project%3A942&f%5B7%5D=vendor_project%3A1000&page=1",
-        "https://community.oracle.com/products/oracleanalytics/discussion/5169/weblogic-version-12-2-1-0-0-critical-patch-apr-2018",
-        "https://www.oracle.com/security-alerts/security-advisories23.html",
-        "https://nvd.nist.gov/vuln/detail/CVE-2018-20181",
-        "https://www.cisa.gov/sites/default/files/2024-05/Secure_by_Design_Alert_Eliminating_Directory_Traversal_Vulnerabilities_in_Software_508c%20%283%29.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/AA22-117A_Joint_CSA_2021_Top_Routinely_Exploited_Vulnerabilities_Final.pdf",
-        "https://www.cisa.gov/sites/default/files/2024-08/SECURING_THE_SOFTWARE_SUPPLY_CHAIN_RECOMMENDED_PRACTICES_FOR_SOFTWARE_BILL_OF_MATERIALS_CONSUMPTION-508.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/AA20-133A_Top_10_Routinely_Exploited_Vulnerabilities_S508C.pdf",
-        "https://www.oracle.com/security-alerts/cpuapr2018verbose.html",
-        "https://community.oracle.com/mosc/discussion/4561333/seek-help-to-get-solution-for-the-va-finding",
-        "https://community.oracle.com/mosc/discussion/4272027/patch-set-for-weblogic-12c",
-        "https://forums.oracle.com/ords/r/apexds/community/q?question=weblogic-version-12-2-1-0-0-critical-patch-apr-2018-3892&session=601735020710800",
-        "https://wwwcmsapi.oracle.com/security-alerts/cpuapr2018.html"
-      ],
+      "retrieved_source_urls": [],
       "schema_version": 2,
       "source_fingerprint": "a1eb69d25a57a908230a776a206c0e038295817be883f742c64e0d64a3a2d07e",
-      "source_urls": [
-        "https://www.oracle.com/security-alerts/cpuapr2018.html",
-        "https://nvd.nist.gov/vuln/detail/CVE-2018-2628"
-      ],
+      "source_urls": [],
       "status": "insufficient_evidence",
       "uncertainty": [
-        "The returned authoritative sources identify affected versions and the Oracle April 2018 CPU, but do not expose concrete fixed build numbers or patch identifiers for each affected WebLogic release.",
-        "Because a concrete fixed_version claim could not be verified from the returned authoritative sources, remediation should not be considered complete solely from a generic version comparison.",
-        "The supplied source record's future-dated last_modified value is not independently relied upon; the authoritative NVD page was consulted as returned."
+        "Authoritative pages reviewed name affected versions and the April 2018 CPU as the remediation, but do not publish a concrete fixed version string (for example a patch set or PSU identifier) in the retrieved text.",
+        "Safe, non-exploit verification steps that do not rely on probing the vulnerability are not specified beyond applying and recording the vendor patch.",
+        "The exact patch IDs and supported upgrade paths differ by WebLogic release and must be taken from the Oracle patch download and CPU documentation for the installed version, which was not fully retrieved here."
       ],
       "verification_steps": []
     },
     "CVE-2018-4939": {
-      "business_risk": "Critical remote-code-execution risk in Adobe ColdFusion. NVD rates CVE-2018-4939 9.8 Critical, and the vulnerability is listed in CISA's Known Exploited Vulnerabilities Catalog. Successful exploitation may result in arbitrary code execution, potentially affecting confidentiality, integrity, and availability.",
-      "claim_evidence": [
-        {
-          "claim": "Adobe identifies ColdFusion 2016 and ColdFusion 11 as affected product lines for APSB18-14, which includes mitigation for CVE-2018-4939.",
-          "kind": "affected_product",
-          "source_url": "https://helpx.adobe.com/uk/security/products/coldfusion/apsb18-14.html"
-        },
-        {
-          "claim": "Adobe lists ColdFusion 2016 Update 5 and earlier, and ColdFusion 11 Update 13 and earlier, as affected versions.",
-          "kind": "affected_version",
-          "source_url": "https://helpx.adobe.com/uk/security/products/coldfusion/apsb18-14.html"
-        },
-        {
-          "claim": "NVD describes CVE-2018-4939 as a remotely exploitable unsafe deserialization vulnerability with network attack vector, low attack complexity, no privileges required, and no user interaction; the impact can include arbitrary code execution.",
-          "kind": "exposure",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2018-4939"
-        },
-        {
-          "claim": "Adobe lists ColdFusion 2016 Update 6 and ColdFusion 11 Update 14 as the updated versions for the affected release lines.",
-          "kind": "fixed_version",
-          "source_url": "https://helpx.adobe.com/uk/security/products/coldfusion/apsb18-14.html"
-        },
-        {
-          "claim": "Adobe requires the specified minimum JDK levels, states that updating ColdFusion without the corresponding JDK update will not secure the server, and directs customers to apply security configuration settings and review lockdown guides.",
-          "kind": "remediation",
-          "source_url": "https://helpx.adobe.com/uk/security/products/coldfusion/apsb18-14.html"
-        },
-        {
-          "claim": "Adobe's bulletin provides deployment-specific JDK requirements and distinguishes JEE/J2EE configuration requirements from standalone installations, supporting verification through installed update, runtime, and deployment configuration review.",
-          "kind": "verification",
-          "source_url": "https://helpx.adobe.com/uk/security/products/coldfusion/apsb18-14.html"
-        }
-      ],
-      "exposure_conditions": [
-        "Adobe ColdFusion 2016 Update 5 or earlier is deployed.",
-        "Adobe ColdFusion 11 Update 13 or earlier is deployed.",
-        "The affected ColdFusion service is reachable over a network path that permits an attacker to interact with it. NVD characterizes the issue as network exploitable without privileges or user interaction.",
-        "JEE/J2EE deployments require the Java runtime and serialization-filtering requirements described by Adobe to be satisfied; applying only the ColdFusion update is not sufficient."
-      ],
+      "business_risk": "No additional source-verified CVE-specific business impact was established.",
+      "claim_evidence": [],
+      "exposure_conditions": [],
       "gaps": [
         "generic_ecosystem"
       ],
-      "generated_at": "2026-08-03T13:01:25Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-11-06T17:02:52Z",
+      "model": "grok-4.7",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
-      "remediation_steps": [
-        "Upgrade ColdFusion 2016 to Update 6 or later, or migrate to a currently supported Adobe ColdFusion release following Adobe's supported upgrade path.",
-        "Upgrade ColdFusion 11 to Update 14 or later if that legacy release must be retained; prefer migration to a supported release because ColdFusion 11 is legacy software.",
-        "For ColdFusion 2016, use JDK 8u121 or later as required by Adobe's bulletin; for ColdFusion 11, use JDK 7u131 or JDK 8u121 or later. Adobe recommends the latest supported JDK/JRE.",
-        "For JEE/J2EE deployments, apply Adobe's required Java deserialization-filtering configuration according to the deployment-specific technical note. Do not apply that JEE-only setting to standalone installations.",
-        "Apply Adobe's ColdFusion security configuration guidance and review the applicable ColdFusion lockdown guide.",
-        "Because CVE-2018-4939 is in CISA's KEV Catalog, prioritize remediation, restrict unnecessary network exposure, and investigate potentially affected internet-facing instances."
-      ],
+      "remediation_steps": [],
       "retrieved_source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2018-4939",
-        "https://helpx.adobe.com/pl/security/products/coldfusion/apsb18-14.html",
-        "https://nvd.nist.gov/vuln/detail/cve-2018-4939",
-        "https://helpx.adobe.com/uk/security/products/coldfusion/apsb18-14.html",
-        "https://helpx.adobe.com/se/security/products/coldfusion/apsb18-14.html",
-        "https://helpx.adobe.com/no/security/products/coldfusion/apsb18-14.html",
-        "https://helpx.adobe.com/tr/security/products/coldfusion/apsb18-14.html",
-        "https://helpx.adobe.com/cz/security/products/coldfusion/apsb18-14.html",
+        "https://www.cyber-defence.io/tools/cve/CVE-2018-4939",
+        "https://socradar.io/free-tools/cve-radar/CVE-2018-4939",
+        "https://cvefeed.io/vuln/detail/CVE-2018-4939",
+        "https://cvetodo.com/cve/CVE-2018-4939",
+        "https://helpx.adobe.com/security/products/coldfusion/apsb18-14.html",
+        "https://www.tenable.com/cve/CVE-2018-4939/plugins",
+        "https://synscan.net/vuln/cve-2018-4939",
+        "https://cipherssecurity.com/cve/CVE-2018-4939/",
+        "https://cve.circl.lu/vuln/cve-2018-4939",
+        "https://cve.imfht.com/analysis-public/CVE-2018-4939?lang=en",
+        "https://helpx.adobe.com/tw/security/products/coldfusion/apsb18-14.html",
+        "https://helpx.adobe.com/be_nl/security/products/coldfusion/apsb18-14.html",
         "https://helpx.adobe.com/cn/security/products/coldfusion/apsb18-14.html",
-        "https://helpx.adobe.com/dk/security/products/coldfusion/apsb18-14.html",
-        "https://helpx.adobe.com/es/security/products/coldfusion/apsb18-14.html",
-        "https://helpx.adobe.com/security/products/coldfusion/apsb20-16.html",
-        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
-        "https://www.cisa.gov/sites/default/files/2024-05/Secure_by_Design_Alert_Eliminating_Directory_Traversal_Vulnerabilities_in_Software_508c%20%283%29.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/AA22-117A_Joint_CSA_2021_Top_Routinely_Exploited_Vulnerabilities_Final.pdf",
-        "https://www.cisa.gov/sites/default/files/2024-08/SECURING_THE_SOFTWARE_SUPPLY_CHAIN_RECOMMENDED_PRACTICES_FOR_SOFTWARE_BILL_OF_MATERIALS_CONSUMPTION-508.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/AA20-133A_Top_10_Routinely_Exploited_Vulnerabilities_S508C.pdf",
-        "https://helpx.adobe.com/pdf/coldfusion_configuring.pdf"
+        "https://helpx.adobe.com/jp/security/products/coldfusion/apsb18-14.html",
+        "https://nvd.nist.gov/vuln/detail/cve-2018-4939",
+        "https://nvd.nist.gov/vuln/detail/cve-2017-4939",
+        "https://nvd.nist.gov/vuln/detail/cve-2018-4239",
+        "https://nvd.nist.gov/vuln/detail/cve-2018-7839",
+        "https://helpx.adobe.com/pe/coldfusion/kb/coldfusion-2016-update-6.html",
+        "https://helpx.adobe.com/coldfusion/release-note/coldfusion-2016-updates-release-notes.html",
+        "https://helpx.adobe.com/de/security/products/coldfusion/apsb18-14.html",
+        "https://www.cisa.gov/news-events/alerts/2019/03/01/adobe-releases-security-updates-coldfusion",
+        "https://helpx.adobe.com/tw/security/security-bulletin.html",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog"
       ],
       "schema_version": 2,
       "source_fingerprint": "40edc5541cd2a36e5aa76e6e976b364612c9c48d0b32689074af5b379ee7a088",
       "source_urls": [
-        "https://helpx.adobe.com/uk/security/products/coldfusion/apsb18-14.html",
-        "https://nvd.nist.gov/vuln/detail/CVE-2018-4939"
+        "https://helpx.adobe.com/security/products/coldfusion/apsb18-14.html"
       ],
-      "status": "complete",
+      "status": "insufficient_evidence",
       "uncertainty": [
-        "The supplied record truncates and inconsistently represents affected product/version data; Adobe's advisory identifies both ColdFusion 2016 and ColdFusion 11 as affected.",
-        "Adobe's 2018 bulletin provides fixed update levels for the affected release lines, but it does not establish that those legacy updates are appropriate for every currently supported deployment scenario.",
-        "No safe, product-specific non-exploit application test was identified in the returned authoritative sources; verification should rely on version, runtime, configuration, and follow-up scanning evidence."
+        "The NVD page did not return content, so the CVSS vector and CPE ranges were not reconfirmed.",
+        "The CISA KEV catalog entry was not retrieved, so known exploitation is not reconfirmed here.",
+        "Tech notes linked from APSB18-14 did not return update-specific content.",
+        "The bulletin uses mitigation language for CVE-2018-4939 and states that the ColdFusion update alone does not secure the server without the required JDK update.",
+        "No source retrieved here establishes a specific exposure path or a safe functional verification."
       ],
-      "verification_steps": [
-        "Confirm the installed ColdFusion release and update level through the product's supported administrative or inventory mechanism; verify ColdFusion 2016 is at least Update 6 or ColdFusion 11 is at least Update 14.",
-        "Confirm the runtime JDK meets Adobe's stated minimum for the deployed ColdFusion release.",
-        "For JEE/J2EE deployments, confirm the Adobe-required serialization-filtering configuration is present in the appropriate application-server startup configuration, without performing an exploit test.",
-        "Confirm the relevant Adobe security configuration and lockdown guidance has been reviewed and applied where applicable.",
-        "Re-scan the asset using a version-aware vulnerability scanner or authenticated software inventory after remediation; do not send deserialization payloads to production systems."
-      ]
+      "verification_steps": []
     },
     "CVE-2018-6789": {
       "business_risk": "No additional source-verified CVE-specific business impact was established.",
@@ -2626,150 +2551,136 @@
       "gaps": [
         "generic_ecosystem"
       ],
-      "generated_at": "2026-08-03T13:02:54Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-11-06T17:11:44Z",
+      "model": "grok-4.7",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
       "remediation_steps": [],
-      "retrieved_source_urls": [],
+      "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2018-6789",
+        "https://nvd.nist.gov/vuln/search?resultType=records&cpeFilterMode=cpe&cpeName=cpe:2.3:a:exim:exim:4.11:*:*:*:*:*:*:*",
+        "https://nvd.nist.gov/vuln/detail/cve-2019-6789",
+        "https://nvd.nist.gov/vuln/detail/CVE-2017-6789",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2018-20098",
+        "https://lists.exim.org/lurker/message/20180210.180351.bc65dc61.en.html",
+        "https://lists.exim.org/lurker/mindex/exim-announce@20190906.054016.db2b9408.en.html",
+        "https://lists.exim.org/lurker/message/20180207.103352.4bd34f57.en.html",
+        "https://lists.exim.org/lurker/message/20180209.094004.282ebc68.en.html",
+        "https://lists.exim.org/lurker/thread/20180210.180844.3c8c13ae.en.html",
+        "https://sploitus.com/cve/CVE-2018-6789",
+        "https://nhimg.org/faq/is-cve-2018-6789-exim-buffer-overflow-being-exploited-in-the-wild/",
+        "https://cve.report/CVE-2018-6789.pdf",
+        "https://cvefeed.io/vuln/detail/CVE-2018-6789",
+        "https://www.cisa.gov/resources-tools/resources/kev-catalog",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2010-4345",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog",
+        "https://www.cisa.gov/news-events/alerts/2026/10/27/cisa-adds-two-known-exploited-vulnerabilities-catalog",
+        "https://www.cve.org/CVERecord?id=CVE-2018-6789",
+        "https://www.cve.org/CVERecord/SearchResults?query=exim",
+        "https://www.cve.org/Media/News/Blogs",
+        "https://www.debian.org/security/dsa-4110-1",
+        "https://www.linuxcompatible.org/story/exim4-uwsgi-updates-for-debian/",
+        "https://security-tracker.debian.org/tracker/CVE-2018-6789"
+      ],
       "schema_version": 2,
       "source_fingerprint": "f2f1af1c3595c2749edb82890fe76b0da1780bd924ed2527765414d3317bb98e",
       "source_urls": [],
       "status": "insufficient_evidence",
       "uncertainty": [
-        "The upstream advisory describes preconditions but does not enumerate them in detail, so exploitability cannot be determined from the CVE alone.",
-        "The generic source record does not identify a concrete product version, operating-system release, package type, or deployment topology.",
-        "The upstream advisory indicates that remote code execution seemed possible but also described exploitation as potentially difficult; the exact exploitability depends on the deployment and build.",
-        "Distribution backports may use version strings that do not correspond directly to upstream Exim version 4.90.1; use the vendor package thresholds where applicable.",
-        "The model did not return a fully sourced exposure, remediation, and verification set; consult the linked NVD and vendor sources before acting."
+        "The available sources were insufficient for CVE-specific remediation guidance."
       ],
       "verification_steps": []
     },
     "CVE-2018-7600": {
-      "business_risk": "Critical remote code execution vulnerability in Drupal core. A successful attack could completely compromise the site, affecting confidentiality, integrity, and availability. Drupal reported automated exploitation attempts against unpatched sites.",
-      "claim_evidence": [
-        {
-          "claim": "The vulnerability affects Drupal core and is identified by the vendor as SA-CORE-2018-002 / CVE-2018-7600.",
-          "kind": "affected_product",
-          "source_url": "https://www.drupal.org/sa-core-2018-002"
-        },
-        {
-          "claim": "Affected ranges are Drupal 7.0 through 7.57, 8.0.0 through 8.3.8, 8.4.0 through 8.4.5, and 8.5.0.",
-          "kind": "affected_version",
-          "source_url": "https://www.drupal.org/sa-core-2018-002"
-        },
-        {
-          "claim": "The vendor describes remote code execution through multiple subsystems and states that attackers could exploit multiple attack vectors on a Drupal site.",
-          "kind": "exposure",
-          "source_url": "https://www.drupal.org/sa-core-2018-002"
-        },
-        {
-          "claim": "Drupal reported automated attacks attempting to compromise unpatched Drupal 7 and 8 websites.",
-          "kind": "exposure",
-          "source_url": "https://www.drupal.org/psa-2018-002"
-        },
-        {
-          "claim": "Drupal 7 is fixed by upgrading to Drupal 7.58.",
-          "kind": "fixed_version",
-          "source_url": "https://www.drupal.org/sa-core-2018-002"
-        },
-        {
-          "claim": "Drupal 8.3.x is fixed by upgrading to Drupal 8.3.9.",
-          "kind": "fixed_version",
-          "source_url": "https://www.drupal.org/sa-core-2018-002"
-        },
-        {
-          "claim": "Drupal 8.4.x is fixed by upgrading to Drupal 8.4.6.",
-          "kind": "fixed_version",
-          "source_url": "https://www.drupal.org/sa-core-2018-002"
-        },
-        {
-          "claim": "Drupal 8.5.x is fixed by upgrading to Drupal 8.5.1.",
-          "kind": "fixed_version",
-          "source_url": "https://www.drupal.org/sa-core-2018-002"
-        },
-        {
-          "claim": "The vendor solution is to upgrade to the applicable Drupal core release; the advisory also describes vendor patches as interim options for certain branches.",
-          "kind": "remediation",
-          "source_url": "https://www.drupal.org/sa-core-2018-002"
-        },
-        {
-          "claim": "Drupal documentation states that the installed core version can be verified through Administration > Reports > Status report.",
-          "kind": "verification",
-          "source_url": "https://www.drupal.org/docs/getting-started/understanding-drupal/understanding-drupal-version-numbers/which-version-am-i-running"
-        },
-        {
-          "claim": "Drupal documentation identifies Administration > Reports > Available updates as the location for reviewing available updates.",
-          "kind": "verification",
-          "source_url": "https://www.drupal.org/docs/getting-started/understanding-drupal/understanding-drupal-version-numbers/which-version-am-i-running"
-        }
-      ],
-      "exposure_conditions": [
-        "Drupal core is in an affected range: 7.0 through 7.57; 8.0.0 through 8.3.8; 8.4.0 through 8.4.5; or 8.5.0.",
-        "The Drupal site is remotely reachable and uses default or common module configurations or another affected attack path described by the vendor advisory.",
-        "Because exploitation was observed against unpatched Drupal 7 and 8 sites, internet-facing deployments should be treated as high priority."
-      ],
+      "business_risk": "No additional source-verified CVE-specific business impact was established.",
+      "claim_evidence": [],
+      "exposure_conditions": [],
       "gaps": [
         "generic_ecosystem"
       ],
-      "generated_at": "2026-08-03T13:02:34Z",
-      "model": "gpt-5.6-luna",
+      "generated_at": "2026-11-06T17:07:39Z",
+      "model": "grok-4.7",
       "prompt_version": "2026-07-14.2",
       "recipe_specificity": "not_specific",
-      "remediation_steps": [
-        "Upgrade Drupal 7 installations to 7.58 or later.",
-        "Upgrade Drupal 8.3 installations to 8.3.9 or later, or apply the vendor-provided security patch as an interim measure.",
-        "Upgrade Drupal 8.4 installations to 8.4.6 or later, or apply the vendor-provided security patch as an interim measure.",
-        "Upgrade Drupal 8.5 installations to 8.5.1 or later.",
-        "For Drupal 8.2.x and earlier, update to a more recent supported release and then apply the applicable security update; the advisory states these branches were no longer supported.",
-        "Use the normal Drupal maintenance and backup process, and review the vendor advisory and its FAQ before applying changes."
-      ],
+      "remediation_steps": [],
       "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2018-7600",
+        "https://nvd.nist.gov/vuln/detail/CVE-2018-7602",
+        "https://nvd.nist.gov/vuln/search?cpeFilterMode=cpe&cpeName=cpe:2.3:a:podofo_project:podofo:0.9.5:*:*:*:*:*:*:*&resultType=records",
+        "https://nvd.nist.gov/vuln/detail/CVE-2017-7600",
         "https://www.drupal.org/sa-core-2018-002",
-        "https://www.drupal.org/psa-2018-002",
-        "https://groups.drupal.org/security/faq-2018-002",
-        "https://www.drupal.org/security/p?page=69",
-        "https://nvd.nist.gov/vuln/detail/CVE-2018-7600?source=post_page---------------------------",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=52",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=50",
-        "https://www.drupal.org/sa-core-2018-004",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=38",
-        "https://www.drupal.org/security/core/all?page=8",
         "https://www.drupal.org/psa-2018-001",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?_cldee=jpUNG-sft0Lr74jsazzEoZ17jTSFEy6lQDvCJArCUYT0C1B4SWuT29F0dx7GSSfN&esid=f8736f67-efb4-ec11-983e-000d3a5a7186&f%5B0%5D=vendor_project%3A813&f%5B1%5D=vendor_project%3A829&f%5B2%5D=vendor_project%3A849&f%5B3%5D=vendor_project%3A911&f%5B4%5D=vendor_project%3A1320&page=1&recipientid=contact-41de9e007aace811a963000d3a363879-a794569726594743b07ecd7aaff0e97c",
-        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/AA21-209A_Joint_CSA%20Top%20Routinely%20Exploited%20Vulnerabilities.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/AA20-133A_Top_10_Routinely_Exploited_Vulnerabilities_S508C.pdf",
-        "https://www.cisa.gov/sites/default/files/2024-05/Secure_by_Design_Alert_Eliminating_Directory_Traversal_Vulnerabilities_in_Software_508c%20%283%29.pdf",
-        "https://www.drupal.org/project/available_updates",
-        "https://www.drupal.org/docs/user_guide/en/security-update-core.html",
-        "https://www.drupal.org/docs/getting-started/understanding-drupal/understanding-drupal-version-numbers/which-version-am-i-running",
-        "https://www.drupal.org/docs/develop/core-modules-and-themes/core-modules/update-module",
-        "https://www.drupal.org/docs/updating-drupal/troubleshooting-database-updates",
-        "https://www.drupal.org/docs/updating-drupal/updating-drupal-core-via-composer",
-        "https://www.drupal.org/docs/updating-drupal/options-for-updating-drupal-core",
-        "https://www.drupal.org/project/status_dashboard"
+        "https://www.drupal.org/security/subscribe?page=69",
+        "https://www.drupal.org/sa-core-2018-004",
+        "https://www.drupal.org/project/d6lts/issues/2955130",
+        "https://psirt.com/advisory/DRUPAL-CORE-2018-002",
+        "https://www.cert.europa.eu/publications/security-advisories/2018-012/pdf",
+        "https://secalerts.co/vulnerability/CVE-2018-7602",
+        "https://groups.drupal.org/files/ultimate-guide-drupal-8_0.pdf",
+        "https://groups.drupal.org/node/506128",
+        "https://groups.drupal.org/node/284348",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2018-7600",
+        "https://www.cvedetails.com/cve/CVE-2018-7600/",
+        "https://cve.socradar.io/cve/CVE-2018-7600",
+        "https://security-tracker.debian.org/tracker/CVE-2018-7600",
+        "https://www.debian.org/security/dsa-4156-1",
+        "https://www.debian.org/lts/security/dla-1325-1",
+        "https://www.drupal.org/project/faq"
       ],
       "schema_version": 2,
       "source_fingerprint": "50c0200004dfd7e959a6c3ab5e48713eb7071c2b968d1daeed4082dfd0c676bb",
-      "source_urls": [
-        "https://www.drupal.org/sa-core-2018-002",
-        "https://www.drupal.org/psa-2018-002",
-        "https://www.drupal.org/docs/getting-started/understanding-drupal/understanding-drupal-version-numbers/which-version-am-i-running"
-      ],
-      "status": "complete",
+      "source_urls": [],
+      "status": "insufficient_evidence",
       "uncertainty": [
-        "The supplied record includes Debian operating-system CPEs, but the consulted Drupal advisory does not establish Debian package-specific fixed versions; Debian remediation should be handled through the relevant Debian security advisory.",
-        "The advisory states that Drupal 6 is affected but does not provide a Drupal 6 fixed version in the consulted source.",
-        "A version check cannot determine whether a site was previously compromised or whether custom patches, backports, altered modules, or deployment-specific configuration change exposure.",
-        "No exploit testing or active probing is recommended or supported by the consulted sources."
+        "Authoritative sources have not yet been consulted."
       ],
-      "verification_steps": [
-        "In the Drupal administrative interface, open Administration > Reports > Status report and record the reported Drupal core version.",
-        "Confirm the installed core version is not in any affected range and meets or exceeds the applicable fixed version: 7.58, 8.3.9, 8.4.6, or 8.5.1.",
-        "Review Administration > Reports > Available updates, where enabled, to confirm Drupal core is not reported as requiring this security update.",
-        "For sites that were unpatched during the exploitation window, conduct an incident-response review of application, web-server, authentication, and integrity logs; do not treat version remediation alone as evidence that compromise did not occur."
-      ]
+      "verification_steps": []
+    },
+    "CVE-2018-7602": {
+      "business_risk": "No additional source-verified CVE-specific business impact was established.",
+      "claim_evidence": [],
+      "exposure_conditions": [],
+      "gaps": [
+        "generic_ecosystem"
+      ],
+      "generated_at": "2026-11-06T17:01:14Z",
+      "model": "grok-4.7",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [],
+      "retrieved_source_urls": [
+        "https://www.drupal.org/sa-core-2018-004",
+        "https://nvd.nist.gov/vuln/detail/CVE-2018-7602",
+        "https://www.cve.org/CVERecord?id=CVE-2018-7602",
+        "https://cve.report/CVE-2018-7602",
+        "https://www.ipa.go.jp/archive/security/security-alert/2018/0426-drupal.html",
+        "https://administrator.de/cve/CVE-2018-7602/",
+        "https://github.com/advisories/GHSA-297x-j9pm-xjgg",
+        "https://app.opencve.io/cve/CVE-2018-7602",
+        "https://secalerts.co/vulnerability/CVE-2018-7602",
+        "https://www.tenable.com/plugins/nessus/109344",
+        "https://nvd.nist.gov/vuln/detail/cve-2018-7602",
+        "https://nvd.nist.gov/vuln/search?cpeFilterMode=cpe&cpeName=cpe:2.3:a:podofo_project:podofo:0.9.5:*:*:*:*:*:*:*&resultType=records",
+        "https://nvd.nist.gov/vuln/detail/cve-2017-7602",
+        "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2018-8002",
+        "https://www.drupal.org/security/subscribe?page=69",
+        "https://www.drupal.org/project/drupal/releases/8.4.8",
+        "https://www.drupal.org/project/d6lts/issues/2955130",
+        "https://www.drupal.org/sa-core-2018-002",
+        "https://nhimg.org/faq/how-do-you-patch-or-mitigate-cve-2018-7602-drupal-core-remote-code-execution/",
+        "https://github.com/daggersec/CISA-Known-Exploits/blob/main/known_exploited_vulnerabilities.csv",
+        "https://www.debian.org/security/2018/dsa-4180/%22,",
+        "https://www.drupal.org/drupal-security-team/security-risk-levels-defined",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2018-7602"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "1a33ac3c96eeef98d91390d0c78794d91fd50f9b7c8324080eb86bbe2d1f397a",
+      "source_urls": [],
+      "status": "insufficient_evidence",
+      "uncertainty": [
+        "The available sources were insufficient for CVE-specific remediation guidance."
+      ],
+      "verification_steps": []
     },
     "CVE-2018-7841": {
       "business_risk": "No additional source-verified CVE-specific business impact was established.",
@@ -26245,76 +26156,6 @@
       ],
       "verification_steps": []
     },
-    "CVE-2025-48595": {
-      "business_risk": "High priority. CVE-2025-48595 is an Android Framework integer-overflow vulnerability enabling local elevation of privilege and potentially code execution without user interaction. It is listed in CISA's Known Exploited Vulnerabilities catalog, and Google reports indications of limited, targeted exploitation.",
-      "claim_evidence": [
-        {
-          "claim": "NVD records affected Android CPEs for Android 14.0, 15.0, 16.0, and Android 16 QPR2 beta variants.",
-          "kind": "affected_version",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-48595"
-        },
-        {
-          "claim": "The vulnerability can enable local escalation of privilege without additional execution privileges or user interaction.",
-          "kind": "exposure",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-48595"
-        },
-        {
-          "claim": "CISA's required action is to apply vendor mitigations, follow applicable BOD 22-01 guidance, or discontinue use if mitigations are unavailable.",
-          "kind": "remediation",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-48595"
-        }
-      ],
-      "exposure_conditions": [
-        "Android versions 14, 15, 16, and 16-qpr2 are identified as affected by the vendor.",
-        "Exploitation is described as local, requiring no additional execution privileges and no user interaction.",
-        "The issue affects the Android Framework component and is associated with CWE-190, Integer Overflow or Wraparound."
-      ],
-      "gaps": [],
-      "generated_at": "2026-08-07T10:27:16Z",
-      "model": "gpt-5.6-luna",
-      "prompt_version": "2026-07-14.2",
-      "recipe_specificity": "not_specific",
-      "remediation_steps": [
-        "Apply the device manufacturer or Google security update that provides Android security patch level 2026-06-05 or later.",
-        "Prioritize remediation for internet-connected, enterprise-managed, privileged, or otherwise sensitive devices because the vulnerability is listed in CISA KEV.",
-        "If a supported update is unavailable, follow applicable vendor mitigation guidance; do not treat the device as remediated based solely on application updates or Google Play Protect status."
-      ],
-      "retrieved_source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2025-48595",
-        "https://nvd.nist.gov/vuln/detail/CVE-2025-49595",
-        "https://source.android.com/docs/security/bulletin/android-16",
-        "https://source.android.com/docs/whatsnew/latest-security-bulletins",
-        "https://www.cisa.gov/news-events/alerts/2025/08/25/cisa-adds-three-known-exploited-vulnerabilities-catalog",
-        "https://source.android.com/docs/security/bulletin/2025-12-01",
-        "https://source.android.com/docs/security/bulletin/pixel",
-        "https://source.android.com/docs/security/bulletin/2026/2026-03-01",
-        "https://source.android.com/docs/security/bulletin/2025-04-01",
-        "https://source.android.com/docs/security/bulletin/2026/2026-06-01?hl=fr",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=0",
-        "https://source.android.com/docs/security/bulletin/2026/2026-06-01?hl=ru",
-        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
-        "https://www.cisa.gov/sites/default/files/2025-09/AA25-266A_advisory_cisa_shares_lessons_learned_from_ir_engagement.pdf",
-        "https://www.cisa.gov/sites/default/files/2025-08/CSA_COUNTERING_CHINA_STATE_ACTORS_COMPROMISE_OF_NETWORKS.pdf",
-        "https://www.cisa.gov/sites/default/files/2024-05/Secure_by_Design_Alert_Eliminating_Directory_Traversal_Vulnerabilities_in_Software_508c%20%283%29.pdf",
-        "https://www.cisa.gov/sites/default/files/publications/AA20-258A-Chinese_Ministry_of_State_Security-Affiliated_Cyber_Threat_Actor_Activity_S508C.pdf"
-      ],
-      "schema_version": 2,
-      "source_fingerprint": "e6e11efe52012256da0649c76d5fba70b28eacdc33d593eea69730a4976dae9e",
-      "source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2025-48595"
-      ],
-      "status": "complete",
-      "uncertainty": [
-        "The Android bulletin establishes a fixed security patch level rather than a universal OEM firmware build number. Exact build identifiers and update availability vary by device manufacturer and model.",
-        "The available sources do not establish a separate configuration-level mitigation or a universally applicable backport for unsupported devices.",
-        "The vendor describes indications of limited, targeted exploitation, while CISA classifies the CVE as known exploited; the precise campaigns and affected device populations are not specified."
-      ],
-      "verification_steps": [
-        "On the device, inspect the reported Android security patch level using the standard Android system update/security-information interface.",
-        "Confirm that the installed security patch level is 2026-06-05 or later.",
-        "Record the device model, Android release, security patch level, and update source; do not perform exploit testing or production probes."
-      ]
-    },
     "CVE-2025-48703": {
       "business_risk": "Critical unauthenticated OS command injection (CWE-78) in Control Web Panel enabling remote code execution; listed in CISA Known Exploited Vulnerabilities catalog.",
       "claim_evidence": [
@@ -29358,6 +29199,75 @@
         "Review whether management interfaces remain restricted from untrusted networks as stated in CISA KEV notes"
       ]
     },
+    "CVE-2026-109618": {
+      "business_risk": "No additional source-verified CVE-specific business impact was established.",
+      "claim_evidence": [],
+      "exposure_conditions": [],
+      "gaps": [
+        "generic_ecosystem"
+      ],
+      "generated_at": "2026-11-06T17:10:13Z",
+      "model": "grok-4.7",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [],
+      "retrieved_source_urls": [],
+      "schema_version": 2,
+      "source_fingerprint": "1a7aac9ee9fd915efc6046e42320e2cc9e7351ace02bb0df50540fe4ba430147",
+      "source_urls": [],
+      "status": "insufficient_evidence",
+      "uncertainty": [
+        "Web search and page retrieval failed, so no authoritative NVD, CNA, vendor advisory, release note, or patch source could be consulted for CVE-2026-109618."
+      ],
+      "verification_steps": []
+    },
+    "CVE-2026-109619": {
+      "business_risk": "No additional source-verified CVE-specific business impact was established.",
+      "claim_evidence": [],
+      "exposure_conditions": [],
+      "gaps": [
+        "generic_ecosystem"
+      ],
+      "generated_at": "2026-11-06T17:10:10Z",
+      "model": "grok-4.7",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [],
+      "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-109619",
+        "https://nvd.nist.gov/vuln/search?resultType=records&cpeFilterMode=cpe&cpeName=cpe:2.3:a:php:php:7.4.29:-:*:*:*:*:*:*",
+        "https://nvd.nist.gov/vuln/search?cpeFilterMode=cpe&cpeName=cpe:2.3:a:php:php:8.1.29:-:*:*:*:*:*:*&resultType=records",
+        "https://nvd.nist.gov/vuln/search?resultType=records&cpeFilterMode=cpe&cpeName=cpe:2.3:a:php:php:8.2.28:*:*:*:*:*:*:*",
+        "https://cipherssecurity.com/cve/CVE-2026-109619/",
+        "https://phpvulnerabilities.app/cve/CVE-2026-109619/",
+        "https://techdows.com/cve-2026-109619-explained-php-stale-global-state-rce-and-how-to-fix-it.html",
+        "https://www.mend.io/vulnerability-database/CVE-2026-109619/",
+        "https://www.cyber-defence.io/tools/cve/CVE-2026-109619",
+        "https://news-web.php.net/php.bugs/253162",
+        "http://news-web.php.net/php.internals/132920",
+        "http://news-web.php.net/php.internals/132917",
+        "https://news-web.php.net/php.bugs/253129",
+        "https://www.php.net/archive/2026.php",
+        "https://www.cve.org/CVERecord?id=CVE-2026-109619",
+        "https://www.pcrisk.com/internet-threat-news/36070-emergency-php-updates-fix-php2shell-rce-bugs",
+        "https://psirt.com/advisory/BELL-CVE-2026-109619",
+        "https://seclists.org/oss-sec/2026/q4/278",
+        "https://www.absolute.com/platform/security-information/vulnerability-archive/cve-2026-109618-and-cve-2026-109619-php-advisory",
+        "https://www.cpanel.net/blog/security/php-cve-2026-109618-and-cve-2026-109619-cpanel-response/",
+        "https://github.com/php/php-src/security/advisories/GHSA-6wmf-4rv5-p3rp",
+        "https://github.com/php/php-src/security/advisories/GHSA-w8hw-w9fx-j79w",
+        "https://www.cisa.gov/news-events/alerts/2026/10/21/critical-vulnerabilities-php-require-immediate-patching",
+        "https://www.php.net/releases/8_2_35.php"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "cd31f877861a986f15d4ca12d064d98d6661e19216e7c1d10b443d9d2bb320e4",
+      "source_urls": [],
+      "status": "insufficient_evidence",
+      "uncertainty": [
+        "The available sources were insufficient for CVE-specific remediation guidance."
+      ],
+      "verification_steps": []
+    },
     "CVE-2026-110447": {
       "business_risk": "No additional source-verified CVE-specific business impact was established.",
       "claim_evidence": [],
@@ -29400,53 +29310,6 @@
       "status": "insufficient_evidence",
       "uncertainty": [
         "Authoritative sources have not yet been consulted."
-      ],
-      "verification_steps": []
-    },
-    "CVE-2026-111497": {
-      "business_risk": "No additional source-verified CVE-specific business impact was established.",
-      "claim_evidence": [],
-      "exposure_conditions": [],
-      "gaps": [
-        "generic_ecosystem"
-      ],
-      "generated_at": "2026-11-05T17:51:14Z",
-      "model": "grok-4.7",
-      "prompt_version": "2026-07-14.2",
-      "recipe_specificity": "not_specific",
-      "remediation_steps": [],
-      "retrieved_source_urls": [
-        "https://www.redtigersecurity.com/advisory/brotli-cve-2026-111497-cisa-kev",
-        "https://www.tuskira.ai/advisories/cve-2026-111497",
-        "https://nvd.nist.gov/vuln/search?cpeFilterMode=cpe&cpeName=cpe:2.3:a:google:brotli:1.2.0:rc1:*:*:*:-:*:*&resultType=records",
-        "https://github.com/advisories/GHSA-9v8h-qqgm-4m35",
-        "https://censys.com/advisory/cve-2026-111497/",
-        "https://www.spirityenterprise.com/cve/cve-2026-111497-brotli-decoder-out-of-bounds-write/",
-        "https://semgrep.dev/blog/2026/broccoli2shell-brotli-cve-2026-111497/",
-        "https://cellcog.ai/blog/brotli-cve-2026-111497/",
-        "https://access.redhat.com/security/vulnerabilities/RHSB-2026-015",
-        "https://stackurity.ai/cve/CVE-2026-111497",
-        "https://nvd.nist.gov/vuln/detail/CVE-2026-111497",
-        "https://nvd.nist.gov/vuln/search?cpeFilterMode=cpe&cpeName=cpe:2.3:a:andybalholm:brotli:1.0.5:*:*:*:*:go:*:*&resultType=records",
-        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2026-89811",
-        "https://nvd.nist.gov/vuln/detail/CVE-2026-112944",
-        "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2026-90111",
-        "https://github.com/paulmann/CVE-2026-111497/blob/main/CHANGELOG.md",
-        "https://github.com/paulmann/CVE-2026-111497/blob/main/README.md",
-        "https://github.com/omacom/omarchy/issues/16518",
-        "https://github.com/git-for-windows/git/issues/6514",
-        "https://www.cisa.gov/news-events/alerts/2026/10/27/cisa-adds-two-known-exploited-vulnerabilities-catalog",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog-print",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog",
-        "https://cisa.gov/kev",
-        "https://nodejs.org/ja/blog/vulnerability/october-2026-security-releases"
-      ],
-      "schema_version": 2,
-      "source_fingerprint": "2919d0fb7129defd2dc18a704429bfabe66c4742a2f0e0806e85e7b9f14453f9",
-      "source_urls": [],
-      "status": "insufficient_evidence",
-      "uncertainty": [
-        "The available sources were insufficient for CVE-specific remediation guidance."
       ],
       "verification_steps": []
     },
