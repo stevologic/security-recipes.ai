@@ -3,7 +3,7 @@ title: Agentic Catastrophic Risk Annex
 linkTitle: Catastrophic Risk Annex
 weight: 18
 date: 2026-05-04
-lastmod: 2026-09-28
+lastmod: 2026-11-07
 toc: true
 description: >
   Evaluate severe agentic AI failure modes, escalation triggers, containment
@@ -20,7 +20,7 @@ normal readiness scorecard. It answers the board and reviewer question:
 severe failure becomes irreversible?"
 {{< /callout >}}
 
-Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28), the current [security best practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices), and NIST's [August 27, 2026 agent identity guidance](https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation) on September 28, 2026. MCP `latest` still redirects to 2026-07-28.
+Rechecked source anchors on November 7, 2026 against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28), the current [security best practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices), NIST's [August 27, 2026 agent identity guidance](https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation), NIST NCCoE's [September 29, 2026 comments summary](https://pages.nist.gov/nccoe-ai-identity/summary-of-comments.html) on software and agentic AI identity and authorization, and NIST's [October 27, 2026 design tenets for agent identity management systems](https://www.nist.gov/blogs/cybersecurity-insights/design-tenets-agent-identity-management-systems). MCP `latest` still redirects to 2026-07-28. The ten design tenets, drawn from NCCoE comments and stakeholder engagement, add attenuated sub-agent delegation, zero standing privilege, signed mandate statements, architectural separation of policy from reasoning, deterministic access decisions, consent-fatigue-aware HITL thresholds, and independent append-only evidence. Unique short-lived credentials are necessary but not sufficient for high-impact autonomy. This editorial pass does not claim human review of the pack.
 
 SecurityRecipes already has workflow policy, MCP authorization,
 non-human identity, context trust, handoff boundaries, egress policy, run
@@ -88,6 +88,96 @@ python3 scripts/evaluate_agentic_catastrophic_risk_decision.py \
   --expect-decision allow_reviewed_high_impact_action
 ```
 
+Evaluate unattenuated sub-agent delegation:
+
+```bash
+python3 scripts/evaluate_agentic_catastrophic_risk_decision.py \
+  --workflow-id base-image-remediation \
+  --action-class production_deployment \
+  --run-id run-unattenuated-delegation \
+  --identity-id sr-agent::base-image-remediation::codex \
+  --policy-pack-hash policy-hash \
+  --authorization-decision allow_authorized_mcp_request \
+  --risk-acceptance-id risk-accept-123 \
+  --receipt-id receipt-123 \
+  --approval-id approval-123 \
+  --flag affects_prod=true \
+  --unattenuated-subagent-delegation \
+  --expect-decision deny_unbounded_autonomy
+```
+
+Evaluate standing privilege:
+
+```bash
+python3 scripts/evaluate_agentic_catastrophic_risk_decision.py \
+  --workflow-id base-image-remediation \
+  --action-class production_deployment \
+  --run-id run-standing-privilege \
+  --identity-id sr-agent::base-image-remediation::codex \
+  --policy-pack-hash policy-hash \
+  --authorization-decision allow_authorized_mcp_request \
+  --risk-acceptance-id risk-accept-123 \
+  --receipt-id receipt-123 \
+  --approval-id approval-123 \
+  --flag affects_prod=true \
+  --standing-privilege \
+  --expect-decision deny_unbounded_autonomy
+```
+
+Evaluate a model-driven access grant:
+
+```bash
+python3 scripts/evaluate_agentic_catastrophic_risk_decision.py \
+  --workflow-id base-image-remediation \
+  --action-class production_deployment \
+  --run-id run-model-grant \
+  --identity-id sr-agent::base-image-remediation::codex \
+  --policy-pack-hash policy-hash \
+  --authorization-decision allow_authorized_mcp_request \
+  --risk-acceptance-id risk-accept-123 \
+  --receipt-id receipt-123 \
+  --approval-id approval-123 \
+  --flag affects_prod=true \
+  --model-driven-access-grant \
+  --expect-decision deny_unbounded_autonomy
+```
+
+Evaluate agent-writable evidence:
+
+```bash
+python3 scripts/evaluate_agentic_catastrophic_risk_decision.py \
+  --workflow-id base-image-remediation \
+  --action-class production_deployment \
+  --run-id run-writable-evidence \
+  --identity-id sr-agent::base-image-remediation::codex \
+  --policy-pack-hash policy-hash \
+  --authorization-decision allow_authorized_mcp_request \
+  --risk-acceptance-id risk-accept-123 \
+  --receipt-id receipt-123 \
+  --approval-id approval-123 \
+  --flag affects_prod=true \
+  --agent-writable-evidence \
+  --expect-decision kill_session_on_catastrophic_signal
+```
+
+Evaluate an unsigned high-impact mandate:
+
+```bash
+python3 scripts/evaluate_agentic_catastrophic_risk_decision.py \
+  --workflow-id base-image-remediation \
+  --action-class production_deployment \
+  --run-id run-unsigned-mandate \
+  --identity-id sr-agent::base-image-remediation::codex \
+  --policy-pack-hash policy-hash \
+  --authorization-decision allow_authorized_mcp_request \
+  --risk-acceptance-id risk-accept-123 \
+  --receipt-id receipt-123 \
+  --approval-id approval-123 \
+  --flag affects_prod=true \
+  --unsigned-mandate \
+  --expect-decision hold_for_catastrophic_risk_review
+```
+
 {{< playbook-workflow >}}
 
 ## Why this matters now
@@ -113,9 +203,9 @@ when to allow, hold, deny, or kill.
 
 | Scenario | Default decision | What it proves |
 | --- | --- | --- |
-| Loss of human oversight | `hold_for_catastrophic_risk_review` | High-impact action stops when approval, identity, policy, receipt, or readiness evidence is missing. |
+| Loss of human oversight | `hold_for_catastrophic_risk_review` | High-impact action stops when approval, identity, a signed mandate, policy, receipt, or readiness evidence is missing. |
 | Uncontrolled system behavior | `kill_session_on_catastrophic_signal` | Tool loops, deny-after-deny behavior, and uncontrolled action cascades terminate the session. |
-| Credential and token cascade | `deny_unbounded_autonomy` | Agents cannot pass tokens, request broader audiences, or silently inherit user authority. |
+| Credential and token cascade | `deny_unbounded_autonomy` | Agents cannot pass tokens, request broader audiences, keep standing privilege, grant unattenuated sub-agent authority, or let the reasoning model decide access. |
 | Cross-agent cascading failure | `hold_for_catastrophic_risk_review` | Handoffs cannot move hidden prompts, memory, raw traces, credentials, or unstated authority. |
 | Supply-chain autonomy blast radius | `hold_for_catastrophic_risk_review` | Fleet-impacting dependency, image, cache, release, or generated-code changes require risk evidence. |
 | Private-context exfiltration | `kill_session_on_catastrophic_signal` | Secrets, unredacted PII, private memory, and trust evidence cannot leave approved boundaries. |
@@ -129,10 +219,10 @@ high-impact action. The evaluator returns:
 | Decision | Meaning |
 | --- | --- |
 | `allow_bounded_agent_action` | The request does not match high-impact action classes or severe flags and has baseline identity evidence. |
-| `allow_reviewed_high_impact_action` | A high-impact action has approval, risk acceptance, identity, policy, authorization, and receipt evidence. |
-| `hold_for_catastrophic_risk_review` | Required runtime evidence is missing or the action needs explicit risk review. |
-| `deny_unbounded_autonomy` | High-impact autonomy lacks risk acceptance or tries irreversible authority without approval. |
-| `kill_session_on_catastrophic_signal` | Runtime behavior indicates a severe safety or security violation. |
+| `allow_reviewed_high_impact_action` | A high-impact action has approval, a signed mandate, risk acceptance, identity, policy, authorization, and receipt evidence. |
+| `hold_for_catastrophic_risk_review` | Required runtime evidence is missing, the mandate is unsigned, or the action needs explicit risk review. |
+| `deny_unbounded_autonomy` | High-impact autonomy lacks risk acceptance, uses standing privilege, grants unattenuated sub-agent authority, lets the reasoning model decide access, or tries irreversible authority without approval. |
+| `kill_session_on_catastrophic_signal` | Runtime behavior indicates a severe safety or security violation, including agent-writable evidence logs. |
 
 High-impact action classes include production deployments, production
 writes, identity administration, secret access, schema migrations, mass
@@ -193,6 +283,9 @@ Evaluate a high-impact action:
 
 - [CSA announces STAR for AI Catastrophic Risk Annex](https://cloudsecurityalliance.org/press-releases/2026/04/29/csai-foundation-announces-key-milestones-to-secure-the-agentic-control-plane)
 - [NIST AI Agent Standards Initiative](https://www.nist.gov/artificial-intelligence/ai-agent-standards-initiative)
+- [NIST: Why Agentic AI Needs a Strong Identity Foundation](https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation)
+- [NIST NCCoE comments summary on software and agentic AI identity](https://pages.nist.gov/nccoe-ai-identity/summary-of-comments.html)
+- [NIST: Design Tenets for Agent Identity Management Systems](https://www.nist.gov/blogs/cybersecurity-insights/design-tenets-agent-identity-management-systems)
 - [OWASP Top 10 for Agentic Applications 2026](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/)
 - [MCP Authorization Specification](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
 - [NIST AI RMF Generative AI Profile](https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence)
