@@ -1,12 +1,12 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-09-28",
+  "last_reviewed": "2026-11-07",
   "intent": "Define a testable catastrophic-risk annex for SecurityRecipes so high-impact agentic workflows can be held, denied, or killed before autonomous behavior creates irreversible business, safety, financial, privacy, supply-chain, or critical-infrastructure consequences.",
   "positioning": {
     "buyer": "AI Platform, Security Engineering, Product Security, GRC, model-risk, board risk, safety, procurement security, and acquisition diligence teams",
     "category": "Catastrophic-risk control annex for agentic AI and MCP runtime decisions",
     "enterprise_promise": "SecurityRecipes can show how high-impact autonomous actions are inventoried, evidence-bound, reviewed, stopped, replayed, and reported through generated JSON and MCP tools before agents act.",
-    "why_now": "Agentic AI is shifting from assistant output to delegated action across MCP servers, private context, identity providers, code hosts, deployment systems, and agent-to-agent handoffs. Enterprise buyers need a practical control annex for rare but severe failure modes, not only a list of prompt-injection mitigations."
+    "why_now": "Agentic AI is shifting from assistant output to delegated action across MCP servers, private context, identity providers, code hosts, deployment systems, and agent-to-agent handoffs. NIST's October 27, 2026 design tenets, drawn from NCCoE comments and stakeholder engagement, require cryptographically verifiable identities distinct from humans and service accounts, attenuated sub-agent delegation, zero standing privilege, short-lived audience-specific grants, signed mandate statements, architectural separation of policy from reasoning, deterministic access decisions, consent-fatigue-aware HITL thresholds, continuous monitoring, and independent append-only evidence. Unique short-lived credentials are necessary but not sufficient when a sub-agent keeps parent-wide scope, idle agents retain standing privilege, the reasoning model grants access, a high-impact action has no signed mandate, or the agent can write its own logs."
   },
   "standards_alignment": [
     {
@@ -50,6 +50,18 @@
       "name": "Back to the Future: Why Agentic AI Needs a Strong Identity Foundation",
       "url": "https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation",
       "coverage": "NIST's August 27, 2026 identity guidance: unique agent identifiers, short-lived scoped credentials, and a ban on shared human credentials, long-lived API keys, and local user-account impersonation as high-impact autonomy failure modes."
+    },
+    {
+      "id": "nist-nccoe-agentic-identity-comments-2026",
+      "name": "Summary of Comments on the Software and Agentic AI Identity and Authorization Concept Paper",
+      "url": "https://pages.nist.gov/nccoe-ai-identity/summary-of-comments.html",
+      "coverage": "NCCoE's September 29, 2026 comments summary, drawn from more than 600 responses, says sender-constrained credentials and ephemeral grants bound to a stable identity anchor are essential, and that unconstrained bearer reuse is a high-impact identity failure mode."
+    },
+    {
+      "id": "nist-agentic-identity-design-tenets-2026",
+      "name": "Design Tenets for Agent Identity Management Systems",
+      "url": "https://www.nist.gov/blogs/cybersecurity-insights/design-tenets-agent-identity-management-systems",
+      "coverage": "NIST's October 27, 2026 design tenets require attenuated sub-agent delegation, zero standing privilege, signed mandate statements, architectural separation of policy from reasoning, deterministic access decisions, consent-fatigue-aware HITL thresholds, and independent append-only evidence before high-impact autonomy is allowed."
     },
     {
       "id": "mcp-authorization-2025-11-25",
@@ -139,7 +151,8 @@
       "agent requests a broader token, connector scope, or identity role than the workflow declares",
       "agent loops across tools after a deny or hold decision",
       "agent attempts to move secrets, private memory, or unredacted PII to an external destination",
-      "agent attempts funds movement, production deployment, identity administration, or mass deletion without a signed approval record"
+      "agent attempts funds movement, production deployment, identity administration, or mass deletion without a signed approval record",
+      "agent can write or modify its own evidence logs"
     ],
     "required_high_impact_fields": [
       "workflow_id",
@@ -276,7 +289,7 @@
         "identity_admin",
         "connector_scope_escalation"
       ],
-      "board_question": "Can the organization prove that high-impact agent actions stop when approval, identity, policy, or receipt evidence is missing?",
+      "board_question": "Can the organization prove that high-impact agent actions stop when approval, identity, a signed mandate, policy, or receipt evidence is missing?",
       "required_pack_ids": [
         "workflow-control-plane",
         "mcp-gateway-policy",
@@ -291,7 +304,7 @@
         "recipes_agentic_run_receipt_pack",
         "recipes_agentic_readiness_scorecard"
       ],
-      "promotion_gate": "High-impact automation stays in hold mode until workflow ownership, approval records, identity scope, receipt evidence, and readiness decision are present.",
+      "promotion_gate": "High-impact automation stays in hold mode until workflow ownership, approval records, a signed mandate statement, identity scope, receipt evidence, and readiness decision are present.",
       "default_decision": "hold_for_catastrophic_risk_review",
       "buyer_value": "Turns board-level oversight into inspectable runtime evidence rather than a policy PDF."
     },
@@ -329,7 +342,7 @@
         "identity_admin",
         "connector_scope_escalation"
       ],
-      "board_question": "Can the buyer prove an agent cannot pass tokens across MCP servers, reuse another user's state handle, request broader audience tokens, or silently inherit a shared human credential or local user account?",
+      "board_question": "Can the buyer prove an agent cannot pass tokens across MCP servers, reuse another user's state handle, request broader audience tokens, silently inherit a shared human credential, keep standing privilege, grant unattenuated sub-agent authority, or let the reasoning model decide access?",
       "required_pack_ids": [
         "mcp-authorization-conformance",
         "agent-identity-ledger",
@@ -477,7 +490,7 @@
     {
       "id": "approval-and-risk-acceptance-gate",
       "title": "Approval and risk-acceptance gate",
-      "control_objective": "Require explicit human approval, risk acceptance, and receipt linkage before high-impact action can proceed.",
+      "control_objective": "Require explicit human approval, a signed mandate statement, risk acceptance, and receipt linkage before high-impact action can proceed.",
       "scenario_ids": [
         "loss-of-human-oversight",
         "irreversible-financial-or-critical-action"
@@ -492,12 +505,12 @@
         "recipes_agent_identity_ledger",
         "recipes_agentic_readiness_scorecard"
       ],
-      "diligence_question": "Can a reviewer reconstruct who approved the high-impact action and which risk acceptance applied?"
+      "diligence_question": "Can a reviewer reconstruct who approved the high-impact action, which signed mandate applied, and which risk acceptance bound the grant?"
     },
     {
       "id": "runtime-kill-signal-override",
       "title": "Runtime kill-signal override",
-      "control_objective": "Kill the agent session when runtime behavior shows approval bypass, deny-after-deny looping, broader token requests, secret egress, or irreversible action without approval.",
+      "control_objective": "Kill the agent session when runtime behavior shows approval bypass, deny-after-deny looping, broader token requests, secret egress, irreversible action without approval, or an agent that can write or modify its own evidence logs.",
       "scenario_ids": [
         "uncontrolled-system-behavior",
         "credential-and-token-cascade",
@@ -512,12 +525,12 @@
         "recipes_agentic_measurement_probe_pack",
         "recipes_agentic_red_team_drill_pack"
       ],
-      "diligence_question": "Which runtime attributes force a kill decision even if the agent says the task is still in scope?"
+      "diligence_question": "Which runtime attributes, including agent-writable evidence, force a kill decision even if the agent says the task is still in scope?"
     },
     {
       "id": "token-and-identity-containment",
       "title": "Token and identity containment",
-      "control_objective": "Prevent token passthrough, wrong-audience tokens, scope drift, shadow connector authority, and implicit user-token inheritance.",
+      "control_objective": "Prevent token passthrough, wrong-audience tokens, scope drift, shadow connector authority, implicit user-token inheritance, unattenuated sub-agent grants, standing privilege, and model-driven access decisions.",
       "scenario_ids": [
         "credential-and-token-cascade",
         "cross-agent-cascading-failure"
@@ -531,7 +544,7 @@
         "recipes_mcp_authorization_conformance_pack",
         "recipes_agent_identity_ledger"
       ],
-      "diligence_question": "How does the platform prove an agent acted through a scoped non-human identity rather than a borrowed user token?"
+      "diligence_question": "How does the platform prove an agent acted through a scoped non-human identity rather than borrowed credentials, standing privilege, unattenuated delegation, or a model-driven access grant?"
     },
     {
       "id": "cross-agent-containment",

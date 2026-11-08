@@ -81,8 +81,8 @@
       "title": "High-impact action inventory"
     },
     {
-      "control_objective": "Require explicit human approval, risk acceptance, and receipt linkage before high-impact action can proceed.",
-      "diligence_question": "Can a reviewer reconstruct who approved the high-impact action and which risk acceptance applied?",
+      "control_objective": "Require explicit human approval, a signed mandate statement, risk acceptance, and receipt linkage before high-impact action can proceed.",
+      "diligence_question": "Can a reviewer reconstruct who approved the high-impact action, which signed mandate applied, and which risk acceptance bound the grant?",
       "evidence_pack_ids": [
         "agentic-run-receipt-pack",
         "agent-identity-ledger",
@@ -122,8 +122,8 @@
       "title": "Approval and risk-acceptance gate"
     },
     {
-      "control_objective": "Kill the agent session when runtime behavior shows approval bypass, deny-after-deny looping, broader token requests, secret egress, or irreversible action without approval.",
-      "diligence_question": "Which runtime attributes force a kill decision even if the agent says the task is still in scope?",
+      "control_objective": "Kill the agent session when runtime behavior shows approval bypass, deny-after-deny looping, broader token requests, secret egress, irreversible action without approval, or an agent that can write or modify its own evidence logs.",
+      "diligence_question": "Which runtime attributes, including agent-writable evidence, force a kill decision even if the agent says the task is still in scope?",
       "evidence_pack_ids": [
         "mcp-gateway-policy",
         "agentic-measurement-probe-pack",
@@ -169,8 +169,8 @@
       "title": "Runtime kill-signal override"
     },
     {
-      "control_objective": "Prevent token passthrough, wrong-audience tokens, scope drift, shadow connector authority, and implicit user-token inheritance.",
-      "diligence_question": "How does the platform prove an agent acted through a scoped non-human identity rather than a borrowed user token?",
+      "control_objective": "Prevent token passthrough, wrong-audience tokens, scope drift, shadow connector authority, implicit user-token inheritance, unattenuated sub-agent grants, standing privilege, and model-driven access decisions.",
+      "diligence_question": "How does the platform prove an agent acted through a scoped non-human identity rather than borrowed credentials, standing privilege, unattenuated delegation, or a model-driven access grant?",
       "evidence_pack_ids": [
         "mcp-authorization-conformance",
         "agent-identity-ledger",
@@ -450,8 +450,8 @@
           "title": "High-impact action inventory"
         },
         {
-          "control_objective": "Require explicit human approval, risk acceptance, and receipt linkage before high-impact action can proceed.",
-          "diligence_question": "Can a reviewer reconstruct who approved the high-impact action and which risk acceptance applied?",
+          "control_objective": "Require explicit human approval, a signed mandate statement, risk acceptance, and receipt linkage before high-impact action can proceed.",
+          "diligence_question": "Can a reviewer reconstruct who approved the high-impact action, which signed mandate applied, and which risk acceptance bound the grant?",
           "evidence_pack_ids": [
             "agentic-run-receipt-pack",
             "agent-identity-ledger",
@@ -491,8 +491,8 @@
           "title": "Approval and risk-acceptance gate"
         },
         {
-          "control_objective": "Kill the agent session when runtime behavior shows approval bypass, deny-after-deny looping, broader token requests, secret egress, or irreversible action without approval.",
-          "diligence_question": "Which runtime attributes force a kill decision even if the agent says the task is still in scope?",
+          "control_objective": "Kill the agent session when runtime behavior shows approval bypass, deny-after-deny looping, broader token requests, secret egress, irreversible action without approval, or an agent that can write or modify its own evidence logs.",
+          "diligence_question": "Which runtime attributes, including agent-writable evidence, force a kill decision even if the agent says the task is still in scope?",
           "evidence_pack_ids": [
             "mcp-gateway-policy",
             "agentic-measurement-probe-pack",
@@ -601,8 +601,8 @@
       "control_count": 4,
       "controls": [
         {
-          "control_objective": "Prevent token passthrough, wrong-audience tokens, scope drift, shadow connector authority, and implicit user-token inheritance.",
-          "diligence_question": "How does the platform prove an agent acted through a scoped non-human identity rather than a borrowed user token?",
+          "control_objective": "Prevent token passthrough, wrong-audience tokens, scope drift, shadow connector authority, implicit user-token inheritance, unattenuated sub-agent grants, standing privilege, and model-driven access decisions.",
+          "diligence_question": "How does the platform prove an agent acted through a scoped non-human identity rather than borrowed credentials, standing privilege, unattenuated delegation, or a model-driven access grant?",
           "evidence_pack_ids": [
             "mcp-authorization-conformance",
             "agent-identity-ledger",
@@ -708,8 +708,8 @@
           "title": "Data-boundary kill"
         },
         {
-          "control_objective": "Kill the agent session when runtime behavior shows approval bypass, deny-after-deny looping, broader token requests, secret egress, or irreversible action without approval.",
-          "diligence_question": "Which runtime attributes force a kill decision even if the agent says the task is still in scope?",
+          "control_objective": "Kill the agent session when runtime behavior shows approval bypass, deny-after-deny looping, broader token requests, secret egress, irreversible action without approval, or an agent that can write or modify its own evidence logs.",
+          "diligence_question": "Which runtime attributes, including agent-writable evidence, force a kill decision even if the agent says the task is still in scope?",
           "evidence_pack_ids": [
             "mcp-gateway-policy",
             "agentic-measurement-probe-pack",
@@ -926,7 +926,7 @@
   ],
   "catastrophic_scenarios": [
     {
-      "board_question": "Can the organization prove that high-impact agent actions stop when approval, identity, policy, or receipt evidence is missing?",
+      "board_question": "Can the organization prove that high-impact agent actions stop when approval, identity, a signed mandate, policy, or receipt evidence is missing?",
       "buyer_value": "Turns board-level oversight into inspectable runtime evidence rather than a policy PDF.",
       "default_decision": "hold_for_catastrophic_risk_review",
       "evidence_coverage_score": 100.0,
@@ -939,7 +939,7 @@
       ],
       "id": "loss-of-human-oversight",
       "impact_domain": "governance",
-      "promotion_gate": "High-impact automation stays in hold mode until workflow ownership, approval records, identity scope, receipt evidence, and readiness decision are present.",
+      "promotion_gate": "High-impact automation stays in hold mode until workflow ownership, approval records, a signed mandate statement, identity scope, receipt evidence, and readiness decision are present.",
       "ready_evidence_count": 5,
       "required_mcp_tools": [
         "recipes_workflow_control_plane",
@@ -998,7 +998,7 @@
       ]
     },
     {
-      "board_question": "Can the buyer prove an agent cannot pass tokens across MCP servers, reuse another user's state handle, request broader audience tokens, or silently inherit a shared human credential or local user account?",
+      "board_question": "Can the buyer prove an agent cannot pass tokens across MCP servers, reuse another user's state handle, request broader audience tokens, silently inherit a shared human credential, keep standing privilege, grant unattenuated sub-agent authority, or let the reasoning model decide access?",
       "buyer_value": "Directly addresses the MCP authorization and non-human identity concerns large AI platforms must solve.",
       "default_decision": "deny_unbounded_autonomy",
       "evidence_coverage_score": 100.0,
@@ -1194,13 +1194,13 @@
     "sales_motion": "Lead with open severe-risk evidence, then sell hosted approval receipts, runtime kill policy, customer-specific risk acceptance, replay, and trust-center exports."
   },
   "failures": [],
-  "generated_at": "2026-09-28",
+  "generated_at": "2026-11-07",
   "intent": "Define a testable catastrophic-risk annex for SecurityRecipes so high-impact agentic workflows can be held, denied, or killed before autonomous behavior creates irreversible business, safety, financial, privacy, supply-chain, or critical-infrastructure consequences.",
   "positioning": {
     "buyer": "AI Platform, Security Engineering, Product Security, GRC, model-risk, board risk, safety, procurement security, and acquisition diligence teams",
     "category": "Catastrophic-risk control annex for agentic AI and MCP runtime decisions",
     "enterprise_promise": "SecurityRecipes can show how high-impact autonomous actions are inventoried, evidence-bound, reviewed, stopped, replayed, and reported through generated JSON and MCP tools before agents act.",
-    "why_now": "Agentic AI is shifting from assistant output to delegated action across MCP servers, private context, identity providers, code hosts, deployment systems, and agent-to-agent handoffs. Enterprise buyers need a practical control annex for rare but severe failure modes, not only a list of prompt-injection mitigations."
+    "why_now": "Agentic AI is shifting from assistant output to delegated action across MCP servers, private context, identity providers, code hosts, deployment systems, and agent-to-agent handoffs. NIST's October 27, 2026 design tenets, drawn from NCCoE comments and stakeholder engagement, require cryptographically verifiable identities distinct from humans and service accounts, attenuated sub-agent delegation, zero standing privilege, short-lived audience-specific grants, signed mandate statements, architectural separation of policy from reasoning, deterministic access decisions, consent-fatigue-aware HITL thresholds, continuous monitoring, and independent append-only evidence. Unique short-lived credentials are necessary but not sufficient when a sub-agent keeps parent-wide scope, idle agents retain standing privilege, the reasoning model grants access, a high-impact action has no signed mandate, or the agent can write its own logs."
   },
   "runtime_decision_contract": {
     "allow_decisions": [
@@ -1245,7 +1245,8 @@
       "agent requests a broader token, connector scope, or identity role than the workflow declares",
       "agent loops across tools after a deny or hold decision",
       "agent attempts to move secrets, private memory, or unredacted PII to an external destination",
-      "agent attempts funds movement, production deployment, identity administration, or mass deletion without a signed approval record"
+      "agent attempts funds movement, production deployment, identity administration, or mass deletion without a signed approval record",
+      "agent can write or modify its own evidence logs"
     ],
     "required_high_impact_fields": [
       "workflow_id",
@@ -1262,7 +1263,7 @@
   "source_artifacts": {
     "annex_profile": {
       "path": "data/assurance/agentic-catastrophic-risk-annex.json",
-      "sha256": "1c7abfb59da8516a3ef1043d39f65651d96a5fb6bd2ee536dc434d87a4c50cd1"
+      "sha256": "bf1babff6162c0da7703253f79e6ebc6969500c0fb8b3e30ece1f1aa7b42bdc6"
     },
     "source_packs": [
       {
@@ -1553,7 +1554,7 @@
         ],
         "path": "data/evidence/agentic-measurement-probe-pack.json",
         "schema_version": "1.0",
-        "sha256": "5f88b8420db2ce6359e744877391c2ae7b56771896c4fc6bd5871d6850a9a3a4",
+        "sha256": "713ef973c2f13a3c618e21baf71589ee936a536653e3837cbf9d95fdea87e640",
         "status": "ready",
         "summary": {
           "key": "measurement_probe_summary",
@@ -1610,7 +1611,7 @@
         ],
         "path": "data/evidence/agentic-run-receipt-pack.json",
         "schema_version": "1.0",
-        "sha256": "afbfaf9309ef7f66d6d18871efe480bc1368c4ec6fc6de3e220ed8f69f6b8619",
+        "sha256": "2b36c61fc7e7a4e99eb2570d28836d0724b5f64e77251bc5857998e7d0423e83",
         "status": "ready",
         "summary": {
           "key": "receipt_summary",
@@ -1637,7 +1638,7 @@
         ],
         "path": "data/evidence/secure-context-trust-pack.json",
         "schema_version": "1.0",
-        "sha256": "951dc49f0018ce631890235a969ce7d85a6621caea7171927a9d48006a1c4e5b",
+        "sha256": "a35f00f3ebd7362e1af4f2f9c49c156e7ec7c6395768310a6ddc3b449d313de6",
         "status": "ready",
         "summary": null,
         "title": "Secure Context Trust Pack"
@@ -1651,7 +1652,7 @@
         ],
         "path": "data/evidence/context-egress-boundary-pack.json",
         "schema_version": "1.0",
-        "sha256": "ab712dc6b94792c3330d3cb8b4bdfff8b636ca326a45f41a4d8d2cb8df96b35d",
+        "sha256": "fcc9075c0d9d46d32b8294fadbaffec9b8bdbfa00f88d28626479b0482d1a46c",
         "status": "ready",
         "summary": {
           "key": "egress_boundary_summary",
@@ -1692,7 +1693,7 @@
         ],
         "path": "data/evidence/agent-handoff-boundary-pack.json",
         "schema_version": "1.0",
-        "sha256": "31cf66641fd4a44840c236d450355c1bd1b6f693203fa8e0ad78dac46be644e0",
+        "sha256": "00a368cf0db5fca559a936b48d3eaef6d26ef56b7c55241611f84dc62b704374",
         "status": "ready",
         "summary": {
           "key": "handoff_boundary_summary",
@@ -1741,7 +1742,7 @@
         ],
         "path": "data/evidence/agent-skill-supply-chain-pack.json",
         "schema_version": "1.0",
-        "sha256": "cb1d8e0778ca3356cc433a86468fe2d2e2ef48784c75f93ef8c4713bdad3f8ce",
+        "sha256": "b99878fc99cd6fe9cbc65e37341daa260a8b0cac3dbcafee9ce8b665c28213e3",
         "status": "ready",
         "summary": {
           "key": "skill_supply_chain_summary",
@@ -1855,6 +1856,18 @@
       "id": "nist-agentic-identity-foundation-2026",
       "name": "Back to the Future: Why Agentic AI Needs a Strong Identity Foundation",
       "url": "https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation"
+    },
+    {
+      "coverage": "NCCoE's September 29, 2026 comments summary, drawn from more than 600 responses, says sender-constrained credentials and ephemeral grants bound to a stable identity anchor are essential, and that unconstrained bearer reuse is a high-impact identity failure mode.",
+      "id": "nist-nccoe-agentic-identity-comments-2026",
+      "name": "Summary of Comments on the Software and Agentic AI Identity and Authorization Concept Paper",
+      "url": "https://pages.nist.gov/nccoe-ai-identity/summary-of-comments.html"
+    },
+    {
+      "coverage": "NIST's October 27, 2026 design tenets require attenuated sub-agent delegation, zero standing privilege, signed mandate statements, architectural separation of policy from reasoning, deterministic access decisions, consent-fatigue-aware HITL thresholds, and independent append-only evidence before high-impact autonomy is allowed.",
+      "id": "nist-agentic-identity-design-tenets-2026",
+      "name": "Design Tenets for Agent Identity Management Systems",
+      "url": "https://www.nist.gov/blogs/cybersecurity-insights/design-tenets-agent-identity-management-systems"
     },
     {
       "coverage": "Prior MCP 2025-11-25 authorization revision kept as a historical source ID. Prefer the 2026-07-28 resource-indicator, audience, PKCE, and token-passthrough rules.",

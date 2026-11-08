@@ -27,6 +27,13 @@ VALID_DECISIONS = {
     "deny_unbounded_autonomy",
     "kill_session_on_catastrophic_signal",
 }
+IDENTITY_TENET_FLAGS = (
+    "agent_writable_evidence",
+    "unattenuated_subagent_delegation",
+    "standing_privilege",
+    "model_driven_access_grant",
+    "unsigned_mandate",
+)
 
 
 class CatastrophicRiskDecisionError(RuntimeError):
@@ -175,6 +182,8 @@ def evaluate_agentic_catastrophic_risk_decision(
 
     for key in annex.get("runtime_decision_contract", {}).get("catastrophic_flags", []) or []:
         request[str(key)] = as_bool(request.get(str(key)))
+    for key in IDENTITY_TENET_FLAGS:
+        request[key] = as_bool(request.get(key))
 
     try:
         request["observed_loop_count"] = int(request.get("observed_loop_count") or 0)
@@ -222,6 +231,46 @@ def evaluate_agentic_catastrophic_risk_decision(
             violations=["handles_secrets=true", "external_side_effect=true"],
         )
 
+    if request.get("agent_writable_evidence"):
+        return decision_result(
+            annex=annex,
+            decision="kill_session_on_catastrophic_signal",
+            reason="agent can write or modify its own evidence logs instead of independent append-only evidence",
+            request=request,
+            matched_scenarios=matched,
+            violations=["agent can write or modify its own evidence logs"],
+        )
+
+    if request.get("unattenuated_subagent_delegation"):
+        return decision_result(
+            annex=annex,
+            decision="deny_unbounded_autonomy",
+            reason="sub-agent or downstream grant claimed more authority than the parent instead of an attenuated delegation",
+            request=request,
+            matched_scenarios=matched,
+            violations=["sub-agent or downstream grant claims more authority than the parent"],
+        )
+
+    if request.get("standing_privilege"):
+        return decision_result(
+            annex=annex,
+            decision="deny_unbounded_autonomy",
+            reason="idle agent retained standing privilege instead of a just-in-time task-scoped grant",
+            request=request,
+            matched_scenarios=matched,
+            violations=["agent retains standing privilege while idle instead of a just-in-time task-scoped grant"],
+        )
+
+    if request.get("model_driven_access_grant"):
+        return decision_result(
+            annex=annex,
+            decision="deny_unbounded_autonomy",
+            reason="access grant was determined by the reasoning model instead of a separated deterministic policy engine",
+            request=request,
+            matched_scenarios=matched,
+            violations=["access grant is determined by the reasoning model instead of a separated deterministic policy engine"],
+        )
+
     if not is_high_impact:
         missing_low = [
             field
@@ -266,6 +315,16 @@ def evaluate_agentic_catastrophic_risk_decision(
             request=request,
             matched_scenarios=matched,
             violations=violations,
+        )
+
+    if request.get("unsigned_mandate"):
+        return decision_result(
+            annex=annex,
+            decision="hold_for_catastrophic_risk_review",
+            reason="high-impact action is missing a signed mandate statement",
+            request=request,
+            matched_scenarios=matched,
+            violations=["high-impact action has an unsigned mandate statement"],
         )
 
     required = [str(field) for field in contract.get("required_high_impact_fields", []) or []]
@@ -331,6 +390,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--max-loop-count", type=int, default=3)
     parser.add_argument("--approval-id")
     parser.add_argument("--approval-status", default="approved")
+    parser.add_argument("--agent-writable-evidence", action="store_true")
+    parser.add_argument("--unattenuated-subagent-delegation", action="store_true")
+    parser.add_argument("--standing-privilege", action="store_true")
+    parser.add_argument("--model-driven-access-grant", action="store_true")
+    parser.add_argument("--unsigned-mandate", action="store_true")
     parser.add_argument("--flag", action="append", type=parse_kv, default=[], help="Runtime boolean flag as KEY=VALUE.")
     parser.add_argument("--expect-decision")
     parser.add_argument("--json", action="store_true", help="Print the full JSON decision.")
@@ -362,6 +426,11 @@ def main() -> int:
             "runtime_kill_signal": args.runtime_kill_signal,
             "tenant_id": args.tenant_id,
             "workflow_id": args.workflow_id,
+            "agent_writable_evidence": args.agent_writable_evidence,
+            "unattenuated_subagent_delegation": args.unattenuated_subagent_delegation,
+            "standing_privilege": args.standing_privilege,
+            "model_driven_access_grant": args.model_driven_access_grant,
+            "unsigned_mandate": args.unsigned_mandate,
         }
         if args.approval_id:
             request["human_approval_record"] = {
