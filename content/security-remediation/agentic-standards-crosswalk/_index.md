@@ -3,7 +3,7 @@ title: Agentic Standards Crosswalk
 linkTitle: Standards Crosswalk
 weight: 19
 date: 2026-05-04
-lastmod: 2026-09-28
+lastmod: 2026-11-10
 toc: true
 description: >
   Generate a standards-to-evidence map linking OWASP Agentic Top 10, CSA AI
@@ -21,7 +21,7 @@ and guidance are tracked, which SecurityRecipes capability covers each
 control, and which generated JSON or MCP tool proves it.
 {{< /callout >}}
 
-Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28), the current [security best practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices), and NIST's [August 27, 2026 agent identity guidance](https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation) on September 28, 2026. MCP `latest` still redirects to 2026-07-28. The 2025-06-18 security-best-practices page is kept as a historical source ID.
+Rechecked source anchors on November 10, 2026 against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28), the current [security best practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices), NIST's [August 27, 2026 agent identity guidance](https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation), NIST NCCoE's [September 29, 2026 comments summary](https://pages.nist.gov/nccoe-ai-identity/summary-of-comments.html) on software and agentic AI identity and authorization, and NIST's [October 27, 2026 design tenets for agent identity management systems](https://www.nist.gov/blogs/cybersecurity-insights/design-tenets-agent-identity-management-systems). MCP `latest` still redirects to 2026-07-28. NIST's ten design tenets, drawn from those comments and stakeholder engagement, add attenuated sub-agent delegation, zero standing privilege, signed mandate statements, architectural separation of policy from reasoning, deterministic access decisions, consent-fatigue-aware HITL thresholds, and independent append-only evidence. Unique short-lived credentials are necessary but not sufficient. This editorial pass does not claim human review of the pack.
 
 SecurityRecipes is positioned as **the secure context layer for
 agentic AI**. That claim needs more than a strong homepage. Enterprise
@@ -83,7 +83,7 @@ answer a reviewer's first hard questions:
 | Which agentic risks are covered? | OWASP Agentic Top 10 controls map to generated capabilities and MCP tools. |
 | Which MCP authorization requirements matter? | Resource binding, audience validation, token-passthrough denial, PKCE, scope minimization, and local-server sandboxing map to concrete packs. |
 | How does this map to enterprise AI control frameworks? | CSA AI Controls Matrix-style governance, data lifecycle, access, monitoring, supply-chain, and resilience controls map to generated evidence. |
-| How does this track NIST agent and GenAI guidance? | Identity, protocols, security evaluations, governance, access constraints, monitoring, data provenance, and lifecycle risk map to evidence artifacts. |
+| How does this track NIST agent and GenAI guidance? | Distinct agent identity, attenuated delegation, zero standing privilege, signed mandates, policy/reasoning separation, deterministic access, risk-threshold HITL, independent evidence, protocols, evaluations, governance, access constraints, monitoring, data provenance, and lifecycle risk map to evidence artifacts. |
 | How are prompt-injection defenses made operational? | Context poisoning scans, egress decisions, handoff boundaries, sandboxed tool use, red-team replay, and readiness checks are linked to frontier-lab guidance. |
 | What changes for high-impact deployments? | Critical-infrastructure readiness maps fail-safe action boundaries, operational monitoring, incident response, and lifecycle change control to MCP-readable evidence. |
 | What should a diligence team inspect first? | The generated crosswalk returns standards, controls, sources, evidence paths, MCP tools, and vendorization hooks in one packet. |
@@ -95,7 +95,7 @@ answer a reviewer's first hard questions:
 | OWASP Agentic Top 10 | Context Poisoning Guard, Secure Context Evals, MCP Gateway Policy, Authorization Conformance, Identity Ledger, Skill Supply Chain, Handoff Boundary, Readiness Scorecard |
 | MCP Authorization and Security | MCP Authorization Conformance, MCP Gateway Policy, Connector Intake, Connector Trust, STDIO Launch Boundary, Context Egress Boundary |
 | CSA AI Controls Matrix | Agentic Assurance Pack, Enterprise Trust Center Export, Secure Context Trust Pack, Entitlement Review, Telemetry Contract, SOC Detection Pack |
-| NIST agent and GenAI risk guidance | Agent Identity Ledger, Agentic System BOM, Agentic Assurance Pack, Measurement Probes, Red-Team Drills, Enterprise Trust Center Export |
+| NIST agent and GenAI risk guidance | Agent Identity Ledger, Agent Trust Fabric, Entitlement Review, Approval Receipts, Run Receipts, Agentic System BOM, Measurement Probes, Red-Team Drills, Enterprise Trust Center Export |
 | NIST critical-infrastructure AI readiness | Catastrophic Risk Annex, Action Runtime Pack, Approval Receipts, Telemetry Contract, SOC Detection Pack, Incident Response Pack |
 | Frontier-lab prompt-injection defenses | Context Poisoning Guard, Context Egress Boundary, Run Receipts, Handoff Boundary, Action Runtime Pack, Telemetry Contract, Red-Team Drills, Readiness Scorecard |
 
@@ -151,6 +151,9 @@ Review and regenerate the crosswalk when these sources change:
 - [NIST CAISI RFI on Securing AI Agent Systems](https://www.nist.gov/news-events/news/2026/01/caisi-issues-request-information-about-securing-ai-agent-systems)
 - [NIST AI RMF](https://www.nist.gov/itl/ai-risk-management-framework)
 - [NIST AI RMF Generative AI Profile](https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence)
+- [NIST agent identity foundation](https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation)
+- [NIST NCCoE agentic identity comments summary](https://pages.nist.gov/nccoe-ai-identity/summary-of-comments.html)
+- [NIST design tenets for agent identity management systems](https://www.nist.gov/blogs/cybersecurity-insights/design-tenets-agent-identity-management-systems)
 - [CSA AI Controls Matrix](https://cloudsecurityalliance.org/artifacts/ai-controls-matrix)
 - [MCP Authorization Specification](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
 - [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices)
@@ -162,6 +165,8 @@ Review and regenerate the crosswalk when these sources change:
 ## See also
 
 - [Agentic Threat Radar]({{< relref "/security-remediation/agentic-threat-radar" >}})
+- [Agent Trust Fabric]({{< relref "/security-remediation/agent-trust-fabric" >}})
+- [Agent Identity Ledger]({{< relref "/security-remediation/agent-identity-ledger" >}})
 - [Agentic Control Plane Blueprint]({{< relref "/security-remediation/agentic-control-plane-blueprint" >}})
 - [Enterprise Trust Center Export]({{< relref "/security-remediation/enterprise-trust-center-export" >}})
 - [MCP Authorization Conformance]({{< relref "/security-remediation/mcp-authorization-conformance" >}})

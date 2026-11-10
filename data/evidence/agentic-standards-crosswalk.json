@@ -87,21 +87,27 @@
         },
         {
           "buyer_question": "Can SecurityRecipes show governance, measurement, identity, data, and lifecycle evidence for deployed agent systems?",
-          "capability_count": 18,
-          "control_count": 5,
+          "capability_count": 24,
+          "control_count": 8,
           "coverage_score": 100.0,
           "id": "nist-agentic-ai-risk-management",
           "kind": "governance_and_measurement",
           "mcp_tools": [
             "recipes_agent_handoff_boundary_pack",
             "recipes_agent_identity_ledger",
+            "recipes_agent_trust_fabric_pack",
+            "recipes_agentic_action_runtime_pack",
+            "recipes_agentic_approval_receipt_pack",
             "recipes_agentic_assurance_pack",
+            "recipes_agentic_catastrophic_risk_annex",
             "recipes_agentic_control_plane_blueprint",
+            "recipes_agentic_entitlement_review_pack",
             "recipes_agentic_measurement_probe_pack",
             "recipes_agentic_readiness_scorecard",
             "recipes_agentic_red_team_drill_pack",
             "recipes_agentic_run_receipt_pack",
             "recipes_agentic_system_bom",
+            "recipes_agentic_telemetry_contract",
             "recipes_context_egress_boundary_pack",
             "recipes_context_poisoning_guard_pack",
             "recipes_enterprise_trust_center_export",
@@ -112,13 +118,15 @@
             "recipes_secure_context_trust_pack",
             "recipes_workflow_control_plane"
           ],
-          "ready_control_count": 5,
+          "ready_control_count": 8,
           "source_ids": [
             "nist-ai-agent-standards-initiative-2026",
             "nist-caisi-ai-agent-security-rfi-2026",
             "nist-ai-rmf-2026",
             "nist-ai-600-1",
-            "nist-agentic-identity-foundation-2026"
+            "nist-agentic-identity-foundation-2026",
+            "nist-nccoe-agentic-identity-comments-2026",
+            "nist-agentic-identity-design-tenets-2026"
           ],
           "sources": [
             {
@@ -160,6 +168,22 @@
               "publisher": "NIST",
               "source_class": "government_security_signal",
               "url": "https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation"
+            },
+            {
+              "id": "nist-nccoe-agentic-identity-comments-2026",
+              "name": "Summary of Comments on the Software and Agentic AI Identity and Authorization Concept Paper",
+              "published": "2026-09-29",
+              "publisher": "NIST NCCoE",
+              "source_class": "government_security_signal",
+              "url": "https://pages.nist.gov/nccoe-ai-identity/summary-of-comments.html"
+            },
+            {
+              "id": "nist-agentic-identity-design-tenets-2026",
+              "name": "Design Tenets for Agent Identity Management Systems",
+              "published": "2026-10-27",
+              "publisher": "NIST",
+              "source_class": "government_security_signal",
+              "url": "https://www.nist.gov/blogs/cybersecurity-insights/design-tenets-agent-identity-management-systems"
             }
           ],
           "status": "ready",
@@ -683,21 +707,27 @@
         },
         {
           "buyer_question": "Can SecurityRecipes show governance, measurement, identity, data, and lifecycle evidence for deployed agent systems?",
-          "capability_count": 18,
-          "control_count": 5,
+          "capability_count": 24,
+          "control_count": 8,
           "coverage_score": 100.0,
           "id": "nist-agentic-ai-risk-management",
           "kind": "governance_and_measurement",
           "mcp_tools": [
             "recipes_agent_handoff_boundary_pack",
             "recipes_agent_identity_ledger",
+            "recipes_agent_trust_fabric_pack",
+            "recipes_agentic_action_runtime_pack",
+            "recipes_agentic_approval_receipt_pack",
             "recipes_agentic_assurance_pack",
+            "recipes_agentic_catastrophic_risk_annex",
             "recipes_agentic_control_plane_blueprint",
+            "recipes_agentic_entitlement_review_pack",
             "recipes_agentic_measurement_probe_pack",
             "recipes_agentic_readiness_scorecard",
             "recipes_agentic_red_team_drill_pack",
             "recipes_agentic_run_receipt_pack",
             "recipes_agentic_system_bom",
+            "recipes_agentic_telemetry_contract",
             "recipes_context_egress_boundary_pack",
             "recipes_context_poisoning_guard_pack",
             "recipes_enterprise_trust_center_export",
@@ -708,13 +738,15 @@
             "recipes_secure_context_trust_pack",
             "recipes_workflow_control_plane"
           ],
-          "ready_control_count": 5,
+          "ready_control_count": 8,
           "source_ids": [
             "nist-ai-agent-standards-initiative-2026",
             "nist-caisi-ai-agent-security-rfi-2026",
             "nist-ai-rmf-2026",
             "nist-ai-600-1",
-            "nist-agentic-identity-foundation-2026"
+            "nist-agentic-identity-foundation-2026",
+            "nist-nccoe-agentic-identity-comments-2026",
+            "nist-agentic-identity-design-tenets-2026"
           ],
           "sources": [
             {
@@ -756,6 +788,22 @@
               "publisher": "NIST",
               "source_class": "government_security_signal",
               "url": "https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation"
+            },
+            {
+              "id": "nist-nccoe-agentic-identity-comments-2026",
+              "name": "Summary of Comments on the Software and Agentic AI Identity and Authorization Concept Paper",
+              "published": "2026-09-29",
+              "publisher": "NIST NCCoE",
+              "source_class": "government_security_signal",
+              "url": "https://pages.nist.gov/nccoe-ai-identity/summary-of-comments.html"
+            },
+            {
+              "id": "nist-agentic-identity-design-tenets-2026",
+              "name": "Design Tenets for Agent Identity Management Systems",
+              "published": "2026-10-27",
+              "publisher": "NIST",
+              "source_class": "government_security_signal",
+              "url": "https://www.nist.gov/blogs/cybersecurity-insights/design-tenets-agent-identity-management-systems"
             }
           ],
           "status": "ready",
@@ -1285,7 +1333,7 @@
         "title": "Agent Identity and Delegation Ledger"
       },
       "capability_id": "agent-identity-ledger",
-      "control_count": 11,
+      "control_count": 12,
       "control_ids": [
         "owasp-agentic-top-10-2026::ASI03",
         "owasp-agentic-top-10-2026::ASI07",
@@ -1294,6 +1342,7 @@
         "mcp-authorization-and-security::MCP-SEC-07",
         "nist-agentic-ai-risk-management::NIST-AGENT-01",
         "nist-agentic-ai-risk-management::NIST-CAISI-04",
+        "nist-agentic-ai-risk-management::NIST-AGENT-06",
         "frontier-lab-prompt-injection-defenses::LAB-PI-05",
         "csa-ai-controls-matrix-2025::CSA-AICM-03",
         "csa-agentic-trust-framework-2026::CSA-ATF-01",
@@ -1363,15 +1412,17 @@
         "title": "Agent Trust Fabric"
       },
       "capability_id": "agent-trust-fabric",
-      "control_count": 5,
+      "control_count": 7,
       "control_ids": [
+        "nist-agentic-ai-risk-management::NIST-AGENT-06",
+        "nist-agentic-ai-risk-management::NIST-AGENT-07",
         "csa-agentic-trust-framework-2026::CSA-ATF-01",
         "csa-agentic-trust-framework-2026::CSA-ATF-02",
         "csa-agentic-trust-framework-2026::CSA-ATF-03",
         "csa-agentic-trust-framework-2026::CSA-ATF-04",
         "csa-agentic-trust-framework-2026::CSA-ATF-05"
       ],
-      "standard_count": 1,
+      "standard_count": 2,
       "status": "covered"
     },
     {
@@ -1388,13 +1439,14 @@
         "title": "Agentic Action Runtime Pack"
       },
       "capability_id": "agentic-action-runtime-pack",
-      "control_count": 3,
+      "control_count": 4,
       "control_ids": [
+        "nist-agentic-ai-risk-management::NIST-AGENT-07",
         "frontier-lab-prompt-injection-defenses::LAB-PI-06",
         "nist-critical-infrastructure-ai-profile-2026::NIST-CI-01",
         "csa-agentic-trust-framework-2026::CSA-ATF-04"
       ],
-      "standard_count": 3,
+      "standard_count": 4,
       "status": "covered"
     },
     {
@@ -1411,13 +1463,15 @@
         "title": "Agentic Approval Receipt Pack"
       },
       "capability_id": "agentic-approval-receipt-pack",
-      "control_count": 3,
+      "control_count": 5,
       "control_ids": [
+        "nist-agentic-ai-risk-management::NIST-AGENT-07",
+        "nist-agentic-ai-risk-management::NIST-AGENT-08",
         "csa-ai-controls-matrix-2025::CSA-AICM-03",
         "nist-critical-infrastructure-ai-profile-2026::NIST-CI-01",
         "csa-agentic-trust-framework-2026::CSA-ATF-04"
       ],
-      "standard_count": 3,
+      "standard_count": 4,
       "status": "covered"
     },
     {
@@ -1458,15 +1512,16 @@
         "title": "Agentic Catastrophic Risk Annex"
       },
       "capability_id": "agentic-catastrophic-risk-annex",
-      "control_count": 5,
+      "control_count": 6,
       "control_ids": [
+        "nist-agentic-ai-risk-management::NIST-AGENT-08",
         "csa-ai-controls-matrix-2025::CSA-AICM-06",
         "nist-critical-infrastructure-ai-profile-2026::NIST-CI-01",
         "csa-catastrophic-risk-annex-2026::CSA-CR-01",
         "csa-catastrophic-risk-annex-2026::CSA-CR-02",
         "csa-catastrophic-risk-annex-2026::CSA-CR-03"
       ],
-      "standard_count": 3,
+      "standard_count": 4,
       "status": "covered"
     },
     {
@@ -1504,12 +1559,13 @@
         "title": "Agentic Entitlement Review Pack"
       },
       "capability_id": "agentic-entitlement-review-pack",
-      "control_count": 2,
+      "control_count": 3,
       "control_ids": [
+        "nist-agentic-ai-risk-management::NIST-AGENT-06",
         "csa-ai-controls-matrix-2025::CSA-AICM-03",
         "csa-agentic-trust-framework-2026::CSA-ATF-01"
       ],
-      "standard_count": 2,
+      "standard_count": 3,
       "status": "covered"
     },
     {
@@ -1633,7 +1689,7 @@
         "title": "Agentic Run Receipt Pack"
       },
       "capability_id": "agentic-run-receipt-pack",
-      "control_count": 13,
+      "control_count": 14,
       "control_ids": [
         "owasp-agentic-top-10-2026::ASI03",
         "owasp-agentic-top-10-2026::ASI08",
@@ -1642,6 +1698,7 @@
         "mcp-authorization-and-security::MCP-AUTH-02",
         "mcp-authorization-and-security::MCP-SEC-07",
         "nist-agentic-ai-risk-management::NIST-CAISI-04",
+        "nist-agentic-ai-risk-management::NIST-AGENT-08",
         "frontier-lab-prompt-injection-defenses::LAB-PI-02",
         "frontier-lab-prompt-injection-defenses::LAB-PI-06",
         "csa-ai-controls-matrix-2025::CSA-AICM-04",
@@ -1737,14 +1794,15 @@
         "title": "Agentic Telemetry Contract"
       },
       "capability_id": "agentic-telemetry-contract",
-      "control_count": 4,
+      "control_count": 5,
       "control_ids": [
+        "nist-agentic-ai-risk-management::NIST-AGENT-08",
         "frontier-lab-prompt-injection-defenses::LAB-PI-06",
         "csa-ai-controls-matrix-2025::CSA-AICM-04",
         "nist-critical-infrastructure-ai-profile-2026::NIST-CI-02",
         "csa-agentic-trust-framework-2026::CSA-ATF-02"
       ],
-      "standard_count": 4,
+      "standard_count": 5,
       "status": "covered"
     },
     {
@@ -1859,7 +1917,7 @@
         "title": "MCP Authorization Conformance"
       },
       "capability_id": "mcp-authorization-conformance",
-      "control_count": 15,
+      "control_count": 16,
       "control_ids": [
         "owasp-agentic-top-10-2026::ASI02",
         "owasp-agentic-top-10-2026::ASI03",
@@ -1871,6 +1929,7 @@
         "mcp-authorization-and-security::MCP-SEC-05",
         "mcp-authorization-and-security::MCP-SEC-07",
         "nist-agentic-ai-risk-management::NIST-AGENT-01",
+        "nist-agentic-ai-risk-management::NIST-AGENT-06",
         "frontier-lab-prompt-injection-defenses::LAB-PI-03",
         "frontier-lab-prompt-injection-defenses::LAB-PI-05",
         "csa-ai-controls-matrix-2025::CSA-AICM-03",
@@ -1945,7 +2004,7 @@
         "title": "MCP Gateway Policy"
       },
       "capability_id": "mcp-gateway-policy",
-      "control_count": 15,
+      "control_count": 16,
       "control_ids": [
         "owasp-agentic-top-10-2026::ASI01",
         "owasp-agentic-top-10-2026::ASI02",
@@ -1956,6 +2015,7 @@
         "mcp-authorization-and-security::MCP-SEC-05",
         "mcp-authorization-and-security::MCP-SEC-07",
         "nist-agentic-ai-risk-management::NIST-CAISI-04",
+        "nist-agentic-ai-risk-management::NIST-AGENT-07",
         "frontier-lab-prompt-injection-defenses::LAB-PI-02",
         "frontier-lab-prompt-injection-defenses::LAB-PI-03",
         "frontier-lab-prompt-injection-defenses::LAB-PI-05",
@@ -4098,8 +4158,8 @@
           "title": "Agentic System BOM"
         }
       ],
-      "diligence_question": "Can the buyer inspect which agent identity acted across MCP and agent-to-agent boundaries?",
-      "evidence_expectation": "Handoff, identity, authorization, and BOM evidence show agent identity, protocol, capability, and resource boundaries.",
+      "diligence_question": "Can the buyer inspect which unique agent identity acted across MCP and agent-to-agent boundaries, rather than a borrowed human or service-account credential?",
+      "evidence_expectation": "Handoff, identity, authorization, and BOM evidence show a distinct agent identity lifecycle, protocol, capability, and resource boundaries.",
       "evidence_paths": [
         "data/evidence/agent-handoff-boundary-pack.json",
         "data/evidence/agent-identity-delegation-ledger.json",
@@ -4113,7 +4173,7 @@
         "recipes_agentic_system_bom",
         "recipes_mcp_authorization_conformance_pack"
       ],
-      "objective": "Support secure human-agent and multi-agent interactions through identity, authentication, and protocol-boundary evidence.",
+      "objective": "Support secure human-agent and multi-agent interactions through cryptographically verifiable agent identities distinct from humans and service accounts, authentication, and protocol-boundary evidence.",
       "required_capability_ids": [
         "agent-handoff-boundary-pack",
         "agent-identity-ledger",
@@ -4125,7 +4185,9 @@
         "nist-caisi-ai-agent-security-rfi-2026",
         "nist-ai-rmf-2026",
         "nist-ai-600-1",
-        "nist-agentic-identity-foundation-2026"
+        "nist-agentic-identity-foundation-2026",
+        "nist-nccoe-agentic-identity-comments-2026",
+        "nist-agentic-identity-design-tenets-2026"
       ],
       "sources": [
         {
@@ -4167,6 +4229,22 @@
           "publisher": "NIST",
           "source_class": "government_security_signal",
           "url": "https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation"
+        },
+        {
+          "id": "nist-nccoe-agentic-identity-comments-2026",
+          "name": "Summary of Comments on the Software and Agentic AI Identity and Authorization Concept Paper",
+          "published": "2026-09-29",
+          "publisher": "NIST NCCoE",
+          "source_class": "government_security_signal",
+          "url": "https://pages.nist.gov/nccoe-ai-identity/summary-of-comments.html"
+        },
+        {
+          "id": "nist-agentic-identity-design-tenets-2026",
+          "name": "Design Tenets for Agent Identity Management Systems",
+          "published": "2026-10-27",
+          "publisher": "NIST",
+          "source_class": "government_security_signal",
+          "url": "https://www.nist.gov/blogs/cybersecurity-insights/design-tenets-agent-identity-management-systems"
         }
       ],
       "standard_id": "nist-agentic-ai-risk-management",
@@ -4252,7 +4330,9 @@
         "nist-caisi-ai-agent-security-rfi-2026",
         "nist-ai-rmf-2026",
         "nist-ai-600-1",
-        "nist-agentic-identity-foundation-2026"
+        "nist-agentic-identity-foundation-2026",
+        "nist-nccoe-agentic-identity-comments-2026",
+        "nist-agentic-identity-design-tenets-2026"
       ],
       "sources": [
         {
@@ -4294,6 +4374,22 @@
           "publisher": "NIST",
           "source_class": "government_security_signal",
           "url": "https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation"
+        },
+        {
+          "id": "nist-nccoe-agentic-identity-comments-2026",
+          "name": "Summary of Comments on the Software and Agentic AI Identity and Authorization Concept Paper",
+          "published": "2026-09-29",
+          "publisher": "NIST NCCoE",
+          "source_class": "government_security_signal",
+          "url": "https://pages.nist.gov/nccoe-ai-identity/summary-of-comments.html"
+        },
+        {
+          "id": "nist-agentic-identity-design-tenets-2026",
+          "name": "Design Tenets for Agent Identity Management Systems",
+          "published": "2026-10-27",
+          "publisher": "NIST",
+          "source_class": "government_security_signal",
+          "url": "https://www.nist.gov/blogs/cybersecurity-insights/design-tenets-agent-identity-management-systems"
         }
       ],
       "standard_id": "nist-agentic-ai-risk-management",
@@ -4379,7 +4475,9 @@
         "nist-caisi-ai-agent-security-rfi-2026",
         "nist-ai-rmf-2026",
         "nist-ai-600-1",
-        "nist-agentic-identity-foundation-2026"
+        "nist-agentic-identity-foundation-2026",
+        "nist-nccoe-agentic-identity-comments-2026",
+        "nist-agentic-identity-design-tenets-2026"
       ],
       "sources": [
         {
@@ -4421,6 +4519,22 @@
           "publisher": "NIST",
           "source_class": "government_security_signal",
           "url": "https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation"
+        },
+        {
+          "id": "nist-nccoe-agentic-identity-comments-2026",
+          "name": "Summary of Comments on the Software and Agentic AI Identity and Authorization Concept Paper",
+          "published": "2026-09-29",
+          "publisher": "NIST NCCoE",
+          "source_class": "government_security_signal",
+          "url": "https://pages.nist.gov/nccoe-ai-identity/summary-of-comments.html"
+        },
+        {
+          "id": "nist-agentic-identity-design-tenets-2026",
+          "name": "Design Tenets for Agent Identity Management Systems",
+          "published": "2026-10-27",
+          "publisher": "NIST",
+          "source_class": "government_security_signal",
+          "url": "https://www.nist.gov/blogs/cybersecurity-insights/design-tenets-agent-identity-management-systems"
         }
       ],
       "standard_id": "nist-agentic-ai-risk-management",
@@ -4506,7 +4620,9 @@
         "nist-caisi-ai-agent-security-rfi-2026",
         "nist-ai-rmf-2026",
         "nist-ai-600-1",
-        "nist-agentic-identity-foundation-2026"
+        "nist-agentic-identity-foundation-2026",
+        "nist-nccoe-agentic-identity-comments-2026",
+        "nist-agentic-identity-design-tenets-2026"
       ],
       "sources": [
         {
@@ -4548,6 +4664,22 @@
           "publisher": "NIST",
           "source_class": "government_security_signal",
           "url": "https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation"
+        },
+        {
+          "id": "nist-nccoe-agentic-identity-comments-2026",
+          "name": "Summary of Comments on the Software and Agentic AI Identity and Authorization Concept Paper",
+          "published": "2026-09-29",
+          "publisher": "NIST NCCoE",
+          "source_class": "government_security_signal",
+          "url": "https://pages.nist.gov/nccoe-ai-identity/summary-of-comments.html"
+        },
+        {
+          "id": "nist-agentic-identity-design-tenets-2026",
+          "name": "Design Tenets for Agent Identity Management Systems",
+          "published": "2026-10-27",
+          "publisher": "NIST",
+          "source_class": "government_security_signal",
+          "url": "https://www.nist.gov/blogs/cybersecurity-insights/design-tenets-agent-identity-management-systems"
         }
       ],
       "standard_id": "nist-agentic-ai-risk-management",
@@ -4633,7 +4765,9 @@
         "nist-caisi-ai-agent-security-rfi-2026",
         "nist-ai-rmf-2026",
         "nist-ai-600-1",
-        "nist-agentic-identity-foundation-2026"
+        "nist-agentic-identity-foundation-2026",
+        "nist-nccoe-agentic-identity-comments-2026",
+        "nist-agentic-identity-design-tenets-2026"
       ],
       "sources": [
         {
@@ -4675,12 +4809,469 @@
           "publisher": "NIST",
           "source_class": "government_security_signal",
           "url": "https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation"
+        },
+        {
+          "id": "nist-nccoe-agentic-identity-comments-2026",
+          "name": "Summary of Comments on the Software and Agentic AI Identity and Authorization Concept Paper",
+          "published": "2026-09-29",
+          "publisher": "NIST NCCoE",
+          "source_class": "government_security_signal",
+          "url": "https://pages.nist.gov/nccoe-ai-identity/summary-of-comments.html"
+        },
+        {
+          "id": "nist-agentic-identity-design-tenets-2026",
+          "name": "Design Tenets for Agent Identity Management Systems",
+          "published": "2026-10-27",
+          "publisher": "NIST",
+          "source_class": "government_security_signal",
+          "url": "https://www.nist.gov/blogs/cybersecurity-insights/design-tenets-agent-identity-management-systems"
         }
       ],
       "standard_id": "nist-agentic-ai-risk-management",
       "standard_title": "NIST AI Agent, AI RMF, CAISI, and GenAI Risk Guidance",
       "status": "ready",
       "title": "Data Provenance, Integrity, and Third-Party Risk"
+    },
+    {
+      "capabilities": [
+        {
+          "commercial_value": "Defines non-human identity contracts, delegated MCP scopes, explicit denies, owners, and revocation triggers.",
+          "evidence_paths": [
+            "data/evidence/agent-identity-delegation-ledger.json"
+          ],
+          "id": "agent-identity-ledger",
+          "mcp_tools": [
+            "recipes_agent_identity_ledger"
+          ],
+          "status": "implemented",
+          "title": "Agent Identity and Delegation Ledger"
+        },
+        {
+          "commercial_value": "Turns agent identity and MCP scopes into expiring permission leases, review cadence, step-up evidence, and runtime access decisions.",
+          "evidence_paths": [
+            "data/evidence/agentic-entitlement-review-pack.json"
+          ],
+          "id": "agentic-entitlement-review-pack",
+          "mcp_tools": [
+            "recipes_agentic_entitlement_review_pack"
+          ],
+          "status": "implemented",
+          "title": "Agentic Entitlement Review Pack"
+        },
+        {
+          "commercial_value": "Composes identity, context, scope, behavior, egress, telemetry, containment, freshness, and receipt evidence into one signed trust verdict buyers can understand.",
+          "evidence_paths": [
+            "data/assurance/agent-trust-fabric-profile.json",
+            "content/security-remediation/agent-trust-fabric/_index.md"
+          ],
+          "id": "agent-trust-fabric",
+          "mcp_tools": [
+            "recipes_agent_trust_fabric_pack"
+          ],
+          "status": "implemented",
+          "title": "Agent Trust Fabric"
+        },
+        {
+          "commercial_value": "Checks resource indicators, token audience, PKCE, token passthrough, session binding, and scope drift.",
+          "evidence_paths": [
+            "data/evidence/mcp-authorization-conformance-pack.json"
+          ],
+          "id": "mcp-authorization-conformance",
+          "mcp_tools": [
+            "recipes_mcp_authorization_conformance_pack"
+          ],
+          "status": "implemented",
+          "title": "MCP Authorization Conformance"
+        }
+      ],
+      "diligence_question": "What stops a sub-agent from inheriting parent-wide scope or an idle agent from retaining standing privilege?",
+      "evidence_expectation": "Identity, entitlement, trust-fabric, and authorization evidence show attenuated delegated scopes, lease TTLs, idle-privilege revocation, resource indicators, and denied privilege paths.",
+      "evidence_paths": [
+        "content/security-remediation/agent-trust-fabric/_index.md",
+        "data/assurance/agent-trust-fabric-profile.json",
+        "data/evidence/agent-identity-delegation-ledger.json",
+        "data/evidence/agentic-entitlement-review-pack.json",
+        "data/evidence/mcp-authorization-conformance-pack.json"
+      ],
+      "id": "NIST-AGENT-06",
+      "mcp_tools": [
+        "recipes_agent_identity_ledger",
+        "recipes_agent_trust_fabric_pack",
+        "recipes_agentic_entitlement_review_pack",
+        "recipes_mcp_authorization_conformance_pack"
+      ],
+      "objective": "Bound sub-agent and downstream grants so they cannot claim more authority than the parent, and require idle agents to hold no persistent rights.",
+      "required_capability_ids": [
+        "agent-identity-ledger",
+        "agentic-entitlement-review-pack",
+        "agent-trust-fabric",
+        "mcp-authorization-conformance"
+      ],
+      "source_ids": [
+        "nist-ai-agent-standards-initiative-2026",
+        "nist-caisi-ai-agent-security-rfi-2026",
+        "nist-ai-rmf-2026",
+        "nist-ai-600-1",
+        "nist-agentic-identity-foundation-2026",
+        "nist-nccoe-agentic-identity-comments-2026",
+        "nist-agentic-identity-design-tenets-2026"
+      ],
+      "sources": [
+        {
+          "id": "nist-ai-agent-standards-initiative-2026",
+          "name": "AI Agent Standards Initiative",
+          "published": "2026-02-17",
+          "publisher": "NIST",
+          "source_class": "government_framework",
+          "url": "https://www.nist.gov/artificial-intelligence/ai-agent-standards-initiative"
+        },
+        {
+          "id": "nist-caisi-ai-agent-security-rfi-2026",
+          "name": "CAISI Request for Information on Securing AI Agent Systems",
+          "published": "2026-01-12",
+          "publisher": "NIST CAISI",
+          "source_class": "government_framework",
+          "url": "https://www.nist.gov/news-events/news/2026/01/caisi-issues-request-information-about-securing-ai-agent-systems"
+        },
+        {
+          "id": "nist-ai-rmf-2026",
+          "name": "NIST AI Risk Management Framework",
+          "published": "2026-04-07",
+          "publisher": "NIST",
+          "source_class": "government_framework",
+          "url": "https://www.nist.gov/itl/ai-risk-management-framework"
+        },
+        {
+          "id": "nist-ai-600-1",
+          "name": "Artificial Intelligence Risk Management Framework: Generative Artificial Intelligence Profile",
+          "published": "2024-07-26",
+          "publisher": "NIST",
+          "source_class": "government_framework",
+          "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence"
+        },
+        {
+          "id": "nist-agentic-identity-foundation-2026",
+          "name": "Back to the Future: Why Agentic AI Needs a Strong Identity Foundation",
+          "published": "2026-08-27",
+          "publisher": "NIST",
+          "source_class": "government_security_signal",
+          "url": "https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation"
+        },
+        {
+          "id": "nist-nccoe-agentic-identity-comments-2026",
+          "name": "Summary of Comments on the Software and Agentic AI Identity and Authorization Concept Paper",
+          "published": "2026-09-29",
+          "publisher": "NIST NCCoE",
+          "source_class": "government_security_signal",
+          "url": "https://pages.nist.gov/nccoe-ai-identity/summary-of-comments.html"
+        },
+        {
+          "id": "nist-agentic-identity-design-tenets-2026",
+          "name": "Design Tenets for Agent Identity Management Systems",
+          "published": "2026-10-27",
+          "publisher": "NIST",
+          "source_class": "government_security_signal",
+          "url": "https://www.nist.gov/blogs/cybersecurity-insights/design-tenets-agent-identity-management-systems"
+        }
+      ],
+      "standard_id": "nist-agentic-ai-risk-management",
+      "standard_title": "NIST AI Agent, AI RMF, CAISI, and GenAI Risk Guidance",
+      "status": "ready",
+      "title": "Attenuated Delegation and Zero Standing Privilege"
+    },
+    {
+      "capabilities": [
+        {
+          "commercial_value": "Controls high-impact autonomous actions through action classes, workflow envelopes, approval requirements, and deterministic runtime decisions.",
+          "evidence_paths": [
+            "data/evidence/agentic-action-runtime-pack.json"
+          ],
+          "id": "agentic-action-runtime-pack",
+          "mcp_tools": [
+            "recipes_agentic_action_runtime_pack"
+          ],
+          "status": "implemented",
+          "title": "Agentic Action Runtime Pack"
+        },
+        {
+          "commercial_value": "Enforces default-deny MCP tool access, approval holds, scoped branch writes, and runtime kill decisions.",
+          "evidence_paths": [
+            "data/policy/mcp-gateway-policy.json"
+          ],
+          "id": "mcp-gateway-policy",
+          "mcp_tools": [
+            "recipes_mcp_gateway_policy"
+          ],
+          "status": "implemented",
+          "title": "MCP Gateway Policy"
+        },
+        {
+          "commercial_value": "Composes identity, context, scope, behavior, egress, telemetry, containment, freshness, and receipt evidence into one signed trust verdict buyers can understand.",
+          "evidence_paths": [
+            "data/assurance/agent-trust-fabric-profile.json",
+            "content/security-remediation/agent-trust-fabric/_index.md"
+          ],
+          "id": "agent-trust-fabric",
+          "mcp_tools": [
+            "recipes_agent_trust_fabric_pack"
+          ],
+          "status": "implemented",
+          "title": "Agent Trust Fabric"
+        },
+        {
+          "commercial_value": "Makes privileged human approvals scope-bound, time-boxed, separation-of-duties aware, replayable, and inspectable by buyers.",
+          "evidence_paths": [
+            "data/evidence/agentic-approval-receipt-pack.json"
+          ],
+          "id": "agentic-approval-receipt-pack",
+          "mcp_tools": [
+            "recipes_agentic_approval_receipt_pack"
+          ],
+          "status": "implemented",
+          "title": "Agentic Approval Receipt Pack"
+        }
+      ],
+      "diligence_question": "Can a buyer prove the reasoning model cannot expand permissions, and that high-impact work has a signed mandate plus a deterministic allow, hold, deny, or kill decision?",
+      "evidence_expectation": "Action-runtime, gateway, trust-fabric, and approval-receipt evidence show mandate or approval records, policy hashes, runtime decisions, and a separated policy path that does not let the model grant access.",
+      "evidence_paths": [
+        "content/security-remediation/agent-trust-fabric/_index.md",
+        "data/assurance/agent-trust-fabric-profile.json",
+        "data/evidence/agentic-action-runtime-pack.json",
+        "data/evidence/agentic-approval-receipt-pack.json",
+        "data/policy/mcp-gateway-policy.json"
+      ],
+      "id": "NIST-AGENT-07",
+      "mcp_tools": [
+        "recipes_agent_trust_fabric_pack",
+        "recipes_agentic_action_runtime_pack",
+        "recipes_agentic_approval_receipt_pack",
+        "recipes_mcp_gateway_policy"
+      ],
+      "objective": "Require cryptographically signed mandate statements for high-impact tasks, keep policy enforcement architecturally separate from the reasoning model, and make access decisions deterministic rather than model-granted.",
+      "required_capability_ids": [
+        "agentic-action-runtime-pack",
+        "mcp-gateway-policy",
+        "agent-trust-fabric",
+        "agentic-approval-receipt-pack"
+      ],
+      "source_ids": [
+        "nist-ai-agent-standards-initiative-2026",
+        "nist-caisi-ai-agent-security-rfi-2026",
+        "nist-ai-rmf-2026",
+        "nist-ai-600-1",
+        "nist-agentic-identity-foundation-2026",
+        "nist-nccoe-agentic-identity-comments-2026",
+        "nist-agentic-identity-design-tenets-2026"
+      ],
+      "sources": [
+        {
+          "id": "nist-ai-agent-standards-initiative-2026",
+          "name": "AI Agent Standards Initiative",
+          "published": "2026-02-17",
+          "publisher": "NIST",
+          "source_class": "government_framework",
+          "url": "https://www.nist.gov/artificial-intelligence/ai-agent-standards-initiative"
+        },
+        {
+          "id": "nist-caisi-ai-agent-security-rfi-2026",
+          "name": "CAISI Request for Information on Securing AI Agent Systems",
+          "published": "2026-01-12",
+          "publisher": "NIST CAISI",
+          "source_class": "government_framework",
+          "url": "https://www.nist.gov/news-events/news/2026/01/caisi-issues-request-information-about-securing-ai-agent-systems"
+        },
+        {
+          "id": "nist-ai-rmf-2026",
+          "name": "NIST AI Risk Management Framework",
+          "published": "2026-04-07",
+          "publisher": "NIST",
+          "source_class": "government_framework",
+          "url": "https://www.nist.gov/itl/ai-risk-management-framework"
+        },
+        {
+          "id": "nist-ai-600-1",
+          "name": "Artificial Intelligence Risk Management Framework: Generative Artificial Intelligence Profile",
+          "published": "2024-07-26",
+          "publisher": "NIST",
+          "source_class": "government_framework",
+          "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence"
+        },
+        {
+          "id": "nist-agentic-identity-foundation-2026",
+          "name": "Back to the Future: Why Agentic AI Needs a Strong Identity Foundation",
+          "published": "2026-08-27",
+          "publisher": "NIST",
+          "source_class": "government_security_signal",
+          "url": "https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation"
+        },
+        {
+          "id": "nist-nccoe-agentic-identity-comments-2026",
+          "name": "Summary of Comments on the Software and Agentic AI Identity and Authorization Concept Paper",
+          "published": "2026-09-29",
+          "publisher": "NIST NCCoE",
+          "source_class": "government_security_signal",
+          "url": "https://pages.nist.gov/nccoe-ai-identity/summary-of-comments.html"
+        },
+        {
+          "id": "nist-agentic-identity-design-tenets-2026",
+          "name": "Design Tenets for Agent Identity Management Systems",
+          "published": "2026-10-27",
+          "publisher": "NIST",
+          "source_class": "government_security_signal",
+          "url": "https://www.nist.gov/blogs/cybersecurity-insights/design-tenets-agent-identity-management-systems"
+        }
+      ],
+      "standard_id": "nist-agentic-ai-risk-management",
+      "standard_title": "NIST AI Agent, AI RMF, CAISI, and GenAI Risk Guidance",
+      "status": "ready",
+      "title": "Signed Mandates and Deterministic Policy Separation"
+    },
+    {
+      "capabilities": [
+        {
+          "commercial_value": "Creates portable run proof for identity, context, tools, egress, approvals, verifiers, evidence, and revocation.",
+          "evidence_paths": [
+            "data/evidence/agentic-run-receipt-pack.json"
+          ],
+          "id": "agentic-run-receipt-pack",
+          "mcp_tools": [
+            "recipes_agentic_run_receipt_pack"
+          ],
+          "status": "implemented",
+          "title": "Agentic Run Receipt Pack"
+        },
+        {
+          "commercial_value": "Defines OpenTelemetry-shaped trace evidence for agent, model, MCP, context, policy, egress, approval, verifier, incident, and redaction events.",
+          "evidence_paths": [
+            "data/evidence/agentic-telemetry-contract.json"
+          ],
+          "id": "agentic-telemetry-contract",
+          "mcp_tools": [
+            "recipes_agentic_telemetry_contract"
+          ],
+          "status": "implemented",
+          "title": "Agentic Telemetry Contract"
+        },
+        {
+          "commercial_value": "Makes privileged human approvals scope-bound, time-boxed, separation-of-duties aware, replayable, and inspectable by buyers.",
+          "evidence_paths": [
+            "data/evidence/agentic-approval-receipt-pack.json"
+          ],
+          "id": "agentic-approval-receipt-pack",
+          "mcp_tools": [
+            "recipes_agentic_approval_receipt_pack"
+          ],
+          "status": "implemented",
+          "title": "Agentic Approval Receipt Pack"
+        },
+        {
+          "commercial_value": "Adds board-grade severe-risk assurance for high-impact agent actions, runtime kill signals, approval receipts, and risk acceptance.",
+          "evidence_paths": [
+            "data/assurance/agentic-catastrophic-risk-annex.json",
+            "data/evidence/agentic-catastrophic-risk-annex.json"
+          ],
+          "id": "agentic-catastrophic-risk-annex",
+          "mcp_tools": [
+            "recipes_agentic_catastrophic_risk_annex"
+          ],
+          "status": "implemented",
+          "title": "Agentic Catastrophic Risk Annex"
+        }
+      ],
+      "diligence_question": "What prevents an agent from writing or modifying its own evidence, and how are high-impact HITL triggers bounded so reviewers do not rubber-stamp?",
+      "evidence_expectation": "Run receipts, telemetry, approval receipts, and the catastrophic-risk annex show independent evidence paths, append-only receipts, approval bounds, risk thresholds, and hold or kill decisions when evidence is agent-writable or HITL is missing.",
+      "evidence_paths": [
+        "data/assurance/agentic-catastrophic-risk-annex.json",
+        "data/evidence/agentic-approval-receipt-pack.json",
+        "data/evidence/agentic-catastrophic-risk-annex.json",
+        "data/evidence/agentic-run-receipt-pack.json",
+        "data/evidence/agentic-telemetry-contract.json"
+      ],
+      "id": "NIST-AGENT-08",
+      "mcp_tools": [
+        "recipes_agentic_approval_receipt_pack",
+        "recipes_agentic_catastrophic_risk_annex",
+        "recipes_agentic_run_receipt_pack",
+        "recipes_agentic_telemetry_contract"
+      ],
+      "objective": "Keep identity, delegated intent, and action evidence on an agent-independent append-only chain, and trigger human review at defined risk thresholds without consent-fatigue defaults.",
+      "required_capability_ids": [
+        "agentic-run-receipt-pack",
+        "agentic-telemetry-contract",
+        "agentic-approval-receipt-pack",
+        "agentic-catastrophic-risk-annex"
+      ],
+      "source_ids": [
+        "nist-ai-agent-standards-initiative-2026",
+        "nist-caisi-ai-agent-security-rfi-2026",
+        "nist-ai-rmf-2026",
+        "nist-ai-600-1",
+        "nist-agentic-identity-foundation-2026",
+        "nist-nccoe-agentic-identity-comments-2026",
+        "nist-agentic-identity-design-tenets-2026"
+      ],
+      "sources": [
+        {
+          "id": "nist-ai-agent-standards-initiative-2026",
+          "name": "AI Agent Standards Initiative",
+          "published": "2026-02-17",
+          "publisher": "NIST",
+          "source_class": "government_framework",
+          "url": "https://www.nist.gov/artificial-intelligence/ai-agent-standards-initiative"
+        },
+        {
+          "id": "nist-caisi-ai-agent-security-rfi-2026",
+          "name": "CAISI Request for Information on Securing AI Agent Systems",
+          "published": "2026-01-12",
+          "publisher": "NIST CAISI",
+          "source_class": "government_framework",
+          "url": "https://www.nist.gov/news-events/news/2026/01/caisi-issues-request-information-about-securing-ai-agent-systems"
+        },
+        {
+          "id": "nist-ai-rmf-2026",
+          "name": "NIST AI Risk Management Framework",
+          "published": "2026-04-07",
+          "publisher": "NIST",
+          "source_class": "government_framework",
+          "url": "https://www.nist.gov/itl/ai-risk-management-framework"
+        },
+        {
+          "id": "nist-ai-600-1",
+          "name": "Artificial Intelligence Risk Management Framework: Generative Artificial Intelligence Profile",
+          "published": "2024-07-26",
+          "publisher": "NIST",
+          "source_class": "government_framework",
+          "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence"
+        },
+        {
+          "id": "nist-agentic-identity-foundation-2026",
+          "name": "Back to the Future: Why Agentic AI Needs a Strong Identity Foundation",
+          "published": "2026-08-27",
+          "publisher": "NIST",
+          "source_class": "government_security_signal",
+          "url": "https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation"
+        },
+        {
+          "id": "nist-nccoe-agentic-identity-comments-2026",
+          "name": "Summary of Comments on the Software and Agentic AI Identity and Authorization Concept Paper",
+          "published": "2026-09-29",
+          "publisher": "NIST NCCoE",
+          "source_class": "government_security_signal",
+          "url": "https://pages.nist.gov/nccoe-ai-identity/summary-of-comments.html"
+        },
+        {
+          "id": "nist-agentic-identity-design-tenets-2026",
+          "name": "Design Tenets for Agent Identity Management Systems",
+          "published": "2026-10-27",
+          "publisher": "NIST",
+          "source_class": "government_security_signal",
+          "url": "https://www.nist.gov/blogs/cybersecurity-insights/design-tenets-agent-identity-management-systems"
+        }
+      ],
+      "standard_id": "nist-agentic-ai-risk-management",
+      "standard_title": "NIST AI Agent, AI RMF, CAISI, and GenAI Risk Guidance",
+      "status": "ready",
+      "title": "Independent Append-Only Evidence and Risk-Threshold HITL"
     },
     {
       "capabilities": [
@@ -7347,9 +7938,9 @@
   ],
   "crosswalk_summary": {
     "capability_count": 34,
-    "control_count": 45,
+    "control_count": 48,
     "control_status_counts": {
-      "ready": 45
+      "ready": 48
     },
     "covered_capability_count": 34,
     "distinct_mcp_tool_count": 34,
@@ -7357,14 +7948,14 @@
     "source_class_counts": {
       "frontier_lab_guidance": 4,
       "government_framework": 5,
-      "government_security_signal": 1,
+      "government_security_signal": 3,
       "incident_intelligence": 1,
       "industry_framework": 1,
       "industry_standard": 5,
       "protocol_guidance": 2,
       "protocol_specification": 2
     },
-    "source_reference_count": 21,
+    "source_reference_count": 23,
     "standard_count": 8,
     "standard_status_counts": {
       "ready": 8
@@ -7384,19 +7975,19 @@
     "sales_motion": "Lead with open standards coverage, then sell hosted customer-specific evidence mapping, standards drift alerts, conformance APIs, and trust-center exports."
   },
   "failures": [],
-  "generated_at": "2026-09-28",
+  "generated_at": "2026-11-10",
   "intent": "Create an enterprise buyer and AI-platform standards crosswalk for SecurityRecipes so OWASP Agentic Top 10, CSA AI Controls Matrix, NIST AI agent guidance, MCP authorization requirements, critical-infrastructure AI expectations, and frontier-lab prompt-injection defenses map directly to generated evidence packs, MCP tools, and runtime decision surfaces.",
   "positioning": {
     "buyer": "AI Platform, Product Security, AppSec, GRC, procurement security, model-risk, and acquisition diligence teams",
     "category": "Agentic AI standards-to-evidence crosswalk",
     "enterprise_promise": "SecurityRecipes can answer standards and due-diligence questions with current source references, mapped controls, generated JSON evidence, and MCP tools instead of narrative claims.",
-    "why_now": "Agentic AI systems now combine autonomy, private context, tool execution, remote MCP servers, local STDIO servers, browser-like agents, persistent memory, and agent-to-agent handoffs. Standards and buyer guidance are converging on the same requirement: prove context, authority, tool use, egress, evals, telemetry, and receipts before agents act."
+    "why_now": "Agentic AI systems now combine autonomy, private context, tool execution, remote MCP servers, local STDIO servers, browser-like agents, persistent memory, and agent-to-agent handoffs. NIST's October 27, 2026 design tenets, drawn from NCCoE comments and stakeholder engagement, require cryptographically verifiable identities distinct from humans and service accounts, attenuated sub-agent delegation, zero standing privilege, short-lived audience-specific grants, signed mandate statements, architectural separation of policy from reasoning, deterministic access decisions, consent-fatigue-aware HITL thresholds, continuous monitoring, and independent append-only evidence. Unique short-lived credentials are necessary but not sufficient when a sub-agent keeps parent-wide scope, idle agents retain standing privilege, the reasoning model grants access, or the agent can write its own logs. Standards and buyer guidance are converging on the same requirement: prove context, authority, tool use, egress, evals, telemetry, and receipts before agents act."
   },
   "schema_version": "1.0",
   "source_artifacts": {
     "agentic_standards_crosswalk_profile": {
       "path": "data/assurance/agentic-standards-crosswalk.json",
-      "sha256": "81c14fffbb117b4e4b78e5e8837092e8b64d8164c2d45e8e3d691da43750dbf5"
+      "sha256": "4ec7cef2d0168a62e63d98898a102b96489a0f13b8b7af53ec303641869d5d6a"
     },
     "capability_evidence": [
       {
@@ -7405,7 +7996,7 @@
       },
       {
         "path": "content/security-remediation/agentic-standards-crosswalk/_index.md",
-        "sha256": "cdd0d9d93992efb283e6c89552d1245ddd4e5fa02e5085d8f3833bc3e8ff7621"
+        "sha256": "25d798d21d12d79b7c5788ab233bdcb61f170103745f525a1db7711fae468394"
       },
       {
         "path": "data/assurance/agent-trust-fabric-profile.json",
@@ -7421,7 +8012,7 @@
       },
       {
         "path": "data/assurance/agentic-standards-crosswalk.json",
-        "sha256": "81c14fffbb117b4e4b78e5e8837092e8b64d8164c2d45e8e3d691da43750dbf5"
+        "sha256": "4ec7cef2d0168a62e63d98898a102b96489a0f13b8b7af53ec303641869d5d6a"
       },
       {
         "path": "data/assurance/enterprise-trust-center-profile.json",
@@ -7437,7 +8028,7 @@
       },
       {
         "path": "data/evidence/agent-handoff-boundary-pack.json",
-        "sha256": "b2d8422dc915ddf00c89fedfdf9e1a9b3922527e95ae76768e6777094a5331b6"
+        "sha256": "d91374d3d9a861e461d24d6fb914ddeb32357fabfa68c88cb131eb1550408e2c"
       },
       {
         "path": "data/evidence/agent-identity-delegation-ledger.json",
@@ -7449,15 +8040,15 @@
       },
       {
         "path": "data/evidence/agent-skill-supply-chain-pack.json",
-        "sha256": "1bd6fee2537a2a7e683ee9c432cf28de799204cd286c02a526820e3a3a2f4ca5"
+        "sha256": "adef5fef2760cb9a76fbb76619f676e3f851c836429a953b6bdce3755583ad86"
       },
       {
         "path": "data/evidence/agentic-action-runtime-pack.json",
-        "sha256": "a718eb9508cc442108f797dcc2f2d60897ce36f339d1d3ad95ff8014f4fc3f54"
+        "sha256": "20ccafa4ae5bebc5f1d23f1620ef1dd2a1c42997dde616dcd93d2fcd78789578"
       },
       {
         "path": "data/evidence/agentic-approval-receipt-pack.json",
-        "sha256": "600dff444a7ddba6418d6a0b9eddbc86773cd4b574162e25bd91e355d6e1b20a"
+        "sha256": "8a6c1c0757d8d1a673b15e6537bb6504777a245265dfa3748b404a0f23af8742"
       },
       {
         "path": "data/evidence/agentic-assurance-pack.json",
@@ -7465,19 +8056,19 @@
       },
       {
         "path": "data/evidence/agentic-catastrophic-risk-annex.json",
-        "sha256": "fb601a75598687a1a3681247e452ee1e95963d889f509e5c5b934e7d653ee69d"
+        "sha256": "74c611cb15c8401f08c42421273641ce6c24d270f9df46bdf086adaf61a062fb"
       },
       {
         "path": "data/evidence/agentic-entitlement-review-pack.json",
-        "sha256": "3a9b4f371b4aa6f6bd5da962262ef0f901e187b508cc3ecca700f84ea4d932db"
+        "sha256": "3d570059984090e4fe3d6f14fc68bc56994668ef6660675fa7b8ad933d2409b6"
       },
       {
         "path": "data/evidence/agentic-incident-response-pack.json",
-        "sha256": "a2aa41b8686925ad697313cec1262304597885a407fec7c5d9687754451fa854"
+        "sha256": "7c50cb50e87ac9e770b996194c1bb4c77454b1e3afaca80cb7cbdf4be0cf7459"
       },
       {
         "path": "data/evidence/agentic-measurement-probe-pack.json",
-        "sha256": "4efafc2b48f1b6af46d891e9db23847be73be37587527d54fe7a6fadc676f420"
+        "sha256": "cd9c6b25ea2a5e2c0e5deb208b08fe6402fdabacac930e51fd7799b72bc083df"
       },
       {
         "path": "data/evidence/agentic-readiness-scorecard.json",
@@ -7489,11 +8080,11 @@
       },
       {
         "path": "data/evidence/agentic-run-receipt-pack.json",
-        "sha256": "dff384428dc2c080d1ff89aa1e496549df8ba61113fe399990842d6ecbb05566"
+        "sha256": "5a3d0475fcd45d697d0dddeec93b4a9a99b1031333696b8169b2b4b3eb821d68"
       },
       {
         "path": "data/evidence/agentic-soc-detection-pack.json",
-        "sha256": "206395932c410201b9e286290656732b4cffb165a1d017dd195cd760a1f1d22b"
+        "sha256": "554819cebe229bae10eeed48d387d5174c9be5da967b8633cdc7bc3ea2b9d670"
       },
       {
         "path": "data/evidence/agentic-system-bom.json",
@@ -7501,19 +8092,19 @@
       },
       {
         "path": "data/evidence/agentic-telemetry-contract.json",
-        "sha256": "efe7e02016e47380bb07ecb0fecabc6512fd6b4b6245d0c401ff57eadddd40d0"
+        "sha256": "2d6e11ab05cefc115ab0b893dfdb4a5460846df792f4c883f0b7f377c9199644"
       },
       {
         "path": "data/evidence/agentic-threat-radar.json",
-        "sha256": "54d140d42bc903d24a515e3fc235db857e6dcef0b5ba6a89b4d80c44a4e52ad4"
+        "sha256": "53b3c189d0da7e0e3296f8f68fe8be180d1776b208cbcabbe43ad641f960675a"
       },
       {
         "path": "data/evidence/context-egress-boundary-pack.json",
-        "sha256": "0a4e7e1b865b988ce8c43d85e2e1dbe1442e5cd97fae207324d45ef666771fe6"
+        "sha256": "fab904c5c1c46bacdadda9bffcbddc09e656b08e1e2eec02d409144a8789e85e"
       },
       {
         "path": "data/evidence/context-poisoning-guard-pack.json",
-        "sha256": "1d7c065455d7414264e6423aa0a70e3c2b511aed107d52599fa3e6d96a984ccd"
+        "sha256": "ca29b7447a2118a4ed1bb101ff5740d59376cf9871d8db7f9919973d8865fa1b"
       },
       {
         "path": "data/evidence/mcp-authorization-conformance-pack.json",
@@ -7533,15 +8124,15 @@
       },
       {
         "path": "data/evidence/secure-context-attestation-pack.json",
-        "sha256": "276d03feac47d4ec8021f793a31f40fd090b127f8f2c6e3cfb60533057139f9c"
+        "sha256": "ea652ed38773b8a965d185282c69021b68697b7709b95375b136e7f7b9fe48cd"
       },
       {
         "path": "data/evidence/secure-context-eval-pack.json",
-        "sha256": "747b1e1d225efa776e79949d283707a3f2f9ac3c0ba4bba598884ed0651a250b"
+        "sha256": "ba3f3fc6b1c60215316f5f2248d4f88844e303bbfcb4aa7d7b8d32543a8da885"
       },
       {
         "path": "data/evidence/secure-context-trust-pack.json",
-        "sha256": "7a5c7ec50392d5053e65d61eee8dc52d223a8e9ab241091c3ba25cb6f1261cbb"
+        "sha256": "fec33faca3bb6b1ece8e94c7683409b2cda6abf013b8acec4030aa59358ee9b3"
       },
       {
         "path": "data/intelligence/agentic-threat-radar-sources.json",
@@ -7697,6 +8288,24 @@
       "source_class": "government_security_signal",
       "url": "https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation",
       "why_it_matters": "NIST warns that agent rollouts are repeating IAM mistakes: shared human credentials, long-lived API keys and bearer tokens, overly broad access, local user-account impersonation, and over-reliance on human-in-the-loop approvals."
+    },
+    {
+      "id": "nist-nccoe-agentic-identity-comments-2026",
+      "name": "Summary of Comments on the Software and Agentic AI Identity and Authorization Concept Paper",
+      "published": "2026-09-29",
+      "publisher": "NIST NCCoE",
+      "source_class": "government_security_signal",
+      "url": "https://pages.nist.gov/nccoe-ai-identity/summary-of-comments.html",
+      "why_it_matters": "NCCoE's September 29, 2026 comments summary, drawn from more than 600 responses, says sender-constrained credentials (OAuth DPoP or mTLS using SPIFFE or WIMSE identities) are essential to reduce bearer-token replay, and that ephemeral credentials should be bound to a stable identity anchor via proof-of-possession rather than reused as unconstrained bearer tokens."
+    },
+    {
+      "id": "nist-agentic-identity-design-tenets-2026",
+      "name": "Design Tenets for Agent Identity Management Systems",
+      "published": "2026-10-27",
+      "publisher": "NIST",
+      "source_class": "government_security_signal",
+      "url": "https://www.nist.gov/blogs/cybersecurity-insights/design-tenets-agent-identity-management-systems",
+      "why_it_matters": "NIST's October 27, 2026 design tenets require cryptographically verifiable agent identities distinct from humans and service accounts, attenuated sub-agent delegation so downstream entities cannot claim more authority than the parent, zero standing privilege, short-lived audience-specific grants, signed mandate statements, architectural separation of policy from reasoning, deterministic access decisions, consent-fatigue-aware HITL thresholds, continuous monitoring, and independent append-only evidence."
     },
     {
       "id": "openai-prompt-injections-2025",
@@ -7883,21 +8492,27 @@
     },
     {
       "buyer_question": "Can SecurityRecipes show governance, measurement, identity, data, and lifecycle evidence for deployed agent systems?",
-      "capability_count": 18,
-      "control_count": 5,
+      "capability_count": 24,
+      "control_count": 8,
       "coverage_score": 100.0,
       "id": "nist-agentic-ai-risk-management",
       "kind": "governance_and_measurement",
       "mcp_tools": [
         "recipes_agent_handoff_boundary_pack",
         "recipes_agent_identity_ledger",
+        "recipes_agent_trust_fabric_pack",
+        "recipes_agentic_action_runtime_pack",
+        "recipes_agentic_approval_receipt_pack",
         "recipes_agentic_assurance_pack",
+        "recipes_agentic_catastrophic_risk_annex",
         "recipes_agentic_control_plane_blueprint",
+        "recipes_agentic_entitlement_review_pack",
         "recipes_agentic_measurement_probe_pack",
         "recipes_agentic_readiness_scorecard",
         "recipes_agentic_red_team_drill_pack",
         "recipes_agentic_run_receipt_pack",
         "recipes_agentic_system_bom",
+        "recipes_agentic_telemetry_contract",
         "recipes_context_egress_boundary_pack",
         "recipes_context_poisoning_guard_pack",
         "recipes_enterprise_trust_center_export",
@@ -7908,13 +8523,15 @@
         "recipes_secure_context_trust_pack",
         "recipes_workflow_control_plane"
       ],
-      "ready_control_count": 5,
+      "ready_control_count": 8,
       "source_ids": [
         "nist-ai-agent-standards-initiative-2026",
         "nist-caisi-ai-agent-security-rfi-2026",
         "nist-ai-rmf-2026",
         "nist-ai-600-1",
-        "nist-agentic-identity-foundation-2026"
+        "nist-agentic-identity-foundation-2026",
+        "nist-nccoe-agentic-identity-comments-2026",
+        "nist-agentic-identity-design-tenets-2026"
       ],
       "sources": [
         {
@@ -7956,6 +8573,22 @@
           "publisher": "NIST",
           "source_class": "government_security_signal",
           "url": "https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation"
+        },
+        {
+          "id": "nist-nccoe-agentic-identity-comments-2026",
+          "name": "Summary of Comments on the Software and Agentic AI Identity and Authorization Concept Paper",
+          "published": "2026-09-29",
+          "publisher": "NIST NCCoE",
+          "source_class": "government_security_signal",
+          "url": "https://pages.nist.gov/nccoe-ai-identity/summary-of-comments.html"
+        },
+        {
+          "id": "nist-agentic-identity-design-tenets-2026",
+          "name": "Design Tenets for Agent Identity Management Systems",
+          "published": "2026-10-27",
+          "publisher": "NIST",
+          "source_class": "government_security_signal",
+          "url": "https://www.nist.gov/blogs/cybersecurity-insights/design-tenets-agent-identity-management-systems"
         }
       ],
       "status": "ready",
