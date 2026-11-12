@@ -6,7 +6,7 @@
     "buyer": "AI Platform, Product Security, AppSec, GRC, procurement security, model-risk, and acquisition diligence teams",
     "category": "Agentic AI standards-to-evidence crosswalk",
     "enterprise_promise": "SecurityRecipes can answer standards and due-diligence questions with current source references, mapped controls, generated JSON evidence, and MCP tools instead of narrative claims.",
-    "why_now": "Agentic AI systems now combine autonomy, private context, tool execution, remote MCP servers, local STDIO servers, browser-like agents, persistent memory, and agent-to-agent handoffs. Standards and buyer guidance are converging on the same requirement: prove context, authority, tool use, egress, evals, telemetry, and receipts before agents act."
+    "why_now": "Agentic AI systems now combine autonomy, private context, tool execution, remote MCP servers, local STDIO servers, browser-like agents, persistent memory, and agent-to-agent handoffs. NIST's October 27, 2026 design tenets, drawn from NCCoE comments and stakeholder engagement, require cryptographically verifiable identities distinct from humans and service accounts, attenuated sub-agent delegation, zero standing privilege, short-lived audience-specific grants, signed mandate statements, architectural separation of policy from reasoning, deterministic access decisions, consent-fatigue-aware HITL thresholds, continuous monitoring, and independent append-only evidence. Unique short-lived credentials are necessary but not sufficient when a sub-agent keeps parent-wide scope, idle agents retain standing privilege, the reasoning model grants access, or the agent can write its own logs. Standards and buyer guidance are converging on the same requirement: prove context, authority, tool use, egress, evals, telemetry, and receipts before agents act."
   },
   "control_plane_contract": {
     "default_state": "not_enterprise_ready_until_each_referenced_standard_control_has_generated_evidence",
@@ -204,6 +204,15 @@
       "url": "https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation",
       "source_class": "government_security_signal",
       "why_it_matters": "NIST warns that agent rollouts are repeating IAM mistakes: shared human credentials, long-lived API keys and bearer tokens, overly broad access, local user-account impersonation, and over-reliance on human-in-the-loop approvals."
+    },
+    {
+      "id": "nist-nccoe-agentic-identity-comments-2026",
+      "name": "Summary of Comments on the Software and Agentic AI Identity and Authorization Concept Paper",
+      "publisher": "NIST NCCoE",
+      "published": "2026-09-29",
+      "url": "https://pages.nist.gov/nccoe-ai-identity/summary-of-comments.html",
+      "source_class": "government_security_signal",
+      "why_it_matters": "NCCoE's September 29, 2026 comments summary, drawn from more than 600 responses, says sender-constrained credentials (OAuth DPoP or mTLS using SPIFFE or WIMSE identities) are essential to reduce bearer-token replay, and that ephemeral credentials should be bound to a stable identity anchor via proof-of-possession rather than reused as unconstrained bearer tokens."
     },
     {
       "id": "nist-agentic-identity-design-tenets-2026",
@@ -943,6 +952,7 @@
         "nist-ai-rmf-2026",
         "nist-ai-600-1",
         "nist-agentic-identity-foundation-2026",
+        "nist-nccoe-agentic-identity-comments-2026",
         "nist-agentic-identity-design-tenets-2026"
       ],
       "buyer_question": "Can SecurityRecipes show governance, measurement, identity, data, and lifecycle evidence for deployed agent systems?",
