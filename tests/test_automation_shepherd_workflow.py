@@ -77,6 +77,7 @@ class AutomationShepherdWorkflowTests(unittest.TestCase):
         self.assertIn('select(.name == "build")', shepherd)
         self.assertIn('select(.context == "build")', shepherd)
         self.assertIn("gh workflow run cve-catalog-validate.yml", shepherd)
+        self.assertIn('--ref "$GITHUB_DEFAULT_BRANCH"', shepherd)
         self.assertIn('--field "expected_sha=${HEAD_SHA}"', shepherd)
         self.assertIn('--field "pr_number=${PR_NUMBER}"', shepherd)
         self.assertIn('--field "expected_branch=${HEAD_BRANCH}"', shepherd)
@@ -84,7 +85,13 @@ class AutomationShepherdWorkflowTests(unittest.TestCase):
         self.assertNotIn("cve-catalog-validate-request.yml", shepherd)
         self.assertIn("PENDING_VALIDATIONS", shepherd)
         self.assertIn("--workflow cve-catalog-validate.yml", shepherd)
+        self.assertIn('--status "$RUN_STATUS"', shepherd)
         self.assertIn(r'endswith(\"@ ${HEAD_SHA}\")', shepherd)
+        self.assertIn('[[ ! "$HEAD_SHA" =~ ^[0-9a-f]{40}$ ]]', shepherd)
+        self.assertLess(
+            shepherd.index('[[ ! "$HEAD_SHA" =~ ^[0-9a-f]{40}$ ]]'),
+            shepherd.index("gh workflow run cve-catalog-validate.yml"),
+        )
         self.assertLess(
             shepherd.index("PENDING_VALIDATIONS"),
             shepherd.index("gh workflow run cve-catalog-validate.yml"),

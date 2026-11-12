@@ -1,0 +1,50 @@
+[
+  {
+    "id": "M1-post-on-main",
+    "file": ".github/workflows/cve-catalog-validate.yml:211",
+    "killing_test": "test_status_is_posted_to_head_sha_not_main",
+    "expected": "status POST path uses the PR head SHA, not GITHUB_SHA/main",
+    "actual": "status posted to bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb, expected PR head aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "killed": true
+  },
+  {
+    "id": "M2-drop-sha-input",
+    "file": ".github/workflows/automation-shepherd.yml:294",
+    "killing_test": "test_dispatch_carries_pr_head_sha",
+    "expected": "gh workflow run includes --field expected_sha=<PR head SHA>",
+    "actual": "dispatch did not carry the PR head SHA: {'request_id': 'shepherd-111-1-480', 'pr_number': '480', 'expected_branch': 'automation/content-refresh-ir-si-monitor-isolation'}",
+    "killed": true
+  },
+  {
+    "id": "M3-drop-dedupe",
+    "file": ".github/workflows/automation-shepherd.yml:276",
+    "killing_test": "test_dedupe_skips_in_flight_heads",
+    "expected": "in-progress validation for the head SHA is not re-dispatched",
+    "actual": "in-flight head was re-dispatched: [{'argv': ['workflow', 'run', 'cve-catalog-validate.yml', '--ref', 'main', '--field', 'expected_sha=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', '--field', 'request_id=shepherd-111-1-480', '--field', 'pr_number=480', '--field', 'expected_branch=automation/content-refresh-ir-si-monitor-isolation'], 'method': 'GET', 'fields': {'expected_sha': 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', 'request_id': 'shepherd-111-1-480', 'pr_number': '480', 'expected_branch': 'automation/content-refresh-ir-si-monitor-isolation'}, 'flags': {'--ref': 'main'}, 'positionals': ['workflow', 'run', 'cve-catalog-validate.yml']}]",
+    "killed": true
+  },
+  {
+    "id": "M4-fail-open-missing-sha",
+    "file": ".github/workflows/cve-catalog-validate.yml:188",
+    "killing_test": "test_publish_missing_sha_fails_closed",
+    "expected": "publish exits non-zero and posts no status when expected_sha is empty",
+    "actual": "publish must fail closed on a missing SHA",
+    "killed": true
+  },
+  {
+    "id": "M5-wrong-context-name",
+    "file": ".github/workflows/cve-catalog-validate.yml:213",
+    "killing_test": "test_status_uses_build_context",
+    "expected": "commit status context is build, not another name",
+    "actual": "posted context {'state': 'success', 'context': 'validation', 'description': 'Exact-SHA CVE validation passed', 'target_url': 'https://github.com/stevologic/security-recipes.ai/actions/runs/111'}, expected build",
+    "killed": true
+  },
+  {
+    "id": "M6-shepherd-fail-open-missing-sha",
+    "file": ".github/workflows/automation-shepherd.yml:256",
+    "killing_test": "test_shepherd_missing_sha_fails_closed",
+    "expected": "shepherd does not dispatch validation when the PR head SHA is missing",
+    "actual": "missing SHA still dispatched validation: [{'argv': ['workflow', 'run', 'cve-catalog-validate.yml', '--ref', 'main', '--field', 'expected_sha=', '--field', 'request_id=shepherd-111-1-480', '--field', 'pr_number=480', '--field', 'expected_branch=automation/content-refresh-ir-si-monitor-isolation'], 'method': 'GET', 'fields': {'expected_sha': '', 'request_id': 'shepherd-111-1-480', 'pr_number': '480', 'expected_branch': 'automation/content-refresh-ir-si-monitor-isolation'}, 'flags': {'--ref': 'main'}, 'positionals': ['workflow', 'run', 'cve-catalog-validate.yml']}]",
+    "killed": true
+  }
+]

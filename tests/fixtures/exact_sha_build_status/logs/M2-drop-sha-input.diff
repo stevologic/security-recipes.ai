@@ -1,0 +1,12 @@
+===== M2-drop-sha-input automation-shepherd.yml =====
+--- /agent/repos/security-recipes.ai/.github/workflows/automation-shepherd.yml	2026-11-12 19:22:26.054458884 +0000
++++ /agent/repos/security-recipes.ai/tests/fixtures/exact_sha_build_status/mutants/M2-drop-sha-input/automation-shepherd.yml	2026-11-12 19:24:15.750409792 +0000
+@@ -291,7 +291,6 @@
+             echo "#${PR_NUMBER}: head ${HEAD_SHA} has no build context; dispatching exact-SHA validation."
+             gh workflow run cve-catalog-validate.yml \
+               --ref "$GITHUB_DEFAULT_BRANCH" \
+-              --field "expected_sha=${HEAD_SHA}" \
+               --field "request_id=shepherd-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${PR_NUMBER}" \
+               --field "pr_number=${PR_NUMBER}" \
+               --field "expected_branch=${HEAD_BRANCH}"
+===== M2-drop-sha-input cve-catalog-validate.yml =====
