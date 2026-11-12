@@ -1,0 +1,11 @@
+--- /tmp/karen-kit-y5csq6qh/CONTROL/.github/workflows/cve-catalog-validate.yml	2026-11-12 21:02:46.648686339 +0000
++++ /tmp/karen-kit-y5csq6qh/D5-guard-exit-0/.github/workflows/cve-catalog-validate.yml	2026-11-12 21:06:27.711994236 +0000
+@@ -223,7 +223,7 @@
+           if [ "$DISPATCH_REF" != "$TRUSTED_REF" ] ||
+              [ "$DISPATCH_ACTOR" != "$TRUSTED_ACTOR" ]; then
+             echo "::error::Refusing to publish a self-posted build; dispatch was not from ${TRUSTED_REF} by ${TRUSTED_ACTOR}."
+-            exit 1
++            exit 0
+           fi
+ 
+           if [ "$EXPECTED_BRANCH" != "$SYNC_BRANCH" ]; then

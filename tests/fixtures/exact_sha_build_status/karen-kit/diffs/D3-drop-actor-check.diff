@@ -1,0 +1,12 @@
+--- /tmp/karen-kit-y5csq6qh/CONTROL/.github/workflows/cve-catalog-validate.yml	2026-11-12 21:02:46.648686339 +0000
++++ /tmp/karen-kit-y5csq6qh/D3-drop-actor-check/.github/workflows/cve-catalog-validate.yml	2026-11-12 21:06:27.707994248 +0000
+@@ -220,8 +220,7 @@
+             exit 1
+           fi
+ 
+-          if [ "$DISPATCH_REF" != "$TRUSTED_REF" ] ||
+-             [ "$DISPATCH_ACTOR" != "$TRUSTED_ACTOR" ]; then
++          if [ "$DISPATCH_REF" != "$TRUSTED_REF" ]; then
+             echo "::error::Refusing to publish a self-posted build; dispatch was not from ${TRUSTED_REF} by ${TRUSTED_ACTOR}."
+             exit 1
+           fi

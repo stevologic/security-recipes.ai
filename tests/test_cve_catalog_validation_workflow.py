@@ -138,6 +138,12 @@ class CveCatalogValidationWorkflowTests(unittest.TestCase):
         self.assertIn("catalog-sync only", publish)
         self.assertIn("5ea57357", publish)
         self.assertIn("held for Stephen's ack", publish)
+        self.assertIn("DISPATCH_REF: ${{ github.ref }}", publish)
+        self.assertIn("DISPATCH_ACTOR: ${{ github.actor }}", publish)
+        self.assertIn('TRUSTED_REF="refs/heads/main"', publish)
+        self.assertIn('TRUSTED_ACTOR="github-actions[bot]"', publish)
+        self.assertIn('[ "$DISPATCH_REF" != "$TRUSTED_REF" ]', publish)
+        self.assertIn('[ "$DISPATCH_ACTOR" != "$TRUSTED_ACTOR" ]', publish)
         self.assertIn(
             '[[ ! "$EXPECTED_SHA" =~ ^[0-9a-f]{40}$ ]]',
             publish,

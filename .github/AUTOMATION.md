@@ -94,8 +94,10 @@ content-refresh, leftover-review, and every other PR keep the real
 the default branch; the catalog SHA is an input. Validation checks out that
 SHA with a read-only token, then a no-checkout job posts `build` onto the
 live catalog-sync head so the required context lands on that SHA, not on
-main. This restores the catalog self-posted `build` removed in 5ea57357
-and is held for Stephen's ack.
+main. Publish refuses unless the dispatch is `refs/heads/main` by
+`github-actions[bot]`; a self-posted `build=success` is not triggerable
+from any other ref. This restores the catalog self-posted `build`
+removed in 5ea57357 and is held for Stephen's ack.
 
 ## CVE catalog sync budget
 

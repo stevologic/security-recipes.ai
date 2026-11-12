@@ -1,0 +1,11 @@
+--- /tmp/karen-kit-y5csq6qh/CONTROL/.github/workflows/cve-catalog-validate.yml	2026-11-12 21:02:46.648686339 +0000
++++ /tmp/karen-kit-y5csq6qh/R-e-ge-to-gt/.github/workflows/cve-catalog-validate.yml	2026-11-12 21:06:27.695994283 +0000
+@@ -204,7 +204,7 @@
+             local attempt=1
+             local max_attempts=4
+             until gh api "$@"; do
+-              if [ "$attempt" -ge "$max_attempts" ]; then
++              if [ "$attempt" -gt "$max_attempts" ]; then
+                 echo "::error::GitHub API request failed after ${max_attempts} attempts."
+                 return 1
+               fi

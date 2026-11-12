@@ -1,0 +1,11 @@
+--- /tmp/karen-kit-y5csq6qh/CONTROL/.github/workflows/cve-catalog-validate.yml	2026-11-12 21:02:46.648686339 +0000
++++ /tmp/karen-kit-y5csq6qh/B3-K9-failure-only/.github/workflows/cve-catalog-validate.yml	2026-11-12 21:06:27.651994414 +0000
+@@ -254,7 +254,7 @@
+               STATE=success
+               DESCRIPTION="Exact-SHA CVE validation passed"
+               ;;
+-            failure|cancelled|skipped)
++            failure)
+               STATE=failure
+               DESCRIPTION="Exact-SHA CVE validation ${VALIDATE_RESULT}"
+               ;;

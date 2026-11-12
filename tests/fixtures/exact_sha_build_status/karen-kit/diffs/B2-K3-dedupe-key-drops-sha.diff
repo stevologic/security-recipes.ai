@@ -1,0 +1,11 @@
+--- /tmp/karen-kit-y5csq6qh/CONTROL/.github/workflows/automation-shepherd.yml	2026-11-12 20:04:39.230204879 +0000
++++ /tmp/karen-kit-y5csq6qh/B2-K3-dedupe-key-drops-sha/.github/workflows/automation-shepherd.yml	2026-11-12 21:06:27.635994462 +0000
+@@ -284,7 +284,7 @@
+                 --status "$RUN_STATUS" \
+                 --limit 50 \
+                 --json displayTitle \
+-                --jq "[.[] | select(.displayTitle | endswith(\"@ ${HEAD_SHA}\"))] | length")"
++                --jq "[.[] | select(.displayTitle | startswith(\"CVE catalog validation\"))] | length")"
+               PENDING_VALIDATIONS=$((PENDING_VALIDATIONS + STATUS_COUNT))
+             done
+             if [ "$PENDING_VALIDATIONS" -gt 0 ]; then

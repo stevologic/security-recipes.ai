@@ -146,7 +146,19 @@ def main() -> int:
         if path in {f"repos/{repo}", f"repos/{repo}/"}:
             payload = scenario.get("repo", {"default_branch": "main"})
         elif "/pulls/" in path:
-            payload = scenario.get("pull", {})
+            number = path.rsplit("/pulls/", 1)[1].split("/", 1)[0]
+            by_number = scenario.get("pulls_by_number")
+            canonical = str(scenario.get("pull_number", "480"))
+            if isinstance(by_number, dict):
+                if number not in by_number:
+                    sys.stdout.write("{}\n")
+                    return 0
+                payload = by_number[number]
+            elif number != canonical:
+                sys.stdout.write("{}\n")
+                return 0
+            else:
+                payload = scenario.get("pull", {})
         elif "/check-runs" in path:
             payload = scenario.get("check_runs_by_sha", {}).get(
                 commit_sha_from_path(path),

@@ -32,8 +32,27 @@ SYNC_BRANCH = "automation/cve-catalog-sync"
 CONTENT_BRANCH = "automation/content-refresh-ir-si-monitor-isolation"
 DEPENDABOT_BRANCH = "dependabot/npm_and_yarn/main/npm-minor-and-patch-3ce9b7b435"
 SUBSTRING_BRANCH = "fix/hold-cve-catalog-sync-notes"
+TRUSTED_REF = "refs/heads/main"
+TRUSTED_ACTOR = "github-actions[bot]"
+REPO_FULL_NAME = "stevologic/security-recipes.ai"
+LOOKALIKE_BRANCHES = (
+    "automation/cve-catalog-sync-2",
+    "automation/cve-catalog-sync/x",
+    "x/automation/cve-catalog-sync",
+    "Automation/CVE-Catalog-Sync",
+    "automation/cve-catalog-sync ",
+    " automation/cve-catalog-sync",
+    "automation/cve\u2010catalog\u2010sync",
+    "automation/cve-catalog-sync\u200b",
+    "refs/heads/automation/cve-catalog-sync",
+    CONTENT_BRANCH,
+    DEPENDABOT_BRANCH,
+    SUBSTRING_BRANCH,
+    "automation/",
+)
 IN_FLIGHT_STATUSES = ("queued", "in_progress", "pending", "waiting", "requested")
 EXPR_RE = re.compile(r"\$\{\{\s*(.*?)\s*\}\}")
+UNSET = object()
 
 
 @dataclass(frozen=True)
@@ -115,6 +134,8 @@ def gha_context(
     validate_result: str = "success",
     expected_branch: str = SYNC_BRANCH,
     pr_number: str = PR_NUMBER,
+    ref: str = TRUSTED_REF,
+    actor: str = TRUSTED_ACTOR,
 ) -> dict[str, Any]:
     return {
         "inputs": {
@@ -127,9 +148,12 @@ def gha_context(
         "github": {
             "sha": MAIN_SHA,
             "token": "stub-token-not-for-echo",
-            "repository": "stevologic/security-recipes.ai",
+            "repository": REPO_FULL_NAME,
             "run_id": "111",
             "run_attempt": "1",
+            "ref": ref,
+            "actor": actor,
+            "workflow_ref": f"{REPO_FULL_NAME}/.github/workflows/cve-catalog-validate.yml@{ref}",
             "event": {"repository": {"default_branch": "main"}},
         },
     }
@@ -146,10 +170,16 @@ def platform_env(context: dict[str, Any]) -> dict[str, str]:
     }
 
 
-def catalog_pr(*, head_sha: str = HEAD_SHA, branch: str = SYNC_BRANCH, number: str = PR_NUMBER) -> dict[str, Any]:
+def catalog_pr(
+    *,
+    head_sha: str = HEAD_SHA,
+    branch: str = SYNC_BRANCH,
+    number: str = PR_NUMBER,
+    is_cross_repository: bool = False,
+) -> dict[str, Any]:
     return {
         "number": int(number),
-        "isCrossRepository": False,
+        "isCrossRepository": is_cross_repository,
         "autoMergeRequest": {"enabledAt": "2026-11-11T19:06:16Z"},
         "mergeStateStatus": "CLEAN",
         "headRefName": branch,
@@ -157,15 +187,23 @@ def catalog_pr(*, head_sha: str = HEAD_SHA, branch: str = SYNC_BRANCH, number: s
     }
 
 
-def live_pull(*, head_sha: str = HEAD_SHA, branch: str = SYNC_BRANCH) -> dict[str, Any]:
+def live_pull(
+    *,
+    head_sha: str = HEAD_SHA,
+    branch: str = SYNC_BRANCH,
+    state: str = "open",
+    repo: Any = UNSET,
+    base: str = "main",
+) -> dict[str, Any]:
+    head: dict[str, Any] = {"sha": head_sha, "ref": branch}
+    if repo is UNSET:
+        head["repo"] = {"full_name": REPO_FULL_NAME}
+    else:
+        head["repo"] = repo
     return {
-        "state": "open",
-        "head": {
-            "sha": head_sha,
-            "ref": branch,
-            "repo": {"full_name": "stevologic/security-recipes.ai"},
-        },
-        "base": {"ref": "main"},
+        "state": state,
+        "head": head,
+        "base": {"ref": base},
     }
 
 
@@ -177,6 +215,7 @@ def default_scenario(**overrides: Any) -> dict[str, Any]:
         "combined_status_by_sha": {HEAD_SHA: {"statuses": []}},
         "repo": {"default_branch": "main"},
         "pull": live_pull(),
+        "pull_number": PR_NUMBER,
         "workflow_run_exit": 0,
         "status_post_exit": 0,
         "status_post_failures": 0,
@@ -226,6 +265,9 @@ def run_with_gh_stub(
         stub_path = stub_dir / "gh"
         shutil.copy(GH_STUB, stub_path)
         stub_path.chmod(stub_path.stat().st_mode | stat.S_IEXEC)
+        sleep_stub = stub_dir / "sleep"
+        sleep_stub.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+        sleep_stub.chmod(sleep_stub.stat().st_mode | stat.S_IEXEC)
         log_path = tmp_path / "gh-log.json"
         scenario_path = tmp_path / "scenario.json"
         log_path.write_text("[]\n", encoding="utf-8")
@@ -313,12 +355,16 @@ def run_publish(
     validate_result: str = "success",
     expected_sha: str = HEAD_SHA,
     expected_branch: str = SYNC_BRANCH,
+    dispatch_ref: str = TRUSTED_REF,
+    dispatch_actor: str = TRUSTED_ACTOR,
     scenario: dict[str, Any] | None = None,
 ) -> CommandResult:
     context = gha_context(
         expected_sha=expected_sha,
         validate_result=validate_result,
         expected_branch=expected_branch,
+        ref=dispatch_ref,
+        actor=dispatch_actor,
     )
     return run_named_step(
         paths,
@@ -328,6 +374,15 @@ def run_publish(
         context=context,
         scenario=scenario or default_scenario(pull=live_pull(head_sha=expected_sha, branch=expected_branch)),
     )
+
+
+def pull_get_paths(calls: list[dict[str, Any]]) -> list[str]:
+    return [
+        str(item)
+        for call in calls
+        for item in call.get("positionals", [])
+        if "/pulls/" in str(item)
+    ]
 
 
 def assert_dispatch_carries_pr_head_sha(paths: WorkflowPaths) -> None:
@@ -531,6 +586,142 @@ def assert_publish_job_wiring(paths: WorkflowPaths) -> None:
         raise AssertionError(f"publish permissions {permissions!r}")
     if "publish-build-status" not in (kick.get("needs") or []):
         raise AssertionError(f"kick needs {kick.get('needs')!r}")
+    step = named_step(paths.validate, "publish-build-status", "Publish the build status on the validated SHA")
+    env = rendered_step_env(step, gha_context())
+    if env.get("DISPATCH_REF") != TRUSTED_REF:
+        raise AssertionError(f"DISPATCH_REF YAML env is {env.get('DISPATCH_REF')!r}")
+    if env.get("DISPATCH_ACTOR") != TRUSTED_ACTOR:
+        raise AssertionError(f"DISPATCH_ACTOR YAML env is {env.get('DISPATCH_ACTOR')!r}")
+    if env.get("PR_NUMBER") != PR_NUMBER:
+        raise AssertionError(f"PR_NUMBER YAML env is {env.get('PR_NUMBER')!r}")
+
+
+def assert_publish_reads_named_pull(paths: WorkflowPaths) -> None:
+    result = run_publish(paths)
+    if result.completed.returncode != 0:
+        raise AssertionError(
+            "publish should read the named PR:\n"
+            f"{result.completed.stdout}\n{result.completed.stderr}"
+        )
+    paths_hit = pull_get_paths(result.calls)
+    expected = f"repos/{REPO_FULL_NAME}/pulls/{PR_NUMBER}"
+    if paths_hit != [expected]:
+        raise AssertionError(f"publish GET pulls path {paths_hit!r}, expected {[expected]!r}")
+    if not status_post_calls(result.calls):
+        raise AssertionError("canonical PR GET succeeded but no status was posted")
+
+
+def assert_failed_build_check_run_skips_dispatch(paths: WorkflowPaths) -> None:
+    result = run_shepherd(
+        paths,
+        default_scenario(
+            check_runs_by_sha={
+                HEAD_SHA: {"check_runs": [{"name": "build", "conclusion": "failure"}]}
+            },
+            combined_status_by_sha={HEAD_SHA: {"statuses": []}},
+        ),
+    )
+    if result.completed.returncode != 0:
+        raise AssertionError(result.completed.stderr)
+    if workflow_run_calls(result.calls):
+        raise AssertionError(
+            f"failed build check run still dispatched: {dispatched_shas(result.calls)!r}"
+        )
+
+
+def assert_non_build_status_does_not_skip_dispatch(paths: WorkflowPaths) -> None:
+    result = run_shepherd(
+        paths,
+        default_scenario(
+            combined_status_by_sha={
+                HEAD_SHA: {"statuses": [{"context": "karen-qa", "state": "success"}]}
+            }
+        ),
+    )
+    if result.completed.returncode != 0:
+        raise AssertionError(result.completed.stderr)
+    if dispatched_shas(result.calls) != [HEAD_SHA]:
+        raise AssertionError(
+            f"a lone karen-qa status must not count as build, got {dispatched_shas(result.calls)!r}"
+        )
+
+
+def assert_non_build_check_run_does_not_skip_dispatch(paths: WorkflowPaths) -> None:
+    result = run_shepherd(
+        paths,
+        default_scenario(
+            check_runs_by_sha={
+                HEAD_SHA: {"check_runs": [{"name": "CodeQL", "conclusion": "success"}]}
+            }
+        ),
+    )
+    if result.completed.returncode != 0:
+        raise AssertionError(result.completed.stderr)
+    if dispatched_shas(result.calls) != [HEAD_SHA]:
+        raise AssertionError(
+            f"a lone CodeQL check run must not count as build, got {dispatched_shas(result.calls)!r}"
+        )
+
+
+def assert_publish_refuses_pull(paths: WorkflowPaths, pull: dict[str, Any], why: str) -> None:
+    result = run_publish(paths, scenario=default_scenario(pull=pull))
+    if result.completed.returncode == 0:
+        raise AssertionError(f"publish must refuse {why}")
+    if status_post_calls(result.calls):
+        raise AssertionError(f"{why} still received a build status: {status_post_calls(result.calls)!r}")
+
+
+def assert_shepherd_skips_cross_repository_sync_pr(paths: WorkflowPaths) -> None:
+    result = run_shepherd(
+        paths,
+        default_scenario(pr_list=[catalog_pr(is_cross_repository=True)]),
+    )
+    if result.completed.returncode != 0:
+        raise AssertionError(result.completed.stderr)
+    if workflow_run_calls(result.calls):
+        raise AssertionError(
+            f"cross-repo catalog-sync PR was dispatched: {dispatched_shas(result.calls)!r}"
+        )
+
+
+def assert_publish_retries_n_failures_then_posts(paths: WorkflowPaths, failures: int) -> None:
+    result = run_publish(paths, scenario=default_scenario(status_post_failures=failures))
+    if result.completed.returncode != 0:
+        raise AssertionError(
+            f"publish should post after {failures} transient POST failures:\n"
+            f"{result.completed.stdout}\n{result.completed.stderr}"
+        )
+    posted = status_post_calls(result.calls)
+    expected_attempts = failures + 1
+    if len(posted) != expected_attempts:
+        raise AssertionError(
+            f"{failures} failures should take {expected_attempts} POSTs, got {len(posted)}"
+        )
+    if posted[-1]["fields"].get("state") != "success":
+        raise AssertionError(f"final POST was not success: {posted[-1]['fields']!r}")
+
+
+def assert_publish_gives_up_after_four_failures(paths: WorkflowPaths) -> None:
+    result = run_publish(paths, scenario=default_scenario(status_post_failures=4))
+    posted = status_post_calls(result.calls)
+    if result.completed.returncode == 0:
+        raise AssertionError("publish must exit 1 after 4 POST failures")
+    if len(posted) != 4:
+        raise AssertionError(f"expected exactly 4 POST attempts, got {len(posted)}: {posted!r}")
+
+
+def assert_publish_refuses_dispatch_origin(
+    paths: WorkflowPaths,
+    *,
+    dispatch_ref: str = TRUSTED_REF,
+    dispatch_actor: str = TRUSTED_ACTOR,
+    why: str,
+) -> None:
+    result = run_publish(paths, dispatch_ref=dispatch_ref, dispatch_actor=dispatch_actor)
+    if result.completed.returncode == 0:
+        raise AssertionError(f"publish must refuse {why}")
+    if status_post_calls(result.calls):
+        raise AssertionError(f"{why} still posted a build status")
 
 
 def assert_killed(mutant_id: str, behavior: Callable[[WorkflowPaths], None]) -> None:
@@ -563,8 +754,35 @@ class ExactShaBuildStatusControlTests(unittest.TestCase):
         env = rendered_step_env(step, gha_context(validate_result="failure"))
         self.assertEqual(env.get("VALIDATE_RESULT"), "failure")
 
+    def test_yaml_env_binds_pr_number_from_inputs_not_run_id(self) -> None:
+        step = named_step(CONTROL.validate, "publish-build-status", "Publish the build status on the validated SHA")
+        env = rendered_step_env(step, gha_context())
+        self.assertEqual(env.get("PR_NUMBER"), PR_NUMBER)
+        self.assertNotEqual(env.get("PR_NUMBER"), "111")
+
+    def test_yaml_env_binds_dispatch_ref_and_actor(self) -> None:
+        step = named_step(CONTROL.validate, "publish-build-status", "Publish the build status on the validated SHA")
+        env = rendered_step_env(
+            step,
+            gha_context(ref="refs/heads/development", actor="evil-bot"),
+        )
+        self.assertEqual(env.get("DISPATCH_REF"), "refs/heads/development")
+        self.assertEqual(env.get("DISPATCH_ACTOR"), "evil-bot")
+
+    def test_publish_gets_the_named_pr_number(self) -> None:
+        assert_publish_reads_named_pull(CONTROL)
+
     def test_existing_build_status_without_check_run_skips_dispatch(self) -> None:
         assert_existing_build_status_skips_dispatch(CONTROL)
+
+    def test_failed_build_check_run_without_status_skips_dispatch(self) -> None:
+        assert_failed_build_check_run_skips_dispatch(CONTROL)
+
+    def test_karen_qa_status_alone_does_not_skip_dispatch(self) -> None:
+        assert_non_build_status_does_not_skip_dispatch(CONTROL)
+
+    def test_codeql_check_run_alone_does_not_skip_dispatch(self) -> None:
+        assert_non_build_check_run_does_not_skip_dispatch(CONTROL)
 
     def test_queued_validation_skips_dispatch(self) -> None:
         assert_dedupe_skips_in_flight(CONTROL, "queued")
@@ -632,14 +850,92 @@ class ExactShaBuildStatusControlTests(unittest.TestCase):
     def test_publish_refuses_content_branch(self) -> None:
         assert_publish_refuses_non_catalog_branch(CONTROL, CONTENT_BRANCH)
 
+    def test_publish_refuses_when_expected_branch_disagrees_with_live_sync(self) -> None:
+        result = run_publish(
+            CONTROL,
+            expected_branch=CONTENT_BRANCH,
+            scenario=default_scenario(pull=live_pull(branch=SYNC_BRANCH)),
+        )
+        if result.completed.returncode == 0:
+            raise AssertionError("publish must refuse when expected_branch is not the live catalog-sync head")
+        if status_post_calls(result.calls):
+            raise AssertionError("mismatched expected_branch still posted a build status")
+
     def test_substring_lookalike_branch_is_not_dispatched(self) -> None:
         assert_non_catalog_pr_does_not_dispatch(CONTROL, SUBSTRING_BRANCH)
 
     def test_publish_refuses_when_live_head_moved(self) -> None:
         assert_publish_refuses_moved_head(CONTROL)
 
+    def test_publish_refuses_fork_head_repository(self) -> None:
+        assert_publish_refuses_pull(
+            CONTROL,
+            live_pull(repo={"full_name": "evil/security-recipes.ai"}),
+            "a fork head repository",
+        )
+
+    def test_publish_refuses_missing_head_repository(self) -> None:
+        assert_publish_refuses_pull(CONTROL, live_pull(repo=None), "a deleted/missing head repo")
+
+    def test_publish_refuses_closed_pr(self) -> None:
+        assert_publish_refuses_pull(CONTROL, live_pull(state="closed"), "a closed PR")
+
+    def test_publish_refuses_base_not_default_branch(self) -> None:
+        assert_publish_refuses_pull(CONTROL, live_pull(base="release"), "base=release")
+
+    def test_shepherd_skips_cross_repository_catalog_sync_pr(self) -> None:
+        assert_shepherd_skips_cross_repository_sync_pr(CONTROL)
+
+    def test_shepherd_lookalike_branches_are_not_dispatched(self) -> None:
+        for branch in LOOKALIKE_BRANCHES:
+            with self.subTest(branch=branch):
+                assert_non_catalog_pr_does_not_dispatch(CONTROL, branch)
+
+    def test_publish_lookalike_branches_are_refused(self) -> None:
+        for branch in LOOKALIKE_BRANCHES:
+            with self.subTest(branch=branch):
+                assert_publish_refuses_non_catalog_branch(CONTROL, branch)
+
+    def test_publish_retries_three_failures_then_posts(self) -> None:
+        assert_publish_retries_n_failures_then_posts(CONTROL, 3)
+
+    def test_publish_gives_up_after_four_post_failures(self) -> None:
+        assert_publish_gives_up_after_four_failures(CONTROL)
+
     def test_publish_retries_transient_status_post(self) -> None:
         assert_publish_retries_transient_post_failure(CONTROL)
+
+    def test_publish_refuses_non_main_dispatch_ref(self) -> None:
+        assert_publish_refuses_dispatch_origin(
+            CONTROL,
+            dispatch_ref="refs/heads/automation/cve-catalog-sync",
+            why="a non-main dispatch ref",
+        )
+
+    def test_publish_refuses_main_prefix_lookalike_refs(self) -> None:
+        for ref in ("refs/heads/main-x", "refs/heads/mainline"):
+            with self.subTest(ref=ref):
+                assert_publish_refuses_dispatch_origin(
+                    CONTROL,
+                    dispatch_ref=ref,
+                    why=f"dispatch ref {ref}",
+                )
+
+    def test_publish_refuses_wrong_workflow_actor(self) -> None:
+        assert_publish_refuses_dispatch_origin(
+            CONTROL,
+            dispatch_actor="evil-bot",
+            why="a non-actions actor",
+        )
+
+    def test_publish_refuses_actor_lookalikes(self) -> None:
+        for actor in ("GitHub-Actions[bot]", "github-actions[bot]-extra", "xgithub-actions[bot]"):
+            with self.subTest(actor=actor):
+                assert_publish_refuses_dispatch_origin(
+                    CONTROL,
+                    dispatch_actor=actor,
+                    why=f"actor {actor}",
+                )
 
     def test_publish_job_wiring(self) -> None:
         assert_publish_job_wiring(CONTROL)
@@ -748,6 +1044,120 @@ class ExactShaBuildStatusMutantKillTests(unittest.TestCase):
 
     def test_K20_drop_live_head_check_is_killed(self) -> None:
         assert_killed("K20-drop-live-head-check", assert_publish_refuses_moved_head)
+
+    def test_B1_c_pr_number_from_run_id_is_killed(self) -> None:
+        assert_killed("B1-c-pr-number-from-run-id", assert_publish_reads_named_pull)
+
+    def test_B1_e_pulls_path_wrong_pr_is_killed(self) -> None:
+        assert_killed("B1-e-pulls-path-wrong-pr", assert_publish_reads_named_pull)
+
+    def test_K6b_drop_check_runs_or_is_killed(self) -> None:
+        assert_killed("B2-K6b-drop-checkruns-or", assert_failed_build_check_run_skips_dispatch)
+
+    def test_K6c_status_any_context_is_killed(self) -> None:
+        assert_killed("B2-K6c-status-any-context", assert_non_build_status_does_not_skip_dispatch)
+
+    def test_K6d_checkrun_any_name_is_killed(self) -> None:
+        assert_killed("B2-K6d-checkrun-any-name", assert_non_build_check_run_does_not_skip_dispatch)
+
+    def test_P_c_fork_head_is_killed(self) -> None:
+        assert_killed(
+            "P-c-drop-head-repo-check",
+            lambda paths: assert_publish_refuses_pull(
+                paths, live_pull(repo={"full_name": "evil/security-recipes.ai"}), "a fork head"
+            ),
+        )
+
+    def test_P_g_missing_head_repo_is_killed(self) -> None:
+        assert_killed(
+            "P-g-head-repo-default-self",
+            lambda paths: assert_publish_refuses_pull(paths, live_pull(repo=None), "missing head repo"),
+        )
+
+    def test_P_d_closed_pr_is_killed(self) -> None:
+        assert_killed(
+            "P-d-drop-state-open",
+            lambda paths: assert_publish_refuses_pull(paths, live_pull(state="closed"), "closed PR"),
+        )
+
+    def test_P_e_base_not_main_is_killed(self) -> None:
+        assert_killed(
+            "P-e-drop-base-check",
+            lambda paths: assert_publish_refuses_pull(paths, live_pull(base="release"), "base=release"),
+        )
+
+    def test_S_d_cross_repo_is_killed(self) -> None:
+        assert_killed("S-d-drop-crossrepo-select", assert_shepherd_skips_cross_repository_sync_pr)
+
+    def test_R_b_max_2_is_killed(self) -> None:
+        assert_killed("R-b-max-2", lambda paths: assert_publish_retries_n_failures_then_posts(paths, 3))
+
+    def test_R_c_max_3_is_killed(self) -> None:
+        assert_killed("R-c-max-3", lambda paths: assert_publish_retries_n_failures_then_posts(paths, 3))
+
+    def test_R_d_max_5_is_killed(self) -> None:
+        assert_killed("R-d-max-5", assert_publish_gives_up_after_four_failures)
+
+    def test_R_e_ge_to_gt_is_killed(self) -> None:
+        assert_killed("R-e-ge-to-gt", assert_publish_gives_up_after_four_failures)
+
+    def test_S_a_suffix_filter_is_killed(self) -> None:
+        assert_killed(
+            "S-a-suffix-filter",
+            lambda paths: assert_non_catalog_pr_does_not_dispatch(paths, "x/automation/cve-catalog-sync"),
+        )
+
+    def test_S_b_prefix_of_sync_is_killed(self) -> None:
+        assert_killed(
+            "S-b-prefix-of-sync",
+            lambda paths: assert_non_catalog_pr_does_not_dispatch(paths, "automation/cve-catalog-sync-2"),
+        )
+
+    def test_P_i_prefix_of_sync_is_killed(self) -> None:
+        assert_killed(
+            "P-i-publish-prefix-of-sync-both",
+            lambda paths: assert_publish_refuses_non_catalog_branch(paths, "automation/cve-catalog-sync-2"),
+        )
+
+    def test_D1_drop_ref_check_is_killed(self) -> None:
+        assert_killed(
+            "D1-drop-ref-check",
+            lambda paths: assert_publish_refuses_dispatch_origin(
+                paths, dispatch_ref="refs/heads/automation/cve-catalog-sync", why="non-main ref"
+            ),
+        )
+
+    def test_D2_ref_prefix_is_killed(self) -> None:
+        assert_killed(
+            "D2-ref-prefix",
+            lambda paths: assert_publish_refuses_dispatch_origin(
+                paths, dispatch_ref="refs/heads/main-x", why="main-x ref"
+            ),
+        )
+
+    def test_D3_drop_actor_check_is_killed(self) -> None:
+        assert_killed(
+            "D3-drop-actor-check",
+            lambda paths: assert_publish_refuses_dispatch_origin(
+                paths, dispatch_actor="evil-bot", why="wrong actor"
+            ),
+        )
+
+    def test_D4_actor_substring_is_killed(self) -> None:
+        assert_killed(
+            "D4-actor-substring",
+            lambda paths: assert_publish_refuses_dispatch_origin(
+                paths, dispatch_actor="xgithub-actions[bot]", why="substring actor"
+            ),
+        )
+
+    def test_D5_guard_exit_0_is_killed(self) -> None:
+        assert_killed(
+            "D5-guard-exit-0",
+            lambda paths: assert_publish_refuses_dispatch_origin(
+                paths, dispatch_ref="refs/heads/development", why="non-main ref"
+            ),
+        )
 
 
 if __name__ == "__main__":

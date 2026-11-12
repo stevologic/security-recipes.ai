@@ -1,0 +1,10 @@
+--- /tmp/karen-kit-y5csq6qh/CONTROL/.github/workflows/cve-catalog-validate.yml	2026-11-12 21:02:46.648686339 +0000
++++ /tmp/karen-kit-y5csq6qh/P-c-drop-head-repo-check/.github/workflows/cve-catalog-validate.yml	2026-11-12 21:06:27.679994331 +0000
+@@ -240,7 +240,6 @@
+           BASE_BRANCH="$(jq -r '.base.ref' <<<"$PR_JSON")"
+ 
+           if [ "$PR_STATE" != "open" ] ||
+-             [ "$HEAD_REPOSITORY" != "$GITHUB_REPOSITORY" ] ||
+              [ "$HEAD_BRANCH" != "$EXPECTED_BRANCH" ] ||
+              [ "$HEAD_BRANCH" != "$SYNC_BRANCH" ] ||
+              [ "$HEAD_SHA" != "$EXPECTED_SHA" ] ||

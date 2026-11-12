@@ -1,0 +1,40 @@
+--- /tmp/karen-kit-y5csq6qh/CONTROL/.github/workflows/cve-catalog-validate.yml	2026-11-12 21:02:46.648686339 +0000
++++ /tmp/karen-kit-y5csq6qh/P-h-publish-prefix-both/.github/workflows/cve-catalog-validate.yml	2026-11-12 21:06:27.687994307 +0000
+@@ -226,7 +226,7 @@
+             exit 1
+           fi
+ 
+-          if [ "$EXPECTED_BRANCH" != "$SYNC_BRANCH" ]; then
++          if [[ "$EXPECTED_BRANCH" != automation/* ]]; then
+             echo "::error::Refusing to publish a self-posted build status for branch ${EXPECTED_BRANCH}; catalog-sync only."
+             exit 1
+           fi
+@@ -242,7 +242,7 @@
+           if [ "$PR_STATE" != "open" ] ||
+              [ "$HEAD_REPOSITORY" != "$GITHUB_REPOSITORY" ] ||
+              [ "$HEAD_BRANCH" != "$EXPECTED_BRANCH" ] ||
+-             [ "$HEAD_BRANCH" != "$SYNC_BRANCH" ] ||
++             [[ "$HEAD_BRANCH" != automation/* ]] ||
+              [ "$HEAD_SHA" != "$EXPECTED_SHA" ] ||
+              [ "$BASE_BRANCH" != "$DEFAULT_BRANCH" ]; then
+             echo "::error::Refusing to publish build status; live PR head ${HEAD_SHA} on ${HEAD_BRANCH} does not own ${EXPECTED_SHA}."
+--- /tmp/karen-kit-y5csq6qh/CONTROL/.github/workflows/cve-catalog-validate.yml	2026-11-12 21:02:46.648686339 +0000
++++ /tmp/karen-kit-y5csq6qh/P-h-publish-prefix-both/.github/workflows/cve-catalog-validate.yml	2026-11-12 21:06:27.687994307 +0000
+@@ -226,7 +226,7 @@
+             exit 1
+           fi
+ 
+-          if [ "$EXPECTED_BRANCH" != "$SYNC_BRANCH" ]; then
++          if [[ "$EXPECTED_BRANCH" != automation/* ]]; then
+             echo "::error::Refusing to publish a self-posted build status for branch ${EXPECTED_BRANCH}; catalog-sync only."
+             exit 1
+           fi
+@@ -242,7 +242,7 @@
+           if [ "$PR_STATE" != "open" ] ||
+              [ "$HEAD_REPOSITORY" != "$GITHUB_REPOSITORY" ] ||
+              [ "$HEAD_BRANCH" != "$EXPECTED_BRANCH" ] ||
+-             [ "$HEAD_BRANCH" != "$SYNC_BRANCH" ] ||
++             [[ "$HEAD_BRANCH" != automation/* ]] ||
+              [ "$HEAD_SHA" != "$EXPECTED_SHA" ] ||
+              [ "$BASE_BRANCH" != "$DEFAULT_BRANCH" ]; then
+             echo "::error::Refusing to publish build status; live PR head ${HEAD_SHA} on ${HEAD_BRANCH} does not own ${EXPECTED_SHA}."

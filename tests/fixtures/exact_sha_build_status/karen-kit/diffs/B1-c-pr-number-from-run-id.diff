@@ -1,0 +1,11 @@
+--- /tmp/karen-kit-y5csq6qh/CONTROL/.github/workflows/cve-catalog-validate.yml	2026-11-12 21:02:46.648686339 +0000
++++ /tmp/karen-kit-y5csq6qh/B1-c-pr-number-from-run-id/.github/workflows/cve-catalog-validate.yml	2026-11-12 21:06:27.615994522 +0000
+@@ -188,7 +188,7 @@
+         env:
+           EXPECTED_SHA: ${{ inputs.expected_sha }}
+           EXPECTED_BRANCH: ${{ inputs.expected_branch }}
+-          PR_NUMBER: ${{ inputs.pr_number }}
++          PR_NUMBER: ${{ github.run_id }}
+           GH_TOKEN: ${{ github.token }}
+           GH_REPO: ${{ github.repository }}
+           VALIDATE_RESULT: ${{ needs.validate.result }}
