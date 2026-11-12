@@ -3,7 +3,7 @@ title: Secure Context Release Gate
 linkTitle: Secure Context Release
 weight: 6
 date: 2026-05-04
-lastmod: 2026-09-28
+lastmod: 2026-11-12
 toc: true
 sidebar:
   exclude: true
@@ -20,7 +20,7 @@ MCP gateways, and reviewers know exactly which source hashes are safe to
 consume.
 {{< /callout >}}
 
-Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) and the current [security best practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices) on September 28, 2026. That revision is still current and **stateless**. There is no negotiation handshake. Servers **MUST** implement [`server/discover`](https://modelcontextprotocol.io/specification/2026-07-28/server/discover). `kill_session` here is a host-session kill switch, not `Mcp-Session-Id`. Streamable HTTP revisions through [2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25) could assign that header; 2026-07-28 ignores it and does not mint session IDs. The 2025-06-18 security-best-practices page is kept as a historical source ID.
+Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) and the current [security best practices](https://modelcontextprotocol.io/docs/2026-07-28/tutorials/security/security_best_practices) on November 12, 2026. That revision is still current and **stateless**. There is no negotiation handshake. Servers **MUST** implement [`server/discover`](https://modelcontextprotocol.io/specification/2026-07-28/server/discover). `kill_session` here is a host-session kill switch, not `Mcp-Session-Id`. Streamable HTTP revisions through [2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25) could assign that header; 2026-07-28 ignores it and does not mint session IDs. The 2025-06-18 security-best-practices page is kept as a historical source ID at the versioned `/docs/2025-06-18/` path.
 
 ## Why This Matters
 
@@ -103,9 +103,10 @@ distribution.
 ## Source Anchors
 
 - [OWASP Top 10 for Agentic Applications 2026](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/)
-- [OWASP GenAI Exploit Round-up Report Q1 2026](https://genai.owasp.org/2026/04/14/owasp-genai-exploit-round-up-report-q1-2026/)
-- [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices)
+- [OWASP GenAI and Agentic AI Exploit Roundup Q3 2026](https://genai.owasp.org/2026/10/08/genai-and-agentic-ai-exploit-roundup-q3-2026/)
+- [MCP Security Best Practices](https://modelcontextprotocol.io/docs/2026-07-28/tutorials/security/security_best_practices)
 - [MCP Authorization Specification](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
 - [NIST AI RMF Generative AI Profile](https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence)
-- [CSA AI Controls Matrix](https://cloudsecurityalliance.org/artifacts/ai-controls-matrix)
+- [CSA AI Controls Matrix v1.1](https://cloudsecurityalliance.org/artifacts/ai-controls-matrix-v1-1)
 - [CISA AI Data Security Best Practices](https://www.cisa.gov/resources-tools/resources/ai-data-security-best-practices-securing-data-used-train-operate-ai-systems)
+- [OWASP GenAI Data Security Best Practices v2 – Part 1](https://genai.owasp.org/resource/genai-data-security-best-practices-v2-part1/)

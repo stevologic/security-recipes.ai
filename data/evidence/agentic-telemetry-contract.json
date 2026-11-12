@@ -241,27 +241,27 @@
   "source_artifacts": {
     "agentic_incident_response_pack": {
       "path": "data/evidence/agentic-incident-response-pack.json",
-      "sha256": "a2aa41b8686925ad697313cec1262304597885a407fec7c5d9687754451fa854"
+      "sha256": "d7d4d65f38476e9aaafdcf20b28d471afe55d3ce39dee1ed8a448d0ed7d33648"
     },
     "agentic_measurement_probe_pack": {
       "path": "data/evidence/agentic-measurement-probe-pack.json",
-      "sha256": "4efafc2b48f1b6af46d891e9db23847be73be37587527d54fe7a6fadc676f420"
+      "sha256": "996e592cb5cd92da87d65f9fa5867f111ba9e03e984707c412ef245c1d077656"
     },
     "agentic_run_receipt_pack": {
       "path": "data/evidence/agentic-run-receipt-pack.json",
-      "sha256": "dff384428dc2c080d1ff89aa1e496549df8ba61113fe399990842d6ecbb05566"
+      "sha256": "6e8ebce3f0ccc3010a8334e369f11023adc941a373ed0dad698c397d88e54f30"
     },
     "agentic_telemetry_contract_profile": {
       "path": "data/assurance/agentic-telemetry-contract-profile.json",
-      "sha256": "0c384d47a1b5c1c301ec1c2891ea311a26e62817820a0e2afbac53859103ef44"
+      "sha256": "1d9354a76f9160fc8aae5ef1042f57277cebae7f3be2b7b48ff022287ae50c2f"
     },
     "context_egress_boundary_pack": {
       "path": "data/evidence/context-egress-boundary-pack.json",
-      "sha256": "0a4e7e1b865b988ce8c43d85e2e1dbe1442e5cd97fae207324d45ef666771fe6"
+      "sha256": "35ccb8af1bb5570862a7f902132da496b20c5b975961123427cb14cafea390fa"
     },
     "workflow_manifest": {
       "path": "data/control-plane/workflow-manifests.json",
-      "sha256": "22f45f06fee190b602ac27f300c94d72ab38646f76a1ad2e4f80923a3a444ceb"
+      "sha256": "1845eb54f369a8f454cbc22111bb1c679ac58803f23d8d7d2d15e0f8fb687b9c"
     }
   },
   "standards_alignment": [
@@ -269,13 +269,13 @@
       "coverage": "Maps SecurityRecipes runtime evidence to GenAI operations such as invoke_agent, execute_tool, retrieval, generate_content, model client calls, and provider-neutral span attributes.",
       "id": "opentelemetry-genai-semconv-1-41",
       "name": "OpenTelemetry Semantic Conventions for Generative AI Systems",
-      "url": "https://opentelemetry.io/docs/specs/semconv/gen-ai/"
+      "url": "https://github.com/open-telemetry/semantic-conventions-genai/blob/main/docs/gen-ai/README.md"
     },
     {
       "coverage": "Anchors MCP spans, JSON-RPC request identifiers, method names, protocol versions, transport attributes, and unprefixed W3C traceparent, tracestate, and baggage keys in params._meta. mcp.session.id is recommended only when the request is part of a session.",
       "id": "opentelemetry-mcp-semconv-1-41",
       "name": "OpenTelemetry Semantic Conventions for Model Context Protocol",
-      "url": "https://opentelemetry.io/docs/specs/semconv/gen-ai/mcp/"
+      "url": "https://github.com/open-telemetry/semantic-conventions-genai/blob/main/docs/gen-ai/mcp.md"
     },
     {
       "coverage": "Current public MCP 2026-07-28 revision. Requires protected resource metadata, OAuth resource indicators, token audience validation, PKCE, scope challenges, short-lived tokens, and token-passthrough denial evidence.",
@@ -573,7 +573,7 @@
         "claude",
         "devin"
       ],
-      "context_package_hash": "573c5a1effef6ebc5104c73acdb824342ffa62e627b7ca9553badd65fd8efc4a",
+      "context_package_hash": "6c48296cd945b804fabe06d2452d0ee36b0922af81d400d28f5f37feb7f6a72d",
       "decision": "telemetry_ready",
       "egress_policy_hash": "dbe427420d1f3ed8cff135d727d159b5df57809913070fe447ae8f7540a4ffdd",
       "incident_default_decision": "kill_session_and_escalate_board",
@@ -668,7 +668,7 @@
         "github_copilot",
         "devin"
       ],
-      "context_package_hash": "0d5dacd72983b2a3fa6e778ba5f8320013892f6c5fd793ed09691347be30bbe1",
+      "context_package_hash": "2f2f3bd4bf2695a6b0c5577caa4be8442bda942a43cb9b59ec0ac709d2ed95fc",
       "decision": "telemetry_ready",
       "egress_policy_hash": "71b09e53adae52cc909d622313e883af2e43a85836d7c9b8e717b8fb39359249",
       "incident_default_decision": "contain_and_open_war_room",
@@ -762,7 +762,7 @@
         "cursor",
         "github_copilot"
       ],
-      "context_package_hash": "2bfec0afc7926d8d6eb03ce734faee1e1c9a6391e86ebd0a180d62b9b31f4f75",
+      "context_package_hash": "c9b217ee15c54c6de64c5c94b68d5b759b647a264fc7ad5a456e76c39a360c93",
       "decision": "telemetry_ready",
       "egress_policy_hash": "d8adf24aa36b0c0bb4092a6262690c5217f74c6b5404a315621ef4b9e6bc7e00",
       "incident_default_decision": "hold_for_forensics",
@@ -855,7 +855,7 @@
         "claude",
         "cursor"
       ],
-      "context_package_hash": "7269a02e5ef19fc2438cddde47663fac1c473daf56d4ed4a27b653e925612299",
+      "context_package_hash": "7e85bbbf3d9cdd364d5755ee19e4cef6a2fe3aa37178653104685a1ef85d6c93",
       "decision": "telemetry_ready",
       "egress_policy_hash": "9017117d2b7a20d5c504bc081fafa6f97b79cf86a743f9e7642232f169b3ce62",
       "incident_default_decision": "kill_session_and_escalate_board",
@@ -948,7 +948,7 @@
         "claude",
         "cursor"
       ],
-      "context_package_hash": "f6ea0e120267715588312b15c74f4daf3ec434c2f55cda28505adca0117ed8f1",
+      "context_package_hash": "bff92e128e9441c4128d80bf7a3c2e1115790428791863af3745a2b551e3162f",
       "decision": "telemetry_ready",
       "egress_policy_hash": "8b243ba912cdd2a36f2cb9a6e5366a27abbdb83fb6cc897a2f17d142c67fbe30",
       "incident_default_decision": "kill_session_and_escalate_board",
@@ -1042,7 +1042,7 @@
         "cursor",
         "github_copilot"
       ],
-      "context_package_hash": "d42c29ae6e777a61693186380600ccaae06105d5f91ad29cc596d0869decd023",
+      "context_package_hash": "d0494ba52aa8603e92f7310a9d9acaf2497e9743de24fed09a2f6a0c9347da35",
       "decision": "telemetry_ready",
       "egress_policy_hash": "9a65a7b7b045108b27bcf6d383ef58bbd69e4cad6c61a1b08be08ccc535e93cc",
       "incident_default_decision": "hold_for_forensics",
@@ -1137,7 +1137,7 @@
         "github_copilot",
         "devin"
       ],
-      "context_package_hash": "0caa0a4c41734a8a9510ea8c19192f658fe2b8d29f06f8d67d196084cb52bd5d",
+      "context_package_hash": "689ccc6e9cb6052983a8ec106068368aa4dc64f7751009c05ec4927e33728b94",
       "decision": "telemetry_ready",
       "egress_policy_hash": "50d90e47c9cf159117d6b78687263ef16c341d785a4915141ede2f9034b71ac0",
       "incident_default_decision": "contain_and_open_war_room",
@@ -1232,7 +1232,7 @@
         "github_copilot",
         "devin"
       ],
-      "context_package_hash": "0e2db7cd1b06a4a90fa9a56a7431de8391c96a80a4f86b603b1c5696b41e372d",
+      "context_package_hash": "50059e903e8b092dd7ae5270c0db2a9fd78012d755f949212847f19780af67ed",
       "decision": "telemetry_ready",
       "egress_policy_hash": "c0abb42357dfae407d9f5ba4d13b4b62ae5bd079aab02c82761b42733813c0ff",
       "incident_default_decision": "contain_and_open_war_room",

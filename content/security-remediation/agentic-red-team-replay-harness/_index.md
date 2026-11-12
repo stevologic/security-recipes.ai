@@ -132,7 +132,7 @@ events, fail signals, and unsafe runtime flags.
 - [Agent2Agent Protocol specification](https://a2a-protocol.org/v0.2.0/specification/)
 - [OpenAI Agents SDK guardrails](https://openai.github.io/openai-agents-python/guardrails/)
 - [OpenAI Agents SDK tracing](https://openai.github.io/openai-agents-python/tracing/)
-- [OpenTelemetry GenAI semantic conventions](https://opentelemetry.io/docs/specs/semconv/gen-ai/)
+- [OpenTelemetry GenAI semantic conventions](https://github.com/open-telemetry/semantic-conventions-genai/blob/main/docs/gen-ai/README.md)
 - [NIST AI RMF Generative AI Profile](https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence)
 
 ## See also
