@@ -241,6 +241,17 @@
     {
       "actionable": true,
       "disposition": "actionable_context_poisoning_risk",
+      "line": 451,
+      "match": "...shows token audience checks, token-passthrough denial, form-mode secret denial, post-approval metadata snapshots, default-deny local credential reads, redaction, secret kill signals, and receipt linkage.\",",
+      "path": "data/assurance/mcp-risk-coverage-profile.json",
+      "risk_family": "secret_exposure",
+      "rule_id": "secret-exfiltration-request",
+      "severity": "critical",
+      "source_id": "agentic-assurance-models"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
       "line": 142,
       "match": "...runtime scan reports actionable prompt injection, hidden instruction, approval bypass, exfiltration, or secret-exposure markers that need review before reuse.\"",
       "path": "data/assurance/secure-context-lineage-profile.json",
@@ -1814,13 +1825,13 @@
   ],
   "generated_at": "2026-10-04",
   "guard_summary": {
-    "actionable_finding_count": 96,
+    "actionable_finding_count": 97,
     "blocking_source_count": 2,
     "blocking_sources": [
       "agentic-assurance-models",
       "recipes"
     ],
-    "byte_count": 15144672,
+    "byte_count": 15148224,
     "decision_counts": {
       "allow_with_adversarial_examples": 1,
       "block_until_removed": 2,
@@ -1828,13 +1839,13 @@
       "pass": 5
     },
     "disposition_counts": {
-      "actionable_context_poisoning_risk": 96,
+      "actionable_context_poisoning_risk": 97,
       "defensive_control_language": 41,
       "documented_adversarial_example": 24
     },
     "failure_count": 0,
     "file_count": 3526,
-    "finding_count": 161,
+    "finding_count": 162,
     "held_source_count": 1,
     "held_sources": [
       "security-remediation-workflows"
@@ -1843,10 +1854,10 @@
       "approval_bypass": 46,
       "hidden_instruction": 59,
       "prompt_injection": 9,
-      "secret_exposure": 47
+      "secret_exposure": 48
     },
     "severity_counts": {
-      "critical": 56,
+      "critical": 57,
       "high": 46,
       "medium": 59
     },
@@ -1930,15 +1941,15 @@
   },
   "source_results": [
     {
-      "actionable_finding_count": 14,
+      "actionable_finding_count": 15,
       "decision": "block_until_removed",
       "disposition_counts": {
-        "actionable_context_poisoning_risk": 14,
+        "actionable_context_poisoning_risk": 15,
         "defensive_control_language": 1,
         "documented_adversarial_example": 5
       },
       "file_count": 49,
-      "finding_count": 20,
+      "finding_count": 21,
       "owner": {
         "accountable_team": "Security Engineering",
         "escalation": "agentic-assurance-owner",
@@ -1969,14 +1980,14 @@
       "risk_family_counts": {
         "approval_bypass": 12,
         "prompt_injection": 4,
-        "secret_exposure": 4
+        "secret_exposure": 5
       },
       "root": "data/assurance",
       "severity_counts": {
-        "critical": 8,
+        "critical": 9,
         "high": 12
       },
-      "source_hash": "ef0f358c19fa6f3d71b3492632bb31db45e0144fe05d24348845e88bca93798f",
+      "source_hash": "754a8b72d390a36b5fbaf7341370238fc0c8602d6d34734c84da4dc540caf679",
       "source_id": "agentic-assurance-models",
       "title": "Agentic Assurance Source Models",
       "trust_tier": "tier_2_policy_context"
@@ -2202,7 +2213,7 @@
         "high": 8,
         "medium": 59
       },
-      "source_hash": "c94a5bb83301bac0b1ed6e067fc1751238c4449d6dc17946182be3d02c5bb175",
+      "source_hash": "1479d7d5bda3e79d5f6dd62002fe90b1dfe5882074eac504382102a3782eb3b3",
       "source_id": "security-remediation-workflows",
       "title": "Security Remediation Workflow Docs",
       "trust_tier": "tier_1_curated_guidance"

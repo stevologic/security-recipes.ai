@@ -1,12 +1,12 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-09-28",
+  "last_reviewed": "2026-11-12",
   "intent": "Define the SecurityRecipes MCP and agentic-skill risk coverage profile: a machine-readable map from the current OWASP MCP Top 10 beta and OWASP Agentic Skills Top 10 into SecurityRecipes secure-context, MCP authorization, connector trust, agent skill, telemetry, incident response, and runtime action evidence.",
   "positioning": {
     "buyer": "AI Platform, Product Security, AppSec, Security Engineering, GRC, procurement security, model-risk, agent-host, and acquisition diligence teams",
     "category": "MCP and agentic-skill risk coverage for the secure context layer",
     "enterprise_promise": "SecurityRecipes can show, in one generated packet, how the most current MCP and agent-skill risk language maps to concrete controls, evidence paths, MCP tools, and hosted product wedges.",
-    "why_now": "MCP 2026-07-28 made the protocol stateless and required server/discover, while OWASP Agentic Skills Top 10 now treats untrusted external instructions as a first-class skill risk. Buyers need coverage across protocol/tool security and behavior-package security, including state-handle binding and referenced-document integrity."
+    "why_now": "MCP 2026-07-28 made the protocol stateless and required server/discover, while OWASP Agentic Skills Top 10 now treats untrusted external instructions as a first-class skill risk. OWASP's Q3 2026 exploit roundup also shows that an already-approved MCP server can later change tool metadata and use the connected agent to collect local secrets, so intake-time hashing is not enough. Buyers need coverage across protocol/tool security and behavior-package security, including state-handle binding, referenced-document integrity, and post-approval tool-definition snapshots."
   },
   "source_references": [
     {
@@ -26,6 +26,15 @@
       "url": "https://owasp.org/www-project-agentic-skills-top-10/",
       "source_class": "industry_standard",
       "why_it_matters": "OWASP frames agentic skills as the behavior layer between models and tools: MCP describes how the model talks to tools, while skills define what those tools actually do across multi-step workflows."
+    },
+    {
+      "id": "owasp-genai-exploit-roundup-q3-2026",
+      "name": "OWASP GenAI and Agentic AI Exploit Roundup Q3 2026",
+      "publisher": "OWASP GenAI Security Project",
+      "published": "2026-10-08",
+      "url": "https://genai.owasp.org/2026/10/08/genai-and-agentic-ai-exploit-roundup-q3-2026/",
+      "source_class": "incident_intelligence",
+      "why_it_matters": "OWASP's Q3 2026 roundup documents Deadbugz: an MCP server that looks safe at approval can later change tool metadata and use the connected agent to collect local secrets without reading those files itself."
     },
     {
       "id": "mcp-security-best-practices-2026-07-28",
@@ -146,7 +155,7 @@
       "mcp_tools": [
         "recipes_mcp_tool_surface_drift_pack"
       ],
-      "commercial_value": "Hosted schema and annotation drift monitoring is a clear enterprise add-on for MCP fleets."
+      "commercial_value": "Hosted schema and annotation drift monitoring, including delayed post-approval metadata mutation, is a clear enterprise add-on for MCP fleets."
     },
     {
       "id": "mcp-connector-intake-pack",
@@ -420,6 +429,7 @@
       "title": "OWASP MCP Top 10 Coverage",
       "source_ids": [
         "owasp-mcp-top-10-2025",
+        "owasp-genai-exploit-roundup-q3-2026",
         "mcp-security-best-practices-2026-07-28",
         "mcp-security-best-practices-2025"
       ],
@@ -428,17 +438,18 @@
           "id": "MCP01",
           "title": "Token Mismanagement and Secret Exposure",
           "risk_tier": "critical",
-          "primary_attack_path": "Secrets, long-lived tokens, or credentials are exposed through prompts, tool outputs, memory, logs, or token passthrough.",
+          "primary_attack_path": "Secrets, long-lived tokens, or credentials are exposed through prompts, tool outputs, memory, logs, or token passthrough. An already-approved MCP server can also mutate tool metadata after intake and use the connected agent as a confused deputy to collect SSH keys, cloud credentials, shell history, or Kubernetes configuration without reading those files itself.",
           "required_capability_ids": [
             "mcp-authorization-conformance",
             "context-egress-boundary-pack",
             "mcp-elicitation-boundary-pack",
+            "mcp-tool-surface-drift-pack",
             "agentic-telemetry-contract",
             "agentic-action-runtime-pack"
           ],
-          "diligence_question": "What prevents MCP tokens and secrets from being forwarded, logged, stored in memory, or returned to the model?",
-          "evidence_expectation": "Authorization, egress, elicitation, telemetry, and action-runtime evidence shows token audience checks, token-passthrough denial, form-mode secret denial, redaction, secret kill signals, and receipt linkage.",
-          "commercialization_hook": "Hosted token-passthrough detection, trace redaction validation, and signed action receipts."
+          "diligence_question": "What prevents MCP tokens and secrets from being forwarded, logged, stored in memory, returned to the model, or collected by an approved server that later redirects the agent at local credential files?",
+          "evidence_expectation": "Authorization, egress, elicitation, tool-surface, telemetry, and action-runtime evidence shows token audience checks, token-passthrough denial, form-mode secret denial, post-approval metadata snapshots, default-deny local credential reads, redaction, secret kill signals, and receipt linkage.",
+          "commercialization_hook": "Hosted token-passthrough detection, delayed-mutation secret-harvest replay, trace redaction validation, and signed action receipts."
         },
         {
           "id": "MCP02",
@@ -460,7 +471,7 @@
           "id": "MCP03",
           "title": "Tool Poisoning",
           "risk_tier": "critical",
-          "primary_attack_path": "A tool description, schema, output, annotation, or duplicate tool steers the model toward attacker-controlled behavior.",
+          "primary_attack_path": "A tool description, schema, output, annotation, or duplicate tool steers the model toward attacker-controlled behavior, including an already-approved MCP server that behaves normally for early calls then mutates tool metadata to harvest local secrets through the trusted agent while hiding the activity from the operator.",
           "required_capability_ids": [
             "mcp-tool-surface-drift-pack",
             "mcp-tool-risk-contract",
@@ -468,25 +479,26 @@
             "context-poisoning-guard-pack",
             "agentic-red-team-drill-pack"
           ],
-          "diligence_question": "What detects changed or malicious MCP tool surfaces before the model trusts them?",
-          "evidence_expectation": "Tool-surface hashes, annotation decisions, connector intake, poisoning scans, and red-team drills prove changed tool definitions are held before use.",
-          "commercialization_hook": "Hosted live tool-list diffing and tool-surface signing for MCP fleets."
+          "diligence_question": "What detects an already-approved MCP server that later changes tool metadata and uses the connected agent to collect local secrets?",
+          "evidence_expectation": "Tool-surface hashes, annotation decisions, connector intake, poisoning scans, and red-team drills prove tool definitions are snapshotted at approval, re-hashed on later tools/list or notifications, and held for re-approval when metadata changes after the first benign calls, including delayed mutations that hide operator-visible activity.",
+          "commercialization_hook": "Hosted live tool-list diffing, delayed-mutation replay, and re-approval gates for MCP fleets."
         },
         {
           "id": "MCP04",
           "title": "Software Supply Chain Attacks and Dependency Tampering",
           "risk_tier": "critical",
-          "primary_attack_path": "A dependency, package, connector, plugin, or local MCP server changes behavior or introduces backdoor execution.",
+          "primary_attack_path": "A dependency, package, connector, plugin, or local MCP server changes behavior or introduces backdoor execution, including MCP servers introduced through pull requests that look benign at review and mutate tool metadata after approval.",
           "required_capability_ids": [
             "mcp-connector-intake-pack",
             "mcp-connector-trust-pack",
             "mcp-stdio-launch-boundary-pack",
+            "mcp-tool-surface-drift-pack",
             "agent-skill-supply-chain-pack",
             "agentic-system-bom"
           ],
-          "diligence_question": "How are MCP components inventoried, pinned, reviewed, and promoted before agents can use them?",
-          "evidence_expectation": "Connector intake, trust, launch, skill, and BOM evidence records source, publisher, command, package, sandbox, signature, and component drift signals.",
-          "commercialization_hook": "Hosted connector registry monitoring and skill/package provenance checks."
+          "diligence_question": "How are MCP components inventoried, pinned, reviewed, and promoted before agents can use them, and re-reviewed when an approved server later changes its tool definitions?",
+          "evidence_expectation": "Connector intake, trust, launch, tool-surface, skill, and BOM evidence records source, publisher, command, package, sandbox, signature, approval-time snapshots, and post-approval component drift signals.",
+          "commercialization_hook": "Hosted connector registry monitoring, post-approval tool-definition re-approval, and skill/package provenance checks."
         },
         {
           "id": "MCP05",

@@ -3,7 +3,7 @@ title: MCP and Agentic Skills Risk Coverage
 linkTitle: MCP Risk Coverage
 weight: 18
 date: 2026-05-04
-lastmod: 2026-09-28
+lastmod: 2026-11-12
 toc: true
 description: >
   Map OWASP MCP Top 10 and Agentic Skills Top 10 risks to SecurityRecipes
@@ -52,6 +52,24 @@ under AST04. The pack keeps source-reference id
 revision and uses `mcp-security-best-practices-2026-07-28` for current
 controls.
 
+Rechecked November 12, 2026 against OWASP
+[MCP Top 10](https://owasp.org/www-project-mcp-top-10/) (still Phase 3
+beta, MCP01–MCP10:2025), OWASP
+[Agentic Skills Top 10](https://owasp.org/www-project-agentic-skills-top-10/)
+(still v1.0-2026), and the OWASP
+[GenAI and Agentic AI Exploit Roundup Q3 2026](https://genai.owasp.org/2026/10/08/genai-and-agentic-ai-exploit-roundup-q3-2026/).
+The Q3 roundup's Deadbugz campaign is a runtime trust failure in an
+already-approved MCP server: the server behaved normally for its first
+three tool calls, then changed tool metadata to direct the connected
+agent toward SSH keys, cloud credentials, shell history, and Kubernetes
+configuration while hiding the activity from the operator. Intake-time
+hashing is not enough. MCP03, MCP01, and MCP04 now require approval-time
+snapshots, post-approval re-hash and re-approval, and default-deny local
+credential reads. This editorial pass does not claim human review of the pack.
+`lastmod` and the profile `last_reviewed` date record this
+source-backed recheck. The October 2026 MCP Top 10 final release has not
+published; the project page still lists Phase 3 beta.
+
 ## Generated artifact
 
 - Source model:
@@ -85,7 +103,7 @@ This pack makes that coverage explicit:
 | Risk surface | SecurityRecipes evidence |
 | --- | --- |
 | MCP token, scope, and authorization failures | MCP Authorization Conformance, Gateway Policy, Elicitation Boundary, Agent Identity Ledger, Entitlement Review |
-| Tool poisoning and drift | MCP Tool Risk Contract, MCP Tool Surface Drift Sentinel, Connector Intake, Context Poisoning Guard |
+| Tool poisoning and post-approval metadata mutation | MCP Tool Risk Contract, MCP Tool Surface Drift Sentinel, Connector Intake, Context Poisoning Guard |
 | Local server and command execution | MCP STDIO Launch Boundary, Agent Skill Supply Chain, Action Runtime Pack |
 | Shadow MCP servers | Connector Intake, Connector Trust, STDIO Launch Boundary, SOC Detection Pack, Agentic System BOM |
 | Context injection and over-sharing | Secure Context Trust Pack, Context Poisoning Guard, Context Egress Boundary, Memory Boundary, Handoff Boundary |
@@ -159,6 +177,7 @@ Review and regenerate the pack when these sources change:
 
 - [OWASP MCP Top 10](https://owasp.org/www-project-mcp-top-10/)
 - [OWASP Agentic Skills Top 10](https://owasp.org/www-project-agentic-skills-top-10/)
+- [OWASP GenAI and Agentic AI Exploit Roundup Q3 2026](https://genai.owasp.org/2026/10/08/genai-and-agentic-ai-exploit-roundup-q3-2026/)
 - [Model Context Protocol Security Best Practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices)
 - [NIST AI RMF Generative AI Profile](https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence)
 - [CISA Secure by Design](https://www.cisa.gov/securebydesign)
