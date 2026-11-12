@@ -127,6 +127,56 @@ MUTANTS: list[tuple[str, str, str, str]] = [
         '                echo "::error::Catalog protection-fallback escalated after 2 consecutive runs or 24h; this is a real alert."\n                return 1\n',
         '                echo "::error::Catalog protection-fallback escalated after 2 consecutive runs or 24h; this is a real alert."\n                return 0\n',
     ),
+    (
+        "M21_app_configured_hardcoded_true",
+        WORKFLOW,
+        "          APP_CONFIGURED: ${{ steps.automation-auth.outputs.app_configured }}",
+        "          APP_CONFIGURED: 'true'",
+    ),
+    (
+        "M22_app_configured_hardcoded_false",
+        WORKFLOW,
+        "          APP_CONFIGURED: ${{ steps.automation-auth.outputs.app_configured }}",
+        "          APP_CONFIGURED: 'false'",
+    ),
+    (
+        "M23_app_id_wrong_secret",
+        WORKFLOW,
+        "          APP_ID: ${{ vars.CVE_SYNC_APP_ID }}",
+        "          APP_ID: ${{ secrets.CVE_SYNC_APP_KEY }}",
+    ),
+    (
+        "M24_app_private_key_wrong_secret",
+        WORKFLOW,
+        "          APP_PRIVATE_KEY: ${{ secrets.CVE_SYNC_APP_KEY }}",
+        "          APP_PRIVATE_KEY: ${{ vars.CVE_SYNC_APP_ID }}",
+    ),
+    (
+        "M25_credential_status_wrong_output",
+        WORKFLOW,
+        "          CREDENTIAL_STATUS: ${{ steps.automation-auth.outputs.credential_status }}",
+        "          CREDENTIAL_STATUS: ${{ steps.automation-auth.outputs.app_configured }}",
+    ),
+    (
+        "M26_delivery_gh_token_swapped_to_app_token",
+        WORKFLOW,
+        "          APP_TOKEN: ${{ steps.app-token.outputs.token }}\n"
+        "          GH_TOKEN: ${{ github.token }}\n"
+        "          PR_NUMBER: ${{ needs.sync.outputs.pr_number }}",
+        "          APP_TOKEN: ${{ steps.app-token.outputs.token }}\n"
+        "          GH_TOKEN: ${{ steps.app-token.outputs.token }}\n"
+        "          PR_NUMBER: ${{ needs.sync.outputs.pr_number }}",
+    ),
+    (
+        "M27_pr_number_from_wrong_source",
+        WORKFLOW,
+        "          APP_TOKEN: ${{ steps.app-token.outputs.token }}\n"
+        "          GH_TOKEN: ${{ github.token }}\n"
+        "          PR_NUMBER: ${{ needs.sync.outputs.pr_number }}",
+        "          APP_TOKEN: ${{ steps.app-token.outputs.token }}\n"
+        "          GH_TOKEN: ${{ github.token }}\n"
+        "          PR_NUMBER: ${{ needs.sync.outputs.head_sha }}",
+    ),
 ]
 
 KILLERS: dict[str, str] = {
@@ -150,6 +200,13 @@ KILLERS: dict[str, str] = {
     "M18_second_run_escalation_dropped": "tests.test_cve_sync_merge_harness.CveSyncMergeHarnessTests.test_missing_app_run2_escalates_after_dispatch",
     "M19_report_before_dispatch": "tests.test_cve_sync_merge_harness.CveSyncMergeHarnessTests.test_missing_app_run2_escalates_after_dispatch",
     "M20_escalation_exits_zero": "tests.test_cve_sync_merge_harness.CveSyncMergeHarnessTests.test_missing_app_run2_escalates_after_dispatch",
+    "M21_app_configured_hardcoded_true": "tests.test_cve_sync_merge_harness.CveSyncMergeHarnessTests.test_missing_app_run1_dispatches_validate_skips_merge_and_labels",
+    "M22_app_configured_hardcoded_false": "tests.test_cve_sync_merge_harness.CveSyncMergeHarnessTests.test_configured_app_uses_app_token_and_can_merge",
+    "M23_app_id_wrong_secret": "tests.test_cve_sync_merge_harness.CveSyncMergeHarnessTests.test_id_only_credentials_fail_closed_before_delivery",
+    "M24_app_private_key_wrong_secret": "tests.test_cve_sync_merge_harness.CveSyncMergeHarnessTests.test_key_only_credentials_fail_closed_before_delivery",
+    "M25_credential_status_wrong_output": "tests.test_cve_sync_merge_harness.CveSyncMergeHarnessTests.test_incomplete_credentials_fail_closed_before_delivery",
+    "M26_delivery_gh_token_swapped_to_app_token": "tests.test_cve_sync_merge_harness.CveSyncMergeHarnessTests.test_missing_app_delivery_uses_github_token_not_app_token",
+    "M27_pr_number_from_wrong_source": "tests.test_cve_sync_merge_harness.CveSyncMergeHarnessTests.test_missing_app_delivery_pr_number_comes_from_sync",
 }
 
 STRUCTURAL = frozenset({"M14_actions_permission_read"})

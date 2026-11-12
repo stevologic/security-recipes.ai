@@ -8,9 +8,16 @@ from pathlib import Path
 import yaml
 
 from tests.cve_sync_harness import (
+    DELIVERY_STEP,
+    DETECT_STEP,
     FALLBACK_LABEL,
+    REQUIRE_STEP,
     HarnessResult,
+    apply_step_outputs,
+    build_expression_context,
     load_workflow,
+    render_github_value,
+    rendered_step_env,
     run_merge_job,
 )
 from tests.cve_sync_mutants.mutants import MUTANTS
@@ -74,7 +81,58 @@ class CveSyncMergeHarnessTests(unittest.TestCase):
         self.assertEqual(result.dispatch_ref, "automation/cve-catalog-sync")
         self.assertRegex(result.dispatch_expected_sha, SHA_RE)
         self.assertEqual(result.dispatch_expected_sha, result.head_sha)
+        self.assertEqual(result.dispatch_token, GITHUB_TOKEN)
         self.assert_no_secret_echo(result)
+
+    def test_missing_app_delivery_uses_github_token_not_app_token(self) -> None:
+        result = run_merge_job(self.workflow)
+        self.assertTrue(
+            result.dispatched_validate,
+            "missing App delivery must reach validate dispatch so GH_TOKEN can be inspected",
+        )
+        self.assertEqual(
+            result.dispatch_token,
+            GITHUB_TOKEN,
+            f"missing App dispatch token actual={result.dispatch_token!r} "
+            f"expected={GITHUB_TOKEN!r}",
+        )
+        self.assertNotEqual(result.dispatch_token, "")
+        self.assertNotEqual(result.dispatch_token, SECRET_TOKEN)
+        tokens = [str(call.get("gh_token") or "") for call in result.gh_calls]
+        self.assertTrue(tokens, "missing App delivery must call gh")
+        self.assertTrue(
+            all(token == GITHUB_TOKEN for token in tokens),
+            f"missing App gh calls must use github.token, got {tokens!r}",
+        )
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def test_missing_app_delivery_pr_number_comes_from_sync(self) -> None:
+        result = run_merge_job(self.workflow, pr_number=475)
+        self.assertTrue(
+            result.dispatched_validate,
+            "missing App delivery must dispatch so PR_NUMBER can be inspected",
+        )
+        fields = result.workflow_runs[0].get("fields") or {}
+        self.assertEqual(
+            fields.get("pr_number"),
+            "475",
+            f"validate dispatch pr_number actual={fields.get('pr_number')!r} expected='475'",
+        )
+        self.assertNotEqual(fields.get("pr_number"), result.head_sha)
+        blobs = [
+            " ".join(str(part) for part in call.get("argv") or [])
+            for call in result.gh_calls
+        ]
+        self.assertTrue(
+            any("pulls/475" in blob for blob in blobs),
+            f"delivery must target PR 475, got {blobs!r}",
+        )
+        self.assertFalse(
+            any(f"pulls/{result.head_sha}" in blob for blob in blobs),
+            "delivery must not treat the sync head SHA as PR_NUMBER, "
+            f"got {blobs!r}",
+        )
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
     def test_missing_app_validate_dispatch_pins_exact_sha_on_pr_branch(self) -> None:
         result = run_merge_job(self.workflow)
@@ -304,6 +362,80 @@ class CveSyncMergeHarnessTests(unittest.TestCase):
                 self.assertIn(old, text, f"{mutant_id} old text missing from {relative}")
                 self.assertEqual(text.count(old), 1, f"{mutant_id} old text is not unique")
                 self.assertNotEqual(old, new, f"{mutant_id} replacement is identical")
+
+
+class CveSyncHarnessEnvRenderTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.workflow = load_workflow()
+        self.ctx = build_expression_context(
+            self.workflow,
+            app_id="12345",
+            app_private_key=SECRET_KEY,
+            github_token=GITHUB_TOKEN,
+            auto_merge_enabled="true",
+            pr_number=475,
+            head_sha="a" * 40,
+        )
+        self.plumbing = {"PATH": "/bin"}
+
+    def test_unknown_expression_fails_loudly(self) -> None:
+        with self.assertRaises(AssertionError) as cm:
+            render_github_value("${{ secrets.NOT_A_REAL_SECRET }}", self.ctx)
+        self.assertIn("unresolved GitHub expression", str(cm.exception))
+
+    def test_unsupported_function_expression_fails_loudly(self) -> None:
+        with self.assertRaises(AssertionError) as cm:
+            render_github_value("${{ fromJSON(secrets.FOO) }}", self.ctx)
+        self.assertIn("unresolved GitHub expression", str(cm.exception))
+
+    def test_or_expr_uses_first_nonempty(self) -> None:
+        self.assertEqual(
+            render_github_value(
+                "${{ steps.app-commit.outputs.head_sha || needs.sync.outputs.head_sha }}",
+                self.ctx,
+            ),
+            "a" * 40,
+        )
+
+    def test_detect_env_comes_from_yaml_vars_and_secrets(self) -> None:
+        env = rendered_step_env(self.workflow, DETECT_STEP, self.ctx, self.plumbing)
+        self.assertEqual(env["APP_ID"], "12345")
+        self.assertEqual(env["APP_PRIVATE_KEY"], SECRET_KEY)
+        self.assertNotIn("CREDENTIAL_STATUS", env)
+        self.assertNotIn("APP_CONFIGURED", env)
+        self.assertNotIn("GH_TOKEN", env)
+
+    def test_require_env_comes_from_detect_outputs(self) -> None:
+        apply_step_outputs(
+            self.ctx, "automation-auth", {"credential_status": "incomplete"}
+        )
+        env = rendered_step_env(self.workflow, REQUIRE_STEP, self.ctx, self.plumbing)
+        self.assertEqual(env["CREDENTIAL_STATUS"], "incomplete")
+
+    def test_delivery_env_comes_from_yaml_contexts(self) -> None:
+        apply_step_outputs(
+            self.ctx, "automation-auth", {"app_configured": "false"}
+        )
+        env = rendered_step_env(self.workflow, DELIVERY_STEP, self.ctx, self.plumbing)
+        self.assertEqual(env["APP_CONFIGURED"], "false")
+        self.assertEqual(env["AUTO_MERGE_ENABLED"], "true")
+        self.assertEqual(env["BRANCH"], "automation/cve-catalog-sync")
+        self.assertEqual(env["EXPECTED_SHA"], "a" * 40)
+        self.assertEqual(env["GITHUB_DEFAULT_BRANCH"], "main")
+        self.assertEqual(env["APP_TOKEN"], "")
+        self.assertEqual(env["GH_TOKEN"], GITHUB_TOKEN)
+        self.assertEqual(env["PR_NUMBER"], "475")
+        self.assertNotIn("APP_ID", env)
+
+    def test_rendered_step_env_rejects_non_plumbing_keys(self) -> None:
+        with self.assertRaises(AssertionError) as cm:
+            rendered_step_env(
+                self.workflow,
+                DETECT_STEP,
+                self.ctx,
+                {"PATH": "/bin", "GH_TOKEN": "injected"},
+            )
+        self.assertIn("non-plumbing", str(cm.exception))
 
 
 if __name__ == "__main__":
