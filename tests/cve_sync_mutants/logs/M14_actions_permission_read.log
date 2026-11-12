@@ -1,0 +1,21 @@
+exit=1
+--- stdout ---
+
+--- stderr ---
+F
+======================================================================
+FAIL: test_merge_job_actions_permission_is_write (tests.test_cve_sync_merge_harness.CveSyncMergeHarnessTests.test_merge_job_actions_permission_is_write)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/tmp/M14_actions_permission_read-gcmdx6rr/tests/test_cve_sync_merge_harness.py", line 270, in test_merge_job_actions_permission_is_write
+    self.assertEqual(merge["permissions"]["actions"], "write")
+AssertionError: 'read' != 'write'
+- read
++ write
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.023s
+
+FAILED (failures=1)
+

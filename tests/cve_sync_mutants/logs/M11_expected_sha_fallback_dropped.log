@@ -1,0 +1,18 @@
+exit=1
+--- stdout ---
+
+--- stderr ---
+F
+======================================================================
+FAIL: test_missing_app_expected_sha_falls_back_to_sync_head (tests.test_cve_sync_merge_harness.CveSyncMergeHarnessTests.test_missing_app_expected_sha_falls_back_to_sync_head)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/tmp/M11_expected_sha_fallback_dropped-0f7p8bjb/tests/test_cve_sync_merge_harness.py", line 113, in test_missing_app_expected_sha_falls_back_to_sync_head
+    self.assertIn("needs.sync.outputs.head_sha", expr)
+AssertionError: 'needs.sync.outputs.head_sha' not found in '${{ steps.app-commit.outputs.head_sha }}'
+
+----------------------------------------------------------------------
+Ran 1 test in 0.256s
+
+FAILED (failures=1)
+

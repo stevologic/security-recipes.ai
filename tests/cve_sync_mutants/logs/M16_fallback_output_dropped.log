@@ -1,0 +1,18 @@
+exit=1
+--- stdout ---
+
+--- stderr ---
+F
+======================================================================
+FAIL: test_missing_app_run1_dispatches_validate_skips_merge_and_labels (tests.test_cve_sync_merge_harness.CveSyncMergeHarnessTests.test_missing_app_run1_dispatches_validate_skips_merge_and_labels)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/tmp/M16_fallback_output_dropped-3bxg02rr/tests/test_cve_sync_merge_harness.py", line 58, in test_missing_app_run1_dispatches_validate_skips_merge_and_labels
+    self.assertEqual(result.outputs.get("protection_fallback"), "true")
+AssertionError: None != 'true'
+
+----------------------------------------------------------------------
+Ran 1 test in 0.872s
+
+FAILED (failures=1)
+

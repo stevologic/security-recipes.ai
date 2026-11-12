@@ -5,7 +5,6 @@ import re
 import subprocess
 import tempfile
 import unittest
-from collections.abc import Callable
 from pathlib import Path
 
 import yaml
@@ -131,50 +130,6 @@ def assert_missing_app_fallback_invariants(workflow: str) -> None:
         raise AssertionError("validate dispatch must live in catalog-delivery so missing-App reaches it")
     if "expected_sha=$EXPECTED_SHA" not in run:
         raise AssertionError("catalog-delivery must pass the exact PR head SHA into validate dispatch")
-
-
-def _restore_early_exit(workflow: str) -> str:
-    needle = """        run: |
-          if [ "$CREDENTIAL_STATUS" = "incomplete" ]; then"""
-    restored = """        run: |
-          echo "::error::GitHub App is not configured; set CVE_SYNC_APP_ID and CVE_SYNC_APP_KEY on the cve-sync environment. Catalog merge cannot bypass ruleset 18147261 without the App. Failing closed on the first run."
-          exit 1
-          if [ "$CREDENTIAL_STATUS" = "incomplete" ]; then"""
-    if needle not in workflow:
-        raise AssertionError("require-step run body is missing")
-    mutated = workflow.replace(needle, restored, 1)
-    if mutated == workflow:
-        raise AssertionError("restore_early_exit mutant was vacuous")
-    return mutated
-
-
-def _drop_dispatch(workflow: str) -> str:
-    dispatch = validate_dispatch_command(workflow)
-    mutated = workflow.replace(dispatch, "echo skipped-validate-dispatch", 1)
-    if mutated == workflow:
-        raise AssertionError("drop_dispatch mutant was vacuous")
-    return mutated
-
-
-def _drop_exact_sha_input(workflow: str) -> str:
-    needle = '--field "expected_sha=$EXPECTED_SHA" \\\n'
-    if needle not in workflow:
-        raise AssertionError("exact-SHA validate input is missing")
-    mutated = workflow.replace(needle, "", 1)
-    if mutated == workflow:
-        raise AssertionError("drop_exact_sha_input mutant was vacuous")
-    return mutated
-
-
-def _make_incomplete_pass(workflow: str) -> str:
-    needle = 'if [ "$CREDENTIAL_STATUS" = "incomplete" ]; then'
-    replacement = 'if [ "$CREDENTIAL_STATUS" = "never-incomplete" ]; then'
-    if needle not in workflow:
-        raise AssertionError("incomplete credential guard is missing")
-    mutated = workflow.replace(needle, replacement, 1)
-    if mutated == workflow:
-        raise AssertionError("incomplete_pass mutant was vacuous")
-    return mutated
 
 
 class CveSyncWorkflowTests(unittest.TestCase):
@@ -458,6 +413,7 @@ class CveSyncWorkflowTests(unittest.TestCase):
             "tests.test_sync_cve_catalog",
             "tests.test_cve_recipe_catalog",
             "tests.test_cve_sync_workflow",
+            "tests.test_cve_sync_merge_harness",
         )
         for module in expected_modules:
             with self.subTest(module=module):
@@ -823,25 +779,17 @@ class CveSyncWorkflowTests(unittest.TestCase):
         configured = run_require_step(self.workflow, credential_status="missing")
         self.assertEqual(configured.returncode, 0, configured.stdout + configured.stderr)
 
-    def test_missing_app_fallback_mutants_are_killed(self) -> None:
-        assert_missing_app_fallback_invariants(self.workflow)
-        mutants: list[tuple[str, Callable[[str], str]]] = [
-            ("restore_early_exit", _restore_early_exit),
-            ("drop_dispatch", _drop_dispatch),
-            ("drop_exact_sha_input", _drop_exact_sha_input),
-            ("incomplete_pass", _make_incomplete_pass),
-        ]
-        killed: list[str] = []
-        for name, mutate in mutants:
-            with self.subTest(mutant=name):
-                mutated = mutate(self.workflow)
-                self.assertNotEqual(mutated, self.workflow, f"{name} was vacuous")
-                with self.assertRaises(AssertionError):
-                    assert_missing_app_fallback_invariants(mutated)
-                killed.append(name)
-                print(f"MUTANT {name}: KILLED")
-        self.assertEqual(killed, [name for name, _ in mutants])
-        print(f"KILL COUNT: {len(killed)}/{len(mutants)}")
+    def test_mint_and_attribute_steps_are_gated_on_app_configured(self) -> None:
+        mint = step_named(self.workflow, MINT_STEP)
+        attribute = step_named(self.workflow, ATTRIBUTE_STEP)
+        self.assertEqual(
+            mint.get("if"),
+            "steps.automation-auth.outputs.app_configured == 'true'",
+        )
+        self.assertEqual(
+            attribute.get("if"),
+            "steps.automation-auth.outputs.app_configured == 'true'",
+        )
 
     def test_merge_job_permissions_and_secrets_stay_narrow(self) -> None:
         merge = yaml.safe_load(self.workflow)["jobs"]["merge"]

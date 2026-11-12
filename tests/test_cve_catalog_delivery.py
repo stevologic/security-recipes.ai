@@ -1079,7 +1079,7 @@ class CveCatalogDeliveryTests(unittest.TestCase):
                 )
             self.assertEqual(stdout.getvalue().strip(), "merged_wrong_sha")
 
-    def test_missing_app_fails_closed_on_first_unlabeled_run(self) -> None:
+    def test_missing_app_does_not_escalate_on_first_unlabeled_run(self) -> None:
         now = datetime(2026, 10, 27, 8, 0, tzinfo=timezone.utc)
         first = classify_protection_fallback(
             already_labeled=False,
@@ -1087,14 +1087,57 @@ class CveCatalogDeliveryTests(unittest.TestCase):
             now=now,
             app_configured=False,
         )
-        self.assertTrue(first.escalate)
-        self.assertEqual(first.action, "fail_fallback_escalated")
-        self.assertTrue(is_alert_action(first.action))
+        self.assertFalse(first.escalate)
+        self.assertEqual(first.action, "protection_fallback")
+        self.assertFalse(is_alert_action(first.action))
+        self.assertEqual(first.consecutive_runs, 1)
         self.assertIn("GitHub App is not configured", first.message)
         self.assertIn("CVE_SYNC_APP_ID", first.message)
         self.assertIn("CVE_SYNC_APP_KEY", first.message)
         self.assertIn("18147261", first.message)
-        self.assertIn("first run", first.message)
+        self.assertNotIn("first run", first.message)
+
+    def test_missing_app_escalates_on_second_consecutive_run(self) -> None:
+        now = datetime(2026, 10, 27, 8, 0, tzinfo=timezone.utc)
+        second = classify_protection_fallback(
+            already_labeled=True,
+            labeled_at="2026-10-27T07:00:00Z",
+            now=now,
+            app_configured=False,
+        )
+        self.assertTrue(second.escalate)
+        self.assertEqual(second.action, "fail_fallback_escalated")
+        self.assertTrue(is_alert_action(second.action))
+        self.assertEqual(second.consecutive_runs, 2)
+        self.assertIn("2 consecutive", second.message)
+        self.assertIn("GitHub App is not configured", second.message)
+        self.assertIn("18147261", second.message)
+
+    def test_missing_app_escalates_when_label_is_older_than_24h(self) -> None:
+        now = datetime(2026, 10, 28, 8, 30, tzinfo=timezone.utc)
+        decision = classify_protection_fallback(
+            already_labeled=False,
+            labeled_at=(now - timedelta(hours=24, minutes=1)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            now=now,
+            app_configured=False,
+        )
+        self.assertTrue(decision.escalate)
+        self.assertEqual(decision.action, "fail_fallback_escalated")
+        self.assertTrue(is_alert_action(decision.action))
+        self.assertIn("label is older than 24h", decision.message)
+        self.assertIn("GitHub App is not configured", decision.message)
+
+    def test_missing_app_does_not_escalate_at_23h59m(self) -> None:
+        now = datetime(2026, 10, 28, 8, 30, tzinfo=timezone.utc)
+        decision = classify_protection_fallback(
+            already_labeled=False,
+            labeled_at=(now - timedelta(hours=23, minutes=59)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            now=now,
+            app_configured=False,
+        )
+        self.assertFalse(decision.escalate)
+        self.assertEqual(decision.action, "protection_fallback")
+        self.assertLess(decision.age_hours, 24.0)
 
     def test_fallback_escalates_on_second_consecutive_run(self) -> None:
         now = datetime(2026, 10, 27, 8, 0, tzinfo=timezone.utc)
@@ -1294,6 +1337,10 @@ class CveCatalogDeliveryTests(unittest.TestCase):
         self.assertIn(KAREN_QA_REVIEW_LABEL, automation)
         self.assertIn("fallback label is applied", automation)
         self.assertIn("scopes generator", automation)
+        self.assertIn("2 consecutive protection-fallback runs or 24h", automation)
+        self.assertIn("run 1 still attaches `build`", automation)
+        self.assertNotIn("fail the merge job red on the first run", automation)
+        self.assertNotIn("Missing credentials fail the merge job red on the first run", automation)
 
 
 if __name__ == "__main__":

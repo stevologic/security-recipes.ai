@@ -228,9 +228,11 @@ dispatches `cve-catalog-validate.yml` on the exact PR head so `build`
 attaches, labels `automation:protection-fallback`, and does not attempt
 a merge that would need to bypass ruleset `18147261`. Incomplete App
 credentials (only one of `CVE_SYNC_APP_ID` / `CVE_SYNC_APP_KEY`) still
-fail closed. If the App is configured and protection still blocks, the
-run leaves the PR open, labeled, and summarized, and the next sync
-retries. If the same
+fail closed. The 2-run / 24h protection-fallback clock runs after that
+dispatch, so run 1 still attaches `build` and later runs go red until
+the App is configured. If the App is configured and protection still
+blocks, the run leaves the PR open, labeled, and summarized, and the
+next sync retries. If the same
 catalog PR has been in protection-fallback on 2 consecutive runs or
 whose fallback label is older than 24h, the run fails as a real alert.
 An already-merged catalog PR is idempotent when its head SHA or
@@ -289,5 +291,5 @@ confirms the production handoff landed. Never put `secrets` in a workflow
 | `CVE_ENRICHMENT_LIMIT` | variable | optional, defaults to `20` | Hard-bounded 0–50 new or source-changed CVEs enriched per catalog sync. |
 | `DIGITALOCEAN_ACCESS_TOKEN` | secret or droplet `deploy.env` | optional | Lets deploy.sh and the Dev DNS record workflow create `dev.security-recipes.ai` |
 | `CVE_AUTO_MERGE_ENABLED` | variable | `true` | Lets the catalog sync merge its own PR |
-| `CVE_SYNC_APP_ID` / `CVE_SYNC_APP_KEY` | environment variable / secret on `cve-sync` | required for catalog merge | Dedicated `stevologic-cve-sync` GitHub App, used only by the catalog-sync merge job. The job mints an App token (`contents: write`, `pull-requests: write`) and recommits the catalog tree so ruleset `18147261` sees an attributed App commit. Missing credentials fail the merge job red on the first run. |
+| `CVE_SYNC_APP_ID` / `CVE_SYNC_APP_KEY` | environment variable / secret on `cve-sync` | required for catalog merge | Dedicated `stevologic-cve-sync` GitHub App, used only by the catalog-sync merge job. The job mints an App token (`contents: write`, `pull-requests: write`) and recommits the catalog tree so ruleset `18147261` sees an attributed App commit. Missing credentials still attach `build` on run 1 via exact-SHA validate dispatch, then fail the merge job red after 2 consecutive protection-fallback runs or 24h. |
 | `NVD_API_KEY` | secret | optional | Authenticated NVD CVE 2.0 rate limit for the lastMod catch-up after annual feeds. Public unauthenticated pacing is used when absent; 403/429 fail the sync instead of publishing a stalled catalog |

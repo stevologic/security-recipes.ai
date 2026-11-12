@@ -1,0 +1,18 @@
+exit=1
+--- stdout ---
+
+--- stderr ---
+F
+======================================================================
+FAIL: test_missing_app_run1_dispatches_validate_skips_merge_and_labels (tests.test_cve_sync_merge_harness.CveSyncMergeHarnessTests.test_missing_app_run1_dispatches_validate_skips_merge_and_labels)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/tmp/M8_app_token_switch_inverted-7w9cektz/tests/test_cve_sync_merge_harness.py", line 48, in test_missing_app_run1_dispatches_validate_skips_merge_and_labels
+    self.assertTrue(
+AssertionError: False is not true : missing App run 1 must dispatch cve-catalog-validate.yml so build attaches
+
+----------------------------------------------------------------------
+Ran 1 test in 0.112s
+
+FAILED (failures=1)
+
