@@ -5,6 +5,13 @@ The evaluator is deterministic. It checks the generated incident
 response pack, runtime evidence, severity signals, data movement,
 authorization state, and containment status before deciding whether to
 monitor, triage, hold for forensics, contain, or kill the session.
+
+JSON --runtime-request payloads must include three monitor integrity
+fields: agent_can_access_monitors, monitor_tampering_or_outage, and
+resume_without_verified_containment. Missing, null, empty,
+whitespace-only, or otherwise unparseable values fail closed to
+contain_and_open_war_room with allowed=false. Explicit false, "false",
+and 0 remain false.
 """
 
 from __future__ import annotations
@@ -36,6 +43,17 @@ KILL_SIGNALS = {
     "raw_token_passthrough",
     "secret_handoff",
 }
+MONITOR_INTEGRITY_FLAGS = (
+    "agent_can_access_monitors",
+    "monitor_tampering_or_outage",
+    "resume_without_verified_containment",
+)
+TRUE_BOOL_TOKENS = frozenset({"1", "true", "yes", "y", "on"})
+FALSE_BOOL_TOKENS = frozenset({"0", "false", "no", "n", "off"})
+UNRESOLVED_MONITOR_INTEGRITY_DECISION = "contain_and_open_war_room"
+UNRESOLVED_MONITOR_INTEGRITY_REASON = (
+    "monitor integrity flags are missing, unwired, or unparseable"
+)
 
 
 class AgenticIncidentResponseError(RuntimeError):
@@ -59,7 +77,34 @@ def as_bool(value: Any) -> bool:
         return value
     if value is None:
         return False
-    return str(value).strip().lower() in {"1", "true", "yes", "y", "on"}
+    return str(value).strip().lower() in TRUE_BOOL_TOKENS
+
+
+def parse_required_bool(request: dict[str, Any], key: str) -> bool | None:
+    """Return True/False when `key` is a parsed boolean; None if missing or unparseable."""
+    if key not in request:
+        return None
+    value = request[key]
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, int) and value in (0, 1):
+        return bool(value)
+    if value is None:
+        return None
+    text = str(value).strip().lower()
+    if text in TRUE_BOOL_TOKENS:
+        return True
+    if text in FALSE_BOOL_TOKENS:
+        return False
+    return None
+
+
+def unresolved_monitor_integrity_flags(request: dict[str, Any]) -> list[str]:
+    return [key for key in MONITOR_INTEGRITY_FLAGS if parse_required_bool(request, key) is None]
+
+
+def unresolved_monitor_integrity_violation(flags: list[str]) -> str:
+    return f"monitor integrity flags unverified: {', '.join(flags)}"
 
 
 def as_dict(value: Any) -> dict[str, Any]:
@@ -171,6 +216,11 @@ def normalize_request(runtime_request: dict[str, Any]) -> dict[str, Any]:
     request["token_passthrough"] = as_bool(request.get("token_passthrough"))
     request["identity_used_after_revocation"] = as_bool(request.get("identity_used_after_revocation"))
     request["customer_impact_confirmed"] = as_bool(request.get("customer_impact_confirmed"))
+    request["agent_can_access_monitors"] = as_bool(request.get("agent_can_access_monitors"))
+    request["monitor_tampering_or_outage"] = as_bool(request.get("monitor_tampering_or_outage"))
+    request["resume_without_verified_containment"] = as_bool(
+        request.get("resume_without_verified_containment")
+    )
     request["runtime_kill_signal"] = str(request.get("runtime_kill_signal") or "").strip()
     return request
 
@@ -191,6 +241,10 @@ def matched_kill_reasons(request: dict[str, Any]) -> list[str]:
         reasons.append("raw MCP or provider token passthrough was observed")
     if request.get("identity_used_after_revocation"):
         reasons.append("delegated identity was used after revocation")
+    if request.get("agent_can_access_monitors"):
+        reasons.append("agent can access or interfere with monitoring processes and logs")
+    if request.get("monitor_tampering_or_outage"):
+        reasons.append("monitor tampering or outage was observed")
     if request.get("externalized_context") and data_classes & KILL_DATA_CLASSES:
         reasons.append("sensitive context left the approved boundary")
     if request.get("production_write") and not has_approval(request.get("human_approval_record")):
@@ -263,6 +317,7 @@ def evaluate_agentic_incident_response_decision(
     if not isinstance(runtime_request, dict):
         raise AgenticIncidentResponseError("runtime_request must be an object")
 
+    unresolved_flags = unresolved_monitor_integrity_flags(runtime_request)
     request = normalize_request(runtime_request)
     class_id = str(request.get("incident_class_id") or "").strip()
     workflow_id = str(request.get("workflow_id") or "").strip()
@@ -326,6 +381,26 @@ def evaluate_agentic_incident_response_decision(
             workflow=workflow,
             reason="sev0 agentic incident requires session kill and executive escalation",
         )
+    if unresolved_flags:
+        return decision_result(
+            decision=UNRESOLVED_MONITOR_INTEGRITY_DECISION,
+            pack=pack,
+            request=request,
+            incident_class=incident_class,
+            workflow=workflow,
+            reason=UNRESOLVED_MONITOR_INTEGRITY_REASON,
+            violations=[unresolved_monitor_integrity_violation(unresolved_flags)],
+        )
+    if request.get("resume_without_verified_containment"):
+        return decision_result(
+            decision="hold_for_forensics",
+            pack=pack,
+            request=request,
+            incident_class=incident_class,
+            workflow=workflow,
+            reason="resume requires verified monitors, logging, egress allowlists, and shutdown mechanisms",
+            violations=["resume attempted without verified containment"],
+        )
     if severity == "sev1" or request.get("customer_impact_confirmed"):
         return decision_result(
             decision="contain_and_open_war_room",
@@ -366,10 +441,22 @@ def evaluate_agentic_incident_response_decision(
     )
 
 
-def parse_args() -> argparse.Namespace:
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--pack", type=Path, default=DEFAULT_PACK)
-    parser.add_argument("--runtime-request", type=Path, help="JSON file containing the runtime incident request.")
+    parser.add_argument(
+        "--runtime-request",
+        type=Path,
+        help=(
+            "JSON file containing the runtime incident request. Required "
+            "monitor integrity fields: agent_can_access_monitors, "
+            "monitor_tampering_or_outage, and "
+            "resume_without_verified_containment. Missing, null, empty, "
+            "whitespace-only, or unparseable values fail closed to "
+            "contain_and_open_war_room with allowed=false. Explicit false, "
+            '"false", and 0 remain false.'
+        ),
+    )
     parser.add_argument("--incident-id")
     parser.add_argument("--workflow-id")
     parser.add_argument("--run-id")
@@ -397,11 +484,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--token-passthrough", action="store_true")
     parser.add_argument("--identity-used-after-revocation", action="store_true")
     parser.add_argument("--customer-impact-confirmed", action="store_true")
+    parser.add_argument("--agent-can-access-monitors", action="store_true")
+    parser.add_argument("--monitor-tampering-or-outage", action="store_true")
+    parser.add_argument("--resume-without-verified-containment", action="store_true")
     parser.add_argument("--runtime-kill-signal")
     parser.add_argument("--approval-id")
     parser.add_argument("--approval-status")
     parser.add_argument("--expect-decision")
-    return parser.parse_args()
+    return parser.parse_args(argv)
 
 
 def request_from_args(args: argparse.Namespace) -> dict[str, Any]:
@@ -435,6 +525,9 @@ def request_from_args(args: argparse.Namespace) -> dict[str, Any]:
         "source_event_ids": args.source_event_id,
         "tenant_id": args.tenant_id,
         "token_passthrough": args.token_passthrough,
+        "agent_can_access_monitors": args.agent_can_access_monitors,
+        "monitor_tampering_or_outage": args.monitor_tampering_or_outage,
+        "resume_without_verified_containment": args.resume_without_verified_containment,
         "workflow_id": args.workflow_id,
     }
     if args.approval_id or args.approval_status:

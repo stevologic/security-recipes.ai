@@ -3,7 +3,7 @@ title: MCP Authorization Conformance
 linkTitle: MCP Authorization Conformance
 weight: 10
 date: 2026-05-02
-lastmod: 2026-10-19
+lastmod: 2026-11-12
 toc: true
 description: >
   Generate an MCP authorization conformance pack for resource-bound tokens,
@@ -22,7 +22,7 @@ resource the token was minted for, which scopes were granted, and whether
 the tool call stayed inside the workflow.
 {{< /callout >}}
 
-Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28), the current [security best practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices), NIST's [August 27, 2026 agent identity guidance](https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation), and NIST NCCoE's [September 29, 2026 comments summary](https://pages.nist.gov/nccoe-ai-identity/summary-of-comments.html) on October 19, 2026. MCP `latest` still redirects to 2026-07-28. The 2026-07-28 SSRF rule for OAuth metadata and Client ID Metadata Document fetches still stands: server-side clients **MUST** treat those URLs as SSRF-capable, **SHOULD** require HTTPS, and **SHOULD** block private, loopback, and link-local destinations as recommended by [RFC 9728 Section 7.7](https://www.rfc-editor.org/rfc/rfc9728.html#section-7.7). Clients **MUST** only allow `http://` and `https://` authorization URLs, **MUST** reject `javascript:`, `data:`, `file:`, `vbscript:`, and other dangerous schemes, and may use `http://` only for loopback during local development. NCCoE, drawing on more than 600 comments, says sender-constrained credentials (OAuth DPoP or mTLS using SPIFFE or WIMSE identities) are essential to reduce bearer-token replay, and that ephemeral credentials should be bound to a stable identity anchor via proof-of-possession. MCP 2026-07-28 still issues audience-bound bearer tokens; this pack treats explicit unconstrained bearer presentation as an enterprise deny. Unspecified authorization endpoints and confirmation methods stay on the prior allow path. This editorial pass does not claim human review of the pack.
+Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28), the current [security best practices](https://modelcontextprotocol.io/docs/2026-07-28/tutorials/security/security_best_practices), NIST's [August 27, 2026 agent identity guidance](https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation), and NIST NCCoE's [September 29, 2026 comments summary](https://pages.nist.gov/nccoe-ai-identity/summary-of-comments.html) on November 12, 2026. MCP `latest` still redirects to 2026-07-28. The 2026-07-28 SSRF rule for OAuth metadata and Client ID Metadata Document fetches still stands: server-side clients **MUST** treat those URLs as SSRF-capable, **SHOULD** require HTTPS, and **SHOULD** block private, loopback, and link-local destinations as recommended by [RFC 9728 Section 7.7](https://www.rfc-editor.org/rfc/rfc9728.html#section-7.7). Clients **MUST** only allow `http://` and `https://` authorization URLs, **MUST** reject `javascript:`, `data:`, `file:`, `vbscript:`, and other dangerous schemes, and may use `http://` only for loopback during local development. NCCoE, drawing on more than 600 comments, says sender-constrained credentials (OAuth DPoP or mTLS using SPIFFE or WIMSE identities) are essential to reduce bearer-token replay, and that ephemeral credentials should be bound to a stable identity anchor via proof-of-possession. MCP 2026-07-28 still issues audience-bound bearer tokens; this pack treats explicit unconstrained bearer presentation as an enterprise deny. Unspecified authorization endpoints and confirmation methods stay on the prior allow path. This editorial pass does not claim human review of the pack.
 
 ## The product bet
 
@@ -312,13 +312,20 @@ This feature follows current primary guidance:
   client credentials, scope challenges, step-up authorization, and token
   validation. Dynamic Client Registration remains available only as a
   deprecated compatibility path.
-- [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices)
+- [MCP Security Best Practices](https://modelcontextprotocol.io/docs/2026-07-28/tutorials/security/security_best_practices)
   for confused-deputy prevention, token-passthrough avoidance, SSRF
   controls on OAuth metadata and Client ID Metadata Document fetches
   (HTTPS plus RFC 9728 Section 7.7 private/loopback/link-local
   blocking), authorization URL scheme allowlisting (`https://`, or
   `http://` loopback only; reject `javascript:`, `data:`, `file:`,
   `vbscript:`), session safety, scope minimization, and audit trails.
+- [MCP Authorization Security Considerations (2026-07-28)](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization/security-considerations)
+  for token audience binding, PKCE, mix-up and confused-deputy, open
+  redirection, and Client ID Metadata Document security.
+- [NIST: Design Tenets for Agent Identity Management Systems](https://www.nist.gov/blogs/cybersecurity-insights/design-tenets-agent-identity-management-systems)
+  for cryptographically verifiable agent identities, attenuated
+  sub-agent delegation, zero standing privilege, and independent
+  append-only evidence on the MCP tool path.
 - [NIST NCCoE Summary of Comments on Software and Agentic AI Identity
   and Authorization](https://pages.nist.gov/nccoe-ai-identity/summary-of-comments.html)
   for sender-constrained credentials (OAuth DPoP or mTLS using SPIFFE or
@@ -329,6 +336,10 @@ This feature follows current primary guidance:
 - [OWASP Top 10 for Agentic Applications 2026](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/)
   for tool misuse, identity abuse, agentic supply-chain risk, context
   poisoning, cascading failures, and rogue-agent containment.
+- [OWASP Top 10 for LLM Applications 2026](https://genai.owasp.org/resource/owasp-genai-llm-top-10-2026/)
+  for the current LLM risk ranking and mappings to NIST, MITRE ATLAS,
+  CWE, and the Agentic Top 10. The 2025 edition is kept as a prior
+  source ID.
 - [CISA AI Data Security](https://www.cisa.gov/resources-tools/resources/ai-data-security-best-practices-securing-data-used-train-operate-ai-systems)
   for provenance, integrity, access control, monitoring, third-party data
   handling, and incident evidence.

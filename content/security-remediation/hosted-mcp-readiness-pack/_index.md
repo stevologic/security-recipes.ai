@@ -193,7 +193,7 @@ The profile is grounded in current primary sources:
   passthrough.
 - [MCP Elicitation](https://modelcontextprotocol.io/specification/2026-07-28/client/elicitation)
   for form-mode and URL-mode interaction boundaries.
-- [OpenTelemetry MCP semantic conventions](https://opentelemetry.io/docs/specs/semconv/gen-ai/mcp/)
+- [OpenTelemetry MCP semantic conventions](https://github.com/open-telemetry/semantic-conventions-genai/blob/main/docs/gen-ai/mcp.md)
   for MCP spans, sessions, methods, transports, errors, and duration
   metrics.
 - [OWASP Top 10 for Agentic Applications](https://genai.owasp.org/2025/12/09/owasp-genai-security-project-releases-top-10-risks-and-mitigations-for-agentic-ai-security/)

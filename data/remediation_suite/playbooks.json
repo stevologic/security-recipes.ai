@@ -1613,12 +1613,12 @@
         {
           "label": "Decision",
           "title": "Contain active authority",
-          "detail": "Kill sessions, revoke tokens/entitlements, block tools/connectors, quarantine context/skills, and preserve evidence."
+          "detail": "Kill sessions, revoke tokens/entitlements, isolate monitors from agent access, block tools/connectors, quarantine context/skills, and preserve evidence including rejected actions."
         },
         {
           "label": "Action",
           "title": "Eradicate and recover",
-          "detail": "Remove root causes, rotate credentials, repair policy, replay safe tests, restore bounded service, and monitor."
+          "detail": "Remove root causes, rotate credentials, repair policy, replay safe tests, verify monitors, logging, egress allowlists, and shutdown mechanisms, then restore bounded service."
         },
         {
           "label": "Proof",
@@ -1627,9 +1627,9 @@
         }
       ],
       "gate": {
-        "question": "Is the threat contained and is recovery supported by clean identities, context, tools, policies, and replay evidence?",
-        "pass": "Restore only the bounded service and maintain enhanced monitoring.",
-        "stop": "Remain isolated and escalate when scope, evidence, credentials, or root cause is unresolved."
+        "question": "Is the threat contained, are monitors isolated from the agent, and is recovery supported by verified monitors, logging, egress allowlists, shutdown mechanisms, clean identities, context, tools, policies, and replay evidence?",
+        "pass": "Restore only the bounded service after verified containment and maintain enhanced monitoring.",
+        "stop": "Remain isolated and escalate when scope, evidence, credentials, monitor integrity, or root cause is unresolved."
       },
       "evidence": [
         "correlated incident timeline",
@@ -3044,7 +3044,7 @@
         {
           "label": "Decision",
           "title": "Map requirements to evidence",
-          "detail": "Link each relevant requirement to control behavior, source artifacts, hashes, owners, test results, and limitations."
+          "detail": "Link each relevant requirement to control behavior, source artifacts, hashes, owners, test results, and limitations. Treat unique short-lived credentials as insufficient when sub-agent grants are unattenuated, idle agents retain standing privilege, the reasoning model grants access, mandates are unsigned, or agents can write their own evidence."
         },
         {
           "label": "Action",

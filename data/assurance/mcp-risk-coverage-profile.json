@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-09-28",
+  "last_reviewed": "2026-11-12",
   "intent": "Define the SecurityRecipes MCP and agentic-skill risk coverage profile: a machine-readable map from the current OWASP MCP Top 10 beta and OWASP Agentic Skills Top 10 into SecurityRecipes secure-context, MCP authorization, connector trust, agent skill, telemetry, incident response, and runtime action evidence.",
   "positioning": {
     "buyer": "AI Platform, Product Security, AppSec, Security Engineering, GRC, procurement security, model-risk, agent-host, and acquisition diligence teams",
@@ -32,7 +32,7 @@
       "name": "Model Context Protocol Security Best Practices (2026-07-28 current revision)",
       "publisher": "Model Context Protocol",
       "published": "2026-07-28",
-      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices",
+      "url": "https://modelcontextprotocol.io/docs/2026-07-28/tutorials/security/security_best_practices",
       "source_class": "protocol_guidance",
       "why_it_matters": "Current MCP 2026-07-28 security guidance replaces session-hijacking assumptions with state-handle binding, forbids token passthrough, requires confused-deputy consent on proxies, and tightens SSRF controls during metadata and Client ID Metadata Document fetches."
     },
@@ -41,7 +41,7 @@
       "name": "Model Context Protocol Security Best Practices (2025-06-18 prior revision)",
       "publisher": "Model Context Protocol",
       "published": "2025-06-18",
-      "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices",
+      "url": "https://modelcontextprotocol.io/docs/2025-06-18/tutorials/security/security_best_practices",
       "source_class": "protocol_guidance",
       "why_it_matters": "Prior MCP security-best-practices revision kept as a historical source ID. Session-hijacking guidance applies only to 2025-11-25 and earlier protocol versions; prefer the 2026-07-28 state-handle controls."
     },
@@ -62,6 +62,24 @@
       "url": "https://www.cisa.gov/securebydesign",
       "source_class": "government_guidance",
       "why_it_matters": "CISA's secure-by-design framing reinforces that producers should own security outcomes, ship safe defaults, and reduce the security burden on users and downstream customers."
+    },
+    {
+      "id": "owasp-genai-exploit-roundup-q3-2026",
+      "name": "GenAI and Agentic AI Exploit Roundup Q3 2026",
+      "publisher": "OWASP GenAI Security Project",
+      "published": "2026-10-08",
+      "url": "https://genai.owasp.org/2026/10/08/genai-and-agentic-ai-exploit-roundup-q3-2026/",
+      "source_class": "industry_guidance",
+      "why_it_matters": "OWASP's Q3 2026 roundup records the Deadbugz campaign, an active attempted supply-chain campaign that promoted a malicious MCP server through 23 GitHub pull requests using MCP server metadata manipulation (no confirmed compromise), a live example for MCP03 tool poisoning, MCP04 supply chain, and MCP09 shadow servers."
+    },
+    {
+      "id": "mcp-authorization-security-considerations-2026-07-28",
+      "name": "Model Context Protocol Authorization Security Considerations (2026-07-28)",
+      "publisher": "Model Context Protocol",
+      "published": "2026-07-28",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization/security-considerations",
+      "source_class": "protocol_guidance",
+      "why_it_matters": "Normative token audience binding (RFC 8707), token theft, communication security, authorization-code protection (PKCE), mix-up and confused-deputy, open redirection, and Client ID Metadata Document security for incident triage of MCP token misuse."
     }
   ],
   "coverage_contract": {
@@ -421,7 +439,9 @@
       "source_ids": [
         "owasp-mcp-top-10-2025",
         "mcp-security-best-practices-2026-07-28",
-        "mcp-security-best-practices-2025"
+        "mcp-security-best-practices-2025",
+        "owasp-genai-exploit-roundup-q3-2026",
+        "mcp-authorization-security-considerations-2026-07-28"
       ],
       "risks": [
         {
@@ -518,7 +538,10 @@
           ],
           "diligence_question": "How does retrieved context stay evidence instead of becoming model instruction?",
           "evidence_expectation": "Trust, poisoning, drill, action, and measurement evidence shows registered context, instruction demotion, red-team coverage, and policy-bound action checks.",
-          "commercialization_hook": "Hosted prompt-injection regression service around signed context releases."
+          "commercialization_hook": "Hosted prompt-injection regression service around signed context releases.",
+          "aliases": [
+            "Prompt Injection via Contextual Payloads"
+          ]
         },
         {
           "id": "MCP07",

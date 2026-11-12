@@ -3,7 +3,7 @@ title: Agentic Telemetry Contract
 linkTitle: Telemetry Contract
 weight: 6
 date: 2026-05-04
-lastmod: 2026-10-09
+lastmod: 2026-11-12
 sidebar:
   exclude: true
 description: >
@@ -19,7 +19,7 @@ complete enough to reconstruct a run and safe enough not to become a new
 secret, prompt, or tenant-data sink.
 {{< /callout >}}
 
-Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) on October 9, 2026. Rechecked the same day against MCP [Security Best Practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices) State Handle Hijacking and [OpenTelemetry MCP semantic conventions](https://opentelemetry.io/docs/specs/semconv/gen-ai/mcp/): MCP 2026-07-28 is stateless and has no protocol-level sessions. OpenTelemetry recommends `mcp.session.id` only when a request is part of a session. This pack now allows `telemetry_ready` for 2026-07-28 tool spans that carry `jsonrpc.request.id`, `mcp.method.name`, and `mcp.protocol.version` without `mcp.session.id`. A 2025-11-25 span still requires `mcp.session.id` so stored receipts stay evaluable. A present `traceparent` that is not valid [W3C Trace Context](https://www.w3.org/TR/trace-context/) is held. A present session id is host-session correlation, not authentication. Unspecified protocol-version evidence stays on the prior required-session path. This change does not claim human review of the pack; `lastmod` and the source `last_reviewed` date record this editorial pass.
+Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) on November 12, 2026. Rechecked the same day against MCP [Security Best Practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices) State Handle Hijacking and [OpenTelemetry MCP semantic conventions](https://github.com/open-telemetry/semantic-conventions-genai/blob/main/docs/gen-ai/mcp.md): MCP 2026-07-28 is stateless and has no protocol-level sessions. OpenTelemetry recommends `mcp.session.id` only when a request is part of a session. This pack now allows `telemetry_ready` for 2026-07-28 tool spans that carry `jsonrpc.request.id`, `mcp.method.name`, and `mcp.protocol.version` without `mcp.session.id`. A 2025-11-25 span still requires `mcp.session.id` so stored receipts stay evaluable. A present `traceparent` that is not valid [W3C Trace Context](https://www.w3.org/TR/trace-context/) is held. A present session id is host-session correlation, not authentication. Unspecified protocol-version evidence stays on the prior required-session path. This change does not claim human review of the pack; `lastmod` and the source `last_reviewed` date record this editorial pass.
 
 Agentic AI security is moving from "did the model answer correctly?" to
 "can we prove what context, tool, identity, policy, approval, egress
@@ -164,8 +164,8 @@ controls.
 
 ## Source anchors
 
-- [OpenTelemetry GenAI semantic conventions](https://opentelemetry.io/docs/specs/semconv/gen-ai/)
-- [OpenTelemetry MCP semantic conventions](https://opentelemetry.io/docs/specs/semconv/gen-ai/mcp/)
+- [OpenTelemetry GenAI semantic conventions](https://github.com/open-telemetry/semantic-conventions-genai/blob/main/docs/gen-ai/README.md)
+- [OpenTelemetry MCP semantic conventions](https://github.com/open-telemetry/semantic-conventions-genai/blob/main/docs/gen-ai/mcp.md)
 - [MCP Authorization specification](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
 - [MCP Transports specification](https://modelcontextprotocol.io/specification/2026-07-28/basic/transports)
 - [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices)
