@@ -19,6 +19,8 @@ ROOT = Path(__file__).resolve().parents[1]
 WORKFLOW_PATH = ROOT / ".github" / "workflows" / "cve-catalog-sync.yml"
 DETECT_STEP = "Detect GitHub App automation credentials"
 REQUIRE_STEP = "Require GitHub App credentials"
+MINT_STEP = "Mint CVE automation GitHub App token"
+ATTRIBUTE_STEP = "Attribute catalog revision to the GitHub App"
 DELIVERY_STEP = "Reconcile, validate, and merge exact catalog revision"
 STUB_SOURCE = Path(__file__).resolve().parent / "cve_sync_gh_stub.py"
 FALLBACK_LABEL = "automation:protection-fallback"
@@ -39,6 +41,8 @@ class HarnessResult:
     merge_calls: list[dict[str, Any]] = field(default_factory=list)
     labels_added: list[str] = field(default_factory=list)
     gh_calls: list[dict[str, Any]] = field(default_factory=list)
+    mint_calls: list[dict[str, Any]] = field(default_factory=list)
+    attribute_calls: list[dict[str, Any]] = field(default_factory=list)
     expected_sha: str = ""
     head_sha: str = ""
     base_sha: str = ""
@@ -107,6 +111,17 @@ def parse_github_output(text: str) -> dict[str, str]:
         key, value = line.split("=", 1)
         values[key] = value
     return values
+
+
+def should_run_step_if(condition: object, *, app_configured: bool) -> bool:
+    if condition is None:
+        return True
+    text = str(condition)
+    if "app_configured == 'true'" in text or 'app_configured == "true"' in text:
+        return app_configured
+    if "app_configured != 'true'" in text:
+        return not app_configured
+    return True
 
 
 def github_or_expr(expr: str, values: dict[str, str]) -> str:
@@ -350,12 +365,22 @@ def run_merge_job(
             "labels_added": [],
             "workflow_runs": [],
             "merge_calls": [],
+            "mint_calls": [],
+            "attribute_calls": [],
             "update_branch_calls": [],
             "calls": [],
             "compare_status": "ahead",
             "merge_sha": head_sha,
         }
         state_path.write_text(json.dumps(state, indent=2) + "\n", encoding="utf-8")
+        marker_env = dict(base_env)
+        marker_env["GH_TOKEN"] = github_token
+        mint_step = step_named(workflow, MINT_STEP)
+        if should_run_step_if(mint_step.get("if"), app_configured=app_configured):
+            _run_bash("gh app-token mint", cwd=repo, env=marker_env, timeout=timeout)
+        attribute_step = step_named(workflow, ATTRIBUTE_STEP)
+        if should_run_step_if(attribute_step.get("if"), app_configured=app_configured):
+            _run_bash("gh app-token attribute", cwd=repo, env=marker_env, timeout=timeout)
         delivery_env = dict(base_env)
         delivery_env.update(
             {
@@ -386,6 +411,8 @@ def run_merge_job(
             github_output=github_output,
             workflow_runs=list(final_state.get("workflow_runs") or []),
             merge_calls=list(final_state.get("merge_calls") or []),
+            mint_calls=list(final_state.get("mint_calls") or []),
+            attribute_calls=list(final_state.get("attribute_calls") or []),
             labels_added=list(final_state.get("labels_added") or []),
             gh_calls=list(final_state.get("calls") or []),
             expected_sha=expected_sha,

@@ -7,22 +7,22 @@ F
 FAIL: test_missing_app_run1_dispatches_validate_skips_merge_and_labels (tests.test_cve_sync_merge_harness.CveSyncMergeHarnessTests.test_missing_app_run1_dispatches_validate_skips_merge_and_labels)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/tmp/M7_skip_merge_inverted-a8j0ld2x/tests/test_cve_sync_merge_harness.py", line 52, in test_missing_app_run1_dispatches_validate_skips_merge_and_labels
+  File "/tmp/M7_skip_merge_inverted-eou3wf3r/tests/test_cve_sync_merge_harness.py", line 51, in test_missing_app_run1_dispatches_validate_skips_merge_and_labels
     self.assertEqual(
 AssertionError: Lists differ: [{'path': 'repos/stevologic/security-recip[137 chars]en'}] != []
 
 First list contains 1 additional elements.
 First extra element 0:
-{'path': 'repos/stevologic/security-recipes.ai/pulls/475/merge', 'raw_fields': {'merge_method': 'squash', 'sha': 'd7529df5efb84a7c65fb534e3aca12a80e335cdc'}, 'token': 'github-token'}
+{'path': 'repos/stevologic/security-recipes.ai/pulls/475/merge', 'raw_fields': {'merge_method': 'squash', 'sha': '1de18cfb09766f0bee97011297cfa22c72a17785'}, 'token': 'github-token'}
 
 + []
 - [{'path': 'repos/stevologic/security-recipes.ai/pulls/475/merge',
 -   'raw_fields': {'merge_method': 'squash',
--                  'sha': 'd7529df5efb84a7c65fb534e3aca12a80e335cdc'},
--   'token': 'github-token'}] : missing App must not call the merge API, got [{'path': 'repos/stevologic/security-recipes.ai/pulls/475/merge', 'raw_fields': {'merge_method': 'squash', 'sha': 'd7529df5efb84a7c65fb534e3aca12a80e335cdc'}, 'token': 'github-token'}]
+-                  'sha': '1de18cfb09766f0bee97011297cfa22c72a17785'},
+-   'token': 'github-token'}] : missing App must not call the merge API, got [{'path': 'repos/stevologic/security-recipes.ai/pulls/475/merge', 'raw_fields': {'merge_method': 'squash', 'sha': '1de18cfb09766f0bee97011297cfa22c72a17785'}, 'token': 'github-token'}]
 
 ----------------------------------------------------------------------
-Ran 1 test in 0.847s
+Ran 1 test in 0.899s
 
 FAILED (failures=1)
 

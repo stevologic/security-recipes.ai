@@ -226,6 +226,18 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args[0] == "pr" and len(args) > 1 and args[1] == "edit":
         return handle_pr_edit(state, args[2:])
+    if args[0] == "app-token" and len(args) > 1 and args[1] == "mint":
+        state.setdefault("mint_calls", []).append(
+            {"argv": args, "token": os.environ.get("GH_TOKEN", "")}
+        )
+        save_state(state)
+        return 0
+    if args[0] == "app-token" and len(args) > 1 and args[1] == "attribute":
+        state.setdefault("attribute_calls", []).append(
+            {"argv": args, "token": os.environ.get("GH_TOKEN", "")}
+        )
+        save_state(state)
+        return 0
     sys.stderr.write("gh stub: unhandled command: " + " ".join(args) + "\n")
     return 1
 

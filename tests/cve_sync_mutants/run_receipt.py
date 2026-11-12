@@ -10,7 +10,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-from tests.cve_sync_mutants.mutants import KILLERS, MUTANTS, SANDBOX_FILES
+from tests.cve_sync_mutants.mutants import KILLERS, MUTANTS, SANDBOX_FILES, STRUCTURAL
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -120,11 +120,12 @@ def main() -> int:
     print("CONTROL: green")
 
     rows: list[str] = [
-        "mutant\tfile:line\tkilling_test\tstatus\tactual_vs_expected"
+        "mutant\tfile:line\tkind\tkilling_test\tstatus\tactual_vs_expected"
     ]
     killed = 0
     for mutant_id, relative, old, new in MUTANTS:
         killer = KILLERS[mutant_id]
+        kind = "structural" if mutant_id in STRUCTURAL else "behavioural"
         source_text = (ROOT / relative).read_text(encoding="utf-8")
         line = needle_line(source_text, old)
         with tempfile.TemporaryDirectory(prefix=f"{mutant_id}-") as tmp:
@@ -152,7 +153,9 @@ def main() -> int:
                 f"{assertion_tail(proc.stderr or proc.stdout)}"
             )
             print(f"{mutant_id}: ERROR (not counted as kill)")
-        rows.append(f"{mutant_id}\t{relative}:{line}\t{killer}\t{status}\t{actual}")
+        rows.append(
+            f"{mutant_id}\t{relative}:{line}\t{kind}\t{killer}\t{status}\t{actual}"
+        )
 
     summary = [
         f"control_exit={control.returncode}",

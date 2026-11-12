@@ -12,7 +12,6 @@ from tests.cve_sync_harness import (
     HarnessResult,
     load_workflow,
     run_merge_job,
-    step_named,
 )
 from tests.cve_sync_mutants.mutants import MUTANTS
 
@@ -105,17 +104,41 @@ class CveSyncMergeHarnessTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
     def test_missing_app_expected_sha_falls_back_to_sync_head(self) -> None:
+        # App-commit is skipped, so its output is empty. Dispatch must still
+        # carry the sync head SHA from the EXPECTED_SHA || fallback.
         result = run_merge_job(self.workflow)
-        delivery = step_named(self.workflow, "Reconcile, validate, and merge exact catalog revision")
-        env = delivery.get("env")
-        self.assertIsInstance(env, dict)
-        expr = str(env.get("EXPECTED_SHA") or "")
-        self.assertIn("needs.sync.outputs.head_sha", expr)
-        self.assertIn("||", expr)
-        self.assertEqual(result.expected_sha, result.head_sha)
-        self.assertRegex(result.expected_sha, SHA_RE)
+        self.assertEqual(result.detect_outputs.get("app_configured"), "false")
+        self.assertTrue(
+            result.dispatched_validate,
+            "missing App with empty app-commit output must still dispatch validate",
+        )
+        self.assertRegex(
+            result.dispatch_expected_sha,
+            SHA_RE,
+            "validate dispatch expected_sha must be the 40-char sync head, "
+            f"got {result.dispatch_expected_sha!r}",
+        )
+        self.assertEqual(
+            result.dispatch_expected_sha,
+            result.head_sha,
+            "empty app-commit output must fall back to the sync head SHA on dispatch",
+        )
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def test_missing_app_skips_mint_and_attribute(self) -> None:
+        result = run_merge_job(self.workflow)
+        self.assertEqual(result.detect_outputs.get("app_configured"), "false")
+        self.assertEqual(
+            result.mint_calls,
+            [],
+            f"mint step must not run without the App, got {result.mint_calls!r}",
+        )
+        self.assertEqual(
+            result.attribute_calls,
+            [],
+            f"attribute step must not run without the App, got {result.attribute_calls!r}",
+        )
         self.assertTrue(result.dispatched_validate)
-        self.assertEqual(result.dispatch_expected_sha, result.head_sha)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
     def test_missing_app_run2_escalates_after_dispatch(self) -> None:
@@ -244,6 +267,8 @@ class CveSyncMergeHarnessTests(unittest.TestCase):
         self.assertNotEqual(result.merge_calls[0].get("token"), GITHUB_TOKEN)
         self.assertNotIn(FALLBACK_LABEL, result.labels_added)
         self.assertNotEqual(result.outputs.get("protection_fallback"), "true")
+        self.assertTrue(result.mint_calls, "configured App must mint an App token")
+        self.assertTrue(result.attribute_calls, "configured App must attribute the catalog revision")
         self.assert_no_secret_echo(result)
 
     def test_configured_app_empty_token_fails_closed(self) -> None:

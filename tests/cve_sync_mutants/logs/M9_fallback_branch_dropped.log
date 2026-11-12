@@ -7,12 +7,12 @@ F
 FAIL: test_missing_app_run1_dispatches_validate_skips_merge_and_labels (tests.test_cve_sync_merge_harness.CveSyncMergeHarnessTests.test_missing_app_run1_dispatches_validate_skips_merge_and_labels)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/tmp/M9_fallback_branch_dropped-xccn86uy/tests/test_cve_sync_merge_harness.py", line 60, in test_missing_app_run1_dispatches_validate_skips_merge_and_labels
+  File "/tmp/M9_fallback_branch_dropped-0od0ihvg/tests/test_cve_sync_merge_harness.py", line 59, in test_missing_app_run1_dispatches_validate_skips_merge_and_labels
     self.assertIn(
-AssertionError: 'Required build check is attached by dispatching cve-catalog-validate.yml' not found in '::notice::GitHub App is not configured on the cve-sync environment. Continuing with GITHUB_TOKEN: the catalog PR stays open, cve-catalog-validate.yml is dispatched on the exact PR head so the required build check attaches, and merge will not attempt to bypass ruleset 18147261. Labeling automation:protection-fallback.\nCatalog delivery attempt 1/5.\nExact SHA 99ae4cd8a0d74d919d9a2e436f6eb80991c9e282 touches only allowlisted catalog data paths.\nData-only catalog PR skips karen-qa and the GitHub App check.\nValidated exact catalog PR revision 99ae4cd8a0d74d919d9a2e436f6eb80991c9e282 in this sync run: https://github.com/example/validate/1\n::notice::Catalog PR #475 is data-only but branch protection blocked merge at 99ae4cd8a0d74d919d9a2e436f6eb80991c9e282; leaving the PR open labeled automation:protection-fallback for the next sync retry.\nLeaving catalog PR #475 open; merge was not attempted without the App.\n' : missing App run 1 must emit the report_protection_fallback notice, not only the require-step notice
+AssertionError: 'Required build check is attached by dispatching cve-catalog-validate.yml' not found in '::notice::GitHub App is not configured on the cve-sync environment. Continuing with GITHUB_TOKEN: the catalog PR stays open, cve-catalog-validate.yml is dispatched on the exact PR head so the required build check attaches, and merge will not attempt to bypass ruleset 18147261. Labeling automation:protection-fallback.\nCatalog delivery attempt 1/5.\nExact SHA 21f304338d9e50c290b37caecde6e22e87ac8679 touches only allowlisted catalog data paths.\nData-only catalog PR skips karen-qa and the GitHub App check.\nValidated exact catalog PR revision 21f304338d9e50c290b37caecde6e22e87ac8679 in this sync run: https://github.com/example/validate/1\n::notice::Catalog PR #475 is data-only but branch protection blocked merge at 21f304338d9e50c290b37caecde6e22e87ac8679; leaving the PR open labeled automation:protection-fallback for the next sync retry.\nLeaving catalog PR #475 open; merge was not attempted without the App.\n' : missing App run 1 must emit the report_protection_fallback notice, not only the require-step notice
 
 ----------------------------------------------------------------------
-Ran 1 test in 0.887s
+Ran 1 test in 0.924s
 
 FAILED (failures=1)
 

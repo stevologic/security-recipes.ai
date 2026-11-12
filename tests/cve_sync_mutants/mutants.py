@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 WORKFLOW = ".github/workflows/cve-catalog-sync.yml"
+DELIVERY = "scripts/cve_catalog_delivery.py"
 
 # Each tuple is (id, relative path, exact old text, replacement).
 MUTANTS: list[tuple[str, str, str, str]] = [
@@ -102,6 +103,30 @@ MUTANTS: list[tuple[str, str, str, str]] = [
         '              echo "protection_fallback=true" >> "$GITHUB_OUTPUT"\n              if [ "$escalate" = "true" ]; then\n                echo "::error::$message"\n                echo "::error::Catalog protection-fallback escalated after 2 consecutive runs or 24h; this is a real alert."\n                return 1\n              fi\n              return 0\n',
         '              if [ "$escalate" = "true" ]; then\n                echo "::error::$message"\n                echo "::error::Catalog protection-fallback escalated after 2 consecutive runs or 24h; this is a real alert."\n                return 1\n              fi\n              return 0\n',
     ),
+    (
+        "M17_fallback_age_25h",
+        DELIVERY,
+        "FALLBACK_MAX_AGE = timedelta(hours=24)",
+        "FALLBACK_MAX_AGE = timedelta(hours=25)",
+    ),
+    (
+        "M18_second_run_escalation_dropped",
+        DELIVERY,
+        "    consecutive = FALLBACK_CONSECUTIVE_RUNS if already_labeled else 1",
+        "    consecutive = 1",
+    ),
+    (
+        "M19_report_before_dispatch",
+        WORKFLOW,
+        '            dispatch_and_wait_for_validation "$DELIVERY_ATTEMPT"\n',
+        '            if [ "$APP_CONFIGURED" != "true" ]; then\n              if ! report_protection_fallback "$EXPECTED_SHA"; then\n                echo "::error::Catalog protection-fallback failed while the GitHub App is absent."\n                exit 1\n              fi\n            fi\n            dispatch_and_wait_for_validation "$DELIVERY_ATTEMPT"\n',
+    ),
+    (
+        "M20_escalation_exits_zero",
+        WORKFLOW,
+        '                echo "::error::Catalog protection-fallback escalated after 2 consecutive runs or 24h; this is a real alert."\n                return 1\n',
+        '                echo "::error::Catalog protection-fallback escalated after 2 consecutive runs or 24h; this is a real alert."\n                return 0\n',
+    ),
 ]
 
 KILLERS: dict[str, str] = {
@@ -116,12 +141,18 @@ KILLERS: dict[str, str] = {
     "M9_fallback_branch_dropped": "tests.test_cve_sync_merge_harness.CveSyncMergeHarnessTests.test_missing_app_run1_dispatches_validate_skips_merge_and_labels",
     "M10_dispatch_ref_main": "tests.test_cve_sync_merge_harness.CveSyncMergeHarnessTests.test_missing_app_validate_dispatch_pins_exact_sha_on_pr_branch",
     "M11_expected_sha_fallback_dropped": "tests.test_cve_sync_merge_harness.CveSyncMergeHarnessTests.test_missing_app_expected_sha_falls_back_to_sync_head",
-    "M12_mint_if_dropped": "tests.test_cve_sync_workflow.CveSyncWorkflowTests.test_mint_and_attribute_steps_are_gated_on_app_configured",
+    "M12_mint_if_dropped": "tests.test_cve_sync_merge_harness.CveSyncMergeHarnessTests.test_missing_app_skips_mint_and_attribute",
     "M13_empty_app_token_guard_dropped": "tests.test_cve_sync_merge_harness.CveSyncMergeHarnessTests.test_configured_app_empty_token_fails_closed",
     "M14_actions_permission_read": "tests.test_cve_sync_merge_harness.CveSyncMergeHarnessTests.test_merge_job_actions_permission_is_write",
     "M15_fallback_label_dropped": "tests.test_cve_sync_merge_harness.CveSyncMergeHarnessTests.test_missing_app_run1_dispatches_validate_skips_merge_and_labels",
     "M16_fallback_output_dropped": "tests.test_cve_sync_merge_harness.CveSyncMergeHarnessTests.test_missing_app_run1_dispatches_validate_skips_merge_and_labels",
+    "M17_fallback_age_25h": "tests.test_cve_sync_merge_harness.CveSyncMergeHarnessTests.test_missing_app_24h_escalates_after_dispatch",
+    "M18_second_run_escalation_dropped": "tests.test_cve_sync_merge_harness.CveSyncMergeHarnessTests.test_missing_app_run2_escalates_after_dispatch",
+    "M19_report_before_dispatch": "tests.test_cve_sync_merge_harness.CveSyncMergeHarnessTests.test_missing_app_run2_escalates_after_dispatch",
+    "M20_escalation_exits_zero": "tests.test_cve_sync_merge_harness.CveSyncMergeHarnessTests.test_missing_app_run2_escalates_after_dispatch",
 }
+
+STRUCTURAL = frozenset({"M14_actions_permission_read"})
 
 SANDBOX_FILES = (
     ".github/workflows/cve-catalog-sync.yml",

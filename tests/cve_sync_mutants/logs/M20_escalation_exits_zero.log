@@ -1,0 +1,28 @@
+exit=1
+--- stdout ---
+
+--- stderr ---
+F
+======================================================================
+FAIL: test_missing_app_run2_escalates_after_dispatch (tests.test_cve_sync_merge_harness.CveSyncMergeHarnessTests.test_missing_app_run2_escalates_after_dispatch)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/tmp/M20_escalation_exits_zero-s5d8s859/tests/test_cve_sync_merge_harness.py", line 159, in test_missing_app_run2_escalates_after_dispatch
+    self.assertEqual(
+AssertionError: 0 != 1 : missing App run 2 expected exit 1 after dispatch+escalation, got 0: ::notice::GitHub App is not configured on the cve-sync environment. Continuing with GITHUB_TOKEN: the catalog PR stays open, cve-catalog-validate.yml is dispatched on the exact PR head so the required build check attaches, and merge will not attempt to bypass ruleset 18147261. Labeling automation:protection-fallback.
+Catalog delivery attempt 1/5.
+Exact SHA d67f81f8a4076f1dadc15d15042b19a053e154bc touches only allowlisted catalog data paths.
+Data-only catalog PR skips karen-qa and the GitHub App check.
+Validated exact catalog PR revision d67f81f8a4076f1dadc15d15042b19a053e154bc in this sync run: https://github.com/example/validate/1
+::notice::GitHub App is not configured; catalog merge cannot bypass ruleset 18147261. Required build check is attached by dispatching cve-catalog-validate.yml on d67f81f8a4076f1dadc15d15042b19a053e154bc. Leaving PR #475 open labeled automation:protection-fallback.
+::error::Catalog PR has been in protection-fallback on 2 consecutive sync runs; escalating to a real alert. GitHub App is not configured; set CVE_SYNC_APP_ID and CVE_SYNC_APP_KEY on the cve-sync environment. Catalog merge cannot bypass ruleset 18147261 without the App.
+::error::Catalog protection-fallback escalated after 2 consecutive runs or 24h; this is a real alert.
+Leaving catalog PR #475 open; merge was not attempted without the App.
+
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.956s
+
+FAILED (failures=1)
+
