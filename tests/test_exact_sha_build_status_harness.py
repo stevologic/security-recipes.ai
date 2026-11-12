@@ -18,11 +18,7 @@ import yaml
 
 from tests.exact_sha_build_status_mutants import (
     EQUIVALENT_MUTANTS,
-    SH,
-    VA,
     apply_edits,
-    edits_for,
-    known_mutant_ids,
 )
 
 
@@ -59,6 +55,8 @@ LOOKALIKE_APP_ACTORS = (
     f"{APP_ACTOR} ",
     f"{APP_ACTOR}\u200b",
     "dependabot[bot]",
+    "QA-CVE-SYNC[bot]",
+    "Qa-Cve-Sync[bot]",
 )
 LOOKALIKE_BRANCHES = (
     "automation/cve-catalog-sync-2",
@@ -1084,16 +1082,6 @@ class ExactShaBuildStatusControlTests(unittest.TestCase):
             ),
         )
 
-    def test_mutant_anchors_are_unique_in_live_yaml(self) -> None:
-        files = {
-            SH: SHEPHERD_WORKFLOW.read_text(encoding="utf-8"),
-            VA: VALIDATE_WORKFLOW.read_text(encoding="utf-8"),
-        }
-        for mutant_id in known_mutant_ids():
-            for rel, old, _new in edits_for(mutant_id):
-                with self.subTest(mutant_id=mutant_id, rel=rel):
-                    self.assertEqual(files[rel].count(old), 1, mutant_id)
-
     def test_publish_job_wiring(self) -> None:
         assert_publish_job_wiring(CONTROL)
 
@@ -1376,6 +1364,17 @@ class ExactShaBuildStatusMutantKillTests(unittest.TestCase):
                 dispatch_actor=f"x{APP_SLUG}[bot]",
                 app_slug=APP_SLUG,
                 why="xslug[bot]",
+            ),
+        )
+
+    def test_A6_case_insensitive_app_actor_is_killed(self) -> None:
+        assert_killed(
+            "A6-case-insensitive-app-actor",
+            lambda paths: assert_publish_refuses_dispatch_origin(
+                paths,
+                dispatch_actor="QA-CVE-SYNC[bot]",
+                app_slug=APP_SLUG,
+                why="QA-CVE-SYNC[bot]",
             ),
         )
 

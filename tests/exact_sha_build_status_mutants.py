@@ -350,6 +350,12 @@ MUTANTS: list[tuple[str, str, str, str]] = [
         ACTOR_ELIF,
         '          elif [ -n "$APP_SLUG" ] && [[ "$DISPATCH_ACTOR" == *"${APP_SLUG}"* ]]; then',
     ),
+    (
+        "A6-case-insensitive-app-actor",
+        VA,
+        ACTOR_ELIF,
+        '          elif [ -n "$APP_SLUG" ] && [ "${DISPATCH_ACTOR,,}" = "$TRUSTED_APP_ACTOR" ]; then',
+    ),
 ]
 
 EXTRA: dict[str, tuple[str, str, str]] = {
