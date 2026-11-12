@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-10-29",
+  "last_reviewed": "2026-11-12",
   "intent": "Create an enterprise Agent Trust Fabric profile for SecurityRecipes that turns identity, behavior, context, least-privilege scope, telemetry, containment, source freshness, and buyer proof into one deterministic trust verdict before an agent retrieves secure context, invokes MCP tools, delegates, writes memory, or performs high-impact actions.",
   "positioning": {
     "buyer": "AI platform, product security, CISO, GRC, model-risk, SOC, procurement-security, and acquisition diligence teams",
@@ -20,19 +20,19 @@
     },
     {
       "id": "csa-ai-controls-matrix-2025",
-      "name": "AI Controls Matrix",
+      "name": "AI Controls Matrix v1.1",
       "publisher": "Cloud Security Alliance",
-      "published": "2025-10-30",
-      "url": "https://cloudsecurityalliance.org/artifacts/ai-controls-matrix",
+      "published": "2026-06-22",
+      "url": "https://cloudsecurityalliance.org/artifacts/ai-controls-matrix-v1-1",
       "source_class": "enterprise_control_framework",
-      "why_it_matters": "CSA AICM gives enterprise buyers a broader AI governance and shared-responsibility control baseline that the trust fabric can map into operational agent checks."
+      "why_it_matters": "CSA's AI Controls Matrix v1.1 (June 22, 2026) gives enterprise buyers 247 vendor-agnostic control objectives across 18 security domains, with mappings to ISO 42001, ISO 27001, BSI AIC4, the EU AI Act, AIUC-1, and NIST AI RMF and AI 600-1, which the trust fabric can map into operational agent checks."
     },
     {
       "id": "nist-ai-agent-standards-initiative-2026",
-      "name": "AI Agent Standards Initiative",
-      "publisher": "NIST CAISI",
+      "name": "SI Agent Standards Initiative",
+      "publisher": "NIST CAISSI",
       "published": "2026-02-17",
-      "url": "https://www.nist.gov/artificial-intelligence/ai-agent-standards-initiative",
+      "url": "https://www.nist.gov/super-intelligence/si-agent-standards-initiative",
       "source_class": "government_standards_signal",
       "why_it_matters": "NIST is prioritizing trusted, interoperable, secure agent standards; SecurityRecipes needs a cross-vendor trust decision shape rather than a vendor-specific prompt policy."
     },
@@ -95,7 +95,7 @@
       "name": "Model Context Protocol Security Best Practices (2026-07-28 current revision)",
       "publisher": "Model Context Protocol",
       "published": "2026-07-28",
-      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices",
+      "url": "https://modelcontextprotocol.io/docs/2026-07-28/tutorials/security/security_best_practices",
       "source_class": "protocol_guidance",
       "why_it_matters": "Current MCP 2026-07-28 security guidance replaces session-hijacking assumptions with state-handle binding, forbids token passthrough, requires confused-deputy consent on proxies, and tightens SSRF controls during metadata and Client ID Metadata Document fetches."
     },
@@ -106,16 +106,34 @@
       "published": "2026-07-28",
       "url": "https://modelcontextprotocol.io/specification/2026-07-28/changelog",
       "source_class": "protocol_specification",
-      "why_it_matters": "Current public MCP 2026-07-28 revision. The latest MCP revision adds incremental scope consent, URL-mode elicitation, OAuth client ID metadata documents, and experimental tasks that affect trust decisions for long-running agent work."
+      "why_it_matters": "Current public MCP 2026-07-28 revision. Trust-relevant changes: protocol-level sessions and the Mcp-Session-Id header are removed (cross-call state uses explicit server-minted handles), the initialize handshake is removed in favor of per-request protocol version and capabilities in _meta, tasks move out of the core protocol into an official extension, Dynamic Client Registration is deprecated in favor of Client ID Metadata Documents, clients must validate RFC 9207 iss, and client credentials are keyed to the issuing authorization server."
     },
     {
       "id": "mcp-changelog-2025-11-25",
-      "name": "Model Context Protocol 2025-11-25 Key Changes",
+      "name": "Model Context Protocol 2025-11-25 Key Changes (prior revision)",
       "publisher": "Model Context Protocol",
       "published": "2025-11-25",
       "url": "https://modelcontextprotocol.io/specification/2025-11-25/changelog",
       "source_class": "protocol_specification",
-      "why_it_matters": "The latest MCP revision adds incremental scope consent, URL-mode elicitation, OAuth client ID metadata documents, and experimental tasks that affect trust decisions for long-running agent work."
+      "why_it_matters": "Prior MCP 2025-11-25 revision kept as a historical source ID. It introduced incremental scope consent, URL-mode elicitation, OAuth client ID metadata documents, and experimental tasks; 2026-07-28 supersedes it."
+    },
+    {
+      "id": "owasp-agentic-top-10-2026",
+      "name": "OWASP Top 10 for Agentic Applications 2026",
+      "publisher": "OWASP GenAI Security Project",
+      "published": "2025-12-09",
+      "url": "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/",
+      "source_class": "industry_risk_catalog",
+      "why_it_matters": "OWASP's agentic risk catalog (goal hijack, tool misuse, identity and privilege abuse, agentic supply chain, unexpected code execution, memory and context poisoning, rogue agents) names the failure modes each trust-fabric dimension must hold or kill."
+    },
+    {
+      "id": "cisa-careful-adoption-agentic-ai-2026",
+      "name": "Careful Adoption of Agentic AI Services",
+      "publisher": "CISA, ASD's ACSC, and international partners",
+      "published": "2026-05-01",
+      "url": "https://www.cisa.gov/resources-tools/resources/careful-adoption-agentic-si-services",
+      "source_class": "government_security_signal",
+      "why_it_matters": "The May 1, 2026 joint guidance flags expanded attack surface, privilege creep, behavioral misalignment, and obscure event records, and tells adopters to avoid broad or unrestricted agent access and start with low-risk, non-sensitive use cases, which maps directly onto trust tiers."
     },
     {
       "id": "owasp-mcp-top-10-2025",
@@ -149,9 +167,9 @@
       "name": "OpenTelemetry GenAI Agent and Framework Spans",
       "publisher": "OpenTelemetry",
       "published": "2026-05-04",
-      "url": "https://opentelemetry.io/docs/specs/semconv/gen-ai/gen-ai-agent-spans/",
+      "url": "https://github.com/open-telemetry/semantic-conventions-genai/blob/main/docs/gen-ai/gen-ai-agent-spans.md",
       "source_class": "observability_standard",
-      "why_it_matters": "OpenTelemetry GenAI conventions provide cross-vendor span names and attributes for agent invocation and tool execution, giving the trust fabric a portable telemetry substrate."
+      "why_it_matters": "OpenTelemetry GenAI conventions (now maintained in the semantic-conventions-genai repository, status Development) provide cross-vendor span names and attributes for agent creation, agent invocation, and tool execution, giving the trust fabric a portable telemetry substrate."
     }
   ],
   "trust_contract": {

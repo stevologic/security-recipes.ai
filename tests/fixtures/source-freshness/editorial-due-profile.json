@@ -1,0 +1,100 @@
+{
+  "schema_version": "1.0",
+  "last_reviewed": "2026-05-04",
+  "intent": "Dedicated fixture profile for proving that editorial review-due findings are omitted from the written source-freshness pack without depending on live watched sources.",
+  "freshness_contract": {
+    "default_state": "not_enterprise_ready_until_primary_sources_and_dependent_packs_are_current",
+    "as_of": "2026-05-04",
+    "minimum_watch_sources": 1,
+    "minimum_unique_source_references": 4,
+    "minimum_primary_watchlist_items": 1,
+    "maximum_due_watch_sources": 0,
+    "required_publishers": [
+      "OWASP",
+      "NIST",
+      "Model Context Protocol",
+      "OpenAI",
+      "CISA",
+      "Cloud Security Alliance"
+    ],
+    "required_source_classes": [
+      "industry_standard",
+      "government_framework",
+      "protocol_specification",
+      "frontier_lab_guidance"
+    ],
+    "review_lanes": [
+      {
+        "id": "protocol-specifications",
+        "source_class_match": "protocol",
+        "review_cadence_days": 30,
+        "why": "Fixture protocol lane used only by the editorial-due watch test."
+      },
+      {
+        "id": "frontier-lab-defenses",
+        "source_class_match": "frontier_lab",
+        "review_cadence_days": 45,
+        "why": "Fixture frontier-lab lane used only by the editorial-due watch test."
+      },
+      {
+        "id": "government-ai-security",
+        "source_class_match": "government",
+        "review_cadence_days": 60,
+        "why": "Fixture government lane used only by the editorial-due watch test."
+      },
+      {
+        "id": "industry-consensus",
+        "source_class_match": "industry",
+        "review_cadence_days": 60,
+        "why": "Fixture industry lane used only by the editorial-due watch test."
+      }
+    ],
+    "valid_watch_decisions": [
+      "current",
+      "review_due",
+      "stale_or_missing",
+      "blocked_by_missing_source"
+    ]
+  },
+  "watched_sources": [
+    {
+      "id": "fixture-overdue-watched-source",
+      "title": "Fixture Overdue Watched Source",
+      "path": "overdue-watched-source.json",
+      "reference_paths": ["source_references"],
+      "review_cadence_days": 30,
+      "business_criticality": "high",
+      "why": "This fixture pack is deliberately overdue on the pinned 2026-10-27 as-of date so the test does not depend on live profiles."
+    }
+  ],
+  "primary_watchlist": [
+    {
+      "id": "owasp-agentic-top-10-fixture",
+      "title": "OWASP Top 10 for Agentic Applications fixture",
+      "publisher_family": "OWASP",
+      "url": "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/",
+      "review_cadence_days": 30,
+      "commercial_reason": "Fixture primary watchlist item that must remain referenced by the overdue watched source."
+    }
+  ],
+  "buyer_views": [
+    {
+      "id": "procurement-freshness-review",
+      "title": "Procurement Freshness Review",
+      "question": "Which primary sources does the fixture watch, and is the pack due for review?",
+      "answer_contract": "Return watched packs, last-reviewed dates, source coverage, and review-due findings."
+    },
+    {
+      "id": "ai-platform-standards-drift",
+      "title": "AI Platform Standards Drift Review",
+      "question": "What fixture sources would force a policy or evidence refresh?",
+      "answer_contract": "Return primary watchlist coverage, review lanes, and dependent source packs."
+    },
+    {
+      "id": "acquisition-diligence",
+      "title": "Acquisition Diligence",
+      "question": "How does the fixture prove editorial due findings are omitted from written failures?",
+      "answer_contract": "Return current-source proof, regeneration paths, and review-due findings."
+    }
+  ]
+}

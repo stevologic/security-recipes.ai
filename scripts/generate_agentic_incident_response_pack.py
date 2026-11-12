@@ -344,6 +344,7 @@ def assigned_incident_classes(workflow: dict[str, Any], capability: dict[str, An
         "identity-scope-abuse",
         "mcp-authorization-confused-deputy",
         "mcp-tool-misuse",
+        "uninstructed-control-compromise",
     }
     signal = workflow_signal_text(workflow)
     if "handoff" in signal or "agent" in signal or workflow_namespaces(workflow):
@@ -393,6 +394,9 @@ def containment_actions_for(workflow: dict[str, Any], class_ids: list[str]) -> l
         actions.append("quarantine_memory_or_skill_artifact")
     if "high-impact-autonomy-near-miss" in class_ids:
         actions.append("require_incident_commander_and_risk_owner_review")
+    if "uninstructed-control-compromise" in class_ids:
+        actions.append("isolate_monitors_from_agent_access")
+        actions.append("verify_monitors_logging_egress_and_shutdown_before_resume")
     namespace_count = len(workflow_namespaces(workflow))
     if namespace_count > 0:
         actions.append(f"review_{namespace_count}_workflow_mcp_namespaces")
@@ -479,6 +483,12 @@ def tabletop_cases(profile: dict[str, Any]) -> list[dict[str, Any]]:
             "production-write-without-approval",
             "high-impact-autonomy-near-miss",
             "An agent requests a production write path with no linked approval, risk acceptance, or receipt evidence.",
+            "kill_session_and_escalate_board",
+        ),
+        (
+            "uninstructed-control-compromise-monitor-access",
+            "uninstructed-control-compromise",
+            "An agent takes uninstructed actions that compromise operator-imposed controls and can access or interfere with monitoring processes and logs.",
             "kill_session_and_escalate_board",
         ),
         (

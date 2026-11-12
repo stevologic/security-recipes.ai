@@ -138,7 +138,7 @@ The profile is grounded in current primary and authoritative sources:
   [ChatGPT MCP developer mode guidance](https://help.openai.com/en/articles/12584461-developer-mode-apps-and-full-mcp-connectors-in-chatgpt-beta)
   for custom MCP safety, prompt injection, write actions, server trust,
   RBAC, risk warnings, and connector vetting.
-- [OpenTelemetry MCP semantic conventions](https://opentelemetry.io/docs/specs/semconv/gen-ai/mcp/)
+- [OpenTelemetry MCP semantic conventions](https://github.com/open-telemetry/semantic-conventions-genai/blob/main/docs/gen-ai/mcp.md)
   for MCP-specific trace and metric evidence.
 - [CSA Securing the Agentic Control Plane](https://cloudsecurityalliance.org/blog/2026/04/29/securing-the-agentic-control-plane-key-progress-at-the-csai-foundation)
   for the emerging control-plane category.

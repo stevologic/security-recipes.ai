@@ -248,30 +248,32 @@ def build_risk_coverage(profile: dict[str, Any]) -> list[dict[str, Any]]:
             str(capability.get("status")) == "implemented"
             for capability in mapped_capabilities
         )
-        rows.append(
-            {
-                "capabilities": mapped_capabilities,
-                "commercialization_hook": risk.get("commercialization_hook"),
-                "coverage_status": "covered" if ready else "needs_attention",
-                "diligence_question": risk.get("diligence_question"),
-                "evidence_expectation": risk.get("evidence_expectation"),
-                "evidence_paths": evidence_paths,
-                "id": risk.get("id"),
-                "mcp_tools": mcp_tools,
-                "primary_attack_path": risk.get("primary_attack_path"),
-                "required_capability_ids": capability_ids,
-                "risk_tier": risk.get("risk_tier"),
-                "source_ids": source_ids,
-                "sources": [
-                    source_preview(sources[source_id])
-                    for source_id in source_ids
-                    if source_id in sources
-                ],
-                "standard_id": risk.get("standard_id"),
-                "standard_title": risk.get("standard_title"),
-                "title": risk.get("title"),
-            }
-        )
+        row = {
+            "capabilities": mapped_capabilities,
+            "commercialization_hook": risk.get("commercialization_hook"),
+            "coverage_status": "covered" if ready else "needs_attention",
+            "diligence_question": risk.get("diligence_question"),
+            "evidence_expectation": risk.get("evidence_expectation"),
+            "evidence_paths": evidence_paths,
+            "id": risk.get("id"),
+            "mcp_tools": mcp_tools,
+            "primary_attack_path": risk.get("primary_attack_path"),
+            "required_capability_ids": capability_ids,
+            "risk_tier": risk.get("risk_tier"),
+            "source_ids": source_ids,
+            "sources": [
+                source_preview(sources[source_id])
+                for source_id in source_ids
+                if source_id in sources
+            ],
+            "standard_id": risk.get("standard_id"),
+            "standard_title": risk.get("standard_title"),
+            "title": risk.get("title"),
+        }
+        aliases = risk.get("aliases")
+        if isinstance(aliases, list) and aliases:
+            row["aliases"] = aliases
+        rows.append(row)
     return rows
 
 
