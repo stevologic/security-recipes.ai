@@ -5,6 +5,13 @@ The evaluator is deterministic. It checks the generated incident
 response pack, runtime evidence, severity signals, data movement,
 authorization state, and containment status before deciding whether to
 monitor, triage, hold for forensics, contain, or kill the session.
+
+JSON --runtime-request payloads must include three monitor integrity
+fields: agent_can_access_monitors, monitor_tampering_or_outage, and
+resume_without_verified_containment. Missing, null, empty,
+whitespace-only, or otherwise unparseable values fail closed to
+contain_and_open_war_room with allowed=false. Explicit false, "false",
+and 0 remain false.
 """
 
 from __future__ import annotations
@@ -42,7 +49,7 @@ MONITOR_INTEGRITY_FLAGS = (
     "resume_without_verified_containment",
 )
 TRUE_BOOL_TOKENS = frozenset({"1", "true", "yes", "y", "on"})
-FALSE_BOOL_TOKENS = frozenset({"0", "false", "no", "n", "off", ""})
+FALSE_BOOL_TOKENS = frozenset({"0", "false", "no", "n", "off"})
 UNRESOLVED_MONITOR_INTEGRITY_DECISION = "contain_and_open_war_room"
 UNRESOLVED_MONITOR_INTEGRITY_REASON = (
     "monitor integrity flags are missing, unwired, or unparseable"
@@ -437,7 +444,19 @@ def evaluate_agentic_incident_response_decision(
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--pack", type=Path, default=DEFAULT_PACK)
-    parser.add_argument("--runtime-request", type=Path, help="JSON file containing the runtime incident request.")
+    parser.add_argument(
+        "--runtime-request",
+        type=Path,
+        help=(
+            "JSON file containing the runtime incident request. Required "
+            "monitor integrity fields: agent_can_access_monitors, "
+            "monitor_tampering_or_outage, and "
+            "resume_without_verified_containment. Missing, null, empty, "
+            "whitespace-only, or unparseable values fail closed to "
+            "contain_and_open_war_room with allowed=false. Explicit false, "
+            '"false", and 0 remain false.'
+        ),
+    )
     parser.add_argument("--incident-id")
     parser.add_argument("--workflow-id")
     parser.add_argument("--run-id")

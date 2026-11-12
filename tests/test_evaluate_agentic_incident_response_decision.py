@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import io
 import json
 import tempfile
 import unittest
+from contextlib import redirect_stdout
 from pathlib import Path
 
 from scripts.evaluate_agentic_incident_response_decision import (
@@ -338,9 +340,21 @@ class MonitorIntegrityFailClosedTests(unittest.TestCase):
 
     def test_json_unparseable_monitor_flags_fail_close(self) -> None:
         for key in MONITOR_INTEGRITY_FLAGS:
-            with self.subTest(key=key):
-                payload = _monitor_clear_request(**{key: "maybe"})
-                self._assert_fail_closed(_evaluate_json(payload), key)
+            for value in ("maybe", None, "", "  "):
+                with self.subTest(key=key, value=value):
+                    payload = _monitor_clear_request(**{key: value})
+                    self._assert_fail_closed(_evaluate_json(payload), key)
+
+    def test_help_documents_required_monitor_fields(self) -> None:
+        buffer = io.StringIO()
+        with self.assertRaises(SystemExit) as caught, redirect_stdout(buffer):
+            parse_args(["--help"])
+        self.assertEqual(caught.exception.code, 0)
+        help_text = buffer.getvalue()
+        for field in MONITOR_INTEGRITY_FLAGS:
+            self.assertIn(field, help_text)
+        self.assertIn("contain_and_open_war_room", help_text)
+        self.assertIn("allowed=false", help_text)
 
     def test_cli_unwired_monitor_flags_fail_close_and_do_not_resume(self) -> None:
         for key, flag in CLI_FLAG_BY_FIELD.items():

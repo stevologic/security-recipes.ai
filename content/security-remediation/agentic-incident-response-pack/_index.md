@@ -132,6 +132,8 @@ python3 scripts/evaluate_agentic_incident_response_decision.py \
   --expect-decision hold_for_forensics
 ```
 
+`--runtime-request` JSON must include three monitor integrity fields: `agent_can_access_monitors`, `monitor_tampering_or_outage`, and `resume_without_verified_containment`. If any field is missing, JSON `null`, empty (`""`), whitespace-only (`"  "`), or otherwise unparseable, the evaluator fail-closes to `contain_and_open_war_room` with `allowed=false`. It does not choose `monitor_no_incident` and it does not resume. Explicit `false`, `"false"`, and `0` mean false. True `agent_can_access_monitors` or `monitor_tampering_or_outage` remains a kill signal; true `resume_without_verified_containment` still holds for forensics. CLI `--agent-can-access-monitors`, `--monitor-tampering-or-outage`, and `--resume-without-verified-containment` stay opt-in flags; omitted CLI flags still wire `false`.
+
 ## What is inside
 
 | Section | Purpose |
