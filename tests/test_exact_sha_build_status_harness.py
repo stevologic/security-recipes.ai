@@ -8,19 +8,29 @@ import stat
 import subprocess
 import tempfile
 import unittest
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
+from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
 import yaml
 
+from tests.exact_sha_build_status_mutants import (
+    EQUIVALENT_MUTANTS,
+    SH,
+    VA,
+    apply_edits,
+    edits_for,
+    known_mutant_ids,
+)
+
 
 ROOT = Path(__file__).resolve().parents[1]
 SHEPHERD_WORKFLOW = ROOT / ".github" / "workflows" / "automation-shepherd.yml"
 VALIDATE_WORKFLOW = ROOT / ".github" / "workflows" / "cve-catalog-validate.yml"
+SYNC_WORKFLOW = ROOT / ".github" / "workflows" / "cve-catalog-sync.yml"
 FIXTURES = ROOT / "tests" / "fixtures" / "exact_sha_build_status"
-MUTANTS_ROOT = FIXTURES / "mutants"
 GH_STUB = FIXTURES / "gh_stub.py"
 
 HEAD_SHA = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
@@ -34,7 +44,22 @@ DEPENDABOT_BRANCH = "dependabot/npm_and_yarn/main/npm-minor-and-patch-3ce9b7b435
 SUBSTRING_BRANCH = "fix/hold-cve-catalog-sync-notes"
 TRUSTED_REF = "refs/heads/main"
 TRUSTED_ACTOR = "github-actions[bot]"
+APP_SLUG = "qa-cve-sync"
+APP_ACTOR = f"{APP_SLUG}[bot]"
 REPO_FULL_NAME = "stevologic/security-recipes.ai"
+LOOKALIKE_REFS = (
+    "refs/heads/main-x",
+    "refs/heads/mainline",
+    "refs/heads/x/main",
+    "refs/tags/main",
+)
+LOOKALIKE_APP_ACTORS = (
+    f"{APP_SLUG}-x[bot]",
+    f"x{APP_SLUG}[bot]",
+    f"{APP_ACTOR} ",
+    f"{APP_ACTOR}\u200b",
+    "dependabot[bot]",
+)
 LOOKALIKE_BRANCHES = (
     "automation/cve-catalog-sync-2",
     "automation/cve-catalog-sync/x",
@@ -70,12 +95,17 @@ class CommandResult:
     calls: list[dict[str, Any]]
 
 
-def mutant_paths(mutant_id: str) -> WorkflowPaths:
-    folder = MUTANTS_ROOT / mutant_id
-    return WorkflowPaths(
-        shepherd=folder / "automation-shepherd.yml",
-        validate=folder / "cve-catalog-validate.yml",
-    )
+@contextmanager
+def mutant_paths(mutant_id: str) -> Iterator[WorkflowPaths]:
+    with tempfile.TemporaryDirectory(prefix=f"exact-sha-mutant-{mutant_id}-") as tmp:
+        dest = Path(tmp)
+        shutil.copy(SHEPHERD_WORKFLOW, dest / "automation-shepherd.yml")
+        shutil.copy(VALIDATE_WORKFLOW, dest / "cve-catalog-validate.yml")
+        apply_edits(dest, mutant_id)
+        yield WorkflowPaths(
+            shepherd=dest / "automation-shepherd.yml",
+            validate=dest / "cve-catalog-validate.yml",
+        )
 
 
 def lookup_context(expr: str, context: dict[str, Any]) -> str:
@@ -136,7 +166,11 @@ def gha_context(
     pr_number: str = PR_NUMBER,
     ref: str = TRUSTED_REF,
     actor: str = TRUSTED_ACTOR,
+    app_slug: str | None = None,
 ) -> dict[str, Any]:
+    variables: dict[str, Any] = {}
+    if app_slug:
+        variables["CVE_SYNC_APP_SLUG"] = app_slug
     return {
         "inputs": {
             "expected_sha": expected_sha,
@@ -145,6 +179,7 @@ def gha_context(
             "expected_branch": expected_branch,
         },
         "needs": {"validate": {"result": validate_result}},
+        "vars": variables,
         "github": {
             "sha": MAIN_SHA,
             "token": "stub-token-not-for-echo",
@@ -357,6 +392,7 @@ def run_publish(
     expected_branch: str = SYNC_BRANCH,
     dispatch_ref: str = TRUSTED_REF,
     dispatch_actor: str = TRUSTED_ACTOR,
+    app_slug: str | None = None,
     scenario: dict[str, Any] | None = None,
 ) -> CommandResult:
     context = gha_context(
@@ -365,6 +401,7 @@ def run_publish(
         expected_branch=expected_branch,
         ref=dispatch_ref,
         actor=dispatch_actor,
+        app_slug=app_slug,
     )
     return run_named_step(
         paths,
@@ -594,6 +631,13 @@ def assert_publish_job_wiring(paths: WorkflowPaths) -> None:
         raise AssertionError(f"DISPATCH_ACTOR YAML env is {env.get('DISPATCH_ACTOR')!r}")
     if env.get("PR_NUMBER") != PR_NUMBER:
         raise AssertionError(f"PR_NUMBER YAML env is {env.get('PR_NUMBER')!r}")
+    if env.get("CVE_SYNC_APP_SLUG") != "":
+        raise AssertionError(
+            f"unset CVE_SYNC_APP_SLUG YAML env is {env.get('CVE_SYNC_APP_SLUG')!r}"
+        )
+    app_env = rendered_step_env(step, gha_context(app_slug=APP_SLUG))
+    if app_env.get("CVE_SYNC_APP_SLUG") != APP_SLUG:
+        raise AssertionError(f"CVE_SYNC_APP_SLUG YAML env is {app_env.get('CVE_SYNC_APP_SLUG')!r}")
 
 
 def assert_publish_reads_named_pull(paths: WorkflowPaths) -> None:
@@ -715,20 +759,50 @@ def assert_publish_refuses_dispatch_origin(
     *,
     dispatch_ref: str = TRUSTED_REF,
     dispatch_actor: str = TRUSTED_ACTOR,
+    app_slug: str | None = None,
     why: str,
 ) -> None:
-    result = run_publish(paths, dispatch_ref=dispatch_ref, dispatch_actor=dispatch_actor)
+    result = run_publish(
+        paths,
+        dispatch_ref=dispatch_ref,
+        dispatch_actor=dispatch_actor,
+        app_slug=app_slug,
+    )
     if result.completed.returncode == 0:
         raise AssertionError(f"publish must refuse {why}")
     if status_post_calls(result.calls):
         raise AssertionError(f"{why} still posted a build status")
 
 
+def assert_publish_accepts_dispatch_origin(
+    paths: WorkflowPaths,
+    *,
+    dispatch_ref: str = TRUSTED_REF,
+    dispatch_actor: str = TRUSTED_ACTOR,
+    app_slug: str | None = None,
+    why: str,
+) -> None:
+    result = run_publish(
+        paths,
+        dispatch_ref=dispatch_ref,
+        dispatch_actor=dispatch_actor,
+        app_slug=app_slug,
+    )
+    if result.completed.returncode != 0:
+        raise AssertionError(
+            f"publish must accept {why}:\n{result.completed.stdout}\n{result.completed.stderr}"
+        )
+    posted = status_post_calls(result.calls)
+    if len(posted) != 1 or posted[0]["fields"].get("context") != "build":
+        raise AssertionError(f"{why} did not post build: {posted!r}")
+
+
 def assert_killed(mutant_id: str, behavior: Callable[[WorkflowPaths], None]) -> None:
-    try:
-        behavior(mutant_paths(mutant_id))
-    except AssertionError:
-        return
+    with mutant_paths(mutant_id) as paths:
+        try:
+            behavior(paths)
+        except AssertionError:
+            return
     raise AssertionError(f"{mutant_id} survived {behavior.__name__}")
 
 
@@ -913,7 +987,7 @@ class ExactShaBuildStatusControlTests(unittest.TestCase):
         )
 
     def test_publish_refuses_main_prefix_lookalike_refs(self) -> None:
-        for ref in ("refs/heads/main-x", "refs/heads/mainline"):
+        for ref in LOOKALIKE_REFS:
             with self.subTest(ref=ref):
                 assert_publish_refuses_dispatch_origin(
                     CONTROL,
@@ -936,6 +1010,89 @@ class ExactShaBuildStatusControlTests(unittest.TestCase):
                     dispatch_actor=actor,
                     why=f"actor {actor}",
                 )
+
+    def test_yaml_env_binds_app_slug_from_vars(self) -> None:
+        step = named_step(CONTROL.validate, "publish-build-status", "Publish the build status on the validated SHA")
+        env = rendered_step_env(step, gha_context())
+        self.assertEqual(env.get("CVE_SYNC_APP_SLUG"), "")
+        env = rendered_step_env(step, gha_context(app_slug=APP_SLUG))
+        self.assertEqual(env.get("CVE_SYNC_APP_SLUG"), APP_SLUG)
+
+    def test_publish_accepts_sync_app_token_dispatch(self) -> None:
+        sync = SYNC_WORKFLOW.read_text(encoding="utf-8")
+        delivery = sync.split("Reconcile, validate, and merge exact catalog revision", 1)[1]
+        delivery = delivery.split("\n      - name: ", 1)[0]
+        self.assertIn("GH_TOKEN: ${{ steps.app-token.outputs.token }}", delivery)
+        self.assertIn("gh workflow run cve-catalog-validate.yml", delivery)
+        self.assertIn('--ref "$VALIDATION_REF"', delivery)
+        self.assertIn('--field "expected_sha=$EXPECTED_SHA"', delivery)
+        self.assertIn('--field "pr_number=$PR_NUMBER"', delivery)
+        self.assertIn('--field "expected_branch=$BRANCH"', delivery)
+        assert_publish_accepts_dispatch_origin(
+            CONTROL,
+            dispatch_ref=TRUSTED_REF,
+            dispatch_actor=APP_ACTOR,
+            app_slug=APP_SLUG,
+            why="catalog-sync App-token dispatch on main",
+        )
+
+    def test_publish_keeps_actions_bot_when_app_slug_is_set(self) -> None:
+        assert_publish_accepts_dispatch_origin(
+            CONTROL,
+            app_slug=APP_SLUG,
+            why="github-actions[bot] with slug set",
+        )
+
+    def test_publish_refuses_app_actor_when_slug_unset(self) -> None:
+        assert_publish_refuses_dispatch_origin(
+            CONTROL,
+            dispatch_actor=APP_ACTOR,
+            why="App actor with unset CVE_SYNC_APP_SLUG",
+        )
+
+    def test_publish_refuses_app_actor_lookalikes(self) -> None:
+        for actor in LOOKALIKE_APP_ACTORS:
+            with self.subTest(actor=actor):
+                assert_publish_refuses_dispatch_origin(
+                    CONTROL,
+                    dispatch_actor=actor,
+                    app_slug=APP_SLUG,
+                    why=f"lookalike App actor {actor!r}",
+                )
+
+    def test_publish_refuses_app_actor_on_non_main_refs(self) -> None:
+        for ref in LOOKALIKE_REFS:
+            with self.subTest(ref=ref):
+                assert_publish_refuses_dispatch_origin(
+                    CONTROL,
+                    dispatch_ref=ref,
+                    dispatch_actor=APP_ACTOR,
+                    app_slug=APP_SLUG,
+                    why=f"App actor on {ref}",
+                )
+
+    def test_equivalent_mutants_are_labeled(self) -> None:
+        self.assertEqual(
+            EQUIVALENT_MUTANTS,
+            frozenset(
+                {
+                    "S-c-filter-after-dispatch-field-head",
+                    "P-a-drop-expected-branch-sync-check",
+                    "P-b-drop-live-branch-sync",
+                    "P-f-drop-head-eq-expected-branch",
+                }
+            ),
+        )
+
+    def test_mutant_anchors_are_unique_in_live_yaml(self) -> None:
+        files = {
+            SH: SHEPHERD_WORKFLOW.read_text(encoding="utf-8"),
+            VA: VALIDATE_WORKFLOW.read_text(encoding="utf-8"),
+        }
+        for mutant_id in known_mutant_ids():
+            for rel, old, _new in edits_for(mutant_id):
+                with self.subTest(mutant_id=mutant_id, rel=rel):
+                    self.assertEqual(files[rel].count(old), 1, mutant_id)
 
     def test_publish_job_wiring(self) -> None:
         assert_publish_job_wiring(CONTROL)
@@ -1156,6 +1313,69 @@ class ExactShaBuildStatusMutantKillTests(unittest.TestCase):
             "D5-guard-exit-0",
             lambda paths: assert_publish_refuses_dispatch_origin(
                 paths, dispatch_ref="refs/heads/development", why="non-main ref"
+            ),
+        )
+
+    def test_D2c_ref_suffix_main_is_killed(self) -> None:
+        assert_killed(
+            "D2c-ref-suffix-main",
+            lambda paths: assert_publish_refuses_dispatch_origin(
+                paths, dispatch_ref="refs/heads/x/main", why="refs/heads/x/main"
+            ),
+        )
+
+    def test_F_lookalike_bot_is_killed(self) -> None:
+        assert_killed(
+            "F-lookalike-bot",
+            lambda paths: assert_publish_refuses_dispatch_origin(
+                paths,
+                dispatch_actor=f"{APP_SLUG}-x[bot]",
+                app_slug=APP_SLUG,
+                why="slug-x[bot]",
+            ),
+        )
+
+    def test_F_any_bot_is_killed(self) -> None:
+        assert_killed(
+            "F-any-bot",
+            lambda paths: assert_publish_refuses_dispatch_origin(
+                paths,
+                dispatch_actor="dependabot[bot]",
+                app_slug=APP_SLUG,
+                why="dependabot[bot]",
+            ),
+        )
+
+    def test_F_unset_accepts_app_is_killed(self) -> None:
+        assert_killed(
+            "F-unset-accepts-app",
+            lambda paths: assert_publish_refuses_dispatch_origin(
+                paths,
+                dispatch_actor=APP_ACTOR,
+                why="App actor with unset slug",
+            ),
+        )
+
+    def test_F_app_on_non_main_is_killed(self) -> None:
+        assert_killed(
+            "F-app-on-non-main",
+            lambda paths: assert_publish_refuses_dispatch_origin(
+                paths,
+                dispatch_ref="refs/heads/x/main",
+                dispatch_actor=APP_ACTOR,
+                app_slug=APP_SLUG,
+                why="App actor on refs/heads/x/main",
+            ),
+        )
+
+    def test_F_loosened_slug_is_killed(self) -> None:
+        assert_killed(
+            "F-loosened-slug",
+            lambda paths: assert_publish_refuses_dispatch_origin(
+                paths,
+                dispatch_actor=f"x{APP_SLUG}[bot]",
+                app_slug=APP_SLUG,
+                why="xslug[bot]",
             ),
         )
 

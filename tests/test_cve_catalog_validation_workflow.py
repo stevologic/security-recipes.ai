@@ -114,6 +114,8 @@ class CveCatalogValidationWorkflowTests(unittest.TestCase):
         self.assertIn("persist-credentials: false", validate)
         self.assertNotRegex(validate, r"(?m)^\s{4}name: build\s*$")
         self.assertIn("Never emit `karen-qa`", validate)
+        self.assertNotIn("workflow code from the default branch", validate)
+        self.assertNotIn("trusted default-branch revision", validate)
 
     def test_publishes_build_status_on_the_exact_head_sha(self) -> None:
         self.assertIn("\n  publish-build-status:\n", self.validation)
@@ -140,10 +142,15 @@ class CveCatalogValidationWorkflowTests(unittest.TestCase):
         self.assertIn("held for Stephen's ack", publish)
         self.assertIn("DISPATCH_REF: ${{ github.ref }}", publish)
         self.assertIn("DISPATCH_ACTOR: ${{ github.actor }}", publish)
+        self.assertIn("CVE_SYNC_APP_SLUG: ${{ vars.CVE_SYNC_APP_SLUG }}", publish)
         self.assertIn('TRUSTED_REF="refs/heads/main"', publish)
         self.assertIn('TRUSTED_ACTOR="github-actions[bot]"', publish)
+        self.assertIn('APP_SLUG="$CVE_SYNC_APP_SLUG"', publish)
+        self.assertIn('TRUSTED_APP_ACTOR="${APP_SLUG}[bot]"', publish)
+        self.assertIn('[ -n "$APP_SLUG" ] && [ "$DISPATCH_ACTOR" = "$TRUSTED_APP_ACTOR" ]', publish)
         self.assertIn('[ "$DISPATCH_REF" != "$TRUSTED_REF" ]', publish)
-        self.assertIn('[ "$DISPATCH_ACTOR" != "$TRUSTED_ACTOR" ]', publish)
+        self.assertIn('[ "$actor_ok" -ne 1 ]', publish)
+        self.assertNotIn("workflow code from the default branch", self.validation)
         self.assertIn(
             '[[ ! "$EXPECTED_SHA" =~ ^[0-9a-f]{40}$ ]]',
             publish,
