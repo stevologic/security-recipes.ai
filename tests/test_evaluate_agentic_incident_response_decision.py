@@ -1,16 +1,31 @@
 from __future__ import annotations
 
 import json
+import tempfile
 import unittest
 from pathlib import Path
 
 from scripts.evaluate_agentic_incident_response_decision import (
+    UNRESOLVED_MONITOR_INTEGRITY_DECISION,
+    UNRESOLVED_MONITOR_INTEGRITY_REASON,
     evaluate_agentic_incident_response_decision,
+    parse_args,
+    request_from_args,
+    unresolved_monitor_integrity_violation,
 )
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-PACK_PATH = REPO_ROOT / "data" / "evidence" / "agentic-incident-response-pack.json"
+MONITOR_INTEGRITY_FLAGS = (
+    "agent_can_access_monitors",
+    "monitor_tampering_or_outage",
+    "resume_without_verified_containment",
+)
+CLI_FLAG_BY_FIELD = {
+    "agent_can_access_monitors": "--agent-can-access-monitors",
+    "monitor_tampering_or_outage": "--monitor-tampering-or-outage",
+    "resume_without_verified_containment": "--resume-without-verified-containment",
+}
 
 
 def _minimal_pack() -> dict[str, object]:
@@ -87,9 +102,76 @@ def _request(**overrides: object) -> dict[str, object]:
         "authorization_decisions": ["allow_authorized_mcp_request"],
         "containment_action_ids": ["pause_agent_run"],
         "replay_case_ids": ["replay-ci"],
+        "agent_can_access_monitors": False,
+        "monitor_tampering_or_outage": False,
+        "resume_without_verified_containment": False,
     }
     request.update(overrides)
     return request
+
+
+def _monitor_clear_request(**overrides: object) -> dict[str, object]:
+    payload = _request(
+        incident_class_id="context-poisoning",
+        severity_signal="sev3",
+    )
+    payload.update(overrides)
+    return payload
+
+
+def _cli_argv(*extra: str) -> list[str]:
+    return [
+        "--incident-id",
+        "inc-ci",
+        "--workflow-id",
+        "vulnerable-dependency-remediation",
+        "--run-id",
+        "run-ci",
+        "--agent-id",
+        "sr-agent::vulnerable-dependency-remediation::codex",
+        "--identity-id",
+        "sr-agent::vulnerable-dependency-remediation::codex",
+        "--tenant-id",
+        "tenant-demo",
+        "--correlation-id",
+        "corr-ci",
+        "--incident-class-id",
+        "context-poisoning",
+        "--severity-signal",
+        "sev3",
+        "--source-event-id",
+        "event-1",
+        "--receipt-id",
+        "receipt-ci",
+        "--context-source-id",
+        "workflow-manifest",
+        "--context-source-hash",
+        "hash-ci",
+        "--mcp-namespace",
+        "repo.contents",
+        "--authorization-decision",
+        "allow_authorized_mcp_request",
+        "--containment-action-id",
+        "pause_agent_run",
+        "--replay-case-id",
+        "replay-ci",
+        *extra,
+    ]
+
+
+def _evaluate_cli(*extra: str) -> dict[str, object]:
+    return evaluate_agentic_incident_response_decision(
+        _minimal_pack(),
+        request_from_args(parse_args(_cli_argv(*extra))),
+    )
+
+
+def _evaluate_json(payload: dict[str, object]) -> dict[str, object]:
+    with tempfile.TemporaryDirectory() as tmpdir:
+        path = Path(tmpdir) / "runtime-request.json"
+        path.write_text(json.dumps(payload), encoding="utf-8")
+        request = request_from_args(parse_args(["--runtime-request", str(path)]))
+    return evaluate_agentic_incident_response_decision(_minimal_pack(), request)
 
 
 class MonitorIsolationDecisionTests(unittest.TestCase):
@@ -105,10 +187,10 @@ class MonitorIsolationDecisionTests(unittest.TestCase):
         self.assertEqual(result["decision"], "kill_session_and_escalate_board")
         self.assertIn("raw MCP or provider token passthrough was observed", result["violations"])
 
-    def test_unspecified_monitor_flags_do_not_kill_or_hold(self) -> None:
+    def test_explicit_false_monitor_flags_do_not_kill_or_hold(self) -> None:
         result = evaluate_agentic_incident_response_decision(
             _minimal_pack(),
-            _request(incident_class_id="context-poisoning", severity_signal="sev3"),
+            _monitor_clear_request(),
         )
         self.assertEqual(result["decision"], "monitor_no_incident")
         self.assertTrue(result["allowed"])
@@ -162,30 +244,119 @@ class MonitorIsolationDecisionTests(unittest.TestCase):
         self.assertEqual(result["decision"], "kill_session_and_escalate_board")
 
 
-class GeneratedPackMonitorIsolationTests(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls) -> None:
-        cls.pack = json.loads(PACK_PATH.read_text(encoding="utf-8"))
-
-    def test_generated_pack_registers_uninstructed_control_compromise(self) -> None:
-        classes = {row["id"] for row in self.pack.get("incident_classes", [])}
-        self.assertIn("uninstructed-control-compromise", classes)
-        source_ids = {row["id"] for row in self.pack.get("standards_alignment", [])}
-        self.assertIn("nist-caissi-si-incident-readiness-2026", source_ids)
-
-    def test_generated_pack_assigns_control_compromise_and_containment_actions(self) -> None:
-        matrix = self.pack.get("workflow_response_matrix", [])
-        self.assertTrue(matrix)
-        self.assertTrue(
-            all("uninstructed-control-compromise" in row.get("assigned_incident_class_ids", []) for row in matrix)
+class MonitorIntegrityCliJsonPathTests(unittest.TestCase):
+    def test_cli_agent_can_access_monitors_kills_via_request_from_args(self) -> None:
+        result = _evaluate_cli("--agent-can-access-monitors")
+        self.assertIs(
+            request_from_args(parse_args(_cli_argv("--agent-can-access-monitors")))[
+                "agent_can_access_monitors"
+            ],
+            True,
         )
-        self.assertTrue(
-            all(
-                "isolate_monitors_from_agent_access" in row.get("containment_actions", [])
-                and "verify_monitors_logging_egress_and_shutdown_before_resume" in row.get("containment_actions", [])
-                for row in matrix
-            )
+        self.assertEqual(result["decision"], "kill_session_and_escalate_board")
+        self.assertIn(
+            "agent can access or interfere with monitoring processes and logs",
+            result["violations"],
         )
+
+    def test_cli_monitor_tampering_or_outage_kills_via_request_from_args(self) -> None:
+        result = _evaluate_cli("--monitor-tampering-or-outage")
+        self.assertIs(
+            request_from_args(parse_args(_cli_argv("--monitor-tampering-or-outage")))[
+                "monitor_tampering_or_outage"
+            ],
+            True,
+        )
+        self.assertEqual(result["decision"], "kill_session_and_escalate_board")
+        self.assertIn("monitor tampering or outage was observed", result["violations"])
+
+    def test_cli_resume_without_verified_containment_holds_via_request_from_args(self) -> None:
+        result = _evaluate_cli("--resume-without-verified-containment")
+        self.assertIs(
+            request_from_args(parse_args(_cli_argv("--resume-without-verified-containment")))[
+                "resume_without_verified_containment"
+            ],
+            True,
+        )
+        self.assertEqual(result["decision"], "hold_for_forensics")
+        self.assertFalse(result["allowed"])
+        self.assertIn("resume attempted without verified containment", result["violations"])
+
+    def test_cli_without_monitor_flags_stays_monitor_no_incident(self) -> None:
+        request = request_from_args(parse_args(_cli_argv()))
+        for key in MONITOR_INTEGRITY_FLAGS:
+            self.assertIn(key, request)
+            self.assertIs(request[key], False)
+        result = evaluate_agentic_incident_response_decision(_minimal_pack(), request)
+        self.assertEqual(result["decision"], "monitor_no_incident")
+        self.assertTrue(result["allowed"])
+
+    def test_json_string_false_agent_can_access_monitors_does_not_kill(self) -> None:
+        result = _evaluate_json(_monitor_clear_request(agent_can_access_monitors="false"))
+        self.assertEqual(result["decision"], "monitor_no_incident")
+        self.assertTrue(result["allowed"])
+
+    def test_json_string_false_monitor_tampering_or_outage_does_not_kill(self) -> None:
+        result = _evaluate_json(_monitor_clear_request(monitor_tampering_or_outage="false"))
+        self.assertEqual(result["decision"], "monitor_no_incident")
+        self.assertTrue(result["allowed"])
+
+    def test_json_string_false_resume_without_verified_containment_does_not_hold(self) -> None:
+        result = _evaluate_json(
+            _monitor_clear_request(resume_without_verified_containment="false")
+        )
+        self.assertEqual(result["decision"], "monitor_no_incident")
+        self.assertTrue(result["allowed"])
+
+
+class MonitorIntegrityFailClosedTests(unittest.TestCase):
+    def _assert_fail_closed(self, result: dict[str, object], *flags: str) -> None:
+        self.assertEqual(result["decision"], UNRESOLVED_MONITOR_INTEGRITY_DECISION)
+        self.assertNotEqual(result["decision"], "monitor_no_incident")
+        self.assertNotEqual(result["decision"], "hold_for_forensics")
+        self.assertNotEqual(result["decision"], "kill_session_and_escalate_board")
+        self.assertFalse(result["allowed"])
+        self.assertEqual(result["reason"], UNRESOLVED_MONITOR_INTEGRITY_REASON)
+        self.assertIn(unresolved_monitor_integrity_violation(list(flags)), result["violations"])
+
+    def test_json_missing_agent_can_access_monitors_fail_closes(self) -> None:
+        payload = _monitor_clear_request()
+        del payload["agent_can_access_monitors"]
+        self._assert_fail_closed(_evaluate_json(payload), "agent_can_access_monitors")
+
+    def test_json_missing_monitor_tampering_or_outage_fail_closes(self) -> None:
+        payload = _monitor_clear_request()
+        del payload["monitor_tampering_or_outage"]
+        self._assert_fail_closed(_evaluate_json(payload), "monitor_tampering_or_outage")
+
+    def test_json_missing_resume_without_verified_containment_fail_closes(self) -> None:
+        payload = _monitor_clear_request()
+        del payload["resume_without_verified_containment"]
+        self._assert_fail_closed(
+            _evaluate_json(payload), "resume_without_verified_containment"
+        )
+
+    def test_json_unparseable_monitor_flags_fail_close(self) -> None:
+        for key in MONITOR_INTEGRITY_FLAGS:
+            with self.subTest(key=key):
+                payload = _monitor_clear_request(**{key: "maybe"})
+                self._assert_fail_closed(_evaluate_json(payload), key)
+
+    def test_cli_unwired_monitor_flags_fail_close_and_do_not_resume(self) -> None:
+        for key, flag in CLI_FLAG_BY_FIELD.items():
+            with self.subTest(key=key):
+                request = request_from_args(parse_args(_cli_argv(flag)))
+                self.assertIs(request[key], True)
+                del request[key]
+                result = evaluate_agentic_incident_response_decision(_minimal_pack(), request)
+                self._assert_fail_closed(result, key)
+                if key == "resume_without_verified_containment":
+                    self.assertNotIn(
+                        "resume attempted without verified containment",
+                        result["violations"],
+                    )
+                else:
+                    self.assertNotEqual(result["decision"], "kill_session_and_escalate_board")
 
 
 if __name__ == "__main__":

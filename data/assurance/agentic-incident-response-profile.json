@@ -141,7 +141,8 @@
         "conditions": [
           "confirmed secret, credential, regulated data, customer data, or payment/production control-plane exposure outside the approved boundary",
           "high-impact autonomous action executed without linked approval or risk acceptance",
-          "agent identity, MCP token, or remote-agent handoff used after revocation"
+          "agent identity, MCP token, or remote-agent handoff used after revocation",
+          "agent can access or interfere with monitoring processes and logs, or monitor tampering or outage is observed"
         ]
       },
       {
@@ -157,7 +158,8 @@
         "decision": "hold_for_forensics",
         "conditions": [
           "agent behavior, MCP decision, memory replay, skill update, or handoff outcome cannot be explained by current receipts and source hashes",
-          "evidence exists but is incomplete, stale, unsigned, or missing a correlation id"
+          "evidence exists but is incomplete, stale, unsigned, or missing a correlation id",
+          "resume is attempted without verified monitors, logging, egress allowlists, and shutdown mechanisms"
         ]
       },
       {

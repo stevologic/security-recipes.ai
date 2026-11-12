@@ -36,6 +36,17 @@ KILL_SIGNALS = {
     "raw_token_passthrough",
     "secret_handoff",
 }
+MONITOR_INTEGRITY_FLAGS = (
+    "agent_can_access_monitors",
+    "monitor_tampering_or_outage",
+    "resume_without_verified_containment",
+)
+TRUE_BOOL_TOKENS = frozenset({"1", "true", "yes", "y", "on"})
+FALSE_BOOL_TOKENS = frozenset({"0", "false", "no", "n", "off", ""})
+UNRESOLVED_MONITOR_INTEGRITY_DECISION = "contain_and_open_war_room"
+UNRESOLVED_MONITOR_INTEGRITY_REASON = (
+    "monitor integrity flags are missing, unwired, or unparseable"
+)
 
 
 class AgenticIncidentResponseError(RuntimeError):
@@ -59,7 +70,34 @@ def as_bool(value: Any) -> bool:
         return value
     if value is None:
         return False
-    return str(value).strip().lower() in {"1", "true", "yes", "y", "on"}
+    return str(value).strip().lower() in TRUE_BOOL_TOKENS
+
+
+def parse_required_bool(request: dict[str, Any], key: str) -> bool | None:
+    """Return True/False when `key` is a parsed boolean; None if missing or unparseable."""
+    if key not in request:
+        return None
+    value = request[key]
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, int) and value in (0, 1):
+        return bool(value)
+    if value is None:
+        return None
+    text = str(value).strip().lower()
+    if text in TRUE_BOOL_TOKENS:
+        return True
+    if text in FALSE_BOOL_TOKENS:
+        return False
+    return None
+
+
+def unresolved_monitor_integrity_flags(request: dict[str, Any]) -> list[str]:
+    return [key for key in MONITOR_INTEGRITY_FLAGS if parse_required_bool(request, key) is None]
+
+
+def unresolved_monitor_integrity_violation(flags: list[str]) -> str:
+    return f"monitor integrity flags unverified: {', '.join(flags)}"
 
 
 def as_dict(value: Any) -> dict[str, Any]:
@@ -272,6 +310,7 @@ def evaluate_agentic_incident_response_decision(
     if not isinstance(runtime_request, dict):
         raise AgenticIncidentResponseError("runtime_request must be an object")
 
+    unresolved_flags = unresolved_monitor_integrity_flags(runtime_request)
     request = normalize_request(runtime_request)
     class_id = str(request.get("incident_class_id") or "").strip()
     workflow_id = str(request.get("workflow_id") or "").strip()
@@ -335,6 +374,16 @@ def evaluate_agentic_incident_response_decision(
             workflow=workflow,
             reason="sev0 agentic incident requires session kill and executive escalation",
         )
+    if unresolved_flags:
+        return decision_result(
+            decision=UNRESOLVED_MONITOR_INTEGRITY_DECISION,
+            pack=pack,
+            request=request,
+            incident_class=incident_class,
+            workflow=workflow,
+            reason=UNRESOLVED_MONITOR_INTEGRITY_REASON,
+            violations=[unresolved_monitor_integrity_violation(unresolved_flags)],
+        )
     if request.get("resume_without_verified_containment"):
         return decision_result(
             decision="hold_for_forensics",
@@ -385,7 +434,7 @@ def evaluate_agentic_incident_response_decision(
     )
 
 
-def parse_args() -> argparse.Namespace:
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--pack", type=Path, default=DEFAULT_PACK)
     parser.add_argument("--runtime-request", type=Path, help="JSON file containing the runtime incident request.")
@@ -423,7 +472,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--approval-id")
     parser.add_argument("--approval-status")
     parser.add_argument("--expect-decision")
-    return parser.parse_args()
+    return parser.parse_args(argv)
 
 
 def request_from_args(args: argparse.Namespace) -> dict[str, Any]:

@@ -317,7 +317,8 @@
         "conditions": [
           "confirmed secret, credential, regulated data, customer data, or payment/production control-plane exposure outside the approved boundary",
           "high-impact autonomous action executed without linked approval or risk acceptance",
-          "agent identity, MCP token, or remote-agent handoff used after revocation"
+          "agent identity, MCP token, or remote-agent handoff used after revocation",
+          "agent can access or interfere with monitoring processes and logs, or monitor tampering or outage is observed"
         ],
         "decision": "kill_session_and_escalate_board",
         "severity": "sev0"
@@ -333,7 +334,8 @@
       {
         "conditions": [
           "agent behavior, MCP decision, memory replay, skill update, or handoff outcome cannot be explained by current receipts and source hashes",
-          "evidence exists but is incomplete, stale, unsigned, or missing a correlation id"
+          "evidence exists but is incomplete, stale, unsigned, or missing a correlation id",
+          "resume is attempted without verified monitors, logging, egress allowlists, and shutdown mechanisms"
         ],
         "decision": "hold_for_forensics",
         "severity": "sev2"
@@ -492,7 +494,7 @@
       "failure_count": 0,
       "path": "data/evidence/a2a-agent-card-trust-profile.json",
       "schema_version": "1.0",
-      "sha256": "0bd6b31b0f0b1c61d533d8ea81ab6e611e4c5331888d8a80ac28d1cc27fb6143",
+      "sha256": "f7eb6307003253872c829825990b14b5feba94489df655fe7a50a7a6036b81f8",
       "summary_keys": [
         "agent_card_trust_summary"
       ]
@@ -510,7 +512,7 @@
       "failure_count": 0,
       "path": "data/evidence/agent-handoff-boundary-pack.json",
       "schema_version": "1.0",
-      "sha256": "97c0e3e19b6292fc47f90c7a6104fcddcda770ecac718abf5ee5bf0e77377fa5",
+      "sha256": "b0dbadc609742f514b84c9c4be2b4e8b109a8d9be326cb4cbc93bc79a2c7f8e2",
       "summary_keys": [
         "handoff_boundary_summary"
       ]
@@ -537,7 +539,7 @@
       "failure_count": 0,
       "path": "data/evidence/agent-skill-supply-chain-pack.json",
       "schema_version": "1.0",
-      "sha256": "283e5e5300fe7b663d31cc003ecba2bad559b4a5454ea25c864cb9ce63451460",
+      "sha256": "93ce14fcbfca27bfaf3e5585a86b0f63f97189d767c20214c077dba49e5140bc",
       "summary_keys": [
         "skill_supply_chain_summary"
       ]
@@ -546,7 +548,7 @@
       "failure_count": 0,
       "path": "data/evidence/agentic-catastrophic-risk-annex.json",
       "schema_version": "1.0",
-      "sha256": "3cd8a9c39a8b0490b9c80419b0cd2a64173440aaeec0c626280865bacf8a2e00",
+      "sha256": "23e426f2ef82662f6694cca91bfe76742d149b2397490b3aad18343503d127cf",
       "summary_keys": [
         "annex_summary"
       ]
@@ -555,7 +557,7 @@
       "failure_count": 0,
       "path": "data/evidence/agentic-exposure-graph.json",
       "schema_version": "1.0",
-      "sha256": "992a7b98411f57474e8faec8b479c67b34cbfd8f4f9a54d72e963d2552e38885",
+      "sha256": "26e50dbe9c61a35da11fb3e2a2233b1575ed9d742f12bff081cd9ed4cd74c456",
       "summary_keys": [
         "exposure_graph_summary"
       ]
@@ -564,7 +566,7 @@
       "failure_count": 0,
       "path": "data/evidence/agentic-measurement-probe-pack.json",
       "schema_version": "1.0",
-      "sha256": "936f10cfa77b9a2def5e6d0a9fe48d308badc0d2a72a51be3562752d3241382a",
+      "sha256": "064d823512362a8685953127c0e6cdb5aa4d9fa42a4e4483c02eddef2153bba4",
       "summary_keys": [
         "measurement_probe_summary"
       ]
@@ -591,7 +593,7 @@
       "failure_count": 0,
       "path": "data/evidence/agentic-run-receipt-pack.json",
       "schema_version": "1.0",
-      "sha256": "ec85d4311d4da223ad7a46aca21b87f130450ecbda0d5f20cb1afbfdaf8661c0",
+      "sha256": "3555aed7de1d3e163b8fe6424867320ed17f92f5631fade8d31cafe975a1213c",
       "summary_keys": [
         "receipt_summary"
       ]
@@ -600,7 +602,7 @@
       "failure_count": 0,
       "path": "data/evidence/context-egress-boundary-pack.json",
       "schema_version": "1.0",
-      "sha256": "c44706af7749e66a9e265a7f0908e7867311c238d9e95d6e5c13303b0ffcaf14",
+      "sha256": "8f0bc6504342cd80956c2b693f2699dd35cf5fe91d0dcfeb912410bf831be051",
       "summary_keys": [
         "egress_boundary_summary"
       ]
@@ -609,7 +611,7 @@
       "failure_count": 0,
       "path": "data/evidence/context-poisoning-guard-pack.json",
       "schema_version": "1.0",
-      "sha256": "5c3be30d3623bda74381a445108b4f1bf69b8c8b2ed0d51816622fc286c9b86e",
+      "sha256": "1fd0ff41132993ee8b1ac3b4a4dfd4bc009d0e8d4fa5ddc7327f972bcbeec50e",
       "summary_keys": [
         "guard_summary"
       ]
@@ -645,7 +647,7 @@
       "failure_count": 0,
       "path": "data/evidence/secure-context-eval-pack.json",
       "schema_version": "1.0",
-      "sha256": "21b275d0b675d1a003377787803c398012d0bee4e5ab0cc5ddab94c5df689f7a",
+      "sha256": "77d33015bc5a0dee1ecd2f9f6ff02dfd85ee88dc3fb93da3b3527abc031e73b4",
       "summary_keys": [
         "eval_summary"
       ]
@@ -654,7 +656,7 @@
       "failure_count": 0,
       "path": "data/evidence/secure-context-trust-pack.json",
       "schema_version": "1.0",
-      "sha256": "38384aa2308ad1981acd832b29fcb1becc13d3386330e377d452118444e78965",
+      "sha256": "61291c4c8b3b3cfbf387d5300bc46f200c821a58bbcf525772b4cc638ef0c0f9",
       "summary_keys": [
         "context_trust_summary"
       ]

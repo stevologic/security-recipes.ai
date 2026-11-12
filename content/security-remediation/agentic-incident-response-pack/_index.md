@@ -107,7 +107,7 @@ python3 scripts/evaluate_agentic_incident_response_decision.py \
   --expect-decision kill_session_and_escalate_board
 ```
 
-Hold resume until monitors, logging, egress allowlists, and shutdown mechanisms are verified:
+Hold resume until monitors, logging, egress allowlists, and shutdown mechanisms are verified. Context-poisoning at sev3 monitors without the flag and holds when resume is requested before containment is verified:
 
 ```bash
 python3 scripts/evaluate_agentic_incident_response_decision.py \
@@ -118,8 +118,8 @@ python3 scripts/evaluate_agentic_incident_response_decision.py \
   --identity-id sr-agent::vulnerable-dependency-remediation::codex \
   --tenant-id tenant-demo \
   --correlation-id corr-ci-resume \
-  --incident-class-id evidence-integrity-gap \
-  --severity-signal sev2 \
+  --incident-class-id context-poisoning \
+  --severity-signal sev3 \
   --source-event-id event-resume-1 \
   --receipt-id receipt-ci-resume \
   --context-source-id workflow-manifest \

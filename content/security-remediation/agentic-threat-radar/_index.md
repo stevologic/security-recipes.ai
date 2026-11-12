@@ -54,7 +54,8 @@ guidance into a generated evidence pack:
   delegation, zero standing privilege, signed mandate statements, architectural
   separation of policy from reasoning, deterministic access decisions,
   consent-fatigue-aware HITL thresholds, and independent append-only evidence.
-  Unique short-lived credentials are necessary but not sufficient. This
+  In our reading, unique short-lived credentials alone are not
+  sufficient. This
   editorial pass does not claim human review of the pack. Invented version
   floors in leftover CVE drafts remain a content-risk signal: treat them as
   untrusted context, not a named fix.
@@ -84,7 +85,7 @@ python3 scripts/generate_agentic_threat_radar.py --check
 | --- | --- | --- |
 | Indirect prompt injection as social engineering | Critical | Agents now process hostile emails, websites, documents, tickets, and tool results; string filters are not enough. |
 | MCP token passthrough and scope creep | Critical | MCP 2026-07-28 forbids token passthrough, requires per-client proxy consent, binds state handles to the authenticated user, and treats metadata fetches as SSRF-sensitive. |
-| Agent identity explosion | Critical | NIST and NCCoE warn agents need distinct verifiable non-human identities and short-lived scoped credentials, reusing OAuth, SPIFFE, and MCP. NIST's October 27, 2026 design tenets add attenuated sub-agent delegation, zero standing privilege, signed mandates, and policy/reasoning separation; unique short-lived credentials are necessary but not sufficient. |
+| Agent identity explosion | Critical | NIST and NCCoE warn agents need distinct verifiable non-human identities and short-lived scoped credentials, reusing OAuth, SPIFFE, and MCP. NIST's October 27, 2026 design tenets add attenuated sub-agent delegation, zero standing privilege, signed mandates, and policy/reasoning separation; in our reading, unique short-lived credentials alone are not sufficient. |
 | Tool poisoning and shadow MCP | High | Tool descriptions, schemas, local servers, and connector updates are now part of the attack surface. |
 | Context over-sharing and memory poisoning | High | Retrieval and egress policy need provenance, freshness, data-class gates, tenant isolation, and destination controls before context reaches or leaves agents. |
 | Audit telemetry and evidence chain | High | Enterprises need correlated records for context retrieval, tool calls, policy decisions, reviews, and scanner proof. NIST requires independent append-only evidence of identity, delegated intent, and actions so a compromised agent cannot rewrite its own logs. |

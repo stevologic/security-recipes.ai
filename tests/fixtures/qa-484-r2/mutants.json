@@ -1,0 +1,138 @@
+{
+  "schema_version": "1.0",
+  "mutants": [
+    {
+      "id": "M2",
+      "target": "scripts/generate_agentic_source_freshness_watch.py",
+      "old": "    if as_of <= due_at:\n        return \"current\", blockers\n",
+      "new": "    if as_of >= due_at:\n        return \"current\", blockers\n",
+      "kind": "watch_review_decision"
+    },
+    {
+      "id": "M3",
+      "target": "scripts/generate_agentic_source_freshness_watch.py",
+      "old": "    return [item for item in failures if item != DUE_WATCH_FAILURE]\n",
+      "new": "    return list(failures)\n",
+      "kind": "watch_structural_failures"
+    },
+    {
+      "id": "M0",
+      "target": "scripts/generate_agentic_source_freshness_watch.py",
+      "old": "    failures = structural_failures(\n        [*failures, *collect_failures, *validate_coverage(profile, watch_rows, source_catalog, primary_coverage)]\n    )\n",
+      "new": "    failures = [*failures, *collect_failures, *validate_coverage(profile, watch_rows, source_catalog, primary_coverage)]\n",
+      "kind": "watch_build_pack_unfiltered"
+    },
+    {
+      "id": "E1",
+      "target": "scripts/evaluate_agentic_incident_response_decision.py",
+      "old": "    if request.get(\"agent_can_access_monitors\"):\n        reasons.append(\"agent can access or interfere with monitoring processes and logs\")\n",
+      "new": "",
+      "kind": "evaluator_cli_access"
+    },
+    {
+      "id": "E2",
+      "target": "scripts/evaluate_agentic_incident_response_decision.py",
+      "old": "    if request.get(\"monitor_tampering_or_outage\"):\n        reasons.append(\"monitor tampering or outage was observed\")\n",
+      "new": "",
+      "kind": "evaluator_cli_tamper"
+    },
+    {
+      "id": "E3",
+      "target": "scripts/evaluate_agentic_incident_response_decision.py",
+      "old": "    if request.get(\"resume_without_verified_containment\"):\n        return decision_result(\n            decision=\"hold_for_forensics\",\n            pack=pack,\n            request=request,\n            incident_class=incident_class,\n            workflow=workflow,\n            reason=\"resume requires verified monitors, logging, egress allowlists, and shutdown mechanisms\",\n            violations=[\"resume attempted without verified containment\"],\n        )\n",
+      "new": "",
+      "kind": "evaluator_cli_resume"
+    },
+    {
+      "id": "E4",
+      "target": "scripts/evaluate_agentic_incident_response_decision.py",
+      "old": "    request[\"agent_can_access_monitors\"] = as_bool(request.get(\"agent_can_access_monitors\"))\n",
+      "new": "    request[\"agent_can_access_monitors\"] = request.get(\"agent_can_access_monitors\")\n",
+      "kind": "evaluator_json_false_access"
+    },
+    {
+      "id": "E4b",
+      "target": "scripts/evaluate_agentic_incident_response_decision.py",
+      "old": "    request[\"monitor_tampering_or_outage\"] = as_bool(request.get(\"monitor_tampering_or_outage\"))\n",
+      "new": "    request[\"monitor_tampering_or_outage\"] = request.get(\"monitor_tampering_or_outage\")\n",
+      "kind": "evaluator_json_false_tamper"
+    },
+    {
+      "id": "E4c",
+      "target": "scripts/evaluate_agentic_incident_response_decision.py",
+      "old": "    request[\"resume_without_verified_containment\"] = as_bool(\n        request.get(\"resume_without_verified_containment\")\n    )\n",
+      "new": "    request[\"resume_without_verified_containment\"] = request.get(\n        \"resume_without_verified_containment\"\n    )\n",
+      "kind": "evaluator_json_false_resume"
+    },
+    {
+      "id": "E5",
+      "target": "scripts/evaluate_agentic_incident_response_decision.py",
+      "old": "        \"agent_can_access_monitors\": args.agent_can_access_monitors,\n",
+      "new": "",
+      "kind": "evaluator_cli_access"
+    },
+    {
+      "id": "E5b",
+      "target": "scripts/evaluate_agentic_incident_response_decision.py",
+      "old": "        \"monitor_tampering_or_outage\": args.monitor_tampering_or_outage,\n",
+      "new": "",
+      "kind": "evaluator_cli_tamper"
+    },
+    {
+      "id": "E5c",
+      "target": "scripts/evaluate_agentic_incident_response_decision.py",
+      "old": "        \"resume_without_verified_containment\": args.resume_without_verified_containment,\n",
+      "new": "",
+      "kind": "evaluator_cli_resume"
+    },
+    {
+      "id": "E5d",
+      "target": "scripts/evaluate_agentic_incident_response_decision.py",
+      "old": "    if unresolved_flags:\n        return decision_result(\n            decision=UNRESOLVED_MONITOR_INTEGRITY_DECISION,\n            pack=pack,\n            request=request,\n            incident_class=incident_class,\n            workflow=workflow,\n            reason=UNRESOLVED_MONITOR_INTEGRITY_REASON,\n            violations=[unresolved_monitor_integrity_violation(unresolved_flags)],\n        )\n",
+      "new": "",
+      "kind": "evaluator_missing_access"
+    },
+    {
+      "id": "E5e",
+      "target": "scripts/evaluate_agentic_incident_response_decision.py",
+      "old": "    if unresolved_flags:\n        return decision_result(\n            decision=UNRESOLVED_MONITOR_INTEGRITY_DECISION,\n            pack=pack,\n            request=request,\n            incident_class=incident_class,\n            workflow=workflow,\n            reason=UNRESOLVED_MONITOR_INTEGRITY_REASON,\n            violations=[unresolved_monitor_integrity_violation(unresolved_flags)],\n        )\n",
+      "new": "",
+      "kind": "evaluator_missing_tamper"
+    },
+    {
+      "id": "E5f",
+      "target": "scripts/evaluate_agentic_incident_response_decision.py",
+      "old": "    if unresolved_flags:\n        return decision_result(\n            decision=UNRESOLVED_MONITOR_INTEGRITY_DECISION,\n            pack=pack,\n            request=request,\n            incident_class=incident_class,\n            workflow=workflow,\n            reason=UNRESOLVED_MONITOR_INTEGRITY_REASON,\n            violations=[unresolved_monitor_integrity_violation(unresolved_flags)],\n        )\n",
+      "new": "",
+      "kind": "evaluator_missing_resume"
+    },
+    {
+      "id": "G1",
+      "target": "scripts/generate_agentic_incident_response_pack.py",
+      "old": "        \"mcp-tool-misuse\",\n        \"uninstructed-control-compromise\",\n",
+      "new": "        \"mcp-tool-misuse\",\n",
+      "kind": "ir_assigned_class"
+    },
+    {
+      "id": "G2",
+      "target": "scripts/generate_agentic_incident_response_pack.py",
+      "old": "    if \"uninstructed-control-compromise\" in class_ids:\n        actions.append(\"isolate_monitors_from_agent_access\")\n        actions.append(\"verify_monitors_logging_egress_and_shutdown_before_resume\")\n",
+      "new": "",
+      "kind": "ir_containment"
+    },
+    {
+      "id": "G3",
+      "target": "scripts/generate_agentic_incident_response_pack.py",
+      "old": "        (\n            \"uninstructed-control-compromise-monitor-access\",\n            \"uninstructed-control-compromise\",\n            \"An agent takes uninstructed actions that compromise operator-imposed controls and can access or interfere with monitoring processes and logs.\",\n            \"kill_session_and_escalate_board\",\n        ),\n",
+      "new": "",
+      "kind": "ir_tabletop"
+    },
+    {
+      "id": "A1",
+      "target": "scripts/generate_mcp_risk_coverage_pack.py",
+      "old": "        aliases = risk.get(\"aliases\")\n        if isinstance(aliases, list) and aliases:\n            row[\"aliases\"] = aliases\n",
+      "new": "",
+      "kind": "mcp06_aliases"
+    }
+  ]
+}
