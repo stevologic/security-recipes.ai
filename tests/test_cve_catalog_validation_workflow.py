@@ -4,6 +4,8 @@ import re
 import unittest
 from pathlib import Path
 
+import yaml
+
 
 ROOT = Path(__file__).resolve().parents[1]
 REQUEST_WORKFLOW = (
@@ -119,6 +121,7 @@ class CveCatalogValidationWorkflowTests(unittest.TestCase):
         publish = publish.split("\n  kick-shepherd:\n", 1)[0]
         self.assertIn("if: always() && github.event_name == 'workflow_dispatch'", publish)
         self.assertIn("statuses: write", publish)
+        self.assertIn("pull-requests: read", publish)
         self.assertNotIn("contents: write", publish)
         self.assertNotIn("pull-requests: write", publish)
         self.assertNotIn("actions/checkout", publish)
@@ -128,6 +131,13 @@ class CveCatalogValidationWorkflowTests(unittest.TestCase):
         self.assertIn('--raw-field "context=build"', publish)
         self.assertNotIn("context=karen-qa", publish)
         self.assertNotIn("publish-required-status", self.validation)
+        self.assertIn("gh_api_with_retry", publish)
+        self.assertIn('[ "$HEAD_SHA" != "$EXPECTED_SHA" ]', publish)
+        self.assertIn('SYNC_BRANCH="automation/cve-catalog-sync"', publish)
+        self.assertIn('[ "$EXPECTED_BRANCH" != "$SYNC_BRANCH" ]', publish)
+        self.assertIn("catalog-sync only", publish)
+        self.assertIn("5ea57357", publish)
+        self.assertIn("held for Stephen's ack", publish)
         self.assertIn(
             '[[ ! "$EXPECTED_SHA" =~ ^[0-9a-f]{40}$ ]]',
             publish,
@@ -169,6 +179,20 @@ class CveCatalogValidationWorkflowTests(unittest.TestCase):
             self.validation.index("publish-build-status:"),
             self.validation.index("kick-shepherd:"),
         )
+
+    def test_publish_job_wiring_is_structural(self) -> None:
+        document = yaml.safe_load(self.validation)
+        jobs = document["jobs"]
+        publish = jobs["publish-build-status"]
+        kick = jobs["kick-shepherd"]
+        self.assertEqual(
+            publish["if"],
+            "always() && github.event_name == 'workflow_dispatch'",
+        )
+        self.assertEqual(publish["needs"], ["validate"])
+        self.assertEqual(publish["permissions"]["statuses"], "write")
+        self.assertNotEqual(publish["permissions"].get("statuses"), "read")
+        self.assertIn("publish-build-status", kick["needs"])
 
     def test_actions_are_pinned_to_full_commit_shas(self) -> None:
         request_references = re.findall(

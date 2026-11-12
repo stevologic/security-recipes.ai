@@ -59,7 +59,11 @@ class AutomationShepherdWorkflowTests(unittest.TestCase):
         self.assertIn("select(.isCrossRepository == false)", shepherd)
         self.assertIn("select(.autoMergeRequest != null)", shepherd)
         self.assertIn('SYNC_BRANCH="automation/cve-catalog-sync"', shepherd)
-        self.assertIn("the catalog sync manages its own delivery", shepherd)
+        self.assertIn('[ "$HEAD_BRANCH" != "$SYNC_BRANCH" ]', shepherd)
+        self.assertNotIn('[[ "$HEAD_BRANCH" != automation/* ]]', shepherd)
+        self.assertNotIn("*cve-catalog-sync*", shepherd)
+        self.assertIn("leaving required build to build.yml", shepherd)
+        self.assertIn("Self-posted exact-SHA `build` is catalog-sync only", shepherd)
         self.assertIn("pulls/${PR_NUMBER}/update-branch", shepherd)
         self.assertIn("expected_head_sha=${HEAD_SHA}", shepherd)
         self.assertIn('[ "$MERGE_STATE" = "DIRTY" ]', shepherd)
@@ -80,7 +84,11 @@ class AutomationShepherdWorkflowTests(unittest.TestCase):
         self.assertIn('--ref "$GITHUB_DEFAULT_BRANCH"', shepherd)
         self.assertIn('--field "expected_sha=${HEAD_SHA}"', shepherd)
         self.assertIn('--field "pr_number=${PR_NUMBER}"', shepherd)
-        self.assertIn('--field "expected_branch=${HEAD_BRANCH}"', shepherd)
+        self.assertIn('--field "expected_branch=${SYNC_BRANCH}"', shepherd)
+        self.assertLess(
+            shepherd.index('[ "$HEAD_BRANCH" != "$SYNC_BRANCH" ]'),
+            shepherd.index("gh workflow run cve-catalog-validate.yml"),
+        )
         self.assertNotIn("PENDING_REQUESTS", shepherd)
         self.assertNotIn("cve-catalog-validate-request.yml", shepherd)
         self.assertIn("PENDING_VALIDATIONS", shepherd)

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import shutil
 import stat
 import subprocess
@@ -21,13 +22,18 @@ VALIDATE_WORKFLOW = ROOT / ".github" / "workflows" / "cve-catalog-validate.yml"
 FIXTURES = ROOT / "tests" / "fixtures" / "exact_sha_build_status"
 MUTANTS_ROOT = FIXTURES / "mutants"
 GH_STUB = FIXTURES / "gh_stub.py"
-MANIFEST = FIXTURES / "mutants.json"
 
 HEAD_SHA = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 MAIN_SHA = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
 OTHER_SHA = "cccccccccccccccccccccccccccccccccccccccc"
+FORTY_ONE_SHA = HEAD_SHA + "a"
 PR_NUMBER = "480"
-PR_BRANCH = "automation/content-refresh-ir-si-monitor-isolation"
+SYNC_BRANCH = "automation/cve-catalog-sync"
+CONTENT_BRANCH = "automation/content-refresh-ir-si-monitor-isolation"
+DEPENDABOT_BRANCH = "dependabot/npm_and_yarn/main/npm-minor-and-patch-3ce9b7b435"
+SUBSTRING_BRANCH = "fix/hold-cve-catalog-sync-notes"
+IN_FLIGHT_STATUSES = ("queued", "in_progress", "pending", "waiting", "requested")
+EXPR_RE = re.compile(r"\$\{\{\s*(.*?)\s*\}\}")
 
 
 @dataclass(frozen=True)
@@ -45,31 +51,121 @@ class CommandResult:
     calls: list[dict[str, Any]]
 
 
-def step_run(workflow_path: Path, job_id: str, step_name: str) -> str:
-    document = yaml.safe_load(workflow_path.read_text(encoding="utf-8"))
+def mutant_paths(mutant_id: str) -> WorkflowPaths:
+    folder = MUTANTS_ROOT / mutant_id
+    return WorkflowPaths(
+        shepherd=folder / "automation-shepherd.yml",
+        validate=folder / "cve-catalog-validate.yml",
+    )
+
+
+def lookup_context(expr: str, context: dict[str, Any]) -> str:
+    current: Any = context
+    for part in expr.split("."):
+        if not isinstance(current, dict) or part not in current:
+            return ""
+        current = current[part]
+    if current is None:
+        return ""
+    return str(current)
+
+
+def render_expression(template: str, context: dict[str, Any]) -> str:
+    def replace(match: re.Match[str]) -> str:
+        expr = match.group(1).strip()
+        if "||" in expr:
+            left, right = expr.split("||", 1)
+            value = lookup_context(left.strip(), context)
+            if value:
+                return value
+            return right.strip().strip("'\"")
+        return lookup_context(expr, context)
+
+    return EXPR_RE.sub(replace, template)
+
+
+def jobs_document(path: Path) -> dict[str, Any]:
+    document = yaml.safe_load(path.read_text(encoding="utf-8"))
     jobs = document.get("jobs") if isinstance(document, dict) else None
     if not isinstance(jobs, dict):
-        raise AssertionError(f"{workflow_path}: missing jobs")
-    job = jobs.get(job_id)
+        raise AssertionError(f"{path}: missing jobs")
+    return jobs
+
+
+def named_step(path: Path, job_id: str, step_name: str) -> dict[str, Any]:
+    job = jobs_document(path).get(job_id)
     if not isinstance(job, dict):
-        raise AssertionError(f"{workflow_path}: missing job {job_id}")
+        raise AssertionError(f"{path}: missing job {job_id}")
     for step in job.get("steps") or []:
         if isinstance(step, dict) and step.get("name") == step_name:
-            run = step.get("run")
-            if not isinstance(run, str) or not run.strip():
-                raise AssertionError(f"{workflow_path}: {job_id}/{step_name} has no run script")
-            return run
-    raise AssertionError(f"{workflow_path}: missing step {job_id}/{step_name}")
+            return step
+    raise AssertionError(f"{path}: missing step {job_id}/{step_name}")
 
 
-def catalog_pr(*, head_sha: str = HEAD_SHA) -> dict[str, Any]:
+def rendered_step_env(step: dict[str, Any], context: dict[str, Any]) -> dict[str, str]:
+    raw = step.get("env") or {}
+    if not isinstance(raw, dict):
+        return {}
+    return {str(key): render_expression(str(value), context) for key, value in raw.items()}
+
+
+def gha_context(
+    *,
+    expected_sha: str = HEAD_SHA,
+    validate_result: str = "success",
+    expected_branch: str = SYNC_BRANCH,
+    pr_number: str = PR_NUMBER,
+) -> dict[str, Any]:
     return {
-        "number": int(PR_NUMBER),
+        "inputs": {
+            "expected_sha": expected_sha,
+            "request_id": f"shepherd-111-1-{pr_number}",
+            "pr_number": pr_number,
+            "expected_branch": expected_branch,
+        },
+        "needs": {"validate": {"result": validate_result}},
+        "github": {
+            "sha": MAIN_SHA,
+            "token": "stub-token-not-for-echo",
+            "repository": "stevologic/security-recipes.ai",
+            "run_id": "111",
+            "run_attempt": "1",
+            "event": {"repository": {"default_branch": "main"}},
+        },
+    }
+
+
+def platform_env(context: dict[str, Any]) -> dict[str, str]:
+    github = context["github"]
+    return {
+        "GITHUB_SHA": str(github["sha"]),
+        "GITHUB_REPOSITORY": str(github["repository"]),
+        "GITHUB_RUN_ID": str(github["run_id"]),
+        "GITHUB_RUN_ATTEMPT": str(github["run_attempt"]),
+        "GITHUB_SERVER_URL": "https://github.com",
+    }
+
+
+def catalog_pr(*, head_sha: str = HEAD_SHA, branch: str = SYNC_BRANCH, number: str = PR_NUMBER) -> dict[str, Any]:
+    return {
+        "number": int(number),
         "isCrossRepository": False,
         "autoMergeRequest": {"enabledAt": "2026-11-11T19:06:16Z"},
         "mergeStateStatus": "CLEAN",
-        "headRefName": PR_BRANCH,
+        "headRefName": branch,
         "headRefOid": head_sha,
+    }
+
+
+def live_pull(*, head_sha: str = HEAD_SHA, branch: str = SYNC_BRANCH) -> dict[str, Any]:
+    return {
+        "state": "open",
+        "head": {
+            "sha": head_sha,
+            "ref": branch,
+            "repo": {"full_name": "stevologic/security-recipes.ai"},
+        },
+        "base": {"ref": "main"},
     }
 
 
@@ -79,8 +175,11 @@ def default_scenario(**overrides: Any) -> dict[str, Any]:
         "run_list": [],
         "check_runs_by_sha": {HEAD_SHA: {"check_runs": []}},
         "combined_status_by_sha": {HEAD_SHA: {"statuses": []}},
+        "repo": {"default_branch": "main"},
+        "pull": live_pull(),
         "workflow_run_exit": 0,
         "status_post_exit": 0,
+        "status_post_failures": 0,
     }
     scenario.update(overrides)
     return scenario
@@ -106,7 +205,7 @@ def run_bash(
             env=full_env,
             capture_output=True,
             text=True,
-            timeout=20,
+            timeout=30,
             check=False,
         )
     finally:
@@ -134,14 +233,6 @@ def run_with_gh_stub(
         merged_env = {
             "GH_STUB_LOG": str(log_path),
             "GH_STUB_SCENARIO": str(scenario_path),
-            "GH_TOKEN": "stub-token-not-for-echo",
-            "GH_REPO": "stevologic/security-recipes.ai",
-            "GITHUB_REPOSITORY": "stevologic/security-recipes.ai",
-            "GITHUB_DEFAULT_BRANCH": "main",
-            "GITHUB_RUN_ID": "111",
-            "GITHUB_RUN_ATTEMPT": "1",
-            "GITHUB_SERVER_URL": "https://github.com",
-            "GITHUB_SHA": MAIN_SHA,
         }
         merged_env.update(env)
         completed = run_bash(script, env=merged_env, extra_path=stub_dir, cwd=cwd)
@@ -151,19 +242,44 @@ def run_with_gh_stub(
         return CommandResult(completed=completed, calls=calls)
 
 
+def run_named_step(
+    paths: WorkflowPaths,
+    which: str,
+    job_id: str,
+    step_name: str,
+    *,
+    context: dict[str, Any],
+    scenario: dict[str, Any],
+    cwd: Path | None = None,
+) -> CommandResult:
+    workflow = paths.validate if which == "validate" else paths.shepherd
+    step = named_step(workflow, job_id, step_name)
+    run = step.get("run")
+    if not isinstance(run, str) or not run.strip():
+        raise AssertionError(f"{workflow}: {job_id}/{step_name} has no run script")
+    env = platform_env(context)
+    env.update(rendered_step_env(step, context))
+    return run_with_gh_stub(run, scenario=scenario, env=env, cwd=cwd)
+
+
 def workflow_run_calls(calls: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    return [call for call in calls if call.get("positionals", [None])[0] == "workflow" and "run" in call.get("positionals", [])]
+    return [
+        call
+        for call in calls
+        if call.get("positionals", [None])[0] == "workflow" and "run" in call.get("positionals", [])
+    ]
+
+
+def dispatched_shas(calls: list[dict[str, Any]]) -> list[str]:
+    return [call["fields"].get("expected_sha", "") for call in workflow_run_calls(calls)]
 
 
 def status_post_calls(calls: list[dict[str, Any]]) -> list[dict[str, Any]]:
     posted = []
     for call in calls:
-        if call.get("positionals", [None])[0] != "api":
-            continue
         if call.get("method") != "POST":
             continue
-        path = next((item for item in call.get("positionals", []) if "/statuses/" in str(item)), "")
-        if path:
+        if any("/statuses/" in str(item) for item in call.get("positionals", [])):
             posted.append(call)
     return posted
 
@@ -173,9 +289,49 @@ def status_post_sha(call: dict[str, Any]) -> str:
     return str(path).rsplit("/statuses/", 1)[1]
 
 
+def inflight_run(status: str, sha: str = HEAD_SHA) -> dict[str, str]:
+    return {
+        "displayTitle": f"CVE catalog validation shepherd-99-1-{PR_NUMBER} @ {sha}",
+        "status": status,
+    }
+
+
+def run_shepherd(paths: WorkflowPaths, scenario: dict[str, Any]) -> CommandResult:
+    return run_named_step(
+        paths,
+        "shepherd",
+        "shepherd",
+        "Shepherd auto-merge pull requests",
+        context=gha_context(),
+        scenario=scenario,
+    )
+
+
+def run_publish(
+    paths: WorkflowPaths,
+    *,
+    validate_result: str = "success",
+    expected_sha: str = HEAD_SHA,
+    expected_branch: str = SYNC_BRANCH,
+    scenario: dict[str, Any] | None = None,
+) -> CommandResult:
+    context = gha_context(
+        expected_sha=expected_sha,
+        validate_result=validate_result,
+        expected_branch=expected_branch,
+    )
+    return run_named_step(
+        paths,
+        "validate",
+        "publish-build-status",
+        "Publish the build status on the validated SHA",
+        context=context,
+        scenario=scenario or default_scenario(pull=live_pull(head_sha=expected_sha, branch=expected_branch)),
+    )
+
+
 def assert_dispatch_carries_pr_head_sha(paths: WorkflowPaths) -> None:
-    script = step_run(paths.shepherd, "shepherd", "Shepherd auto-merge pull requests")
-    result = run_with_gh_stub(script, scenario=default_scenario(), env={})
+    result = run_shepherd(paths, default_scenario())
     if result.completed.returncode != 0:
         raise AssertionError(
             "shepherd dispatch step failed:\n"
@@ -194,21 +350,12 @@ def assert_dispatch_carries_pr_head_sha(paths: WorkflowPaths) -> None:
         raise AssertionError(f"dispatch did not carry the PR head SHA: {fields!r}")
     if fields.get("pr_number") != PR_NUMBER:
         raise AssertionError(f"dispatch did not carry the PR number: {fields!r}")
-    if fields.get("expected_branch") != PR_BRANCH:
-        raise AssertionError(f"dispatch did not carry the PR branch: {fields!r}")
+    if fields.get("expected_branch") != SYNC_BRANCH:
+        raise AssertionError(f"dispatch did not bind catalog-sync: {fields!r}")
 
 
 def assert_status_posted_to_head_sha_not_main(paths: WorkflowPaths) -> None:
-    script = step_run(paths.validate, "publish-build-status", "Publish the build status on the validated SHA")
-    result = run_with_gh_stub(
-        script,
-        scenario=default_scenario(),
-        env={
-            "EXPECTED_SHA": HEAD_SHA,
-            "VALIDATE_RESULT": "success",
-            "GITHUB_SHA": MAIN_SHA,
-        },
-    )
+    result = run_publish(paths)
     if result.completed.returncode != 0:
         raise AssertionError(
             "publish step failed:\n"
@@ -220,100 +367,178 @@ def assert_status_posted_to_head_sha_not_main(paths: WorkflowPaths) -> None:
     sha = status_post_sha(posted[0])
     if sha != HEAD_SHA:
         raise AssertionError(f"status posted to {sha}, expected PR head {HEAD_SHA}")
-    if MAIN_SHA in json.dumps(posted[0]["argv"]):
+    if MAIN_SHA in str(posted[0]["argv"]):
         raise AssertionError(f"status post mentioned main SHA {MAIN_SHA}: {posted[0]['argv']!r}")
     if posted[0]["fields"].get("context") != "build":
         raise AssertionError(f"posted context {posted[0]['fields']!r}, expected build")
     if posted[0]["fields"].get("state") != "success":
         raise AssertionError(f"posted state {posted[0]['fields']!r}, expected success")
+    target = posted[0]["fields"].get("target_url", "")
+    if "111" not in target:
+        raise AssertionError(f"missing target_url run link: {posted[0]['fields']!r}")
 
 
-def assert_dedupe_skips_in_flight_heads(paths: WorkflowPaths) -> None:
-    script = step_run(paths.shepherd, "shepherd", "Shepherd auto-merge pull requests")
-    result = run_with_gh_stub(
-        script,
-        scenario=default_scenario(
-            run_list=[
-                {
-                    "displayTitle": f"CVE catalog validation shepherd-99-1-{PR_NUMBER} @ {HEAD_SHA}",
-                    "status": "in_progress",
-                }
-            ]
-        ),
-        env={},
-    )
+def assert_dedupe_skips_in_flight(paths: WorkflowPaths, status: str) -> None:
+    result = run_shepherd(paths, default_scenario(run_list=[inflight_run(status)]))
     if result.completed.returncode != 0:
         raise AssertionError(
             "shepherd dedupe step failed:\n"
             f"{result.completed.stdout}\n{result.completed.stderr}"
         )
-    dispatched = workflow_run_calls(result.calls)
-    if dispatched:
-        raise AssertionError(f"in-flight head was re-dispatched: {dispatched!r}")
-    combined = result.completed.stdout + result.completed.stderr
-    if "already running" not in combined:
-        raise AssertionError(f"expected in-flight skip message, got:\n{combined}")
+    if workflow_run_calls(result.calls):
+        raise AssertionError(f"{status} in-flight head was re-dispatched: {dispatched_shas(result.calls)!r}")
+
+
+def assert_other_sha_inflight_does_not_block_head(paths: WorkflowPaths) -> None:
+    result = run_shepherd(paths, default_scenario(run_list=[inflight_run("in_progress", OTHER_SHA)]))
+    if result.completed.returncode != 0:
+        raise AssertionError(result.completed.stderr)
+    shas = dispatched_shas(result.calls)
+    if shas != [HEAD_SHA]:
+        raise AssertionError(f"other-SHA in-flight should not block HEAD, got {shas!r}")
+
+
+def assert_existing_build_status_skips_dispatch(paths: WorkflowPaths) -> None:
+    result = run_shepherd(
+        paths,
+        default_scenario(
+            check_runs_by_sha={HEAD_SHA: {"check_runs": []}},
+            combined_status_by_sha={HEAD_SHA: {"statuses": [{"context": "build", "state": "success"}]}},
+        ),
+    )
+    if result.completed.returncode != 0:
+        raise AssertionError(result.completed.stderr)
+    if workflow_run_calls(result.calls):
+        raise AssertionError(f"existing build status still dispatched: {dispatched_shas(result.calls)!r}")
 
 
 def assert_publish_missing_sha_fails_closed(paths: WorkflowPaths) -> None:
-    script = step_run(paths.validate, "publish-build-status", "Publish the build status on the validated SHA")
-    result = run_with_gh_stub(
-        script,
-        scenario=default_scenario(),
-        env={
-            "EXPECTED_SHA": "",
-            "VALIDATE_RESULT": "success",
-            "GITHUB_SHA": MAIN_SHA,
-        },
+    result = run_publish(
+        paths,
+        expected_sha="",
+        scenario=default_scenario(pull=live_pull(head_sha="")),
     )
     if result.completed.returncode == 0:
         raise AssertionError("publish must fail closed on a missing SHA")
-    posted = status_post_calls(result.calls)
-    if posted:
-        raise AssertionError(f"missing SHA still posted a status: {posted!r}")
+    if status_post_calls(result.calls):
+        raise AssertionError(f"missing SHA still posted a status: {status_post_calls(result.calls)!r}")
 
 
-def assert_shepherd_missing_sha_fails_closed(paths: WorkflowPaths) -> None:
-    script = step_run(paths.shepherd, "shepherd", "Shepherd auto-merge pull requests")
-    result = run_with_gh_stub(
-        script,
-        scenario=default_scenario(pr_list=[catalog_pr(head_sha="")]),
-        env={},
-    )
+def assert_shepherd_missing_sha_fails_closed(paths: WorkflowPaths, head_sha: str) -> None:
+    result = run_shepherd(paths, default_scenario(pr_list=[catalog_pr(head_sha=head_sha)]))
     if result.completed.returncode != 0:
         raise AssertionError(
             "shepherd should skip a bad SHA without aborting the rest of the pass:\n"
             f"{result.completed.stdout}\n{result.completed.stderr}"
         )
-    dispatched = workflow_run_calls(result.calls)
-    if dispatched:
-        raise AssertionError(f"missing SHA still dispatched validation: {dispatched!r}")
-    combined = result.completed.stdout + result.completed.stderr
-    if "missing or invalid head SHA" not in combined:
-        raise AssertionError(f"expected fail-closed error, got:\n{combined}")
+    if workflow_run_calls(result.calls):
+        raise AssertionError(f"invalid head {head_sha!r} still dispatched: {dispatched_shas(result.calls)!r}")
 
 
 def assert_validate_reject_missing_sha(paths: WorkflowPaths) -> None:
-    script = step_run(paths.validate, "validate", "Reject a missing or invalid exact SHA")
-    result = run_with_gh_stub(script, scenario=default_scenario(), env={"EXPECTED_SHA": ""})
+    result = run_named_step(
+        paths,
+        "validate",
+        "validate",
+        "Reject a missing or invalid exact SHA",
+        context=gha_context(expected_sha=""),
+        scenario=default_scenario(),
+    )
     if result.completed.returncode == 0:
         raise AssertionError("validate must fail closed on a missing SHA before checkout")
 
 
-def assert_wrong_context_is_not_build(paths: WorkflowPaths) -> None:
-    # Used as a mutant-killing probe: control posts context=build.
-    assert_status_posted_to_head_sha_not_main(paths)
+def assert_publish_maps_result(paths: WorkflowPaths, validate_result: str, expected_state: str) -> None:
+    result = run_publish(paths, validate_result=validate_result)
+    if result.completed.returncode != 0:
+        raise AssertionError(
+            f"publish should post {expected_state} for {validate_result!r}:\n"
+            f"{result.completed.stdout}\n{result.completed.stderr}"
+        )
+    posted = status_post_calls(result.calls)
+    if len(posted) != 1:
+        raise AssertionError(f"expected one status post for {validate_result!r}, got {posted!r}")
+    if posted[0]["fields"].get("state") != expected_state:
+        raise AssertionError(
+            f"{validate_result!r} posted {posted[0]['fields']!r}, expected state={expected_state}"
+        )
+    if status_post_sha(posted[0]) != HEAD_SHA:
+        raise AssertionError(f"mapped status landed on {status_post_sha(posted[0])}")
 
 
-BEHAVIORS: dict[str, Callable[[WorkflowPaths], None]] = {
-    "test_dispatch_carries_pr_head_sha": assert_dispatch_carries_pr_head_sha,
-    "test_status_is_posted_to_head_sha_not_main": assert_status_posted_to_head_sha_not_main,
-    "test_dedupe_skips_in_flight_heads": assert_dedupe_skips_in_flight_heads,
-    "test_publish_missing_sha_fails_closed": assert_publish_missing_sha_fails_closed,
-    "test_shepherd_missing_sha_fails_closed": assert_shepherd_missing_sha_fails_closed,
-    "test_validate_reject_missing_sha": assert_validate_reject_missing_sha,
-    "test_status_uses_build_context": assert_wrong_context_is_not_build,
-}
+def assert_publish_refuses_result(paths: WorkflowPaths, validate_result: str) -> None:
+    result = run_publish(paths, validate_result=validate_result)
+    if result.completed.returncode == 0:
+        raise AssertionError(f"publish must fail closed on result {validate_result!r}")
+    if status_post_calls(result.calls):
+        raise AssertionError(
+            f"result {validate_result!r} still posted: {status_post_calls(result.calls)!r}"
+        )
+
+
+def assert_non_catalog_pr_does_not_dispatch(paths: WorkflowPaths, branch: str) -> None:
+    result = run_shepherd(paths, default_scenario(pr_list=[catalog_pr(branch=branch)]))
+    if result.completed.returncode != 0:
+        raise AssertionError(result.completed.stderr)
+    if workflow_run_calls(result.calls):
+        raise AssertionError(f"{branch} received a self-posted build dispatch: {dispatched_shas(result.calls)!r}")
+
+
+def assert_publish_refuses_non_catalog_branch(paths: WorkflowPaths, branch: str) -> None:
+    result = run_publish(
+        paths,
+        expected_branch=branch,
+        scenario=default_scenario(pull=live_pull(head_sha=HEAD_SHA, branch=branch)),
+    )
+    if result.completed.returncode == 0:
+        raise AssertionError(f"publish must refuse a self-posted build for {branch}")
+    if status_post_calls(result.calls):
+        raise AssertionError(f"{branch} still received a self-posted build: {status_post_calls(result.calls)!r}")
+
+
+def assert_publish_refuses_moved_head(paths: WorkflowPaths) -> None:
+    result = run_publish(paths, scenario=default_scenario(pull=live_pull(head_sha=OTHER_SHA)))
+    if result.completed.returncode == 0:
+        raise AssertionError("publish must refuse when the live PR head no longer owns the SHA")
+    if status_post_calls(result.calls):
+        raise AssertionError("moved head still received a build status")
+
+
+def assert_publish_retries_transient_post_failure(paths: WorkflowPaths) -> None:
+    result = run_publish(paths, scenario=default_scenario(status_post_failures=1))
+    if result.completed.returncode != 0:
+        raise AssertionError(
+            "publish should retry a transient status POST:\n"
+            f"{result.completed.stdout}\n{result.completed.stderr}"
+        )
+    posted = status_post_calls(result.calls)
+    if len(posted) < 2:
+        raise AssertionError(f"expected a retried POST, got {posted!r}")
+    if posted[-1]["fields"].get("state") != "success":
+        raise AssertionError(f"retried POST was not success: {posted[-1]['fields']!r}")
+
+
+def assert_publish_job_wiring(paths: WorkflowPaths) -> None:
+    jobs = jobs_document(paths.validate)
+    publish = jobs["publish-build-status"]
+    kick = jobs["kick-shepherd"]
+    if publish.get("if") != "always() && github.event_name == 'workflow_dispatch'":
+        raise AssertionError(f"publish if is {publish.get('if')!r}")
+    if publish.get("needs") != ["validate"]:
+        raise AssertionError(f"publish needs {publish.get('needs')!r}")
+    permissions = publish.get("permissions") or {}
+    if permissions.get("statuses") != "write":
+        raise AssertionError(f"publish permissions {permissions!r}")
+    if "publish-build-status" not in (kick.get("needs") or []):
+        raise AssertionError(f"kick needs {kick.get('needs')!r}")
+
+
+def assert_killed(mutant_id: str, behavior: Callable[[WorkflowPaths], None]) -> None:
+    try:
+        behavior(mutant_paths(mutant_id))
+    except AssertionError:
+        return
+    raise AssertionError(f"{mutant_id} survived {behavior.__name__}")
 
 
 class ExactShaBuildStatusControlTests(unittest.TestCase):
@@ -323,46 +548,105 @@ class ExactShaBuildStatusControlTests(unittest.TestCase):
     def test_status_is_posted_to_head_sha_not_main(self) -> None:
         assert_status_posted_to_head_sha_not_main(CONTROL)
 
-    def test_dedupe_skips_in_flight_heads(self) -> None:
-        assert_dedupe_skips_in_flight_heads(CONTROL)
+    def test_status_uses_build_context(self) -> None:
+        assert_status_posted_to_head_sha_not_main(CONTROL)
+
+    def test_yaml_env_binds_expected_sha_from_inputs_not_github_sha(self) -> None:
+        step = named_step(CONTROL.validate, "publish-build-status", "Publish the build status on the validated SHA")
+        env = rendered_step_env(step, gha_context())
+        self.assertEqual(env.get("EXPECTED_SHA"), HEAD_SHA)
+        self.assertNotEqual(env.get("EXPECTED_SHA"), MAIN_SHA)
+        self.assertEqual(env.get("VALIDATE_RESULT"), "success")
+
+    def test_yaml_env_binds_validate_result_from_needs(self) -> None:
+        step = named_step(CONTROL.validate, "publish-build-status", "Publish the build status on the validated SHA")
+        env = rendered_step_env(step, gha_context(validate_result="failure"))
+        self.assertEqual(env.get("VALIDATE_RESULT"), "failure")
+
+    def test_existing_build_status_without_check_run_skips_dispatch(self) -> None:
+        assert_existing_build_status_skips_dispatch(CONTROL)
+
+    def test_queued_validation_skips_dispatch(self) -> None:
+        assert_dedupe_skips_in_flight(CONTROL, "queued")
+
+    def test_in_progress_validation_skips_dispatch(self) -> None:
+        assert_dedupe_skips_in_flight(CONTROL, "in_progress")
+
+    def test_pending_validation_skips_dispatch(self) -> None:
+        assert_dedupe_skips_in_flight(CONTROL, "pending")
+
+    def test_waiting_validation_skips_dispatch(self) -> None:
+        assert_dedupe_skips_in_flight(CONTROL, "waiting")
+
+    def test_requested_validation_skips_dispatch(self) -> None:
+        assert_dedupe_skips_in_flight(CONTROL, "requested")
+
+    def test_other_sha_in_flight_does_not_block_this_head(self) -> None:
+        assert_other_sha_inflight_does_not_block_head(CONTROL)
+
+    def test_null_head_sha_fails_closed(self) -> None:
+        assert_shepherd_missing_sha_fails_closed(CONTROL, "null")
+
+    def test_empty_head_sha_fails_closed(self) -> None:
+        assert_shepherd_missing_sha_fails_closed(CONTROL, "")
+
+    def test_forty_one_hex_head_sha_fails_closed(self) -> None:
+        assert_shepherd_missing_sha_fails_closed(CONTROL, FORTY_ONE_SHA)
 
     def test_publish_missing_sha_fails_closed(self) -> None:
         assert_publish_missing_sha_fails_closed(CONTROL)
 
-    def test_shepherd_missing_sha_fails_closed(self) -> None:
-        assert_shepherd_missing_sha_fails_closed(CONTROL)
-
     def test_validate_reject_missing_sha(self) -> None:
         assert_validate_reject_missing_sha(CONTROL)
 
-    def test_failed_validation_posts_failure_on_the_head_sha(self) -> None:
-        script = step_run(
-            CONTROL.validate,
-            "publish-build-status",
-            "Publish the build status on the validated SHA",
-        )
-        result = run_with_gh_stub(
-            script,
-            scenario=default_scenario(),
-            env={
-                "EXPECTED_SHA": HEAD_SHA,
-                "VALIDATE_RESULT": "failure",
-                "GITHUB_SHA": MAIN_SHA,
-            },
-        )
-        self.assertEqual(result.completed.returncode, 0, result.completed.stderr)
-        posted = status_post_calls(result.calls)
-        self.assertEqual(len(posted), 1)
-        self.assertEqual(status_post_sha(posted[0]), HEAD_SHA)
-        self.assertEqual(posted[0]["fields"].get("state"), "failure")
-        self.assertEqual(posted[0]["fields"].get("context"), "build")
+    def test_success_posts_success(self) -> None:
+        assert_publish_maps_result(CONTROL, "success", "success")
+
+    def test_failure_posts_failure(self) -> None:
+        assert_publish_maps_result(CONTROL, "failure", "failure")
+
+    def test_cancelled_posts_failure(self) -> None:
+        assert_publish_maps_result(CONTROL, "cancelled", "failure")
+
+    def test_skipped_posts_failure(self) -> None:
+        assert_publish_maps_result(CONTROL, "skipped", "failure")
+
+    def test_empty_result_fails_closed(self) -> None:
+        assert_publish_refuses_result(CONTROL, "")
+
+    def test_unknown_result_fails_closed(self) -> None:
+        assert_publish_refuses_result(CONTROL, "wat")
+
+    def test_catalog_sync_pr_is_dispatched(self) -> None:
+        assert_dispatch_carries_pr_head_sha(CONTROL)
+
+    def test_dependabot_pr_is_not_dispatched(self) -> None:
+        assert_non_catalog_pr_does_not_dispatch(CONTROL, DEPENDABOT_BRANCH)
+
+    def test_content_pr_is_not_dispatched(self) -> None:
+        assert_non_catalog_pr_does_not_dispatch(CONTROL, CONTENT_BRANCH)
+
+    def test_publish_refuses_dependabot_branch(self) -> None:
+        assert_publish_refuses_non_catalog_branch(CONTROL, DEPENDABOT_BRANCH)
+
+    def test_publish_refuses_content_branch(self) -> None:
+        assert_publish_refuses_non_catalog_branch(CONTROL, CONTENT_BRANCH)
+
+    def test_substring_lookalike_branch_is_not_dispatched(self) -> None:
+        assert_non_catalog_pr_does_not_dispatch(CONTROL, SUBSTRING_BRANCH)
+
+    def test_publish_refuses_when_live_head_moved(self) -> None:
+        assert_publish_refuses_moved_head(CONTROL)
+
+    def test_publish_retries_transient_status_post(self) -> None:
+        assert_publish_retries_transient_post_failure(CONTROL)
+
+    def test_publish_job_wiring(self) -> None:
+        assert_publish_job_wiring(CONTROL)
 
     def test_prove_step_fails_closed_when_checkout_does_not_match(self) -> None:
-        script = step_run(
-            CONTROL.validate,
-            "validate",
-            "Prove validation is attached to the requested revision",
-        )
+        step = named_step(CONTROL.validate, "validate", "Prove validation is attached to the requested revision")
+        script = str(step["run"])
         with tempfile.TemporaryDirectory() as tmp:
             repo = Path(tmp)
             subprocess.run(["git", "init"], cwd=repo, check=True, capture_output=True)
@@ -378,94 +662,92 @@ class ExactShaBuildStatusControlTests(unittest.TestCase):
                 capture_output=True,
                 text=True,
             ).stdout.strip()
-            matched = run_bash(
-                script,
-                env={"EXPECTED_SHA": actual},
-                extra_path=Path("/usr/bin"),
-                cwd=repo,
-            )
+            matched = run_bash(script, env={"EXPECTED_SHA": actual}, extra_path=Path("/usr/bin"), cwd=repo)
             self.assertEqual(matched.returncode, 0, matched.stderr)
-            mismatched = run_bash(
-                script,
-                env={"EXPECTED_SHA": OTHER_SHA},
-                extra_path=Path("/usr/bin"),
-                cwd=repo,
-            )
+            mismatched = run_bash(script, env={"EXPECTED_SHA": OTHER_SHA}, extra_path=Path("/usr/bin"), cwd=repo)
             self.assertNotEqual(mismatched.returncode, 0)
-            missing = run_bash(
-                script,
-                env={"EXPECTED_SHA": ""},
-                extra_path=Path("/usr/bin"),
-                cwd=repo,
-            )
+            missing = run_bash(script, env={"EXPECTED_SHA": ""}, extra_path=Path("/usr/bin"), cwd=repo)
             self.assertNotEqual(missing.returncode, 0)
 
 
-class ExactShaBuildStatusMutantTests(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls) -> None:
-        cls.manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
-        if not isinstance(cls.manifest, list) or not cls.manifest:
-            raise AssertionError(f"{MANIFEST} must list on-disk mutants")
+class ExactShaBuildStatusMutantKillTests(unittest.TestCase):
+    def test_M1_post_on_main_is_killed(self) -> None:
+        assert_killed("M1-post-on-main", assert_status_posted_to_head_sha_not_main)
 
-    def test_control_is_green_before_mutants_are_judged(self) -> None:
-        for name, behavior in BEHAVIORS.items():
-            with self.subTest(control=name):
-                behavior(CONTROL)
+    def test_M2_drop_sha_input_is_killed(self) -> None:
+        assert_killed("M2-drop-sha-input", assert_dispatch_carries_pr_head_sha)
 
-    def test_each_on_disk_mutant_is_killed_by_its_named_test(self) -> None:
-        rows = []
-        for mutant in self.manifest:
-            mutant_id = mutant["id"]
-            killing_name = mutant["killing_test"]
-            behavior = BEHAVIORS[killing_name]
-            mutated = WorkflowPaths(
-                shepherd=MUTANTS_ROOT / mutant_id / "automation-shepherd.yml",
-                validate=MUTANTS_ROOT / mutant_id / "cve-catalog-validate.yml",
-            )
-            self.assertTrue(mutated.shepherd.is_file(), mutated.shepherd)
-            self.assertTrue(mutated.validate.is_file(), mutated.validate)
-            with self.subTest(mutant=mutant_id, killing_test=killing_name):
-                try:
-                    behavior(mutated)
-                except AssertionError as killed:
-                    rows.append(
-                        {
-                            "id": mutant_id,
-                            "file": mutant["file"],
-                            "killing_test": killing_name,
-                            "expected": mutant["expected"],
-                            "actual": str(killed),
-                        }
-                    )
-                    continue
-                self.fail(
-                    f"{mutant_id} survived {killing_name}; expected {mutant['expected']}"
-                )
-        self.assertEqual(len(rows), len(self.manifest), rows)
+    def test_M3_drop_dedupe_is_killed(self) -> None:
+        assert_killed("M3-drop-dedupe", lambda paths: assert_dedupe_skips_in_flight(paths, "in_progress"))
 
-    def test_mutants_are_surgical_edits_of_the_real_workflow_files(self) -> None:
-        for mutant in self.manifest:
-            mutant_id = mutant["id"]
-            relative = mutant["file"].split(":", 1)[0]
-            original = ROOT / relative
-            mutated = MUTANTS_ROOT / mutant_id / Path(relative).name
-            original_text = original.read_text(encoding="utf-8")
-            mutated_text = mutated.read_text(encoding="utf-8")
-            self.assertNotEqual(original_text, mutated_text, mutant_id)
-            sibling = (
-                MUTANTS_ROOT / mutant_id / "cve-catalog-validate.yml"
-                if relative.endswith("automation-shepherd.yml")
-                else MUTANTS_ROOT / mutant_id / "automation-shepherd.yml"
-            )
-            control_sibling = (
-                VALIDATE_WORKFLOW if sibling.name == "cve-catalog-validate.yml" else SHEPHERD_WORKFLOW
-            )
-            self.assertEqual(
-                sibling.read_text(encoding="utf-8"),
-                control_sibling.read_text(encoding="utf-8"),
-                f"{mutant_id} must leave the unmutated workflow identical to control",
-            )
+    def test_M4_fail_open_missing_sha_is_killed(self) -> None:
+        assert_killed("M4-fail-open-missing-sha", assert_publish_missing_sha_fails_closed)
+
+    def test_M5_wrong_context_name_is_killed(self) -> None:
+        assert_killed("M5-wrong-context-name", assert_status_posted_to_head_sha_not_main)
+
+    def test_M6_shepherd_fail_open_missing_sha_is_killed(self) -> None:
+        assert_killed("M6-shepherd-fail-open-missing-sha", lambda paths: assert_shepherd_missing_sha_fails_closed(paths, ""))
+
+    def test_K1_null_head_z_guard_is_killed(self) -> None:
+        assert_killed("K1-null-head-z-guard", lambda paths: assert_shepherd_missing_sha_fails_closed(paths, "null"))
+
+    def test_K2_unanchored_sha_regex_is_killed(self) -> None:
+        assert_killed("K2-unanchored-sha-regex", lambda paths: assert_shepherd_missing_sha_fails_closed(paths, FORTY_ONE_SHA))
+
+    def test_K3_dedupe_without_sha_is_killed(self) -> None:
+        assert_killed("K3-dedupe-without-sha", assert_other_sha_inflight_does_not_block_head)
+
+    def test_K4_drop_queued_is_killed(self) -> None:
+        assert_killed("K4-drop-queued", lambda paths: assert_dedupe_skips_in_flight(paths, "queued"))
+
+    def test_K5_assign_not_accumulate_is_killed(self) -> None:
+        assert_killed("K5-assign-not-accumulate", lambda paths: assert_dedupe_skips_in_flight(paths, "in_progress"))
+
+    def test_K6_drop_statuses_or_is_killed(self) -> None:
+        assert_killed("K6-drop-statuses-or", assert_existing_build_status_skips_dispatch)
+
+    def test_K7_pending_gt_one_is_killed(self) -> None:
+        assert_killed("K7-pending-gt-one", lambda paths: assert_dedupe_skips_in_flight(paths, "in_progress"))
+
+    def test_K8_failure_posts_success_is_killed(self) -> None:
+        assert_killed("K8-failure-posts-success", lambda paths: assert_publish_maps_result(paths, "failure", "failure"))
+
+    def test_K9_cancelled_skipped_not_mapped_is_killed(self) -> None:
+        assert_killed("K9-cancelled-skipped-unmapped", lambda paths: assert_publish_maps_result(paths, "cancelled", "failure"))
+
+    def test_K10_unknown_posts_success_is_killed(self) -> None:
+        assert_killed("K10-unknown-posts-success", lambda paths: assert_publish_refuses_result(paths, ""))
+
+    def test_K11_drop_target_url_is_killed(self) -> None:
+        assert_killed("K11-drop-target-url", assert_status_posted_to_head_sha_not_main)
+
+    def test_K12_hardcoded_validate_result_is_killed(self) -> None:
+        assert_killed("K12-hardcoded-validate-result", lambda paths: assert_publish_maps_result(paths, "failure", "failure"))
+
+    def test_K13_expected_sha_from_github_sha_is_killed(self) -> None:
+        assert_killed("K13-expected-sha-github-sha", assert_status_posted_to_head_sha_not_main)
+
+    def test_K14_drop_always_is_killed(self) -> None:
+        assert_killed("K14-drop-always", assert_publish_job_wiring)
+
+    def test_K15_statuses_not_write_is_killed(self) -> None:
+        assert_killed("K15-statuses-not-write", assert_publish_job_wiring)
+
+    def test_K16_kick_without_publish_is_killed(self) -> None:
+        assert_killed("K16-kick-without-publish", assert_publish_job_wiring)
+
+    def test_K17_drop_catalog_sync_filter_is_killed(self) -> None:
+        assert_killed("K17-drop-catalog-sync-filter", lambda paths: assert_non_catalog_pr_does_not_dispatch(paths, CONTENT_BRANCH))
+
+    def test_K18_prefix_catalog_filter_is_killed(self) -> None:
+        assert_killed("K18-prefix-catalog-filter", lambda paths: assert_non_catalog_pr_does_not_dispatch(paths, CONTENT_BRANCH))
+
+    def test_K19_substring_catalog_filter_is_killed(self) -> None:
+        assert_killed("K19-substring-catalog-filter", lambda paths: assert_non_catalog_pr_does_not_dispatch(paths, SUBSTRING_BRANCH))
+
+    def test_K20_drop_live_head_check_is_killed(self) -> None:
+        assert_killed("K20-drop-live-head-check", assert_publish_refuses_moved_head)
 
 
 if __name__ == "__main__":

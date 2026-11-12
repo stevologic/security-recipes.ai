@@ -13,7 +13,7 @@ access token is required.
 | Content refresh (`content-refresh.yml`) | daily 11:47 UTC | Researches one source-backed opportunity across reviewed remediation workflows, executable playbooks, or non-CVE recipes and submits a validated auto-merge PR when a substantive update is warranted |
 | Leftover review (`leftover-review.yml`) | daily 13:17 UTC | Live-verifies leftover-gold CVE leftovers against GHAD/NVD; leftover-gold criticals and highs drain first, then each run reviews up to 25 leftover-gold medium and low pages and submits a validated auto-merge PR |
 | CVE catalog validation request (`cve-catalog-validate-request.yml`) | dispatch only | Verifies that an exact SHA is the live head of the requested same-repository PR without checking out or executing PR code |
-| CVE catalog validation (`cve-catalog-validate.yml`) | dispatch only | Revalidates and runs the build-equivalent suite on the exact catalog SHA (workflow code from the default branch). A trusted no-checkout job then posts the required `build` commit status onto that SHA. It never emits `karen-qa`. |
+| CVE catalog validation (`cve-catalog-validate.yml`) | dispatch only | Revalidates the exact `automation/cve-catalog-sync` SHA (workflow code from the default branch). A trusted no-checkout job then posts the required `build` commit status onto that SHA. Dependabot, content-refresh, and every other PR keep `build.yml`. It never emits `karen-qa`. |
 | Production watchdog (`production-watchdog.yml`) | every 30 min | Probes the live site, catalog freshness, revision, and TLS; maintains the health issue; self-heals unbuilt revisions and stale catalogs |
 | Automation shepherd (`automation-shepherd.yml`) | every 30 min | Dispatches missing main Builds after token-authored merges, updates stale auto-merge PR branches, and attaches missing build validations |
 | Dependabot auto-merge (`dependabot-automerge.yml`) | Dependabot PRs | Arms auto-merge for verified patch/minor bumps |
@@ -86,11 +86,16 @@ and `repository_dispatch` are the direct-dispatch exceptions. Two consequences:
   `build` check**, so its auto-merge waits forever under the ruleset.
 
 The shepherd closes both gaps with dispatches (the allowed exception): it
-dispatches `build.yml` for unbuilt main revisions and dispatches the exact-SHA
-validation for auto-merge PR heads that have none. Workflow code stays on the
-default branch; the catalog SHA is an input. Validation checks out that SHA
-with a read-only token, then a no-checkout job posts the `build` commit status
-onto the same SHA so the required context lands on the PR head, not on main.
+dispatches `build.yml` for unbuilt main revisions. The self-posted `build`
+commit status from exact-SHA validation is catalog-sync only
+(`automation/cve-catalog-sync` in this repository). Dependabot,
+content-refresh, leftover-review, and every other PR keep the real
+`build.yml` `build`, including image smoke tests. Workflow code stays on
+the default branch; the catalog SHA is an input. Validation checks out that
+SHA with a read-only token, then a no-checkout job posts `build` onto the
+live catalog-sync head so the required context lands on that SHA, not on
+main. This restores the catalog self-posted `build` removed in 5ea57357
+and is held for Stephen's ack.
 
 ## CVE catalog sync budget
 
@@ -175,10 +180,10 @@ and are not carried over.
 
 ## Merge policy
 
-The `main` ruleset requires a PR, a passing `build` context from GitHub
-Actions, and a passing `karen-qa` context posted only by the Karen QA
-GitHub App after human review. Catalog validation posts only the `build`
-commit status onto the exact validated SHA and never emits `karen-qa`.
+The `main` ruleset requires a PR and a passing `build` context from GitHub
+Actions (`build` / integration 15368). It does not require `karen-qa`.
+Catalog validation posts only the `build` commit status onto the live
+`automation/cve-catalog-sync` head SHA and never emits `karen-qa`.
 
 A catalog PR written by the CVE sync bot that changes **only**
 allowlisted catalog data paths (`static/api/cve-catalog/`,
@@ -217,8 +222,8 @@ and (c) the head branch is `automation/cve-catalog-sync` and the head
 SHA matches what this run pushed. The required `build` check is not
 authentication; the path gate is the control. Dispatching
 `cve-catalog-validate.yml` on trusted default-branch workflow code, then
-posting the `build` commit status onto the exact catalog SHA, attaches
-the required context to that SHA. Catalog merge depends on ruleset `18147261` (`main`): required
+posting the `build` commit status onto the live catalog-sync SHA, attaches
+the required context to that SHA only. Catalog merge depends on ruleset `18147261` (`main`): required
 strict `build`, 0 approvals, extra approval for unattributed changes ON,
 and a PR-only bypass actor for the `stevologic-cve-sync` GitHub App
 (approved; added once the App ID exists). The merge job recommits the

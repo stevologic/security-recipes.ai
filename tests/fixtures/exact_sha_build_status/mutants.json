@@ -1,38 +1,158 @@
 [
   {
     "id": "M1-post-on-main",
-    "file": ".github/workflows/cve-catalog-validate.yml:211",
-    "killing_test": "test_status_is_posted_to_head_sha_not_main",
+    "file": ".github/workflows/cve-catalog-validate.yml:258",
+    "killing_test": "test_M1_post_on_main_is_killed",
     "expected": "status POST path uses the PR head SHA, not GITHUB_SHA/main"
   },
   {
     "id": "M2-drop-sha-input",
-    "file": ".github/workflows/automation-shepherd.yml:294",
-    "killing_test": "test_dispatch_carries_pr_head_sha",
+    "file": ".github/workflows/automation-shepherd.yml:298",
+    "killing_test": "test_M2_drop_sha_input_is_killed",
     "expected": "gh workflow run includes --field expected_sha=<PR head SHA>"
   },
   {
     "id": "M3-drop-dedupe",
-    "file": ".github/workflows/automation-shepherd.yml:276",
-    "killing_test": "test_dedupe_skips_in_flight_heads",
+    "file": ".github/workflows/automation-shepherd.yml:278",
+    "killing_test": "test_M3_drop_dedupe_is_killed",
     "expected": "in-progress validation for the head SHA is not re-dispatched"
   },
   {
     "id": "M4-fail-open-missing-sha",
-    "file": ".github/workflows/cve-catalog-validate.yml:188",
-    "killing_test": "test_publish_missing_sha_fails_closed",
+    "file": ".github/workflows/cve-catalog-validate.yml:210",
+    "killing_test": "test_M4_fail_open_missing_sha_is_killed",
     "expected": "publish exits non-zero and posts no status when expected_sha is empty"
   },
   {
     "id": "M5-wrong-context-name",
-    "file": ".github/workflows/cve-catalog-validate.yml:213",
-    "killing_test": "test_status_uses_build_context",
+    "file": ".github/workflows/cve-catalog-validate.yml:260",
+    "killing_test": "test_M5_wrong_context_name_is_killed",
     "expected": "commit status context is build, not another name"
   },
   {
     "id": "M6-shepherd-fail-open-missing-sha",
-    "file": ".github/workflows/automation-shepherd.yml:256",
-    "killing_test": "test_shepherd_missing_sha_fails_closed",
+    "file": ".github/workflows/automation-shepherd.yml:260",
+    "killing_test": "test_M6_shepherd_fail_open_missing_sha_is_killed",
     "expected": "shepherd does not dispatch validation when the PR head SHA is missing"
+  },
+  {
+    "id": "K1-null-head-z-guard",
+    "file": ".github/workflows/automation-shepherd.yml:260",
+    "killing_test": "test_K1_null_head_z_guard_is_killed",
+    "expected": "null head SHA fails closed and is not dispatched"
+  },
+  {
+    "id": "K2-unanchored-sha-regex",
+    "file": ".github/workflows/automation-shepherd.yml:260",
+    "killing_test": "test_K2_unanchored_sha_regex_is_killed",
+    "expected": "41-hex head SHA fails the anchored 40-hex guard"
+  },
+  {
+    "id": "K3-dedupe-without-sha",
+    "file": ".github/workflows/automation-shepherd.yml:287",
+    "killing_test": "test_K3_dedupe_without_sha_is_killed",
+    "expected": "in-flight validation for another SHA does not block this head"
+  },
+  {
+    "id": "K4-drop-queued",
+    "file": ".github/workflows/automation-shepherd.yml:281",
+    "killing_test": "test_K4_drop_queued_is_killed",
+    "expected": "queued in-flight validation for this head is not re-dispatched"
+  },
+  {
+    "id": "K5-assign-not-accumulate",
+    "file": ".github/workflows/automation-shepherd.yml:288",
+    "killing_test": "test_K5_assign_not_accumulate_is_killed",
+    "expected": "in_progress count is accumulated, not overwritten by later empty statuses"
+  },
+  {
+    "id": "K6-drop-statuses-or",
+    "file": ".github/workflows/automation-shepherd.yml:273",
+    "killing_test": "test_K6_drop_statuses_or_is_killed",
+    "expected": "existing build status with no check run skips dispatch"
+  },
+  {
+    "id": "K7-pending-gt-one",
+    "file": ".github/workflows/automation-shepherd.yml:290",
+    "killing_test": "test_K7_pending_gt_one_is_killed",
+    "expected": "a single in-flight validation is enough to skip"
+  },
+  {
+    "id": "K8-failure-posts-success",
+    "file": ".github/workflows/cve-catalog-validate.yml:246",
+    "killing_test": "test_K8_failure_posts_success_is_killed",
+    "expected": "validate failure posts state=failure"
+  },
+  {
+    "id": "K9-cancelled-skipped-unmapped",
+    "file": ".github/workflows/cve-catalog-validate.yml:245",
+    "killing_test": "test_K9_cancelled_skipped_not_mapped_is_killed",
+    "expected": "cancelled maps to failure, not the unknown refuse arm"
+  },
+  {
+    "id": "K10-unknown-posts-success",
+    "file": ".github/workflows/cve-catalog-validate.yml:250",
+    "killing_test": "test_K10_unknown_posts_success_is_killed",
+    "expected": "empty validate result refuses to publish"
+  },
+  {
+    "id": "K11-drop-target-url",
+    "file": ".github/workflows/cve-catalog-validate.yml:261",
+    "killing_test": "test_K11_drop_target_url_is_killed",
+    "expected": "status POST includes target_url pointing at the run"
+  },
+  {
+    "id": "K12-hardcoded-validate-result",
+    "file": ".github/workflows/cve-catalog-validate.yml:192",
+    "killing_test": "test_K12_hardcoded_validate_result_is_killed",
+    "expected": "VALIDATE_RESULT comes from needs.validate.result, not a hardcoded success"
+  },
+  {
+    "id": "K13-expected-sha-github-sha",
+    "file": ".github/workflows/cve-catalog-validate.yml:187",
+    "killing_test": "test_K13_expected_sha_from_github_sha_is_killed",
+    "expected": "EXPECTED_SHA is rendered from inputs.expected_sha, not github.sha"
+  },
+  {
+    "id": "K14-drop-always",
+    "file": ".github/workflows/cve-catalog-validate.yml:175",
+    "killing_test": "test_K14_drop_always_is_killed",
+    "expected": "publish if keeps always() so a failed validate still posts"
+  },
+  {
+    "id": "K15-statuses-not-write",
+    "file": ".github/workflows/cve-catalog-validate.yml:181",
+    "killing_test": "test_K15_statuses_not_write_is_killed",
+    "expected": "publish job has statuses: write"
+  },
+  {
+    "id": "K16-kick-without-publish",
+    "file": ".github/workflows/cve-catalog-validate.yml:269",
+    "killing_test": "test_K16_kick_without_publish_is_killed",
+    "expected": "kick-shepherd needs publish-build-status"
+  },
+  {
+    "id": "K17-drop-catalog-sync-filter",
+    "file": ".github/workflows/automation-shepherd.yml:253",
+    "killing_test": "test_K17_drop_catalog_sync_filter_is_killed",
+    "expected": "content-refresh PRs are not dispatched a self-posted build"
+  },
+  {
+    "id": "K18-prefix-catalog-filter",
+    "file": ".github/workflows/automation-shepherd.yml:255",
+    "killing_test": "test_K18_prefix_catalog_filter_is_killed",
+    "expected": "prefix automation/* does not widen catalog-sync-only dispatch"
+  },
+  {
+    "id": "K19-substring-catalog-filter",
+    "file": ".github/workflows/automation-shepherd.yml:255",
+    "killing_test": "test_K19_substring_catalog_filter_is_killed",
+    "expected": "substring *cve-catalog-sync* does not widen catalog-sync-only dispatch"
+  },
+  {
+    "id": "K20-drop-live-head-check",
+    "file": ".github/workflows/cve-catalog-validate.yml:234",
+    "killing_test": "test_K20_drop_live_head_check_is_killed",
+    "expected": "publish refuses when live PR head SHA no longer owns EXPECTED_SHA"
   }
 ]

@@ -23,7 +23,7 @@ def save_json(path: Path, value: Any) -> None:
 
 def apply_jq(payload: Any, jq_filter: str) -> str:
     completed = subprocess.run(
-        ["jq", "-c", jq_filter],
+        ["jq", "-cr", jq_filter],
         input=json.dumps(payload),
         capture_output=True,
         text=True,
@@ -131,9 +131,23 @@ def main() -> int:
 
     if argv[0] == "api":
         path = api_path(parsed["positionals"])
+        repo = os.environ.get("GITHUB_REPOSITORY", "")
         if parsed["method"] == "POST" and "/statuses/" in path:
+            prior_posts = sum(
+                1
+                for call in calls[:-1]
+                if call.get("method") == "POST"
+                and any("/statuses/" in str(item) for item in call.get("positionals", []))
+            )
+            failures = int(scenario.get("status_post_failures", 0))
+            if prior_posts < failures:
+                return 1
             return int(scenario.get("status_post_exit", 0))
-        if "/check-runs" in path:
+        if path in {f"repos/{repo}", f"repos/{repo}/"}:
+            payload = scenario.get("repo", {"default_branch": "main"})
+        elif "/pulls/" in path:
+            payload = scenario.get("pull", {})
+        elif "/check-runs" in path:
             payload = scenario.get("check_runs_by_sha", {}).get(
                 commit_sha_from_path(path),
                 {"check_runs": []},
