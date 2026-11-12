@@ -223,9 +223,14 @@ strict `build`, 0 approvals, extra approval for unattributed changes ON,
 and a PR-only bypass actor for the `stevologic-cve-sync` GitHub App
 (approved; added once the App ID exists). The merge job recommits the
 catalog tree through the Git Data API with the App token so the head is
-attributed. A missing App fails the merge job on the first run. If the
-App is configured and protection still blocks, the run leaves the PR
-open, labeled, and summarized, and the next sync retries. If the same
+attributed. A missing App continues on `GITHUB_TOKEN`: the merge job
+dispatches `cve-catalog-validate.yml` on the exact PR head so `build`
+attaches, labels `automation:protection-fallback`, and does not attempt
+a merge that would need to bypass ruleset `18147261`. Incomplete App
+credentials (only one of `CVE_SYNC_APP_ID` / `CVE_SYNC_APP_KEY`) still
+fail closed. If the App is configured and protection still blocks, the
+run leaves the PR open, labeled, and summarized, and the next sync
+retries. If the same
 catalog PR has been in protection-fallback on 2 consecutive runs or
 whose fallback label is older than 24h, the run fails as a real alert.
 An already-merged catalog PR is idempotent when its head SHA or
