@@ -1,0 +1,25 @@
+exit=1
+--- stdout ---
+
+--- stderr ---
+F
+======================================================================
+FAIL: test_missing_app_skips_mint_and_attribute (tests.test_cve_sync_merge_harness.CveSyncMergeHarnessTests.test_missing_app_skips_mint_and_attribute)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/tmp/M12_mint_if_dropped-ycmecjhl/tests/test_cve_sync_merge_harness.py", line 131, in test_missing_app_skips_mint_and_attribute
+    self.assertEqual(
+AssertionError: Lists differ: [{'argv': ['app-token', 'mint'], 'token': 'github-token'}] != []
+
+First list contains 1 additional elements.
+First extra element 0:
+{'argv': ['app-token', 'mint'], 'token': 'github-token'}
+
+- [{'argv': ['app-token', 'mint'], 'token': 'github-token'}]
++ [] : mint step must not run without the App, got [{'argv': ['app-token', 'mint'], 'token': 'github-token'}]
+
+----------------------------------------------------------------------
+Ran 1 test in 0.949s
+
+FAILED (failures=1)
+

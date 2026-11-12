@@ -1,0 +1,21 @@
+exit=1
+--- stdout ---
+
+--- stderr ---
+F
+======================================================================
+FAIL: test_missing_app_run1_dispatches_validate_skips_merge_and_labels (tests.test_cve_sync_merge_harness.CveSyncMergeHarnessTests.test_missing_app_run1_dispatches_validate_skips_merge_and_labels)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/tmp/M1_restore_early_exit-g4jdtvts/tests/test_cve_sync_merge_harness.py", line 40, in test_missing_app_run1_dispatches_validate_skips_merge_and_labels
+    self.assertEqual(
+AssertionError: 'require' != 'delivery'
+- require
++ delivery
+ : missing App run 1 expected to reach delivery, stopped at require
+
+----------------------------------------------------------------------
+Ran 1 test in 0.066s
+
+FAILED (failures=1)
+

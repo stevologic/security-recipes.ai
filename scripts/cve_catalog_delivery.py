@@ -323,7 +323,8 @@ def _app_unconfigured_note(app_configured: bool) -> str:
         return ""
     return (
         " GitHub App is not configured; set CVE_SYNC_APP_ID and "
-        "CVE_SYNC_APP_KEY on the cve-sync environment."
+        "CVE_SYNC_APP_KEY on the cve-sync environment. Catalog merge "
+        "cannot bypass ruleset 18147261 without the App."
     )
 
 
@@ -334,11 +335,12 @@ def classify_protection_fallback(
     now: datetime | None = None,
     app_configured: bool = False,
 ) -> FallbackDecision:
-    """Escalate when the App is missing, after 2 fallback runs, or after 24h.
+    """Escalate after 2 consecutive protection-fallback runs or after 24h.
 
     Age is measured from the fallback label, never from the PR's created_at.
-    A first fallback on a long-lived catalog PR is not an alert when the
-    GitHub App is configured. A missing App fails closed on the first run.
+    A first fallback on a long-lived catalog PR is not an alert. A missing
+    GitHub App uses the same 2-run / 24h clock so run 1 can still dispatch
+    exact-SHA validation and attach the required ``build`` check.
     """
 
     clock = now or datetime.now(timezone.utc)
@@ -346,21 +348,6 @@ def classify_protection_fallback(
         clock = clock.replace(tzinfo=timezone.utc)
     else:
         clock = clock.astimezone(timezone.utc)
-    if not app_configured:
-        labeled = parse_github_datetime(labeled_at)
-        age = (clock - labeled) if labeled is not None else timedelta(0)
-        return FallbackDecision(
-            escalate=True,
-            action="fail_fallback_escalated",
-            message=(
-                "GitHub App is not configured; set CVE_SYNC_APP_ID and "
-                "CVE_SYNC_APP_KEY on the cve-sync environment. Catalog merge "
-                "cannot bypass ruleset 18147261 without the App. Failing "
-                "closed on the first run."
-            ),
-            consecutive_runs=FALLBACK_CONSECUTIVE_RUNS if already_labeled else 1,
-            age_hours=max(0.0, age.total_seconds() / 3600),
-        )
     consecutive = FALLBACK_CONSECUTIVE_RUNS if already_labeled else 1
     labeled = parse_github_datetime(labeled_at)
     if already_labeled and labeled is None:

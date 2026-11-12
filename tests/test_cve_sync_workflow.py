@@ -1,12 +1,135 @@
 from __future__ import annotations
 
+import os
 import re
+import subprocess
+import tempfile
 import unittest
 from pathlib import Path
+
+import yaml
 
 
 ROOT = Path(__file__).resolve().parents[1]
 WORKFLOW_PATH = ROOT / ".github" / "workflows" / "cve-catalog-sync.yml"
+REQUIRE_STEP = "Require GitHub App credentials"
+MINT_STEP = "Mint CVE automation GitHub App token"
+ATTRIBUTE_STEP = "Attribute catalog revision to the GitHub App"
+DELIVERY_STEP = "Reconcile, validate, and merge exact catalog revision"
+FALLBACK_STEP = "Explain catalog PR protection fallback"
+VALIDATE_DISPATCH_RE = re.compile(
+    r"gh workflow run cve-catalog-validate\.yml\s*\\\n(?:[^\n]*\\\n)*[^\n]*",
+)
+SKIP_MERGE_MARKER = "merge was not attempted without the App"
+
+
+def merge_job_steps(workflow: str) -> list[dict[str, object]]:
+    document = yaml.safe_load(workflow)
+    jobs = document["jobs"]
+    steps = jobs["merge"]["steps"]
+    if not isinstance(steps, list):
+        raise AssertionError("merge job has no steps")
+    return [step for step in steps if isinstance(step, dict)]
+
+
+def step_named(workflow: str, name: str) -> dict[str, object]:
+    for step in merge_job_steps(workflow):
+        if step.get("name") == name:
+            return step
+    raise AssertionError(f"workflow step not found: {name}")
+
+
+def run_require_step(workflow: str, *, credential_status: str) -> subprocess.CompletedProcess[str]:
+    script = step_named(workflow, REQUIRE_STEP).get("run")
+    if not isinstance(script, str) or not script.strip():
+        raise AssertionError("require step has no run script")
+    with tempfile.TemporaryDirectory() as tmp:
+        output = Path(tmp) / "github_output"
+        env = os.environ.copy()
+        env["CREDENTIAL_STATUS"] = credential_status
+        env["GITHUB_OUTPUT"] = str(output)
+        return subprocess.run(
+            ["bash", "-eo", "pipefail", "-c", script],
+            env=env,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+
+
+def validate_dispatch_command(workflow: str) -> str:
+    match = VALIDATE_DISPATCH_RE.search(workflow)
+    if match is None:
+        raise AssertionError("cve-catalog-validate.yml dispatch is missing")
+    return match.group(0)
+
+
+def assert_missing_app_fallback_invariants(workflow: str) -> None:
+    require = step_named(workflow, REQUIRE_STEP)
+    if require.get("if") != "steps.automation-auth.outputs.app_configured != 'true'":
+        raise AssertionError("require step no longer keys off app_configured")
+
+    missing = run_require_step(workflow, credential_status="missing")
+    if missing.returncode != 0:
+        raise AssertionError(
+            "missing App credentials must not fail closed before fallback dispatch: "
+            f"exit={missing.returncode} stdout={missing.stdout!r} stderr={missing.stderr!r}"
+        )
+
+    incomplete = run_require_step(workflow, credential_status="incomplete")
+    if incomplete.returncode != 1:
+        raise AssertionError(
+            "incomplete App credentials must fail closed: "
+            f"exit={incomplete.returncode} stdout={incomplete.stdout!r} stderr={incomplete.stderr!r}"
+        )
+
+    names = [str(step.get("name") or "") for step in merge_job_steps(workflow)]
+    require_idx = names.index(REQUIRE_STEP)
+    delivery_idx = names.index(DELIVERY_STEP)
+    fallback_idx = names.index(FALLBACK_STEP)
+    if not require_idx < delivery_idx < fallback_idx:
+        raise AssertionError(
+            "require step must precede catalog-delivery and the protection-fallback notice"
+        )
+
+    mint = step_named(workflow, MINT_STEP)
+    attribute = step_named(workflow, ATTRIBUTE_STEP)
+    if mint.get("if") != "steps.automation-auth.outputs.app_configured == 'true'":
+        raise AssertionError("mint step must be skipped when the App is absent")
+    if attribute.get("if") != "steps.automation-auth.outputs.app_configured == 'true'":
+        raise AssertionError("attribute step must be skipped when the App is absent")
+
+    delivery = step_named(workflow, DELIVERY_STEP)
+    if "if" in delivery:
+        raise AssertionError("catalog-delivery must still run on the missing-App path")
+    env = delivery.get("env")
+    if not isinstance(env, dict):
+        raise AssertionError("catalog-delivery env is missing")
+    expected_sha = str(env.get("EXPECTED_SHA") or "")
+    if "needs.sync.outputs.head_sha" not in expected_sha:
+        raise AssertionError("missing-App path must keep the exact PR head SHA from sync")
+    if str(env.get("GH_TOKEN") or "") != "${{ github.token }}":
+        raise AssertionError("missing-App path must use GITHUB_TOKEN, not an App token fallback")
+    if "steps.app-token.outputs.token || github.token" in workflow:
+        raise AssertionError("unguarded App-token || github.token fallback is not allowed")
+
+    run = delivery.get("run")
+    if not isinstance(run, str):
+        raise AssertionError("catalog-delivery has no run script")
+    if 'GH_TOKEN="$APP_TOKEN"' not in run:
+        raise AssertionError("configured App path must still switch onto the minted App token")
+    if SKIP_MERGE_MARKER not in run:
+        raise AssertionError("missing-App path must skip merge instead of attempting a ruleset bypass")
+    if run.index(SKIP_MERGE_MARKER) > run.index("pulls/${PR_NUMBER}/merge"):
+        raise AssertionError("merge skip must happen before the merge API call")
+
+    dispatch = validate_dispatch_command(workflow)
+    if "expected_sha=$EXPECTED_SHA" not in dispatch:
+        raise AssertionError("validate dispatch must pin the exact PR head SHA")
+    if "gh workflow run cve-catalog-validate.yml" not in run:
+        raise AssertionError("validate dispatch must live in catalog-delivery so missing-App reaches it")
+    if "expected_sha=$EXPECTED_SHA" not in run:
+        raise AssertionError("catalog-delivery must pass the exact PR head SHA into validate dispatch")
 
 
 class CveSyncWorkflowTests(unittest.TestCase):
@@ -290,6 +413,7 @@ class CveSyncWorkflowTests(unittest.TestCase):
             "tests.test_sync_cve_catalog",
             "tests.test_cve_recipe_catalog",
             "tests.test_cve_sync_workflow",
+            "tests.test_cve_sync_merge_harness",
         )
         for module in expected_modules:
             with self.subTest(module=module):
@@ -336,11 +460,25 @@ class CveSyncWorkflowTests(unittest.TestCase):
         self.assertIn("CVE_SYNC_APP_KEY", auth_step)
         self.assertNotIn("CVE_AUTOMATION_APP", self.workflow)
         require_step = self.step("Require GitHub App credentials")
-        self.assertIn("GitHub App is not configured", require_step)
+        self.assertIn("CREDENTIAL_STATUS", require_step)
+        self.assertIn('"$CREDENTIAL_STATUS" = "incomplete"', require_step)
+        self.assertIn("GitHub App credentials are incomplete", require_step)
         self.assertIn("ruleset 18147261", require_step)
-        self.assertIn("Failing closed on the first run", require_step)
+        self.assertIn("Failing closed", require_step)
         self.assertIn("exit 1", require_step)
+        self.assertIn("GITHUB_TOKEN", require_step)
+        self.assertIn("cve-catalog-validate.yml", require_step)
+        self.assertIn("automation:protection-fallback", require_step)
+        self.assertNotIn("Failing closed on the first run", require_step)
         attribute_step = self.step("Attribute catalog revision to the GitHub App")
+        self.assertIn(
+            "if: steps.automation-auth.outputs.app_configured == 'true'",
+            token_step,
+        )
+        self.assertIn(
+            "if: steps.automation-auth.outputs.app_configured == 'true'",
+            attribute_step,
+        )
         self.assertIn("repos/${GITHUB_REPOSITORY}/git/commits/${EXPECTED_SHA}", attribute_step)
         self.assertIn("parents[]=${PARENT}", attribute_step)
         self.assertIn("git/refs/heads/${BRANCH}", attribute_step)
@@ -420,7 +558,20 @@ class CveSyncWorkflowTests(unittest.TestCase):
         self.assertIn('sha=$EXPECTED_SHA', delivery_step)
         self.assertIn("AUTO_MERGE_ENABLED", delivery_step)
         self.assertIn("APP_CONFIGURED", delivery_step)
-        self.assertIn(f"GH_TOKEN: ${{{{ {app_token} }}}}", delivery_step)
+        self.assertIn("APP_TOKEN: ${{ steps.app-token.outputs.token }}", delivery_step)
+        self.assertIn("GH_TOKEN: ${{ github.token }}", delivery_step)
+        self.assertIn('GH_TOKEN="$APP_TOKEN"', delivery_step)
+        self.assertIn(
+            "EXPECTED_SHA: ${{ steps.app-commit.outputs.head_sha || needs.sync.outputs.head_sha }}",
+            delivery_step,
+        )
+        self.assertIn(SKIP_MERGE_MARKER, delivery_step)
+        self.assertLess(
+            delivery_step.index(SKIP_MERGE_MARKER),
+            delivery_step.index("pulls/${PR_NUMBER}/merge"),
+        )
+        self.assertIn(f"APP_TOKEN: ${{{{ {app_token} }}}}", delivery_step)
+        self.assertNotIn("GH_TOKEN: ${{ steps.app-token.outputs.token }}", delivery_step)
         self.assertNotIn("steps.app-token.outputs.token || github.token", delivery_step)
         self.assertIn("dispatch_main_build_after_merge", delivery_step)
         self.assertIn(
@@ -602,6 +753,70 @@ class CveSyncWorkflowTests(unittest.TestCase):
         for reference in references:
             with self.subTest(reference=reference):
                 self.assertRegex(reference, r"^[^@\s]+@[0-9a-f]{40}$")
+
+    def test_missing_app_reaches_fallback_dispatch(self) -> None:
+        assert_missing_app_fallback_invariants(self.workflow)
+        missing = run_require_step(self.workflow, credential_status="missing")
+        self.assertEqual(missing.returncode, 0, missing.stdout + missing.stderr)
+        self.assertIn("GITHUB_TOKEN", missing.stdout)
+        self.assertIn("cve-catalog-validate.yml", missing.stdout)
+        self.assertIn("::notice::", missing.stdout)
+        self.assertNotIn("::error::", missing.stdout)
+        dispatch = validate_dispatch_command(self.workflow)
+        self.assertIn('--field "expected_sha=$EXPECTED_SHA"', dispatch)
+        require_idx = self.workflow.index(REQUIRE_STEP)
+        dispatch_idx = self.workflow.index("gh workflow run cve-catalog-validate.yml")
+        fallback_idx = self.workflow.index(FALLBACK_STEP)
+        self.assertLess(require_idx, dispatch_idx)
+        self.assertLess(dispatch_idx, fallback_idx)
+
+    def test_incomplete_app_credentials_still_fail_closed(self) -> None:
+        incomplete = run_require_step(self.workflow, credential_status="incomplete")
+        self.assertEqual(incomplete.returncode, 1, incomplete.stdout + incomplete.stderr)
+        self.assertIn("::error::", incomplete.stdout)
+        self.assertIn("incomplete", incomplete.stdout)
+        self.assertIn("18147261", incomplete.stdout)
+        configured = run_require_step(self.workflow, credential_status="missing")
+        self.assertEqual(configured.returncode, 0, configured.stdout + configured.stderr)
+
+    def test_mint_and_attribute_steps_are_gated_on_app_configured(self) -> None:
+        mint = step_named(self.workflow, MINT_STEP)
+        attribute = step_named(self.workflow, ATTRIBUTE_STEP)
+        self.assertEqual(
+            mint.get("if"),
+            "steps.automation-auth.outputs.app_configured == 'true'",
+        )
+        self.assertEqual(
+            attribute.get("if"),
+            "steps.automation-auth.outputs.app_configured == 'true'",
+        )
+
+    def test_merge_job_permissions_and_secrets_stay_narrow(self) -> None:
+        merge = yaml.safe_load(self.workflow)["jobs"]["merge"]
+        self.assertEqual(
+            merge["permissions"],
+            {
+                "actions": "write",
+                "contents": "write",
+                "pull-requests": "write",
+            },
+        )
+        merge_text = self.step(DELIVERY_STEP) + self.step(REQUIRE_STEP) + self.step(ATTRIBUTE_STEP)
+        self.assertNotIn("statuses: write", self.workflow)
+        self.assertNotIn("checks: write", self.workflow)
+        self.assertNotIn("administration: write", self.workflow)
+        self.assertNotIn("--admin", merge_text)
+        self.assertNotIn('echo "$APP_TOKEN"', self.workflow)
+        self.assertNotIn('echo "$GH_TOKEN"', self.workflow)
+        self.assertNotIn('echo "$APP_PRIVATE_KEY"', self.workflow)
+        self.assertNotIn("print(os.environ['CVE_SYNC_APP_KEY'])", self.workflow)
+        self.assertRegex(
+            self.workflow,
+            r"(?ms)^concurrency:\s*\n\s*group:\s*cve-catalog-sync\s*\n\s*cancel-in-progress:\s*false\s*$",
+        )
+        delivery = self.step(DELIVERY_STEP)
+        self.assertIn('if [ "$APP_CONFIGURED" = "true" ]; then', delivery)
+        self.assertIn('GH_TOKEN="$APP_TOKEN"', delivery)
 
 
 if __name__ == "__main__":

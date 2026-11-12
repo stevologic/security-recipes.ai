@@ -1,0 +1,18 @@
+exit=1
+--- stdout ---
+
+--- stderr ---
+F
+======================================================================
+FAIL: test_missing_app_run1_dispatches_validate_skips_merge_and_labels (tests.test_cve_sync_merge_harness.CveSyncMergeHarnessTests.test_missing_app_run1_dispatches_validate_skips_merge_and_labels)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/tmp/M15_fallback_label_dropped-vdnowe5x/tests/test_cve_sync_merge_harness.py", line 56, in test_missing_app_run1_dispatches_validate_skips_merge_and_labels
+    self.assertIn(FALLBACK_LABEL, result.labels_added)
+AssertionError: 'automation:protection-fallback' not found in []
+
+----------------------------------------------------------------------
+Ran 1 test in 0.894s
+
+FAILED (failures=1)
+

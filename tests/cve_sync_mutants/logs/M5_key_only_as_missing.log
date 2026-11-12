@@ -1,0 +1,21 @@
+exit=1
+--- stdout ---
+
+--- stderr ---
+F
+======================================================================
+FAIL: test_key_only_credentials_fail_closed_before_delivery (tests.test_cve_sync_merge_harness.CveSyncMergeHarnessTests.test_key_only_credentials_fail_closed_before_delivery)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/tmp/M5_key_only_as_missing-dzx06r8h/tests/test_cve_sync_merge_harness.py", line 224, in test_key_only_credentials_fail_closed_before_delivery
+    self.assertEqual(result.stage, "require")
+AssertionError: 'delivery' != 'require'
+- delivery
++ require
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.915s
+
+FAILED (failures=1)
+

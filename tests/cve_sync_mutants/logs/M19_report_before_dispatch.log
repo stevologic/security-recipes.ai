@@ -1,0 +1,18 @@
+exit=1
+--- stdout ---
+
+--- stderr ---
+F
+======================================================================
+FAIL: test_missing_app_run2_escalates_after_dispatch (tests.test_cve_sync_merge_harness.CveSyncMergeHarnessTests.test_missing_app_run2_escalates_after_dispatch)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/tmp/M19_report_before_dispatch-st8lmwtp/tests/test_cve_sync_merge_harness.py", line 154, in test_missing_app_run2_escalates_after_dispatch
+    self.assertTrue(
+AssertionError: False is not true : run 2 must still dispatch cve-catalog-validate.yml before escalating
+
+----------------------------------------------------------------------
+Ran 1 test in 0.598s
+
+FAILED (failures=1)
+

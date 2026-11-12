@@ -1,0 +1,40 @@
+exit=1
+--- stdout ---
+
+--- stderr ---
+FF
+======================================================================
+FAIL: test_incomplete_credentials_fail_closed_before_delivery (tests.test_cve_sync_merge_harness.CveSyncMergeHarnessTests.test_incomplete_credentials_fail_closed_before_delivery) (credentials='id-only')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/tmp/M4_incomplete_pass-d0ng2d9t/tests/test_cve_sync_merge_harness.py", line 244, in test_incomplete_credentials_fail_closed_before_delivery
+    self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+AssertionError: 0 != 1 : ::notice::GitHub App is not configured on the cve-sync environment. Continuing with GITHUB_TOKEN: the catalog PR stays open, cve-catalog-validate.yml is dispatched on the exact PR head so the required build check attaches, and merge will not attempt to bypass ruleset 18147261. Labeling automation:protection-fallback.
+Catalog delivery attempt 1/5.
+Exact SHA 5df82bb3d0a6008090af6aac35091ccd6874ea72 touches only allowlisted catalog data paths.
+Data-only catalog PR skips karen-qa and the GitHub App check.
+Validated exact catalog PR revision 5df82bb3d0a6008090af6aac35091ccd6874ea72 in this sync run: https://github.com/example/validate/1
+::notice::GitHub App is not configured; catalog merge cannot bypass ruleset 18147261. Required build check is attached by dispatching cve-catalog-validate.yml on 5df82bb3d0a6008090af6aac35091ccd6874ea72. Leaving PR #475 open labeled automation:protection-fallback.
+Leaving catalog PR #475 open; merge was not attempted without the App.
+
+
+======================================================================
+FAIL: test_incomplete_credentials_fail_closed_before_delivery (tests.test_cve_sync_merge_harness.CveSyncMergeHarnessTests.test_incomplete_credentials_fail_closed_before_delivery) (credentials='key-only')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/tmp/M4_incomplete_pass-d0ng2d9t/tests/test_cve_sync_merge_harness.py", line 244, in test_incomplete_credentials_fail_closed_before_delivery
+    self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+AssertionError: 0 != 1 : ::notice::GitHub App is not configured on the cve-sync environment. Continuing with GITHUB_TOKEN: the catalog PR stays open, cve-catalog-validate.yml is dispatched on the exact PR head so the required build check attaches, and merge will not attempt to bypass ruleset 18147261. Labeling automation:protection-fallback.
+Catalog delivery attempt 1/5.
+Exact SHA d6ec8bdd22922b4fba16d3c2d11357aa6cf1e090 touches only allowlisted catalog data paths.
+Data-only catalog PR skips karen-qa and the GitHub App check.
+Validated exact catalog PR revision d6ec8bdd22922b4fba16d3c2d11357aa6cf1e090 in this sync run: https://github.com/example/validate/1
+::notice::GitHub App is not configured; catalog merge cannot bypass ruleset 18147261. Required build check is attached by dispatching cve-catalog-validate.yml on d6ec8bdd22922b4fba16d3c2d11357aa6cf1e090. Leaving PR #475 open labeled automation:protection-fallback.
+Leaving catalog PR #475 open; merge was not attempted without the App.
+
+
+----------------------------------------------------------------------
+Ran 1 test in 1.844s
+
+FAILED (failures=2)
+
