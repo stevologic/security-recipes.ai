@@ -3,7 +3,7 @@ title: MCP and Agentic Skills Risk Coverage
 linkTitle: MCP Risk Coverage
 weight: 18
 date: 2026-05-04
-lastmod: 2026-09-28
+lastmod: 2026-11-12
 toc: true
 description: >
   Map OWASP MCP Top 10 and Agentic Skills Top 10 risks to SecurityRecipes
@@ -34,11 +34,11 @@ The **MCP and Agentic Skills Risk Coverage Pack** maps those two layers
 to existing SecurityRecipes artifacts. It is designed for platform teams,
 procurement reviewers, GRC, reviewers, and reviewers who need to know
 whether the project tracks the newest risks without reading the whole
-site. Rechecked September 28, 2026: MCP
+site. Rechecked November 12, 2026: MCP
 [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28)
 is still current and **stateless**. The current
-[security best practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices)
-page is unchanged since the August 27 review. Servers **MUST** implement
+[security best practices](https://modelcontextprotocol.io/docs/2026-07-28/tutorials/security/security_best_practices)
+page is the canonical 2026-07-28 document. Servers **MUST** implement
 [`server/discover`](https://modelcontextprotocol.io/specification/2026-07-28/server/discover)
 and **MUST NOT** treat possession of a state handle as authentication.
 OWASP [MCP Top 10](https://owasp.org/www-project-mcp-top-10/) remains
@@ -159,7 +159,9 @@ Review and regenerate the pack when these sources change:
 
 - [OWASP MCP Top 10](https://owasp.org/www-project-mcp-top-10/)
 - [OWASP Agentic Skills Top 10](https://owasp.org/www-project-agentic-skills-top-10/)
-- [Model Context Protocol Security Best Practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices)
+- [Model Context Protocol Security Best Practices](https://modelcontextprotocol.io/docs/2026-07-28/tutorials/security/security_best_practices)
+- [MCP Authorization Security Considerations (2026-07-28)](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization/security-considerations)
+- [OWASP GenAI and Agentic AI Exploit Roundup Q3 2026](https://genai.owasp.org/2026/10/08/genai-and-agentic-ai-exploit-roundup-q3-2026/)
 - [NIST AI RMF Generative AI Profile](https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence)
 - [CISA Secure by Design](https://www.cisa.gov/securebydesign)
 

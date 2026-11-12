@@ -20,6 +20,8 @@ from scripts.generate_agentic_source_freshness_watch import (
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts" / "generate_agentic_source_freshness_watch.py"
 PROFILE = ROOT / "data" / "assurance" / "agentic-source-freshness-profile.json"
+FIXTURE_ROOT = ROOT / "tests" / "fixtures" / "source-freshness"
+FIXTURE_PROFILE = FIXTURE_ROOT / "editorial-due-profile.json"
 
 
 class SourceFreshnessAsOfTests(unittest.TestCase):
@@ -77,9 +79,9 @@ class SourceFreshnessAsOfTests(unittest.TestCase):
                     sys.executable,
                     str(SCRIPT),
                     "--repo-root",
-                    str(ROOT),
+                    str(FIXTURE_ROOT),
                     "--profile",
-                    str(PROFILE),
+                    str(FIXTURE_PROFILE),
                     "--output",
                     str(output),
                     "--as-of",

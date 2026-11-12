@@ -171,6 +171,11 @@ def normalize_request(runtime_request: dict[str, Any]) -> dict[str, Any]:
     request["token_passthrough"] = as_bool(request.get("token_passthrough"))
     request["identity_used_after_revocation"] = as_bool(request.get("identity_used_after_revocation"))
     request["customer_impact_confirmed"] = as_bool(request.get("customer_impact_confirmed"))
+    request["agent_can_access_monitors"] = as_bool(request.get("agent_can_access_monitors"))
+    request["monitor_tampering_or_outage"] = as_bool(request.get("monitor_tampering_or_outage"))
+    request["resume_without_verified_containment"] = as_bool(
+        request.get("resume_without_verified_containment")
+    )
     request["runtime_kill_signal"] = str(request.get("runtime_kill_signal") or "").strip()
     return request
 
@@ -191,6 +196,10 @@ def matched_kill_reasons(request: dict[str, Any]) -> list[str]:
         reasons.append("raw MCP or provider token passthrough was observed")
     if request.get("identity_used_after_revocation"):
         reasons.append("delegated identity was used after revocation")
+    if request.get("agent_can_access_monitors"):
+        reasons.append("agent can access or interfere with monitoring processes and logs")
+    if request.get("monitor_tampering_or_outage"):
+        reasons.append("monitor tampering or outage was observed")
     if request.get("externalized_context") and data_classes & KILL_DATA_CLASSES:
         reasons.append("sensitive context left the approved boundary")
     if request.get("production_write") and not has_approval(request.get("human_approval_record")):
@@ -326,6 +335,16 @@ def evaluate_agentic_incident_response_decision(
             workflow=workflow,
             reason="sev0 agentic incident requires session kill and executive escalation",
         )
+    if request.get("resume_without_verified_containment"):
+        return decision_result(
+            decision="hold_for_forensics",
+            pack=pack,
+            request=request,
+            incident_class=incident_class,
+            workflow=workflow,
+            reason="resume requires verified monitors, logging, egress allowlists, and shutdown mechanisms",
+            violations=["resume attempted without verified containment"],
+        )
     if severity == "sev1" or request.get("customer_impact_confirmed"):
         return decision_result(
             decision="contain_and_open_war_room",
@@ -397,6 +416,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--token-passthrough", action="store_true")
     parser.add_argument("--identity-used-after-revocation", action="store_true")
     parser.add_argument("--customer-impact-confirmed", action="store_true")
+    parser.add_argument("--agent-can-access-monitors", action="store_true")
+    parser.add_argument("--monitor-tampering-or-outage", action="store_true")
+    parser.add_argument("--resume-without-verified-containment", action="store_true")
     parser.add_argument("--runtime-kill-signal")
     parser.add_argument("--approval-id")
     parser.add_argument("--approval-status")
@@ -435,6 +457,9 @@ def request_from_args(args: argparse.Namespace) -> dict[str, Any]:
         "source_event_ids": args.source_event_id,
         "tenant_id": args.tenant_id,
         "token_passthrough": args.token_passthrough,
+        "agent_can_access_monitors": args.agent_can_access_monitors,
+        "monitor_tampering_or_outage": args.monitor_tampering_or_outage,
+        "resume_without_verified_containment": args.resume_without_verified_containment,
         "workflow_id": args.workflow_id,
     }
     if args.approval_id or args.approval_status:

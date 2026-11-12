@@ -45,8 +45,9 @@
           "source_ids": [
             "owasp-agentic-top-10-2026",
             "owasp-agentic-threats-2025",
-            "owasp-securing-agentic-apps-2025",
-            "owasp-genai-exploit-roundup-q1-2026"
+            "owasp-securing-agentic-apps-v2-2026",
+            "owasp-genai-exploit-roundup-q3-2026",
+            "owasp-llm-top-10-2026"
           ],
           "sources": [
             {
@@ -66,20 +67,28 @@
               "url": "https://genai.owasp.org/resource/agentic-ai-threats-and-mitigations/"
             },
             {
-              "id": "owasp-securing-agentic-apps-2025",
-              "name": "Securing Agentic Applications Guide 1.0",
-              "published": "2025-07-27",
+              "id": "owasp-securing-agentic-apps-v2-2026",
+              "name": "Securing Agentic Applications V2: A Builder & Defender's Guide",
+              "published": "2026-11-10",
               "publisher": "OWASP GenAI Security Project",
               "source_class": "industry_standard",
-              "url": "https://genai.owasp.org/resource/securing-agentic-applications-guide-1-0/"
+              "url": "https://genai.owasp.org/resource/securing-agentic-applications-v2/"
             },
             {
-              "id": "owasp-genai-exploit-roundup-q1-2026",
-              "name": "OWASP GenAI Exploit Round-up Report Q1 2026",
-              "published": "2026-04-14",
+              "id": "owasp-genai-exploit-roundup-q3-2026",
+              "name": "GenAI and Agentic AI Exploit Roundup Q3 2026",
+              "published": "2026-10-08",
               "publisher": "OWASP GenAI Security Project",
               "source_class": "incident_intelligence",
-              "url": "https://genai.owasp.org/2026/04/14/owasp-genai-exploit-round-up-report-q1-2026/"
+              "url": "https://genai.owasp.org/2026/10/08/genai-and-agentic-ai-exploit-roundup-q3-2026/"
+            },
+            {
+              "id": "owasp-llm-top-10-2026",
+              "name": "OWASP Top 10 for LLM Applications 2026",
+              "published": "2026-08-03",
+              "publisher": "OWASP GenAI Security Project",
+              "source_class": "industry_standard",
+              "url": "https://genai.owasp.org/resource/owasp-genai-llm-top-10-2026/"
             }
           ],
           "status": "ready",
@@ -87,21 +96,27 @@
         },
         {
           "buyer_question": "Can SecurityRecipes show governance, measurement, identity, data, and lifecycle evidence for deployed agent systems?",
-          "capability_count": 18,
-          "control_count": 5,
+          "capability_count": 24,
+          "control_count": 8,
           "coverage_score": 100.0,
           "id": "nist-agentic-ai-risk-management",
           "kind": "governance_and_measurement",
           "mcp_tools": [
             "recipes_agent_handoff_boundary_pack",
             "recipes_agent_identity_ledger",
+            "recipes_agent_trust_fabric_pack",
+            "recipes_agentic_action_runtime_pack",
+            "recipes_agentic_approval_receipt_pack",
             "recipes_agentic_assurance_pack",
+            "recipes_agentic_catastrophic_risk_annex",
             "recipes_agentic_control_plane_blueprint",
+            "recipes_agentic_entitlement_review_pack",
             "recipes_agentic_measurement_probe_pack",
             "recipes_agentic_readiness_scorecard",
             "recipes_agentic_red_team_drill_pack",
             "recipes_agentic_run_receipt_pack",
             "recipes_agentic_system_bom",
+            "recipes_agentic_telemetry_contract",
             "recipes_context_egress_boundary_pack",
             "recipes_context_poisoning_guard_pack",
             "recipes_enterprise_trust_center_export",
@@ -112,22 +127,23 @@
             "recipes_secure_context_trust_pack",
             "recipes_workflow_control_plane"
           ],
-          "ready_control_count": 5,
+          "ready_control_count": 8,
           "source_ids": [
             "nist-ai-agent-standards-initiative-2026",
             "nist-caisi-ai-agent-security-rfi-2026",
             "nist-ai-rmf-2026",
             "nist-ai-600-1",
-            "nist-agentic-identity-foundation-2026"
+            "nist-agentic-identity-foundation-2026",
+            "nist-agentic-identity-design-tenets-2026"
           ],
           "sources": [
             {
               "id": "nist-ai-agent-standards-initiative-2026",
-              "name": "AI Agent Standards Initiative",
+              "name": "SI Agent Standards Initiative",
               "published": "2026-02-17",
               "publisher": "NIST",
               "source_class": "government_framework",
-              "url": "https://www.nist.gov/artificial-intelligence/ai-agent-standards-initiative"
+              "url": "https://www.nist.gov/super-intelligence/si-agent-standards-initiative"
             },
             {
               "id": "nist-caisi-ai-agent-security-rfi-2026",
@@ -160,6 +176,14 @@
               "publisher": "NIST",
               "source_class": "government_security_signal",
               "url": "https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation"
+            },
+            {
+              "id": "nist-agentic-identity-design-tenets-2026",
+              "name": "Design Tenets for Agent Identity Management Systems",
+              "published": "2026-10-27",
+              "publisher": "NIST",
+              "source_class": "government_security_signal",
+              "url": "https://www.nist.gov/blogs/cybersecurity-insights/design-tenets-agent-identity-management-systems"
             }
           ],
           "status": "ready",
@@ -189,7 +213,8 @@
             "mcp-authorization-2026-07-28",
             "mcp-authorization-2025-11-25",
             "mcp-security-best-practices-2026-07-28",
-            "mcp-security-best-practices-2025"
+            "mcp-security-best-practices-2025",
+            "mcp-authorization-security-considerations-2026-07-28"
           ],
           "sources": [
             {
@@ -214,7 +239,7 @@
               "published": "2026-07-28",
               "publisher": "Model Context Protocol",
               "source_class": "protocol_guidance",
-              "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices"
+              "url": "https://modelcontextprotocol.io/docs/2026-07-28/tutorials/security/security_best_practices"
             },
             {
               "id": "mcp-security-best-practices-2025",
@@ -222,7 +247,15 @@
               "published": "2025-06-18",
               "publisher": "Model Context Protocol",
               "source_class": "protocol_guidance",
-              "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices"
+              "url": "https://modelcontextprotocol.io/docs/2025-06-18/tutorials/security/security_best_practices"
+            },
+            {
+              "id": "mcp-authorization-security-considerations-2026-07-28",
+              "name": "Model Context Protocol Authorization Security Considerations (2026-07-28)",
+              "published": "2026-07-28",
+              "publisher": "Model Context Protocol",
+              "source_class": "protocol_specification",
+              "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization/security-considerations"
             }
           ],
           "status": "ready",
@@ -269,11 +302,11 @@
           "sources": [
             {
               "id": "csa-ai-controls-matrix-2025",
-              "name": "AI Controls Matrix",
-              "published": "2025-10-30",
+              "name": "AI Controls Matrix v1.1",
+              "published": "2026-06-22",
               "publisher": "Cloud Security Alliance",
               "source_class": "industry_standard",
-              "url": "https://cloudsecurityalliance.org/artifacts/ai-controls-matrix"
+              "url": "https://cloudsecurityalliance.org/artifacts/ai-controls-matrix-v1-1"
             },
             {
               "id": "nist-ai-600-1",
@@ -339,19 +372,19 @@
             },
             {
               "id": "csa-ai-controls-matrix-2025",
-              "name": "AI Controls Matrix",
-              "published": "2025-10-30",
+              "name": "AI Controls Matrix v1.1",
+              "published": "2026-06-22",
               "publisher": "Cloud Security Alliance",
               "source_class": "industry_standard",
-              "url": "https://cloudsecurityalliance.org/artifacts/ai-controls-matrix"
+              "url": "https://cloudsecurityalliance.org/artifacts/ai-controls-matrix-v1-1"
             },
             {
               "id": "nist-ai-agent-standards-initiative-2026",
-              "name": "AI Agent Standards Initiative",
+              "name": "SI Agent Standards Initiative",
               "published": "2026-02-17",
               "publisher": "NIST",
               "source_class": "government_framework",
-              "url": "https://www.nist.gov/artificial-intelligence/ai-agent-standards-initiative"
+              "url": "https://www.nist.gov/super-intelligence/si-agent-standards-initiative"
             },
             {
               "id": "mcp-authorization-2025-11-25",
@@ -410,7 +443,8 @@
             "mcp-authorization-2026-07-28",
             "mcp-authorization-2025-11-25",
             "mcp-security-best-practices-2026-07-28",
-            "mcp-security-best-practices-2025"
+            "mcp-security-best-practices-2025",
+            "mcp-authorization-security-considerations-2026-07-28"
           ],
           "sources": [
             {
@@ -435,7 +469,7 @@
               "published": "2026-07-28",
               "publisher": "Model Context Protocol",
               "source_class": "protocol_guidance",
-              "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices"
+              "url": "https://modelcontextprotocol.io/docs/2026-07-28/tutorials/security/security_best_practices"
             },
             {
               "id": "mcp-security-best-practices-2025",
@@ -443,7 +477,15 @@
               "published": "2025-06-18",
               "publisher": "Model Context Protocol",
               "source_class": "protocol_guidance",
-              "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices"
+              "url": "https://modelcontextprotocol.io/docs/2025-06-18/tutorials/security/security_best_practices"
+            },
+            {
+              "id": "mcp-authorization-security-considerations-2026-07-28",
+              "name": "Model Context Protocol Authorization Security Considerations (2026-07-28)",
+              "published": "2026-07-28",
+              "publisher": "Model Context Protocol",
+              "source_class": "protocol_specification",
+              "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization/security-considerations"
             }
           ],
           "status": "ready",
@@ -552,8 +594,9 @@
           "source_ids": [
             "owasp-agentic-top-10-2026",
             "owasp-agentic-threats-2025",
-            "owasp-securing-agentic-apps-2025",
-            "owasp-genai-exploit-roundup-q1-2026"
+            "owasp-securing-agentic-apps-v2-2026",
+            "owasp-genai-exploit-roundup-q3-2026",
+            "owasp-llm-top-10-2026"
           ],
           "sources": [
             {
@@ -573,20 +616,28 @@
               "url": "https://genai.owasp.org/resource/agentic-ai-threats-and-mitigations/"
             },
             {
-              "id": "owasp-securing-agentic-apps-2025",
-              "name": "Securing Agentic Applications Guide 1.0",
-              "published": "2025-07-27",
+              "id": "owasp-securing-agentic-apps-v2-2026",
+              "name": "Securing Agentic Applications V2: A Builder & Defender's Guide",
+              "published": "2026-11-10",
               "publisher": "OWASP GenAI Security Project",
               "source_class": "industry_standard",
-              "url": "https://genai.owasp.org/resource/securing-agentic-applications-guide-1-0/"
+              "url": "https://genai.owasp.org/resource/securing-agentic-applications-v2/"
             },
             {
-              "id": "owasp-genai-exploit-roundup-q1-2026",
-              "name": "OWASP GenAI Exploit Round-up Report Q1 2026",
-              "published": "2026-04-14",
+              "id": "owasp-genai-exploit-roundup-q3-2026",
+              "name": "GenAI and Agentic AI Exploit Roundup Q3 2026",
+              "published": "2026-10-08",
               "publisher": "OWASP GenAI Security Project",
               "source_class": "incident_intelligence",
-              "url": "https://genai.owasp.org/2026/04/14/owasp-genai-exploit-round-up-report-q1-2026/"
+              "url": "https://genai.owasp.org/2026/10/08/genai-and-agentic-ai-exploit-roundup-q3-2026/"
+            },
+            {
+              "id": "owasp-llm-top-10-2026",
+              "name": "OWASP Top 10 for LLM Applications 2026",
+              "published": "2026-08-03",
+              "publisher": "OWASP GenAI Security Project",
+              "source_class": "industry_standard",
+              "url": "https://genai.owasp.org/resource/owasp-genai-llm-top-10-2026/"
             }
           ],
           "status": "ready",
@@ -641,8 +692,9 @@
           "source_ids": [
             "owasp-agentic-top-10-2026",
             "owasp-agentic-threats-2025",
-            "owasp-securing-agentic-apps-2025",
-            "owasp-genai-exploit-roundup-q1-2026"
+            "owasp-securing-agentic-apps-v2-2026",
+            "owasp-genai-exploit-roundup-q3-2026",
+            "owasp-llm-top-10-2026"
           ],
           "sources": [
             {
@@ -662,20 +714,28 @@
               "url": "https://genai.owasp.org/resource/agentic-ai-threats-and-mitigations/"
             },
             {
-              "id": "owasp-securing-agentic-apps-2025",
-              "name": "Securing Agentic Applications Guide 1.0",
-              "published": "2025-07-27",
+              "id": "owasp-securing-agentic-apps-v2-2026",
+              "name": "Securing Agentic Applications V2: A Builder & Defender's Guide",
+              "published": "2026-11-10",
               "publisher": "OWASP GenAI Security Project",
               "source_class": "industry_standard",
-              "url": "https://genai.owasp.org/resource/securing-agentic-applications-guide-1-0/"
+              "url": "https://genai.owasp.org/resource/securing-agentic-applications-v2/"
             },
             {
-              "id": "owasp-genai-exploit-roundup-q1-2026",
-              "name": "OWASP GenAI Exploit Round-up Report Q1 2026",
-              "published": "2026-04-14",
+              "id": "owasp-genai-exploit-roundup-q3-2026",
+              "name": "GenAI and Agentic AI Exploit Roundup Q3 2026",
+              "published": "2026-10-08",
               "publisher": "OWASP GenAI Security Project",
               "source_class": "incident_intelligence",
-              "url": "https://genai.owasp.org/2026/04/14/owasp-genai-exploit-round-up-report-q1-2026/"
+              "url": "https://genai.owasp.org/2026/10/08/genai-and-agentic-ai-exploit-roundup-q3-2026/"
+            },
+            {
+              "id": "owasp-llm-top-10-2026",
+              "name": "OWASP Top 10 for LLM Applications 2026",
+              "published": "2026-08-03",
+              "publisher": "OWASP GenAI Security Project",
+              "source_class": "industry_standard",
+              "url": "https://genai.owasp.org/resource/owasp-genai-llm-top-10-2026/"
             }
           ],
           "status": "ready",
@@ -683,21 +743,27 @@
         },
         {
           "buyer_question": "Can SecurityRecipes show governance, measurement, identity, data, and lifecycle evidence for deployed agent systems?",
-          "capability_count": 18,
-          "control_count": 5,
+          "capability_count": 24,
+          "control_count": 8,
           "coverage_score": 100.0,
           "id": "nist-agentic-ai-risk-management",
           "kind": "governance_and_measurement",
           "mcp_tools": [
             "recipes_agent_handoff_boundary_pack",
             "recipes_agent_identity_ledger",
+            "recipes_agent_trust_fabric_pack",
+            "recipes_agentic_action_runtime_pack",
+            "recipes_agentic_approval_receipt_pack",
             "recipes_agentic_assurance_pack",
+            "recipes_agentic_catastrophic_risk_annex",
             "recipes_agentic_control_plane_blueprint",
+            "recipes_agentic_entitlement_review_pack",
             "recipes_agentic_measurement_probe_pack",
             "recipes_agentic_readiness_scorecard",
             "recipes_agentic_red_team_drill_pack",
             "recipes_agentic_run_receipt_pack",
             "recipes_agentic_system_bom",
+            "recipes_agentic_telemetry_contract",
             "recipes_context_egress_boundary_pack",
             "recipes_context_poisoning_guard_pack",
             "recipes_enterprise_trust_center_export",
@@ -708,22 +774,23 @@
             "recipes_secure_context_trust_pack",
             "recipes_workflow_control_plane"
           ],
-          "ready_control_count": 5,
+          "ready_control_count": 8,
           "source_ids": [
             "nist-ai-agent-standards-initiative-2026",
             "nist-caisi-ai-agent-security-rfi-2026",
             "nist-ai-rmf-2026",
             "nist-ai-600-1",
-            "nist-agentic-identity-foundation-2026"
+            "nist-agentic-identity-foundation-2026",
+            "nist-agentic-identity-design-tenets-2026"
           ],
           "sources": [
             {
               "id": "nist-ai-agent-standards-initiative-2026",
-              "name": "AI Agent Standards Initiative",
+              "name": "SI Agent Standards Initiative",
               "published": "2026-02-17",
               "publisher": "NIST",
               "source_class": "government_framework",
-              "url": "https://www.nist.gov/artificial-intelligence/ai-agent-standards-initiative"
+              "url": "https://www.nist.gov/super-intelligence/si-agent-standards-initiative"
             },
             {
               "id": "nist-caisi-ai-agent-security-rfi-2026",
@@ -756,6 +823,14 @@
               "publisher": "NIST",
               "source_class": "government_security_signal",
               "url": "https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation"
+            },
+            {
+              "id": "nist-agentic-identity-design-tenets-2026",
+              "name": "Design Tenets for Agent Identity Management Systems",
+              "published": "2026-10-27",
+              "publisher": "NIST",
+              "source_class": "government_security_signal",
+              "url": "https://www.nist.gov/blogs/cybersecurity-insights/design-tenets-agent-identity-management-systems"
             }
           ],
           "status": "ready",
@@ -872,11 +947,11 @@
           "sources": [
             {
               "id": "csa-ai-controls-matrix-2025",
-              "name": "AI Controls Matrix",
-              "published": "2025-10-30",
+              "name": "AI Controls Matrix v1.1",
+              "published": "2026-06-22",
               "publisher": "Cloud Security Alliance",
               "source_class": "industry_standard",
-              "url": "https://cloudsecurityalliance.org/artifacts/ai-controls-matrix"
+              "url": "https://cloudsecurityalliance.org/artifacts/ai-controls-matrix-v1-1"
             },
             {
               "id": "nist-ai-600-1",
@@ -942,19 +1017,19 @@
             },
             {
               "id": "csa-ai-controls-matrix-2025",
-              "name": "AI Controls Matrix",
-              "published": "2025-10-30",
+              "name": "AI Controls Matrix v1.1",
+              "published": "2026-06-22",
               "publisher": "Cloud Security Alliance",
               "source_class": "industry_standard",
-              "url": "https://cloudsecurityalliance.org/artifacts/ai-controls-matrix"
+              "url": "https://cloudsecurityalliance.org/artifacts/ai-controls-matrix-v1-1"
             },
             {
               "id": "nist-ai-agent-standards-initiative-2026",
-              "name": "AI Agent Standards Initiative",
+              "name": "SI Agent Standards Initiative",
               "published": "2026-02-17",
               "publisher": "NIST",
               "source_class": "government_framework",
-              "url": "https://www.nist.gov/artificial-intelligence/ai-agent-standards-initiative"
+              "url": "https://www.nist.gov/super-intelligence/si-agent-standards-initiative"
             },
             {
               "id": "mcp-authorization-2025-11-25",
@@ -1012,11 +1087,11 @@
             },
             {
               "id": "nist-ai-agent-standards-initiative-2026",
-              "name": "AI Agent Standards Initiative",
+              "name": "SI Agent Standards Initiative",
               "published": "2026-02-17",
               "publisher": "NIST",
               "source_class": "government_framework",
-              "url": "https://www.nist.gov/artificial-intelligence/ai-agent-standards-initiative"
+              "url": "https://www.nist.gov/super-intelligence/si-agent-standards-initiative"
             },
             {
               "id": "owasp-agentic-top-10-2026",
@@ -1140,11 +1215,11 @@
           "sources": [
             {
               "id": "csa-ai-controls-matrix-2025",
-              "name": "AI Controls Matrix",
-              "published": "2025-10-30",
+              "name": "AI Controls Matrix v1.1",
+              "published": "2026-06-22",
               "publisher": "Cloud Security Alliance",
               "source_class": "industry_standard",
-              "url": "https://cloudsecurityalliance.org/artifacts/ai-controls-matrix"
+              "url": "https://cloudsecurityalliance.org/artifacts/ai-controls-matrix-v1-1"
             },
             {
               "id": "nist-ai-600-1",
@@ -1202,11 +1277,11 @@
             },
             {
               "id": "nist-ai-agent-standards-initiative-2026",
-              "name": "AI Agent Standards Initiative",
+              "name": "SI Agent Standards Initiative",
               "published": "2026-02-17",
               "publisher": "NIST",
               "source_class": "government_framework",
-              "url": "https://www.nist.gov/artificial-intelligence/ai-agent-standards-initiative"
+              "url": "https://www.nist.gov/super-intelligence/si-agent-standards-initiative"
             },
             {
               "id": "owasp-agentic-top-10-2026",
@@ -1285,7 +1360,7 @@
         "title": "Agent Identity and Delegation Ledger"
       },
       "capability_id": "agent-identity-ledger",
-      "control_count": 11,
+      "control_count": 12,
       "control_ids": [
         "owasp-agentic-top-10-2026::ASI03",
         "owasp-agentic-top-10-2026::ASI07",
@@ -1294,6 +1369,7 @@
         "mcp-authorization-and-security::MCP-SEC-07",
         "nist-agentic-ai-risk-management::NIST-AGENT-01",
         "nist-agentic-ai-risk-management::NIST-CAISI-04",
+        "nist-agentic-ai-risk-management::NIST-AGENT-06",
         "frontier-lab-prompt-injection-defenses::LAB-PI-05",
         "csa-ai-controls-matrix-2025::CSA-AICM-03",
         "csa-agentic-trust-framework-2026::CSA-ATF-01",
@@ -1363,15 +1439,17 @@
         "title": "Agent Trust Fabric"
       },
       "capability_id": "agent-trust-fabric",
-      "control_count": 5,
+      "control_count": 7,
       "control_ids": [
+        "nist-agentic-ai-risk-management::NIST-AGENT-06",
+        "nist-agentic-ai-risk-management::NIST-AGENT-07",
         "csa-agentic-trust-framework-2026::CSA-ATF-01",
         "csa-agentic-trust-framework-2026::CSA-ATF-02",
         "csa-agentic-trust-framework-2026::CSA-ATF-03",
         "csa-agentic-trust-framework-2026::CSA-ATF-04",
         "csa-agentic-trust-framework-2026::CSA-ATF-05"
       ],
-      "standard_count": 1,
+      "standard_count": 2,
       "status": "covered"
     },
     {
@@ -1388,13 +1466,14 @@
         "title": "Agentic Action Runtime Pack"
       },
       "capability_id": "agentic-action-runtime-pack",
-      "control_count": 3,
+      "control_count": 4,
       "control_ids": [
+        "nist-agentic-ai-risk-management::NIST-AGENT-07",
         "frontier-lab-prompt-injection-defenses::LAB-PI-06",
         "nist-critical-infrastructure-ai-profile-2026::NIST-CI-01",
         "csa-agentic-trust-framework-2026::CSA-ATF-04"
       ],
-      "standard_count": 3,
+      "standard_count": 4,
       "status": "covered"
     },
     {
@@ -1411,13 +1490,15 @@
         "title": "Agentic Approval Receipt Pack"
       },
       "capability_id": "agentic-approval-receipt-pack",
-      "control_count": 3,
+      "control_count": 5,
       "control_ids": [
+        "nist-agentic-ai-risk-management::NIST-AGENT-07",
+        "nist-agentic-ai-risk-management::NIST-AGENT-08",
         "csa-ai-controls-matrix-2025::CSA-AICM-03",
         "nist-critical-infrastructure-ai-profile-2026::NIST-CI-01",
         "csa-agentic-trust-framework-2026::CSA-ATF-04"
       ],
-      "standard_count": 3,
+      "standard_count": 4,
       "status": "covered"
     },
     {
@@ -1458,15 +1539,16 @@
         "title": "Agentic Catastrophic Risk Annex"
       },
       "capability_id": "agentic-catastrophic-risk-annex",
-      "control_count": 5,
+      "control_count": 6,
       "control_ids": [
+        "nist-agentic-ai-risk-management::NIST-AGENT-08",
         "csa-ai-controls-matrix-2025::CSA-AICM-06",
         "nist-critical-infrastructure-ai-profile-2026::NIST-CI-01",
         "csa-catastrophic-risk-annex-2026::CSA-CR-01",
         "csa-catastrophic-risk-annex-2026::CSA-CR-02",
         "csa-catastrophic-risk-annex-2026::CSA-CR-03"
       ],
-      "standard_count": 3,
+      "standard_count": 4,
       "status": "covered"
     },
     {
@@ -1504,12 +1586,13 @@
         "title": "Agentic Entitlement Review Pack"
       },
       "capability_id": "agentic-entitlement-review-pack",
-      "control_count": 2,
+      "control_count": 3,
       "control_ids": [
+        "nist-agentic-ai-risk-management::NIST-AGENT-06",
         "csa-ai-controls-matrix-2025::CSA-AICM-03",
         "csa-agentic-trust-framework-2026::CSA-ATF-01"
       ],
-      "standard_count": 2,
+      "standard_count": 3,
       "status": "covered"
     },
     {
@@ -1633,7 +1716,7 @@
         "title": "Agentic Run Receipt Pack"
       },
       "capability_id": "agentic-run-receipt-pack",
-      "control_count": 13,
+      "control_count": 14,
       "control_ids": [
         "owasp-agentic-top-10-2026::ASI03",
         "owasp-agentic-top-10-2026::ASI08",
@@ -1642,6 +1725,7 @@
         "mcp-authorization-and-security::MCP-AUTH-02",
         "mcp-authorization-and-security::MCP-SEC-07",
         "nist-agentic-ai-risk-management::NIST-CAISI-04",
+        "nist-agentic-ai-risk-management::NIST-AGENT-08",
         "frontier-lab-prompt-injection-defenses::LAB-PI-02",
         "frontier-lab-prompt-injection-defenses::LAB-PI-06",
         "csa-ai-controls-matrix-2025::CSA-AICM-04",
@@ -1737,14 +1821,15 @@
         "title": "Agentic Telemetry Contract"
       },
       "capability_id": "agentic-telemetry-contract",
-      "control_count": 4,
+      "control_count": 5,
       "control_ids": [
+        "nist-agentic-ai-risk-management::NIST-AGENT-08",
         "frontier-lab-prompt-injection-defenses::LAB-PI-06",
         "csa-ai-controls-matrix-2025::CSA-AICM-04",
         "nist-critical-infrastructure-ai-profile-2026::NIST-CI-02",
         "csa-agentic-trust-framework-2026::CSA-ATF-02"
       ],
-      "standard_count": 4,
+      "standard_count": 5,
       "status": "covered"
     },
     {
@@ -1859,7 +1944,7 @@
         "title": "MCP Authorization Conformance"
       },
       "capability_id": "mcp-authorization-conformance",
-      "control_count": 15,
+      "control_count": 16,
       "control_ids": [
         "owasp-agentic-top-10-2026::ASI02",
         "owasp-agentic-top-10-2026::ASI03",
@@ -1871,6 +1956,7 @@
         "mcp-authorization-and-security::MCP-SEC-05",
         "mcp-authorization-and-security::MCP-SEC-07",
         "nist-agentic-ai-risk-management::NIST-AGENT-01",
+        "nist-agentic-ai-risk-management::NIST-AGENT-06",
         "frontier-lab-prompt-injection-defenses::LAB-PI-03",
         "frontier-lab-prompt-injection-defenses::LAB-PI-05",
         "csa-ai-controls-matrix-2025::CSA-AICM-03",
@@ -1945,7 +2031,7 @@
         "title": "MCP Gateway Policy"
       },
       "capability_id": "mcp-gateway-policy",
-      "control_count": 15,
+      "control_count": 16,
       "control_ids": [
         "owasp-agentic-top-10-2026::ASI01",
         "owasp-agentic-top-10-2026::ASI02",
@@ -1956,6 +2042,7 @@
         "mcp-authorization-and-security::MCP-SEC-05",
         "mcp-authorization-and-security::MCP-SEC-07",
         "nist-agentic-ai-risk-management::NIST-CAISI-04",
+        "nist-agentic-ai-risk-management::NIST-AGENT-07",
         "frontier-lab-prompt-injection-defenses::LAB-PI-02",
         "frontier-lab-prompt-injection-defenses::LAB-PI-03",
         "frontier-lab-prompt-injection-defenses::LAB-PI-05",
@@ -2192,8 +2279,9 @@
       "source_ids": [
         "owasp-agentic-top-10-2026",
         "owasp-agentic-threats-2025",
-        "owasp-securing-agentic-apps-2025",
-        "owasp-genai-exploit-roundup-q1-2026"
+        "owasp-securing-agentic-apps-v2-2026",
+        "owasp-genai-exploit-roundup-q3-2026",
+        "owasp-llm-top-10-2026"
       ],
       "sources": [
         {
@@ -2213,20 +2301,28 @@
           "url": "https://genai.owasp.org/resource/agentic-ai-threats-and-mitigations/"
         },
         {
-          "id": "owasp-securing-agentic-apps-2025",
-          "name": "Securing Agentic Applications Guide 1.0",
-          "published": "2025-07-27",
+          "id": "owasp-securing-agentic-apps-v2-2026",
+          "name": "Securing Agentic Applications V2: A Builder & Defender's Guide",
+          "published": "2026-11-10",
           "publisher": "OWASP GenAI Security Project",
           "source_class": "industry_standard",
-          "url": "https://genai.owasp.org/resource/securing-agentic-applications-guide-1-0/"
+          "url": "https://genai.owasp.org/resource/securing-agentic-applications-v2/"
         },
         {
-          "id": "owasp-genai-exploit-roundup-q1-2026",
-          "name": "OWASP GenAI Exploit Round-up Report Q1 2026",
-          "published": "2026-04-14",
+          "id": "owasp-genai-exploit-roundup-q3-2026",
+          "name": "GenAI and Agentic AI Exploit Roundup Q3 2026",
+          "published": "2026-10-08",
           "publisher": "OWASP GenAI Security Project",
           "source_class": "incident_intelligence",
-          "url": "https://genai.owasp.org/2026/04/14/owasp-genai-exploit-round-up-report-q1-2026/"
+          "url": "https://genai.owasp.org/2026/10/08/genai-and-agentic-ai-exploit-roundup-q3-2026/"
+        },
+        {
+          "id": "owasp-llm-top-10-2026",
+          "name": "OWASP Top 10 for LLM Applications 2026",
+          "published": "2026-08-03",
+          "publisher": "OWASP GenAI Security Project",
+          "source_class": "industry_standard",
+          "url": "https://genai.owasp.org/resource/owasp-genai-llm-top-10-2026/"
         }
       ],
       "standard_id": "owasp-agentic-top-10-2026",
@@ -2310,8 +2406,9 @@
       "source_ids": [
         "owasp-agentic-top-10-2026",
         "owasp-agentic-threats-2025",
-        "owasp-securing-agentic-apps-2025",
-        "owasp-genai-exploit-roundup-q1-2026"
+        "owasp-securing-agentic-apps-v2-2026",
+        "owasp-genai-exploit-roundup-q3-2026",
+        "owasp-llm-top-10-2026"
       ],
       "sources": [
         {
@@ -2331,20 +2428,28 @@
           "url": "https://genai.owasp.org/resource/agentic-ai-threats-and-mitigations/"
         },
         {
-          "id": "owasp-securing-agentic-apps-2025",
-          "name": "Securing Agentic Applications Guide 1.0",
-          "published": "2025-07-27",
+          "id": "owasp-securing-agentic-apps-v2-2026",
+          "name": "Securing Agentic Applications V2: A Builder & Defender's Guide",
+          "published": "2026-11-10",
           "publisher": "OWASP GenAI Security Project",
           "source_class": "industry_standard",
-          "url": "https://genai.owasp.org/resource/securing-agentic-applications-guide-1-0/"
+          "url": "https://genai.owasp.org/resource/securing-agentic-applications-v2/"
         },
         {
-          "id": "owasp-genai-exploit-roundup-q1-2026",
-          "name": "OWASP GenAI Exploit Round-up Report Q1 2026",
-          "published": "2026-04-14",
+          "id": "owasp-genai-exploit-roundup-q3-2026",
+          "name": "GenAI and Agentic AI Exploit Roundup Q3 2026",
+          "published": "2026-10-08",
           "publisher": "OWASP GenAI Security Project",
           "source_class": "incident_intelligence",
-          "url": "https://genai.owasp.org/2026/04/14/owasp-genai-exploit-round-up-report-q1-2026/"
+          "url": "https://genai.owasp.org/2026/10/08/genai-and-agentic-ai-exploit-roundup-q3-2026/"
+        },
+        {
+          "id": "owasp-llm-top-10-2026",
+          "name": "OWASP Top 10 for LLM Applications 2026",
+          "published": "2026-08-03",
+          "publisher": "OWASP GenAI Security Project",
+          "source_class": "industry_standard",
+          "url": "https://genai.owasp.org/resource/owasp-genai-llm-top-10-2026/"
         }
       ],
       "standard_id": "owasp-agentic-top-10-2026",
@@ -2428,8 +2533,9 @@
       "source_ids": [
         "owasp-agentic-top-10-2026",
         "owasp-agentic-threats-2025",
-        "owasp-securing-agentic-apps-2025",
-        "owasp-genai-exploit-roundup-q1-2026"
+        "owasp-securing-agentic-apps-v2-2026",
+        "owasp-genai-exploit-roundup-q3-2026",
+        "owasp-llm-top-10-2026"
       ],
       "sources": [
         {
@@ -2449,20 +2555,28 @@
           "url": "https://genai.owasp.org/resource/agentic-ai-threats-and-mitigations/"
         },
         {
-          "id": "owasp-securing-agentic-apps-2025",
-          "name": "Securing Agentic Applications Guide 1.0",
-          "published": "2025-07-27",
+          "id": "owasp-securing-agentic-apps-v2-2026",
+          "name": "Securing Agentic Applications V2: A Builder & Defender's Guide",
+          "published": "2026-11-10",
           "publisher": "OWASP GenAI Security Project",
           "source_class": "industry_standard",
-          "url": "https://genai.owasp.org/resource/securing-agentic-applications-guide-1-0/"
+          "url": "https://genai.owasp.org/resource/securing-agentic-applications-v2/"
         },
         {
-          "id": "owasp-genai-exploit-roundup-q1-2026",
-          "name": "OWASP GenAI Exploit Round-up Report Q1 2026",
-          "published": "2026-04-14",
+          "id": "owasp-genai-exploit-roundup-q3-2026",
+          "name": "GenAI and Agentic AI Exploit Roundup Q3 2026",
+          "published": "2026-10-08",
           "publisher": "OWASP GenAI Security Project",
           "source_class": "incident_intelligence",
-          "url": "https://genai.owasp.org/2026/04/14/owasp-genai-exploit-round-up-report-q1-2026/"
+          "url": "https://genai.owasp.org/2026/10/08/genai-and-agentic-ai-exploit-roundup-q3-2026/"
+        },
+        {
+          "id": "owasp-llm-top-10-2026",
+          "name": "OWASP Top 10 for LLM Applications 2026",
+          "published": "2026-08-03",
+          "publisher": "OWASP GenAI Security Project",
+          "source_class": "industry_standard",
+          "url": "https://genai.owasp.org/resource/owasp-genai-llm-top-10-2026/"
         }
       ],
       "standard_id": "owasp-agentic-top-10-2026",
@@ -2546,8 +2660,9 @@
       "source_ids": [
         "owasp-agentic-top-10-2026",
         "owasp-agentic-threats-2025",
-        "owasp-securing-agentic-apps-2025",
-        "owasp-genai-exploit-roundup-q1-2026"
+        "owasp-securing-agentic-apps-v2-2026",
+        "owasp-genai-exploit-roundup-q3-2026",
+        "owasp-llm-top-10-2026"
       ],
       "sources": [
         {
@@ -2567,20 +2682,28 @@
           "url": "https://genai.owasp.org/resource/agentic-ai-threats-and-mitigations/"
         },
         {
-          "id": "owasp-securing-agentic-apps-2025",
-          "name": "Securing Agentic Applications Guide 1.0",
-          "published": "2025-07-27",
+          "id": "owasp-securing-agentic-apps-v2-2026",
+          "name": "Securing Agentic Applications V2: A Builder & Defender's Guide",
+          "published": "2026-11-10",
           "publisher": "OWASP GenAI Security Project",
           "source_class": "industry_standard",
-          "url": "https://genai.owasp.org/resource/securing-agentic-applications-guide-1-0/"
+          "url": "https://genai.owasp.org/resource/securing-agentic-applications-v2/"
         },
         {
-          "id": "owasp-genai-exploit-roundup-q1-2026",
-          "name": "OWASP GenAI Exploit Round-up Report Q1 2026",
-          "published": "2026-04-14",
+          "id": "owasp-genai-exploit-roundup-q3-2026",
+          "name": "GenAI and Agentic AI Exploit Roundup Q3 2026",
+          "published": "2026-10-08",
           "publisher": "OWASP GenAI Security Project",
           "source_class": "incident_intelligence",
-          "url": "https://genai.owasp.org/2026/04/14/owasp-genai-exploit-round-up-report-q1-2026/"
+          "url": "https://genai.owasp.org/2026/10/08/genai-and-agentic-ai-exploit-roundup-q3-2026/"
+        },
+        {
+          "id": "owasp-llm-top-10-2026",
+          "name": "OWASP Top 10 for LLM Applications 2026",
+          "published": "2026-08-03",
+          "publisher": "OWASP GenAI Security Project",
+          "source_class": "industry_standard",
+          "url": "https://genai.owasp.org/resource/owasp-genai-llm-top-10-2026/"
         }
       ],
       "standard_id": "owasp-agentic-top-10-2026",
@@ -2664,8 +2787,9 @@
       "source_ids": [
         "owasp-agentic-top-10-2026",
         "owasp-agentic-threats-2025",
-        "owasp-securing-agentic-apps-2025",
-        "owasp-genai-exploit-roundup-q1-2026"
+        "owasp-securing-agentic-apps-v2-2026",
+        "owasp-genai-exploit-roundup-q3-2026",
+        "owasp-llm-top-10-2026"
       ],
       "sources": [
         {
@@ -2685,20 +2809,28 @@
           "url": "https://genai.owasp.org/resource/agentic-ai-threats-and-mitigations/"
         },
         {
-          "id": "owasp-securing-agentic-apps-2025",
-          "name": "Securing Agentic Applications Guide 1.0",
-          "published": "2025-07-27",
+          "id": "owasp-securing-agentic-apps-v2-2026",
+          "name": "Securing Agentic Applications V2: A Builder & Defender's Guide",
+          "published": "2026-11-10",
           "publisher": "OWASP GenAI Security Project",
           "source_class": "industry_standard",
-          "url": "https://genai.owasp.org/resource/securing-agentic-applications-guide-1-0/"
+          "url": "https://genai.owasp.org/resource/securing-agentic-applications-v2/"
         },
         {
-          "id": "owasp-genai-exploit-roundup-q1-2026",
-          "name": "OWASP GenAI Exploit Round-up Report Q1 2026",
-          "published": "2026-04-14",
+          "id": "owasp-genai-exploit-roundup-q3-2026",
+          "name": "GenAI and Agentic AI Exploit Roundup Q3 2026",
+          "published": "2026-10-08",
           "publisher": "OWASP GenAI Security Project",
           "source_class": "incident_intelligence",
-          "url": "https://genai.owasp.org/2026/04/14/owasp-genai-exploit-round-up-report-q1-2026/"
+          "url": "https://genai.owasp.org/2026/10/08/genai-and-agentic-ai-exploit-roundup-q3-2026/"
+        },
+        {
+          "id": "owasp-llm-top-10-2026",
+          "name": "OWASP Top 10 for LLM Applications 2026",
+          "published": "2026-08-03",
+          "publisher": "OWASP GenAI Security Project",
+          "source_class": "industry_standard",
+          "url": "https://genai.owasp.org/resource/owasp-genai-llm-top-10-2026/"
         }
       ],
       "standard_id": "owasp-agentic-top-10-2026",
@@ -2782,8 +2914,9 @@
       "source_ids": [
         "owasp-agentic-top-10-2026",
         "owasp-agentic-threats-2025",
-        "owasp-securing-agentic-apps-2025",
-        "owasp-genai-exploit-roundup-q1-2026"
+        "owasp-securing-agentic-apps-v2-2026",
+        "owasp-genai-exploit-roundup-q3-2026",
+        "owasp-llm-top-10-2026"
       ],
       "sources": [
         {
@@ -2803,20 +2936,28 @@
           "url": "https://genai.owasp.org/resource/agentic-ai-threats-and-mitigations/"
         },
         {
-          "id": "owasp-securing-agentic-apps-2025",
-          "name": "Securing Agentic Applications Guide 1.0",
-          "published": "2025-07-27",
+          "id": "owasp-securing-agentic-apps-v2-2026",
+          "name": "Securing Agentic Applications V2: A Builder & Defender's Guide",
+          "published": "2026-11-10",
           "publisher": "OWASP GenAI Security Project",
           "source_class": "industry_standard",
-          "url": "https://genai.owasp.org/resource/securing-agentic-applications-guide-1-0/"
+          "url": "https://genai.owasp.org/resource/securing-agentic-applications-v2/"
         },
         {
-          "id": "owasp-genai-exploit-roundup-q1-2026",
-          "name": "OWASP GenAI Exploit Round-up Report Q1 2026",
-          "published": "2026-04-14",
+          "id": "owasp-genai-exploit-roundup-q3-2026",
+          "name": "GenAI and Agentic AI Exploit Roundup Q3 2026",
+          "published": "2026-10-08",
           "publisher": "OWASP GenAI Security Project",
           "source_class": "incident_intelligence",
-          "url": "https://genai.owasp.org/2026/04/14/owasp-genai-exploit-round-up-report-q1-2026/"
+          "url": "https://genai.owasp.org/2026/10/08/genai-and-agentic-ai-exploit-roundup-q3-2026/"
+        },
+        {
+          "id": "owasp-llm-top-10-2026",
+          "name": "OWASP Top 10 for LLM Applications 2026",
+          "published": "2026-08-03",
+          "publisher": "OWASP GenAI Security Project",
+          "source_class": "industry_standard",
+          "url": "https://genai.owasp.org/resource/owasp-genai-llm-top-10-2026/"
         }
       ],
       "standard_id": "owasp-agentic-top-10-2026",
@@ -2900,8 +3041,9 @@
       "source_ids": [
         "owasp-agentic-top-10-2026",
         "owasp-agentic-threats-2025",
-        "owasp-securing-agentic-apps-2025",
-        "owasp-genai-exploit-roundup-q1-2026"
+        "owasp-securing-agentic-apps-v2-2026",
+        "owasp-genai-exploit-roundup-q3-2026",
+        "owasp-llm-top-10-2026"
       ],
       "sources": [
         {
@@ -2921,20 +3063,28 @@
           "url": "https://genai.owasp.org/resource/agentic-ai-threats-and-mitigations/"
         },
         {
-          "id": "owasp-securing-agentic-apps-2025",
-          "name": "Securing Agentic Applications Guide 1.0",
-          "published": "2025-07-27",
+          "id": "owasp-securing-agentic-apps-v2-2026",
+          "name": "Securing Agentic Applications V2: A Builder & Defender's Guide",
+          "published": "2026-11-10",
           "publisher": "OWASP GenAI Security Project",
           "source_class": "industry_standard",
-          "url": "https://genai.owasp.org/resource/securing-agentic-applications-guide-1-0/"
+          "url": "https://genai.owasp.org/resource/securing-agentic-applications-v2/"
         },
         {
-          "id": "owasp-genai-exploit-roundup-q1-2026",
-          "name": "OWASP GenAI Exploit Round-up Report Q1 2026",
-          "published": "2026-04-14",
+          "id": "owasp-genai-exploit-roundup-q3-2026",
+          "name": "GenAI and Agentic AI Exploit Roundup Q3 2026",
+          "published": "2026-10-08",
           "publisher": "OWASP GenAI Security Project",
           "source_class": "incident_intelligence",
-          "url": "https://genai.owasp.org/2026/04/14/owasp-genai-exploit-round-up-report-q1-2026/"
+          "url": "https://genai.owasp.org/2026/10/08/genai-and-agentic-ai-exploit-roundup-q3-2026/"
+        },
+        {
+          "id": "owasp-llm-top-10-2026",
+          "name": "OWASP Top 10 for LLM Applications 2026",
+          "published": "2026-08-03",
+          "publisher": "OWASP GenAI Security Project",
+          "source_class": "industry_standard",
+          "url": "https://genai.owasp.org/resource/owasp-genai-llm-top-10-2026/"
         }
       ],
       "standard_id": "owasp-agentic-top-10-2026",
@@ -3018,8 +3168,9 @@
       "source_ids": [
         "owasp-agentic-top-10-2026",
         "owasp-agentic-threats-2025",
-        "owasp-securing-agentic-apps-2025",
-        "owasp-genai-exploit-roundup-q1-2026"
+        "owasp-securing-agentic-apps-v2-2026",
+        "owasp-genai-exploit-roundup-q3-2026",
+        "owasp-llm-top-10-2026"
       ],
       "sources": [
         {
@@ -3039,20 +3190,28 @@
           "url": "https://genai.owasp.org/resource/agentic-ai-threats-and-mitigations/"
         },
         {
-          "id": "owasp-securing-agentic-apps-2025",
-          "name": "Securing Agentic Applications Guide 1.0",
-          "published": "2025-07-27",
+          "id": "owasp-securing-agentic-apps-v2-2026",
+          "name": "Securing Agentic Applications V2: A Builder & Defender's Guide",
+          "published": "2026-11-10",
           "publisher": "OWASP GenAI Security Project",
           "source_class": "industry_standard",
-          "url": "https://genai.owasp.org/resource/securing-agentic-applications-guide-1-0/"
+          "url": "https://genai.owasp.org/resource/securing-agentic-applications-v2/"
         },
         {
-          "id": "owasp-genai-exploit-roundup-q1-2026",
-          "name": "OWASP GenAI Exploit Round-up Report Q1 2026",
-          "published": "2026-04-14",
+          "id": "owasp-genai-exploit-roundup-q3-2026",
+          "name": "GenAI and Agentic AI Exploit Roundup Q3 2026",
+          "published": "2026-10-08",
           "publisher": "OWASP GenAI Security Project",
           "source_class": "incident_intelligence",
-          "url": "https://genai.owasp.org/2026/04/14/owasp-genai-exploit-round-up-report-q1-2026/"
+          "url": "https://genai.owasp.org/2026/10/08/genai-and-agentic-ai-exploit-roundup-q3-2026/"
+        },
+        {
+          "id": "owasp-llm-top-10-2026",
+          "name": "OWASP Top 10 for LLM Applications 2026",
+          "published": "2026-08-03",
+          "publisher": "OWASP GenAI Security Project",
+          "source_class": "industry_standard",
+          "url": "https://genai.owasp.org/resource/owasp-genai-llm-top-10-2026/"
         }
       ],
       "standard_id": "owasp-agentic-top-10-2026",
@@ -3136,8 +3295,9 @@
       "source_ids": [
         "owasp-agentic-top-10-2026",
         "owasp-agentic-threats-2025",
-        "owasp-securing-agentic-apps-2025",
-        "owasp-genai-exploit-roundup-q1-2026"
+        "owasp-securing-agentic-apps-v2-2026",
+        "owasp-genai-exploit-roundup-q3-2026",
+        "owasp-llm-top-10-2026"
       ],
       "sources": [
         {
@@ -3157,20 +3317,28 @@
           "url": "https://genai.owasp.org/resource/agentic-ai-threats-and-mitigations/"
         },
         {
-          "id": "owasp-securing-agentic-apps-2025",
-          "name": "Securing Agentic Applications Guide 1.0",
-          "published": "2025-07-27",
+          "id": "owasp-securing-agentic-apps-v2-2026",
+          "name": "Securing Agentic Applications V2: A Builder & Defender's Guide",
+          "published": "2026-11-10",
           "publisher": "OWASP GenAI Security Project",
           "source_class": "industry_standard",
-          "url": "https://genai.owasp.org/resource/securing-agentic-applications-guide-1-0/"
+          "url": "https://genai.owasp.org/resource/securing-agentic-applications-v2/"
         },
         {
-          "id": "owasp-genai-exploit-roundup-q1-2026",
-          "name": "OWASP GenAI Exploit Round-up Report Q1 2026",
-          "published": "2026-04-14",
+          "id": "owasp-genai-exploit-roundup-q3-2026",
+          "name": "GenAI and Agentic AI Exploit Roundup Q3 2026",
+          "published": "2026-10-08",
           "publisher": "OWASP GenAI Security Project",
           "source_class": "incident_intelligence",
-          "url": "https://genai.owasp.org/2026/04/14/owasp-genai-exploit-round-up-report-q1-2026/"
+          "url": "https://genai.owasp.org/2026/10/08/genai-and-agentic-ai-exploit-roundup-q3-2026/"
+        },
+        {
+          "id": "owasp-llm-top-10-2026",
+          "name": "OWASP Top 10 for LLM Applications 2026",
+          "published": "2026-08-03",
+          "publisher": "OWASP GenAI Security Project",
+          "source_class": "industry_standard",
+          "url": "https://genai.owasp.org/resource/owasp-genai-llm-top-10-2026/"
         }
       ],
       "standard_id": "owasp-agentic-top-10-2026",
@@ -3254,8 +3422,9 @@
       "source_ids": [
         "owasp-agentic-top-10-2026",
         "owasp-agentic-threats-2025",
-        "owasp-securing-agentic-apps-2025",
-        "owasp-genai-exploit-roundup-q1-2026"
+        "owasp-securing-agentic-apps-v2-2026",
+        "owasp-genai-exploit-roundup-q3-2026",
+        "owasp-llm-top-10-2026"
       ],
       "sources": [
         {
@@ -3275,20 +3444,28 @@
           "url": "https://genai.owasp.org/resource/agentic-ai-threats-and-mitigations/"
         },
         {
-          "id": "owasp-securing-agentic-apps-2025",
-          "name": "Securing Agentic Applications Guide 1.0",
-          "published": "2025-07-27",
+          "id": "owasp-securing-agentic-apps-v2-2026",
+          "name": "Securing Agentic Applications V2: A Builder & Defender's Guide",
+          "published": "2026-11-10",
           "publisher": "OWASP GenAI Security Project",
           "source_class": "industry_standard",
-          "url": "https://genai.owasp.org/resource/securing-agentic-applications-guide-1-0/"
+          "url": "https://genai.owasp.org/resource/securing-agentic-applications-v2/"
         },
         {
-          "id": "owasp-genai-exploit-roundup-q1-2026",
-          "name": "OWASP GenAI Exploit Round-up Report Q1 2026",
-          "published": "2026-04-14",
+          "id": "owasp-genai-exploit-roundup-q3-2026",
+          "name": "GenAI and Agentic AI Exploit Roundup Q3 2026",
+          "published": "2026-10-08",
           "publisher": "OWASP GenAI Security Project",
           "source_class": "incident_intelligence",
-          "url": "https://genai.owasp.org/2026/04/14/owasp-genai-exploit-round-up-report-q1-2026/"
+          "url": "https://genai.owasp.org/2026/10/08/genai-and-agentic-ai-exploit-roundup-q3-2026/"
+        },
+        {
+          "id": "owasp-llm-top-10-2026",
+          "name": "OWASP Top 10 for LLM Applications 2026",
+          "published": "2026-08-03",
+          "publisher": "OWASP GenAI Security Project",
+          "source_class": "industry_standard",
+          "url": "https://genai.owasp.org/resource/owasp-genai-llm-top-10-2026/"
         }
       ],
       "standard_id": "owasp-agentic-top-10-2026",
@@ -3358,7 +3535,8 @@
         "mcp-authorization-2026-07-28",
         "mcp-authorization-2025-11-25",
         "mcp-security-best-practices-2026-07-28",
-        "mcp-security-best-practices-2025"
+        "mcp-security-best-practices-2025",
+        "mcp-authorization-security-considerations-2026-07-28"
       ],
       "sources": [
         {
@@ -3383,7 +3561,7 @@
           "published": "2026-07-28",
           "publisher": "Model Context Protocol",
           "source_class": "protocol_guidance",
-          "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices"
+          "url": "https://modelcontextprotocol.io/docs/2026-07-28/tutorials/security/security_best_practices"
         },
         {
           "id": "mcp-security-best-practices-2025",
@@ -3391,7 +3569,15 @@
           "published": "2025-06-18",
           "publisher": "Model Context Protocol",
           "source_class": "protocol_guidance",
-          "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices"
+          "url": "https://modelcontextprotocol.io/docs/2025-06-18/tutorials/security/security_best_practices"
+        },
+        {
+          "id": "mcp-authorization-security-considerations-2026-07-28",
+          "name": "Model Context Protocol Authorization Security Considerations (2026-07-28)",
+          "published": "2026-07-28",
+          "publisher": "Model Context Protocol",
+          "source_class": "protocol_specification",
+          "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization/security-considerations"
         }
       ],
       "standard_id": "mcp-authorization-and-security",
@@ -3461,7 +3647,8 @@
         "mcp-authorization-2026-07-28",
         "mcp-authorization-2025-11-25",
         "mcp-security-best-practices-2026-07-28",
-        "mcp-security-best-practices-2025"
+        "mcp-security-best-practices-2025",
+        "mcp-authorization-security-considerations-2026-07-28"
       ],
       "sources": [
         {
@@ -3486,7 +3673,7 @@
           "published": "2026-07-28",
           "publisher": "Model Context Protocol",
           "source_class": "protocol_guidance",
-          "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices"
+          "url": "https://modelcontextprotocol.io/docs/2026-07-28/tutorials/security/security_best_practices"
         },
         {
           "id": "mcp-security-best-practices-2025",
@@ -3494,7 +3681,15 @@
           "published": "2025-06-18",
           "publisher": "Model Context Protocol",
           "source_class": "protocol_guidance",
-          "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices"
+          "url": "https://modelcontextprotocol.io/docs/2025-06-18/tutorials/security/security_best_practices"
+        },
+        {
+          "id": "mcp-authorization-security-considerations-2026-07-28",
+          "name": "Model Context Protocol Authorization Security Considerations (2026-07-28)",
+          "published": "2026-07-28",
+          "publisher": "Model Context Protocol",
+          "source_class": "protocol_specification",
+          "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization/security-considerations"
         }
       ],
       "standard_id": "mcp-authorization-and-security",
@@ -3564,7 +3759,8 @@
         "mcp-authorization-2026-07-28",
         "mcp-authorization-2025-11-25",
         "mcp-security-best-practices-2026-07-28",
-        "mcp-security-best-practices-2025"
+        "mcp-security-best-practices-2025",
+        "mcp-authorization-security-considerations-2026-07-28"
       ],
       "sources": [
         {
@@ -3589,7 +3785,7 @@
           "published": "2026-07-28",
           "publisher": "Model Context Protocol",
           "source_class": "protocol_guidance",
-          "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices"
+          "url": "https://modelcontextprotocol.io/docs/2026-07-28/tutorials/security/security_best_practices"
         },
         {
           "id": "mcp-security-best-practices-2025",
@@ -3597,7 +3793,15 @@
           "published": "2025-06-18",
           "publisher": "Model Context Protocol",
           "source_class": "protocol_guidance",
-          "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices"
+          "url": "https://modelcontextprotocol.io/docs/2025-06-18/tutorials/security/security_best_practices"
+        },
+        {
+          "id": "mcp-authorization-security-considerations-2026-07-28",
+          "name": "Model Context Protocol Authorization Security Considerations (2026-07-28)",
+          "published": "2026-07-28",
+          "publisher": "Model Context Protocol",
+          "source_class": "protocol_specification",
+          "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization/security-considerations"
         }
       ],
       "standard_id": "mcp-authorization-and-security",
@@ -3667,7 +3871,8 @@
         "mcp-authorization-2026-07-28",
         "mcp-authorization-2025-11-25",
         "mcp-security-best-practices-2026-07-28",
-        "mcp-security-best-practices-2025"
+        "mcp-security-best-practices-2025",
+        "mcp-authorization-security-considerations-2026-07-28"
       ],
       "sources": [
         {
@@ -3692,7 +3897,7 @@
           "published": "2026-07-28",
           "publisher": "Model Context Protocol",
           "source_class": "protocol_guidance",
-          "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices"
+          "url": "https://modelcontextprotocol.io/docs/2026-07-28/tutorials/security/security_best_practices"
         },
         {
           "id": "mcp-security-best-practices-2025",
@@ -3700,7 +3905,15 @@
           "published": "2025-06-18",
           "publisher": "Model Context Protocol",
           "source_class": "protocol_guidance",
-          "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices"
+          "url": "https://modelcontextprotocol.io/docs/2025-06-18/tutorials/security/security_best_practices"
+        },
+        {
+          "id": "mcp-authorization-security-considerations-2026-07-28",
+          "name": "Model Context Protocol Authorization Security Considerations (2026-07-28)",
+          "published": "2026-07-28",
+          "publisher": "Model Context Protocol",
+          "source_class": "protocol_specification",
+          "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization/security-considerations"
         }
       ],
       "standard_id": "mcp-authorization-and-security",
@@ -3785,7 +3998,8 @@
         "mcp-authorization-2026-07-28",
         "mcp-authorization-2025-11-25",
         "mcp-security-best-practices-2026-07-28",
-        "mcp-security-best-practices-2025"
+        "mcp-security-best-practices-2025",
+        "mcp-authorization-security-considerations-2026-07-28"
       ],
       "sources": [
         {
@@ -3810,7 +4024,7 @@
           "published": "2026-07-28",
           "publisher": "Model Context Protocol",
           "source_class": "protocol_guidance",
-          "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices"
+          "url": "https://modelcontextprotocol.io/docs/2026-07-28/tutorials/security/security_best_practices"
         },
         {
           "id": "mcp-security-best-practices-2025",
@@ -3818,7 +4032,15 @@
           "published": "2025-06-18",
           "publisher": "Model Context Protocol",
           "source_class": "protocol_guidance",
-          "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices"
+          "url": "https://modelcontextprotocol.io/docs/2025-06-18/tutorials/security/security_best_practices"
+        },
+        {
+          "id": "mcp-authorization-security-considerations-2026-07-28",
+          "name": "Model Context Protocol Authorization Security Considerations (2026-07-28)",
+          "published": "2026-07-28",
+          "publisher": "Model Context Protocol",
+          "source_class": "protocol_specification",
+          "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization/security-considerations"
         }
       ],
       "standard_id": "mcp-authorization-and-security",
@@ -3888,7 +4110,8 @@
         "mcp-authorization-2026-07-28",
         "mcp-authorization-2025-11-25",
         "mcp-security-best-practices-2026-07-28",
-        "mcp-security-best-practices-2025"
+        "mcp-security-best-practices-2025",
+        "mcp-authorization-security-considerations-2026-07-28"
       ],
       "sources": [
         {
@@ -3913,7 +4136,7 @@
           "published": "2026-07-28",
           "publisher": "Model Context Protocol",
           "source_class": "protocol_guidance",
-          "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices"
+          "url": "https://modelcontextprotocol.io/docs/2026-07-28/tutorials/security/security_best_practices"
         },
         {
           "id": "mcp-security-best-practices-2025",
@@ -3921,7 +4144,15 @@
           "published": "2025-06-18",
           "publisher": "Model Context Protocol",
           "source_class": "protocol_guidance",
-          "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices"
+          "url": "https://modelcontextprotocol.io/docs/2025-06-18/tutorials/security/security_best_practices"
+        },
+        {
+          "id": "mcp-authorization-security-considerations-2026-07-28",
+          "name": "Model Context Protocol Authorization Security Considerations (2026-07-28)",
+          "published": "2026-07-28",
+          "publisher": "Model Context Protocol",
+          "source_class": "protocol_specification",
+          "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization/security-considerations"
         }
       ],
       "standard_id": "mcp-authorization-and-security",
@@ -4006,7 +4237,8 @@
         "mcp-authorization-2026-07-28",
         "mcp-authorization-2025-11-25",
         "mcp-security-best-practices-2026-07-28",
-        "mcp-security-best-practices-2025"
+        "mcp-security-best-practices-2025",
+        "mcp-authorization-security-considerations-2026-07-28"
       ],
       "sources": [
         {
@@ -4031,7 +4263,7 @@
           "published": "2026-07-28",
           "publisher": "Model Context Protocol",
           "source_class": "protocol_guidance",
-          "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices"
+          "url": "https://modelcontextprotocol.io/docs/2026-07-28/tutorials/security/security_best_practices"
         },
         {
           "id": "mcp-security-best-practices-2025",
@@ -4039,7 +4271,15 @@
           "published": "2025-06-18",
           "publisher": "Model Context Protocol",
           "source_class": "protocol_guidance",
-          "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices"
+          "url": "https://modelcontextprotocol.io/docs/2025-06-18/tutorials/security/security_best_practices"
+        },
+        {
+          "id": "mcp-authorization-security-considerations-2026-07-28",
+          "name": "Model Context Protocol Authorization Security Considerations (2026-07-28)",
+          "published": "2026-07-28",
+          "publisher": "Model Context Protocol",
+          "source_class": "protocol_specification",
+          "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization/security-considerations"
         }
       ],
       "standard_id": "mcp-authorization-and-security",
@@ -4098,8 +4338,8 @@
           "title": "Agentic System BOM"
         }
       ],
-      "diligence_question": "Can the buyer inspect which agent identity acted across MCP and agent-to-agent boundaries?",
-      "evidence_expectation": "Handoff, identity, authorization, and BOM evidence show agent identity, protocol, capability, and resource boundaries.",
+      "diligence_question": "Can the buyer inspect which unique agent identity acted across MCP and agent-to-agent boundaries, rather than a borrowed human or service-account credential?",
+      "evidence_expectation": "Handoff, identity, authorization, and BOM evidence show a distinct agent identity lifecycle, protocol, capability, and resource boundaries.",
       "evidence_paths": [
         "data/evidence/agent-handoff-boundary-pack.json",
         "data/evidence/agent-identity-delegation-ledger.json",
@@ -4113,7 +4353,7 @@
         "recipes_agentic_system_bom",
         "recipes_mcp_authorization_conformance_pack"
       ],
-      "objective": "Support secure human-agent and multi-agent interactions through identity, authentication, and protocol-boundary evidence.",
+      "objective": "Support secure human-agent and multi-agent interactions through cryptographically verifiable agent identities distinct from humans and service accounts, authentication, and protocol-boundary evidence.",
       "required_capability_ids": [
         "agent-handoff-boundary-pack",
         "agent-identity-ledger",
@@ -4125,16 +4365,17 @@
         "nist-caisi-ai-agent-security-rfi-2026",
         "nist-ai-rmf-2026",
         "nist-ai-600-1",
-        "nist-agentic-identity-foundation-2026"
+        "nist-agentic-identity-foundation-2026",
+        "nist-agentic-identity-design-tenets-2026"
       ],
       "sources": [
         {
           "id": "nist-ai-agent-standards-initiative-2026",
-          "name": "AI Agent Standards Initiative",
+          "name": "SI Agent Standards Initiative",
           "published": "2026-02-17",
           "publisher": "NIST",
           "source_class": "government_framework",
-          "url": "https://www.nist.gov/artificial-intelligence/ai-agent-standards-initiative"
+          "url": "https://www.nist.gov/super-intelligence/si-agent-standards-initiative"
         },
         {
           "id": "nist-caisi-ai-agent-security-rfi-2026",
@@ -4167,6 +4408,14 @@
           "publisher": "NIST",
           "source_class": "government_security_signal",
           "url": "https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation"
+        },
+        {
+          "id": "nist-agentic-identity-design-tenets-2026",
+          "name": "Design Tenets for Agent Identity Management Systems",
+          "published": "2026-10-27",
+          "publisher": "NIST",
+          "source_class": "government_security_signal",
+          "url": "https://www.nist.gov/blogs/cybersecurity-insights/design-tenets-agent-identity-management-systems"
         }
       ],
       "standard_id": "nist-agentic-ai-risk-management",
@@ -4252,16 +4501,17 @@
         "nist-caisi-ai-agent-security-rfi-2026",
         "nist-ai-rmf-2026",
         "nist-ai-600-1",
-        "nist-agentic-identity-foundation-2026"
+        "nist-agentic-identity-foundation-2026",
+        "nist-agentic-identity-design-tenets-2026"
       ],
       "sources": [
         {
           "id": "nist-ai-agent-standards-initiative-2026",
-          "name": "AI Agent Standards Initiative",
+          "name": "SI Agent Standards Initiative",
           "published": "2026-02-17",
           "publisher": "NIST",
           "source_class": "government_framework",
-          "url": "https://www.nist.gov/artificial-intelligence/ai-agent-standards-initiative"
+          "url": "https://www.nist.gov/super-intelligence/si-agent-standards-initiative"
         },
         {
           "id": "nist-caisi-ai-agent-security-rfi-2026",
@@ -4294,6 +4544,14 @@
           "publisher": "NIST",
           "source_class": "government_security_signal",
           "url": "https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation"
+        },
+        {
+          "id": "nist-agentic-identity-design-tenets-2026",
+          "name": "Design Tenets for Agent Identity Management Systems",
+          "published": "2026-10-27",
+          "publisher": "NIST",
+          "source_class": "government_security_signal",
+          "url": "https://www.nist.gov/blogs/cybersecurity-insights/design-tenets-agent-identity-management-systems"
         }
       ],
       "standard_id": "nist-agentic-ai-risk-management",
@@ -4379,16 +4637,17 @@
         "nist-caisi-ai-agent-security-rfi-2026",
         "nist-ai-rmf-2026",
         "nist-ai-600-1",
-        "nist-agentic-identity-foundation-2026"
+        "nist-agentic-identity-foundation-2026",
+        "nist-agentic-identity-design-tenets-2026"
       ],
       "sources": [
         {
           "id": "nist-ai-agent-standards-initiative-2026",
-          "name": "AI Agent Standards Initiative",
+          "name": "SI Agent Standards Initiative",
           "published": "2026-02-17",
           "publisher": "NIST",
           "source_class": "government_framework",
-          "url": "https://www.nist.gov/artificial-intelligence/ai-agent-standards-initiative"
+          "url": "https://www.nist.gov/super-intelligence/si-agent-standards-initiative"
         },
         {
           "id": "nist-caisi-ai-agent-security-rfi-2026",
@@ -4421,6 +4680,14 @@
           "publisher": "NIST",
           "source_class": "government_security_signal",
           "url": "https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation"
+        },
+        {
+          "id": "nist-agentic-identity-design-tenets-2026",
+          "name": "Design Tenets for Agent Identity Management Systems",
+          "published": "2026-10-27",
+          "publisher": "NIST",
+          "source_class": "government_security_signal",
+          "url": "https://www.nist.gov/blogs/cybersecurity-insights/design-tenets-agent-identity-management-systems"
         }
       ],
       "standard_id": "nist-agentic-ai-risk-management",
@@ -4506,16 +4773,17 @@
         "nist-caisi-ai-agent-security-rfi-2026",
         "nist-ai-rmf-2026",
         "nist-ai-600-1",
-        "nist-agentic-identity-foundation-2026"
+        "nist-agentic-identity-foundation-2026",
+        "nist-agentic-identity-design-tenets-2026"
       ],
       "sources": [
         {
           "id": "nist-ai-agent-standards-initiative-2026",
-          "name": "AI Agent Standards Initiative",
+          "name": "SI Agent Standards Initiative",
           "published": "2026-02-17",
           "publisher": "NIST",
           "source_class": "government_framework",
-          "url": "https://www.nist.gov/artificial-intelligence/ai-agent-standards-initiative"
+          "url": "https://www.nist.gov/super-intelligence/si-agent-standards-initiative"
         },
         {
           "id": "nist-caisi-ai-agent-security-rfi-2026",
@@ -4548,6 +4816,14 @@
           "publisher": "NIST",
           "source_class": "government_security_signal",
           "url": "https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation"
+        },
+        {
+          "id": "nist-agentic-identity-design-tenets-2026",
+          "name": "Design Tenets for Agent Identity Management Systems",
+          "published": "2026-10-27",
+          "publisher": "NIST",
+          "source_class": "government_security_signal",
+          "url": "https://www.nist.gov/blogs/cybersecurity-insights/design-tenets-agent-identity-management-systems"
         }
       ],
       "standard_id": "nist-agentic-ai-risk-management",
@@ -4633,16 +4909,17 @@
         "nist-caisi-ai-agent-security-rfi-2026",
         "nist-ai-rmf-2026",
         "nist-ai-600-1",
-        "nist-agentic-identity-foundation-2026"
+        "nist-agentic-identity-foundation-2026",
+        "nist-agentic-identity-design-tenets-2026"
       ],
       "sources": [
         {
           "id": "nist-ai-agent-standards-initiative-2026",
-          "name": "AI Agent Standards Initiative",
+          "name": "SI Agent Standards Initiative",
           "published": "2026-02-17",
           "publisher": "NIST",
           "source_class": "government_framework",
-          "url": "https://www.nist.gov/artificial-intelligence/ai-agent-standards-initiative"
+          "url": "https://www.nist.gov/super-intelligence/si-agent-standards-initiative"
         },
         {
           "id": "nist-caisi-ai-agent-security-rfi-2026",
@@ -4675,12 +4952,434 @@
           "publisher": "NIST",
           "source_class": "government_security_signal",
           "url": "https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation"
+        },
+        {
+          "id": "nist-agentic-identity-design-tenets-2026",
+          "name": "Design Tenets for Agent Identity Management Systems",
+          "published": "2026-10-27",
+          "publisher": "NIST",
+          "source_class": "government_security_signal",
+          "url": "https://www.nist.gov/blogs/cybersecurity-insights/design-tenets-agent-identity-management-systems"
         }
       ],
       "standard_id": "nist-agentic-ai-risk-management",
       "standard_title": "NIST AI Agent, AI RMF, CAISI, and GenAI Risk Guidance",
       "status": "ready",
       "title": "Data Provenance, Integrity, and Third-Party Risk"
+    },
+    {
+      "capabilities": [
+        {
+          "commercial_value": "Defines non-human identity contracts, delegated MCP scopes, explicit denies, owners, and revocation triggers.",
+          "evidence_paths": [
+            "data/evidence/agent-identity-delegation-ledger.json"
+          ],
+          "id": "agent-identity-ledger",
+          "mcp_tools": [
+            "recipes_agent_identity_ledger"
+          ],
+          "status": "implemented",
+          "title": "Agent Identity and Delegation Ledger"
+        },
+        {
+          "commercial_value": "Turns agent identity and MCP scopes into expiring permission leases, review cadence, step-up evidence, and runtime access decisions.",
+          "evidence_paths": [
+            "data/evidence/agentic-entitlement-review-pack.json"
+          ],
+          "id": "agentic-entitlement-review-pack",
+          "mcp_tools": [
+            "recipes_agentic_entitlement_review_pack"
+          ],
+          "status": "implemented",
+          "title": "Agentic Entitlement Review Pack"
+        },
+        {
+          "commercial_value": "Composes identity, context, scope, behavior, egress, telemetry, containment, freshness, and receipt evidence into one signed trust verdict buyers can understand.",
+          "evidence_paths": [
+            "data/assurance/agent-trust-fabric-profile.json",
+            "content/security-remediation/agent-trust-fabric/_index.md"
+          ],
+          "id": "agent-trust-fabric",
+          "mcp_tools": [
+            "recipes_agent_trust_fabric_pack"
+          ],
+          "status": "implemented",
+          "title": "Agent Trust Fabric"
+        },
+        {
+          "commercial_value": "Checks resource indicators, token audience, PKCE, token passthrough, session binding, and scope drift.",
+          "evidence_paths": [
+            "data/evidence/mcp-authorization-conformance-pack.json"
+          ],
+          "id": "mcp-authorization-conformance",
+          "mcp_tools": [
+            "recipes_mcp_authorization_conformance_pack"
+          ],
+          "status": "implemented",
+          "title": "MCP Authorization Conformance"
+        }
+      ],
+      "diligence_question": "What stops a sub-agent from inheriting parent-wide scope or an idle agent from retaining standing privilege?",
+      "evidence_expectation": "Identity, entitlement, trust-fabric, and authorization evidence show attenuated delegated scopes, lease TTLs, idle-privilege revocation, resource indicators, and denied privilege paths.",
+      "evidence_paths": [
+        "content/security-remediation/agent-trust-fabric/_index.md",
+        "data/assurance/agent-trust-fabric-profile.json",
+        "data/evidence/agent-identity-delegation-ledger.json",
+        "data/evidence/agentic-entitlement-review-pack.json",
+        "data/evidence/mcp-authorization-conformance-pack.json"
+      ],
+      "id": "NIST-AGENT-06",
+      "mcp_tools": [
+        "recipes_agent_identity_ledger",
+        "recipes_agent_trust_fabric_pack",
+        "recipes_agentic_entitlement_review_pack",
+        "recipes_mcp_authorization_conformance_pack"
+      ],
+      "objective": "Bound sub-agent and downstream grants so they cannot claim more authority than the parent, and require idle agents to hold no persistent rights.",
+      "required_capability_ids": [
+        "agent-identity-ledger",
+        "agentic-entitlement-review-pack",
+        "agent-trust-fabric",
+        "mcp-authorization-conformance"
+      ],
+      "source_ids": [
+        "nist-ai-agent-standards-initiative-2026",
+        "nist-caisi-ai-agent-security-rfi-2026",
+        "nist-ai-rmf-2026",
+        "nist-ai-600-1",
+        "nist-agentic-identity-foundation-2026",
+        "nist-agentic-identity-design-tenets-2026"
+      ],
+      "sources": [
+        {
+          "id": "nist-ai-agent-standards-initiative-2026",
+          "name": "SI Agent Standards Initiative",
+          "published": "2026-02-17",
+          "publisher": "NIST",
+          "source_class": "government_framework",
+          "url": "https://www.nist.gov/super-intelligence/si-agent-standards-initiative"
+        },
+        {
+          "id": "nist-caisi-ai-agent-security-rfi-2026",
+          "name": "CAISI Request for Information on Securing AI Agent Systems",
+          "published": "2026-01-12",
+          "publisher": "NIST CAISI",
+          "source_class": "government_framework",
+          "url": "https://www.nist.gov/news-events/news/2026/01/caisi-issues-request-information-about-securing-ai-agent-systems"
+        },
+        {
+          "id": "nist-ai-rmf-2026",
+          "name": "NIST AI Risk Management Framework",
+          "published": "2026-04-07",
+          "publisher": "NIST",
+          "source_class": "government_framework",
+          "url": "https://www.nist.gov/itl/ai-risk-management-framework"
+        },
+        {
+          "id": "nist-ai-600-1",
+          "name": "Artificial Intelligence Risk Management Framework: Generative Artificial Intelligence Profile",
+          "published": "2024-07-26",
+          "publisher": "NIST",
+          "source_class": "government_framework",
+          "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence"
+        },
+        {
+          "id": "nist-agentic-identity-foundation-2026",
+          "name": "Back to the Future: Why Agentic AI Needs a Strong Identity Foundation",
+          "published": "2026-08-27",
+          "publisher": "NIST",
+          "source_class": "government_security_signal",
+          "url": "https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation"
+        },
+        {
+          "id": "nist-agentic-identity-design-tenets-2026",
+          "name": "Design Tenets for Agent Identity Management Systems",
+          "published": "2026-10-27",
+          "publisher": "NIST",
+          "source_class": "government_security_signal",
+          "url": "https://www.nist.gov/blogs/cybersecurity-insights/design-tenets-agent-identity-management-systems"
+        }
+      ],
+      "standard_id": "nist-agentic-ai-risk-management",
+      "standard_title": "NIST AI Agent, AI RMF, CAISI, and GenAI Risk Guidance",
+      "status": "ready",
+      "title": "Attenuated Delegation and Zero Standing Privilege"
+    },
+    {
+      "capabilities": [
+        {
+          "commercial_value": "Controls high-impact autonomous actions through action classes, workflow envelopes, approval requirements, and deterministic runtime decisions.",
+          "evidence_paths": [
+            "data/evidence/agentic-action-runtime-pack.json"
+          ],
+          "id": "agentic-action-runtime-pack",
+          "mcp_tools": [
+            "recipes_agentic_action_runtime_pack"
+          ],
+          "status": "implemented",
+          "title": "Agentic Action Runtime Pack"
+        },
+        {
+          "commercial_value": "Enforces default-deny MCP tool access, approval holds, scoped branch writes, and runtime kill decisions.",
+          "evidence_paths": [
+            "data/policy/mcp-gateway-policy.json"
+          ],
+          "id": "mcp-gateway-policy",
+          "mcp_tools": [
+            "recipes_mcp_gateway_policy"
+          ],
+          "status": "implemented",
+          "title": "MCP Gateway Policy"
+        },
+        {
+          "commercial_value": "Composes identity, context, scope, behavior, egress, telemetry, containment, freshness, and receipt evidence into one signed trust verdict buyers can understand.",
+          "evidence_paths": [
+            "data/assurance/agent-trust-fabric-profile.json",
+            "content/security-remediation/agent-trust-fabric/_index.md"
+          ],
+          "id": "agent-trust-fabric",
+          "mcp_tools": [
+            "recipes_agent_trust_fabric_pack"
+          ],
+          "status": "implemented",
+          "title": "Agent Trust Fabric"
+        },
+        {
+          "commercial_value": "Makes privileged human approvals scope-bound, time-boxed, separation-of-duties aware, replayable, and inspectable by buyers.",
+          "evidence_paths": [
+            "data/evidence/agentic-approval-receipt-pack.json"
+          ],
+          "id": "agentic-approval-receipt-pack",
+          "mcp_tools": [
+            "recipes_agentic_approval_receipt_pack"
+          ],
+          "status": "implemented",
+          "title": "Agentic Approval Receipt Pack"
+        }
+      ],
+      "diligence_question": "Can a buyer prove the reasoning model cannot expand permissions, and that high-impact work has a signed mandate plus a deterministic allow, hold, deny, or kill decision?",
+      "evidence_expectation": "Action-runtime, gateway, trust-fabric, and approval-receipt evidence show mandate or approval records, policy hashes, runtime decisions, and a separated policy path that does not let the model grant access.",
+      "evidence_paths": [
+        "content/security-remediation/agent-trust-fabric/_index.md",
+        "data/assurance/agent-trust-fabric-profile.json",
+        "data/evidence/agentic-action-runtime-pack.json",
+        "data/evidence/agentic-approval-receipt-pack.json",
+        "data/policy/mcp-gateway-policy.json"
+      ],
+      "id": "NIST-AGENT-07",
+      "mcp_tools": [
+        "recipes_agent_trust_fabric_pack",
+        "recipes_agentic_action_runtime_pack",
+        "recipes_agentic_approval_receipt_pack",
+        "recipes_mcp_gateway_policy"
+      ],
+      "objective": "Require cryptographically signed mandate statements for high-impact tasks, keep policy enforcement architecturally separate from the reasoning model, and make access decisions deterministic rather than model-granted.",
+      "required_capability_ids": [
+        "agentic-action-runtime-pack",
+        "mcp-gateway-policy",
+        "agent-trust-fabric",
+        "agentic-approval-receipt-pack"
+      ],
+      "source_ids": [
+        "nist-ai-agent-standards-initiative-2026",
+        "nist-caisi-ai-agent-security-rfi-2026",
+        "nist-ai-rmf-2026",
+        "nist-ai-600-1",
+        "nist-agentic-identity-foundation-2026",
+        "nist-agentic-identity-design-tenets-2026"
+      ],
+      "sources": [
+        {
+          "id": "nist-ai-agent-standards-initiative-2026",
+          "name": "SI Agent Standards Initiative",
+          "published": "2026-02-17",
+          "publisher": "NIST",
+          "source_class": "government_framework",
+          "url": "https://www.nist.gov/super-intelligence/si-agent-standards-initiative"
+        },
+        {
+          "id": "nist-caisi-ai-agent-security-rfi-2026",
+          "name": "CAISI Request for Information on Securing AI Agent Systems",
+          "published": "2026-01-12",
+          "publisher": "NIST CAISI",
+          "source_class": "government_framework",
+          "url": "https://www.nist.gov/news-events/news/2026/01/caisi-issues-request-information-about-securing-ai-agent-systems"
+        },
+        {
+          "id": "nist-ai-rmf-2026",
+          "name": "NIST AI Risk Management Framework",
+          "published": "2026-04-07",
+          "publisher": "NIST",
+          "source_class": "government_framework",
+          "url": "https://www.nist.gov/itl/ai-risk-management-framework"
+        },
+        {
+          "id": "nist-ai-600-1",
+          "name": "Artificial Intelligence Risk Management Framework: Generative Artificial Intelligence Profile",
+          "published": "2024-07-26",
+          "publisher": "NIST",
+          "source_class": "government_framework",
+          "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence"
+        },
+        {
+          "id": "nist-agentic-identity-foundation-2026",
+          "name": "Back to the Future: Why Agentic AI Needs a Strong Identity Foundation",
+          "published": "2026-08-27",
+          "publisher": "NIST",
+          "source_class": "government_security_signal",
+          "url": "https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation"
+        },
+        {
+          "id": "nist-agentic-identity-design-tenets-2026",
+          "name": "Design Tenets for Agent Identity Management Systems",
+          "published": "2026-10-27",
+          "publisher": "NIST",
+          "source_class": "government_security_signal",
+          "url": "https://www.nist.gov/blogs/cybersecurity-insights/design-tenets-agent-identity-management-systems"
+        }
+      ],
+      "standard_id": "nist-agentic-ai-risk-management",
+      "standard_title": "NIST AI Agent, AI RMF, CAISI, and GenAI Risk Guidance",
+      "status": "ready",
+      "title": "Signed Mandates and Deterministic Policy Separation"
+    },
+    {
+      "capabilities": [
+        {
+          "commercial_value": "Creates portable run proof for identity, context, tools, egress, approvals, verifiers, evidence, and revocation.",
+          "evidence_paths": [
+            "data/evidence/agentic-run-receipt-pack.json"
+          ],
+          "id": "agentic-run-receipt-pack",
+          "mcp_tools": [
+            "recipes_agentic_run_receipt_pack"
+          ],
+          "status": "implemented",
+          "title": "Agentic Run Receipt Pack"
+        },
+        {
+          "commercial_value": "Defines OpenTelemetry-shaped trace evidence for agent, model, MCP, context, policy, egress, approval, verifier, incident, and redaction events.",
+          "evidence_paths": [
+            "data/evidence/agentic-telemetry-contract.json"
+          ],
+          "id": "agentic-telemetry-contract",
+          "mcp_tools": [
+            "recipes_agentic_telemetry_contract"
+          ],
+          "status": "implemented",
+          "title": "Agentic Telemetry Contract"
+        },
+        {
+          "commercial_value": "Makes privileged human approvals scope-bound, time-boxed, separation-of-duties aware, replayable, and inspectable by buyers.",
+          "evidence_paths": [
+            "data/evidence/agentic-approval-receipt-pack.json"
+          ],
+          "id": "agentic-approval-receipt-pack",
+          "mcp_tools": [
+            "recipes_agentic_approval_receipt_pack"
+          ],
+          "status": "implemented",
+          "title": "Agentic Approval Receipt Pack"
+        },
+        {
+          "commercial_value": "Adds board-grade severe-risk assurance for high-impact agent actions, runtime kill signals, approval receipts, and risk acceptance.",
+          "evidence_paths": [
+            "data/assurance/agentic-catastrophic-risk-annex.json",
+            "data/evidence/agentic-catastrophic-risk-annex.json"
+          ],
+          "id": "agentic-catastrophic-risk-annex",
+          "mcp_tools": [
+            "recipes_agentic_catastrophic_risk_annex"
+          ],
+          "status": "implemented",
+          "title": "Agentic Catastrophic Risk Annex"
+        }
+      ],
+      "diligence_question": "What prevents an agent from writing or modifying its own evidence, and how are high-impact HITL triggers bounded so reviewers do not rubber-stamp?",
+      "evidence_expectation": "Run receipts, telemetry, approval receipts, and the catastrophic-risk annex show independent evidence paths, append-only receipts, approval bounds, risk thresholds, and hold or kill decisions when evidence is agent-writable or HITL is missing.",
+      "evidence_paths": [
+        "data/assurance/agentic-catastrophic-risk-annex.json",
+        "data/evidence/agentic-approval-receipt-pack.json",
+        "data/evidence/agentic-catastrophic-risk-annex.json",
+        "data/evidence/agentic-run-receipt-pack.json",
+        "data/evidence/agentic-telemetry-contract.json"
+      ],
+      "id": "NIST-AGENT-08",
+      "mcp_tools": [
+        "recipes_agentic_approval_receipt_pack",
+        "recipes_agentic_catastrophic_risk_annex",
+        "recipes_agentic_run_receipt_pack",
+        "recipes_agentic_telemetry_contract"
+      ],
+      "objective": "Keep identity, delegated intent, and action evidence on an agent-independent append-only chain, and trigger human review at defined risk thresholds without consent-fatigue defaults.",
+      "required_capability_ids": [
+        "agentic-run-receipt-pack",
+        "agentic-telemetry-contract",
+        "agentic-approval-receipt-pack",
+        "agentic-catastrophic-risk-annex"
+      ],
+      "source_ids": [
+        "nist-ai-agent-standards-initiative-2026",
+        "nist-caisi-ai-agent-security-rfi-2026",
+        "nist-ai-rmf-2026",
+        "nist-ai-600-1",
+        "nist-agentic-identity-foundation-2026",
+        "nist-agentic-identity-design-tenets-2026"
+      ],
+      "sources": [
+        {
+          "id": "nist-ai-agent-standards-initiative-2026",
+          "name": "SI Agent Standards Initiative",
+          "published": "2026-02-17",
+          "publisher": "NIST",
+          "source_class": "government_framework",
+          "url": "https://www.nist.gov/super-intelligence/si-agent-standards-initiative"
+        },
+        {
+          "id": "nist-caisi-ai-agent-security-rfi-2026",
+          "name": "CAISI Request for Information on Securing AI Agent Systems",
+          "published": "2026-01-12",
+          "publisher": "NIST CAISI",
+          "source_class": "government_framework",
+          "url": "https://www.nist.gov/news-events/news/2026/01/caisi-issues-request-information-about-securing-ai-agent-systems"
+        },
+        {
+          "id": "nist-ai-rmf-2026",
+          "name": "NIST AI Risk Management Framework",
+          "published": "2026-04-07",
+          "publisher": "NIST",
+          "source_class": "government_framework",
+          "url": "https://www.nist.gov/itl/ai-risk-management-framework"
+        },
+        {
+          "id": "nist-ai-600-1",
+          "name": "Artificial Intelligence Risk Management Framework: Generative Artificial Intelligence Profile",
+          "published": "2024-07-26",
+          "publisher": "NIST",
+          "source_class": "government_framework",
+          "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence"
+        },
+        {
+          "id": "nist-agentic-identity-foundation-2026",
+          "name": "Back to the Future: Why Agentic AI Needs a Strong Identity Foundation",
+          "published": "2026-08-27",
+          "publisher": "NIST",
+          "source_class": "government_security_signal",
+          "url": "https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation"
+        },
+        {
+          "id": "nist-agentic-identity-design-tenets-2026",
+          "name": "Design Tenets for Agent Identity Management Systems",
+          "published": "2026-10-27",
+          "publisher": "NIST",
+          "source_class": "government_security_signal",
+          "url": "https://www.nist.gov/blogs/cybersecurity-insights/design-tenets-agent-identity-management-systems"
+        }
+      ],
+      "standard_id": "nist-agentic-ai-risk-management",
+      "standard_title": "NIST AI Agent, AI RMF, CAISI, and GenAI Risk Guidance",
+      "status": "ready",
+      "title": "Independent Append-Only Evidence and Risk-Threshold HITL"
     },
     {
       "capabilities": [
@@ -5462,11 +6161,11 @@
       "sources": [
         {
           "id": "csa-ai-controls-matrix-2025",
-          "name": "AI Controls Matrix",
-          "published": "2025-10-30",
+          "name": "AI Controls Matrix v1.1",
+          "published": "2026-06-22",
           "publisher": "Cloud Security Alliance",
           "source_class": "industry_standard",
-          "url": "https://cloudsecurityalliance.org/artifacts/ai-controls-matrix"
+          "url": "https://cloudsecurityalliance.org/artifacts/ai-controls-matrix-v1-1"
         },
         {
           "id": "nist-ai-600-1",
@@ -5571,11 +6270,11 @@
       "sources": [
         {
           "id": "csa-ai-controls-matrix-2025",
-          "name": "AI Controls Matrix",
-          "published": "2025-10-30",
+          "name": "AI Controls Matrix v1.1",
+          "published": "2026-06-22",
           "publisher": "Cloud Security Alliance",
           "source_class": "industry_standard",
-          "url": "https://cloudsecurityalliance.org/artifacts/ai-controls-matrix"
+          "url": "https://cloudsecurityalliance.org/artifacts/ai-controls-matrix-v1-1"
         },
         {
           "id": "nist-ai-600-1",
@@ -5680,11 +6379,11 @@
       "sources": [
         {
           "id": "csa-ai-controls-matrix-2025",
-          "name": "AI Controls Matrix",
-          "published": "2025-10-30",
+          "name": "AI Controls Matrix v1.1",
+          "published": "2026-06-22",
           "publisher": "Cloud Security Alliance",
           "source_class": "industry_standard",
-          "url": "https://cloudsecurityalliance.org/artifacts/ai-controls-matrix"
+          "url": "https://cloudsecurityalliance.org/artifacts/ai-controls-matrix-v1-1"
         },
         {
           "id": "nist-ai-600-1",
@@ -5789,11 +6488,11 @@
       "sources": [
         {
           "id": "csa-ai-controls-matrix-2025",
-          "name": "AI Controls Matrix",
-          "published": "2025-10-30",
+          "name": "AI Controls Matrix v1.1",
+          "published": "2026-06-22",
           "publisher": "Cloud Security Alliance",
           "source_class": "industry_standard",
-          "url": "https://cloudsecurityalliance.org/artifacts/ai-controls-matrix"
+          "url": "https://cloudsecurityalliance.org/artifacts/ai-controls-matrix-v1-1"
         },
         {
           "id": "nist-ai-600-1",
@@ -5898,11 +6597,11 @@
       "sources": [
         {
           "id": "csa-ai-controls-matrix-2025",
-          "name": "AI Controls Matrix",
-          "published": "2025-10-30",
+          "name": "AI Controls Matrix v1.1",
+          "published": "2026-06-22",
           "publisher": "Cloud Security Alliance",
           "source_class": "industry_standard",
-          "url": "https://cloudsecurityalliance.org/artifacts/ai-controls-matrix"
+          "url": "https://cloudsecurityalliance.org/artifacts/ai-controls-matrix-v1-1"
         },
         {
           "id": "nist-ai-600-1",
@@ -6009,11 +6708,11 @@
       "sources": [
         {
           "id": "csa-ai-controls-matrix-2025",
-          "name": "AI Controls Matrix",
-          "published": "2025-10-30",
+          "name": "AI Controls Matrix v1.1",
+          "published": "2026-06-22",
           "publisher": "Cloud Security Alliance",
           "source_class": "industry_standard",
-          "url": "https://cloudsecurityalliance.org/artifacts/ai-controls-matrix"
+          "url": "https://cloudsecurityalliance.org/artifacts/ai-controls-matrix-v1-1"
         },
         {
           "id": "nist-ai-600-1",
@@ -6459,19 +7158,19 @@
         },
         {
           "id": "csa-ai-controls-matrix-2025",
-          "name": "AI Controls Matrix",
-          "published": "2025-10-30",
+          "name": "AI Controls Matrix v1.1",
+          "published": "2026-06-22",
           "publisher": "Cloud Security Alliance",
           "source_class": "industry_standard",
-          "url": "https://cloudsecurityalliance.org/artifacts/ai-controls-matrix"
+          "url": "https://cloudsecurityalliance.org/artifacts/ai-controls-matrix-v1-1"
         },
         {
           "id": "nist-ai-agent-standards-initiative-2026",
-          "name": "AI Agent Standards Initiative",
+          "name": "SI Agent Standards Initiative",
           "published": "2026-02-17",
           "publisher": "NIST",
           "source_class": "government_framework",
-          "url": "https://www.nist.gov/artificial-intelligence/ai-agent-standards-initiative"
+          "url": "https://www.nist.gov/super-intelligence/si-agent-standards-initiative"
         },
         {
           "id": "mcp-authorization-2025-11-25",
@@ -6588,19 +7287,19 @@
         },
         {
           "id": "csa-ai-controls-matrix-2025",
-          "name": "AI Controls Matrix",
-          "published": "2025-10-30",
+          "name": "AI Controls Matrix v1.1",
+          "published": "2026-06-22",
           "publisher": "Cloud Security Alliance",
           "source_class": "industry_standard",
-          "url": "https://cloudsecurityalliance.org/artifacts/ai-controls-matrix"
+          "url": "https://cloudsecurityalliance.org/artifacts/ai-controls-matrix-v1-1"
         },
         {
           "id": "nist-ai-agent-standards-initiative-2026",
-          "name": "AI Agent Standards Initiative",
+          "name": "SI Agent Standards Initiative",
           "published": "2026-02-17",
           "publisher": "NIST",
           "source_class": "government_framework",
-          "url": "https://www.nist.gov/artificial-intelligence/ai-agent-standards-initiative"
+          "url": "https://www.nist.gov/super-intelligence/si-agent-standards-initiative"
         },
         {
           "id": "mcp-authorization-2025-11-25",
@@ -6717,19 +7416,19 @@
         },
         {
           "id": "csa-ai-controls-matrix-2025",
-          "name": "AI Controls Matrix",
-          "published": "2025-10-30",
+          "name": "AI Controls Matrix v1.1",
+          "published": "2026-06-22",
           "publisher": "Cloud Security Alliance",
           "source_class": "industry_standard",
-          "url": "https://cloudsecurityalliance.org/artifacts/ai-controls-matrix"
+          "url": "https://cloudsecurityalliance.org/artifacts/ai-controls-matrix-v1-1"
         },
         {
           "id": "nist-ai-agent-standards-initiative-2026",
-          "name": "AI Agent Standards Initiative",
+          "name": "SI Agent Standards Initiative",
           "published": "2026-02-17",
           "publisher": "NIST",
           "source_class": "government_framework",
-          "url": "https://www.nist.gov/artificial-intelligence/ai-agent-standards-initiative"
+          "url": "https://www.nist.gov/super-intelligence/si-agent-standards-initiative"
         },
         {
           "id": "mcp-authorization-2025-11-25",
@@ -6846,19 +7545,19 @@
         },
         {
           "id": "csa-ai-controls-matrix-2025",
-          "name": "AI Controls Matrix",
-          "published": "2025-10-30",
+          "name": "AI Controls Matrix v1.1",
+          "published": "2026-06-22",
           "publisher": "Cloud Security Alliance",
           "source_class": "industry_standard",
-          "url": "https://cloudsecurityalliance.org/artifacts/ai-controls-matrix"
+          "url": "https://cloudsecurityalliance.org/artifacts/ai-controls-matrix-v1-1"
         },
         {
           "id": "nist-ai-agent-standards-initiative-2026",
-          "name": "AI Agent Standards Initiative",
+          "name": "SI Agent Standards Initiative",
           "published": "2026-02-17",
           "publisher": "NIST",
           "source_class": "government_framework",
-          "url": "https://www.nist.gov/artificial-intelligence/ai-agent-standards-initiative"
+          "url": "https://www.nist.gov/super-intelligence/si-agent-standards-initiative"
         },
         {
           "id": "mcp-authorization-2025-11-25",
@@ -6975,19 +7674,19 @@
         },
         {
           "id": "csa-ai-controls-matrix-2025",
-          "name": "AI Controls Matrix",
-          "published": "2025-10-30",
+          "name": "AI Controls Matrix v1.1",
+          "published": "2026-06-22",
           "publisher": "Cloud Security Alliance",
           "source_class": "industry_standard",
-          "url": "https://cloudsecurityalliance.org/artifacts/ai-controls-matrix"
+          "url": "https://cloudsecurityalliance.org/artifacts/ai-controls-matrix-v1-1"
         },
         {
           "id": "nist-ai-agent-standards-initiative-2026",
-          "name": "AI Agent Standards Initiative",
+          "name": "SI Agent Standards Initiative",
           "published": "2026-02-17",
           "publisher": "NIST",
           "source_class": "government_framework",
-          "url": "https://www.nist.gov/artificial-intelligence/ai-agent-standards-initiative"
+          "url": "https://www.nist.gov/super-intelligence/si-agent-standards-initiative"
         },
         {
           "id": "mcp-authorization-2025-11-25",
@@ -7102,11 +7801,11 @@
         },
         {
           "id": "nist-ai-agent-standards-initiative-2026",
-          "name": "AI Agent Standards Initiative",
+          "name": "SI Agent Standards Initiative",
           "published": "2026-02-17",
           "publisher": "NIST",
           "source_class": "government_framework",
-          "url": "https://www.nist.gov/artificial-intelligence/ai-agent-standards-initiative"
+          "url": "https://www.nist.gov/super-intelligence/si-agent-standards-initiative"
         },
         {
           "id": "owasp-agentic-top-10-2026",
@@ -7213,11 +7912,11 @@
         },
         {
           "id": "nist-ai-agent-standards-initiative-2026",
-          "name": "AI Agent Standards Initiative",
+          "name": "SI Agent Standards Initiative",
           "published": "2026-02-17",
           "publisher": "NIST",
           "source_class": "government_framework",
-          "url": "https://www.nist.gov/artificial-intelligence/ai-agent-standards-initiative"
+          "url": "https://www.nist.gov/super-intelligence/si-agent-standards-initiative"
         },
         {
           "id": "owasp-agentic-top-10-2026",
@@ -7324,11 +8023,11 @@
         },
         {
           "id": "nist-ai-agent-standards-initiative-2026",
-          "name": "AI Agent Standards Initiative",
+          "name": "SI Agent Standards Initiative",
           "published": "2026-02-17",
           "publisher": "NIST",
           "source_class": "government_framework",
-          "url": "https://www.nist.gov/artificial-intelligence/ai-agent-standards-initiative"
+          "url": "https://www.nist.gov/super-intelligence/si-agent-standards-initiative"
         },
         {
           "id": "owasp-agentic-top-10-2026",
@@ -7347,24 +8046,24 @@
   ],
   "crosswalk_summary": {
     "capability_count": 34,
-    "control_count": 45,
+    "control_count": 48,
     "control_status_counts": {
-      "ready": 45
+      "ready": 48
     },
     "covered_capability_count": 34,
     "distinct_mcp_tool_count": 34,
     "failure_count": 0,
     "source_class_counts": {
       "frontier_lab_guidance": 4,
-      "government_framework": 5,
-      "government_security_signal": 1,
+      "government_framework": 6,
+      "government_security_signal": 2,
       "incident_intelligence": 1,
-      "industry_framework": 1,
-      "industry_standard": 5,
+      "industry_framework": 2,
+      "industry_standard": 6,
       "protocol_guidance": 2,
-      "protocol_specification": 2
+      "protocol_specification": 3
     },
-    "source_reference_count": 21,
+    "source_reference_count": 26,
     "standard_count": 8,
     "standard_status_counts": {
       "ready": 8
@@ -7384,7 +8083,7 @@
     "sales_motion": "Lead with open standards coverage, then sell hosted customer-specific evidence mapping, standards drift alerts, conformance APIs, and trust-center exports."
   },
   "failures": [],
-  "generated_at": "2026-09-28",
+  "generated_at": "2026-11-12",
   "intent": "Create an enterprise buyer and AI-platform standards crosswalk for SecurityRecipes so OWASP Agentic Top 10, CSA AI Controls Matrix, NIST AI agent guidance, MCP authorization requirements, critical-infrastructure AI expectations, and frontier-lab prompt-injection defenses map directly to generated evidence packs, MCP tools, and runtime decision surfaces.",
   "positioning": {
     "buyer": "AI Platform, Product Security, AppSec, GRC, procurement security, model-risk, and acquisition diligence teams",
@@ -7396,20 +8095,20 @@
   "source_artifacts": {
     "agentic_standards_crosswalk_profile": {
       "path": "data/assurance/agentic-standards-crosswalk.json",
-      "sha256": "81c14fffbb117b4e4b78e5e8837092e8b64d8164c2d45e8e3d691da43750dbf5"
+      "sha256": "358ca9f1189ebb7d108afc3da58125529670bdbf16c1b9b4fb0cf769d2b34df3"
     },
     "capability_evidence": [
       {
         "path": "content/security-remediation/agent-trust-fabric/_index.md",
-        "sha256": "1c24ac87505bbf1126a2cbdc4bebacdf1bc009d8bd7473f28e418ed3dc4303a0"
+        "sha256": "09f3b6b119f2b1bfe73bbb8a1cbcc2dcb990b08dde6a8e81d90a6fb128436407"
       },
       {
         "path": "content/security-remediation/agentic-standards-crosswalk/_index.md",
-        "sha256": "cdd0d9d93992efb283e6c89552d1245ddd4e5fa02e5085d8f3833bc3e8ff7621"
+        "sha256": "c404d2de83219496983acc5d1661aa43c758182cc5ad6c67c0a89412350701ac"
       },
       {
         "path": "data/assurance/agent-trust-fabric-profile.json",
-        "sha256": "8ce5d9764b7a56e4340ad443f85a7a351a3b68aeabb3725acc92732ebac3a1bd"
+        "sha256": "f2ab998f8da24106f29d62d913e4ae6ef715cb41566265776224151f77dd43f1"
       },
       {
         "path": "data/assurance/agentic-catastrophic-risk-annex.json",
@@ -7421,7 +8120,7 @@
       },
       {
         "path": "data/assurance/agentic-standards-crosswalk.json",
-        "sha256": "81c14fffbb117b4e4b78e5e8837092e8b64d8164c2d45e8e3d691da43750dbf5"
+        "sha256": "358ca9f1189ebb7d108afc3da58125529670bdbf16c1b9b4fb0cf769d2b34df3"
       },
       {
         "path": "data/assurance/enterprise-trust-center-profile.json",
@@ -7429,127 +8128,127 @@
       },
       {
         "path": "data/control-plane/workflow-manifests.json",
-        "sha256": "22f45f06fee190b602ac27f300c94d72ab38646f76a1ad2e4f80923a3a444ceb"
+        "sha256": "1845eb54f369a8f454cbc22111bb1c679ac58803f23d8d7d2d15e0f8fb687b9c"
       },
       {
         "path": "data/evidence/agent-capability-risk-register.json",
-        "sha256": "0ed40a9c3aeeb7fc5e575228a8ebc208303ce1c25d3429199ad6409e6dd83e96"
+        "sha256": "9f35de39efa0c098d4c172d1e7b155d25060549592e0fd1f5e450b240e476fe2"
       },
       {
         "path": "data/evidence/agent-handoff-boundary-pack.json",
-        "sha256": "b2d8422dc915ddf00c89fedfdf9e1a9b3922527e95ae76768e6777094a5331b6"
+        "sha256": "97c0e3e19b6292fc47f90c7a6104fcddcda770ecac718abf5ee5bf0e77377fa5"
       },
       {
         "path": "data/evidence/agent-identity-delegation-ledger.json",
-        "sha256": "0c3a709efd035f987ad8e51cf2f38322c09e635c49284701b8d27a02524b8bef"
+        "sha256": "0f6e34c1b97c7fbdf24df201fce2b9d5d13058404dbb23f5c4e98d161c0467a0"
       },
       {
         "path": "data/evidence/agent-memory-boundary-pack.json",
-        "sha256": "4091492bb37db1c3e68a1c97df73dba971774c0cc1714793111fc54a4745acd0"
+        "sha256": "7580e881a83dafff116b6329ff89add2c9ccab83aac8640816e24e6f06e73520"
       },
       {
         "path": "data/evidence/agent-skill-supply-chain-pack.json",
-        "sha256": "1bd6fee2537a2a7e683ee9c432cf28de799204cd286c02a526820e3a3a2f4ca5"
+        "sha256": "283e5e5300fe7b663d31cc003ecba2bad559b4a5454ea25c864cb9ce63451460"
       },
       {
         "path": "data/evidence/agentic-action-runtime-pack.json",
-        "sha256": "a718eb9508cc442108f797dcc2f2d60897ce36f339d1d3ad95ff8014f4fc3f54"
+        "sha256": "e7ec9f79078919167f308de5d924695a35fbb626b7f661528d41edd7299b9849"
       },
       {
         "path": "data/evidence/agentic-approval-receipt-pack.json",
-        "sha256": "600dff444a7ddba6418d6a0b9eddbc86773cd4b574162e25bd91e355d6e1b20a"
+        "sha256": "f171f01109b03d9b7e6638a41560b264dcec2025a45ada54915de44f857a673e"
       },
       {
         "path": "data/evidence/agentic-assurance-pack.json",
-        "sha256": "801aac5696a142583904551ddd1923aa42be79f5186917be3a4ea33f90751400"
+        "sha256": "3fd86dc4cb1b3d560f68a9595eb684d0339ba1ee704afaa33d2b7928e48eafe2"
       },
       {
         "path": "data/evidence/agentic-catastrophic-risk-annex.json",
-        "sha256": "fb601a75598687a1a3681247e452ee1e95963d889f509e5c5b934e7d653ee69d"
+        "sha256": "3cd8a9c39a8b0490b9c80419b0cd2a64173440aaeec0c626280865bacf8a2e00"
       },
       {
         "path": "data/evidence/agentic-entitlement-review-pack.json",
-        "sha256": "3a9b4f371b4aa6f6bd5da962262ef0f901e187b508cc3ecca700f84ea4d932db"
+        "sha256": "996c80d78120c3e78e7409d0a65517d4084cf7b827e91b48950b7e9dc5cf0565"
       },
       {
         "path": "data/evidence/agentic-incident-response-pack.json",
-        "sha256": "a2aa41b8686925ad697313cec1262304597885a407fec7c5d9687754451fa854"
+        "sha256": "767ab8c0785f21b773a13dae25920b7f0d7572475cf881f7218eb44e360863fb"
       },
       {
         "path": "data/evidence/agentic-measurement-probe-pack.json",
-        "sha256": "4efafc2b48f1b6af46d891e9db23847be73be37587527d54fe7a6fadc676f420"
+        "sha256": "936f10cfa77b9a2def5e6d0a9fe48d308badc0d2a72a51be3562752d3241382a"
       },
       {
         "path": "data/evidence/agentic-readiness-scorecard.json",
-        "sha256": "142ca02bc943f49df711de9ed7ef93724d97853217e986038de1a48b57c612e7"
+        "sha256": "a0c020c253428713dbf0f2596b916d0ba59084c2953dfb80d967d36633d86002"
       },
       {
         "path": "data/evidence/agentic-red-team-drill-pack.json",
-        "sha256": "cf408db0be79c7974ce849d1f4d00d6faf3d8a1b86eaaf10ccbb4d5651360f11"
+        "sha256": "f42c1503b3668835c1859a2f9dade865f3a8db61a7cc2911ee7cae3571fdbfed"
       },
       {
         "path": "data/evidence/agentic-run-receipt-pack.json",
-        "sha256": "dff384428dc2c080d1ff89aa1e496549df8ba61113fe399990842d6ecbb05566"
+        "sha256": "ec85d4311d4da223ad7a46aca21b87f130450ecbda0d5f20cb1afbfdaf8661c0"
       },
       {
         "path": "data/evidence/agentic-soc-detection-pack.json",
-        "sha256": "206395932c410201b9e286290656732b4cffb165a1d017dd195cd760a1f1d22b"
+        "sha256": "001e49ca4079f45d6ac5396f5f1ecd2c56feb02c0e5d785c3beb9ab6115dcffa"
       },
       {
         "path": "data/evidence/agentic-system-bom.json",
-        "sha256": "44fb51c8f1f8b12b806038f4e6981b7d362c3b7448e04c2af3f27d1115253dac"
+        "sha256": "f0373a623099c474ab1314c95193052b9c131c62927eb06630e55045def2f9b0"
       },
       {
         "path": "data/evidence/agentic-telemetry-contract.json",
-        "sha256": "efe7e02016e47380bb07ecb0fecabc6512fd6b4b6245d0c401ff57eadddd40d0"
+        "sha256": "e9f2a0f108f1518b619a1314235666d7296725856b87b4a74a4c294dc5c34ce5"
       },
       {
         "path": "data/evidence/agentic-threat-radar.json",
-        "sha256": "54d140d42bc903d24a515e3fc235db857e6dcef0b5ba6a89b4d80c44a4e52ad4"
+        "sha256": "729d77205528ebb6959c4f08a5f76cedc7204cf4460681815da339aaadbe8cfe"
       },
       {
         "path": "data/evidence/context-egress-boundary-pack.json",
-        "sha256": "0a4e7e1b865b988ce8c43d85e2e1dbe1442e5cd97fae207324d45ef666771fe6"
+        "sha256": "c44706af7749e66a9e265a7f0908e7867311c238d9e95d6e5c13303b0ffcaf14"
       },
       {
         "path": "data/evidence/context-poisoning-guard-pack.json",
-        "sha256": "1d7c065455d7414264e6423aa0a70e3c2b511aed107d52599fa3e6d96a984ccd"
+        "sha256": "5c3be30d3623bda74381a445108b4f1bf69b8c8b2ed0d51816622fc286c9b86e"
       },
       {
         "path": "data/evidence/mcp-authorization-conformance-pack.json",
-        "sha256": "12ae87b5bf23c4d0c5eb2b4703a23e1afc01787fc1d52869075072bbe69e29a6"
+        "sha256": "13004a093acf35460ad1f3ce029d8fc79033bf37da2c768f5223e4978ac23505"
       },
       {
         "path": "data/evidence/mcp-connector-intake-pack.json",
-        "sha256": "d75f6df3aabd2e4ddf5a6b9437c4e5bd39d250a40f49825d530643124dbfc212"
+        "sha256": "27b4e7843d68360c874e008967338102c96ddf1be54707d39c78069bd3cf00e1"
       },
       {
         "path": "data/evidence/mcp-connector-trust-pack.json",
-        "sha256": "77e4c63f3c9b2a7ac9088bede503e5d34a8a5056a2968d144bc8a8b816006427"
+        "sha256": "5c2388fbd8507bf0e06d967c7456a5b8944db17d92c221a171abf34906bb57d7"
       },
       {
         "path": "data/evidence/mcp-stdio-launch-boundary-pack.json",
-        "sha256": "6e194b0c3778bf007f496d76d912f08f0c53c6e2bbb1dac7f4f070489ad71715"
+        "sha256": "090997d48d2d05ff57a5d48103fd6fb19a50e1081376ae59525946950fa36084"
       },
       {
         "path": "data/evidence/secure-context-attestation-pack.json",
-        "sha256": "276d03feac47d4ec8021f793a31f40fd090b127f8f2c6e3cfb60533057139f9c"
+        "sha256": "ee2feb9e504d0bd7d614d332a70f5f80129496d041b59fa36d7dd70a0af9d2ea"
       },
       {
         "path": "data/evidence/secure-context-eval-pack.json",
-        "sha256": "747b1e1d225efa776e79949d283707a3f2f9ac3c0ba4bba598884ed0651a250b"
+        "sha256": "21b275d0b675d1a003377787803c398012d0bee4e5ab0cc5ddab94c5df689f7a"
       },
       {
         "path": "data/evidence/secure-context-trust-pack.json",
-        "sha256": "7a5c7ec50392d5053e65d61eee8dc52d223a8e9ab241091c3ba25cb6f1261cbb"
+        "sha256": "38384aa2308ad1981acd832b29fcb1becc13d3386330e377d452118444e78965"
       },
       {
         "path": "data/intelligence/agentic-threat-radar-sources.json",
-        "sha256": "0047c90b78bda656dc46afaa590f44c77503158558e977478fd220a7747cf4bf"
+        "sha256": "688ff2394b9065a206ea7b65758ab48257cdbca56a6a3a09ea139f099db6f466"
       },
       {
         "path": "data/policy/mcp-gateway-policy.json",
-        "sha256": "bb1dbf00ec5bee173a19dff65266f13d84501b94aca3239019a03d6e09546de2"
+        "sha256": "8f1de770582304d0b86f5b3c5cc12e9c467e7f5147ae60e6f9fdf2468e286169"
       }
     ]
   },
@@ -7564,6 +8263,24 @@
       "why_it_matters": "Peer-reviewed agentic guidance now gives buyers a shared language for autonomous agent risks such as goal hijack, tool misuse, identity abuse, memory poisoning, inter-agent communication, cascading failures, and rogue behavior."
     },
     {
+      "id": "owasp-llm-top-10-2026",
+      "name": "OWASP Top 10 for LLM Applications 2026",
+      "published": "2026-08-03",
+      "publisher": "OWASP GenAI Security Project",
+      "source_class": "industry_standard",
+      "url": "https://genai.owasp.org/resource/owasp-genai-llm-top-10-2026/",
+      "why_it_matters": "The 2026 edition re-ranks LLM application risks against real-world incident data and maps to NIST, MITRE ATLAS, CWE, and the OWASP Top 10 for Agentic Applications."
+    },
+    {
+      "id": "owasp-genai-framework-crosswalk-2026",
+      "name": "GenAI Security Industry Framework Crosswalk",
+      "published": "2026-09-01",
+      "publisher": "OWASP GenAI Security Project",
+      "source_class": "industry_framework",
+      "url": "https://genai.owasp.org/resource/genai-security-industry-framework-crosswalk/",
+      "why_it_matters": "OWASP's open crosswalk maps 51 GenAI vulnerabilities across four OWASP lists to controls in 25 frameworks, including NIST, ISO, MITRE ATLAS, and the EU AI Act."
+    },
+    {
       "id": "owasp-agentic-threats-2025",
       "name": "Agentic AI Threats and Mitigations",
       "published": "2025-02-17",
@@ -7573,30 +8290,30 @@
       "why_it_matters": "Threat-model-based OWASP guidance reinforces that agent autonomy, retrieved context, tool invocation, and delegation require controls beyond classic LLM application hardening."
     },
     {
-      "id": "owasp-securing-agentic-apps-2025",
-      "name": "Securing Agentic Applications Guide 1.0",
-      "published": "2025-07-27",
+      "id": "owasp-securing-agentic-apps-v2-2026",
+      "name": "Securing Agentic Applications V2: A Builder & Defender's Guide",
+      "published": "2026-11-10",
       "publisher": "OWASP GenAI Security Project",
       "source_class": "industry_standard",
-      "url": "https://genai.owasp.org/resource/securing-agentic-applications-guide-1-0/",
-      "why_it_matters": "Practical design and deployment guidance supports translating agentic threats into concrete build, test, deployment, and operations controls."
+      "url": "https://genai.owasp.org/resource/securing-agentic-applications-v2/",
+      "why_it_matters": "OWASP's November 10, 2026 V2 guide covers secure agent architectures, threat mitigation, identity and access controls, runtime protection, supply-chain security, and assurance testing across single- and multi-agent systems, translating agentic threats into build, deploy, and operate controls."
     },
     {
-      "id": "owasp-genai-exploit-roundup-q1-2026",
-      "name": "OWASP GenAI Exploit Round-up Report Q1 2026",
-      "published": "2026-04-14",
+      "id": "owasp-genai-exploit-roundup-q3-2026",
+      "name": "GenAI and Agentic AI Exploit Roundup Q3 2026",
+      "published": "2026-10-08",
       "publisher": "OWASP GenAI Security Project",
       "source_class": "incident_intelligence",
-      "url": "https://genai.owasp.org/2026/04/14/owasp-genai-exploit-round-up-report-q1-2026/",
-      "why_it_matters": "Recent exploit reporting ties agent tooling, source leaks, MCP integrations, supply-chain abuse, and RCE patterns to operational mitigations."
+      "url": "https://genai.owasp.org/2026/10/08/genai-and-agentic-ai-exploit-roundup-q3-2026/",
+      "why_it_matters": "OWASP's Q3 2026 roundup (July 1 to September 30, 2026) maps incidents to the LLM Top 10 2026 and Agentic Top 10 2026: evaluation agents escaping intended boundaries, exposed credentials and excess permissions widening blast radius, and the Deadbugz malicious-MCP distribution campaign; it states it is not exhaustive or an official OWASP publication."
     },
     {
       "id": "nist-ai-agent-standards-initiative-2026",
-      "name": "AI Agent Standards Initiative",
+      "name": "SI Agent Standards Initiative",
       "published": "2026-02-17",
       "publisher": "NIST",
       "source_class": "government_framework",
-      "url": "https://www.nist.gov/artificial-intelligence/ai-agent-standards-initiative",
+      "url": "https://www.nist.gov/super-intelligence/si-agent-standards-initiative",
       "why_it_matters": "NIST is prioritizing interoperable agent standards, community-led protocols, agent authentication, identity infrastructure, and security evaluations for human-agent and multi-agent interactions."
     },
     {
@@ -7637,12 +8354,12 @@
     },
     {
       "id": "csa-ai-controls-matrix-2025",
-      "name": "AI Controls Matrix",
-      "published": "2025-10-30",
+      "name": "AI Controls Matrix v1.1",
+      "published": "2026-06-22",
       "publisher": "Cloud Security Alliance",
       "source_class": "industry_standard",
-      "url": "https://cloudsecurityalliance.org/artifacts/ai-controls-matrix",
-      "why_it_matters": "CSA's AI Controls Matrix gives enterprises a vendor-agnostic control set across AI governance, lifecycle, supply chain, data, monitoring, and shared-responsibility domains, with mappings to NIST AI 600-1, ISO 42001, ISO 27001, and BSI AIC4."
+      "url": "https://cloudsecurityalliance.org/artifacts/ai-controls-matrix-v1-1",
+      "why_it_matters": "CSA's AI Controls Matrix v1.1 gives enterprises 247 vendor-agnostic control objectives across 18 security domains, with mappings to ISO 42001, ISO 27001, BSI AIC4, the EU AI Act, AIUC-1, and NIST AI RMF and AI 600-1."
     },
     {
       "id": "csa-agentic-trust-framework-2026",
@@ -7660,7 +8377,16 @@
       "publisher": "Model Context Protocol",
       "source_class": "protocol_specification",
       "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization",
-      "why_it_matters": "Current public MCP 2026-07-28 revision. The current MCP authorization specification requires protected resource metadata, OAuth 2.1 alignment, resource indicators, token audience validation, PKCE support, and token-passthrough denial for protected MCP servers."
+      "why_it_matters": "Current public MCP 2026-07-28 revision. The current MCP authorization specification requires protected resource metadata, OAuth 2.1 alignment, resource indicators, and token audience validation, and delegates PKCE, token-theft, mix-up, confused-deputy, and token-passthrough requirements to its normative Security Considerations page."
+    },
+    {
+      "id": "mcp-authorization-security-considerations-2026-07-28",
+      "name": "Model Context Protocol Authorization Security Considerations (2026-07-28)",
+      "published": "2026-07-28",
+      "publisher": "Model Context Protocol",
+      "source_class": "protocol_specification",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization/security-considerations",
+      "why_it_matters": "Normative token audience binding (RFC 8707), token theft, communication security, authorization-code protection (PKCE), mix-up and confused-deputy, open redirection, and Client ID Metadata Document security for incident triage of MCP token misuse."
     },
     {
       "id": "mcp-authorization-2025-11-25",
@@ -7677,7 +8403,7 @@
       "published": "2026-07-28",
       "publisher": "Model Context Protocol",
       "source_class": "protocol_guidance",
-      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices",
+      "url": "https://modelcontextprotocol.io/docs/2026-07-28/tutorials/security/security_best_practices",
       "why_it_matters": "Current MCP 2026-07-28 security guidance replaces session-hijacking assumptions with state-handle binding, forbids token passthrough, requires confused-deputy consent on proxies, and tightens SSRF controls during metadata and Client ID Metadata Document fetches."
     },
     {
@@ -7686,7 +8412,7 @@
       "published": "2025-06-18",
       "publisher": "Model Context Protocol",
       "source_class": "protocol_guidance",
-      "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices",
+      "url": "https://modelcontextprotocol.io/docs/2025-06-18/tutorials/security/security_best_practices",
       "why_it_matters": "Prior MCP security-best-practices revision kept as a historical source ID. Session-hijacking guidance applies only to 2025-11-25 and earlier protocol versions; prefer the 2026-07-28 state-handle controls."
     },
     {
@@ -7697,6 +8423,15 @@
       "source_class": "government_security_signal",
       "url": "https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation",
       "why_it_matters": "NIST warns that agent rollouts are repeating IAM mistakes: shared human credentials, long-lived API keys and bearer tokens, overly broad access, local user-account impersonation, and over-reliance on human-in-the-loop approvals."
+    },
+    {
+      "id": "nist-agentic-identity-design-tenets-2026",
+      "name": "Design Tenets for Agent Identity Management Systems",
+      "published": "2026-10-27",
+      "publisher": "NIST",
+      "source_class": "government_security_signal",
+      "url": "https://www.nist.gov/blogs/cybersecurity-insights/design-tenets-agent-identity-management-systems",
+      "why_it_matters": "NIST's October 27, 2026 design tenets require cryptographically verifiable agent identities distinct from humans and service accounts, attenuated sub-agent delegation so downstream entities cannot claim more authority than the parent, zero standing privilege, short-lived audience-specific grants, signed mandate statements, architectural separation of policy from reasoning, deterministic access decisions, consent-fatigue-aware HITL thresholds, continuous monitoring, and independent append-only evidence."
     },
     {
       "id": "openai-prompt-injections-2025",
@@ -7742,6 +8477,15 @@
       "source_class": "industry_standard",
       "url": "https://cloudsecurityalliance.org/press-releases/2026/04/29/csai-foundation-announces-key-milestones-to-secure-the-agentic-control-plane",
       "why_it_matters": "CSA's 2026 catastrophic-risk work makes loss of human oversight, uncontrolled system behavior, and irreversible large-scale consequences explicit buyer and auditor concerns for agentic AI."
+    },
+    {
+      "id": "cisa-careful-adoption-agentic-ai-2026",
+      "name": "Careful Adoption of Agentic AI Services",
+      "published": "2026-05-01",
+      "publisher": "CISA, ASD's ACSC, NSA, Canadian Cyber Centre, NCSC-NZ, NCSC-UK",
+      "source_class": "government_framework",
+      "url": "https://www.cisa.gov/resources-tools/resources/careful-adoption-agentic-si-services",
+      "why_it_matters": "May 1, 2026 joint guidance: expanded attack surface, privilege creep, behavioral misalignment and obscure event records; avoid broad or unrestricted access, start with low-risk non-sensitive use cases, and account for agentic AI in the security model and risk posture."
     }
   ],
   "standards": [
@@ -7778,8 +8522,9 @@
       "source_ids": [
         "owasp-agentic-top-10-2026",
         "owasp-agentic-threats-2025",
-        "owasp-securing-agentic-apps-2025",
-        "owasp-genai-exploit-roundup-q1-2026"
+        "owasp-securing-agentic-apps-v2-2026",
+        "owasp-genai-exploit-roundup-q3-2026",
+        "owasp-llm-top-10-2026"
       ],
       "sources": [
         {
@@ -7799,20 +8544,28 @@
           "url": "https://genai.owasp.org/resource/agentic-ai-threats-and-mitigations/"
         },
         {
-          "id": "owasp-securing-agentic-apps-2025",
-          "name": "Securing Agentic Applications Guide 1.0",
-          "published": "2025-07-27",
+          "id": "owasp-securing-agentic-apps-v2-2026",
+          "name": "Securing Agentic Applications V2: A Builder & Defender's Guide",
+          "published": "2026-11-10",
           "publisher": "OWASP GenAI Security Project",
           "source_class": "industry_standard",
-          "url": "https://genai.owasp.org/resource/securing-agentic-applications-guide-1-0/"
+          "url": "https://genai.owasp.org/resource/securing-agentic-applications-v2/"
         },
         {
-          "id": "owasp-genai-exploit-roundup-q1-2026",
-          "name": "OWASP GenAI Exploit Round-up Report Q1 2026",
-          "published": "2026-04-14",
+          "id": "owasp-genai-exploit-roundup-q3-2026",
+          "name": "GenAI and Agentic AI Exploit Roundup Q3 2026",
+          "published": "2026-10-08",
           "publisher": "OWASP GenAI Security Project",
           "source_class": "incident_intelligence",
-          "url": "https://genai.owasp.org/2026/04/14/owasp-genai-exploit-round-up-report-q1-2026/"
+          "url": "https://genai.owasp.org/2026/10/08/genai-and-agentic-ai-exploit-roundup-q3-2026/"
+        },
+        {
+          "id": "owasp-llm-top-10-2026",
+          "name": "OWASP Top 10 for LLM Applications 2026",
+          "published": "2026-08-03",
+          "publisher": "OWASP GenAI Security Project",
+          "source_class": "industry_standard",
+          "url": "https://genai.owasp.org/resource/owasp-genai-llm-top-10-2026/"
         }
       ],
       "status": "ready",
@@ -7842,7 +8595,8 @@
         "mcp-authorization-2026-07-28",
         "mcp-authorization-2025-11-25",
         "mcp-security-best-practices-2026-07-28",
-        "mcp-security-best-practices-2025"
+        "mcp-security-best-practices-2025",
+        "mcp-authorization-security-considerations-2026-07-28"
       ],
       "sources": [
         {
@@ -7867,7 +8621,7 @@
           "published": "2026-07-28",
           "publisher": "Model Context Protocol",
           "source_class": "protocol_guidance",
-          "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices"
+          "url": "https://modelcontextprotocol.io/docs/2026-07-28/tutorials/security/security_best_practices"
         },
         {
           "id": "mcp-security-best-practices-2025",
@@ -7875,7 +8629,15 @@
           "published": "2025-06-18",
           "publisher": "Model Context Protocol",
           "source_class": "protocol_guidance",
-          "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices"
+          "url": "https://modelcontextprotocol.io/docs/2025-06-18/tutorials/security/security_best_practices"
+        },
+        {
+          "id": "mcp-authorization-security-considerations-2026-07-28",
+          "name": "Model Context Protocol Authorization Security Considerations (2026-07-28)",
+          "published": "2026-07-28",
+          "publisher": "Model Context Protocol",
+          "source_class": "protocol_specification",
+          "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization/security-considerations"
         }
       ],
       "status": "ready",
@@ -7883,21 +8645,27 @@
     },
     {
       "buyer_question": "Can SecurityRecipes show governance, measurement, identity, data, and lifecycle evidence for deployed agent systems?",
-      "capability_count": 18,
-      "control_count": 5,
+      "capability_count": 24,
+      "control_count": 8,
       "coverage_score": 100.0,
       "id": "nist-agentic-ai-risk-management",
       "kind": "governance_and_measurement",
       "mcp_tools": [
         "recipes_agent_handoff_boundary_pack",
         "recipes_agent_identity_ledger",
+        "recipes_agent_trust_fabric_pack",
+        "recipes_agentic_action_runtime_pack",
+        "recipes_agentic_approval_receipt_pack",
         "recipes_agentic_assurance_pack",
+        "recipes_agentic_catastrophic_risk_annex",
         "recipes_agentic_control_plane_blueprint",
+        "recipes_agentic_entitlement_review_pack",
         "recipes_agentic_measurement_probe_pack",
         "recipes_agentic_readiness_scorecard",
         "recipes_agentic_red_team_drill_pack",
         "recipes_agentic_run_receipt_pack",
         "recipes_agentic_system_bom",
+        "recipes_agentic_telemetry_contract",
         "recipes_context_egress_boundary_pack",
         "recipes_context_poisoning_guard_pack",
         "recipes_enterprise_trust_center_export",
@@ -7908,22 +8676,23 @@
         "recipes_secure_context_trust_pack",
         "recipes_workflow_control_plane"
       ],
-      "ready_control_count": 5,
+      "ready_control_count": 8,
       "source_ids": [
         "nist-ai-agent-standards-initiative-2026",
         "nist-caisi-ai-agent-security-rfi-2026",
         "nist-ai-rmf-2026",
         "nist-ai-600-1",
-        "nist-agentic-identity-foundation-2026"
+        "nist-agentic-identity-foundation-2026",
+        "nist-agentic-identity-design-tenets-2026"
       ],
       "sources": [
         {
           "id": "nist-ai-agent-standards-initiative-2026",
-          "name": "AI Agent Standards Initiative",
+          "name": "SI Agent Standards Initiative",
           "published": "2026-02-17",
           "publisher": "NIST",
           "source_class": "government_framework",
-          "url": "https://www.nist.gov/artificial-intelligence/ai-agent-standards-initiative"
+          "url": "https://www.nist.gov/super-intelligence/si-agent-standards-initiative"
         },
         {
           "id": "nist-caisi-ai-agent-security-rfi-2026",
@@ -7956,6 +8725,14 @@
           "publisher": "NIST",
           "source_class": "government_security_signal",
           "url": "https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation"
+        },
+        {
+          "id": "nist-agentic-identity-design-tenets-2026",
+          "name": "Design Tenets for Agent Identity Management Systems",
+          "published": "2026-10-27",
+          "publisher": "NIST",
+          "source_class": "government_security_signal",
+          "url": "https://www.nist.gov/blogs/cybersecurity-insights/design-tenets-agent-identity-management-systems"
         }
       ],
       "status": "ready",
@@ -8072,11 +8849,11 @@
       "sources": [
         {
           "id": "csa-ai-controls-matrix-2025",
-          "name": "AI Controls Matrix",
-          "published": "2025-10-30",
+          "name": "AI Controls Matrix v1.1",
+          "published": "2026-06-22",
           "publisher": "Cloud Security Alliance",
           "source_class": "industry_standard",
-          "url": "https://cloudsecurityalliance.org/artifacts/ai-controls-matrix"
+          "url": "https://cloudsecurityalliance.org/artifacts/ai-controls-matrix-v1-1"
         },
         {
           "id": "nist-ai-600-1",
@@ -8198,19 +8975,19 @@
         },
         {
           "id": "csa-ai-controls-matrix-2025",
-          "name": "AI Controls Matrix",
-          "published": "2025-10-30",
+          "name": "AI Controls Matrix v1.1",
+          "published": "2026-06-22",
           "publisher": "Cloud Security Alliance",
           "source_class": "industry_standard",
-          "url": "https://cloudsecurityalliance.org/artifacts/ai-controls-matrix"
+          "url": "https://cloudsecurityalliance.org/artifacts/ai-controls-matrix-v1-1"
         },
         {
           "id": "nist-ai-agent-standards-initiative-2026",
-          "name": "AI Agent Standards Initiative",
+          "name": "SI Agent Standards Initiative",
           "published": "2026-02-17",
           "publisher": "NIST",
           "source_class": "government_framework",
-          "url": "https://www.nist.gov/artificial-intelligence/ai-agent-standards-initiative"
+          "url": "https://www.nist.gov/super-intelligence/si-agent-standards-initiative"
         },
         {
           "id": "mcp-authorization-2025-11-25",
@@ -8268,11 +9045,11 @@
         },
         {
           "id": "nist-ai-agent-standards-initiative-2026",
-          "name": "AI Agent Standards Initiative",
+          "name": "SI Agent Standards Initiative",
           "published": "2026-02-17",
           "publisher": "NIST",
           "source_class": "government_framework",
-          "url": "https://www.nist.gov/artificial-intelligence/ai-agent-standards-initiative"
+          "url": "https://www.nist.gov/super-intelligence/si-agent-standards-initiative"
         },
         {
           "id": "owasp-agentic-top-10-2026",

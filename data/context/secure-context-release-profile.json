@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-09-28",
+  "last_reviewed": "2026-11-12",
   "intent": "Define a release gate for SecurityRecipes secure-context bundles so registered context, generated evidence, MCP policy, and trust-center packets are not distributed to agents or buyers until provenance, attestation, poisoning scans, eval readiness, egress posture, and signing requirements are checked together.",
   "positioning": {
     "buyer": "AI Platform, Security Engineering, Product Security, GRC, procurement security, model-risk, and acquisition diligence teams",
@@ -16,21 +16,21 @@
       "coverage": "Maps release gating to memory/context poisoning, insecure inter-agent communication, cascading failures, human-agent trust exploitation, and rogue-agent containment."
     },
     {
-      "id": "owasp-genai-exploit-roundup-q1-2026",
-      "name": "OWASP GenAI Exploit Round-up Report Q1 2026",
-      "url": "https://genai.owasp.org/2026/04/14/owasp-genai-exploit-round-up-report-q1-2026/",
-      "coverage": "Anchors the release gate in current exploit patterns around agent identities, orchestration layers, supply chains, prompt injection, data exfiltration, and RCE in AI tooling."
+      "id": "owasp-genai-exploit-roundup-q3-2026",
+      "name": "GenAI and Agentic AI Exploit Roundup Q3 2026",
+      "url": "https://genai.owasp.org/2026/10/08/genai-and-agentic-ai-exploit-roundup-q3-2026/",
+      "coverage": "Anchors the release gate in the latest OWASP exploit roundup (July 1 to September 30, 2026): agents exceeding evaluation boundaries, exposed credentials and excessive permissions widening blast radius, and malicious-MCP metadata manipulation in the supply chain."
     },
     {
       "id": "mcp-security-best-practices-2026-07-28",
       "name": "Model Context Protocol Security Best Practices (2026-07-28 current revision)",
-      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices",
+      "url": "https://modelcontextprotocol.io/docs/2026-07-28/tutorials/security/security_best_practices",
       "coverage": "Current MCP 2026-07-28 security guidance: state-handle binding, token-passthrough denial, confused-deputy consent on OAuth proxies, and SSRF-sensitive metadata fetches before a context bundle is released to production MCP channels."
     },
     {
       "id": "mcp-security-best-practices-2025",
       "name": "Model Context Protocol Security Best Practices (2025-06-18 prior revision)",
-      "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices",
+      "url": "https://modelcontextprotocol.io/docs/2025-06-18/tutorials/security/security_best_practices",
       "coverage": "Prior MCP security-best-practices revision kept as a historical source ID. Session-hijacking guidance applies only to 2025-11-25 and earlier protocol versions; prefer the 2026-07-28 state-handle controls."
     },
     {
@@ -43,7 +43,7 @@
       "id": "mcp-authorization-2025-11-25",
       "name": "Model Context Protocol Authorization Specification",
       "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization",
-      "coverage": "Requires production context release consumers to preserve protected resource metadata, token audience binding, resource indicators, HTTPS, PKCE, and token-use boundaries."
+      "coverage": "Prior MCP 2025-11-25 authorization revision kept as a historical source ID. Prefer the 2026-07-28 resource-indicator, audience, PKCE, and token-passthrough rules."
     },
     {
       "id": "nist-ai-600-1",
@@ -53,15 +53,21 @@
     },
     {
       "id": "csa-ai-controls-matrix-2025",
-      "name": "CSA AI Controls Matrix",
-      "url": "https://cloudsecurityalliance.org/artifacts/ai-controls-matrix",
-      "coverage": "Aligns release evidence to vendor-agnostic AI control objectives, accountability, lifecycle relevance, threat categories, and enterprise assessment expectations."
+      "name": "CSA AI Controls Matrix v1.1",
+      "url": "https://cloudsecurityalliance.org/artifacts/ai-controls-matrix-v1-1",
+      "coverage": "Aligns release evidence to vendor-agnostic AI control objectives, accountability, lifecycle relevance, threat categories, and enterprise assessment expectations (v1.1, June 22, 2026: 247 control objectives across 18 domains)."
     },
     {
       "id": "cisa-ai-data-security-2025",
       "name": "AI Data Security Best Practices",
       "url": "https://www.cisa.gov/resources-tools/resources/ai-data-security-best-practices-securing-data-used-train-operate-ai-systems",
       "coverage": "Treats context release as an AI data security control for data integrity, confidentiality, monitoring, threat detection, and lifecycle operations."
+    },
+    {
+      "id": "owasp-genai-data-security-v2-2026",
+      "name": "GenAI Data Security Best Practices v2 – Part 1",
+      "url": "https://genai.owasp.org/resource/genai-data-security-best-practices-v2-part1/",
+      "coverage": "OWASP's November 3, 2026 AI-DSPM playbook root (Part 1 of 12): GenAI data-security fundamentals, six core principles, operating models, and rollout sequencing, used as the data-security lens for releasing context to agents."
     }
   ],
   "release_contract": {

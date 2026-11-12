@@ -131,7 +131,7 @@
     {
       "actionable": true,
       "disposition": "actionable_context_poisoning_risk",
-      "line": 259,
+      "line": 283,
       "match": "\"retrieved context contains hidden instructions, tool override text, encoded exfiltration payload, or approval bypass instructions\"",
       "path": "data/assurance/agentic-incident-response-profile.json",
       "risk_family": "prompt_injection",
@@ -197,7 +197,7 @@
     {
       "actionable": true,
       "disposition": "actionable_context_poisoning_risk",
-      "line": 1316,
+      "line": 1403,
       "match": "...\"objective\": \"Terminate agent sessions when runtime behavior shows approval bypass, deny-after-deny looping, broad token requests, secret egress, or irreversible action without approval.\",",
       "path": "data/assurance/agentic-standards-crosswalk.json",
       "risk_family": "approval_bypass",
@@ -263,7 +263,7 @@
     {
       "actionable": false,
       "disposition": "documented_adversarial_example",
-      "line": 753,
+      "line": 809,
       "match": "\"roadmap_action\": \"Add typed approval receipts and approval-bypass replay tests to the MCP policy evaluator.\",",
       "path": "data/intelligence/agentic-threat-radar-sources.json",
       "risk_family": "approval_bypass",
@@ -1820,7 +1820,7 @@
       "agentic-assurance-models",
       "recipes"
     ],
-    "byte_count": 15144672,
+    "byte_count": 15176732,
     "decision_counts": {
       "allow_with_adversarial_examples": 1,
       "block_until_removed": 2,
@@ -1921,7 +1921,7 @@
   "source_artifacts": {
     "context_poisoning_guard_profile": {
       "path": "data/assurance/context-poisoning-guard-profile.json",
-      "sha256": "a11f80c99b163a52e3bb4c5ee336ca107417a2513009002056f262e40c4252ff"
+      "sha256": "d9eab882972c1bd8c0597142b9940408ef5b7e7db0039bea1da291e7c72486df"
     },
     "secure_context_registry": {
       "path": "data/context/secure-context-registry.json",
@@ -1976,7 +1976,7 @@
         "critical": 8,
         "high": 12
       },
-      "source_hash": "ef0f358c19fa6f3d71b3492632bb31db45e0144fe05d24348845e88bca93798f",
+      "source_hash": "71ea91ee83106fa7af43522629656497aa11fd814a611b3e63ea67e9e33e75f6",
       "source_id": "agentic-assurance-models",
       "title": "Agentic Assurance Source Models",
       "trust_tier": "tier_2_policy_context"
@@ -1998,7 +1998,7 @@
       "risk_family_counts": {},
       "root": "data/evidence",
       "severity_counts": {},
-      "source_hash": "8a5579ae5c94af2bc2f1e91607b45ae2a90ffd2d26732328be15d7eb6ec972cb",
+      "source_hash": "721d3656a02dbffec43d676a2bb375f1931d0d4fbdeef69056c7234f401df7a7",
       "source_id": "agentic-evidence-packs",
       "title": "Generated Agentic Evidence Packs",
       "trust_tier": "tier_2_policy_context"
@@ -2028,7 +2028,7 @@
       "severity_counts": {
         "high": 1
       },
-      "source_hash": "0d4fc9a4cd3ec1c3d0f4cb7d4677e6785be5b9e946ae7145686286ebfa7fcbb3",
+      "source_hash": "dac367420a754dd8ae6e244c6de17b496e813e59f3815407cb7e695f62cd2588",
       "source_id": "agentic-threat-intelligence",
       "title": "Agentic Threat Radar Source Registry",
       "trust_tier": "tier_2_policy_context"
@@ -2052,7 +2052,7 @@
       "risk_family_counts": {},
       "root": "data/mcp",
       "severity_counts": {},
-      "source_hash": "8f056ef4ef55330a592815bb6094e1e28cf8dee97b6a547bc8ab489bd86ce18f",
+      "source_hash": "72bced088ae1ace5a55c79558e7c0650ccbfa8ea6bfae3f737af5988ed85a903",
       "source_id": "mcp-connector-trust",
       "title": "MCP Connector Trust Registry and Pack",
       "trust_tier": "tier_2_policy_context"
@@ -2074,7 +2074,7 @@
       "risk_family_counts": {},
       "root": "data/policy",
       "severity_counts": {},
-      "source_hash": "a52079afd7bf65c0be2b9bd2455046b22b4b03b10fd65632663ebf503a0acc46",
+      "source_hash": "2aee50614ad4adcd8d1fb5b95aa59996a09464e2b6cc290431210124a2de20d1",
       "source_id": "mcp-gateway-policy",
       "title": "MCP Gateway Policy Pack",
       "trust_tier": "tier_2_policy_context"
@@ -2202,7 +2202,7 @@
         "high": 8,
         "medium": 59
       },
-      "source_hash": "c94a5bb83301bac0b1ed6e067fc1751238c4449d6dc17946182be3d02c5bb175",
+      "source_hash": "0769a512f8adf650fe8eb690aba8623a840f7a431983720189769f9bb4c89c70",
       "source_id": "security-remediation-workflows",
       "title": "Security Remediation Workflow Docs",
       "trust_tier": "tier_1_curated_guidance"
@@ -2225,7 +2225,7 @@
       "risk_family_counts": {},
       "root": "data/control-plane",
       "severity_counts": {},
-      "source_hash": "f72c4bf711d6d8ac8f54f44f6f1e5dcc644ae2470a01ac9a89b68ea4076f6e21",
+      "source_hash": "2d17da47a0f57bddc1905fcc7a38e43f50552902e431c4be39c57f839b9fa6b8",
       "source_id": "workflow-control-plane",
       "title": "Workflow Control Plane Manifest",
       "trust_tier": "tier_2_policy_context"
@@ -2278,7 +2278,7 @@
       "name": "Model Context Protocol Security Best Practices",
       "published": "2025-06-18",
       "publisher": "Model Context Protocol",
-      "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices"
+      "url": "https://modelcontextprotocol.io/docs/2025-06-18/tutorials/security/security_best_practices"
     },
     {
       "coverage": "Generative AI systems need lifecycle controls for data provenance, monitoring, measurement, third-party risk, and incident response.",

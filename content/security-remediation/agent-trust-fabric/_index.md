@@ -3,7 +3,7 @@ title: Agent Trust Fabric
 linkTitle: Agent Trust Fabric
 weight: 16
 date: 2026-05-05
-lastmod: 2026-10-29
+lastmod: 2026-11-12
 sidebar:
   exclude: true
 description: >
@@ -20,7 +20,7 @@ this agent run is trusted, needs step-up, is untrusted, or must be
 killed.
 {{< /callout >}}
 
-Rechecked source anchors on October 29, 2026 against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28), the current [security best practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices), NIST's [August 27, 2026 agent identity guidance](https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation), NIST NCCoE's [September 29, 2026 comments summary](https://pages.nist.gov/nccoe-ai-identity/summary-of-comments.html) on software and agentic AI identity and authorization, and NIST's [October 27, 2026 design tenets for agent identity management systems](https://www.nist.gov/blogs/cybersecurity-insights/design-tenets-agent-identity-management-systems). MCP `latest` still redirects to 2026-07-28. The 2026-07-28 security guidance replaces session-hijacking assumptions with state-handle binding, forbids token passthrough, and treats OAuth metadata fetches as SSRF-sensitive. NCCoE, drawing on more than 600 comments, says sender-constrained credentials (OAuth DPoP or mTLS using SPIFFE or WIMSE identities) are essential to reduce bearer-token replay. NIST's ten design tenets, drawn from those comments and stakeholder engagement, add attenuated sub-agent delegation, zero standing privilege, signed mandate statements, architectural separation of policy from reasoning, deterministic access decisions, consent-fatigue-aware HITL thresholds, and independent append-only evidence. Unique short-lived sender-constrained credentials are necessary but not sufficient. This editorial pass does not claim human review of the pack.
+Rechecked source anchors on November 12, 2026 against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28), the current [security best practices](https://modelcontextprotocol.io/docs/2026-07-28/tutorials/security/security_best_practices), NIST's [August 27, 2026 agent identity guidance](https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation), NIST NCCoE's [September 29, 2026 comments summary](https://pages.nist.gov/nccoe-ai-identity/summary-of-comments.html) on software and agentic AI identity and authorization, and NIST's [October 27, 2026 design tenets for agent identity management systems](https://www.nist.gov/blogs/cybersecurity-insights/design-tenets-agent-identity-management-systems). MCP `latest` still redirects to 2026-07-28. The 2026-07-28 security guidance replaces session-hijacking assumptions with state-handle binding, forbids token passthrough, and treats OAuth metadata fetches as SSRF-sensitive. NCCoE, drawing on more than 600 comments, says sender-constrained credentials (OAuth DPoP or mTLS using SPIFFE or WIMSE identities) are essential to reduce bearer-token replay. NIST's ten design tenets, drawn from those comments and stakeholder engagement, add attenuated sub-agent delegation, zero standing privilege, signed mandate statements, architectural separation of policy from reasoning, deterministic access decisions, consent-fatigue-aware HITL thresholds, and independent append-only evidence. Unique short-lived sender-constrained credentials are necessary but not sufficient. This editorial pass does not claim human review of the pack.
 
 ## The product bet
 
@@ -418,7 +418,7 @@ The pack is anchored in current primary guidance:
 - [CSA ATF: Zero Trust for AI Agents](https://cloudsecurityalliance.org/blog/2026/04/03/every-rsac-keynote-asked-the-same-five-questions-here-s-the-framework-that-answers-them)
   for identity, behavior, data governance, least privilege, and
   containment.
-- [NIST AI Agent Standards Initiative](https://www.nist.gov/artificial-intelligence/ai-agent-standards-initiative)
+- [NIST SI Agent Standards Initiative](https://www.nist.gov/super-intelligence/si-agent-standards-initiative)
   for trusted, interoperable, secure agent standards.
 - [NIST CAISI AI Agent Security RFI](https://www.nist.gov/news-events/news/2026/01/caisi-issues-request-information-about-securing-ai-agent-systems)
   for indirect prompt injection, poisoning, misaligned actions, and
@@ -439,13 +439,20 @@ The pack is anchored in current primary guidance:
 - [MCP Authorization 2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
   for protected-resource metadata, scope challenges, resource indicators,
   token audience validation, and token-passthrough denial.
+- [OWASP Top 10 for Agentic Applications 2026](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/)
+  for goal hijack, tool misuse, identity and privilege abuse, agentic
+  supply chain, unexpected code execution, memory and context
+  poisoning, and rogue agents.
+- [CISA Careful Adoption of Agentic AI Services](https://www.cisa.gov/resources-tools/resources/careful-adoption-agentic-si-services)
+  for expanded attack surface, privilege creep, behavioral
+  misalignment, and obscure event records.
 - [OWASP MCP Top 10](https://owasp.org/www-project-mcp-top-10/)
   for token exposure, scope creep, tool poisoning, command execution,
   insufficient auth, shadow MCP servers, and over-sharing.
 - [OpenAI Agents SDK Guardrails](https://openai.github.io/openai-agents-js/guides/guardrails/)
   for guardrail placement around first input, final output, and
   function-tool calls.
-- [OpenTelemetry GenAI agent spans](https://opentelemetry.io/docs/specs/semconv/gen-ai/gen-ai-agent-spans/)
+- [OpenTelemetry GenAI agent spans](https://github.com/open-telemetry/semantic-conventions-genai/blob/main/docs/gen-ai/gen-ai-agent-spans.md)
   for portable agent and tool execution traces.
 
 ## See also

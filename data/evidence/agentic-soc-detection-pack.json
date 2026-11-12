@@ -825,27 +825,27 @@
   "source_artifacts": {
     "agentic_incident_response_pack": {
       "path": "data/evidence/agentic-incident-response-pack.json",
-      "sha256": "a2aa41b8686925ad697313cec1262304597885a407fec7c5d9687754451fa854"
+      "sha256": "767ab8c0785f21b773a13dae25920b7f0d7572475cf881f7218eb44e360863fb"
     },
     "agentic_red_team_replay_harness": {
       "path": "data/evidence/agentic-red-team-replay-harness.json",
-      "sha256": "dcced6ac035f3e7a3e57b719ba6e2583c7172bc9146df87eb1b027d5629a2259"
+      "sha256": "17ea1320e02d38cf20970544fc833ca65962fc3a3a68beeba3ae3db3101ea677"
     },
     "agentic_soc_detection_profile": {
       "path": "data/assurance/agentic-soc-detection-profile.json",
-      "sha256": "37d396c7037e2a9eaf1db7e5f00e2cdb4b7f3062bce8b65bb957db425e753e00"
+      "sha256": "f22d30a525845cc8cfd76630cf02e1c9958a4b027b233292e6461763e22c9f22"
     },
     "agentic_telemetry_contract": {
       "path": "data/evidence/agentic-telemetry-contract.json",
-      "sha256": "efe7e02016e47380bb07ecb0fecabc6512fd6b4b6245d0c401ff57eadddd40d0"
+      "sha256": "e9f2a0f108f1518b619a1314235666d7296725856b87b4a74a4c294dc5c34ce5"
     },
     "agentic_threat_radar": {
       "path": "data/evidence/agentic-threat-radar.json",
-      "sha256": "54d140d42bc903d24a515e3fc235db857e6dcef0b5ba6a89b4d80c44a4e52ad4"
+      "sha256": "729d77205528ebb6959c4f08a5f76cedc7204cf4460681815da339aaadbe8cfe"
     },
     "workflow_manifest": {
       "path": "data/control-plane/workflow-manifests.json",
-      "sha256": "22f45f06fee190b602ac27f300c94d72ab38646f76a1ad2e4f80923a3a444ceb"
+      "sha256": "1845eb54f369a8f454cbc22111bb1c679ac58803f23d8d7d2d15e0f8fb687b9c"
     }
   },
   "standards_alignment": [
@@ -853,13 +853,13 @@
       "coverage": "Uses provider-neutral GenAI, model, tool, and retrieval attributes as the event fabric for SOC-ready agent detections.",
       "id": "opentelemetry-genai-semconv",
       "name": "OpenTelemetry Semantic Conventions for Generative AI Systems",
-      "url": "https://opentelemetry.io/docs/specs/semconv/gen-ai/"
+      "url": "https://github.com/open-telemetry/semantic-conventions-genai/blob/main/docs/gen-ai/README.md"
     },
     {
       "coverage": "Anchors MCP JSON-RPC request ids, method names, tool calls, protocol version, and transport evidence. mcp.session.id remains an optional collector field when present; it is not protocol-authoritative after MCP 2026-07-28 removed protocol-level sessions.",
       "id": "opentelemetry-mcp-semconv",
       "name": "OpenTelemetry Semantic Conventions for Model Context Protocol",
-      "url": "https://opentelemetry.io/docs/specs/semconv/gen-ai/mcp/"
+      "url": "https://github.com/open-telemetry/semantic-conventions-genai/blob/main/docs/gen-ai/mcp.md"
     },
     {
       "coverage": "Current public MCP revision. Maps confused deputy, token passthrough, SSRF including Client ID Metadata Document fetches, state handle hijacking, local server compromise, OAuth URL validation, mix-up attacks, and scope minimization into deployable SOC detections.",
@@ -871,7 +871,7 @@
       "coverage": "Prior MCP security-best-practices revision kept as a historical source ID. Session-hijacking guidance applies only to 2025-11-25 and earlier protocol versions; prefer the 2026-07-28 state-handle controls.",
       "id": "mcp-security-best-practices-2025-06-18",
       "name": "Model Context Protocol Security Best Practices (2025-06-18 prior revision)",
-      "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices"
+      "url": "https://modelcontextprotocol.io/docs/2025-06-18/tutorials/security/security_best_practices"
     },
     {
       "coverage": "Current public MCP revision. Form-mode and URL-mode elicitation delivered through InputRequiredResult, opaque requestState on retry, sensitive-data restrictions, URL safety, identity binding, and separation of external OAuth from MCP authorization.",

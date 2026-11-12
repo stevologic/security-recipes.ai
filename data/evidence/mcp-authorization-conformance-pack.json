@@ -449,7 +449,7 @@
     "sales_motion": "Lead with open conformance rules, then sell hosted MCP authorization discovery, live metadata checks, fleet-wide scope-drift detection, and signed run-level authorization receipts."
   },
   "failures": [],
-  "generated_at": "2026-10-19",
+  "generated_at": "2026-11-12",
   "intent": "Define the SecurityRecipes MCP authorization conformance model so agent hosts, MCP gateways, IAM teams, and enterprise buyers can verify latest MCP authorization requirements: resource-bound tokens, token audience validation, PKCE, protected-resource metadata discovery, client ID metadata documents, RFC 9207 authorization-response issuer validation against mix-up, credentials bound to the issuing authorization server, SSRF-safe OAuth metadata fetches, authorization-URL scheme allowlisting, sender-constrained presentation instead of unconstrained bearer replay, authoritative scope challenges, step-up authorization, token-passthrough denial, scope minimization, consent, state-handle binding, and audit evidence before agents use MCP tools.",
   "positioning": {
     "buyer": "AI Platform, IAM, Product Security, GRC, procurement security, and enterprise architecture teams",
@@ -1783,7 +1783,7 @@
   "source_artifacts": {
     "mcp_authorization_conformance_profile": {
       "path": "data/assurance/mcp-authorization-conformance-profile.json",
-      "sha256": "63fbcdad3da1f9d54899cada5d12d885ec7709bdc63c116b73bb0904658bc44d"
+      "sha256": "88dec9ef254091eaef4d4340e080ec3770a129a116aa61f2c433d409cdc1bffe"
     },
     "mcp_connector_intake_candidates": {
       "path": "data/mcp/connector-intake-candidates.json",
@@ -1791,19 +1791,19 @@
     },
     "mcp_connector_intake_pack": {
       "path": "data/evidence/mcp-connector-intake-pack.json",
-      "sha256": "d75f6df3aabd2e4ddf5a6b9437c4e5bd39d250a40f49825d530643124dbfc212"
+      "sha256": "27b4e7843d68360c874e008967338102c96ddf1be54707d39c78069bd3cf00e1"
     },
     "mcp_connector_trust_pack": {
       "path": "data/evidence/mcp-connector-trust-pack.json",
-      "sha256": "77e4c63f3c9b2a7ac9088bede503e5d34a8a5056a2968d144bc8a8b816006427"
+      "sha256": "5c2388fbd8507bf0e06d967c7456a5b8944db17d92c221a171abf34906bb57d7"
     },
     "mcp_gateway_policy": {
       "path": "data/policy/mcp-gateway-policy.json",
-      "sha256": "bb1dbf00ec5bee173a19dff65266f13d84501b94aca3239019a03d6e09546de2"
+      "sha256": "8f1de770582304d0b86f5b3c5cc12e9c467e7f5147ae60e6f9fdf2468e286169"
     },
     "workflow_manifest": {
       "path": "data/control-plane/workflow-manifests.json",
-      "sha256": "22f45f06fee190b602ac27f300c94d72ab38646f76a1ad2e4f80923a3a444ceb"
+      "sha256": "1845eb54f369a8f454cbc22111bb1c679ac58803f23d8d7d2d15e0f8fb687b9c"
     }
   },
   "standards_alignment": [
@@ -1817,7 +1817,19 @@
       "coverage": "Current public MCP security-best-practices revision: confused-deputy prevention, token-passthrough avoidance, SSRF controls that require HTTPS and block private, loopback, and link-local destinations during metadata and Client ID Metadata Document fetches, authorization URL scheme allowlisting that permits only http/https and rejects javascript:, data:, file:, and vbscript:, scope minimization, state-handle binding, local-server hardening, and audit trails.",
       "id": "mcp-security-best-practices-2026-07-28",
       "name": "Model Context Protocol Security Best Practices",
-      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices"
+      "url": "https://modelcontextprotocol.io/docs/2026-07-28/tutorials/security/security_best_practices"
+    },
+    {
+      "coverage": "Normative 2026-07-28 authorization security text split out of the main authorization page: token audience binding and validation, token theft, communication security, authorization code protection (PKCE), mix-up attacks, open redirection, Client ID Metadata Document security, localhost redirect URI risks, confused deputy, and access token privilege restriction.",
+      "id": "mcp-authorization-security-considerations-2026-07-28",
+      "name": "Model Context Protocol Authorization Security Considerations (2026-07-28)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization/security-considerations"
+    },
+    {
+      "coverage": "NIST's October 27, 2026 design tenets: cryptographically verifiable agent identities distinct from humans and service accounts, attenuated sub-agent delegation, zero standing privilege, short-lived audience-specific grants, deterministic access decisions, and independent append-only evidence on the MCP tool path.",
+      "id": "nist-agentic-identity-design-tenets-2026",
+      "name": "Design Tenets for Agent Identity Management Systems",
+      "url": "https://www.nist.gov/blogs/cybersecurity-insights/design-tenets-agent-identity-management-systems"
     },
     {
       "coverage": "NIST's August 27, 2026 identity guidance: unique agent identifiers and short-lived scoped credentials instead of shared human credentials, long-lived API keys, or local user-account impersonation on the MCP tool path.",
@@ -1841,7 +1853,7 @@
       "coverage": "Prior MCP security-best-practices revision kept as a historical source ID. Prefer the 2026-07-28 revision for current controls.",
       "id": "mcp-security-best-practices",
       "name": "Model Context Protocol Security Best Practices (2025-06-18 prior revision)",
-      "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices"
+      "url": "https://modelcontextprotocol.io/docs/2025-06-18/tutorials/security/security_best_practices"
     },
     {
       "coverage": "Agent goal hijacking, tool misuse, identity and privilege abuse, agentic supply-chain risk, unexpected code execution, memory and context poisoning, and rogue-agent containment.",
@@ -1850,10 +1862,16 @@
       "url": "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/"
     },
     {
-      "coverage": "Prompt injection, sensitive information disclosure, supply-chain risk, improper output handling, excessive agency, vector weakness, and unbounded consumption.",
+      "coverage": "Prior OWASP LLM Top 10 edition kept as a historical source ID: prompt injection, sensitive information disclosure, supply-chain risk, improper output handling, excessive agency, vector weakness, and unbounded consumption. Prefer the 2026 edition.",
       "id": "owasp-llm-top-10-2025",
-      "name": "OWASP Top 10 for LLM Applications 2025",
-      "url": "https://genai.owasp.org/llm-top-10/"
+      "name": "OWASP Top 10 for LLM Applications 2025 (prior edition)",
+      "url": "https://genai.owasp.org/resource/owasp-top-10-for-llm-applications-2025/"
+    },
+    {
+      "coverage": "Current OWASP LLM Top 10 edition (August 3, 2026): re-ranks LLM application risks against real-world incident data and maps them to NIST, MITRE ATLAS, CWE, and the OWASP Top 10 for Agentic Applications.",
+      "id": "owasp-llm-top-10-2026",
+      "name": "OWASP Top 10 for LLM Applications 2026",
+      "url": "https://genai.owasp.org/resource/owasp-genai-llm-top-10-2026/"
     },
     {
       "coverage": "Data provenance, integrity, access control, monitoring, third-party data handling, evidence, and incident-response expectations for AI systems.",

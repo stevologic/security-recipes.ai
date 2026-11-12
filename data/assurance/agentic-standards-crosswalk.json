@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-09-28",
+  "last_reviewed": "2026-11-12",
   "intent": "Create an enterprise buyer and AI-platform standards crosswalk for SecurityRecipes so OWASP Agentic Top 10, CSA AI Controls Matrix, NIST AI agent guidance, MCP authorization requirements, critical-infrastructure AI expectations, and frontier-lab prompt-injection defenses map directly to generated evidence packs, MCP tools, and runtime decision surfaces.",
   "positioning": {
     "buyer": "AI Platform, Product Security, AppSec, GRC, procurement security, model-risk, and acquisition diligence teams",
@@ -44,6 +44,24 @@
       "why_it_matters": "Peer-reviewed agentic guidance now gives buyers a shared language for autonomous agent risks such as goal hijack, tool misuse, identity abuse, memory poisoning, inter-agent communication, cascading failures, and rogue behavior."
     },
     {
+      "id": "owasp-llm-top-10-2026",
+      "name": "OWASP Top 10 for LLM Applications 2026",
+      "publisher": "OWASP GenAI Security Project",
+      "published": "2026-08-03",
+      "url": "https://genai.owasp.org/resource/owasp-genai-llm-top-10-2026/",
+      "source_class": "industry_standard",
+      "why_it_matters": "The 2026 edition re-ranks LLM application risks against real-world incident data and maps to NIST, MITRE ATLAS, CWE, and the OWASP Top 10 for Agentic Applications."
+    },
+    {
+      "id": "owasp-genai-framework-crosswalk-2026",
+      "name": "GenAI Security Industry Framework Crosswalk",
+      "publisher": "OWASP GenAI Security Project",
+      "published": "2026-09-01",
+      "url": "https://genai.owasp.org/resource/genai-security-industry-framework-crosswalk/",
+      "source_class": "industry_framework",
+      "why_it_matters": "OWASP's open crosswalk maps 51 GenAI vulnerabilities across four OWASP lists to controls in 25 frameworks, including NIST, ISO, MITRE ATLAS, and the EU AI Act."
+    },
+    {
       "id": "owasp-agentic-threats-2025",
       "name": "Agentic AI Threats and Mitigations",
       "publisher": "OWASP Agentic Security Initiative",
@@ -53,29 +71,29 @@
       "why_it_matters": "Threat-model-based OWASP guidance reinforces that agent autonomy, retrieved context, tool invocation, and delegation require controls beyond classic LLM application hardening."
     },
     {
-      "id": "owasp-securing-agentic-apps-2025",
-      "name": "Securing Agentic Applications Guide 1.0",
+      "id": "owasp-securing-agentic-apps-v2-2026",
+      "name": "Securing Agentic Applications V2: A Builder & Defender's Guide",
       "publisher": "OWASP GenAI Security Project",
-      "published": "2025-07-27",
-      "url": "https://genai.owasp.org/resource/securing-agentic-applications-guide-1-0/",
+      "published": "2026-11-10",
+      "url": "https://genai.owasp.org/resource/securing-agentic-applications-v2/",
       "source_class": "industry_standard",
-      "why_it_matters": "Practical design and deployment guidance supports translating agentic threats into concrete build, test, deployment, and operations controls."
+      "why_it_matters": "OWASP's November 10, 2026 V2 guide covers secure agent architectures, threat mitigation, identity and access controls, runtime protection, supply-chain security, and assurance testing across single- and multi-agent systems, translating agentic threats into build, deploy, and operate controls."
     },
     {
-      "id": "owasp-genai-exploit-roundup-q1-2026",
-      "name": "OWASP GenAI Exploit Round-up Report Q1 2026",
+      "id": "owasp-genai-exploit-roundup-q3-2026",
+      "name": "GenAI and Agentic AI Exploit Roundup Q3 2026",
       "publisher": "OWASP GenAI Security Project",
-      "published": "2026-04-14",
-      "url": "https://genai.owasp.org/2026/04/14/owasp-genai-exploit-round-up-report-q1-2026/",
+      "published": "2026-10-08",
+      "url": "https://genai.owasp.org/2026/10/08/genai-and-agentic-ai-exploit-roundup-q3-2026/",
       "source_class": "incident_intelligence",
-      "why_it_matters": "Recent exploit reporting ties agent tooling, source leaks, MCP integrations, supply-chain abuse, and RCE patterns to operational mitigations."
+      "why_it_matters": "OWASP's Q3 2026 roundup (July 1 to September 30, 2026) maps incidents to the LLM Top 10 2026 and Agentic Top 10 2026: evaluation agents escaping intended boundaries, exposed credentials and excess permissions widening blast radius, and the Deadbugz malicious-MCP distribution campaign; it states it is not exhaustive or an official OWASP publication."
     },
     {
       "id": "nist-ai-agent-standards-initiative-2026",
-      "name": "AI Agent Standards Initiative",
+      "name": "SI Agent Standards Initiative",
       "publisher": "NIST",
       "published": "2026-02-17",
-      "url": "https://www.nist.gov/artificial-intelligence/ai-agent-standards-initiative",
+      "url": "https://www.nist.gov/super-intelligence/si-agent-standards-initiative",
       "source_class": "government_framework",
       "why_it_matters": "NIST is prioritizing interoperable agent standards, community-led protocols, agent authentication, identity infrastructure, and security evaluations for human-agent and multi-agent interactions."
     },
@@ -117,12 +135,12 @@
     },
     {
       "id": "csa-ai-controls-matrix-2025",
-      "name": "AI Controls Matrix",
+      "name": "AI Controls Matrix v1.1",
       "publisher": "Cloud Security Alliance",
-      "published": "2025-10-30",
-      "url": "https://cloudsecurityalliance.org/artifacts/ai-controls-matrix",
+      "published": "2026-06-22",
+      "url": "https://cloudsecurityalliance.org/artifacts/ai-controls-matrix-v1-1",
       "source_class": "industry_standard",
-      "why_it_matters": "CSA's AI Controls Matrix gives enterprises a vendor-agnostic control set across AI governance, lifecycle, supply chain, data, monitoring, and shared-responsibility domains, with mappings to NIST AI 600-1, ISO 42001, ISO 27001, and BSI AIC4."
+      "why_it_matters": "CSA's AI Controls Matrix v1.1 gives enterprises 247 vendor-agnostic control objectives across 18 security domains, with mappings to ISO 42001, ISO 27001, BSI AIC4, the EU AI Act, AIUC-1, and NIST AI RMF and AI 600-1."
     },
     {
       "id": "csa-agentic-trust-framework-2026",
@@ -140,7 +158,16 @@
       "published": "2026-07-28",
       "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization",
       "source_class": "protocol_specification",
-      "why_it_matters": "Current public MCP 2026-07-28 revision. The current MCP authorization specification requires protected resource metadata, OAuth 2.1 alignment, resource indicators, token audience validation, PKCE support, and token-passthrough denial for protected MCP servers."
+      "why_it_matters": "Current public MCP 2026-07-28 revision. The current MCP authorization specification requires protected resource metadata, OAuth 2.1 alignment, resource indicators, and token audience validation, and delegates PKCE, token-theft, mix-up, confused-deputy, and token-passthrough requirements to its normative Security Considerations page."
+    },
+    {
+      "id": "mcp-authorization-security-considerations-2026-07-28",
+      "name": "Model Context Protocol Authorization Security Considerations (2026-07-28)",
+      "publisher": "Model Context Protocol",
+      "published": "2026-07-28",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization/security-considerations",
+      "source_class": "protocol_specification",
+      "why_it_matters": "Normative token audience binding (RFC 8707), token theft, communication security, authorization-code protection (PKCE), mix-up and confused-deputy, open redirection, and Client ID Metadata Document security for incident triage of MCP token misuse."
     },
     {
       "id": "mcp-authorization-2025-11-25",
@@ -156,7 +183,7 @@
       "name": "Model Context Protocol Security Best Practices (2026-07-28 current revision)",
       "publisher": "Model Context Protocol",
       "published": "2026-07-28",
-      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices",
+      "url": "https://modelcontextprotocol.io/docs/2026-07-28/tutorials/security/security_best_practices",
       "source_class": "protocol_guidance",
       "why_it_matters": "Current MCP 2026-07-28 security guidance replaces session-hijacking assumptions with state-handle binding, forbids token passthrough, requires confused-deputy consent on proxies, and tightens SSRF controls during metadata and Client ID Metadata Document fetches."
     },
@@ -165,7 +192,7 @@
       "name": "Model Context Protocol Security Best Practices (2025-06-18 prior revision)",
       "publisher": "Model Context Protocol",
       "published": "2025-06-18",
-      "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices",
+      "url": "https://modelcontextprotocol.io/docs/2025-06-18/tutorials/security/security_best_practices",
       "source_class": "protocol_guidance",
       "why_it_matters": "Prior MCP security-best-practices revision kept as a historical source ID. Session-hijacking guidance applies only to 2025-11-25 and earlier protocol versions; prefer the 2026-07-28 state-handle controls."
     },
@@ -177,6 +204,15 @@
       "url": "https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation",
       "source_class": "government_security_signal",
       "why_it_matters": "NIST warns that agent rollouts are repeating IAM mistakes: shared human credentials, long-lived API keys and bearer tokens, overly broad access, local user-account impersonation, and over-reliance on human-in-the-loop approvals."
+    },
+    {
+      "id": "nist-agentic-identity-design-tenets-2026",
+      "name": "Design Tenets for Agent Identity Management Systems",
+      "publisher": "NIST",
+      "published": "2026-10-27",
+      "url": "https://www.nist.gov/blogs/cybersecurity-insights/design-tenets-agent-identity-management-systems",
+      "source_class": "government_security_signal",
+      "why_it_matters": "NIST's October 27, 2026 design tenets require cryptographically verifiable agent identities distinct from humans and service accounts, attenuated sub-agent delegation so downstream entities cannot claim more authority than the parent, zero standing privilege, short-lived audience-specific grants, signed mandate statements, architectural separation of policy from reasoning, deterministic access decisions, consent-fatigue-aware HITL thresholds, continuous monitoring, and independent append-only evidence."
     },
     {
       "id": "openai-prompt-injections-2025",
@@ -222,6 +258,15 @@
       "url": "https://cloudsecurityalliance.org/press-releases/2026/04/29/csai-foundation-announces-key-milestones-to-secure-the-agentic-control-plane",
       "source_class": "industry_standard",
       "why_it_matters": "CSA's 2026 catastrophic-risk work makes loss of human oversight, uncontrolled system behavior, and irreversible large-scale consequences explicit buyer and auditor concerns for agentic AI."
+    },
+    {
+      "id": "cisa-careful-adoption-agentic-ai-2026",
+      "name": "Careful Adoption of Agentic AI Services",
+      "publisher": "CISA, ASD's ACSC, NSA, Canadian Cyber Centre, NCSC-NZ, NCSC-UK",
+      "published": "2026-05-01",
+      "url": "https://www.cisa.gov/resources-tools/resources/careful-adoption-agentic-si-services",
+      "source_class": "government_framework",
+      "why_it_matters": "May 1, 2026 joint guidance: expanded attack surface, privilege creep, behavioral misalignment and obscure event records; avoid broad or unrestricted access, start with low-risk non-sensitive use cases, and account for agentic AI in the security model and risk posture."
     }
   ],
   "capabilities": [
@@ -647,8 +692,9 @@
       "source_ids": [
         "owasp-agentic-top-10-2026",
         "owasp-agentic-threats-2025",
-        "owasp-securing-agentic-apps-2025",
-        "owasp-genai-exploit-roundup-q1-2026"
+        "owasp-securing-agentic-apps-v2-2026",
+        "owasp-genai-exploit-roundup-q3-2026",
+        "owasp-llm-top-10-2026"
       ],
       "buyer_question": "Can SecurityRecipes map every major agentic application risk to concrete evidence, runtime checks, and MCP tools?",
       "minimum_required_controls": 10,
@@ -793,7 +839,8 @@
         "mcp-authorization-2026-07-28",
         "mcp-authorization-2025-11-25",
         "mcp-security-best-practices-2026-07-28",
-        "mcp-security-best-practices-2025"
+        "mcp-security-best-practices-2025",
+        "mcp-authorization-security-considerations-2026-07-28"
       ],
       "buyer_question": "Can protected MCP calls enforce identity, audience, resource, scope, sandbox, and state-handle binding requirements before tool execution?",
       "minimum_required_controls": 6,
@@ -895,23 +942,24 @@
         "nist-caisi-ai-agent-security-rfi-2026",
         "nist-ai-rmf-2026",
         "nist-ai-600-1",
-        "nist-agentic-identity-foundation-2026"
+        "nist-agentic-identity-foundation-2026",
+        "nist-agentic-identity-design-tenets-2026"
       ],
       "buyer_question": "Can SecurityRecipes show governance, measurement, identity, data, and lifecycle evidence for deployed agent systems?",
-      "minimum_required_controls": 5,
+      "minimum_required_controls": 8,
       "controls": [
         {
           "id": "NIST-AGENT-01",
           "title": "Agent Identity and Interoperable Protocols",
-          "objective": "Support secure human-agent and multi-agent interactions through identity, authentication, and protocol-boundary evidence.",
+          "objective": "Support secure human-agent and multi-agent interactions through cryptographically verifiable agent identities distinct from humans and service accounts, authentication, and protocol-boundary evidence.",
           "required_capability_ids": [
             "agent-handoff-boundary-pack",
             "agent-identity-ledger",
             "mcp-authorization-conformance",
             "agentic-system-bom"
           ],
-          "diligence_question": "Can the buyer inspect which agent identity acted across MCP and agent-to-agent boundaries?",
-          "evidence_expectation": "Handoff, identity, authorization, and BOM evidence show agent identity, protocol, capability, and resource boundaries."
+          "diligence_question": "Can the buyer inspect which unique agent identity acted across MCP and agent-to-agent boundaries, rather than a borrowed human or service-account credential?",
+          "evidence_expectation": "Handoff, identity, authorization, and BOM evidence show a distinct agent identity lifecycle, protocol, capability, and resource boundaries."
         },
         {
           "id": "NIST-AGENT-02",
@@ -964,6 +1012,45 @@
           ],
           "diligence_question": "How does SecurityRecipes know which data and third-party components shaped an agent run?",
           "evidence_expectation": "Trust, attestation, poisoning, and BOM evidence provide source hashes, owners, freshness, connector components, and drift triggers."
+        },
+        {
+          "id": "NIST-AGENT-06",
+          "title": "Attenuated Delegation and Zero Standing Privilege",
+          "objective": "Bound sub-agent and downstream grants so they cannot claim more authority than the parent, and require idle agents to hold no persistent rights.",
+          "required_capability_ids": [
+            "agent-identity-ledger",
+            "agentic-entitlement-review-pack",
+            "agent-trust-fabric",
+            "mcp-authorization-conformance"
+          ],
+          "diligence_question": "What stops a sub-agent from inheriting parent-wide scope or an idle agent from retaining standing privilege?",
+          "evidence_expectation": "Identity, entitlement, trust-fabric, and authorization evidence show attenuated delegated scopes, lease TTLs, idle-privilege revocation, resource indicators, and denied privilege paths."
+        },
+        {
+          "id": "NIST-AGENT-07",
+          "title": "Signed Mandates and Deterministic Policy Separation",
+          "objective": "Require cryptographically signed mandate statements for high-impact tasks, keep policy enforcement architecturally separate from the reasoning model, and make access decisions deterministic rather than model-granted.",
+          "required_capability_ids": [
+            "agentic-action-runtime-pack",
+            "mcp-gateway-policy",
+            "agent-trust-fabric",
+            "agentic-approval-receipt-pack"
+          ],
+          "diligence_question": "Can a buyer prove the reasoning model cannot expand permissions, and that high-impact work has a signed mandate plus a deterministic allow, hold, deny, or kill decision?",
+          "evidence_expectation": "Action-runtime, gateway, trust-fabric, and approval-receipt evidence show mandate or approval records, policy hashes, runtime decisions, and a separated policy path that does not let the model grant access."
+        },
+        {
+          "id": "NIST-AGENT-08",
+          "title": "Independent Append-Only Evidence and Risk-Threshold HITL",
+          "objective": "Keep identity, delegated intent, and action evidence on an agent-independent append-only chain, and trigger human review at defined risk thresholds without consent-fatigue defaults.",
+          "required_capability_ids": [
+            "agentic-run-receipt-pack",
+            "agentic-telemetry-contract",
+            "agentic-approval-receipt-pack",
+            "agentic-catastrophic-risk-annex"
+          ],
+          "diligence_question": "What prevents an agent from writing or modifying its own evidence, and how are high-impact HITL triggers bounded so reviewers do not rubber-stamp?",
+          "evidence_expectation": "Run receipts, telemetry, approval receipts, and the catastrophic-risk annex show independent evidence paths, append-only receipts, approval bounds, risk thresholds, and hold or kill decisions when evidence is agent-writable or HITL is missing."
         }
       ]
     },

@@ -88,18 +88,60 @@
   "freshness_summary": {
     "failure_count": 0,
     "freshness_class_counts": {
-      "current_reference": 23,
-      "recent_signal": 10,
-      "standing_reference": 12,
-      "undated_review_required": 5
+      "current_reference": 25,
+      "recent_signal": 18,
+      "standing_reference": 10,
+      "undated_review_required": 6
     },
     "newest_sources": [
       {
+        "id": "owasp-securing-agentic-apps-v2-2026",
+        "name": "Securing Agentic Applications V2: A Builder & Defender's Guide",
+        "published": "2026-11-10",
+        "publisher_family": "OWASP",
+        "url": "https://genai.owasp.org/resource/securing-agentic-applications-v2/"
+      },
+      {
+        "id": "nist-agentic-identity-design-tenets-2026",
+        "name": "Design Tenets for Agent Identity Management Systems",
+        "published": "2026-10-27",
+        "publisher_family": "NIST",
+        "url": "https://www.nist.gov/blogs/cybersecurity-insights/design-tenets-agent-identity-management-systems"
+      },
+      {
+        "id": "nist-caissi-si-incident-readiness-2026",
+        "name": "Key Practices for Incident Readiness and Response in Super Intelligence Training and Evaluation",
+        "published": "2026-10-16",
+        "publisher_family": "NIST",
+        "url": "https://www.nist.gov/news-events/news/2026/10/key-practices-incident-readiness-and-response-super-intelligence-training"
+      },
+      {
+        "id": "owasp-genai-exploit-roundup-q3-2026",
+        "name": "GenAI and Agentic AI Exploit Roundup Q3 2026",
+        "published": "2026-10-08",
+        "publisher_family": "OWASP",
+        "url": "https://genai.owasp.org/2026/10/08/genai-and-agentic-ai-exploit-roundup-q3-2026/"
+      },
+      {
         "id": "nist-nccoe-agentic-identity-comments-2026",
-        "name": "Summary of Comments on the Software and Agentic AI Identity and Authorization Concept Paper",
+        "name": "Summary of Comments on the Concept Paper (NCCoE Software and SI Agent Identity and Authorization)",
         "published": "2026-09-29",
         "publisher_family": "NIST",
         "url": "https://pages.nist.gov/nccoe-ai-identity/summary-of-comments.html"
+      },
+      {
+        "id": "owasp-agent-control-standard-2026",
+        "name": "Agent Control Standard (ACS)",
+        "published": "2026-09-01",
+        "publisher_family": "OWASP",
+        "url": "https://genai.owasp.org/resource/agent-control-standard-acs/"
+      },
+      {
+        "id": "owasp-genai-framework-crosswalk-2026",
+        "name": "GenAI Security Industry Framework Crosswalk",
+        "published": "2026-09-01",
+        "publisher_family": "OWASP",
+        "url": "https://genai.owasp.org/resource/genai-security-industry-framework-crosswalk/"
       },
       {
         "id": "nist-agentic-identity-foundation-2026",
@@ -107,48 +149,6 @@
         "published": "2026-08-27",
         "publisher_family": "NIST",
         "url": "https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation"
-      },
-      {
-        "id": "mcp-authorization-2026-07-28",
-        "name": "Model Context Protocol Authorization Specification (2026-07-28 current revision)",
-        "published": "2026-07-28",
-        "publisher_family": "Model Context Protocol",
-        "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization"
-      },
-      {
-        "id": "mcp-security-best-practices-2026-07-28",
-        "name": "Model Context Protocol Security Best Practices (2026-07-28 current revision)",
-        "published": "2026-07-28",
-        "publisher_family": "Model Context Protocol",
-        "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices"
-      },
-      {
-        "id": "mcp-subscriptions-listen-2026-07-28",
-        "name": "MCP Subscriptions Pattern (2026-07-28 current revision)",
-        "published": "2026-07-28",
-        "publisher_family": "Model Context Protocol",
-        "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/patterns/subscriptions"
-      },
-      {
-        "id": "mcp-server-discover-2026-07-28",
-        "name": "MCP server/discover (2026-07-28 current revision)",
-        "published": "2026-07-28",
-        "publisher_family": "Model Context Protocol",
-        "url": "https://modelcontextprotocol.io/specification/2026-07-28/server/discover"
-      },
-      {
-        "id": "mcp-caching-2026-07-28",
-        "name": "MCP Caching (2026-07-28 current revision)",
-        "published": "2026-07-28",
-        "publisher_family": "Model Context Protocol",
-        "url": "https://modelcontextprotocol.io/specification/2026-07-28/server/utilities/caching"
-      },
-      {
-        "id": "mcp-sampling-2026-07-28",
-        "name": "MCP Sampling (2026-07-28 current revision)",
-        "published": "2026-07-28",
-        "publisher_family": "Model Context Protocol",
-        "url": "https://modelcontextprotocol.io/specification/2026-07-28/client/sampling"
       }
     ],
     "primary_watchlist_count": 10,
@@ -156,41 +156,39 @@
     "publisher_family_counts": {
       "A2A": 2,
       "Anthropic": 1,
-      "CISA": 3,
+      "CISA": 4,
       "Cloud Security Alliance": 6,
       "Linux Foundation": 1,
       "Microsoft": 1,
-      "Model Context Protocol": 12,
-      "NIST": 6,
-      "OWASP": 7,
+      "Model Context Protocol": 13,
+      "NIST": 9,
+      "OWASP": 10,
       "OpenAI": 5,
       "OpenTelemetry": 1,
-      "Unknown": 5
+      "Unknown": 6
     },
     "source_class_counts": {
       "frontier_lab_guidance": 6,
-      "government_framework": 4,
-      "government_guidance": 3,
-      "government_security_signal": 2,
-      "incident_intelligence": 1,
-      "industry_framework": 1,
-      "industry_guidance": 3,
-      "industry_standard": 8,
+      "government_framework": 5,
+      "government_guidance": 4,
+      "government_security_signal": 4,
+      "industry_framework": 2,
+      "industry_guidance": 4,
+      "industry_standard": 10,
       "observability_standard": 1,
       "protocol_guidance": 3,
-      "protocol_specification": 12,
-      "unknown": 5,
+      "protocol_specification": 13,
+      "unknown": 6,
       "vendor_architecture_guidance": 1
     },
     "status": "source_freshness_ready",
-    "unique_source_reference_count": 50,
+    "unique_source_reference_count": 59,
     "watch_decision_counts": {
-      "current": 4,
-      "review_due": 5
+      "current": 9
     },
     "watch_source_count": 9
   },
-  "generated_at": "2026-11-08",
+  "generated_at": "2026-11-12",
   "intent": "Create a buyer-grade source freshness and standards-drift watch for SecurityRecipes so the secure context layer can prove that agentic AI, MCP, A2A, prompt-injection, and AI data-security guidance is monitored, reviewed, and regenerated as evidence instead of treated as static documentation.",
   "positioning": {
     "buyer": "AI platform, product security, AppSec, GRC, vendor-risk, procurement security, model-risk, and acquisition diligence teams",
@@ -265,12 +263,8 @@
       "title": "NIST AI Agent Standards Initiative",
       "url": "https://www.nist.gov/artificial-intelligence/ai-agent-standards-initiative",
       "watched_source_ids": [
-        "agent-trust-fabric-profile",
         "agentic-catastrophic-risk-annex",
-        "agentic-incident-response-profile",
-        "agentic-protocol-conformance-profile",
-        "agentic-standards-crosswalk-profile",
-        "agentic-threat-radar-sources"
+        "agentic-protocol-conformance-profile"
       ]
     },
     {
@@ -388,7 +382,7 @@
   "source_artifacts": {
     "agent-trust-fabric-profile": {
       "path": "data/assurance/agent-trust-fabric-profile.json",
-      "sha256": "8ce5d9764b7a56e4340ad443f85a7a351a3b68aeabb3725acc92732ebac3a1bd"
+      "sha256": "f2ab998f8da24106f29d62d913e4ae6ef715cb41566265776224151f77dd43f1"
     },
     "agentic-catastrophic-risk-annex": {
       "path": "data/assurance/agentic-catastrophic-risk-annex.json",
@@ -396,7 +390,7 @@
     },
     "agentic-incident-response-profile": {
       "path": "data/assurance/agentic-incident-response-profile.json",
-      "sha256": "00184ee0befde9b4d841e0c923d10007790c5c20b90378b82e7c16ace185b38a"
+      "sha256": "2428c0b32bcb984586a7f87c0e2f840f76311172cd34669297fcd8aee8aaa8f0"
     },
     "agentic-protocol-conformance-profile": {
       "path": "data/assurance/agentic-protocol-conformance-profile.json",
@@ -404,11 +398,11 @@
     },
     "agentic-standards-crosswalk-profile": {
       "path": "data/assurance/agentic-standards-crosswalk.json",
-      "sha256": "81c14fffbb117b4e4b78e5e8837092e8b64d8164c2d45e8e3d691da43750dbf5"
+      "sha256": "358ca9f1189ebb7d108afc3da58125529670bdbf16c1b9b4fb0cf769d2b34df3"
     },
     "agentic-threat-radar-sources": {
       "path": "data/intelligence/agentic-threat-radar-sources.json",
-      "sha256": "0047c90b78bda656dc46afaa590f44c77503158558e977478fd220a7747cf4bf"
+      "sha256": "688ff2394b9065a206ea7b65758ab48257cdbca56a6a3a09ea139f099db6f466"
     },
     "agentic_source_freshness_profile": {
       "path": "data/assurance/agentic-source-freshness-profile.json",
@@ -416,15 +410,15 @@
     },
     "mcp-authorization-conformance-profile": {
       "path": "data/assurance/mcp-authorization-conformance-profile.json",
-      "sha256": "63fbcdad3da1f9d54899cada5d12d885ec7709bdc63c116b73bb0904658bc44d"
+      "sha256": "88dec9ef254091eaef4d4340e080ec3770a129a116aa61f2c433d409cdc1bffe"
     },
     "mcp-risk-coverage-profile": {
       "path": "data/assurance/mcp-risk-coverage-profile.json",
-      "sha256": "37ca519e235987167dd87ed88b191241a0512ce94e82839981d59562834bc52c"
+      "sha256": "aea2f5d8ed6205c3523c73901e9d8a4131b62828f139c3232a3b3ca3c9efa5a2"
     },
     "secure-context-release-profile": {
       "path": "data/context/secure-context-release-profile.json",
-      "sha256": "e0191fd38c93ff958b81e3741b116b81f0be27b3602071160b65246a7c67ee72"
+      "sha256": "ffdbf6bb08187a736bdaf98957f9e84fae5fd3ecda3da07aee2f15fd105b357f"
     }
   },
   "source_catalog": [
@@ -433,7 +427,7 @@
       "id": "a2a-enterprise-ready-2026",
       "name": "A2A Enterprise Implementation Guidance",
       "published": "2026",
-      "published_age_days": 311,
+      "published_age_days": 315,
       "published_date": "2026-01-01",
       "publisher": "Agent2Agent Protocol",
       "publisher_family": "A2A",
@@ -454,7 +448,7 @@
       "id": "a2a-protocol-latest",
       "name": "Agent2Agent Protocol Specification",
       "published": "2026-04-17",
-      "published_age_days": 205,
+      "published_age_days": 209,
       "published_date": "2026-04-17",
       "publisher": "A2A Project",
       "publisher_family": "A2A",
@@ -475,7 +469,7 @@
       "id": "anthropic-browser-prompt-injection-2025",
       "name": "Mitigating the risk of prompt injections in browser use",
       "published": "2025-11-24",
-      "published_age_days": 349,
+      "published_age_days": 353,
       "published_date": "2025-11-24",
       "publisher": "Anthropic",
       "publisher_family": "Anthropic",
@@ -496,7 +490,7 @@
       "id": "cisa-ai-data-security-2025",
       "name": "AI Data Security: Best Practices for Securing Data Used to Train and Operate AI Systems",
       "published": "2025-05-22",
-      "published_age_days": 535,
+      "published_age_days": 539,
       "published_date": "2025-05-22",
       "publisher": "CISA, NSA, FBI, and international partners",
       "publisher_family": "CISA",
@@ -527,7 +521,7 @@
       "id": "cisa-secure-by-design",
       "name": "CISA Secure by Design",
       "published": "2023",
-      "published_age_days": 1407,
+      "published_age_days": 1411,
       "published_date": "2023-01-01",
       "publisher": "CISA",
       "publisher_family": "CISA",
@@ -549,11 +543,47 @@
       "why_it_matters": "CISA's secure-by-design framing reinforces that producers should own security outcomes, ship safe defaults, and reduce the security burden on users and downstream customers."
     },
     {
+      "freshness_class": "current_reference",
+      "id": "cisa-careful-adoption-agentic-ai-2026",
+      "name": "Careful Adoption of Agentic AI Services",
+      "published": "2026-05-01",
+      "published_age_days": 195,
+      "published_date": "2026-05-01",
+      "publisher": "CISA, ASD's ACSC, NSA, Canadian Cyber Centre, NCSC-NZ, NCSC-UK",
+      "publisher_family": "CISA",
+      "referenced_by": [
+        {
+          "path": "data/intelligence/agentic-threat-radar-sources.json",
+          "watched_source_id": "agentic-threat-radar-sources",
+          "watched_source_title": "Agentic Threat Radar Sources"
+        },
+        {
+          "path": "data/assurance/agentic-standards-crosswalk.json",
+          "watched_source_id": "agentic-standards-crosswalk-profile",
+          "watched_source_title": "Agentic Standards Crosswalk Profile"
+        },
+        {
+          "path": "data/assurance/agentic-incident-response-profile.json",
+          "watched_source_id": "agentic-incident-response-profile",
+          "watched_source_title": "Agentic Incident Response Profile"
+        },
+        {
+          "path": "data/assurance/agent-trust-fabric-profile.json",
+          "watched_source_id": "agent-trust-fabric-profile",
+          "watched_source_title": "Agent Trust Fabric Profile"
+        }
+      ],
+      "source_class": "government_guidance",
+      "source_class_family": "government",
+      "url": "https://www.cisa.gov/resources-tools/resources/careful-adoption-agentic-si-services",
+      "why_it_matters": "May 1, 2026 joint guidance: expanded attack surface, privilege creep, behavioral misalignment and obscure event records; avoid broad or unrestricted access, start with low-risk non-sensitive use cases, and account for agentic AI in the security model and risk posture."
+    },
+    {
       "freshness_class": "standing_reference",
       "id": "cisa-secure-by-design-ai",
       "name": "Software Must Be Secure by Design, and Artificial Intelligence Is No Exception",
       "published": "2023-08-18",
-      "published_age_days": 1178,
+      "published_age_days": 1182,
       "published_date": "2023-08-18",
       "publisher": "CISA",
       "publisher_family": "CISA",
@@ -570,12 +600,12 @@
       "why_it_matters": "CISA argues that AI is software and should inherit secure-by-design defaults, lifecycle security, transparency, vulnerability handling, SBOM-style accountability, and privacy by default."
     },
     {
-      "freshness_class": "standing_reference",
+      "freshness_class": "current_reference",
       "id": "csa-ai-controls-matrix-2025",
-      "name": "AI Controls Matrix",
-      "published": "2025-10-30",
-      "published_age_days": 374,
-      "published_date": "2025-10-30",
+      "name": "AI Controls Matrix v1.1",
+      "published": "2026-06-22",
+      "published_age_days": 143,
+      "published_date": "2026-06-22",
       "publisher": "Cloud Security Alliance",
       "publisher_family": "Cloud Security Alliance",
       "referenced_by": [
@@ -597,15 +627,15 @@
       ],
       "source_class": "industry_standard",
       "source_class_family": "industry",
-      "url": "https://cloudsecurityalliance.org/artifacts/ai-controls-matrix",
-      "why_it_matters": "CSA's AI Controls Matrix gives enterprises a vendor-agnostic control set across AI governance, lifecycle, supply chain, data, monitoring, and shared-responsibility domains, with mappings to NIST AI 600-1, ISO 42001, ISO 27001, and BSI AIC4."
+      "url": "https://cloudsecurityalliance.org/artifacts/ai-controls-matrix-v1-1",
+      "why_it_matters": "CSA's AI Controls Matrix v1.1 gives enterprises 247 vendor-agnostic control objectives across 18 security domains, with mappings to ISO 42001, ISO 27001, BSI AIC4, the EU AI Act, AIUC-1, and NIST AI RMF and AI 600-1."
     },
     {
       "freshness_class": "current_reference",
       "id": "csa-agentic-trust-framework-2026",
       "name": "ATF: Zero Trust for AI Agents",
       "published": "2026-04-03",
-      "published_age_days": 219,
+      "published_age_days": 223,
       "published_date": "2026-04-03",
       "publisher": "Cloud Security Alliance",
       "publisher_family": "Cloud Security Alliance",
@@ -631,7 +661,7 @@
       "id": "csa-agentic-identity-2025",
       "name": "Agentic AI, MCP, and the Identity Explosion You Cannot Ignore",
       "published": "2025-07-10",
-      "published_age_days": 486,
+      "published_age_days": 490,
       "published_date": "2025-07-10",
       "publisher": "Cloud Security Alliance",
       "publisher_family": "Cloud Security Alliance",
@@ -652,7 +682,7 @@
       "id": "csa-cbra-agentic-risk-2025",
       "name": "Capabilities-Based Risk Assessment for Agentic AI",
       "published": "2025-11-13",
-      "published_age_days": 360,
+      "published_age_days": 364,
       "published_date": "2025-11-13",
       "publisher": "Cloud Security Alliance",
       "publisher_family": "Cloud Security Alliance",
@@ -673,7 +703,7 @@
       "id": "csa-star-ai-catastrophic-risk-annex-2026",
       "name": "STAR for AI Catastrophic Risk Annex",
       "published": "2026-04-29",
-      "published_age_days": 193,
+      "published_age_days": 197,
       "published_date": "2026-04-29",
       "publisher": "Cloud Security Alliance",
       "publisher_family": "Cloud Security Alliance",
@@ -699,7 +729,7 @@
       "id": "csa-mcp-resource-center-2025",
       "name": "Securing the Agentic AI Control Plane: Announcing the MCP Security Resource Center",
       "published": "2025-08-20",
-      "published_age_days": 445,
+      "published_age_days": 449,
       "published_date": "2025-08-20",
       "publisher": "Cloud Security Alliance",
       "publisher_family": "Cloud Security Alliance",
@@ -720,7 +750,7 @@
       "id": "linux-foundation-a2a-production-2026",
       "name": "A2A Protocol production-ready adoption milestone",
       "published": "2026-04-09",
-      "published_age_days": 213,
+      "published_age_days": 217,
       "published_date": "2026-04-09",
       "publisher": "Linux Foundation",
       "publisher_family": "Linux Foundation",
@@ -741,7 +771,7 @@
       "id": "microsoft-indirect-prompt-injection-2026",
       "name": "Defend against indirect prompt injection attacks",
       "published": "2026-03-24",
-      "published_age_days": 229,
+      "published_age_days": 233,
       "published_date": "2026-03-24",
       "publisher": "Microsoft Learn",
       "publisher_family": "Microsoft",
@@ -762,7 +792,7 @@
       "id": "mcp-caching-2026-07-28",
       "name": "MCP Caching (2026-07-28 current revision)",
       "published": "2026-07-28",
-      "published_age_days": 103,
+      "published_age_days": 107,
       "published_date": "2026-07-28",
       "publisher": "Model Context Protocol",
       "publisher_family": "Model Context Protocol",
@@ -783,7 +813,7 @@
       "id": "mcp-deprecated-features-2026-07-28",
       "name": "MCP Deprecated Features Registry (2026-07-28 current revision)",
       "published": "2026-07-28",
-      "published_age_days": 103,
+      "published_age_days": 107,
       "published_date": "2026-07-28",
       "publisher": "Model Context Protocol",
       "publisher_family": "Model Context Protocol",
@@ -804,7 +834,7 @@
       "id": "mcp-sampling-2026-07-28",
       "name": "MCP Sampling (2026-07-28 current revision)",
       "published": "2026-07-28",
-      "published_age_days": 103,
+      "published_age_days": 107,
       "published_date": "2026-07-28",
       "publisher": "Model Context Protocol",
       "publisher_family": "Model Context Protocol",
@@ -825,7 +855,7 @@
       "id": "mcp-spec-changelog-2025-11-25",
       "name": "MCP Specification Changelog",
       "published": "2025-11-25",
-      "published_age_days": 348,
+      "published_age_days": 352,
       "published_date": "2025-11-25",
       "publisher": "Model Context Protocol",
       "publisher_family": "Model Context Protocol",
@@ -851,7 +881,7 @@
       "id": "mcp-spec-changelog-2026-07-28",
       "name": "MCP Specification Changelog (2026-07-28 current revision)",
       "published": "2026-07-28",
-      "published_age_days": 103,
+      "published_age_days": 107,
       "published_date": "2026-07-28",
       "publisher": "Model Context Protocol",
       "publisher_family": "Model Context Protocol",
@@ -877,7 +907,7 @@
       "id": "mcp-subscriptions-listen-2026-07-28",
       "name": "MCP Subscriptions Pattern (2026-07-28 current revision)",
       "published": "2026-07-28",
-      "published_age_days": 103,
+      "published_age_days": 107,
       "published_date": "2026-07-28",
       "publisher": "Model Context Protocol",
       "publisher_family": "Model Context Protocol",
@@ -898,7 +928,7 @@
       "id": "mcp-server-discover-2026-07-28",
       "name": "MCP server/discover (2026-07-28 current revision)",
       "published": "2026-07-28",
-      "published_age_days": 103,
+      "published_age_days": 107,
       "published_date": "2026-07-28",
       "publisher": "Model Context Protocol",
       "publisher_family": "Model Context Protocol",
@@ -915,11 +945,47 @@
       "why_it_matters": "MCP 2026-07-28 requires servers to implement server/discover to advertise supported versions, capabilities, and identity. serverInfo is self-reported and must not change client behavior or drive security decisions. Dual-era stdio clients should probe with server/discover before falling back to initialize."
     },
     {
+      "freshness_class": "recent_signal",
+      "id": "mcp-authorization-security-considerations-2026-07-28",
+      "name": "Model Context Protocol Authorization Security Considerations (2026-07-28)",
+      "published": "2026-07-28",
+      "published_age_days": 107,
+      "published_date": "2026-07-28",
+      "publisher": "Model Context Protocol",
+      "publisher_family": "Model Context Protocol",
+      "referenced_by": [
+        {
+          "path": "data/assurance/agentic-standards-crosswalk.json",
+          "watched_source_id": "agentic-standards-crosswalk-profile",
+          "watched_source_title": "Agentic Standards Crosswalk Profile"
+        },
+        {
+          "path": "data/assurance/mcp-risk-coverage-profile.json",
+          "watched_source_id": "mcp-risk-coverage-profile",
+          "watched_source_title": "MCP and Agentic Skills Risk Coverage Profile"
+        },
+        {
+          "path": "data/assurance/mcp-authorization-conformance-profile.json",
+          "watched_source_id": "mcp-authorization-conformance-profile",
+          "watched_source_title": "MCP Authorization Conformance Profile"
+        },
+        {
+          "path": "data/assurance/agentic-incident-response-profile.json",
+          "watched_source_id": "agentic-incident-response-profile",
+          "watched_source_title": "Agentic Incident Response Profile"
+        }
+      ],
+      "source_class": "protocol_specification",
+      "source_class_family": "protocol",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization/security-considerations",
+      "why_it_matters": "Normative token audience binding (RFC 8707), token theft, communication security, authorization-code protection (PKCE), mix-up and confused-deputy, open redirection, and Client ID Metadata Document security for incident triage of MCP token misuse."
+    },
+    {
       "freshness_class": "current_reference",
       "id": "mcp-authorization-2025-11-25",
       "name": "Model Context Protocol Authorization Specification",
       "published": "2025-11-25",
-      "published_age_days": 348,
+      "published_age_days": 352,
       "published_date": "2025-11-25",
       "publisher": "Model Context Protocol",
       "publisher_family": "Model Context Protocol",
@@ -980,7 +1046,7 @@
       "id": "mcp-authorization-2026-07-28",
       "name": "Model Context Protocol Authorization Specification (2026-07-28 current revision)",
       "published": "2026-07-28",
-      "published_age_days": 103,
+      "published_age_days": 107,
       "published_date": "2026-07-28",
       "publisher": "Model Context Protocol",
       "publisher_family": "Model Context Protocol",
@@ -1041,7 +1107,7 @@
       "id": "mcp-security-best-practices-2025",
       "name": "Model Context Protocol Security Best Practices (2025-06-18 prior revision)",
       "published": "2025-06-18",
-      "published_age_days": 508,
+      "published_age_days": 512,
       "published_date": "2025-06-18",
       "publisher": "Model Context Protocol",
       "publisher_family": "Model Context Protocol",
@@ -1074,7 +1140,7 @@
       ],
       "source_class": "protocol_guidance",
       "source_class_family": "protocol",
-      "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices",
+      "url": "https://modelcontextprotocol.io/docs/2025-06-18/tutorials/security/security_best_practices",
       "why_it_matters": "Prior MCP security-best-practices revision kept as a historical source ID. Session-hijacking guidance applies only to 2025-11-25 and earlier protocol versions; prefer the 2026-07-28 state-handle controls."
     },
     {
@@ -1082,7 +1148,7 @@
       "id": "mcp-security-best-practices-2026-07-28",
       "name": "Model Context Protocol Security Best Practices (2026-07-28 current revision)",
       "published": "2026-07-28",
-      "published_age_days": 103,
+      "published_age_days": 107,
       "published_date": "2026-07-28",
       "publisher": "Model Context Protocol",
       "publisher_family": "Model Context Protocol",
@@ -1113,11 +1179,6 @@
           "watched_source_title": "Secure Context Release Profile"
         },
         {
-          "path": "data/assurance/agentic-catastrophic-risk-annex.json",
-          "watched_source_id": "agentic-catastrophic-risk-annex",
-          "watched_source_title": "Agentic Catastrophic Risk Annex"
-        },
-        {
           "path": "data/assurance/agentic-incident-response-profile.json",
           "watched_source_id": "agentic-incident-response-profile",
           "watched_source_title": "Agentic Incident Response Profile"
@@ -1130,7 +1191,7 @@
       ],
       "source_class": "protocol_guidance",
       "source_class_family": "protocol",
-      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices",
+      "url": "https://modelcontextprotocol.io/docs/2026-07-28/tutorials/security/security_best_practices",
       "why_it_matters": "Current MCP 2026-07-28 security guidance replaces session-hijacking assumptions with state-handle binding, forbids token passthrough, requires confused-deputy consent on proxies, and tightens SSRF controls during metadata and Client ID Metadata Document fetches."
     },
     {
@@ -1138,7 +1199,7 @@
       "id": "mcp-tool-annotations-2026-03-16",
       "name": "Tool annotations in the Model Context Protocol",
       "published": "2026-03-16",
-      "published_age_days": 237,
+      "published_age_days": 241,
       "published_date": "2026-03-16",
       "publisher": "Model Context Protocol",
       "publisher_family": "Model Context Protocol",
@@ -1159,21 +1220,11 @@
       "id": "nist-ai-agent-standards-initiative-2026",
       "name": "AI Agent Standards Initiative",
       "published": "2026-02-17",
-      "published_age_days": 264,
+      "published_age_days": 268,
       "published_date": "2026-02-17",
       "publisher": "NIST",
       "publisher_family": "NIST",
       "referenced_by": [
-        {
-          "path": "data/intelligence/agentic-threat-radar-sources.json",
-          "watched_source_id": "agentic-threat-radar-sources",
-          "watched_source_title": "Agentic Threat Radar Sources"
-        },
-        {
-          "path": "data/assurance/agentic-standards-crosswalk.json",
-          "watched_source_id": "agentic-standards-crosswalk-profile",
-          "watched_source_title": "Agentic Standards Crosswalk Profile"
-        },
         {
           "path": "data/assurance/agentic-protocol-conformance-profile.json",
           "watched_source_id": "agentic-protocol-conformance-profile",
@@ -1183,29 +1234,19 @@
           "path": "data/assurance/agentic-catastrophic-risk-annex.json",
           "watched_source_id": "agentic-catastrophic-risk-annex",
           "watched_source_title": "Agentic Catastrophic Risk Annex"
-        },
-        {
-          "path": "data/assurance/agentic-incident-response-profile.json",
-          "watched_source_id": "agentic-incident-response-profile",
-          "watched_source_title": "Agentic Incident Response Profile"
-        },
-        {
-          "path": "data/assurance/agent-trust-fabric-profile.json",
-          "watched_source_id": "agent-trust-fabric-profile",
-          "watched_source_title": "Agent Trust Fabric Profile"
         }
       ],
       "source_class": "government_framework",
       "source_class_family": "government",
       "url": "https://www.nist.gov/artificial-intelligence/ai-agent-standards-initiative",
-      "why_it_matters": "NIST is explicitly prioritizing interoperable agent standards, community-led protocols, agent authentication, identity infrastructure, and security evaluations for multi-agent systems."
+      "why_it_matters": "NIST is prioritizing interoperable agent standards, agent authentication, identity infrastructure, and security evaluations for human-agent and multi-agent systems."
     },
     {
       "freshness_class": "standing_reference",
       "id": "nist-ai-600-1",
       "name": "Artificial Intelligence Risk Management Framework: Generative Artificial Intelligence Profile",
       "published": "2024-07-26",
-      "published_age_days": 835,
+      "published_age_days": 839,
       "published_date": "2024-07-26",
       "publisher": "NIST",
       "publisher_family": "NIST",
@@ -1251,7 +1292,7 @@
       "id": "nist-agentic-identity-foundation-2026",
       "name": "Back to the Future: Why Agentic AI Needs a Strong Identity Foundation",
       "published": "2026-08-27",
-      "published_age_days": 73,
+      "published_age_days": 77,
       "published_date": "2026-08-27",
       "publisher": "NIST",
       "publisher_family": "NIST",
@@ -1297,7 +1338,7 @@
       "id": "nist-caisi-ai-agent-security-rfi-2026",
       "name": "CAISI Request for Information on Securing AI Agent Systems",
       "published": "2026-01-12",
-      "published_age_days": 300,
+      "published_age_days": 304,
       "published_date": "2026-01-12",
       "publisher": "NIST CAISI",
       "publisher_family": "NIST",
@@ -1334,11 +1375,83 @@
       "why_it_matters": "CAISI highlights risks from model outputs combined with software functionality, including indirect prompt injection, data poisoning, misaligned actions, and the need to constrain and monitor deployment access."
     },
     {
+      "freshness_class": "recent_signal",
+      "id": "nist-agentic-identity-design-tenets-2026",
+      "name": "Design Tenets for Agent Identity Management Systems",
+      "published": "2026-10-27",
+      "published_age_days": 16,
+      "published_date": "2026-10-27",
+      "publisher": "NIST",
+      "publisher_family": "NIST",
+      "referenced_by": [
+        {
+          "path": "data/intelligence/agentic-threat-radar-sources.json",
+          "watched_source_id": "agentic-threat-radar-sources",
+          "watched_source_title": "Agentic Threat Radar Sources"
+        },
+        {
+          "path": "data/assurance/agentic-standards-crosswalk.json",
+          "watched_source_id": "agentic-standards-crosswalk-profile",
+          "watched_source_title": "Agentic Standards Crosswalk Profile"
+        },
+        {
+          "path": "data/assurance/mcp-authorization-conformance-profile.json",
+          "watched_source_id": "mcp-authorization-conformance-profile",
+          "watched_source_title": "MCP Authorization Conformance Profile"
+        },
+        {
+          "path": "data/assurance/agentic-catastrophic-risk-annex.json",
+          "watched_source_id": "agentic-catastrophic-risk-annex",
+          "watched_source_title": "Agentic Catastrophic Risk Annex"
+        },
+        {
+          "path": "data/assurance/agentic-incident-response-profile.json",
+          "watched_source_id": "agentic-incident-response-profile",
+          "watched_source_title": "Agentic Incident Response Profile"
+        },
+        {
+          "path": "data/assurance/agent-trust-fabric-profile.json",
+          "watched_source_id": "agent-trust-fabric-profile",
+          "watched_source_title": "Agent Trust Fabric Profile"
+        }
+      ],
+      "source_class": "government_security_signal",
+      "source_class_family": "government",
+      "url": "https://www.nist.gov/blogs/cybersecurity-insights/design-tenets-agent-identity-management-systems",
+      "why_it_matters": "NIST's October 27, 2026 design tenets, drawn from NCCoE comments and stakeholder engagement, require cryptographically verifiable identities distinct from humans and service accounts, attenuated sub-agent delegation, zero standing privilege, short-lived audience-specific grants, signed mandate statements, architectural separation of policy from reasoning, deterministic access decisions, consent-fatigue-aware HITL thresholds, continuous monitoring, and independent append-only evidence."
+    },
+    {
+      "freshness_class": "recent_signal",
+      "id": "nist-caissi-si-incident-readiness-2026",
+      "name": "Key Practices for Incident Readiness and Response in Super Intelligence Training and Evaluation",
+      "published": "2026-10-16",
+      "published_age_days": 27,
+      "published_date": "2026-10-16",
+      "publisher": "NIST CAISSI / NSA SISC / CISA",
+      "publisher_family": "NIST",
+      "referenced_by": [
+        {
+          "path": "data/intelligence/agentic-threat-radar-sources.json",
+          "watched_source_id": "agentic-threat-radar-sources",
+          "watched_source_title": "Agentic Threat Radar Sources"
+        },
+        {
+          "path": "data/assurance/agentic-incident-response-profile.json",
+          "watched_source_id": "agentic-incident-response-profile",
+          "watched_source_title": "Agentic Incident Response Profile"
+        }
+      ],
+      "source_class": "government_security_signal",
+      "source_class_family": "government",
+      "url": "https://www.nist.gov/news-events/news/2026/10/key-practices-incident-readiness-and-response-super-intelligence-training",
+      "why_it_matters": "NIST CAISSI, NSA SISC, and CISA's October 16, 2026 practices (PP-26-4396 Ver 1.0) require that SI agents cannot access or interfere with monitoring processes and logs (\u00a73.3) and that monitors, logging, egress allowlists, and shutdown mechanisms are verified before resuming agent activity (\u00a77.3)."
+    },
+    {
       "freshness_class": "current_reference",
       "id": "nist-ai-rmf-2026-critical-infrastructure",
       "name": "NIST AI Risk Management Framework",
       "published": "2026-04-07",
-      "published_age_days": 215,
+      "published_age_days": 219,
       "published_date": "2026-04-07",
       "publisher": "NIST",
       "publisher_family": "NIST",
@@ -1370,11 +1483,47 @@
       "why_it_matters": "NIST continues expanding AI RMF work, including a 2026 concept note for trustworthy AI in critical infrastructure, reinforcing governance, measurement, and lifecycle risk management."
     },
     {
+      "freshness_class": "current_reference",
+      "id": "nist-ai-agent-standards-initiative-2026",
+      "name": "SI Agent Standards Initiative",
+      "published": "2026-02-17",
+      "published_age_days": 268,
+      "published_date": "2026-02-17",
+      "publisher": "NIST",
+      "publisher_family": "NIST",
+      "referenced_by": [
+        {
+          "path": "data/intelligence/agentic-threat-radar-sources.json",
+          "watched_source_id": "agentic-threat-radar-sources",
+          "watched_source_title": "Agentic Threat Radar Sources"
+        },
+        {
+          "path": "data/assurance/agentic-standards-crosswalk.json",
+          "watched_source_id": "agentic-standards-crosswalk-profile",
+          "watched_source_title": "Agentic Standards Crosswalk Profile"
+        },
+        {
+          "path": "data/assurance/agentic-incident-response-profile.json",
+          "watched_source_id": "agentic-incident-response-profile",
+          "watched_source_title": "Agentic Incident Response Profile"
+        },
+        {
+          "path": "data/assurance/agent-trust-fabric-profile.json",
+          "watched_source_id": "agent-trust-fabric-profile",
+          "watched_source_title": "Agent Trust Fabric Profile"
+        }
+      ],
+      "source_class": "government_framework",
+      "source_class_family": "government",
+      "url": "https://www.nist.gov/super-intelligence/si-agent-standards-initiative",
+      "why_it_matters": "NIST is explicitly prioritizing interoperable agent standards, community-led protocols, agent authentication, identity infrastructure, and security evaluations for multi-agent systems."
+    },
+    {
       "freshness_class": "recent_signal",
       "id": "nist-nccoe-agentic-identity-comments-2026",
-      "name": "Summary of Comments on the Software and Agentic AI Identity and Authorization Concept Paper",
+      "name": "Summary of Comments on the Concept Paper (NCCoE Software and SI Agent Identity and Authorization)",
       "published": "2026-09-29",
-      "published_age_days": 40,
+      "published_age_days": 44,
       "published_date": "2026-09-29",
       "publisher": "NIST NCCoE",
       "publisher_family": "NIST",
@@ -1406,11 +1555,32 @@
       "why_it_matters": "NCCoE's September 29, 2026 comments summary, drawn from more than 600 responses, says agent identity should reuse OAuth, SPIFFE, and MCP rather than a parallel stack, issue distinct verifiable non-human identities at ephemeral scale, and treat credential sharing and local user impersonation as anti-patterns."
     },
     {
+      "freshness_class": "recent_signal",
+      "id": "owasp-agent-control-standard-2026",
+      "name": "Agent Control Standard (ACS)",
+      "published": "2026-09-01",
+      "published_age_days": 72,
+      "published_date": "2026-09-01",
+      "publisher": "OWASP GenAI Security Project",
+      "publisher_family": "OWASP",
+      "referenced_by": [
+        {
+          "path": "data/intelligence/agentic-threat-radar-sources.json",
+          "watched_source_id": "agentic-threat-radar-sources",
+          "watched_source_title": "Agentic Threat Radar Sources"
+        }
+      ],
+      "source_class": "industry_standard",
+      "source_class_family": "industry",
+      "url": "https://genai.owasp.org/resource/agent-control-standard-acs/",
+      "why_it_matters": "ACS, now part of the OWASP GenAI Security Project, defines how agent platforms expose middleware hooks so declarative safety policies can be enforced at runtime across frameworks."
+    },
+    {
       "freshness_class": "standing_reference",
       "id": "owasp-agentic-threats-2025",
       "name": "Agentic AI Threats and Mitigations",
       "published": "2025-02-17",
-      "published_age_days": 629,
+      "published_age_days": 633,
       "published_date": "2025-02-17",
       "publisher": "OWASP Agentic Security Initiative",
       "publisher_family": "OWASP",
@@ -1432,11 +1602,68 @@
       "why_it_matters": "Threat-model-based agentic AI guidance reinforces that autonomy, tools, delegation, and retrieved context require controls beyond classic LLM app hardening."
     },
     {
+      "freshness_class": "recent_signal",
+      "id": "owasp-genai-framework-crosswalk-2026",
+      "name": "GenAI Security Industry Framework Crosswalk",
+      "published": "2026-09-01",
+      "published_age_days": 72,
+      "published_date": "2026-09-01",
+      "publisher": "OWASP GenAI Security Project",
+      "publisher_family": "OWASP",
+      "referenced_by": [
+        {
+          "path": "data/assurance/agentic-standards-crosswalk.json",
+          "watched_source_id": "agentic-standards-crosswalk-profile",
+          "watched_source_title": "Agentic Standards Crosswalk Profile"
+        }
+      ],
+      "source_class": "industry_framework",
+      "source_class_family": "industry",
+      "url": "https://genai.owasp.org/resource/genai-security-industry-framework-crosswalk/",
+      "why_it_matters": "OWASP's open crosswalk maps 51 GenAI vulnerabilities across four OWASP lists to controls in 25 frameworks, including NIST, ISO, MITRE ATLAS, and the EU AI Act."
+    },
+    {
+      "freshness_class": "recent_signal",
+      "id": "owasp-genai-exploit-roundup-q3-2026",
+      "name": "GenAI and Agentic AI Exploit Roundup Q3 2026",
+      "published": "2026-10-08",
+      "published_age_days": 35,
+      "published_date": "2026-10-08",
+      "publisher": "OWASP GenAI Security Project",
+      "publisher_family": "OWASP",
+      "referenced_by": [
+        {
+          "path": "data/intelligence/agentic-threat-radar-sources.json",
+          "watched_source_id": "agentic-threat-radar-sources",
+          "watched_source_title": "Agentic Threat Radar Sources"
+        },
+        {
+          "path": "data/assurance/agentic-standards-crosswalk.json",
+          "watched_source_id": "agentic-standards-crosswalk-profile",
+          "watched_source_title": "Agentic Standards Crosswalk Profile"
+        },
+        {
+          "path": "data/assurance/mcp-risk-coverage-profile.json",
+          "watched_source_id": "mcp-risk-coverage-profile",
+          "watched_source_title": "MCP and Agentic Skills Risk Coverage Profile"
+        },
+        {
+          "path": "data/context/secure-context-release-profile.json",
+          "watched_source_id": "secure-context-release-profile",
+          "watched_source_title": "Secure Context Release Profile"
+        }
+      ],
+      "source_class": "industry_guidance",
+      "source_class_family": "industry",
+      "url": "https://genai.owasp.org/2026/10/08/genai-and-agentic-ai-exploit-roundup-q3-2026/",
+      "why_it_matters": "OWASP's Q3 2026 roundup records the Deadbugz malicious-MCP distribution campaign as an active attempted supply-chain campaign using MCP server metadata manipulation, with no confirmed compromise, plus evaluation-agent boundary escapes and excess-permission blast-radius incidents."
+    },
+    {
       "freshness_class": "current_reference",
       "id": "owasp-agentic-skills-top-10-2026",
       "name": "OWASP Agentic Skills Top 10",
       "published": "2026",
-      "published_age_days": 311,
+      "published_age_days": 315,
       "published_date": "2026-01-01",
       "publisher": "OWASP Foundation",
       "publisher_family": "OWASP",
@@ -1454,36 +1681,10 @@
     },
     {
       "freshness_class": "current_reference",
-      "id": "owasp-genai-exploit-roundup-q1-2026",
-      "name": "OWASP GenAI Exploit Round-up Report Q1 2026",
-      "published": "2026-04-14",
-      "published_age_days": 208,
-      "published_date": "2026-04-14",
-      "publisher": "OWASP GenAI Security Project",
-      "publisher_family": "OWASP",
-      "referenced_by": [
-        {
-          "path": "data/assurance/agentic-standards-crosswalk.json",
-          "watched_source_id": "agentic-standards-crosswalk-profile",
-          "watched_source_title": "Agentic Standards Crosswalk Profile"
-        },
-        {
-          "path": "data/context/secure-context-release-profile.json",
-          "watched_source_id": "secure-context-release-profile",
-          "watched_source_title": "Secure Context Release Profile"
-        }
-      ],
-      "source_class": "incident_intelligence",
-      "source_class_family": "incident",
-      "url": "https://genai.owasp.org/2026/04/14/owasp-genai-exploit-round-up-report-q1-2026/",
-      "why_it_matters": "Recent exploit reporting ties agent tooling, source leaks, MCP integrations, supply-chain abuse, and RCE patterns to operational mitigations."
-    },
-    {
-      "freshness_class": "current_reference",
       "id": "owasp-agentic-top-10-2026",
       "name": "OWASP Top 10 for Agentic Applications",
       "published": "2025-12-09",
-      "published_age_days": 334,
+      "published_age_days": 338,
       "published_date": "2025-12-09",
       "publisher": "OWASP GenAI Security Project",
       "publisher_family": "OWASP",
@@ -1504,7 +1705,7 @@
       "id": "owasp-agentic-top-10-2026",
       "name": "OWASP Top 10 for Agentic Applications 2026",
       "published": "2025-12-09",
-      "published_age_days": 334,
+      "published_age_days": 338,
       "published_date": "2025-12-09",
       "publisher": "OWASP GenAI Security Project",
       "publisher_family": "OWASP",
@@ -1538,6 +1739,11 @@
           "path": "data/assurance/agentic-incident-response-profile.json",
           "watched_source_id": "agentic-incident-response-profile",
           "watched_source_title": "Agentic Incident Response Profile"
+        },
+        {
+          "path": "data/assurance/agent-trust-fabric-profile.json",
+          "watched_source_id": "agent-trust-fabric-profile",
+          "watched_source_title": "Agent Trust Fabric Profile"
         }
       ],
       "source_class": "industry_standard",
@@ -1546,11 +1752,37 @@
       "why_it_matters": "Peer-reviewed agentic guidance now gives buyers a shared language for autonomous agent risks such as goal hijack, tool misuse, identity abuse, memory poisoning, inter-agent communication, cascading failures, and rogue behavior."
     },
     {
+      "freshness_class": "recent_signal",
+      "id": "owasp-llm-top-10-2026",
+      "name": "OWASP Top 10 for LLM Applications 2026",
+      "published": "2026-08-03",
+      "published_age_days": 101,
+      "published_date": "2026-08-03",
+      "publisher": "OWASP GenAI Security Project",
+      "publisher_family": "OWASP",
+      "referenced_by": [
+        {
+          "path": "data/assurance/agentic-standards-crosswalk.json",
+          "watched_source_id": "agentic-standards-crosswalk-profile",
+          "watched_source_title": "Agentic Standards Crosswalk Profile"
+        },
+        {
+          "path": "data/assurance/mcp-authorization-conformance-profile.json",
+          "watched_source_id": "mcp-authorization-conformance-profile",
+          "watched_source_title": "MCP Authorization Conformance Profile"
+        }
+      ],
+      "source_class": "industry_standard",
+      "source_class_family": "industry",
+      "url": "https://genai.owasp.org/resource/owasp-genai-llm-top-10-2026/",
+      "why_it_matters": "The 2026 edition re-ranks LLM application risks against real-world incident data and maps to NIST, MITRE ATLAS, CWE, and the OWASP Top 10 for Agentic Applications."
+    },
+    {
       "freshness_class": "standing_reference",
       "id": "owasp-mcp-top-10-2025",
       "name": "OWASP Top 10 for Model Context Protocol",
       "published": "2025",
-      "published_age_days": 676,
+      "published_age_days": 680,
       "published_date": "2025-01-01",
       "publisher": "OWASP Foundation",
       "publisher_family": "OWASP",
@@ -1577,12 +1809,12 @@
       "why_it_matters": "MCP-specific risks include token mismanagement, scope creep, tool poisoning, command execution, auth gaps, missing telemetry, shadow servers, and context over-sharing."
     },
     {
-      "freshness_class": "standing_reference",
-      "id": "owasp-securing-agentic-apps-2025",
-      "name": "Securing Agentic Applications Guide 1.0",
-      "published": "2025-07-27",
-      "published_age_days": 469,
-      "published_date": "2025-07-27",
+      "freshness_class": "recent_signal",
+      "id": "owasp-securing-agentic-apps-v2-2026",
+      "name": "Securing Agentic Applications V2: A Builder & Defender's Guide",
+      "published": "2026-11-10",
+      "published_age_days": 2,
+      "published_date": "2026-11-10",
       "publisher": "OWASP GenAI Security Project",
       "publisher_family": "OWASP",
       "referenced_by": [
@@ -1594,15 +1826,15 @@
       ],
       "source_class": "industry_standard",
       "source_class_family": "industry",
-      "url": "https://genai.owasp.org/resource/securing-agentic-applications-guide-1-0/",
-      "why_it_matters": "Practical design and deployment guidance supports translating agentic threats into concrete build, test, deployment, and operations controls."
+      "url": "https://genai.owasp.org/resource/securing-agentic-applications-v2/",
+      "why_it_matters": "OWASP's November 10, 2026 V2 guide covers secure agent architectures, threat mitigation, identity and access controls, runtime protection, supply-chain security, and assurance testing across single- and multi-agent systems, translating agentic threats into build, deploy, and operate controls."
     },
     {
       "freshness_class": "current_reference",
       "id": "openai-agent-prompt-injection-2026",
       "name": "Designing AI agents to resist prompt injection",
       "published": "2026-03-11",
-      "published_age_days": 242,
+      "published_age_days": 246,
       "published_date": "2026-03-11",
       "publisher": "OpenAI",
       "publisher_family": "OpenAI",
@@ -1633,7 +1865,7 @@
       "id": "openai-agents-sdk-guardrails-2026",
       "name": "OpenAI Agents SDK Guardrails",
       "published": "2026-05-04",
-      "published_age_days": 188,
+      "published_age_days": 192,
       "published_date": "2026-05-04",
       "publisher": "OpenAI",
       "publisher_family": "OpenAI",
@@ -1659,7 +1891,7 @@
       "id": "openai-agents-tracing-2026",
       "name": "OpenAI Agents SDK Tracing",
       "published": "2026-05-04",
-      "published_age_days": 188,
+      "published_age_days": 192,
       "published_date": "2026-05-04",
       "publisher": "OpenAI",
       "publisher_family": "OpenAI",
@@ -1680,7 +1912,7 @@
       "id": "openai-agent-safety-2026",
       "name": "Safety in building agents",
       "published": "2026",
-      "published_age_days": 311,
+      "published_age_days": 315,
       "published_date": "2026-01-01",
       "publisher": "OpenAI API",
       "publisher_family": "OpenAI",
@@ -1693,7 +1925,7 @@
       ],
       "source_class": "frontier_lab_guidance",
       "source_class_family": "frontier_lab",
-      "url": "https://platform.openai.com/docs/guides/agent-builder-safety",
+      "url": "https://developers.openai.com/api/docs/guides/agent-builder-safety",
       "why_it_matters": "Agent Builder guidance recommends structured outputs, clear developer guidance, tool approvals, guardrails, trace graders, evals, and careful MCP tool calling."
     },
     {
@@ -1701,7 +1933,7 @@
       "id": "openai-prompt-injections-2025",
       "name": "Understanding prompt injections: a frontier security challenge",
       "published": "2025-11-07",
-      "published_age_days": 366,
+      "published_age_days": 370,
       "published_date": "2025-11-07",
       "publisher": "OpenAI",
       "publisher_family": "OpenAI",
@@ -1727,7 +1959,7 @@
       "id": "opentelemetry-genai-agent-spans-2026",
       "name": "OpenTelemetry GenAI Agent and Framework Spans",
       "published": "2026-05-04",
-      "published_age_days": 188,
+      "published_age_days": 192,
       "published_date": "2026-05-04",
       "publisher": "OpenTelemetry",
       "publisher_family": "OpenTelemetry",
@@ -1740,8 +1972,8 @@
       ],
       "source_class": "observability_standard",
       "source_class_family": "observability_standard",
-      "url": "https://opentelemetry.io/docs/specs/semconv/gen-ai/gen-ai-agent-spans/",
-      "why_it_matters": "OpenTelemetry GenAI conventions provide cross-vendor span names and attributes for agent invocation and tool execution, giving the trust fabric a portable telemetry substrate."
+      "url": "https://github.com/open-telemetry/semantic-conventions-genai/blob/main/docs/gen-ai/gen-ai-agent-spans.md",
+      "why_it_matters": "OpenTelemetry GenAI conventions (now maintained in the semantic-conventions-genai repository, status Development) provide cross-vendor span names and attributes for agent creation, agent invocation, and tool execution, giving the trust fabric a portable telemetry substrate."
     },
     {
       "freshness_class": "undated_review_required",
@@ -1766,8 +1998,8 @@
     },
     {
       "freshness_class": "undated_review_required",
-      "id": "nist-agentic-identity-design-tenets-2026",
-      "name": "Design Tenets for Agent Identity Management Systems",
+      "id": "owasp-genai-data-security-v2-2026",
+      "name": "GenAI Data Security Best Practices v2 \u2013 Part 1",
       "published": null,
       "published_age_days": null,
       "published_date": null,
@@ -1775,20 +2007,15 @@
       "publisher_family": "Unknown",
       "referenced_by": [
         {
-          "path": "data/assurance/agentic-catastrophic-risk-annex.json",
-          "watched_source_id": "agentic-catastrophic-risk-annex",
-          "watched_source_title": "Agentic Catastrophic Risk Annex"
-        },
-        {
-          "path": "data/assurance/agent-trust-fabric-profile.json",
-          "watched_source_id": "agent-trust-fabric-profile",
-          "watched_source_title": "Agent Trust Fabric Profile"
+          "path": "data/context/secure-context-release-profile.json",
+          "watched_source_id": "secure-context-release-profile",
+          "watched_source_title": "Secure Context Release Profile"
         }
       ],
       "source_class": "unknown",
       "source_class_family": "unknown",
-      "url": "https://www.nist.gov/blogs/cybersecurity-insights/design-tenets-agent-identity-management-systems",
-      "why_it_matters": "NIST's October 27, 2026 design tenets require attenuated sub-agent delegation, zero standing privilege, signed mandate statements, architectural separation of policy from reasoning, deterministic access decisions, consent-fatigue-aware HITL thresholds, and independent append-only evidence before high-impact autonomy is allowed."
+      "url": "https://genai.owasp.org/resource/genai-data-security-best-practices-v2-part1/",
+      "why_it_matters": "OWASP's November 3, 2026 AI-DSPM playbook root (Part 1 of 12): GenAI data-security fundamentals, six core principles, operating models, and rollout sequencing, used as the data-security lens for releasing context to agents."
     },
     {
       "freshness_class": "undated_review_required",
@@ -1810,6 +2037,27 @@
       "source_class_family": "unknown",
       "url": "https://www.cisa.gov/news-events/alerts/2024/04/15/joint-guidance-deploying-ai-systems-securely",
       "why_it_matters": "Operational controls to protect, detect, and respond to malicious activity against AI systems, related data, and services."
+    },
+    {
+      "freshness_class": "undated_review_required",
+      "id": "mcp-security-best-practices-2026-07-28",
+      "name": "Model Context Protocol Security Best Practices (2026-07-28 current revision)",
+      "published": null,
+      "published_age_days": null,
+      "published_date": null,
+      "publisher": "Unknown",
+      "publisher_family": "Unknown",
+      "referenced_by": [
+        {
+          "path": "data/assurance/agentic-catastrophic-risk-annex.json",
+          "watched_source_id": "agentic-catastrophic-risk-annex",
+          "watched_source_title": "Agentic Catastrophic Risk Annex"
+        }
+      ],
+      "source_class": "unknown",
+      "source_class_family": "unknown",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices",
+      "why_it_matters": "Current MCP 2026-07-28 security guidance: state-handle binding instead of session-hijacking assumptions, token-passthrough denial, confused-deputy consent on OAuth proxies, and SSRF-sensitive metadata and Client ID Metadata Document fetches."
     },
     {
       "freshness_class": "undated_review_required",
@@ -1835,7 +2083,7 @@
     {
       "freshness_class": "undated_review_required",
       "id": "owasp-llm-top-10-2025",
-      "name": "OWASP Top 10 for LLM Applications 2025",
+      "name": "OWASP Top 10 for LLM Applications 2025 (prior edition)",
       "published": null,
       "published_age_days": null,
       "published_date": null,
@@ -1850,8 +2098,8 @@
       ],
       "source_class": "unknown",
       "source_class_family": "unknown",
-      "url": "https://genai.owasp.org/llm-top-10/",
-      "why_it_matters": "Prompt injection, sensitive information disclosure, supply-chain risk, improper output handling, excessive agency, vector weakness, and unbounded consumption."
+      "url": "https://genai.owasp.org/resource/owasp-top-10-for-llm-applications-2025/",
+      "why_it_matters": "Prior OWASP LLM Top 10 edition kept as a historical source ID: prompt injection, sensitive information disclosure, supply-chain risk, improper output handling, excessive agency, vector weakness, and unbounded consumption. Prefer the 2026 edition."
     }
   ],
   "watch_sources": [
@@ -1860,14 +2108,14 @@
       "business_criticality": "critical",
       "decision": "current",
       "id": "agent-trust-fabric-profile",
-      "last_reviewed": "2026-10-29",
+      "last_reviewed": "2026-11-12",
       "path": "data/assurance/agent-trust-fabric-profile.json",
-      "reference_count": 16,
+      "reference_count": 18,
       "reference_paths": [
         "source_references"
       ],
       "review_cadence_days": 14,
-      "review_due_at": "2026-11-12",
+      "review_due_at": "2026-11-26",
       "title": "Agent Trust Fabric Profile",
       "why": "The Agent Trust Fabric is the customer-facing zero-trust verdict layer, so its CSA, NIST, MCP, OpenAI, OWASP, and OpenTelemetry references must stay current."
     },
@@ -1888,20 +2136,18 @@
       "why": "Severe-risk and high-impact autonomy guidance affects board-grade review and acquisition diligence."
     },
     {
-      "blockers": [
-        "review due after 2026-10-28"
-      ],
+      "blockers": [],
       "business_criticality": "high",
-      "decision": "review_due",
+      "decision": "current",
       "id": "agentic-incident-response-profile",
-      "last_reviewed": "2026-09-28",
+      "last_reviewed": "2026-11-12",
       "path": "data/assurance/agentic-incident-response-profile.json",
-      "reference_count": 9,
+      "reference_count": 13,
       "reference_paths": [
         "standards_alignment"
       ],
       "review_cadence_days": 30,
-      "review_due_at": "2026-10-28",
+      "review_due_at": "2026-12-12",
       "title": "Agentic Incident Response Profile",
       "why": "Incident response guidance must track the latest MCP, context, identity, handoff, and evidence-integrity failure modes."
     },
@@ -1922,38 +2168,34 @@
       "why": "This pack tracks MCP, A2A, tool annotations, identity, handoff, and prompt-injection protocol boundaries."
     },
     {
-      "blockers": [
-        "review due after 2026-10-28"
-      ],
+      "blockers": [],
       "business_criticality": "critical",
-      "decision": "review_due",
+      "decision": "current",
       "id": "agentic-standards-crosswalk-profile",
-      "last_reviewed": "2026-09-28",
+      "last_reviewed": "2026-11-12",
       "path": "data/assurance/agentic-standards-crosswalk.json",
-      "reference_count": 21,
+      "reference_count": 26,
       "reference_paths": [
         "source_references"
       ],
       "review_cadence_days": 30,
-      "review_due_at": "2026-10-28",
+      "review_due_at": "2026-12-12",
       "title": "Agentic Standards Crosswalk Profile",
       "why": "This is the standards-to-evidence artifact buyers use for procurement, platform architecture, and acquisition diligence."
     },
     {
-      "blockers": [
-        "review due after 2026-10-26"
-      ],
+      "blockers": [],
       "business_criticality": "critical",
-      "decision": "review_due",
+      "decision": "current",
       "id": "agentic-threat-radar-sources",
-      "last_reviewed": "2026-10-12",
+      "last_reviewed": "2026-11-12",
       "path": "data/intelligence/agentic-threat-radar-sources.json",
-      "reference_count": 24,
+      "reference_count": 29,
       "reference_paths": [
         "source_references"
       ],
       "review_cadence_days": 14,
-      "review_due_at": "2026-10-26",
+      "review_due_at": "2026-11-26",
       "title": "Agentic Threat Radar Sources",
       "why": "This is the market and threat-intelligence spine for the product roadmap and buyer narrative."
     },
@@ -1962,50 +2204,46 @@
       "business_criticality": "critical",
       "decision": "current",
       "id": "mcp-authorization-conformance-profile",
-      "last_reviewed": "2026-10-19",
+      "last_reviewed": "2026-11-12",
       "path": "data/assurance/mcp-authorization-conformance-profile.json",
-      "reference_count": 12,
+      "reference_count": 15,
       "reference_paths": [
         "standards_alignment"
       ],
       "review_cadence_days": 21,
-      "review_due_at": "2026-11-09",
+      "review_due_at": "2026-12-03",
       "title": "MCP Authorization Conformance Profile",
       "why": "MCP authorization, resource indicators, token audience, PKCE, and token-passthrough expectations are core hosted-MCP trust controls."
     },
     {
-      "blockers": [
-        "review due after 2026-10-28"
-      ],
+      "blockers": [],
       "business_criticality": "high",
-      "decision": "review_due",
+      "decision": "current",
       "id": "mcp-risk-coverage-profile",
-      "last_reviewed": "2026-09-28",
+      "last_reviewed": "2026-11-12",
       "path": "data/assurance/mcp-risk-coverage-profile.json",
-      "reference_count": 6,
+      "reference_count": 8,
       "reference_paths": [
         "source_references"
       ],
       "review_cadence_days": 30,
-      "review_due_at": "2026-10-28",
+      "review_due_at": "2026-12-12",
       "title": "MCP and Agentic Skills Risk Coverage Profile",
       "why": "This pack proves coverage against OWASP MCP and Agentic Skills risks."
     },
     {
-      "blockers": [
-        "review due after 2026-10-28"
-      ],
+      "blockers": [],
       "business_criticality": "high",
-      "decision": "review_due",
+      "decision": "current",
       "id": "secure-context-release-profile",
-      "last_reviewed": "2026-09-28",
+      "last_reviewed": "2026-11-12",
       "path": "data/context/secure-context-release-profile.json",
-      "reference_count": 9,
+      "reference_count": 10,
       "reference_paths": [
         "standards_alignment"
       ],
       "review_cadence_days": 30,
-      "review_due_at": "2026-10-28",
+      "review_due_at": "2026-12-12",
       "title": "Secure Context Release Profile",
       "why": "Secure context releases are the bridge from open references to production MCP and trust-center release channels."
     }

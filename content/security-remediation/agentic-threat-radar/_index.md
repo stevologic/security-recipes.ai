@@ -3,7 +3,7 @@ title: Agentic Threat Radar
 linkTitle: Agentic Threat Radar
 weight: 18
 date: 2026-05-02
-lastmod: 2026-10-12
+lastmod: 2026-11-12
 toc: true
 description: >
   Source-backed radar that maps current agentic AI and MCP security
@@ -36,21 +36,28 @@ guidance into a generated evidence pack:
 - Reviewer triggers that explain when an enterprise should care.
 - Source roadmap actions that keep the open knowledge base aligned
   with a future hosted MCP/server business.
-- Rechecked October 12, 2026 against NIST NCCoE's
+- Rechecked November 12, 2026 against NIST NCCoE's
   [September 29, 2026 comments summary](https://pages.nist.gov/nccoe-ai-identity/summary-of-comments.html)
-  on software and agentic AI identity and authorization, plus the still-current
+  on software and agentic AI identity and authorization, the still-current
   public MCP specification
   [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28)
-  [security best practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices)
+  [security best practices](https://modelcontextprotocol.io/docs/2026-07-28/tutorials/security/security_best_practices),
+  NIST's
+  [August 27, 2026 agent identity guidance](https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation),
   and NIST's
-  [August 27, 2026 agent identity guidance](https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation).
-  NCCoE, drawing on more than 600 comments, favors reusing OAuth, SPIFFE, and
+  [October 27, 2026 design tenets for agent identity management systems](https://www.nist.gov/blogs/cybersecurity-insights/design-tenets-agent-identity-management-systems).
+  MCP `latest` still redirects to 2026-07-28. NCCoE, drawing on more than 600 comments, favors reusing OAuth, SPIFFE, and
   MCP rather than a parallel identity stack, distinct verifiable non-human
   identities at ephemeral-agent scale, and treating credential sharing and
-  local user impersonation as anti-patterns. This editorial pass does not
-  claim human review of the pack. Invented version floors in leftover CVE
-  drafts remain a content-risk signal: treat them as untrusted context, not
-  a named fix.
+  local user impersonation as anti-patterns. The ten design tenets, drawn from
+  those comments and stakeholder engagement, add attenuated sub-agent
+  delegation, zero standing privilege, signed mandate statements, architectural
+  separation of policy from reasoning, deterministic access decisions,
+  consent-fatigue-aware HITL thresholds, and independent append-only evidence.
+  Unique short-lived credentials are necessary but not sufficient. This
+  editorial pass does not claim human review of the pack. Invented version
+  floors in leftover CVE drafts remain a content-risk signal: treat them as
+  untrusted context, not a named fix.
 
 ## Generated artifact
 
@@ -77,11 +84,11 @@ python3 scripts/generate_agentic_threat_radar.py --check
 | --- | --- | --- |
 | Indirect prompt injection as social engineering | Critical | Agents now process hostile emails, websites, documents, tickets, and tool results; string filters are not enough. |
 | MCP token passthrough and scope creep | Critical | MCP 2026-07-28 forbids token passthrough, requires per-client proxy consent, binds state handles to the authenticated user, and treats metadata fetches as SSRF-sensitive. |
-| Agent identity explosion | Critical | NIST and NCCoE warn agents need distinct verifiable non-human identities and short-lived scoped credentials, reusing OAuth, SPIFFE, and MCP rather than shared human credentials, long-lived API keys, or local user-account impersonation. |
+| Agent identity explosion | Critical | NIST and NCCoE warn agents need distinct verifiable non-human identities and short-lived scoped credentials, reusing OAuth, SPIFFE, and MCP. NIST's October 27, 2026 design tenets add attenuated sub-agent delegation, zero standing privilege, signed mandates, and policy/reasoning separation; unique short-lived credentials are necessary but not sufficient. |
 | Tool poisoning and shadow MCP | High | Tool descriptions, schemas, local servers, and connector updates are now part of the attack surface. |
 | Context over-sharing and memory poisoning | High | Retrieval and egress policy need provenance, freshness, data-class gates, tenant isolation, and destination controls before context reaches or leaves agents. |
-| Audit telemetry and evidence chain | High | Enterprises need correlated records for context retrieval, tool calls, policy decisions, reviews, and scanner proof. |
-| Human approval and tool safeguards | High | Approval must become a typed, policy-enforced control for high-risk or irreversible actions. |
+| Audit telemetry and evidence chain | High | Enterprises need correlated records for context retrieval, tool calls, policy decisions, reviews, and scanner proof. NIST requires independent append-only evidence of identity, delegated intent, and actions so a compromised agent cannot rewrite its own logs. |
+| Human approval and tool safeguards | High | Approval must become a typed, policy-enforced control at defined risk thresholds, with signed mandate statements and consent-fatigue-aware HITL rather than habitual unstructured prompts. |
 | AI data security and provenance | High | Guidance is converging on data integrity, monitoring, lifecycle governance, and provenance for AI operations. |
 | Continuous red-team replay and evals | High | Model, prompt, connector, and context drift can invalidate a previously safe workflow. |
 | Secure-by-design agentic products | Medium | Procurement and diligence will reject products that rely on careful prompting instead of safe defaults. |
@@ -149,12 +156,13 @@ The current anchors include:
 - [OWASP Top 10 for Agentic Applications](https://genai.owasp.org/2025/12/09/owasp-genai-security-project-releases-top-10-risks-and-mitigations-for-agentic-ai-security/)
 - [OWASP MCP Top 10](https://owasp.org/www-project-mcp-top-10/)
 - [MCP Authorization Specification](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
-- [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices)
+- [MCP Security Best Practices](https://modelcontextprotocol.io/docs/2026-07-28/tutorials/security/security_best_practices)
 - [NIST agent identity foundation](https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation)
 - [NIST NCCoE comments on software and agentic AI identity](https://pages.nist.gov/nccoe-ai-identity/summary-of-comments.html)
+- [NIST design tenets for agent identity management systems](https://www.nist.gov/blogs/cybersecurity-insights/design-tenets-agent-identity-management-systems)
 - [Microsoft guidance on indirect prompt injection](https://learn.microsoft.com/en-us/security/zero-trust/sfi/defend-indirect-prompt-injection)
 - [OpenAI guidance on prompt injections](https://openai.com/index/prompt-injections)
-- [OpenAI Agent Builder safety guidance](https://platform.openai.com/docs/guides/agent-builder-safety)
+- [OpenAI Agent Builder safety guidance](https://developers.openai.com/api/docs/guides/agent-builder-safety)
 - [NIST AI RMF](https://www.nist.gov/itl/ai-risk-management-framework)
 - [NIST AI RMF Generative AI Profile](https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence)
 - [CISA AI Data Security guidance](https://www.cisa.gov/resources-tools/resources/ai-data-security-best-practices-securing-data-used-train-operate-ai-systems)
