@@ -7,8 +7,10 @@ name: Automation shepherd
 #   event GITHUB_TOKEN is allowed to trigger).
 # - Branch updates performed with GITHUB_TOKEN emit no pull_request run, so
 #   an auto-merge PR can wait forever for its required build check; the
-#   shepherd step updates stale branches and dispatches the trusted exact-SHA
-#   validation that publishes the required context.
+#   shepherd step updates stale branches. The self-posted `build` status
+#   from exact-SHA validation is catalog-sync only
+#   (`automation/cve-catalog-sync`). Dependabot, content-refresh, and every
+#   other PR keep the real build.yml `build` (including image smoke).
 #
 # Completions of workflows that GITHUB_TOKEN itself dispatched do not emit
 # workflow_run events. The half-hourly schedule and the explicit
@@ -185,8 +187,8 @@ jobs:
           GH_REPO: ${{ github.repository }}
           GITHUB_DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
         run: |
-          # The CVE catalog sync owns its branch end to end, including guarded
-          # updates and exact-SHA validation, so the shepherd never touches it.
+          # Guarded updates for non-catalog auto-merge PRs stay here.
+          # Self-posted exact-SHA `build` is catalog-sync only.
           SYNC_BRANCH="automation/cve-catalog-sync"
 
           PRS_JSON="$(gh pr list \
@@ -203,11 +205,6 @@ jobs:
             HEAD_BRANCH="$(jq -r '.headRefName' <<<"$PR_JSON")"
             HEAD_SHA="$(jq -r '.headRefOid' <<<"$PR_JSON")"
             MERGE_STATE="$(jq -r '.mergeStateStatus' <<<"$PR_JSON")"
-
-            if [ "$HEAD_BRANCH" = "$SYNC_BRANCH" ]; then
-              echo "#${PR_NUMBER}: the catalog sync manages its own delivery."
-              continue
-            fi
 
             if [ "$MERGE_STATE" = "UNKNOWN" ]; then
               for attempt in $(seq 1 8); do
@@ -253,6 +250,18 @@ jobs:
               HEAD_SHA="$UPDATED_SHA"
             fi
 
+            # Self-posted exact-SHA `build` is catalog-sync only. Exact
+            # equality; a prefix or substring must not widen the scope.
+            if [ "$HEAD_BRANCH" != "$SYNC_BRANCH" ]; then
+              echo "#${PR_NUMBER}: ${HEAD_BRANCH} is not ${SYNC_BRANCH}; leaving required build to build.yml."
+              continue
+            fi
+
+            if [[ ! "$HEAD_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+              echo "::error::#${PR_NUMBER}: missing or invalid head SHA; refusing to dispatch validation."
+              continue
+            fi
+
             # A build check or status on the head means CI ran (or runs now);
             # a failed one is a real defect for AI maintenance, not for retry.
             CHECK_RUNS="$(gh api \
@@ -266,12 +275,18 @@ jobs:
               continue
             fi
 
-            PENDING_VALIDATIONS="$(gh run list \
-              --workflow cve-catalog-validate.yml \
-              --limit 20 \
-              --json displayTitle,status \
-              --jq "[.[] | select(.status != \"completed\")
-                | select(.displayTitle | endswith(\"@ ${HEAD_SHA}\"))] | length")"
+            # Query in-flight statuses directly so a pile of completed
+            # validation runs cannot hide a queued/in-progress one.
+            PENDING_VALIDATIONS=0
+            for RUN_STATUS in queued in_progress pending waiting requested; do
+              STATUS_COUNT="$(gh run list \
+                --workflow cve-catalog-validate.yml \
+                --status "$RUN_STATUS" \
+                --limit 50 \
+                --json displayTitle \
+                --jq "[.[] | select(.displayTitle | endswith(\"@ ${HEAD_SHA}\"))] | length")"
+              PENDING_VALIDATIONS=$((PENDING_VALIDATIONS + STATUS_COUNT))
+            done
             if [ "$PENDING_VALIDATIONS" -gt 0 ]; then
               echo "#${PR_NUMBER}: an exact-SHA validation is already running for ${HEAD_SHA}."
               continue
@@ -283,5 +298,5 @@ jobs:
               --field "expected_sha=${HEAD_SHA}" \
               --field "request_id=shepherd-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${PR_NUMBER}" \
               --field "pr_number=${PR_NUMBER}" \
-              --field "expected_branch=${HEAD_BRANCH}"
+              --field "expected_branch=${SYNC_BRANCH}"
           done

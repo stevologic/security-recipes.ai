@@ -412,6 +412,8 @@ class CveSyncWorkflowTests(unittest.TestCase):
         )
         self.assertIn("Data-only catalog PR skips karen-qa and the GitHub App check.", delivery_step)
         self.assertIn('--ref "$VALIDATION_REF"', delivery_step)
+        self.assertIn("python scripts/cve_catalog_delivery.py validation-ref", delivery_step)
+        self.assertIn('--default-branch "$GITHUB_DEFAULT_BRANCH"', delivery_step)
         self.assertIn("reuse-in-run-validation", delivery_step)
         self.assertIn("self-merge-gate", delivery_step)
         self.assertIn("Never gate self-merge on github-actions[bot]", delivery_step)
@@ -491,6 +493,9 @@ class CveSyncWorkflowTests(unittest.TestCase):
         self.assertIn("automation:protection-fallback", fallback_step)
         self.assertIn("::notice::", fallback_step)
         self.assertNotIn("::error::", fallback_step)
+        self.assertIn("publish-build-status", fallback_step)
+        self.assertNotIn("job name `build`", fallback_step)
+        self.assertNotIn("(job name `build`)", fallback_step)
         waiting_step = self.step("Explain catalog PR is waiting on karen-qa")
         self.assertIn(
             "steps.catalog-delivery.outputs.waiting_on_karen_qa == 'true'",
@@ -581,6 +586,8 @@ class CveSyncWorkflowTests(unittest.TestCase):
         self.assertEqual(leaked, [], f"{banned} leaked outside the merge job")
         self.assertIn("CVE_SYNC_APP_ID", automation)
         self.assertIn("CVE_SYNC_APP_KEY", automation)
+        self.assertIn("CVE_SYNC_APP_SLUG", automation)
+        self.assertIn("{slug}[bot]", automation)
         self.assertIn("CVE_SYNC_APP_ID", readme)
         self.assertIn("CVE_SYNC_APP_KEY", readme)
         self.assertNotIn("CVE_AUTOMATION_APP", automation)
