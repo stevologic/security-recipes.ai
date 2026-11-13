@@ -977,25 +977,38 @@ class CveCatalogDeliveryTests(unittest.TestCase):
         self.assertFalse(moved.allowed)
         self.assertEqual(moved.action, "fail_closed_head_mismatch")
 
-    def test_data_only_without_app_dispatches_validation_on_pr_head(self) -> None:
-        self.assertEqual(
-            validation_ref(
-                data_only=True,
-                app_configured=False,
-                default_branch="main",
-                pr_branch="automation/cve-catalog-sync",
-            ),
-            "automation/cve-catalog-sync",
-        )
-        self.assertEqual(
-            validation_ref(
-                data_only=True,
-                app_configured=True,
-                default_branch="main",
-                pr_branch="automation/cve-catalog-sync",
-            ),
-            "main",
-        )
+    def test_validation_ref_always_returns_default_branch(self) -> None:
+        for data_only in (True, False):
+            for app_configured in (True, False):
+                with self.subTest(data_only=data_only, app_configured=app_configured):
+                    self.assertEqual(
+                        validation_ref(
+                            data_only=data_only,
+                            app_configured=app_configured,
+                            default_branch="main",
+                            pr_branch="automation/cve-catalog-sync",
+                        ),
+                        "main",
+                    )
+        out = StringIO()
+        with redirect_stdout(out):
+            self.assertEqual(
+                delivery_main(
+                    [
+                        "validation-ref",
+                        "--data-only",
+                        "true",
+                        "--app-configured",
+                        "false",
+                        "--default-branch",
+                        "main",
+                        "--pr-branch",
+                        "automation/cve-catalog-sync",
+                    ]
+                ),
+                0,
+            )
+        self.assertEqual(out.getvalue().strip(), "main")
 
     def test_protection_block_on_data_only_is_fallback_not_alert(self) -> None:
         action = classify_merge_error(
