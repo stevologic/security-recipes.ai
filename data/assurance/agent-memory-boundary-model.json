@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-08-21",
+  "last_reviewed": "2026-11-13",
   "intent": "Define the SecurityRecipes agent memory boundary for enterprise agentic remediation: every persistent or replayable memory surface must have a declared class, owner, tenant boundary, TTL, write rule, provenance requirement, poisoning control, rollback expectation, and deterministic allow, hold, deny, or kill-session decision before an agent can store or reuse state across runs.",
   "positioning": {
     "buyer": "AI Platform, Security Engineering, IAM, GRC, privacy, security operations, procurement security, vendor-risk, and acquisition diligence teams",
@@ -26,12 +26,36 @@
       "coverage": "Runtime memory controls should use cryptographic baselines, declarative read/write policies, injection and leakage detection, snapshots, and rollback for persistent agent memory."
     },
     {
+      "id": "owasp-llm-top-10-2026",
+      "name": "OWASP Top 10 for LLM Applications 2026",
+      "publisher": "OWASP GenAI Security Project",
+      "published": "2026-08-04",
+      "url": "https://genai.owasp.org/resource/owasp-genai-llm-top-10-2026/",
+      "coverage": "LLM09:2026 Vector and Embedding Weaknesses ranks similarity-search geometry separately from prompt injection. Tenant scoping must be enforced inside the index query, mixed-trust content must not share an index without hard isolation, clients must not receive raw similarity scores, and embeddings must be deleted with their source documents."
+    },
+    {
+      "id": "owasp-llm09-vector-embedding-2026",
+      "name": "LLM09:2026 Vector and Embedding Weaknesses",
+      "publisher": "OWASP GenAI Security Project",
+      "published": "2026-08-04",
+      "url": "https://github.com/GenAI-Security-Project/GenAI-LLM-Top10/blob/main/2026/final/LLM09_VectorAndEmbeddingWeaknesses.md",
+      "coverage": "Canonical LLM09 entry: poisoning makes the system wrong, inversion makes it leak, jamming makes it silent, and access-control failure makes it indiscriminate. Post-retrieval tenant filters, shared mixed-trust indexes, raw scores, and embeddings that outlive sources are in-scope failures."
+    },
+    {
       "id": "owasp-llm-top-10-2025",
-      "name": "OWASP Top 10 for LLM Applications 2025",
+      "name": "OWASP Top 10 for LLM Applications 2025 (prior edition)",
       "publisher": "OWASP GenAI Security Project",
       "published": "2025",
       "url": "https://genai.owasp.org/llm-top-10/",
-      "coverage": "Persistent memory controls reduce prompt injection, sensitive information disclosure, supply-chain, data poisoning, excessive agency, vector weakness, misinformation, and unbounded consumption risks."
+      "coverage": "Prior LLM Top 10 edition kept as a historical source ID. Vector and embedding weakness was LLM08:2025. Prefer the 2026 edition and LLM09:2026."
+    },
+    {
+      "id": "nist-sp-2400-102e2026-ipd",
+      "name": "NIST SP 2400-102e2026 Adversarial Machine Learning: A Taxonomy and Terminology of Attacks and Mitigations (Initial Public Draft)",
+      "publisher": "NIST",
+      "published": "2026-11-09",
+      "url": "https://csrc.nist.gov/pubs/sp/2400-102/e2026/ipd",
+      "coverage": "Section 4 NISTAML.062 Memory Poisoning: an adversary who inserts malicious content once may influence later tasks across sessions. AgentPoison poisons RAG memory; MemoryGraft implants malicious successful experiences; dormant payloads can wait until a later sensitive topic. Persistent retrieved records need integrity verification before cross-session replay. This is an initial public draft, comments due 2026-12-18."
     },
     {
       "id": "mcp-authorization-2026-07-28",
@@ -50,12 +74,12 @@
       "coverage": "Memory-bound MCP operations need resource indicators, token audience validation, PKCE, consent, HTTPS, and a hard ban on token passthrough."
     },
     {
-      "id": "mcp-security-best-practices-current",
-      "name": "Model Context Protocol Security Best Practices",
+      "id": "mcp-security-best-practices-2026-07-28",
+      "name": "Model Context Protocol Security Best Practices (2026-07-28 current revision)",
       "publisher": "Model Context Protocol",
-      "published": "2025",
-      "url": "https://modelcontextprotocol.io/docs/tutorials/security/security_best_practices",
-      "coverage": "Memory-aware MCP servers need confused-deputy prevention, token-passthrough avoidance, session safety, local server controls, scope minimization, and auditability."
+      "published": "2026-07-28",
+      "url": "https://modelcontextprotocol.io/docs/2026-07-28/tutorials/security/security_best_practices",
+      "coverage": "Current public MCP 2026-07-28 revision. Memory-aware MCP servers need confused-deputy prevention, token-passthrough avoidance, state-handle binding, local server controls, scope minimization, and auditability."
     },
     {
       "id": "nist-ai-rmf-1.0",
@@ -105,7 +129,12 @@
       "contains_secret",
       "contains_unredacted_pii",
       "human_approval_record",
-      "runtime_kill_signal"
+      "runtime_kill_signal",
+      "tenant_scope_enforced_in_index_query",
+      "mixed_trust_index",
+      "returns_raw_similarity_scores",
+      "source_deleted_without_embedding_delete",
+      "retrieved_record_integrity_verified"
     ],
     "decisions": [
       {
@@ -145,6 +174,8 @@
       "Memory is data, not authority; system, developer, gateway, and human-review policy always outrank remembered content.",
       "Every persistent memory write requires source, timestamp, actor, workflow, tenant boundary, TTL, provenance hash, and deletion path.",
       "Project memory, vector memory, and tool-result summaries must pass poisoning and DLP checks before persistence.",
+      "Vector and embedding memory must enforce tenant scoping inside the index query, isolate mixed-trust content at the index, omit raw similarity scores from clients, and delete embeddings when the source document is deleted.",
+      "Persistent retrieved memory needs source integrity verification before cross-session replay; a one-shot insertion can otherwise influence later tasks.",
       "Customer runtime memory stays tenant-side and must never be embedded in the open public corpus.",
       "Memory that changes permissions, reviewers, owners, tool scopes, or approval policy is denied unless it is source-controlled policy reviewed through normal change control.",
       "Secrets, private keys, signing material, raw access tokens, seed phrases, and unrestricted personal data are prohibited memory targets."
@@ -443,6 +474,7 @@
         "redaction_required",
         "retention_declared",
         "poisoning_scan",
+        "retrieved_record_integrity",
         "rollback_supported",
         "human_approval_on_sensitive_context"
       ],
@@ -505,6 +537,11 @@
       ],
       "required_controls": [
         "tenant_isolated",
+        "tenant_scope_in_index_query",
+        "mixed_trust_index_isolation",
+        "no_raw_similarity_scores",
+        "delete_embeddings_with_source",
+        "retrieved_record_integrity",
         "source_hash_recorded",
         "chunk_provenance",
         "poisoning_scan",
@@ -515,6 +552,11 @@
       ],
       "write_controls": [
         "Hold new embedding writes until source provenance, redaction, and poisoning scan pass.",
+        "Enforce tenant scoping inside the index query; do not apply tenant filters after similarity search.",
+        "Do not share mixed-trust content in one index without hard isolation.",
+        "Do not return raw similarity scores to clients.",
+        "Delete embeddings when the source document is deleted and verify with reconciliation.",
+        "Require retrieved-record integrity before cross-session replay of stored vectors.",
         "Reindex on source hash changes or owner recertification failures.",
         "Prevent embedding lookup from returning cross-tenant or unregistered context."
       ],
@@ -523,7 +565,9 @@
         "source_id",
         "source_hash",
         "chunk_manifest_hash",
-        "retrieval_eval_id"
+        "retrieval_eval_id",
+        "tenant_scope_in_index_query",
+        "retrieved_record_integrity"
       ],
       "rollback_required": true,
       "risk_families": [
@@ -606,7 +650,9 @@
       "ttl_declared",
       "poisoning_scan_declared",
       "provenance_hash_declared",
-      "delete_or_rollback_path_declared"
+      "delete_or_rollback_path_declared",
+      "tenant_scope_in_index_query_declared",
+      "retrieved_record_integrity_declared"
     ],
     "manual_review_required_for": [
       "new persistent memory class",
@@ -625,7 +671,7 @@
       "What can an agent remember after the run ends?",
       "Which memory classes are append-only, read-only, tenant-bound, or prohibited?",
       "Which memory writes require human approval, provenance, redaction, or rollback?",
-      "How are memory poisoning, stale replay, vector weakness, and cross-tenant leakage handled?",
+      "How are memory poisoning, stale replay, vector weakness, in-index tenant scoping, mixed-trust isolation, and cross-tenant leakage handled?",
       "Which workflow profiles can be exposed through MCP for runtime memory decisions?"
     ],
     "recommended_first_use": "Attach this pack to AI platform intake, MCP server approval, agent memory store design review, privacy review, and quarterly persistent-memory recertification.",

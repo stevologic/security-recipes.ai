@@ -392,6 +392,10 @@ def build_pack(
             {
                 "risk": "Tenant-specific memory policy is customer-specific.",
                 "treatment": "Customer memory stores must supply tenant IDs, retention, DLP, approval, and deletion evidence before persistence is allowed."
+            },
+            {
+                "risk": "NIST SP 2400-102e2026 is an initial public draft.",
+                "treatment": "Treat NISTAML.062 Memory Poisoning as current taxonomy language, not a final NIST standard, until the comment period closes and a final publication ships."
             }
         ],
         "schema_version": PACK_SCHEMA_VERSION,

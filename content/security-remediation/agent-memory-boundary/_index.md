@@ -3,7 +3,7 @@ title: Agent Memory Boundary
 linkTitle: Agent Memory Boundary
 weight: 13
 date: 2026-05-02
-lastmod: 2026-08-21
+lastmod: 2026-11-13
 toc: true
 description: >
   Define memory classes, TTLs, provenance, rollback, and prohibited persistence
@@ -19,6 +19,26 @@ If an agent can remember something across runs, that memory needs the
 same ownership, provenance, poisoning, egress, and deletion controls as
 any other context source.
 {{< /callout >}}
+
+Rechecked November 13, 2026 against OWASP
+[LLM09:2026 Vector and Embedding Weaknesses](https://github.com/GenAI-Security-Project/GenAI-LLM-Top10/blob/main/2026/final/LLM09_VectorAndEmbeddingWeaknesses.md)
+in the
+[GenAI LLM Top 10 2026](https://genai.owasp.org/resource/owasp-genai-llm-top-10-2026/)
+edition (published 2026-08-04), and NIST SP 2400-102e2026
+[Adversarial Machine Learning taxonomy](https://csrc.nist.gov/pubs/sp/2400-102/e2026/ipd)
+(initial public draft, November 9, 2026). LLM09 covers similarity-search
+geometry, not instruction-following: tenant scoping must happen inside
+the index query, mixed-trust content must not share an index without
+hard isolation, clients must not receive raw similarity scores, and
+embeddings must be deleted with their source documents. NISTAML.062
+Memory Poisoning adds that a one-shot insertion into long-term or RAG
+memory can influence later tasks across sessions. This pack already
+killed secrets, denied missing tenant IDs, and held vector writes for
+provenance and approval; it now denies post-retrieval tenant filters,
+mixed-trust indexes, raw scores, and orphan embeddings, and holds
+persistent reads without retrieved-record integrity. This pass does not
+claim human review of the pack. MCP `latest` still redirects to
+[2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28).
 
 ## The product bet
 
@@ -74,6 +94,39 @@ python3 scripts/evaluate_agent_memory_boundary_decision.py \
   --expect-decision allow_append_only_evidence_memory
 ```
 
+A production-looking vector read that applies tenant scope only after
+similarity search is denied:
+
+```bash
+python3 scripts/evaluate_agent_memory_boundary_decision.py \
+  --workflow-id vulnerable-dependency-remediation \
+  --memory-class-id vector-embedding-memory \
+  --operation read \
+  --tenant-id tenant-123 \
+  --provenance-hash example-source-hash \
+  --no-tenant-scope-enforced-in-index-query \
+  --expect-decision deny_cross_tenant_memory
+```
+
+A vector read with in-index tenant scoping, isolated trust tiers, no raw
+scores, source-lifecycle delete, and retrieved-record integrity still
+holds for admission review:
+
+```bash
+python3 scripts/evaluate_agent_memory_boundary_decision.py \
+  --workflow-id vulnerable-dependency-remediation \
+  --memory-class-id vector-embedding-memory \
+  --operation read \
+  --tenant-id tenant-123 \
+  --provenance-hash example-source-hash \
+  --tenant-scope-enforced-in-index-query \
+  --no-mixed-trust-index \
+  --no-returns-raw-similarity-scores \
+  --no-source-deleted-without-embedding-delete \
+  --retrieved-record-integrity-verified \
+  --expect-decision hold_for_memory_admission_review
+```
+
 ## Memory classes
 
 | Class | Default decision | Purpose |
@@ -83,7 +136,7 @@ python3 scripts/evaluate_agent_memory_boundary_decision.py \
 | `workflow-policy-memory` | `allow_readonly_policy_memory` | Source-controlled policy and evidence the agent can read but not mutate at runtime. |
 | `user-preference-memory` | `hold_for_tenant_memory_boundary` | Tenant-visible preferences that need consent, deletion, and approval for sensitive writes. |
 | `customer-runtime-memory` | `hold_for_tenant_memory_boundary` | Findings, tickets, repository summaries, scanner summaries, and redacted logs that stay tenant-side. |
-| `vector-embedding-memory` | `hold_for_memory_admission_review` | Retrieval indexes that require source hashes, poisoning scans, redaction, and reindex rules. |
+| `vector-embedding-memory` | `hold_for_memory_admission_review` | Retrieval indexes that require in-index tenant scoping, mixed-trust isolation, no raw scores, source-lifecycle delete, retrieved-record integrity, source hashes, poisoning scans, redaction, and reindex rules. |
 | `prohibited-memory` | `kill_session_on_prohibited_memory` | Secrets, raw tokens, signing material, unrestricted PII, approval-bypass instructions, and scope-escalation instructions. |
 
 The default is deliberately conservative: any unknown memory class holds
@@ -148,13 +201,20 @@ This feature follows current guidance:
 - [OWASP Top 10 for Agentic Applications 2026](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/)
   for autonomous agent risks across planning, tools, identity, memory,
   cascading failures, trust exploitation, and rogue-agent behavior.
+- [OWASP LLM09:2026 Vector and Embedding Weaknesses](https://github.com/GenAI-Security-Project/GenAI-LLM-Top10/blob/main/2026/final/LLM09_VectorAndEmbeddingWeaknesses.md)
+  in the [GenAI LLM Top 10 2026](https://genai.owasp.org/resource/owasp-genai-llm-top-10-2026/)
+  edition for in-index tenant scoping, mixed-trust isolation, raw-score
+  denial, and source-lifecycle embedding delete.
+- [NIST SP 2400-102e2026](https://csrc.nist.gov/pubs/sp/2400-102/e2026/ipd)
+  (initial public draft) NISTAML.062 Memory Poisoning for cross-session
+  persistence of one-shot RAG or long-term memory inserts.
 - [OWASP Agent Memory Guard](https://owasp.org/www-project-agent-memory-guard/)
   for memory poisoning, cryptographic baselines, declarative memory
   policies, snapshots, and rollback.
 - [MCP Authorization 2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
   for resource indicators, token audience validation, PKCE, HTTPS, and
   token-passthrough denial.
-- [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices)
+- [MCP Security Best Practices](https://modelcontextprotocol.io/docs/2026-07-28/tutorials/security/security_best_practices)
   for confused-deputy prevention, session safety, local server controls,
   and scope minimization.
 - [NIST AI RMF Critical Infrastructure concept note](https://www.nist.gov/programs-projects/concept-note-ai-rmf-profile-trustworthy-ai-critical-infrastructure)

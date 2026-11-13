@@ -1806,7 +1806,7 @@
         {
           "label": "Decision",
           "title": "Evaluate memory policy",
-          "detail": "Check tenant isolation, consent, provenance, freshness, allowed operations, reuse scope, retention, and approval."
+          "detail": "Check tenant isolation, in-index tenant scoping, mixed-trust isolation, raw-score exposure, source-lifecycle delete, retrieved-record integrity, consent, provenance, freshness, allowed operations, reuse scope, retention, and approval."
         },
         {
           "label": "Action",
@@ -1822,7 +1822,7 @@
       "gate": {
         "question": "Is this content permitted for this store, tenant, workflow, operation, purpose, and retention period?",
         "pass": "Perform only the minimized memory operation and record its lifecycle.",
-        "stop": "Hold, deny, or kill cross-tenant, secret-bearing, policy-mutating, unprovenanced, or over-retained memory."
+        "stop": "Hold, deny, or kill cross-tenant, post-retrieval-filtered, mixed-trust, raw-score, orphan-embedding, secret-bearing, policy-mutating, unprovenanced, unverified-retrieval, or over-retained memory."
       },
       "evidence": [
         "memory classification and provenance",
