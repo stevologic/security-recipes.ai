@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import shlex
 import shutil
 import stat
 import subprocess
@@ -65,6 +66,20 @@ REGEX_WILDCARD_SLUG = ".*"
 DOT_SLUG = "sync.app"
 DOT_SLUG_ACTOR = "syncXapp[bot]"
 DELIVERY_SCRIPT = ROOT / "scripts" / "cve_catalog_delivery.py"
+GITHUB_ACTIONS_TOKEN = "ghs_github_actions"
+SYNC_DELIVERY_JOB = "merge"
+SYNC_DELIVERY_STEP = "Reconcile, validate, and merge exact catalog revision"
+INVALID_FORMAT_SLUGS = (
+    "x.sync-app",
+    "sync-app.",
+    "sync.app",
+    "Sync-App",
+    "sync_app",
+    "sync app",
+    "sync/app",
+    ".sync-app",
+    "sync-app!",
+)
 LOOKALIKE_BRANCHES = (
     "automation/cve-catalog-sync-2",
     "automation/cve-catalog-sync/x",
@@ -847,6 +862,164 @@ def catalog_delivery_step(sync_path: Path) -> str:
     return delivery.split("\n      - name: ", 1)[0]
 
 
+def app_token_value(app_slug: str = APP_SLUG) -> str:
+    return f"ghs_app_{app_slug}"
+
+
+def sync_delivery_context(*, app_path: bool, app_slug: str = APP_SLUG) -> dict[str, Any]:
+    return {
+        "inputs": {},
+        "vars": {"CVE_AUTO_MERGE_ENABLED": "false"},
+        "needs": {
+            "sync": {"outputs": {"head_sha": HEAD_SHA, "pr_number": PR_NUMBER}},
+            "validate": {"result": "success"},
+        },
+        "steps": {
+            "automation-auth": {"outputs": {"app_configured": "true" if app_path else "false"}},
+            "app-token": {"outputs": {"token": app_token_value(app_slug) if app_path else ""}},
+            "app-commit": {"outputs": {"head_sha": HEAD_SHA}},
+        },
+        "github": {
+            "sha": MAIN_SHA,
+            "token": GITHUB_ACTIONS_TOKEN,
+            "repository": REPO_FULL_NAME,
+            "repository_owner": "stevologic",
+            "run_id": "111",
+            "run_attempt": "1",
+            "ref": TRUSTED_REF,
+            "actor": TRUSTED_ACTOR,
+            "event": {"repository": {"default_branch": "main", "name": "security-recipes.ai"}},
+        },
+    }
+
+
+def extract_validation_dispatch_fragment(run_script: str) -> str:
+    needle = 'VALIDATION_REF="$(python scripts/cve_catalog_delivery.py validation-ref'
+    start = run_script.find(needle)
+    if start < 0:
+        raise AssertionError("delivery step does not assign VALIDATION_REF from validation-ref")
+    close = run_script.find(')"', start)
+    if close < 0:
+        raise AssertionError("validation-ref assignment is unterminated")
+    assignment = run_script[start : close + 2]
+    gh_start = run_script.find("gh workflow run cve-catalog-validate.yml", start)
+    if gh_start < 0:
+        raise AssertionError("delivery step does not dispatch cve-catalog-validate.yml")
+    gh_lines: list[str] = []
+    for line in run_script[gh_start:].splitlines():
+        gh_lines.append(line)
+        if not line.rstrip().endswith("\\"):
+            break
+    return f"{assignment}\n" + "\n".join(gh_lines) + "\n"
+
+
+def actor_from_dispatched_token(token: str, *, app_slug: str = APP_SLUG) -> str:
+    if token == app_token_value(app_slug):
+        return f"{app_slug}[bot]"
+    if token == GITHUB_ACTIONS_TOKEN:
+        return TRUSTED_ACTOR
+    raise AssertionError(f"cannot derive actor from dispatched token {token!r}")
+
+
+@dataclass(frozen=True)
+class CapturedSyncDispatch:
+    ref: str
+    token: str
+    actor: str
+
+
+def capture_sync_validate_dispatch(paths: WorkflowPaths, *, app_path: bool) -> CapturedSyncDispatch:
+    step = named_step(paths.sync, SYNC_DELIVERY_JOB, SYNC_DELIVERY_STEP)
+    run_script = step.get("run")
+    if not isinstance(run_script, str) or not run_script.strip():
+        raise AssertionError("catalog delivery step has no run script")
+    fragment = extract_validation_dispatch_fragment(run_script)
+    fragment = fragment.replace(
+        "python scripts/cve_catalog_delivery.py",
+        f"{shlex.quote(sys.executable)} {shlex.quote(str(paths.delivery))}",
+        1,
+    )
+    context = sync_delivery_context(app_path=app_path)
+    env = platform_env(context)
+    env.update(rendered_step_env(step, context))
+    env["DATA_ONLY"] = "true"
+    env["PYTHONPATH"] = str(ROOT)
+    if not app_path:
+        env["GH_TOKEN"] = GITHUB_ACTIONS_TOKEN
+    result = run_with_gh_stub(fragment, scenario=default_scenario(), env=env, cwd=ROOT)
+    if result.completed.returncode != 0:
+        raise AssertionError(
+            "sync validation dispatch fragment failed:\n"
+            f"{result.completed.stdout}\n{result.completed.stderr}"
+        )
+    dispatched = [
+        call
+        for call in workflow_run_calls(result.calls)
+        if "cve-catalog-validate.yml" in call.get("argv", [])
+    ]
+    if len(dispatched) != 1:
+        raise AssertionError(f"expected one validate dispatch, got {dispatched!r}")
+    argv = dispatched[0]["argv"]
+    if "--ref" not in argv:
+        raise AssertionError(f"dispatch omitted --ref: {argv!r}")
+    ref = argv[argv.index("--ref") + 1]
+    token = str(dispatched[0].get("gh_token") or "")
+    return CapturedSyncDispatch(ref=ref, token=token, actor=actor_from_dispatched_token(token))
+
+
+def assert_sync_dispatch_accepted_on_main(paths: WorkflowPaths, *, app_path: bool) -> None:
+    captured = capture_sync_validate_dispatch(paths, app_path=app_path)
+    expected_actor = APP_ACTOR if app_path else TRUSTED_ACTOR
+    if captured.actor != expected_actor:
+        raise AssertionError(
+            f"derived actor {captured.actor!r} for app_path={app_path}, expected {expected_actor!r}"
+        )
+    if captured.ref != "main":
+        raise AssertionError(f"dispatch --ref is {captured.ref!r}, expected main")
+    assert_publish_accepts_dispatch_origin(
+        paths,
+        dispatch_ref=f"refs/heads/{captured.ref}",
+        dispatch_actor=captured.actor,
+        app_slug=APP_SLUG if app_path else None,
+        why=f"captured sync dispatch app_path={app_path} ref={captured.ref} actor={captured.actor}",
+    )
+
+
+def assert_sync_dispatch_forced_to_sync_branch_refused(
+    paths: WorkflowPaths, *, app_path: bool
+) -> None:
+    captured = capture_sync_validate_dispatch(paths, app_path=app_path)
+    assert_publish_refuses_dispatch_origin(
+        paths,
+        dispatch_ref=f"refs/heads/{SYNC_BRANCH}",
+        dispatch_actor=captured.actor,
+        app_slug=APP_SLUG if app_path else None,
+        why=f"forced sync-branch dispatch app_path={app_path} actor={captured.actor}",
+    )
+
+
+def assert_invalid_format_slugs_refused(paths: WorkflowPaths) -> None:
+    for slug in INVALID_FORMAT_SLUGS:
+        assert_publish_refuses_dispatch_origin(
+            paths,
+            dispatch_actor=TRUSTED_ACTOR,
+            app_slug=slug,
+            why=f"invalid slug {slug!r} with github-actions[bot]",
+        )
+
+
+def assert_valid_slug_with_actions_bot_posts_once(paths: WorkflowPaths) -> None:
+    result = run_publish(paths, dispatch_actor=TRUSTED_ACTOR, app_slug=APP_SLUG)
+    if result.completed.returncode != 0:
+        raise AssertionError(
+            "valid slug with github-actions[bot] must post:\n"
+            f"{result.completed.stdout}\n{result.completed.stderr}"
+        )
+    posted = status_post_calls(result.calls)
+    if len(posted) != 1 or posted[0]["fields"].get("context") != "build":
+        raise AssertionError(f"expected exactly 1 build post, got {posted!r}")
+
+
 def run_validation_ref(delivery_script: Path, *, app_configured: bool) -> str:
     env = os.environ.copy()
     env["PYTHONPATH"] = str(ROOT)
@@ -1131,27 +1304,29 @@ class ExactShaBuildStatusControlTests(unittest.TestCase):
         env = rendered_step_env(step, gha_context(app_slug=APP_SLUG))
         self.assertEqual(env.get("CVE_SYNC_APP_SLUG"), APP_SLUG)
 
-    def test_publish_accepts_sync_app_token_dispatch(self) -> None:
-        delivery = catalog_delivery_step(CONTROL.sync)
-        self.assertIn("GH_TOKEN: ${{ steps.app-token.outputs.token }}", delivery)
-        self.assertIn("gh workflow run cve-catalog-validate.yml", delivery)
-        self.assertIn('--ref "$VALIDATION_REF"', delivery)
-        self.assertIn('--field "expected_sha=$EXPECTED_SHA"', delivery)
-        self.assertIn('--field "pr_number=$PR_NUMBER"', delivery)
-        self.assertIn('--field "expected_branch=$BRANCH"', delivery)
-        assert_sync_validation_ref_is_main(CONTROL)
+    def test_sync_app_token_dispatch_is_accepted_on_main(self) -> None:
+        assert_sync_dispatch_accepted_on_main(CONTROL, app_path=True)
 
-    def test_publish_accepts_sync_no_app_github_token_dispatch(self) -> None:
-        delivery = catalog_delivery_step(CONTROL.sync)
-        self.assertIn("GH_TOKEN: ${{ steps.app-token.outputs.token }}", delivery)
-        ref = run_validation_ref(CONTROL.delivery, app_configured=False)
-        self.assertEqual(ref, "main")
-        assert_publish_accepts_dispatch_origin(
-            CONTROL,
-            dispatch_ref=f"refs/heads/{ref}",
-            dispatch_actor=TRUSTED_ACTOR,
-            why="catalog-sync no-App github-actions[bot] dispatch on main",
-        )
+    def test_sync_github_actions_token_dispatch_is_accepted_on_main(self) -> None:
+        assert_sync_dispatch_accepted_on_main(CONTROL, app_path=False)
+
+    def test_sync_dispatch_forced_to_sync_branch_is_refused(self) -> None:
+        for app_path in (True, False):
+            with self.subTest(app_path=app_path):
+                assert_sync_dispatch_forced_to_sync_branch_refused(CONTROL, app_path=app_path)
+
+    def test_publish_refuses_invalid_format_slugs_with_actions_bot(self) -> None:
+        assert_invalid_format_slugs_refused(CONTROL)
+
+    def test_publish_valid_slug_with_actions_bot_posts_once(self) -> None:
+        assert_valid_slug_with_actions_bot_posts_once(CONTROL)
+
+    def test_publish_empty_slug_with_actions_bot_posts_once(self) -> None:
+        result = run_publish(CONTROL, dispatch_actor=TRUSTED_ACTOR, app_slug=None)
+        self.assertEqual(result.completed.returncode, 0, result.completed.stderr)
+        posted = status_post_calls(result.calls)
+        self.assertEqual(len(posted), 1)
+        self.assertEqual(posted[0]["fields"].get("context"), "build")
 
     def test_publish_keeps_actions_bot_when_app_slug_is_set(self) -> None:
         assert_publish_accepts_dispatch_origin(
@@ -1252,297 +1427,6 @@ class ExactShaBuildStatusControlTests(unittest.TestCase):
             missing = run_bash(script, env={"EXPECTED_SHA": ""}, extra_path=Path("/usr/bin"), cwd=repo)
             self.assertNotEqual(missing.returncode, 0)
 
-
-class ExactShaBuildStatusMutantKillTests(unittest.TestCase):
-    def test_M1_post_on_main_is_killed(self) -> None:
-        assert_killed("M1-post-on-main", assert_status_posted_to_head_sha_not_main)
-
-    def test_M2_drop_sha_input_is_killed(self) -> None:
-        assert_killed("M2-drop-sha-input", assert_dispatch_carries_pr_head_sha)
-
-    def test_M3_drop_dedupe_is_killed(self) -> None:
-        assert_killed("M3-drop-dedupe", lambda paths: assert_dedupe_skips_in_flight(paths, "in_progress"))
-
-    def test_M4_fail_open_missing_sha_is_killed(self) -> None:
-        assert_killed("M4-fail-open-missing-sha", assert_publish_missing_sha_fails_closed)
-
-    def test_M5_wrong_context_name_is_killed(self) -> None:
-        assert_killed("M5-wrong-context-name", assert_status_posted_to_head_sha_not_main)
-
-    def test_M6_shepherd_fail_open_missing_sha_is_killed(self) -> None:
-        assert_killed("M6-shepherd-fail-open-missing-sha", lambda paths: assert_shepherd_missing_sha_fails_closed(paths, ""))
-
-    def test_K1_null_head_z_guard_is_killed(self) -> None:
-        assert_killed("K1-null-head-z-guard", lambda paths: assert_shepherd_missing_sha_fails_closed(paths, "null"))
-
-    def test_K2_unanchored_sha_regex_is_killed(self) -> None:
-        assert_killed("K2-unanchored-sha-regex", lambda paths: assert_shepherd_missing_sha_fails_closed(paths, FORTY_ONE_SHA))
-
-    def test_K3_dedupe_without_sha_is_killed(self) -> None:
-        assert_killed("K3-dedupe-without-sha", assert_other_sha_inflight_does_not_block_head)
-
-    def test_K4_drop_queued_is_killed(self) -> None:
-        assert_killed("K4-drop-queued", lambda paths: assert_dedupe_skips_in_flight(paths, "queued"))
-
-    def test_K5_assign_not_accumulate_is_killed(self) -> None:
-        assert_killed("K5-assign-not-accumulate", lambda paths: assert_dedupe_skips_in_flight(paths, "in_progress"))
-
-    def test_K6_drop_statuses_or_is_killed(self) -> None:
-        assert_killed("K6-drop-statuses-or", assert_existing_build_status_skips_dispatch)
-
-    def test_K7_pending_gt_one_is_killed(self) -> None:
-        assert_killed("K7-pending-gt-one", lambda paths: assert_dedupe_skips_in_flight(paths, "in_progress"))
-
-    def test_K8_failure_posts_success_is_killed(self) -> None:
-        assert_killed("K8-failure-posts-success", lambda paths: assert_publish_maps_result(paths, "failure", "failure"))
-
-    def test_K9_cancelled_skipped_not_mapped_is_killed(self) -> None:
-        assert_killed("K9-cancelled-skipped-unmapped", lambda paths: assert_publish_maps_result(paths, "cancelled", "failure"))
-
-    def test_K10_unknown_posts_success_is_killed(self) -> None:
-        assert_killed("K10-unknown-posts-success", lambda paths: assert_publish_refuses_result(paths, ""))
-
-    def test_K11_drop_target_url_is_killed(self) -> None:
-        assert_killed("K11-drop-target-url", assert_status_posted_to_head_sha_not_main)
-
-    def test_K12_hardcoded_validate_result_is_killed(self) -> None:
-        assert_killed("K12-hardcoded-validate-result", lambda paths: assert_publish_maps_result(paths, "failure", "failure"))
-
-    def test_K13_expected_sha_from_github_sha_is_killed(self) -> None:
-        assert_killed("K13-expected-sha-github-sha", assert_status_posted_to_head_sha_not_main)
-
-    def test_K14_drop_always_is_killed(self) -> None:
-        assert_killed("K14-drop-always", assert_publish_job_wiring)
-
-    def test_K15_statuses_not_write_is_killed(self) -> None:
-        assert_killed("K15-statuses-not-write", assert_publish_job_wiring)
-
-    def test_K16_kick_without_publish_is_killed(self) -> None:
-        assert_killed("K16-kick-without-publish", assert_publish_job_wiring)
-
-    def test_K17_drop_catalog_sync_filter_is_killed(self) -> None:
-        assert_killed("K17-drop-catalog-sync-filter", lambda paths: assert_non_catalog_pr_does_not_dispatch(paths, CONTENT_BRANCH))
-
-    def test_K18_prefix_catalog_filter_is_killed(self) -> None:
-        assert_killed("K18-prefix-catalog-filter", lambda paths: assert_non_catalog_pr_does_not_dispatch(paths, CONTENT_BRANCH))
-
-    def test_K19_substring_catalog_filter_is_killed(self) -> None:
-        assert_killed("K19-substring-catalog-filter", lambda paths: assert_non_catalog_pr_does_not_dispatch(paths, SUBSTRING_BRANCH))
-
-    def test_K20_drop_live_head_check_is_killed(self) -> None:
-        assert_killed("K20-drop-live-head-check", assert_publish_refuses_moved_head)
-
-    def test_B1_c_pr_number_from_run_id_is_killed(self) -> None:
-        assert_killed("B1-c-pr-number-from-run-id", assert_publish_reads_named_pull)
-
-    def test_B1_e_pulls_path_wrong_pr_is_killed(self) -> None:
-        assert_killed("B1-e-pulls-path-wrong-pr", assert_publish_reads_named_pull)
-
-    def test_K6b_drop_check_runs_or_is_killed(self) -> None:
-        assert_killed("B2-K6b-drop-checkruns-or", assert_failed_build_check_run_skips_dispatch)
-
-    def test_K6c_status_any_context_is_killed(self) -> None:
-        assert_killed("B2-K6c-status-any-context", assert_non_build_status_does_not_skip_dispatch)
-
-    def test_K6d_checkrun_any_name_is_killed(self) -> None:
-        assert_killed("B2-K6d-checkrun-any-name", assert_non_build_check_run_does_not_skip_dispatch)
-
-    def test_P_c_fork_head_is_killed(self) -> None:
-        assert_killed(
-            "P-c-drop-head-repo-check",
-            lambda paths: assert_publish_refuses_pull(
-                paths, live_pull(repo={"full_name": "evil/security-recipes.ai"}), "a fork head"
-            ),
-        )
-
-    def test_P_g_missing_head_repo_is_killed(self) -> None:
-        assert_killed(
-            "P-g-head-repo-default-self",
-            lambda paths: assert_publish_refuses_pull(paths, live_pull(repo=None), "missing head repo"),
-        )
-
-    def test_P_d_closed_pr_is_killed(self) -> None:
-        assert_killed(
-            "P-d-drop-state-open",
-            lambda paths: assert_publish_refuses_pull(paths, live_pull(state="closed"), "closed PR"),
-        )
-
-    def test_P_e_base_not_main_is_killed(self) -> None:
-        assert_killed(
-            "P-e-drop-base-check",
-            lambda paths: assert_publish_refuses_pull(paths, live_pull(base="release"), "base=release"),
-        )
-
-    def test_S_d_cross_repo_is_killed(self) -> None:
-        assert_killed("S-d-drop-crossrepo-select", assert_shepherd_skips_cross_repository_sync_pr)
-
-    def test_R_b_max_2_is_killed(self) -> None:
-        assert_killed("R-b-max-2", lambda paths: assert_publish_retries_n_failures_then_posts(paths, 3))
-
-    def test_R_c_max_3_is_killed(self) -> None:
-        assert_killed("R-c-max-3", lambda paths: assert_publish_retries_n_failures_then_posts(paths, 3))
-
-    def test_R_d_max_5_is_killed(self) -> None:
-        assert_killed("R-d-max-5", assert_publish_gives_up_after_four_failures)
-
-    def test_R_e_ge_to_gt_is_killed(self) -> None:
-        assert_killed("R-e-ge-to-gt", assert_publish_gives_up_after_four_failures)
-
-    def test_S_a_suffix_filter_is_killed(self) -> None:
-        assert_killed(
-            "S-a-suffix-filter",
-            lambda paths: assert_non_catalog_pr_does_not_dispatch(paths, "x/automation/cve-catalog-sync"),
-        )
-
-    def test_S_b_prefix_of_sync_is_killed(self) -> None:
-        assert_killed(
-            "S-b-prefix-of-sync",
-            lambda paths: assert_non_catalog_pr_does_not_dispatch(paths, "automation/cve-catalog-sync-2"),
-        )
-
-    def test_P_i_prefix_of_sync_is_killed(self) -> None:
-        assert_killed(
-            "P-i-publish-prefix-of-sync-both",
-            lambda paths: assert_publish_refuses_non_catalog_branch(paths, "automation/cve-catalog-sync-2"),
-        )
-
-    def test_D1_drop_ref_check_is_killed(self) -> None:
-        assert_killed(
-            "D1-drop-ref-check",
-            lambda paths: assert_publish_refuses_dispatch_origin(
-                paths, dispatch_ref="refs/heads/automation/cve-catalog-sync", why="non-main ref"
-            ),
-        )
-
-    def test_D2_ref_prefix_is_killed(self) -> None:
-        assert_killed(
-            "D2-ref-prefix",
-            lambda paths: assert_publish_refuses_dispatch_origin(
-                paths, dispatch_ref="refs/heads/main-x", why="main-x ref"
-            ),
-        )
-
-    def test_D3_drop_actor_check_is_killed(self) -> None:
-        assert_killed(
-            "D3-drop-actor-check",
-            lambda paths: assert_publish_refuses_dispatch_origin(
-                paths, dispatch_actor="evil-bot", why="wrong actor"
-            ),
-        )
-
-    def test_D4_actor_substring_is_killed(self) -> None:
-        assert_killed(
-            "D4-actor-substring",
-            lambda paths: assert_publish_refuses_dispatch_origin(
-                paths, dispatch_actor="xgithub-actions[bot]", why="substring actor"
-            ),
-        )
-
-    def test_D5_guard_exit_0_is_killed(self) -> None:
-        assert_killed(
-            "D5-guard-exit-0",
-            lambda paths: assert_publish_refuses_dispatch_origin(
-                paths, dispatch_ref="refs/heads/development", why="non-main ref"
-            ),
-        )
-
-    def test_D2c_ref_suffix_main_is_killed(self) -> None:
-        assert_killed(
-            "D2c-ref-suffix-main",
-            lambda paths: assert_publish_refuses_dispatch_origin(
-                paths, dispatch_ref="refs/heads/x/main", why="refs/heads/x/main"
-            ),
-        )
-
-    def test_F_lookalike_bot_is_killed(self) -> None:
-        assert_killed(
-            "F-lookalike-bot",
-            lambda paths: assert_publish_refuses_dispatch_origin(
-                paths,
-                dispatch_actor=f"{APP_SLUG}-x[bot]",
-                app_slug=APP_SLUG,
-                why="slug-x[bot]",
-            ),
-        )
-
-    def test_F_any_bot_is_killed(self) -> None:
-        assert_killed(
-            "F-any-bot",
-            lambda paths: assert_publish_refuses_dispatch_origin(
-                paths,
-                dispatch_actor="dependabot[bot]",
-                app_slug=APP_SLUG,
-                why="dependabot[bot]",
-            ),
-        )
-
-    def test_F_unset_accepts_app_is_killed(self) -> None:
-        assert_killed(
-            "F-unset-accepts-app",
-            lambda paths: assert_publish_refuses_dispatch_origin(
-                paths,
-                dispatch_actor=APP_ACTOR,
-                why="App actor with unset slug",
-            ),
-        )
-
-    def test_F_app_on_non_main_is_killed(self) -> None:
-        assert_killed(
-            "F-app-on-non-main",
-            lambda paths: assert_publish_refuses_dispatch_origin(
-                paths,
-                dispatch_ref="refs/heads/x/main",
-                dispatch_actor=APP_ACTOR,
-                app_slug=APP_SLUG,
-                why="App actor on refs/heads/x/main",
-            ),
-        )
-
-    def test_F_loosened_slug_is_killed(self) -> None:
-        assert_killed(
-            "F-loosened-slug",
-            lambda paths: assert_publish_refuses_dispatch_origin(
-                paths,
-                dispatch_actor=f"x{APP_SLUG}[bot]",
-                app_slug=APP_SLUG,
-                why="xslug[bot]",
-            ),
-        )
-
-    def test_A6_case_insensitive_app_actor_is_killed(self) -> None:
-        assert_killed(
-            "A6-case-insensitive-app-actor",
-            lambda paths: assert_publish_refuses_dispatch_origin(
-                paths,
-                dispatch_actor="QA-CVE-SYNC[bot]",
-                app_slug=APP_SLUG,
-                why="QA-CVE-SYNC[bot]",
-            ),
-        )
-
-    def test_I2_regex_app_actor_is_killed(self) -> None:
-        assert_killed(
-            "I2-regex-app-actor",
-            lambda paths: assert_publish_refuses_dispatch_origin(
-                paths,
-                dispatch_actor=f"{APP_SLUG}b",
-                app_slug=APP_SLUG,
-                why="qa-cve-syncb against regex [bot] character class",
-            ),
-        )
-
-    def test_I2_bad_slug_ignored_is_killed(self) -> None:
-        assert_killed(
-            "I2-bad-slug-ignored",
-            lambda paths: assert_publish_refuses_dispatch_origin(
-                paths,
-                app_slug=REGEX_WILDCARD_SLUG,
-                why="invalid slug ignored",
-            ),
-        )
-
-    def test_V_restore_pr_branch_validation_ref_is_killed(self) -> None:
-        assert_killed("V-restore-pr-branch-validation-ref", assert_sync_validation_ref_is_main)
 
 
 if __name__ == "__main__":

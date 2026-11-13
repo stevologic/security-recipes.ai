@@ -8,6 +8,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SH = ".github/workflows/automation-shepherd.yml"
 VA = ".github/workflows/cve-catalog-validate.yml"
+SYNC = ".github/workflows/cve-catalog-sync.yml"
 DELIVERY = "scripts/cve_catalog_delivery.py"
 CHK = 'if [ "$CHECK_RUNS" -gt 0 ] || [ "$STATUSES" -gt 0 ]; then'
 LIVE = """          if [ "$PR_STATE" != "open" ] ||
@@ -385,6 +386,52 @@ MUTANTS: list[tuple[str, str, str, str]] = [
         return pr_branch
     return default_branch""",
     ),
+    (
+        "R1a-sync-ref-branch",
+        SYNC,
+        '              --ref "$VALIDATION_REF" \\',
+        '              --ref "$BRANCH" \\',
+    ),
+    (
+        "R1b-default-branch-branch",
+        SYNC,
+        '              --default-branch "$GITHUB_DEFAULT_BRANCH" \\',
+        '              --default-branch "$BRANCH" \\',
+    ),
+    (
+        "R2a-delivery-github-token",
+        SYNC,
+        """          GITHUB_DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          PR_NUMBER: ${{ needs.sync.outputs.pr_number }}""",
+        """          GITHUB_DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ needs.sync.outputs.pr_number }}""",
+    ),
+    (
+        "SF2-drop-start-anchor",
+        VA,
+        '[[ ! "$APP_SLUG" =~ ^[a-z0-9-]+$ ]]',
+        '[[ ! "$APP_SLUG" =~ [a-z0-9-]+$ ]]',
+    ),
+    (
+        "SF3-drop-end-anchor",
+        VA,
+        '[[ ! "$APP_SLUG" =~ ^[a-z0-9-]+$ ]]',
+        '[[ ! "$APP_SLUG" =~ ^[a-z0-9-]+ ]]',
+    ),
+    (
+        "SF4-allow-dot",
+        VA,
+        '[[ ! "$APP_SLUG" =~ ^[a-z0-9-]+$ ]]',
+        '[[ ! "$APP_SLUG" =~ ^[a-z0-9.-]+$ ]]',
+    ),
+    (
+        "SF5-allow-uppercase",
+        VA,
+        '[[ ! "$APP_SLUG" =~ ^[a-z0-9-]+$ ]]',
+        '[[ ! "$APP_SLUG" =~ ^[A-Za-z0-9-]+$ ]]',
+    ),
 ]
 
 EXTRA: dict[str, tuple[str, str, str]] = {
@@ -454,6 +501,7 @@ def apply_edits(dest_root: Path, mutant_id: str) -> None:
     mapping = {
         SH: dest_root / "automation-shepherd.yml",
         VA: dest_root / "cve-catalog-validate.yml",
+        SYNC: dest_root / "cve-catalog-sync.yml",
         DELIVERY: dest_root / "cve_catalog_delivery.py",
     }
     for rel, old, new in edits_for(mutant_id):

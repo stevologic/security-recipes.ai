@@ -16,12 +16,13 @@ ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from tests.exact_sha_build_status_mutants import DELIVERY, SH, VA, edits_for, known_mutant_ids
+from tests.exact_sha_build_status_mutants import DELIVERY, SH, SYNC, VA, edits_for, known_mutant_ids
 
 
 FILES = {
     SH: ROOT / SH,
     VA: ROOT / VA,
+    SYNC: ROOT / SYNC,
     DELIVERY: ROOT / DELIVERY,
 }
 

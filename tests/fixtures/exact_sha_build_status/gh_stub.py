@@ -103,6 +103,7 @@ def main() -> int:
             "fields": parsed["fields"],
             "flags": parsed["flags"],
             "positionals": parsed["positionals"],
+            "gh_token": os.environ.get("GH_TOKEN", ""),
         }
     )
     save_json(log_path, calls)
