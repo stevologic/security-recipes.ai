@@ -147,6 +147,7 @@ class CveCatalogValidationWorkflowTests(unittest.TestCase):
         self.assertIn('TRUSTED_ACTOR="github-actions[bot]"', publish)
         self.assertIn('APP_SLUG="$CVE_SYNC_APP_SLUG"', publish)
         self.assertIn('TRUSTED_APP_ACTOR="${APP_SLUG}[bot]"', publish)
+        self.assertIn('[ -n "$APP_SLUG" ] && [[ ! "$APP_SLUG" =~ ^[a-z0-9-]+$ ]]', publish)
         self.assertIn('[ -n "$APP_SLUG" ] && [ "$DISPATCH_ACTOR" = "$TRUSTED_APP_ACTOR" ]', publish)
         self.assertIn('[ "$DISPATCH_REF" != "$TRUSTED_REF" ]', publish)
         self.assertIn('[ "$actor_ok" -ne 1 ]', publish)

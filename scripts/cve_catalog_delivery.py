@@ -118,8 +118,7 @@ def validation_ref(
     default_branch: str,
     pr_branch: str,
 ) -> str:
-    if data_only and not app_configured:
-        return pr_branch
+    del data_only, app_configured, pr_branch
     return default_branch
 
 

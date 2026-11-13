@@ -8,6 +8,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SH = ".github/workflows/automation-shepherd.yml"
 VA = ".github/workflows/cve-catalog-validate.yml"
+DELIVERY = "scripts/cve_catalog_delivery.py"
 CHK = 'if [ "$CHECK_RUNS" -gt 0 ] || [ "$STATUSES" -gt 0 ]; then'
 LIVE = """          if [ "$PR_STATE" != "open" ] ||
              [ "$HEAD_REPOSITORY" != "$GITHUB_REPOSITORY" ] ||
@@ -18,6 +19,12 @@ LIVE = """          if [ "$PR_STATE" != "open" ] ||
 ACTOR_ELIF = (
     '          elif [ -n "$APP_SLUG" ] && [ "$DISPATCH_ACTOR" = "$TRUSTED_APP_ACTOR" ]; then'
 )
+SLUG_FORMAT = """          if [ -n "$APP_SLUG" ] && [[ ! "$APP_SLUG" =~ ^[a-z0-9-]+$ ]]; then
+            echo "::error::CVE_SYNC_APP_SLUG is not a valid GitHub App slug; refusing to publish a build status."
+            exit 1
+          fi"""
+VALIDATION_REF_ALWAYS = """    del data_only, app_configured, pr_branch
+    return default_branch"""
 REF_OR_ACTOR = """          if [ "$DISPATCH_REF" != "$TRUSTED_REF" ] ||
              [ "$actor_ok" -ne 1 ]; then"""
 REFUSE_EXIT = """            echo "::error::Refusing to publish a self-posted build; dispatch was not from ${TRUSTED_REF} by a trusted actor."
@@ -356,6 +363,28 @@ MUTANTS: list[tuple[str, str, str, str]] = [
         ACTOR_ELIF,
         '          elif [ -n "$APP_SLUG" ] && [ "${DISPATCH_ACTOR,,}" = "$TRUSTED_APP_ACTOR" ]; then',
     ),
+    (
+        "I2-regex-app-actor",
+        VA,
+        ACTOR_ELIF,
+        '          elif [ -n "$APP_SLUG" ] && [[ "$DISPATCH_ACTOR" =~ $TRUSTED_APP_ACTOR ]]; then',
+    ),
+    (
+        "I2-bad-slug-ignored",
+        VA,
+        SLUG_FORMAT,
+        """          if [ -n "$APP_SLUG" ] && [[ ! "$APP_SLUG" =~ ^[a-z0-9-]+$ ]]; then
+            APP_SLUG=""
+          fi""",
+    ),
+    (
+        "V-restore-pr-branch-validation-ref",
+        DELIVERY,
+        VALIDATION_REF_ALWAYS,
+        """    if data_only and not app_configured:
+        return pr_branch
+    return default_branch""",
+    ),
 ]
 
 EXTRA: dict[str, tuple[str, str, str]] = {
@@ -425,6 +454,7 @@ def apply_edits(dest_root: Path, mutant_id: str) -> None:
     mapping = {
         SH: dest_root / "automation-shepherd.yml",
         VA: dest_root / "cve-catalog-validate.yml",
+        DELIVERY: dest_root / "cve_catalog_delivery.py",
     }
     for rel, old, new in edits_for(mutant_id):
         path = mapping[rel]

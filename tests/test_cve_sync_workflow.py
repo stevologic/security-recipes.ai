@@ -412,6 +412,8 @@ class CveSyncWorkflowTests(unittest.TestCase):
         )
         self.assertIn("Data-only catalog PR skips karen-qa and the GitHub App check.", delivery_step)
         self.assertIn('--ref "$VALIDATION_REF"', delivery_step)
+        self.assertIn("python scripts/cve_catalog_delivery.py validation-ref", delivery_step)
+        self.assertIn('--default-branch "$GITHUB_DEFAULT_BRANCH"', delivery_step)
         self.assertIn("reuse-in-run-validation", delivery_step)
         self.assertIn("self-merge-gate", delivery_step)
         self.assertIn("Never gate self-merge on github-actions[bot]", delivery_step)

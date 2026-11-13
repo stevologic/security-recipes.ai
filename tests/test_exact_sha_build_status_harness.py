@@ -6,7 +6,9 @@ import re
 import shutil
 import stat
 import subprocess
+import sys
 import tempfile
+import threading
 import unittest
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager
@@ -52,12 +54,17 @@ LOOKALIKE_REFS = (
 LOOKALIKE_APP_ACTORS = (
     f"{APP_SLUG}-x[bot]",
     f"x{APP_SLUG}[bot]",
+    f"{APP_SLUG}b",
     f"{APP_ACTOR} ",
     f"{APP_ACTOR}\u200b",
     "dependabot[bot]",
     "QA-CVE-SYNC[bot]",
     "Qa-Cve-Sync[bot]",
 )
+REGEX_WILDCARD_SLUG = ".*"
+DOT_SLUG = "sync.app"
+DOT_SLUG_ACTOR = "syncXapp[bot]"
+DELIVERY_SCRIPT = ROOT / "scripts" / "cve_catalog_delivery.py"
 LOOKALIKE_BRANCHES = (
     "automation/cve-catalog-sync-2",
     "automation/cve-catalog-sync/x",
@@ -82,9 +89,45 @@ UNSET = object()
 class WorkflowPaths:
     shepherd: Path
     validate: Path
+    sync: Path
+    delivery: Path
 
 
-CONTROL = WorkflowPaths(shepherd=SHEPHERD_WORKFLOW, validate=VALIDATE_WORKFLOW)
+CONTROL = WorkflowPaths(
+    shepherd=SHEPHERD_WORKFLOW,
+    validate=VALIDATE_WORKFLOW,
+    sync=SYNC_WORKFLOW,
+    delivery=DELIVERY_SCRIPT,
+)
+
+_SCRATCH: tempfile.TemporaryDirectory[str] | None = None
+_SCRATCH_FILES: dict[str, str] = {}
+_SCRATCH_LOCK = threading.Lock()
+_SCRATCH_SOURCES = (
+    ("automation-shepherd.yml", SHEPHERD_WORKFLOW),
+    ("cve-catalog-validate.yml", VALIDATE_WORKFLOW),
+    ("cve-catalog-sync.yml", SYNC_WORKFLOW),
+    ("cve_catalog_delivery.py", DELIVERY_SCRIPT),
+)
+
+
+def _ensure_scratch() -> Path:
+    global _SCRATCH
+    if _SCRATCH is None:
+        _SCRATCH = tempfile.TemporaryDirectory(prefix="exact-sha-mutant-scratch-")
+        dest = Path(_SCRATCH.name)
+        for name, src in _SCRATCH_SOURCES:
+            text = src.read_text(encoding="utf-8")
+            (dest / name).write_text(text, encoding="utf-8")
+            _SCRATCH_FILES[name] = text
+    return Path(_SCRATCH.name)
+
+
+def _reset_scratch() -> Path:
+    dest = _ensure_scratch()
+    for name, text in _SCRATCH_FILES.items():
+        (dest / name).write_text(text, encoding="utf-8")
+    return dest
 
 
 @dataclass
@@ -95,15 +138,18 @@ class CommandResult:
 
 @contextmanager
 def mutant_paths(mutant_id: str) -> Iterator[WorkflowPaths]:
-    with tempfile.TemporaryDirectory(prefix=f"exact-sha-mutant-{mutant_id}-") as tmp:
-        dest = Path(tmp)
-        shutil.copy(SHEPHERD_WORKFLOW, dest / "automation-shepherd.yml")
-        shutil.copy(VALIDATE_WORKFLOW, dest / "cve-catalog-validate.yml")
+    with _SCRATCH_LOCK:
+        dest = _reset_scratch()
         apply_edits(dest, mutant_id)
-        yield WorkflowPaths(
-            shepherd=dest / "automation-shepherd.yml",
-            validate=dest / "cve-catalog-validate.yml",
-        )
+        try:
+            yield WorkflowPaths(
+                shepherd=dest / "automation-shepherd.yml",
+                validate=dest / "cve-catalog-validate.yml",
+                sync=dest / "cve-catalog-sync.yml",
+                delivery=dest / "cve_catalog_delivery.py",
+            )
+        finally:
+            _reset_scratch()
 
 
 def lookup_context(expr: str, context: dict[str, Any]) -> str:
@@ -795,6 +841,75 @@ def assert_publish_accepts_dispatch_origin(
         raise AssertionError(f"{why} did not post build: {posted!r}")
 
 
+def catalog_delivery_step(sync_path: Path) -> str:
+    sync = sync_path.read_text(encoding="utf-8")
+    delivery = sync.split("Reconcile, validate, and merge exact catalog revision", 1)[1]
+    return delivery.split("\n      - name: ", 1)[0]
+
+
+def run_validation_ref(delivery_script: Path, *, app_configured: bool) -> str:
+    env = os.environ.copy()
+    env["PYTHONPATH"] = str(ROOT)
+    proc = subprocess.run(
+        [
+            sys.executable,
+            str(delivery_script),
+            "validation-ref",
+            "--data-only",
+            "true",
+            "--app-configured",
+            "true" if app_configured else "false",
+            "--default-branch",
+            "main",
+            "--pr-branch",
+            SYNC_BRANCH,
+        ],
+        cwd=ROOT,
+        env=env,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if proc.returncode != 0:
+        raise AssertionError(
+            f"validation-ref exited {proc.returncode}:\n{proc.stdout}\n{proc.stderr}"
+        )
+    return proc.stdout.strip()
+
+
+def assert_sync_yaml_dispatches_validation_on_main(paths: WorkflowPaths) -> None:
+    delivery = catalog_delivery_step(paths.sync)
+    if "gh workflow run cve-catalog-validate.yml" not in delivery:
+        raise AssertionError("catalog-delivery does not dispatch cve-catalog-validate.yml")
+    if '--ref "$VALIDATION_REF"' not in delivery:
+        raise AssertionError(f"dispatch ref is not VALIDATION_REF:\n{delivery}")
+    if '--ref "$BRANCH"' in delivery:
+        raise AssertionError("dispatch still uses the PR branch as --ref")
+    if '--field "expected_sha=$EXPECTED_SHA"' not in delivery:
+        raise AssertionError("dispatch does not pass the PR head SHA as expected_sha")
+    if "python scripts/cve_catalog_delivery.py validation-ref" not in delivery:
+        raise AssertionError("VALIDATION_REF is not taken from validation-ref")
+
+
+def assert_sync_validation_ref_is_main(paths: WorkflowPaths) -> None:
+    assert_sync_yaml_dispatches_validation_on_main(paths)
+    for app_configured in (True, False):
+        ref = run_validation_ref(paths.delivery, app_configured=app_configured)
+        if ref != "main":
+            raise AssertionError(
+                f"validation_ref(app_configured={app_configured}) is {ref!r}, expected main"
+            )
+        actor = APP_ACTOR if app_configured else TRUSTED_ACTOR
+        slug = APP_SLUG if app_configured else None
+        assert_publish_accepts_dispatch_origin(
+            paths,
+            dispatch_ref=f"refs/heads/{ref}",
+            dispatch_actor=actor,
+            app_slug=slug,
+            why=f"sync dispatch app_configured={app_configured} ref={ref} actor={actor}",
+        )
+
+
 def assert_killed(mutant_id: str, behavior: Callable[[WorkflowPaths], None]) -> None:
     with mutant_paths(mutant_id) as paths:
         try:
@@ -1017,21 +1132,25 @@ class ExactShaBuildStatusControlTests(unittest.TestCase):
         self.assertEqual(env.get("CVE_SYNC_APP_SLUG"), APP_SLUG)
 
     def test_publish_accepts_sync_app_token_dispatch(self) -> None:
-        sync = SYNC_WORKFLOW.read_text(encoding="utf-8")
-        delivery = sync.split("Reconcile, validate, and merge exact catalog revision", 1)[1]
-        delivery = delivery.split("\n      - name: ", 1)[0]
+        delivery = catalog_delivery_step(CONTROL.sync)
         self.assertIn("GH_TOKEN: ${{ steps.app-token.outputs.token }}", delivery)
         self.assertIn("gh workflow run cve-catalog-validate.yml", delivery)
         self.assertIn('--ref "$VALIDATION_REF"', delivery)
         self.assertIn('--field "expected_sha=$EXPECTED_SHA"', delivery)
         self.assertIn('--field "pr_number=$PR_NUMBER"', delivery)
         self.assertIn('--field "expected_branch=$BRANCH"', delivery)
+        assert_sync_validation_ref_is_main(CONTROL)
+
+    def test_publish_accepts_sync_no_app_github_token_dispatch(self) -> None:
+        delivery = catalog_delivery_step(CONTROL.sync)
+        self.assertIn("GH_TOKEN: ${{ steps.app-token.outputs.token }}", delivery)
+        ref = run_validation_ref(CONTROL.delivery, app_configured=False)
+        self.assertEqual(ref, "main")
         assert_publish_accepts_dispatch_origin(
             CONTROL,
-            dispatch_ref=TRUSTED_REF,
-            dispatch_actor=APP_ACTOR,
-            app_slug=APP_SLUG,
-            why="catalog-sync App-token dispatch on main",
+            dispatch_ref=f"refs/heads/{ref}",
+            dispatch_actor=TRUSTED_ACTOR,
+            why="catalog-sync no-App github-actions[bot] dispatch on main",
         )
 
     def test_publish_keeps_actions_bot_when_app_slug_is_set(self) -> None:
@@ -1068,6 +1187,29 @@ class ExactShaBuildStatusControlTests(unittest.TestCase):
                     app_slug=APP_SLUG,
                     why=f"App actor on {ref}",
                 )
+
+    def test_publish_refuses_regex_wildcard_slug(self) -> None:
+        assert_publish_refuses_dispatch_origin(
+            CONTROL,
+            dispatch_actor="evil[bot]",
+            app_slug=REGEX_WILDCARD_SLUG,
+            why="CVE_SYNC_APP_SLUG=.* actor evil[bot]",
+        )
+
+    def test_publish_refuses_invalid_app_slug(self) -> None:
+        assert_publish_refuses_dispatch_origin(
+            CONTROL,
+            app_slug=REGEX_WILDCARD_SLUG,
+            why="invalid CVE_SYNC_APP_SLUG=.*",
+        )
+
+    def test_publish_refuses_dot_slug_as_any_char(self) -> None:
+        assert_publish_refuses_dispatch_origin(
+            CONTROL,
+            dispatch_actor=DOT_SLUG_ACTOR,
+            app_slug=DOT_SLUG,
+            why="slug sync.app actor syncXapp[bot]",
+        )
 
     def test_equivalent_mutants_are_labeled(self) -> None:
         self.assertEqual(
@@ -1377,6 +1519,30 @@ class ExactShaBuildStatusMutantKillTests(unittest.TestCase):
                 why="QA-CVE-SYNC[bot]",
             ),
         )
+
+    def test_I2_regex_app_actor_is_killed(self) -> None:
+        assert_killed(
+            "I2-regex-app-actor",
+            lambda paths: assert_publish_refuses_dispatch_origin(
+                paths,
+                dispatch_actor=f"{APP_SLUG}b",
+                app_slug=APP_SLUG,
+                why="qa-cve-syncb against regex [bot] character class",
+            ),
+        )
+
+    def test_I2_bad_slug_ignored_is_killed(self) -> None:
+        assert_killed(
+            "I2-bad-slug-ignored",
+            lambda paths: assert_publish_refuses_dispatch_origin(
+                paths,
+                app_slug=REGEX_WILDCARD_SLUG,
+                why="invalid slug ignored",
+            ),
+        )
+
+    def test_V_restore_pr_branch_validation_ref_is_killed(self) -> None:
+        assert_killed("V-restore-pr-branch-validation-ref", assert_sync_validation_ref_is_main)
 
 
 if __name__ == "__main__":
