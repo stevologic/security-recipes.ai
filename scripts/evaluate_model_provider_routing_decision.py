@@ -150,12 +150,16 @@ def request_from_input(runtime_request: dict[str, Any]) -> dict[str, Any]:
         "telemetry_redacted": as_bool(runtime_request.get("telemetry_redacted")),
         "tenant_id": str(runtime_request.get("tenant_id") or ""),
         "tenant_region": str(runtime_request.get("tenant_region") or ""),
+        "token_aware_rate_limit": as_bool(runtime_request.get("token_aware_rate_limit")),
         "tool_call_started": as_bool(runtime_request.get("tool_call_started")),
         "tool_guardrails_enforced": as_bool(runtime_request.get("tool_guardrails_enforced")),
         "training_opt_out": as_bool(runtime_request.get("training_opt_out")),
         "untrusted_input": as_bool(runtime_request.get("untrusted_input")),
         "workflow_id": str(runtime_request.get("workflow_id") or ""),
         "zero_data_retention": as_bool(runtime_request.get("zero_data_retention")),
+        "spending_cap_halts_inference": as_bool(runtime_request.get("spending_cap_halts_inference")),
+        "agentic_circuit_breaker": as_bool(runtime_request.get("agentic_circuit_breaker")),
+        "recursive_tool_or_reasoning_loop": as_bool(runtime_request.get("recursive_tool_or_reasoning_loop")),
     }
 
 
@@ -228,6 +232,12 @@ def missing_controls(
         missing.append("egress_decision_allow")
     if route.get("human_approval_required") and not human_approval_present(request):
         missing.append("human_approval_record")
+    if not request["token_aware_rate_limit"]:
+        missing.append("token_aware_rate_limit")
+    if not request["spending_cap_halts_inference"]:
+        missing.append("spending_cap_halts_inference")
+    if not request["agentic_circuit_breaker"]:
+        missing.append("agentic_circuit_breaker")
     return sorted(set(missing))
 
 
@@ -273,6 +283,9 @@ def risk_score(
         "tool_guardrails_enforced": "missing_tool_guardrails",
         "training_opt_out": "missing_training_opt_out",
         "zero_data_retention": "missing_zdr",
+        "token_aware_rate_limit": "missing_token_aware_rate_limit",
+        "spending_cap_halts_inference": "missing_hard_spending_cap",
+        "agentic_circuit_breaker": "missing_agentic_circuit_breaker",
     }
     for control in missing:
         score += int(weights.get(missing_weight_map.get(control, ""), 0) or 0)
@@ -286,6 +299,9 @@ def risk_score(
         "output_guardrails_enforced",
         "telemetry_redacted",
         "run_receipt_attached",
+        "token_aware_rate_limit",
+        "spending_cap_halts_inference",
+        "agentic_circuit_breaker",
     ]:
         if request.get(control):
             score -= int(credits.get(control, 0) or 0)
@@ -412,6 +428,14 @@ def evaluate_model_provider_routing_decision(
             pack=routing_pack,
             request=request,
             violations=["egress_decision_denied_or_killed"],
+        )
+    if request["recursive_tool_or_reasoning_loop"]:
+        return decision_result(
+            decision="kill_session_on_provider_signal",
+            reason="an unbounded tool-calling or reasoning loop was already detected",
+            pack=routing_pack,
+            request=request,
+            violations=["unbounded_consumption_loop_detected"],
         )
 
     route = match_route(routing_pack, request)
@@ -565,7 +589,7 @@ def evaluate_model_provider_routing_decision(
         decision = "hold_for_model_provider_review"
     return decision_result(
         decision=decision,
-        reason="matched route, data classes, autonomy, egress, and provider evidence satisfied the routing contract",
+        reason="matched route, data classes, autonomy, egress, consumption halt conditions, and provider evidence satisfied the routing contract",
         pack=routing_pack,
         request=request,
         provider=provider,
@@ -607,6 +631,10 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--untrusted-input", action="store_true")
     parser.add_argument("--tool-call-started", action="store_true")
     parser.add_argument("--high-impact-action", action="store_true")
+    parser.add_argument("--token-aware-rate-limit", action="store_true")
+    parser.add_argument("--spending-cap-halts-inference", action="store_true")
+    parser.add_argument("--agentic-circuit-breaker", action="store_true")
+    parser.add_argument("--recursive-tool-or-reasoning-loop", action="store_true")
     parser.add_argument("--expect-decision")
     return parser.parse_args(argv)
 
@@ -644,6 +672,10 @@ def main(argv: list[str] | None = None) -> int:
         "untrusted_input": args.untrusted_input,
         "workflow_id": args.workflow_id,
         "zero_data_retention": args.zero_data_retention,
+        "token_aware_rate_limit": args.token_aware_rate_limit,
+        "spending_cap_halts_inference": args.spending_cap_halts_inference,
+        "agentic_circuit_breaker": args.agentic_circuit_breaker,
+        "recursive_tool_or_reasoning_loop": args.recursive_tool_or_reasoning_loop,
     }
     decision = evaluate_model_provider_routing_decision(pack, request)
     print(json.dumps(decision, indent=2, sort_keys=True))
