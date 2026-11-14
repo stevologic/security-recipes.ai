@@ -2057,7 +2057,7 @@
       "title": "Model Provider Routing Gate",
       "page": "/security-remediation/model-provider-routing-gate/",
       "category": "agent-runtime",
-      "summary": "Choose an eligible model/provider route from data, task, region, risk, capability, and fallback policy before any context is sent.",
+      "summary": "Choose an eligible model/provider route from data, task, region, risk, capability, consumption halt conditions, and fallback policy before any context is sent.",
       "phases": [
         {
           "label": "Signal",
@@ -2072,23 +2072,23 @@
         {
           "label": "Decision",
           "title": "Score route risk",
-          "detail": "Evaluate private context, secrets, regulated data, tool use, autonomy, safety controls, outage state, and fallback equivalence."
+          "detail": "Evaluate private context, secrets, regulated data, tool use, autonomy, token-aware rate limits, hard spending caps that halt inference, agentic circuit breakers, safety controls, outage state, and fallback equivalence."
         },
         {
           "label": "Action",
           "title": "Select or block",
-          "detail": "Choose the lowest-risk compliant route, use an approved fallback, require redaction/approval, hold, or deny the request."
+          "detail": "Choose the lowest-risk compliant route, use an approved fallback, require redaction/approval, hold missing consumption halt evidence, kill an already-detected unbounded loop, or deny the request."
         },
         {
           "label": "Proof",
           "title": "Write the routing receipt",
-          "detail": "Record candidate routes, exclusions, selected model/provider, transformations, policy, cost class, and fallback state."
+          "detail": "Record candidate routes, exclusions, selected model/provider, transformations, policy, cost class, consumption halt conditions, and fallback state."
         }
       ],
       "gate": {
-        "question": "Is there an approved route satisfying data, region, capability, risk, contract, and fallback requirements?",
+        "question": "Is there an approved route satisfying data, region, capability, risk, contract, consumption halt, and fallback requirements?",
         "pass": "Send only the authorized context to the selected route.",
-        "stop": "Redact, hold, or deny when no compliant provider/model route exists."
+        "stop": "Redact, hold, or deny when no compliant provider/model route exists, including when spending caps only alert or agent-tool loops have no circuit breaker."
       },
       "evidence": [
         "request data/risk classification",

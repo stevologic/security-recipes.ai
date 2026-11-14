@@ -30,7 +30,10 @@
       "tool_and_output_guardrails",
       "redacted_trace_contract",
       "run_receipt_binding",
-      "context_egress_decision"
+      "context_egress_decision",
+      "token_aware_cost_controls",
+      "hard_spending_cap_halts_inference",
+      "agentic_circuit_breaker"
     ],
     "required_runtime_attributes": [
       "workflow_id",
@@ -52,7 +55,10 @@
       "telemetry_redacted",
       "run_receipt_attached",
       "egress_decision",
-      "human_approval_record"
+      "human_approval_record",
+      "token_aware_rate_limit",
+      "spending_cap_halts_inference",
+      "agentic_circuit_breaker"
     ],
     "runtime_kill_signals": [
       "raw_token_or_private_key_in_prompt",
@@ -64,7 +70,8 @@
       "unredacted_pii_without_approval",
       "provider_endpoint_not_https",
       "tool_call_started_before_blocking_guardrail",
-      "egress_decision_denied_or_killed"
+      "egress_decision_denied_or_killed",
+      "unbounded_consumption_loop_detected"
     ],
     "valid_decisions": [
       "allow_approved_route",
@@ -80,6 +87,7 @@
       "Which model providers are approved for public, tenant-sensitive, regulated, or browser-derived context?",
       "Which data classes are prohibited for each provider or model route?",
       "Which routes require zero data retention, training exclusion, DPA, residency, guardrails, telemetry, receipt, and human approval evidence?",
+      "Which routes prove token-aware rate limits, hard spending caps that halt inference, and agentic circuit breakers before a model call starts?",
       "Which workflows can use frontier hosted models versus private runtimes?",
       "Which runtime signals force hold, deny, or kill decisions before a model call starts?"
     ],
@@ -103,8 +111,8 @@
     ]
   },
   "failures": [],
-  "generated_at": "2026-08-21",
-  "intent": "Define the SecurityRecipes model-provider routing gate: a deterministic policy layer that decides which model provider and model class may receive secure context for a governed agentic workflow, with explicit proof for data retention, residency, training exclusion, guardrails, telemetry, run receipts, and human approval before context crosses a frontier, local, or unsanctioned model boundary.",
+  "generated_at": "2026-11-14",
+  "intent": "Define the SecurityRecipes model-provider routing gate: a deterministic policy layer that decides which model provider and model class may receive secure context for a governed agentic workflow, with explicit proof for data retention, residency, training exclusion, guardrails, token-aware consumption limits, hard spending caps that halt inference, agentic circuit breakers, telemetry, run receipts, and human approval before context crosses a frontier, local, or unsanctioned model boundary.",
   "model_provider_routing_summary": {
     "decision_counts": {
       "allow_approved_route": 1,
@@ -239,8 +247,8 @@
   "positioning": {
     "buyer": "AI Platform, Product Security, GRC, privacy, procurement security, model risk, and acquisition diligence teams",
     "category": "Secure model-provider routing and context boundary governance for agentic AI",
-    "enterprise_promise": "SecurityRecipes makes model choice easy to approve: a team can ask for the best model for an agentic workflow while the routing gate proves whether the provider, model, data class, autonomy level, and evidence state are acceptable.",
-    "why_now": "Enterprises are moving from single-model pilots to multi-provider agent fleets that combine MCP tools, private code, ticket data, browser activity, remote agents, and frontier-model reasoning. A secure context layer needs a provider-neutral routing decision before sensitive context reaches any model boundary."
+    "enterprise_promise": "SecurityRecipes makes model choice easy to approve: a team can ask for the best model for an agentic workflow while the routing gate proves whether the provider, model, data class, autonomy level, consumption controls, and evidence state are acceptable.",
+    "why_now": "Enterprises are moving from single-model pilots to multi-provider agent fleets that combine MCP tools, private code, ticket data, browser activity, remote agents, and frontier-model reasoning. OWASP LLM Top 10 2026 ranks Unbounded Consumption as a first-class risk: request-rate limits and alert-only budgets are not enough when token spend, reasoning loops, or agent-tool fan-out can outrun them. A secure context layer needs a provider-neutral routing decision, including consumption halt conditions, before sensitive context reaches any model boundary."
   },
   "provider_profiles": [
     {
@@ -330,6 +338,10 @@
     {
       "risk": "Provider-neutral model IDs are intentionally abstract in the open project.",
       "treatment": "Fork the profile and map route IDs to approved OpenAI, Anthropic, xAI, private-cloud, or local model SKUs inside the enterprise layer."
+    },
+    {
+      "risk": "Request-rate limits and alert-only spending budgets can be outpaced by token-heavy, multimodal, reasoning-loop, or recursive agent-tool workloads.",
+      "treatment": "Hold the route unless token-aware rate limits, non-overridable spending caps that halt inference, and agentic circuit breakers with step, recursion, time, and per-run cost limits are proven. Kill when an unbounded consumption loop is already detected."
     }
   ],
   "schema_version": "1.0",
@@ -341,6 +353,7 @@
       "multi_agent_coordinator": 4
     },
     "control_credits": {
+      "agentic_circuit_breaker": 8,
       "dpa_in_place": 8,
       "egress_decision_allow": 8,
       "enterprise_contract": 10,
@@ -351,7 +364,9 @@
       "private_runtime": 12,
       "residency_match": 8,
       "run_receipt_attached": 8,
+      "spending_cap_halts_inference": 8,
       "telemetry_redacted": 8,
+      "token_aware_rate_limit": 8,
       "tool_guardrails_enforced": 8,
       "training_opt_out": 8,
       "zero_data_retention": 10
@@ -370,14 +385,17 @@
       "customer_source_code": 18,
       "external_processor": 16,
       "high_impact_action": 26,
+      "missing_agentic_circuit_breaker": 14,
       "missing_dpa": 14,
       "missing_egress_decision": 12,
+      "missing_hard_spending_cap": 16,
       "missing_human_approval": 16,
       "missing_mcp_gateway": 14,
       "missing_output_guardrails": 8,
       "missing_redacted_telemetry": 10,
       "missing_residency_match": 12,
       "missing_run_receipt": 10,
+      "missing_token_aware_rate_limit": 12,
       "missing_tool_guardrails": 12,
       "missing_training_opt_out": 12,
       "missing_zdr": 16,
@@ -405,7 +423,7 @@
     {
       "id": "profile",
       "path": "data/assurance/model-provider-routing-profile.json",
-      "sha256": "9a81eda99c6dbe8971a0a2a8bc593feabe6ca4bf4bc246cf9dc3d9c049c5f587"
+      "sha256": "c998a96442e98825145378c2606939d3a10c34e7867975acae35d6e42bcfb1f5"
     },
     {
       "id": "workflow_manifest",
@@ -415,17 +433,17 @@
     {
       "id": "context_egress_boundary_pack",
       "path": "data/evidence/context-egress-boundary-pack.json",
-      "sha256": "35ccb8af1bb5570862a7f902132da496b20c5b975961123427cb14cafea390fa"
+      "sha256": "6f8cc110c40e64839a4a872b7b11b6cbebf551df18282682728e766c24bbc91a"
     },
     {
       "id": "agentic_telemetry_contract",
       "path": "data/evidence/agentic-telemetry-contract.json",
-      "sha256": "2ded1b8df5ec5bcf6c5ca1de20b543716e5f25f06e1966376d3301e5b3938d47"
+      "sha256": "a655b187bed0f1721fb5bc48fa75b7c173e2f7e5936091c98ee32b0e71308260"
     },
     {
       "id": "agentic_run_receipt_pack",
       "path": "data/evidence/agentic-run-receipt-pack.json",
-      "sha256": "6e8ebce3f0ccc3010a8334e369f11023adc941a373ed0dad698c397d88e54f30"
+      "sha256": "b84bf236b2bfe8b3ffa225ab4aacb70b5dd6d75cce19c89620e2167ca365ae88"
     }
   ],
   "standards_alignment": [
@@ -446,6 +464,18 @@
       "id": "owasp-agentic-skills-top-10",
       "name": "OWASP Agentic Skills Top 10",
       "url": "https://owasp.org/www-project-agentic-skills-top-10/"
+    },
+    {
+      "coverage": "LLM06:2026 Unbounded Consumption ranks resource and cost exhaustion as a first-class LLM application risk. Traditional request-rate limits are not enough; routes need token-aware cost controls, hard spending caps that halt inference, agentic circuit breakers, and cost-attribution monitoring before a model call starts.",
+      "id": "owasp-llm-top-10-2026",
+      "name": "OWASP Top 10 for LLM Applications 2026",
+      "url": "https://genai.owasp.org/resource/owasp-genai-llm-top-10-2026/"
+    },
+    {
+      "coverage": "Official 2026 category text: cost asymmetry, reasoning-loop exhaustion, multimodal token inflation, and agent-tool recursive fan-out. Hard spending caps must halt inference rather than only alert. Agentic circuit breakers enforce step, recursion, time, and per-run cost limits with loop detection.",
+      "id": "owasp-llm06-unbounded-consumption-2026",
+      "name": "LLM06:2026 Unbounded Consumption",
+      "url": "https://github.com/GenAI-Security-Project/GenAI-LLM-Top10/blob/main/2026/final/LLM06_UnboundedConsumption.md"
     },
     {
       "coverage": "Current public MCP 2026-07-28 revision. Model routes require MCP resource binding, least-privilege scope selection, audience validation, HTTPS, PKCE, token validation, and no token passthrough before tool-backed context crosses the provider boundary.",
@@ -522,11 +552,14 @@
       ],
       "default_decision": "allow_guarded_route",
       "minimum_controls": [
+        "agentic_circuit_breaker",
         "egress_decision_allow",
         "enterprise_contract",
         "mcp_gateway_enforced",
         "run_receipt_attached",
+        "spending_cap_halts_inference",
         "telemetry_redacted",
+        "token_aware_rate_limit",
         "tool_guardrails_enforced",
         "training_opt_out"
       ],
@@ -586,7 +619,7 @@
       "status": "active",
       "title": "Artifact Cache and Mirror Quarantine",
       "workflow_id": "artifact-cache-quarantine",
-      "workflow_route_hash": "ef531790e086aa6060cae12084508825c4c1cb27054859b54286d8e7b83c203a"
+      "workflow_route_hash": "3793e4b9a14356808ad5f93e328ab873d06c40121f49fe65f7d88f8fae9a3541"
     },
     {
       "data_classes": [
@@ -597,11 +630,14 @@
       ],
       "default_decision": "allow_guarded_route",
       "minimum_controls": [
+        "agentic_circuit_breaker",
         "egress_decision_allow",
         "enterprise_contract",
         "mcp_gateway_enforced",
         "run_receipt_attached",
+        "spending_cap_halts_inference",
         "telemetry_redacted",
+        "token_aware_rate_limit",
         "tool_guardrails_enforced",
         "training_opt_out"
       ],
@@ -661,7 +697,7 @@
       "status": "active",
       "title": "Base Image and Container Layer Remediation",
       "workflow_id": "base-image-remediation",
-      "workflow_route_hash": "63f92c43b481c463b19394deba4c18b136eba308c8553074f4bab428d17e5317"
+      "workflow_route_hash": "61ec653f333943ccdc9de7a411a505a1f2282d078408e2a962856c23d1141d6f"
     },
     {
       "data_classes": [
@@ -671,11 +707,14 @@
       ],
       "default_decision": "allow_guarded_route",
       "minimum_controls": [
+        "agentic_circuit_breaker",
         "egress_decision_allow",
         "enterprise_contract",
         "mcp_gateway_enforced",
         "run_receipt_attached",
+        "spending_cap_halts_inference",
         "telemetry_redacted",
+        "token_aware_rate_limit",
         "tool_guardrails_enforced",
         "training_opt_out"
       ],
@@ -735,7 +774,7 @@
       "status": "active",
       "title": "Classic Vulnerable Defaults",
       "workflow_id": "classic-vulnerable-defaults",
-      "workflow_route_hash": "598cebf7511ff7f4566968df53acc8e4be837d7ac08ae243968ed496440c5bad"
+      "workflow_route_hash": "b0bcbae2d6569db800e63aabd7bcd26385e79b9b3107da179031ef9dea49d307"
     },
     {
       "data_classes": [
@@ -745,11 +784,14 @@
       ],
       "default_decision": "allow_guarded_route",
       "minimum_controls": [
+        "agentic_circuit_breaker",
         "egress_decision_allow",
         "enterprise_contract",
         "mcp_gateway_enforced",
         "run_receipt_attached",
+        "spending_cap_halts_inference",
         "telemetry_redacted",
+        "token_aware_rate_limit",
         "tool_guardrails_enforced",
         "training_opt_out"
       ],
@@ -809,7 +851,7 @@
       "status": "active",
       "title": "Cryptocurrency and Crypto Payments Security",
       "workflow_id": "crypto-payment-security",
-      "workflow_route_hash": "cc15ee6f512b94a21cc2ba7020f652b2c5821487c237f147de3079ae59de074f"
+      "workflow_route_hash": "72e36c39bacdff6bfedf19ec8d82018e72266c225c58f487bc51e62a51e347c2"
     },
     {
       "data_classes": [
@@ -819,11 +861,14 @@
       ],
       "default_decision": "allow_guarded_route",
       "minimum_controls": [
+        "agentic_circuit_breaker",
         "egress_decision_allow",
         "enterprise_contract",
         "mcp_gateway_enforced",
         "run_receipt_attached",
+        "spending_cap_halts_inference",
         "telemetry_redacted",
+        "token_aware_rate_limit",
         "tool_guardrails_enforced",
         "training_opt_out"
       ],
@@ -883,7 +928,7 @@
       "status": "active",
       "title": "DeFi and Blockchain Protocol Security",
       "workflow_id": "defi-blockchain-security",
-      "workflow_route_hash": "38c78004fac10ee077cac4d248461c8c6d6394cb250be253cc04a8c91a214908"
+      "workflow_route_hash": "aa37d6c7562bea6ed8f3076a68ffebe8cc3bc358542cb289cfb6ffbaa1a51993"
     },
     {
       "data_classes": [
@@ -893,13 +938,16 @@
       ],
       "default_decision": "allow_guarded_route",
       "minimum_controls": [
+        "agentic_circuit_breaker",
         "dpa_in_place",
         "mcp_gateway_enforced",
         "run_receipt_attached",
+        "spending_cap_halts_inference",
+        "token_aware_rate_limit",
         "tool_guardrails_enforced",
         "zero_data_retention"
       ],
-      "notes": "SAST triage frequently contains source slices, traces, and exploitability reasoning; route as tenant sensitive by default.",
+      "notes": "SAST triage frequently contains source slices, traces, and exploitability reasoning; route as tenant sensitive by default and require consumption halt conditions.",
       "preferred_route_ids": [
         "tenant-remediation-frontier-route",
         "private-runtime-restricted-route"
@@ -957,7 +1005,7 @@
       "status": "active",
       "title": "SAST Finding Remediation",
       "workflow_id": "sast-finding-remediation",
-      "workflow_route_hash": "e1795fd1644987be52bbb29ed1e801de182c2b9768136829d18e78714bae08cb"
+      "workflow_route_hash": "3868eef91ab33df842210f2bf5a689ec8c9d28cab17556f48d8df92b6ecf9850"
     },
     {
       "data_classes": [
@@ -968,13 +1016,16 @@
       ],
       "default_decision": "allow_guarded_route",
       "minimum_controls": [
+        "agentic_circuit_breaker",
         "dpa_in_place",
         "human_approval_record",
         "mcp_gateway_enforced",
         "run_receipt_attached",
+        "spending_cap_halts_inference",
+        "token_aware_rate_limit",
         "zero_data_retention"
       ],
-      "notes": "Sensitive-data runs should prefer private runtime and may use approved frontier routes only after data-class, redaction, and approval evidence are present.",
+      "notes": "Sensitive-data runs should prefer private runtime and may use approved frontier routes only after data-class, redaction, approval, and consumption-halt evidence are present.",
       "preferred_route_ids": [
         "private-runtime-restricted-route",
         "tenant-remediation-frontier-route"
@@ -1032,7 +1083,7 @@
       "status": "active",
       "title": "Sensitive Data Element Remediation",
       "workflow_id": "sensitive-data-remediation",
-      "workflow_route_hash": "90d4ebb4fd79f1e25c015f5a7e4a91bf6bc7b9757d6936e2b9ecbbfed0da1571"
+      "workflow_route_hash": "8390f27975b67dfc57b9ca7fd68c2079fa6236489a95122038a0ef4b6ad0624a"
     },
     {
       "data_classes": [
@@ -1043,12 +1094,15 @@
       ],
       "default_decision": "allow_guarded_route",
       "minimum_controls": [
+        "agentic_circuit_breaker",
         "egress_decision_allow",
         "mcp_gateway_enforced",
         "run_receipt_attached",
+        "spending_cap_halts_inference",
+        "token_aware_rate_limit",
         "tool_guardrails_enforced"
       ],
-      "notes": "Dependency remediation can use public vulnerability intelligence freely, but repository-specific context requires tenant-sensitive route evidence.",
+      "notes": "Dependency remediation can use public vulnerability intelligence freely, but repository-specific context requires tenant-sensitive route evidence and consumption halt conditions.",
       "preferred_route_ids": [
         "tenant-remediation-frontier-route",
         "public-context-frontier-route"
@@ -1104,7 +1158,7 @@
       "status": "active",
       "title": "Vulnerable Dependency Remediation",
       "workflow_id": "vulnerable-dependency-remediation",
-      "workflow_route_hash": "97cb5c174e0863d728c362477eee513318fdb1f51c8fa45419eaa89066e3b7ba"
+      "workflow_route_hash": "7eab18f5869a5850f2400e8bd45f0096f8fe42087fc3387ea705d66140c3ba45"
     }
   ]
 }

@@ -1,12 +1,12 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-08-21",
-  "intent": "Define the SecurityRecipes model-provider routing gate: a deterministic policy layer that decides which model provider and model class may receive secure context for a governed agentic workflow, with explicit proof for data retention, residency, training exclusion, guardrails, telemetry, run receipts, and human approval before context crosses a frontier, local, or unsanctioned model boundary.",
+  "last_reviewed": "2026-11-14",
+  "intent": "Define the SecurityRecipes model-provider routing gate: a deterministic policy layer that decides which model provider and model class may receive secure context for a governed agentic workflow, with explicit proof for data retention, residency, training exclusion, guardrails, token-aware consumption limits, hard spending caps that halt inference, agentic circuit breakers, telemetry, run receipts, and human approval before context crosses a frontier, local, or unsanctioned model boundary.",
   "positioning": {
     "buyer": "AI Platform, Product Security, GRC, privacy, procurement security, model risk, and acquisition diligence teams",
     "category": "Secure model-provider routing and context boundary governance for agentic AI",
-    "enterprise_promise": "SecurityRecipes makes model choice easy to approve: a team can ask for the best model for an agentic workflow while the routing gate proves whether the provider, model, data class, autonomy level, and evidence state are acceptable.",
-    "why_now": "Enterprises are moving from single-model pilots to multi-provider agent fleets that combine MCP tools, private code, ticket data, browser activity, remote agents, and frontier-model reasoning. A secure context layer needs a provider-neutral routing decision before sensitive context reaches any model boundary."
+    "enterprise_promise": "SecurityRecipes makes model choice easy to approve: a team can ask for the best model for an agentic workflow while the routing gate proves whether the provider, model, data class, autonomy level, consumption controls, and evidence state are acceptable.",
+    "why_now": "Enterprises are moving from single-model pilots to multi-provider agent fleets that combine MCP tools, private code, ticket data, browser activity, remote agents, and frontier-model reasoning. OWASP LLM Top 10 2026 ranks Unbounded Consumption as a first-class risk: request-rate limits and alert-only budgets are not enough when token spend, reasoning loops, or agent-tool fan-out can outrun them. A secure context layer needs a provider-neutral routing decision, including consumption halt conditions, before sensitive context reaches any model boundary."
   },
   "standards_alignment": [
     {
@@ -26,6 +26,18 @@
       "name": "OWASP Agentic Skills Top 10",
       "url": "https://owasp.org/www-project-agentic-skills-top-10/",
       "coverage": "The routing gate links model choice to skill governance, publisher verification, permission review, isolation, update drift, and runtime audit before behavior packages execute under agent authority."
+    },
+    {
+      "id": "owasp-llm-top-10-2026",
+      "name": "OWASP Top 10 for LLM Applications 2026",
+      "url": "https://genai.owasp.org/resource/owasp-genai-llm-top-10-2026/",
+      "coverage": "LLM06:2026 Unbounded Consumption ranks resource and cost exhaustion as a first-class LLM application risk. Traditional request-rate limits are not enough; routes need token-aware cost controls, hard spending caps that halt inference, agentic circuit breakers, and cost-attribution monitoring before a model call starts."
+    },
+    {
+      "id": "owasp-llm06-unbounded-consumption-2026",
+      "name": "LLM06:2026 Unbounded Consumption",
+      "url": "https://github.com/GenAI-Security-Project/GenAI-LLM-Top10/blob/main/2026/final/LLM06_UnboundedConsumption.md",
+      "coverage": "Official 2026 category text: cost asymmetry, reasoning-loop exhaustion, multimodal token inflation, and agent-tool recursive fan-out. Hard spending caps must halt inference rather than only alert. Agentic circuit breakers enforce step, recursion, time, and per-run cost limits with loop detection."
     },
     {
       "id": "mcp-authorization-2026-07-28",
@@ -124,7 +136,10 @@
       "telemetry_redacted",
       "run_receipt_attached",
       "egress_decision",
-      "human_approval_record"
+      "human_approval_record",
+      "token_aware_rate_limit",
+      "spending_cap_halts_inference",
+      "agentic_circuit_breaker"
     ],
     "required_controls": [
       "approved_provider_profile",
@@ -138,7 +153,10 @@
       "tool_and_output_guardrails",
       "redacted_trace_contract",
       "run_receipt_binding",
-      "context_egress_decision"
+      "context_egress_decision",
+      "token_aware_cost_controls",
+      "hard_spending_cap_halts_inference",
+      "agentic_circuit_breaker"
     ],
     "runtime_kill_signals": [
       "raw_token_or_private_key_in_prompt",
@@ -150,7 +168,8 @@
       "unredacted_pii_without_approval",
       "provider_endpoint_not_https",
       "tool_call_started_before_blocking_guardrail",
-      "egress_decision_denied_or_killed"
+      "egress_decision_denied_or_killed",
+      "unbounded_consumption_loop_detected"
     ],
     "prohibited_without_two_key_review": [
       "regulated_customer_data",
@@ -196,7 +215,10 @@
       "missing_redacted_telemetry": 10,
       "missing_run_receipt": 10,
       "missing_egress_decision": 12,
-      "missing_human_approval": 16
+      "missing_human_approval": 16,
+      "missing_token_aware_rate_limit": 12,
+      "missing_hard_spending_cap": 16,
+      "missing_agentic_circuit_breaker": 14
     },
     "control_credits": {
       "max_credit": 60,
@@ -212,7 +234,10 @@
       "run_receipt_attached": 8,
       "egress_decision_allow": 8,
       "human_approval_record": 8,
-      "private_runtime": 12
+      "private_runtime": 12,
+      "token_aware_rate_limit": 8,
+      "spending_cap_halts_inference": 8,
+      "agentic_circuit_breaker": 8
     },
     "decision_thresholds": {
       "allow_approved_route_max": 24,
@@ -322,7 +347,10 @@
         "source_hash_required",
         "citation_required",
         "tool_guardrails_enforced",
-        "telemetry_redacted"
+        "telemetry_redacted",
+        "token_aware_rate_limit",
+        "spending_cap_halts_inference",
+        "agentic_circuit_breaker"
       ],
       "zero_data_retention_required": false,
       "dpa_required": false,
@@ -362,7 +390,10 @@
         "output_guardrails_enforced",
         "telemetry_redacted",
         "run_receipt_attached",
-        "egress_decision_allow"
+        "egress_decision_allow",
+        "token_aware_rate_limit",
+        "spending_cap_halts_inference",
+        "agentic_circuit_breaker"
       ],
       "zero_data_retention_required": true,
       "dpa_required": true,
@@ -400,7 +431,10 @@
         "output_guardrails_enforced",
         "telemetry_redacted",
         "run_receipt_attached",
-        "egress_decision_allow"
+        "egress_decision_allow",
+        "token_aware_rate_limit",
+        "spending_cap_halts_inference",
+        "agentic_circuit_breaker"
       ],
       "zero_data_retention_required": false,
       "dpa_required": false,
@@ -434,7 +468,10 @@
         "training_opt_out",
         "blocking_input_guardrail",
         "tool_call_not_started_before_guardrail",
-        "telemetry_redacted"
+        "telemetry_redacted",
+        "token_aware_rate_limit",
+        "spending_cap_halts_inference",
+        "agentic_circuit_breaker"
       ],
       "zero_data_retention_required": true,
       "dpa_required": true,
@@ -475,9 +512,12 @@
         "dpa_in_place",
         "mcp_gateway_enforced",
         "run_receipt_attached",
-        "human_approval_record"
+        "human_approval_record",
+        "token_aware_rate_limit",
+        "spending_cap_halts_inference",
+        "agentic_circuit_breaker"
       ],
-      "notes": "Sensitive-data runs should prefer private runtime and may use approved frontier routes only after data-class, redaction, and approval evidence are present."
+      "notes": "Sensitive-data runs should prefer private runtime and may use approved frontier routes only after data-class, redaction, approval, and consumption-halt evidence are present."
     },
     {
       "workflow_id": "vulnerable-dependency-remediation",
@@ -489,9 +529,12 @@
         "mcp_gateway_enforced",
         "tool_guardrails_enforced",
         "run_receipt_attached",
-        "egress_decision_allow"
+        "egress_decision_allow",
+        "token_aware_rate_limit",
+        "spending_cap_halts_inference",
+        "agentic_circuit_breaker"
       ],
-      "notes": "Dependency remediation can use public vulnerability intelligence freely, but repository-specific context requires tenant-sensitive route evidence."
+      "notes": "Dependency remediation can use public vulnerability intelligence freely, but repository-specific context requires tenant-sensitive route evidence and consumption halt conditions."
     },
     {
       "workflow_id": "sast-finding-remediation",
@@ -504,9 +547,12 @@
         "zero_data_retention",
         "mcp_gateway_enforced",
         "tool_guardrails_enforced",
-        "run_receipt_attached"
+        "run_receipt_attached",
+        "token_aware_rate_limit",
+        "spending_cap_halts_inference",
+        "agentic_circuit_breaker"
       ],
-      "notes": "SAST triage frequently contains source slices, traces, and exploitability reasoning; route as tenant sensitive by default."
+      "notes": "SAST triage frequently contains source slices, traces, and exploitability reasoning; route as tenant sensitive by default and require consumption halt conditions."
     }
   ],
   "commercialization_path": {
@@ -521,6 +567,7 @@
       "Which model providers are approved for public, tenant-sensitive, regulated, or browser-derived context?",
       "Which data classes are prohibited for each provider or model route?",
       "Which routes require zero data retention, training exclusion, DPA, residency, guardrails, telemetry, receipt, and human approval evidence?",
+      "Which routes prove token-aware rate limits, hard spending caps that halt inference, and agentic circuit breakers before a model call starts?",
       "Which workflows can use frontier hosted models versus private runtimes?",
       "Which runtime signals force hold, deny, or kill decisions before a model call starts?"
     ],
@@ -539,6 +586,10 @@
     {
       "risk": "Provider-neutral model IDs are intentionally abstract in the open project.",
       "treatment": "Fork the profile and map route IDs to approved OpenAI, Anthropic, xAI, private-cloud, or local model SKUs inside the enterprise layer."
+    },
+    {
+      "risk": "Request-rate limits and alert-only spending budgets can be outpaced by token-heavy, multimodal, reasoning-loop, or recursive agent-tool workloads.",
+      "treatment": "Hold the route unless token-aware rate limits, non-overridable spending caps that halt inference, and agentic circuit breakers with step, recursion, time, and per-run cost limits are proven. Kill when an unbounded consumption loop is already detected."
     }
   ]
 }
