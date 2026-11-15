@@ -3,7 +3,7 @@ title: Browser Agent Workspace Boundary
 linkTitle: Browser Agent Boundary
 weight: 16
 date: 2026-05-04
-lastmod: 2026-08-21
+lastmod: 2026-11-15
 sidebar:
   exclude: true
 description: >
@@ -43,7 +43,10 @@ The control point is intentionally practical:
   untrusted;
 - personal browser profiles are denied by default;
 - localhost, downloads, admin consoles, payments, secrets, and raw token
-  exposure can kill the session.
+  exposure can kill the session;
+- ungated origin expansion, content or iframes consumed outside the
+  gated read set, actuation outside the write set, and read-to-write
+  origin data flow can kill the session.
 
 That is a high-value trusted-source surface. The open pack helps teams reason
 about browser agents today. A hosted product can enforce the same
@@ -98,9 +101,46 @@ python3 scripts/evaluate_browser_agent_boundary_decision.py \
   --control ephemeral_or_scoped_storage \
   --control logged_out_by_default \
   --control origin_allowlist \
+  --control origin_set_gating \
   --control metadata_only_telemetry \
   --control run_receipt \
   --expect-decision allow_isolated_browser_task
+```
+
+Evaluate ungated origin expansion on an otherwise isolated public-research run:
+
+```bash
+python3 scripts/evaluate_browser_agent_boundary_decision.py \
+  --workspace-class-id public-research-browser \
+  --task-profile-id public-security-research \
+  --session-id browser-ci-origin-set \
+  --run-id run-origin-set \
+  --agent-id sr-browser-agent \
+  --tenant-id tenant-demo \
+  --user-intent "Collect cited public AI security references" \
+  --target-origin https://www.nist.gov \
+  --content-trust-level standards_body \
+  --auth-state logged_out \
+  --isolation-mode dedicated_agent_profile \
+  --action-class navigate \
+  --action-class read_page \
+  --action-class summarize \
+  --action-class copy_draft \
+  --data-class public_security_guidance \
+  --network-egress-policy origin_allowlist \
+  --browser-storage-policy ephemeral_or_scoped_storage \
+  --approval-state approved \
+  --telemetry-event-id telemetry-origin-set \
+  --receipt-id receipt-origin-set \
+  --control dedicated_agent_profile \
+  --control ephemeral_or_scoped_storage \
+  --control logged_out_by_default \
+  --control origin_allowlist \
+  --control origin_set_gating \
+  --control metadata_only_telemetry \
+  --control run_receipt \
+  --origin-expansion-ungated \
+  --expect-decision kill_session_on_browser_agent_signal
 ```
 
 Evaluate a prompt-injected email attempting an external send:
@@ -128,6 +168,7 @@ python3 scripts/evaluate_browser_agent_boundary_decision.py \
   --receipt-id receipt-kill \
   --control dedicated_agent_profile \
   --control origin_allowlist \
+  --control origin_set_gating \
   --control no_raw_secret_capture \
   --control draft_first_delivery \
   --control human_confirmation_for_external_send \
@@ -209,6 +250,7 @@ Evaluate one browser-agent run:
     "ephemeral_or_scoped_storage",
     "logged_out_by_default",
     "origin_allowlist",
+    "origin_set_gating",
     "metadata_only_telemetry",
     "run_receipt"
   ]
@@ -226,7 +268,7 @@ This pack creates that path:
 
 - hosted browser-agent policy API;
 - dedicated agent workspace broker;
-- origin allowlist and localhost controls;
+- origin allowlist, origin-set gating, and localhost controls;
 - browser storage and token exposure checks;
 - prompt-injection event ingestion;
 - signed browser run receipts;
@@ -260,6 +302,13 @@ The pack is anchored in current primary guidance:
 - [MCP Authorization](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
   for secure token handling, audience binding, resource indicators, PKCE,
   and token-passthrough denial when browser agents hand off to tools.
+- [Chrome Agent Origin Sets](https://blog.google/security/architecting-security-for-agentic/)
+  for task-relevant read-only versus read-writable origin gating, a
+  gating function isolated from untrusted content, and treating an
+  unrestricted agent as a Site Isolation bypass.
+- [Chrome WebMCP agent security](https://developer.chrome.com/docs/agents/security)
+  for restricting authenticated browser agents to origins relevant to
+  the user's task.
 
 ## See also
 

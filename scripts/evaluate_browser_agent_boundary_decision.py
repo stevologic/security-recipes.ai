@@ -81,21 +81,27 @@ def normalize_request(runtime_request: dict[str, Any]) -> dict[str, Any]:
     for key in ["action_classes", "controls", "data_classes", "indicators"]:
         request[key] = [str(item) for item in as_list(request.get(key)) if str(item).strip()]
     for key in [
+        "actuation_outside_write_set",
         "admin_console_write",
         "ambient_cookies_available",
         "contains_secret",
+        "content_consumed_outside_read_set",
         "cross_origin_egress",
         "dom_credential_visible",
         "downloads_file",
         "executes_code",
         "external_side_effect",
+        "gating_function_exposed_to_untrusted_content",
         "hidden_instruction_detected",
+        "iframe_consumed_outside_read_set",
         "localhost_access",
         "localhost_probe",
         "local_storage_token",
+        "origin_expansion_ungated",
         "payment_or_purchase",
         "persistent_memory_write",
         "prompt_injection_signal",
+        "read_to_write_origin_data_flow",
         "sends_external_message",
         "uses_personal_profile",
     ]:
@@ -179,6 +185,32 @@ def matched_kill_reasons(pack: dict[str, Any], request: dict[str, Any]) -> list[
         reasons.append("browser agent attempted an admin-console write")
     if request.get("payment_or_purchase"):
         reasons.append("browser agent attempted a payment, purchase, or irreversible transaction")
+    reasons.extend(origin_set_kill_reasons(request))
+    return reasons
+
+
+def origin_set_kill_reasons(request: dict[str, Any]) -> list[str]:
+    """Kill when Chrome-style origin-set gating is observed to have failed.
+
+    Unspecified origin-set evidence stays on the prior allow, hold, or deny
+    path so existing isolation, confirmation, and ambient-authority checks
+    remain valid. Explicit origin-set failures are a Site Isolation bypass.
+    """
+    reasons: list[str] = []
+    if request.get("origin_expansion_ungated"):
+        reasons.append(
+            "planner added origins without a gating function isolated from untrusted content"
+        )
+    if request.get("content_consumed_outside_read_set"):
+        reasons.append("browser agent consumed page content outside the gated origin read set")
+    if request.get("iframe_consumed_outside_read_set"):
+        reasons.append("iframe content outside the gated origin read set was shown to the model")
+    if request.get("actuation_outside_write_set"):
+        reasons.append("browser agent actuated on an origin outside the gated write set")
+    if request.get("read_to_write_origin_data_flow"):
+        reasons.append("data from a read-only origin was passed to a writable origin")
+    if request.get("gating_function_exposed_to_untrusted_content"):
+        reasons.append("origin-set gating function was exposed to untrusted web content")
     return reasons
 
 
@@ -450,21 +482,27 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--indicator", action="append", default=[])
     parser.add_argument("--human-approval-id")
     parser.add_argument("--human-approval-status")
+    parser.add_argument("--actuation-outside-write-set", action="store_true")
     parser.add_argument("--admin-console-write", action="store_true")
     parser.add_argument("--ambient-cookies-available", action="store_true")
     parser.add_argument("--contains-secret", action="store_true")
+    parser.add_argument("--content-consumed-outside-read-set", action="store_true")
     parser.add_argument("--cross-origin-egress", action="store_true")
     parser.add_argument("--dom-credential-visible", action="store_true")
     parser.add_argument("--downloads-file", action="store_true")
     parser.add_argument("--executes-code", action="store_true")
     parser.add_argument("--external-side-effect", action="store_true")
+    parser.add_argument("--gating-function-exposed-to-untrusted-content", action="store_true")
     parser.add_argument("--hidden-instruction-detected", action="store_true")
+    parser.add_argument("--iframe-consumed-outside-read-set", action="store_true")
     parser.add_argument("--localhost-access", action="store_true")
     parser.add_argument("--localhost-probe", action="store_true")
     parser.add_argument("--local-storage-token", action="store_true")
+    parser.add_argument("--origin-expansion-ungated", action="store_true")
     parser.add_argument("--payment-or-purchase", action="store_true")
     parser.add_argument("--persistent-memory-write", action="store_true")
     parser.add_argument("--prompt-injection-signal", action="store_true")
+    parser.add_argument("--read-to-write-origin-data-flow", action="store_true")
     parser.add_argument("--sends-external-message", action="store_true")
     parser.add_argument("--uses-personal-profile", action="store_true")
     parser.add_argument("--expect-decision")
@@ -476,6 +514,7 @@ def request_from_args(args: argparse.Namespace) -> dict[str, Any]:
         return load_json(args.runtime_request)
     request: dict[str, Any] = {
         "action_classes": args.action_class,
+        "actuation_outside_write_set": args.actuation_outside_write_set,
         "admin_console_write": args.admin_console_write,
         "agent_id": args.agent_id,
         "ambient_cookies_available": args.ambient_cookies_available,
@@ -483,6 +522,7 @@ def request_from_args(args: argparse.Namespace) -> dict[str, Any]:
         "auth_state": args.auth_state,
         "browser_storage_policy": args.browser_storage_policy,
         "contains_secret": args.contains_secret,
+        "content_consumed_outside_read_set": args.content_consumed_outside_read_set,
         "content_trust_level": args.content_trust_level,
         "controls": args.control,
         "cross_origin_egress": args.cross_origin_egress,
@@ -491,16 +531,20 @@ def request_from_args(args: argparse.Namespace) -> dict[str, Any]:
         "downloads_file": args.downloads_file,
         "executes_code": args.executes_code,
         "external_side_effect": args.external_side_effect,
+        "gating_function_exposed_to_untrusted_content": args.gating_function_exposed_to_untrusted_content,
         "hidden_instruction_detected": args.hidden_instruction_detected,
+        "iframe_consumed_outside_read_set": args.iframe_consumed_outside_read_set,
         "indicators": args.indicator,
         "isolation_mode": args.isolation_mode,
         "localhost_access": args.localhost_access,
         "localhost_probe": args.localhost_probe,
         "local_storage_token": args.local_storage_token,
         "network_egress_policy": args.network_egress_policy,
+        "origin_expansion_ungated": args.origin_expansion_ungated,
         "payment_or_purchase": args.payment_or_purchase,
         "persistent_memory_write": args.persistent_memory_write,
         "prompt_injection_signal": args.prompt_injection_signal,
+        "read_to_write_origin_data_flow": args.read_to_write_origin_data_flow,
         "receipt_id": args.receipt_id,
         "run_id": args.run_id,
         "runtime_kill_signal": args.runtime_kill_signal,

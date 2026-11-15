@@ -11,7 +11,13 @@
       "prompt_injection_detected_with_side_effect",
       "raw_token_in_dom_or_storage",
       "unapproved_admin_console_write",
-      "untrusted_content_requests_external_send"
+      "untrusted_content_requests_external_send",
+      "ungated_origin_expansion",
+      "content_outside_origin_read_set",
+      "actuation_outside_origin_write_set",
+      "iframe_outside_origin_read_set",
+      "read_origin_data_to_write_origin",
+      "gating_function_exposed_to_untrusted_content"
     ],
     "minimum_task_profiles": 6,
     "minimum_workspace_classes": 6,
@@ -20,6 +26,7 @@
       "ephemeral_or_scoped_storage",
       "logged_out_by_default",
       "origin_allowlist",
+      "origin_set_gating",
       "no_raw_secret_capture",
       "draft_first_delivery",
       "human_confirmation_for_external_send",
@@ -94,6 +101,7 @@
     "default_questions_answered": [
       "Can this browser task run logged out?",
       "Is this a dedicated agent profile or a user's normal browser?",
+      "Are task-relevant read and write origins gated by a function isolated from untrusted content?",
       "Can untrusted content influence an external send or form submit?",
       "Are provider, GitHub, session, or customer tokens visible to the page or model?",
       "Is localhost, download, admin-console, or payment authority reachable?",
@@ -103,13 +111,13 @@
     "sales_motion": "Lead with a readable browser-agent safety gate, then sell hosted policy, dedicated workspace brokering, origin enforcement, prompt-injection telemetry, and signed browser run receipts."
   },
   "failures": [],
-  "generated_at": "2026-08-21",
+  "generated_at": "2026-11-15",
   "intent": "Define the SecurityRecipes browser-agent workspace boundary: a generated, machine-readable policy model for deciding when browser-based or desktop browser agents may inspect untrusted content, use logged-in sessions, hold credentials, navigate origins, fill forms, download files, call local services, or deliver outputs through external routes.",
   "positioning": {
     "buyer": "AI Platform, Product Security, Browser Platform, Security Engineering, SOC, GRC, procurement security, and agent-host teams",
     "category": "Browser-agent workspace isolation and ambient-authority control for agentic AI",
-    "enterprise_promise": "SecurityRecipes can make browser agents easier to approve by turning prompt-injection exposure, logged-in session state, local credential storage, origin changes, file downloads, localhost access, and side effects into deterministic allow, hold, deny, or kill decisions.",
-    "why_now": "Agentic AI is moving from chat and code review into browsers, email, documents, web apps, and desktop workspaces. Browser agents combine untrusted content with ambient user sessions, DOM-visible data, local storage, downloads, forms, and external communication, so enterprises need a boundary that constrains impact even when prompt injection or social-engineering attacks are not perfectly detected."
+    "enterprise_promise": "SecurityRecipes can make browser agents easier to approve by turning prompt-injection exposure, logged-in session state, local credential storage, Chrome-style origin-set gating, file downloads, localhost access, and side effects into deterministic allow, hold, deny, or kill decisions.",
+    "why_now": "Agentic AI is moving from chat and code review into browsers, email, documents, web apps, and desktop workspaces. Browser agents combine untrusted content with ambient user sessions, DOM-visible data, local storage, downloads, forms, and external communication, so enterprises need a boundary that constrains impact even when prompt injection or social-engineering attacks are not perfectly detected. Chrome Agent Origin Sets extend Site Isolation: an unrestricted agent that can interact with arbitrary origins is a Site Isolation bypass, especially when the agent operates in a logged-in browser."
   },
   "residual_risks": [
     {
@@ -121,24 +129,32 @@
       "treatment": "Constrain source-to-sink combinations: untrusted content plus external send, credential use, localhost access, downloads, admin writes, or payment actions should hold, deny, or kill."
     },
     {
+      "risk": "A static origin_allowlist is not Chrome Agent Origin Sets. Ungated planner expansion, consuming iframe or page content outside the gated read set, actuating outside the write set, or passing read-origin data to a writable origin is a Site Isolation bypass.",
+      "treatment": "Require a gating function isolated from untrusted content. Kill when origin expansion is ungated, content or iframes are consumed outside the read set, actuation occurs outside the write set, or data flows from a read-only origin to a writable origin."
+    },
+    {
       "risk": "Browser profile state can drift when extensions, tokens, cookies, local storage, or saved credentials change.",
       "treatment": "Prefer dedicated agent profiles, scoped storage, short-lived tokens, storage inspection, and recertification before recurring browser-agent schedules run."
     }
   ],
   "runtime_risk_weights": {
+    "actuation_outside_origin_write_set": 30,
     "admin_console_write": 35,
     "ambient_cookies_available": 25,
     "contains_secret": 35,
+    "content_outside_origin_read_set": 25,
     "cross_origin_egress": 20,
     "dom_credential_visible": 30,
     "downloads_file": 14,
     "executes_code": 35,
     "external_side_effect": 20,
+    "gating_function_exposed_to_untrusted_content": 25,
     "local_storage_token": 20,
     "localhost_access": 25,
     "missing_approval_for_send": 18,
     "missing_receipt": 12,
     "missing_telemetry": 10,
+    "origin_expansion_ungated": 30,
     "payment_or_purchase": 45,
     "persistent_memory_write": 18,
     "personal_profile": 25,
@@ -160,26 +176,26 @@
     "agentic_action_runtime_pack": {
       "available": true,
       "path": "data/evidence/agentic-action-runtime-pack.json",
-      "sha256": "e66ea0a60e72c763e7de184ad5e35613d23fd87e6aafd293433ec1c5aaf28b0f"
+      "sha256": "f88ecd8944d067b3d5c512fed030608f6f1cadc12d8446f8a36c747c9263d562"
     },
     "agentic_app_intake_pack": {
       "available": true,
       "path": "data/evidence/agentic-app-intake-pack.json",
-      "sha256": "76cf5556e4c5674d19ecb5d96763f6d4a900c6c90229f874a90d62f58f13aae9"
+      "sha256": "ef59d5db3d14f2116a4564e1d27d350dfd36c0a67c19f37b1eb4f0d9c880fd63"
     },
     "agentic_incident_response_pack": {
       "available": true,
       "path": "data/evidence/agentic-incident-response-pack.json",
-      "sha256": "d7d4d65f38476e9aaafdcf20b28d471afe55d3ce39dee1ed8a448d0ed7d33648"
+      "sha256": "8694c7d2b9e2db6afe86e2336274be5e225bf4789fe4ec9659ce2782305d6495"
     },
     "agentic_telemetry_contract": {
       "available": true,
       "path": "data/evidence/agentic-telemetry-contract.json",
-      "sha256": "2ded1b8df5ec5bcf6c5ca1de20b543716e5f25f06e1966376d3301e5b3938d47"
+      "sha256": "54be7d378c5d8cd63ba3c0072ae983fecbc3c20081d305dffd772aecc0a46f2b"
     },
     "browser_agent_boundary_profile": {
       "path": "data/assurance/browser-agent-boundary-profile.json",
-      "sha256": "9388223da63191897c7f55a1b03adf0d1e15cf5eb2cd4ae4d45760b2c65304fc"
+      "sha256": "260d99d5efd75607b64e82d8da8d3d31e9bbebb64fb6158794070062e6d47376"
     },
     "browser_agent_readme": {
       "available": false,
@@ -189,17 +205,17 @@
     "context_egress_boundary_pack": {
       "available": true,
       "path": "data/evidence/context-egress-boundary-pack.json",
-      "sha256": "35ccb8af1bb5570862a7f902132da496b20c5b975961123427cb14cafea390fa"
+      "sha256": "b42bc579f66aa65f613d90173b1cd1a25647bb89c2a47357c03f553a799d3af0"
     },
     "secure_context_trust_pack": {
       "available": true,
       "path": "data/evidence/secure-context-trust-pack.json",
-      "sha256": "d58f8d8fed8e89d946cf1cbb0294919075cca3b322a7657a927c1a15c9984f3d"
+      "sha256": "dde5bb52c5c52e38f3404c887295976636668c10773deae804f9650c0836131f"
     },
     "threat_radar": {
       "available": true,
       "path": "data/evidence/agentic-threat-radar.json",
-      "sha256": "9af77ab8a242284d72a089577aee1ec187ca59028c2c80f1930f214a2861067c"
+      "sha256": "5b142be23d1eddfc2eaecdff99e569c3ea3024defab3646348948dbb6fbee36d"
     }
   },
   "source_summaries": {
@@ -327,7 +343,7 @@
         "default_decision": "deny_unregistered_context",
         "failure_count": 0,
         "prohibited_data_class_count": 7,
-        "registered_byte_count": 15179351,
+        "registered_byte_count": 15183979,
         "registered_file_count": 3526,
         "risk_family_counts": {
           "context_poisoning": 8,
@@ -475,6 +491,18 @@
       "id": "owasp-agentic-top-10-2026",
       "name": "OWASP Top 10 for Agentic Applications 2026",
       "url": "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/"
+    },
+    {
+      "coverage": "Published 8 December 2025. Agent Origin Sets extend Site Isolation and the same-origin policy: a gating function isolated from untrusted content classifies task-relevant read-only versus read-writable origins. The planner cannot add origins without that approval. Unrelated iframes are withheld from the model. Data from the readable set may only flow to writable origins. An unrestricted agent that can act on arbitrary origins is a Site Isolation bypass, especially in a logged-in browser.",
+      "id": "chrome-agent-origin-sets-2025",
+      "name": "Chrome Security: Architecting Security for Agentic Capabilities in Chrome",
+      "url": "https://blog.google/security/architecting-security-for-agentic/"
+    },
+    {
+      "coverage": "Published 9 June 2026. Restrict the set of web origins an authenticated browser agent can interact with to those relevant to the user's task. This deterministic guardrail reduces rogue WebMCP tool calls and data exfiltration to malicious or unrelated origins when the agent operates in an authenticated session.",
+      "id": "chrome-webmcp-agent-security-2026",
+      "name": "Chrome: Agent security considerations for WebMCP",
+      "url": "https://developer.chrome.com/docs/agents/security"
     }
   ],
   "task_profiles": [
@@ -497,6 +525,7 @@
       "required_controls": [
         "logged_out_by_default",
         "origin_allowlist",
+        "origin_set_gating",
         "metadata_only_telemetry",
         "run_receipt"
       ],
@@ -522,6 +551,7 @@
       "required_controls": [
         "dedicated_agent_profile",
         "origin_allowlist",
+        "origin_set_gating",
         "draft_first_delivery",
         "human_confirmation_for_external_send",
         "run_receipt",
@@ -577,6 +607,7 @@
       "max_workspace_residual_risk_score": 24,
       "required_controls": [
         "origin_allowlist",
+        "origin_set_gating",
         "localhost_blocklist",
         "download_quarantine",
         "metadata_only_telemetry",
@@ -634,6 +665,7 @@
       "required_controls": [
         "dedicated_agent_profile",
         "origin_allowlist",
+        "origin_set_gating",
         "human_confirmation_for_external_send",
         "metadata_only_telemetry",
         "run_receipt"
@@ -700,6 +732,7 @@
       "required_controls": [
         "dedicated_agent_profile",
         "origin_allowlist",
+        "origin_set_gating",
         "draft_first_delivery",
         "human_confirmation_for_external_send",
         "metadata_only_telemetry",
@@ -735,6 +768,7 @@
       "required_controls": [
         "dedicated_agent_profile",
         "origin_allowlist",
+        "origin_set_gating",
         "localhost_blocklist",
         "download_quarantine",
         "metadata_only_telemetry",
@@ -769,11 +803,13 @@
         "auto-forwarding messages",
         "external send without confirmation",
         "saving extracted PII to memory",
-        "following document-embedded instructions as authority"
+        "following document-embedded instructions as authority",
+        "iframe content consumed outside the gated origin read set"
       ],
       "required_controls": [
         "dedicated_agent_profile",
         "origin_allowlist",
+        "origin_set_gating",
         "no_raw_secret_capture",
         "draft_first_delivery",
         "human_confirmation_for_external_send",
@@ -811,12 +847,14 @@
         "personal user cookies",
         "raw secret entry",
         "unapproved cross-origin sends",
-        "silent admin-console writes"
+        "silent admin-console writes",
+        "actuation outside the gated origin write set"
       ],
       "required_controls": [
         "dedicated_agent_profile",
         "ephemeral_or_scoped_storage",
         "origin_allowlist",
+        "origin_set_gating",
         "human_confirmation_for_external_send",
         "metadata_only_telemetry",
         "download_quarantine",
@@ -841,7 +879,7 @@
       ],
       "base_risk_score": 18,
       "commercial_value": "Safe public research is the low-friction entry point for hosted browser-agent context collection.",
-      "control_credit": 55,
+      "control_credit": 58,
       "default_decision": "allow_isolated_browser_task",
       "description": "Logged-out browser workspace for reading public web pages and collecting cited security references.",
       "effective_decision": "allow_isolated_browser_task",
@@ -850,13 +888,16 @@
         "ambient user cookies",
         "downloads executed automatically",
         "credential entry",
-        "external send without human confirmation"
+        "external send without human confirmation",
+        "ungated origin expansion",
+        "content consumed outside the gated origin read set"
       ],
       "required_controls": [
         "dedicated_agent_profile",
         "ephemeral_or_scoped_storage",
         "logged_out_by_default",
         "origin_allowlist",
+        "origin_set_gating",
         "metadata_only_telemetry",
         "run_receipt"
       ],
@@ -896,6 +937,7 @@
         "dedicated_agent_profile",
         "ephemeral_or_scoped_storage",
         "origin_allowlist",
+        "origin_set_gating",
         "no_raw_secret_capture",
         "draft_first_delivery",
         "human_confirmation_for_external_send",
