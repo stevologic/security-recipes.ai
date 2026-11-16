@@ -33,6 +33,7 @@ REQUIRED_DECISIONS = {
     "deny_untrusted_package_launch",
     "deny_shell_or_network_bootstrap",
     "deny_unrestricted_proxy_spawn",
+    "deny_cooperative_filesystem_boundary",
     "kill_session_on_secret_or_privilege_request",
 }
 REQUIRED_PROFILES = {
@@ -414,6 +415,7 @@ def build_summary(rows: list[dict[str, Any]]) -> dict[str, Any]:
                 "deny_untrusted_package_launch",
                 "deny_shell_or_network_bootstrap",
                 "deny_unrestricted_proxy_spawn",
+                "deny_cooperative_filesystem_boundary",
                 "kill_session_on_secret_or_privilege_request",
             ]
         ),

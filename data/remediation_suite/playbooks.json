@@ -3881,7 +3881,7 @@
       "title": "MCP STDIO Launch Boundary",
       "page": "/security-remediation/mcp-stdio-launch-boundary/",
       "category": "mcp-governance",
-      "summary": "Validate a local MCP STDIO command, package, environment, dual-era server/discover probe, proxy-spawn authorization, and client configuration before process launch.",
+      "summary": "Validate a local MCP STDIO command, package, environment, dual-era server/discover probe, proxy-spawn authorization, isolation enforcement, and client configuration before process launch.",
       "phases": [
         {
           "label": "Signal",
@@ -3896,12 +3896,12 @@
         {
           "label": "Decision",
           "title": "Inspect process boundaries",
-          "detail": "Check shell use, argument injection, environment secrets, cwd/workspace access, network, filesystem, dual-era server/discover probing, proxy-spawn authorization, subprocesses, and permissions."
+          "detail": "Check shell use, argument injection, environment secrets, cwd/workspace access, network, filesystem, whether isolation is a container, VM, or OS process sandbox instead of a cooperative allowlist, MCP Roots, declared roots, or bare chroot, dual-era server/discover probing, proxy-spawn authorization, subprocesses, and permissions."
         },
         {
           "label": "Action",
           "title": "Launch or block",
-          "detail": "Allow a pinned sandboxed process, require a discover probe, deny unrestricted proxy spawn, strip environment, require approval, hold, deny, or kill unsafe startup."
+          "detail": "Allow a pinned sandboxed process, require a discover probe, deny unrestricted proxy spawn, deny cooperative filesystem boundaries, strip environment, require approval, hold, deny, or kill unsafe startup."
         },
         {
           "label": "Proof",
@@ -3910,14 +3910,14 @@
         }
       ],
       "gate": {
-        "question": "Is the resolved launch immutable, shell-safe, discover-probed when dual-era, proxy-spawn restricted, workspace-bounded, and free of exposed secrets?",
+        "question": "Is the resolved launch immutable, shell-safe, discover-probed when dual-era, proxy-spawn restricted, isolation-enforced rather than a cooperative filesystem allowlist, workspace-bounded, and free of exposed secrets?",
         "pass": "Start the approved STDIO server in its declared sandbox.",
-        "stop": "Hold, deny, or kill unknown, mutable, shell-interpreted, secret-bearing, dual-era unprobed, unrestricted proxy-spawn, or overprivileged launch requests."
+        "stop": "Hold, deny, or kill unknown, mutable, shell-interpreted, secret-bearing, dual-era unprobed, unrestricted proxy-spawn, cooperative filesystem, or overprivileged launch requests."
       },
       "evidence": [
         "resolved command/package identity",
         "argv/env/cwd/permission checks",
-        "dual-era server/discover probe and proxy-spawn controls",
+        "dual-era server/discover probe, proxy-spawn, and isolation-enforcement controls",
         "launch decision and process receipt"
       ],
       "outputs": [

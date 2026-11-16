@@ -26,11 +26,27 @@ VALID_DECISIONS = {
     "deny_untrusted_package_launch",
     "deny_shell_or_network_bootstrap",
     "deny_unrestricted_proxy_spawn",
+    "deny_cooperative_filesystem_boundary",
     "kill_session_on_secret_or_privilege_request",
 }
 DUAL_ERA_CLIENTS = {"dual_era", "legacy"}
 PROXY_ARCHITECTURES = {"proxy", "stdio_proxy", "local_proxy"}
 MODERN_DISCOVER_RESULTS = {"complete", "discoverresult", "discover_result"}
+COOPERATIVE_ISOLATION_KINDS = {
+    "bare_chroot",
+    "chroot",
+    "config_allowlist",
+    "cooperative",
+    "cooperative_allowlist",
+    "cooperative_filesystem",
+    "cooperative_filesystem_allowlist",
+    "declared_filesystem_roots",
+    "declared_roots",
+    "filesystem_allowlist",
+    "mcp_root",
+    "mcp_roots",
+    "roots",
+}
 
 
 class StdioLaunchDecisionError(RuntimeError):
@@ -163,6 +179,18 @@ def launch_architecture(runtime_request: dict[str, Any], launch: dict[str, Any] 
     return normalized_token(runtime_request.get("launch_architecture") or registered or "direct")
 
 
+def isolation_kind(runtime_request: dict[str, Any]) -> str:
+    return normalized_token(
+        runtime_request.get("isolation_kind")
+        or runtime_request.get("filesystem_isolation")
+        or runtime_request.get("isolation")
+    )
+
+
+def cooperative_filesystem_boundary(runtime_request: dict[str, Any]) -> bool:
+    return isolation_kind(runtime_request) in COOPERATIVE_ISOLATION_KINDS
+
+
 def proxy_spawn_violations(runtime_request: dict[str, Any]) -> list[str]:
     violations: list[str] = []
     extra_auth = bool(runtime_request.get("proxy_spawn_authorized")) or has_approval(
@@ -215,6 +243,9 @@ def decision_result(
             "discover_result_type": runtime_request.get("discover_result_type"),
             "env_keys": as_list(runtime_request.get("env_keys")),
             "initialize_fallback": runtime_request.get("initialize_fallback"),
+            "isolation_kind": runtime_request.get("isolation_kind")
+            or runtime_request.get("filesystem_isolation")
+            or runtime_request.get("isolation"),
             "launch_architecture": runtime_request.get("launch_architecture"),
             "launch_id": runtime_request.get("launch_id"),
             "network_egress": runtime_request.get("network_egress"),
@@ -482,9 +513,20 @@ def evaluate_mcp_stdio_launch_decision(
                 violations=["dual-era stdio client skipped server/discover probe"],
             )
 
+    if cooperative_filesystem_boundary(runtime_request):
+        kind = isolation_kind(runtime_request)
+        return decision_result(
+            decision="deny_cooperative_filesystem_boundary",
+            reason="MCP local-server security treats configuration-level filesystem allowlists, MCP Roots, declared roots, and a bare chroot as cooperative guardrails for honest servers. Enforcement requires a container, VM, or OS process sandbox where the allowed directory is the only filesystem that exists.",
+            runtime_request=runtime_request,
+            matched_launch=launch,
+            matched_profile=profile,
+            violations=[f"isolation_kind={kind} is cooperative, not an enforced process sandbox"],
+        )
+
     return decision_result(
         decision="allow_pinned_sandboxed_stdio_launch",
-        reason="STDIO launch satisfies registered command, sandbox, environment, network, data, discover-probe, and approval boundary",
+        reason="STDIO launch satisfies registered command, sandbox, environment, network, data, discover-probe, isolation, and approval boundary",
         runtime_request=runtime_request,
         matched_launch=launch,
         matched_profile=profile,
@@ -540,6 +582,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--launch-architecture", default=None)
     parser.add_argument("--proxy-spawn-authorized", action="store_true")
     parser.add_argument("--stdio-spawn-logged", action="store_true")
+    parser.add_argument("--isolation-kind", default=None)
     parser.add_argument("--expect-decision", default=None)
     parser.add_argument("--json", action="store_true", help="Print full JSON decision.")
     return parser.parse_args()
@@ -568,6 +611,7 @@ def main() -> int:
             "filesystem_roots": args.filesystem_root,
             "human_approval_record": parse_key_value(args.approval),
             "initialize_fallback": args.initialize_fallback,
+            "isolation_kind": args.isolation_kind,
             "launch_architecture": args.launch_architecture,
             "launch_id": args.launch_id,
             "network_egress": args.network_egress,
