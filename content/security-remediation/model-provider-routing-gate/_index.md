@@ -3,13 +3,14 @@ title: Model Provider Routing Gate
 linkTitle: Model Provider Routing
 weight: 16
 date: 2026-05-04
-lastmod: 2026-08-21
+lastmod: 2026-11-14
 toc: true
 description: >
   A generated model-provider routing gate for deciding which model
   provider and model route may receive secure context for an agentic
   workflow, with proof for data retention, residency, guardrails,
-  telemetry, receipts, and approval before the model call starts.
+  consumption halt conditions, telemetry, receipts, and approval
+  before the model call starts.
 sidebar:
   exclude: true
 breadcrumb_parent: /agentic-security/
@@ -21,7 +22,7 @@ it can answer one operational question: which model/provider is allowed
 to receive this context for this workflow, right now?
 {{< /callout >}}
 
-Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) on August 21, 2026.
+Rechecked source anchors against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) on November 14, 2026. MCP `latest` still redirects to 2026-07-28. Rechecked the same day against [OWASP Top 10 for LLM Applications 2026](https://genai.owasp.org/resource/owasp-genai-llm-top-10-2026/) and the canonical [LLM06:2026 Unbounded Consumption](https://github.com/GenAI-Security-Project/GenAI-LLM-Top10/blob/main/2026/final/LLM06_UnboundedConsumption.md) entry: traditional request-rate limits are not enough. Token-aware rate limits, hard spending caps that halt inference rather than only alert, and agentic circuit breakers with step, recursion, time, and per-run cost limits are required before a route is allowed. An already-detected recursive tool-calling or reasoning loop is a kill. Unspecified consumption evidence stays on the prior hold path. This change does not claim human review of the pack; `lastmod` and the source `last_reviewed` date record this editorial pass.
 
 ## The product bet
 
@@ -43,6 +44,7 @@ model route matches:
 - the tenant region,
 - the retention/training posture,
 - the MCP and tool guardrails,
+- token-aware rate limits, hard spending caps that halt inference, and agentic circuit breakers,
 - the telemetry contract,
 - the run receipt,
 - and any human approval required for sensitive context.
@@ -96,6 +98,9 @@ python3 scripts/evaluate_model_provider_routing_decision.py \
   --run-receipt-attached \
   --egress-decision allow_tenant_bound_egress \
   --human-approval-id approval-123 \
+  --token-aware-rate-limit \
+  --spending-cap-halts-inference \
+  --agentic-circuit-breaker \
   --expect-decision allow_guarded_route
 ```
 
@@ -114,6 +119,9 @@ trusted just because a model is capable. The decision contract requires:
 | DPA and residency evidence | External processor and regional-policy drift. |
 | MCP gateway enforcement | Tool-backed context bypassing resource, audience, scope, and session controls. |
 | Tool/output guardrails | Model calls starting before tool or output tripwires can block side effects. |
+| Token-aware rate limit | Request-per-second limits that miss token, reasoning, multimodal, or MCP tool-fan-out cost. |
+| Hard spending cap that halts inference | Alert-only budgets that Denial of Wallet and recursive loops can outpace. |
+| Agentic circuit breaker | Unbounded tool-calling or reasoning loops with no step, recursion, time, or per-run cost limit. |
 | Redacted telemetry | Prompts, tool arguments, outputs, and retrieved context becoming a new data sink. |
 | Run receipt binding | Provider decisions that cannot be reconstructed during review or incident response. |
 | Egress decision | Model routing bypassing the context egress boundary. |
@@ -146,8 +154,9 @@ The evaluator returns:
 - `deny_unapproved_route` when the provider, route, workflow, data class,
   or autonomy request is not approved.
 - `kill_session_on_provider_signal` when the request includes secrets,
-  cross-tenant context, non-HTTPS endpoints, denied egress, or another
-  route-level kill signal.
+  cross-tenant context, non-HTTPS endpoints, denied egress, an already
+  detected unbounded consumption loop, or another route-level kill
+  signal.
 
 ## Why this matters
 
@@ -196,6 +205,11 @@ This feature follows current guidance:
 - [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices)
   for confused-deputy prevention, token-passthrough denial, scope
   minimization, SSRF controls, session safety, and audit trails.
+- [OWASP Top 10 for LLM Applications 2026](https://genai.owasp.org/resource/owasp-genai-llm-top-10-2026/)
+  and [LLM06:2026 Unbounded Consumption](https://github.com/GenAI-Security-Project/GenAI-LLM-Top10/blob/main/2026/final/LLM06_UnboundedConsumption.md)
+  for token-aware cost controls, hard spending caps that halt inference,
+  agentic circuit breakers, and Denial of Wallet / recursive tool-loop
+  failure modes.
 - [OWASP Top 10 for Agentic Applications 2026](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/)
   for agent goal hijacking, tool misuse, privilege abuse, context
   poisoning, insecure inter-agent communication, cascading failures, and

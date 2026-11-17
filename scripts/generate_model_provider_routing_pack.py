@@ -46,6 +46,9 @@ REQUIRED_CONTROLS = {
     "redacted_trace_contract",
     "run_receipt_binding",
     "context_egress_decision",
+    "token_aware_cost_controls",
+    "hard_spending_cap_halts_inference",
+    "agentic_circuit_breaker",
 }
 
 
@@ -296,6 +299,9 @@ def build_workflow_route_matrix(
                 "telemetry_redacted",
                 "run_receipt_attached",
                 "egress_decision_allow",
+                "token_aware_rate_limit",
+                "spending_cap_halts_inference",
+                "agentic_circuit_breaker",
             ]
         row = {
             "data_classes": workflow_data_classes(workflow),
