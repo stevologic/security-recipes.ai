@@ -1,12 +1,12 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-10-09",
+  "last_reviewed": "2026-11-17",
   "intent": "Define a vendor-neutral telemetry contract for SecurityRecipes so agentic AI and MCP runs can be reconstructed from OpenTelemetry-shaped traces without leaking secrets, raw tenant context, or unredacted tool payloads into observability systems.",
   "positioning": {
     "buyer": "AI Platform, Security Engineering, Detection Engineering, GRC, model risk, procurement security, and acquisition diligence teams",
     "category": "Agentic AI telemetry contract and secure trace evidence layer",
     "enterprise_promise": "SecurityRecipes makes agent observability reviewable: every governed run must emit enough trace, policy, context, egress, approval, receipt, and redaction evidence for enterprise reviewers to trust the run without reading transcripts.",
-    "why_now": "MCP 2026-07-28 removed protocol-level sessions while OpenTelemetry still recommends mcp.session.id only when a request is part of a session. Collectors that keep requiring a session id mint fake identifiers or hold current-spec traces as incomplete. A secure context layer needs request-bound identity (jsonrpc.request.id, mcp.method.name, mcp.protocol.version) plus redaction so traces stay useful to defenders and safe for regulated environments."
+    "why_now": "MCP 2026-07-28 removed protocol-level sessions while OpenTelemetry still recommends mcp.session.id only when a request is part of a session. Collectors that keep requiring a session id mint fake identifiers or hold current-spec traces as incomplete. The same revision removed logging/setLevel, scoped notifications/message to requests that set io.modelcontextprotocol/logLevel, and deprecated Logging in favor of stderr or OpenTelemetry. A secure context layer needs request-bound identity, logging-surface checks, and redaction so traces stay useful to defenders and safe for regulated environments."
   },
   "standards_alignment": [
     {
@@ -32,6 +32,18 @@
       "name": "Model Context Protocol Authorization Specification",
       "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization",
       "coverage": "Requires protected resource metadata, OAuth resource indicators, token audience validation, PKCE, scope challenges, short-lived tokens, and token-passthrough denial evidence."
+    },
+    {
+      "id": "mcp-logging-2026-07-28",
+      "name": "MCP Logging (2026-07-28 current revision, deprecated)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/server/utilities/logging",
+      "coverage": "Current public MCP 2026-07-28 revision. Logging is deprecated (SEP-2577); new implementations SHOULD NOT adopt it and SHOULD migrate to stderr or OpenTelemetry. logging/setLevel was removed (SEP-2575). Log level is per-request via io.modelcontextprotocol/logLevel. Servers MUST NOT emit notifications/message for a request that omits that field, and MUST NOT deliver those notifications on subscriptions/listen."
+    },
+    {
+      "id": "mcp-deprecated-features-2026-07-28",
+      "name": "MCP Deprecated Features Registry (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/deprecated",
+      "coverage": "The 2026-07-28 deprecated-features registry lists Logging (SEP-2577) with a stderr or OpenTelemetry migration path and earliest removal on or after 2027-07-28. New implementations SHOULD NOT adopt in-protocol logging."
     },
     {
       "id": "mcp-transports-2026-07-28",
@@ -206,7 +218,7 @@
         "policy.decision",
         "authorization.decision"
       ],
-      "minimum_evidence": "MCP spans include JSON-RPC request id, method, protocol version, transport, tool, policy, and authorization evidence before a tool result is trusted. mcp.session.id remains required for 2025-11-25 and earlier receipts; on 2026-07-28 it is optional host-session correlation, not authentication.",
+      "minimum_evidence": "MCP spans include JSON-RPC request id, method, protocol version, transport, tool, policy, and authorization evidence before a tool result is trusted. mcp.session.id remains required for 2025-11-25 and earlier receipts; on 2026-07-28 it is optional host-session correlation, not authentication. logging/setLevel is removed; notifications/message requires io.modelcontextprotocol/logLevel and must stay off subscriptions/listen.",
       "default_failure_decision": "hold_for_trace_completion"
     },
     {
@@ -363,6 +375,23 @@
         "mcp.session.id is required for 2025-11-25 and earlier, optional host-session correlation on 2026-07-28, and is never used as authentication",
         "a present traceparent is a valid W3C Trace Context header",
         "policy decision is linked to the tool call"
+      ],
+      "failure_decision": "hold_for_trace_completion"
+    },
+    {
+      "id": "mcp-logging-deprecation",
+      "class_id": "mcp_tool_call",
+      "title": "MCP Logging uses stderr or OpenTelemetry instead of removed or unscoped in-protocol logging",
+      "required_attributes": [
+        "mcp.method.name",
+        "mcp.protocol.version",
+        "jsonrpc.request.id"
+      ],
+      "pass_conditions": [
+        "logging/setLevel is absent on MCP 2026-07-28 spans",
+        "notifications/message is emitted only when the request carried io.modelcontextprotocol/logLevel",
+        "notifications/message is not delivered on subscriptions/listen",
+        "new implementations migrate Logging to stderr or OpenTelemetry"
       ],
       "failure_decision": "hold_for_trace_completion"
     },

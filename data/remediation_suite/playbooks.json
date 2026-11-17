@@ -3176,12 +3176,12 @@
         {
           "label": "Decision",
           "title": "Apply data minimization",
-          "detail": "Remove raw prompts, secrets, source code, customer content, and unnecessary arguments; define redaction and retention. Do not mint mcp.session.id for MCP 2026-07-28 spans. Treat a present session id as host-session correlation, not authentication, and hold a present traceparent that is not valid W3C Trace Context."
+          "detail": "Remove raw prompts, secrets, source code, customer content, and unnecessary arguments; define redaction and retention. Do not mint mcp.session.id for MCP 2026-07-28 spans. Treat a present session id as host-session correlation, not authentication, and hold a present traceparent that is not valid W3C Trace Context. Hold 2026-07-28 spans that still use logging/setLevel or emit notifications/message without io.modelcontextprotocol/logLevel, including on subscriptions/listen."
         },
         {
           "label": "Action",
           "title": "Validate event delivery",
-          "detail": "Check schema, ordering, duplication, clocks, transport, failure handling, access, storage, and downstream compatibility."
+          "detail": "Check schema, ordering, duplication, clocks, transport, failure handling, access, storage, downstream compatibility, and that MCP Logging uses stderr or OpenTelemetry rather than the removed logging/setLevel method."
         },
         {
           "label": "Proof",
@@ -3192,7 +3192,7 @@
       "gate": {
         "question": "Is the event valid, correlated, privacy-safe, attributable, and deliverable to its approved consumers?",
         "pass": "Accept and route the minimized event under retention policy.",
-        "stop": "Reject or quarantine malformed, uncorrelated, sensitive, cross-tenant, or untrusted events."
+        "stop": "Reject or quarantine malformed, uncorrelated, sensitive, cross-tenant, untrusted, or unscoped MCP logging events."
       },
       "evidence": [
         "versioned telemetry schema",

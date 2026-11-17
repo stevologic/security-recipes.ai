@@ -9,6 +9,12 @@ mcp.session.id. Legacy 2025-11-25 traces still require a session id so
 stored receipts stay evaluable. A present traceparent must be valid
 W3C Trace Context. Unspecified protocol-version evidence stays on the
 prior required-session path.
+
+MCP 2026-07-28 also removed logging/setLevel and deprecated Logging.
+Log level is per-request via io.modelcontextprotocol/logLevel. Servers
+MUST NOT emit notifications/message for a request that omits that field,
+and MUST NOT deliver those notifications on subscriptions/listen. New
+implementations SHOULD migrate to stderr or OpenTelemetry.
 """
 
 from __future__ import annotations
@@ -30,6 +36,11 @@ KILL_SECRET_DECISION = "kill_session_on_secret_telemetry"
 CURRENT_MCP_PROTOCOL_VERSION = "2026-07-28"
 SESSION_ID_ATTRIBUTE = "mcp.session.id"
 TRACEPARENT_ATTRIBUTE = "traceparent"
+REMOVED_LOGGING_METHOD = "logging/setLevel"
+LOGGING_NOTIFICATION_METHOD = "notifications/message"
+LOG_LEVEL_META_ATTRIBUTE = "io.modelcontextprotocol/logLevel"
+LISTEN_SUBSCRIPTION_METHOD = "subscriptions/listen"
+SUBSCRIPTION_METHOD_ATTRIBUTE = "mcp.subscription.method"
 W3C_TRACEPARENT_RE = re.compile(
     r"^([0-9a-f]{2})-([0-9a-f]{32})-([0-9a-f]{16})-([0-9a-f]{2})$"
 )
@@ -92,6 +103,31 @@ def event_class_to_signal_id(pack: dict[str, Any], event_class: str) -> str | No
 def protocol_version_requires_session_id(protocol_version: str) -> bool:
     """Return True when mcp.session.id stays on the prior required path."""
     return str(protocol_version or "").strip() != CURRENT_MCP_PROTOCOL_VERSION
+
+
+def current_spec_logging_violations(attributes: dict[str, str]) -> list[str]:
+    """Return hold reasons for removed or unscoped MCP Logging on 2026-07-28."""
+    if str(attributes.get("mcp.protocol.version", "")).strip() != CURRENT_MCP_PROTOCOL_VERSION:
+        return []
+    method = str(attributes.get("mcp.method.name", "")).strip()
+    violations: list[str] = []
+    if method == REMOVED_LOGGING_METHOD:
+        violations.append(
+            "MCP 2026-07-28 removed logging/setLevel; log level is per-request via "
+            "io.modelcontextprotocol/logLevel. Migrate Logging to stderr or OpenTelemetry."
+        )
+    if method == LOGGING_NOTIFICATION_METHOD:
+        if not str(attributes.get(LOG_LEVEL_META_ATTRIBUTE, "")).strip():
+            violations.append(
+                "MCP 2026-07-28 servers MUST NOT emit notifications/message unless the "
+                "request included io.modelcontextprotocol/logLevel."
+            )
+        if str(attributes.get(SUBSCRIPTION_METHOD_ATTRIBUTE, "")).strip() == LISTEN_SUBSCRIPTION_METHOD:
+            violations.append(
+                "MCP 2026-07-28 notifications/message is request-scoped and MUST NOT be "
+                "delivered on subscriptions/listen."
+            )
+    return violations
 
 
 def is_valid_w3c_traceparent(value: str) -> bool:
@@ -201,6 +237,17 @@ def evaluate_agentic_telemetry_event(pack: dict[str, Any], runtime_event: dict[s
             "workflow_id": workflow_id,
         }
 
+    logging_violations = current_spec_logging_violations(attributes)
+    if logging_violations:
+        return {
+            "decision": HOLD_TRACE_DECISION,
+            "missing_attributes": [],
+            "notes": logging_violations,
+            "prohibited_fields": [],
+            "signal_class_id": signal_id,
+            "workflow_id": workflow_id,
+        }
+
     required = required_attributes_for_event(pack, workflow_contract, event_class, attributes)
     missing = [attr for attr in required if attr not in attributes or attributes.get(attr) == ""]
     if not signal_id:
@@ -241,6 +288,13 @@ def evaluate_agentic_telemetry_event(pack: dict[str, Any], runtime_event: dict[s
             notes.append(
                 "MCP 2026-07-28 request identity uses jsonrpc.request.id, mcp.method.name, "
                 "and mcp.protocol.version; mcp.session.id is not required."
+            )
+        method = attributes.get("mcp.method.name", "").strip()
+        if method == LOGGING_NOTIFICATION_METHOD:
+            notes.append(
+                "MCP Logging is deprecated as of 2026-07-28; migrate to stderr or "
+                "OpenTelemetry. notifications/message remains request-scoped during "
+                "the deprecation window."
             )
 
     return {
