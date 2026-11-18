@@ -32,6 +32,14 @@ ALLOW_DECISIONS = {
     "allow_append_only_evidence_memory",
     "allow_readonly_policy_memory",
 }
+TRUE_BOOL_TOKENS = {"1", "true", "yes", "y", "on"}
+FALSE_BOOL_TOKENS = {"0", "false", "no", "n", "off"}
+VECTOR_EMBEDDING_CLASS_ID = "vector-embedding-memory"
+PERSISTENT_RETRIEVAL_CLASS_IDS = {
+    "vector-embedding-memory",
+    "customer-runtime-memory",
+    "user-preference-memory",
+}
 
 
 class AgentMemoryDecisionError(RuntimeError):
@@ -55,7 +63,26 @@ def as_bool(value: Any) -> bool:
         return value
     if value is None:
         return False
-    return str(value).strip().lower() in {"1", "true", "yes", "y", "on"}
+    return str(value).strip().lower() in TRUE_BOOL_TOKENS
+
+
+def parse_required_bool(request: dict[str, Any], key: str) -> bool | None:
+    """Return True/False when `key` is a parsed boolean; None if missing or unparseable."""
+    if key not in request:
+        return None
+    value = request[key]
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, int) and value in (0, 1):
+        return bool(value)
+    if value is None:
+        return None
+    text = str(value).strip().lower()
+    if text in TRUE_BOOL_TOKENS:
+        return True
+    if text in FALSE_BOOL_TOKENS:
+        return False
+    return None
 
 
 def as_list(value: Any) -> list[Any]:
@@ -155,12 +182,23 @@ def decision_result(
             "contains_secret": request.get("contains_secret"),
             "contains_unredacted_pii": request.get("contains_unredacted_pii"),
             "memory_class_id": request.get("memory_class_id"),
+            "mixed_trust_index": request.get("mixed_trust_index"),
             "operation": request.get("operation"),
             "provenance_hash": request.get("provenance_hash"),
             "requested_ttl_days": request.get("requested_ttl_days"),
+            "retrieved_record_integrity_verified": request.get(
+                "retrieved_record_integrity_verified"
+            ),
+            "returns_raw_similarity_scores": request.get("returns_raw_similarity_scores"),
             "run_id": request.get("run_id"),
+            "source_deleted_without_embedding_delete": request.get(
+                "source_deleted_without_embedding_delete"
+            ),
             "source_id": request.get("source_id"),
             "tenant_id": request.get("tenant_id"),
+            "tenant_scope_enforced_in_index_query": request.get(
+                "tenant_scope_enforced_in_index_query"
+            ),
             "workflow_id": request.get("workflow_id"),
         },
         "violations": violations or [],
@@ -367,6 +405,72 @@ def evaluate_agent_memory_boundary_decision(
             violations=["human_approval_record is required"],
         )
 
+    if request["memory_class_id"] == VECTOR_EMBEDDING_CLASS_ID:
+        tenant_in_query = parse_required_bool(
+            request, "tenant_scope_enforced_in_index_query"
+        )
+        mixed_trust = parse_required_bool(request, "mixed_trust_index")
+        raw_scores = parse_required_bool(request, "returns_raw_similarity_scores")
+        orphan_embeddings = parse_required_bool(
+            request, "source_deleted_without_embedding_delete"
+        )
+        if tenant_in_query is not True:
+            return decision_result(
+                decision="deny_cross_tenant_memory",
+                reason="vector memory must enforce tenant scoping inside the index query, not as a post-retrieval filter",
+                request=request,
+                pack=memory_pack,
+                memory_class=memory_class,
+                workflow=workflow,
+                violations=["tenant_scope_enforced_in_index_query is not proven"],
+            )
+        if mixed_trust is not False:
+            return decision_result(
+                decision="deny_runtime_memory_write",
+                reason="mixed-trust content must not share a vector index without hard isolation",
+                request=request,
+                pack=memory_pack,
+                memory_class=memory_class,
+                workflow=workflow,
+                violations=["mixed_trust_index is not proven isolated"],
+            )
+        if raw_scores is not False:
+            return decision_result(
+                decision="deny_runtime_memory_write",
+                reason="raw similarity scores turn the index into a membership and inversion oracle",
+                request=request,
+                pack=memory_pack,
+                memory_class=memory_class,
+                workflow=workflow,
+                violations=["returns_raw_similarity_scores is not proven disabled"],
+            )
+        if orphan_embeddings is not False:
+            return decision_result(
+                decision="deny_runtime_memory_write",
+                reason="embeddings that outlive their source documents remain source-document leaks",
+                request=request,
+                pack=memory_pack,
+                memory_class=memory_class,
+                workflow=workflow,
+                violations=["source_deleted_without_embedding_delete is not proven false"],
+            )
+
+    if (
+        request["operation"] in {"read", "replay"}
+        and request["memory_class_id"] in PERSISTENT_RETRIEVAL_CLASS_IDS
+    ):
+        integrity = parse_required_bool(request, "retrieved_record_integrity_verified")
+        if integrity is not True:
+            return decision_result(
+                decision="hold_for_memory_admission_review",
+                reason="persistent retrieved memory needs integrity verification before cross-session replay",
+                request=request,
+                pack=memory_pack,
+                memory_class=memory_class,
+                workflow=workflow,
+                violations=["retrieved_record_integrity_verified is not proven"],
+            )
+
     if decision not in VALID_DECISIONS:
         return decision_result(
             decision="hold_for_memory_admission_review",
@@ -400,13 +504,22 @@ def request_from_args(args: argparse.Namespace) -> dict[str, Any]:
         "contains_unredacted_pii": args.contains_unredacted_pii,
         "data_class": args.data_class,
         "memory_class_id": args.memory_class_id,
+        "mixed_trust_index": args.mixed_trust_index,
         "operation": args.operation,
         "provenance_hash": args.provenance_hash,
         "requested_ttl_days": args.requested_ttl_days,
+        "retrieved_record_integrity_verified": args.retrieved_record_integrity_verified,
+        "returns_raw_similarity_scores": args.returns_raw_similarity_scores,
         "run_id": args.run_id,
         "runtime_kill_signal": args.runtime_kill_signal,
+        "source_deleted_without_embedding_delete": (
+            args.source_deleted_without_embedding_delete
+        ),
         "source_id": args.source_id,
         "tenant_id": args.tenant_id,
+        "tenant_scope_enforced_in_index_query": (
+            args.tenant_scope_enforced_in_index_query
+        ),
         "workflow_id": args.workflow_id,
     }
     for key, value in overrides.items():
@@ -432,6 +545,36 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--contains-secret", action="store_true")
     parser.add_argument("--contains-unredacted-pii", action="store_true")
     parser.add_argument("--runtime-kill-signal")
+    parser.add_argument(
+        "--tenant-scope-enforced-in-index-query",
+        action=argparse.BooleanOptionalAction,
+        default=None,
+        help="Vector memory: tenant scoping is enforced inside the index query.",
+    )
+    parser.add_argument(
+        "--mixed-trust-index",
+        action=argparse.BooleanOptionalAction,
+        default=None,
+        help="Vector memory: mixed-trust content shares one index without isolation.",
+    )
+    parser.add_argument(
+        "--returns-raw-similarity-scores",
+        action=argparse.BooleanOptionalAction,
+        default=None,
+        help="Vector memory: clients receive raw similarity scores or distances.",
+    )
+    parser.add_argument(
+        "--source-deleted-without-embedding-delete",
+        action=argparse.BooleanOptionalAction,
+        default=None,
+        help="Vector memory: embeddings remain after the source document is deleted.",
+    )
+    parser.add_argument(
+        "--retrieved-record-integrity-verified",
+        action=argparse.BooleanOptionalAction,
+        default=None,
+        help="Persistent retrieved memory: source hash and integrity were verified.",
+    )
     parser.add_argument("--expect-decision", choices=sorted(VALID_DECISIONS))
     return parser.parse_args(argv)
 
