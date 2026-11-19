@@ -22,11 +22,11 @@ EDITS: dict[str, tuple[str, tuple[tuple[str, str, str], ...], tuple[str, ...]]] 
         (
             (
                 "mcp_server.py",
-                "                query_timeout_seconds=self.SEARCH_DATABASE_QUERY_TIMEOUT_SECONDS,\n"
-                "                validation_timeout_seconds=resolve_validation_timeout_seconds(\n"
-                "                    database_path.stat().st_size\n"
-                "                ),\n",
-                "                query_timeout_seconds=self.SEARCH_DATABASE_QUERY_TIMEOUT_SECONDS,\n",
+                "                        query_timeout_seconds=self.SEARCH_DATABASE_QUERY_TIMEOUT_SECONDS,\n"
+                "                        validation_timeout_seconds=resolve_validation_timeout_seconds(\n"
+                "                            database_path.stat().st_size\n"
+                "                        ),\n",
+                "                        query_timeout_seconds=self.SEARCH_DATABASE_QUERY_TIMEOUT_SECONDS,\n",
             ),
         ),
         (

@@ -2119,189 +2119,180 @@ class CVERecipeCatalog:
             if self._core_loaded and self._reload_in_progress:
                 return
             already_loaded = self._core_loaded
-            if already_loaded:
-                self._reload_in_progress = True
-        try:
-            snapshot = self._build_core_snapshot()
-        except Exception:
-            with self._core_lock:
-                self._reload_in_progress = False
-                if already_loaded:
-                    # Keep the last verified runtime. A failed reload must not
-                    # install a half-loaded catalog or wedge later requests.
-                    self._next_core_check = time.monotonic() + self.RELOAD_CHECK_INTERVAL_SECONDS
-                    return
-            raise
-        with self._core_lock:
-            self._reload_in_progress = False
-            if snapshot is None:
-                self._next_core_check = time.monotonic() + self.RELOAD_CHECK_INTERVAL_SECONDS
-                return
-            self._install_core_snapshot(snapshot)
-
-    def _build_core_snapshot(self) -> dict[str, Any] | None:
-        manifest_path = self.path / "manifest.json"
-        archetypes_path = self.path / "archetypes.json"
-        database_path = (
-            Path(self._search_database_path)
-            if self._search_database_path
-            else None
-        )
-        database_metadata_path = (
-            Path(f"{self._search_database_path}.metadata.json")
-            if self._search_database_path
-            else None
-        )
-        required_paths = (manifest_path, archetypes_path)
-        if database_path is not None and database_metadata_path is not None:
-            required_paths += (database_path, database_metadata_path)
-        if not all(path.is_file() for path in required_paths):
-            missing = [
-                str(path)
-                for path in required_paths
-                if not path.is_file()
-            ]
-            raise FileNotFoundError(f"CVE catalog is incomplete; missing: {', '.join(missing)}")
-
-        signature = self._files_signature(required_paths)
-        if self._core_loaded and self._core_signature == signature:
-            return None
-
-        manifest_size = manifest_path.stat().st_size
-        if manifest_size > self.MAX_MANIFEST_BYTES:
-            raise ValueError("CVE catalog manifest exceeds the runtime size limit")
-        manifest_payload = manifest_path.read_bytes()
-        manifest = json.loads(manifest_payload)
-        if manifest.get("schema_version") != 2:
-            raise ValueError("unsupported CVE catalog manifest schema")
-
-        archetypes_entry = manifest.get("archetypes_asset")
-        if not isinstance(archetypes_entry, dict) or archetypes_entry.get("path") != "archetypes.json":
-            raise ValueError("CVE catalog manifest is missing archetype integrity metadata")
-        declared_archetype_bytes = archetypes_entry.get("bytes")
-        archetype_digest = str(archetypes_entry.get("sha256") or "")
-        if (
-            type(declared_archetype_bytes) is not int
-            or not 0 < declared_archetype_bytes <= self.MAX_ARCHETYPES_BYTES
-            or not re.fullmatch(r"[0-9a-f]{64}", archetype_digest)
-            or archetypes_path.stat().st_size != declared_archetype_bytes
-        ):
-            raise ValueError("CVE catalog archetype integrity metadata is invalid")
-        archetypes_payload = archetypes_path.read_bytes()
-        if hashlib.sha256(archetypes_payload).hexdigest() != archetype_digest:
-            raise ValueError("CVE remediation archetype hash does not match its manifest")
-        archetypes = json.loads(archetypes_payload)
-        if archetypes.get("schema_version") != 1 or not isinstance(archetypes.get("archetypes"), dict):
-            raise ValueError("unsupported CVE remediation archetype schema")
-
-        raw_shards = manifest.get("shard_manifest")
-        if not isinstance(raw_shards, list):
-            raise ValueError("CVE catalog manifest is missing its shard integrity inventory")
-        shard_manifest: dict[str, dict[str, Any]] = {}
-        for entry in raw_shards:
-            if not isinstance(entry, dict):
-                raise ValueError("CVE catalog manifest contains an invalid shard entry")
-            relative = str(entry.get("path") or "")
-            digest = str(entry.get("sha256") or "")
-            if (
-                not re.fullmatch(r"shards/\d{4}/\d{4,}\.jsonl\.gz", relative)
-                or relative in shard_manifest
-                or not re.fullmatch(r"[0-9a-f]{64}", digest)
-                or type(entry.get("bytes")) is not int
-                or type(entry.get("uncompressed_bytes")) is not int
-                or not 0 < entry["bytes"] <= self.MAX_SHARD_COMPRESSED_BYTES
-                or not 0 < entry["uncompressed_bytes"] <= self.MAX_SHARD_UNCOMPRESSED_BYTES
-            ):
-                raise ValueError("CVE catalog manifest contains an invalid shard integrity entry")
-            shard_manifest[relative] = entry
-
-        search_runtime: CVESearchRuntime | None = None
-        if self._search_database_path:
-            totals = manifest.get("totals")
-            record_count = totals.get("catalog_records") if isinstance(totals, dict) else None
-            if type(record_count) is not int:
-                raise ValueError("CVE catalog manifest has no valid record count")
-            assert database_path is not None
-            assert database_metadata_path is not None
-            metadata_path = database_metadata_path
-            if (
-                metadata_path.is_symlink()
-                or not metadata_path.is_file()
-                or not 0 < metadata_path.stat().st_size <= self.MAX_SEARCH_DATABASE_METADATA_BYTES
-            ):
-                raise ValueError("CVE search database metadata is missing or unsafe")
-            database_metadata = json.loads(metadata_path.read_bytes())
-            required_metadata_fields = {
-                "bytes",
-                "database_sha256",
-                "manifest_sha256",
-                "records",
-                "shard_set_sha256",
-                "shards",
-            }
-            manifest_sha256 = hashlib.sha256(manifest_payload).hexdigest()
-            if (
-                not isinstance(database_metadata, dict)
-                or set(database_metadata) != required_metadata_fields
-                or type(database_metadata.get("bytes")) is not int
-                or type(database_metadata.get("records")) is not int
-                or type(database_metadata.get("shards")) is not int
-                or not re.fullmatch(
-                    r"[0-9a-f]{64}",
-                    str(database_metadata.get("database_sha256") or ""),
-                )
-                or database_metadata.get("manifest_sha256") != manifest_sha256
-                or database_metadata.get("shard_set_sha256")
-                != self._manifest_revision(manifest)
-                or database_metadata.get("records") != record_count
-                or database_metadata.get("shards") != len(shard_manifest)
-                or not database_path.is_file()
-                or database_metadata.get("bytes") != database_path.stat().st_size
-            ):
-                raise ValueError("CVE search database metadata does not match the catalog deployment")
-            search_runtime = CVESearchRuntime(
-                self._search_database_path,
-                expected_revision=self._manifest_revision(manifest),
-                expected_record_count=record_count,
-                expected_manifest_sha256=manifest_sha256,
-                expected_database_sha256=database_metadata["database_sha256"],
-                query_timeout_seconds=self.SEARCH_DATABASE_QUERY_TIMEOUT_SECONDS,
-                validation_timeout_seconds=resolve_validation_timeout_seconds(
-                    database_path.stat().st_size
-                ),
+            manifest_path = self.path / "manifest.json"
+            archetypes_path = self.path / "archetypes.json"
+            database_path = (
+                Path(self._search_database_path)
+                if self._search_database_path
+                else None
             )
+            database_metadata_path = (
+                Path(f"{self._search_database_path}.metadata.json")
+                if self._search_database_path
+                else None
+            )
+            required_paths = (manifest_path, archetypes_path)
+            if database_path is not None and database_metadata_path is not None:
+                required_paths += (database_path, database_metadata_path)
+            if not all(path.is_file() for path in required_paths):
+                missing = [
+                    str(path)
+                    for path in required_paths
+                    if not path.is_file()
+                ]
+                raise FileNotFoundError(f"CVE catalog is incomplete; missing: {', '.join(missing)}")
 
-        return {
-            "manifest": manifest,
-            "archetypes": archetypes,
-            "shard_manifest": shard_manifest,
-            "search_runtime": search_runtime,
-            "signature": signature,
-        }
+            signature = self._files_signature(required_paths)
+            if self._core_loaded and self._core_signature == signature:
+                self._next_core_check = now + self.RELOAD_CHECK_INTERVAL_SECONDS
+                return
 
-    def _install_core_snapshot(self, snapshot: dict[str, Any]) -> None:
-        self._manifest = snapshot["manifest"]
-        self._archetypes = snapshot["archetypes"]
-        self._shard_manifest = snapshot["shard_manifest"]
-        self._search_runtime = snapshot["search_runtime"]
-        self._core_signature = snapshot["signature"]
-        self._core_loaded = True
-        self._next_core_check = time.monotonic() + self.RELOAD_CHECK_INTERVAL_SECONDS
-        self._search_signature = None
-        self._search_records = []
-        self._search_ecosystems = ()
-        self._search_archetypes = ()
-        self._search_postings = {}
-        self._search_posting_masks = {}
-        self._search_allowlist_signature = None
-        self._search_indexable_ids = frozenset()
-        self._search_qualifications = {}
-        self._search_indexable_records = ()
-        self._query_cache.clear()
-        with self._shard_lock:
-            self._shard_cache.clear()
-            self._shard_cache_bytes = 0
-            self._shard_key_locks.clear()
+            manifest_size = manifest_path.stat().st_size
+            if manifest_size > self.MAX_MANIFEST_BYTES:
+                raise ValueError("CVE catalog manifest exceeds the runtime size limit")
+            manifest_payload = manifest_path.read_bytes()
+            manifest = json.loads(manifest_payload)
+            if manifest.get("schema_version") != 2:
+                raise ValueError("unsupported CVE catalog manifest schema")
+
+            archetypes_entry = manifest.get("archetypes_asset")
+            if not isinstance(archetypes_entry, dict) or archetypes_entry.get("path") != "archetypes.json":
+                raise ValueError("CVE catalog manifest is missing archetype integrity metadata")
+            declared_archetype_bytes = archetypes_entry.get("bytes")
+            archetype_digest = str(archetypes_entry.get("sha256") or "")
+            if (
+                type(declared_archetype_bytes) is not int
+                or not 0 < declared_archetype_bytes <= self.MAX_ARCHETYPES_BYTES
+                or not re.fullmatch(r"[0-9a-f]{64}", archetype_digest)
+                or archetypes_path.stat().st_size != declared_archetype_bytes
+            ):
+                raise ValueError("CVE catalog archetype integrity metadata is invalid")
+            archetypes_payload = archetypes_path.read_bytes()
+            if hashlib.sha256(archetypes_payload).hexdigest() != archetype_digest:
+                raise ValueError("CVE remediation archetype hash does not match its manifest")
+            archetypes = json.loads(archetypes_payload)
+            if archetypes.get("schema_version") != 1 or not isinstance(archetypes.get("archetypes"), dict):
+                raise ValueError("unsupported CVE remediation archetype schema")
+
+            raw_shards = manifest.get("shard_manifest")
+            if not isinstance(raw_shards, list):
+                raise ValueError("CVE catalog manifest is missing its shard integrity inventory")
+            shard_manifest: dict[str, dict[str, Any]] = {}
+            for entry in raw_shards:
+                if not isinstance(entry, dict):
+                    raise ValueError("CVE catalog manifest contains an invalid shard entry")
+                relative = str(entry.get("path") or "")
+                digest = str(entry.get("sha256") or "")
+                if (
+                    not re.fullmatch(r"shards/\d{4}/\d{4,}\.jsonl\.gz", relative)
+                    or relative in shard_manifest
+                    or not re.fullmatch(r"[0-9a-f]{64}", digest)
+                    or type(entry.get("bytes")) is not int
+                    or type(entry.get("uncompressed_bytes")) is not int
+                    or not 0 < entry["bytes"] <= self.MAX_SHARD_COMPRESSED_BYTES
+                    or not 0 < entry["uncompressed_bytes"] <= self.MAX_SHARD_UNCOMPRESSED_BYTES
+                ):
+                    raise ValueError("CVE catalog manifest contains an invalid shard integrity entry")
+                shard_manifest[relative] = entry
+
+            search_runtime: CVESearchRuntime | None = None
+            if self._search_database_path:
+                totals = manifest.get("totals")
+                record_count = totals.get("catalog_records") if isinstance(totals, dict) else None
+                if type(record_count) is not int:
+                    raise ValueError("CVE catalog manifest has no valid record count")
+                assert database_path is not None
+                assert database_metadata_path is not None
+                metadata_path = database_metadata_path
+                if (
+                    metadata_path.is_symlink()
+                    or not metadata_path.is_file()
+                    or not 0 < metadata_path.stat().st_size <= self.MAX_SEARCH_DATABASE_METADATA_BYTES
+                ):
+                    raise ValueError("CVE search database metadata is missing or unsafe")
+                database_metadata = json.loads(metadata_path.read_bytes())
+                required_metadata_fields = {
+                    "bytes",
+                    "database_sha256",
+                    "manifest_sha256",
+                    "records",
+                    "shard_set_sha256",
+                    "shards",
+                }
+                manifest_sha256 = hashlib.sha256(manifest_payload).hexdigest()
+                if (
+                    not isinstance(database_metadata, dict)
+                    or set(database_metadata) != required_metadata_fields
+                    or type(database_metadata.get("bytes")) is not int
+                    or type(database_metadata.get("records")) is not int
+                    or type(database_metadata.get("shards")) is not int
+                    or not re.fullmatch(
+                        r"[0-9a-f]{64}",
+                        str(database_metadata.get("database_sha256") or ""),
+                    )
+                    or database_metadata.get("manifest_sha256") != manifest_sha256
+                    or database_metadata.get("shard_set_sha256")
+                    != self._manifest_revision(manifest)
+                    or database_metadata.get("records") != record_count
+                    or database_metadata.get("shards") != len(shard_manifest)
+                    or not database_path.is_file()
+                    or database_metadata.get("bytes") != database_path.stat().st_size
+                ):
+                    raise ValueError("CVE search database metadata does not match the catalog deployment")
+                released = False
+                if already_loaded:
+                    self._reload_in_progress = True
+                    self._core_lock.release()
+                    released = True
+                try:
+                    search_runtime = CVESearchRuntime(
+                        self._search_database_path,
+                        expected_revision=self._manifest_revision(manifest),
+                        expected_record_count=record_count,
+                        expected_manifest_sha256=manifest_sha256,
+                        expected_database_sha256=database_metadata["database_sha256"],
+                        query_timeout_seconds=self.SEARCH_DATABASE_QUERY_TIMEOUT_SECONDS,
+                        validation_timeout_seconds=resolve_validation_timeout_seconds(
+                            database_path.stat().st_size
+                        ),
+                    )
+                except Exception:
+                    if already_loaded:
+                        if released:
+                            self._core_lock.acquire()
+                            released = False
+                        self._reload_in_progress = False
+                        self._next_core_check = time.monotonic() + self.RELOAD_CHECK_INTERVAL_SECONDS
+                        return
+                    raise
+                else:
+                    if released:
+                        self._core_lock.acquire()
+                        released = False
+                        self._reload_in_progress = False
+
+            self._manifest = manifest
+            self._archetypes = archetypes
+            self._shard_manifest = shard_manifest
+            self._search_runtime = search_runtime
+            self._core_signature = signature
+            self._core_loaded = True
+            self._next_core_check = now + self.RELOAD_CHECK_INTERVAL_SECONDS
+            self._search_signature = None
+            self._search_records = []
+            self._search_ecosystems = ()
+            self._search_archetypes = ()
+            self._search_postings = {}
+            self._search_posting_masks = {}
+            self._search_allowlist_signature = None
+            self._search_indexable_ids = frozenset()
+            self._search_qualifications = {}
+            self._search_indexable_records = ()
+            self._query_cache.clear()
+            with self._shard_lock:
+                self._shard_cache.clear()
+                self._shard_cache_bytes = 0
+                self._shard_key_locks.clear()
 
     def _load_search(self) -> None:
         self._load_core()
