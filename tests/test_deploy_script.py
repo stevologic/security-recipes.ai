@@ -77,7 +77,7 @@ class DeployScriptStaticTests(unittest.TestCase):
         self.assertIn('--data-urlencode "head_sha=${sha}"', source)
         self.assertIn('--data-urlencode "event=${event}"', source)
         self.assertIn('REQUIRED_WORKFLOWS="${DEPLOY_REQUIRED_WORKFLOWS:-Build}"', source)
-        self.assertIn('HEALTH_TIMEOUT="${DEPLOY_HEALTH_TIMEOUT:-180}"', source)
+        self.assertIn('HEALTH_TIMEOUT="${DEPLOY_HEALTH_TIMEOUT:-400}"', source)
         self.assertIn(
             'FAILED_REVISION_RETRY_SECONDS="${DEPLOY_FAILED_REVISION_RETRY_SECONDS:-900}"',
             source,

@@ -55,7 +55,7 @@ export GIT_SSH_COMMAND="${GIT_SSH_COMMAND:-ssh -o BatchMode=yes}"
 #                      development images.            Default: -development
 #   DEPLOY_REMOTE      Git remote to fetch.           Default: origin
 #   DEPLOY_GIT_TIMEOUT Seconds allowed for git fetch. Default: 120
-#   DEPLOY_HEALTH_TIMEOUT  Seconds to wait for health. Default: 180
+#   DEPLOY_HEALTH_TIMEOUT  Seconds to wait for health. Default: 400
 #   DEPLOY_FAILED_REVISION_RETRY_SECONDS
 #                      Cooldown before automatically retrying a revision that
 #                      failed after candidate replacement began. Default: 900
@@ -108,7 +108,7 @@ DEVELOPMENT_BRANCH="${DEPLOY_DEVELOPMENT_BRANCH-development}"
 DEVELOPMENT_IMAGE_SUFFIX="${DEPLOY_DEVELOPMENT_IMAGE_SUFFIX--development}"
 REMOTE="${DEPLOY_REMOTE:-origin}"
 GIT_TIMEOUT="${DEPLOY_GIT_TIMEOUT:-120}"
-HEALTH_TIMEOUT="${DEPLOY_HEALTH_TIMEOUT:-180}"
+HEALTH_TIMEOUT="${DEPLOY_HEALTH_TIMEOUT:-400}"
 FAILED_REVISION_RETRY_SECONDS="${DEPLOY_FAILED_REVISION_RETRY_SECONDS:-900}"
 LOCK_FILE="${DEPLOY_LOCK_FILE:-/var/lock/security-recipes-deploy.lock}"
 TAKEOVER_GRACE="${DEPLOY_TAKEOVER_GRACE:-30}"

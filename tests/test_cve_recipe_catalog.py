@@ -16,6 +16,10 @@ from unittest.mock import patch
 
 import mcp_server
 from mcp_server import CVERecipeCatalog
+from scripts.cve_search_runtime import (
+    CVESearchDatabaseError,
+    VALIDATION_TIMEOUT_ENV,
+)
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -881,6 +885,9 @@ class CVERecipeCatalogTests(unittest.TestCase):
                 expected_manifest_sha256=hashlib.sha256(manifest_payload).hexdigest(),
                 expected_database_sha256=database_sha256,
                 query_timeout_seconds=0.75,
+                validation_timeout_seconds=mcp_server.resolve_validation_timeout_seconds(
+                    database_path.stat().st_size
+                ),
             )
             self.assertEqual([record["cve"] for record in results], ["CVE-2021-44228"])
             self.assertEqual(total_matches, 1)
@@ -945,6 +952,135 @@ class CVERecipeCatalogTests(unittest.TestCase):
 
             self.assertEqual(runtime_constructor.call_count, 2)
             self.assertIs(catalog._search_runtime, second_runtime)
+
+    def test_d4_catalog_passes_resolved_validation_timeout_to_runtime(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            catalog_dir = Path(tmpdir)
+            write_synthetic_catalog(catalog_dir)
+            database_path = catalog_dir / "runtime-search.sqlite3"
+            database_path.write_bytes(b"stub sqlite artifact")
+            Path(f"{database_path}.metadata.json").write_text(
+                json.dumps(
+                    {
+                        "bytes": database_path.stat().st_size,
+                        "database_sha256": hashlib.sha256(database_path.read_bytes()).hexdigest(),
+                        "manifest_sha256": hashlib.sha256(
+                            (catalog_dir / "manifest.json").read_bytes()
+                        ).hexdigest(),
+                        "records": 3,
+                        "shard_set_sha256": SYNTHETIC_REVISION,
+                        "shards": 1,
+                    }
+                ),
+                encoding="utf-8",
+            )
+            runtime = object()
+            with patch.dict("os.environ", {VALIDATION_TIMEOUT_ENV: "90"}):
+                with patch("mcp_server.CVESearchRuntime", return_value=runtime) as runtime_constructor:
+                    catalog = CVERecipeCatalog(
+                        str(catalog_dir),
+                        search_database_path=str(database_path),
+                    )
+            self.assertIs(catalog._search_runtime, runtime)
+            kwargs = runtime_constructor.call_args.kwargs
+            self.assertEqual(kwargs.get("validation_timeout_seconds"), 90.0)
+            self.assertEqual(kwargs.get("query_timeout_seconds"), 0.75)
+
+    def test_d1_invalid_validation_timeout_env_fails_closed_at_catalog_startup(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            catalog_dir = Path(tmpdir)
+            write_synthetic_catalog(catalog_dir)
+            database_path = catalog_dir / "runtime-search.sqlite3"
+            database_path.write_bytes(b"stub sqlite artifact")
+            Path(f"{database_path}.metadata.json").write_text(
+                json.dumps(
+                    {
+                        "bytes": database_path.stat().st_size,
+                        "database_sha256": hashlib.sha256(database_path.read_bytes()).hexdigest(),
+                        "manifest_sha256": hashlib.sha256(
+                            (catalog_dir / "manifest.json").read_bytes()
+                        ).hexdigest(),
+                        "records": 3,
+                        "shard_set_sha256": SYNTHETIC_REVISION,
+                        "shards": 1,
+                    }
+                ),
+                encoding="utf-8",
+            )
+            with patch.dict("os.environ", {VALIDATION_TIMEOUT_ENV: "abc"}):
+                with self.assertRaises(CVESearchDatabaseError):
+                    CVERecipeCatalog(
+                        str(catalog_dir),
+                        search_database_path=str(database_path),
+                    )
+
+    def test_d9_slow_or_failed_reload_keeps_serving_last_verified_runtime(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            catalog_dir = Path(tmpdir)
+            write_synthetic_catalog(catalog_dir)
+            manifest_payload = (catalog_dir / "manifest.json").read_bytes()
+            database_path = catalog_dir / "runtime-search.sqlite3"
+            database_path.write_bytes(b"first database generation")
+            metadata_path = Path(f"{database_path}.metadata.json")
+
+            def write_metadata() -> None:
+                metadata_path.write_text(
+                    json.dumps(
+                        {
+                            "bytes": database_path.stat().st_size,
+                            "database_sha256": hashlib.sha256(
+                                database_path.read_bytes()
+                            ).hexdigest(),
+                            "manifest_sha256": hashlib.sha256(manifest_payload).hexdigest(),
+                            "records": 3,
+                            "shard_set_sha256": SYNTHETIC_REVISION,
+                            "shards": 1,
+                        }
+                    ),
+                    encoding="utf-8",
+                )
+
+            write_metadata()
+            first_runtime = object()
+            second_runtime = object()
+            started = threading.Event()
+            release = threading.Event()
+            calls = {"n": 0}
+
+            def factory(*_args: object, **_kwargs: object) -> object:
+                calls["n"] += 1
+                if calls["n"] == 1:
+                    return first_runtime
+                started.set()
+                if not release.wait(timeout=5):
+                    raise AssertionError("reload validation was not released")
+                raise CVESearchDatabaseError("injected reload validation failure")
+
+            with patch("mcp_server.CVESearchRuntime", side_effect=factory):
+                catalog = CVERecipeCatalog(
+                    str(catalog_dir),
+                    search_database_path=str(database_path),
+                )
+                self.assertIs(catalog._search_runtime, first_runtime)
+
+                database_path.write_bytes(b"second, corrupt database generation")
+                write_metadata()
+                catalog._next_core_check = 0.0
+                reloader = threading.Thread(target=catalog.search_backend)
+                reloader.start()
+                self.assertTrue(started.wait(timeout=5))
+                started_serving = time.monotonic()
+                self.assertEqual(catalog.search_backend(), "sqlite")
+                self.assertLess(time.monotonic() - started_serving, 0.5)
+                self.assertIs(catalog._search_runtime, first_runtime)
+                self.assertFalse(catalog._core_signature is None)
+                release.set()
+                reloader.join(timeout=5)
+                self.assertFalse(reloader.is_alive())
+                self.assertIs(catalog._search_runtime, first_runtime)
+                self.assertEqual(catalog.search_backend(), "sqlite")
+                self.assertIs(catalog._search_runtime, first_runtime)
+                self.assertIsNot(catalog._search_runtime, second_runtime)
 
     def test_public_search_page_can_return_more_than_legacy_mcp_cap(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:

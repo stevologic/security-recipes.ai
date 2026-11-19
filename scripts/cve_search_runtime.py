@@ -10,6 +10,7 @@ import re
 import sqlite3
 import stat
 import time
+from collections.abc import Mapping
 from datetime import date, datetime
 from pathlib import Path
 from typing import Any, TypedDict
@@ -29,7 +30,14 @@ MAX_RESULTS = 100
 DEFAULT_QUERY_TIMEOUT_SECONDS = 2.0
 MAX_QUERY_TIMEOUT_SECONDS = 10.0
 DEFAULT_VALIDATION_TIMEOUT_SECONDS = 15.0
+MIN_VALIDATION_TIMEOUT_SECONDS = DEFAULT_VALIDATION_TIMEOUT_SECONDS
+MAX_VALIDATION_TIMEOUT_SECONDS = 240.0
+VALIDATION_TIMEOUT_SECONDS_PER_MIB = 0.25
+VALIDATION_TIMEOUT_ENV = "SECURITY_RECIPES_CVE_SEARCH_VALIDATION_TIMEOUT_SECONDS"
+HEALTHCHECK_DEADLINE_MARGIN_SECONDS = 60.0
 PROGRESS_HANDLER_STEPS = 100
+MIB = 1024 * 1024
+TIMEOUT_NUMBER_RE = re.compile(r"[+-]?(?:\d+(?:\.\d*)?|\.\d+)$")
 
 SHA256_RE = re.compile(r"[0-9a-f]{64}")
 CVE_RE = re.compile(r"CVE-\d{4}-\d{4,}", re.IGNORECASE)
@@ -201,6 +209,59 @@ def _normalized_schema_sql(value: str) -> str:
     return re.sub(r"\s+", "", value.casefold()).removesuffix(";")
 
 
+def computed_validation_timeout_seconds(database_bytes: int) -> float:
+    """Return the size-scaled validation budget for one immutable SQLite artifact.
+
+    Unset deployments use ``ceil(0.25s per MiB)``, then clamp to ``[15, 240]``.
+    The floor covers the historical small-catalog default. The cap is at least
+    1.5× the 406 MB production cold total (41.918s).
+    """
+
+    if type(database_bytes) is not int or database_bytes < 0:
+        raise CVESearchDatabaseError("database size is outside the supported range")
+    scaled = math.ceil(VALIDATION_TIMEOUT_SECONDS_PER_MIB * (database_bytes / MIB))
+    return min(
+        MAX_VALIDATION_TIMEOUT_SECONDS,
+        max(MIN_VALIDATION_TIMEOUT_SECONDS, float(scaled)),
+    )
+
+
+def resolve_validation_timeout_seconds(
+    database_bytes: int,
+    explicit: object = None,
+    *,
+    environ: Mapping[str, str] | None = None,
+) -> float:
+    """Resolve one shared validation deadline from an explicit value, env, or size.
+
+    Env values fail closed: empty, non-numeric, non-finite, boolean-ish, and
+    out-of-range values raise ``CVESearchDatabaseError`` instead of falling
+    back to 15s or the cap. ``explicit is None`` and the env var unset uses
+    the size-scaled default. A provided explicit value is used as-is after
+    the same range check and does not consult the environment.
+    """
+
+    if explicit is not None:
+        return CVESearchRuntime._validated_timeout(
+            explicit,
+            "validation_timeout_seconds",
+            maximum=MAX_VALIDATION_TIMEOUT_SECONDS,
+        )
+    source = os.environ if environ is None else environ
+    if VALIDATION_TIMEOUT_ENV not in source:
+        return computed_validation_timeout_seconds(database_bytes)
+    raw = source[VALIDATION_TIMEOUT_ENV]
+    if isinstance(raw, bool) or not isinstance(raw, str):
+        raise CVESearchDatabaseError(f"{VALIDATION_TIMEOUT_ENV} must be a finite number")
+    text = raw.strip()
+    if TIMEOUT_NUMBER_RE.fullmatch(text) is None:
+        raise CVESearchDatabaseError(f"{VALIDATION_TIMEOUT_ENV} must be a finite number")
+    timeout = float(text)
+    if not math.isfinite(timeout) or not 0 < timeout <= MAX_VALIDATION_TIMEOUT_SECONDS:
+        raise CVESearchDatabaseError(f"{VALIDATION_TIMEOUT_ENV} is outside the supported range")
+    return timeout
+
+
 class CVESearchRuntime:
     """Open and query one immutable CVE FTS database without loading its corpus.
 
@@ -220,7 +281,7 @@ class CVESearchRuntime:
         expected_database_sha256: str,
         max_database_bytes: int = MAX_DATABASE_BYTES,
         query_timeout_seconds: float = DEFAULT_QUERY_TIMEOUT_SECONDS,
-        validation_timeout_seconds: float = DEFAULT_VALIDATION_TIMEOUT_SECONDS,
+        validation_timeout_seconds: float | None = None,
     ) -> None:
         configured_path = Path(database_path).expanduser().absolute()
         _reject_link_components(configured_path)
@@ -259,10 +320,9 @@ class CVESearchRuntime:
             "query_timeout_seconds",
             maximum=MAX_QUERY_TIMEOUT_SECONDS,
         )
-        validation_timeout = self._validated_timeout(
+        validation_timeout = resolve_validation_timeout_seconds(
+            int(file_status.st_size),
             validation_timeout_seconds,
-            "validation_timeout_seconds",
-            maximum=60.0,
         )
         self._clock = time.monotonic
         self._file_identity = self._file_fingerprint(file_status)
@@ -304,12 +364,14 @@ class CVESearchRuntime:
             raise CVESearchDatabaseError("CVE search database changed after validation")
 
     def _database_sha256(self, deadline: float) -> str:
+        if self._clock() >= deadline:
+            raise CVESearchDatabaseError("CVE search database digest validation exceeded its deadline")
         digest = hashlib.sha256()
         try:
             with self._database_path.open("rb", buffering=0) as stream:
                 if self._file_fingerprint(os.fstat(stream.fileno())) != self._file_identity:
                     raise CVESearchDatabaseError("CVE search database changed before digest validation")
-                while chunk := stream.read(1024 * 1024):
+                while chunk := stream.read(MIB):
                     if self._clock() >= deadline:
                         raise CVESearchDatabaseError("CVE search database digest validation exceeded its deadline")
                     digest.update(chunk)
@@ -429,6 +491,8 @@ class CVESearchRuntime:
                 raise CVESearchDatabaseError("CVE search database index schema is invalid")
 
     def _validate_database(self, deadline: float) -> dict[str, str]:
+        if self._clock() >= deadline:
+            raise CVESearchDatabaseError("CVE search database validation exceeded its deadline")
         connection = self._connect(deadline)
         try:
             self._validate_schema(connection)
@@ -781,4 +845,10 @@ __all__ = [
     "CVESearchRuntime",
     "CVESearchRuntimeError",
     "CVESearchTimeoutError",
+    "HEALTHCHECK_DEADLINE_MARGIN_SECONDS",
+    "MAX_VALIDATION_TIMEOUT_SECONDS",
+    "MIN_VALIDATION_TIMEOUT_SECONDS",
+    "VALIDATION_TIMEOUT_ENV",
+    "computed_validation_timeout_seconds",
+    "resolve_validation_timeout_seconds",
 ]

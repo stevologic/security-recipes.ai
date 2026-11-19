@@ -40,6 +40,7 @@ from scripts.cve_search_runtime import (
     CVESearchQueryError,
     CVESearchRuntime,
     CVESearchTimeoutError,
+    resolve_validation_timeout_seconds,
 )
 from scripts.cve_text_quality import clean_catalog_text
 from scripts.generate_agentic_source_freshness_watch import (
@@ -2011,6 +2012,7 @@ class CVERecipeCatalog:
         self._core_signature: tuple[tuple[int, int], ...] | None = None
         self._core_loaded = False
         self._next_core_check = 0.0
+        self._reload_in_progress = False
         self._core_lock = threading.RLock()
         self._search_lock = threading.Lock()
         self._shard_lock = threading.RLock()
@@ -2114,6 +2116,9 @@ class CVERecipeCatalog:
             now = time.monotonic()
             if self._core_loaded and now < self._next_core_check:
                 return
+            if self._core_loaded and self._reload_in_progress:
+                return
+            already_loaded = self._core_loaded
             manifest_path = self.path / "manifest.json"
             archetypes_path = self.path / "archetypes.json"
             database_path = (
@@ -2234,14 +2239,37 @@ class CVERecipeCatalog:
                     or database_metadata.get("bytes") != database_path.stat().st_size
                 ):
                     raise ValueError("CVE search database metadata does not match the catalog deployment")
-                search_runtime = CVESearchRuntime(
-                    self._search_database_path,
-                    expected_revision=self._manifest_revision(manifest),
-                    expected_record_count=record_count,
-                    expected_manifest_sha256=manifest_sha256,
-                    expected_database_sha256=database_metadata["database_sha256"],
-                    query_timeout_seconds=self.SEARCH_DATABASE_QUERY_TIMEOUT_SECONDS,
-                )
+                released = False
+                if already_loaded:
+                    self._reload_in_progress = True
+                    self._core_lock.release()
+                    released = True
+                try:
+                    search_runtime = CVESearchRuntime(
+                        self._search_database_path,
+                        expected_revision=self._manifest_revision(manifest),
+                        expected_record_count=record_count,
+                        expected_manifest_sha256=manifest_sha256,
+                        expected_database_sha256=database_metadata["database_sha256"],
+                        query_timeout_seconds=self.SEARCH_DATABASE_QUERY_TIMEOUT_SECONDS,
+                        validation_timeout_seconds=resolve_validation_timeout_seconds(
+                            database_path.stat().st_size
+                        ),
+                    )
+                except Exception:
+                    if already_loaded:
+                        if released:
+                            self._core_lock.acquire()
+                            released = False
+                        self._reload_in_progress = False
+                        self._next_core_check = time.monotonic() + self.RELOAD_CHECK_INTERVAL_SECONDS
+                        return
+                    raise
+                else:
+                    if released:
+                        self._core_lock.acquire()
+                        released = False
+                        self._reload_in_progress = False
 
             self._manifest = manifest
             self._archetypes = archetypes
