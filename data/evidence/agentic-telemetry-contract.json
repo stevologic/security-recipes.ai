@@ -29,13 +29,13 @@
     "required_attribute_source": "telemetry_contract.required_trace_attributes plus signal class required_attributes"
   },
   "failures": [],
-  "generated_at": "2026-10-09",
+  "generated_at": "2026-11-19",
   "intent": "Define a vendor-neutral telemetry contract for SecurityRecipes so agentic AI and MCP runs can be reconstructed from OpenTelemetry-shaped traces without leaking secrets, raw tenant context, or unredacted tool payloads into observability systems.",
   "positioning": {
     "buyer": "AI Platform, Security Engineering, Detection Engineering, GRC, model risk, procurement security, and acquisition diligence teams",
     "category": "Agentic AI telemetry contract and secure trace evidence layer",
     "enterprise_promise": "SecurityRecipes makes agent observability reviewable: every governed run must emit enough trace, policy, context, egress, approval, receipt, and redaction evidence for enterprise reviewers to trust the run without reading transcripts.",
-    "why_now": "MCP 2026-07-28 removed protocol-level sessions while OpenTelemetry still recommends mcp.session.id only when a request is part of a session. Collectors that keep requiring a session id mint fake identifiers or hold current-spec traces as incomplete. A secure context layer needs request-bound identity (jsonrpc.request.id, mcp.method.name, mcp.protocol.version) plus redaction so traces stay useful to defenders and safe for regulated environments."
+    "why_now": "MCP 2026-07-28 removed protocol-level sessions while OpenTelemetry still recommends mcp.session.id only when a request is part of a session. The same revision removed logging/setLevel (SEP-2575) and deprecated Logging (SEP-2577): log level is per-request via io.modelcontextprotocol/logLevel, servers MUST NOT emit notifications/message without that field or on subscriptions/listen, and new implementations SHOULD migrate to stderr or OpenTelemetry. Collectors that keep requiring a session id mint fake identifiers or hold current-spec traces as incomplete, and hosts that still accept logging/setLevel or unsolicited log notifications treat a removed protocol surface as production telemetry."
   },
   "redaction_tiers": [
     {
@@ -75,6 +75,10 @@
     {
       "risk": "Collectors that still require mcp.session.id after MCP 2026-07-28 will mint fake session identifiers or hold current-spec traces as incomplete.",
       "treatment": "Require jsonrpc.request.id, mcp.method.name, and mcp.protocol.version for 2026-07-28 spans. Keep mcp.session.id required only for 2025-11-25 and earlier stored receipts. Treat a present session id as host-session correlation, not authentication. Hold a present traceparent that is not valid W3C Trace Context."
+    },
+    {
+      "risk": "Hosts that still accept logging/setLevel or unsolicited notifications/message after MCP 2026-07-28 treat a removed Logging surface as production telemetry.",
+      "treatment": "Hold 2026-07-28 spans whose method is logging/setLevel. Hold notifications/message unless the request carried io.modelcontextprotocol/logLevel. Hold notifications/message delivered on subscriptions/listen. Leave 2025-11-25 logging/setLevel on the prior session-id path. Prefer stderr or OpenTelemetry over in-protocol Logging."
     }
   ],
   "schema_version": "1.0",
@@ -127,7 +131,7 @@
       "default_failure_decision": "hold_for_trace_completion",
       "event_class": "mcp.tools.call",
       "id": "mcp_tool_call",
-      "minimum_evidence": "MCP spans include JSON-RPC request id, method, protocol version, transport, tool, policy, and authorization evidence before a tool result is trusted. mcp.session.id remains required for 2025-11-25 and earlier receipts; on 2026-07-28 it is optional host-session correlation, not authentication.",
+      "minimum_evidence": "MCP spans include JSON-RPC request id, method, protocol version, transport, tool, policy, and authorization evidence before a tool result is trusted. mcp.session.id remains required for 2025-11-25 and earlier receipts; on 2026-07-28 it is optional host-session correlation, not authentication. Current-spec logging/setLevel spans and notifications/message without a request-scoped log level or delivered on subscriptions/listen are held.",
       "otel_span_name": "tools/call <tool>",
       "required_attributes": [
         "gen_ai.operation.name",
@@ -241,23 +245,23 @@
   "source_artifacts": {
     "agentic_incident_response_pack": {
       "path": "data/evidence/agentic-incident-response-pack.json",
-      "sha256": "061fffbb9872d6bca693a11ef195fcd7e357ac7dc22ca6542c49af57bdc3174a"
+      "sha256": "69473ae571051f69ba825cfd10b406c4218b6c44ffacabfbfd6b6193275648ad"
     },
     "agentic_measurement_probe_pack": {
       "path": "data/evidence/agentic-measurement-probe-pack.json",
-      "sha256": "331ff605e212384b1ea71af5291b26e2be2b3736fe60ab3b481b125a3e80b639"
+      "sha256": "9f38e027aa8727ea9462fe418d16dc05e86614a83e09c7f04a31725fabd7dcb1"
     },
     "agentic_run_receipt_pack": {
       "path": "data/evidence/agentic-run-receipt-pack.json",
-      "sha256": "b84bf236b2bfe8b3ffa225ab4aacb70b5dd6d75cce19c89620e2167ca365ae88"
+      "sha256": "12d8e3cde86865abe9383e23c6e3f0c4fbfb0a5998bd3a3ebe975991f8953bef"
     },
     "agentic_telemetry_contract_profile": {
       "path": "data/assurance/agentic-telemetry-contract-profile.json",
-      "sha256": "1d9354a76f9160fc8aae5ef1042f57277cebae7f3be2b7b48ff022287ae50c2f"
+      "sha256": "21f5c6c0e44db2a922d9d62529533ece5018af0376bc794bcf8c70132dde3907"
     },
     "context_egress_boundary_pack": {
       "path": "data/evidence/context-egress-boundary-pack.json",
-      "sha256": "6f8cc110c40e64839a4a872b7b11b6cbebf551df18282682728e766c24bbc91a"
+      "sha256": "b3eb9a9b0afd9e9df85b5b09464ee8c61c50c8999312d988f49139b8124c8d7c"
     },
     "workflow_manifest": {
       "path": "data/control-plane/workflow-manifests.json",
@@ -288,6 +292,24 @@
       "id": "mcp-authorization-2025-11-25",
       "name": "Model Context Protocol Authorization Specification",
       "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization"
+    },
+    {
+      "coverage": "Logging is deprecated (SEP-2577). logging/setLevel is removed (SEP-2575). Log level is per-request via io.modelcontextprotocol/logLevel. Servers MUST NOT emit notifications/message without that field and MUST NOT deliver those notifications on subscriptions/listen. New implementations SHOULD log to stderr or OpenTelemetry.",
+      "id": "mcp-logging-2026-07-28",
+      "name": "MCP Logging (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/server/utilities/logging"
+    },
+    {
+      "coverage": "The 2026-07-28 registry lists Logging (SEP-2577) with a stderr or OpenTelemetry migration path and earliest removal on or after 2027-07-28. New implementations SHOULD NOT adopt Logging; existing hosts SHOULD migrate before the removal window.",
+      "id": "mcp-deprecated-features-2026-07-28",
+      "name": "MCP Deprecated Features Registry (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/deprecated"
+    },
+    {
+      "coverage": "Changelog item 5 (SEP-2575) removed ping, logging/setLevel, and notifications/roots/list_changed. Request-scoped notifications/progress and notifications/message stay on the originating request stream, not subscriptions/listen.",
+      "id": "mcp-spec-changelog-2026-07-28",
+      "name": "MCP Specification Changelog (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/changelog"
     },
     {
       "coverage": "Current public MCP 2026-07-28 revision. Covers stdio and Streamable HTTP transport requirements, Origin validation, localhost binding, and per-request metadata. Protocol-level sessions and Mcp-Session-Id are gone; every request carries io.modelcontextprotocol/protocolVersion in params._meta.",
@@ -365,6 +387,7 @@
         "jsonrpc.request.id, mcp.method.name, and mcp.protocol.version identify the request",
         "mcp.session.id is required for 2025-11-25 and earlier, optional host-session correlation on 2026-07-28, and is never used as authentication",
         "a present traceparent is a valid W3C Trace Context header",
+        "2026-07-28 logging/setLevel is held; notifications/message requires io.modelcontextprotocol/logLevel and must not arrive on subscriptions/listen",
         "policy decision is linked to the tool call"
       ],
       "required_attributes": [
@@ -476,6 +499,22 @@
         "policy.decision"
       ],
       "title": "Secret or cross-tenant telemetry kills the session"
+    },
+    {
+      "class_id": "mcp_tool_call",
+      "failure_decision": "hold_for_trace_completion",
+      "id": "mcp-logging-deprecation",
+      "pass_conditions": [
+        "logging/setLevel is absent on 2026-07-28 spans",
+        "notifications/message carries a request-scoped io.modelcontextprotocol/logLevel",
+        "notifications/message is not delivered on subscriptions/listen"
+      ],
+      "required_attributes": [
+        "mcp.method.name",
+        "mcp.protocol.version",
+        "jsonrpc.request.id"
+      ],
+      "title": "Current-spec Logging uses per-request log level, not logging/setLevel or listen-stream notifications"
     }
   ],
   "telemetry_contract": {
@@ -563,7 +602,7 @@
     "required_attribute_count": 26,
     "sensitive_opt_in_attribute_count": 7,
     "signal_class_count": 9,
-    "telemetry_check_count": 8,
+    "telemetry_check_count": 9,
     "workflow_count": 8
   },
   "workflow_telemetry_contracts": [
@@ -573,7 +612,7 @@
         "claude",
         "devin"
       ],
-      "context_package_hash": "08cf05e9370fe6ec56d03dbf215124cd5673f156027e49588cff23e77cf870ae",
+      "context_package_hash": "18caecc0cbd874617e3f247ff6de445ed462fd98b4d91a0d8196a2e5e209f482",
       "decision": "telemetry_ready",
       "egress_policy_hash": "dbe427420d1f3ed8cff135d727d159b5df57809913070fe447ae8f7540a4ffdd",
       "incident_default_decision": "kill_session_and_escalate_board",
@@ -668,7 +707,7 @@
         "github_copilot",
         "devin"
       ],
-      "context_package_hash": "7820658d4066e656d88a6d9cb5a17dc68d3b9758f1344f578cf76c749ba582b1",
+      "context_package_hash": "49383f1e8303f2f330fb6090ea94052fc703ef31492ceac81fa34549577bebac",
       "decision": "telemetry_ready",
       "egress_policy_hash": "71b09e53adae52cc909d622313e883af2e43a85836d7c9b8e717b8fb39359249",
       "incident_default_decision": "contain_and_open_war_room",
@@ -762,7 +801,7 @@
         "cursor",
         "github_copilot"
       ],
-      "context_package_hash": "ceb4b317738e974a3b1764503836f8832d7cae41306f4e8548b12ae6f2192d49",
+      "context_package_hash": "54d6e77f5a081a82c7f3e6233872b608064cc9d1d6d0811fa1ebba64c15c69bd",
       "decision": "telemetry_ready",
       "egress_policy_hash": "d8adf24aa36b0c0bb4092a6262690c5217f74c6b5404a315621ef4b9e6bc7e00",
       "incident_default_decision": "hold_for_forensics",
@@ -855,7 +894,7 @@
         "claude",
         "cursor"
       ],
-      "context_package_hash": "def04d1829cd3aecdd21ab0c5dce595307348620a4afb016875810bc05348398",
+      "context_package_hash": "4c8233f45a710e1609c35067ba46ee633fffd7089394a0d2f27127f94f7665ae",
       "decision": "telemetry_ready",
       "egress_policy_hash": "9017117d2b7a20d5c504bc081fafa6f97b79cf86a743f9e7642232f169b3ce62",
       "incident_default_decision": "kill_session_and_escalate_board",
@@ -948,7 +987,7 @@
         "claude",
         "cursor"
       ],
-      "context_package_hash": "689a0199741f5ab2b033f3bb787aae7f7832aaed29fcdec60d90293df84dfd5d",
+      "context_package_hash": "5e5c7600ad3d9fa2c0ab961ce3f381a97d3ab43cba6c0295485ad0f8ae22f818",
       "decision": "telemetry_ready",
       "egress_policy_hash": "8b243ba912cdd2a36f2cb9a6e5366a27abbdb83fb6cc897a2f17d142c67fbe30",
       "incident_default_decision": "kill_session_and_escalate_board",
@@ -1042,7 +1081,7 @@
         "cursor",
         "github_copilot"
       ],
-      "context_package_hash": "ef73213076c800a79562ce61091a70671047db1425048378bb8c250500c67853",
+      "context_package_hash": "6c03ece204deb1a7b6a0c8b2821c39dc5f392597bcb98876cdc856cef4b371a8",
       "decision": "telemetry_ready",
       "egress_policy_hash": "9a65a7b7b045108b27bcf6d383ef58bbd69e4cad6c61a1b08be08ccc535e93cc",
       "incident_default_decision": "hold_for_forensics",
@@ -1137,7 +1176,7 @@
         "github_copilot",
         "devin"
       ],
-      "context_package_hash": "8099ea3d9d10f0ce2ef8b4c6ac5563cfa5ccefcb1d424687026e55aa4ab07ed4",
+      "context_package_hash": "57613230fc4f75f10f1dfcd8e5e0664b02639242f9e4dcf7be7864d32049052f",
       "decision": "telemetry_ready",
       "egress_policy_hash": "50d90e47c9cf159117d6b78687263ef16c341d785a4915141ede2f9034b71ac0",
       "incident_default_decision": "contain_and_open_war_room",
@@ -1232,7 +1271,7 @@
         "github_copilot",
         "devin"
       ],
-      "context_package_hash": "71a254157a5912a551bde350d323733474c0a434c2de7ed02c1a029d316536b2",
+      "context_package_hash": "acb1c0c2b42ae49b71113e3b261fcd10a36cffebc007757b775e5ef5bb771240",
       "decision": "telemetry_ready",
       "egress_policy_hash": "c0abb42357dfae407d9f5ba4d13b4b62ae5bd079aab02c82761b42733813c0ff",
       "incident_default_decision": "contain_and_open_war_room",

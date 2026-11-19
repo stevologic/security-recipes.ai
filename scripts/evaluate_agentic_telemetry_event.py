@@ -7,8 +7,14 @@ a session. This evaluator allows 2026-07-28 tool spans that carry
 jsonrpc.request.id, mcp.method.name, and mcp.protocol.version without
 mcp.session.id. Legacy 2025-11-25 traces still require a session id so
 stored receipts stay evaluable. A present traceparent must be valid
-W3C Trace Context. Unspecified protocol-version evidence stays on the
-prior required-session path.
+W3C Trace Context.
+
+The same revision removed logging/setLevel (SEP-2575) and deprecated
+Logging (SEP-2577). Log level is per-request via
+io.modelcontextprotocol/logLevel. Servers MUST NOT emit
+notifications/message for a request that omits that field, and MUST NOT
+deliver those notifications on subscriptions/listen. Unspecified
+protocol-version evidence stays on the prior required-session path.
 """
 
 from __future__ import annotations
@@ -30,6 +36,14 @@ KILL_SECRET_DECISION = "kill_session_on_secret_telemetry"
 CURRENT_MCP_PROTOCOL_VERSION = "2026-07-28"
 SESSION_ID_ATTRIBUTE = "mcp.session.id"
 TRACEPARENT_ATTRIBUTE = "traceparent"
+REMOVED_LOGGING_SET_LEVEL = "logging/setLevel"
+LOG_MESSAGE_NOTIFICATION = "notifications/message"
+LOG_LEVEL_ATTRIBUTES = (
+    "mcp.log_level",
+    "io.modelcontextprotocol/logLevel",
+)
+NOTIFICATION_STREAM_ATTRIBUTE = "mcp.notification.stream"
+SUBSCRIPTIONS_LISTEN_STREAM = "subscriptions/listen"
 W3C_TRACEPARENT_RE = re.compile(
     r"^([0-9a-f]{2})-([0-9a-f]{32})-([0-9a-f]{16})-([0-9a-f]{2})$"
 )
@@ -92,6 +106,43 @@ def event_class_to_signal_id(pack: dict[str, Any], event_class: str) -> str | No
 def protocol_version_requires_session_id(protocol_version: str) -> bool:
     """Return True when mcp.session.id stays on the prior required path."""
     return str(protocol_version or "").strip() != CURRENT_MCP_PROTOCOL_VERSION
+
+
+def is_current_mcp_protocol(protocol_version: str) -> bool:
+    return str(protocol_version or "").strip() == CURRENT_MCP_PROTOCOL_VERSION
+
+
+def requested_log_level(attributes: dict[str, str]) -> str:
+    for key in LOG_LEVEL_ATTRIBUTES:
+        value = str(attributes.get(key, "")).strip()
+        if value:
+            return value
+    return ""
+
+
+def logging_deprecation_hold_notes(attributes: dict[str, str]) -> list[str]:
+    """Hold current-spec spans that still use the removed Logging surface."""
+    if not is_current_mcp_protocol(attributes.get("mcp.protocol.version", "")):
+        return []
+    method = str(attributes.get("mcp.method.name", "")).strip()
+    notes: list[str] = []
+    if method == REMOVED_LOGGING_SET_LEVEL:
+        notes.append(
+            "MCP 2026-07-28 removed logging/setLevel; log level is per-request via "
+            "io.modelcontextprotocol/logLevel. Hold for trace completion."
+        )
+    if method == LOG_MESSAGE_NOTIFICATION:
+        if not requested_log_level(attributes):
+            notes.append(
+                "MCP 2026-07-28 servers MUST NOT emit notifications/message unless the "
+                "request carried io.modelcontextprotocol/logLevel."
+            )
+        if str(attributes.get(NOTIFICATION_STREAM_ATTRIBUTE, "")).strip() == SUBSCRIPTIONS_LISTEN_STREAM:
+            notes.append(
+                "MCP 2026-07-28 notifications/message is request-scoped and MUST NOT "
+                "be delivered on subscriptions/listen."
+            )
+    return notes
 
 
 def is_valid_w3c_traceparent(value: str) -> bool:
@@ -225,6 +276,17 @@ def evaluate_agentic_telemetry_event(pack: dict[str, Any], runtime_event: dict[s
             "notes": [
                 "Present traceparent is not a valid W3C Trace Context header; hold for trace completion."
             ],
+            "prohibited_fields": [],
+            "signal_class_id": signal_id,
+            "workflow_id": workflow_id,
+        }
+
+    logging_notes = logging_deprecation_hold_notes(attributes)
+    if logging_notes:
+        return {
+            "decision": HOLD_TRACE_DECISION,
+            "missing_attributes": [],
+            "notes": logging_notes,
             "prohibited_fields": [],
             "signal_class_id": signal_id,
             "workflow_id": workflow_id,

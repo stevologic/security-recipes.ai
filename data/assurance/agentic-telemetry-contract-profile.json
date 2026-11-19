@@ -1,12 +1,12 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-10-09",
+  "last_reviewed": "2026-11-19",
   "intent": "Define a vendor-neutral telemetry contract for SecurityRecipes so agentic AI and MCP runs can be reconstructed from OpenTelemetry-shaped traces without leaking secrets, raw tenant context, or unredacted tool payloads into observability systems.",
   "positioning": {
     "buyer": "AI Platform, Security Engineering, Detection Engineering, GRC, model risk, procurement security, and acquisition diligence teams",
     "category": "Agentic AI telemetry contract and secure trace evidence layer",
     "enterprise_promise": "SecurityRecipes makes agent observability reviewable: every governed run must emit enough trace, policy, context, egress, approval, receipt, and redaction evidence for enterprise reviewers to trust the run without reading transcripts.",
-    "why_now": "MCP 2026-07-28 removed protocol-level sessions while OpenTelemetry still recommends mcp.session.id only when a request is part of a session. Collectors that keep requiring a session id mint fake identifiers or hold current-spec traces as incomplete. A secure context layer needs request-bound identity (jsonrpc.request.id, mcp.method.name, mcp.protocol.version) plus redaction so traces stay useful to defenders and safe for regulated environments."
+    "why_now": "MCP 2026-07-28 removed protocol-level sessions while OpenTelemetry still recommends mcp.session.id only when a request is part of a session. The same revision removed logging/setLevel (SEP-2575) and deprecated Logging (SEP-2577): log level is per-request via io.modelcontextprotocol/logLevel, servers MUST NOT emit notifications/message without that field or on subscriptions/listen, and new implementations SHOULD migrate to stderr or OpenTelemetry. Collectors that keep requiring a session id mint fake identifiers or hold current-spec traces as incomplete, and hosts that still accept logging/setLevel or unsolicited log notifications treat a removed protocol surface as production telemetry."
   },
   "standards_alignment": [
     {
@@ -32,6 +32,24 @@
       "name": "Model Context Protocol Authorization Specification",
       "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization",
       "coverage": "Requires protected resource metadata, OAuth resource indicators, token audience validation, PKCE, scope challenges, short-lived tokens, and token-passthrough denial evidence."
+    },
+    {
+      "id": "mcp-logging-2026-07-28",
+      "name": "MCP Logging (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/server/utilities/logging",
+      "coverage": "Logging is deprecated (SEP-2577). logging/setLevel is removed (SEP-2575). Log level is per-request via io.modelcontextprotocol/logLevel. Servers MUST NOT emit notifications/message without that field and MUST NOT deliver those notifications on subscriptions/listen. New implementations SHOULD log to stderr or OpenTelemetry."
+    },
+    {
+      "id": "mcp-deprecated-features-2026-07-28",
+      "name": "MCP Deprecated Features Registry (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/deprecated",
+      "coverage": "The 2026-07-28 registry lists Logging (SEP-2577) with a stderr or OpenTelemetry migration path and earliest removal on or after 2027-07-28. New implementations SHOULD NOT adopt Logging; existing hosts SHOULD migrate before the removal window."
+    },
+    {
+      "id": "mcp-spec-changelog-2026-07-28",
+      "name": "MCP Specification Changelog (2026-07-28 current revision)",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/changelog",
+      "coverage": "Changelog item 5 (SEP-2575) removed ping, logging/setLevel, and notifications/roots/list_changed. Request-scoped notifications/progress and notifications/message stay on the originating request stream, not subscriptions/listen."
     },
     {
       "id": "mcp-transports-2026-07-28",
@@ -206,7 +224,7 @@
         "policy.decision",
         "authorization.decision"
       ],
-      "minimum_evidence": "MCP spans include JSON-RPC request id, method, protocol version, transport, tool, policy, and authorization evidence before a tool result is trusted. mcp.session.id remains required for 2025-11-25 and earlier receipts; on 2026-07-28 it is optional host-session correlation, not authentication.",
+      "minimum_evidence": "MCP spans include JSON-RPC request id, method, protocol version, transport, tool, policy, and authorization evidence before a tool result is trusted. mcp.session.id remains required for 2025-11-25 and earlier receipts; on 2026-07-28 it is optional host-session correlation, not authentication. Current-spec logging/setLevel spans and notifications/message without a request-scoped log level or delivered on subscriptions/listen are held.",
       "default_failure_decision": "hold_for_trace_completion"
     },
     {
@@ -362,6 +380,7 @@
         "jsonrpc.request.id, mcp.method.name, and mcp.protocol.version identify the request",
         "mcp.session.id is required for 2025-11-25 and earlier, optional host-session correlation on 2026-07-28, and is never used as authentication",
         "a present traceparent is a valid W3C Trace Context header",
+        "2026-07-28 logging/setLevel is held; notifications/message requires io.modelcontextprotocol/logLevel and must not arrive on subscriptions/listen",
         "policy decision is linked to the tool call"
       ],
       "failure_decision": "hold_for_trace_completion"
@@ -465,6 +484,22 @@
         "kill decision is emitted when prohibited telemetry appears"
       ],
       "failure_decision": "kill_session_on_secret_telemetry"
+    },
+    {
+      "id": "mcp-logging-deprecation",
+      "class_id": "mcp_tool_call",
+      "title": "Current-spec Logging uses per-request log level, not logging/setLevel or listen-stream notifications",
+      "required_attributes": [
+        "mcp.method.name",
+        "mcp.protocol.version",
+        "jsonrpc.request.id"
+      ],
+      "pass_conditions": [
+        "logging/setLevel is absent on 2026-07-28 spans",
+        "notifications/message carries a request-scoped io.modelcontextprotocol/logLevel",
+        "notifications/message is not delivered on subscriptions/listen"
+      ],
+      "failure_decision": "hold_for_trace_completion"
     }
   ],
   "enterprise_adoption_packet": {

@@ -3176,12 +3176,12 @@
         {
           "label": "Decision",
           "title": "Apply data minimization",
-          "detail": "Remove raw prompts, secrets, source code, customer content, and unnecessary arguments; define redaction and retention. Do not mint mcp.session.id for MCP 2026-07-28 spans. Treat a present session id as host-session correlation, not authentication, and hold a present traceparent that is not valid W3C Trace Context."
+          "detail": "Remove raw prompts, secrets, source code, customer content, and unnecessary arguments; define redaction and retention. Do not mint mcp.session.id for MCP 2026-07-28 spans. Treat a present session id as host-session correlation, not authentication, and hold a present traceparent that is not valid W3C Trace Context. Hold 2026-07-28 logging/setLevel, notifications/message that omit io.modelcontextprotocol/logLevel, and log notifications delivered on subscriptions/listen."
         },
         {
           "label": "Action",
           "title": "Validate event delivery",
-          "detail": "Check schema, ordering, duplication, clocks, transport, failure handling, access, storage, and downstream compatibility."
+          "detail": "Check schema, ordering, duplication, clocks, transport, failure handling, access, storage, and downstream compatibility. Prefer stderr or OpenTelemetry over in-protocol Logging; do not treat logging/setLevel as a current-spec control plane."
         },
         {
           "label": "Proof",

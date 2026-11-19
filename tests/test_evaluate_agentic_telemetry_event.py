@@ -7,6 +7,7 @@ from pathlib import Path
 from scripts.evaluate_agentic_telemetry_event import (
     evaluate_agentic_telemetry_event,
     is_valid_w3c_traceparent,
+    logging_deprecation_hold_notes,
     protocol_version_requires_session_id,
 )
 
@@ -116,6 +117,103 @@ class AgenticTelemetryRequestIdentityTests(unittest.TestCase):
     def test_all_zero_trace_id_is_not_valid_traceparent(self) -> None:
         self.assertFalse(
             is_valid_w3c_traceparent("00-00000000000000000000000000000000-00f067aa0ba902b7-01")
+        )
+
+    def test_current_spec_logging_set_level_is_held(self) -> None:
+        result = evaluate_agentic_telemetry_event(
+            self.pack,
+            _mcp_tool_event(attributes={"mcp.method.name": "logging/setLevel"}),
+        )
+        self.assertEqual(result["decision"], "hold_for_trace_completion")
+        self.assertTrue(any("logging/setLevel" in note for note in result["notes"]))
+        self.assertTrue(
+            logging_deprecation_hold_notes(
+                {"mcp.protocol.version": "2026-07-28", "mcp.method.name": "logging/setLevel"}
+            )
+        )
+
+    def test_current_spec_log_notification_without_log_level_is_held(self) -> None:
+        result = evaluate_agentic_telemetry_event(
+            self.pack,
+            _mcp_tool_event(attributes={"mcp.method.name": "notifications/message"}),
+        )
+        self.assertEqual(result["decision"], "hold_for_trace_completion")
+        self.assertTrue(any("io.modelcontextprotocol/logLevel" in note for note in result["notes"]))
+
+    def test_current_spec_log_notification_on_listen_stream_is_held(self) -> None:
+        result = evaluate_agentic_telemetry_event(
+            self.pack,
+            _mcp_tool_event(
+                attributes={
+                    "mcp.method.name": "notifications/message",
+                    "mcp.log_level": "info",
+                    "mcp.notification.stream": "subscriptions/listen",
+                }
+            ),
+        )
+        self.assertEqual(result["decision"], "hold_for_trace_completion")
+        self.assertTrue(any("subscriptions/listen" in note for note in result["notes"]))
+
+    def test_current_spec_request_scoped_log_notification_is_ready(self) -> None:
+        result = evaluate_agentic_telemetry_event(
+            self.pack,
+            _mcp_tool_event(
+                attributes={
+                    "mcp.method.name": "notifications/message",
+                    "mcp.log_level": "warning",
+                    "mcp.notification.stream": "request",
+                }
+            ),
+        )
+        self.assertEqual(result["decision"], "telemetry_ready")
+
+    def test_legacy_logging_set_level_stays_on_the_required_session_path(self) -> None:
+        result = evaluate_agentic_telemetry_event(
+            self.pack,
+            _mcp_tool_event(
+                attributes={
+                    "mcp.protocol.version": "2025-11-25",
+                    "mcp.method.name": "logging/setLevel",
+                }
+            ),
+        )
+        self.assertEqual(result["decision"], "hold_for_trace_completion")
+        self.assertIn("mcp.session.id", result["missing_attributes"])
+        self.assertFalse(
+            logging_deprecation_hold_notes(
+                {"mcp.protocol.version": "2025-11-25", "mcp.method.name": "logging/setLevel"}
+            )
+        )
+
+    def test_legacy_logging_set_level_with_session_id_stays_ready(self) -> None:
+        result = evaluate_agentic_telemetry_event(
+            self.pack,
+            _mcp_tool_event(
+                attributes={
+                    "mcp.protocol.version": "2025-11-25",
+                    "mcp.method.name": "logging/setLevel",
+                    "mcp.session.id": "session-legacy",
+                }
+            ),
+        )
+        self.assertEqual(result["decision"], "telemetry_ready")
+
+    def test_unspecified_protocol_logging_set_level_stays_on_the_required_session_path(self) -> None:
+        result = evaluate_agentic_telemetry_event(
+            self.pack,
+            _mcp_tool_event(
+                attributes={
+                    "mcp.protocol.version": "",
+                    "mcp.method.name": "logging/setLevel",
+                }
+            ),
+        )
+        self.assertEqual(result["decision"], "hold_for_trace_completion")
+        self.assertIn("mcp.session.id", result["missing_attributes"])
+        self.assertFalse(
+            logging_deprecation_hold_notes(
+                {"mcp.protocol.version": "", "mcp.method.name": "logging/setLevel"}
+            )
         )
 
 

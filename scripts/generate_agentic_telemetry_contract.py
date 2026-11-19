@@ -361,6 +361,10 @@ def build_pack(
             {
                 "risk": "Collectors that still require mcp.session.id after MCP 2026-07-28 will mint fake session identifiers or hold current-spec traces as incomplete.",
                 "treatment": "Require jsonrpc.request.id, mcp.method.name, and mcp.protocol.version for 2026-07-28 spans. Keep mcp.session.id required only for 2025-11-25 and earlier stored receipts. Treat a present session id as host-session correlation, not authentication. Hold a present traceparent that is not valid W3C Trace Context."
+            },
+            {
+                "risk": "Hosts that still accept logging/setLevel or unsolicited notifications/message after MCP 2026-07-28 treat a removed Logging surface as production telemetry.",
+                "treatment": "Hold 2026-07-28 spans whose method is logging/setLevel. Hold notifications/message unless the request carried io.modelcontextprotocol/logLevel. Hold notifications/message delivered on subscriptions/listen. Leave 2025-11-25 logging/setLevel on the prior session-id path. Prefer stderr or OpenTelemetry over in-protocol Logging."
             }
         ],
         "schema_version": PACK_SCHEMA_VERSION,
