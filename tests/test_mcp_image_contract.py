@@ -54,7 +54,7 @@ class MCPImageContractTests(unittest.TestCase):
 
         self.assertIn("--interval=10s", healthcheck)
         self.assertIn("--timeout=8s", healthcheck)
-        self.assertIn("--start-period=30s", healthcheck)
+        self.assertIn("--start-period=180s", healthcheck)
         self.assertIn("--retries=20", healthcheck)
 
     def test_production_image_requires_the_manifest_pinned_search_database(self) -> None:
