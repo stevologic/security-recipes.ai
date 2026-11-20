@@ -11,7 +11,10 @@ acknowledgment and subscriptionId; legacy initialize, resources/subscribe,
 and HTTP GET notification endpoints are drift. Sampling is deprecated:
 new hosts should not adopt sampling/createMessage; tool-enabled sampling
 requires sampling.tools; unpinned sampling tools are an untrusted
-surface; includeContext thisServer and allServers are drift.
+surface; includeContext thisServer and allServers are drift. Logging is
+deprecated: logging/setLevel is removed; notifications/message requires
+per-request io.modelcontextprotocol/logLevel and must not arrive on
+subscriptions/listen.
 """
 
 from __future__ import annotations
@@ -54,6 +57,9 @@ DISCOVER_CHECK_ID = "mcp-server-discover-conformance"
 SAMPLING_METHOD = "sampling/createMessage"
 DEPRECATED_INCLUDE_CONTEXT = {"thisserver", "allservers"}
 SAMPLING_CHECK_ID = "mcp-sampling-deprecation-conformance"
+REMOVED_LOGGING_METHOD = "logging/setLevel"
+LOGGING_MESSAGE_METHOD = "notifications/message"
+LOGGING_CHECK_ID = "mcp-logging-deprecation-conformance"
 
 
 class ProtocolConformanceDecisionError(RuntimeError):
@@ -138,6 +144,7 @@ def normalize_request(runtime_request: dict[str, Any]) -> dict[str, Any]:
         "discover_ttl_ms",
         "sampling_method",
         "include_context",
+        "logging_method",
     ]:
         request[key] = str(request.get(key) or "").strip()
     for key in [
@@ -174,6 +181,8 @@ def normalize_request(runtime_request: dict[str, Any]) -> dict[str, Any]:
         "tool_enabled_sampling",
         "sampling_tools_capability",
         "sampling_tools_unpinned",
+        "log_level_requested",
+        "logging_on_listen_stream",
     ]:
         request[key] = as_bool(request.get(key))
     request["data_classes"] = [str(item).strip() for item in as_list(request.get("data_classes")) if str(item).strip()]
@@ -259,6 +268,32 @@ def sampling_surface_violations(request: dict[str, Any]) -> list[str]:
         violations.append("tool-enabled sampling without sampling.tools")
     if request.get("sampling_tools_unpinned"):
         violations.append("unpinned sampling tools")
+    return violations
+
+
+def has_logging_evidence(request: dict[str, Any]) -> bool:
+    return bool(
+        request.get("logging_method")
+        or request.get("logging_on_listen_stream")
+    )
+
+
+def uses_removed_logging_method(request: dict[str, Any]) -> bool:
+    return str(request.get("logging_method") or "").strip() == REMOVED_LOGGING_METHOD
+
+
+def uses_logging_message_method(request: dict[str, Any]) -> bool:
+    return str(request.get("logging_method") or "").strip() == LOGGING_MESSAGE_METHOD
+
+
+def logging_surface_violations(request: dict[str, Any]) -> list[str]:
+    violations: list[str] = []
+    if uses_logging_message_method(request) and not request.get("log_level_requested"):
+        violations.append("notifications/message without io.modelcontextprotocol/logLevel")
+    if request.get("logging_on_listen_stream") or (
+        uses_logging_message_method(request) and request.get("subscription_request_scoped_on_listen_stream")
+    ):
+        violations.append("notifications/message on subscriptions/listen")
     return violations
 
 
@@ -515,6 +550,35 @@ def evaluate_agentic_protocol_conformance_decision(
                 violations=violations,
             )
 
+    if is_mcp_protocol(protocol_id) and has_logging_evidence(request):
+        logging_protocol = protocols.get("mcp-tooling-safety") or protocol
+        surface_violations = logging_surface_violations(request)
+        if surface_violations:
+            return decision_result(
+                decision="deny_untrusted_protocol_surface",
+                reason="MCP servers MUST NOT emit notifications/message without io.modelcontextprotocol/logLevel and MUST NOT deliver those notifications on subscriptions/listen",
+                pack=conformance_pack,
+                request=request,
+                matched_protocol=logging_protocol,
+                matched_checks=selected_checks(logging_protocol, [LOGGING_CHECK_ID]),
+                violations=surface_violations,
+            )
+        if uses_removed_logging_method(request) or uses_logging_message_method(request):
+            violations = []
+            if uses_removed_logging_method(request):
+                violations.append("removed logging/setLevel")
+            if uses_logging_message_method(request):
+                violations.append("deprecated Logging notifications/message")
+            return decision_result(
+                decision="hold_for_protocol_drift_review",
+                reason="MCP 2026-07-28 removes logging/setLevel and deprecates Logging; new implementations SHOULD NOT adopt it and SHOULD migrate to stderr or OpenTelemetry",
+                pack=conformance_pack,
+                request=request,
+                matched_protocol=logging_protocol,
+                matched_checks=selected_checks(logging_protocol, [LOGGING_CHECK_ID]),
+                violations=violations,
+            )
+
     if protocol_id == "mcp-tooling-safety":
         if request["schema_drift_detected"] or not request["tool_surface_pinned"]:
             return decision_result(
@@ -655,6 +719,7 @@ def request_from_args(args: argparse.Namespace) -> dict[str, Any]:
         "discover_ttl_ms",
         "sampling_method",
         "include_context",
+        "logging_method",
     ]:
         value = getattr(args, key)
         if value not in (None, ""):
@@ -693,6 +758,8 @@ def request_from_args(args: argparse.Namespace) -> dict[str, Any]:
         "tool_enabled_sampling",
         "sampling_tools_capability",
         "sampling_tools_unpinned",
+        "log_level_requested",
+        "logging_on_listen_stream",
     ]:
         if getattr(args, flag):
             payload[flag] = True
@@ -730,6 +797,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--discover-ttl-ms", dest="discover_ttl_ms")
     parser.add_argument("--sampling-method", dest="sampling_method")
     parser.add_argument("--include-context", dest="include_context")
+    parser.add_argument("--logging-method", dest="logging_method")
     parser.add_argument("--data-class", dest="data_class", action="append", default=[])
     parser.add_argument(
         "--requested-notification-type",
@@ -817,6 +885,16 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument(
         "--sampling-tools-unpinned",
         dest="sampling_tools_unpinned",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--log-level-requested",
+        dest="log_level_requested",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--logging-on-listen-stream",
+        dest="logging_on_listen_stream",
         action="store_true",
     )
     parser.add_argument("--token-audience-bound", dest="token_audience_bound", action="store_true")
