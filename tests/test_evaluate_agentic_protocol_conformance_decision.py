@@ -389,5 +389,90 @@ class AgenticProtocolConformanceSamplingTests(unittest.TestCase):
         self.assertIn("mcp-sampling-deprecation-conformance", check_ids)
 
 
+class AgenticProtocolConformanceLoggingTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.pack = json.loads(PACK_PATH.read_text(encoding="utf-8"))
+
+    def test_unspecified_logging_evidence_still_allows_authorization(self) -> None:
+        result = evaluate_agentic_protocol_conformance_decision(
+            self.pack, _authorization_request()
+        )
+        self.assertEqual(result["decision"], "allow_with_protocol_receipt")
+        self.assertTrue(result["allowed"])
+
+    def test_set_level_is_held_for_drift_review(self) -> None:
+        result = evaluate_agentic_protocol_conformance_decision(
+            self.pack,
+            _tooling_request(logging_method="logging/setLevel"),
+        )
+        self.assertEqual(result["decision"], "hold_for_protocol_drift_review")
+        self.assertFalse(result["allowed"])
+        self.assertTrue(
+            any("removed logging/setLevel" in item for item in result["violations"])
+        )
+
+    def test_message_without_log_level_is_denied(self) -> None:
+        result = evaluate_agentic_protocol_conformance_decision(
+            self.pack,
+            _tooling_request(logging_method="notifications/message"),
+        )
+        self.assertEqual(result["decision"], "deny_untrusted_protocol_surface")
+        self.assertFalse(result["allowed"])
+        self.assertTrue(
+            any(
+                "notifications/message without io.modelcontextprotocol/logLevel" in item
+                for item in result["violations"]
+            )
+        )
+
+    def test_message_with_log_level_is_held_for_deprecation(self) -> None:
+        result = evaluate_agentic_protocol_conformance_decision(
+            self.pack,
+            _tooling_request(
+                logging_method="notifications/message",
+                log_level_requested=True,
+            ),
+        )
+        self.assertEqual(result["decision"], "hold_for_protocol_drift_review")
+        self.assertFalse(result["allowed"])
+        self.assertTrue(
+            any("deprecated Logging notifications/message" in item for item in result["violations"])
+        )
+
+    def test_message_on_listen_stream_is_denied(self) -> None:
+        result = evaluate_agentic_protocol_conformance_decision(
+            self.pack,
+            _tooling_request(
+                logging_method="notifications/message",
+                log_level_requested=True,
+                logging_on_listen_stream=True,
+            ),
+        )
+        self.assertEqual(result["decision"], "deny_untrusted_protocol_surface")
+        self.assertFalse(result["allowed"])
+        self.assertTrue(
+            any("notifications/message on subscriptions/listen" in item for item in result["violations"])
+        )
+
+    def test_logging_sources_are_present(self) -> None:
+        source_ids = {
+            str(row.get("id"))
+            for row in self.pack.get("source_references", [])
+            if isinstance(row, dict)
+        }
+        self.assertIn("mcp-logging-2026-07-28", source_ids)
+        self.assertIn("mcp-deprecated-features-2026-07-28", source_ids)
+        self.assertIn("mcp-spec-changelog-2026-07-28", source_ids)
+        check_ids = {
+            str(check.get("id"))
+            for protocol in self.pack.get("protocol_profiles", [])
+            if isinstance(protocol, dict)
+            for check in protocol.get("conformance_checks", [])
+            if isinstance(check, dict)
+        }
+        self.assertIn("mcp-logging-deprecation-conformance", check_ids)
+
+
 if __name__ == "__main__":
     unittest.main()
