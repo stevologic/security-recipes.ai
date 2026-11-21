@@ -171,6 +171,20 @@ class DeployScriptStaticTests(unittest.TestCase):
         self.assertIn("http://${MCP_UPSTREAM}:80", nginx)
         self.assertNotIn("http://mcp-server:80", nginx)
 
+    def test_mcp_trailing_slash_redirect_stays_on_the_public_scheme(self) -> None:
+        nginx = NGINX_CONFIG.read_text(encoding="utf-8")
+        mcp_server = (ROOT / "mcp_server.py").read_text(encoding="utf-8")
+        mcp_block = nginx[nginx.index("# Hosted MCP endpoint") : nginx.index("# Public, revision-pinned exact lookup.")]
+
+        self.assertIn("absolute_redirect off", nginx)
+        self.assertIn("map $http_x_forwarded_proto $mcp_forwarded_proto", nginx)
+        self.assertIn("location = /mcp/", mcp_block)
+        self.assertIn("return 307 /mcp$is_args$args", mcp_block)
+        self.assertIn("proxy_set_header X-Forwarded-Proto $mcp_forwarded_proto", mcp_block)
+        self.assertNotIn("proxy_set_header X-Forwarded-Proto $scheme", mcp_block)
+        self.assertIn('"proxy_headers": True', mcp_server)
+        self.assertIn('"forwarded_allow_ips": "*"', mcp_server)
+
     def test_compose_bounds_logs_and_health_checks_the_edge(self) -> None:
         compose = COMPOSE_FILE.read_text(encoding="utf-8")
 
