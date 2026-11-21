@@ -392,6 +392,14 @@ def build_pack(
             {
                 "risk": "Tenant-specific memory policy is customer-specific.",
                 "treatment": "Customer memory stores must supply tenant IDs, retention, DLP, approval, and deletion evidence before persistence is allowed."
+            },
+            {
+                "risk": "OWASP LLM09 geometric attacks succeed without malicious instructions in retrieved content.",
+                "treatment": "Bind the evaluator to the index so tenant scoping happens inside the query, mixed-trust content is isolated, clients never receive raw similarity scores, and embeddings are deleted with their sources."
+            },
+            {
+                "risk": "NIST SP 2400-102e2026 is an initial public draft.",
+                "treatment": "Treat NISTAML.062 Memory Poisoning as current taxonomy language, not a final NIST standard, until the comment period closes and a final publication ships."
             }
         ],
         "schema_version": PACK_SCHEMA_VERSION,
