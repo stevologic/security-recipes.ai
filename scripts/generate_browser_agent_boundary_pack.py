@@ -343,6 +343,10 @@ def build_pack(
                 "treatment": "Constrain source-to-sink combinations: untrusted content plus external send, credential use, localhost access, downloads, admin writes, or payment actions should hold, deny, or kill."
             },
             {
+                "risk": "A static origin_allowlist is not Chrome Agent Origin Sets. Ungated planner expansion, consuming iframe or page content outside the gated read set, actuating outside the write set, or passing read-origin data to a writable origin is a Site Isolation bypass.",
+                "treatment": "Require a gating function isolated from untrusted content. Kill when origin expansion is ungated, content or iframes are consumed outside the read set, actuation occurs outside the write set, or data flows from a read-only origin to a writable origin."
+            },
+            {
                 "risk": "Browser profile state can drift when extensions, tokens, cookies, local storage, or saved credentials change.",
                 "treatment": "Prefer dedicated agent profiles, scoped storage, short-lived tokens, storage inspection, and recertification before recurring browser-agent schedules run."
             }
