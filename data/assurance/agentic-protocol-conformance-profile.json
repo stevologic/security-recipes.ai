@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-11-08",
+  "last_reviewed": "2026-11-20",
   "intent": "Create a buyer-grade protocol conformance layer for SecurityRecipes so MCP, A2A, agent identity, prompt-injection, and standards drift are translated into generated evidence, deterministic runtime decisions, and MCP-readable diligence artifacts.",
   "positioning": {
     "buyer": "AI platform, product security, AppSec, GRC, procurement security, and acquisition diligence teams",
@@ -37,6 +37,8 @@
       "server_info_used_for_security",
       "sampling_method",
       "sampling_tools_capability",
+      "logging_method",
+      "log_level_requested",
       "agent_card_signed",
       "extended_card_authenticated",
       "protocol_version_observed",
@@ -142,13 +144,22 @@
       "why_it_matters": "MCP 2026-07-28 deprecates Sampling. New implementations SHOULD NOT adopt sampling/createMessage; existing hosts SHOULD migrate to provider APIs. Servers MUST NOT send tool-enabled sampling unless the client declared sampling.tools. Sampling tools are request-scoped and need not match the registered catalog, so an unpinned sampling tool is an untrusted protocol surface. includeContext values thisServer and allServers are deprecated."
     },
     {
+      "id": "mcp-logging-2026-07-28",
+      "name": "MCP Logging (2026-07-28 current revision)",
+      "publisher": "Model Context Protocol",
+      "published": "2026-07-28",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/server/utilities/logging",
+      "source_class": "protocol_specification",
+      "why_it_matters": "MCP 2026-07-28 deprecates Logging. logging/setLevel is removed. Log level is per-request via io.modelcontextprotocol/logLevel. Servers MUST NOT emit notifications/message without that field and MUST NOT deliver those notifications on subscriptions/listen. New implementations SHOULD migrate to stderr or OpenTelemetry."
+    },
+    {
       "id": "mcp-deprecated-features-2026-07-28",
       "name": "MCP Deprecated Features Registry (2026-07-28 current revision)",
       "publisher": "Model Context Protocol",
       "published": "2026-07-28",
       "url": "https://modelcontextprotocol.io/specification/2026-07-28/deprecated",
       "source_class": "protocol_specification",
-      "why_it_matters": "The 2026-07-28 deprecated-features registry lists Sampling (SEP-2577) with a provider-API migration path and earliest removal on or after 2027-07-28. includeContext thisServer and allServers are separately deprecated (SEP-2596) and follow Sampling's removal window."
+      "why_it_matters": "The 2026-07-28 deprecated-features registry lists Sampling and Logging (SEP-2577) with provider-API and stderr or OpenTelemetry migration paths and earliest removal on or after 2027-07-28. includeContext thisServer and allServers are separately deprecated (SEP-2596) and follow Sampling's removal window."
     },
     {
       "id": "mcp-spec-changelog-2026-07-28",
@@ -323,13 +334,14 @@
         "mcp-caching-2026-07-28",
         "mcp-subscriptions-listen-2026-07-28",
         "mcp-sampling-2026-07-28",
+        "mcp-logging-2026-07-28",
         "mcp-deprecated-features-2026-07-28",
         "mcp-spec-changelog-2026-07-28",
         "mcp-tool-annotations-2026-03-16",
         "mcp-spec-changelog-2025-11-25",
         "openai-agent-prompt-injection-2026"
       ],
-      "commercial_value": "Packages required server/discover identity, cacheable discover results, live tool-list monitoring over subscriptions/listen, Sampling deprecation and sampling.tools gating, signed tool-surface baselines, annotation trust, and private-data plus untrusted-content plus external-send risk into a hosted MCP security control plane.",
+      "commercial_value": "Packages required server/discover identity, cacheable discover results, live tool-list monitoring over subscriptions/listen, Sampling deprecation and sampling.tools gating, Logging deprecation with logging/setLevel removal and per-request logLevel gating, signed tool-surface baselines, annotation trust, and private-data plus untrusted-content plus external-send risk into a hosted MCP security control plane.",
       "conformance_checks": [
         {
           "id": "mcp-trusted-tool-annotations",
@@ -423,6 +435,26 @@
           ],
           "fail_closed_decision": "deny_untrusted_protocol_surface",
           "buyer_question": "Can SecurityRecipes hold sampling/createMessage as protocol drift and deny tool-enabled sampling that lacks sampling.tools or uses an unpinned tool catalog?"
+        },
+        {
+          "id": "mcp-logging-deprecation-conformance",
+          "title": "MCP Logging Deprecation Conformance",
+          "requirement": "MCP 2026-07-28 deprecates Logging and removes logging/setLevel. New implementations SHOULD NOT adopt Logging and SHOULD migrate to stderr or OpenTelemetry. Servers MUST NOT emit notifications/message unless the request carried io.modelcontextprotocol/logLevel, and MUST NOT deliver those notifications on subscriptions/listen.",
+          "source_pack_keys": [
+            "mcp_tool_risk_contract",
+            "mcp_tool_surface_drift_pack"
+          ],
+          "evidence_paths": [
+            "data/evidence/mcp-tool-risk-contract.json",
+            "data/evidence/mcp-tool-surface-drift-pack.json",
+            "data/evidence/agentic-protocol-conformance-pack.json"
+          ],
+          "required_runtime_attributes": [
+            "logging_method",
+            "log_level_requested"
+          ],
+          "fail_closed_decision": "deny_untrusted_protocol_surface",
+          "buyer_question": "Can SecurityRecipes hold logging/setLevel as removed protocol drift and deny notifications/message that omit io.modelcontextprotocol/logLevel or arrive on subscriptions/listen?"
         },
         {
           "id": "mcp-private-untrusted-exfiltration-triangle",
