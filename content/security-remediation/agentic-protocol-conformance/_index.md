@@ -3,7 +3,7 @@ title: Agentic Protocol Conformance Pack
 linkTitle: Protocol Conformance
 weight: 14
 date: 2026-05-04
-lastmod: 2026-11-08
+lastmod: 2026-11-20
 sidebar:
   exclude: true
 description: >
@@ -73,6 +73,21 @@ catalog, so an unpinned sampling tool is an untrusted protocol surface.
 `includeContext` values `"thisServer"` and `"allServers"` are deprecated
 ([SEP-2596](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2596)).
 This editorial pass does not claim a separate human review of the pack.
+
+Rechecked November 20, 2026 against the MCP
+[Logging](https://modelcontextprotocol.io/specification/2026-07-28/server/utilities/logging)
+page, [deprecated features registry](https://modelcontextprotocol.io/specification/2026-07-28/deprecated),
+and [changelog](https://modelcontextprotocol.io/specification/2026-07-28/changelog)
+item 5 ([SEP-2575](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2575))
+plus Deprecated item 1 ([SEP-2577](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2577)).
+MCP `latest` still redirects to 2026-07-28. `logging/setLevel` is
+**removed**. Logging is **deprecated**. New implementations **SHOULD NOT**
+adopt it and **SHOULD** migrate to `stderr` or OpenTelemetry. Log level is
+per-request via `_meta.io.modelcontextprotocol/logLevel`. Servers
+**MUST NOT** emit `notifications/message` for a request that omits that
+field, and **MUST NOT** deliver those notifications on
+`subscriptions/listen`. This editorial pass does not claim a separate
+human review of the pack.
 
 ## What was added
 
@@ -203,6 +218,40 @@ python3 scripts/evaluate_agentic_protocol_conformance_decision.py \
   --expect-decision deny_untrusted_protocol_surface
 ```
 
+Hold removed `logging/setLevel` for protocol drift review:
+
+```bash
+python3 scripts/evaluate_agentic_protocol_conformance_decision.py \
+  --protocol-id mcp-tooling-safety \
+  --workflow-id vulnerable-dependency-remediation \
+  --agent-id sec-auto-remediator \
+  --run-id run-2026-11-20-logging-hold \
+  --session-id sess-logging-hold \
+  --correlation-id corr-logging-hold \
+  --transport streamable-http \
+  --tool-surface-pinned \
+  --tool-annotations-trusted \
+  --logging-method logging/setLevel \
+  --expect-decision hold_for_protocol_drift_review
+```
+
+Deny `notifications/message` without `io.modelcontextprotocol/logLevel`:
+
+```bash
+python3 scripts/evaluate_agentic_protocol_conformance_decision.py \
+  --protocol-id mcp-tooling-safety \
+  --workflow-id vulnerable-dependency-remediation \
+  --agent-id sec-auto-remediator \
+  --run-id run-2026-11-20-logging-deny \
+  --session-id sess-logging-deny \
+  --correlation-id corr-logging-deny \
+  --transport streamable-http \
+  --tool-surface-pinned \
+  --tool-annotations-trusted \
+  --logging-method notifications/message \
+  --expect-decision deny_untrusted_protocol_surface
+```
+
 {{< playbook-workflow >}}
 
 ## Decision model
@@ -228,8 +277,9 @@ protocol profiles:
   `server/discover` identity, cacheable discover results, trusted
   annotations, pinned tool descriptions and schemas, `subscriptions/listen`
   acknowledgment and requested-type enforcement, Sampling deprecation
-  and `sampling.tools` gating, tool-output validation, and private-data
-  plus untrusted-content plus external-send risk.
+  and `sampling.tools` gating, Logging deprecation with `logging/setLevel`
+  removal and per-request `logLevel` gating, tool-output validation, and
+  private-data plus untrusted-content plus external-send risk.
 - **A2A Agent Discovery and Delegation** for Agent Card completeness,
   authenticated extended cards, HTTPS transport, version headers, signed
   card evidence, skill trust, and handoff minimization.
@@ -258,6 +308,11 @@ This feature tracks current primary guidance:
   for Sampling deprecation, `sampling.tools` gating, request-scoped
   sampling tools, and deprecated `includeContext` values `"thisServer"`
   and `"allServers"`.
+- [MCP Logging](https://modelcontextprotocol.io/specification/2026-07-28/server/utilities/logging)
+  and the [deprecated features registry](https://modelcontextprotocol.io/specification/2026-07-28/deprecated)
+  for Logging deprecation, removed `logging/setLevel`, per-request
+  `io.modelcontextprotocol/logLevel`, and `notifications/message`
+  request-stream limits.
 - [MCP Tool Annotations](https://blog.modelcontextprotocol.io/posts/2026-03-16-tool-annotations/)
   for annotation-driven tool UX and the need to treat annotations as
   policy hints until trust and drift evidence exist.
@@ -285,6 +340,7 @@ MCP and A2A protocol conformance:
 - live MCP protected-resource metadata checks,
 - required `server/discover` identity, `serverInfo` limits, and cache-hint checks,
 - Sampling deprecation holds, `sampling.tools` gating, and unpinned sampling-tool denial,
+- Logging deprecation holds, `logging/setLevel` removal, and `notifications/message` gating,
 - client metadata and redirect-policy review,
 - resource, audience, PKCE, consent, and scope-drift monitoring,
 - signed tool-surface baselines and annotation drift alerts,
