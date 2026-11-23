@@ -33,6 +33,7 @@ REQUIRED_DECISIONS = {
     "deny_untrusted_package_launch",
     "deny_shell_or_network_bootstrap",
     "deny_unrestricted_proxy_spawn",
+    "deny_cooperative_filesystem_boundary",
     "kill_session_on_secret_or_privilege_request",
 }
 REQUIRED_PROFILES = {
@@ -179,7 +180,7 @@ def validate_model(model: dict[str, Any]) -> list[str]:
         require(str(owner.get("escalation", "")).strip(), failures, f"{launch_id}: owner.escalation is required")
 
     drills = as_list(model.get("red_team_drills"), "red_team_drills")
-    require(len(drills) >= 6, failures, "red_team_drills must cover shell, secret, package, network, approval, discover-probe, and proxy-spawn attacks")
+    require(len(drills) >= 7, failures, "red_team_drills must cover shell, secret, package, network, approval, discover-probe, proxy-spawn, and cooperative-isolation attacks")
     for idx, drill in enumerate(drills):
         item = as_dict(drill, f"red_team_drills[{idx}]")
         require(str(item.get("expected_decision")) in REQUIRED_DECISIONS, failures, f"red_team_drills[{idx}].expected_decision is invalid")
@@ -414,6 +415,7 @@ def build_summary(rows: list[dict[str, Any]]) -> dict[str, Any]:
                 "deny_untrusted_package_launch",
                 "deny_shell_or_network_bootstrap",
                 "deny_unrestricted_proxy_spawn",
+                "deny_cooperative_filesystem_boundary",
                 "kill_session_on_secret_or_privilege_request",
             ]
         ),
