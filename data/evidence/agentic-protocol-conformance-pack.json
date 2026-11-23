@@ -388,8 +388,8 @@
           "title": "MCP Authorization Conformance"
         },
         {
-          "commercial_value": "Packages required server/discover identity, cacheable discover results, live tool-list monitoring over subscriptions/listen, Sampling deprecation and sampling.tools gating, signed tool-surface baselines, annotation trust, and private-data plus untrusted-content plus external-send risk into a hosted MCP security control plane.",
-          "conformance_check_count": 7,
+          "commercial_value": "Packages required server/discover identity, cacheable discover results, live tool-list monitoring over subscriptions/listen, Sampling deprecation and sampling.tools gating, Logging deprecation with logging/setLevel removal and per-request logLevel gating, signed tool-surface baselines, annotation trust, and private-data plus untrusted-content plus external-send risk into a hosted MCP security control plane.",
+          "conformance_check_count": 8,
           "conformance_checks": [
             {
               "buyer_question": "Are annotations enforceable policy evidence or only UI hints from an untrusted server?",
@@ -719,6 +719,85 @@
               "title": "MCP Sampling Deprecation Conformance"
             },
             {
+              "buyer_question": "Can SecurityRecipes hold logging/setLevel as removed protocol drift and deny notifications/message that omit io.modelcontextprotocol/logLevel or arrive on subscriptions/listen?",
+              "check_hash": "92ee2d0ac92154f801ba6da180e7e2d42cd182f0923809b37d06ac3a14279f0f",
+              "evidence_paths": [
+                "data/evidence/mcp-tool-risk-contract.json",
+                "data/evidence/mcp-tool-surface-drift-pack.json",
+                "data/evidence/agentic-protocol-conformance-pack.json"
+              ],
+              "fail_closed_decision": "deny_untrusted_protocol_surface",
+              "id": "mcp-logging-deprecation-conformance",
+              "missing_evidence_paths": [],
+              "missing_source_pack_keys": [],
+              "protocol_id": "mcp-tooling-safety",
+              "required_runtime_attributes": [
+                "logging_method",
+                "log_level_requested"
+              ],
+              "requirement": "MCP 2026-07-28 deprecates Logging and removes logging/setLevel. New implementations SHOULD NOT adopt Logging and SHOULD migrate to stderr or OpenTelemetry. Servers MUST NOT emit notifications/message unless the request carried io.modelcontextprotocol/logLevel, and MUST NOT deliver those notifications on subscriptions/listen.",
+              "source_pack_keys": [
+                "mcp_tool_risk_contract",
+                "mcp_tool_surface_drift_pack"
+              ],
+              "source_pack_status": {
+                "mcp_tool_risk_contract": {
+                  "failure_count": 0,
+                  "path": "data/evidence/mcp-tool-risk-contract.json",
+                  "schema_version": "1.0",
+                  "status": "ready",
+                  "summaries": {
+                    "tool_risk_summary": {
+                      "annotation_trust_counts": {
+                        "trusted_enterprise_gateway": 11,
+                        "untrusted_or_unverified_server": 5
+                      },
+                      "default_decision_counts": {
+                        "allow_with_confirmation": 2,
+                        "hold_for_tool_risk_review": 14
+                      },
+                      "failure_count": 0,
+                      "lethal_combination_workflow_count": 2,
+                      "risk_tier_counts": {
+                        "tier_1_read_untrusted": 1,
+                        "tier_2_private_context": 11,
+                        "tier_3_state_changing": 1,
+                        "tier_4_destructive_or_exfiltration": 3
+                      },
+                      "tool_profile_count": 16,
+                      "trusted_server_count": 11,
+                      "workflow_count": 8
+                    }
+                  }
+                },
+                "mcp_tool_surface_drift_pack": {
+                  "failure_count": 0,
+                  "path": "data/evidence/mcp-tool-surface-drift-pack.json",
+                  "schema_version": "1.0",
+                  "status": "ready",
+                  "summaries": {
+                    "tool_surface_summary": {
+                      "default_decision_counts": {
+                        "allow_pinned_tool_surface": 5,
+                        "hold_for_tool_surface_review": 1
+                      },
+                      "failure_count": 0,
+                      "high_impact_surface_count": 3,
+                      "namespace_count": 6,
+                      "source_kind_counts": {
+                        "candidate_connector": 1,
+                        "registered_connector": 5
+                      },
+                      "status": "drift_baseline_ready",
+                      "surface_count": 6
+                    }
+                  }
+                }
+              },
+              "status": "ready",
+              "title": "MCP Logging Deprecation Conformance"
+            },
+            {
               "buyer_question": "Can SecurityRecipes block the realistic data-theft path created by composable tools?",
               "check_hash": "4895fb555a8b0259c5b0bb6a0c9efae8395446b26abfbe32a567ae8eae3b1a13",
               "evidence_paths": [
@@ -898,12 +977,13 @@
           "effective_decision": "ready_for_enterprise_conformance",
           "id": "mcp-tooling-safety",
           "readiness_score": 100.0,
-          "ready_check_count": 7,
+          "ready_check_count": 8,
           "source_ids": [
             "mcp-server-discover-2026-07-28",
             "mcp-caching-2026-07-28",
             "mcp-subscriptions-listen-2026-07-28",
             "mcp-sampling-2026-07-28",
+            "mcp-logging-2026-07-28",
             "mcp-deprecated-features-2026-07-28",
             "mcp-spec-changelog-2026-07-28",
             "mcp-tool-annotations-2026-03-16",
@@ -942,6 +1022,14 @@
               "publisher": "Model Context Protocol",
               "source_class": "protocol_specification",
               "url": "https://modelcontextprotocol.io/specification/2026-07-28/client/sampling"
+            },
+            {
+              "id": "mcp-logging-2026-07-28",
+              "name": "MCP Logging (2026-07-28 current revision)",
+              "published": "2026-07-28",
+              "publisher": "Model Context Protocol",
+              "source_class": "protocol_specification",
+              "url": "https://modelcontextprotocol.io/specification/2026-07-28/server/utilities/logging"
             },
             {
               "id": "mcp-deprecated-features-2026-07-28",
@@ -2278,7 +2366,7 @@
                         "agentic-assurance-models",
                         "recipes"
                       ],
-                      "byte_count": 15184678,
+                      "byte_count": 15171010,
                       "decision_counts": {
                         "allow_with_adversarial_examples": 1,
                         "block_until_removed": 2,
@@ -2291,7 +2379,7 @@
                         "documented_adversarial_example": 24
                       },
                       "failure_count": 0,
-                      "file_count": 3526,
+                      "file_count": 3523,
                       "finding_count": 161,
                       "held_source_count": 1,
                       "held_sources": [
@@ -2891,8 +2979,8 @@
           "title": "MCP Authorization Conformance"
         },
         {
-          "commercial_value": "Packages required server/discover identity, cacheable discover results, live tool-list monitoring over subscriptions/listen, Sampling deprecation and sampling.tools gating, signed tool-surface baselines, annotation trust, and private-data plus untrusted-content plus external-send risk into a hosted MCP security control plane.",
-          "conformance_check_count": 7,
+          "commercial_value": "Packages required server/discover identity, cacheable discover results, live tool-list monitoring over subscriptions/listen, Sampling deprecation and sampling.tools gating, Logging deprecation with logging/setLevel removal and per-request logLevel gating, signed tool-surface baselines, annotation trust, and private-data plus untrusted-content plus external-send risk into a hosted MCP security control plane.",
+          "conformance_check_count": 8,
           "conformance_checks": [
             {
               "buyer_question": "Are annotations enforceable policy evidence or only UI hints from an untrusted server?",
@@ -3222,6 +3310,85 @@
               "title": "MCP Sampling Deprecation Conformance"
             },
             {
+              "buyer_question": "Can SecurityRecipes hold logging/setLevel as removed protocol drift and deny notifications/message that omit io.modelcontextprotocol/logLevel or arrive on subscriptions/listen?",
+              "check_hash": "92ee2d0ac92154f801ba6da180e7e2d42cd182f0923809b37d06ac3a14279f0f",
+              "evidence_paths": [
+                "data/evidence/mcp-tool-risk-contract.json",
+                "data/evidence/mcp-tool-surface-drift-pack.json",
+                "data/evidence/agentic-protocol-conformance-pack.json"
+              ],
+              "fail_closed_decision": "deny_untrusted_protocol_surface",
+              "id": "mcp-logging-deprecation-conformance",
+              "missing_evidence_paths": [],
+              "missing_source_pack_keys": [],
+              "protocol_id": "mcp-tooling-safety",
+              "required_runtime_attributes": [
+                "logging_method",
+                "log_level_requested"
+              ],
+              "requirement": "MCP 2026-07-28 deprecates Logging and removes logging/setLevel. New implementations SHOULD NOT adopt Logging and SHOULD migrate to stderr or OpenTelemetry. Servers MUST NOT emit notifications/message unless the request carried io.modelcontextprotocol/logLevel, and MUST NOT deliver those notifications on subscriptions/listen.",
+              "source_pack_keys": [
+                "mcp_tool_risk_contract",
+                "mcp_tool_surface_drift_pack"
+              ],
+              "source_pack_status": {
+                "mcp_tool_risk_contract": {
+                  "failure_count": 0,
+                  "path": "data/evidence/mcp-tool-risk-contract.json",
+                  "schema_version": "1.0",
+                  "status": "ready",
+                  "summaries": {
+                    "tool_risk_summary": {
+                      "annotation_trust_counts": {
+                        "trusted_enterprise_gateway": 11,
+                        "untrusted_or_unverified_server": 5
+                      },
+                      "default_decision_counts": {
+                        "allow_with_confirmation": 2,
+                        "hold_for_tool_risk_review": 14
+                      },
+                      "failure_count": 0,
+                      "lethal_combination_workflow_count": 2,
+                      "risk_tier_counts": {
+                        "tier_1_read_untrusted": 1,
+                        "tier_2_private_context": 11,
+                        "tier_3_state_changing": 1,
+                        "tier_4_destructive_or_exfiltration": 3
+                      },
+                      "tool_profile_count": 16,
+                      "trusted_server_count": 11,
+                      "workflow_count": 8
+                    }
+                  }
+                },
+                "mcp_tool_surface_drift_pack": {
+                  "failure_count": 0,
+                  "path": "data/evidence/mcp-tool-surface-drift-pack.json",
+                  "schema_version": "1.0",
+                  "status": "ready",
+                  "summaries": {
+                    "tool_surface_summary": {
+                      "default_decision_counts": {
+                        "allow_pinned_tool_surface": 5,
+                        "hold_for_tool_surface_review": 1
+                      },
+                      "failure_count": 0,
+                      "high_impact_surface_count": 3,
+                      "namespace_count": 6,
+                      "source_kind_counts": {
+                        "candidate_connector": 1,
+                        "registered_connector": 5
+                      },
+                      "status": "drift_baseline_ready",
+                      "surface_count": 6
+                    }
+                  }
+                }
+              },
+              "status": "ready",
+              "title": "MCP Logging Deprecation Conformance"
+            },
+            {
               "buyer_question": "Can SecurityRecipes block the realistic data-theft path created by composable tools?",
               "check_hash": "4895fb555a8b0259c5b0bb6a0c9efae8395446b26abfbe32a567ae8eae3b1a13",
               "evidence_paths": [
@@ -3401,12 +3568,13 @@
           "effective_decision": "ready_for_enterprise_conformance",
           "id": "mcp-tooling-safety",
           "readiness_score": 100.0,
-          "ready_check_count": 7,
+          "ready_check_count": 8,
           "source_ids": [
             "mcp-server-discover-2026-07-28",
             "mcp-caching-2026-07-28",
             "mcp-subscriptions-listen-2026-07-28",
             "mcp-sampling-2026-07-28",
+            "mcp-logging-2026-07-28",
             "mcp-deprecated-features-2026-07-28",
             "mcp-spec-changelog-2026-07-28",
             "mcp-tool-annotations-2026-03-16",
@@ -3445,6 +3613,14 @@
               "publisher": "Model Context Protocol",
               "source_class": "protocol_specification",
               "url": "https://modelcontextprotocol.io/specification/2026-07-28/client/sampling"
+            },
+            {
+              "id": "mcp-logging-2026-07-28",
+              "name": "MCP Logging (2026-07-28 current revision)",
+              "published": "2026-07-28",
+              "publisher": "Model Context Protocol",
+              "source_class": "protocol_specification",
+              "url": "https://modelcontextprotocol.io/specification/2026-07-28/server/utilities/logging"
             },
             {
               "id": "mcp-deprecated-features-2026-07-28",
@@ -4037,7 +4213,7 @@
                         "agentic-assurance-models",
                         "recipes"
                       ],
-                      "byte_count": 15184678,
+                      "byte_count": 15171010,
                       "decision_counts": {
                         "allow_with_adversarial_examples": 1,
                         "block_until_removed": 2,
@@ -4050,7 +4226,7 @@
                         "documented_adversarial_example": 24
                       },
                       "failure_count": 0,
-                      "file_count": 3526,
+                      "file_count": 3523,
                       "finding_count": 161,
                       "held_source_count": 1,
                       "held_sources": [
@@ -4305,6 +4481,8 @@
       "server_info_used_for_security",
       "sampling_method",
       "sampling_tools_capability",
+      "logging_method",
+      "log_level_requested",
       "agent_card_signed",
       "extended_card_authenticated",
       "protocol_version_observed",
@@ -4956,6 +5134,85 @@
       },
       "status": "ready",
       "title": "MCP Sampling Deprecation Conformance"
+    },
+    {
+      "buyer_question": "Can SecurityRecipes hold logging/setLevel as removed protocol drift and deny notifications/message that omit io.modelcontextprotocol/logLevel or arrive on subscriptions/listen?",
+      "check_hash": "92ee2d0ac92154f801ba6da180e7e2d42cd182f0923809b37d06ac3a14279f0f",
+      "evidence_paths": [
+        "data/evidence/mcp-tool-risk-contract.json",
+        "data/evidence/mcp-tool-surface-drift-pack.json",
+        "data/evidence/agentic-protocol-conformance-pack.json"
+      ],
+      "fail_closed_decision": "deny_untrusted_protocol_surface",
+      "id": "mcp-logging-deprecation-conformance",
+      "missing_evidence_paths": [],
+      "missing_source_pack_keys": [],
+      "protocol_id": "mcp-tooling-safety",
+      "required_runtime_attributes": [
+        "logging_method",
+        "log_level_requested"
+      ],
+      "requirement": "MCP 2026-07-28 deprecates Logging and removes logging/setLevel. New implementations SHOULD NOT adopt Logging and SHOULD migrate to stderr or OpenTelemetry. Servers MUST NOT emit notifications/message unless the request carried io.modelcontextprotocol/logLevel, and MUST NOT deliver those notifications on subscriptions/listen.",
+      "source_pack_keys": [
+        "mcp_tool_risk_contract",
+        "mcp_tool_surface_drift_pack"
+      ],
+      "source_pack_status": {
+        "mcp_tool_risk_contract": {
+          "failure_count": 0,
+          "path": "data/evidence/mcp-tool-risk-contract.json",
+          "schema_version": "1.0",
+          "status": "ready",
+          "summaries": {
+            "tool_risk_summary": {
+              "annotation_trust_counts": {
+                "trusted_enterprise_gateway": 11,
+                "untrusted_or_unverified_server": 5
+              },
+              "default_decision_counts": {
+                "allow_with_confirmation": 2,
+                "hold_for_tool_risk_review": 14
+              },
+              "failure_count": 0,
+              "lethal_combination_workflow_count": 2,
+              "risk_tier_counts": {
+                "tier_1_read_untrusted": 1,
+                "tier_2_private_context": 11,
+                "tier_3_state_changing": 1,
+                "tier_4_destructive_or_exfiltration": 3
+              },
+              "tool_profile_count": 16,
+              "trusted_server_count": 11,
+              "workflow_count": 8
+            }
+          }
+        },
+        "mcp_tool_surface_drift_pack": {
+          "failure_count": 0,
+          "path": "data/evidence/mcp-tool-surface-drift-pack.json",
+          "schema_version": "1.0",
+          "status": "ready",
+          "summaries": {
+            "tool_surface_summary": {
+              "default_decision_counts": {
+                "allow_pinned_tool_surface": 5,
+                "hold_for_tool_surface_review": 1
+              },
+              "failure_count": 0,
+              "high_impact_surface_count": 3,
+              "namespace_count": 6,
+              "source_kind_counts": {
+                "candidate_connector": 1,
+                "registered_connector": 5
+              },
+              "status": "drift_baseline_ready",
+              "surface_count": 6
+            }
+          }
+        }
+      },
+      "status": "ready",
+      "title": "MCP Logging Deprecation Conformance"
     },
     {
       "buyer_question": "Can SecurityRecipes block the realistic data-theft path created by composable tools?",
@@ -5625,7 +5882,7 @@
                 "agentic-assurance-models",
                 "recipes"
               ],
-              "byte_count": 15184678,
+              "byte_count": 15171010,
               "decision_counts": {
                 "allow_with_adversarial_examples": 1,
                 "block_until_removed": 2,
@@ -5638,7 +5895,7 @@
                 "documented_adversarial_example": 24
               },
               "failure_count": 0,
-              "file_count": 3526,
+              "file_count": 3523,
               "finding_count": 161,
               "held_source_count": 1,
               "held_sources": [
@@ -5803,7 +6060,7 @@
     "sales_motion": "Lead with open protocol conformance evidence, then sell hosted live checks, drift alerts, signed receipts, fleet reporting, and private customer policy mapping."
   },
   "failures": [],
-  "generated_at": "2026-11-08",
+  "generated_at": "2026-11-20",
   "intent": "Create a buyer-grade protocol conformance layer for SecurityRecipes so MCP, A2A, agent identity, prompt-injection, and standards drift are translated into generated evidence, deterministic runtime decisions, and MCP-readable diligence artifacts.",
   "positioning": {
     "buyer": "AI platform, product security, AppSec, GRC, procurement security, and acquisition diligence teams",
@@ -5813,16 +6070,16 @@
   },
   "protocol_conformance_pack_id": "security-recipes-agentic-protocol-conformance",
   "protocol_conformance_summary": {
-    "control_check_count": 19,
+    "control_check_count": 20,
     "control_status_counts": {
-      "ready": 19
+      "ready": 20
     },
     "failure_count": 0,
     "protocol_decision_counts": {
       "ready_for_enterprise_conformance": 4
     },
     "protocol_profile_count": 4,
-    "ready_control_check_count": 19,
+    "ready_control_check_count": 20,
     "ready_protocol_profile_count": 4,
     "status": "protocol_conformance_ready"
   },
@@ -6211,8 +6468,8 @@
       "title": "MCP Authorization Conformance"
     },
     {
-      "commercial_value": "Packages required server/discover identity, cacheable discover results, live tool-list monitoring over subscriptions/listen, Sampling deprecation and sampling.tools gating, signed tool-surface baselines, annotation trust, and private-data plus untrusted-content plus external-send risk into a hosted MCP security control plane.",
-      "conformance_check_count": 7,
+      "commercial_value": "Packages required server/discover identity, cacheable discover results, live tool-list monitoring over subscriptions/listen, Sampling deprecation and sampling.tools gating, Logging deprecation with logging/setLevel removal and per-request logLevel gating, signed tool-surface baselines, annotation trust, and private-data plus untrusted-content plus external-send risk into a hosted MCP security control plane.",
+      "conformance_check_count": 8,
       "conformance_checks": [
         {
           "buyer_question": "Are annotations enforceable policy evidence or only UI hints from an untrusted server?",
@@ -6542,6 +6799,85 @@
           "title": "MCP Sampling Deprecation Conformance"
         },
         {
+          "buyer_question": "Can SecurityRecipes hold logging/setLevel as removed protocol drift and deny notifications/message that omit io.modelcontextprotocol/logLevel or arrive on subscriptions/listen?",
+          "check_hash": "92ee2d0ac92154f801ba6da180e7e2d42cd182f0923809b37d06ac3a14279f0f",
+          "evidence_paths": [
+            "data/evidence/mcp-tool-risk-contract.json",
+            "data/evidence/mcp-tool-surface-drift-pack.json",
+            "data/evidence/agentic-protocol-conformance-pack.json"
+          ],
+          "fail_closed_decision": "deny_untrusted_protocol_surface",
+          "id": "mcp-logging-deprecation-conformance",
+          "missing_evidence_paths": [],
+          "missing_source_pack_keys": [],
+          "protocol_id": "mcp-tooling-safety",
+          "required_runtime_attributes": [
+            "logging_method",
+            "log_level_requested"
+          ],
+          "requirement": "MCP 2026-07-28 deprecates Logging and removes logging/setLevel. New implementations SHOULD NOT adopt Logging and SHOULD migrate to stderr or OpenTelemetry. Servers MUST NOT emit notifications/message unless the request carried io.modelcontextprotocol/logLevel, and MUST NOT deliver those notifications on subscriptions/listen.",
+          "source_pack_keys": [
+            "mcp_tool_risk_contract",
+            "mcp_tool_surface_drift_pack"
+          ],
+          "source_pack_status": {
+            "mcp_tool_risk_contract": {
+              "failure_count": 0,
+              "path": "data/evidence/mcp-tool-risk-contract.json",
+              "schema_version": "1.0",
+              "status": "ready",
+              "summaries": {
+                "tool_risk_summary": {
+                  "annotation_trust_counts": {
+                    "trusted_enterprise_gateway": 11,
+                    "untrusted_or_unverified_server": 5
+                  },
+                  "default_decision_counts": {
+                    "allow_with_confirmation": 2,
+                    "hold_for_tool_risk_review": 14
+                  },
+                  "failure_count": 0,
+                  "lethal_combination_workflow_count": 2,
+                  "risk_tier_counts": {
+                    "tier_1_read_untrusted": 1,
+                    "tier_2_private_context": 11,
+                    "tier_3_state_changing": 1,
+                    "tier_4_destructive_or_exfiltration": 3
+                  },
+                  "tool_profile_count": 16,
+                  "trusted_server_count": 11,
+                  "workflow_count": 8
+                }
+              }
+            },
+            "mcp_tool_surface_drift_pack": {
+              "failure_count": 0,
+              "path": "data/evidence/mcp-tool-surface-drift-pack.json",
+              "schema_version": "1.0",
+              "status": "ready",
+              "summaries": {
+                "tool_surface_summary": {
+                  "default_decision_counts": {
+                    "allow_pinned_tool_surface": 5,
+                    "hold_for_tool_surface_review": 1
+                  },
+                  "failure_count": 0,
+                  "high_impact_surface_count": 3,
+                  "namespace_count": 6,
+                  "source_kind_counts": {
+                    "candidate_connector": 1,
+                    "registered_connector": 5
+                  },
+                  "status": "drift_baseline_ready",
+                  "surface_count": 6
+                }
+              }
+            }
+          },
+          "status": "ready",
+          "title": "MCP Logging Deprecation Conformance"
+        },
+        {
           "buyer_question": "Can SecurityRecipes block the realistic data-theft path created by composable tools?",
           "check_hash": "4895fb555a8b0259c5b0bb6a0c9efae8395446b26abfbe32a567ae8eae3b1a13",
           "evidence_paths": [
@@ -6721,12 +7057,13 @@
       "effective_decision": "ready_for_enterprise_conformance",
       "id": "mcp-tooling-safety",
       "readiness_score": 100.0,
-      "ready_check_count": 7,
+      "ready_check_count": 8,
       "source_ids": [
         "mcp-server-discover-2026-07-28",
         "mcp-caching-2026-07-28",
         "mcp-subscriptions-listen-2026-07-28",
         "mcp-sampling-2026-07-28",
+        "mcp-logging-2026-07-28",
         "mcp-deprecated-features-2026-07-28",
         "mcp-spec-changelog-2026-07-28",
         "mcp-tool-annotations-2026-03-16",
@@ -6765,6 +7102,14 @@
           "publisher": "Model Context Protocol",
           "source_class": "protocol_specification",
           "url": "https://modelcontextprotocol.io/specification/2026-07-28/client/sampling"
+        },
+        {
+          "id": "mcp-logging-2026-07-28",
+          "name": "MCP Logging (2026-07-28 current revision)",
+          "published": "2026-07-28",
+          "publisher": "Model Context Protocol",
+          "source_class": "protocol_specification",
+          "url": "https://modelcontextprotocol.io/specification/2026-07-28/server/utilities/logging"
         },
         {
           "id": "mcp-deprecated-features-2026-07-28",
@@ -7357,7 +7702,7 @@
                     "agentic-assurance-models",
                     "recipes"
                   ],
-                  "byte_count": 15184678,
+                  "byte_count": 15171010,
                   "decision_counts": {
                     "allow_with_adversarial_examples": 1,
                     "block_until_removed": 2,
@@ -7370,7 +7715,7 @@
                     "documented_adversarial_example": 24
                   },
                   "failure_count": 0,
-                  "file_count": 3526,
+                  "file_count": 3523,
                   "finding_count": 161,
                   "held_source_count": 1,
                   "held_sources": [
@@ -7578,16 +7923,16 @@
   "source_artifacts": {
     "agentic_protocol_conformance_profile": {
       "path": "data/assurance/agentic-protocol-conformance-profile.json",
-      "sha256": "7aad3fbdcf3078cc2730df7cb4a76f82154fa1441a11ece822d55867e059c749"
+      "sha256": "49319bbe17c39aed9d98c9b008b04390016d22467f3ede5909449952484bb259"
     },
     "source_packs": {
       "a2a_agent_card_trust_profile": {
         "path": "data/evidence/a2a-agent-card-trust-profile.json",
-        "sha256": "56a165d803b5f84398431b94f7771d83a163afb0064d01e2a47c6a674d2b355b"
+        "sha256": "f610faad4917a18cc9db602bda9d8f9a3bed61af15051a146a11b7f81ec42961"
       },
       "agent_handoff_boundary_pack": {
         "path": "data/evidence/agent-handoff-boundary-pack.json",
-        "sha256": "50576bc9f6af85ecb66f172167c61a7304b78127984445d7b1a1a409f2e989cd"
+        "sha256": "cff875e6fb559d45b5306388065cf4b15c0e7251e5361653ec1e0a3b5a171c35"
       },
       "agent_identity_ledger": {
         "path": "data/evidence/agent-identity-delegation-ledger.json",
@@ -7595,7 +7940,7 @@
       },
       "agentic_control_plane_blueprint": {
         "path": "data/evidence/agentic-control-plane-blueprint.json",
-        "sha256": "2dc1b650b9ccb101e0a54bb06a0c93282e131bab04c6324c22df14345f047145"
+        "sha256": "785616baadec7e349d74e0ba229f89167fcf5a628819bb7871fb18fca24bf655"
       },
       "agentic_red_team_drill_pack": {
         "path": "data/evidence/agentic-red-team-drill-pack.json",
@@ -7603,15 +7948,15 @@
       },
       "agentic_run_receipt_pack": {
         "path": "data/evidence/agentic-run-receipt-pack.json",
-        "sha256": "b84bf236b2bfe8b3ffa225ab4aacb70b5dd6d75cce19c89620e2167ca365ae88"
+        "sha256": "b00aec323baeb30e35da756d9ac820b942884ba8b93dc2418f263ff166d61e89"
       },
       "context_egress_boundary_pack": {
         "path": "data/evidence/context-egress-boundary-pack.json",
-        "sha256": "6f8cc110c40e64839a4a872b7b11b6cbebf551df18282682728e766c24bbc91a"
+        "sha256": "d1bebd522186a4152135be14c4cd2f31203bee3360fa2f7b291a8b9569700015"
       },
       "context_poisoning_guard_pack": {
         "path": "data/evidence/context-poisoning-guard-pack.json",
-        "sha256": "434723f06f9672ab3015499cfcbb91fafeb4ba7f6e4ec56c9f5f0818ccb82f9e"
+        "sha256": "32b1c71d36d39b9d255a5bc4a7b787689e76e42d981bbcf6283ea3c0475f0c8a"
       },
       "mcp_authorization_conformance_pack": {
         "path": "data/evidence/mcp-authorization-conformance-pack.json",
@@ -7631,11 +7976,11 @@
       },
       "secure_context_eval_pack": {
         "path": "data/evidence/secure-context-eval-pack.json",
-        "sha256": "1f78efc4bf60ead2357bd12e76ec9d50f8507cae5fbe82c1d75bc49c535cfb53"
+        "sha256": "e0df9a7577a2e070c8c0baf7736f3bde728ef5ccc3ac6b9bffc53418c48d2a75"
       },
       "standards_crosswalk": {
         "path": "data/evidence/agentic-standards-crosswalk.json",
-        "sha256": "e4ae51b55b5f332595bea115a2ad933d867191519c91c210ab3baf1598022793"
+        "sha256": "db21a6df098a692a4348c40f06eaa10541fea46746296be8e987e050ffa61153"
       }
     }
   },
@@ -7722,13 +8067,22 @@
       "why_it_matters": "MCP 2026-07-28 deprecates Sampling. New implementations SHOULD NOT adopt sampling/createMessage; existing hosts SHOULD migrate to provider APIs. Servers MUST NOT send tool-enabled sampling unless the client declared sampling.tools. Sampling tools are request-scoped and need not match the registered catalog, so an unpinned sampling tool is an untrusted protocol surface. includeContext values thisServer and allServers are deprecated."
     },
     {
+      "id": "mcp-logging-2026-07-28",
+      "name": "MCP Logging (2026-07-28 current revision)",
+      "published": "2026-07-28",
+      "publisher": "Model Context Protocol",
+      "source_class": "protocol_specification",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/server/utilities/logging",
+      "why_it_matters": "MCP 2026-07-28 deprecates Logging. logging/setLevel is removed. Log level is per-request via io.modelcontextprotocol/logLevel. Servers MUST NOT emit notifications/message without that field and MUST NOT deliver those notifications on subscriptions/listen. New implementations SHOULD migrate to stderr or OpenTelemetry."
+    },
+    {
       "id": "mcp-deprecated-features-2026-07-28",
       "name": "MCP Deprecated Features Registry (2026-07-28 current revision)",
       "published": "2026-07-28",
       "publisher": "Model Context Protocol",
       "source_class": "protocol_specification",
       "url": "https://modelcontextprotocol.io/specification/2026-07-28/deprecated",
-      "why_it_matters": "The 2026-07-28 deprecated-features registry lists Sampling (SEP-2577) with a provider-API migration path and earliest removal on or after 2027-07-28. includeContext thisServer and allServers are separately deprecated (SEP-2596) and follow Sampling's removal window."
+      "why_it_matters": "The 2026-07-28 deprecated-features registry lists Sampling and Logging (SEP-2577) with provider-API and stderr or OpenTelemetry migration paths and earliest removal on or after 2027-07-28. includeContext thisServer and allServers are separately deprecated (SEP-2596) and follow Sampling's removal window."
     },
     {
       "id": "mcp-spec-changelog-2026-07-28",
