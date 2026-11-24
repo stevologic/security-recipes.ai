@@ -26,11 +26,42 @@ VALID_DECISIONS = {
     "deny_untrusted_package_launch",
     "deny_shell_or_network_bootstrap",
     "deny_unrestricted_proxy_spawn",
+    "deny_cooperative_filesystem_boundary",
     "kill_session_on_secret_or_privilege_request",
 }
 DUAL_ERA_CLIENTS = {"dual_era", "legacy"}
 PROXY_ARCHITECTURES = {"proxy", "stdio_proxy", "local_proxy"}
 MODERN_DISCOVER_RESULTS = {"complete", "discoverresult", "discover_result"}
+ISOLATION_EVIDENCE_FIELDS = (
+    "isolation_enforcement",
+    "filesystem_isolation",
+    "isolation_mechanism",
+    "isolation_boundary",
+    "sandbox_type",
+)
+COOPERATIVE_FILESYSTEM_ISOLATION = {
+    "bare_chroot",
+    "chroot",
+    "cooperative_filesystem_allowlist",
+    "declared_roots",
+    "filesystem_allowlist",
+    "mcp_roots",
+    "roots",
+}
+ENFORCED_PROCESS_ISOLATION = {
+    "apparmor",
+    "container",
+    "dedicated_user",
+    "docker",
+    "gvisor",
+    "microvm",
+    "os_process_sandbox",
+    "podman",
+    "process_sandbox",
+    "seccomp",
+    "selinux",
+    "vm",
+}
 
 
 class StdioLaunchDecisionError(RuntimeError):
@@ -163,6 +194,34 @@ def launch_architecture(runtime_request: dict[str, Any], launch: dict[str, Any] 
     return normalized_token(runtime_request.get("launch_architecture") or registered or "direct")
 
 
+def isolation_token(value: Any) -> str:
+    text = str(value or "").strip().lower()
+    return "".join(character if character.isalnum() else "_" for character in text).strip("_")
+
+
+def isolation_evidence_tokens(runtime_request: dict[str, Any]) -> list[str]:
+    tokens: list[str] = []
+    for field in ISOLATION_EVIDENCE_FIELDS:
+        for value in as_list(runtime_request.get(field)):
+            token = isolation_token(value)
+            if token:
+                tokens.append(token)
+    return tokens
+
+
+def cooperative_filesystem_violations(runtime_request: dict[str, Any]) -> list[str]:
+    tokens = isolation_evidence_tokens(runtime_request)
+    if not tokens:
+        return []
+    if any(token in ENFORCED_PROCESS_ISOLATION for token in tokens):
+        return []
+    return [
+        f"isolation evidence {token} is a cooperative filesystem boundary, not a process sandbox"
+        for token in tokens
+        if token in COOPERATIVE_FILESYSTEM_ISOLATION
+    ]
+
+
 def proxy_spawn_violations(runtime_request: dict[str, Any]) -> list[str]:
     violations: list[str] = []
     extra_auth = bool(runtime_request.get("proxy_spawn_authorized")) or has_approval(
@@ -215,6 +274,7 @@ def decision_result(
             "discover_result_type": runtime_request.get("discover_result_type"),
             "env_keys": as_list(runtime_request.get("env_keys")),
             "initialize_fallback": runtime_request.get("initialize_fallback"),
+            "isolation_enforcement": runtime_request.get("isolation_enforcement"),
             "launch_architecture": runtime_request.get("launch_architecture"),
             "launch_id": runtime_request.get("launch_id"),
             "network_egress": runtime_request.get("network_egress"),
@@ -429,6 +489,17 @@ def evaluate_mcp_stdio_launch_decision(
                 violations=proxy_violations,
             )
 
+    cooperative_violations = cooperative_filesystem_violations(runtime_request)
+    if cooperative_violations:
+        return decision_result(
+            decision="deny_cooperative_filesystem_boundary",
+            reason="MCP local-server security treats configuration-level filesystem allowlists, MCP Roots, declared roots, and a bare chroot as cooperative guardrails, not a process sandbox; enforcement requires a container, VM, or OS process sandbox",
+            runtime_request=runtime_request,
+            matched_launch=launch,
+            matched_profile=profile,
+            violations=cooperative_violations,
+        )
+
     if not runtime_request.get("sandboxed"):
         return decision_result(
             decision="hold_for_owner_review",
@@ -540,6 +611,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--launch-architecture", default=None)
     parser.add_argument("--proxy-spawn-authorized", action="store_true")
     parser.add_argument("--stdio-spawn-logged", action="store_true")
+    parser.add_argument("--isolation-enforcement", default=None)
     parser.add_argument("--expect-decision", default=None)
     parser.add_argument("--json", action="store_true", help="Print full JSON decision.")
     return parser.parse_args()
@@ -568,6 +640,7 @@ def main() -> int:
             "filesystem_roots": args.filesystem_root,
             "human_approval_record": parse_key_value(args.approval),
             "initialize_fallback": args.initialize_fallback,
+            "isolation_enforcement": args.isolation_enforcement,
             "launch_architecture": args.launch_architecture,
             "launch_id": args.launch_id,
             "network_egress": args.network_egress,

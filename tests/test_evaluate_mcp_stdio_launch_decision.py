@@ -131,6 +131,81 @@ class MCPStdioDiscoverAndProxySpawnTests(unittest.TestCase):
         self.assertEqual(result["decision"], "allow_pinned_sandboxed_stdio_launch")
         self.assertTrue(result["allowed"])
 
+    def test_unspecified_isolation_stays_on_prior_allow_path(self) -> None:
+        result = evaluate_mcp_stdio_launch_decision(self.pack, _allowed_direct())
+        self.assertEqual(result["decision"], "allow_pinned_sandboxed_stdio_launch")
+        self.assertTrue(result["allowed"])
+        self.assertEqual(result["runtime_request"].get("isolation_enforcement"), None)
+
+    def test_declared_roots_isolation_is_denied(self) -> None:
+        result = evaluate_mcp_stdio_launch_decision(
+            self.pack, _allowed_direct(isolation_enforcement="declared_roots")
+        )
+        self.assertEqual(result["decision"], "deny_cooperative_filesystem_boundary")
+        self.assertFalse(result["allowed"])
+        self.assertTrue(any("declared_roots" in item for item in result["violations"]))
+
+    def test_mcp_roots_isolation_is_denied(self) -> None:
+        result = evaluate_mcp_stdio_launch_decision(
+            self.pack, _allowed_direct(isolation_enforcement="MCP Roots")
+        )
+        self.assertEqual(result["decision"], "deny_cooperative_filesystem_boundary")
+        self.assertFalse(result["allowed"])
+        self.assertTrue(any("mcp_roots" in item for item in result["violations"]))
+
+    def test_filesystem_allowlist_isolation_is_denied(self) -> None:
+        result = evaluate_mcp_stdio_launch_decision(
+            self.pack,
+            _allowed_direct(isolation_enforcement="cooperative_filesystem_allowlist"),
+        )
+        self.assertEqual(result["decision"], "deny_cooperative_filesystem_boundary")
+        self.assertFalse(result["allowed"])
+
+    def test_bare_chroot_isolation_is_denied(self) -> None:
+        result = evaluate_mcp_stdio_launch_decision(
+            self.pack, _allowed_direct(isolation_enforcement="bare chroot")
+        )
+        self.assertEqual(result["decision"], "deny_cooperative_filesystem_boundary")
+        self.assertFalse(result["allowed"])
+        self.assertTrue(any("bare_chroot" in item for item in result["violations"]))
+
+    def test_container_isolation_stays_allowed(self) -> None:
+        result = evaluate_mcp_stdio_launch_decision(
+            self.pack, _allowed_direct(isolation_enforcement="container")
+        )
+        self.assertEqual(result["decision"], "allow_pinned_sandboxed_stdio_launch")
+        self.assertTrue(result["allowed"])
+
+    def test_os_process_sandbox_stays_allowed(self) -> None:
+        result = evaluate_mcp_stdio_launch_decision(
+            self.pack, _allowed_direct(isolation_enforcement="os_process_sandbox")
+        )
+        self.assertEqual(result["decision"], "allow_pinned_sandboxed_stdio_launch")
+        self.assertTrue(result["allowed"])
+
+    def test_container_plus_declared_roots_stays_allowed(self) -> None:
+        result = evaluate_mcp_stdio_launch_decision(
+            self.pack,
+            _allowed_direct(
+                isolation_enforcement=["container", "declared_roots"],
+            ),
+        )
+        self.assertEqual(result["decision"], "allow_pinned_sandboxed_stdio_launch")
+        self.assertTrue(result["allowed"])
+
+    def test_proxy_spawn_with_chroot_isolation_is_denied(self) -> None:
+        result = evaluate_mcp_stdio_launch_decision(
+            self.pack,
+            _allowed_direct(
+                launch_architecture="proxy",
+                proxy_spawn_authorized=True,
+                stdio_spawn_logged=True,
+                isolation_enforcement="chroot",
+            ),
+        )
+        self.assertEqual(result["decision"], "deny_cooperative_filesystem_boundary")
+        self.assertFalse(result["allowed"])
+
 
 if __name__ == "__main__":
     unittest.main()
