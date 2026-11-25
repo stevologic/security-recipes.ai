@@ -1806,7 +1806,7 @@
         {
           "label": "Decision",
           "title": "Evaluate memory policy",
-          "detail": "Check tenant isolation, consent, provenance, freshness, allowed operations, reuse scope, retention, and approval."
+          "detail": "Check tenant isolation, in-index tenant scoping, trust-tier isolation, withheld raw similarity scores, source-reconciled embeddings, consent, provenance, freshness, allowed operations, reuse scope, retention, and approval."
         },
         {
           "label": "Action",
@@ -1820,9 +1820,9 @@
         }
       ],
       "gate": {
-        "question": "Is this content permitted for this store, tenant, workflow, operation, purpose, and retention period?",
+        "question": "Is this content permitted for this store, tenant, workflow, operation, purpose, and retention period, and does vector memory enforce in-index tenant scope, trust-tier isolation, withheld raw scores, and source-reconciled embeddings?",
         "pass": "Perform only the minimized memory operation and record its lifecycle.",
-        "stop": "Hold, deny, or kill cross-tenant, secret-bearing, policy-mutating, unprovenanced, or over-retained memory."
+        "stop": "Hold, deny, or kill cross-tenant, post-filter tenant scope, mixed-trust indexes, raw similarity scores, unreconciled embeddings, secret-bearing, policy-mutating, unprovenanced, or over-retained memory."
       },
       "evidence": [
         "memory classification and provenance",

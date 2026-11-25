@@ -32,6 +32,17 @@ ALLOW_DECISIONS = {
     "allow_append_only_evidence_memory",
     "allow_readonly_policy_memory",
 }
+VECTOR_INDEX_CONTROLS = (
+    "tenant_scope_in_index_query",
+    "trust_tiers_isolated",
+    "raw_similarity_scores_withheld",
+    "source_embeddings_reconciled",
+)
+CROSS_TENANT_INDEX_CONTROLS = {
+    "tenant_scope_in_index_query",
+    "trust_tiers_isolated",
+    "raw_similarity_scores_withheld",
+}
 
 
 class AgentMemoryDecisionError(RuntimeError):
@@ -159,8 +170,12 @@ def decision_result(
             "provenance_hash": request.get("provenance_hash"),
             "requested_ttl_days": request.get("requested_ttl_days"),
             "run_id": request.get("run_id"),
+            "raw_similarity_scores_withheld": request.get("raw_similarity_scores_withheld"),
+            "source_embeddings_reconciled": request.get("source_embeddings_reconciled"),
             "source_id": request.get("source_id"),
             "tenant_id": request.get("tenant_id"),
+            "tenant_scope_in_index_query": request.get("tenant_scope_in_index_query"),
+            "trust_tiers_isolated": request.get("trust_tiers_isolated"),
             "workflow_id": request.get("workflow_id"),
         },
         "violations": violations or [],
@@ -187,6 +202,10 @@ def evaluate_agent_memory_boundary_decision(
     request["tenant_id"] = str(request.get("tenant_id") or "").strip()
     request["workflow_id"] = str(request.get("workflow_id") or "").strip()
     request["runtime_kill_signal"] = str(request.get("runtime_kill_signal") or "").strip()
+    request["tenant_scope_in_index_query"] = as_bool(request.get("tenant_scope_in_index_query"))
+    request["trust_tiers_isolated"] = as_bool(request.get("trust_tiers_isolated"))
+    request["raw_similarity_scores_withheld"] = as_bool(request.get("raw_similarity_scores_withheld"))
+    request["source_embeddings_reconciled"] = as_bool(request.get("source_embeddings_reconciled"))
 
     try:
         request["requested_ttl_days"] = int(request.get("requested_ttl_days") or 0)
@@ -323,6 +342,33 @@ def evaluate_agent_memory_boundary_decision(
             violations=["tenant_id is required"],
         )
 
+    required_controls = {str(item) for item in as_list(memory_class.get("required_controls")) if item}
+    missing_index_controls = [
+        control
+        for control in VECTOR_INDEX_CONTROLS
+        if control in required_controls and not request.get(control)
+    ]
+    if missing_index_controls:
+        if any(control in CROSS_TENANT_INDEX_CONTROLS for control in missing_index_controls):
+            return decision_result(
+                decision="deny_cross_tenant_memory",
+                reason="vector index request is missing in-index tenant scope, trust-tier isolation, or withheld raw similarity scores",
+                request=request,
+                pack=memory_pack,
+                memory_class=memory_class,
+                workflow=workflow,
+                violations=missing_index_controls,
+            )
+        return decision_result(
+            decision="deny_runtime_memory_write",
+            reason="vector embeddings are not reconciled to a live source document",
+            request=request,
+            pack=memory_pack,
+            memory_class=memory_class,
+            workflow=workflow,
+            violations=missing_index_controls,
+        )
+
     if memory_class.get("provenance_hash_required") and write_like and not request["provenance_hash"]:
         return decision_result(
             decision="hold_for_memory_admission_review",
@@ -405,8 +451,12 @@ def request_from_args(args: argparse.Namespace) -> dict[str, Any]:
         "requested_ttl_days": args.requested_ttl_days,
         "run_id": args.run_id,
         "runtime_kill_signal": args.runtime_kill_signal,
+        "raw_similarity_scores_withheld": args.raw_similarity_scores_withheld,
+        "source_embeddings_reconciled": args.source_embeddings_reconciled,
         "source_id": args.source_id,
         "tenant_id": args.tenant_id,
+        "tenant_scope_in_index_query": args.tenant_scope_in_index_query,
+        "trust_tiers_isolated": args.trust_tiers_isolated,
         "workflow_id": args.workflow_id,
     }
     for key, value in overrides.items():
@@ -431,6 +481,10 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--data-class")
     parser.add_argument("--contains-secret", action="store_true")
     parser.add_argument("--contains-unredacted-pii", action="store_true")
+    parser.add_argument("--tenant-scope-in-index-query", action="store_true")
+    parser.add_argument("--trust-tiers-isolated", action="store_true")
+    parser.add_argument("--raw-similarity-scores-withheld", action="store_true")
+    parser.add_argument("--source-embeddings-reconciled", action="store_true")
     parser.add_argument("--runtime-kill-signal")
     parser.add_argument("--expect-decision", choices=sorted(VALID_DECISIONS))
     return parser.parse_args(argv)
