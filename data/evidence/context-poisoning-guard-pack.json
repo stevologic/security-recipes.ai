@@ -263,8 +263,19 @@
     {
       "actionable": false,
       "disposition": "documented_adversarial_example",
-      "line": 809,
+      "line": 820,
       "match": "\"roadmap_action\": \"Add typed approval receipts and approval-bypass replay tests to the MCP policy evaluator.\",",
+      "path": "data/intelligence/agentic-threat-radar-sources.json",
+      "risk_family": "approval_bypass",
+      "rule_id": "approval-bypass-request",
+      "severity": "high",
+      "source_id": "agentic-threat-intelligence"
+    },
+    {
+      "actionable": false,
+      "disposition": "documented_adversarial_example",
+      "line": 992,
+      "match": "...-agent or multi-agent runs then misuse approved tools, inherit parent scope, or skip inspectable control points while still looking policy-compliant on paper.\",",
       "path": "data/intelligence/agentic-threat-radar-sources.json",
       "risk_family": "approval_bypass",
       "rule_id": "approval-bypass-request",
@@ -1820,7 +1831,7 @@
       "agentic-assurance-models",
       "recipes"
     ],
-    "byte_count": 15171010,
+    "byte_count": 15175989,
     "decision_counts": {
       "allow_with_adversarial_examples": 1,
       "block_until_removed": 2,
@@ -1830,24 +1841,24 @@
     "disposition_counts": {
       "actionable_context_poisoning_risk": 96,
       "defensive_control_language": 41,
-      "documented_adversarial_example": 24
+      "documented_adversarial_example": 25
     },
     "failure_count": 0,
     "file_count": 3523,
-    "finding_count": 161,
+    "finding_count": 162,
     "held_source_count": 1,
     "held_sources": [
       "security-remediation-workflows"
     ],
     "risk_family_counts": {
-      "approval_bypass": 46,
+      "approval_bypass": 47,
       "hidden_instruction": 59,
       "prompt_injection": 9,
       "secret_exposure": 47
     },
     "severity_counts": {
       "critical": 56,
-      "high": 46,
+      "high": 47,
       "medium": 59
     },
     "source_count": 9
@@ -2007,10 +2018,10 @@
       "actionable_finding_count": 0,
       "decision": "allow_with_adversarial_examples",
       "disposition_counts": {
-        "documented_adversarial_example": 1
+        "documented_adversarial_example": 2
       },
       "file_count": 3,
-      "finding_count": 1,
+      "finding_count": 2,
       "owner": {
         "accountable_team": "SecurityRecipes Maintainers",
         "escalation": "agentic-threat-radar-owner",
@@ -2022,13 +2033,13 @@
         "data/intelligence/cve-intelligence-intake-gates.json"
       ],
       "risk_family_counts": {
-        "approval_bypass": 1
+        "approval_bypass": 2
       },
       "root": "data/intelligence",
       "severity_counts": {
-        "high": 1
+        "high": 2
       },
-      "source_hash": "eb3d24b8eda691e84adeadafb603faac95b5613798e34f5e53748dd54d64be20",
+      "source_hash": "edf145542c70f9f64b1228d8a5a26d3da466ff134d5f1d13602dc36104b0e609",
       "source_id": "agentic-threat-intelligence",
       "title": "Agentic Threat Radar Source Registry",
       "trust_tier": "tier_2_policy_context"
@@ -2148,7 +2159,7 @@
         "critical": 44,
         "high": 25
       },
-      "source_hash": "0af3add830bc1d00dde23c7a3893d606ce8e1ba2402997f69750e530200cf63c",
+      "source_hash": "d5853dccdc5ab7bdcb216741237f02df77d4d50e21c6afb5c5cf594327b3addc",
       "source_id": "recipes",
       "title": "Recipes",
       "trust_tier": "tier_1_curated_guidance"
@@ -2202,7 +2213,7 @@
         "high": 8,
         "medium": 59
       },
-      "source_hash": "61bf1d2cb9a9d3acc39a4f6663e6e6007071abdb327c5fa95136076ba67a9c1d",
+      "source_hash": "d56c6d524533a8673511b20f740a842b3f498e445fd2e10a960a200e4cda52ec",
       "source_id": "security-remediation-workflows",
       "title": "Security Remediation Workflow Docs",
       "trust_tier": "tier_1_curated_guidance"

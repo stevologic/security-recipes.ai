@@ -1,12 +1,12 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-11-12",
+  "last_reviewed": "2026-11-26",
   "intent": "Maintain a source-backed market and threat radar for SecurityRecipes so the secure context layer tracks current agentic AI risk, MCP security guidance, enterprise buyer pressure, and product opportunities before they become stale documentation.",
   "positioning": {
     "buyer": "AI Platform, Security Engineering, AppSec, Product Security, GRC, procurement security, vendor-risk, and acquisition diligence teams",
     "category": "Agentic AI threat intelligence and secure context product strategy",
     "enterprise_promise": "SecurityRecipes converts current agentic AI security guidance into MCP-readable threat signals, mapped controls, buyer triggers, and product roadmap priorities.",
-    "why_now": "Agentic systems now combine autonomy, private data, untrusted context, tool execution, MCP servers, and non-human identities. Enterprise buyers need a continuously reviewed control layer that explains which risks are current, which controls exist, and which gaps deserve investment."
+    "why_now": "Agentic systems now combine autonomy, private data, untrusted context, tool execution, MCP servers, and non-human identities. OWASP's November 10, 2026 builder-and-defender guide treats runtime protection, identity and access controls, supply-chain security, and assurance testing as lifecycle controls for both single-agent and multi-agent systems, so buyers need a continuously reviewed control layer that explains which risks are current, which controls exist, and which gaps deserve investment."
   },
   "source_references": [
     {
@@ -269,6 +269,15 @@
       "url": "https://genai.owasp.org/resource/agent-control-standard-acs/",
       "source_class": "industry_standard",
       "why_it_matters": "ACS, now part of the OWASP GenAI Security Project, defines how agent platforms expose middleware hooks so declarative safety policies can be enforced at runtime across frameworks."
+    },
+    {
+      "id": "owasp-securing-agentic-apps-v2-2026",
+      "name": "Securing Agentic Applications V2: A Builder & Defender's Guide",
+      "publisher": "OWASP GenAI Security Project",
+      "published": "2026-11-10",
+      "url": "https://genai.owasp.org/resource/securing-agentic-applications-v2/",
+      "source_class": "industry_standard",
+      "why_it_matters": "OWASP's November 10, 2026 V2 guide is a builder-and-defender implementation companion: it covers secure architectures, threat mitigation, identity and access controls, runtime protection, supply-chain security, and assurance testing across single-agent and multi-agent systems throughout the design, develop, deploy, and operate lifecycle."
     }
   ],
   "product_capabilities": [
@@ -588,7 +597,8 @@
         "csa-agentic-identity-2025",
         "mcp-security-best-practices-2026-07-28",
         "nist-agentic-identity-design-tenets-2026",
-        "cisa-careful-adoption-agentic-ai-2026"
+        "cisa-careful-adoption-agentic-ai-2026",
+        "owasp-securing-agentic-apps-v2-2026"
       ],
       "trend": "NIST's August 27, 2026 identity guidance warns that agent rollouts are repeating IAM mistakes: shared human credentials, long-lived API keys and bearer tokens, overly broad access, local user-account impersonation, and over-reliance on human-in-the-loop approvals. NCCoE's September 29, 2026 comments summary, based on more than 600 responses, confirms an evolutionary path: reuse OAuth, SPIFFE, and MCP rather than a parallel identity stack; issue distinct verifiable non-human identities at ephemeral-agent scale; and treat local user-or-admin impersonation plus credential sharing as anti-patterns, especially for externally owned agents. NIST's October 27, 2026 design tenets, drawn from those comments and stakeholder engagement, add attenuated sub-agent delegation, zero standing privilege, signed mandates, and architectural separation of policy from reasoning; in our reading, unique short-lived credentials alone are not sufficient. The first NCCoE implementation use case is identity, authentication, and authorization of AI agents in the software development lifecycle.",
       "enterprise_risk": "Shared bot accounts, human-token borrowing, local user-account impersonation, weak owner links, and missing revocation paths make incidents hard to contain or explain, and they undermine non-repudiation when an agent acts without a distinct identity. Ephemeral sub-agents and shadow local agents amplify this unless persistent trust anchors are paired with short-lived scoped credentials. A buyer can still fail if a sub-agent keeps parent-wide scope, idle agents retain standing privilege, the reasoning model grants access, delegated intent has no signed mandate, or the agent can write its own logs.",
@@ -667,7 +677,8 @@
         "owasp-agentic-top-10-2026",
         "csa-mcp-resource-center-2025",
         "mcp-security-best-practices-2026-07-28",
-        "owasp-genai-exploit-roundup-q3-2026"
+        "owasp-genai-exploit-roundup-q3-2026",
+        "owasp-securing-agentic-apps-v2-2026"
       ],
       "trend": "MCP and agent tool ecosystems make tool descriptions, schemas, connector updates, local servers, and third-party outputs part of the trust boundary. MCP 2026-07-28 also treats local MCP server compromise and stdio proxy spawn as control-plane risks, not just unregistered namespaces.",
       "enterprise_risk": "An agent may select a poisoned tool, follow malicious tool metadata, trust a fake server, or miss that a connector update changed the reachable blast radius.",
@@ -864,7 +875,8 @@
         "openai-agent-safety-2026",
         "microsoft-indirect-prompt-injection-2026",
         "owasp-agentic-top-10-2026",
-        "nist-ai-rmf-2026-critical-infrastructure"
+        "nist-ai-rmf-2026-critical-infrastructure",
+        "owasp-securing-agentic-apps-v2-2026"
       ],
       "trend": "Frontier labs and enterprise guidance converge on evals, trace graders, adversarial testing, plan drift detection, and layered defenses because agent behavior changes with tools, prompts, models, and context.",
       "enterprise_risk": "A workflow that was safe last month can become unsafe after a model update, connector change, or prompt edit without any source-code vulnerability.",
@@ -963,6 +975,43 @@
         "defensibility": 4,
         "ease_of_adoption": 5
       }
+    },
+    {
+      "id": "runtime-protection-lifecycle-controls",
+      "title": "Runtime protection is now a builder-and-defender lifecycle control, not a post-deployment policy memo",
+      "priority": "high",
+      "horizon": "now",
+      "confidence": "high",
+      "source_ids": [
+        "owasp-securing-agentic-apps-v2-2026",
+        "owasp-agent-control-standard-2026",
+        "nist-agentic-identity-design-tenets-2026",
+        "owasp-agentic-top-10-2026"
+      ],
+      "trend": "OWASP's November 10, 2026 Securing Agentic Applications V2 guide is a builder-and-defender companion to the agentic risk catalogs: it treats secure architectures, identity and access controls, runtime protection, supply-chain security, and assurance testing as lifecycle controls for both single-agent and multi-agent systems. ACS already requires agent platforms to expose middleware hooks so declarative safety policies can be enforced at runtime. NIST's October 27, 2026 design tenets require architectural separation of policy from reasoning and deterministic access decisions, so a prompt or plan change cannot be the thing that grants authority.",
+      "enterprise_risk": "A team can inventory ASI risks and still fail at execution time if identity and access checks, runtime protection, supply-chain controls, and assurance testing are not wired into the agent loop. Black-box single-agent or multi-agent runs then misuse approved tools, inherit parent scope, or skip inspectable control points while still looking policy-compliant on paper.",
+      "control_objectives": [
+        "Treat runtime protection, identity and access, supply-chain security, and assurance testing as required lifecycle controls for both single-agent and multi-agent deployments.",
+        "Enforce declarative safety policy through inspectable runtime control points rather than prompt-only guidance.",
+        "Keep access decisions deterministic and architecturally separate from the reasoning model.",
+        "Replay assurance tests when architecture, tools, identity, or runtime protection changes."
+      ],
+      "mapped_capability_ids": [
+        "mcp-gateway-policy",
+        "agent-identity-ledger",
+        "mcp-connector-trust-pack",
+        "agentic-red-team-drill-pack",
+        "agentic-assurance-pack"
+      ],
+      "buyer_trigger": "The buyer is moving from an agentic Top 10 checklist to production single-agent or multi-agent systems that need inspectable runtime control.",
+      "roadmap_action": "Productize hosted runtime-protection evidence that proves gateway policy, identity, connector trust, and red-team replay are bound before an agent loop is trusted.",
+      "scores": {
+        "market_urgency": 5,
+        "enterprise_control_value": 5,
+        "mcp_monetization_fit": 5,
+        "defensibility": 4,
+        "ease_of_adoption": 4
+      }
     }
   ],
   "feature_backlog": [
@@ -1040,7 +1089,8 @@
       "related_signal_ids": [
         "agent-identity-explosion",
         "human-approval-and-tool-safeguards",
-        "audit-telemetry-and-evidence-chain"
+        "audit-telemetry-and-evidence-chain",
+        "runtime-protection-lifecycle-controls"
       ]
     }
   ]

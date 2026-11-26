@@ -3,7 +3,7 @@ title: Agentic Threat Radar
 linkTitle: Agentic Threat Radar
 weight: 18
 date: 2026-05-02
-lastmod: 2026-11-12
+lastmod: 2026-11-26
 toc: true
 description: >
   Source-backed radar that maps current agentic AI and MCP security
@@ -36,27 +36,34 @@ guidance into a generated evidence pack:
 - Reviewer triggers that explain when an enterprise should care.
 - Source roadmap actions that keep the open knowledge base aligned
   with a future hosted MCP/server business.
-- Rechecked November 12, 2026 against NIST NCCoE's
-  [September 29, 2026 comments summary](https://pages.nist.gov/nccoe-ai-identity/summary-of-comments.html)
-  on software and agentic AI identity and authorization, the still-current
-  public MCP specification
+- Rechecked November 26, 2026 against OWASP's
+  [Securing Agentic Applications V2](https://genai.owasp.org/resource/securing-agentic-applications-v2/)
+  builder-and-defender guide (published November 10, 2026), the
+  [Agent Control Standard](https://genai.owasp.org/resource/agent-control-standard-acs/),
+  the still-current public MCP specification
   [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28)
   [security best practices](https://modelcontextprotocol.io/docs/2026-07-28/tutorials/security/security_best_practices),
-  NIST's
+  NIST NCCoE's
+  [September 29, 2026 comments summary](https://pages.nist.gov/nccoe-ai-identity/summary-of-comments.html)
+  on software and agentic AI identity and authorization, NIST's
   [August 27, 2026 agent identity guidance](https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation),
   and NIST's
   [October 27, 2026 design tenets for agent identity management systems](https://www.nist.gov/blogs/cybersecurity-insights/design-tenets-agent-identity-management-systems).
-  MCP `latest` still redirects to 2026-07-28. NCCoE, drawing on more than 600 comments, favors reusing OAuth, SPIFFE, and
-  MCP rather than a parallel identity stack, distinct verifiable non-human
-  identities at ephemeral-agent scale, and treating credential sharing and
-  local user impersonation as anti-patterns. The ten design tenets, drawn from
-  those comments and stakeholder engagement, add attenuated sub-agent
-  delegation, zero standing privilege, signed mandate statements, architectural
-  separation of policy from reasoning, deterministic access decisions,
-  consent-fatigue-aware HITL thresholds, and independent append-only evidence.
-  In our reading, unique short-lived credentials alone are not
-  sufficient. This
-  editorial pass does not claim human review of the pack. Invented version
+  MCP `latest` still redirects to 2026-07-28. V2 treats runtime protection,
+  identity and access controls, supply-chain security, and assurance testing
+  as lifecycle controls for both single-agent and multi-agent systems. ACS
+  requires middleware hooks so declarative safety policies can be enforced at
+  runtime. NCCoE, drawing on more than 600 comments, favors reusing OAuth,
+  SPIFFE, and MCP rather than a parallel identity stack, distinct verifiable
+  non-human identities at ephemeral-agent scale, and treating credential
+  sharing and local user impersonation as anti-patterns. The ten design tenets,
+  drawn from those comments and stakeholder engagement, add attenuated
+  sub-agent delegation, zero standing privilege, signed mandate statements,
+  architectural separation of policy from reasoning, deterministic access
+  decisions, consent-fatigue-aware HITL thresholds, and independent
+  append-only evidence. In our reading, unique short-lived credentials and a
+  Top 10 checklist are not sufficient without inspectable runtime protection.
+  This editorial pass does not claim human review of the pack. Invented version
   floors in leftover CVE drafts remain a content-risk signal: treat them as
   untrusted context, not a named fix.
 
@@ -90,6 +97,7 @@ python3 scripts/generate_agentic_threat_radar.py --check
 | Context over-sharing and memory poisoning | High | Retrieval and egress policy need provenance, freshness, data-class gates, tenant isolation, and destination controls before context reaches or leaves agents. |
 | Audit telemetry and evidence chain | High | Enterprises need correlated records for context retrieval, tool calls, policy decisions, reviews, and scanner proof. NIST requires independent append-only evidence of identity, delegated intent, and actions so a compromised agent cannot rewrite its own logs. |
 | Human approval and tool safeguards | High | Approval must become a typed, policy-enforced control at defined risk thresholds, with signed mandate statements and consent-fatigue-aware HITL rather than habitual unstructured prompts. |
+| Runtime protection lifecycle controls | High | OWASP V2 treats runtime protection, identity and access, supply-chain security, and assurance testing as builder-and-defender lifecycle controls for single- and multi-agent systems; ACS requires inspectable runtime hooks. |
 | AI data security and provenance | High | Guidance is converging on data integrity, monitoring, lifecycle governance, and provenance for AI operations. |
 | Continuous red-team replay and evals | High | Model, prompt, connector, and context drift can invalidate a previously safe workflow. |
 | Secure-by-design agentic products | Medium | Procurement and diligence will reject products that rely on careful prompting instead of safe defaults. |
@@ -155,6 +163,8 @@ The source registry should be updated when major guidance changes.
 The current anchors include:
 
 - [OWASP Top 10 for Agentic Applications](https://genai.owasp.org/2025/12/09/owasp-genai-security-project-releases-top-10-risks-and-mitigations-for-agentic-ai-security/)
+- [OWASP Securing Agentic Applications V2](https://genai.owasp.org/resource/securing-agentic-applications-v2/)
+- [OWASP Agent Control Standard](https://genai.owasp.org/resource/agent-control-standard-acs/)
 - [OWASP MCP Top 10](https://owasp.org/www-project-mcp-top-10/)
 - [MCP Authorization Specification](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
 - [MCP Security Best Practices](https://modelcontextprotocol.io/docs/2026-07-28/tutorials/security/security_best_practices)

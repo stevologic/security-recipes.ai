@@ -35,27 +35,29 @@
     },
     {
       "capability_id": "agent-identity-ledger",
-      "critical_or_high_signal_count": 4,
+      "critical_or_high_signal_count": 5,
       "max_strategic_score": 98,
-      "signal_count": 4,
+      "signal_count": 5,
       "signal_ids": [
         "agent-protocol-handoff-boundaries",
         "mcp-token-passthrough-and-scope-creep",
         "agent-identity-explosion",
+        "runtime-protection-lifecycle-controls",
         "human-approval-and-tool-safeguards"
       ]
     },
     {
       "capability_id": "agentic-assurance-pack",
-      "critical_or_high_signal_count": 7,
+      "critical_or_high_signal_count": 8,
       "max_strategic_score": 98,
-      "signal_count": 8,
+      "signal_count": 9,
       "signal_ids": [
         "agent-protocol-handoff-boundaries",
         "mcp-token-passthrough-and-scope-creep",
         "agent-identity-explosion",
         "capability-based-agentic-risk-governance",
         "context-over-sharing-and-memory-poisoning",
+        "runtime-protection-lifecycle-controls",
         "ai-data-security-and-provenance",
         "audit-telemetry-and-evidence-chain",
         "secure-by-design-agentic-products"
@@ -76,11 +78,12 @@
     },
     {
       "capability_id": "agentic-red-team-drill-pack",
-      "critical_or_high_signal_count": 4,
+      "critical_or_high_signal_count": 5,
       "max_strategic_score": 98,
-      "signal_count": 4,
+      "signal_count": 5,
       "signal_ids": [
         "indirect-prompt-injection-social-engineering",
+        "runtime-protection-lifecycle-controls",
         "tool-poisoning-and-shadow-mcp",
         "human-approval-and-tool-safeguards",
         "continuous-red-team-and-evals"
@@ -158,24 +161,26 @@
     },
     {
       "capability_id": "mcp-connector-trust-pack",
-      "critical_or_high_signal_count": 2,
+      "critical_or_high_signal_count": 3,
       "max_strategic_score": 95,
-      "signal_count": 2,
+      "signal_count": 3,
       "signal_ids": [
         "mcp-token-passthrough-and-scope-creep",
+        "runtime-protection-lifecycle-controls",
         "tool-poisoning-and-shadow-mcp"
       ]
     },
     {
       "capability_id": "mcp-gateway-policy",
-      "critical_or_high_signal_count": 6,
+      "critical_or_high_signal_count": 7,
       "max_strategic_score": 98,
-      "signal_count": 6,
+      "signal_count": 7,
       "signal_ids": [
         "indirect-prompt-injection-social-engineering",
         "mcp-token-passthrough-and-scope-creep",
         "agent-identity-explosion",
         "capability-based-agentic-risk-governance",
+        "runtime-protection-lifecycle-controls",
         "tool-poisoning-and-shadow-mcp",
         "human-approval-and-tool-safeguards"
       ]
@@ -319,14 +324,15 @@
       "related_signal_ids": [
         "agent-identity-explosion",
         "human-approval-and-tool-safeguards",
-        "audit-telemetry-and-evidence-chain"
+        "audit-telemetry-and-evidence-chain",
+        "runtime-protection-lifecycle-controls"
       ],
       "status": "recommended_next",
-      "supporting_signal_count": 3,
+      "supporting_signal_count": 4,
       "supporting_signal_max_score": 93,
       "supporting_signal_priority_counts": {
         "critical": 1,
-        "high": 2
+        "high": 3
       },
       "title": "Agent run attestation and approval receipts",
       "why": "Buyers need to prove which agent acted, which context it used, which policy allowed it, and who approved high-risk steps."
@@ -348,7 +354,7 @@
       "why": "Context provenance guidance now needs verification, recertification, and production signing readiness; this run implemented the generated attestation seed, runtime evaluator, and MCP tools without overstating that hosted keyless signing exists yet."
     }
   ],
-  "generated_at": "2026-11-12",
+  "generated_at": "2026-11-26",
   "intent": "Maintain a source-backed market and threat radar for SecurityRecipes so the secure context layer tracks current agentic AI risk, MCP security guidance, enterprise buyer pressure, and product opportunities before they become stale documentation.",
   "path_evidence": [
     {
@@ -361,7 +367,7 @@
     },
     {
       "path": "content/security-remediation/agentic-threat-radar/_index.md",
-      "sha256": "04621347f66f81a9d21b53b713e677bd41dd7356891b2f82716e675b59ae791e"
+      "sha256": "11d705d2456b74419b912d8829ab4d0704b5f6393a9a8392b3efa4dfe3e87c79"
     },
     {
       "path": "content/security-remediation/context-egress-boundary/_index.md",
@@ -457,11 +463,11 @@
     },
     {
       "path": "data/evidence/context-egress-boundary-pack.json",
-      "sha256": "d1bebd522186a4152135be14c4cd2f31203bee3360fa2f7b291a8b9569700015"
+      "sha256": "87cb9c03109b0721161b16f1fe5cafcf736e2b15cbdbd3e18a1bed164002a6a1"
     },
     {
       "path": "data/evidence/context-poisoning-guard-pack.json",
-      "sha256": "32b1c71d36d39b9d255a5bc4a7b787689e76e42d981bbcf6283ea3c0475f0c8a"
+      "sha256": "0de4e7550dc0fc77d9e962ba6e4f7992a88a795a58c22ec2c8506b1bcd2f3dcc"
     },
     {
       "path": "data/evidence/mcp-authorization-conformance-pack.json",
@@ -477,15 +483,15 @@
     },
     {
       "path": "data/evidence/secure-context-attestation-pack.json",
-      "sha256": "571998be3823b63c9ed6b6190ae097e761510b5e0922b3f3873aec7fd82f3279"
+      "sha256": "dad753d355a6a26f1f6550ba64e63564bca56fa1d2299e0f1a90ed47f71e1e4a"
     },
     {
       "path": "data/evidence/secure-context-trust-pack.json",
-      "sha256": "33c8358ebc1ea80f31749d8107bdf346532309d75038be4f10798e7027d0fa02"
+      "sha256": "2558cf09fb8557b8c0cebc38617970d836f37b0a4469689d4db6fee4af8cbd11"
     },
     {
       "path": "data/intelligence/agentic-threat-radar-sources.json",
-      "sha256": "6e2151ef5020366c860c6f025889659deef7cfdf2835dd90146e3b092d6cf169"
+      "sha256": "0073b3231d90b820710e3bbaf1cd201677ec042b0e023f7ebc0aaf52b12e0833"
     },
     {
       "path": "data/mcp/connector-intake-candidates.json",
@@ -504,7 +510,7 @@
     "buyer": "AI Platform, Security Engineering, AppSec, Product Security, GRC, procurement security, vendor-risk, and acquisition diligence teams",
     "category": "Agentic AI threat intelligence and secure context product strategy",
     "enterprise_promise": "SecurityRecipes converts current agentic AI security guidance into MCP-readable threat signals, mapped controls, buyer triggers, and product roadmap priorities.",
-    "why_now": "Agentic systems now combine autonomy, private data, untrusted context, tool execution, MCP servers, and non-human identities. Enterprise buyers need a continuously reviewed control layer that explains which risks are current, which controls exist, and which gaps deserve investment."
+    "why_now": "Agentic systems now combine autonomy, private data, untrusted context, tool execution, MCP servers, and non-human identities. OWASP's November 10, 2026 builder-and-defender guide treats runtime protection, identity and access controls, supply-chain security, and assurance testing as lifecycle controls for both single-agent and multi-agent systems, so buyers need a continuously reviewed control layer that explains which risks are current, which controls exist, and which gaps deserve investment."
   },
   "product_capabilities": [
     {
@@ -746,7 +752,7 @@
   "source_artifacts": {
     "agentic_threat_radar_sources": {
       "path": "data/intelligence/agentic-threat-radar-sources.json",
-      "sha256": "6e2151ef5020366c860c6f025889659deef7cfdf2835dd90146e3b092d6cf169"
+      "sha256": "0073b3231d90b820710e3bbaf1cd201677ec042b0e023f7ebc0aaf52b12e0833"
     }
   },
   "source_references": [
@@ -1010,37 +1016,46 @@
       "source_class": "industry_standard",
       "url": "https://genai.owasp.org/resource/agent-control-standard-acs/",
       "why_it_matters": "ACS, now part of the OWASP GenAI Security Project, defines how agent platforms expose middleware hooks so declarative safety policies can be enforced at runtime across frameworks."
+    },
+    {
+      "id": "owasp-securing-agentic-apps-v2-2026",
+      "name": "Securing Agentic Applications V2: A Builder & Defender's Guide",
+      "published": "2026-11-10",
+      "publisher": "OWASP GenAI Security Project",
+      "source_class": "industry_standard",
+      "url": "https://genai.owasp.org/resource/securing-agentic-applications-v2/",
+      "why_it_matters": "OWASP's November 10, 2026 V2 guide is a builder-and-defender implementation companion: it covers secure architectures, threat mitigation, identity and access controls, runtime protection, supply-chain security, and assurance testing across single-agent and multi-agent systems throughout the design, develop, deploy, and operate lifecycle."
     }
   ],
   "threat_radar_summary": {
     "confidence_counts": {
-      "high": 12
+      "high": 13
     },
-    "critical_or_high_signal_count": 11,
+    "critical_or_high_signal_count": 12,
     "feature_backlog_count": 7,
     "horizon_counts": {
       "next": 2,
-      "now": 10
+      "now": 11
     },
     "implemented_capability_count": 17,
     "priority_counts": {
       "critical": 4,
-      "high": 7,
+      "high": 8,
       "medium": 1
     },
-    "signal_count": 12,
+    "signal_count": 13,
     "source_class_counts": {
       "frontier_lab_guidance": 3,
       "government_framework": 4,
       "government_guidance": 3,
       "government_security_signal": 4,
       "industry_guidance": 4,
-      "industry_standard": 4,
+      "industry_standard": 5,
       "protocol_guidance": 2,
       "protocol_specification": 4,
       "vendor_architecture_guidance": 1
     },
-    "source_reference_count": 29,
+    "source_reference_count": 30,
     "top_signals": [
       {
         "id": "agent-protocol-handoff-boundaries",
@@ -1641,7 +1656,8 @@
         "csa-agentic-identity-2025",
         "mcp-security-best-practices-2026-07-28",
         "nist-agentic-identity-design-tenets-2026",
-        "cisa-careful-adoption-agentic-ai-2026"
+        "cisa-careful-adoption-agentic-ai-2026",
+        "owasp-securing-agentic-apps-v2-2026"
       ],
       "sources": [
         {
@@ -1699,6 +1715,14 @@
           "publisher": "CISA, ASD's ACSC, NSA, Canadian Cyber Centre, NCSC-NZ, NCSC-UK",
           "source_class": "government_guidance",
           "url": "https://www.cisa.gov/resources-tools/resources/careful-adoption-agentic-si-services"
+        },
+        {
+          "id": "owasp-securing-agentic-apps-v2-2026",
+          "name": "Securing Agentic Applications V2: A Builder & Defender's Guide",
+          "published": "2026-11-10",
+          "publisher": "OWASP GenAI Security Project",
+          "source_class": "industry_standard",
+          "url": "https://genai.owasp.org/resource/securing-agentic-applications-v2/"
         }
       ],
       "strategic_score": 93,
@@ -2030,6 +2054,143 @@
       "trend": "Agents rely on large context windows, vector stores, persistent memory, workflow evidence, and MCP-returned data. The value is high, but so is the risk of stale, poisoned, excessive, or cross-tenant context."
     },
     {
+      "buyer_trigger": "The buyer is moving from an agentic Top 10 checklist to production single-agent or multi-agent systems that need inspectable runtime control.",
+      "capabilities": [
+        {
+          "buyer_value": "Enforces default-deny tool access, approval holds, scoped branch writes, and runtime kill decisions.",
+          "evidence_paths": [
+            "data/policy/mcp-gateway-policy.json"
+          ],
+          "id": "mcp-gateway-policy",
+          "mcp_tools": [
+            "recipes_mcp_gateway_policy"
+          ],
+          "status": "implemented",
+          "title": "MCP Gateway Policy Pack"
+        },
+        {
+          "buyer_value": "Defines non-human identity contracts, delegated authority, explicit denies, owner links, token rules, and revocation expectations.",
+          "evidence_paths": [
+            "data/evidence/agent-identity-delegation-ledger.json"
+          ],
+          "id": "agent-identity-ledger",
+          "mcp_tools": [
+            "recipes_agent_identity_ledger"
+          ],
+          "status": "implemented",
+          "title": "Agent Identity and Delegation Ledger"
+        },
+        {
+          "buyer_value": "Inventories MCP namespaces, owners, trust tiers, controls, promotion criteria, and kill signals.",
+          "evidence_paths": [
+            "data/mcp/connector-trust-registry.json",
+            "data/evidence/mcp-connector-trust-pack.json"
+          ],
+          "id": "mcp-connector-trust-pack",
+          "mcp_tools": [
+            "recipes_mcp_connector_trust_pack"
+          ],
+          "status": "implemented",
+          "title": "MCP Connector Trust Pack"
+        },
+        {
+          "buyer_value": "Turns agentic risks into repeatable adversarial drills with expected decisions and evidence requirements.",
+          "evidence_paths": [
+            "data/assurance/agentic-red-team-scenario-map.json",
+            "data/evidence/agentic-red-team-drill-pack.json"
+          ],
+          "id": "agentic-red-team-drill-pack",
+          "mcp_tools": [
+            "recipes_agentic_red_team_drill_pack"
+          ],
+          "status": "implemented",
+          "title": "Agentic Red-Team Drill Pack"
+        },
+        {
+          "buyer_value": "Packages controls, workflow evidence, standards mapping, and adoption story for AI platform and GRC review.",
+          "evidence_paths": [
+            "data/assurance/agentic-assurance-control-map.json",
+            "data/evidence/agentic-assurance-pack.json"
+          ],
+          "id": "agentic-assurance-pack",
+          "mcp_tools": [
+            "recipes_agentic_assurance_pack"
+          ],
+          "status": "implemented",
+          "title": "Agentic Assurance Pack"
+        }
+      ],
+      "confidence": "high",
+      "control_objectives": [
+        "Treat runtime protection, identity and access, supply-chain security, and assurance testing as required lifecycle controls for both single-agent and multi-agent deployments.",
+        "Enforce declarative safety policy through inspectable runtime control points rather than prompt-only guidance.",
+        "Keep access decisions deterministic and architecturally separate from the reasoning model.",
+        "Replay assurance tests when architecture, tools, identity, or runtime protection changes."
+      ],
+      "enterprise_risk": "A team can inventory ASI risks and still fail at execution time if identity and access checks, runtime protection, supply-chain controls, and assurance testing are not wired into the agent loop. Black-box single-agent or multi-agent runs then misuse approved tools, inherit parent scope, or skip inspectable control points while still looking policy-compliant on paper.",
+      "horizon": "now",
+      "id": "runtime-protection-lifecycle-controls",
+      "mapped_capability_ids": [
+        "mcp-gateway-policy",
+        "agent-identity-ledger",
+        "mcp-connector-trust-pack",
+        "agentic-red-team-drill-pack",
+        "agentic-assurance-pack"
+      ],
+      "priority": "high",
+      "roadmap_action": "Productize hosted runtime-protection evidence that proves gateway policy, identity, connector trust, and red-team replay are bound before an agent loop is trusted.",
+      "scores": {
+        "defensibility": 4,
+        "ease_of_adoption": 4,
+        "enterprise_control_value": 5,
+        "market_urgency": 5,
+        "mcp_monetization_fit": 5
+      },
+      "source_ids": [
+        "owasp-securing-agentic-apps-v2-2026",
+        "owasp-agent-control-standard-2026",
+        "nist-agentic-identity-design-tenets-2026",
+        "owasp-agentic-top-10-2026"
+      ],
+      "sources": [
+        {
+          "id": "owasp-securing-agentic-apps-v2-2026",
+          "name": "Securing Agentic Applications V2: A Builder & Defender's Guide",
+          "published": "2026-11-10",
+          "publisher": "OWASP GenAI Security Project",
+          "source_class": "industry_standard",
+          "url": "https://genai.owasp.org/resource/securing-agentic-applications-v2/"
+        },
+        {
+          "id": "owasp-agent-control-standard-2026",
+          "name": "Agent Control Standard (ACS)",
+          "published": "2026-09-01",
+          "publisher": "OWASP GenAI Security Project",
+          "source_class": "industry_standard",
+          "url": "https://genai.owasp.org/resource/agent-control-standard-acs/"
+        },
+        {
+          "id": "nist-agentic-identity-design-tenets-2026",
+          "name": "Design Tenets for Agent Identity Management Systems",
+          "published": "2026-10-27",
+          "publisher": "NIST",
+          "source_class": "government_security_signal",
+          "url": "https://www.nist.gov/blogs/cybersecurity-insights/design-tenets-agent-identity-management-systems"
+        },
+        {
+          "id": "owasp-agentic-top-10-2026",
+          "name": "OWASP Top 10 for Agentic Applications",
+          "published": "2025-12-09",
+          "publisher": "OWASP GenAI Security Project",
+          "source_class": "industry_standard",
+          "url": "https://genai.owasp.org/2025/12/09/owasp-genai-security-project-releases-top-10-risks-and-mitigations-for-agentic-ai-security/"
+        }
+      ],
+      "strategic_score": 90,
+      "title": "Runtime protection is now a builder-and-defender lifecycle control, not a post-deployment policy memo",
+      "trend": "OWASP's November 10, 2026 Securing Agentic Applications V2 guide is a builder-and-defender companion to the agentic risk catalogs: it treats secure architectures, identity and access controls, runtime protection, supply-chain security, and assurance testing as lifecycle controls for both single-agent and multi-agent systems. ACS already requires agent platforms to expose middleware hooks so declarative safety policies can be enforced at runtime. NIST's October 27, 2026 design tenets require architectural separation of policy from reasoning and deterministic access decisions, so a prompt or plan change cannot be the thing that grants authority."
+    },
+    {
       "buyer_trigger": "The buyer's developers are installing local MCP servers faster than security can review them.",
       "capabilities": [
         {
@@ -2129,7 +2290,8 @@
         "owasp-agentic-top-10-2026",
         "csa-mcp-resource-center-2025",
         "mcp-security-best-practices-2026-07-28",
-        "owasp-genai-exploit-roundup-q3-2026"
+        "owasp-genai-exploit-roundup-q3-2026",
+        "owasp-securing-agentic-apps-v2-2026"
       ],
       "sources": [
         {
@@ -2171,6 +2333,14 @@
           "publisher": "OWASP GenAI Security Project",
           "source_class": "industry_guidance",
           "url": "https://genai.owasp.org/2026/10/08/genai-and-agentic-ai-exploit-roundup-q3-2026/"
+        },
+        {
+          "id": "owasp-securing-agentic-apps-v2-2026",
+          "name": "Securing Agentic Applications V2: A Builder & Defender's Guide",
+          "published": "2026-11-10",
+          "publisher": "OWASP GenAI Security Project",
+          "source_class": "industry_standard",
+          "url": "https://genai.owasp.org/resource/securing-agentic-applications-v2/"
         }
       ],
       "strategic_score": 90,
@@ -2762,7 +2932,8 @@
         "openai-agent-safety-2026",
         "microsoft-indirect-prompt-injection-2026",
         "owasp-agentic-top-10-2026",
-        "nist-ai-rmf-2026-critical-infrastructure"
+        "nist-ai-rmf-2026-critical-infrastructure",
+        "owasp-securing-agentic-apps-v2-2026"
       ],
       "sources": [
         {
@@ -2796,6 +2967,14 @@
           "publisher": "NIST",
           "source_class": "government_framework",
           "url": "https://www.nist.gov/itl/ai-risk-management-framework"
+        },
+        {
+          "id": "owasp-securing-agentic-apps-v2-2026",
+          "name": "Securing Agentic Applications V2: A Builder & Defender's Guide",
+          "published": "2026-11-10",
+          "publisher": "OWASP GenAI Security Project",
+          "source_class": "industry_standard",
+          "url": "https://genai.owasp.org/resource/securing-agentic-applications-v2/"
         }
       ],
       "strategic_score": 83,
