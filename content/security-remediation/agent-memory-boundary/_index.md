@@ -3,7 +3,7 @@ title: Agent Memory Boundary
 linkTitle: Agent Memory Boundary
 weight: 13
 date: 2026-05-02
-lastmod: 2026-08-21
+lastmod: 2026-11-25
 toc: true
 description: >
   Define memory classes, TTLs, provenance, rollback, and prohibited persistence
@@ -19,6 +19,8 @@ If an agent can remember something across runs, that memory needs the
 same ownership, provenance, poisoning, egress, and deletion controls as
 any other context source.
 {{< /callout >}}
+
+Rechecked source anchors against [OWASP Top 10 for LLM Applications 2026](https://genai.owasp.org/resource/owasp-genai-llm-top-10-2026/) and the canonical [LLM09:2026 Vector and Embedding Weaknesses](https://github.com/GenAI-Security-Project/GenAI-LLM-Top10/blob/main/2026/final/LLM09_VectorAndEmbeddingWeaknesses.md) entry on November 25, 2026. MCP `latest` still redirects to [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28). Tenant scoping must happen inside the index query, not as a post-retrieval filter. Mixed-trust content must not share an index without hard isolation. Raw similarity scores are membership oracles. Embeddings that outlive their sources remain source-document leaks. A production-looking `vector-embedding-memory` read that only presents a tenant ID is denied. This change does not claim human review of the pack; `lastmod` and the source `last_reviewed` date record this editorial pass.
 
 ## The product bet
 
@@ -74,6 +76,19 @@ python3 scripts/evaluate_agent_memory_boundary_decision.py \
   --expect-decision allow_append_only_evidence_memory
 ```
 
+A vector-index read that only presents a tenant ID is denied. In-index
+tenant scoping, trust-tier isolation, withheld raw scores, and
+source-reconciled embeddings are required before admission review:
+
+```bash
+python3 scripts/evaluate_agent_memory_boundary_decision.py \
+  --workflow-id vulnerable-dependency-remediation \
+  --memory-class-id vector-embedding-memory \
+  --operation read \
+  --tenant-id tenant-123 \
+  --expect-decision deny_cross_tenant_memory
+```
+
 ## Memory classes
 
 | Class | Default decision | Purpose |
@@ -83,7 +98,7 @@ python3 scripts/evaluate_agent_memory_boundary_decision.py \
 | `workflow-policy-memory` | `allow_readonly_policy_memory` | Source-controlled policy and evidence the agent can read but not mutate at runtime. |
 | `user-preference-memory` | `hold_for_tenant_memory_boundary` | Tenant-visible preferences that need consent, deletion, and approval for sensitive writes. |
 | `customer-runtime-memory` | `hold_for_tenant_memory_boundary` | Findings, tickets, repository summaries, scanner summaries, and redacted logs that stay tenant-side. |
-| `vector-embedding-memory` | `hold_for_memory_admission_review` | Retrieval indexes that require source hashes, poisoning scans, redaction, and reindex rules. |
+| `vector-embedding-memory` | `hold_for_memory_admission_review` | Retrieval indexes that require in-index tenant scoping, trust-tier isolation, withheld raw similarity scores, source-reconciled embeddings, source hashes, poisoning scans, redaction, and reindex rules. |
 | `prohibited-memory` | `kill_session_on_prohibited_memory` | Secrets, raw tokens, signing material, unrestricted PII, approval-bypass instructions, and scope-escalation instructions. |
 
 The default is deliberately conservative: any unknown memory class holds
@@ -148,6 +163,10 @@ This feature follows current guidance:
 - [OWASP Top 10 for Agentic Applications 2026](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/)
   for autonomous agent risks across planning, tools, identity, memory,
   cascading failures, trust exploitation, and rogue-agent behavior.
+- [OWASP Top 10 for LLM Applications 2026](https://genai.owasp.org/resource/owasp-genai-llm-top-10-2026/)
+  and [LLM09:2026 Vector and Embedding Weaknesses](https://github.com/GenAI-Security-Project/GenAI-LLM-Top10/blob/main/2026/final/LLM09_VectorAndEmbeddingWeaknesses.md)
+  for in-index tenant scoping, mixed-trust isolation, withheld raw
+  similarity scores, and embedding lifecycle reconciliation.
 - [OWASP Agent Memory Guard](https://owasp.org/www-project-agent-memory-guard/)
   for memory poisoning, cryptographic baselines, declarative memory
   policies, snapshots, and rollback.
