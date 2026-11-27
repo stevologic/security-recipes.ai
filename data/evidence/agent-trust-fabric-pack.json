@@ -23,12 +23,12 @@
     "why_it_is_differentiated": "Most agent guidance stops at controls. The trust fabric composes generated evidence into an allow, hold, deny, or kill decision that agents and auditors can consume."
   },
   "failures": [],
-  "generated_at": "2026-11-12",
+  "generated_at": "2026-11-27",
   "positioning": {
     "buyer": "AI platform, product security, CISO, GRC, model-risk, SOC, procurement-security, and acquisition diligence teams",
     "category": "Agentic AI zero-trust decision fabric",
     "enterprise_promise": "SecurityRecipes can answer the board-level question 'which agents can we trust right now?' with generated evidence, source hashes, runtime decisions, and MCP tools instead of narrative policy.",
-    "why_now": "2026 agent deployments are moving from pilots to autonomous action. NIST's October 27, 2026 design tenets, drawn from NCCoE comments and stakeholder engagement, require cryptographically verifiable identities distinct from humans and service accounts, attenuated sub-agent delegation, zero standing privilege, short-lived audience-specific grants, signed mandate statements, architectural separation of policy from reasoning, deterministic access decisions, consent-fatigue-aware HITL thresholds, continuous monitoring, and independent append-only evidence. Unique short-lived sender-constrained credentials are necessary but not sufficient when a sub-agent keeps parent-wide scope, idle agents retain standing privilege, the reasoning model grants access, or the agent can write its own logs."
+    "why_now": "2026 agent deployments are moving from pilots to autonomous action. OWASP's November 10, 2026 Securing Agentic Applications V2 treats model output as untrusted input to deterministic orchestration and says a guardrail that cannot observe a tool call before execution is documentation, not a defense; hooks must fail closed. ACS requires the Observed Agent to pause, send a signed hook to a Guardian, and honor allow, deny, modify, ask, or defer before the action executes. NIST's October 27, 2026 design tenets, drawn from NCCoE comments and stakeholder engagement, require cryptographically verifiable identities distinct from humans and service accounts, attenuated sub-agent delegation, zero standing privilege, short-lived audience-specific grants, signed mandate statements, architectural separation of policy from reasoning, deterministic access decisions, consent-fatigue-aware HITL thresholds, continuous monitoring, and independent append-only evidence. Unique short-lived sender-constrained credentials and a policy pack hash are necessary but not sufficient when a sub-agent keeps parent-wide scope, idle agents retain standing privilege, the reasoning model grants access, runtime hooks only observe or fire after execution, or the agent can write its own logs."
   },
   "runtime_policy": {
     "decision_order": [
@@ -47,7 +47,8 @@
       "agent authenticates with an unconstrained bearer token instead of a sender-constrained credential bound to its identity anchor",
       "sub-agent or downstream grant claims more authority than the parent",
       "agent retains standing privilege while idle instead of a just-in-time task-scoped grant",
-      "access grant is determined by the reasoning model instead of a separated deterministic policy engine"
+      "access grant is determined by the reasoning model instead of a separated deterministic policy engine",
+      "runtime guardrail evidence is observe-only, post-execution, fail-open, documentation-only, or model-side instead of a pre-execution hook"
     ],
     "kill_when": [
       "token passthrough is observed",
@@ -84,7 +85,7 @@
       "failure_count": 0,
       "path": "data/evidence/agentic-action-runtime-pack.json",
       "schema_version": "1.0",
-      "sha256": "d0dcba369458c656888f28012b81a445da60caf26ee38ff1dfcfdd777e872329",
+      "sha256": "287a11ac416959d82bc2ab481e325d0001f00f545df63dbff7271a49175ba0e5",
       "summary_keys": [
         "action_runtime_summary"
       ]
@@ -93,7 +94,7 @@
       "failure_count": 0,
       "path": "data/evidence/agentic-entitlement-review-pack.json",
       "schema_version": "1.0",
-      "sha256": "24275c6cd1da3fd2d0d093ff3921018ae51dfc664026b39579aa18da88b65de2",
+      "sha256": "b46032dce1c5e08d35c9ff69195156f60e1794c864ff1e9128243fdf26c388ce",
       "summary_keys": [
         "entitlement_review_summary"
       ]
@@ -102,7 +103,7 @@
       "failure_count": 0,
       "path": "data/evidence/agentic-run-receipt-pack.json",
       "schema_version": "1.0",
-      "sha256": "b00aec323baeb30e35da756d9ac820b942884ba8b93dc2418f263ff166d61e89",
+      "sha256": "75009fbb33262999d3063f78d34b6bebe543a8192ce9452f9cef2ca56368611c",
       "summary_keys": [
         "receipt_summary"
       ]
@@ -111,7 +112,7 @@
       "failure_count": 0,
       "path": "data/evidence/agentic-soc-detection-pack.json",
       "schema_version": "1.0",
-      "sha256": "95371f0e153e8690fcd9181a79281305386f88ff22da91b2ef555c1b172a3d56",
+      "sha256": "5d6cff39ee259ab3109df4afb4691604405bcc8ab1d7d6073ce79e09b771a246",
       "summary_keys": [
         "detection_summary"
       ]
@@ -120,7 +121,7 @@
       "failure_count": 0,
       "path": "data/evidence/agentic-source-freshness-watch.json",
       "schema_version": "1.0",
-      "sha256": "3695dc6324efe5fc324fdb6581f0855509f31347f9c3a669c4ace3f04f11acde",
+      "sha256": "572e713384cba892cdb81bcd1ddddccab371e3f196d3b3c964d3d70cdb2fc39f",
       "summary_keys": [
         "freshness_summary"
       ]
@@ -129,7 +130,7 @@
       "failure_count": 0,
       "path": "data/evidence/agentic-telemetry-contract.json",
       "schema_version": "1.0",
-      "sha256": "d12296efe5ec28760246c9d9d13eb57da7c39f3b9746dc461adcfb16110a948d",
+      "sha256": "b46c5627baad755b124a409197efa69b6f0a40f593f6b7bf09f3d534451632ac",
       "summary_keys": [
         "telemetry_summary"
       ]
@@ -138,7 +139,7 @@
       "failure_count": 0,
       "path": "data/evidence/context-egress-boundary-pack.json",
       "schema_version": "1.0",
-      "sha256": "d1bebd522186a4152135be14c4cd2f31203bee3360fa2f7b291a8b9569700015",
+      "sha256": "3b0c2a531ef40266405ac9a820f85676389f0e3c06766b1817b448d383258fea",
       "summary_keys": [
         "egress_boundary_summary"
       ]
@@ -147,7 +148,7 @@
       "failure_count": 0,
       "path": "data/evidence/context-poisoning-guard-pack.json",
       "schema_version": "1.0",
-      "sha256": "32b1c71d36d39b9d255a5bc4a7b787689e76e42d981bbcf6283ea3c0475f0c8a",
+      "sha256": "2f48e0c366ccfb21ea7f924b70fa307ac6c0a85b5d4ac67b4d9f38891216c8b7",
       "summary_keys": [
         "guard_summary"
       ]
@@ -156,7 +157,7 @@
       "failure_count": 0,
       "path": "data/evidence/enterprise-trust-center-export.json",
       "schema_version": "1.0",
-      "sha256": "9cb45b7069b7760fe0186bbdb4f45239ac26b8cfb8787d99b3174ff572dd1e67",
+      "sha256": "ba28476f0bddeec19c29dd217970f5bdb7d37b5f02cee20197dfc9494073cd54",
       "summary_keys": [
         "export_summary"
       ]
@@ -165,7 +166,7 @@
       "failure_count": 0,
       "path": "data/evidence/hosted-mcp-readiness-pack.json",
       "schema_version": "1.0",
-      "sha256": "cdc56c6a43da5e37590224bce03288a1a7a7895042f68e9f71dc151095e919bc",
+      "sha256": "934c3e1d9d66f6cedf72d0142d283b02a591ce75e4e41f86919f8c1d24903814",
       "summary_keys": [
         "hosted_mcp_readiness_summary"
       ]
@@ -183,7 +184,7 @@
       "failure_count": 0,
       "path": "data/evidence/secure-context-trust-pack.json",
       "schema_version": "1.0",
-      "sha256": "33c8358ebc1ea80f31749d8107bdf346532309d75038be4f10798e7027d0fa02",
+      "sha256": "995e359196d36c98ae55341d1e2a486fe8797f0e7c7eb3a8b30eb267fbf87d3f",
       "summary_keys": [
         "context_trust_summary"
       ]
@@ -315,6 +316,24 @@
       "why_it_matters": "OWASP's agentic risk catalog (goal hijack, tool misuse, identity and privilege abuse, agentic supply chain, unexpected code execution, memory and context poisoning, rogue agents) names the failure modes each trust-fabric dimension must hold or kill."
     },
     {
+      "id": "owasp-securing-agentic-apps-v2-2026",
+      "name": "Securing Agentic Applications V2: A Builder & Defender's Guide",
+      "published": "2026-11-10",
+      "publisher": "OWASP GenAI Security Project",
+      "source_class": "industry_standard",
+      "url": "https://genai.owasp.org/resource/securing-agentic-applications-v2/",
+      "why_it_matters": "OWASP's November 10, 2026 V2 guide says a hook must observe an action and return a disposition before the action takes effect. A guardrail that cannot observe a tool call before execution is documentation, not a defense, and hooks must fail closed on error, timeout, or unreachable enforcement."
+    },
+    {
+      "id": "owasp-agent-control-standard-2026",
+      "name": "Agent Control Standard (ACS)",
+      "published": "2026-09-01",
+      "publisher": "OWASP GenAI Security Project",
+      "source_class": "industry_standard",
+      "url": "https://genai.owasp.org/resource/agent-control-standard-acs/",
+      "why_it_matters": "ACS defines middleware hooks so a Guardian can permit, deny, modify, ask, or defer actions in real time. The Observed Agent must pause, send a signed hook, and honor the disposition before tool execution; unhooked or observe-only callbacks bypass that control plane."
+    },
+    {
       "id": "cisa-careful-adoption-agentic-ai-2026",
       "name": "Careful Adoption of Agentic AI Services",
       "published": "2026-05-01",
@@ -395,6 +414,11 @@
       "expected_decision": "deny_untrusted_agent",
       "id": "standing-privilege-or-model-driven-access",
       "trigger": "An idle agent retains standing privilege, or the reasoning model grants access instead of a separated deterministic policy engine."
+    },
+    {
+      "expected_decision": "deny_untrusted_agent",
+      "id": "observe-only-or-post-execution-guardrail",
+      "trigger": "A production-looking run presents a policy pack hash plus observe-only, post-execution, fail-open, or model-side guardrail evidence instead of a pre-execution toolCallRequest hook."
     },
     {
       "expected_decision": "kill_session_on_agent_trust_break",
@@ -577,6 +601,9 @@
         "guardrail_gap",
         "behavior_anomaly",
         "model_driven_access_grant",
+        "observe_only_guardrail",
+        "post_execution_only_guardrail",
+        "fail_open_hook",
         "agent_writable_evidence"
       ],
       "id": "behavior",
@@ -585,7 +612,7 @@
         "recipes_agentic_soc_detection_pack",
         "recipes_agentic_run_receipt_pack"
       ],
-      "question": "What is the agent doing in real time and does it match its declared intent?",
+      "question": "What is the agent doing in real time, does it match its declared intent, and do runtime hooks intercept tool calls before execution rather than observing or logging after the fact?",
       "required_evidence": [
         "agentic_telemetry_contract",
         "agentic_soc_detection_pack",

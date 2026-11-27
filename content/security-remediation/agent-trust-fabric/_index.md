@@ -3,7 +3,7 @@ title: Agent Trust Fabric
 linkTitle: Agent Trust Fabric
 weight: 16
 date: 2026-05-05
-lastmod: 2026-11-12
+lastmod: 2026-11-27
 sidebar:
   exclude: true
 description: >
@@ -20,7 +20,7 @@ this agent run is trusted, needs step-up, is untrusted, or must be
 killed.
 {{< /callout >}}
 
-Rechecked source anchors on November 12, 2026 against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28), the current [security best practices](https://modelcontextprotocol.io/docs/2026-07-28/tutorials/security/security_best_practices), NIST's [August 27, 2026 agent identity guidance](https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation), NIST NCCoE's [September 29, 2026 comments summary](https://pages.nist.gov/nccoe-ai-identity/summary-of-comments.html) on software and agentic AI identity and authorization, and NIST's [October 27, 2026 design tenets for agent identity management systems](https://www.nist.gov/blogs/cybersecurity-insights/design-tenets-agent-identity-management-systems). MCP `latest` still redirects to 2026-07-28. The 2026-07-28 security guidance replaces session-hijacking assumptions with state-handle binding, forbids token passthrough, and treats OAuth metadata fetches as SSRF-sensitive. NCCoE, drawing on more than 600 comments, says sender-constrained credentials (OAuth DPoP or mTLS using SPIFFE or WIMSE identities) are essential to reduce bearer-token replay. NIST's ten design tenets, drawn from those comments and stakeholder engagement, add attenuated sub-agent delegation, zero standing privilege, signed mandate statements, architectural separation of policy from reasoning, deterministic access decisions, consent-fatigue-aware HITL thresholds, and independent append-only evidence. Unique short-lived sender-constrained credentials are necessary but not sufficient. This editorial pass does not claim human review of the pack.
+Rechecked source anchors on November 27, 2026 against [Securing Agentic Applications V2](https://genai.owasp.org/resource/securing-agentic-applications-v2/), the [Agent Control Standard (ACS)](https://genai.owasp.org/resource/agent-control-standard-acs/), the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28), the current [security best practices](https://modelcontextprotocol.io/docs/2026-07-28/tutorials/security/security_best_practices), NIST's [August 27, 2026 agent identity guidance](https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation), NIST NCCoE's [September 29, 2026 comments summary](https://pages.nist.gov/nccoe-ai-identity/summary-of-comments.html) on software and agentic AI identity and authorization, and NIST's [October 27, 2026 design tenets for agent identity management systems](https://www.nist.gov/blogs/cybersecurity-insights/design-tenets-agent-identity-management-systems). The V2 resource page returns HTTP 200 (published November 10, 2026). ACS remains live. MCP `latest` still redirects to 2026-07-28. V2 says a hook must return a disposition before the action takes effect; a guardrail that cannot observe a tool call before execution is documentation, not a defense, and hooks must fail closed. ACS requires the Observed Agent to pause, send a signed hook to a Guardian, and honor allow, deny, modify, ask, or defer before tool execution. A `policy_pack_hash` without a pre-execution hook is not enforcement. Unique short-lived sender-constrained credentials remain necessary but not sufficient. This editorial pass does not claim human review of the pack.
 
 ## The product bet
 
@@ -40,8 +40,9 @@ The **Agent Trust Fabric** composes six dimensions into that answer:
    fresh, and whether poisoning signals were found.
 3. **Scope** - where the agent can go and which action class is being
    attempted.
-4. **Behavior** - what the agent is doing in real time and whether
-   telemetry can reconstruct the run.
+4. **Behavior** - what the agent is doing in real time, whether
+   telemetry can reconstruct the run, and whether runtime hooks
+   intercept tool calls before execution.
 5. **Data boundary** - what the agent is sending or serving outside the
    trust boundary.
 6. **Containment** - whether kill switches, SOC detections, and hosted
@@ -292,6 +293,35 @@ python3 scripts/evaluate_agent_trust_fabric_decision.py \
   --expect-decision deny_untrusted_agent
 ```
 
+Evaluate an observe-only guardrail:
+
+```bash
+python3 scripts/evaluate_agent_trust_fabric_decision.py \
+  --workflow-id vulnerable-dependency-remediation \
+  --run-id run-observe-only-hook \
+  --agent-id sr-agent::vulnerable-dependency-remediation::codex \
+  --identity-id sr-agent::vulnerable-dependency-remediation::codex \
+  --tenant-id tenant-demo \
+  --correlation-id corr-observe-only \
+  --trust-event-id trust-evt-10 \
+  --requested-trust-tier operator \
+  --intent-summary "Patch dependency lockfiles on a scoped remediation branch" \
+  --context-package-hash sha256:context \
+  --policy-pack-hash sha256:policy \
+  --authorization-decision allow_authorized_mcp_request \
+  --egress-decision allow_internal_context \
+  --action-runtime-decision allow_bounded_action \
+  --telemetry-decision telemetry_ready \
+  --soc-decision no_alert \
+  --telemetry-event-id trace-10 \
+  --receipt-id receipt-10 \
+  --source-freshness-decision current \
+  --approval-id approval-10 \
+  --approval-status approved \
+  --runtime-hook-mode observe_only \
+  --expect-decision deny_untrusted_agent
+```
+
 Evaluate agent-writable evidence:
 
 ```bash
@@ -443,6 +473,13 @@ The pack is anchored in current primary guidance:
   for goal hijack, tool misuse, identity and privilege abuse, agentic
   supply chain, unexpected code execution, memory and context
   poisoning, and rogue agents.
+- [OWASP Securing Agentic Applications V2](https://genai.owasp.org/resource/securing-agentic-applications-v2/)
+  for pre-execution runtime hooks, fail-closed dispositions, and the
+  rule that observe-only or post-execution guardrails are not a
+  defense.
+- [OWASP Agent Control Standard (ACS)](https://genai.owasp.org/resource/agent-control-standard-acs/)
+  for middleware hooks so a Guardian can permit, deny, modify, ask, or
+  defer an action before the Observed Agent executes it.
 - [CISA Careful Adoption of Agentic AI Services](https://www.cisa.gov/resources-tools/resources/careful-adoption-agentic-si-services)
   for expanded attack surface, privilege creep, behavioral
   misalignment, and obscure event records.

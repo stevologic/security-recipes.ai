@@ -1,12 +1,12 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-11-12",
+  "last_reviewed": "2026-11-27",
   "intent": "Create an enterprise Agent Trust Fabric profile for SecurityRecipes that turns identity, behavior, context, least-privilege scope, telemetry, containment, source freshness, and buyer proof into one deterministic trust verdict before an agent retrieves secure context, invokes MCP tools, delegates, writes memory, or performs high-impact actions.",
   "positioning": {
     "buyer": "AI platform, product security, CISO, GRC, model-risk, SOC, procurement-security, and acquisition diligence teams",
     "category": "Agentic AI zero-trust decision fabric",
     "enterprise_promise": "SecurityRecipes can answer the board-level question 'which agents can we trust right now?' with generated evidence, source hashes, runtime decisions, and MCP tools instead of narrative policy.",
-    "why_now": "2026 agent deployments are moving from pilots to autonomous action. NIST's October 27, 2026 design tenets, drawn from NCCoE comments and stakeholder engagement, require cryptographically verifiable identities distinct from humans and service accounts, attenuated sub-agent delegation, zero standing privilege, short-lived audience-specific grants, signed mandate statements, architectural separation of policy from reasoning, deterministic access decisions, consent-fatigue-aware HITL thresholds, continuous monitoring, and independent append-only evidence. Unique short-lived sender-constrained credentials are necessary but not sufficient when a sub-agent keeps parent-wide scope, idle agents retain standing privilege, the reasoning model grants access, or the agent can write its own logs."
+    "why_now": "2026 agent deployments are moving from pilots to autonomous action. OWASP's November 10, 2026 Securing Agentic Applications V2 treats model output as untrusted input to deterministic orchestration and says a guardrail that cannot observe a tool call before execution is documentation, not a defense; hooks must fail closed. ACS requires the Observed Agent to pause, send a signed hook to a Guardian, and honor allow, deny, modify, ask, or defer before the action executes. NIST's October 27, 2026 design tenets, drawn from NCCoE comments and stakeholder engagement, require cryptographically verifiable identities distinct from humans and service accounts, attenuated sub-agent delegation, zero standing privilege, short-lived audience-specific grants, signed mandate statements, architectural separation of policy from reasoning, deterministic access decisions, consent-fatigue-aware HITL thresholds, continuous monitoring, and independent append-only evidence. Unique short-lived sender-constrained credentials and a policy pack hash are necessary but not sufficient when a sub-agent keeps parent-wide scope, idle agents retain standing privilege, the reasoning model grants access, runtime hooks only observe or fire after execution, or the agent can write its own logs."
   },
   "source_references": [
     {
@@ -125,6 +125,24 @@
       "url": "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/",
       "source_class": "industry_risk_catalog",
       "why_it_matters": "OWASP's agentic risk catalog (goal hijack, tool misuse, identity and privilege abuse, agentic supply chain, unexpected code execution, memory and context poisoning, rogue agents) names the failure modes each trust-fabric dimension must hold or kill."
+    },
+    {
+      "id": "owasp-securing-agentic-apps-v2-2026",
+      "name": "Securing Agentic Applications V2: A Builder & Defender's Guide",
+      "publisher": "OWASP GenAI Security Project",
+      "published": "2026-11-10",
+      "url": "https://genai.owasp.org/resource/securing-agentic-applications-v2/",
+      "source_class": "industry_standard",
+      "why_it_matters": "OWASP's November 10, 2026 V2 guide says a hook must observe an action and return a disposition before the action takes effect. A guardrail that cannot observe a tool call before execution is documentation, not a defense, and hooks must fail closed on error, timeout, or unreachable enforcement."
+    },
+    {
+      "id": "owasp-agent-control-standard-2026",
+      "name": "Agent Control Standard (ACS)",
+      "publisher": "OWASP GenAI Security Project",
+      "published": "2026-09-01",
+      "url": "https://genai.owasp.org/resource/agent-control-standard-acs/",
+      "source_class": "industry_standard",
+      "why_it_matters": "ACS defines middleware hooks so a Guardian can permit, deny, modify, ask, or defer actions in real time. The Observed Agent must pause, send a signed hook, and honor the disposition before tool execution; unhooked or observe-only callbacks bypass that control plane."
     },
     {
       "id": "cisa-careful-adoption-agentic-ai-2026",
@@ -313,7 +331,7 @@
       "id": "behavior",
       "title": "Runtime Behavior Monitoring",
       "weight": 16,
-      "question": "What is the agent doing in real time and does it match its declared intent?",
+      "question": "What is the agent doing in real time, does it match its declared intent, and do runtime hooks intercept tool calls before execution rather than observing or logging after the fact?",
       "required_evidence": [
         "agentic_telemetry_contract",
         "agentic_soc_detection_pack",
@@ -331,6 +349,9 @@
         "guardrail_gap",
         "behavior_anomaly",
         "model_driven_access_grant",
+        "observe_only_guardrail",
+        "post_execution_only_guardrail",
+        "fail_open_hook",
         "agent_writable_evidence"
       ]
     },
@@ -453,7 +474,8 @@
       "agent authenticates with an unconstrained bearer token instead of a sender-constrained credential bound to its identity anchor",
       "sub-agent or downstream grant claims more authority than the parent",
       "agent retains standing privilege while idle instead of a just-in-time task-scoped grant",
-      "access grant is determined by the reasoning model instead of a separated deterministic policy engine"
+      "access grant is determined by the reasoning model instead of a separated deterministic policy engine",
+      "runtime guardrail evidence is observe-only, post-execution, fail-open, documentation-only, or model-side instead of a pre-execution hook"
     ],
     "kill_when": [
       "token passthrough is observed",

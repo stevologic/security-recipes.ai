@@ -151,6 +151,54 @@ class AgentTrustFabricIdentityTests(unittest.TestCase):
         )
         self.assertEqual(result["decision"], "kill_session_on_agent_trust_break")
 
+    def test_observe_only_guardrail_is_denied(self) -> None:
+        result = evaluate_agent_trust_fabric_decision(
+            self.pack,
+            _trusted_request(runtime_hook_mode="observe_only"),
+        )
+        self.assertEqual(result["decision"], "deny_untrusted_agent")
+        self.assertFalse(result["allowed"])
+        self.assertTrue(
+            any("observe-only" in item or "pre-execution" in item for item in result["violations"])
+        )
+
+    def test_post_execution_guardrail_is_denied(self) -> None:
+        result = evaluate_agent_trust_fabric_decision(
+            self.pack,
+            _trusted_request(runtime_hook_mode="post_execution"),
+        )
+        self.assertEqual(result["decision"], "deny_untrusted_agent")
+        self.assertFalse(result["allowed"])
+
+    def test_fail_open_hook_is_denied(self) -> None:
+        result = evaluate_agent_trust_fabric_decision(
+            self.pack,
+            _trusted_request(runtime_hook_mode="fail_open"),
+        )
+        self.assertEqual(result["decision"], "deny_untrusted_agent")
+        self.assertFalse(result["allowed"])
+
+    def test_unknown_hook_mode_fails_closed(self) -> None:
+        result = evaluate_agent_trust_fabric_decision(
+            self.pack,
+            _trusted_request(runtime_hook_mode="langchain_callback"),
+        )
+        self.assertEqual(result["decision"], "deny_untrusted_agent")
+        self.assertFalse(result["allowed"])
+
+    def test_pre_execution_hook_remains_allowed(self) -> None:
+        result = evaluate_agent_trust_fabric_decision(
+            self.pack,
+            _trusted_request(runtime_hook_mode="tool_call_request"),
+        )
+        self.assertEqual(result["decision"], "allow_trusted_agent_context")
+        self.assertTrue(result["allowed"])
+
+    def test_unspecified_hook_mode_keeps_prior_allow_path(self) -> None:
+        result = evaluate_agent_trust_fabric_decision(self.pack, _trusted_request())
+        self.assertEqual(result["decision"], "allow_trusted_agent_context")
+        self.assertTrue(result["allowed"])
+
     def test_nist_identity_source_is_present(self) -> None:
         source_ids = {
             str(row.get("id"))
@@ -160,6 +208,8 @@ class AgentTrustFabricIdentityTests(unittest.TestCase):
         self.assertIn("nist-agentic-identity-foundation-2026", source_ids)
         self.assertIn("nist-nccoe-agentic-identity-comments-2026", source_ids)
         self.assertIn("nist-agentic-identity-design-tenets-2026", source_ids)
+        self.assertIn("owasp-securing-agentic-apps-v2-2026", source_ids)
+        self.assertIn("owasp-agent-control-standard-2026", source_ids)
 
 
 if __name__ == "__main__":
