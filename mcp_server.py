@@ -12748,6 +12748,13 @@ def run_mcp_server() -> None:
         port=_env_int("RECIPES_MCP_PORT", DEFAULT_PORT, 8000),
         path=_optional_env(DEFAULT_PATH) or default_path,
         log_level=log_level,
+        # Reverse proxies reach this process from a private network IP.
+        # uvicorn's default forwarded_allow_ips=127.0.0.1 would ignore
+        # X-Forwarded-Proto and emit http:// Location headers.
+        uvicorn_config={
+            "proxy_headers": True,
+            "forwarded_allow_ips": "*",
+        },
     )
 
 
