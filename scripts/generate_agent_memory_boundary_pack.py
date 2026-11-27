@@ -172,6 +172,14 @@ def validate_model(model: dict[str, Any]) -> list[str]:
             require("provenance_hash" in controls or bool(memory_class.get("provenance_hash_required")), failures, f"{class_id}: persistent memory must require provenance")
         if memory_class.get("tenant_id_required"):
             require("tenant_bound" in controls or "tenant_isolated" in controls, failures, f"{class_id}: tenant memory must declare tenant controls")
+        if class_id == "vector-embedding-memory":
+            for control in (
+                "tenant_scope_in_index_query",
+                "trust_tiers_isolated",
+                "raw_similarity_scores_withheld",
+                "source_embeddings_reconciled",
+            ):
+                require(control in controls, failures, f"{class_id}: must require {control}")
         if decision in ALLOW_DECISIONS:
             require("kill_session_on_prohibited_memory" != decision, failures, f"{class_id}: allow class cannot be prohibited")
         if decision == "kill_session_on_prohibited_memory":
@@ -392,6 +400,10 @@ def build_pack(
             {
                 "risk": "Tenant-specific memory policy is customer-specific.",
                 "treatment": "Customer memory stores must supply tenant IDs, retention, DLP, approval, and deletion evidence before persistence is allowed."
+            },
+            {
+                "risk": "A tenant_id on the request is not in-index tenant scoping.",
+                "treatment": "Vector indexes must enforce tenant filters inside the similarity query, isolate mixed-trust content, withhold raw scores, and delete embeddings when sources are deleted."
             }
         ],
         "schema_version": PACK_SCHEMA_VERSION,

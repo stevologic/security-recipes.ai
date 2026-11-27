@@ -1,12 +1,12 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-08-21",
-  "intent": "Define the SecurityRecipes agent memory boundary for enterprise agentic remediation: every persistent or replayable memory surface must have a declared class, owner, tenant boundary, TTL, write rule, provenance requirement, poisoning control, rollback expectation, and deterministic allow, hold, deny, or kill-session decision before an agent can store or reuse state across runs.",
+  "last_reviewed": "2026-11-25",
+  "intent": "Define the SecurityRecipes agent memory boundary for enterprise agentic remediation: every persistent or replayable memory surface must have a declared class, owner, tenant boundary, TTL, write rule, provenance requirement, poisoning control, rollback expectation, and deterministic allow, hold, deny, or kill-session decision before an agent can store or reuse state across runs. Vector and embedding memory must also prove in-index tenant scoping, trust-tier isolation, withheld raw similarity scores, and source-reconciled embeddings before a read or write is admitted.",
   "positioning": {
     "buyer": "AI Platform, Security Engineering, IAM, GRC, privacy, security operations, procurement security, vendor-risk, and acquisition diligence teams",
     "category": "Agent memory governance and persistent-state boundary for secure context",
     "enterprise_promise": "SecurityRecipes can tell an agent what it may remember, which memories must stay tenant-side, which runtime writes require review, which memory classes are append-only evidence, and which attempted memories must kill the session.",
-    "why_now": "Agentic AI is moving from stateless chat into persistent workflows with project memory, vector stores, scratchpads, run receipts, skills, and MCP-backed state. Memory poisoning, cross-tenant leakage, stale policy replay, and hidden persistence are now enterprise control-plane risks rather than prompt-writing problems."
+    "why_now": "Agentic AI is moving from stateless chat into persistent workflows with project memory, vector stores, scratchpads, run receipts, skills, and MCP-backed state. OWASP LLM Top 10 2026 ranks Vector and Embedding Weaknesses as LLM09: post-retrieval tenant filters, mixed-trust indexes, raw similarity scores, and embeddings that outlive their sources turn retrieval into a cross-tenant oracle or a source-document leak. Memory poisoning, cross-tenant leakage, stale policy replay, and hidden persistence are now enterprise control-plane risks rather than prompt-writing problems."
   },
   "standards_alignment": [
     {
@@ -26,12 +26,28 @@
       "coverage": "Runtime memory controls should use cryptographic baselines, declarative read/write policies, injection and leakage detection, snapshots, and rollback for persistent agent memory."
     },
     {
+      "id": "owasp-llm-top-10-2026",
+      "name": "OWASP Top 10 for LLM Applications 2026",
+      "publisher": "OWASP GenAI Security Project",
+      "published": "2026-08-04",
+      "url": "https://genai.owasp.org/resource/owasp-genai-llm-top-10-2026/",
+      "coverage": "LLM09:2026 Vector and Embedding Weaknesses is a first-class retrieval-layer risk for vector-backed agent memory. Tenant scoping must happen inside the index query, mixed-trust content needs hard isolation, raw similarity scores are membership oracles, and embeddings that outlive their sources remain source-document leaks."
+    },
+    {
+      "id": "owasp-llm09-vector-embedding-weaknesses-2026",
+      "name": "LLM09:2026 Vector and Embedding Weaknesses",
+      "publisher": "OWASP GenAI Security Project",
+      "published": "2026-08-04",
+      "url": "https://github.com/GenAI-Security-Project/GenAI-LLM-Top10/blob/main/2026/final/LLM09_VectorAndEmbeddingWeaknesses.md",
+      "coverage": "Canonical 2026 category text: enforce tenant scoping inside the index query and validate it server-side; do not share mixed-trust content in one index without hard isolation; do not return raw similarity scores; delete embeddings when the source document is deleted and verify with reconciliation."
+    },
+    {
       "id": "owasp-llm-top-10-2025",
-      "name": "OWASP Top 10 for LLM Applications 2025",
+      "name": "OWASP Top 10 for LLM Applications 2025 (prior edition)",
       "publisher": "OWASP GenAI Security Project",
       "published": "2025",
-      "url": "https://genai.owasp.org/llm-top-10/",
-      "coverage": "Persistent memory controls reduce prompt injection, sensitive information disclosure, supply-chain, data poisoning, excessive agency, vector weakness, misinformation, and unbounded consumption risks."
+      "url": "https://genai.owasp.org/resource/owasp-top-10-for-llm-applications-2025/",
+      "coverage": "Prior LLM Top 10 edition kept as a historical source ID. Prefer the 2026 edition and the canonical LLM09 vector-and-embedding entry."
     },
     {
       "id": "mcp-authorization-2026-07-28",
@@ -105,7 +121,11 @@
       "contains_secret",
       "contains_unredacted_pii",
       "human_approval_record",
-      "runtime_kill_signal"
+      "runtime_kill_signal",
+      "tenant_scope_in_index_query",
+      "trust_tiers_isolated",
+      "raw_similarity_scores_withheld",
+      "source_embeddings_reconciled"
     ],
     "decisions": [
       {
@@ -147,7 +167,9 @@
       "Project memory, vector memory, and tool-result summaries must pass poisoning and DLP checks before persistence.",
       "Customer runtime memory stays tenant-side and must never be embedded in the open public corpus.",
       "Memory that changes permissions, reviewers, owners, tool scopes, or approval policy is denied unless it is source-controlled policy reviewed through normal change control.",
-      "Secrets, private keys, signing material, raw access tokens, seed phrases, and unrestricted personal data are prohibited memory targets."
+      "Secrets, private keys, signing material, raw access tokens, seed phrases, and unrestricted personal data are prohibited memory targets.",
+      "Vector and embedding memory must enforce tenant scoping inside the index query, not as a post-retrieval filter, and must not treat a client-supplied tenant, namespace, or scope as the control.",
+      "Mixed-trust content must not share a vector index without hard isolation; withheld raw similarity scores; and embeddings must be deleted and reconciled when the source document is deleted."
     ],
     "prohibited_data_classes": [
       "private_key",
@@ -505,6 +527,10 @@
       ],
       "required_controls": [
         "tenant_isolated",
+        "tenant_scope_in_index_query",
+        "trust_tiers_isolated",
+        "raw_similarity_scores_withheld",
+        "source_embeddings_reconciled",
         "source_hash_recorded",
         "chunk_provenance",
         "poisoning_scan",
@@ -516,14 +542,18 @@
       "write_controls": [
         "Hold new embedding writes until source provenance, redaction, and poisoning scan pass.",
         "Reindex on source hash changes or owner recertification failures.",
-        "Prevent embedding lookup from returning cross-tenant or unregistered context."
+        "Deny similarity search that applies tenant scope only after retrieval, mixed-trust indexes without hard isolation, raw similarity scores, or embeddings that outlive their source documents."
       ],
       "evidence_required": [
         "tenant_id",
         "source_id",
         "source_hash",
         "chunk_manifest_hash",
-        "retrieval_eval_id"
+        "retrieval_eval_id",
+        "tenant_scope_in_index_query",
+        "trust_tiers_isolated",
+        "raw_similarity_scores_withheld",
+        "source_embeddings_reconciled"
       ],
       "rollback_required": true,
       "risk_families": [
@@ -615,6 +645,10 @@
       "cross-tenant retrieval",
       "write access to policy memory",
       "embedding index promotion",
+      "post-retrieval tenant filter",
+      "mixed-trust shared index",
+      "raw similarity score exposure",
+      "embeddings retained after source deletion",
       "user preference that changes approval or tool scope",
       "customer runtime context export"
     ]
