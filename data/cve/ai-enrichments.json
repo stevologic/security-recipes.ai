@@ -4944,121 +4944,6 @@
         "After applying the update or workaround, confirm the DNS Server role continues to operate and that the workaround registry value is removed once the update is in place"
       ]
     },
-    "CVE-2020-13927": {
-      "business_risk": "Apache Airflow before 1.10.11 shipped an Experimental API that allowed all API requests without authentication by default. NVD scores this CVSS 3.1 9.8 (network, low complexity, no privileges, high confidentiality, integrity, and availability impact), and CISA lists it as a known exploited vulnerability. A reachable webserver can expose that API to unauthenticated callers. An upgrade alone does not close the issue on existing installs that still use the old allow-all setting.",
-      "claim_evidence": [
-        {
-          "claim": "The affected product is Apache Airflow.",
-          "kind": "affected_product",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2020-13927"
-        },
-        {
-          "claim": "Apache Software Foundation lists Apache Airflow earlier than 1.10.11 as affected, and NVD's CPE range is up to but excluding 1.10.11.",
-          "kind": "affected_version",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2020-13927"
-        },
-        {
-          "claim": "The Apache advisory states versions affected are earlier than 1.10.11.",
-          "kind": "affected_version",
-          "source_url": "https://lists.apache.org/api/source.lua?id=mq1bpqf3ztg1nhyc5qbrjobfrzttwx1d"
-        },
-        {
-          "claim": "The previous default for Airflow's Experimental API allowed all API requests without authentication.",
-          "kind": "exposure",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2020-13927"
-        },
-        {
-          "claim": "Vendor API documentation states that before 1.10.11 the default allowed all API requests without authentication and posed a risk if the webserver is publicly accessible.",
-          "kind": "exposure",
-          "source_url": "https://airflow.apache.org/docs/apache-airflow/2.0.0/security/api.html"
-        },
-        {
-          "claim": "From Airflow 1.10.11 the default was changed to deny all API requests by default; the GitHub advisory lists 1.10.11 as the patched version.",
-          "kind": "fixed_version",
-          "source_url": "https://github.com/advisories/GHSA-hhx9-p69v-cx2j"
-        },
-        {
-          "claim": "The 1.10.11 default change fixes new installs, but existing users must change configuration to the deny-all API auth backend named in the Apache updating guidance.",
-          "kind": "remediation",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2020-13927"
-        },
-        {
-          "claim": "CISA lists this as Apache Airflow's Experimental API Authentication Bypass and requires applying updates per vendor instructions.",
-          "kind": "remediation",
-          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2020-13927"
-        },
-        {
-          "claim": "Vendor documentation describes inspecting the configured api auth_backend value to determine which API authentication backend is set.",
-          "kind": "verification",
-          "source_url": "https://airflow.apache.org/docs/apache-airflow/2.0.0/security/api.html"
-        }
-      ],
-      "exposure_conditions": [
-        "Apache Airflow version earlier than 1.10.11.",
-        "Experimental API left on the historical default that allows all API requests without authentication.",
-        "Webserver reachable by untrusted clients; vendor API documentation notes the prior default was a risk when the webserver is publicly accessible."
-      ],
-      "gaps": [
-        "generic_ecosystem"
-      ],
-      "generated_at": "2026-11-02T19:40:43Z",
-      "model": "grok-4.7",
-      "prompt_version": "2026-07-14.2",
-      "recipe_specificity": "not_specific",
-      "remediation_steps": [
-        "Upgrade to Apache Airflow 1.10.11 or later so new installs use the deny-all API authentication default.",
-        "On existing installations, also set the API authentication backend to the vendor-documented deny-all backend, airflow.api.auth.backend.deny_all, as stated by the Apache advisory quoted by NVD. Upgrading does not replace a retained allow-all setting.",
-        "Apply the vendor update and configuration change before exposing the webserver to untrusted networks. CISA's required action is to apply updates per vendor instructions."
-      ],
-      "retrieved_source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2020-13927",
-        "https://nvd.nist.gov/vuln/search?cpeFilterMode=cpe&cpeName=cpe:2.3:a:apache:airflow:2.9.0:-:*:*:*:*:*:*&resultType=records",
-        "https://github.com/advisories/GHSA-hhx9-p69v-cx2j",
-        "https://www.cve.org/CVERecord?id=CVE-2020-13927",
-        "https://cvefeed.io/vuln/detail/CVE-2020-13927",
-        "https://avd.aquasec.com/nvd/2020/cve-2020-13927/",
-        "https://lists.apache.org/thread.html/cn57zwylxsnzjyjztwqxpmly0x9q5ljx",
-        "https://app.opencve.io/cve/CVE-2020-13927",
-        "https://www.mend.io/vulnerability-database/CVE-2020-13927/",
-        "https://lists.apache.org/api/source.lua?id=mq1bpqf3ztg1nhyc5qbrjobfrzttwx1d",
-        "https://lists.apache.org/api/source.lua?id=0dwjzv5opdo861o9dz40cpjmlvvgthbb",
-        "https://lists.apache.org/thread/mq1bpqf3ztg1nhyc5qbrjobfrzttwx1d",
-        "https://lists.apache.org/api/source.lua?id=khq8n0xqvz65g4s24421p7vhx5t497pn",
-        "https://airflow.apache.org/docs/apache-airflow/2.0.0/security/api.html",
-        "https://airflow.apache.org/docs/apache-airflow/1.10.1/api.html",
-        "https://airflow.apache.org/docs/apache-airflow-providers-fab/stable/_modules/airflow/providers/fab/www/extensions/init_security.html",
-        "https://airflow.apache.org/blog/fab-oid-vulnerability/",
-        "https://lists.apache.org/thread.html/poy942sz4doxyqsqpjlpc73058ks41mn",
-        "https://lists.apache.org/thread.html/6bnd0w4wocfb7jo5o59glzj5nvqy0cy1",
-        "https://lists.apache.org/thread.html/2kp05rg2428jjo7vpwhmzpwgynob4gsv",
-        "https://github.com/cilium/cilium/releases/tag/v1.10.11",
-        "https://airflow.apache.org/docs/apache-airflow/2.2.1/security/api.html",
-        "https://github.com/github/copilot-sdk/pull/1719",
-        "https://cvetodo.com/cve/CVE-2020-13927"
-      ],
-      "schema_version": 2,
-      "source_fingerprint": "64c11e3dbcafdc4b2694c8914805dde069b59f2e47f671a32dffb1104d09cf32",
-      "source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2020-13927",
-        "https://github.com/advisories/GHSA-hhx9-p69v-cx2j",
-        "https://lists.apache.org/api/source.lua?id=mq1bpqf3ztg1nhyc5qbrjobfrzttwx1d",
-        "https://airflow.apache.org/docs/apache-airflow/2.0.0/security/api.html",
-        "https://www.cve.org/CVERecord?id=CVE-2020-13927"
-      ],
-      "status": "complete",
-      "uncertainty": [
-        "The CNA affected range is only Apache Airflow earlier than 1.10.11; no authoritative lower bound was retrieved.",
-        "The 1.10.11 default change fixes new installs only. Retained configuration remains exposed until changed, so a version check alone is not proof of remediation.",
-        "Exposure depends on webserver reachability and the configured backend; sources do not show that every deployment is network-exposed.",
-        "The 1.10.11 security page and UPDATING.md were not retrieved directly; remediation follows NVD, CVE, GitHub Advisory, and Apache list quotations of those documents.",
-        "This enrichment does not map API authentication configuration keys for every later major release, and it does not establish ransomware use or a specific impact beyond the missing-authentication description and published CVSS ratings."
-      ],
-      "verification_steps": [
-        "Compare the installed Apache Airflow version with the 1.10.11 boundary using package or deployment inventory. Do not send requests to the Experimental API.",
-        "Review the configured API authentication backend and confirm it is the vendor-documented deny-all backend, not an allow-all setting. Vendor documentation describes inspecting the api auth_backend setting for this check.",
-        "Treat a version at or above 1.10.11 as insufficient by itself if the prior allow-all configuration is still present."
-      ]
-    },
     "CVE-2020-14644": {
       "business_risk": "No additional source-verified CVE-specific business impact was established.",
       "claim_evidence": [],
@@ -13106,6 +12991,51 @@
       ],
       "verification_steps": []
     },
+    "CVE-2022-3038": {
+      "business_risk": "No additional source-verified CVE-specific business impact was established.",
+      "claim_evidence": [],
+      "exposure_conditions": [],
+      "gaps": [],
+      "generated_at": "2026-11-28T09:43:24Z",
+      "model": "grok-4.7",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [],
+      "retrieved_source_urls": [
+        "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-3038",
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-3038",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-3658",
+        "https://nvd.nist.gov/vuln/detail/cve-2022-1478",
+        "https://chromereleases.googleblog.com/2022/10/long-term-support-channel-update-for.html",
+        "https://chromereleases.googleblog.com/search/label/LTS?updated-max=2022-11-01T11:44:00-07:00&max-results=20&start=98&by-date=false",
+        "https://chromereleases.googleblog.com/2022/08/",
+        "https://chromereleases.googleblog.com/2022/09/long-term-support-candidate-channel-for.html",
+        "https://chromereleases.googleblog.com/search/label/Chrome%20for%20Android?max-results=56",
+        "https://www.immunitysec.com/vulnerabilities/cve-2022-3038/",
+        "https://cve.yack.one/cve/CVE-2022-3038",
+        "https://cubepath.com/security/cve/CVE-2022-3038",
+        "https://app.opencve.io/cve/CVE-2022-3038",
+        "https://www.cisa.gov/uscert/ics/advisories/icsa-22-207-02",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog",
+        "https://us-cert.cisa.gov/ncas/bulletins/sb22-206",
+        "https://www.cisa.gov/resources-tools/resources/kev-catalog",
+        "https://www.cisa.gov/resources-tools/resources/known-exploited-vulnerabilities-catalog",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog-print",
+        "https://www.cvedetails.com/reference-url-info/VYBNjzI4NljZ3wq_SfDQM2enO_k.html",
+        "https://archives.gentoo.org/gentoo-announce/166446146976.9.1888922439231574343@90bb6a0775af/",
+        "https://bugs.gentoo.org/show_bug.cgi?id=868354",
+        "https://lists.fedoraproject.org/archives/list/epel-packagers-sig@lists.fedoraproject.org/2023/5/?page=3&count=100",
+        "https://lists.fedoraproject.org/archives/list/arch-excludes@lists.fedoraproject.org/2026/2/?page=4"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "0867858dab4e48d739bd8e1ba371cdda2612bd81fca93f529f0bca8036e7edba",
+      "source_urls": [],
+      "status": "insufficient_evidence",
+      "uncertainty": [
+        "The available sources were insufficient for CVE-specific remediation guidance."
+      ],
+      "verification_steps": []
+    },
     "CVE-2022-30525": {
       "business_risk": "Critical unauthenticated remote OS command injection (CVSS 9.8) on Zyxel firewalls that is listed in the CISA Known Exploited Vulnerabilities catalog, enabling attackers to execute OS commands on affected devices.",
       "claim_evidence": [
@@ -13320,6 +13250,50 @@
       "status": "insufficient_evidence",
       "uncertainty": [
         "Searching authoritative sources before finalizing enrichment."
+      ],
+      "verification_steps": []
+    },
+    "CVE-2022-32917": {
+      "business_risk": "No additional source-verified CVE-specific business impact was established.",
+      "claim_evidence": [],
+      "exposure_conditions": [],
+      "gaps": [],
+      "generated_at": "2026-11-28T09:46:05Z",
+      "model": "grok-4.7",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [],
+      "retrieved_source_urls": [
+        "https://support.apple.com/zh-tw/102840",
+        "https://support.apple.com/zh-cn/102840",
+        "https://support.apple.com/en-us/100100",
+        "https://support.apple.com/hu-hu/102840",
+        "https://support.apple.com/fi-fi/102840",
+        "https://support.apple.com/pl-pl/102793",
+        "https://support.apple.com/hr-hr/102840",
+        "https://support.apple.com/fr-ca/102840",
+        "https://support.apple.com/th-th/102840",
+        "https://support.apple.com/pt-pt/102840",
+        "https://nvd.nist.gov/nvd.cfm?cvename=CVE-2022-32917",
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-32917",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-32917/change-record?changeRecordedOn=08/22/2025T16:26:01.453-0400",
+        "https://nvd.nist.gov/nvd.cfm?cvename=CVE-2022-25917",
+        "https://vulntide.com/vulnerability/cve-2022-32917/",
+        "https://www.immunitysec.com/vulnerabilities/cve-2022-32917/",
+        "https://sysprobs.com/data/tools/cisa-kev-tracker/cve/cve-2022-32917/",
+        "https://support.apple.com/ja-jp/102840",
+        "https://support.apple.com/en-us/102792",
+        "https://support.apple.com/en-us/102769",
+        "https://support.apple.com/en-ca/102841",
+        "https://www.cisa.gov/news-events/bulletins/sb22-269",
+        "https://www.cve.org/CVERecord?id=CVE-2022-32917"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "5100ad83aeca3526a8ab51a667333d4d5887f5a33d7518961ff59efaa763d2ac",
+      "source_urls": [],
+      "status": "insufficient_evidence",
+      "uncertainty": [
+        "The available sources were insufficient for CVE-specific remediation guidance."
       ],
       "verification_steps": []
     },
@@ -13564,6 +13538,75 @@
       ],
       "verification_steps": []
     },
+    "CVE-2022-3723": {
+      "business_risk": "No additional source-verified CVE-specific business impact was established.",
+      "claim_evidence": [],
+      "exposure_conditions": [],
+      "gaps": [],
+      "generated_at": "2026-11-28T09:34:56Z",
+      "model": "grok-4.7",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [],
+      "retrieved_source_urls": [],
+      "schema_version": 2,
+      "source_fingerprint": "914ea5749bc1234efadc2870ebc000432f08847dccf07f5a70ae34b0d1a486be",
+      "source_urls": [],
+      "status": "insufficient_evidence",
+      "uncertainty": [
+        "NVD and the vendor note describe potential heap corruption, not confirmed impact on every deployment.",
+        "The Chromium bug (crbug.com/1378239) is permissions-restricted and was not used as an evidence source.",
+        "CISA does not state whether ransomware campaigns used this CVE.",
+        "Gentoo GLSA and other downstream packages were not required to establish the Chrome fixed version and were not used for version claims.",
+        "The model did not return a fully sourced exposure, remediation, and verification set; consult the linked NVD and vendor sources before acting."
+      ],
+      "verification_steps": []
+    },
+    "CVE-2022-37969": {
+      "business_risk": "No additional source-verified CVE-specific business impact was established.",
+      "claim_evidence": [],
+      "exposure_conditions": [],
+      "gaps": [],
+      "generated_at": "2026-11-28T09:48:03Z",
+      "model": "grok-4.7",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [],
+      "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-37969",
+        "https://portal.msrc.microsoft.com/en-US/security-guidance/advisory/CVE-2022-37969?cve=title",
+        "https://www.immunitysec.com/vulnerabilities/cve-2022-37969/",
+        "https://cve.report/CVE-2022-37969",
+        "https://cve.report/CVE-2022-37969.pdf",
+        "https://msrc.microsoft.com/en-US/security-guidance/advisory/CVE-2022-37969",
+        "https://www.cvedetails.com/cve/CVE-2022-37969/",
+        "https://socradar.io/free-tools/cve-radar/CVE-2022-37969",
+        "https://portal.msrc.microsoft.com/ja-jp/security-guidance/advisory/CVE-2022-37969",
+        "https://portal.msrc.microsoft.com/en-US/security-guidance/advisory/CVE-2022-37968",
+        "https://msrc.microsoft.com/update-guide/en-US/vulnerability/CVE-2022-37968",
+        "https://nvd.nist.gov/vuln/detail/cve-2022-37969",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-3799",
+        "https://sysprobs.com/data/tools/cisa-kev-tracker/cve/cve-2022-37969/",
+        "https://sploitus.com/cve/CVE-2022-37969",
+        "https://feedly.com/cve/CVE-2022-37969",
+        "https://www.helpnetsecurity.com/2022/09/13/cve-2022-37969/",
+        "https://nhimg.org/glossary/cve-2022-37969-microsoft-windows-common-log-file-system-clfs-driver-privilege/",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2022-37969",
+        "https://support.microsoft.com/en-us/topic/september-13-2022-kb5017315-os-build-17763-3406-926525b2-750e-42e2-9845-49924d97281c",
+        "https://support.microsoft.com/en-us/servicing/os/windows-server/2022/09/september-13-2022-kb5017316-os-build-20348-1006",
+        "https://support.microsoft.com/en-us/servicing/os/windows-10/2022/09/september-13-2022-kb5017308-os-builds-19042-2006-19043-2006-and-19044-2006",
+        "https://support.microsoft.com/en-us/topic/september-13-2022-kb5017328-os-build-22000-978-40843fca-a0be-4a60-b68b-6cb23a73a5aa",
+        "https://support.microsoft.com/en-us/topic/september-13-2022-kb5017305-os-build-14393-5356-ba44c079-8baf-4460-baea-ebc054be71ea"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "4ff2bfd145ceadc9db7a26ad89c78442372afb171fc112cbe651a4c4c3561559",
+      "source_urls": [],
+      "status": "insufficient_evidence",
+      "uncertainty": [
+        "The available sources were insufficient for CVE-specific remediation guidance."
+      ],
+      "verification_steps": []
+    },
     "CVE-2022-40684": {
       "business_risk": "Critical unauthenticated authentication bypass on the administrative interfaces of Fortinet FortiOS, FortiProxy, and FortiSwitchManager. A network attacker who can reach HTTP or HTTPS management can perform administrative operations without credentials. Vendor and CISA reporting indicate real-world exploitation, including configuration download and addition of an unauthorized super_admin account, with known ransomware campaign use. Compromise can give full administrative control of perimeter security devices.",
       "claim_evidence": [
@@ -13668,6 +13711,96 @@
         "If a workaround is used instead of an upgrade, confirm in the management interface that HTTP/HTTPS administrative access is disabled or limited to trusted management addresses, as applicable to that product."
       ]
     },
+    "CVE-2022-41033": {
+      "business_risk": "No additional source-verified CVE-specific business impact was established.",
+      "claim_evidence": [],
+      "exposure_conditions": [],
+      "gaps": [],
+      "generated_at": "2026-11-28T09:37:07Z",
+      "model": "grok-4.7",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [],
+      "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-41033",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2023-41033@https:/cert-portal.siemens.com/productcert/pdf/ssa-190839.pdf@@https:/vuldb.com/?id.239520@https:/cert-portal.siemens.com/productcert/pdf/ssa-190839.pdf",
+        "https://nvd.nist.gov/vuln/detail/cve-2024-41033",
+        "https://nvd.nist.gov/vuln/detail/CVE-2023-41033",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-40533",
+        "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2022-41033",
+        "https://portal.msrc.microsoft.com/en-US/security-guidance/advisory/CVE-2022-41032",
+        "https://api.msrc.microsoft.com/cvrf/v3.0/cvrf/2022-May",
+        "https://www.cve.org/CVERecord?id=CVE-2022-41033",
+        "https://0patch.com/blog/micropatches-for-windows-com-event",
+        "https://sysprobs.com/data/tools/cisa-kev-tracker/cve/cve-2022-41033/",
+        "https://www.immunitysec.com/vulnerabilities/cve-2022-41033/",
+        "https://googleprojectzero.github.io/0days-in-the-wild/0day-RCAs/2022/CVE-2022-41033.html",
+        "https://github.com/advisories/GHSA-qjvf-mwxj-x748",
+        "https://www.helpnetsecurity.com/2022/10/11/cve-2022-41033/",
+        "https://psirt.com/cve/CVE-2022-41033",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2022-41082",
+        "https://www.cisa.gov/news-events/cybersecurity-advisories/aa23-215a",
+        "https://www.cisa.gov/news-events/bulletins/sb22-290",
+        "https://support.microsoft.com/en-us/topic/december-13-2022-security-and-quality-rollup-for-net-framework-2-0-3-0-4-6-2-for-windows-server-2008-sp2-kb5021094-d34f15ab-1c1b-4b90-aff0-92ee4178845a",
+        "https://support.microsoft.com/en-us/servicing/os/windows-server/2022/10/october-11-2022-kb5018421-os-build-20348-1129",
+        "https://support.microsoft.com/en-us/servicing/os/windows-11/2022/10/october-11-2022-kb5018427-os-build-22621-674",
+        "https://www.cisa.gov/resources-tools/resources/kev-catalog",
+        "https://api.msrc.microsoft.com/sug/v2.0/en-US/affectedProduct?$filter=cveNumber%20eq%20%27CVE-2022-41033%27&$skip=20"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "2f5c7f52172feaf04f35478f0091ba13b8d8c17fb6ebe28235be4fc909717abd",
+      "source_urls": [],
+      "status": "insufficient_evidence",
+      "uncertainty": [
+        "The available sources were insufficient for CVE-specific remediation guidance."
+      ],
+      "verification_steps": []
+    },
+    "CVE-2022-41040": {
+      "business_risk": "No additional source-verified CVE-specific business impact was established.",
+      "claim_evidence": [],
+      "exposure_conditions": [],
+      "gaps": [],
+      "generated_at": "2026-11-28T09:41:46Z",
+      "model": "grok-4.7",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [],
+      "retrieved_source_urls": [
+        "https://portal.msrc.microsoft.com/en-US/security-guidance/advisory/CVE-2022-41040",
+        "https://msrc.microsoft.com/security-guidance/advisory/CVE-2023-36039",
+        "https://msrc.microsoft.com/csaf/advisories/2023/msrc_cve-2023-36439.json",
+        "https://portal.msrc.microsoft.com/ja-jp/security-guidance/advisory/adv190007",
+        "https://msrc.microsoft.com/blog/2023/01/microsoft-resolves-four-ssrf-vulnerabilities-in-azure-cloud-services/",
+        "https://nvd.nist.gov/vuln/detail/cve-2022-41040",
+        "https://nvd.nist.gov/vuln/detail/cve-2022-4104",
+        "https://nvd.nist.gov/nvd.cfm?cvename=CVE-2023-41040",
+        "https://techcommunity.microsoft.com/blog/exchange/released-november-2026-exchange-server-security-updates/4570368",
+        "https://cvetodo.com/cve/CVE-2022-41040",
+        "https://nhimg.org/faq/you-patch-mitigate-cve-2022-41040-microsoft-exchange-server-server-side-request/",
+        "https://www.bleepingcomputer.com/news/microsoft/microsoft-fixes-exchange-sign-ins-broken-by-october-windows-server-updates/",
+        "https://www.cve.org/CVERecord?id=CVE-2022-41040",
+        "https://helix.ml/threat-watch/i/microsoft-exchange-server-cve-2022-41040",
+        "https://www.immunitysec.com/vulnerabilities/cve-2022-41040/",
+        "https://www.microsoft.com/en-us/security/blog/2022/09/30/analyzing-attacks-using-the-exchange-vulnerabilities-cve-2022-41040-and-cve-2022-41082/",
+        "https://learn.microsoft.com/en-us/answers/questions/1045692/cve-2022-41040-cve-2022-41082-exchange-server-2016",
+        "https://techcommunity.microsoft.com/tag/owa",
+        "https://techcommunity.microsoft.com/blog/exchange/released-october-2022-exchange-server-security-updates/3646263",
+        "https://techcommunity.microsoft.com/blog/exchange/re-release-of-november-2024-exchange-server-security-update-packages/4341892",
+        "https://www.microsoft.com/en-us/msrc/blog/2022/09/customer-guidance-for-reported-zero-day-vulnerabilities-in-microsoft-exchange-server",
+        "https://www.messageware.com/microsoft-november-2022-patch-tuesday-exchange-server-security-updates/",
+        "https://msrc.microsoft.com/csaf/advisories",
+        "https://www.cvedetails.com/cve/CVE-2022-41040/"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "f9d63c620e808c140ea4a79b6028d0ee1ea732f7f5d361b00ab42b07f8fa73ee",
+      "source_urls": [],
+      "status": "insufficient_evidence",
+      "uncertainty": [
+        "Authoritative sources have not yet been retrieved; enrichment will be based only on returned vendor, NVD, or CISA pages for CVE-2022-41040."
+      ],
+      "verification_steps": []
+    },
     "CVE-2022-41073": {
       "business_risk": "No additional source-verified CVE-specific business impact was established.",
       "claim_evidence": [],
@@ -13757,6 +13890,50 @@
       "status": "insufficient_evidence",
       "uncertainty": [
         "Authoritative sources have not yet been consulted."
+      ],
+      "verification_steps": []
+    },
+    "CVE-2022-41082": {
+      "business_risk": "No additional source-verified CVE-specific business impact was established.",
+      "claim_evidence": [],
+      "exposure_conditions": [],
+      "gaps": [],
+      "generated_at": "2026-11-28T09:39:02Z",
+      "model": "grok-4.7",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [],
+      "retrieved_source_urls": [
+        "https://portal.msrc.microsoft.com/security-guidance/advisory/CVE-2022-41082",
+        "https://msrc.microsoft.com/update-guide/ja-jp/vulnerability/CVE-2022-41082",
+        "https://msrc.microsoft.com/update-guide/fr-fr/vulnerability/CVE-2022-41082",
+        "https://msrc.microsoft.com/update-guide/en-US/security-guidance/advisory/CVE-2021-28482",
+        "https://msrc.microsoft.com/update-guide/fr-fr/advisory/CVE-2024-21410",
+        "https://portal.msrc.microsoft.com/ja-JP/security-guidance/advisory/CVE-2023-21709",
+        "https://portal.msrc.microsoft.com/ja-JP/security-guidance/advisory/CVE-2026-45502",
+        "https://msrc.microsoft.com/update-guide/ja-jp/vulnerability/CVE-2024-21410",
+        "https://portal.msrc.microsoft.com/zh-cn/security-guidance/advisory/CVE-2018-8302",
+        "https://portal.msrc.microsoft.com/ja-jp/security-guidance/advisory/CVE-2023-38182",
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-41082",
+        "https://www.cve.org/CVERecord?id=CVE-2022-41082",
+        "https://www.microsoft.com/en-us/security/blog/2022/09/30/analyzing-attacks-using-the-exchange-vulnerabilities-cve-2022-41040-and-cve-2022-41082/",
+        "https://www.cvedetails.com/cve/CVE-2022-41082/",
+        "https://www.immunitysec.com/vulnerabilities/cve-2022-41082/",
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-41083",
+        "https://nvd.nist.gov/nvd.cfm?cvename=CVE-2021-41082",
+        "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2022-41098?ref=blog.bamboozle.me",
+        "https://msrc.microsoft.com/update-guide/releaseNote/2026-Feb",
+        "https://techcommunity.microsoft.com/blog/exchange/released-november-2026-exchange-server-security-updates/4570368",
+        "https://www.microsoft.com/en-us/msrc/blog/2022/09/customer-guidance-for-reported-zero-day-vulnerabilities-in-microsoft-exchange-server",
+        "https://thewindowsupdate.com/2022/11/08/released-november-2022-exchange-server-security-updates/",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2022-41082"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "6cd913e3123b8efb2dbc6663190466d4978b6d4142d6d931974f92d7c7c8bd63",
+      "source_urls": [],
+      "status": "insufficient_evidence",
+      "uncertainty": [
+        "The available sources were insufficient for CVE-specific remediation guidance."
       ],
       "verification_steps": []
     },
@@ -14066,6 +14243,45 @@
       "status": "insufficient_evidence",
       "uncertainty": [
         "The available sources were insufficient for CVE-specific remediation guidance."
+      ],
+      "verification_steps": []
+    },
+    "CVE-2022-42827": {
+      "business_risk": "No additional source-verified CVE-specific business impact was established.",
+      "claim_evidence": [],
+      "exposure_conditions": [],
+      "gaps": [],
+      "generated_at": "2026-11-28T09:34:43Z",
+      "model": "grok-4.7",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [],
+      "retrieved_source_urls": [
+        "https://support.apple.com/en-us/149034",
+        "https://support.apple.com/kn-in/149230",
+        "https://support.apple.com/en-us/149715",
+        "https://support.apple.com/ja-jp/102793",
+        "https://support.apple.com/da-dk/149230",
+        "https://support.apple.com/en-us/100100",
+        "https://support.apple.com/th-th/102807",
+        "https://support.apple.com/zh-cn/149034",
+        "https://www.cve.org/CVERecord?id=CVE-2022-42827",
+        "https://nvd.nist.gov/vuln/detail/cve-2022-42827",
+        "https://cve.report/CVE-2022-42827.pdf",
+        "https://cve.yack.one/cve/CVE-2022-42827",
+        "https://www.immunitysec.com/vulnerabilities/cve-2022-42827/",
+        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-42828",
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-42847",
+        "https://nvd.nist.gov/vuln/detail/cve-2022-20227",
+        "https://nvd.nist.gov/vuln/detail/cve-2022-0427",
+        "https://support.apple.com/en-us/102792"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "674a1a86551a8c5b0ecd1034f1a2247f6063a7f82680b3cda2362508df4e74b3",
+      "source_urls": [],
+      "status": "insufficient_evidence",
+      "uncertainty": [
+        "I need to consult authoritative sources before producing enrichment."
       ],
       "verification_steps": []
     },
@@ -30550,47 +30766,6 @@
         "Review Web Help Desk application and access logs for the indicators of compromise described in the SolarWinds advisory (OAST-related log entries and access requests containing the vendor-listed keywords)."
       ]
     },
-    "CVE-2025-41450": {
-      "business_risk": "No additional source-verified CVE-specific business impact was established.",
-      "claim_evidence": [],
-      "exposure_conditions": [],
-      "gaps": [],
-      "generated_at": "2026-11-27T09:45:32Z",
-      "model": "grok-4.7",
-      "prompt_version": "2026-07-14.2",
-      "recipe_specificity": "not_specific",
-      "remediation_steps": [],
-      "retrieved_source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2025-41450",
-        "https://nvd.nist.gov/vuln/search?resultType=records&keyword=Danfoss",
-        "https://nvd.nist.gov/vuln/detail/CVE-2025-38150",
-        "https://nvd.nist.gov/vuln/detail/CVE-2025-21450",
-        "https://nvd.nist.gov/vuln/detail/cve-2025-3450",
-        "https://www.danfoss.com/en/service-and-support/coordinated-vulnerability-disclosure/danfoss-security-advisories/dsa-2025-03-01/",
-        "https://www.danfoss.com/en/service-and-support/coordinated-vulnerability-disclosure/danfoss-security-advisories/",
-        "https://www.danfoss.com/en/service-and-support/articles/dcs/tech-insider-september-2025/",
-        "https://assets.danfoss.com/documents/latest/579092/AH553954278717en-000101.pdf",
-        "https://www.danfoss.com/en/service-and-support/articles/dcs/tech-insider-october-2025/",
-        "https://www.cve.org/CVERecord?id=CVE-2025-41450",
-        "https://www.cisa.gov/news-events/ics-advisories/icsa-25-140-03",
-        "https://cve.report/CVE-2025-41450",
-        "https://blog.ostorlab.co/danfoss-ak-sm-800a-auth-bypass-cve-2025-41450.html",
-        "https://www.cyberiack.com/en/cve/CVE-2025-41450/",
-        "https://www.immunitysec.com/vulnerabilities/cve-2025-41450/",
-        "https://www.cisa.gov/news-events/alerts/2026/11/25/cisa-adds-10-known-exploited-vulnerabilities-catalog",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog",
-        "https://www.cisa.gov/news-events/bulletins/sb25-132",
-        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?search_api_fulltext=CLFS&field_date_added_wrapper=all&field_cve=&sort_by=field_date_added&items_per_page=20&url="
-      ],
-      "schema_version": 2,
-      "source_fingerprint": "dfad9532a724fe72144950f861c1af8f08bc29ab7e650b04c48f30d418baf45a",
-      "source_urls": [],
-      "status": "insufficient_evidence",
-      "uncertainty": [
-        "Authoritative sources must be consulted before any enrichment claims can be made."
-      ],
-      "verification_steps": []
-    },
     "CVE-2025-42599": {
       "business_risk": "Critical unauthenticated remote stack-based buffer overflow in Qualitia Active! mail 6 (business email software) that can allow arbitrary code execution or denial of service. Exploitation has been observed and the vulnerability is listed in the CISA Known Exploited Vulnerabilities catalog.",
       "claim_evidence": [],
@@ -34471,52 +34646,6 @@
       ],
       "verification_steps": []
     },
-    "CVE-2026-111497": {
-      "business_risk": "No additional source-verified CVE-specific business impact was established.",
-      "claim_evidence": [],
-      "exposure_conditions": [],
-      "gaps": [
-        "generic_ecosystem"
-      ],
-      "generated_at": "2026-11-26T09:50:48Z",
-      "model": "grok-4.7",
-      "prompt_version": "2026-07-14.2",
-      "recipe_specificity": "not_specific",
-      "remediation_steps": [],
-      "retrieved_source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2026-111497",
-        "https://www.cve.org/CVERecord?id=CVE-2026-111497",
-        "https://www.tuskira.ai/advisories/cve-2026-111497",
-        "https://security.snyk.io/vuln/SNYK-UBUNTU2204-BROTLI-21485766",
-        "https://uctoday.com/neat-rolls-out-fix-for-brotli-flaw-on-cisas-exploited-list",
-        "https://stackurity.ai/cve/CVE-2026-111497",
-        "https://access.redhat.com/security/vulnerabilities/RHSB-2026-015",
-        "https://www.strix.ai/cve/CVE-2026-111497",
-        "https://semgrep.dev/blog/2026/broccoli2shell-brotli-cve-2026-111497/",
-        "https://getsafety.com/vulnerabilities/SFTY-20261022-29378",
-        "https://nvd.nist.gov/products/cpe/detail/44BE72AD-ECAA-48D5-BB14-1A9764500776",
-        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2026-89811",
-        "https://nvd.nist.gov/vuln/detail/cve-2026-89726",
-        "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2026-31726",
-        "https://m-compressors.github.io/2026/brotli-cve-2026-111497-mbrotli/",
-        "https://support.sas.com/en/security-bulletins/google-brotli-decoder-vulnerability-cve-2026-111497.html",
-        "https://www.immunitysec.com/vulnerabilities/cve-2026-111497/",
-        "https://censys.com/advisory/cve-2026-111497/",
-        "https://www.jpcert.or.jp/at/2026/at260034.html",
-        "https://sploitus.com/exploit?id=KITPLOIT:TOOLS-GITHUB-TRAILOFBITS-BROTLI-CHECKER",
-        "https://www.redtigersecurity.com/advisory/brotli-cve-2026-111497-cisa-kev",
-        "https://github.com/advisories/GHSA-9v8h-qqgm-4m35",
-        "https://www.cisa.gov/news-events/alerts/2026/10/27/cisa-adds-two-known-exploited-vulnerabilities-catalog"
-      ],
-      "schema_version": 2,
-      "source_fingerprint": "c293b74238084fb77f5ccf07bf10fb325f9500f7cb5b535ff4e5abb74be0bac4",
-      "source_urls": [],
-      "status": "insufficient_evidence",
-      "uncertainty": [
-        "The available sources were insufficient for CVE-specific remediation guidance."
-      ],
-      "verification_steps": []
-    },
     "CVE-2026-114625": {
       "business_risk": "No additional source-verified CVE-specific business impact was established.",
       "claim_evidence": [],
@@ -35112,132 +35241,6 @@
       "status": "insufficient_evidence",
       "uncertainty": [
         "Authoritative sources have not yet been retrieved."
-      ],
-      "verification_steps": []
-    },
-    "CVE-2026-133303": {
-      "business_risk": "No additional source-verified CVE-specific business impact was established.",
-      "claim_evidence": [],
-      "exposure_conditions": [],
-      "gaps": [
-        "generic_ecosystem"
-      ],
-      "generated_at": "2026-11-27T09:39:57Z",
-      "model": "grok-4.7",
-      "prompt_version": "2026-07-14.2",
-      "recipe_specificity": "not_specific",
-      "remediation_steps": [],
-      "retrieved_source_urls": [
-        "https://www.immunitysec.com/vulnerabilities/cve-2026-133303/",
-        "https://cybersixt.com/cve/CVE-2026-133303",
-        "https://its.ny.gov/multiple-vulnerabilities-mitel-micollab-could-allow-arbitrary-code-execution",
-        "https://www.secure.com/cve/cve-2026-133303",
-        "https://radar.offseq.com/threat/cve-2026-133303-cwe-91-xml-injection-in-mitel-micollab-73b76b0f5de9d7e4",
-        "https://helix.ml/threat-watch/i/mitel-micollab-cve-2026-133303",
-        "https://cvetodo.com/cve/CVE-2026-133303",
-        "https://brandefense.io/knowledge-hub/vulnerabilities/cve-2026-133303/",
-        "https://veriom.io/cves/CVE-2026-133303",
-        "https://braindetox.kr/en/posts/mitel_micollab_kev_2026_11.html",
-        "https://www.mitel.com/support/security-advisories/mitel-product-security-advisory-misa-2026-0012",
-        "https://www.mitel.com/support/security-advisories",
-        "https://www.mitel.com/products/micollab-collaboration-software",
-        "https://www.mitel.com/sites/default/files/s3_imports/Applications/Collaboration/MiCollab/MiCollab%20Client/10.3/en/MiCollab%20Client%20Administrator%20Guide.pdf",
-        "https://www.mitel.com/products/applications/collaboration/micollab",
-        "https://nvd.nist.gov/vuln/detail/CVE-2026-133303?ref=thedisruptioncontinuum.channel",
-        "https://www.cybaverse.co.uk/threats/mitel-micollab-awv-misa-2026-0012",
-        "https://systemdesignsimple.com/mitel-micollab-cve-2026-133323-check-and-fix/",
-        "https://cyberexperts.com/2026-11-26-mitel-micollab-flaws-exploited-patch-now/",
-        "https://blog.ostorlab.co/mitel-micollab-awv-command-injection-cve-2026-133323.html"
-      ],
-      "schema_version": 2,
-      "source_fingerprint": "a166242b337846c0b7c40e63f45338e188c9bf87cff061782344c3d6c15c3b77",
-      "source_urls": [],
-      "status": "insufficient_evidence",
-      "uncertainty": [
-        "The available sources were insufficient for CVE-specific remediation guidance."
-      ],
-      "verification_steps": []
-    },
-    "CVE-2026-133323": {
-      "business_risk": "No additional source-verified CVE-specific business impact was established.",
-      "claim_evidence": [],
-      "exposure_conditions": [],
-      "gaps": [
-        "generic_ecosystem"
-      ],
-      "generated_at": "2026-11-27T09:38:50Z",
-      "model": "grok-4.7",
-      "prompt_version": "2026-07-14.2",
-      "recipe_specificity": "not_specific",
-      "remediation_steps": [],
-      "retrieved_source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2026-133323",
-        "https://blog.ostorlab.co/mitel-micollab-awv-command-injection-cve-2026-133323.html",
-        "https://its.ny.gov/multiple-vulnerabilities-mitel-micollab-could-allow-arbitrary-code-execution",
-        "https://cve.now/CVE-2026-133323",
-        "https://systemdesignsimple.com/mitel-micollab-cve-2026-133323-check-and-fix/",
-        "https://www.covertswarm.com/threat-alert/mitel-micollab-awv-cve-2026-133323",
-        "https://www.spirityenterprise.com/cve/cve-2026-133323-mitel-micollab-awv-unauthenticated-blind-command-injection/",
-        "https://www.cve.org/CVERecord?id=CVE-2026-133323",
-        "https://cyberexperts.com/2026-11-26-mitel-micollab-flaws-exploited-patch-now/",
-        "https://cve.socradar.io/cve/CVE-2026-133323",
-        "https://www.mitel.com/support/security-advisories/mitel-product-security-advisory-misa-2026-0012",
-        "https://www.mitel.com/support/security-advisories",
-        "https://www.mitel.com/products/micollab-collaboration-software",
-        "https://www.mitel.com/sites/default/files/s3_imports/Applications/Collaboration/MiCollab/MiCollab%20Client/10.3/en/MiCollab%20Client%20Administrator%20Guide.pdf",
-        "https://www.mitel.com/products/applications/collaboration/micollab",
-        "https://app.opencve.io/cve/CVE-2026-133323"
-      ],
-      "schema_version": 2,
-      "source_fingerprint": "ac3bbda44e2c4c8ac8df0c1ea4734f899adde48dffd6ab3b92d669b14c2aa63e",
-      "source_urls": [],
-      "status": "insufficient_evidence",
-      "uncertainty": [
-        "The available sources were insufficient for CVE-specific remediation guidance."
-      ],
-      "verification_steps": []
-    },
-    "CVE-2026-133469": {
-      "business_risk": "No additional source-verified CVE-specific business impact was established.",
-      "claim_evidence": [],
-      "exposure_conditions": [],
-      "gaps": [
-        "generic_ecosystem"
-      ],
-      "generated_at": "2026-11-27T09:37:36Z",
-      "model": "grok-4.7",
-      "prompt_version": "2026-07-14.2",
-      "recipe_specificity": "not_specific",
-      "remediation_steps": [],
-      "retrieved_source_urls": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2026-133469",
-        "https://www.immunitysec.com/vulnerabilities/cve-2026-133469/",
-        "https://cve.report/CVE-2026-133469",
-        "https://github.com/advisories/GHSA-2r3w-c2vx-fv5g",
-        "https://www.cve.org/CVERecord?id=CVE-2026-133469",
-        "https://www.ervik.as/cves/CVE-2026-133469",
-        "https://cve.now/CVE-2026-133469",
-        "https://cve.socradar.io/cve/CVE-2026-133469",
-        "https://mcsaguru.com/xen-orchestra-cve-2026-133469-empty-token-auth-bypass-patch",
-        "https://blog.ostorlab.co/xen-orchestra-auth-bypass-vsa-2026-062.html",
-        "https://docs.vates.tech/security-advisories/advisories/2026/vates-sa-2026-062",
-        "https://docs.vates.tech/security-advisories/advisories/",
-        "https://docs.vates.tech/category/2026/",
-        "https://docs.vates.tech/category/2026",
-        "https://docs.vates.tech/security/",
-        "https://nvd.nist.gov/vuln/detail/CVE-2026-133493",
-        "https://nvd.nist.gov/vuln/detail/CVE-2026-133409",
-        "https://www.tenable.com/plugins/cloud-security/482606",
-        "https://helix.ml/threat-watch/i/xen-orchestra-auth-bypass-vsa-2026-062-vates-attackers-bypass-auth-via-crafted-cookie-take-over-xcp-ng-hosts-as-root-cve",
-        "https://radar.offseq.com/threats?tag=ghsa-2r3w-c2vx-fv5g",
-        "https://cve.circl.lu/vuln/ghsa-2r3w-c2vx-fv5g"
-      ],
-      "schema_version": 2,
-      "source_fingerprint": "1a511420a1c3309f230f80e2e6e3770d3224fe96f6a07220e1276703ff2d0d14",
-      "source_urls": [],
-      "status": "insufficient_evidence",
-      "uncertainty": [
-        "The available sources were insufficient for CVE-specific remediation guidance."
       ],
       "verification_steps": []
     },
