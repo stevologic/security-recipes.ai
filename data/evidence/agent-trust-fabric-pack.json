@@ -23,12 +23,12 @@
     "why_it_is_differentiated": "Most agent guidance stops at controls. The trust fabric composes generated evidence into an allow, hold, deny, or kill decision that agents and auditors can consume."
   },
   "failures": [],
-  "generated_at": "2026-11-12",
+  "generated_at": "2026-11-28",
   "positioning": {
     "buyer": "AI platform, product security, CISO, GRC, model-risk, SOC, procurement-security, and acquisition diligence teams",
     "category": "Agentic AI zero-trust decision fabric",
     "enterprise_promise": "SecurityRecipes can answer the board-level question 'which agents can we trust right now?' with generated evidence, source hashes, runtime decisions, and MCP tools instead of narrative policy.",
-    "why_now": "2026 agent deployments are moving from pilots to autonomous action. NIST's October 27, 2026 design tenets, drawn from NCCoE comments and stakeholder engagement, require cryptographically verifiable identities distinct from humans and service accounts, attenuated sub-agent delegation, zero standing privilege, short-lived audience-specific grants, signed mandate statements, architectural separation of policy from reasoning, deterministic access decisions, consent-fatigue-aware HITL thresholds, continuous monitoring, and independent append-only evidence. Unique short-lived sender-constrained credentials are necessary but not sufficient when a sub-agent keeps parent-wide scope, idle agents retain standing privilege, the reasoning model grants access, or the agent can write its own logs."
+    "why_now": "2026 agent deployments are moving from pilots to autonomous action. NIST's October 27, 2026 design tenets, drawn from NCCoE comments and stakeholder engagement, require cryptographically verifiable identities distinct from humans and service accounts, attenuated sub-agent delegation, zero standing privilege, short-lived audience-specific grants, signed mandate statements, architectural separation of policy from reasoning, deterministic access decisions, consent-fatigue-aware HITL thresholds, continuous monitoring, and independent append-only evidence. OWASP's November 10, 2026 Securing Agentic Applications V2 and the Agent Control Standard add the runtime-hook requirement: an Observed Agent must pause at a pre-execution hook such as toolCallRequest and honor a Guardian disposition before the action takes effect. Unique short-lived sender-constrained credentials are necessary but not sufficient when a sub-agent keeps parent-wide scope, idle agents retain standing privilege, the reasoning model grants access, the agent can write its own logs, or a production-looking run presents observe-only, post-execution, fail-open, documentation-only, or model-side hook evidence."
   },
   "runtime_policy": {
     "decision_order": [
@@ -47,7 +47,8 @@
       "agent authenticates with an unconstrained bearer token instead of a sender-constrained credential bound to its identity anchor",
       "sub-agent or downstream grant claims more authority than the parent",
       "agent retains standing privilege while idle instead of a just-in-time task-scoped grant",
-      "access grant is determined by the reasoning model instead of a separated deterministic policy engine"
+      "access grant is determined by the reasoning model instead of a separated deterministic policy engine",
+      "declared runtime hook is observe-only, post-execution, fail-open, documentation-only, model-side, or otherwise not a pre-execution enforcement point"
     ],
     "kill_when": [
       "token passthrough is observed",
@@ -84,7 +85,7 @@
       "failure_count": 0,
       "path": "data/evidence/agentic-action-runtime-pack.json",
       "schema_version": "1.0",
-      "sha256": "6f7e4f2ef812aedd40922cc8a11c6af266d8b8e3c50a0b7af99a28b59140bca6",
+      "sha256": "3331a19fbcd8be7244e5615c0c7fcb18f14212b12f85f5791ad8144094cfc953",
       "summary_keys": [
         "action_runtime_summary"
       ]
@@ -93,7 +94,7 @@
       "failure_count": 0,
       "path": "data/evidence/agentic-entitlement-review-pack.json",
       "schema_version": "1.0",
-      "sha256": "b3c8fdf67ef050a68fd15535bbfeb89d75e73741e0769567738b7e0e197ff674",
+      "sha256": "97f551bf8d6f19d44f0991df44630e493e3ba7103f2fcc792dd9ba4615e71856",
       "summary_keys": [
         "entitlement_review_summary"
       ]
@@ -102,7 +103,7 @@
       "failure_count": 0,
       "path": "data/evidence/agentic-run-receipt-pack.json",
       "schema_version": "1.0",
-      "sha256": "a478efdbbc950eac087628b918c6ac86e8389d55f9543ef4849fad587138ef68",
+      "sha256": "4d690e3e78d3fec2b6badd1b4dbd609c1d83131ca314a7fecb8d11a6fe70797d",
       "summary_keys": [
         "receipt_summary"
       ]
@@ -111,7 +112,7 @@
       "failure_count": 0,
       "path": "data/evidence/agentic-soc-detection-pack.json",
       "schema_version": "1.0",
-      "sha256": "42cb873587760f4346e6e9e469bca83633f7922ebe2dcd00fe84526418e24339",
+      "sha256": "f15fa9c94385708a616eb4d04dd6b7f3c652a53aed7f9554e3310cb67654979d",
       "summary_keys": [
         "detection_summary"
       ]
@@ -120,7 +121,7 @@
       "failure_count": 0,
       "path": "data/evidence/agentic-source-freshness-watch.json",
       "schema_version": "1.0",
-      "sha256": "44434cb2205d4d84cbebdb5006f01c519096dd4ae3cbd30e0f15ba7f6efd8e74",
+      "sha256": "842af38c10afc9139aabebc7da04c92e7cf49c0d6889e101c28c96020b45f898",
       "summary_keys": [
         "freshness_summary"
       ]
@@ -129,7 +130,7 @@
       "failure_count": 0,
       "path": "data/evidence/agentic-telemetry-contract.json",
       "schema_version": "1.0",
-      "sha256": "4002f86f0941788760087233b888da2945958a7420bbe5ef2733f2ec99f93bfe",
+      "sha256": "c0bc919e2fd655b0630bb0b6406187c21d021a079cd407c1f2e512201d5cab7e",
       "summary_keys": [
         "telemetry_summary"
       ]
@@ -138,7 +139,7 @@
       "failure_count": 0,
       "path": "data/evidence/context-egress-boundary-pack.json",
       "schema_version": "1.0",
-      "sha256": "298c45b92f3692940be7f536df8e9214445d3eb5a51673e7e99d6bd21c426ce2",
+      "sha256": "29dc27503afd6464ad8aafd8cf007594bae577c44894b39b7b9cb7acc6e5f1ce",
       "summary_keys": [
         "egress_boundary_summary"
       ]
@@ -147,7 +148,7 @@
       "failure_count": 0,
       "path": "data/evidence/context-poisoning-guard-pack.json",
       "schema_version": "1.0",
-      "sha256": "27c946929f23a36d631d4f4d2d94a540944b345fd5e7ae625b05ce837b219206",
+      "sha256": "d7fe0a1c14349d855131f9cafb80677c3df8db2a142f25ef4c79292334c3dd7b",
       "summary_keys": [
         "guard_summary"
       ]
@@ -156,7 +157,7 @@
       "failure_count": 0,
       "path": "data/evidence/enterprise-trust-center-export.json",
       "schema_version": "1.0",
-      "sha256": "8f6dae0de682142638b95b7a7aea3eef26e21756c32e7df00dd3448f1d4b067d",
+      "sha256": "5492680b59a5ba192765d9749ee9720894ce20176ff80d8d029b668634ead488",
       "summary_keys": [
         "export_summary"
       ]
@@ -165,7 +166,7 @@
       "failure_count": 0,
       "path": "data/evidence/hosted-mcp-readiness-pack.json",
       "schema_version": "1.0",
-      "sha256": "9e9c244410efc4cfd540ee0a7b5fcd56c9560645e27c0bccbb1277aad8dc0347",
+      "sha256": "689819a402aac2252cf4fd521c36748b3c5ac7a35b0fb36f1baf028eb3f6caf5",
       "summary_keys": [
         "hosted_mcp_readiness_summary"
       ]
@@ -183,7 +184,7 @@
       "failure_count": 0,
       "path": "data/evidence/secure-context-trust-pack.json",
       "schema_version": "1.0",
-      "sha256": "12efceb3d0fbc39ba3fa2c470abe99c0ad30d5463446d554d7602964664cb52a",
+      "sha256": "421732530ef033b9c38b3a5fa0a49402c19c76f918356b93744f71c7cdabfd72",
       "summary_keys": [
         "context_trust_summary"
       ]
@@ -315,6 +316,24 @@
       "why_it_matters": "OWASP's agentic risk catalog (goal hijack, tool misuse, identity and privilege abuse, agentic supply chain, unexpected code execution, memory and context poisoning, rogue agents) names the failure modes each trust-fabric dimension must hold or kill."
     },
     {
+      "id": "owasp-securing-agentic-apps-v2-2026",
+      "name": "Securing Agentic Applications V2: A Builder & Defender's Guide",
+      "published": "2026-11-10",
+      "publisher": "OWASP GenAI Security Project",
+      "source_class": "industry_standard",
+      "url": "https://genai.owasp.org/resource/securing-agentic-applications-v2/",
+      "why_it_matters": "OWASP's November 10, 2026 V2 builder-and-defender guide covers runtime protection as a first-class control for single- and multi-agent systems, so a policy-pack hash without a pre-execution enforcement point is not enough to trust an operator-tier run."
+    },
+    {
+      "id": "owasp-agent-control-standard-2026",
+      "name": "Agent Control Standard (ACS)",
+      "published": "2026-09-01",
+      "publisher": "OWASP GenAI Security Project",
+      "source_class": "industry_standard",
+      "url": "https://genai.owasp.org/resource/agent-control-standard-acs/",
+      "why_it_matters": "ACS defines how an Observed Agent exposes middleware hooks to a separate Guardian that returns allow, deny, modify, ask, or defer before the action executes. toolCallRequest fires after a tool call is parsed and before it is dispatched; observe-only, post-execution, fail-open, documentation-only, or model-side hooks are not that enforcement point."
+    },
+    {
       "id": "cisa-careful-adoption-agentic-ai-2026",
       "name": "Careful Adoption of Agentic AI Services",
       "published": "2026-05-01",
@@ -395,6 +414,11 @@
       "expected_decision": "deny_untrusted_agent",
       "id": "standing-privilege-or-model-driven-access",
       "trigger": "An idle agent retains standing privilege, or the reasoning model grants access instead of a separated deterministic policy engine."
+    },
+    {
+      "expected_decision": "deny_untrusted_agent",
+      "id": "observe-only-or-fail-open-runtime-hook",
+      "trigger": "A production-looking operator run presents observe-only, post-execution, fail-open, documentation-only, or model-side hook evidence instead of a pre-execution enforcement point such as toolCallRequest."
     },
     {
       "expected_decision": "kill_session_on_agent_trust_break",
@@ -577,7 +601,11 @@
         "guardrail_gap",
         "behavior_anomaly",
         "model_driven_access_grant",
-        "agent_writable_evidence"
+        "agent_writable_evidence",
+        "observe_only_runtime_hook",
+        "post_execution_runtime_hook",
+        "fail_open_runtime_hook",
+        "documentation_only_guardrail"
       ],
       "id": "behavior",
       "mcp_tools": [
@@ -585,7 +613,7 @@
         "recipes_agentic_soc_detection_pack",
         "recipes_agentic_run_receipt_pack"
       ],
-      "question": "What is the agent doing in real time and does it match its declared intent?",
+      "question": "What is the agent doing in real time, does it match its declared intent, and is any declared runtime hook a pre-execution enforcement point rather than observe-only, post-execution, fail-open, documentation-only, or model-side evidence?",
       "required_evidence": [
         "agentic_telemetry_contract",
         "agentic_soc_detection_pack",
@@ -695,7 +723,7 @@
       "autonomy": "scoped_action_with_review",
       "id": "operator",
       "minimum_score": 85,
-      "promotion_gate": "Action runtime, authorization, egress, telemetry, approval, and receipt evidence are bound to the run, the agent credential is sender-constrained to its identity anchor, standing privilege is absent, and any sub-agent grant is attenuated below the parent scope.",
+      "promotion_gate": "Action runtime, authorization, egress, telemetry, approval, and receipt evidence are bound to the run, the agent credential is sender-constrained to its identity anchor, standing privilege is absent, any sub-agent grant is attenuated below the parent scope, and a declared runtime hook is a pre-execution enforcement point such as toolCallRequest rather than observe-only, post-execution, fail-open, documentation-only, or model-side evidence.",
       "title": "Operator"
     },
     {
