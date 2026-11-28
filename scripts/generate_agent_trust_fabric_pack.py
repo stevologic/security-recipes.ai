@@ -330,6 +330,11 @@ def tabletop_cases() -> list[dict[str, Any]]:
             "trigger": "An idle agent retains standing privilege, or the reasoning model grants access instead of a separated deterministic policy engine."
         },
         {
+            "expected_decision": "deny_untrusted_agent",
+            "id": "observe-only-or-fail-open-runtime-hook",
+            "trigger": "A production-looking operator run presents observe-only, post-execution, fail-open, documentation-only, or model-side hook evidence instead of a pre-execution enforcement point such as toolCallRequest."
+        },
+        {
             "expected_decision": "kill_session_on_agent_trust_break",
             "id": "token-passthrough-or-secret-egress",
             "trigger": "A protected MCP token is passed downstream, a revoked identity is used, or a secret crosses an external egress boundary."

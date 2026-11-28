@@ -26,6 +26,14 @@ VALID_DECISIONS = {
     "kill_session_on_agent_trust_break",
 }
 TRUST_TIER_ORDER = {"intern": 0, "apprentice": 1, "operator": 2, "principal": 3}
+PRE_EXECUTION_RUNTIME_HOOK_MODES = {
+    "acs_tool_call_request",
+    "pre_execution",
+    "steps/tool_call_request",
+    "steps/toolcallrequest",
+    "tool_call_request",
+    "toolcallrequest",
+}
 
 
 class AgentTrustFabricDecisionError(RuntimeError):
@@ -102,6 +110,20 @@ def has_approval(record: Any) -> bool:
 
 def decision_state(value: Any) -> str:
     return str(value or "").strip().lower()
+
+
+def runtime_hook_mode(request: dict[str, Any]) -> str:
+    mode = str(request.get("runtime_hook_mode") or "").strip().lower()
+    return mode.replace("-", "_").replace(" ", "_")
+
+
+def is_non_pre_execution_runtime_hook(request: dict[str, Any]) -> bool:
+    mode = runtime_hook_mode(request)
+    if not mode:
+        return False
+    compact = mode.replace("_", "")
+    allowed = {item.replace("_", "") for item in PRE_EXECUTION_RUNTIME_HOOK_MODES}
+    return compact not in allowed and mode not in PRE_EXECUTION_RUNTIME_HOOK_MODES
 
 
 def is_negative_decision(value: Any) -> bool:
@@ -228,9 +250,12 @@ def score_dimensions(pack: dict[str, Any], request: dict[str, Any], missing: lis
         or request.get("standing_privilege")
         or request.get("model_driven_access_grant")
         or request.get("agent_writable_evidence")
+        or is_non_pre_execution_runtime_hook(request)
         or is_negative_decision(request.get("authorization_decision"))
     ):
         penalties_by_dimension["identity"] += 35
+    if is_non_pre_execution_runtime_hook(request):
+        penalties_by_dimension["behavior"] += 16
     if request.get("untrusted_context") or request.get("context_poisoning_signal") or is_hold_decision(request.get("source_freshness_decision")):
         penalties_by_dimension["context"] += 20
     if request.get("scope_escalation") or is_hold_decision(request.get("authorization_decision")) or is_hold_decision(request.get("action_runtime_decision")):
@@ -437,6 +462,22 @@ def evaluate_agent_trust_fabric_decision(pack: dict[str, Any], runtime_request: 
             violations=["access grant is determined by the reasoning model instead of a separated deterministic policy engine"],
         )
 
+    if is_non_pre_execution_runtime_hook(request):
+        mode = runtime_hook_mode(request)
+        return decision_result(
+            decision="deny_untrusted_agent",
+            pack=pack,
+            request=request,
+            workflow=workflow,
+            score=min(score, 49),
+            dimensions=dimensions,
+            reason="declared runtime hook is not a pre-execution enforcement point",
+            violations=[
+                "declared runtime hook is observe-only, post-execution, fail-open, documentation-only, model-side, or otherwise not a pre-execution enforcement point",
+                f"runtime_hook_mode={mode}",
+            ],
+        )
+
     tier_ok, tier_reasons = requested_tier_allowed(pack, workflow, request, score)
     if not tier_ok:
         return decision_result(
@@ -533,6 +574,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--approval-id")
     parser.add_argument("--approval-status")
     parser.add_argument("--risk-acceptance-id")
+    parser.add_argument("--runtime-hook-mode")
     parser.add_argument("--runtime-kill-signal")
     parser.add_argument("--indicator", action="append", default=[])
     parser.add_argument("--mcp-namespace", action="append", default=[])
@@ -596,6 +638,7 @@ def request_from_args(args: argparse.Namespace) -> dict[str, Any]:
         "requested_trust_tier": args.requested_trust_tier,
         "risk_acceptance_id": args.risk_acceptance_id,
         "run_id": args.run_id,
+        "runtime_hook_mode": args.runtime_hook_mode,
         "runtime_kill_signal": args.runtime_kill_signal,
         "scope_escalation": args.scope_escalation,
         "secret_egress": args.secret_egress,

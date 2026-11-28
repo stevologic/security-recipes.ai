@@ -3,7 +3,7 @@ title: Agent Trust Fabric
 linkTitle: Agent Trust Fabric
 weight: 16
 date: 2026-05-05
-lastmod: 2026-11-12
+lastmod: 2026-11-28
 sidebar:
   exclude: true
 description: >
@@ -20,7 +20,7 @@ this agent run is trusted, needs step-up, is untrusted, or must be
 killed.
 {{< /callout >}}
 
-Rechecked source anchors on November 12, 2026 against the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28), the current [security best practices](https://modelcontextprotocol.io/docs/2026-07-28/tutorials/security/security_best_practices), NIST's [August 27, 2026 agent identity guidance](https://www.nist.gov/blogs/cybersecurity-insights/back-future-why-agentic-ai-needs-strong-identity-foundation), NIST NCCoE's [September 29, 2026 comments summary](https://pages.nist.gov/nccoe-ai-identity/summary-of-comments.html) on software and agentic AI identity and authorization, and NIST's [October 27, 2026 design tenets for agent identity management systems](https://www.nist.gov/blogs/cybersecurity-insights/design-tenets-agent-identity-management-systems). MCP `latest` still redirects to 2026-07-28. The 2026-07-28 security guidance replaces session-hijacking assumptions with state-handle binding, forbids token passthrough, and treats OAuth metadata fetches as SSRF-sensitive. NCCoE, drawing on more than 600 comments, says sender-constrained credentials (OAuth DPoP or mTLS using SPIFFE or WIMSE identities) are essential to reduce bearer-token replay. NIST's ten design tenets, drawn from those comments and stakeholder engagement, add attenuated sub-agent delegation, zero standing privilege, signed mandate statements, architectural separation of policy from reasoning, deterministic access decisions, consent-fatigue-aware HITL thresholds, and independent append-only evidence. Unique short-lived sender-constrained credentials are necessary but not sufficient. This editorial pass does not claim human review of the pack.
+Rechecked source anchors on November 28, 2026 against [Securing Agentic Applications V2](https://genai.owasp.org/resource/securing-agentic-applications-v2/) (published November 10, 2026), the [Agent Control Standard](https://genai.owasp.org/resource/agent-control-standard-acs/), the public MCP specification [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28), the current [security best practices](https://modelcontextprotocol.io/docs/2026-07-28/tutorials/security/security_best_practices), and NIST's [October 27, 2026 design tenets for agent identity management systems](https://www.nist.gov/blogs/cybersecurity-insights/design-tenets-agent-identity-management-systems). The V2 resource page and ACS remain live. MCP `latest` still redirects to 2026-07-28. ACS requires an Observed Agent to pause at a pre-execution hook such as `toolCallRequest` and honor a Guardian disposition (`allow`, `deny`, `modify`, `ask`, or `defer`) before the tool is dispatched. A policy-pack hash with observe-only, post-execution, fail-open, documentation-only, or model-side hook evidence is not that enforcement point. NIST still requires architectural separation of policy from reasoning and deterministic access decisions. This editorial pass does not claim human review of the pack.
 
 ## The product bet
 
@@ -321,6 +321,35 @@ python3 scripts/evaluate_agent_trust_fabric_decision.py \
   --expect-decision kill_session_on_agent_trust_break
 ```
 
+Evaluate an observe-only runtime hook:
+
+```bash
+python3 scripts/evaluate_agent_trust_fabric_decision.py \
+  --workflow-id vulnerable-dependency-remediation \
+  --run-id run-observe-only-hook \
+  --agent-id sr-agent::vulnerable-dependency-remediation::codex \
+  --identity-id sr-agent::vulnerable-dependency-remediation::codex \
+  --tenant-id tenant-demo \
+  --correlation-id corr-hook \
+  --trust-event-id trust-evt-10 \
+  --requested-trust-tier operator \
+  --intent-summary "Patch dependency lockfiles on a scoped remediation branch" \
+  --context-package-hash sha256:context \
+  --policy-pack-hash sha256:policy \
+  --authorization-decision allow_authorized_mcp_request \
+  --egress-decision allow_internal_context \
+  --action-runtime-decision allow_bounded_action \
+  --telemetry-decision telemetry_ready \
+  --soc-decision no_alert \
+  --telemetry-event-id trace-10 \
+  --receipt-id receipt-10 \
+  --source-freshness-decision current \
+  --approval-id approval-10 \
+  --approval-status approved \
+  --runtime-hook-mode observe_only \
+  --expect-decision deny_untrusted_agent
+```
+
 ## What is inside
 
 | Section | Purpose |
@@ -443,6 +472,12 @@ The pack is anchored in current primary guidance:
   for goal hijack, tool misuse, identity and privilege abuse, agentic
   supply chain, unexpected code execution, memory and context
   poisoning, and rogue agents.
+- [OWASP Securing Agentic Applications V2](https://genai.owasp.org/resource/securing-agentic-applications-v2/)
+  for runtime protection as a first-class builder-and-defender control
+  across single- and multi-agent systems.
+- [OWASP Agent Control Standard](https://genai.owasp.org/resource/agent-control-standard-acs/)
+  for Observed Agent hooks, Guardian dispositions, and
+  `toolCallRequest` as a pre-execution enforcement point.
 - [CISA Careful Adoption of Agentic AI Services](https://www.cisa.gov/resources-tools/resources/careful-adoption-agentic-si-services)
   for expanded attack surface, privilege creep, behavioral
   misalignment, and obscure event records.

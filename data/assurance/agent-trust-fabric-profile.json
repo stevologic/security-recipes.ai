@@ -1,12 +1,12 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-11-12",
+  "last_reviewed": "2026-11-28",
   "intent": "Create an enterprise Agent Trust Fabric profile for SecurityRecipes that turns identity, behavior, context, least-privilege scope, telemetry, containment, source freshness, and buyer proof into one deterministic trust verdict before an agent retrieves secure context, invokes MCP tools, delegates, writes memory, or performs high-impact actions.",
   "positioning": {
     "buyer": "AI platform, product security, CISO, GRC, model-risk, SOC, procurement-security, and acquisition diligence teams",
     "category": "Agentic AI zero-trust decision fabric",
     "enterprise_promise": "SecurityRecipes can answer the board-level question 'which agents can we trust right now?' with generated evidence, source hashes, runtime decisions, and MCP tools instead of narrative policy.",
-    "why_now": "2026 agent deployments are moving from pilots to autonomous action. NIST's October 27, 2026 design tenets, drawn from NCCoE comments and stakeholder engagement, require cryptographically verifiable identities distinct from humans and service accounts, attenuated sub-agent delegation, zero standing privilege, short-lived audience-specific grants, signed mandate statements, architectural separation of policy from reasoning, deterministic access decisions, consent-fatigue-aware HITL thresholds, continuous monitoring, and independent append-only evidence. Unique short-lived sender-constrained credentials are necessary but not sufficient when a sub-agent keeps parent-wide scope, idle agents retain standing privilege, the reasoning model grants access, or the agent can write its own logs."
+    "why_now": "2026 agent deployments are moving from pilots to autonomous action. NIST's October 27, 2026 design tenets, drawn from NCCoE comments and stakeholder engagement, require cryptographically verifiable identities distinct from humans and service accounts, attenuated sub-agent delegation, zero standing privilege, short-lived audience-specific grants, signed mandate statements, architectural separation of policy from reasoning, deterministic access decisions, consent-fatigue-aware HITL thresholds, continuous monitoring, and independent append-only evidence. OWASP's November 10, 2026 Securing Agentic Applications V2 and the Agent Control Standard add the runtime-hook requirement: an Observed Agent must pause at a pre-execution hook such as toolCallRequest and honor a Guardian disposition before the action takes effect. Unique short-lived sender-constrained credentials are necessary but not sufficient when a sub-agent keeps parent-wide scope, idle agents retain standing privilege, the reasoning model grants access, the agent can write its own logs, or a production-looking run presents observe-only, post-execution, fail-open, documentation-only, or model-side hook evidence."
   },
   "source_references": [
     {
@@ -125,6 +125,24 @@
       "url": "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/",
       "source_class": "industry_risk_catalog",
       "why_it_matters": "OWASP's agentic risk catalog (goal hijack, tool misuse, identity and privilege abuse, agentic supply chain, unexpected code execution, memory and context poisoning, rogue agents) names the failure modes each trust-fabric dimension must hold or kill."
+    },
+    {
+      "id": "owasp-securing-agentic-apps-v2-2026",
+      "name": "Securing Agentic Applications V2: A Builder & Defender's Guide",
+      "publisher": "OWASP GenAI Security Project",
+      "published": "2026-11-10",
+      "url": "https://genai.owasp.org/resource/securing-agentic-applications-v2/",
+      "source_class": "industry_standard",
+      "why_it_matters": "OWASP's November 10, 2026 V2 builder-and-defender guide covers runtime protection as a first-class control for single- and multi-agent systems, so a policy-pack hash without a pre-execution enforcement point is not enough to trust an operator-tier run."
+    },
+    {
+      "id": "owasp-agent-control-standard-2026",
+      "name": "Agent Control Standard (ACS)",
+      "publisher": "OWASP GenAI Security Project",
+      "published": "2026-09-01",
+      "url": "https://genai.owasp.org/resource/agent-control-standard-acs/",
+      "source_class": "industry_standard",
+      "why_it_matters": "ACS defines how an Observed Agent exposes middleware hooks to a separate Guardian that returns allow, deny, modify, ask, or defer before the action executes. toolCallRequest fires after a tool call is parsed and before it is dispatched; observe-only, post-execution, fail-open, documentation-only, or model-side hooks are not that enforcement point."
     },
     {
       "id": "cisa-careful-adoption-agentic-ai-2026",
@@ -313,7 +331,7 @@
       "id": "behavior",
       "title": "Runtime Behavior Monitoring",
       "weight": 16,
-      "question": "What is the agent doing in real time and does it match its declared intent?",
+      "question": "What is the agent doing in real time, does it match its declared intent, and is any declared runtime hook a pre-execution enforcement point rather than observe-only, post-execution, fail-open, documentation-only, or model-side evidence?",
       "required_evidence": [
         "agentic_telemetry_contract",
         "agentic_soc_detection_pack",
@@ -331,7 +349,11 @@
         "guardrail_gap",
         "behavior_anomaly",
         "model_driven_access_grant",
-        "agent_writable_evidence"
+        "agent_writable_evidence",
+        "observe_only_runtime_hook",
+        "post_execution_runtime_hook",
+        "fail_open_runtime_hook",
+        "documentation_only_guardrail"
       ]
     },
     {
@@ -414,7 +436,7 @@
         "write_scoped_branch",
         "request_step_up"
       ],
-      "promotion_gate": "Action runtime, authorization, egress, telemetry, approval, and receipt evidence are bound to the run, the agent credential is sender-constrained to its identity anchor, standing privilege is absent, and any sub-agent grant is attenuated below the parent scope."
+      "promotion_gate": "Action runtime, authorization, egress, telemetry, approval, and receipt evidence are bound to the run, the agent credential is sender-constrained to its identity anchor, standing privilege is absent, any sub-agent grant is attenuated below the parent scope, and a declared runtime hook is a pre-execution enforcement point such as toolCallRequest rather than observe-only, post-execution, fail-open, documentation-only, or model-side evidence."
     },
     {
       "id": "principal",
@@ -453,7 +475,8 @@
       "agent authenticates with an unconstrained bearer token instead of a sender-constrained credential bound to its identity anchor",
       "sub-agent or downstream grant claims more authority than the parent",
       "agent retains standing privilege while idle instead of a just-in-time task-scoped grant",
-      "access grant is determined by the reasoning model instead of a separated deterministic policy engine"
+      "access grant is determined by the reasoning model instead of a separated deterministic policy engine",
+      "declared runtime hook is observe-only, post-execution, fail-open, documentation-only, model-side, or otherwise not a pre-execution enforcement point"
     ],
     "kill_when": [
       "token passthrough is observed",
